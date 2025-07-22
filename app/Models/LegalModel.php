@@ -1,0 +1,136 @@
+<?php
+// ADEL CODEIGNITER 4 CRUD GENERATOR
+
+namespace App\Models;
+
+use CodeIgniter\Model;
+
+class LegalModel extends Model
+{
+
+	protected $table = 'legal';
+	protected $primaryKey = 'id_legal';
+	protected $returnType = 'object';
+	protected $useSoftDeletes = false;
+	protected $allowedFields = [
+		"id_legal",
+		"pbb_pecah_nop",
+		"pbb_pecah_luas_bumi",
+		"pbb_pecah_njop_bumi",
+		"pbb_pecah_luas_bangunan",
+		"pbb_pecah_njop_bangunan",
+		"pbb_pecah_tanggal_bayar",
+		"pbb_pecah_jumlah_tagihan",
+		"pbb_tgl_pembetulan",
+		"pbb_balik_nama",
+		"pbb_balik_nama_tgl_pengiriman",
+		"pbb_balik_nama_ke",
+		"pbg_no",
+		"pbg_tanggal_terbit",
+		"pbg_tipe",
+		"pbg_status",
+		"pbg_dikirim_ke",
+		"pbg_tanggal_kirim",
+		"pbg_no_revisi",
+		"pbg_status_revisi",
+		"pbg_tanggal_terbit_revisi",
+		"pbg_tipe_revisi",
+		"bphtb_tanggal_verifikasi",
+		"bphtb_jatuh_tempo",
+		"bphtb_perpanjang_jatuh_tempo",
+		"bphtb_tanggal_pembayaran",
+		"bphtb_nominal_disetujui",
+		"bphtb_tanggal_validasi",
+		"bphtb_nominal_tervalidasi",
+		"pph_nominal_bayar",
+		"pph_tgl_bayar",
+		"pph_jenis_validasi",
+		"pph_tanggal_validasi",
+		"pph_tgl_permohonan",
+		"pph_tgl_selesai",
+		"pph_ntpn",
+		"pph_no_sket",
+		"ajb_no",
+		"ajb_tanggal",
+		"ajb_notaris",
+		"ajb_dikirim_ke",
+		"ajb_tanggal_dikirim",
+		"ppjb_no",
+		"ppjb_tanggal",
+		"ppjb_notaris",
+		"sertifikat_split_no_hgb",
+		"sertifikat_split_no_hgb_induk",
+		"sertifikat_split_tanggal_terbit",
+		"sertifikat_split_tanggal_berakhir",
+		"sertifikat_split_nib",
+		"sertifikat_nib_elektronik",
+		"sertifikat_split_tanggal_surat_ukur",
+		"sertifikat_split_no_surat_ukur",
+		"sertifikat_split_luas_tanah",
+		"sertifikat_balik_nama",
+		"sertifikat_balik_nama_tgl_pengiriman",
+		"sertifikat_balik_nama_ke",
+		"pbb_is_pembetulan",
+		"pbb_is_balik_nama",
+		"sertifikat_is_split",
+		"sertifikat_is_balik_nama",
+		"pbg_is_revisi"
+		// "id_legal",
+		// "pbb_pecah_nop",
+		// "pbb_pecah_luas_bumi",
+		// "pbb_pecah_njop_bumi",
+		// "pbb_pecah_luas_bangunan",
+		// "pbb_pecah_njop_bangunan",
+		// "pbb_pecah_tanggal_bayar",
+		// "pbb_pecah_jumlah_tagihan",
+		// "sertifikat_split_no_hgb",
+		// "sertifikat_split_tanggal_terbit",
+		// "sertifikat_split_tanggal_berakhir",
+		// "sertifikat_split_nib",
+		// "sertifikat_split_tanggal_surat_ukur",
+		// "sertifikat_split_no_surat_ukur",
+		// "sertifikat_split_luas_tanah",
+		// "sertifikat_balik_nama",
+		// "sertifikat_balik_nama_tgl_pengiriman",
+		// "sertifikat_balik_nama_ke",
+		// "pbg_no",
+		// "pbg_tanggal_terbit",
+		// "pbg_tanggal_pengajuan",
+		// "pbg_tipe",
+		// "pbg_status",
+		// "pbg_dikirim_ke",
+		// "pbg_tanggal_kirim",
+		// "bphtb_tanggal_verifikasi",
+		// "bphtb_jatuh_tempo",
+		// "bphtb_perpanjang_jatuh_tempo",
+		// "bphtb_tanggal_pembayaran",
+		// "bphtb_nominal_disetujui",
+		// "bphtb_tanggal_validasi",
+		// "bphtb_nominal_tervalidasi",
+		// "pph_tgl_permohonan",
+		// "pph_nominal_validasi",
+		// "pph_nominal_bayar",
+		// "pph_nominal_disetujui",
+		// "pph_tanggal_validasi",
+		// "pph_no_sket",
+		// "pph_kode_verifikasi",
+		// "pph_ntpn",
+		// "pph_tgl_bayar",
+		// "pph_jenis_validasi",
+		// "ajb_no",
+		// "ajb_tanggal",
+		// "ajb_notaris",
+		// "ajb_dikirim_ke",
+		// "ajb_tanggal_dikirim",
+		// "ppjb_no",
+		// "ppjb_tanggal",
+		// "ppjb_notaris"
+	];
+	protected $useTimestamps = true;
+	protected $createdField = 'created_at';
+	protected $updatedField = 'updated_at';
+	protected $deletedField = 'deleted_at';
+	protected $validationRules = [];
+	protected $validationMessages = [];
+	protected $skipValidation = true;
+}

@@ -1,0 +1,68 @@
+/*================================================================================
+	Item Name: Vuexy - Vuejs, HTML & Laravel Admin Dashboard Template
+	Version: 2.0
+	Author: PIXINVENT
+	Author URL: http://www.themeforest.net/user/pixinvent
+================================================================================
+
+NOTE:
+------
+PLACE HERE YOUR OWN SCSS CODES AND IF NEEDED, OVERRIDE THE STYLES FROM THE OTHER STYLESHEETS.
+WE WILL RELEASE FUTURE UPDATES SO IN ORDER TO NOT OVERWRITE YOUR STYLES IT'S BETTER LIKE THIS.  */
+.num {
+	text-align: right;
+}
+
+tbody tr td,
+label {
+	color: #111;
+	font-weight: 500;
+}
+
+input[type="text"],
+input[type="textarea"],
+select {
+	color: #111
+}
+
+select:disabled {
+	color: #111
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+	margin-bottom: 0.5rem;
+	font-family: inherit;
+	font-weight: 500;
+	line-height: 1.2;
+	color: #000;
+}
+
+body {
+	color: #000;
+	  
+}
+
+.blur {
+	filter: blur(3px);
+}
+
+input[type=text],
+select,
+textarea,
+.form-control {
+	border: 1px solid #aaa;
+}
+html {
+	font-size: 80%; /* Mengurangi ukuran font menjadi 80% dari ukuran default */
+}
