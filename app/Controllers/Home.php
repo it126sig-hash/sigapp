@@ -125,7 +125,7 @@ class Home extends BaseController
 
         return $this->response->setJSON($r);
     }
-    function getBookingAkad($field = 'booking_tgl',  $id_proyek, $thn = null, $bln = null)
+    function getBookingAkad($field = 'booking_tgl',  $id_proyek = null, $thn = null, $bln = null)
     {
         if (!$thn)
             return;
@@ -190,6 +190,12 @@ class Home extends BaseController
             $v = $val;
         }
 
+        $generik = '
+            <button type="button" class="my-float btn-icon btn btn-success btn-round btn-sm" onclick="lihat_detail()">
+                Lihat Detail
+            </button>
+            <div class="btn-icon btn btn-outline-warning btn-round btn-sm my-float" onclick="hapus_seleksi()">Hapus Seleksi</div>';
+
         //planing
         $menu[6] = '
         <div id="planning_menu" class="float div_menu">
@@ -212,51 +218,38 @@ class Home extends BaseController
             <div id="edit_kavling_batch" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="edit_kavling_batch()">Ubah Kavling</div>
             <button id="planning_toggle_btn" class="btn-icon btn btn-primary btn-round btn-sm my-float" data-toggle="collapse" data-target="#planningCollapse" aria-expanded="false" aria-controls="planningCollapse">Cek Legenda</button>
             <div class="collapse" id="planningCollapse">
-                <div class="card card-body">
-                    Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident.
+                <div/ class="card card-body">
                 </div>
             </div>
         </div>';
         //keunagan
         $menu[3] = '
         <div id="keuangan_menu" class="float div_menu">
-            <button type="button" class="my-float btn-icon btn btn-primary btn-round btn-sm" onclick="lihat_detail()">
-                Lihat Detail
-            </button>
-
-            <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="hapus_seleksi()">Hapus Seleksi</div>
-            <div id="isi_tagihan-btn" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_data_konsumen()">Isi Data Konsumen</div>
+            '.$generik.'
+            
             <div id="bayar_sumurbor-btn" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_cashout()">Cash Out</div>
             <div id="bayar_tagihan-btn" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_data()">Bayar Tagihan</div>
             <div id="print_tagihan-btn" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="print_tagihan()">Print Tagihan</div>
             <div id="dana_akad-btn" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="dana_akad()">Dana Jaminan</div>
+            <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="cek_jatuh_tempo(true)">List Jatuh Tempo</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="terima_batal()">Batal Booking</div>
         </div>';
         //mkdt
         $menu[4] = '
         <div id="mkdt_menu" class="float div_menu">
-            <button type="button" class="my-float btn-icon btn btn-primary btn-round btn-sm" onclick="lihat_detail()">
-                Lihat Detail
-            </button>
-
-            
-            <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="hapus_seleksi()">Hapus Seleksi</div>
+            '.$generik.'
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_set_harga()">Set Harga</div>
+            <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_data_konsumen()">Isi Data Konsumen</div>
+            <div id="edit_kavling_batch" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_data()">Ubah Status Kavling</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_set_turun_pembangunan()">Turun Pembangunan</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_si()">Standing Instruction</div>
-            <div id="edit_kavling_batch" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_data()">Isi/ubah Data</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="buat_nominatif()">Buat Nominatif</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="ajukan_batal()">Batal Booking</div>
         </div>';
         //produksi
         $menu[7] = '
         <div id="produksi_menu" class="float div_menu">
-            <button type="button" class="my-float btn-icon btn btn-primary btn-round btn-sm" onclick="lihat_detail()">
-                Lihat Detail
-            </button>
-
-            
-            <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="hapus_seleksi()">Hapus Seleksi</div>
+            '.$generik.'
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float btn-prod" onclick="isi_data()">Isi/ubah Data</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float btn-prod" onclick="isi_pembayaran()">Pembayaran</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float btn-prod" onclick="buat_slf()">SLF</div>
@@ -267,12 +260,7 @@ class Home extends BaseController
         //sales
         $menu[8] = '
         <div id="sales_menu" class="float div_menu">
-            <button type="button" class="my-float btn-icon btn btn-primary btn-round btn-sm" onclick="lihat_detail()">
-                Lihat Detail
-            </button>
-
-            
-            <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="hapus_seleksi()">Hapus Seleksi</div>
+           '.$generik.'
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_checklist_sales()">Checklist</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_serah_terima()">Serah Terima</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_komplain_sales()">Komplain</div>
@@ -282,22 +270,14 @@ class Home extends BaseController
         // Direksi
         $menu[9] = '
         <div id="direksi_menu" class="float div_menu">
-            <button type="button" class="my-float btn-icon btn btn-primary btn-round btn-sm" onclick="lihat_detail()">
-                Lihat Detail
-            </button>
-            
-            <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="hapus_seleksi()">Hapus Seleksi</div>
+            '.$generik.'
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_diskresi()">Diskresi HargaJual</div>
         </div>';
 
         //other
         $menu[0] = '
         <div id="others_menu" class="float div_menu">
-            <button type="button" class="my-float btn-icon btn btn-primary btn-round btn-sm" onclick="lihat_detail()">
-                Lihat Detail
-            </button>
-
-            <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="hapus_seleksi()">Hapus Seleksi</div>
+            '.$generik.'
             <div id="edit_kavling_batch" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_data()">Isi/ubah Data</div>
 
         </div>';

@@ -61,8 +61,9 @@
 						</div>
 
 						<div class="form-group">
-							<label for="idProyek"> Id proyek: </label>
+							<label for="idProyek">Pilih Proyek: </label>
 							<select id="idProyek" name="idProyek" class="custom-select">
+								<option value=''>Pilih Proyek</option>
 								<?php
 								foreach ($proyek as $p) {
 									echo "<option value='$p->id_proyek'>$p->nama_proyek</option>";
@@ -153,8 +154,9 @@
 									<input type="hidden" id="idTipe" name="idTipe" class="form-control" placeholder="Id tipe" maxlength="255" required>
 								</div>
 								<div class="form-group">
-									<label for="_idProyek"> Id proyek: </label>
+									<label for="_idProyek"> Pilih Proyek: </label>
 									<select id="_idProyek" disabled name="_idProyek" class="custom-select">
+										<option value=''>Pilih Proyek</option>
 										<?php
 										foreach ($proyek as $p) {
 											echo "<option value='$p->id_proyek'>$p->nama_proyek</option>";
@@ -520,7 +522,7 @@
 				$("#edit-form #lb").val(response.lb);
 				$("#edit-form #lt").val(response.lt);
 
-				console.log(response.no_tipe_rumah, response.tipe_rumah)
+				// console.log(response.no_tipe_rumah, response.tipe_rumah)
 
 				$("#edit-form #id_gambar_kerja").val(response.id_gambar_kerja);
 

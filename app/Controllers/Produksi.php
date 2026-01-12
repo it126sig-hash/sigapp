@@ -13,6 +13,9 @@ use App\Controllers\Notif;
 use App\Libraries\Pdf;
 use App\Libraries\Mpdf_lib;
 use App\Controllers\Home;
+
+use function PHPUnit\Framework\returnSelf;
+
 class Produksi extends BaseController
 {
 	protected $db;
@@ -89,83 +92,82 @@ class Produksi extends BaseController
 	}
 
 	function getBayarProduksi()
-    {
-        $r['token'] = csrf_hash();
+	{
+		$r['token'] = csrf_hash();
 
-        $id_kavling = $this->request->getVar('id_kavling');
+		$id_kavling = $this->request->getVar('id_kavling');
 
-        $r['id_kavling'] = $id_kavling;
+		$r['id_kavling'] = $id_kavling;
 
 
-        $r['list_bayar_produksi'] = $this->db->table('list_bayar_produksi lc')
-            ->select('lc.id as id_bayar_produksi, lc.item, lc.sort, c.*, u.username as add_by_u, e.username as edit_by_u')
-            ->join('bayar_produksi c', 'c.id_item_produksi = lc.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
-            ->join('users u', 'u.id = c.add_by', 'left')
-            ->join('users e', 'e.id = c.edit_by', 'left')
-            ->get()->getResult();
+		$r['list_bayar_produksi'] = $this->db->table('list_bayar_produksi lc')
+			->select('lc.id as id_bayar_produksi, lc.item, lc.sort, c.*, u.username as add_by_u, e.username as edit_by_u')
+			->join('bayar_produksi c', 'c.id_item_produksi = lc.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
+			->join('users u', 'u.id = c.add_by', 'left')
+			->join('users e', 'e.id = c.edit_by', 'left')
+			->get()->getResult();
 
-        return $this->response->setJSON($r);
-    }
+		return $this->response->setJSON($r);
+	}
 	function saveBayarProduksi()
-    {
-        $response['token'] = csrf_hash();
-        $id = $this->request->getVar('id-bayar_produksi');
-        $id_kavling = $this->request->getVar('id_kavling');
+	{
+		$response['token'] = csrf_hash();
+		$id = $this->request->getVar('id-bayar_produksi');
+		$id_kavling = $this->request->getVar('id_kavling');
 
-        foreach ($id as $i => $v) {
-            $data = [];
-            
-            $data['id_kavling'] = $id_kavling;
+		foreach ($id as $i => $v) {
+			$data = [];
+
+			$data['id_kavling'] = $id_kavling;
 
 
-            $s = false;
+			$s = false;
 
-          
-              
-            if ($v['nominal'] != "" && $v['tanggal_bayar'] != "") {
-                if (strpos($i, 'n') === false) {
-                    // $data['id_item_cashout'] = $v['id_item_cashout'];
-                    $data['nominal'] = $this->num($v['nominal']);
-                    $data['keterangan'] = $v['keterangan'];
-                    $data['tanggal_bayar'] = $v['tanggal_bayar'];
 
-                    $data['edit_by'] = user_id();
-                    $data['updated_at'] = date("Y-m-d H:i:s");
 
-                    // $data['id'] = $i;
-                    $q = $this->db->table('bayar_produksi')
-                        ->where(['id' => $i])
-                        ->update($data);
-                    
-                        $s = $q ;
-                } else {
-                    $data['id_item_produksi'] = substr($v['id_item_produksi'], 1);
-                    $data['nominal'] = $this->num($v['nominal']);
-                    $data['keterangan'] = $v['keterangan'];
-                    $data['tanggal_bayar'] = $v['tanggal_bayar'];
+			if ($v['nominal'] != "" && $v['tanggal_bayar'] != "") {
+				if (strpos($i, 'n') === false) {
+					// $data['id_item_cashout'] = $v['id_item_cashout'];
+					$data['nominal'] = $this->num($v['nominal']);
+					$data['keterangan'] = $v['keterangan'];
+					$data['tanggal_bayar'] = $v['tanggal_bayar'];
 
-                    $data['id'] = null;
-                    $data['add_by'] = user_id();
-                    $data['created_at'] = date("Y-m-d H:i:s");
-                    
-                    $q = $this->db->table('bayar_produksi')
-                        ->insert($data);
-                    
-                    $s = $q;
-                }
-            }
-            
-        }
-     
-        // if ($s) {
-            $response['success'] = true;
-            $response['messages'] = 'Data berhasil diperbaharui';
-        // } else {
-        //     $response['success'] = false;
-        //     $response['messages'] = 'Terjadi kesalahan saat melakukan perubahan data';
-        // }
-        return $this->response->setJSON($response);
-    }
+					$data['edit_by'] = user_id();
+					$data['updated_at'] = date("Y-m-d H:i:s");
+
+					// $data['id'] = $i;
+					$q = $this->db->table('bayar_produksi')
+						->where(['id' => $i])
+						->update($data);
+
+					$s = $q;
+				} else {
+					$data['id_item_produksi'] = substr($v['id_item_produksi'], 1);
+					$data['nominal'] = $this->num($v['nominal']);
+					$data['keterangan'] = $v['keterangan'];
+					$data['tanggal_bayar'] = $v['tanggal_bayar'];
+
+					$data['id'] = null;
+					$data['add_by'] = user_id();
+					$data['created_at'] = date("Y-m-d H:i:s");
+
+					$q = $this->db->table('bayar_produksi')
+						->insert($data);
+
+					$s = $q;
+				}
+			}
+		}
+
+		// if ($s) {
+		$response['success'] = true;
+		$response['messages'] = 'Data berhasil diperbaharui';
+		// } else {
+		//     $response['success'] = false;
+		//     $response['messages'] = 'Terjadi kesalahan saat melakukan perubahan data';
+		// }
+		return $this->response->setJSON($response);
+	}
 	function get_data_komplain_by_id()
 	{
 		if ($this->request->getVar('id_kavling')) {
@@ -357,33 +359,38 @@ class Produksi extends BaseController
 
 		foreach ($categories as $category) {
 			// Get the files for the specified category
-			$imgs = $this->request->getFiles()[$category];
-			$tgl = $this->request->getVar('tgl_' . $category);
-			$ket = $this->request->getVar('ket_' . $category);
-			$i = 0;
-			foreach ($imgs as $img) {
-				if ($img->getSize() > 0) {
-					$name = $img->getRandomName();
-					$img->move($lok, $name);
+			if ($category != "rab_dokumen") {
+
+				$imgs = $this->request->getFiles()[$category];
+				$tgl = $this->request->getVar('tgl_' . $category);
+				$ket = $this->request->getVar('ket_' . $category);
+	
+
+				$i = 0;
+				foreach ($imgs as $img) {
+					if ($img->getSize() > 0) {
+						$name = $img->getRandomName();
+						$img->move($lok, $name);
 
 
-					// Generate thumbnail
-					$image = \Config\Services::image()
-						->withFile($lok . $name)
-						->resize(150, 150, true, 'height')
-						->save($thumbLok . $name);
+						// Generate thumbnail
+						$image = \Config\Services::image()
+							->withFile($lok . $name)
+							->resize(150, 150, true, 'height')
+							->save($thumbLok . $name);
 
-					$data[] = [
-						'id_kavling' => $id_kavling,
-						'lokasi' => $lok,
-						'file_name' => $name,
-						'tgl_capture' => $tgl[$i],
-						'file_keterangan' => $ket[$i],
-						'kategori' => $category,
-						'upload_at' => date('Y-m-d H:i:s'),
-						'upload_by' => user_id(),
-					];
-					$i++;
+						$data[] = [
+							'id_kavling' => $id_kavling,
+							'lokasi' => $lok,
+							'file_name' => $name,
+							'tgl_capture' => isset($tgl[$i]) ? $tgl[$i]: null,
+							'file_keterangan' => isset($ket[$i]) ? $ket[$i] : null,
+							'kategori' => $category,
+							'upload_at' => date('Y-m-d H:i:s'),
+							'upload_by' => user_id(),
+						];
+						$i++;
+					}
 				}
 			}
 		}
@@ -437,7 +444,7 @@ class Produksi extends BaseController
 		$f['keterangan'] = $this->request->getVar('produksi_keterangan');
 
 
-		
+
 
 		//get data ceklist yang sudah ada di tb cheklist_work
 		$get_cw = $this->cwModel->select('id_subitem')->where('id_kavling', $id_kavling)->findAll();
@@ -465,20 +472,20 @@ class Produksi extends BaseController
 			$f['tanggal_selesai_pembangunan_oleh'] = user_id();
 			$f['tanggal_selesai_pembangunan_pada'] = date('Y-m-d H:i:s');
 			// echo "add tgl selesai";
-		}else if($tanggal_selesai_pembangunan_old != '' && $tanggal_selesai_pembangunan != $tanggal_selesai_pembangunan_old){
+		} else if ($tanggal_selesai_pembangunan_old != '' && $tanggal_selesai_pembangunan != $tanggal_selesai_pembangunan_old) {
 			$f['tanggal_selesai_pembangunan_diubah_oleh'] = user_id();
-			$f['tanggal_selesai_pembangunan_diubah_pada'] = date('Y-m-d H:i:s'); 
+			$f['tanggal_selesai_pembangunan_diubah_pada'] = date('Y-m-d H:i:s');
 			// echo "edit tgl bangun";
 		}
 
 
-		if($tgl_pembangunan)
+		if ($tgl_pembangunan)
 			$f['tanggal_pembangunan'] = $this->request->getVar('tanggal_pembangunan');
-        
-		if($tanggal_selesai_pembangunan)//tanggal selesai pembangunan
+
+		if ($tanggal_selesai_pembangunan) //tanggal selesai pembangunan
 			$f['tanggal_selesai_pembangunan'] = $this->request->getVar('tanggal_selesai_pembangunan') ? $this->request->getVar('tanggal_selesai_pembangunan') : null;
 
-		if($tanggal_rencana_selesai_pembangunan)
+		if ($tanggal_rencana_selesai_pembangunan)
 			$f['tanggal_rencana_selesai_pembangunan'] = $this->request->getVar('tanggal_rencana_selesai_pembangunan');
 
 
@@ -550,15 +557,15 @@ class Produksi extends BaseController
 
 			if ($this->produksiModel->insert($f)) {
 				$this->kavlingModel->update(
-					$id_kavling, 
+					$id_kavling,
 					[
-							'id_produksi' => $this->produksiModel->getInsertID(),
-							'sumurbor' => $this->request->getVar('sumurbor'),
-							'sumurbor_keterangan' => $this->request->getVar('sumurbor_keterangan'),
-							'sumurbor_tanggal' => $this->request->getVar('sumurbor_tanggal'),
-							'sumurbor_oleh' => user_id(),
-							'sumurbor_updated' => date("Y-m-d H:i:s"),
-						]
+						'id_produksi' => $this->produksiModel->getInsertID(),
+						'sumurbor' => $this->request->getVar('sumurbor'),
+						'sumurbor_keterangan' => $this->request->getVar('sumurbor_keterangan'),
+						'sumurbor_tanggal' => $this->request->getVar('sumurbor_tanggal'),
+						'sumurbor_oleh' => user_id(),
+						'sumurbor_updated' => date("Y-m-d H:i:s"),
+					]
 				);
 
 				$this->notif->tambah_notif("7;4;9", $notif, user_id(), $id_kavling, ""); //7 produksi 4 mkdt 9 direksi
@@ -575,13 +582,13 @@ class Produksi extends BaseController
 
 			if ($this->produksiModel->update($f['id_produksi'], $f)) {
 				$this->kavlingModel->update(
-					$id_kavling, 
-					[	
-							'sumurbor' => $this->request->getVar('sumurbor'),
-							'sumurbor_keterangan' => $this->request->getVar('sumurbor_keterangan'),
-							'sumurbor_tanggal' => $this->request->getVar('sumurbor_tanggal'),
-							'sumurbor_oleh' => user_id(),
-						]
+					$id_kavling,
+					[
+						'sumurbor' => $this->request->getVar('sumurbor'),
+						'sumurbor_keterangan' => $this->request->getVar('sumurbor_keterangan'),
+						'sumurbor_tanggal' => $this->request->getVar('sumurbor_tanggal'),
+						'sumurbor_oleh' => user_id(),
+					]
 				);
 
 				$this->notif->tambah_notif("7;4;9", $notif, user_id(), $id_kavling, ""); //7 produksi 4 mkdt 9 direksi
@@ -642,7 +649,6 @@ class Produksi extends BaseController
 		}
 
 		return $this->response->setJSON($r);
-
 	}
 	function getSlf()
 	{
@@ -780,8 +786,7 @@ class Produksi extends BaseController
 			->orLike('nama_konsumen', $search)
 			->orLike('no_kavling', $search)
 			->groupEnd()
-			->get()->getResult()
-		;
+			->get()->getResult();
 
 		return $this->response->setJSON($data);
 	}
@@ -891,10 +896,10 @@ class Produksi extends BaseController
 		return $this->response->setJSON($response);
 	}
 	protected function num($d)
-    {
-        // $d = str_replace('.', "", $d);
-        $d = str_replace(',', "", $d);
+	{
+		// $d = str_replace('.', "", $d);
+		$d = str_replace(',', "", $d);
 
-        return $d;
-    }
+		return $d;
+	}
 }

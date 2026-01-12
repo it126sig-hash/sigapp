@@ -348,7 +348,9 @@ class Pajak extends BaseController
 		$response['token'] = csrf_hash();
 		$id_kavling = $this->request->getPost('id_kavling');
 
-		$pph42_nilai = (float) $this->num($this->request->getPost('pph42_nilai'));
+		$pph42_nilai = $this->num($this->request->getPost('pph42_nilai'));
+
+		// echo $pph42_nilai; die();
 
 		$fields['id'] = $this->request->getPost('id');
 		$fields['id_mkdt'] = $this->request->getPost('id_mkdt');
@@ -362,7 +364,7 @@ class Pajak extends BaseController
 		$fields['pph42_keterangan'] = $this->request->getPost('pph42_keterangan');
 
 
-		$ppn_nilai = (float) $this->num($this->request->getPost('harga_ppn'));
+		$ppn_nilai = $this->num($this->request->getPost('ppn_nilai'));
 		$ppn_tgl_bayar = $this->request->getPost('ppn_tgl_bayar');
 
 		$fields['ppn_tarif'] = $this->request->getPost('ppn_tarif');
@@ -447,6 +449,30 @@ class Pajak extends BaseController
 				'upload_by' => user_id(),
 			];
 
+			$this->db->table('file_upload')
+				->insert($f);
+		}
+		/************************ upload E-billing *****************************/
+		if ($this->request->getFile('ppn_file-faktur')->getSize() > 0) {
+			$img = $this->request->getFile('ppn_file-faktur');
+
+			$name = $img->getRandomName();
+
+			$lok = 'uploads/l/' . date('Ymd') . '/';
+
+			$img->move($lok, $name);
+
+			$f = [
+				'id_kavling' => $id_kavling,
+				'id_group' => 10,  //id untuk pajak
+				'lokasi' => $lok . $name,
+				'file_name' => $img->getClientName(),
+				'kategori' => 13,
+				'default_filename' => $this->request->getPost('ppn_kategori-ebilling'),
+				'keterangan' => $this->request->getPost('ppn_file_keterangan-ebilling'),
+				'upload_at' => date('Y-m-d H:i:s'),
+				'upload_by' => user_id(),
+			];
 			$this->db->table('file_upload')
 				->insert($f);
 		}

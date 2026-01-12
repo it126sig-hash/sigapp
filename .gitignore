@@ -128,3 +128,8 @@ nb-configuration.xml
 /vendor
 /db
 /app/config
+
+db/
+uploads/
+upload/
+vendor/

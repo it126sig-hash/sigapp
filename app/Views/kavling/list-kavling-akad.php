@@ -1,16 +1,14 @@
-<link rel="stylesheet" type="text/css"
-  href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
-<link rel="stylesheet" type="text/css"
-  href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
-<link rel="stylesheet" type="text/css"
-  href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/buttons.bootstrap4.min.css">
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/extensions/sweetalert2.min.css">
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/forms/select/select2.min.css">
-<link rel="stylesheet" type="text/css"
-  href="https://datatables.net/release-datatables/extensions/FixedColumns/css/fixedColumns.bootstrap4.min.css" />
-<!-- 
-<link rel="stylesheet" href="<?= base_url() ?>/app-assets/vendors/css/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.css">
-<link rel="stylesheet" href="<?= base_url() ?>/app-assets/vendors/css/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.css"> -->
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/buttons.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/extensions/sweetalert2.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/forms/select/select2.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/forms/select/select2.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/fixed-columns/fixedColumns.bootstrap4.css">
+
+<!--
+<link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.css">
+<link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.css"> -->
 
 <script>
   // var csrfName = '<?= csrf_token() ?>';
@@ -33,11 +31,10 @@
     <div class="row">
       <div class="col-12">
         <div class="card">
-          <h5 class="card-header">
-            Konsumen Akad
-          </h5>
+          <h2 class="card-header">
+            Posisi Konsumen Akad
+          </h2>
           <div class="card-header border-bottom">
-
             <div class="col-md-4 mb-1">
               <label>Proyek</label>
               <select id="id_proyek" name="id_proyek" class="select2 form-control"></select>
@@ -50,7 +47,8 @@
               <label>Blok</label>
               <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
             </div>
-            <div class="col-md-4 mb-1 hidden">
+            <hr class="col-12" hidden />
+            <div class="col-md-4 mb-1" hidden>
               <label>Wawancara</label>
               <select id="wawancara" name="wawancara" class="select2 self form-control">
                 <option value=""> Tanpa Filter </option>
@@ -58,7 +56,7 @@
                 <option value="0"> Belum </option>
               </select>
             </div>
-            <div class="col-md-4 mb-1 hidden">
+            <div class="col-md-4 mb-1" hidden>
               <label>SP3K</label>
               <select id="sp3k" name="sp3k" class="select2 self form-control">
                 <option value=""> Tanpa Filter </option>
@@ -78,167 +76,149 @@
             </div>
             <hr class="col-12" />
             <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm">Filter Data</button>
-            <button type="button" id="btn_export" class="btn btn-success waves-effect btn-sm">Export Excel</button>
+            <div class="btn-group">
+              <button type="button" id="btn_export_excel" class="btn btn-success waves-effect btn-sm"><i class="fa fa-file-excel"></i> Export Excel</button>
+              <button type="button" id="btn_export_pdf" class="btn btn-danger waves-effect btn-sm"><i class="fa fa-file-pdf"></i> Export PDF</button>
+            </div>
 
           </div>
         </div>
-
         <div class="card">
-          <div class="card-datatable">
-            <table id="data_tables" style="" class="datatables-basic table compact table-hover">
-              <thead>
-                <tr>
-                  <th id="tb_no" rowspan="3">NO</th>
-                  <th id="tb_kavling" colspan="2">KAVLING</th>
-                  <th id="tb_type" rowspan="3">TYPE</th>
-                  <th id="tb_nama_konsumen" rowspan="3">NAMA KONSUMEN</th>
-                  <th id="tb_sales" rowspan="3">SALES</th>
-                  <th id="tb_tgl_booking" rowspan="3">TGL BOOKING</th>
-                  <th id="tb_tgl_wwc" rowspan="3">TGL WWC</th>
-                  <th id="tb_marketing_data" colspan="6">MARKETING DATA</th>
-                  <th id="tb_keuangan" colspan="5">KEUANGAN</th>
-                  <th></th>
-                  <th id="tb_produksi" colspan="4">PRODUKSI</th>
-                  <th id="tb_legal" colspan="3">LEGAL</th>
-                  <th id="tb_ga">GA</th>
-                </tr>
-                <tr>
-                  <th id="tb_blok" rowspan="2">BLOK</th>
-                  <th id="tb_no_kavling" rowspan="2">NO</th>
-                  <th id="tb_pengajuan" colspan="2">PENGAJUAN</th>
-                  <th id="tb_status" rowspan="2">STATUS</th>
-                  <th id="tb_sp3k" colspan="2">SP3K</th>
-                  <th id="tb_sikasep" rowspan="2">SIKASEP</th>
-                  <th id="tb_tunai" rowspan="2">TUNAI</th>
-                  <th id="tb_um" rowspan="2">UM</th>
-                  <th id="tb_biaya" rowspan="2">BIAYA</th>
-                  <th id="tb_hj" rowspan="2">HJ</th>
-                  <th id="tb_kpr" rowspan="2">KPR</th>
-                  <th id="tb_pricelist" rowspan="2">PRICELIST</th>
-                  <th id="tb_bangunan" colspan="2">BANGUNAN</th>
-                  <th id="tb_listrik" rowspan="2">LISTRIK</th>
-                  <th id="tb_jalan" rowspan="2">JALAN</th>
-                  <th id="tb_hgb" rowspan="2">HGB</th>
-                  <th id="tb_imb" rowspan="2">IMB</th>
-                  <th id="tb_pbb" rowspan="2">PBB</th>
-                  <th id="tb_sikumbang" rowspan="2">SIKUMBANG</th>
-                </tr>
-                <tr>
-                  <th id="tb_tunai_kpr">TUNAI/KPR</th>
-                  <th id="tb_bank">BANK</th>
-                  <th id="tb_terbit">TERBIT</th>
-                  <th id="tb_expired">EXPIRED</th>
-                  <th id="tb_pct">%</th>
-                  <th id="tb_lpa">LPA</th>
-                </tr>
-              </thead>
-            </table>
-
+          <div class="card-body pb-0 pt-0">
+            <ul class="nav nav-tabs mb-1 mt-1" role="tablist">
+              <li class="nav-item">
+                <a class="nav-link active" id="list_poskon-tab"
+                  data-toggle="tab" href="#list_poskon"
+                  aria-controls="list_poskon" role="tab" aria-selected="true">List Posisi Konsumen Akad</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="riwayat_eksport-tab" data-toggle="tab"
+                  href="#riwayat_eksport" aria-controls="riwayat_eksport" role="tab"
+                  aria-selected="true">Riwayat Eksport</a>
+              </li>
+            </ul>
           </div>
         </div>
-      </div>
-    </div>
-    <!-- Add modal content -->
-    <div class="modal modal-slide-in fade" id="add-modal">
-      <div class="modal-dialog sidebar-sm">
-        <form id="add-form" class="add-new-record modal-content pt-0">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
-          <div class="modal-header mb-1">
-            <h5 class="modal-title" id="exampleModalLabel">Tambah Data</h5>
-          </div>
-          <div class="modal-body flex-grow-1">
-            <div class="row">
-              <input type="hidden" id="idGroup" name="idGroup" class="form-control" placeholder="Id group"
-                maxlength="11" required>
-            </div>
-            <div class="form-group">
-              <label for="namaGroup"> Nama group: <span class="text-danger">*</span> </label>
-              <input type="text" id="namaGroup" name="namaGroup" class="form-control" placeholder="Nama group"
-                maxlength="50" required>
-            </div>
-            <button type="submit" class="btn btn-primary data-submit mr-1" id="add-form-btn">Simpan</button>
-            <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
-          </div>
-        </form>
-      </div>
-    </div>
-    <!-- Add modal content -->
-    <div class="modal modal-slide-in fade" id="edit-modal">
-      <div class="modal-dialog sidebar-sm">
-        <form id="edit-form" class="add-new-record modal-content pt-0">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
-          <div class="modal-header mb-1">
-            <h5 class="modal-title" id="exampleModalLabel">Tambah Data</h5>
-          </div>
-          <div class="modal-body flex-grow-1">
-            <div class="row">
-              <input type="hidden" id="idGroup" name="idGroup" class="form-control" placeholder="Id group"
-                maxlength="11" required>
-            </div>
-            <div>
-              <div class="form-group">
-                <label for="namaGroup"> Nama group: <span class="text-danger">*</span> </label>
-                <input type="text" id="namaGroup" name="namaGroup" class="form-control" placeholder="Nama group"
-                  maxlength="50" required>
+        <div class="card">
+          <div class="card-body">
+            <div class="tab-content">
+              <div class="tab-pane show active" id="list_poskon"
+                aria-labelledby="list_poskon-tab" role="tabpanel">
+                <table id="data_tables" class="datatables-basic table compact table-hover table-bordered">
+                  <thead>
+                    <tr>
+                      <th rowspan="3" id="tb-NO">NO</th>
+                      <th colspan="2" id="tb-KAVLING">KAVLING</th>
+                      <th rowspan="3" id="tb-TYPE">TYPE</th>
+                      <th rowspan="3" id="tb-NAMA_KONSUMEN">NAMA KONSUMEN</th>
+                      <th rowspan="3" id="tb-SALES">SALES</th>
+                      <th rowspan="3" id="tb-TGL_BOOKING">TGL BOOKING</th>
+                      <th rowspan="3" id="tb-TGL_WAWANCARA">TGL WAWANCARA</th>
+                      <th colspan="6" id="tb-MARKETING_DATA">MARKETING DATA</th>
+                      <th colspan="4" id="tb-KEUANGAN">KEUANGAN</th>
+                      <th colspan="4" id="tb-PRODUKSI">PRODUKSI</th>
+                      <th colspan="3" id="tb-LEGAL">LEGAL</th>
+                      <th id="tb-GA">GA</th>
+                      <th rowspan="3" id="tb-action"></th>
+                    </tr>
+
+                    <tr>
+                      <th rowspan="2" id="tb-BLOK">BLOK</th>
+                      <th rowspan="2" id="tb-NO_KAVLING">NO</th>
+
+                      <th colspan="2" id="tb-PENGAJUAN">PENGAJUAN</th>
+                      <th rowspan="2" id="tb-STATUS">STATUS</th>
+                      <th colspan="2" id="tb-SP3K">SP3K</th>
+                      <th rowspan="2" id="tb-SIKASEP">SIKASEP</th>
+
+                      <th rowspan="2" id="tb-TUNAI">TUNAI</th>
+                      <th rowspan="2" id="tb-UM">UM</th>
+                      <th rowspan="2" id="tb-B_ADM">B. ADM</th>
+                      <th rowspan="2" id="tb-BIAYA_BIAYA">BIAYA-BIAYA</th>
+
+                      <th colspan="2" id="tb-BANGUNAN">BANGUNAN</th>
+                      <th rowspan="2" id="tb-LISTRIK">LISTRIK</th>
+                      <th rowspan="2" id="tb-JALAN">JALAN</th>
+
+                      <th rowspan="2" id="tb-HGB">HGB</th>
+                      <th rowspan="2" id="tb-IMB">IMB</th>
+                      <th rowspan="2" id="tb-PBB">PBB</th>
+
+                      <th rowspan="2" id="tb-SIKUMBANG">SIKUMBANG</th>
+                    </tr>
+
+                    <tr>
+                      <th id="tb-TUNAI_KPR">TUNAI/KPR</th>
+                      <th id="tb-TERBIT">BANK</th>
+                      <th id="tb-TERBIT">TERBIT</th>
+                      <th id="tb-EXPIRED">EXPIRED</th>
+
+                      <th id="tb-%">%</th>
+                      <th id="tb-LPA">LPA</th>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+              <div class="tab-pane show" id="riwayat_eksport"
+                aria-labelledby="riwayat_eksport-tab" role="tabpanel">
+                <table id="riwayat_export" class=" table compact table-hover table-bordered">
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>Proyek</th>
+                      <th>Tanggal Eksport</th>
+                      <th>Dieksport Oleh</th>
+                      <th>Tipe</th>
+                      <th>File</th>
+                    </tr>
+                  </thead>
+                  <tbody id="riwayat-here">
+                  </tbody>
+                </table>
               </div>
             </div>
-            <button type="submit" class="btn btn-primary data-submit mr-1" id="add-form-btn">Simpan</button>
-            <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
+
+
           </div>
-        </form>
+        </div>
       </div>
     </div>
+
   </section>
 </div>
 
 <!-- BEGIN: Page Vendor JS-->
-<script src="<?= base_url() ?>/app-assets/vendors/js/vendors.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/tables/datatable/responsive.bootstrap4.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/tables/datatable/datatables.buttons.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/tables/datatable/dataTables.rowGroup.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/forms/validation/jquery.validate.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/extensions/polyfill.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
-<script type="text/javascript"
-  src="https://datatables.net/release-datatables/extensions/FixedColumns/js/dataTables.fixedColumns.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/responsive.bootstrap4.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/datatables.buttons.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/dataTables.rowGroup.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/forms/validation/jquery.validate.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/extensions/polyfill.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/forms/select/select2.full.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/fixed-columns/dataTables.fixedColumns.js"></script>
 <!-- <script src="https://adminlte.io/themes/v3/plugins/jquery-validation/additional-methods.min.js"></script> -->
 
-<!-- <script src="<?= base_url() ?>/app-assets/vendors/js/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.js"></script> -->
+<!-- <script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.js"></script> -->
 
 <script>
-  $(function () {
+  $(function() {
     var table = $('#data_tables').DataTable({
-      fnDrawCallback: function () {
+      fnDrawCallback: function() {
         $('[data-toggle="popover"]').popover();
       },
-     
-      columnDefs: [
-        {
-          'targets': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27],
-          'createdCell': function (td, cellData, rowData, row, col) {
-            $(td).attr('data-toggle', 'popover');
-            $(td).attr('data-placement', 'top');
-            $(td).attr('data-content', rowData[1] + " No. " + rowData[2]);
-            $(td).attr('data-trigger', 'hover');
-          },
-        },
-        {
-          'targets' : 0,
-          'width' : "500px"
-        }
-      ],
       scrollY: "50vh",
       scrollX: true,
       scrollCollapse: true,
-      // fixedColumns: {
-      //   left:2
-      // },
+      fixedColumns: true,
+      fixedColumns: {
+        leftColumns: 5
+      },
       processing: true,
       serverSide: true,
       lengthChange: true,
@@ -249,13 +229,13 @@
       // "autoWidth": false,
       // "responsive": true,
       ajax: {
-        url: base_url + 'mkdt/getListKavlingAkad',
+        url: base_url + 'list-kavling/akad/ambil',
         type: "POST",
         dataType: "json",
         data: {
           [csrfName]: csrfHash
         },
-        data: function (data) {
+        data: function(data) {
           data[csrfName] = csrfHash
           data.id_proyek = $("#id_proyek").val()
           data.id_cluster = $("#id_cluster").val()
@@ -264,7 +244,7 @@
           data.wawancara = $("#wawancara").val()
           data.akad = $("#akad").val()
         },
-        dataSrc: function (r) {
+        dataSrc: function(r) {
           csrfHash = r.token
           return r.data;
         },
@@ -275,7 +255,7 @@
     //on chnage search
     $(".dataTables_filter input")
       .off()
-      .on('change', function (e) {
+      .on('change', function(e) {
         table.search(this.value).draw();
       });
 
@@ -287,21 +267,21 @@
       placeholder: "Pilih Proyek",
       allowClear: true,
       ajax: {
-        url: base_url + "/proyek/getAll",
+        url: base_url + "proyek/getAll",
         dataType: 'json',
         delay: 250,
         method: 'post',
-        data: function (params) {
+        data: function(params) {
           return {
             [csrfName]: csrfHash,
             search: params.term
           };
         },
-        processResults: function (r) {
+        processResults: function(r) {
           csrfHash = r.token
 
           let results = [];
-          $.each(r.data, function (index, item) {
+          $.each(r.data, function(index, item) {
             results.push({
               id: item['id_proyek'],
               text: item[1] + ' (' + item[2] + ')'
@@ -317,7 +297,7 @@
     })
 
     //on select proyek
-    $("#id_proyek").on("change", function (e) {
+    $("#id_proyek").on("change", function(e) {
       $('#id_cluster').val(null).trigger('change');
 
       if (this.value)
@@ -335,18 +315,18 @@
         dataType: 'json',
         delay: 250,
         method: 'post',
-        data: function (params) {
+        data: function(params) {
           return {
             [csrfName]: csrfHash,
             search: params.term,
             id_proyek: $("#id_proyek").val()
           };
         },
-        processResults: function (r) {
+        processResults: function(r) {
           csrfHash = r.token
 
           let results = [];
-          $.each(r.data, function (index, item) {
+          $.each(r.data, function(index, item) {
             results.push({
               id: item[0],
               text: item[3]
@@ -361,7 +341,7 @@
       },
     })
     // on select cluster
-    $("#id_cluster").on("change", function (e) {
+    $("#id_cluster").on("change", function(e) {
       $('#id_jalan').val(null).trigger('change');
       if (this.value)
         $("#id_jalan").prop("disabled", false)
@@ -378,7 +358,7 @@
         dataType: 'json',
         delay: 250,
         method: 'post',
-        data: function (params) {
+        data: function(params) {
           return {
             [csrfName]: csrfHash,
             search: params.term,
@@ -386,11 +366,11 @@
             id_proyek: $("#id_proyek").val()
           };
         },
-        processResults: function (r) {
+        processResults: function(r) {
           csrfHash = r.token
 
           let results = [];
-          $.each(r.data, function (index, item) {
+          $.each(r.data, function(index, item) {
             results.push({
               id: item[0],
               text: item[3]
@@ -406,58 +386,131 @@
     })
 
     //on click btn filter
-    $("#btn_draw").on("click", function (e) {
+    $("#btn_draw").on("click", function(e) {
       table.draw();
+      load_riwayat();
     })
 
-    $("#btn_export").on('click', function (e) {
+    $("#btn_export_excel").on('click', function(e) {
       if (!$("#id_proyek").val()) {
         return Swal.fire({
           icon: 'error',
           title: "Proyek belum dipilih",
           showConfirmButton: false
         })
-
       }
-      // var myWindow = window.open(base_url + "/mkdt/export_xlsx/", "_blank", "top=100,left=300,width=700,height=600");
+      e.preventDefault();
+
+      const $btn = $(this);
+
+      // cegah klik berulang
+      $btn.prop("disabled", true);
+      $btn.data("old-text", $btn.text());
+      export_file("xlsx", $btn)
+    })
+    $("#btn_export_pdf").on('click', function(e) {
+      if (!$("#id_proyek").val()) {
+        return Swal.fire({
+          icon: 'error',
+          title: "Proyek belum dipilih",
+          showConfirmButton: false
+        })
+      }
+      e.preventDefault();
+
+      const $btn = $(this);
+
+      // cegah klik berulang
+      $btn.prop("disabled", true);
+      $btn.data("old-text", $btn.text());
+      export_file("pdf", $btn)
+    })
+
+    function export_file(type, $btn) {
       $.ajax({
         type: "post",
-        url: base_url + "/mkdt/export_xlsx",
+        url: base_url + "export/poskon/" + type + "/akad",
         data: {
           [csrfName]: csrfHash,
-          table: $("#data_tables").html()
+          id_proyek: $("#id_proyek").val(),
+          id_cluster: $("#id_cluster").val(),
+          id_jalan: $("#id_jalan").val(),
         },
         dataType: "json",
-        beforeSend: function () {
-          $("#btn_export").html("Meng-eksport")
-          $("#btn_export").prop("disabled", true)
+        beforeSend: function() {
+          $btn.html("<i class='fa fa-spinner fa-spin'></i> Sedang Mengeksport")
+          $btn.prop("disabled", true)
         },
-        success: function (data) {
+        success: function(data) {
           var d = new Date()
-          d = format_date(d.getFullYear() + "-" + (parseInt(d.getMonth()) + 1) + "-" + d.getDay());
+          d = format_date(d.getFullYear() + "-" + (parseInt(d.getMonth()) + 1) + "-" + d.getDate());
 
           var $a = $("<a>");
           $a.attr("href", data.file);
           $("body").append($a);
-          $a.attr("download", $("#id_proyek").select2('data')[0].text + "- List Konsumen Aktif  Per " + d + ".xls");
+          $a.attr("download", "Konsumen Akad  Per " + d + ": " + $("#id_proyek").select2('data')[0].text + "." + type);
           $a[0].click();
           $a.remove();
-          $("#btn_export").html("Export Ecel")
-          $("#btn_export").prop("disabled", false)
+          $btn.html($btn.data("old-text"))
+          $btn.prop("disabled", false)
         },
-        error: function () {
-          $("#btn_export").html("Export Ecel")
-          $("#btn_export").prop("disabled", false)
+        error: function() {
+          $btn.html($btn.data("old-text"))
+          $btn.prop("disabled", false)
         }
       });
-    })
+    }
 
+    function load_riwayat() {
+      $div = $("#riwayat-here")
+      $div.empty()
+      $.ajax({
+        type: "post",
+        url: base_url + "riwayat/poskon/akad",
+        data: {
+          [csrfName]: csrfHash,
+          id_proyek: $("#id_proyek").val(),
+          id_cluster: $("#id_cluster").val(),
+          id_jalan: $("#id_jalan").val(),
+        },
+        dataType: "json",
+        beforeSend: function() {
+          $div.append("<tr  ><td class='text-center' colspan=6><i class='fa fa-spinner fa-spin'></i> Memuat Data</td></tr>")
+        },
+        success: function(data) {
+          $div.empty()
+          let no = 1;
+          if (data.length == 0) {
+            $div.append("<tr  ><td class='text-center' colspan=6>Data Tidak Ditemukan</td></tr>")
+          }
+          $.each(data, function(index, item) {
+            let icon = "PDF <i class='fa fa-file-pdf text-danger'></i>";
+            if (item.tipe_file == "xlsx") {
+              icon = "Excel <i class='fa fa-file-excel text-success'></i>";
+            }
+            $div.append("<tr><td>" + no++ + "</td><td>" + item.nama_proyek + "</td><td>" + format_datetime(item.export_tgl) + "</td><td>" + item.export_by + "</td><td>" + icon + "</td><td><a href='" + base_url + item.path + item.randomname + "' target='_blank'>Download</a></td></tr>")
+          })
+        },
+        error: function() {
+          $div.empty()
+          $div.append("<tr  ><td class='text-center' colspan=6>Data Tidak Ditemukan</td></tr>")
+        }
+      });
+    }
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+      // e.target adalah tab yang baru saja aktif
+      var target = $(e.target).attr("href");
+
+      if (target === '#riwayat_eksport') {
+        load_riwayat();
+      }
+    });
     //remove bug arrow select2
     $(".select2-selection__arrow").removeClass("select2-selection__arrow")
 
   });
 
-  $('#tb_blok').css({
+  $('#tb-BLOK').css({
     'min-width': '150px',
     'max-width': '150px'
   });
@@ -469,150 +522,4 @@
     'min-width': '100px',
     'max-width': '100px'
   });
-  // $('thead > tr> th:nth-child(2)').css({
-  //   'min-width': '250px',
-  //   'max-width': '250px'
-  // });
-  // $('thead > tr> th:nth-child(3)').css({
-  //   'min-width': '50px',
-  //   'max-width': '50px'
-  // });
-  // $('thead > tr> th:nth-child(4)').css({
-  //   'min-width': '70px',
-  //   'max-width': '70px'
-  // });
-  // $('thead > tr> th:nth-child(5)').css({
-  //   'min-width': '70px',
-  //   'max-width': '70px'
-  // });
-  // $('thead > tr> th:nth-child(6)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(7)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(8)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(9)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(10)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(11)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(12)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(13)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(14)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(15)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(16)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(17)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(18)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(19)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(20)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-
-
-  // $('thead > tr> th:nth-child(21)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(22)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(23)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-
-
-
-  // $('thead > tr> th:nth-child(24)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(25)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(26)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(27)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(28)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(29)').css({
-  //   'min-width': '150px',
-  //   'max-width': '300px'
-  // });
-
-  // $('thead > tr> th:nth-child(30)').css({
-  //   'min-width': '150px',
-  //   'max-width': '300px'
-  // });
-  // $('thead > tr> th:nth-child(31)').css({
-  //   'min-width': '150px',
-  //   'max-width': '300px'
-  // });
-  // $('thead > tr> th:nth-child(32)').css({
-  //   'min-width': '150px',
-  //   'max-width': '300px'
-  // });
-  // $('thead > tr> th:nth-child(33)').css({
-  //   'min-width': '150px',
-  //   'max-width': '300px'
-  // });
-  // $('thead > tr> th:nth-child(34)').css({
-  //   'min-width': '150px',
-  //   'max-width': '300px'
-  // });
-  // $('thead > tr> th:nth-child(35)').css({
-  //   'min-width': '150px',
-  //   'max-width': '300px'
-  // });
-  // $('thead > tr> th:nth-child(36)').css({
-  //   'min-width': '150px',
-  //   'max-width': '300px'
-  // });
 </script>

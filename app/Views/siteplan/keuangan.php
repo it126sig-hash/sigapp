@@ -3,282 +3,301 @@
     <div class="modal-dialog modal-dialog-scrollable modal-xl">
         <form id="fm-keuangan" class="add-new-record modal-content pt-0" autocomplete="off">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Keuangan</h5>
-
+                <h5 class="modal-title" id="exampleModalLabel">Bayar Tagihan</h5>
                 <button type="button" class="close" data-dismiss="modal" id="close_modal_divisi3" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body flex-grow-1">
-                <p class="modal-title label_konsumen" id="label_konsumen"></p>
-                <p class="modal-title label_alamat" id="label_alamat3"></p>
-                <div class="form-group">
-                    <div class="custom-control custom-switch custom-control-inline">
-                        <input type="checkbox" class="custom-control-input cbp" id="is_lunas" name="is_lunas"
-                            value="1" />
-                        <label class="custom-control-label" for="is_lunas">Pembayaran Lunas</label>
-                    </div>
-                </div>
-                <hr>
-
-                <ul class="nav nav-tabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="booking-tab" data-toggle="tab" href="#booking"
-                            aria-controls="home" role="tab" aria-selected="true">Booking</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="tagihan-tab" data-toggle="tab" href="#tagihan" aria-controls="home"
-                            role="tab" aria-selected="true">Uang Muka</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="bb-tab" data-toggle="tab" href="#bb" aria-controls="home" role="tab"
-                            aria-selected="true">Biaya-biaya</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="log_pembayaran-tab" data-toggle="tab" href="#log_pembayaran"
-                            aria-controls="log_pembayaran" role="tab" aria-selected="false">Riwayat Pembayaran</a>
-                    </li>
-                </ul>
-                <div class="tab-content">
-                    <div class="tab-pane active" id="booking" aria-labelledby="booking-tab" role="tabpanel">
-                        <input type="hidden" class="form-control" name="status_mkdt" id="status_mkdt" value="" />
-                        <input type="hidden" class="form-control id_kavling" name="id_kavling" value="" />
-                        <input type="hidden" class="form-control" id="id_mkdt" name="id_mkdt" value="" />
-                        <input type="hidden" class="form-control" id="nama_konsumen" name="nama_konsumen" value="" />
-
-                        <div class="col-md-6 col-sm-12 col-lg-6">
-                            <div class="form-group">
-                                <label for="booking_tgl">Tanggal Booking</label>
-                                <input disabled type="text" id="booking_tgl" name="booking_tgl"
-                                    class="form-control flatpickr-human-friendly" placeholder="-" />
-                            </div>
-                            <div class="form-group">
-                                <label for="harga_jual">Booking Fee</label>
-                                <input readonly type="text" class="form-control num" id="booking_fee"
-                                    name="booking_fee">
-                            </div>
-
-                            <hr>
-                            <div class="hidden">
-                                <div class="form-group">
-                                    <label for="booking_fee_paid">Sudah Bayar Booking Fee</label>
-                                    <select class="form-control" id="booking_fee_paid" name="booking_fee_paid">
-                                        <option value="0">Belum</option>
-                                        <option value="1" selected>Sudah</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="keu_booking_fee">Booking Fee</label>
-                                    <input type="text" id="keu_booking_fee" name="keu_booking_fee"
-                                        class="form-control num" value="" />
-                                </div>
-                                <div class="form-group">
-                                    <label for="keu_booking_tgl">Tanggal Bayar Booking Fee</label>
-                                    <input type="text" id="keu_booking_tgl" name="keu_booking_tgl"
-                                        class="form-control flatpickr-human-friendly" placeholder="-" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
-                            <button class="add-form-btn-keuangan btn btn-primary data-submit mr-1"
-                                onclick="save_keuangan(); return false;" href="javascript:void(0)">Simpan</button>
-                        </div>
-                    </div>
-                    <div class="tab-pane" id="tagihan" aria-labelledby="tagihan-tab" role="tabpanel">
-                        <div class="row">
-                            <div class="col-md-6 col-sm-12 col-lg-6">
-                                <div class="divider">
-                                    <div class="divider-text">Tagihan Uang Muka + Biaya Adm + Turun KPR + Lainnya</div>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col" class="text-nowrap">No</th>
-                                                <th scope="col" class="text-nowrap">Berita Acara</th>
-                                                <th scope="col" class="text-nowrap">Nominal</th>
-                                                <th scope="col" class="text-nowrap">Jatuh Tempo</th>
-                                                <th scope="col" class="text-nowrap">Oleh</th>
-                                                <th scope="col" class="text-nowrap">Sudah DIbayar </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tb-data-tagihan">
-                                        </tbody>
-                                    </table>
-                                </div>
-
-                            </div>
-                            <div class="col-md-3 col-sm-12 col-lg-3">
-                                <div class="divider">
-                                    <div class="divider-text">Total Uang Muka</div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="bt-total_biaya_um">Total Tagihan</label>
-                                    <input readonly type="text" class="form-control num" id="bt-total_biaya_um"
-                                        name="bt-total_biaya_um">
-                                </div>
-
-                                <hr>
-                                <div class="form-group">
-                                    <label for="bt-sudah_bayar_um">Sudah Bayar</label>
-                                    <input type="text" class="form-control num" readonly id="bt-sudah_bayar_um"
-                                        name="bt-sudah_bayar_um">
-                                </div>
-                                <div class="form-group">
-                                    <label for="bt-sisa_tagihan_um">Sisa Tagihan</label>
-                                    <input type="text" class="form-control num" readonly id="bt-sisa_tagihan_um"
-                                        name="bt-sisa_tagihan_um">
-                                </div>
-                                <div class="form-group">
-                                    <label for="bt-persentase_bayar_tagihan_um">Persentase</label>
-                                    <input type="text" class="form-control" style="text-align:right" readonly
-                                        id="bt-persentase_bayar_tagihan_um" name="bt-persentase_bayar_tagihan_um">
-                                </div>
-                                <div id="hide_refund">
-                                    <div class="divider">
-                                        <div class="divider-text">Refund</div>
-                                    </div>
-                                    <div class="form-group">
+            <div class="modal-body flex-grow-1" style="background-color:#eee">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body bg-primary text-light">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <p class="modal-title label_alamat"></p>
                                         <div class="custom-control custom-switch custom-control-inline">
-                                            <input type="checkbox" class="custom-control-input cbp" id="refund_paid"
-                                                name="refund_paid" value="1" />
-                                            <label class="custom-control-label" for="refund_paid">Pembayaran
-                                                Selesai</label>
+                                            <input type="checkbox" class="custom-control-input cbp" id="is_lunas" name="is_lunas"
+                                                value="1" />
+                                            <label class="custom-control-label text-light" for="is_lunas">Pembayaran Lunas</label>
                                         </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="keterangan_refund">Keterangan</label>
-                                        <textarea class="form-control" id="keterangan_refund" name="keterangan_refund"
-                                            rows="3" placeholder="Keterangan"></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="nominal_refund">Nominal</label>
-                                        <input type="text" class="form-control num" id="nominal_refund"
-                                            name="nominal_refund">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="tanggal_refund">Tanggal Refund</label>
-                                        <input type="text" id="tanggal_refund" name="tanggal_refund"
-                                            class="form-control flatpickr-human-friendly" placeholder="-" />
+                                    <div class="col-4">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5><i class="fas fa-users"></i> <span>Konsumen</span></h5>
+                                                <h5><strong><span id="fm-bayar-label_konsumen"></span></strong></h5>
+                                                <h5><i class="fas fa-calendar"></i> <span>Tanggal Booking</span></h5>
+                                                <h5><strong><span id="fm-bayar-label_tgl"></span>(Rp. <span id="fm-bayar-label_bookingfee"></span>)</strong></h5>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <!-- <a class="btn btn-outline-primary waves-effect col-sm-12" data-toggle="collapse"
-                                    href="#collapseExample" role="button" aria-expanded="false"
-                                    aria-controls="collapseExample">
-                                    Lihat Detail Biaya
-                                </a> -->
-                                <!-- <div class="collapse" id="collapseExample">                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body pb-0 pt-0">
+                                <input type="hidden" class="form-control" name="status_mkdt" id="status_mkdt" value="" />
+                                <input type="hidden" class="form-control id_kavling" name="id_kavling" value="" />
+                                <input type="hidden" class="form-control" id="id_mkdt" name="id_mkdt" value="" />
+                                <input type="hidden" class="form-control" id="nama_konsumen" name="nama_konsumen" value="" />
+                                <!-- <div class="hidden">
                                     <div class="form-group">
-                                        <label class="form-label" for="basic-icon-default-fullname">Harga Jual</label>
-                                        <input type="text" class="form-control num bt-fm" id="bt-harga_jual"
-                                            name="bt-harga_jual" value="" readonly />
+                                        <label for="booking_fee_paid">Sudah Bayar Booking Fee</label>
+                                        <select class="form-control" id="booking_fee_paid" name="booking_fee_paid">
+                                            <option value="0">Belum</option>
+                                            <option value="1" selected>Sudah</option>
+                                        </select>
                                     </div>
                                     <div class="form-group">
-                                        <label class="form-label" for="basic-icon-default-fullname">ACC KPR</label>
-                                        <input type="text" class="form-control num bt-fm" id="bt-harga_kpr_acc"
-                                            name="bt-harga_kpr_acc" value="" readonly />
+                                        <label for="keu_booking_fee">Booking Fee</label>
+                                        <input type="text" id="keu_booking_fee" name="keu_booking_fee"
+                                            class="form-control num" value="" />
                                     </div>
                                     <div class="form-group">
-                                        <label class="form-label" for="basic-icon-default-fullname">Diskon</label>
-                                        <input type="text" class="form-control num bt-fm" id="bt-harga_diskon"
-                                            name="bt-harga_diskon" value="" readonly />
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label" for="basic-icon-default-fullname">Biaya Adm</label>
-                                        <input type="text" class="form-control num bt-fm" id="bt-harga_administrasi"
-                                            name="bt-harga_administrasi" value="" readonly />
+                                        <label for="keu_booking_tgl">Tanggal Bayar Booking Fee</label>
+                                        <input type="text" id="keu_booking_tgl" name="keu_booking_tgl"
+                                            class="form-control flatpickr-human-friendly" placeholder="-" />
                                     </div>
                                 </div> -->
 
-                            </div>
-                            <!-- <div class="col-md-2 col-sm-12 col-lg-2">
-                                <div class="divider">
-                                    <div class="divider-text">Total Biaya Adm + Turun KPR + Lainnnya</div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="bt-total_biaya_um">Total Tagihan</label>
-                                    <input readonly type="text" class="form-control num" id="bt-total_biaya_um_ll"
-                                        name="bt-total_biaya_um_ll">
-                                </div>
-
-                                <hr>
-                                <div class="form-group">
-                                    <label for="bt-sudah_bayar_um">Sudah Bayar</label>
-                                    <input type="text" class="form-control num" readonly id="bt-sudah_bayar_um_ll"
-                                        name="bt-sudah_bayar_um_ll">
-                                </div>
-                                <div class="form-group">
-                                    <label for="bt-sisa_tagihan_um">Sisa Tagihan</label>
-                                    <input type="text" class="form-control num" readonly id="bt-sisa_tagihan_um_ll"
-                                        name="bt-sisa_tagihan_um_ll">
-                                </div>
-                                <div class="form-group">
-                                    <label for="bt-persentase_bayar_tagihan_um">Persentase</label>
-                                    <input type="text" class="form-control" style="text-align:right" readonly
-                                        id="bt-persentase_bayar_tagihan_um_ll" name="bt-persentase_bayar_tagihan_um_ll">
-                                </div>
-                               
-
-                            </div> -->
-                            <div class="col-md-3 col-sm-12 col-lg-3">
-                                <div class="hide_lunas">
-                                    <div class="divider">
-                                        <div class="divider-text">Pembayaran</div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="keterangan_refund">Untuk Pembayaran</label>
-                                        <select multiple="multiple" name="bt-for[]" id="bt-for"
-                                            class="form-control form-select"></select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="berita_acara">Keterangan Pembayaran</label>
-                                        <textarea class="form-control" id="bt-berita_acara_um" name="bt-berita_acara_um"
-                                            rows="3" placeholder="Keterangan"></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="sisa_tagihan">Nominal Pembayaran</label>
-                                        <input type="text" class="form-control num" id="bt-bayar_tagihan_um"
-                                            name="bt-bayar_tagihan_um">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="tanggal_bayar">Tanggal Pembayaran</label>
-                                        <input type="text" id="bt-tanggal_bayar_um" name="bt-tanggal_bayar_um"
-                                            class="form-control flatpickr-human-friendly" placeholder="-" />
-                                    </div>
-                                </div>
+                                <ul class="nav nav-tabs mb-1 mt-1" role="tablist">
+                                    <li class="nav-item active">
+                                        <a class="nav-link" id="tagihan-tab" data-toggle="tab" href="#tagihan" aria-controls="home"
+                                            role="tab" aria-selected="true">Tagihan</a>
+                                    </li>
+                                    <!-- <li class="nav-item">
+                                        <a class="nav-link" id="bb-tab" data-toggle="tab" href="#bb" aria-controls="home" role="tab"
+                                            aria-selected="true">Biaya-biaya</a>
+                                    </li> -->
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="log_pembayaran-tab" data-toggle="tab" href="#log_pembayaran"
+                                            aria-controls="log_pembayaran" role="tab" aria-selected="false">Riwayat Pembayaran</a>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
-                            <button class="add-form-btn-keuangan btn btn-primary data-submit mr-1"
-                                onclick="save_keuangan(); return false;" href="javascript:void(0)">Simpan</button>
-                        </div>
-                    </div>
-                    <div class="tab-pane" id="log_pembayaran" aria-labelledby="log_pembayaran-tab" role="tabpanel">
-                        <div class="row">
-                            <div class="col-md-12 col-sm-12 col-lg-12">
-                                <div class="divider">
-                                    <div class="divider-text">Riwayat Pembayaran</div>
-                                    <div class="table-responsive">
-                                        <table class="table mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col" class="text-nowrap">No</th>
-                                                    <th scope="col" class="text-nowrap">Tanggal Bayar</th>
-                                                    <th scope="col" class="text-nowrap">Nominal</th>
-                                                    <th scope="col" class="text-nowrap">Berita Acara</th>
-                                                    <th scope="col" class="text-nowrap">Oleh</th>
-                                                    <th scope="col" class="text-nowrap"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="tb-data-log_pembayaran">
-                                            </tbody>
-                                        </table>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="tagihan" aria-labelledby="tagihan-tab" role="tabpanel">
+                                <div class="row">
+                                    <div class="col-md-4 col-sm-12 col-lg-4">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="divider divider-left">
+                                                    <div class="divider-text font-weight-bold">List Tagihan</div>
+                                                </div>
+                                                <div id="tb-data-tagihan"></div>
+                                                <!-- <div class="table-responsive">
+                                                    <table class="table mb-0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th scope="col" class="text-nowrap">No</th>
+                                                                <th scope="col" class="text-nowrap">Berita Acara</th>
+                                                                <th scope="col" class="text-nowrap">Nominal</th>
+                                                                <th scope="col" class="text-nowrap">Jatuh Tempo</th>
+                                                                <th scope="col" class="text-nowrap">Oleh</th>
+                                                                <th scope="col" class="text-nowrap">Sudah DIbayar </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="tb-data-tagihan">
+                                                        </tbody>
+                                                    </table>
+                                                </div> -->
+                                            </div>
+                                        </div>
+
+
                                     </div>
+                                    <div class="col-md-3 col-sm-12 col-lg-3" hidden>
+                                        <div class="divider">
+                                            <div class="divider-text">Total Uang Muka</div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bt-total_biaya_um">Total Tagihan</label>
+                                            <input readonly type="text" class="form-control num" id="bt-total_biaya_um"
+                                                name="bt-total_biaya_um">
+                                        </div>
+
+                                        <hr>
+                                        <div class="form-group">
+                                            <label for="bt-sudah_bayar_um">Sudah Bayar</label>
+                                            <input type="text" class="form-control num" readonly id="bt-sudah_bayar_um"
+                                                name="bt-sudah_bayar_um">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bt-sisa_tagihan_um">Sisa Tagihan</label>
+                                            <input type="text" class="form-control num" readonly id="bt-sisa_tagihan_um"
+                                                name="bt-sisa_tagihan_um">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bt-persentase_bayar_tagihan_um">Persentase</label>
+                                            <input type="text" class="form-control" style="text-align:right" readonly
+                                                id="bt-persentase_bayar_tagihan_um" name="bt-persentase_bayar_tagihan_um">
+                                        </div>
+                                        <div id="hide_refund">
+                                            <div class="divider">
+                                                <div class="divider-text">Refund</div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="custom-control custom-switch custom-control-inline">
+                                                    <input type="checkbox" class="custom-control-input cbp" id="refund_paid"
+                                                        name="refund_paid" value="1" />
+                                                    <label class="custom-control-label" for="refund_paid">Pembayaran
+                                                        Selesai</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="keterangan_refund">Keterangan</label>
+                                                <textarea class="form-control" id="keterangan_refund" name="keterangan_refund"
+                                                    rows="3" placeholder="Keterangan"></textarea>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="nominal_refund">Nominal</label>
+                                                <input type="text" class="form-control num" id="nominal_refund"
+                                                    name="nominal_refund">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="tanggal_refund">Tanggal Refund</label>
+                                                <input type="text" id="tanggal_refund" name="tanggal_refund"
+                                                    class="form-control flatpickr-human-friendly" placeholder="-" />
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="col-md-8 col-sm-12 col-lg-8">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="card">
+                                                    <div class="card-body">
+                                                        <div class="divider divider-left">
+                                                            <div class="divider-text font-weight-bold">Form Bayar</div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-md-4 col-sm-12 col-lg-4">
+                                                                <div class="form-group">
+                                                                    <label for="bt-for">Pembayaran Angsuran Ke</label>
+                                                                    <select multiple="multiple" name="bt-for[]" id="bt-for"
+                                                                        class="form-control form-select"></select>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4 col-sm-12 col-lg-4">
+                                                                <div class="form-group">
+                                                                    <label for="tanggal_bayar">Tanggal Pembayaran</label>
+                                                                    <input type="text" id="bt-tanggal_bayar_um" name="bt-tanggal_bayar_um"
+                                                                        class="form-control flatpickr-human-friendly" placeholder="-" />
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4 col-sm-12 col-lg-4">
+                                                                <div class="form-group">
+                                                                    <label for="sisa_tagihan">Nominal Pembayaran</label>
+                                                                    <input type="text" class="form-control num" id="bt-bayar_tagihan_um"
+                                                                        name="bt-bayar_tagihan_um">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="card">
+                                                    <div class="card-body">
+                                                        <div class="divider divider-left">
+                                                            <div class="divider-text font-weight-bold">Alokasi Dana</div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <div class="p-1 mb-1 rounded border" style="background-color: #f1f1f1ff;">
+                                                                    <div class="row">
+                                                                        <div class="col-4">
+                                                                            <h5>Total harus Dialokasikan</h5>
+                                                                        </div>
+                                                                        <div class="col-8 text-right">
+                                                                            <h5 class="text-success text-right"><strong id="fm-keu-total_dialokasi"></strong></h5>
+                                                                        </div>
+                                                                        <div class="col-4">
+                                                                            <h5>Sisa Belum Dialokasi</h5>
+                                                                        </div>
+                                                                        <div class="col-8 text-right">
+                                                                            <h5 class="text-danger text-right"><strong id="fm-keu-sisa_belum_dialokasi"></strong></h5>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12">
+                                                                <button class="btn btn-sm btn-outline-primary mb-1" id="btn-add-item-alokasi" type="button">
+                                                                    <i class="fas fa-plus"></i> Tambah Item
+                                                                </button>
+                                                                <div class="table-responsive">
+                                                                    <table class="table table-sm table-bordered">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th></th>
+                                                                                <th>Item</th>
+                                                                                <th>Nominal</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody id="tb-alokasi-dana">
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="hide_lunas">
+                                                    <div class="form-group">
+                                                        <label for="berita_acara">Catatan</label>
+                                                        <textarea class="form-control" id="bt-berita_acara_um" name="bt-berita_acara_um"
+                                                            rows="3" placeholder="Keterangan"></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
+
                             </div>
-                            <!-- <div class="col-md-12 col-sm-12 col-lg-12">
+
+                            <div class="tab-pane" id="log_pembayaran" aria-labelledby="log_pembayaran-tab" role="tabpanel">
+                                <div class="row">
+
+                                    <div class="col-md-12 col-sm-12 col-lg-12">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="divider divider-left">
+                                                    <div class="divider-text font-weight-bold">Riwayat Pembayaran</div>
+                                                </div>
+                                                <div class="table-responsive">
+                                                    <table class="table mb-0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th scope="col" class="text-nowrap">No</th>
+                                                                <th scope="col" class="text-nowrap">Tanggal Bayar</th>
+                                                                <th scope="col" class="text-nowrap">Nominal</th>
+                                                                <th scope="col" class="text-nowrap">Berita Acara</th>
+                                                                <th scope="col" class="text-nowrap">Oleh</th>
+                                                                <th scope="col" class="text-nowrap"></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="tb-data-log_pembayaran">
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <!-- <div class="col-md-12 col-sm-12 col-lg-12">
                                 <div class="divider">
                                     <div class="divider-text">Riwayat Pembayaran Biaya-biaya</div>
                                     <div class="table-responsive">
@@ -299,1011 +318,21 @@
                                     </div>
                                 </div>
                             </div> -->
-                        </div>
-                    </div>
-                    <div class="tab-pane" id="bb" aria-labelledby="bb-tab" role="tabpanel">
-                        <div class="row">
-                            <div class="col-md-6 col-sm-12 col-lg-6">
-                                <div class="divider">
-                                    <div class="divider-text">Tagihan Biaya-biaya</div>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col" class="text-nowrap">No</th>
-                                                <th scope="col" class="text-nowrap">Berita Acara</th>
-                                                <th scope="col" class="text-nowrap">Nominal</th>
-                                                <th scope="col" class="text-nowrap">Jatuh Tempo</th>
-                                                <th scope="col" class="text-nowrap">Oleh</th>
-                                                <th scope="col" class="text-nowrap">Sudah DIbayar </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="tb-data-tagihan_bb">
-                                        </tbody>
-                                    </table>
-                                </div>
                             </div>
-                            <div class="col-md-3 col-sm-12 col-lg-3">
-
-                                <div class="divider">
-                                    <div class="divider-text">Total Biaya-biaya</div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="bt-total_biaya_bb">Total Biaya-biaya</label>
-                                    <input readonly type="text" class="form-control num" id="bt-total_biaya_bb"
-                                        name="bt-total_biaya_bb">
-                                </div>
-
-                                <hr>
-                                <div class="form-group">
-                                    <label for="bt-sudah_bayar_bb">Sudah Bayar Biaya-biaya</label>
-                                    <input type="text" class="form-control num" readonly id="bt-sudah_bayar_bb"
-                                        name="bt-sudah_bayar_bb">
-                                </div>
-                                <div class="form-group">
-                                    <label for="bt-sisa_tagihan_um">Sisa Tagihan Biaya-biaya</label>
-                                    <input type="text" class="form-control num" readonly id="bt-sisa_tagihan_bb"
-                                        name="bt-sisa_tagihan_bb">
-                                </div>
-                                <div class="form-group">
-                                    <label for="bt-persentase_bayar_tagihan_bb">Persentase</label>
-                                    <input type="text" class="form-control" style="text-align:right" readonly
-                                        id="bt-persentase_bayar_tagihan_bb" name="bt-persentase_bayar_tagihan_bb">
-                                </div>
-                                <!-- <a class="btn btn-outline-primary waves-effect col-sm-12" data-toggle="collapse"
-                                    href="#collapseExampleBB" role="button" aria-expanded="false"
-                                    aria-controls="collapseExampleBB">
-                                    Lihat Detail Biaya
-                                </a> -->
-                                <!-- <div class="collapse" id="collapseExampleBB">
-                                    <div class="form-group">
-                                        <label class="form-label" for="basic-icon-default-fullname">PPN</label>
-                                        <input type="text" class="form-control num bt-fm" id="bt-harga_ppn"
-                                            name="bt-harga_ppn" value="" readonly />
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label" for="basic-icon-default-fullname">BPHTB</label>
-                                        <input type="text" class="form-control num bt-fm" id="bt-harga_bphtb"
-                                            name="bt-harga_bphtb" value="" readonly />
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="basic-icon-default-fullname">Biaya Proses</label>
-                                        <input type="text" class="form-control num bt-fm" id="bt-harga_biaya_proses"
-                                            name="bt-harga_biaya_proses" value="" readonly />
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="form-label" for="basic-icon-default-fullname">Penambahan
-                                            Biaya</label>
-                                        <input type="text" class="form-control bt-fm"
-                                            id="bt-keterangan_penambahan_biaya" name="bt-keterangan_penambahan_biaya"
-                                            value="" readonly />
-                                        <input type="text" class="form-control num bt-fm" id="bt-harga_penambahan"
-                                            name="bt-harga_penambahan" value="" readonly />
-                                    </div>
-                                </div> -->
-                            </div>
-                            <div class="col-md-3 col-sm-12 col-lg-3">
-                                <div class="hide_lunas">
-                                    <div class="divider">
-                                        <div class="divider-text">Pembayaran</div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="keterangan_refund">Untuk Pembayaran</label>
-                                        <select multiple="multiple" name="bt-for_bb[]" id="bt-for_bb"
-                                            class="form-control form-select"></select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="berita_acara">Keterangan Pembayaran</label>
-                                        <textarea class="form-control" id="bt-berita_acara_bb" name="bt-berita_acara_bb"
-                                            rows="3" placeholder="Keterangan"></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="sisa_tagihan">Nominal Pembayaran</label>
-                                        <input type="text" class="form-control num" id="bt-bayar_tagihan_bb"
-                                            name="bt-bayar_tagihan_bb">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="tanggal_bayar">Tanggal Pembayaran</label>
-                                        <input type="text" id="bt-tanggal_bayar_bb" name="bt-tanggal_bayar_bb"
-                                            class="form-control flatpickr-human-friendly" placeholder="-" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
-                            <button class="add-form-btn-keuangan btn btn-primary data-submit mr-1"
-                                onclick="save_keuangan('bb'); return false;" href="javascript:void(0)">Simpan</button>
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                <button class="add-form-btn-keuangan btn btn-primary data-submit mr-1"
+                    onclick="save_keuangan(); return false;" href="javascript:void(0)">Simpan</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- ################################## Modal Isi Data Konsumen ##########################################-->
-<div class="modal fade" id="modal-isi_data_konsumen">
-    <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
-        <form id="fm-idk_keu" class="add-new-record modal-content pt-0" enctype="multipart/form-data"
-            autocomplete="off">
-            <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button> -->
-            <div class="modal-header mb-1">
-                <h5 class="modal-title" id="exampleModalLabel">Isi Data Konsumen</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body flex-grow-1" style="background-color:#eee">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <p class="modal-title label_alamat" id="label_alamat4"></p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3" id="div-hargajual">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <label class="form-label" for="basic-icon-default-fullname">Harga Jual
-                                        Pricelist</label>
-                                    <input type="text" readonly class="form-control num mk-fm" id="idk-mkdt_hargajual"
-                                        name="idk-mkdt_hargajual" value="" />
-                                    <span>Harga diinput oleh: <span id="idk-mkdt_hargajual_by"
-                                            style="font-weight:bold"></span>
-                                        pada: <span id="idk-mkdt_hargajual_tgl" style="font-weight:bold"></span></span>
-                                </div>
-                            </div>
-                        </div>
 
-                    </div>
-                    <div class="col-md-5 row" id="idk-diskresi_st">
-                        <div style=" border: 1px solid red; background-color: red; border-radius: 10px 0px 0px 10px; color: white;"
-                            class="col-md-6">
-                            <div class="form-group">
-                                <label class="form-label" for="basic-icon-default-fullname" style="color:white">Diskresi
-                                    harga</label>
-                                <input type="text" readonly class="form-control num" id="idk-diskresi_harga"
-                                    name="mkdt_hargajual" value="" />
-                                <span>Diskresi diinput oleh: <span style="font-weight:bold"
-                                        id="idk-diskresi_oleh"></span> pada: <span id="idk-diskresi_tgl"
-                                        style="font-weight:bold"></span></span>
-
-                            </div>
-                        </div>
-                        <div class="col-md-6"
-                            style="border: 1px solid red; background-color: red; border-radius: 0px 10px 10px 0px; color: white;">
-                            <div class="form-group">
-                                <label class="form-label" for="basic-icon-default-fullname"
-                                    style="color:white">Memo</label>
-                                <textarea name="idk-diskresi_memo" readonly id="idk-diskresi_memo" class="form-control"
-                                    cols="30" rows="2"></textarea>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <hr>
-                <div class="card">
-                    <div class="card-body pb-0 pt-0">
-                        <ul class="nav nav-tabs mb-1 mt-1" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="idk_data_konsumen-tab" data-toggle="tab"
-                                    href="#idk_data_konsumen" aria-controls="idk_data_konsumen" role="tab"
-                                    aria-selected="true">Data Konsumen</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="idk_biaya-tab" data-toggle="tab" href="#idk_biaya"
-                                    aria-controls="idk_biaya" role="tab" aria-selected="true">Biaya</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="idk_tagihan-tab" data-toggle="tab" href="#idk_tagihan"
-                                    aria-controls="data_konsumen" role="tab" aria-selected="true">Tagihan</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="idk_arsip-tab" data-toggle="tab" href="#idk_arsip"
-                                    aria-controls="idk_arsip" role="tab" aria-selected="true">SPPTB Ditandatangani</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" id="idk_riwayat-tab" data-toggle="tab" href="#idk_riwayat"
-                                    aria-controls="idk_riwayat" role="tab" aria-selected="true">Riwayat Pindah
-                                    Kavling/Ganti Nama</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="tab-content">
-                    <div class="tab-pane show active" id="idk_data_konsumen" aria-labelledby="idk_data_konsumen-tab"
-                        role="tabpanel">
-                        <input type="hidden" class="form-control id_kavling" name="id_kavling" value="" />
-                        <input type="hidden" class="form-control" id="idk-id_mkdt" name="id_mkdt" value="" />
-                        <input type="hidden" class="form-control" id="idk-id_konsumen" name="id_konsumen" value="" />
-
-                        <input type="hidden" class="form-control" id="idk-harga_akhir" name="idk-harga_akhir" value=""
-                            readonly />
-                        <input type="hidden" class="form-control" id="idk-hargajual" name="idk-hargajual" value=""
-                            readonly />
-                        <input type="hidden" class="form-control" id="idk-kpr" name="idk-kpr" value="" readonly />
-                        <input type="hidden" class="form-control" id="idk-uang_muka" name="mkdt-uang_muka" value=""
-                            readonly />
-                        <input type="hidden" class="form-control" id="idk-bphtb" name="idk-bphtb" value="" readonly />
-                        <input type="hidden" class="form-control" id="idk-biaya_adm" name="idk-biaya_adm" value=""
-                            readonly />
-                        <input type="hidden" class="form-control" id="idk-biaya_proses" name="idk-biaya_proses" value=""
-                            readonly />
-
-                        <input type="hidden" class="form-control" id="idk_data_baru" name="mkdt_data_baru" value="" />
-
-                        <div class="row">
-                            <div class="col-sm-12 col-md-4 col-lg-4">
-                                <div class="refresh_fmmkdt_div">
-                                    <button id="refresh-btn-idk_keu" type="button"
-                                        class="btn btn-outline-primary btn-block waves-effect">Tambah Konsumen
-                                        Baru</button>
-                                </div>
-                                <div class="delete_kons_div">
-                                    <button id="delete-btn-idk_keu" type="button"
-                                        class="btn btn-outline-danger btn-block waves-effect"
-                                        onclick="delete_kons(false)">Hapus Konsumen</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-
-                            <div class="col-sm-12 col-md-3 col-lg-3">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">Status Kavling</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <!-- 
-                                        <div class="divider">
-                                            <div class="divider-text"></div>
-                                        </div> -->
-                                        <div class="form-group">
-                                            <label for="status_kavling">Status Kavling</label>
-                                            <select required class="form-control" id="idk-status_mkdt"
-                                                name="dt-status_mkdt">
-                                                <option value="">-</option>
-                                                <option value="Booking">Booking</option>
-                                                <option value="Akad">Akad</option>
-                                                <option value="Batal">Batal</option>
-                                            </select>
-                                        </div>
-                                        <div id="idk-show_keterangan_batal" class="hidden">
-                                            <div class="form-group">
-                                                <label for="keterangan_batal">Keterangan Batal</label>
-                                                <textarea class="form-control" id="idk-keterangan_batal"
-                                                    name="dt-keterangan_batal" rows="3"
-                                                    placeholder="Keterangan"></textarea>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="harga_jual">Nominal Pengembalian Dana</label>
-                                                <input type="text" class="form-control num" id="idk-refund"
-                                                    name="dt-refund">
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">Data Konsumen</h5>
-                                    </div>
-                                    <div class="card-body">
-
-                                        <div class="form-group">
-                                            <label for="no_spptb">No SPPTB</label>
-                                            <input type="text" class="form-control gn" id="idk-no_spptb"
-                                                name="no_spptb">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="nama_konsumen">Nama Konsumen</label>
-                                            <input type="text" class="form-control gn" id="idk-nama_konsumen" required
-                                                name="nama_konsumen">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="alamat_konsumen">Alamat Konsumen</label>
-                                            <input type="text" class="form-control gn" id="idk-alamat_konsumen"
-                                                name="alamat_konsumen">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="nik_konsumen">NIK</label>
-                                            <input type="text" class="form-control gn" id="idk-nik_konsumen"
-                                                name="nik_konsumen">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="npwp_konsumen">NPWP</label>
-                                            <input type="text" class="form-control gn" id="idk-npwp_konsumen"
-                                                name="npwp_konsumen">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="hp_konsumen">Kontak Konsumen</label>
-                                            <input type="text" class="form-control gn" id="idk-hp_konsumen"
-                                                name="hp_konsumen">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="hp_konsumen">Email Konsumen</label>
-                                            <input type="text" class="form-control gn" id="idk-email_konsumen"
-                                                name="email_konsumen">
-                                        </div>
-                                        <div class="form-group hidden">
-                                            <label for="status_kavling">Status Konsumen</label>
-                                            <select class="form-control" id="idk-status_konsumen"
-                                                name="status_konsumen">
-                                                <option value="">-</option>
-                                                <option value="Umum">Umum</option>
-                                                <option value="TWP">TWP</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-3 col-lg-3">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">Data Pasangan</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label for="status_kavling">Status Pernikahan</label>
-                                            <select class="form-control gn" id="idk-status_pernikahan"
-                                                name="status_pernikahan">
-                                                <option value="Belum Kawin">Belum Kawin</option>
-                                                <option value="Kawin">Kawin</option>
-                                                <option value="Cerai Mati">Cerai Mati</option>
-                                                <option value="Cerai Hidup">Cerai Hidup</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="nama_pasangan">Nama Pasangan</label>
-                                            <input type="text" class="form-control gn" id="idk-nama_pasangan"
-                                                name="nama_pasangan">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="hp_konsumen">NIK Pasangan</label>
-                                            <input type="text" class="form-control gn" id="idk-nik_pasangan"
-                                                name="nik_pasangan">
-                                        </div>
-
-                                    </div>
-
-                                </div>
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">Data Instansi</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label for="nama_instansi">Nama Instansi</label>
-                                            <input type="text" class="form-control gn" id="idk-nama_instansi"
-                                                name="nama_instansi">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="alamat_instansi">Alamat Instansi</label>
-                                            <input type="text" class="form-control gn" id="idk-alamat_instansi"
-                                                name="alamat_instansi">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="tel_instansi">Telepon Instansi</label>
-                                            <input type="text" class="form-control gn" id="idk-tel_instansi"
-                                                name="tel_instansi">
-                                        </div>
-                                    </div>
-                                </div>
-
-
-
-                            </div>
-                            <div class="col-sm-12 col-md-3 col-lg-3">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">Sales</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label for="alamat_instansi">Sales</label>
-                                            <input type="text" class="form-control" id="idk-sales" name="sales">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">Promo/Bonus/Hadiah</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label for="alamat_instansi">Promo/Bonus/Hadiah</label>
-                                            <input type="text" class="form-control" id="idk-promo" name="promo">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">TUNAI/KPR</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label for="is_kpr">Tunai/KPR</label>
-                                            <select required class="form-control" id="idk-is_kpr" name="is_kpr"
-                                                onchange="sum_mktotal()">
-                                                <option value="0">TUNAI/CASH KERAS</option>
-                                                <option value="2">TUNAI/CASH BERTAHAP</option>
-                                                <option value="1">KPR</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="is_subsidi">Subsidi/Non-Subsidi</label>
-                                            <select required class="form-control" id="idk-is_subsidi" name="is_subsidi">
-                                                <option value="0">Non-Subsidi</option>
-                                                <option value="1">Subsidi</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="idk-jenis_subsidi">Jenis Subsidi</label>
-                                            <input type="text" placeholder="FLPP/TAPERA/LAIN-LAIN" class="form-control"
-                                                id="idk-jenis_subsidi" name="jenis_subsidi">
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-                            <div class="col-sm-12 col-md-3 col-lg-3 text-center">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">File Upload</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label>KTP</label>
-                                            <div class="custom-file">
-                                                <input type="file" class="custom-file-input" accept="image/*"
-                                                    name="idk-file_ktp" id="idk-file_ktp" />
-                                                <label class="custom-file-label" id="label-idk-file_ktp"
-                                                    for="label-idk-file_ktp">Upload File KTP</label>
-                                                <div id="list_upload_komplain_sales"></div>
-
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>NPWP</label>
-                                            <div class="custom-file">
-                                                <input type="file" class="custom-file-input" accept="image/*"
-                                                    name="idk-file_npwp" id="idk-file_npwp" />
-                                                <label class="custom-file-label" id="label-idk-file_npwp"
-                                                    for="label-idk-file_npwp">Upload File NPWP</label>
-                                                <div id="list_upload_komplain_sales"></div>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Data Diri</label>
-                                            <div class="custom-file">
-                                                <input type="file" class="custom-file-input" accept="application/pdf"
-                                                    name="file_data_diri" id="idk-file_data_diri" />
-                                                <label class="custom-file-label" id="label-file_data_diri"
-                                                    for="label-file_data_diri">Upload
-                                                    Data Diri</label>
-                                                <div id="list-upload_file_data_diri"></div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="divider">
-                                    <div class="divider-text">KTP</div>
-                                </div>
-                                <a href="" id="idk-file_ktp-here" target="_blank"
-                                    class="w-100 btn btn-outline-primary">klik
-                                    untuk melihat file</a>
-
-                                <div class="divider">
-                                    <div class="divider-text">NPWP</div>
-                                </div>
-                                <a href="" id="idk-file_npwp-here" target="_blank"
-                                    class=" btn btn-outline-primary w-100">klik untuk melihat file</a>
-                                <div class="divider">
-                                    <div class="divider-text">Data Diri</div>
-                                </div>
-                                <a href="" id="idk-file_data_diri-here" class="btn btn-outline-primary w-100"
-                                    target="_blank">klik untuk melihat file</a>
-                            </div>
-
-                        </div>
-                    </div>
-                    <div class="tab-pane" id="idk_biaya" aria-labelledby="idk_biaya-tab" role="tabpanel">
-                        <div class="row">
-                            <div class="col-sm-12 col-md-3 col-lg-3">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">Harga Jual</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <!-- <input type="hidden" name="mk-id_mkdt" id="mk-id_mkdt"> -->
-                                        <!-- <div class="form-group">
-                                    <label class="form-label" for="basic-icon-default-fullname">No Tipe</label>
-                                    <input readonly class="form-control mk-fm" id="mk-no_tipe" name="mk-text_hargajual" value="">
-                                </div> -->
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Tanggal
-                                                PriceList</label>
-                                            <input type="text"
-                                                class="form-control text-right mk-fm flatpickr-human-friendly"
-                                                id="mk-tgl_harga" name="mk-tgl_harga" value="" readonly />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Harga
-                                                Jual</label>
-                                            <input type="text" class="form-control num mk-fm" id="mk-hargajual"
-                                                name="mk-hargajual" value="" />
-                                        </div>
-                                        <div class="form-group" id="hjdis">
-                                            <label class="form-label" for="basic-icon-default-fullname">Diskon Harga
-                                                Jual</label>
-                                            <input type="text" class="form-control num mk-fm" id="mk-diskon_harga_jual"
-                                                name="mk-diskon_harga_jual" value="" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Harga Jual
-                                                Net</label>
-                                            <input type="text" class="form-control num mk-fm" id="mk-hargajual_net"
-                                                name="mk-hargajual_net" value="" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">KPR</label>
-                                            <input type="text" class="form-control num mk-fm" id="mk-kpr" name="mk-kpr"
-                                                value="" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Uang
-                                                Muka</label>
-                                            <input type="text" class="form-control num mk-fm" id="mk-uang_muka"
-                                                name="mk-uang_muka" value="" />
-                                        </div>
-                                        <div class="form-group" id="umdis">
-                                            <label class="form-label" for="basic-icon-default-fullname">Diskon Uang
-                                                Muka</label>
-                                            <input type="text" class="form-control num mk-fm" id="mk-diskon_uang_muka"
-                                                name="mk-diskon_uang_muka" value="" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Biaya
-                                                Adm</label>
-                                            <input type="text" class="form-control num mk-fm" id="mk-biaya_adm"
-                                                name="mk-biaya_adm" value="" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="total_biaya2">PPN</label>
-                                            <input type="text" class="form-control num mk-fm totalbb" id="mk-ppn"
-                                                name="mk-ppn">
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">BPHTB</label>
-                                            <input type="text" class="form-control num mk-fm totalbb" id="mk-bphtb"
-                                                name="mk-bphtb" value="" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Biaya
-                                                Proses</label>
-                                            <input type="text" class="form-control num mk-fm totalbb"
-                                                id="mk-biaya_proses" name="mk-biaya_proses" value="" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">ROW</label>
-                                            <input type="text" class="form-control num mk-fm" id="mk-row" name="mk-row"
-                                                value="" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Tipe</label>
-                                            <input type="text" class="form-control mk-fm text-right" id="mk-tipe"
-                                                name="mk-tipe" value="" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">LB</label>
-                                            <input type="text" class="form-control num mk-fm" id="mk-lb" name="mk-lb"
-                                                value="" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">LT</label>
-                                            <input type="text" class="form-control num mk-fm" id="mk-lt" name="mk-lt"
-                                                value="" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-3 col-lg-3">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">Booking</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label for="booking_tgl">Tanggal Booking</label>
-                                            <input type="text" id="idk-booking_tgl" name="dt-booking_tgl"
-                                                class="form-control flatpickr-human-friendly" placeholder="-" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="harga_jual">Booking Fee</label>
-                                            <input type="text" class="form-control num" id="idk-booking_fee"
-                                                name="dt-booking_fee">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">KPR</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label for="total_biaya2">KPR Disetujui</label>
-                                            <input readonly type="text" class="form-control num mk-fm"
-                                                id="mk-harga_kpr_acc" name="mk-harga_kpr_acc">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="total_biaya2">Turun KPR</label>
-                                            <input readonly type="text" class="form-control num mk-fm"
-                                                id="mk-harga_penambahan_um" name="mk-harga_penambahan_um">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">Penambahan Biaya</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label for="total_biaya2">Biaya Kavling Strategis</label>
-                                            <input type="text" class="form-control num mk-fm" id="mk-harga_penambahan"
-                                                name="mk-harga_penambahan">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="total_biaya2">Biaya Kelebihan Tanah</label>
-                                            <input type="text" class="form-control num mk-fm"
-                                                id="mk-harga_penambahan_tanah" name="mk-harga_penambahan_tanah">
-                                        </div>
-                                        <div class="form-group hidden">
-                                            <label for="total_biaya2">Keterangan Penambahan Biaya</label>
-                                            <textarea name="mk-keterangan_harga_penambahan"
-                                                id="mk-keterangan_harga_penambahan" class="form-control mk-fm" cols="30"
-                                                rows="2"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            <div class="col-sm-12 col-md-3 col-lg-3">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">Rincian Biaya</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <textarea class="form-control" rows="7" id="idk-rincian"
-                                                name="rincian"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-                            <div class="col-sm-12 col-md-3 col-lg-3">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="card-title">Total Biaya</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label>Total Uang Muka + Biaya ADM</label>
-                                            <input readonly type="text" class="form-control num tum" id="mk-tum"
-                                                name="mk-tum">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Total Biaya-Biaya</label>
-                                            <input readonly type="text" class="form-control num tbb" id="mk-tbb"
-                                                name="mk-tbb">
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-
-
-                        </div>
-
-                    </div>
-                    <div class="tab-pane" id="idk_tagihan" aria-labelledby="idk_tagihan-tab" role="tabpanel">
-                        <div class="row">
-                            <div class="col-sm-12 col-md-6 col-lg-6">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table id="list_kendaraan" class="table">
-                                                <thead class="thead-dark">
-                                                    <tr>
-                                                        <th>Keterangan</th>
-                                                        <th>Jatuh Tempo</th>
-                                                        <th>Nominal</th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="list_cicilan_here">
-                                                    <tr>
-                                                        <td colspan="5" class="text-center">Tidak Ada Data</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                            <!-- <button class="btn btn-sm btn-primary" onclick="addRow()">Tambah Baris</button> -->
-
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-6">
-                                <div class="row">
-                                    <div class="col-sm-12 col-md-6 col-lg-6">
-                                        <div class="card">
-                                            <div class="card-header">
-                                                <h5 class="card-title">Tagihan Uang Muka + Biaya Lain</h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="form-group">
-                                                    <label for="mk-total_um">Total Uang Muka</label>
-                                                    <input readonly type="text" class="form-control num tum"
-                                                        id="mk-total_um" name="mk-total_um">
-                                                </div>
-                                                <!-- <div class="form-group">
-                                        <label for="total_cicilan">Total Cicilan UM</label> -->
-                                                <input readonly type="hidden" class="form-control num"
-                                                    id="total_cicilan_um" name="total_cicilan_um">
-                                                <!-- </div> -->
-                                                <input name="id_list_keu" id="id_list_keu" class="form-control"
-                                                    type="hidden">
-                                                <input name="id_keuangan" id="id_keuangan" class="form-control"
-                                                    type="hidden">
-                                                <div class="form-group">
-                                                    <label>Untuk Tagihan</label>
-                                                    <select class="form-control" required name="berita_acara"
-                                                        id="berita_acara">
-                                                        <option value="Uang Muka">Uang Muka</option>
-                                                        <option value="Biaya Administrasi">Biaya Administrasi</option>
-                                                        <option value="Turun KPR">Turun KPR</option>
-                                                        <option value="Biaya Kavling Strategis">Biaya Kavling Strategis
-                                                        </option>
-                                                        <option value="Biaya Kelebihan Tanah">Biaya Kelebihan Tanah
-                                                        </option>
-                                                    </select>
-                                                    <!-- <input required name="berita_acara" id="berita_acara"
-                                                        class="form-control" type="text"> -->
-                                                    <span class="help-block"></span>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Nominal</label>
-                                                    <input required name="nominal" id="nominal"
-                                                        onchange="sum_tg(this.value)" class="form-control num tg"
-                                                        type="text">
-                                                    <span class="help-block"></span>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Tanggal Jatuh Tempo</label>
-                                                    <input required name="jatuh_tempo_tgl" id="jatuh_tempo_tgl"
-                                                        class="form-control flatpickr-human-friendly" type="date">
-                                                    <span class="help-block"></span>
-                                                </div>
-                                                <div id="cicilan_belong_here"></div>
-                                                <button id="tambah_list" type="button"
-                                                    class="btn btn-outline-primary btn-block waves-effect"
-                                                    onclick="tambah_()">+
-                                                    Tagihan Uang Muka</button>
-                                                <!-- <button id="hapus_list" type="button" class="btn btn-outline-danger btn-block waves-effect" onclick="hapus()">+ Hapus List</button> -->
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                    <div class="col-sm-12 col-md-6 col-lg-6 ">
-                                        <div class="card">
-                                            <div class="card-header">
-                                                <h5 class="card-title">Tagihan Biaya-biaya</h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="form-group">
-                                                    <label for="mk-total_bb">Total Biaya-biaya</label>
-                                                    <input readonly type="text" class="form-control num tbb"
-                                                        id="mk-total_bb" name="mk-total_bb">
-                                                </div>
-                                                <!-- <div class="form-group">
-                                        <label for="total_cicilan">Total Cicilan UM</label> -->
-                                                <input readonly type="hidden" class="form-control num"
-                                                    id="total_cicilan_bb" name="total_cicilan_bb">
-                                                <!-- </div> -->
-                                                <input name="id_list_keu_bb" id="id_list_keu_bb" class="form-control"
-                                                    type="hidden">
-                                                <input name="id_keuangan_bb" id="id_keuangan_bb" class="form-control"
-                                                    type="hidden">
-                                                <div class="form-group">
-                                                    <label>Untuk Tagihan</label>
-                                                    <select class="form-control" required name="berita_acara_bb"
-                                                        id="berita_acara_bb">
-                                                        <option value="PPN">PPN</option>
-                                                        <option value="BPHTB">BPHTB</option>
-                                                        <option value="Biaya Proses">Biaya Proses</option>
-                                                    </select>
-
-                                                    <!-- <input required name="berita_acara_bb" id="berita_acara_bb"
-                                                        class="form-control" type="text"> -->
-                                                    <span class="help-block"></span>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Nominal</label>
-                                                    <input required name="nominal_bb" id="nominal_bb"
-                                                        onchange="sum_tg(this.value, '_bb')" class="form-control num tg"
-                                                        type="text">
-                                                    <span class="help-block"></span>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Tanggal Jatuh Tempo</label>
-                                                    <input required name="jatuh_tempo_tgl_bb" id="jatuh_tempo_tgl_bb"
-                                                        class="form-control flatpickr-human-friendly" type="date">
-                                                    <span class="help-block"></span>
-                                                </div>
-                                                <button id="tambah_list_bb" type="button"
-                                                    class="btn btn-outline-primary btn-block waves-effect"
-                                                    onclick="tambah_('_bb')">+ Tagihan Biaya-biaya</button>
-                                                <!-- <button id="hapus_list" type="button" class="btn btn-outline-danger btn-block waves-effect" onclick="hapus()">+ Hapus List</button> -->
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-
-                    </div>
-                    <div class="tab-pane" id="idk_arsip" aria-labelledby="idk_arsip-tab" role="tabpanel">
-                        <div class="row">
-                            <div class="col-sm-12 col-md-6 col-lg-6">
-                                <div class="card file-container">
-                                    <div class="card-body">
-                                        <div class="form-group">
-                                            <label>File SPPTB Yang Sudah Ditandatangani</label>
-                                            <div class="custom-file">
-                                                <input type="file" class="custom-file-input" accept="application/pdf"
-                                                    name="file_spptb" id="idk_file_spptb" onchange="" />
-                                                <label class="custom-file-label" id="label-idk_file_spptb"
-                                                    for="idk_file_spptb">Upload SPPTB yang sudah ditandatangani</label>
-                                            </div>
-                                            <div id="list-idk_file_spptb" style="">
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Lampiran Surat Kuasa SPPTB</label>
-                                            <div class="custom-file">
-                                                <input type="file" class="custom-file-input" accept="application/pdf"
-                                                    name="file_surat_kuasa" id="idk_file_surat_kuasa" onchange="" />
-                                                <label class="custom-file-label" id="label-idk_file_surat_kuasa"
-                                                    for="idk_file_surat_kuasa">Upload Lampiran Surat Kuasa SPPTB</label>
-                                            </div>
-                                            <div id="list-idk_lampiran" style="">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-6">
-                                <div class="card file-container">
-                                    <div class="card-head">
-                                        <ul class="nav nav-tabs mb-1 mt-1" role="tablist">
-                                            <li class="nav-item">
-                                                <a class="nav-link active" id="spptb_ttd-tab" data-toggle="tab"
-                                                    href="#spptb_ttd" aria-controls="spptb_ttd" role="tab"
-                                                    aria-selected="true">SPPTB Sudah Ditandatangan</a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a class="nav-link" id="spptb_riwayat-tab" data-toggle="tab"
-                                                    href="#spptb_riwayat" aria-controls="spptb_riwayat" role="tab"
-                                                    aria-selected="true">Riwayat Upload SPPTB</a>
-                                            </li>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="tab-content">
-                                            <div class="tab-pane show active" id="spptb_ttd"
-                                                aria-labelledby="spptb_ttd-tab" role="tabpanel">
-                                                <div id="spptb_ttd_file"></div>
-                                            </div>
-                                            <div class="tab-pane" id="spptb_riwayat" aria-labelledby="spptb_riwayat-tab"
-                                                role="tabpanel">
-                                                <div class="table-responsive">
-                                                    <table class="table mb-0">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>No</th>
-                                                                <th>File</th>
-                                                                <th>Oleh</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody id="spptb_ttd_file-here"></tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tab-pane" id="idk_riwayat" aria-labelledby="idk_riwayat-tab" role="tabpanel">
-                        <div class="row">
-                            <div class="col-sm-12 col-md-6 col-lg-6">
-                                <div class="card file-container">
-                                    <div class="card-body">
-                                        <button class="btn btn-outline-primary" id="btn-ganti_nama"
-                                            onclick="ganti_nama()">Klik Untuk Ganti Nama Konsumen</button>
-                                        <button class="btn btn-outline-warning" id="btn-refresh-ganti_nama"
-                                            onclick="getRiwayatGantinama()">Muat Ulang Diwayat</button>
-                                        <div class="divider">
-                                            <div class="divider-text">Riwayat Ganti Nama </div>
-                                        </div>
-                                        <div class="table-responsive">
-                                            <table class="table mb-0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>No</th>
-                                                        <th>File</th>
-                                                        <th>Oleh</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="riwayat_ganti_nama-here"></tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-6">
-                                <div class="card file-container">
-                                    <div class="card-body">
-                                        <button class="btn btn-outline-primary" id="btn-ganti_kavling"
-                                            onclick="ganti_kavling()">Klik Untuk Ganti Kavling</button>
-                                        <button class="btn btn-outline-warning" id="btn-refresh-ganti_kavling"
-                                            onclick="getRiwayatGantiKavling()">Muat Ulang Data </button>
-                                        <div class="divider">
-                                            <div class="divider-text">Riwayat Ganti Nama </div>
-                                        </div>
-                                        <div class="table-responsive">
-                                            <table class="table mb-0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>No</th>
-                                                        <th>File</th>
-                                                        <th>Oleh</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="ganti_kavling-here"></tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <br>
-            </div>
-            <div class="modal-footer">
-                <a href="" id="btn-print_spptb" target="_blank" class="btn btn-outline-success">Print SPPTB</a>
-
-                <button id="add-form-btn-idk_keu" class="btn btn-primary data-submit mr-1"
-                    onclick="simpan_dt_konsumen_keuangan(this)" href="javascript:void(0)">Simpan</button>
-                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
-            </div>
-    </div>
-    </form>
-</div>
 
 <!-- ################################## Modal Tagihan ##########################################-->
 <div class="modal fade text-left" id="print_tagihan_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel17"
@@ -1493,12 +522,7 @@
                     </button>
                 </div>
                 <div class="modal-body flex-grow-1 overflow-auto" style="background-color:#eee">
-                    <div class="card">
-                        <div class="card-body">
-                            <p class="modal-title label_konsumen" id="label_konsumen"></p>
-                            <p class="modal-title label_alamat" id="label_alamat3"></p>
-                        </div>
-                    </div>
+
 
                     <!-- <ul class="nav nav-tabs" role="tablist">
                         <li class="nav-item">
@@ -1510,13 +534,19 @@
                             <a class="nav-link" id="da-tab_pencairan_hasil_akad-tab" data-toggle="tab"
                                 href="#da-tab_pencairan_hasil_akad" aria-controls="home" role="tab"
                                 aria-selected="true">Pencairan Hasil Akad</a>
-                        </li>
-                    </ul>
-                    <div class="tab-content"> -->
+                    </li>
+                    </ul> -->
+                    <!-- <div class="tab-content">  -->
                     <!-- <div class="tab-pane active" id="da-tab_hasil_akad" aria-labelledby="da-hasil_akad-tab"
                             role="tabpanel"> -->
                     <div class="row">
                         <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <p class="modal-title label_konsumen" id="label_konsumen"></p>
+                                    <p class="modal-title label_alamat" id="label_alamat3"></p>
+                                </div>
+                            </div>
                             <div class="card">
                                 <div class="card-header">
                                     Dana Akad
@@ -1553,11 +583,100 @@
                         </div>
                         <div class="col-md-8">
                             <div class="card">
-                                <div class="card-header">
-                                    Dana Jaminan dan Pencairan
+                                <div class="card-body pb-0 pt-0">
+                                    <ul class="nav nav-tabs mb-1 mt-1" role="tablist">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" id="keu-dajam-tab" data-toggle="tab"
+                                                href="#keu-dajam" aria-controls="keu-dajam" role="tab"
+                                                aria-selected="true">Dana Jaminan</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="keu-pengajuan-dajam-tab" data-toggle="tab" href="#keu-pengajuan-dajam"
+                                                aria-controls="keu-pengajuan-dajam" role="tab" aria-selected="true">List Pengajuan Pencairan Dana Jaminan</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" id="keu-add-pengajuan-dajam-tab" data-toggle="tab" href="#keu-add-pengajuan-dajam"
+                                                aria-controls="keu-pengajuan-dajam" role="tab" aria-selected="true">Tambah Pengajuan Dana Jaminan</a>
+                                        </li>
+                                    </ul>
                                 </div>
-                                <div class="card-body">
-                                    <div id="da-jaminan_here"></div>
+                            </div>
+                            <div class="card">
+                                <div class="tab-content">
+                                    <div class="tab-pane show active" id="keu-dajam" aria-labelledby="keu-dajam-tab" role="tabpanel">
+                                        <div class="card-header">
+                                            Dana Jaminan dan Pencairan
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="da-jaminan_here"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-pane" id="keu-add-pengajuan-dajam" aria-labelledby="keu-add-pengajuan-dajam-tab" role="tabpanel">
+                                        <div class="card-body">
+                                            <form id="form-pencairan" enctype="multipart/form-data">
+                                                <!-- id_kavling static/readonly -->
+                                                <div class="form-row">
+                                                    <!-- <div class="form-group col-md-3">
+                                                        <label>ID Kavling</label>
+                                                        <input type="text" class="form-control" name="id_kavling" id="id_kavling" value="12345" readonly>
+                                                    </div> -->
+                                                    <div class="form-group col-md-3">
+                                                        <label>Tanggal Pengajuan</label>
+                                                        <input type="date" class="form-control" name="tanggal_pengajuan" required>
+                                                    </div>
+                                                    <div class="form-group col-md-3">
+                                                        <label>Status</label>
+                                                        <select class="form-control" name="status_cair" required>
+                                                            <option value="0">Pengajuan</option>
+                                                            <option value="1">Sudah Cair</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label>Keterangan Isi Surat</label>
+                                                    <textarea class="form-control" name="keterangan" rows="3" placeholder="Ringkas isi/tujuan surat..."></textarea>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label>Lampiran Surat (PDF)</label>
+                                                    <input type="file" class="form-control-file" name="surat" accept="application/pdf" required>
+                                                    <small class="form-text text-muted">PDF, maksimum 4 MB.</small>
+                                                </div>
+
+                                                <button type="submit" class="btn btn-primary">
+                                                    Simpan
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                    </div>
+                                    <div class="tab-pane" id="keu-pengajuan-dajam" aria-labelledby="keu-pengajuan-dajam-tab" role="tabpanel">
+                                        <div class="card-header">
+                                            Riwayat Pengajuan Pencairan
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="da-pengajuan-jaminan_here"></div>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered" id="tbl-riwayat">
+                                                    <thead class="thead-light">
+                                                        <tr>
+                                                            <th>#</th>
+                                                            <th>Diajukan Oleh</th>
+                                                            <th>Tanggal Pengajuan</th>
+                                                            <th>Tanggal Cair</th>
+                                                            <th>Keterangan</th>
+                                                            <th>Status</th>
+                                                            <th>Lampiran</th>
+                                                            <th>Aksi</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody><!-- rows via JS --></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -1,17 +1,30 @@
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/buttons.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css"
+  href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css"
+  href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css"
+  href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/buttons.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/extensions/sweetalert2.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/forms/select/select2.min.css">
-<link rel="stylesheet" type="text/css" href="https://datatables.net/release-datatables/extensions/FixedColumns/css/fixedColumns.bootstrap4.min.css"/>
+<link rel="stylesheet" type="text/css"
+  href="https://datatables.net/release-datatables/extensions/FixedColumns/css/fixedColumns.bootstrap4.min.css" />
 <!-- 
 <link rel="stylesheet" href="<?= base_url() ?>/app-assets/vendors/css/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.css">
 <link rel="stylesheet" href="<?= base_url() ?>/app-assets/vendors/css/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.css"> -->
 
 <script>
-  // // var csrfName = '<?= csrf_token() ?>';
+  // var csrfName = '<?= csrf_token() ?>';
   // var csrfHash = '<?= csrf_hash() ?>';
 </script>
+
+<style>
+  table,
+  tr {
+    vertical-align: middle !important;
+    text-align: center !important;
+    font-size: 10px;
+  }
+</style>
 <!-- /.card-header -->
 <div class="app-content content ">
   <div class="content-overlay"></div>
@@ -21,7 +34,7 @@
       <div class="col-12">
         <div class="card">
           <h5 class="card-header">
-            List Konsumen Akad
+            Konsumen Akad
           </h5>
           <div class="card-header border-bottom">
 
@@ -54,6 +67,7 @@
               </select>
             </div>
 
+            <div class="col-md-4 mb-1"></div>
             <div class="col-md-4 mb-1 hidden">
               <label>Akad</label>
               <select id="akad" name="akad" class="select2 self form-control">
@@ -62,77 +76,60 @@
                 <option value="0"> Belum </option>
               </select>
             </div>
-            <div class="col-md-4 mb-1 ">
+            <hr class="col-12" />
             <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm">Filter Data</button>
             <button type="button" id="btn_export" class="btn btn-success waves-effect btn-sm">Export Excel</button>
-            </div>
 
           </div>
         </div>
+
         <div class="card">
           <div class="card-datatable">
-            <table id="data_table" class="datatables-basic table compact">
+            <table id="data_tables" style="" class="datatables-basic table compact table-hover">
               <thead>
                 <tr>
-                  <th colspan="5" class="border-left" >Info Kavling</th>
-
-                  <th colspan="11" class="border-left">Marketing Data</th>
-
-                  <th colspan="11">Keuangan</th>
-
-                  <th colspan="2">Produksi</th>
-                  <th colspan="4"></th>
+                  <th id="tb_no" rowspan="3">NO</th>
+                  <th id="tb_kavling" colspan="2">KAVLING</th>
+                  <th id="tb_type" rowspan="3">TYPE</th>
+                  <th id="tb_nama_konsumen" rowspan="3">NAMA KONSUMEN</th>
+                  <th id="tb_sales" rowspan="3">SALES</th>
+                  <th id="tb_tgl_booking" rowspan="3">TGL BOOKING</th>
+                  <th id="tb_tgl_wwc" rowspan="3">TGL WWC</th>
+                  <th id="tb_marketing_data" colspan="6">MARKETING DATA</th>
+                  <th id="tb_keuangan" colspan="5">KEUANGAN</th>
                   <th></th>
+                  <th id="tb_produksi" colspan="4">PRODUKSI</th>
+                  <th id="tb_legal" colspan="3">LEGAL</th>
+                  <th id="tb_ga">GA</th>
                 </tr>
                 <tr>
-                  <th>No</th>
-                  <th>Blok</th>
-                  <th>No</th>
-                  <th>Tipe</th>
-                  <th>LT</th>
-
-                  <th>Nama Konsumen</th>
-                  <th>Tanggal Booking</th>
-                  <th>TUNAI/KPR</th>
-                  <th>Bank</th>
-                  <th>Keterangan</th>
-
-                  <th>Tanggal WWC</th>
-                  <th>Pengajuan</th>
-                  <th>ACC</th>
-                  <th>Turun KPR</th>
-                  <th>Tanggal Terbit</th>
-                  <th>Tanggal Expire</th>
-
-                  <th>Harga Jual Real</th>
-                  <th>Diskon</th>
-                  <th>Harga Jual Net</th>
-                  <th>Harus Bayar UM</th>
-                  <th>Biaya-Biaya</th>
-                  <th>Total Harus Bayar</th>
-
-                  <th>Sudah Bayar UM</th>
-                  <th>Sudah Bayar BB</th>
-
-                  <th>Sisa Pembayaran</th>
-
-                  <th>% Bayar</th>
-                  <th>Turun KPR</th>
-
-
-                  <th>Tanggal Perintah Bangun</th>
-                  <th>Bangunan (%)</th>
-
-                  <th>HGB</th>
-                  <th>PBG</th>
-                  <th>NOP</th>
-
-                  <th>Diinput Oleh</th>
-                  <th>Pada</th>
-                  <th>Diubah Oleh</th>
-                  <th>Pada</th>
-
-                  <th></th>
+                  <th id="tb_blok" rowspan="2">BLOK</th>
+                  <th id="tb_no_kavling" rowspan="2">NO</th>
+                  <th id="tb_pengajuan" colspan="2">PENGAJUAN</th>
+                  <th id="tb_status" rowspan="2">STATUS</th>
+                  <th id="tb_sp3k" colspan="2">SP3K</th>
+                  <th id="tb_sikasep" rowspan="2">SIKASEP</th>
+                  <th id="tb_tunai" rowspan="2">TUNAI</th>
+                  <th id="tb_um" rowspan="2">UM</th>
+                  <th id="tb_biaya" rowspan="2">BIAYA</th>
+                  <th id="tb_hj" rowspan="2">HJ</th>
+                  <th id="tb_kpr" rowspan="2">KPR</th>
+                  <th id="tb_pricelist" rowspan="2">PRICELIST</th>
+                  <th id="tb_bangunan" colspan="2">BANGUNAN</th>
+                  <th id="tb_listrik" rowspan="2">LISTRIK</th>
+                  <th id="tb_jalan" rowspan="2">JALAN</th>
+                  <th id="tb_hgb" rowspan="2">HGB</th>
+                  <th id="tb_imb" rowspan="2">IMB</th>
+                  <th id="tb_pbb" rowspan="2">PBB</th>
+                  <th id="tb_sikumbang" rowspan="2">SIKUMBANG</th>
+                </tr>
+                <tr>
+                  <th id="tb_tunai_kpr">TUNAI/KPR</th>
+                  <th id="tb_bank">BANK</th>
+                  <th id="tb_terbit">TERBIT</th>
+                  <th id="tb_expired">EXPIRED</th>
+                  <th id="tb_pct">%</th>
+                  <th id="tb_lpa">LPA</th>
                 </tr>
               </thead>
             </table>
@@ -151,11 +148,13 @@
           </div>
           <div class="modal-body flex-grow-1">
             <div class="row">
-              <input type="hidden" id="idGroup" name="idGroup" class="form-control" placeholder="Id group" maxlength="11" required>
+              <input type="hidden" id="idGroup" name="idGroup" class="form-control" placeholder="Id group"
+                maxlength="11" required>
             </div>
             <div class="form-group">
               <label for="namaGroup"> Nama group: <span class="text-danger">*</span> </label>
-              <input type="text" id="namaGroup" name="namaGroup" class="form-control" placeholder="Nama group" maxlength="50" required>
+              <input type="text" id="namaGroup" name="namaGroup" class="form-control" placeholder="Nama group"
+                maxlength="50" required>
             </div>
             <button type="submit" class="btn btn-primary data-submit mr-1" id="add-form-btn">Simpan</button>
             <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
@@ -173,12 +172,14 @@
           </div>
           <div class="modal-body flex-grow-1">
             <div class="row">
-              <input type="hidden" id="idGroup" name="idGroup" class="form-control" placeholder="Id group" maxlength="11" required>
+              <input type="hidden" id="idGroup" name="idGroup" class="form-control" placeholder="Id group"
+                maxlength="11" required>
             </div>
             <div>
               <div class="form-group">
                 <label for="namaGroup"> Nama group: <span class="text-danger">*</span> </label>
-                <input type="text" id="namaGroup" name="namaGroup" class="form-control" placeholder="Nama group" maxlength="50" required>
+                <input type="text" id="namaGroup" name="namaGroup" class="form-control" placeholder="Nama group"
+                  maxlength="50" required>
               </div>
             </div>
             <button type="submit" class="btn btn-primary data-submit mr-1" id="add-form-btn">Simpan</button>
@@ -203,29 +204,35 @@
 <script src="<?= base_url() ?>/app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
 <script src="<?= base_url() ?>/app-assets/vendors/js/extensions/polyfill.min.js"></script>
 <script src="<?= base_url() ?>/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
-<script type="text/javascript" src="https://datatables.net/release-datatables/extensions/FixedColumns/js/dataTables.fixedColumns.min.js"></script>
+<script type="text/javascript"
+  src="https://datatables.net/release-datatables/extensions/FixedColumns/js/dataTables.fixedColumns.min.js"></script>
 <!-- <script src="https://adminlte.io/themes/v3/plugins/jquery-validation/additional-methods.min.js"></script> -->
 
 <!-- <script src="<?= base_url() ?>/app-assets/vendors/js/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.js"></script>
 <script src="<?= base_url() ?>/app-assets/vendors/js/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.js"></script> -->
 
 <script>
-
-
-  $(function() {
-    var table = $('#data_table').DataTable({
-      fnDrawCallback: function() {
+  $(function () {
+    var table = $('#data_tables').DataTable({
+      fnDrawCallback: function () {
         $('[data-toggle="popover"]').popover();
       },
-      columnDefs: [{
-        'targets': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
-        'createdCell': function(td, cellData, rowData, row, col) {
-          $(td).attr('data-toggle', 'popover');
-          $(td).attr('data-placement', 'top');
-          $(td).attr('data-content', rowData[1] + " No. " + rowData[2]);
-          $(td).attr('data-trigger', 'hover');
+     
+      columnDefs: [
+        {
+          'targets': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27],
+          'createdCell': function (td, cellData, rowData, row, col) {
+            $(td).attr('data-toggle', 'popover');
+            $(td).attr('data-placement', 'top');
+            $(td).attr('data-content', rowData[1] + " No. " + rowData[2]);
+            $(td).attr('data-trigger', 'hover');
+          },
         },
-      }],
+        {
+          'targets' : 0,
+          'width' : "500px"
+        }
+      ],
       scrollY: "50vh",
       scrollX: true,
       scrollCollapse: true,
@@ -242,13 +249,13 @@
       // "autoWidth": false,
       // "responsive": true,
       ajax: {
-        url: base_url + '/mkdt/getListKavlingAkad',
+        url: base_url + 'mkdt/getListKavlingAkad',
         type: "POST",
         dataType: "json",
         data: {
           [csrfName]: csrfHash
         },
-        data: function(data) {
+        data: function (data) {
           data[csrfName] = csrfHash
           data.id_proyek = $("#id_proyek").val()
           data.id_cluster = $("#id_cluster").val()
@@ -257,7 +264,7 @@
           data.wawancara = $("#wawancara").val()
           data.akad = $("#akad").val()
         },
-        dataSrc: function(r) {
+        dataSrc: function (r) {
           csrfHash = r.token
           return r.data;
         },
@@ -268,7 +275,7 @@
     //on chnage search
     $(".dataTables_filter input")
       .off()
-      .on('change', function(e) {
+      .on('change', function (e) {
         table.search(this.value).draw();
       });
 
@@ -284,17 +291,17 @@
         dataType: 'json',
         delay: 250,
         method: 'post',
-        data: function(params) {
+        data: function (params) {
           return {
             [csrfName]: csrfHash,
             search: params.term
           };
         },
-        processResults: function(r) {
+        processResults: function (r) {
           csrfHash = r.token
 
           let results = [];
-          $.each(r.data, function(index, item) {
+          $.each(r.data, function (index, item) {
             results.push({
               id: item['id_proyek'],
               text: item[1] + ' (' + item[2] + ')'
@@ -310,7 +317,7 @@
     })
 
     //on select proyek
-    $("#id_proyek").on("change", function(e) {
+    $("#id_proyek").on("change", function (e) {
       $('#id_cluster').val(null).trigger('change');
 
       if (this.value)
@@ -328,18 +335,18 @@
         dataType: 'json',
         delay: 250,
         method: 'post',
-        data: function(params) {
+        data: function (params) {
           return {
             [csrfName]: csrfHash,
             search: params.term,
             id_proyek: $("#id_proyek").val()
           };
         },
-        processResults: function(r) {
+        processResults: function (r) {
           csrfHash = r.token
 
           let results = [];
-          $.each(r.data, function(index, item) {
+          $.each(r.data, function (index, item) {
             results.push({
               id: item[0],
               text: item[3]
@@ -354,7 +361,7 @@
       },
     })
     // on select cluster
-    $("#id_cluster").on("change", function(e) {
+    $("#id_cluster").on("change", function (e) {
       $('#id_jalan').val(null).trigger('change');
       if (this.value)
         $("#id_jalan").prop("disabled", false)
@@ -371,7 +378,7 @@
         dataType: 'json',
         delay: 250,
         method: 'post',
-        data: function(params) {
+        data: function (params) {
           return {
             [csrfName]: csrfHash,
             search: params.term,
@@ -379,11 +386,11 @@
             id_proyek: $("#id_proyek").val()
           };
         },
-        processResults: function(r) {
+        processResults: function (r) {
           csrfHash = r.token
 
           let results = [];
-          $.each(r.data, function(index, item) {
+          $.each(r.data, function (index, item) {
             results.push({
               id: item[0],
               text: item[3]
@@ -399,37 +406,46 @@
     })
 
     //on click btn filter
-    $("#btn_draw").on("click", function(e) {
+    $("#btn_draw").on("click", function (e) {
       table.draw();
     })
 
-    $("#btn_export").on('click', function(e) {
+    $("#btn_export").on('click', function (e) {
+      if (!$("#id_proyek").val()) {
+        return Swal.fire({
+          icon: 'error',
+          title: "Proyek belum dipilih",
+          showConfirmButton: false
+        })
+
+      }
       // var myWindow = window.open(base_url + "/mkdt/export_xlsx/", "_blank", "top=100,left=300,width=700,height=600");
       $.ajax({
         type: "post",
         url: base_url + "/mkdt/export_xlsx",
         data: {
           [csrfName]: csrfHash,
-          table: $("#data_table").html()
+          table: $("#data_tables").html()
         },
         dataType: "json",
-        beforeSend: function() {
+        beforeSend: function () {
           $("#btn_export").html("Meng-eksport")
           $("#btn_export").prop("disabled", true)
         },
-        success: function(data) {
+        success: function (data) {
           var d = new Date()
-                d = format_date(d.getFullYear()+"-"+  (parseInt (d.getMonth()) + 1) + "-" + d.getDay());
-                
+          d = format_date(d.getFullYear() + "-" + (parseInt(d.getMonth()) + 1) + "-" + d.getDay());
+
           var $a = $("<a>");
           $a.attr("href", data.file);
           $("body").append($a);
-          $a.attr("download", $("#id_proyek").select2('data')[0].text + "- List Konsumen Akad  Per " +d+ ".xls");
+          $a.attr("download", $("#id_proyek").select2('data')[0].text + "- List Konsumen Aktif  Per " + d + ".xls");
           $a[0].click();
           $a.remove();
           $("#btn_export").html("Export Ecel")
           $("#btn_export").prop("disabled", false)
-        },error:function(){
+        },
+        error: function () {
           $("#btn_export").html("Export Ecel")
           $("#btn_export").prop("disabled", false)
         }
@@ -440,365 +456,163 @@
     $(".select2-selection__arrow").removeClass("select2-selection__arrow")
 
   });
-  // function add() {
-  //   // reset the form 
-  //   $("#add-form")[0].reset();
-  //   $(".form-control").removeClass('is-invalid').removeClass('is-valid');
-  //   $('#add-modal').modal('show');
-  //   // submit the add from 
-  //   $.validator.setDefaults({
-  //     highlight: function(element) {
-  //       $(element).addClass('is-invalid').removeClass('is-valid');
-  //     },
-  //     unhighlight: function(element) {
-  //       $(element).removeClass('is-invalid').addClass('is-valid');
-  //     },
-  //     errorElement: 'div ',
-  //     errorClass: 'invalid-feedback',
-  //     errorPlacement: function(error, element) {
-  //       if (element.parent('.input-group').length) {
-  //         error.insertAfter(element.parent());
-  //       } else if ($(element).is('.select')) {
-  //         element.next().after(error);
-  //       } else if (element.hasClass('select2')) {
-  //         //error.insertAfter(element);
-  //         error.insertAfter(element.next());
-  //       } else if (element.hasClass('selectpicker')) {
-  //         error.insertAfter(element.next());
-  //       } else {
-  //         error.insertAfter(element);
-  //       }
-  //     },
 
-  //     submitHandler: function(form) {
-
-  //       var form = $('#add-form');
-  //       // remove the text-danger
-  //       $(".text-danger").remove();
-
-  //       $.ajax({
-  //         url: '<?php echo base_url($controller . '/add') ?>',
-  //         type: 'post',
-  //         data: form.serialize() + "&" + csrfName + "=" + csrfHash, // /converting the form data into array and sending it to server
-  //         dataType: 'json',
-  //         beforeSend: function() {
-  //           $('#add-form-btn').prop("disabled", true);
-  //           $('#add-form-btn').html('<i class="fa fa-spinner fa-spin"></i>');
-  //         },
-  //         success: function(response) {
-  //           csrfHash = response.token;
-  //           if (response.success === true) {
-
-  //             Swal.fire({
-  //               position: 'bottom-end',
-  //               icon: 'success',
-  //               title: response.messages,
-  //               showConfirmButton: false,
-  //               timer: 1500
-  //             }).then(function() {
-  //               $('#data_table').DataTable().ajax.reload(null, false).draw(false);
-  //               $('#add-modal').modal('hide');
-  //             })
-
-  //           } else {
-
-  //             if (response.messages instanceof Object) {
-  //               $.each(response.messages, function(index, value) {
-  //                 var id = $("#" + index);
-
-  //                 id.closest('.form-control')
-  //                   .removeClass('is-invalid')
-  //                   .removeClass('is-valid')
-  //                   .addClass(value.length > 0 ? 'is-invalid' : 'is-valid');
-
-  //                 id.after(value);
-
-  //               });
-  //             } else {
-  //               Swal.fire({
-  //                 position: 'bottom-end',
-  //                 icon: 'error',
-  //                 title: response.messages,
-  //                 showConfirmButton: false,
-  //                 timer: 1500
-  //               })
-
-  //             }
-  //           }
-  //           $('#add-form-btn').html('Add');
-  //           $('#add-form-btn').prop("disabled", false);
-  //         }
-  //       });
-
-  //       return false;
-  //     }
-  //   });
-  //   $('#add-form').validate();
-  // }
-
-  // function edit(id_group) {
-  //   $.ajax({
-  //     url: '<?php echo base_url($controller . '/getOne') ?>',
-  //     type: 'post',
-  //     data: {
-  //       [csrfName]: csrfHash,
-  //       id_group: id_group
-  //     },
-  //     dataType: 'json',
-  //     success: function(response) {
-  //       csrfHash = response.token;
-  //       // reset the form 
-  //       $("#edit-form")[0].reset();
-  //       $(".form-control").removeClass('is-invalid').removeClass('is-valid');
-  //       $('#edit-modal').modal('show');
-
-  //       $("#edit-form #idGroup").val(response.id_group);
-  //       $("#edit-form #namaGroup").val(response.nama_group);
-  //       $("#edit-form #addBy").val(response.add_by);
-  //       $("#edit-form #createdAt").val(response.created_at);
-  //       $("#edit-form #editBy").val(response.edit_by);
-  //       $("#edit-form #updatedBy").val(response.updated_by);
-
-  //       // submit the edit from 
-  //       $.validator.setDefaults({
-  //         highlight: function(element) {
-  //           $(element).addClass('is-invalid').removeClass('is-valid');
-  //         },
-  //         unhighlight: function(element) {
-  //           $(element).removeClass('is-invalid').addClass('is-valid');
-  //         },
-  //         errorElement: 'div ',
-  //         errorClass: 'invalid-feedback',
-  //         errorPlacement: function(error, element) {
-  //           if (element.parent('.input-group').length) {
-  //             error.insertAfter(element.parent());
-  //           } else if ($(element).is('.select')) {
-  //             element.next().after(error);
-  //           } else if (element.hasClass('select2')) {
-  //             //error.insertAfter(element);
-  //             error.insertAfter(element.next());
-  //           } else if (element.hasClass('selectpicker')) {
-  //             error.insertAfter(element.next());
-  //           } else {
-  //             error.insertAfter(element);
-  //           }
-  //         },
-
-  //         submitHandler: function(form) {
-  //           var form = $('#edit-form');
-  //           $(".text-danger").remove();
-  //           $.ajax({
-  //             url: '<?php echo base_url($controller . '/edit') ?>',
-  //             type: 'post',
-  //             data: form.serialize() + "&" + csrfName + "=" + csrfHash,
-  //             dataType: 'json',
-  //             beforeSend: function() {
-  //               $('#edit-form-btn').html('<i class="fa fa-spinner fa-spin"></i>');
-  //             },
-  //             success: function(response) {
-  //               csrfHash = response.token;
-  //               if (response.success === true) {
-
-  //                 Swal.fire({
-  //                   position: 'bottom-end',
-  //                   icon: 'success',
-  //                   title: response.messages,
-  //                   showConfirmButton: false,
-  //                   timer: 1500
-  //                 }).then(function() {
-  //                   $('#data_table').DataTable().ajax.reload(null, false).draw(false);
-  //                   $('#edit-modal').modal('hide');
-  //                 })
-
-  //               } else {
-
-  //                 if (response.messages instanceof Object) {
-  //                   $.each(response.messages, function(index, value) {
-  //                     var id = $("#" + index);
-
-  //                     id.closest('.form-control')
-  //                       .removeClass('is-invalid')
-  //                       .removeClass('is-valid')
-  //                       .addClass(value.length > 0 ? 'is-invalid' : 'is-valid');
-
-  //                     id.after(value);
-
-  //                   });
-  //                 } else {
-  //                   Swal.fire({
-  //                     position: 'bottom-end',
-  //                     icon: 'error',
-  //                     title: response.messages,
-  //                     showConfirmButton: false,
-  //                     timer: 1500
-  //                   })
-
-  //                 }
-  //               }
-  //               $('#edit-form-btn').html('Update');
-  //             }
-  //           });
-
-  //           return false;
-  //         }
-  //       });
-  //       $('#edit-form').validate();
-
-  //     }
-  //   });
-  // }
-
-  // function remove(id_group, stat) {
-  //   let st = (stat == 1) ? "menonaktifkan" : "mengaktifkan";
-  //   Swal.fire({
-  //     title: 'Apakah anda yakin akan '+st+' data ini?',
-  //     text: "Data item dan subitem yang terhubung dengan data ini akan bisa/tidak bisa diakses",
-  //     icon: 'warning',
-  //     showCancelButton: true,
-  //     confirmButtonColor: '#3085d6',
-  //     cancelButtonColor: '#d33',
-  //     confirmButtonText: 'Confirm',
-  //     cancelButtonText: 'Cancel'
-  //   }).then((result) => {
-
-  //     if (result.value) {
-  //       $.ajax({
-  //         url: '<?php echo base_url($controller . '/remove') ?>',
-  //         type: 'post',
-  //         data: {
-  //           [csrfName]: csrfHash,
-  //           id_group: id_group
-  //         },
-  //         dataType: 'json',
-  //         success: function(response) {
-  //           csrfHash = response.token;
-  //           if (response.success === true) {
-  //             Swal.fire({
-  //               position: 'bottom-end',
-  //               icon: 'success',
-  //               title: response.messages,
-  //               showConfirmButton: false,
-  //               timer: 1500
-  //             }).then(function() {
-  //               $('#data_table').DataTable().ajax.reload(null, false).draw(false);
-  //             })
-  //           } else {
-  //             Swal.fire({
-  //               position: 'bottom-end',
-  //               icon: 'error',
-  //               title: response.messages,
-  //               showConfirmButton: false,
-  //               timer: 1500
-  //             })
-  //           }
-  //         }
-  //       });
-  //     }
-  //   })
-  // }
-
-  $('thead > tr> th:nth-child(1)').css({
-    'min-width': '50px',
-    'max-width': '50px'
-  });
-  $('thead > tr> th:nth-child(2)').css({
-    'min-width': '250px',
-    'max-width': '250px'
-  });
-  $('thead > tr> th:nth-child(3)').css({
-    'min-width': '50px',
-    'max-width': '50px'
-  });
-  $('thead > tr> th:nth-child(4)').css({
-    'min-width': '70px',
-    'max-width': '70px'
-  });
-  $('thead > tr> th:nth-child(5)').css({
-    'min-width': '70px',
-    'max-width': '70px'
-  });
-  $('thead > tr> th:nth-child(6)').css({
+  $('#tb_blok').css({
     'min-width': '150px',
     'max-width': '150px'
   });
-  $('thead > tr> th:nth-child(7)').css({
+  $('#tb_nama_konsumen').css({
     'min-width': '150px',
     'max-width': '150px'
   });
-  $('thead > tr> th:nth-child(8)').css({
-    'min-width': '150px',
-    'max-width': '150px'
+  $('#tb_tgl_booking, #tb_tgl_wwc, #tb_terbit, #tb_expired, #tb_pricelist').css({
+    'min-width': '100px',
+    'max-width': '100px'
   });
-  $('thead > tr> th:nth-child(9)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(10)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(11)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(12)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(13)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(14)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(15)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(16)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(17)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(18)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(19)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(20)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(21)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(22)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(23)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(24)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(31)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(33)').css({
-    'min-width': '150px',
-    'max-width': '300px'
-  });
+  // $('thead > tr> th:nth-child(2)').css({
+  //   'min-width': '250px',
+  //   'max-width': '250px'
+  // });
+  // $('thead > tr> th:nth-child(3)').css({
+  //   'min-width': '50px',
+  //   'max-width': '50px'
+  // });
+  // $('thead > tr> th:nth-child(4)').css({
+  //   'min-width': '70px',
+  //   'max-width': '70px'
+  // });
+  // $('thead > tr> th:nth-child(5)').css({
+  //   'min-width': '70px',
+  //   'max-width': '70px'
+  // });
+  // $('thead > tr> th:nth-child(6)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(7)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(8)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(9)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(10)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(11)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(12)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(13)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(14)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(15)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(16)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(17)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(18)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(19)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(20)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+
+
+  // $('thead > tr> th:nth-child(21)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(22)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(23)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+
+
+
+  // $('thead > tr> th:nth-child(24)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(25)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(26)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(27)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(28)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(29)').css({
+  //   'min-width': '150px',
+  //   'max-width': '300px'
+  // });
+
+  // $('thead > tr> th:nth-child(30)').css({
+  //   'min-width': '150px',
+  //   'max-width': '300px'
+  // });
+  // $('thead > tr> th:nth-child(31)').css({
+  //   'min-width': '150px',
+  //   'max-width': '300px'
+  // });
+  // $('thead > tr> th:nth-child(32)').css({
+  //   'min-width': '150px',
+  //   'max-width': '300px'
+  // });
+  // $('thead > tr> th:nth-child(33)').css({
+  //   'min-width': '150px',
+  //   'max-width': '300px'
+  // });
+  // $('thead > tr> th:nth-child(34)').css({
+  //   'min-width': '150px',
+  //   'max-width': '300px'
+  // });
+  // $('thead > tr> th:nth-child(35)').css({
+  //   'min-width': '150px',
+  //   'max-width': '300px'
+  // });
+  // $('thead > tr> th:nth-child(36)').css({
+  //   'min-width': '150px',
+  //   'max-width': '300px'
+  // });
 </script>

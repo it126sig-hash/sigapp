@@ -72,11 +72,9 @@ class Hargajual extends BaseController
 
 		$var = $this->request->getVar();
 
-		// $data['test'] = $var;
-		// if(!$var['search'])
-		// 	$var['search']['value'] = "";
 
-		$colum = ['hargajual.hargajual', 'hargajual.kpr', 'tipe.tipe_rumah'];
+
+		$colum = ['hargajual.hargajual', 'hargajual.kpr', 'hargajual.id_tipe'];
 		$condition = ['is_active' => $this->request->getPost('is_active')];
 
 		$query = $this->db->table('hargajual')
@@ -84,14 +82,13 @@ class Hargajual extends BaseController
 				hargajual.*,
 				proyek.nama_proyek,
 				file_hargajual.lokasi,
-				file_hargajual.file_name,
-				tipe.tipe_rumah,
+				file_hargajual.file_name,			
 				users.username as uadd_by, 
 				c.username as uedit_by, 
 				')
 			->join('proyek', 'proyek.id_proyek = hargajual.id_proyek')
 			->join('file_hargajual', 'file_hargajual.id_filehj = hargajual.id_filehj', 'left')
-			->join('tipe', 'hargajual.id_tipe = tipe.id_tipe', 'left')
+
 			->join('users', 'users.id = hargajual.add_by', 'left')
 			->join('users as c', 'c.id = hargajual.edit_by', 'left');
 
@@ -101,6 +98,7 @@ class Hargajual extends BaseController
 		$result = $this->if_where($var, $colum, $condition, $query);
 
 		$result
+			->orderBy("tgl_harga", "desc")
 			->offset($var['start'])
 			->limit($var['length']);
 
@@ -112,7 +110,6 @@ class Hargajual extends BaseController
 			->select('hargajual.*')
 			->join('proyek', 'proyek.id_proyek = hargajual.id_proyek')
 			->join('file_hargajual', 'file_hargajual.id_filehj = hargajual.id_filehj', 'left')
-			->join('tipe', 'hargajual.id_tipe = tipe.id_tipe', 'left')
 			->join('users', 'users.id = hargajual.add_by', 'left')
 			->join('users as c', 'c.id = hargajual.edit_by', 'left');
 
@@ -123,7 +120,6 @@ class Hargajual extends BaseController
 		$countTotal =  $this->db->table('hargajual')
 			->select('count(hargajual.id) as count')
 			->join('proyek', 'proyek.id_proyek = hargajual.id_proyek')
-			->join('tipe', 'hargajual.id_tipe = tipe.id_tipe', 'left')
 			->join('users', 'users.id = hargajual.add_by', 'left')
 			->join('users as c', 'c.id = hargajual.edit_by', 'left')
 			->where($condition);
@@ -148,7 +144,7 @@ class Hargajual extends BaseController
 				$value->nama_proyek . $fu,
 				$this->format_tgl($value->tgl_harga),
 				$value->row,
-				$value->tipe_rumah,
+				$value->id_tipe,
 				$value->lb,
 				$value->lt,
 				number_format($value->hargajual),
@@ -245,27 +241,25 @@ class Hargajual extends BaseController
 			->select('
 				hargajual.*,
 				proyek.nama_proyek,
-				tipe.tipe_rumah,
-				tipe.no_tipe_rumah,
 				users.username as uadd_by, 
 				c.username as uedit_by, 
 				fhj.lokasi,
 				fhj.file_name
 			')
 			->join('proyek', 'proyek.id_proyek = hargajual.id_proyek')
-			->join('tipe', 'hargajual.id_tipe = tipe.id_tipe', 'left')
 			->join('users', 'users.id = hargajual.add_by', 'left')
 			->join('users as c', 'c.id = hargajual.edit_by', 'left')
 			->join('file_hargajual fhj', 'hargajual.id_filehj = fhj.id_filehj', "left")
 			->where('hargajual.id_proyek', $id_proyek)
 			->where('hargajual.is_active', 1)
-			->like('tipe.tipe_rumah', $search)
+			->like('hargajual.id_tipe', $search)
 			->orWhere('hargajual.id_proyek', $id_proyek)
 			->where('hargajual.is_active', 1)
 			->like('hargajual.tgl_harga', $search)
 			->orWhere('hargajual.id_proyek', $id_proyek)
 			->where('hargajual.is_active', 1)
 			->like('hargajual.hargajual', $search)
+			->orderBy('hargajual.tgl_harga','DESC')
 			->get()->getResult();
 		// $data['token'] = csrf_hash();
 		return $this->response->setJSON($data);
@@ -503,7 +497,7 @@ class Hargajual extends BaseController
 
 		if ($tgl == "" || $tgl == "0000-00-00" || $tgl == null) return "-";
 		if ($v['hour'])
-			return date_format(date_create($tgl), "d-M-Y h:i:s");
+			return date_format(date_create($tgl), "d-M-Y H:i:s");
 		return date_format(date_create($tgl), "d-M-Y");
 	}
 	protected function num($d)

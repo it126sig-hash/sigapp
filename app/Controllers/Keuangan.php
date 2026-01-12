@@ -9,6 +9,7 @@ use App\Models\MkdtModel;
 use App\Models\LogPembayaranModel;
 use CodeIgniter\HTTP\Response;
 use App\Models\ProfilePerusahaanModel;
+use App\Models\RiwayatPencairanJaminanModel;
 use Exception;
 
 // use App\Libraries\Pdf;
@@ -25,6 +26,7 @@ class Keuangan extends BaseController
     protected $lpModel;
     protected $notif;
     protected $mpdf;
+    protected $rdajam;
 
     public function __construct()
     {
@@ -35,6 +37,7 @@ class Keuangan extends BaseController
         $this->konsumenModel = new KonsumenModel();
         $this->lpModel = new LogPembayaranModel();
         $this->comproModel = new ProfilePerusahaanModel();
+        $this->rdajam = new RiwayatPencairanJaminanModel();
         $this->db = db_connect();
         // $this->pdf = new Pdf();
         $this->mpdf = new Mpdf_lib();
@@ -60,7 +63,55 @@ class Keuangan extends BaseController
             // ->where('id_kavling', $id_kavling)
             ->get()->getResult();
 
+        $r['list_pengajuan'] = $this->rdajam->where('id_kavling',$id_kavling)->get()->getResult();
+
         return $this->response->setJSON($r);
+    }
+    function getJatuhTempo()
+    {
+        $id_kavling = $this->request->getVar('list_jatuhtempo');
+        if (!$id_kavling)
+            return $this->response->setJSON([]);
+
+
+        $subquery = $this->db->table('keuangan')
+            ->select('JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    "jatuh_tempo_tgl", jatuh_tempo_tgl,
+                    "nominal", nominal,
+                    "berita_acara", berita_acara
+                )
+             )', false)
+            ->where('keuangan.id_mkdt = m.id_mkdt')
+            ->where('sudah_dibayar', 0)
+            ->getCompiledSelect();
+
+        $builder = $this->db->table('kavling k');
+        $builder->select("
+                c.nama_konsumen,
+                c.hp_konsumen,
+                c.alamat_konsumen,
+                k.no_kavling,
+                t.tipe_rumah,
+                j.nama_jalan,
+                cl.nama_cluster,
+                ($subquery) AS data_jatuh_tempo
+        ", false);
+
+        $builder->join('jalan j', 'j.id_jalan = k.id_jalan');
+        $builder->join('cluster cl', 'cl.id_cluster = j.id_cluster');
+        $builder->join('proyek p', 'p.id_proyek = cl.id_proyek');
+        $builder->join('mkdt m', 'm.id_mkdt = k.id_mkdt');
+        $builder->join('konsumen c', 'c.id_konsumen = m.id_konsumen');
+        $builder->join('hargajual hj', 'hj.id = k.harga_akhir');
+        $builder->join('tipe t', 't.id_tipe = hj.id_tipe');
+
+        $builder->whereIn('k.id_kavling', $id_kavling);
+
+        $query = $builder->get();
+        $result = $query->getResult();
+
+        return $this->response->setJSON($result);
     }
     function getCashOut()
     {
@@ -88,14 +139,14 @@ class Keuangan extends BaseController
 
         foreach ($id_cashout as $i => $v) {
             $data = [];
-            
+
             $data['id_kavling'] = $id_kavling;
 
 
             $s = false;
 
-          
-              
+
+
             if ($v['nominal'] != "" && $v['tanggal_bayar'] != "") {
                 if (strpos($i, 'n') === false) {
                     // $data['id_item_cashout'] = $v['id_item_cashout'];
@@ -110,8 +161,8 @@ class Keuangan extends BaseController
                     $q = $this->db->table('cashout')
                         ->where(['id' => $i])
                         ->update($data);
-                    
-                        $s = $q ;
+
+                    $s = $q;
                 } else {
                     $data['id_item_cashout'] = substr($v['id_item_cashout'], 1);
                     $data['nominal'] = $this->num($v['nominal']);
@@ -121,19 +172,18 @@ class Keuangan extends BaseController
                     $data['id'] = null;
                     $data['add_by'] = user_id();
                     $data['created_at'] = date("Y-m-d H:i:s");
-                    
+
                     $q = $this->db->table('cashout')
                         ->insert($data);
-                    
+
                     $s = $q;
                 }
             }
-            
         }
-     
+
         // if ($s) {
-            $response['success'] = true;
-            $response['messages'] = 'Data berhasil diperbaharui';
+        $response['success'] = true;
+        $response['messages'] = 'Data berhasil diperbaharui';
         // } else {
         //     $response['success'] = false;
         //     $response['messages'] = 'Terjadi kesalahan saat melakukan perubahan data';
@@ -157,8 +207,8 @@ class Keuangan extends BaseController
         $data['id_kavling'] = $this->request->getVar('id_kavling');
         $dajam_selesai = $this->request->getVar('dajam_selesai') ?? 0;
 
-        $this->mkdtModel->update( $id_mkdt, ['dajam_selesai' => $dajam_selesai]);
-      
+        $this->mkdtModel->update($id_mkdt, ['dajam_selesai' => $dajam_selesai]);
+
         // $s = false;
         // echo "<pre>";
         // echo $dajam_selesai;
@@ -170,7 +220,7 @@ class Keuangan extends BaseController
         foreach ($id_dajam as $i => $v) {
             $data['id_list_dajam'] = $v['id_list_dajam'];
             $data['nominal'] = $this->num($v['nominal']);
-            
+
 
             $s = false;
 
@@ -192,8 +242,6 @@ class Keuangan extends BaseController
             }
 
             if (strpos($i, 'n') === false) {
-
-
                 $data['edit_by'] = user_id();
                 $data['updated_at'] = date("Y-m-d H:i:s");
 
@@ -245,199 +293,79 @@ class Keuangan extends BaseController
         $response['success'] = true;
         return $this->response->setJSON($r);
     }
-    function get_data_by_id()
-    {
-        $hj = [];
-        $id_hargajual = $this->request->getVar('id_hargajual');
-        $id_kavling = $this->request->getVar('id_kavling');
-        $diskresi = [];
 
-        if ($id_kavling) {
-            $q = $this->db->table('kavling')
-                ->select('
-                harga_akhir_tgl,
-                a.username as username_harga_akhir,
-                diskresi_harga,
-                diskresi_memo,
-                diskresi_at,
-                b.username as username_diskresi
-                ')
-                ->join('users as a', 'a.id = harga_akhir_oleh', 'left')
-                ->join('users as b', 'b.id = diskresi_oleh', 'left')
-                ->where('id_kavling', $id_kavling)
-                ->get()->getResult()[0];
-            $diskresi = $q;
-        }
+    // function getTagihan()
+    // {
+    //     // $r = $this->keuanganModel
+    //     //     ->where('id_mkdt', $this->request->getVar('id_mkdt'))
+    //     //     ->first();
 
-        if ($id_hargajual) {
-            $q = $this->db->table('hargajual as b')
-                ->select('
-                    b.id,
-                    b.id as harga_akhir,
-                    b.tgl_harga,
-                    b.row,
-                    b.hargajual,
-                    b.hargajual_net,
-                    b.kpr,
-                    b.uang_muka,
-                    b.bphtb,
-                    b.ppn,
-                    b.biaya_proses,
-                    b.biaya_adm,
-                    a.tipe_rumah as tipe,
-                    b.lb,
-                    b.lt
-                ')
-                ->join('tipe as a', 'a.id_tipe = b.id_tipe')
-                ->where('id', $id_hargajual)
-                ->get()->getResult()[0];
-            $hj = $q;
-        }
-        if ($this->request->getVar('id_mkdt')) {
-            $r = (object) [];
-            $x = $this->mkdtModel
-                ->select('
-                    mkdt.*,
-                    konsumen.nama_konsumen,
-                    konsumen.no_spptb,
-                    konsumen.nik as nik_konsumen,
-                    konsumen.npwp as npwp_konsumen,
-                    konsumen.file_ktp as ktp_lok,
-                    konsumen.file_npwp as npwp_lok,
-                    konsumen.file_data_diri as data_diri_lok,
-                    konsumen.email_konsumen,
-                    konsumen.hp_konsumen,
-                    konsumen.alamat_konsumen,
-                    konsumen.status_konsumen,
-                    konsumen.status_pernikahan,
-                    konsumen.nama_pasangan,
-                    konsumen.nik_pasangan,
-                    konsumen.nama_instansi,
-                    konsumen.alamat_instansi,
-                    konsumen.tel_instansi,
-                    konsumen.sales,
-                    username as perintah_bangun_user,
-                    
-                ')
-                ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
-                ->join('users', 'users.id = mkdt.edit_by', 'left')
-                ->where('id_mkdt', $this->request->getVar('id_mkdt'))
-                ->first();
-            if ($x) {
-                $r->data = $x;
-                $r->hj = $hj;
-                $r->diskresi = $diskresi;
-                $r->token = csrf_hash();
-                $r->tagihan = $this->keuanganModel
-                    ->select('keuangan.*, users.username')
-                    ->join('users', 'users.id = keuangan.add_by')
-                    ->where("id_mkdt", $x->id_mkdt)
-                    ->find();
-                $r->log_pembayaran = $this->lpModel
-                    ->select('
-                        log_pembayaran.*,
-                        users.username,
-                        keuangan.status
-                    ')
-                    ->join('users', 'users.id = log_pembayaran.add_by')
-                    ->join('keuangan', 'keuangan.id_keuangan = log_pembayaran.id_keuangan', 'left')
-                    ->where('log_pembayaran.id_mkdt', $this->request->getVar('id_mkdt'))
-                    ->orderBy('tanggal_bayar', 'asc')
-                    // ->notLike('log_pembayaran.keterangan', 'Booking')
-                    ->find();
-                $r->list_spptb = $this->db->table('file_spptb')
-                    ->select('lokasi, file_spptb.created_at, username')
-                    ->join('users', 'users.id = file_spptb.add_by')
-                    ->where('id_mkdt', $x->id_mkdt)
-                    ->limit(3)
-                    ->get()->getResult();
-            } else {
-                $r['data'] = null;
-                $r['token'] = csrf_hash();
-                $r['hj'] = $hj;
-                $r['diskresi'] = $diskresi;
-            }
-        } else {
-            $r['data'] = null;
-            $r['hj'] = $hj;
-            $r['diskresi'] = $diskresi;
-            $r['token'] = csrf_hash();
-        }
-        return $this->response->setJSON($r);
-    }
+    //     // if ($r == null)
+    //     $r = (object) array();
 
-    function getTagihan()
-    {
-        // $r = $this->keuanganModel
-        //     ->where('id_mkdt', $this->request->getVar('id_mkdt'))
-        //     ->first();
+    //     $r->token = csrf_hash();
 
-        // if ($r == null)
-        $r = (object) array();
-
-        $r->token = csrf_hash();
-
-        $hj = [];
+    //     $hj = [];
 
 
-        //get mkdt detail data
-        if ($this->request->getVar('id_mkdt')) {
-            $r->mkdt = $this->mkdtModel
-                ->select('
-                    mkdt.*,
-                    konsumen.nama_konsumen,
-                    konsumen.no_spptb,
-                    konsumen.nik as nik_konsumen,
-                    konsumen.hp_konsumen,
-                    konsumen.alamat_konsumen,
-                    konsumen.status_konsumen,
-                    konsumen.refund,
-                    konsumen.refund_tgl,
-                    konsumen.status_pernikahan,
-                    konsumen.nama_pasangan,
-                    konsumen.nik_pasangan,
-                    konsumen.nama_instansi,
-                    konsumen.alamat_instansi,
-                    konsumen.tel_instansi,
-                    konsumen.sales,
-                    konsumen.keterangan as keterangan_batal,
-                    b.row,
-                    b.id_tipe,
-                    b.lb,
-                    b.lt,
-                    c.tipe_rumah
+    //     //get mkdt detail data
+    //     if ($this->request->getVar('id_mkdt')) {
+    //         $r->mkdt = $this->mkdtModel
+    //             ->select('
+    //                 mkdt.*,
+    //                 konsumen.nama_konsumen,
+    //                 konsumen.no_spptb,
+    //                 konsumen.nik as nik_konsumen,
+    //                 konsumen.hp_konsumen,
+    //                 konsumen.alamat_konsumen,
+    //                 konsumen.status_konsumen,
+    //                 konsumen.refund,
+    //                 konsumen.refund_tgl,
+    //                 konsumen.status_pernikahan,
+    //                 konsumen.nama_pasangan,
+    //                 konsumen.nik_pasangan,
+    //                 konsumen.nama_instansi,
+    //                 konsumen.alamat_instansi,
+    //                 konsumen.tel_instansi,
+    //                 konsumen.sales,
+    //                 konsumen.keterangan as keterangan_batal,
+    //                 b.row,
+    //                 b.id_tipe,
+    //                 b.lb,
+    //                 b.lt,
+    //                 c.tipe_rumah
 
-            ')
-                ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
-                ->join('hargajual as b', 'mkdt.id_hargajual = b.id', 'left')
-                ->join('tipe as c', 'c.id_tipe = b.id_tipe', 'left')
-                ->where('id_mkdt', $this->request->getVar('id_mkdt'))
-                ->first();
+    //         ')
+    //             ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
+    //             ->join('hargajual as b', 'mkdt.id_hargajual = b.id', 'left')
+    //             ->join('tipe as c', 'c.id_tipe = b.id_tipe', 'left')
+    //             ->where('id_mkdt', $this->request->getVar('id_mkdt'))
+    //             ->first();
 
-            //get rincian tagihan
-            $r->tagihan = $this->keuanganModel
-                ->select('keuangan.*, users.username')
-                ->where('id_mkdt', $this->request->getVar('id_mkdt'))
-                ->join('users', 'users.id = keuangan.add_by')
-                ->orderBy('jatuh_tempo_tgl', 'asc')
-                ->find();
+    //         //get rincian tagihan
+    //         $r->tagihan = $this->keuanganModel
+    //             ->select('keuangan.*, users.username')
+    //             ->where('id_mkdt', $this->request->getVar('id_mkdt'))
+    //             ->join('users', 'users.id = keuangan.add_by')
+    //             ->orderBy('jatuh_tempo_tgl', 'asc')
+    //             ->find();
 
-            // get sudah bayar
-            $r->log_pembayaran = $this->lpModel
-                ->select('
-                    log_pembayaran.*,
-                    users.username,
-                    keuangan.status
-                ')
-                ->join('users', 'users.id = log_pembayaran.add_by')
-                ->join('keuangan', 'keuangan.id_keuangan = log_pembayaran.id_keuangan', 'left')
-                ->where('log_pembayaran.id_mkdt', $this->request->getVar('id_mkdt'))
-                ->orderBy('tanggal_bayar', 'asc')
-                // ->notLike('log_pembayaran.keterangan', 'Booking')
-                ->find();
-        }
-        return $this->response->setJSON($r);
-    }
+    //         // get sudah bayar
+    //         $r->log_pembayaran = $this->lpModel
+    //             ->select('
+    //                 log_pembayaran.*,
+    //                 users.username,
+    //                 keuangan.status
+    //             ')
+    //             ->join('users', 'users.id = log_pembayaran.add_by')
+    //             ->join('keuangan', 'keuangan.id_keuangan = log_pembayaran.id_keuangan', 'left')
+    //             ->where('log_pembayaran.id_mkdt', $this->request->getVar('id_mkdt'))
+    //             ->orderBy('tanggal_bayar', 'asc')
+    //             // ->notLike('log_pembayaran.keterangan', 'Booking')
+    //             ->find();
+    //     }
+    //     return $this->response->setJSON($r);
+    // }
     function isSudahBayar($id)
     {
         $response['token'] = csrf_hash();
@@ -454,303 +382,300 @@ class Keuangan extends BaseController
         }
         return $this->response->setJSON($response);
     }
-    function save_kons()
-    {
-        $response['token'] = csrf_hash();
-        $id_kavling = $this->request->getVar('id_kavling');
-
-        $is_ganti_nama = $this->request->getVar('is_ganti_nama');
-        $id_mkdt_old = $this->request->getVar('id_mkdt_old');
-        $id_konsumen_old = $this->request->getVar('id_konsumen_old');
-
-        $uniqid = uniqid('', true);
-
-        $databaru = $this->request->getVar('mkdt_data_baru');
-        // var_dump($this->request->getVar());die();
-
-        $f['id_kavling'] = $id_kavling; //id_kavling untuk table konsumen
-        $id_konsumen = $this->request->getPost('id_konsumen');
-
-        $f['id_mkdt'] = $this->request->getPost('id_mkdt');
-
-
-        // var_dump($this->request->getPost());
-        // die();
-
-        //jika data konsumen baru
-        if ($databaru == 1)
-            $f['id_mkdt'] = null;
-
-        // form data konsumen
-        $f['nama_konsumen'] = $this->request->getPost('nama_konsumen');
-        $f['no_spptb'] = $this->request->getPost('no_spptb');
-        $f['alamat_konsumen'] = $this->request->getPost('alamat_konsumen');
-        $f['nik'] = $this->request->getPost('nik_konsumen');
-        $f['npwp'] = $this->request->getPost('npwp_konsumen');
-        $f['hp_konsumen'] = $this->request->getPost('hp_konsumen');
-        $f['status_konsumen'] = $this->request->getPost('status_konsumen');
-        $f['email_konsumen'] = $this->request->getPost('email_konsumen');
-
-        $f['status_pernikahan'] = $this->request->getPost('status_pernikahan');
-        $f['nama_pasangan'] = $this->request->getPost('nama_pasangan');
-        $f['nik_pasangan'] = $this->request->getPost('nik_pasangan');
-
-        $f['nama_instansi'] = $this->request->getPost('nama_instansi');
-        $f['alamat_instansi'] = $this->request->getPost('alamat_instansi');
-        $f['tel_instansi'] = $this->request->getPost('tel_instansi');
-
-        $f['sales'] = $this->request->getPost('sales');
-        $f['add_by'] = user_id();
-        $f['edit_by'] = user_id();
-
-        //jika status batal
-        $st = $this->request->getPost('dt-status_mkdt');
-        if ($st == "Batal") {
-            $f['keterangan'] = $this->request->getVar('dt-keterangan_batal');
-        }
-
-        //cek jika sudah ada konsumen atau tidak pada kavling
-        if ($id_konsumen == null || $id_konsumen == '') {
-            if ($this->konsumenModel->insert($f))
-                $id_konsumen = $this->konsumenModel->getInsertID();
-            else {
-                $response['success'] = false;
-                $response['messages'] = 'Terjadi kesaahan saat melakukan penambahan konsumen';
-                return $this->response->setJSON($response);
-            }
-        } else {
-            if (!$this->konsumenModel->update($id_konsumen, $f)) {
-                $response['success'] = false;
-                $response['messages'] = 'Terjadi kesaahan saat melakukan perubahan data konsumen';
-                return $this->response->setJSON($response);
-            }
-        }
+    // function save_kons()
+    // {
+    //     $response['token'] = csrf_hash();
+    //     $id_kavling = $this->request->getVar('id_kavling');
+
+    //     $is_ganti_nama = $this->request->getVar('is_ganti_nama');
+    //     $id_mkdt_old = $this->request->getVar('id_mkdt_old');
+    //     $id_konsumen_old = $this->request->getVar('id_konsumen_old');
+
+    //     $uniqid = uniqid('', true);
+
+    //     $databaru = $this->request->getVar('mkdt_data_baru');
+    //     // var_dump($this->request->getVar());die();
+
+    //     $f['id_kavling'] = $id_kavling; //id_kavling untuk table konsumen
+    //     $id_konsumen = $this->request->getPost('id_konsumen');
+
+    //     $f['id_mkdt'] = $this->request->getPost('id_mkdt');
+
+
+    //     // var_dump($this->request->getPost());
+    //     // die();
+
+    //     //jika data konsumen baru
+    //     if ($databaru == 1)
+    //         $f['id_mkdt'] = null;
+
+    //     // form data konsumen
+    //     $f['nama_konsumen'] = $this->request->getPost('nama_konsumen');
+    //     $f['no_spptb'] = $this->request->getPost('no_spptb');
+    //     $f['alamat_konsumen'] = $this->request->getPost('alamat_konsumen');
+    //     $f['nik'] = $this->request->getPost('nik_konsumen');
+    //     $f['npwp'] = $this->request->getPost('npwp_konsumen');
+    //     $f['hp_konsumen'] = $this->request->getPost('hp_konsumen');
+    //     $f['status_konsumen'] = $this->request->getPost('status_konsumen');
+    //     $f['email_konsumen'] = $this->request->getPost('email_konsumen');
+
+    //     $f['status_pernikahan'] = $this->request->getPost('status_pernikahan');
+    //     $f['nama_pasangan'] = $this->request->getPost('nama_pasangan');
+    //     $f['nik_pasangan'] = $this->request->getPost('nik_pasangan');
+
+    //     $f['nama_instansi'] = $this->request->getPost('nama_instansi');
+    //     $f['alamat_instansi'] = $this->request->getPost('alamat_instansi');
+    //     $f['tel_instansi'] = $this->request->getPost('tel_instansi');
+
+    //     $f['sales'] = $this->request->getPost('sales');
+    //     $f['add_by'] = user_id();
+    //     $f['edit_by'] = user_id();
+
+    //     //jika status batal
+    //     $st = $this->request->getPost('dt-status_mkdt');
+    //     if ($st == "Batal") {
+    //         $f['keterangan'] = $this->request->getVar('dt-keterangan_batal');
+    //     }
+
+    //     //cek jika sudah ada konsumen atau tidak pada kavling
+    //     if ($id_konsumen == null || $id_konsumen == '') {
+    //         if ($this->konsumenModel->insert($f))
+    //             $id_konsumen = $this->konsumenModel->getInsertID();
+    //         else {
+    //             $response['success'] = false;
+    //             $response['messages'] = 'Terjadi kesaahan saat melakukan penambahan konsumen';
+    //             return $this->response->setJSON($response);
+    //         }
+    //     } else {
+    //         if (!$this->konsumenModel->update($id_konsumen, $f)) {
+    //             $response['success'] = false;
+    //             $response['messages'] = 'Terjadi kesaahan saat melakukan perubahan data konsumen';
+    //             return $this->response->setJSON($response);
+    //         }
+    //     }
 
-        /************************ upload file SPPTB *****************************/
-        if ($this->request->getFile('file_spptb')->getSize() > 0) {
-            $img = $this->request->getFile('file_spptb');
-
-            $name = $img->getRandomName();
-
-            $lok = 'uploads/spptb/' . date('Ymd') . '/';
-
-            $img->move($lok, $name);
-
-            $f2['file_spptb'] = $lok . $name;
-
-
-            $this->db->table('file_spptb')
-                ->insert([
-                    'id_mkdt' => $f['id_mkdt'],
-                    'lokasi' => $lok . $name,
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'add_by' => user_id()
-                ]);
-        }
-        /************************ upload file surat kuasa *****************************/
-        if ($this->request->getFile('file_surat_kuasa')->getSize() > 0) {
-            $img = $this->request->getFile('file_surat_kuasa');
+    //     /************************ upload file SPPTB *****************************/
+    //     if ($this->request->getFile('file_spptb')->getSize() > 0) {
+    //         $img = $this->request->getFile('file_spptb');
+
+    //         $name = $img->getRandomName();
+
+    //         $lok = 'uploads/spptb/' . date('Ymd') . '/';
+
+    //         $img->move($lok, $name);
+
+    //         $f2['file_spptb'] = $lok . $name;
+
+
+    //         $this->db->table('file_spptb')
+    //             ->insert([
+    //                 'id_mkdt' => $f['id_mkdt'],
+    //                 'lokasi' => $lok . $name,
+    //                 'created_at' => date('Y-m-d H:i:s'),
+    //                 'add_by' => user_id()
+    //             ]);
+    //     }
+    //     /************************ upload file surat kuasa *****************************/
+    //     if ($this->request->getFile('file_surat_kuasa')->getSize() > 0) {
+    //         $img = $this->request->getFile('file_surat_kuasa');
 
-            $name = $img->getRandomName();
+    //         $name = $img->getRandomName();
 
-            $lok = 'uploads/spptb/lampiran/' . date('Ymd') . '/';
+    //         $lok = 'uploads/spptb/lampiran/' . date('Ymd') . '/';
 
-            $img->move($lok, $name);
+    //         $img->move($lok, $name);
 
-            $f2['file_surat_kuasa'] = $lok . $name;
-        }
+    //         $f2['file_surat_kuasa'] = $lok . $name;
+    //     }
 
-        //detail data mkdt
-        $f2['id_mkdt'] = $f['id_mkdt'];
-        $f2['id_konsumen'] = $id_konsumen;
-        $f2['status_mkdt'] = $st;
-        // $f2['booking_paid'] = $this->num($this->request->getPost('booking_paid'));
+    //     //detail data mkdt
+    //     $f2['id_mkdt'] = $f['id_mkdt'];
+    //     $f2['id_konsumen'] = $id_konsumen;
+    //     $f2['status_mkdt'] = $st;
+    //     // $f2['booking_paid'] = $this->num($this->request->getPost('booking_paid'));
 
-        $f2['id_hargajual'] = $this->request->getPost('idk-harga_akhir');
-        $f2['tgl_harga'] = $this->num($this->request->getPost('mk-tgl_harga'));
-        $f2['harga_uang_muka'] = $this->num($this->request->getPost('mk-uang_muka'));
-        $f2['harga_jual'] = $this->num($this->request->getPost('mk-hargajual'));
-        $f2['harga_jual_net'] = $this->num($this->request->getPost('mk-hargajual_net'));
-        $f2['harga_administrasi'] = $this->num($this->request->getPost('mk-biaya_adm'));
-        $f2['harga_bphtb'] = $this->num($this->request->getPost('mk-bphtb'));
-        $f2['harga_biaya_proses'] = $this->num($this->request->getPost('mk-biaya_proses'));
-        $f2['harga_kpr'] = $this->num($this->request->getPost('mk-kpr'));
-        $f2['harga_ppn'] = $this->num($this->request->getPost('mk-ppn'));
-        $f2['harga_penambahan'] = $this->num($this->request->getPost('mk-harga_penambahan'));
-        $f2['harga_penambahan_tanah'] = $this->num($this->request->getPost('mk-harga_penambahan_tanah'));
-        // $f2['keterangan_penambahan_biaya'] = $this->num($this->request->getPost('mk-keterangan_harga_penambahan'));
-
-        $f2['promo'] = $this->request->getPost('promo');
-
-        $f2['rincian'] = $this->request->getPost('rincian');
-        $f2['jenis_subsidi'] = $this->request->getPost('jenis_subsidi');
-
-        $f2['is_kpr'] = $this->request->getPost('is_kpr');
-        $f2['is_subsidi'] = $this->request->getPost('is_subsidi');
-
-        $f2['booking_fee'] = $this->num($this->request->getPost('dt-booking_fee'));
-        $f2['booking_tgl'] = $this->request->getPost('dt-booking_tgl');
-
-        $f2['keuangan_saved_by'] = user_id();
-
-        $f2['id_kavling'] = $id_kavling;
-        $id_mkdt = $f2['id_mkdt'];
-
-        if ($f2['id_mkdt'] == null) {
-            $f2['add_by'] = user_id();
-            $f2['edit_by'] = user_id();
-
-
-            if ($is_ganti_nama == "Ganti Nama") {
-                $uniqid = $this->db->table('mkdt')->select('uniq_id')->where('id_mkdt', $id_mkdt_old)->get()->getRow()->uniq_id;
-                $this->mkdtModel->update($id_mkdt_old, ['is_ganti_nama' => $is_ganti_nama]);
-
-                $this->konsumenModel->update($id_konsumen_old, ['status' => $is_ganti_nama, 'uniq_id' => $uniqid]);
-            } else if ($is_ganti_nama == "Ganti Kavling") {
-                $uniqid = $this->db->table('mkdt')->select('uniq_id')->where('id_mkdt', $id_mkdt_old)->get()->getRow()->uniq_id;
-                $this->mkdtModel->update($id_mkdt_old, ['is_ganti_kavling' => $is_ganti_nama]);
-
-                $this->konsumenModel->update($id_konsumen_old, ['status' => $is_ganti_nama, 'uniq_id' => $uniqid]);
-            }
-
-            $f2['uniq_id'] = $uniqid;
-
-            if ($this->mkdtModel->insert((object) $f2)) {
-                $id_mkdt = $this->mkdtModel->getInsertID();
-
-                //update id_mkdt di tbl kav
-                $this->kavlingModel->update($this->request->getVar('id_kavling'), array('id_mkdt' => $id_mkdt));
-
-                $notif = 'Booking kavling atas nama : ' . $f['nama_konsumen'];
-                $this->notif->tambah_notif("3;4;9", $notif, user_id(), $id_kavling, $id_konsumen); //4 mkdt 9 direksi 3 keuangan
-
-                $response['success'] = true;
-                $response['messages'] = 'Data berhasil ditambah';
-            } else {
-                $response['success'] = false;
-                $response['messages'] = 'Gagal menginput data booking';
-            }
-        } else {
-            $f2['edit_by'] = user_id();
-            if ($this->mkdtModel->update($f['id_mkdt'], $f2)) {
-
-                $notif = 'Melakukan perubahan data konsumen : ' . $f['nama_konsumen'];
-                $this->notif->tambah_notif("3;4;9", $notif, user_id(), $id_kavling, $id_konsumen); //4 mkdt 9 direksi 3 keuangan
-
-                $response['success'] = true;
-                $response['messages'] = 'Data berhasil diperbaharui';
-            } else {
-                $response['success'] = false;
-                $response['messages'] = 'Gagal memperbaharui data booking';
-            }
-        }
-
-        // $id_mkdt_new = $this->db->table('mkdt')->select('id_mkdt_new')->where('id_mkdt', $id_mkdt_old)->get()->getRow();
-
-
-        //ubah status mkdt jadi ganti nama
-
-
-
-        ################################## insert ke tagihan ##########################
-        // cek jika sudah ada pembayaran
-        $cek = $this->db->table("keuangan")->select('id_keuangan')->where("id_mkdt", $id_mkdt)->get()->getResultArray();
-        $list_tg = array_map(function ($item) {
-            return $item['id_keuangan'];
-        }, $cek);
-
-        $id_keu_merge = [];
-        $len = 0;
-        if (is_array($this->request->getVar('berita_acara[]'))) {
-            //input detail tagihan ke table keuangan
-            //um
-            $len = count($this->request->getVar('berita_acara[]'));
-            $idkeu = $this->request->getVar('id_keuangan[]');
-            $ba = $this->request->getVar('berita_acara[]');
-            $jt = $this->request->getVar('jatuh_tempo_tgl[]');
-            $nm = $this->request->getVar('nominal[]');
-            $id_keu_merge = array_merge($id_keu_merge, $idkeu);
-        }
-
-        $len_bb = 0;
-        if (is_array($this->request->getVar('berita_acara_bb[]'))) {
-            //bb
-            $len_bb = count($this->request->getVar('berita_acara_bb[]'));
-            $idkeu_bb = $this->request->getVar('id_keuangan_bb[]');
-            $ba_bb = $this->request->getVar('berita_acara_bb[]');
-            $jt_bb = $this->request->getVar('jatuh_tempo_tgl_bb[]');
-            $nm_bb = $this->request->getVar('nominal_bb[]');
-
-            $id_keu_merge = array_merge($id_keu_merge, $idkeu_bb);
-        }
-
-        $dif = array_diff($list_tg, $id_keu_merge);
-
-        //hapus tagihan di table keuangan
-        if (count($id_keu_merge) > 0) {
-            foreach ($dif as $v) {
-                $this->keuanganModel->where('id_keuangan', $v)->delete();
-            }
-        } else {
-            $this->keuanganModel->where('id_mkdt', $id_mkdt)->delete();
-        }
-
-
-        //input detail tagihan ke table keuangan
-        $ft = [];
-        for ($x = 0; $x < $len; $x++) {
-            if ($idkeu[$x] != '' || $idkeu[$x] != null) {
-                $ft['upt']['berita_acara'] = $ba[$x];
-                $ft['upt']['jatuh_tempo_tgl'] = $jt[$x];
-                $ft['upt']['nominal'] = $this->num($nm[$x]);
-                $ft['upt']['status'] = "UM";
-                $ft['upt']['id_mkdt'] = $id_mkdt;
-                $ft['upt']['edit_by'] = user_id();
-
-                $res['upt'][$x] = $this->keuanganModel->update($idkeu[$x], $ft['upt']);
-            } else {
-                $ft['ins'][$x]['berita_acara'] = $ba[$x];
-                $ft['ins'][$x]['jatuh_tempo_tgl'] = $jt[$x];
-                $ft['ins'][$x]['nominal'] = $this->num($nm[$x]);
-                $ft['ins'][$x]['id_mkdt'] = $id_mkdt;
-                $ft['ins'][$x]['status'] = "UM";
-                $ft['ins'][$x]['add_by'] = user_id();
-                $ft['ins'][$x]['edit_by'] = user_id();
-
-                $res['ins'][$x] = $this->keuanganModel->insert($ft['ins'][$x]);
-            }
-        }
-
-        $ft = [];
-        for ($y = 0; $y < $len_bb; $y++) {
-            if ($idkeu_bb[$y] != '' || $idkeu_bb[$y] != null) {
-                $ft['upt']['berita_acara'] = $ba_bb[$y];
-                $ft['upt']['jatuh_tempo_tgl'] = $jt_bb[$y];
-                $ft['upt']['nominal'] = $this->num($nm_bb[$y]);
-                $ft['upt']['status'] = "BB";
-                $ft['upt']['id_mkdt'] = $id_mkdt;
-                $ft['upt']['edit_by'] = user_id();
-
-                $res['upt'][$y] = $this->keuanganModel->update($idkeu_bb[$y], $ft['upt']);
-            } else {
-                $ft['ins'][$y]['berita_acara'] = $ba_bb[$y];
-                $ft['ins'][$y]['jatuh_tempo_tgl'] = $jt_bb[$y];
-                $ft['ins'][$y]['nominal'] = $this->num($nm_bb[$y]);
-                $ft['ins'][$y]['id_mkdt'] = $id_mkdt;
-                $ft['ins'][$y]['status'] = "BB";
-                $ft['ins'][$y]['add_by'] = user_id();
-                $ft['ins'][$y]['edit_by'] = user_id();
-
-                $res['ins'][$y] = $this->keuanganModel->insert($ft['ins'][$y]);
-            }
-        }
-        $ft = [];
-
-
-
-
-        return $this->response->setJSON($response);
-    }
+    //     $f2['id_hargajual'] = $this->request->getPost('idk-harga_akhir');
+    //     $f2['tgl_harga'] = $this->num($this->request->getPost('mk-tgl_harga'));
+    //     $f2['harga_uang_muka'] = $this->num($this->request->getPost('mk-uang_muka'));
+    //     $f2['harga_jual'] = $this->num($this->request->getPost('mk-hargajual'));
+    //     $f2['harga_jual_net'] = $this->num($this->request->getPost('mk-hargajual_net'));
+    //     $f2['harga_administrasi'] = $this->num($this->request->getPost('mk-biaya_adm'));
+    //     $f2['harga_bphtb'] = $this->num($this->request->getPost('mk-bphtb'));
+    //     $f2['harga_biaya_proses'] = $this->num($this->request->getPost('mk-biaya_proses'));
+    //     $f2['harga_kpr'] = $this->num($this->request->getPost('mk-kpr'));
+    //     $f2['harga_ppn'] = $this->num($this->request->getPost('mk-ppn'));
+    //     $f2['harga_penambahan'] = $this->num($this->request->getPost('mk-harga_penambahan'));
+    //     $f2['harga_penambahan_tanah'] = $this->num($this->request->getPost('mk-harga_penambahan_tanah'));
+    //     // $f2['keterangan_penambahan_biaya'] = $this->num($this->request->getPost('mk-keterangan_harga_penambahan'));
+
+    //     $f2['promo'] = $this->request->getPost('promo');
+
+    //     $f2['rincian'] = $this->request->getPost('rincian');
+    //     $f2['jenis_subsidi'] = $this->request->getPost('jenis_subsidi');
+
+    //     $f2['is_kpr'] = $this->request->getPost('is_kpr');
+    //     $f2['is_subsidi'] = $this->request->getPost('is_subsidi');
+
+    //     $f2['booking_fee'] = $this->num($this->request->getPost('dt-booking_fee'));
+    //     $f2['booking_tgl'] = $this->request->getPost('dt-booking_tgl');
+
+    //     $f2['keuangan_saved_by'] = user_id();
+
+    //     $f2['id_kavling'] = $id_kavling;
+    //     $id_mkdt = $f2['id_mkdt'];
+
+    //     if ($f2['id_mkdt'] == null) {
+    //         $f2['add_by'] = user_id();
+    //         $f2['edit_by'] = user_id();
+
+
+    //         if ($is_ganti_nama == "Ganti Nama") {
+    //             $uniqid = $this->db->table('mkdt')->select('uniq_id')->where('id_mkdt', $id_mkdt_old)->get()->getRow()->uniq_id;
+    //             $this->mkdtModel->update($id_mkdt_old, ['is_ganti_nama' => $is_ganti_nama]);
+
+    //             $this->konsumenModel->update($id_konsumen_old, ['status' => $is_ganti_nama, 'uniq_id' => $uniqid]);
+    //         } else if ($is_ganti_nama == "Ganti Kavling") {
+    //             $uniqid = $this->db->table('mkdt')->select('uniq_id')->where('id_mkdt', $id_mkdt_old)->get()->getRow()->uniq_id;
+    //             $this->mkdtModel->update($id_mkdt_old, ['is_ganti_kavling' => $is_ganti_nama]);
+
+    //             $this->konsumenModel->update($id_konsumen_old, ['status' => $is_ganti_nama, 'uniq_id' => $uniqid]);
+    //         }
+
+    //         $f2['uniq_id'] = $uniqid;
+
+    //         if ($this->mkdtModel->insert((object) $f2)) {
+    //             $id_mkdt = $this->mkdtModel->getInsertID();
+
+    //             //update id_mkdt di tbl kav
+    //             $this->kavlingModel->update($this->request->getVar('id_kavling'), array('id_mkdt' => $id_mkdt));
+
+    //             $notif = 'Booking kavling atas nama : ' . $f['nama_konsumen'];
+    //             $this->notif->tambah_notif("3;4;9", $notif, user_id(), $id_kavling, $id_konsumen); //4 mkdt 9 direksi 3 keuangan
+
+    //             $response['success'] = true;
+    //             $response['messages'] = 'Data berhasil ditambah';
+    //         } else {
+    //             $response['success'] = false;
+    //             $response['messages'] = 'Gagal menginput data booking';
+    //         }
+    //     } else {
+    //         $f2['edit_by'] = user_id();
+    //         if ($this->mkdtModel->update($f['id_mkdt'], $f2)) {
+
+    //             $notif = 'Melakukan perubahan data konsumen : ' . $f['nama_konsumen'];
+    //             $this->notif->tambah_notif("3;4;9", $notif, user_id(), $id_kavling, $id_konsumen); //4 mkdt 9 direksi 3 keuangan
+
+    //             $response['success'] = true;
+    //             $response['messages'] = 'Data berhasil diperbaharui';
+    //         } else {
+    //             $response['success'] = false;
+    //             $response['messages'] = 'Gagal memperbaharui data booking';
+    //         }
+    //     }
+
+    //     // $id_mkdt_new = $this->db->table('mkdt')->select('id_mkdt_new')->where('id_mkdt', $id_mkdt_old)->get()->getRow();
+
+
+    //     //ubah status mkdt jadi ganti nama
+
+
+
+    //     ################################## insert ke tagihan ##########################
+    //     // cek jika sudah ada pembayaran
+    //     $cek = $this->db->table("keuangan")->select('id_keuangan')->where("id_mkdt", $id_mkdt)->get()->getResultArray();
+    //     $list_tg = array_map(function ($item) {
+    //         return $item['id_keuangan'];
+    //     }, $cek);
+
+    //     $id_keu_merge = [];
+    //     $len = 0;
+    //     if (is_array($this->request->getVar('berita_acara[]'))) {
+    //         //input detail tagihan ke table keuangan
+    //         //um
+    //         $len = count($this->request->getVar('berita_acara[]'));
+    //         $idkeu = $this->request->getVar('id_keuangan[]');
+    //         $ba = $this->request->getVar('berita_acara[]');
+    //         $jt = $this->request->getVar('jatuh_tempo_tgl[]');
+    //         $nm = $this->request->getVar('nominal[]');
+    //         $id_keu_merge = array_merge($id_keu_merge, $idkeu);
+    //     }
+
+    //     $len_bb = 0;
+    //     if (is_array($this->request->getVar('berita_acara_bb[]'))) {
+    //         //bb
+    //         $len_bb = count($this->request->getVar('berita_acara_bb[]'));
+    //         $idkeu_bb = $this->request->getVar('id_keuangan_bb[]');
+    //         $ba_bb = $this->request->getVar('berita_acara_bb[]');
+    //         $jt_bb = $this->request->getVar('jatuh_tempo_tgl_bb[]');
+    //         $nm_bb = $this->request->getVar('nominal_bb[]');
+
+    //         $id_keu_merge = array_merge($id_keu_merge, $idkeu_bb);
+    //     }
+
+    //     $dif = array_diff($list_tg, $id_keu_merge);
+
+    //     //hapus tagihan di table keuangan
+    //     if (count($id_keu_merge) > 0) {
+    //         foreach ($dif as $v) {
+    //             $this->keuanganModel->where('id_keuangan', $v)->delete();
+    //         }
+    //     } else {
+    //         $this->keuanganModel->where('id_mkdt', $id_mkdt)->delete();
+    //     }
+
+
+    //     //input detail tagihan ke table keuangan
+    //     $ft = [];
+    //     for ($x = 0; $x < $len; $x++) {
+    //         if ($idkeu[$x] != '' || $idkeu[$x] != null) {
+    //             $ft['upt']['berita_acara'] = $ba[$x];
+    //             $ft['upt']['jatuh_tempo_tgl'] = $jt[$x];
+    //             $ft['upt']['nominal'] = $this->num($nm[$x]);
+    //             $ft['upt']['status'] = "UM";
+    //             $ft['upt']['id_mkdt'] = $id_mkdt;
+    //             $ft['upt']['edit_by'] = user_id();
+
+    //             $res['upt'][$x] = $this->keuanganModel->update($idkeu[$x], $ft['upt']);
+    //         } else {
+    //             $ft['ins'][$x]['berita_acara'] = $ba[$x];
+    //             $ft['ins'][$x]['jatuh_tempo_tgl'] = $jt[$x];
+    //             $ft['ins'][$x]['nominal'] = $this->num($nm[$x]);
+    //             $ft['ins'][$x]['id_mkdt'] = $id_mkdt;
+    //             $ft['ins'][$x]['status'] = "UM";
+    //             $ft['ins'][$x]['add_by'] = user_id();
+    //             $ft['ins'][$x]['edit_by'] = user_id();
+
+    //             $res['ins'][$x] = $this->keuanganModel->insert($ft['ins'][$x]);
+    //         }
+    //     }
+
+    //     $ft = [];
+    //     for ($y = 0; $y < $len_bb; $y++) {
+    //         if ($idkeu_bb[$y] != '' || $idkeu_bb[$y] != null) {
+    //             $ft['upt']['berita_acara'] = $ba_bb[$y];
+    //             $ft['upt']['jatuh_tempo_tgl'] = $jt_bb[$y];
+    //             $ft['upt']['nominal'] = $this->num($nm_bb[$y]);
+    //             $ft['upt']['status'] = "BB";
+    //             $ft['upt']['id_mkdt'] = $id_mkdt;
+    //             $ft['upt']['edit_by'] = user_id();
+
+    //             $res['upt'][$y] = $this->keuanganModel->update($idkeu_bb[$y], $ft['upt']);
+    //         } else {
+    //             $ft['ins'][$y]['berita_acara'] = $ba_bb[$y];
+    //             $ft['ins'][$y]['jatuh_tempo_tgl'] = $jt_bb[$y];
+    //             $ft['ins'][$y]['nominal'] = $this->num($nm_bb[$y]);
+    //             $ft['ins'][$y]['id_mkdt'] = $id_mkdt;
+    //             $ft['ins'][$y]['status'] = "BB";
+    //             $ft['ins'][$y]['add_by'] = user_id();
+    //             $ft['ins'][$y]['edit_by'] = user_id();
+
+    //             $res['ins'][$y] = $this->keuanganModel->insert($ft['ins'][$y]);
+    //         }
+    //     }
+    //     $ft = [];
+
+    //     return $this->response->setJSON($response);
+    // }
     function isi_tagihan()
     {
         $response['token'] = csrf_hash();
@@ -987,6 +912,12 @@ class Keuangan extends BaseController
         $e = $this->request->getVar('e');
 
         $is_lunas = $this->request->getVar('is_lunas') ? 1 : 0;
+
+        $lunas = $this->request->getVar('bt-persentase_bayar_tagihan_um');
+        $lunas_bb = $this->request->getVar('bt-persentase_bayar_tagihan_bb');
+        if ($lunas == "100%" && $lunas_bb == '100%')
+            $is_lunas = 1;
+
 
         // $refund_paid = $this->request->getVar('refund_paid');
         $refund_paid = 1;
@@ -1539,9 +1470,6 @@ class Keuangan extends BaseController
 
 
 
-
-
-
         $koplok = $this->db->table('kopsurat')->select("lokasi")->get()->getResult()[0]->lokasi;
         $kop = file_get_contents($koplok);
         $base64 = 'data:image/jpg;base64,' . base64_encode($kop);
@@ -1570,96 +1498,94 @@ class Keuangan extends BaseController
         $dompdf->stream($filename);
     }
 
-    function printSPPTB()
-    {
+    // function printSPPTB()
+    // {
 
-        $id_kavling = $this->request->getVar('id_kavling');
-        $id_mkdt = $this->request->getVar('id_mkdt');
-        $id_proyek = $this->request->getVar('id_proyek');
+    //     $id_kavling = $this->request->getVar('id_kavling');
+    //     $id_mkdt = $this->request->getVar('id_mkdt');
+    //     $id_proyek = $this->request->getVar('id_proyek');
 
-        if ($id_mkdt == 'null') {
-            echo "Data konsumen belum tersimpan";
-            return;
-        }
-        if (!$id_kavling || !$id_mkdt || !$id_proyek) {
-            echo "woops";
-            return;
-        }
+    //     if ($id_mkdt == 'null') {
+    //         echo "Data konsumen belum tersimpan";
+    //         return;
+    //     }
+    //     if (!$id_kavling || !$id_mkdt || !$id_proyek) {
+    //         echo "woops";
+    //         return;
+    //     }
 
-        // $data = [] ;
-        $data['proyek'] = $this->db->table('proyek')->where('id_proyek', $id_proyek)->get()->getRow();
-        $data['data'] = $this->db->table('kavling')
-            ->select('
-                `proyek`.`nama_proyek`,
-                `proyek`.`alamat_proyek`,
-                `proyek`.`kelurahan`,
-                `proyek`.`kecamatan`,
-                `proyek`.`kota`,
-                `proyek`.`provinsi`,
-                `proyek`.`nama_pt`,
-                `cluster`.`nama_cluster`,
-                `jalan`.`nama_jalan`,
-                `tipe`.`no_tipe_rumah`,
-                `tipe`.`tipe_rumah`,
-                tipe.lb,
-                `kavling`.`no_kavling`,
-                kavling.luas_tanah,
-                mkdt.*,
-                `konsumen`.`no_spptb`,
-                `konsumen`.`nama_konsumen`,
-                `konsumen`.`nik`,
-                `konsumen`.`npwp`,
-                `konsumen`.`file_npwp`,
-                `konsumen`.`file_ktp`,
-                `konsumen`.`hp_konsumen`,
-                `konsumen`.`alamat_konsumen`,
-                `konsumen`.`tel_instansi`,
-                `konsumen`.`email_konsumen`,
-                `konsumen`.`sales`,
-                `konsumen`.`nama_instansi`,
-                `konsumen`.`alamat_instansi`,
-                `konsumen`.`tel_instansi`
-            ')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
-            ->join('proyek', 'cluster.id_proyek = proyek.id_proyek')
-            ->join('tipe', 'tipe.id_tipe = kavling.id_tipe')
-            ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt')
-            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
-            ->where('kavling.id_kavling', $id_kavling)
-            ->get()->getRow();
+    //     // $data = [] ;
+    //     $data['proyek'] = $this->db->table('proyek')->where('id_proyek', $id_proyek)->get()->getRow();
+    //     $data['data'] = $this->db->table('kavling')
+    //         ->select('
+    //             `proyek`.`nama_proyek`,
+    //             `proyek`.`alamat_proyek`,
+    //             `proyek`.`kelurahan`,
+    //             `proyek`.`kecamatan`,
+    //             `proyek`.`kota`,
+    //             `proyek`.`provinsi`,
+    //             `proyek`.`nama_pt`,
+    //             `cluster`.`nama_cluster`,
+    //             `jalan`.`nama_jalan`,
+    //             `tipe`.`no_tipe_rumah`,
+    //             `tipe`.`tipe_rumah`,
+    //             tipe.lb,
+    //             `kavling`.`no_kavling`,
+    //             kavling.luas_tanah,
+    //             mkdt.*,
+    //             `konsumen`.`no_spptb`,
+    //             `konsumen`.`nama_konsumen`,
+    //             `konsumen`.`nik`,
+    //             `konsumen`.`npwp`,
+    //             `konsumen`.`file_npwp`,
+    //             `konsumen`.`file_ktp`,
+    //             `konsumen`.`hp_konsumen`,
+    //             `konsumen`.`alamat_konsumen`,
+    //             `konsumen`.`tel_instansi`,
+    //             `konsumen`.`email_konsumen`,
+    //             `konsumen`.`sales`,
+    //             `konsumen`.`nama_instansi`,
+    //             `konsumen`.`alamat_instansi`,
+    //             `konsumen`.`tel_instansi`,
+    //             `konsumen`.`email_instansi`,
+    //             `konsumen`.`alamat_surat`,
+    //             `konsumen`.`pekerjaan`,
+    //             `konsumen`.`bidang_pekerjaan`,
+    //             `konsumen`.`lama_bekerja`,
+    //             `konsumen`.`status_pekerjaan_pasangan`,
+    //             `konsumen`.`hp_pasangan`,
+    //             `konsumen`.`nik_pasangan`,
+    //             `konsumen`.`nama_pasangan`,
+    //             `konsumen`.`instansi_pasangan`,
 
-        $data['list_tagihan'] = $this->keuanganModel
-            ->where('id_mkdt', $this->request->getVar('id_mkdt'))
-            ->orderBy('jatuh_tempo_tgl')
-            ->find();
-        // //get log pembayaran
-        // $r['log_pembayaran'] = $this->lpModel
-        //     ->select('
-        //     log_pembayaran.*,
-        //     users.username
-        // ')
-        //     ->join('users', 'users.id = log_pembayaran.add_by')
-        //     ->where('id_mkdt', $this->request->getVar('id_mkdt'))
-        //     ->find();
-        // $r['sudah_bayar'] = $this->db->table('log_pembayaran')
-        //     ->select("sum(nominal) as sudah_bayar")
-        //     ->where('id_mkdt', $this->request->getVar('id_mkdt'))
-        //     ->get()->getResult()[0]->sudah_bayar;
+    //         ')
+    //         ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+    //         ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+    //         ->join('proyek', 'cluster.id_proyek = proyek.id_proyek')
+    //         ->join('tipe', 'tipe.id_tipe = kavling.id_tipe')
+    //         ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt')
+    //         ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
+    //         ->where('kavling.id_kavling', $id_kavling)
+    //         ->get()->getRow();
+
+    //     $data['list_tagihan'] = $this->keuanganModel
+    //         ->where('id_mkdt', $this->request->getVar('id_mkdt'))
+    //         ->orderBy('jatuh_tempo_tgl')
+    //         ->find();
 
 
-        $html[0] = view('pdf/spptb-page1', $data);
-        $filename = 'SPPTB - ' . $data['data']->nama_konsumen . ' - ' . date('Ymd') . '.pdf';
+    //     $html[0] = view('pdf/spptb-new', $data);
+    //     $filename = 'SPPTB - ' . $data['data']->nama_konsumen . ' - ' . date('Ymd') . '.pdf';
 
-        $html[1] = view('pdf/spptb-page-next', $data);
-        $header = '';
-        $mg = [15, 15, 10, 2];
+    //     $html[1] = view('pdf/spptb-memo', $data);
+    //     $header = '';
+    //     $mg = [15, 15, 10,25];
 
-        // $mg = [$kop->pml, $kop->pmr, $kop->pmt, $kop->pmb];
+    //     // $mg = [$kop->pml, $kop->pmr, $kop->pmt, $kop->pmb];
 
-        $this->mpdf->generate($html, $filename, $header, $mg);
-        exit();
-    }
+    //     $this->mpdf->generate($html, $filename, $header, $mg);
+    //     exit();
+    // }
     function print_tagihan($id = null)
     {
         $id = $this->request->getVar('id');
@@ -1725,58 +1651,58 @@ class Keuangan extends BaseController
         // $this->pdf->generate($html, $filename, $kop->ukuran, 'portrait');
         exit;
     }
-    function print_kuitansi($id = null, $id_mkdt = null, $id_poryek = null)
-    {
-        // if(!$id || !$id_mkdt)
-        //     return false;
+    // function print_kuitansi($id = null, $id_mkdt = null, $id_poryek = null)
+    // {
+    //     // if(!$id || !$id_mkdt)
+    //     //     return false;
 
-        $data['pembayaran'] = $this->db->table("log_pembayaran")
-            ->select('*')
-            ->where('id_pembayaran', $id)
-            ->get()->getResult()[0];
+    //     $data['pembayaran'] = $this->db->table("log_pembayaran")
+    //         ->select('*')
+    //         ->where('id_pembayaran', $id)
+    //         ->get()->getResult()[0];
 
-        $data['konsumen'] = $this->db->table('konsumen')
-            ->select('konsumen.nama_konsumen')
-            ->join('mkdt', 'mkdt.id_konsumen = konsumen.id_konsumen')
-            ->where('mkdt.id_mkdt', $id_mkdt)
-            ->get()->getResult()[0];
+    //     $data['konsumen'] = $this->db->table('konsumen')
+    //         ->select('konsumen.nama_konsumen')
+    //         ->join('mkdt', 'mkdt.id_konsumen = konsumen.id_konsumen')
+    //         ->where('mkdt.id_mkdt', $id_mkdt)
+    //         ->get()->getResult()[0];
 
-        $data['proyek'] = $this->db->table('proyek')
-            ->select('* ')
-            ->where('id_proyek', $id_poryek)
-            ->get()->getResult()[0];
+    //     $data['proyek'] = $this->db->table('proyek')
+    //         ->select('* ')
+    //         ->where('id_proyek', $id_poryek)
+    //         ->get()->getResult()[0];
 
-        $data['kavling'] = $this->db->table('kavling')
-            ->select('
-                        kavling.no_kavling, 
-                        jalan.nama_jalan, 
-                        tipe.id_tipe,
-                        tipe.tipe_rumah,
-                        tipe.lb,
-                        tipe.lt
-                    ')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
-            ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
-            ->where('kavling.id_mkdt', $id_mkdt)
-            ->get()->getResult();
+    //     $data['kavling'] = $this->db->table('kavling')
+    //         ->select('
+    //                     kavling.no_kavling, 
+    //                     jalan.nama_jalan, 
+    //                     tipe.id_tipe,
+    //                     tipe.tipe_rumah,
+    //                     tipe.lb,
+    //                     tipe.lt
+    //                 ')
+    //         ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+    //         ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+    //         ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+    //         ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
+    //         ->where('kavling.id_mkdt', $id_mkdt)
+    //         ->get()->getResult();
 
-        $filename = $data['konsumen']->nama_konsumen . '-Kuitansi Pembayaran';
+    //     $filename = $data['konsumen']->nama_konsumen . '-Kuitansi Pembayaran';
 
-        // var_dump($data['proyek']);
-        // die();
+    //     // var_dump($data['proyek']);
+    //     // die();
 
-        $html[0] = view('pdf/kuitansi_pembayaran', $data);
+    //     $html[0] = view('pdf/kuitansi_pembayaran', $data);
 
-        $mg = [15, 15, 10, 2];
+    //     $mg = [15, 15, 10, 2];
 
-        // $mg = [$kop->pml, $kop->pmr, $kop->pmt, $kop->pmb];
+    //     // $mg = [$kop->pml, $kop->pmr, $kop->pmt, $kop->pmb];
 
-        $this->mpdf->generate($html, $filename, $header = '', $mg, 'A5-L');
+    //     $this->mpdf->generate($html, $filename, $header = '', $mg, 'A5-L');
 
-        exit();
-    }
+    //     exit();
+    // }
     function if_where($var, $column, $condition, $query)
     {
         $x = 0;

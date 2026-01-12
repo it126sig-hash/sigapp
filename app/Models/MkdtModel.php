@@ -2,18 +2,20 @@
 // ADEL CODEIGNITER 4 CRUD GENERATOR
 
 namespace App\Models;
+
 use CodeIgniter\Model;
 
-class MkdtModel extends Model {
-    
+class MkdtModel extends Model
+{
+
 	protected $table = 'mkdt';
 	protected $primaryKey = 'id_mkdt';
 	protected $returnType = 'object';
 	protected $useSoftDeletes = false;
 	protected $allowedFields = [
-		'id_konsumen', 
-		'booking_fee', 
-		'is_booking', 
+		'id_konsumen',
+		'booking_fee',
+		'is_booking',
 		'is_batal',
 		'keterangan_batal',
 		'surat_batal',
@@ -22,29 +24,31 @@ class MkdtModel extends Model {
 		'keuangan_batal_oleh',
 		'keuangan_batal_tgl',
 		'file_surat_batal',
-		'status_mkdt', 
-		'booking_paid', 
+		'status_mkdt',
+		'booking_paid',
 		'notaris',
-		'booking_tgl', 
-		'tgl_harga', 
-		'id_hargajual', 
-		'harga_jual', 
-		'harga_jual_net', 
-		'harga_diskon', 
-		'harga_penambahan', 
-		'harga_penambahan_tanah', 
-		'harga_administrasi', 
-		'harga_uang_muka', 
-		'harga_ppn', 
-		'harga_bphtb', 
-		'harga_biaya_proses', 
-		'harga_kpr', 
-		'harga_kpr_acc', 
-		'harga_penambahan_um', 
-		'keterangan_penambahan_biaya', 
+		'booking_tgl',
+		'tgl_harga',
+		'id_hargajual',
+		'harga_jual',
+		'harga_jual_net',
+		'harga_diskon',
+		'harga_penambahan',
+		'harga_penambahan_tanah',
+		'harga_administrasi',
+		'harga_uang_muka',
+		'harga_ppn',
+		'harga_bphtb',
+		'harga_biaya_proses',
+		'harga_sbum',
+		'harga_kpr',
+		'harga_kpr_acc',
+		'harga_penambahan_um', //harga_turun_kpr
+		'keterangan_penambahan_biaya',
 		'is_kpr',
 		'is_subsidi',
 		'is_ganti_nama',
+		'is_ganti_kavling',
 		'is_ganti_kavling',
 		'jenis_subsidi',
 		'harga_total',
@@ -69,7 +73,7 @@ class MkdtModel extends Model {
 		'bast_file',
 		'sp3k',
 		'wawancara',
-		'keterangan',
+		'keterangan', //mkdt_keterangan
 		'id_kavling',
 		'is_lunas',
 		'add_by',
@@ -94,6 +98,5 @@ class MkdtModel extends Model {
 	protected $deletedField  = 'deleted_at';
 	protected $validationRules    = [];
 	protected $validationMessages = [];
-	protected $skipValidation     = true;    
-	
+	protected $skipValidation     = true;
 }

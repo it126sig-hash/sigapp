@@ -294,7 +294,7 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="form-group">
-                                            <label>No HGB Induk</label>
+                                            <label>No HGB Induk/Nibel</label>
                                             <input type="text" class="form-control" id="sertifikat_split_no_hgb_induk"
                                                 name="sertifikat_split_no_hgb_induk">
                                         </div>
@@ -314,7 +314,7 @@
                                         <h5>Sertipikat Split</h5>
                                     </div>
                                     <div class="card-body">
-                                        <div class="select-sertifikat_is_split hidden">
+                                        <div class="select-sertifikat_is_split ">
                                             <div class="form-group">
                                                 <label>No HGB</label>
                                                 <input type="text" class="form-control" id="sertifikat_split_no_hgb"

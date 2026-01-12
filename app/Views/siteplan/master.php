@@ -9,16 +9,18 @@ foreach (user()->getRoles() as $key => $val) {
 ?>
 
 <!-- BEGIN: Vendor CSS-->
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/extensions/sweetalert2.min.css">
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/forms/select/select2.min.css">
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/assets/css/richtext.min.css">
+<link rel="stylesheet" type="text/css"
+    href="<?= base_url() ?>app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/extensions/sweetalert2.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/forms/select/select2.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/richtext.min.css">
 <script>
     let sv_url,
         sv_fm,
         sv_btn,
         sv_par,
         wr_pembangunan = [],
+        list_jatuhtempo = [],
         filter = {
             id_cluster: '',
             id_jalan: ''
@@ -68,9 +70,10 @@ foreach (user()->getRoles() as $key => $val) {
     }
     // palidasi manual
     function palid(id, val, msg) {
+
         if ($("#" + id).val() == val) {
             Swal.fire({
-                // 
+                //
                 icon: 'error',
                 title: msg,
                 showConfirmButton: false,
@@ -88,6 +91,8 @@ foreach (user()->getRoles() as $key => $val) {
     });
 
     var conf = JSON.parse('<?= $conf ?>')
+
+    const li_keu = JSON.parse('<?= $li_keu ?>')
 </script>
 <style>
     @media screen and (max-width: 1366px) {
@@ -317,13 +322,166 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     .guarantee-item {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
-            transition: all 0.3s ease;
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid #667eea;
+        transition: all 0.3s ease;
+    }
+
+    /* floating label */
+    .floating-label {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .floating-label input {
+        padding: 1rem 0.75rem 0.25rem;
+    }
+
+    .floating-label-select label {
+        /* position: relative; */
+        top: -0.5rem !important;
+        /* left: 0.7rem;
+        font-size: 11px;
+        color: #464646; */
+        background: #fff;
+        padding: 0 4px;
+    }
+
+    .floating-label label {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        color: #6c757d;
+        font-size: 10px;
+        pointer-events: none;
+        transition: all 0.2s ease;
+    }
+
+    .floating-label input:focus+label,
+    .floating-label input:not(:placeholder-shown)+label {
+        top: -0.6rem;
+        left: 0.7rem;
+        font-size: 11px;
+        color: #464646;
+        background: #fff;
+        padding: 0 4px;
+    }
+
+    /* .floating-label .active label {
+        top: -0.6rem;
+        left: 0.7rem;
+        font-size: 11px;
+        color: #464646;
+    } */
+
+    .dropzone {
+        position: relative;
+        border: 2px dashed #ced4da;
+        border-radius: .75rem;
+        background: #fff;
+        transition: .15s border-color, .15s background;
+    }
+
+    .dropzone-lg {
+        min-height: 90px;
+    }
+
+    .dropzone.is-dragover {
+        border-color: #007bff;
+        background: rgba(0, 123, 255, .05);
+    }
+
+    .dz-input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .dz-inner {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .dz-placeholder {
+        pointer-events: none;
+    }
+
+    .dz-preview {
+        display: none;
+        /* akan ditampilkan saat ada file */
+        height: 100%;
+        max-width: 90px;
+    }
+
+    .dz-preview .thumb-wrap {
+        position: relative;
+        display: inline-block;
+        border: 1px solid #dee2e6;
+        border-radius: .5rem;
+        overflow: hidden;
+        max-width: 100%;
+    }
+
+    .dz-preview img {
+        display: block;
+        max-height: 90px;
+        width: auto;
+    }
+
+    .dz-remove {
+        position: absolute;
+        top: .25rem;
+        right: .25rem;
+        border: 0;
+        border-radius: .35rem;
+        padding: .25rem .5rem;
+    }
+
+    .dz-fileinfo {
+        margin-top: .5rem;
+        font-size: .9rem;
+    }
+
+
+    /* TOASTER */
+    #toast-container {
+        top: 1rem;
+        right: 1rem;
+        z-index: 1080;
+    }
+
+    .toast {
+        margin-top: 0.5rem;
+    }
+
+    /* highlight button */
+    .btn-highlight {
+        animation: highlightFlash 3s ease-out;
+    }
+
+    @keyframes highlightFlash {
+        0% {
+            box-shadow: 0 0 0 0 rgba(255, 200, 0, 0.8);
         }
+
+        50% {
+            box-shadow: 0 0 10px 6px rgba(255, 200, 0, 0.8);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(255, 200, 0, 0);
+        }
+    }
 </style>
 <!-- END: Vendor CSS-->
 
@@ -403,9 +561,13 @@ foreach (user()->getRoles() as $key => $val) {
                             </div>
 
                             <div class="divider">
-                                <div class="divider-text">FilterCluster</div>
+                                <div class="divider-text">Filter</div>
                             </div>
 
+                            <div class="form-group">
+                                <select id="filter-kategori" name="filter-kategori"
+                                    class="select2 select-sm form-control-sm"></select>
+                            </div>
                             <div class="form-group">
                                 <select id="filter-id_cluster" name="id_cluster"
                                     class="select2 select-sm form-control-sm"></select>
@@ -420,7 +582,6 @@ foreach (user()->getRoles() as $key => $val) {
                                 <button class="btn btn-outline-warning col-5 m-1 btn-sm "
                                     onclick="hapus_filter_option()">Hapus Filter</button>
                             </div>
-                            <hr>
                             <div id="keterangan-warna-here"></div>
                             <hr>
                             <div class="form-group">
@@ -645,6 +806,26 @@ foreach (user()->getRoles() as $key => $val) {
     </div>
 </div>
 
+<section class="toast_section">
+    <!-- Toast Container -->
+    <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
+        <div id="toast-container" style="position: fixed; top: 1rem; right: 1rem; z-index: 1080;">
+            <div id="myToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true"
+                data-delay="3000">
+                <div class="toast-header bg-primary text-white">
+                    <strong class="mr-auto">Terjadi Kesalahan</strong>
+                    <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="toast-body">
+                    Data berhasil disimpan!
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <?php if ($k == 5 || $k == 1): ?>
     <?php echo view('siteplan/legal'); ?>
 <?php endif; ?>
@@ -674,101 +855,114 @@ foreach (user()->getRoles() as $key => $val) {
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
             </div>
             <div class="modal-body flex-grow-1" style="background-color:#eee">
-                <form action="" ></form>
+                <form action=""></form>
                 <div class="row" id="fm-detail">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body bg-primary text-light">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <p class="card-text label_alamat" id="detail_kavling_header"></p>
+                                        <p class="mb-0 text-light"><strong>ID SIKUMABANG:</strong></p>
+                                        <p class="card-text id_sikumbang mb-1"></p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5><i class="fas fa-money-bill"></i> Harga Jual</h5>
+                                                <span id="label-hargajual"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="card mb-0">
+                                            <div class="card-body p-1">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <h6 class="mb-0"><strong>Tunai/KPR:</strong> <span
+                                                                id="dt-is_kpr">-</span></h6>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <h6 class="mb-0"><strong>Subsidi/Komersil: </strong> <span
+                                                                id="dt-is_subsidi">-</span>
+                                                        </h6>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <h6 class="mb-0"><strong>Promo: </strong> <span
+                                                                id="dt-promo">-</span></h6>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+
+                    </div>
                     <div class="col-md-3">
+
                         <div class="card">
                             <div class="card-header">
-                                <h5 class="card-title">Detail Kavling</h5>
-                            </div>
-                            <div class="card-body">
-                                <p class="card-text label_alamat" id="detail_kavling_header"></p>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="card-title"></h5>
+                                <div class="divider divider-left pb-0">
+                                    <div class="divider-text font-weight-bold"><strong><i class="fas fa-user"></i> Detail Konsumen</strong></div>
+                                </div>
+
                             </div>
                             <div class="card-body">
                                 <ul class="list-unstyled mb-0">
                                     <li class="mb-2">
                                         <div class="me-2">
-                                            <h6 class="mb-0">Promo</h6>
-                                            <span id="dt-promo">-</span>
-                                        </div>
-                                    </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <h6 class="mb-0">Tunai/KPR</h6>
-                                            <span id="dt-is_kpr">-</span>
-                                        </div>
-                                    </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <h6 class="mb-0">Subsidi/Komersil</h6>
-                                            <span id="dt-is_subsidi">-</span>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Detail Konsumen</h5>
-                            </div>
-                            <div class="card-body">
-                                <ul class="list-unstyled mb-0">
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <h6 class="mb-0">No SPPTB</h6>
+                                            <b class="mb-0 d-block">No SPPTB</b>
                                             <span id="dt-no_spptb">-</span>
                                         </div>
                                     </li>
                                     <li class="mb-2">
                                         <div class="me-2">
-                                            <h6 class="mb-0">Nama Konsumen</h6>
+                                            <b class="mb-0 d-block">Nama Konsumen</b>
                                             <span id="dt-nama_konsumen">-</span>
                                         </div>
                                     </li>
                                     <li class="mb-2">
                                         <div class="me-2">
-                                            <h6 class="mb-0">Alamat Konsumen</h6>
+                                            <b class="mb-0 d-block">Alamat Konsumen</b>
                                             <span id="dt-alamat_konsumen">-</span>
                                         </div>
                                     </li>
                                     <li class="mb-2">
                                         <div class="me-2">
-                                            <h6 class="mb-0">NIK</h6>
+                                            <b class="mb-0 d-block">NIK</b>
                                             <span id="dt-nik_konsumen">-</span>
                                         </div>
                                     </li>
                                     <li class="mb-2">
                                         <div class="me-2">
-                                            <h6 class="mb-0">NPWP</h6>
+                                            <b class="mb-0 d-block">NPWP</b>
                                             <span id="dt-npwp_konsumen">-</span>
                                         </div>
                                     </li>
                                     <li class="mb-2">
                                         <div class="me-2">
-                                            <h6 class="mb-0">Kontak Konsumen</h6>
+                                            <b class="mb-0 d-block">Kontak Konsumen</b>
                                             <span id="dt-hp_konsumen">-</span>
                                         </div>
                                     </li>
                                     <li class="mb-2">
                                         <div class="me-2">
-                                            <h6 class="mb-0">Email Konsumen</h6>
+                                            <b class="mb-0 d-block">Email Konsumen</b>
                                             <span id="dt-email_konsumen">-</span>
                                         </div>
                                     </li>
                                     <li class="mb-2">
                                         <div class="me-2">
-                                            <h6 class="mb-0">Sales</h6>
+                                            <b class="mb-0 d-block">Sales</b>
                                             <span id="dt-sales">-</span>
                                         </div>
                                     </li>
-
                                 </ul>
-
                             </div>
                         </div>
                     </div>
@@ -777,8 +971,9 @@ foreach (user()->getRoles() as $key => $val) {
                             <div class="card-body pb-0 pt-0">
                                 <ul class="nav nav-pills flex-column flex-md-row mt-1 row-gap-2" role="tablist">
                                     <li class="nav-item">
-                                        <a class="nav-link active" id="dtt-summary-tab" data-toggle="tab" href="#dtt-summary"
-                                            aria-controls="summary" role="tab" aria-selected="true">Ringkasan</a>
+                                        <a class="nav-link active" id="dtt-summary-tab" data-toggle="tab"
+                                            href="#dtt-summary" aria-controls="summary" role="tab"
+                                            aria-selected="true">Ringkasan</a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" id="dtt-hj-tab" data-toggle="tab" href="#dtt-hj"
@@ -806,7 +1001,8 @@ foreach (user()->getRoles() as $key => $val) {
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" id="dt-pajak-tab" data-toggle="tab" href="#dt-pajak"
-                                            aria-controls="pajak" role="tab" aria-selected="false">Bukti Bayar PPH/PPN</a>
+                                            aria-controls="pajak" role="tab" aria-selected="false">Bukti Bayar
+                                            PPH/PPN</a>
                                     </li>
                                 </ul>
                             </div>
@@ -867,7 +1063,8 @@ foreach (user()->getRoles() as $key => $val) {
                                                     </div>
                                                 </div>
                                                 <div class="divider divider-left">
-                                                    <div class="divider-text font-weight-bold">Standing Instruction</div>
+                                                    <div class="divider-text font-weight-bold">Standing Instruction
+                                                    </div>
                                                 </div>
                                                 <div id="s-si"></div>
                                             </div>
@@ -875,28 +1072,31 @@ foreach (user()->getRoles() as $key => $val) {
                                                 <div class="divider divider-left">
                                                     <div class="divider-text font-weight-bold">Keuangan</div>
                                                 </div>
-                                                <div class="info-row row no-gutters">
+                                                <div class="info-row row no-gutters hidden">
                                                     <div class="col-6">
                                                         <label class="info-label">Uang Muka</label>
                                                     </div>
                                                     <div class="col-6">
-                                                        : <span class="info-value" id="s-persentase_bayar_tagihan_um"></span>
+                                                        : <span class="info-value"
+                                                            id="s-persentase_bayar_tagihan_um"></span>
                                                     </div>
                                                 </div>
                                                 <div class="info-row row no-gutters">
                                                     <div class="col-6">
-                                                        <label class="info-label">Biaya Adm + Turun KPR + Kav. Strageis + Kelebihan Tanah</label>
+                                                        <label class="info-label">Tagihan</label>
                                                     </div>
                                                     <div class="col-6">
-                                                        : <span class="info-value" id="s-persentase_bayar_tagihan_um_ll"></span>
+                                                        : <span class="info-value"
+                                                            id="s-persentase_bayar_tagihan_um_ll"></span>
                                                     </div>
                                                 </div>
-                                                <div class="info-row row no-gutters">
+                                                <div class="info-row row no-gutters hidden">
                                                     <div class="col-6">
                                                         <label class="info-label">Biaya-biaya</label>
                                                     </div>
                                                     <div class="col-6">
-                                                        : <span class="info-value" id="s-persentase_bayar_tagihan_bb"></span>
+                                                        : <span class="info-value"
+                                                            id="s-persentase_bayar_tagihan_bb"></span>
                                                     </div>
                                                 </div>
                                                 <div class="divider divider-left">
@@ -937,7 +1137,8 @@ foreach (user()->getRoles() as $key => $val) {
                                                         <label class="info-label">Tanggal Selesai Pembangunan</label>
                                                     </div>
                                                     <div class="col-6">
-                                                        : <span class="info-value" id="s-tanggal_selesai_pembangunan"></span>
+                                                        : <span class="info-value"
+                                                            id="s-tanggal_selesai_pembangunan"></span>
                                                     </div>
                                                 </div>
                                                 <div class="info-row row no-gutters">
@@ -984,8 +1185,7 @@ foreach (user()->getRoles() as $key => $val) {
                                         </div>
                                     </div>
 
-                                    <div class="tab-pane" id="dtt-hj" aria-labelledby="dtt-hj-tab"
-                                        role="tabpanel">
+                                    <div class="tab-pane" id="dtt-hj" aria-labelledby="dtt-hj-tab" role="tabpanel">
                                         <h5>Harga Jual</h5>
                                         <small class="text-muted">Terakhir diperbaharui oleh</small>
                                         <div class="row">
@@ -1609,32 +1809,32 @@ foreach (user()->getRoles() as $key => $val) {
 
                                                                     <div class="form-group">
                                                                         <label>NOP PBB</label>
-                                                                        <input type="text"
-                                                                            class="form-control" id="dt-pbb_pecah_nop"
+                                                                        <input type="text" class="form-control"
+                                                                            id="dt-pbb_pecah_nop"
                                                                             name="dt-pbb_pecah_nop" disabled>
                                                                     </div>
                                                                     <div class="form-group">
                                                                         <label>Luas Bumi</label>
-                                                                        <input type="text"
-                                                                            class="form-control" id="dt-pbb_pecah_luas_bumi"
+                                                                        <input type="text" class="form-control"
+                                                                            id="dt-pbb_pecah_luas_bumi"
                                                                             name="dt-pbb_pecah_luas_bumi" disabled>
                                                                     </div>
                                                                     <div class="form-group">
                                                                         <label>NJOP Bumi</label>
-                                                                        <input type="text"
-                                                                            class="form-control num" id="dt-pbb_pecah_njop_bumi"
+                                                                        <input type="text" class="form-control num"
+                                                                            id="dt-pbb_pecah_njop_bumi"
                                                                             name="dt-pbb_pecah_njop_bumi" disabled>
                                                                     </div>
                                                                     <div class="form-group">
                                                                         <label>Luas Bangunan</label>
-                                                                        <input type="text"
-                                                                            class="form-control" id="dt-pbb_pecah_luas_bangunan"
+                                                                        <input type="text" class="form-control"
+                                                                            id="dt-pbb_pecah_luas_bangunan"
                                                                             name="dt-pbb_pecah_luas_bangunan" disabled>
                                                                     </div>
                                                                     <div class="form-group">
                                                                         <label>NJOP Bangunan</label>
-                                                                        <input type="text"
-                                                                            class="form-control num" id="dt-pbb_pecah_njop_bangunan"
+                                                                        <input type="text" class="form-control num"
+                                                                            id="dt-pbb_pecah_njop_bangunan"
                                                                             name="dt-pbb_pecah_njop_bangunan" disabled>
                                                                     </div>
                                                                     <div class="form-group">
@@ -1647,8 +1847,8 @@ foreach (user()->getRoles() as $key => $val) {
                                                                     </div>
                                                                     <div class="form-group">
                                                                         <label>Jumlah Tagihan</label>
-                                                                        <input type="text"
-                                                                            class="form-control num" id="dt-pbb_pecah_jumlah_tagihan"
+                                                                        <input type="text" class="form-control num"
+                                                                            id="dt-pbb_pecah_jumlah_tagihan"
                                                                             name="dt-pbb_pecah_jumlah_tagihan" disabled>
                                                                     </div>
                                                                 </div>
@@ -1664,8 +1864,7 @@ foreach (user()->getRoles() as $key => $val) {
                                                                         <label>Pembetulan PBB</label>
                                                                         <select name="dt-pbb_is_pembetulan"
                                                                             id="dt-pbb_is_pembetulan"
-                                                                            class="form-control"
-                                                                            disabled>
+                                                                            class="form-control" disabled>
                                                                             <option value="Tidak">Tidak</option>
                                                                             <option value="Iya">Iya</option>
                                                                         </select>
@@ -1692,8 +1891,7 @@ foreach (user()->getRoles() as $key => $val) {
                                                                         <label>Balik Nama PBB</label>
                                                                         <select name="dt-pbb_is_balik_nama"
                                                                             id="dt-pbb_is_balik_nama"
-                                                                            class="form-control"
-                                                                            disabled>
+                                                                            class="form-control" disabled>
                                                                             <option value="Belum">Belum</option>
                                                                             <option value="Sudah">Sudah</option>
                                                                         </select>
@@ -1717,8 +1915,7 @@ foreach (user()->getRoles() as $key => $val) {
                                                                         <div class="form-group">
                                                                             <label>Dikirim Ke
                                                                                 Bank/Konsumen/Notaris</label>
-                                                                            <input type="text"
-                                                                                class="form-control"
+                                                                            <input type="text" class="form-control"
                                                                                 id="dt-pbb_balik_nama_ke"
                                                                                 name="dt-pbb_balik_nama_ke" disabled>
                                                                         </div>
@@ -1740,9 +1937,8 @@ foreach (user()->getRoles() as $key => $val) {
                                                                 </div>
                                                                 <div class="card-body">
                                                                     <div class="form-group">
-                                                                        <label>No HGB Induk</label>
-                                                                        <input type="text"
-                                                                            class="form-control "
+                                                                        <label>No HGB Induk/Nibel</label>
+                                                                        <input type="text" class="form-control "
                                                                             id="dt-sertifikat_split_no_hgb_induk"
                                                                             name="dt-sertifikat_split_no_hgb_induk"
                                                                             disabled>
@@ -1751,8 +1947,7 @@ foreach (user()->getRoles() as $key => $val) {
                                                                         <label>Split Sertifikat</label>
                                                                         <select name="dt-sertifikat_is_split"
                                                                             id="dt-sertifikat_is_split"
-                                                                            class="form-control"
-                                                                            disabled>
+                                                                            class="form-control" disabled>
                                                                             <option value="0">Tidak</option>
                                                                             <option value="1">Ya</option>
                                                                         </select>
@@ -1768,8 +1963,7 @@ foreach (user()->getRoles() as $key => $val) {
                                                                     <div class="select-sertifikat_is_split">
                                                                         <div class="form-group">
                                                                             <label>No HGB</label>
-                                                                            <input type="text"
-                                                                                class="form-control"
+                                                                            <input type="text" class="form-control"
                                                                                 id="dt-sertifikat_split_no_hgb"
                                                                                 name="dt-sertifikat_split_no_hgb"
                                                                                 disabled>
@@ -1792,8 +1986,7 @@ foreach (user()->getRoles() as $key => $val) {
                                                                         </div>
                                                                         <div class="form-group">
                                                                             <label>NIB</label>
-                                                                            <input type="text"
-                                                                                class="form-control "
+                                                                            <input type="text" class="form-control "
                                                                                 id="dt-sertifikat_split_nib"
                                                                                 name="dt-sertifikat_split_nib" disabled>
                                                                         </div>
@@ -1815,8 +2008,7 @@ foreach (user()->getRoles() as $key => $val) {
                                                                         </div>
                                                                         <div class="form-group">
                                                                             <label>Luas Tanah (m2)</label>
-                                                                            <input type="text"
-                                                                                class="form-control "
+                                                                            <input type="text" class="form-control "
                                                                                 id="dt-sertifikat_split_luas_tanah"
                                                                                 name="dt-sertifikat_split_luas_tanah"
                                                                                 disabled>
@@ -1836,8 +2028,7 @@ foreach (user()->getRoles() as $key => $val) {
                                                                         <label>Balik Nama Sertifikat</label>
                                                                         <select name="dt-sertifikat_is_balik_nama"
                                                                             class="form-control "
-                                                                            id="dt-sertifikat_is_balik_nama"
-                                                                            disabled>
+                                                                            id="dt-sertifikat_is_balik_nama" disabled>
                                                                             <option value="Belum">Belum</option>
                                                                             <option value="Sudah">Sudah</option>
                                                                         </select>
@@ -1853,8 +2044,7 @@ foreach (user()->getRoles() as $key => $val) {
                                                                         </div>
                                                                         <div class="form-group">
                                                                             <label>NIB Elektronik</label>
-                                                                            <input type="text"
-                                                                                class="form-control "
+                                                                            <input type="text" class="form-control "
                                                                                 id="dt-sertifikat_nib_elektronik"
                                                                                 name="dt-sertifikat_nib_elektronik"
                                                                                 disabled>
@@ -1870,8 +2060,7 @@ foreach (user()->getRoles() as $key => $val) {
                                                                         <div class="form-group">
                                                                             <label>Dikirim Ke
                                                                                 Bank/Konsumen/Notaris</label>
-                                                                            <input type="text"
-                                                                                class="form-control "
+                                                                            <input type="text" class="form-control "
                                                                                 id="dt-sertifikat_balik_nama_ke"
                                                                                 name="dt-sertifikat_balik_nama_ke"
                                                                                 disabled>
@@ -2118,7 +2307,8 @@ foreach (user()->getRoles() as $key => $val) {
                                                                             <option value="Online">Online</option>
                                                                         </select>
                                                                     </div>
-                                                                    <div class="select-pph-validasi-offline" class="hide">
+                                                                    <div class="select-pph-validasi-offline"
+                                                                        class="hide">
                                                                         <div class="form-group">
                                                                             <label>Tanggal Validasi</label>
                                                                             <input type="text"
@@ -2251,11 +2441,11 @@ foreach (user()->getRoles() as $key => $val) {
                                             <li class="nav-item">
                                                 <a class="nav-link active" id="dt-fm-prod-progress-tab"
                                                     data-toggle="tab" href="#dt-fm-prod-progress" role="tab"
-                                                    aria-selected="true">Proges</a>
+                                                    aria-selected="true">Progres</a>
                                             </li>
                                             <li class="nav-item">
-                                                <a class="nav-link" id="dt-fm-prod-bayar_produksi-tab"
-                                                    data-toggle="tab" href="#dt-fm-prod-bayar_produksi" role="tab"
+                                                <a class="nav-link" id="dt-fm-prod-bayar_produksi-tab" data-toggle="tab"
+                                                    href="#dt-fm-prod-bayar_produksi" role="tab"
                                                     aria-selected="true">Pembayaran</a>
                                             </li>
                                             <li class="nav-item">
@@ -2283,71 +2473,98 @@ foreach (user()->getRoles() as $key => $val) {
                                                 <div class="row">
                                                     <div class="col-md-3">
                                                         <div class="form-group">
-                                                            <div class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-st_0"
+                                                            <div
+                                                                class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1"
+                                                                    class="custom-control-input cbp" id="dt-st_0"
                                                                     name="dt-st_0" disabled />
-                                                                <label class="custom-control-label" for="dt-st_0">sd Sloof</label>
+                                                                <label class="custom-control-label" for="dt-st_0">sd
+                                                                    Sloof</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-st_25"
+                                                            <div
+                                                                class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1"
+                                                                    class="custom-control-input cbp" id="dt-st_25"
                                                                     name="dt-st_25" disabled />
-                                                                <label class="custom-control-label" for="dt-st_25">Dinding sd Ringbalok</label>
+                                                                <label class="custom-control-label"
+                                                                    for="dt-st_25">Dinding sd Ringbalok</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-st_50"
+                                                            <div
+                                                                class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1"
+                                                                    class="custom-control-input cbp" id="dt-st_50"
                                                                     name="dt-st_50" disabled />
-                                                                <label class="custom-control-label" for="dt-st_50">Dinding Full, Atap, PLester
+                                                                <label class="custom-control-label"
+                                                                    for="dt-st_50">Dinding Full, Atap, PLester
                                                                     dan Aci</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-st_75"
+                                                            <div
+                                                                class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1"
+                                                                    class="custom-control-input cbp" id="dt-st_75"
                                                                     name="dt-st_75" disabled />
-                                                                <label class="custom-control-label" for="dt-st_75">Plafon, Keramik, Dapur,
+                                                                <label class="custom-control-label"
+                                                                    for="dt-st_75">Plafon, Keramik, Dapur,
                                                                     Kamar Mandi dan Cat</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1" class="custom-control-input cbp"
-                                                                    id="dt-st_100" name="dt-st_100" disabled />
-                                                                <label class="custom-control-label" for="dt-st_100">Kusen, Pintu, Jendela,
+                                                            <div
+                                                                class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1"
+                                                                    class="custom-control-input cbp" id="dt-st_100"
+                                                                    name="dt-st_100" disabled />
+                                                                <label class="custom-control-label"
+                                                                    for="dt-st_100">Kusen, Pintu, Jendela,
                                                                     Kaca, Halaman dan Finishing</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1" class="custom-control-input cbp"
-                                                                    id="dt-st_saluran" name="dt-st_saluran" disabled />
-                                                                <label class="custom-control-label" for="dt-st_saluran">Saluran Jalan</label>
+                                                            <div
+                                                                class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1"
+                                                                    class="custom-control-input cbp" id="dt-st_saluran"
+                                                                    name="dt-st_saluran" disabled />
+                                                                <label class="custom-control-label"
+                                                                    for="dt-st_saluran">Saluran Jalan</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1" class="custom-control-input cbp"
-                                                                    id="dt-st_jalan" name="dt-st_jalan" disabled />
-                                                                <label class="custom-control-label" for="dt-st_jalan">Listrik</label>
+                                                            <div
+                                                                class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1"
+                                                                    class="custom-control-input cbp" id="dt-st_jalan"
+                                                                    name="dt-st_jalan" disabled />
+                                                                <label class="custom-control-label"
+                                                                    for="dt-st_jalan">Listrik</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1" class="custom-control-input cbp"
-                                                                    id="dt-st_air" name="dt-st_air" disabled />
-                                                                <label class="custom-control-label" for="dt-st_air">Air</label>
+                                                            <div
+                                                                class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1"
+                                                                    class="custom-control-input cbp" id="dt-st_air"
+                                                                    name="dt-st_air" disabled />
+                                                                <label class="custom-control-label"
+                                                                    for="dt-st_air">Air</label>
                                                             </div>
                                                         </div>
                                                         <!-- <div class="af"> -->
                                                         <div class="">
                                                             <div class="form-group">
-                                                                <div class="custom-control custom-switch custom-control-inline">
-                                                                    <input type="checkbox" value="1" class="custom-control-input cbp"
-                                                                        id="dt-slo" name="dt-slo" disabled />
-                                                                    <label class="custom-control-label" for="dt-slo">SLO / NIDI</label>
+                                                                <div
+                                                                    class="custom-control custom-switch custom-control-inline">
+                                                                    <input type="checkbox" value="1"
+                                                                        class="custom-control-input cbp" id="dt-slo"
+                                                                        name="dt-slo" disabled />
+                                                                    <label class="custom-control-label" for="dt-slo">SLO
+                                                                        / NIDI</label>
                                                                 </div>
                                                             </div>
                                                             <!-- <div class="form-group">
@@ -2366,52 +2583,67 @@ foreach (user()->getRoles() as $key => $val) {
                                                             <div class="divider-text">LPA</div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-lpa"
+                                                            <div
+                                                                class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1"
+                                                                    class="custom-control-input cbp" id="dt-lpa"
                                                                     name="dt-lpa" disabled />
-                                                                <label class="custom-control-label" for="dt-lpa">LPA</label>
+                                                                <label class="custom-control-label"
+                                                                    for="dt-lpa">LPA</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
                                                             <label>Tanggal LPA</label>
-                                                            <input type="text" class="form-control flatpickr-human-friendly"
+                                                            <input type="text"
+                                                                class="form-control flatpickr-human-friendly"
                                                                 id="dt-lpa_tanggal" name="dt-lpa_tanggal" disabled>
                                                         </div>
                                                         <div class="divider">
                                                             <div class="divider-text">Sumur Bor</div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-sumurbor"
+                                                            <div
+                                                                class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1"
+                                                                    class="custom-control-input cbp" id="dt-sumurbor"
                                                                     name="dt-sumurbor" disabled />
-                                                                <label class="custom-control-label" for="dt-sumurbor">Sumur Bor</label>
+                                                                <label class="custom-control-label"
+                                                                    for="dt-sumurbor">Sumur Bor</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
                                                             <label>Tanggal Pemasangan Sumur Bor</label>
-                                                            <input type="text" class="form-control flatpickr-human-friendly"
-                                                                id="dt-sumurbor_tanggal" name="dt-sumurbor_tanggal" disabled>
+                                                            <input type="text"
+                                                                class="form-control flatpickr-human-friendly"
+                                                                id="dt-sumurbor_tanggal" name="dt-sumurbor_tanggal"
+                                                                disabled>
                                                         </div>
                                                         <div class="form-group">
-                                                            <label for="dt-sumurbor_keterangan">Keterangan Sumur Bor</label>
+                                                            <label for="dt-sumurbor_keterangan">Keterangan Sumur
+                                                                Bor</label>
                                                             <textarea class="form-control" id="dt-sumurbor_keterangan"
-                                                                name="dt-sumurbor_keterangan" rows="3" placeholder="Keterangan" disabled></textarea>
+                                                                name="dt-sumurbor_keterangan" rows="3"
+                                                                placeholder="Keterangan" disabled></textarea>
 
-                                                            <small id="dt-last_update-sumurbor" class="text-muted"></small>
+                                                            <small id="dt-last_update-sumurbor"
+                                                                class="text-muted"></small>
                                                         </div>
                                                     </div>
 
                                                     <div class="col-md-3">
                                                         <div class="form-group">
                                                             <label for="dt-progres_bangunan">Progres Bangunan</label>
-                                                            <input type="range" class="form-control-range" value="0" id="dt-progres_bangunan"
-                                                                name="dt-progres_bangunan" step="1" disabled>
+                                                            <input type="range" class="form-control-range" value="0"
+                                                                id="dt-progres_bangunan" name="dt-progres_bangunan"
+                                                                step="1" disabled>
                                                             <span id="dt-t_progres_bangunan"></span>%
                                                         </div>
                                                         <div class="form-group">
-                                                            <label for="dt-produksi_keterangan">Keterangan Pembangunan</label>
+                                                            <label for="dt-produksi_keterangan">Keterangan
+                                                                Pembangunan</label>
                                                             <textarea class="form-control" id="dt-produksi_keterangan"
-                                                                name="dt-produksi_keterangan" rows="3" placeholder="Keterangan" disabled></textarea>
+                                                                name="dt-produksi_keterangan" rows="3"
+                                                                placeholder="Keterangan" disabled></textarea>
                                                         </div>
 
                                                     </div>
@@ -2423,77 +2655,102 @@ foreach (user()->getRoles() as $key => $val) {
 
                                                             <div class="form-group">
                                                                 <label>Tanggal Pembangunan</label>
-                                                                <input type="text" class="form-control tanggal_pembangunan flatpickr-human-friendly tgl_bangun"
-                                                                    id="dt-tanggal_pembangunan" name="dt-tanggal_pembangunan" disabled>
-                                                                <input type="text" class="hidden" id="dt-tanggal_pembangunan_old"
+                                                                <input type="text"
+                                                                    class="form-control tanggal_pembangunan flatpickr-human-friendly tgl_bangun"
+                                                                    id="dt-tanggal_pembangunan"
+                                                                    name="dt-tanggal_pembangunan" disabled>
+                                                                <input type="text" class="hidden"
+                                                                    id="dt-tanggal_pembangunan_old"
                                                                     name="dt-tanggal_pembangunan_old" disabled>
                                                             </div>
-                                                            <span class="text-muted" id="dt-lu-tanggal_pembangunan"></span>
+                                                            <span class="text-muted"
+                                                                id="dt-lu-tanggal_pembangunan"></span>
 
                                                             <div class="form-group">
                                                                 <label>Tanggal Rencana Selesai Pembangunan</label>
-                                                                <input type="text" class="form-control tanggal_rencana_selesai_pembangunan flatpickr-human-friendly tgl_bangun"
+                                                                <input type="text"
+                                                                    class="form-control tanggal_rencana_selesai_pembangunan flatpickr-human-friendly tgl_bangun"
                                                                     id="dt-tanggal_rencana_selesai_pembangunan"
-                                                                    name="dt-tanggal_rencana_selesai_pembangunan" disabled>
-                                                                <input type="text" class="hidden" id="dt-tanggal_rencana_selesai_pembangunan_old"
-                                                                    name="dt-tanggal_rencana_selesai_pembangunan_old" disabled>
+                                                                    name="dt-tanggal_rencana_selesai_pembangunan"
+                                                                    disabled>
+                                                                <input type="text" class="hidden"
+                                                                    id="dt-tanggal_rencana_selesai_pembangunan_old"
+                                                                    name="dt-tanggal_rencana_selesai_pembangunan_old"
+                                                                    disabled>
                                                             </div>
-                                                            <span class="text-muted" id="dt-lu-tanggal_rencana_selesai_pembangunan"></span>
+                                                            <span class="text-muted"
+                                                                id="dt-lu-tanggal_rencana_selesai_pembangunan"></span>
 
 
                                                             <div class="form-group">
                                                                 <label>Tanggal Selesai Pembangunan</label>
-                                                                <input type="text" class="form-control flatpickr-human-friendly "
-                                                                    id="dt-tanggal_selesai_pembangunan" name="dt-tanggal_selesai_pembangunan" disabled>
-                                                                <input type="text" class="hidden" id="dt-tanggal_selesai_pembangunan_old"
+                                                                <input type="text"
+                                                                    class="form-control flatpickr-human-friendly "
+                                                                    id="dt-tanggal_selesai_pembangunan"
+                                                                    name="dt-tanggal_selesai_pembangunan" disabled>
+                                                                <input type="text" class="hidden"
+                                                                    id="dt-tanggal_selesai_pembangunan_old"
                                                                     name="dt-tanggal_selesai_pembangunan_old" disabled>
                                                             </div>
-                                                            <span class="text-muted" id="dt-lu-tanggal_selesai_pembangunan"></span>
+                                                            <span class="text-muted"
+                                                                id="dt-lu-tanggal_selesai_pembangunan"></span>
 
 
                                                             <div class="hidden">
                                                                 <div class="form-group">
                                                                     <label>Diinput oleh</label>
-                                                                    <input type="text" class="form-control" id="dt-tanggal_pembangunan_oleh" disabled
+                                                                    <input type="text" class="form-control"
+                                                                        id="dt-tanggal_pembangunan_oleh" disabled
                                                                         name="dt-tanggal_pembangunan_oleh">
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Diinput Pada</label>
-                                                                    <input type="text" class="form-control flatpickr-human-friendly"
-                                                                        id="dt-tanggal_pembangunan_pada" disabled name="dt-tanggal_pembangunan_pada">
+                                                                    <input type="text"
+                                                                        class="form-control flatpickr-human-friendly"
+                                                                        id="dt-tanggal_pembangunan_pada" disabled
+                                                                        name="dt-tanggal_pembangunan_pada">
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Diubah oleh</label>
-                                                                    <input type="text" class="form-control" id="dt-tanggal_pembangunan_diubah_oleh"
-                                                                        disabled name="dt-tanggal_pembangunan_diubah_oleh">
+                                                                    <input type="text" class="form-control"
+                                                                        id="dt-tanggal_pembangunan_diubah_oleh" disabled
+                                                                        name="dt-tanggal_pembangunan_diubah_oleh">
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Diubah Pada</label>
-                                                                    <input type="text" class="form-control flatpickr-human-friendly"
+                                                                    <input type="text"
+                                                                        class="form-control flatpickr-human-friendly"
                                                                         id="dt-tanggal_pembangunan_diubah_pada" disabled
                                                                         name="dt-tanggal_pembangunan_diubah_pada">
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Diinput oleh</label>
-                                                                    <input type="text" class="form-control" id="dt-tanggal_selesai_pembangunan_oleh"
-                                                                        disabled name="dt-tanggal_selesai_pembangunan_oleh">
+                                                                    <input type="text" class="form-control"
+                                                                        id="dt-tanggal_selesai_pembangunan_oleh"
+                                                                        disabled
+                                                                        name="dt-tanggal_selesai_pembangunan_oleh">
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Diinput Pada</label>
-                                                                    <input type="text" class="form-control flatpickr-human-friendly"
-                                                                        id="dt-tanggal_selesai_pembangunan_pada" disabled
+                                                                    <input type="text"
+                                                                        class="form-control flatpickr-human-friendly"
+                                                                        id="dt-tanggal_selesai_pembangunan_pada"
+                                                                        disabled
                                                                         name="dt-tanggal_selesai_pembangunan_pada">
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Diubah oleh</label>
                                                                     <input type="text" class="form-control"
-                                                                        id="dt-tanggal_selesai_pembangunan_diubah_oleh" disabled
+                                                                        id="dt-tanggal_selesai_pembangunan_diubah_oleh"
+                                                                        disabled
                                                                         name="dt-tanggal_selesai_pembangunan_diubah_oleh">
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label>Diubah Pada</label>
-                                                                    <input type="text" class="form-control flatpickr-human-friendly"
-                                                                        id="dt-tanggal_selesai_pembangunan_diubah_pada" disabled
+                                                                    <input type="text"
+                                                                        class="form-control flatpickr-human-friendly"
+                                                                        id="dt-tanggal_selesai_pembangunan_diubah_pada"
+                                                                        disabled
                                                                         name="dt-tanggal_selesai_pembangunan_diubah_pada">
                                                                 </div>
                                                             </div>
@@ -2508,10 +2765,12 @@ foreach (user()->getRoles() as $key => $val) {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="tab-pane" id="dt-fm-prod-bayar_produksi" aria-labelledby="dt-fm-prod-bayar_produksi-tab" role="tabpanel">
+                                            <div class="tab-pane" id="dt-fm-prod-bayar_produksi"
+                                                aria-labelledby="dt-fm-prod-bayar_produksi-tab" role="tabpanel">
                                                 <div id="dt-div-bayar_produksi-here" class="row"></div>
                                             </div>
-                                            <div class="tab-pane" id="dt-fm-prod-dokumentasi" aria-labelledby="dt-fm-prod-dokumentasi-tab" role="tabpanel">
+                                            <div class="tab-pane" id="dt-fm-prod-dokumentasi"
+                                                aria-labelledby="dt-fm-prod-dokumentasi-tab" role="tabpanel">
                                                 <div class="form-group foto-container">
                                                     <label>Foto Konstruksi(Jika Ada, Pembesian, Pondasi)</label>
 
@@ -2675,8 +2934,7 @@ foreach (user()->getRoles() as $key => $val) {
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="tab-pane" id="dt-pajak" aria-labelledby="dt-pajak-tab"
-                                        role="tabpanel">
+                                    <div class="tab-pane" id="dt-pajak" aria-labelledby="dt-pajak-tab" role="tabpanel">
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="divider">
@@ -3553,6 +3811,33 @@ foreach (user()->getRoles() as $key => $val) {
         </div>
     </div>
 </div>
+<div class="modal fade" id="modal-list-jatuh-tempo">
+    <div class="modal-dialog modal-lg">
+        <div class="add-new-record modal-content pt-0">
+            <div class="modal-header mb-1">
+                <h1 class="modal-title" id="exampleModalLabel">Konsumen Jatuh Tempo</h1>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body flex-grow-1">
+                <div class="table-responsive">
+                    <table class="table" id="table-selesai">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Konsumen</th>
+                                <th>Tagihan</th>
+                            </tr>
+
+                        </thead>
+                        <tbody id="list-jatuh-tempo-here"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal -->
 <div class="modal fade" id="modalEwe" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -3571,36 +3856,50 @@ foreach (user()->getRoles() as $key => $val) {
         </div>
     </div>
 </div>
-<div class="fade modal text-left" id="modal_othersdetail" aria-labelledby="modal_othersdetail" role="dialog" aria-hidden="true" tabindex="-1">
+<div class="fade modal text-left" id="modal_othersdetail" aria-labelledby="modal_othersdetail" role="dialog"
+    aria-hidden="true" tabindex="-1">
     <div class="modal-dialog modal-sm" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Detail</h5><button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h5 class="modal-title" id="exampleModalLabel">Detail</h5><button class="close" type="button"
+                    data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
             </div>
             <form class="modal-content pt-0 add-new-record" id="fm-fotherproduksi">
                 <div class="modal-body">
-                    <p class="modal-title label_alamat" id="label_fothersproduksi"></p><br><span><strong>Luas di Siteplan :</strong><br><span class="t_luas_planning"></span></span><br><span><strong>Keterangan Planning :</strong><br><span class="t_keterangan_planning"></span></span><br><br><span><strong>Luas di Sertifikat :</strong><br><span class="t_luas_legal"></span></span><br><span><strong>Keterangan Legal :</strong><br><span class="t_keterangan_legal"></span></span><br><br><span><strong>Luas di Lapangan :</strong><br><span class="t_luas_produksi"></span></span><br><span><strong>Keterangan Produksi :</strong><br><span class="t_keterangan_keterangan"></span></span>
+                    <p class="modal-title label_alamat" id="label_fothersproduksi"></p><br><span><strong>Luas di
+                            Siteplan :</strong><br><span
+                            class="t_luas_planning"></span></span><br><span><strong>Keterangan Planning
+                            :</strong><br><span class="t_keterangan_planning"></span></span><br><br><span><strong>Luas
+                            di Sertifikat :</strong><br><span
+                            class="t_luas_legal"></span></span><br><span><strong>Keterangan Legal :</strong><br><span
+                            class="t_keterangan_legal"></span></span><br><br><span><strong>Luas di Lapangan
+                            :</strong><br><span class="t_luas_produksi"></span></span><br><span><strong>Keterangan
+                            Produksi :</strong><br><span class="t_keterangan_keterangan"></span></span>
                     <hr>
-                    <div class="form-group"><label for="f_progres_jalan">Progres</label> <input name="f_detail_progres_jalan" class="form-control-range" id="f_detail_progres_jalan" disabled type="range" max="100" min="0" oninput='$(".r_progres").html($(this).val())' step="5"> <span class="r_progres"></span><span>%</span></div>
+                    <div class="form-group"><label for="f_progres_jalan">Progres</label> <input
+                            name="f_detail_progres_jalan" class="form-control-range" id="f_detail_progres_jalan"
+                            disabled type="range" max="100" min="0" oninput='$(".r_progres").html($(this).val())'
+                            step="5"> <span class="r_progres"></span><span>%</span></div>
                 </div>
-                <div class="modal-footer"><button class="btn btn-outline-secondary" type="reset" data-dismiss="modal">Tutup</button></div>
+                <div class="modal-footer"><button class="btn btn-outline-secondary" type="reset"
+                        data-dismiss="modal">Tutup</button></div>
             </form>
         </div>
     </div>
 </div>
 <!-- BEGIN: Vendor JS-->
-<script src="<?= base_url() ?>/app-assets/vendors/js/vendors.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
 <!-- BEGIN Vendor JS-->
 
 <!-- BEGIN: Page Vendor JS-->
-<script src="<?= base_url() ?>/assets/js/magic-wand.min.js"></script>
-<script src="<?= base_url() ?>/assets/js/konva.min.js"></script>
-<script src="<?= base_url() ?>/assets/js/jquery.richtext.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/html2canvas/html2canvas.min.js"></script>
-<!-- <script src="<?= base_url() ?>/assets/js/scripts.js"></script> -->
+<script src="<?= base_url() ?>assets/js/magic-wand.min.js"></script>
+<script src="<?= base_url() ?>assets/js/konva.min.js"></script>
+<script src="<?= base_url() ?>assets/js/jquery.richtext.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/forms/select/select2.full.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/html2canvas/html2canvas.min.js"></script>
+<!-- <script src="<?= base_url() ?>assets/js/scripts.js"></script> -->
 <!-- END: Page Vendor JS-->
 <script>
     function applyLoadingEffect(selector) {
@@ -3612,9 +3911,27 @@ foreach (user()->getRoles() as $key => $val) {
     }
     let data_um = [],
         data_bb = []
+
+
     //sewwtalert2 fix error cant type after open modal
     $.fn.modal.Constructor.prototype._enforceFocus = function() {};
 
+    const state = {
+        id_kavling: null,
+        id_hargajual: null,
+        id_mkdt: null,
+        data_um: {},
+        data_bb: {},
+        sisa_cicilan: 0,
+        sudah_bayar: 0,
+        total_cicilan: 0,
+        status: {
+            tab: {
+                isClosed: false
+            }
+        }
+
+    };
     const list_pekerjaan = {
         "Pekerjaan Persiapan": ["Persiapan Pembersihan lokasi", "Pemasangan bouplank"],
         "Pekerjaan Pondasi": ["Galian tanah pondasi", "Pasangan Pondasi Batu kali", "Pasangan Pondasi plat Setempat", "Instalasi Pipa Air Kotor pendam 3 inch", "Instalasi Pipa Air Kotor Pendam 4 inch", "Instalasi Pipa Air Kotor Pendam lebih dari 4 inch", "Urugan tanah pondasi tinggi 0-20 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi 20-50 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi lebih dari 50 cm dari jalan lingkungan"],
@@ -3782,10 +4099,20 @@ foreach (user()->getRoles() as $key => $val) {
         else
             l = parseFloat($("#konva-holder").height()) / imageObj.height;
 
-        stage.scale({
-            x: l,
-            y: l
-        });
+        new Konva.Tween({
+            node: stage,
+            duration: 0.5,
+            scaleX: l,
+            scaleY: l,
+            x: 0,
+            y: 0,
+            easing: Konva.Easings.EaseInOut,
+        }).play();
+
+        // stage.scale({
+        //     x: l,
+        //     y: l
+        // });
 
         group.scale({
             x: 1 / l,
@@ -3799,9 +4126,6 @@ foreach (user()->getRoles() as $key => $val) {
             $('#filter-side').remove();
             $("#btn-filter").removeClass("hidden")
         }
-
-
-
     }
 
     var line_ms = new Konva.Line({
@@ -3952,12 +4276,33 @@ foreach (user()->getRoles() as $key => $val) {
         };
         filterwarnahitung = {};
 
+        const fields = [ //untuk pengecekan status kavling yang sudah done
+            'nama_jalan',
+            'no_kavling',
+            'status_mkdt',
+            'is_lunas',
+            'progres_bangunan',
+            'sertifikat_split_no_hgb_induk',
+            'sertifikat_split_no_hgb',
+            'sertifikat_is_balik_nama',
+            'pbb_pecah_nop',
+            'pbb_is_balik_nama',
+            'pbg_no',
+            'ajb_no',
+            'pph_tgl_bayar',
+            'bphtb_tanggal_pembayaran'
+        ];
+        const isValidDate = (val) => {
+            return typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val) && !isNaN(new Date(val).getTime()) && val !== "0000-00-00";
+        };
+
         siteplan.find('Line').forEach(line => line.destroy());
 
         let va = $("#pilih-divisi option:selected").val();
         wr_pembangunan = [];
+        list_jatuhtempo = [];
         $.ajax({
-            url: base_url + 'siteplan/get_kavling_all',
+            url: base_url + 'siteplan/get/all',
             type: 'post',
             data: {
                 [csrfName]: csrfHash,
@@ -3994,6 +4339,7 @@ foreach (user()->getRoles() as $key => $val) {
                         tipe: 'Lain-lain'
                     }
 
+                    //add list to belum selesai bangun
                     if (r[p].tanggal_rencana_selesai_pembangunan != null) {
                         if (r[p].tanggal_selesai_pembangunan == null) {
                             if (daysBetween(today_date, r[p].tanggal_rencana_selesai_pembangunan) < 3) {
@@ -4011,15 +4357,29 @@ foreach (user()->getRoles() as $key => $val) {
                         }
                     }
 
+                    //add to list jatuh tempo
+                    const today = new Date();
+                    const sevenDaysLater = new Date();
+                    sevenDaysLater.setDate(today.getDate() + 7);
+
+
+                    if (r[p].jatuh_tempo_tgl) {
+                        const jatuhTempo = new Date(r[p].jatuh_tempo_tgl);
+
+                        if (jatuhTempo <= today && jatuhTempo <= sevenDaysLater) {
+                            list_jatuhtempo.push(r[p].id_kavling)
+                        }
+                    }
+
 
                     // if (r[p].tanggal_selesai_pembangunan != '0000-00-00' || r[p].tanggal_selesai_pembangunan != '' || r[p].tanggal_selesai_pembangunan != null) {
 
                     // }
 
                     if (r[p].harga_akhir) {
-                        tp_rumah = r[p].hj_tipe_rumah
-                        no_tp_rumah = r[p].hj_no_tipe_rumah
-                        hit = set_fill2(r[p].hj_tipe_rumah)
+                        tp_rumah = r[p].tipe_rumah
+                        no_tp_rumah = r[p].no_tipe_rumah
+                        hit = set_fill2(r[p].tipe_rumah)
                         hit = {
                             fill: hit,
                             tipe: subsidi
@@ -4205,9 +4565,9 @@ foreach (user()->getRoles() as $key => $val) {
 
                     } else if (va == 9) {
                         if (r[p].harga_akhir) {
-                            tp_rumah = r[p].hj_tipe_rumah
-                            no_tp_rumah = r[p].hj_no_tipe_rumah
-                            hit = set_fill2(r[p].hj_tipe_rumah)
+                            tp_rumah = r[p].tipe_rumah
+                            no_tp_rumah = r[p].no_tipe_rumah
+                            hit = set_fill2(r[p].tipe_rumah)
 
                             //ubah var hit ke object
                             hit = {
@@ -4222,9 +4582,29 @@ foreach (user()->getRoles() as $key => $val) {
                     // }
 
 
+
+                    const isComplete = fields.every(field => {
+                        const val = r[p][field];
+
+                        // Field yang berupa tanggal
+                        if (field.includes('tgl') || field.includes('tanggal')) {
+                            return isValidDate(val);
+                        }
+
+                        //balik nama jika berisi belum masih terdetek sebagai true
+
+                        // Field lainnya cukup tidak null atau tidak kosong
+                        return val !== null && val !== '';
+                    });
+
+                    if (isComplete) {
+                        hit = set_fill2("Selesai");
+                    }
+
+
                     //harga jual
                     let id_hargajual = r[p].harga_akhir;
-                    r[p].harga_akhir = (r[p].hargajual) ? num_format(r[p].hargajual) + "(" + format_date(r[p].tgl_harga) + ")" : '-';
+                    r[p].harga_akhir = (r[p].hargajual) ? num_format(r[p].hargajual) + " (Per " + format_date(r[p].tgl_harga) + ")" : '-';
 
 
 
@@ -4259,6 +4639,7 @@ foreach (user()->getRoles() as $key => $val) {
                         opacity: 1,
                         closed: true,
                         globalCompositeOperation: 'multiply',
+                        kategori: hit.fill,
                         data: {
                             nama_jalan: r[p].nama_jalan,
                             no_kavling: r[p].no_kavling,
@@ -4292,11 +4673,13 @@ foreach (user()->getRoles() as $key => $val) {
                         },
                         id: 'kav' + r[p].id_kavling
                     });
-
                     siteplan.add(kav);
                 }
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
+
+                if (roleid == 3)
+                    cek_jatuh_tempo(true)
             },
             error: function(xhr, st, err) {
                 $("#loading").addClass("hidden")
@@ -4837,7 +5220,9 @@ foreach (user()->getRoles() as $key => $val) {
             }
         });
 
-        $(".label_alamat").html(dt_proyek.nama_proyek + "<br/> <span class='capitalize'>" + sh.data.tipe + "<span>: " + sh.data.nama_jalan + "");
+
+
+        $(".label_alamat").html("<b>" + dt_proyek.nama_proyek + "</b>" + "<br/> <span class='capitalize'>" + sh.data.tipe + "<span>: " + sh.data.nama_jalan + "");
         $('#modal_othersdetail').modal({
             backdrop: 'static',
             keyboard: false
@@ -4855,6 +5240,7 @@ foreach (user()->getRoles() as $key => $val) {
         dr;
 
     function detail_kavling(sh, id_kavling) {
+        $(".id_sikumbang").html("Memuat data sikumbang...");
         let src = not_found
         $("#fm-detail :input").prop("disabled", true)
         $('#dtt-summary-tab').tab('show');
@@ -4893,7 +5279,7 @@ foreach (user()->getRoles() as $key => $val) {
         $(".files-here").prop('src', src)
 
         $.ajax({
-            url: base_url + 'siteplan/get_detail',
+            url: base_url + 'siteplan/get/detail',
             type: 'post',
             data: {
                 [csrfName]: csrfHash,
@@ -4938,13 +5324,14 @@ foreach (user()->getRoles() as $key => $val) {
 
                 /************************ load bayar produksi  ***************************/
 
-                $(".label_alamat").html("<?= $data['proyek']->nama_proyek ?> <br/>" +
-                    sh.data.nama_jalan +
-                    ", No." + sh.data.no_kavling +
-                    "<br/>" + sh.data2.no_tipe_rumah +
-                    " (" + sh.data2.tipe_rumah + ")<br/>" +
-                    " Harga Jual: Rp. " + sh.data2.harga_akhir + "<br/>" +
-                    "(" + format_date(sh.data2.harga_akhir_tgl) + " - " + sh.data2.harga_akhir_oleh + ")");
+                let lAlamat = setLabelAlamat("<?= $data['proyek']->nama_proyek ?>", sh.data.nama_jalan, sh.data.no_kavling, sh.data2.no_tipe_rumah, sh.data2.tipe_rumah)
+
+                $(".label_alamat").html(lAlamat);
+                $("#label-hargajual").html(`
+                    Harga Jual: <h2 class="text-primary mb-0"><strong>Rp. ${sh.data2.harga_akhir}</strong></h5>
+                    <small class="text-muted">(${format_date(sh.data2.harga_akhir_tgl)} - ${sh.data2.harga_akhir_oleh})</small>`);
+
+
 
                 $("#modal_detail").modal('show');
             },
@@ -4953,10 +5340,45 @@ foreach (user()->getRoles() as $key => $val) {
                 return swal("error", err);
             },
         });
+
+
+
+        let no_kavling_pad = (parseInt(sh.data.no_kavling, 10) < 10 ? '0' : '') + sh.data.no_kavling;
+        let id_kavling_sikumbang = dt_proyek.id_perumahan_sikumbang + sh.data.nama_jalan.replace(/\s+/g, '').toUpperCase() + no_kavling_pad;
+
+
+        fetch('https://sikumbang.tapera.go.id/ajax/trilogi/' + id_kavling_sikumbang)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Fetched data from SIKUMBANG:', data);
+
+                let tpengembang, tbank, tmbr, txt
+                if (data.error === true) {
+                    txt = "ID TIdak Ditemukan/Sikumbang Sedang tidak bisa diakses."
+                } else {
+                    tpengembang = (data.data.pengembang === true) ? '<span class="badge badge-success">Ready Stock</span>' : '';
+                    tbank = (data.data.bank === true) ? '<span class="badge badge-success">Trilogy Bank</span>' : '';
+                    tmbr = (data.data.mbr === true) ? '<span class="badge badge-success">Trilogy MBR</span>' : '';
+
+                    txt = `<b>${id_kavling_sikumbang}</b> <br>${tpengembang} ${tbank} ${tmbr}`;
+                }
+                // You can handle/use the fetched data as needed here
+                $(".id_sikumbang").html(txt);
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
     }
     let loaded = [];
+    let tabId
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
         const targetId = $(e.target).attr('href'); // ex: #profile
+        tabId = targetId
         if (targetId === '#dtt-summary' && !loaded['sm']) {
             applyLoadingEffect(targetId)
             setTimeout(() => {
@@ -5010,7 +5432,7 @@ foreach (user()->getRoles() as $key => $val) {
         if (targetId === '#dt-produksi' && !loaded['pr']) {
             applyLoadingEffect(targetId)
             setTimeout(() => {
-                loadProduksi(dr.produksi)
+                loadProduksi(dr.produksi, dr.files)
                 loadBayarProduksi(dr.bayar_produksi)
                 removeLoadingEffect(targetId);
             }, 200);
@@ -5034,7 +5456,13 @@ foreach (user()->getRoles() as $key => $val) {
                 loadTableTagihan(keu_tg)
                 removeLoadingEffect(targetId);
             }, 200);
-            loaded['keu_tg'] = true            
+            loaded['keu_tg'] = true
+        }
+
+        if (targetId === '#idk_data_konsumen' || targetId === '#idk_biaya' || targetId === '#idk_tagihan') {
+            let btnN = '#add-form-btn-idk_keu';
+            let btnPr = '#prev-form-btn-idk_keu';
+            // updateButtons(btnN, btnPr)
         }
     });
     $('#modal_detail').on('hidden.bs.modal', function() {
@@ -5043,21 +5471,21 @@ foreach (user()->getRoles() as $key => $val) {
     });
 
     //modal keuangan
-    $('#modal_divisi3').on('hidden.bs.modal', function() {
-        // alert()
-        load_kavling()
-        loaded = [];
-        keu_lp = []
-        keu_tg = []
-    });
+    // $('#modal_divisi3').on('hidden.bs.modal', function() {
+    //     // alert()
+    //     load_kavling()
+    //     loaded = [];
+    //     keu_lp = []
+    //     keu_tg = []
+    // });
 
     function loadSummary(r) {
         //load data konsumen
         if (r.mkdt) {
             let mkdt = r.mkdt
             setText("#dt-promo", mkdt.promo)
-            setText("#dt-is_kpr", isKPR[mkdt.is_kpr])
-            setText("#dt-is_subsidi", isSubsidi[mkdt.is_subsidi])
+            setText("#dt-is_kpr", isKPR[mkdt.is_kpr], true, "success")
+            setText("#dt-is_subsidi", isSubsidi[mkdt.is_subsidi], true, "success")
             setText("#dt-no_spptb", mkdt.no_spptb)
             setText("#dt-nama_konsumen", mkdt.nama_konsumen)
             setText("#dt-alamat_konsumen", mkdt.alamat_konsumen)
@@ -5074,7 +5502,7 @@ foreach (user()->getRoles() as $key => $val) {
             setText("#s-notaris", mkdt.notaris)
             setText("#s-st_sp3k_tgl", format_date(mkdt.sp3k_tgl))
             setText("#s-st_sp3k_tgl_exp", format_date(mkdt.sp3k_tgl_exp))
-        }else{
+        } else {
             setText("#dt-promo", '-')
             setText("#dt-is_kpr", '-')
             setText("#dt-is_subsidi", '-')
@@ -5093,18 +5521,18 @@ foreach (user()->getRoles() as $key => $val) {
             setText("#s-st_bank", '-')
             setText("#s-notaris", '-')
             setText("#s-st_sp3k_tgl", '-')
-            setText("#s-st_sp3k_tgl_exp", '-') 
+            setText("#s-st_sp3k_tgl_exp", '-')
         }
 
-        if(r.kavling){
+        if (r.kavling) {
             setText("#s-perintah_bangun_tgl", format_date(r.kavling.perintah_bangun_tgl))
-        }else{
+        } else {
             setText("#s-perintah_bangun_tgl", "-")
         }
-        
+
         const tg = hitungTagihan(r)
         setText("#s-persentase_bayar_tagihan_um", tg.ldp)
-        setText("#s-persentase_bayar_tagihan_um_ll", tg.ldp_ll)
+        setText("#s-persentase_bayar_tagihan_um_ll", tg.ldp_semua)
         setText("#s-persentase_bayar_tagihan_bb", tg.ldp_bb)
 
         if (r.produksi) {
@@ -5118,7 +5546,7 @@ foreach (user()->getRoles() as $key => $val) {
             setText("#s-st_jalan", isSudah(pr.st_jalan))
             setText("#s-slo", isSudah(pr.slo))
             setText("#s-lpa", isSudah(pr.lpa))
-        }else{
+        } else {
             setText("#s-progress_bangunan", "-")
             setText("#s-tanggal_pembangunan", "-")
             setText("#s-tanggal_selesai_pembangunan", "-")
@@ -5139,7 +5567,7 @@ foreach (user()->getRoles() as $key => $val) {
                         <label class="info-label mb-0">${v.nama}</label>
                     </div>
                     <div class="col-6">
-                        : <span class="info-value">${isSudah(v.id_kavling)} ${v.tanggal_si ? format_date(v.tanggal_si): '-'}</span>
+                        : <span class="info-value">${isSudah(v.id_kavling)} ${v.tanggal_si ? format_date(v.tanggal_si) : '-'}</span>
                     </div>
                 </div>
                 `
@@ -5162,7 +5590,7 @@ foreach (user()->getRoles() as $key => $val) {
                         <label class="info-label mb-0">${v.item}</label>
                     </div>
                     <div class="col-6">
-                        : <span class="info-value">${isSudah(v.id)} ${v.tanggal_bayar ? format_date(v.tanggal_bayar): '-'}</span>
+                        : <span class="info-value">${isSudah(v.id)} ${v.tanggal_bayar ? format_date(v.tanggal_bayar) : '-'}</span>
                     </div>
                 </div>`
             });
@@ -5222,7 +5650,7 @@ foreach (user()->getRoles() as $key => $val) {
             setDatePicker(r.kavling.pph42_tgl_bayar, "#dt-pph_tgl_bayar")
 
             //  $("#dt-st_list-upload_perintah_bangun_file-here").prop('src', base_url + src)
-            
+
         }
         $("#dt-st_list-upload_perintah_bangun_file").prop('href', base_url + src)
     }
@@ -5233,13 +5661,13 @@ foreach (user()->getRoles() as $key => $val) {
         $("#dt-st_list-upload_sp3k_file").prop('href', base_url + src)
 
         $("#dt-st_list-upload_bast_file").prop('href', base_url + src)
-        
+
         $("#dt-btn-bl_here").prop('href', base_url + src)
         $(".dt-cl-bl_here").prop('src', base_url + src)
-        
+
         $("#dt-btn-npwp_here").prop('href', base_url + src)
         $(".dt-cl-npwp_here").prop('src', base_url + src)
-        
+
         $("#dt-btn-ktp_here").prop('href', base_url + src)
         $(".dt-cl-ktp_here").prop('src', base_url + src)
 
@@ -5353,6 +5781,7 @@ foreach (user()->getRoles() as $key => $val) {
 
             if (lg.data) {
                 $("#dt-sertifikat_balik_nama").val(lg.data.nama_konsumen ? lg.data.nama_konsumen : '')
+                $("#dt-pbb_balik_nama").val(lg.data.nama_konsumen ? lg.data.nama_konsumen : '')
                 $("#dt-bphtb_nominal_disetujui").val(lg.data.harga_bphtb ? lg.data.harga_bphtb : '').change().keyup()
             }
 
@@ -5401,6 +5830,8 @@ foreach (user()->getRoles() as $key => $val) {
         ldp = (r.sb_um > 0) ? ~~ldp + "%" : "0%";
 
         //um dan ll
+        let total_um_ll = parseFloat(r.total_um_ll),
+            sb_um_ll = parseFloat(r.sb_um_ll)
         let sisa_um_ll = r.total_um_ll - r.sb_um_ll,
             ldp_ll = (sisa_um_ll == 0) ? 100 : r.sb_um_ll / r.total_um_ll * 100;
         ldp_ll = (r.sb_um_ll > 0) ? ~~ldp_ll + "%" : "0%";
@@ -5411,6 +5842,12 @@ foreach (user()->getRoles() as $key => $val) {
             ldp_bb = (sisa_bb == 0) ? 100 : r.sb_bb / r.total_bb * 100;
         ldp_bb = (r.sb_bb > 0) ? ~~ldp_bb + "%" : "0%";
 
+        let total_semua = total_um + total_bb + total_um_ll,
+            sb_semua = sb_um + sb_um_ll + sb_bb,
+            sisa_semua = total_semua - sb_semua,
+            ldp_semua = (sisa_semua == 0) ? 100 : sb_semua / total_semua * 100;
+        ldp_semua = sb_semua > 0 ? ~~ldp_semua + "%" : "0%"
+        // console.log(total_semua, sb_semua)
         return {
             sisa_um: sisa_um,
             ldp: ldp,
@@ -5423,7 +5860,12 @@ foreach (user()->getRoles() as $key => $val) {
             total_bb: total_bb,
             sb_bb: sb_bb,
             sisa_bb: sisa_bb,
-            ldp_bb: ldp_bb
+            ldp_bb: ldp_bb,
+            total_semua: total_semua,
+            sb_semua: sb_semua,
+            sisa_semua: sisa_semua,
+            ldp_semua: ldp_semua
+
         }
     }
 
@@ -5455,7 +5897,7 @@ foreach (user()->getRoles() as $key => $val) {
         /************************ end of load table tagihan ***************************/
     }
 
-    function loadProduksi(pr) {
+    function loadProduksi(pr, files) {
         /************************ load produksi ***************************/
         if (pr) {
             $("#dt-st_0").prop('checked', pr.st_0)
@@ -5495,8 +5937,8 @@ foreach (user()->getRoles() as $key => $val) {
             changeVal("#dt-sumurbor_keterangan", pr.sumurbor_keterangan);
             setDatePicker(pr.sumurbor_tanggal, '#dt-sumurbor_tanggal')
             $("#dt-last_update-sumurbor").html(
-                `Diubah pada: ${pr.sumurbor_updated ? format_datetime(pr.sumurbor_updated):'-'}, 
-                    oleh: ${pr.sumurbor_oleh_u ? pr.sumurbor_oleh_u:'-'}`
+                `Diubah pada: ${pr.sumurbor_updated ? format_datetime(pr.sumurbor_updated) : '-'}, 
+                    oleh: ${pr.sumurbor_oleh_u ? pr.sumurbor_oleh_u : '-'}`
             )
 
         } else {
@@ -5537,8 +5979,9 @@ foreach (user()->getRoles() as $key => $val) {
             setDatePicker(null, '#dt-sumurbor_tanggal')
             $("#dt-last_update-sumurbor").html(null)
         }
-        if (r.files)
-            showFoto(r.files, 'dt-', "false");
+        // console.log(files)
+        if (files)
+            showFoto(files, 'dt-', "false");
 
 
         /************************ end of produksi ***************************/
@@ -5602,21 +6045,21 @@ foreach (user()->getRoles() as $key => $val) {
                                         <div class="form-group">
                                             <label>Tanggal Pembayaran</label>
                                             <input type="text" class="form-control flatpickr-human-friendly "
-                                                id="" value="${format_date(v.tanggal_bayar?v.tanggal_bayar:"")}" name="" disabled>
+                                                id="" value="${format_date(v.tanggal_bayar ? v.tanggal_bayar : "")}" name="" disabled>
                                         </div>                        
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group">
                                             <label for="sumurbor_bayar_nominal">Nominal</label>
                                             <input type="text" disabled class="form-control num" id=""
-                                                name="" value="${v.nominal?v.nominal:''}">
+                                                name="" value="${v.nominal ? v.nominal : ''}">
                                         </div>     
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Keterangan</label>
                                             <textarea class="form-control" id=""
-                                                name="" rows="1" disabled placeholder="Keterangan">${v.keterangan?v.keterangan:''}</textarea>
+                                                name="" rows="1" disabled placeholder="Keterangan">${v.keterangan ? v.keterangan : ''}</textarea>
                                             <small id="last_update-sumurbor_bayar" class=""></small>
                                         </div>
                                     </div>
@@ -5654,14 +6097,14 @@ foreach (user()->getRoles() as $key => $val) {
                                         <div class="form-group">
                                             <label>Tanggal Pembayaran</label>
                                             <input disabled type="text" class="form-control fp-bayar_produksi flatpickr-human-friendly tbp${v.id_bayar_produksi}"
-                                                id="dt-id-bayar_produksi[${id}][tanggal_bayar]" value="${v.tanggal_bayar?v.tanggal_bayar:''}" name="dt-id-bayar_produksi[${id}][tanggal_bayar]">
+                                                id="dt-id-bayar_produksi[${id}][tanggal_bayar]" value="${v.tanggal_bayar ? v.tanggal_bayar : ''}" name="dt-id-bayar_produksi[${id}][tanggal_bayar]">
                                         </div>
                                     </div>
                                     <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="sumurbor_bayar_nominal">Nominal</label>
                                             <input type="text" disabled class="form-control num nbp${v.id_bayar_produksi}" id="dt-id-bayar_produksi[${id}][nominal]"
-                                                name="dt-id-bayar_produksi[${id}][nominal]" value="${v.nominal?v.nominal:''}">
+                                                name="dt-id-bayar_produksi[${id}][nominal]" value="${v.nominal ? v.nominal : ''}">
                                             <input type="hidden" class="form-control" id="id-bayar_produksi[${id}][id_item_produksi]"
                                                 name="id-bayar_produksi[${id}][id_item_produksi]" value="${id}">
                                         </div>
@@ -5671,7 +6114,7 @@ foreach (user()->getRoles() as $key => $val) {
                                         <div class="form-group">
                                             <label>Keterangan</label>
                                             <textarea disabled class="form-control" id="dt-id-bayar_produksi[${id}][keterangan]"
-                                                name="dt-id-bayar_produksi[${id}][keterangan]" rows="4" placeholder="Keterangan">${v.keterangan?v.keterangan:''}</textarea>
+                                                name="dt-id-bayar_produksi[${id}][keterangan]" rows="4" placeholder="Keterangan">${v.keterangan ? v.keterangan : ''}</textarea>
                                             <small id="last_update-sumurbor_bayar" class=""></small>
                                         </div>
                                     </div>
@@ -5687,6 +6130,11 @@ foreach (user()->getRoles() as $key => $val) {
 
     }
 
+    function loading(hiden = ture) {
+        if (hiden) return $("#loading").removeClass('hidden')
+        return $("#loading").addClass('hidden')
+    }
+
     function isi_data() {
         if (editdtt.length == 0)
             return swal('error', 'Terjad Kesalahan', 'Tidak ada kavling yang dipilih')
@@ -5698,7 +6146,7 @@ foreach (user()->getRoles() as $key => $val) {
             return;
         }
 
-        var role,
+        let role,
             sh = editdtt[0],
             id_kavling = sh.id.substr(3);
 
@@ -5788,33 +6236,27 @@ foreach (user()->getRoles() as $key => $val) {
 
     }
     //sum tagihan
-    let total_keu, cicilan_keu
 
     function sum_tg(e = 0, bb = '') {
         e = parseFloat(removeComma(e))
 
-        if (bb == '') {
-            total_keu = parseFloat(removeComma($("#mk-total_um").val()) || 0),
-                cicilan_keu = parseFloat(removeComma($("#total_cicilan_um").val()) || 0)
-        } else {
-            total_keu = parseFloat(removeComma($("#mk-total_bb").val()) || 0),
-                cicilan_keu = parseFloat(removeComma($("#total_cicilan_bb").val()) || 0)
-        }
+        let total_keu = parseFloat(removeComma($("#mk-total_tot").val()) || 0)
+        let cicilan_keu = parseFloat(removeComma($("#mk-total_cicilan_um").val()) || 0)
 
         if (cicilan_keu + e > total_keu)
-            $("#nominal" + bb).val(total_keu - cicilan_keu).keyup()
+            $("#nominal").val(total_keu - cicilan_keu).keyup()
     }
 
     var it = 0;
     /***************** list tagihan ****************/
     function tambah_(e = '') {
         let a = (e == '_bb') ? e : '_um'
-        if ($("#total_cicilan" + a).val() == $("#mk-total" + a).val()) {
-            swal('error', "Tidak bisa menambahkan lagi form ", null, false);
+        if ($("#mk-total_cicilan_um").val() == $("#mk-total_tot").val()) {
+            swal('error', "Tidak bisa menambahkan tagihan", "Total tagihan tidak bisa melebeihi total harus dibayar", false);
             return false;
         } else {
             if (!$("#berita_acara" + e).val() || !$("#nominal" + e).val() || !$("#jatuh_tempo_tgl" + e).val()) {
-                swal('error', "Berita acara, nominal dan jatuh tempo tidak boleh kosong", null, false);
+                swal('error', "Nominal dan jatuh tempo tidak boleh kosong", null, false);
                 return false;
             }
             Swal.fire({
@@ -5841,47 +6283,40 @@ foreach (user()->getRoles() as $key => $val) {
 
         let i = 'lk' + it
 
-        if (data_um[$("#id_list_keu" + e).val()])
+        if (state.data_um[$("#id_list_keu" + e).val()])
             i = $("#id_list_keu" + e).val()
 
-        if (e == '') {
-            data_um[i] = ({
-                id_list_keu: i,
-                id_keuangan: $("#id_keuangan").val(),
-                berita_acara: $("#berita_acara").val(),
-                nominal: $("#nominal").val(),
-                jatuh_tempo_tgl: $("#jatuh_tempo_tgl").val(),
-            })
-        } else {
-            data_bb[i] = ({
-                id_list_keu_bb: i,
-                id_keuangan_bb: $("#id_keuangan_bb").val(),
-                berita_acara_bb: $("#berita_acara_bb").val(),
-                nominal_bb: $("#nominal_bb").val(),
-                jatuh_tempo_tgl_bb: $("#jatuh_tempo_tgl_bb").val(),
-            })
-        }
+        // if (e == '') {
+        state.data_um[i] = ({
+            id_list_keu: i,
+            id_keuangan: $("#id_keuangan").val(),
+            berita_acara: $("#berita_acara").val(),
+            nominal: $("#nominal").val(),
+            jatuh_tempo_tgl: $("#jatuh_tempo_tgl").val(),
+        })
+        // } else {
+        //     state.data_bb[i] = ({
+        //         id_list_keu_bb: i,
+        //         id_keuangan_bb: $("#id_keuangan_bb").val(),
+        //         berita_acara_bb: $("#berita_acara_bb").val(),
+        //         nominal_bb: $("#nominal_bb").val(),
+        //         jatuh_tempo_tgl_bb: $("#jatuh_tempo_tgl_bb").val(),
+        //     })
+        // }
 
         tambah_ketagihan(e)
 
-        fp = flatpickr("#jatuh_tempo_tgl" + e, {
+        fp = flatpickr("#jatuh_tempo_tgl", {
             altInput: true,
             altFormat: 'F j, Y',
             dateFormat: 'Y-m-d'
         })
 
-        // if (e == '') {
-        //     var d = new Date(
-        //         $("#jatuh_tempo_tgl").val()
-        //     ).fp_incr(30);
+        var d = new Date(
+            $("#jatuh_tempo_tgl").val()
+        ).fp_incr(30);
 
-        //     fp.setDate(d);
-        //     var d = new Date(
-        //         $("#jatuh_tempo_tgl").val()
-        //     ).fp_incr(30);
-
-        //     fp.setDate(d);
-        // }
+        fp.setDate(d);
 
         it += 1;
     }
@@ -5933,8 +6368,8 @@ foreach (user()->getRoles() as $key => $val) {
                             return swal('error', r.messages)
                         }
 
-                        if (y == '_bb') delete data_bb[x];
-                        else delete data_um[x];
+                        if (y == '_bb') delete state.data_bb[x];
+                        else delete state.data_um[x];
                         tambah_ketagihan();
                     },
                     error: function() {
@@ -5948,7 +6383,7 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     function editFromTable(x) {
-        var d = data_um[x]
+        var d = state.data_um[x]
 
         $("#id_list_keu").val(x);
         $("#berita_acara").val(d.berita_acara);
@@ -5957,116 +6392,130 @@ foreach (user()->getRoles() as $key => $val) {
         $("#tambah_list").html("Simpan Perubahan")
     }
 
-    function tambah_ketagihan(e = '') {
-        $("#list_cicilan_here").html("")
-        let tb = "",
-            tot_um = 0,
-            tot_bb = 0
 
-        //render table untuk data um
-        for (var k in data_um) {
-            if (!data_um.hasOwnProperty(k)) continue;
-            var obj = data_um[k];
-            tb += `<tr>
-                        <td>` + obj.berita_acara + `</td>
-                        <td>` + format_date(obj.jatuh_tempo_tgl) + `</td>
-                        <td>` + obj.nominal + `</td>
-                        <td>
-                            <div class="btn-group">
-                                <!--<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="editFromTable('` + k + `')"><i class="fa fa-edit"></i></button>-->
-                                <button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="removeFromTable('` + k + `')"><i class="fa fa-trash"></i></button>
-                            </div>
-                        </td>
-                    </tr>`
-            tot_um += parseFloat(removeComma(obj.nominal))
-        }
-        //render total um
-        tb += `
-            <tr class='table-secondary'>
-                <td colspan='2'>Total Tagihan Uang Muka</td><td>` + num_format(tot_um) + `</td><td></td>
-            </tr>`
-        //render table untuk data bb
-        for (var k in data_bb) {
-            if (!data_bb.hasOwnProperty(k)) continue;
-            var obj = data_bb[k];
-            tb += `<tr>
-                        <td>` + obj.berita_acara_bb + `</td>
-                        <td>` + format_date(obj.jatuh_tempo_tgl_bb) + `</td>
-                        <td>` + obj.nominal_bb + `</td>
-                        <td>
-                            <div class="btn-group">
-                                <!--<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="editFromTable('` + k + `')"><i class="fa fa-edit"></i></button>-->
-                                <button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="removeFromTable('` + k + `', '_bb')"><i class="fa fa-trash"></i></button>
-                            </div>
-                        </td>
-                    </tr>`
-            tot_bb += parseFloat(removeComma(obj.nominal_bb))
-        }
-        //render total bb
-        tb += `
-            <tr class='table-secondary'>
-                <td colspan='2'>Total Tagihan Biaya biaya</td><td>` + num_format(tot_bb) + `</td><td></td>
-            </tr>`
+    function rowHTML({
+        title,
+        date,
+        amount,
+        key,
+        suffix = ''
+    }) {
+        return `
+    <tr data-key="${key}" data-suffix="${suffix}">
+      <td>${title}</td>
+      <td>${format_date(date)}</td>
+      <td>${num_format(amount)}</td>
+      <td>
+        <div class="btn-group">
+          <button type="button" class="btn btn-outline-danger waves-effect btn-sm js-remove">
+            <i class="fa fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+    }
 
+    function sectionHTML({
+        rows,
+        label,
+        suffix = ''
+    }) {
+        let total = 0;
+        const body = rows.map(r => {
+            total += Number(removeComma(r.amount));
+            return rowHTML({
+                ...r,
+                suffix
+            });
+        }).join('');
+        const foot = `
+    <tr class="table-secondary">
+      <td colspan="2">Total Tagihan </td>
+      <td>${num_format(total)}</td>
+      <td></td>
+    </tr>`;
+        return {
+            html: body + foot,
+            total
+        };
+    }
 
-        $("#list_cicilan_here").html(tb)
-        $("#total_cicilan_um").val(tot_um).change().keyup()
-        $("#total_cicilan_bb").val(tot_bb).change().keyup()
+    function tambah_ketagihan() {
+
+        const umRows = Object.keys(state.data_um || {}).map(k => ({
+            key: k,
+            title: state.data_um[k].berita_acara,
+            date: state.data_um[k].jatuh_tempo_tgl,
+            amount: state.data_um[k].nominal
+        }));
+
+        // const bbRows = Object.keys(state.data_bb || {}).map(k => ({
+        //     key: k,
+        //     title: state.data_bb[k].berita_acara_bb,
+        //     date: state.data_bb[k].jatuh_tempo_tgl_bb,
+        //     amount: state.data_bb[k].nominal_bb
+        // }));
+
+        const um = sectionHTML({
+            rows: umRows,
+            label: 'Tagihan Uang Muka',
+            suffix: ''
+        });
+        // const bb = sectionHTML({
+        //     rows: bbRows,
+        //     label: 'Tagihan Biaya Biaya',
+        //     suffix: '_bb'
+        // });
+
+        // 1x write ke DOM
+        $("#list_cicilan_here").html(um.html);
+
+        // update total & UI state
+        $("#mk-total_cicilan_um").val(um.total).trigger('change');
+        // $("#total_cicilan_bb").val(bb.total).trigger('change');
         $("#id_list_keu").val('');
         $("#id_list_keu_bb").val('');
-        $("#nominal, #nominal_bb").change();
-        $("#tambah_list").html("+ Cicilan UM")
-        $("#tambah_list_bb").html("+ Cicilan BB")
-
-
-        // $("#cicilan_belong_here").append('<div id="item' + it + '"><hr>' +
-        //     '<input type="hidden" name="id_keuangan[' + it + ']" id="id_keuangan' + it + '" />' +
-        //     '<div class="form-group">' +
-        //     '<label>Keterangan</label>' +
-        //     '<input required name="berita_acara[' + it + ']" id="berita_acara' + it + '" class="form-control" type="text" >' +
-        //     '<span class="help-block"></span>' +
-        //     '</div>' +
-        //     '<div class="form-group">' +
-        //     '<label>Nominal</label>' +
-        //     '<input required name="nominal[' + it + ']" id="nominal' + it + '" class="form-control num tg" onchange="sum_tg(' + it + ')" type="text" >' +
-        //     '<span class="help-block"></span>' +
-        //     '</div>' +
-        //     '<div class="form-group">' +
-        //     '<label>Tanggal Jatuh Tempo</label>' +
-        //     '<input required name="jatuh_tempo_tgl[' + it + ']" id="jatuh_tempo_tgl' + it + '" class="form-control flatpickr-human-friendly" type="date" >' +
-        //     '<span class="help-block"></span>' +
-        //     '</div>' +
-        //     '</div>'
-        // ).fadeIn(5000);
+        $("#nominal, #nominal_bb").trigger('change');
+        // $("#tambah_list").text("+ Cicilan UM");
+        // $("#tambah_list_bb").text("+ Cicilan BB");
     }
+
+    // Event delegation untuk remove
+    $(document).on('click', '#list_cicilan_here .js-remove', function() {
+        const $tr = $(this).closest('tr');
+        const key = $tr.data('key');
+        const suffix = $tr.data('suffix');
+        removeFromTable(String(key), String(suffix || ''));
+    });
+
     $("#pilih-divisi").select2()
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 
 <?php if ($k == 1 || $k == 3): ?>
-    <script src="<?= base_url() ?>/assets/js/keuangan.js"></script>
+    <script src="<?= base_url() ?>assets/js/keuangan.js"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 4): ?>
-    <script src="<?= base_url() ?>/assets/js/mkdt.js"></script>
+    <script src="<?= base_url() ?>assets/js/mkdt.js"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 5): ?>
-    <script src="<?= base_url() ?>/assets/js/legal.js"></script>
+    <script src="<?= base_url() ?>assets/js/legal.js"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 6): ?>
-    <script src="<?= base_url() ?>/assets/js/planning.js"></script>
+    <script src="<?= base_url() ?>assets/js/planning.js"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 7): ?>
-    <script src="<?= base_url() ?>/assets/js/produksi.js"></script>
+    <script src="<?= base_url() ?>assets/js/produksi.js"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 8): ?>
-    <script src="<?= base_url() ?>/assets/js/sales.js"></script>
+    <script src="<?= base_url() ?>assets/js/sales.js"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 9): ?>
-    <script src="<?= base_url() ?>/assets/js/direksi.js"></script>
+    <script src="<?= base_url() ?>assets/js/direksi.js"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 10): ?>
-    <script src="<?= base_url() ?>/assets/js/pajak.js"></script>
+    <script src="<?= base_url() ?>assets/js/pajak.js"></script>
 <?php endif; ?>
 
 <script>
@@ -6136,12 +6585,21 @@ foreach (user()->getRoles() as $key => $val) {
         // so we need to scale all objects on canvas
         var scale = containerWidth / sceneWidth;
 
+
+
         stage.width(sceneWidth * scale);
         stage.height(sceneHeight);
-        stage.scale({
-            x: scale,
-            y: scale
-        });
+        new Konva.Tween({
+            node: stage,
+            duration: 0.5,
+            scaleX: scale,
+            scaleY: scale,
+            easing: Konva.Easings.EaseInOut,
+        }).play();
+        // stage.scale({
+        //     x: scale,
+        //     y: scale
+        // });
     }
 
     fitStageIntoParentContainer();
@@ -6287,8 +6745,13 @@ foreach (user()->getRoles() as $key => $val) {
                 $("#btn-renderText").html('Tampilkan Keterangan Warna Di Siteplan');
             });
     }
+    $("#btn-simpan_batal_mkdt").click(function(e) {
+        e.preventDefault()
+    })
 
     function simpan_batal() {
+        let btn = "#btn-simpan_batal_mkdt"
+
         if (!palid("batal-keterangan_batal", "", "Keterangan Batal harus diisi"))
             return;
 
@@ -6305,8 +6768,8 @@ foreach (user()->getRoles() as $key => $val) {
             data: fd,
             dataType: 'json',
             beforeSend: function() {
-                $('#btn-simpan_batal_mkdt').prop("disabled", true);
-                $('#btn-simpan_batal_mkdt').html('Menyimpan <i class="fa fa-spinner fa-spin"></i>');
+                $(btn).prop("disabled", true);
+                $(btn).html('Menyimpan <i class="fa fa-spinner fa-spin"></i>');
             },
             success: function(r) {
                 csrfHash = r.token;
@@ -6320,8 +6783,8 @@ foreach (user()->getRoles() as $key => $val) {
                         //timer: 1500
                     }).then(function() {
                         $('.modal').modal('hide');
-                        $('#btn-simpan_batal_mkdt').html('Simpan');
-                        $('#btn-simpan_batal_mkdt').prop("disabled", false);
+                        $(btn).html('Simpan');
+                        $(btn).prop("disabled", false);
                     })
                 } else {
                     Swal.fire({
@@ -6331,8 +6794,8 @@ foreach (user()->getRoles() as $key => $val) {
                         showConfirmButton: false,
                         //timer: 1500
                     }).then(function() {
-                        $('#btn-simpan_batal_mkdt').html('Simpan');
-                        $('#btn-simpan_batal_mkdt').prop("disabled", false);
+                        $(btn).html('Simpan');
+                        $(btn).prop("disabled", false);
                     })
                 }
                 load_kavling();
@@ -6346,8 +6809,8 @@ foreach (user()->getRoles() as $key => $val) {
                     showConfirmButton: false,
                     //timer: 1500
                 })
-                $('#btn-simpan_batal_mkdt').html('Simpan');
-                $('#btn-simpan_batal_mkdt').prop("disabled", false);
+                $(btn).html('Simpan');
+                $(btn).prop("disabled", false);
                 return;
             }
         });
@@ -6471,6 +6934,193 @@ foreach (user()->getRoles() as $key => $val) {
             $("#modal-list-rumah-belum-selesai").modal();
     }
 
+    function formatNomorHP(nomor) {
+        // Hapus semua karakter non-digit
+        let cleaned = nomor.replace(/\D/g, '');
+
+        // Jika sudah diawali dengan 62, tambahkan tanda +
+        if (cleaned.startsWith('+')) {
+            return '' + cleaned.slice(1);
+        }
+
+        // Jika diawali 0, ubah jadi +62
+        if (cleaned.startsWith('0')) {
+            return '62' + cleaned.slice(1);
+        }
+
+        // Jika sudah diawali dengan 8, asumsikan masih nomor lokal
+        if (cleaned.startsWith('8')) {
+            return '62' + cleaned;
+        }
+
+        // Jika sudah diawali +62 dan hanya simbol + yang dihapus
+        return cleaned;
+    }
+
+    function cek_jatuh_tempo(x = false) {
+        let arr = `<tr><td colspan='6'> Tidak ada Data</td></tr>`;
+
+        $.ajax({
+            type: "post",
+            url: base_url + 'keuangan/jatuhtempo/get',
+            data: {
+                [csrfName]: csrfHash,
+                list_jatuhtempo
+            },
+            dataType: "json",
+            beforeSend: function() {
+                $("#loading").removeClass("hidden");
+            },
+            success: function(r) {
+                $("#loading").addClass("hidden");
+                if (r.length > 0) {
+                    arr = ''
+                    let n = 1
+                    r.forEach(i => {
+                        arr += `
+                        <tr>
+                            <td>${n++}</td>
+                            <td>
+                                ${i.nama_konsumen} <br> 
+                                <a target=_blank href='https://wa.me/${formatNomorHP(i.hp_konsumen)}'>${i.hp_konsumen}</a> <br>
+                                ${i.nama_jalan} No. ${i.no_kavling}<br>
+                                Tipe: ${i.tipe_rumah} 
+                            </td>
+                            `
+                        let jt = JSON.parse(i.data_jatuh_tempo)
+                        arr += '<td>'
+                        jt.forEach(j => {
+                            arr += `<b>${format_date(j.jatuh_tempo_tgl)}</b>: Rp. ${num_format(j.nominal)} (${j.berita_acara}) <br>`;
+                        })
+                        arr += '</td>'
+                    })
+                }
+                $("#list-jatuh-tempo-here").html(arr)
+                $("#modal-list-jatuh-tempo").modal();
+
+            },
+            error: function() {
+                $("#loading").addClass("hidden");
+
+            }
+        });
+
+    }
+    $(".mk-fm, #idk-is_subsidi").change(function() {
+        sum_mktotal()
+    })
+
+
+    function hitung_total(isForm = false, mkdt = []) {
+        let totalum = 0,
+            totalbb = 0,
+            pengurangan = 0,
+            hj = parseFloat(removeComma($("#mk-hargajual").val()) || 0), // 
+            diskon_hj = parseFloat(removeComma($("#mk-diskon_harga_jual").val()) || 0),
+            hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0),
+            kpr = parseFloat(removeComma($("#mk-kpr").val()) || 0),
+            um = parseFloat(removeComma($("#mk-uang_muka").val()) || 0),
+            diskon_um = parseFloat(removeComma($("#mk-diskon_uang_muka").val()) || 0),
+            badm = parseFloat(removeComma($("#mk-biaya_adm").val()) || 0),
+            ppn = parseFloat(removeComma($("#mk-ppn").val()) || 0),
+            bphtb = parseFloat(removeComma($("#mk-bphtb").val()) || 0),
+            bproses = parseFloat(removeComma($("#mk-biaya_proses").val()) || 0),
+            sbum = parseFloat(removeComma($("#mk-harga_sbum").val()) || 0),
+
+            hj_real = 0,
+            persentase_kpr = ($("#idk-is_subsidi").val() == 1) ? 0.05 : 0.1, //persentase kpr
+            penambahan_biaya = parseFloat(removeComma($("#mk-harga_penambahan").val()) || 0),
+            penambahan_biaya_tanah = parseFloat(removeComma($("#mk-harga_penambahan_tanah").val()) || 0),
+            is_allin = $("#idk-is_allin").val(),
+            harga_allin = parseFloat(removeComma($("#mk-harga_allin").val() || 0))
+        if (isForm) {
+            if (mkdt.length == 0)
+                return showToast('tidak ada data tersedia', 'warning')
+
+            um = parseFloat(mkdt.harga_uang_muka || 0)
+            diskon_um = parseFloat(mkdt.harga_diskon_uang_muka || 0)
+            badm = parseFloat(mkdt.harga_administrasi || 0)
+            ppn = parseFloat(mkdt.harga_ppn || 0)
+            bphtb = parseFloat(mkdt.harga_bphtb || 0)
+            bproses = parseFloat(mkdt.harga_biaya_proses || 0)
+            sbum = parseFloat(mkdt.harga_sbum || 0)
+            penambahan_biaya = parseFloat(mkdt.harga_penambahan || 0)
+            penambahan_biaya_tanah = parseFloat(mkdt.harga_penambahan_tanah || 0)
+            is_allin = parseFloat(mkdt.is_allin || 0)
+            harga_allin = parseFloat(mkdt.harga_allin || 0)
+        }
+
+        pengurangan = diskon_um + sbum
+
+        totalum = um + badm + penambahan_biaya + penambahan_biaya_tanah
+        totalbb = ppn + bphtb + bproses
+
+        let tottot = totalum + totalbb - pengurangan;
+
+        let grandtotal = tottot;
+        if (is_allin == "1")
+            grandtotal = harga_allin
+
+        return {
+            'total_keseluruhan': tottot,
+            'harus_dibayar': grandtotal
+        }
+    }
+
+    function sum_mktotal() {
+        let hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0)
+        // let totalum = 0,
+        //     totalbb = 0,
+        //     pengurangan = 0,
+        //     hj = parseFloat(removeComma($("#mk-hargajual").val()) || 0), // 
+        //     diskon_hj = parseFloat(removeComma($("#mk-diskon_harga_jual").val()) || 0),
+        //     hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0),
+        //     kpr = parseFloat(removeComma($("#mk-kpr").val()) || 0),
+        //     um = parseFloat(removeComma($("#mk-uang_muka").val()) || 0),
+        //     diskon_um = parseFloat(removeComma($("#mk-diskon_uang_muka").val()) || 0),
+        //     badm = parseFloat(removeComma($("#mk-biaya_adm").val()) || 0),
+        //     ppn = parseFloat(removeComma($("#mk-ppn").val()) || 0),
+        //     bphtb = parseFloat(removeComma($("#mk-bphtb").val()) || 0),
+        //     bproses = parseFloat(removeComma($("#mk-biaya_proses").val()) || 0),
+        //     sbum = parseFloat(removeComma($("#mk-harga_sbum").val()) || 0),
+
+        //     hj_real = 0,
+        //     persentase_kpr = ($("#idk-is_subsidi").val() == 1) ? 0.05 : 0.1, //persentase kpr
+        //     penambahan_biaya = parseFloat(removeComma($("#mk-harga_penambahan").val()) || 0),
+        //     penambahan_biaya_tanah = parseFloat(removeComma($("#mk-harga_penambahan_tanah").val()) || 0),
+        //     is_allin = $("#idk-is_allin").val(),
+        //     harga_allin = parseFloat(removeComma($("#mk-harga_allin").val() || 0))
+        // penambahan_biaya_um = parseFloat(removeComma($("#mk-harga_penambahan_um").val()) || 0); //turun kpr, tapi todak ada di isi data kosumen
+
+        // hj_net = hj - diskon_hj
+        // um = hj_net - kpr
+
+        // kpr = hj - (hj * persentase_kpr)
+
+        let tot = hitung_total()
+
+        $("#mk-hargajual_net").val(hj_net).keyup()
+        // $("#mk-kpr").val(kpr).keyup()
+
+        // pengurangan = diskon_um + sbum
+
+        // totalum = um + badm + penambahan_biaya + penambahan_biaya_tanah
+        // totalbb = ppn + bphtb + bproses
+
+        // let tottot = totalum + totalbb - pengurangan;
+
+        // let grandtotal = tottot;
+        // if (is_allin == "1")
+        //     grandtotal = harga_allin
+
+        $("#mk-tgt").val(tot.total_keseluruhan).keyup(); //grand total keseluruhan
+        $("#mk-total_tot").val(tot.harus_dibayar).keyup(); //total yang harus dibayar konsumen
+
+        // alert(totalbb)
+        // $(".tum").val(totalum).keyup();
+        // $(".tbb").val(totalbb).keyup();
+    }
+
     function terima_batal() {
 
         let sh = editdtt[0],
@@ -6577,6 +7227,36 @@ foreach (user()->getRoles() as $key => $val) {
         });
     }
 
+    function initModalListener(id) {
+        $(id).on('hide.bs.modal', function(e) {
+            // Panggil fungsi kamu di sini
+            e.preventDefault();
+
+            Swal.fire({
+                title: "Konfirmasi",
+                text: "Apakah Anda yakin ingin membatalkan dan menutup form?",
+                showDenyButton: true,
+                confirmButtonText: "Ya",
+                denyButtonText: `Tidak`,
+            }).then((result) => {
+                /* Read more about isConfirmed, isDenied below */
+                if (result.isConfirmed) {
+                    // lepas listener agar tidak loop
+                    removeModalListener(id)
+                    // tutup modal manual
+                    $(id).modal('hide');
+                    state.status.tab.isClosed = true;
+                }
+            });
+
+
+        });
+    }
+
+    function removeModalListener(id) {
+        $(id).off('hide.bs.modal');
+    }
+
     $(document).keydown(function(event) {
         if (event.key === 'Escape') {
             hapus_seleksi()
@@ -6607,5 +7287,24 @@ foreach (user()->getRoles() as $key => $val) {
             $("#dt-air_komunal-input_form").addClass("hidden");
             $("#dt-air_pdam-input_form").removeClass("hidden");
         }
+    });
+
+
+    function showToast(message, type = 'primary') {
+        let toast = $('#myToast');
+
+        // Update isi pesan
+        toast.find('.toast-body').text(message);
+
+        // Update warna header
+        toast.find('.toast-header')
+            .removeClass('bg-primary bg-success bg-danger bg-warning')
+            .addClass(`bg-${type} text-white`);
+
+        toast.toast('show');
+    }
+    $('.toast').toast({
+        autohide: true,
+        delay: 3000
     });
 </script>

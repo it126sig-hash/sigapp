@@ -52,6 +52,7 @@ class Tipe extends BaseController
 		$result = $this->tipeModel
 			->select('id_tipe, tipe.id_proyek,no_tipe_rumah, tipe_rumah, lb, lt, harga, keterangan, nama_proyek')
 			->join('proyek', 'proyek.id_proyek = tipe.id_proyek')
+			->orderBy('tipe_rumah','desc')
 			->where('tipe.id_proyek', $var['id_proyek']);
 
 		if ($this->request->getVar('search'))
@@ -218,6 +219,9 @@ class Tipe extends BaseController
 		$fields['harga'] = $this->request->getPost('harga');
 		$fields['keterangan'] = $this->request->getPost('keterangan');
 
+		$fields['add_by'] = user_id();
+		$fields['created_at'] = date('Y-m-d H:i:s');
+
 
 		$fields['id_gambar_kerja'] = null;
 		$fields['id_gambar_tipe'] = null;
@@ -292,6 +296,7 @@ class Tipe extends BaseController
 			],
 
 		]);
+
 
 
 		if ($this->validation->run($fields) == FALSE) {
@@ -417,6 +422,9 @@ class Tipe extends BaseController
 		$fields['lt'] = $this->request->getPost('lt');
 		$fields['harga'] = $this->request->getPost('harga');
 		$fields['keterangan'] = $this->request->getPost('keterangan');
+
+		$fields['edit_by'] = user_id();
+		$fields['updated_at'] = date("Y-m-d H:i:s");
 
 		$id_gambar_kerja = $this->request->getPost('id_gambar_kerja');
 

@@ -91,7 +91,7 @@
 					<ul class="nav nav-tabs" role="tablist">
 						<li class="nav-item">
 							<a class="nav-link active" id="fm-prod-progress-tab" data-toggle="tab"
-								href="#fm-prod-progress" role="tab" aria-selected="true">Proges</a>
+								href="#fm-prod-progress" role="tab" aria-selected="true">Progres</a>
 						</li>
 						<li class="nav-item">
 							<a class="nav-link" id="fm-prod-dokumentasi-tab" data-toggle="tab"

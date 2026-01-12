@@ -39,7 +39,7 @@ function format_date($d)
         }
 
         td {
-            border-bottom: 1px solid #ddd;
+            /* border-bottom: 1px solid #ddd; */
             border-collapse: collapse;
         }
 
@@ -70,24 +70,29 @@ function format_date($d)
             <div style="text-align:center">
                 <h3>Surat Tagihan<br>(<?= $inv->no_inv ?>)</h3>
             </div>
-            <div>
-                <p style="float:left">
-                    <span><b>Ditagihkan Ke:</b></span>
-                    <span><br></span>
-                    <span><?= $konsumen->nama_konsumen ?></span>
-                    <span><br></span>
-                    <span><?= $konsumen->alamat_konsumen ?></span>
-                </p>
-                <p style="float:right; text-align:right">
-                    <b>Perumahan :</b><span>
-                        <br><?= $kavling->nama_proyek ?><br>
-                        <?= $kavling->nama_jalan ?> No. <?= $kavling->no_kavling ?><br>
-
-                    </span>
-                    <span></span>
-                </p>
-            </div>
-            <table>
+            <table style="border: 0px solid !important">
+                <tr>
+                    <td>
+                        <p style="float:left">
+                            <span><b>Ditagihkan Ke:</b></span>
+                            <span><br></span>
+                            <span><?= $konsumen->nama_konsumen ?></span>
+                            <span><br></span>
+                            <span><?= $konsumen->alamat_konsumen ?></span>
+                        </p>
+                    </td>
+                    <td style="float:right; text-align:right">
+                        <p >
+                            <b>Perumahan :</b><span>
+                                <br><?= $kavling->nama_proyek ?><br>
+                                <?= $kavling->nama_jalan ?> No. <?= $kavling->no_kavling ?><br>
+                            </span>
+                            <span></span>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+            <table id="table">
                 <thead>
                     <tr>
                         <th scope="col" class="text-nowrap">No</th>

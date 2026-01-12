@@ -14,9 +14,11 @@ use App\Models\KeuanganModel;
 use App\Models\MkdtModel;
 use App\Models\LogPembayaranModel;
 use App\Models\ChecklistSubItemModel;
+use App\Repositories\KavlingRepository;
 use CodeIgniter\HTTP\Response;
 use App\Controllers\Notif;
 use App\Controllers\Home;
+use App\Repositories\KeuanganRepository;
 
 class Siteplan extends BaseController
 {
@@ -36,6 +38,8 @@ class Siteplan extends BaseController
     protected $db;
     protected $notif;
     protected $hak_akses;
+    protected $kavlingRepo;
+    protected $keuRepo;
 
     public function __construct()
     {
@@ -54,6 +58,10 @@ class Siteplan extends BaseController
         $this->siModel = new ChecklistSubItemModel();
         $this->validation = \Config\Services::validation();
         $this->db = \Config\Database::connect();
+        $this->keuRepo = new KeuanganRepository();
+
+
+        $this->kavlingRepo = new KavlingRepository();
 
         $this->hak_akses = new Home();
     }
@@ -91,6 +99,8 @@ class Siteplan extends BaseController
             ->where("id_proyek", session('id_proyek'))
             ->first();
 
+        // var_dump($data);die();
+
         if (in_groups(['9', '10', '4', '1'])) {
             // get data cluster
             $data['data']['cluster'] = $this->clusterModel
@@ -112,7 +122,7 @@ class Siteplan extends BaseController
                 ->findAll();
         }
 
-
+        $data['data']['li_keu'] = json_encode($this->keuRepo->getLIKeu());
 
         $has_akses['proyek'] = false;
 
@@ -147,7 +157,7 @@ class Siteplan extends BaseController
 
             if (count($has_update_access) > 0)
                 $has_akses['update_tanggal_pembangunan'] = true;
-        } else  if (in_groups(['5'])) {
+        } else if (in_groups(['5'])) {
             //mendapatkan hak akses pada proyek
             $proyek = $this->proyekModel->find($a);
             $user_id = user_id();
@@ -447,145 +457,19 @@ class Siteplan extends BaseController
             ->first();
         return $result;
     }
-    function get_kavling_all()
+    function getAllKavling()
     {
-        $id_divisi = $this->request->getVar('id_role');
-        $id_cluster = $this->request->getVar('id_cluster');
-        $id_jalan = $this->request->getVar('id_jalan');
-
         $result['token'] = csrf_hash();
         $result['config'] = [];
 
-        $q = "kavling.*, 
-        hargajual.hargajual,
-        hargajual.tgl_harga,
-        hargajual.is_subsidi,
-        jalan.nama_jalan, 
-        cluster.id_cluster, 
-        cluster.nama_cluster,
-        b.tipe_rumah as hj_tipe_rumah,
-        b.no_tipe_rumah as hj_no_tipe_rumah,
-        tipe.id_tipe,
-        tipe.tipe_rumah,
-        tipe.no_tipe_rumah,
-        tipe.id_gambar_kerja,
-        produksi.progres_bangunan,
-        produksi.tanggal_pembangunan,
-        produksi.tanggal_rencana_selesai_pembangunan,
-        produksi.tanggal_selesai_pembangunan,
-        produksi.keterangan as keterangan_produksi,
+        $data = $this->kavlingRepo->getAll(
+            $this->request->getVar('id_proyek'),
+            $this->request->getVar('id_cluster'),
+            $this->request->getVar('id_jalan'),
+            $this->request->getVar('id_role')
+        );
 
-        users.username as harga_akhir_oleh_username,
-        u.username as perintah_bangun_username";
-
-        $divisi_queries = [
-            3 => "mkdt.status_mkdt,
-                  mkdt.is_lunas,
-                  mkdt.is_subsidi as mkdt_is_subsidi,
-                  mkdt.is_kpr,
-                  mkdt.is_batal,
-                  (SELECT jatuh_tempo_tgl FROM keuangan WHERE keuangan.id_mkdt = mkdt.id_mkdt and sudah_dibayar = 0 ORDER BY jatuh_tempo_tgl asc LIMIT 1) AS jatuh_tempo_tgl",
-            4 => "mkdt.status_mkdt,
-                  mkdt.booking_tgl,
-                  mkdt.wawancara_tgl,
-                  mkdt.sp3k_tgl,
-                  mkdt.akad_tgl,
-                  mkdt.is_subsidi as mkdt_is_subsidi,
-                  mkdt.is_kpr,
-                  mkdt.is_batal",
-            5 => "pbb_pecah_nop,
-                  pbb_pecah_luas_bumi,
-                  pbb_pecah_njop_bumi,
-                  pbb_pecah_luas_bangunan,
-                  pbb_pecah_njop_bangunan,
-                  pbb_pecah_tanggal_bayar,
-                  pbb_pecah_jumlah_tagihan,
-                  sertifikat_split_no_hgb,
-                  sertifikat_split_tanggal_terbit,
-                  sertifikat_split_tanggal_berakhir,
-                  sertifikat_split_nib,
-                  sertifikat_split_tanggal_surat_ukur,
-                  sertifikat_split_no_surat_ukur,
-                  sertifikat_split_luas_tanah,
-                  sertifikat_balik_nama,
-                  sertifikat_balik_nama_tgl_pengiriman,
-                  sertifikat_balik_nama_ke,
-                  pbg_no,
-                  pbg_tanggal_terbit,
-                  pbg_tanggal_pengajuan,
-                  pbg_tipe,
-                  pbg_status,
-                  pbg_dikirim_ke,
-                  pbg_tanggal_kirim,
-                  bphtb_tanggal_verifikasi,
-                  bphtb_jatuh_tempo,
-                  bphtb_perpanjang_jatuh_tempo,
-                  bphtb_tanggal_pembayaran,
-                  bphtb_nominal_disetujui,
-                  bphtb_tanggal_validasi,
-                  bphtb_nominal_tervalidasi,
-                  pph_tgl_permohonan,
-                  pph_nominal_validasi,
-                  pph_nominal_bayar,
-                  pph_nominal_disetujui,
-                  pph_tanggal_validasi,
-                  pph_no_sket,
-                  pph_kode_verifikasi,
-                  pph_ntpn,
-                  pph_tgl_bayar,
-                  pph_jenis_validasi,
-                  ajb_no,
-                  ajb_tanggal,
-                  ajb_notaris,
-                  ajb_dikirim_ke,
-                  ajb_tanggal_dikirim,
-                  ppjb_no,
-                  ppjb_tanggal,
-                  ppjb_notaris",
-            7 => "produksi.st_0,
-                  produksi.st_25,
-                  produksi.st_50,
-                  produksi.st_75,
-                  produksi.st_100,
-                  produksi.slo,
-                  produksi.bp,
-                  produksi.lpa,
-                  produksi.st_jalan,
-                  produksi.st_saluran,
-                  produksi.st_air,
-                  mkdt.status_mkdt",
-            8 => "mkdt.status_mkdt,
-                  produksi.progres_bangunan"
-        ];
-
-        if (isset($divisi_queries[$id_divisi])) {
-            $q .= ", " . $divisi_queries[$id_divisi];
-            $a = $this->kavlingModel->select($q)->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left');
-        } else {
-            $q .= ", mkdt.status_mkdt, mkdt.is_batal, mkdt.dajam_selesai";
-            $a = $this->kavlingModel->select($q)->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left');
-        }
-
-        $a->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
-            ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
-            ->join('hargajual', 'hargajual.id = kavling.harga_akhir', "left")
-            ->join('legal', 'legal.id_legal = kavling.id_legal', 'left')
-            ->join('produksi', 'produksi.id_produksi = kavling.id_produksi', 'left')
-            ->join("users as u", "u.id = kavling.perintah_bangun_oleh", "left")
-            ->join('tipe b', 'hargajual.id_tipe = b.id_tipe', 'left')
-            ->join("users", "users.id = kavling.harga_akhir_oleh", "left")
-            ->where('cluster.id_proyek', $this->request->getVar('id_proyek'));
-
-        if ($id_cluster) {
-            $a->where('cluster.id_cluster', $id_cluster);
-        }
-        if ($id_jalan) {
-            $a->where('kavling.id_jalan', $id_jalan);
-        }
-
-        $result['data'] = $a->find();
+        $result['data'] = $data;
         return $this->response->setJSON($result);
     }
     function get_others()
@@ -824,6 +708,7 @@ class Siteplan extends BaseController
                 konsumen.file_npwp,
                 konsumen.file_ktp,
                 konsumen.file_data_diri,
+                konsumen.email_konsumen,
                 username
             ')
             ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
@@ -832,7 +717,7 @@ class Siteplan extends BaseController
             ->first();
 
         $d['kavling'] = $this->kavlingModel
-        ->select('
+            ->select('
                 perintah_bangun,
                 perintah_bangun_tgl,
                 perintah_bangun_file,
@@ -843,10 +728,10 @@ class Siteplan extends BaseController
                 pajak.pph42_nilai,
                 pajak.pph42_tgl_bayar
             ')
-        ->join('users', 'users.id = kavling.perintah_bangun_oleh', 'left')
-        ->join('pajak', 'pajak.id_mkdt = kavling.id_mkdt', 'left')
-        ->where('id_kavling', $id_kavling)
-        ->first();
+            ->join('users', 'users.id = kavling.perintah_bangun_oleh', 'left')
+            ->join('pajak', 'pajak.id_mkdt = kavling.id_mkdt', 'left')
+            ->where('id_kavling', $id_kavling)
+            ->first();
 
         $id_hargajual = $this->request->getVar('id_hargajual');
         $d['pricelist'] = null;
@@ -878,6 +763,8 @@ class Siteplan extends BaseController
             }
         }
 
+
+        $d['query'] = (string) $this->db->getLastQuery();
         $d['total_um'] = $tg_um;
         $d['total_um_ll'] = $tg_um_ll;
         $d['total_bb'] = $tg_bb;
@@ -927,7 +814,7 @@ class Siteplan extends BaseController
             ->first();
 
         $d['produksi'] = $this->produksiModel
-                ->select('
+            ->select('
                 produksi.*, 
                 a.username as tanggal_pembangunan_oleh_u,
                 b.username as tanggal_pembangunan_diubah_oleh_u,
@@ -957,13 +844,13 @@ class Siteplan extends BaseController
         $d['files'] = $files;
 
         $gambar = $this->db->table('gambar_kerja')
-        ->select('id_gambar_tipe, id_gambar_denah')
-        ->where('id_tipe', $d['kavling']->id_tipe);
+            ->select('id_gambar_tipe, id_gambar_denah')
+            ->where('id_tipe', $d['kavling']->id_tipe);
 
 
 
         //get pph ppn bukti bayar
-       $q = '
+        $q = '
     		(SELECT 
     			file_upload.*,
     			c.username as uupload_by
@@ -987,17 +874,17 @@ class Siteplan extends BaseController
     			LIMIT 1)
     		';
 
-    		// Query pertama untuk kategori 9
+        // Query pertama untuk kategori 9
 
-    		// Menggabungkan kedua query dengan UNION ALL
-    		$query = $this->db->query($q);
+        // Menggabungkan kedua query dengan UNION ALL
+        $query = $this->db->query($q);
 
-    		// Menjalankan query dan mendapatkan hasil
-    		$d['file_pph'] = $query->getResult();
+        // Menjalankan query dan mendapatkan hasil
+        $d['file_pph'] = $query->getResult();
 
 
-    		//load file ppn
-    		$q = '
+        //load file ppn
+        $q = '
     		(SELECT 
     			file_upload.*,
     			c.username as uupload_by
@@ -1033,32 +920,32 @@ class Siteplan extends BaseController
     			LIMIT 1)
     		';
 
-    		// Query pertama untuk kategori 9
+        // Query pertama untuk kategori 9
 
-    		// Menggabungkan kedua query dengan UNION ALL
-    		$query = $this->db->query($q);
+        // Menggabungkan kedua query dengan UNION ALL
+        $query = $this->db->query($q);
 
-    		// Menjalankan query dan mendapatkan hasil
-    		$d['file_ppn'] = $query->getResult();
+        // Menjalankan query dan mendapatkan hasil
+        $d['file_ppn'] = $query->getResult();
 
 
-            $d['cashout'] =  $this->db->table('list_cashout lc')
+        $d['cashout'] = $this->db->table('list_cashout lc')
             ->select('lc.id as id_cashout, lc.item, lc.sort, c.*, u.username as add_by_u, e.username as edit_by_u')
             ->join('cashout c', 'c.id_item_cashout = lc.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
             ->join('users u', 'u.id = c.add_by', 'left')
             ->join('users e', 'e.id = c.edit_by', 'left')
             ->get()->getResult();
 
-            $d['bayar_produksi'] =  $this->db->table('list_bayar_produksi lc')
+        $d['bayar_produksi'] = $this->db->table('list_bayar_produksi lc')
             ->select('lc.id as id_bayar_produksi, lc.item, lc.sort, c.*, u.username as add_by_u, e.username as edit_by_u')
             ->join('bayar_produksi c', 'c.id_item_produksi = lc.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
             ->join('users u', 'u.id = c.add_by', 'left')
             ->join('users e', 'e.id = c.edit_by', 'left')
             ->get()->getResult();
 
-            $d['si'] = $this->db->table('list_si')
+        $d['si'] = $this->db->table('list_si')
             ->select('si.*, list_si.nama')
-            ->join('si', 'list_si.id = si.id_list_si and si.id_kavling = '.$id_kavling, 'left')
+            ->join('si', 'list_si.id = si.id_list_si and si.id_kavling = ' . $id_kavling, 'left')
             ->get()->getResult();
 
         $d['status'] = true;
@@ -1092,18 +979,18 @@ class Siteplan extends BaseController
     //         konsumen.file_ktp,
     //         konsumen.file_data_diri,
     //         users.username,
-            
+
     //         kavling.perintah_bangun,
     //         kavling.perintah_bangun_tgl,
     //         kavling.perintah_bangun_file,
     //         kavling.id_tipe,
     //         kavling_users.username as perintah_bangun_username,
-            
+
     //         pajak.pph42_id_billing,
     //         pajak.pph42_ntpn,
     //         pajak.pph42_nilai,
     //         pajak.pph42_tgl_bayar,
-            
+
     //         produksi.id_produksi,
     //         produksi.tanggal_pembangunan_oleh,
     //         produksi.tanggal_pembangunan_diubah_oleh,
@@ -1111,7 +998,7 @@ class Siteplan extends BaseController
     //         produksi_user_a.username as tanggal_pembangunan_oleh_u,
     //         produksi_user_b.username as tanggal_pembangunan_diubah_oleh_u,
     //         produksi_user_c.username as tanggal_selesai_pembangunan_diubah_oleh_u,
-            
+
     //         kavling.sumurbor,
     //         kavling.sumurbor_tanggal,
     //         kavling.sumurbor_keterangan,

@@ -12,6 +12,13 @@ use Exception;
 
 class Pengguna extends BaseController
 {
+    protected $divisiModel;
+    protected $karyawanModel;
+    protected $userModel;
+    protected $groupModel;
+    protected $permissionModel;
+
+    protected $validation;
     function __construct()
     {
         $this->divisiModel = new DivisiModel();
@@ -66,7 +73,7 @@ class Pengguna extends BaseController
 
         foreach ($result as $key => $value) {
 
-            $st = ($value->active == true)?1:0;
+            $st = ($value->active == true) ? 1 : 0;
 
             $ops = '<div class="btn-group">';
             $ops .= '	<button type="button" class="btn btn-sm btn-info" onclick="edit(' . $value->id . ')"><i class="fa fa-edit"></i></button>';
@@ -138,33 +145,26 @@ class Pengguna extends BaseController
             $password = 'min_length[4]|max_length[50]';
         }
 
-        $fields['id'] = $this->request->getPost('id');
-        $fields['username'] = $this->request->getPost('username');
+
+
+        $id = $this->request->getPost('id');
+        $username = $this->request->getPost('username');
         $fields['active'] = $this->request->getPost('active');
 
         $fields['updated_at'] = date('Y-m-d H:i:s');
 
         //bypass username validation if 
         $u = 'required|min_length[4]|max_length[20]|is_unique[users.username]';
-        $c = $this->userModel->where('id', $fields['id'])->first();
-        if ($c->username == $fields['username']) {
-            $u = 'permit_empty|max_length[255]';
-        }
+        $c = $this->userModel->where('id', $id)->first();
+
+
 
         //get karyawan data
         $k = $this->karyawanModel->where('nik', $this->request->getPost('nik'))->first();
 
-        $this->validation->setRules([
-            'id' => ['label' => 'ID', 'rules' => 'permit_empty|max_length[255]'],
-            'username' => [
-                'rules' => $u,
-                'errors' => [
-                    'required' => '{field} Harus diisi',
-                    'min_length' => '{field} Minimal 4 Karakter',
-                    'max_length' => '{field} Maksimal 20 Karakter',
-                    'is_unique' => 'Username sudah digunakan sebelumnya'
-                ]
-            ],
+
+        $valid = [
+            // 'id' => ['label' => 'ID', 'rules' => 'permit_empty|max_length[255]'],
             'password' => [
                 'rules' => $password,
                 'errors' => [
@@ -173,9 +173,26 @@ class Pengguna extends BaseController
                     'max_length' => '{field} Maksimal 50 Karakter',
                 ]
             ],
-            'is_active' => ['label' => 'Status', 'rules' => 'permit_empty|max_length[255]']
-        ]);
+            'active' => ['label' => 'Status', 'rules' => 'permit_empty|max_length[255]']
+        ];
 
+        if ($c->username != $username) {
+            $fields['username'] = $username;
+            $valid['username'] = [
+
+                'rules' => $u,
+                'errors' => [
+                    'required' => '{field} Harus diisi',
+                    'min_length' => '{field} Minimal 4 Karakter',
+                    'max_length' => '{field} Maksimal 20 Karakter',
+                    'is_unique' => 'Username sudah digunakan sebelumnya'
+                ]
+
+            ];
+        };
+
+        $this->validation->setRules($valid);
+      
         if ($this->validation->run($fields) == FALSE) {
             $response['success'] = false;
             $response['messages'] = $this->validation->listErrors();
@@ -183,11 +200,11 @@ class Pengguna extends BaseController
             //encrypt password
             $fields['password_hash'] = Password::hash($this->request->getVar('password'));
 
-            if ($this->userModel->update($fields['id'], $fields)) {
+            if ($this->userModel->update($id, $fields)) {
 
                 //cahnge group/divisi
-                $this->changeGroup($fields['id'], $k->id_divisi);
-                $this->chnagePermission($fields['id'], $k->id_level, );
+                $this->changeGroup($id, $k->id_divisi);
+                $this->chnagePermission($id, $k->id_level);
 
                 $response['success'] = true;
                 $response['messages'] = 'Successfully updated';
@@ -271,7 +288,7 @@ class Pengguna extends BaseController
                 $response['messages'] = 'Insertion error!';
             }
         }
-        
+
         return $this->response->setJSON($response);
     }
 

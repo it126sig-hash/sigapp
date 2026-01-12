@@ -10,33 +10,46 @@ class KonsumenModel extends Model {
 	protected $primaryKey = 'id_konsumen';
 	protected $returnType = 'object';
 	protected $useSoftDeletes = false;
+	
 	protected $allowedFields = [
+		'id_konsumen',
 		'no_spptb',
 		'nama_konsumen',
-		'nik',
-		'file_ktp',
-		'file_npwp',
-		'file_data_diri',
 		'npwp',
+		'nik',
 		'alamat_konsumen',
 		'hp_konsumen',
-		'id_kavling',
+		'file_npwp',
+		'file_ktp',
+		'file_data_diri',
 		'email_konsumen',
-		'status_konsumen',
-		'status_pernikahan',
-		'nama_pasangan',
-		'nik_pasangan',
 		'nama_instansi',
 		'alamat_instansi',
 		'tel_instansi',
+		'email_instansi',
+		'alamat_surat',
+		'pekerjaan',
+		'lama_bekerja',
+		'bidang_pekerjaan',
+		'status_pernikahan',
+		'nama_pasangan',
+		'nik_pasangan',
+		'hp_pasangan',
+		'status_pekerjaan_pasangan',
+		'instansi_pasangan',
 		'sales',
+		'id_kavling',
+		'status_konsumen',
 		'is_akad',
+		'status',
 		'keterangan',
-		'uniq_id',
 		'refund',
 		'refund_tgl',
+		'uniq_id',
 		'add_by',
-		'edit_by'
+		'created_at',
+		'edit_by',
+		'updated_at'
 	];
 	protected $useTimestamps = true;
 	protected $createdField  = 'created_at';

@@ -197,16 +197,6 @@ function open_flegal(sh, role, id_kavling) {
 
             load_file_upload(id_kavling)
 
-            if (r.data) {
-                $("#sertifikat_balik_nama").val(r.data.nama_konsumen ? r.data.nama_konsumen : '')
-                $("#bphtb_nominal_disetujui").val(r.data.harga_bphtb ? r.data.harga_bphtb : '').change().keyup()
-
-
-                $("#pph_ntpn").val(r.data.pph42_ntpn)
-                $("#pph_nominal_bayar").val(r.data.pph42_nilai).keyup()
-                setDatePicker(r.data.pph42_tgl_bayar, "#pph_tgl_bayar")
-            }
-
             if (r) {
                 for (let i in r) {
                     // console.log(i, r[i])
@@ -241,23 +231,16 @@ function open_flegal(sh, role, id_kavling) {
 
                 $("#legal_keterangan").val(r.keterangan);
 
-                // if (r.sertifikat_tgl != "0000-00-00")
-                //     document.querySelector("#sertifikat_tgl")._flatpickr.setDate(r.sertifikat_tgl);
-                // if (r.sertifikat_masa_berlaku != "0000-00-00")
-                //     document.querySelector("#sertifikat_masa_berlaku")._flatpickr.setDate(r.sertifikat_masa_berlaku);
-                // if (r.imb_tgl != "0000-00-00")
-                //     document.querySelector("#imb_tgl")._flatpickr.setDate(r.imb_tgl);
-                // if (r.bphtb_tgl != "0000-00-00")
-                //     document.querySelector("#bphtb_tgl")._flatpickr.setDate(r.bphtb_tgl);
-                // if (r.bphtb_masa_berlaku != "0000-00-00")
-                //     document.querySelector("#bphtb_masa_berlaku")._flatpickr.setDate(r.bphtb_masa_berlaku);
-                // if (r.bphtb_validasi != "0000-00-00")
-                //     document.querySelector("#bphtb_validasi")._flatpickr.setDate(r.bphtb_validasi);
-                // if (r.akad_tgl != "0000-00-00")
-                //     document.querySelector("#legal_akad_tgl")._flatpickr.setDate(r.akad_tgl);
+            }
+            if (r.data) {
+                $("#sertifikat_balik_nama").val(r.data.nama_konsumen ? r.data.nama_konsumen : "tidak")
+                $("#pbb_balik_nama").val(r.data.nama_konsumen ? r.data.nama_konsumen : "tidak")
+                $("#bphtb_nominal_disetujui").val(r.data.harga_bphtb ? r.data.harga_bphtb : '').change().keyup()
 
 
-
+                $("#pph_ntpn").val(r.data.pph42_ntpn)
+                $("#pph_nominal_bayar").val(r.data.pph42_nilai).keyup()
+                setDatePicker(r.data.pph42_tgl_bayar, "#pph_tgl_bayar")
             }
             $(".label_alamat").html(`
                     ${dt_proyek.nama_proyek} 
