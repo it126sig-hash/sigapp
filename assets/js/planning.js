@@ -1,8 +1,7 @@
-
 /**************************** planning ***************************** */
 var act;
 //masking kavling on dbl click
-siteplan.on('dblclick dbltap', function (e) {
+siteplan.on('dblclick dbltap', function(e) {
     if ($("#tambah_jalan").prop("checked"))
         return;
 
@@ -49,7 +48,7 @@ siteplan.on('dblclick dbltap', function (e) {
 // $("#add_kavling").click(function() {});
 function edit_kavling_batch() {
     if (editdtt.length == 0) return;
-         $("#pindah_lokasi_btn").hide()
+    $("#pindah_lokasi_btn").hide()
     if (editdtt.length == 1)
         $("#pindah_lokasi_btn").show()
 
@@ -83,10 +82,10 @@ function edit_kavling_batch() {
             id_kavling: data
         },
         dataType: 'json',
-        beforeSend: function () {
+        beforeSend: function() {
             $("#loading").removeClass("hidden");
         },
-        success: function (res) {
+        success: function(res) {
             csrfHash = res.token;
             $("#id_jenis").val(tipe).change();
 
@@ -142,7 +141,7 @@ function edit_kavling_batch() {
             });
 
         },
-        error: function () {
+        error: function() {
             Swal.fire({
                 //position: 'bottom-end',
                 icon: 'error',
@@ -171,10 +170,10 @@ function open_planning(sh, role, id_kavling) {
             id_kavling: id_kavling
         },
         dataType: 'json',
-        beforeSend: function () {
+        beforeSend: function() {
             $("#loading").removeClass("hidden");
         },
-        success: function (res) {
+        success: function(res) {
             csrfHash = res.token;
             let r = res.data;
             if (r) {
@@ -197,7 +196,7 @@ function open_planning(sh, role, id_kavling) {
                 });
             }
         },
-        error: function () {
+        error: function() {
             Swal.fire({
                 //position: 'bottom-end',
                 icon: 'error',
@@ -239,11 +238,11 @@ function edit_kavling() {
         type: 'post',
         data: $("#fm-add_kavling").serialize() + "&" + csrfName + "=" + csrfHash, // /converting the form data into array and sending it to server
         dataType: 'json',
-        beforeSend: function () {
+        beforeSend: function() {
             $('#add-form-btn').html('Menyimpan <i class="fa fa-spinner fa-spin"></i>');
             $('#add-form-btn').addClass("disabled");
         },
-        success: function (response) {
+        success: function(response) {
             csrfHash = response.token;
             if (response.success === true) {
                 Swal.fire({
@@ -252,7 +251,7 @@ function edit_kavling() {
                     title: response.messages,
                     showConfirmButton: false,
                     timer: 1500
-                }).then(function () {
+                }).then(function() {
                     $('#modals-slide-in').modal('hide');
                     $('#add-form-btn').html('Simpan');
                     $('#add-form-btn').removeClass("disabled");
@@ -264,7 +263,7 @@ function edit_kavling() {
                     title: response.messages,
                     showConfirmButton: false,
                     timer: 1500
-                }).then(function () {
+                }).then(function() {
                     $('#add-form-btn').html('Simpan');
                     $('#add-form-btn').removeClass("disabled");
                 })
@@ -272,14 +271,14 @@ function edit_kavling() {
             load_kavling();
             hapus_seleksi();
         },
-        error: function () {
+        error: function() {
             Swal.fire({
                 //position: 'bottom-end',
                 icon: 'error',
                 title: "Terjadi kesalahan",
                 showConfirmButton: false,
                 timer: 1500
-            }).then(function () {
+            }).then(function() {
                 $('#add-form-btn').html('Simpan');
                 $('#add-form-btn').removeClass("disabled");
             })
@@ -349,17 +348,18 @@ function add_kavling() {
         }
 
     }
+    par += `&nama_jalan=${$("#id_jalan").text()}&nama_tipe=${$("#id_tipe").text()}`
 
     $.ajax({
         url: base_url + '/siteplan/add_kavling',
         type: 'post',
         data: $("#fm-add_kavling").serialize() + par + "&" + csrfName + "=" + csrfHash, // /converting the form data into array and sending it to server
         dataType: 'json',
-        beforeSend: function () {
+        beforeSend: function() {
             $('#add-form-btn').html('Menyimpan <i class="fa fa-spinner fa-spin"></i>');
             $('#add-form-btn').addClass("disabled");
         },
-        success: function (response) {
+        success: function(response) {
             csrfHash = response.token;
 
             if (response.success === true) {
@@ -369,7 +369,7 @@ function add_kavling() {
                     title: response.messages,
                     showConfirmButton: false,
                     timer: 1500
-                }).then(function () {
+                }).then(function() {
                     $('#modals-slide-in').modal('hide');
                     load_kavling()
                     hapus_seleksi()
@@ -387,7 +387,7 @@ function add_kavling() {
             $('#add-form-btn').html('Simpan');
             $('#add-form-btn').removeClass("disabled");
         },
-        error: function () {
+        error: function() {
             Swal.fire({
                 //position: 'bottom-end',
                 icon: 'error',
@@ -437,40 +437,40 @@ function selesai_selection(e) {
 
 //select2 cluster
 $("#id_cluster").select2({
-    placeholder: "Pilih Cluster",
-    allowClear: true,
-    ajax: {
-        url: base_url + "/cluster/getAll",
-        dataType: 'json',
-        delay: 250,
-        method: 'post',
-        data: function (params) {
-            return {
-                [csrfName]: csrfHash,
-                search: params.term,
-                id_proyek: $("#id_proyek").val()
-            };
-        },
-        processResults: function (r) {
-            csrfHash = r.token
+        placeholder: "Pilih Cluster",
+        allowClear: true,
+        ajax: {
+            url: base_url + "/cluster/getAll",
+            dataType: 'json',
+            delay: 250,
+            method: 'post',
+            data: function(params) {
+                return {
+                    [csrfName]: csrfHash,
+                    search: params.term,
+                    id_proyek: $("#id_proyek").val()
+                };
+            },
+            processResults: function(r) {
+                csrfHash = r.token
 
-            let results = [];
-            $.each(r.data, function (index, item) {
-                results.push({
-                    id: item[0],
-                    text: item[3]
+                let results = [];
+                $.each(r.data, function(index, item) {
+                    results.push({
+                        id: item[0],
+                        text: item[3]
+                    });
                 });
-            });
 
-            return {
-                results: results
-            };
+                return {
+                    results: results
+                };
+            },
+            cache: false
         },
-        cache: false
-    },
-})
-// on select cluster
-$("#id_cluster").on("change", function (e) {
+    })
+    // on select cluster
+$("#id_cluster").on("change", function(e) {
     $('#id_jalan').val(null).trigger('change');
     if (this.value)
         $("#id_jalan").prop("disabled", false)
@@ -487,7 +487,7 @@ $("#id_jalan").select2({
         dataType: 'json',
         delay: 250,
         method: 'post',
-        data: function (params) {
+        data: function(params) {
             return {
                 [csrfName]: csrfHash,
                 search: params.term,
@@ -495,11 +495,11 @@ $("#id_jalan").select2({
                 id_proyek: $("#id_proyek").val()
             };
         },
-        processResults: function (r) {
+        processResults: function(r) {
             csrfHash = r.token
 
             let results = [];
-            $.each(r.data, function (index, item) {
+            $.each(r.data, function(index, item) {
                 results.push({
                     id: item[0],
                     text: item[3]
@@ -522,18 +522,18 @@ $("#id_tipe").select2({
         dataType: 'json',
         delay: 250,
         method: 'post',
-        data: function (params) {
+        data: function(params) {
             return {
                 [csrfName]: csrfHash,
                 search: params.term,
                 id_proyek: $("#id_proyek").val()
             };
         },
-        processResults: function (r) {
+        processResults: function(r) {
             csrfHash = r.token
 
             let results = [];
-            $.each(r.data, function (index, item) {
+            $.each(r.data, function(index, item) {
                 results.push({
                     id: item[0],
                     text: item[2] + "(" + item[3] + ")"
@@ -551,7 +551,7 @@ $("#id_tipe").select2({
 $("#status_tanah").select2()
 
 $("#id_jenis").select2()
-$("#id_jenis").change(function () {
+$("#id_jenis").change(function() {
     if (this.value == "") {
         $(".h").hide()
     } else if (this.value == "kavling") {

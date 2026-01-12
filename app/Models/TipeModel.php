@@ -10,7 +10,7 @@ class TipeModel extends Model {
 	protected $primaryKey = 'id_tipe';
 	protected $returnType = 'object';
 	protected $useSoftDeletes = false;
-	protected $allowedFields = ['id_proyek', 'tipe_rumah','no_tipe_rumah', 'id_gambar_kerja','lb', 'lt', 'harga', 'keterangan', 'is_subsidi'];
+	protected $allowedFields = ['id_proyek', 'tipe_rumah','no_tipe_rumah', 'id_gambar_kerja','lb', 'lt', 'harga', 'keterangan', 'is_subsidi', 'id_gambar_denah', 'id_gambar_tipe'];
 	protected $useTimestamps = false;
 	protected $createdField  = 'created_at';
 	protected $updatedField  = 'updated_at';

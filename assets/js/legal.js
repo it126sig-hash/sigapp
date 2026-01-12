@@ -1,6 +1,5 @@
-
 /********************************* Legal *******************************************/
-$("#fl-btn-upload").click(function (e) {
+$("#fl-btn-upload").click(function(e) {
     return e.preventDefault()
 })
 
@@ -16,7 +15,7 @@ function removeDoc(e, id) {
         confirmButtonClass: 'btn btn-primary',
         cancelButtonClass: 'btn btn-danger ml-1',
         buttonsStyling: !1
-    }).then(function (t) {
+    }).then(function(t) {
         if (t.value) {
             $.ajax({
                 url: base_url + '/Legal/removeDoc',
@@ -26,10 +25,10 @@ function removeDoc(e, id) {
                     id: e
                 },
                 dataType: 'json',
-                beforeSend: function () {
+                beforeSend: function() {
                     $("#loading").removeClass("hidden");
                 },
-                success: function (r) {
+                success: function(r) {
                     $("#loading").addClass("hidden");
                     csrfHash = r.token;
                     Swal.fire({
@@ -38,11 +37,11 @@ function removeDoc(e, id) {
                         title: r.messages,
                         showConfirmButton: false,
                         timer: 1500
-                    }).then(function () {
+                    }).then(function() {
                         load_file_upload(id)
                     })
                 },
-                error: function (e) {
+                error: function(e) {
                     Swal.fire({
                         //position: 'bottom-end',
                         icon: 'error',
@@ -65,14 +64,14 @@ function load_file_upload(id_kavling) {
             id_kavling: id_kavling
         },
         dataType: 'json',
-        success: function (r) {
+        success: function(r) {
             csrfHash = r.token;
             $("#tb-fl-file").html("");
             let tb = `<tr><td colspan="6" class="text-center">Tidak ada data</td></tr>`
             if (r.data) {
                 tb = '';
                 let no = 0
-                $.each(r.data, function (i, v) {
+                $.each(r.data, function(i, v) {
                     no++
                     tb += `<tr>
                                 <td>` + no + `</td>
@@ -91,7 +90,7 @@ function load_file_upload(id_kavling) {
             }
             $("#tb-fl-file").html(tb);
         },
-        error: function () {
+        error: function() {
 
         }
     });
@@ -122,11 +121,11 @@ function fl_upload() {
         contentType: false,
         processData: false,
         data: fd, // /converting the form data into array and sending it to server
-        beforeSend: function () {
+        beforeSend: function() {
             $('#fl-btn-upload').html('<i class="fa fa-spinner fa-spin"></i> Mengunggah');
             $('#fl-btn-upload').prop('disabled', true);
         },
-        success: function (response) {
+        success: function(response) {
             csrfHash = response.token;
 
             if (response.success === true) {
@@ -136,7 +135,7 @@ function fl_upload() {
                     title: response.messages,
                     showConfirmButton: false,
                     timer: 1500
-                }).then(function () {
+                }).then(function() {
                     load_file_upload($(".id_kavling").val())
                     $("#fl-legal")[0].reset()
                     $("#fl-label").html('Pilih Berkas')
@@ -153,7 +152,7 @@ function fl_upload() {
             $('#fl-btn-upload').html('Unggah');
             $('#fl-btn-upload').prop('disabled', false);
         },
-        error: function () {
+        error: function() {
             Swal.fire({
                 //position: 'bottom-end',
                 icon: 'success',
@@ -176,7 +175,7 @@ function open_legal(sh, role, id_kavling) {
 }
 
 function open_flegal(sh, role, id_kavling) {
-    $("#select-pph-validasi-offline, #select-pph-validasi-online, #select-pbg_is_revisi, #select-pbb_is_balik_nama, #select-sertifikat_is_balik_nama, #select-sertifikat_is_split").hide()
+    $(".select-pph-validasi-offline, .select-pph-validasi-online, .select-pbg_is_revisi, .select-pbb_is_balik_nama, .select-sertifikat_is_balik_nama, .select-sertifikat_is_split").hide()
 
     $("#fm-legal")[0].reset();
 
@@ -192,18 +191,28 @@ function open_flegal(sh, role, id_kavling) {
             id_kavling: id_kavling
         },
         dataType: 'json',
-        success: function (r) {
+        success: function(r) {
             csrfHash = r.token;
 
+
             load_file_upload(id_kavling)
+
+            if (r.data) {
+                $("#sertifikat_balik_nama").val(r.data.nama_konsumen ? r.data.nama_konsumen : '')
+                $("#bphtb_nominal_disetujui").val(r.data.harga_bphtb ? r.data.harga_bphtb : '').change().keyup()
+
+
+                $("#pph_ntpn").val(r.data.pph42_ntpn)
+                $("#pph_nominal_bayar").val(r.data.pph42_nilai).keyup()
+                setDatePicker(r.data.pph42_tgl_bayar, "#pph_tgl_bayar")
+            }
+
             if (r) {
                 for (let i in r) {
-                    console.log(i, r[i])
+                    // console.log(i, r[i])
                     $("#" + i).val(r[i]).change();
                 }
 
-                $("#sertifikat_balik_nama").val(r.data.nama_konsumen ? r.data.nama_konsumen :'')
-                $("#bphtb_nominal_disetujui").val(r.data.harga_bphtb ? r.data.harga_bphtb :'').change().keyup()
 
 
                 setDatePicker(r.sertifikat_split_tanggal_terbit, "#sertifikat_split_tanggal_terbit")
@@ -230,6 +239,7 @@ function open_flegal(sh, role, id_kavling) {
                 setDatePicker(r.pbg_tanggal_kirim, "#pbg_tanggal_kirim")
                 setDatePicker(r.pph_tgl_selesai, "#pph_tgl_selesai")
 
+                $("#legal_keterangan").val(r.keterangan);
 
                 // if (r.sertifikat_tgl != "0000-00-00")
                 //     document.querySelector("#sertifikat_tgl")._flatpickr.setDate(r.sertifikat_tgl);
@@ -246,7 +256,7 @@ function open_flegal(sh, role, id_kavling) {
                 // if (r.akad_tgl != "0000-00-00")
                 //     document.querySelector("#legal_akad_tgl")._flatpickr.setDate(r.akad_tgl);
 
-                $("#legal_keterangan").val(r.keterangan);
+
 
             }
             $(".label_alamat").html(`
@@ -257,7 +267,7 @@ function open_flegal(sh, role, id_kavling) {
                 keyboard: false
             });
         },
-        error: function () {
+        error: function() {
             Swal.fire({
                 //position: 'bottom-end',
                 icon: 'error',
@@ -268,44 +278,6 @@ function open_flegal(sh, role, id_kavling) {
         }
     });
 }
-
-$("#pph_jenis_validasi").change(function () {
-    if (this.value === 'Online') {
-        $("#select-pph-validasi-offline").hide()
-        $("#select-pph-validasi-online").show()
-    } else if (this.value === 'Offline') {
-        $("#select-pph-validasi-offline").show()
-        $("#select-pph-validasi-online").hide()
-    }
-})
-$("#sertifikat_is_balik_nama").change(function () {
-    if (this.value === 'Belum') {
-        $("#select-sertifikat_is_balik_nama").hide()
-    } else if (this.value === 'Sudah') {
-        $("#select-sertifikat_is_balik_nama").show()
-    }
-})
-$("#pbb_is_balik_nama").change(function () {
-    if (this.value === 'Belum') {
-        $("#select-pbb_is_balik_nama").hide()
-    } else if (this.value === 'Sudah') {
-        $("#select-pbb_is_balik_nama").show()
-    }
-})
-$("#pbg_is_revisi").change(function () {
-    if (this.value === 'Tidak') {
-        $("#select-pbg_is_revisi").hide()
-    } else if (this.value === 'Ya') {
-        $("#select-pbg_is_revisi").show()
-    }
-})
-$("#sertifikat_is_split").change(function () {
-    if (this.value === '0') {
-        $("#select-sertifikat_is_split").hide()
-    } else if (this.value === '1') {
-        $("#select-sertifikat_is_split").show()
-    }
-})
 
 function open_fotherlegal(sh) {
     $("#fm-fotherlegal")[0].reset()
@@ -319,7 +291,7 @@ function open_fotherlegal(sh) {
             id_kavling: editdtt[0].id.substr(6)
         },
         dataType: 'json',
-        success: function (r) {
+        success: function(r) {
             csrfHash = r.token;
 
             if (r.data) {
@@ -343,7 +315,7 @@ function open_fotherlegal(sh) {
             }
 
         },
-        error: function () {
+        error: function() {
             Swal.fire({
                 //position: 'bottom-end',
                 icon: 'error',
@@ -364,27 +336,28 @@ function open_fotherlegal(sh) {
 
 function save_legal() {
     $.ajax({
-        url: base_url + '/legal/save',
+        url: base_url + 'legal/save',
         type: 'post',
         data: $("#fm-legal").serialize() + "&" + csrfName + "=" + csrfHash,
         dataType: 'json',
-        beforeSend: function () {
+        beforeSend: function() {
             simpanBtn('#add-form-btn-legal', true)
         },
-        success: function (r) {
+        success: function(r) {
             csrfHash = r.token;
             if (r.success === true) {
-                swal('success', r.message)
-                $('.modal').modal('hide');
+                swal('success', r.messages)
+                    // $('.modal').modal('hide');
+                isi_data();
                 simpanBtn('#add-form-btn-legal', false)
             } else {
-                swal('error', r.message)
+                swal('error', r.messages)
                 simpanBtn('#add-form-btn-legal', false)
             }
             load_kavling();
             hapus_seleksi();
         },
-        error: function (a, b, err) {
+        error: function(a, b, err) {
             simpanBtn('#add-form-btn-legal', false)
             swal('error', err)
         }
@@ -399,11 +372,11 @@ function save_fotherlegal() {
         // data: $("#fm-komplain-sales").serialize() + "&" + csrfName + "=" + csrfHash,
         data: $("#fm-fotherlegal").serialize() + "&" + csrfName + "=" + csrfHash,
         dataType: 'json',
-        beforeSend: function () {
+        beforeSend: function() {
             $('#save-fother-btn-legal').prop('disabled', true);
             $('#save-fother-btn-legal').html('Menyimpan <i class="fa fa-spinner fa-spin"></i>');
         },
-        success: function (r) {
+        success: function(r) {
             csrfHash = r.token;
 
             if (r.success === true) {
@@ -430,7 +403,7 @@ function save_fotherlegal() {
             $('#save-fother-btn-legal').html('Simpan');
             $('#save-fother-btn-legal').prop('disabled', false);
         },
-        error: function () {
+        error: function() {
             Swal.fire({
                 //position: 'bottom-end',
                 icon: 'error',

@@ -27,8 +27,9 @@ class Notif extends BaseController
         else
             $this->group_id = session()->group_id;
     }
-    function tambah_notif($target = 0, $notif, $add_by, $id_kavling, $id_konsumen)
+    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen)
     {
+        
         $data = [
             'notif' => $notif,
             'group_target' => $target,
@@ -66,7 +67,7 @@ class Notif extends BaseController
         return $this->response->setJSON($r);
     }
 
-    function getActivity($all = false, $offset, $id_proyek = null){
+    function getActivity($all = false, $offset = null, $id_proyek = null){
         if($all)
             $this->group_id = '';
         $q = $this->db->table('notification')

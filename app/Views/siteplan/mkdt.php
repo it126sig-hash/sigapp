@@ -496,6 +496,11 @@
                                         </div>
                                         <div class="form-group">
                                             <label for="bank">Bank</label>
+                                            <select type="text" id="id_bank" name="id_bank" class="form-control select2">
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="bank">Keterangan</label>
                                             <input type="text" id="bank" name="bank" class="form-control"
                                                 placeholder="-" />
                                         </div>
@@ -554,12 +559,13 @@
                                                     file</a>
                                             </div>
                                         </div>
-                                        <!-- <div class="form-group">
-                                        <div class="custom-control custom-switch custom-control-inline">
-                                            <input type="checkbox" class="custom-control-input" id="sp3k" name="sp3k" value="1" />
-                                            <label class="custom-control-label" for="sp3k">SP3K</label>
+                                        <div class="form-group">
+                                            <div class="custom-control custom-switch custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" id="sp3k" name="sp3k" value="1" />
+                                                <label class="custom-control-label" for="sp3k">SP3K</label>
+                                            </div>
                                         </div>
-                                    </div> -->
+
                                         <div class="form-group">
                                             <label for="sp3k_tgl">Tanggal Terbit</label>
                                             <input type="text" id="sp3k_tgl" name="sp3k_tgl"
@@ -613,6 +619,11 @@
                                             <label for="rencana_akad_tgl">Rencana Akad</label>
                                             <input type="text" id="rencana_akad_tgl" name="rencana_akad_tgl"
                                                 class="form-control flatpickr-human-friendly" placeholder="-" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Notaris</label>
+                                            <input type="text" id="notaris" name="notaris" class="form-control"
+                                                placeholder="-" />
                                         </div>
                                         <div class="form-group">
                                             <label>PPJB/AJB</label>
@@ -712,4 +723,24 @@
     </div>
     </form>
 </div>
-<script></script>
+<!-- ################################### modal mkdt standing instruction ##################################### -->
+<div class="modal fade " id="modals-si">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <form id="fm-si" class="modal-content pt-0" enctype="multipart/form-data">
+            <div class="modal-header mb-1">
+                <h5 class="modal-title" id="exampleModalLabel">Standing Instruction</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
+            </div>
+            <div class="modal-body flex-grow-1">
+                <div class="row" style="display: flex; justify-content: center;">
+                <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" /> 
+                    <div id="dv-si-here"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="btn-si-simpan" class="btn btn-primary mr-1" onclick="save_si()" href="javascript:void(0)">Simpan</a>
+                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -182,7 +182,7 @@
                                                     <option value="Sudah">Sudah</option>
                                                 </select>
                                             </div>
-                                            <div id="select-pbb_is_balik_nama">
+                                            <div class="select-pbb_is_balik_nama">
                                                 <div class="form-group">
                                                     <label>Nama Konsumen</label>
                                                     <input type="text" readonly class="form-control" id="pbb_balik_nama"
@@ -314,7 +314,7 @@
                                         <h5>Sertipikat Split</h5>
                                     </div>
                                     <div class="card-body">
-                                        <div id="select-sertifikat_is_split">
+                                        <div class="select-sertifikat_is_split hidden">
                                             <div class="form-group">
                                                 <label>No HGB</label>
                                                 <input type="text" class="form-control" id="sertifikat_split_no_hgb"
@@ -373,7 +373,7 @@
                                                 <option value="Sudah">Sudah</option>
                                             </select>
                                         </div>
-                                        <div id="select-sertifikat_is_balik_nama">
+                                        <div class="select-sertifikat_is_balik_nama">
                                             <div class="form-group">
                                                 <label>Nama Konsumen</label>
                                                 <input type="text" readonly class="form-control"
@@ -471,7 +471,7 @@
                                                 <option value="Ya">Ya</option>
                                             </select>
                                         </div>
-                                        <div id="select-pbg_is_revisi">
+                                        <div class="select-pbg_is_revisi">
                                             <div class="form-group">
                                                 <label>No IMB/PBG</label>
                                                 <input type="text" class="form-control" id="pbg_no_revisi"
@@ -610,7 +610,7 @@
 
                                         <div class="form-group">
                                             <label>Nominal Dibayar</label>
-                                            <input type="text" class="form-control num" id="pph_nominal_bayar"
+                                            <input type="text" readonly class="form-control num" id="pph_nominal_bayar"
                                                 name="pph_nominal_bayar">
                                         </div>
                                         <div class="form-group">
@@ -635,7 +635,7 @@
                                                 <option value="Online">Online</option>
                                             </select>
                                         </div>
-                                        <div id="select-pph-validasi-offline" class="hide">
+                                        <div class="select-pph-validasi-offline" class="hide">
                                             <div class="form-group">
                                                 <label>Tanggal Validasi</label>
                                                 <input type="text" class="form-control flatpickr-human-friendly"
@@ -656,7 +656,7 @@
                                         </div>
                                         <div class="form-group">
                                             <label>NTPN</label>
-                                            <input type="text" class="form-control" id="pph_ntpn" name="pph_ntpn">
+                                            <input type="text" class="form-control" readonly id="pph_ntpn" name="pph_ntpn">
                                         </div>
 
                                         <div class="form-group">
@@ -741,62 +741,77 @@
                     </form>
                     <div class="tab-pane" id="upload-sertifikat" aria-labelledby="upload-sertifikat-tab"
                         role="tabpanel">
-                        <div class="table-responsive">
-                            <table class="table mb-0">
-                                <thead>
-                                    <tr>
-                                        <th scope="col" class="text-nowrap">No</th>
-                                        <th scope="col" class="text-nowrap">Nama File</th>
-                                        <th scope="col" class="text-nowrap">Keterangan</th>
-                                        <th scope="col" class="text-nowrap">Link</th>
-                                        <th scope="col" class="text-nowrap">Oleh</th>
-                                        <th scope="col" class="text-nowrap">Tanggal Upload</th>
-                                        <th scope="col" class="text-nowrap"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tb-fl-file">
-                                    <tr>
-                                        <td colspan="6" class="text-center">Tidak ada data</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" class="text-nowrap">No</th>
+                                                <th scope="col" class="text-nowrap">Nama File</th>
+                                                <th scope="col" class="text-nowrap">Keterangan</th>
+                                                <th scope="col" class="text-nowrap">Link</th>
+                                                <th scope="col" class="text-nowrap">Oleh</th>
+                                                <th scope="col" class="text-nowrap">Tanggal Upload</th>
+                                                <th scope="col" class="text-nowrap"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tb-fl-file">
+                                            <tr>
+                                                <td colspan="6" class="text-center">Tidak ada data</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
+
                         <br>
                         <form id="fl-legal">
                             <div class="row">
                                 <div class="col-sm-12 col-md-6 col-lg-6">
-                                    <div class="form-group">
-                                        <label for="fl-kategori"> Ketgori </label>
-                                        <select id="fl-kategori" class="form-control" name="fl-kategori">
-                                            <option value="1">Sertifikat</option>
-                                            <option value="2">AJB</option>
-                                            <option value="0">Lain-lain</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="fl-file_name"> Nama File: </label>
-                                        <input type="text" id="fl-file_name" name="fl-file_name" class="form-control"
-                                            placeholder="Nama File" maxlength="255">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="fl-keterangan"> Keterangan: </label>
-                                        <textarea cols="40" rows="5" id="fl-keterangan" name="fl-keterangan"
-                                            class="form-control" placeholder="Keterangan"></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="fl-file"> Pilih File: </label>
-                                        <div class="custom-file">
-                                            <input type="file" class="custom-file-input" name="fl-file"
-                                                accept="application/pdf" id="fl-file" />
-                                            <label class="custom-file-label" id="fl-label" for="customFile">Pilih
-                                                Berkas</label>
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label for="fl-kategori"> Ketgori </label>
+                                                <select id="fl-kategori" class="form-control" name="fl-kategori">
+                                                    <!-- <option value="1">Sertifikat</option> -->
+                                                    <option value="2">AJB</option>
+                                                    <option value="3">PPJB</option>
+                                                    <option value="5">PBB</option>
+                                                    <option value="6">BAST</option>
+                                                    <option value="7">BPHTB</option>
+                                                    <option value="14">IMB</option>
+                                                    <option value="0">Lainnya</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="fl-file_name"> Nama File: </label>
+                                                <input type="text" id="fl-file_name" name="fl-file_name" class="form-control"
+                                                    placeholder="Nama File" maxlength="255">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="fl-keterangan"> Keterangan: </label>
+                                                <textarea cols="40" rows="5" id="fl-keterangan" name="fl-keterangan"
+                                                    class="form-control" placeholder="Keterangan"></textarea>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="fl-file"> Pilih File: </label>
+                                                <div class="custom-file">
+                                                    <input type="file" class="custom-file-input" name="fl-file"
+                                                        accept="application/pdf" id="fl-file" />
+                                                    <label class="custom-file-label" id="fl-label" for="customFile">Pilih
+                                                        Berkas</label>
+                                                </div>
+                                            </div>
+                                            <button type="reset" onclick="$('#fl-label').html('Pilih Berkas')"
+                                                class="btn btn-outline-secondary">Reset</button>
+                                            <button onclick="fl_upload()" class="btn btn-primary data-submit mr-1"
+                                                id="fl-btn-upload">Unggah</button>
                                         </div>
                                     </div>
-                                    <button type="reset" onclick="$('#fl-label').html('Pilih Berkas')"
-                                        class="btn btn-outline-secondary">Reset</button>
-                                    <button onclick="fl_upload()" class="btn btn-primary data-submit mr-1"
-                                        id="fl-btn-upload">Unggah</button>
                                 </div>
+
                             </div>
                         </form>
                     </div>

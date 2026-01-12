@@ -5,7 +5,7 @@
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Keuangan</h5>
 
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" id="close_modal_divisi3" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -1267,8 +1267,8 @@
                             <div class="col-sm-12 col-md-6 col-lg-6">
                                 <div class="card file-container">
                                     <div class="card-body">
-                                    <button class="btn btn-outline-primary" id="btn-ganti_kavling"
-                                    onclick="ganti_kavling()">Klik Untuk Ganti Kavling</button>
+                                        <button class="btn btn-outline-primary" id="btn-ganti_kavling"
+                                            onclick="ganti_kavling()">Klik Untuk Ganti Kavling</button>
                                         <button class="btn btn-outline-warning" id="btn-refresh-ganti_kavling"
                                             onclick="getRiwayatGantiKavling()">Muat Ulang Data </button>
                                         <div class="divider">
@@ -1483,25 +1483,24 @@
 <!-- ################################## Dana Akad ##########################################-->
 <div class="modal fade text-left" id="dana_akad_modal" tabindex="-1" role="dialog" aria-labelledby="dana_akad_modal"
     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
         <form id="fm-dana_akad" class="add-new-record modal-content pt-0" autocomplete="off">
-            <div class="modal-content">
+            <div class="modal-content d-flex flex-column" style="height: 95vh">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Dana Akad</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body flex-grow-1" style="background-color:#eee">
+                <div class="modal-body flex-grow-1 overflow-auto" style="background-color:#eee">
                     <div class="card">
                         <div class="card-body">
                             <p class="modal-title label_konsumen" id="label_konsumen"></p>
                             <p class="modal-title label_alamat" id="label_alamat3"></p>
-
                         </div>
                     </div>
 
-                    <ul class="nav nav-tabs" role="tablist">
+                    <!-- <ul class="nav nav-tabs" role="tablist">
                         <li class="nav-item">
                             <a class="nav-link active" id="da-tab_hasil_akad-tab" data-toggle="tab"
                                 href="#da-tab_hasil_akad" aria-controls="home" role="tab" aria-selected="true">Hasil
@@ -1513,9 +1512,11 @@
                                 aria-selected="true">Pencairan Hasil Akad</a>
                         </li>
                     </ul>
-                    <div class="tab-content">
-                        <div class="tab-pane active" id="da-tab_hasil_akad" aria-labelledby="da-hasil_akad-tab"
-                            role="tabpanel">
+                    <div class="tab-content"> -->
+                    <!-- <div class="tab-pane active" id="da-tab_hasil_akad" aria-labelledby="da-hasil_akad-tab"
+                            role="tabpanel"> -->
+                    <div class="row">
+                        <div class="col-md-4">
                             <div class="card">
                                 <div class="card-header">
                                     Dana Akad
@@ -1529,43 +1530,98 @@
                                         <input type="text" id="da-kpr_acc" name="da-kpr_acc" readonly
                                             class="form-control num" />
                                     </div>
-                                    <div class="divider">
-                                        <div class="divider-text">Dana Jaminan</div>
-                                    </div>
-                                    <div id="da-jaminan_here"></div>
-                                    <hr>
                                     <div class="form-group">
                                         <label for="nominal_dana_akad">Hasil Akad</label>
                                         <input type="text" value="" id="da-hasil_akad" name="hasil_akad" readonly
                                             class="form-control num" />
                                     </div>
+                                    <div class="form-group">
+                                        <label for="nominal_dana_akad">Total Dana Jaminan</label>
+                                        <input type="text" value="" id="da-total_dajam" name="total_dajam" readonly
+                                            class="form-control num" />
+                                    </div>
+                                    <hr>
+                                    <div class="form-group">
+                                        <div class="custom-control custom-switch custom-control-inline">
+                                            <input type="checkbox" class="custom-control-input cbp" id="da-dajam_selesai" name="dajam_selesai"
+                                                value="1" />
+                                            <label class="custom-control-label" for="da-dajam_selesai">Tandai Sudah Selesai</label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
                         </div>
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    Dana Jaminan dan Pencairan
+                                </div>
+                                <div class="card-body">
+                                    <div id="da-jaminan_here"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- </div>
                         <div class="tab-pane" id="da-tab_pencairan_hasil_akad"
-                            aria-labelledby="da-tab_pencairan_hasil_akad-tab" role="tabpanel">
+                            aria-labelledby="da-tab_pencairan_hasil_akad-tab" role="tabpanel"> -->
+                        <!-- <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
                                     Pencairan Dana Jaminan
                                 </div>
                                 <div class="card-body">
-                                    <!-- <div class="form-group">
-                                        <label for="nominal_dana_akad">KPR Acc</label>
-                                        <input type="text" id="da-kpr_acc" name="da-kpr_acc" readonly class="form-control num" />
-                                    </div> -->
-                                    <div class="divider">
-                                        <div class="divider-text">Dana Jaminan</div>
-                                    </div>
                                     <div id="da-cair_jaminan_here"></div>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
+
                     </div>
+                    <!-- </div> -->
+                    <!-- </div> -->
                 </div>
                 <div class="modal-footer">
                     <button id="add-form-btn-dana_akad" class="btn btn-primary data-submit mr-1"
                         onclick="save_dana_akad(); return false;" href="javascript:void(0)">Simpan</button>
+                    <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<!-- ################################## isi_cashout ##########################################-->
+<div class="modal fade text-left" id="modal-cashout-keu" tabindex="-1" role="dialog" aria-labelledby="dana_akad_modal"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+        <form id="fm-cashout-keu" class="" autocomplete="off">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Cash Out</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body flex-grow-1" style="background-color:#eee">
+                    <div class="card">
+                        <div class="card-body">
+                            <p class="modal-title label_konsumen" id="label_konsumen"></p>
+                            <p class="modal-title label_alamat" id="label_alamat3"></p>
+                        </div>
+                    </div>
+                    <input type="hidden" class="form-control" id="cashout-id_kavling" name="id_kavling">
+
+                    <div id="div-cashout-here" class="row">
+                    </div>
+
+
+
+                </div>
+                <div class="modal-footer">
+                    <button id="add-form-btn-cashout" class="btn btn-primary data-submit mr-1"
+                        onclick="save_cashout(); return false;" href="javascript:void(0)">Simpan</button>
                     <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
                 </div>
 
@@ -1591,7 +1647,7 @@
             confirmButtonClass: 'btn btn-primary',
             cancelButtonClass: 'btn btn-danger ml-1',
             buttonsStyling: !1
-        }).then(function (t) {
+        }).then(function(t) {
             if (t.isConfirmed) {
                 $("#modal-isi_data_konsumen").modal('hide');
                 $(".div_menu").hide();
@@ -1615,8 +1671,8 @@
         })
     }
 
-    function ganti_kavling_selection(e){
-        if(e){
+    function ganti_kavling_selection(e) {
+        if (e) {
             let sh = editdtt[0]
 
             id_mkdt_old = $("#idk-id_mkdt").val()
@@ -1634,10 +1690,10 @@
                 <span style='color:red'>Pindah ke Kavling ${sh.data.nama_jalan} No. ${sh.data.no_kavling}</div> 
             `)
 
-        }else{
+        } else {
 
         }
-        
+
         $("#menu-ganti_kavling").remove()
         $("#modal-isi_data_konsumen").modal('show');
         $("#keuangan_menu").show();

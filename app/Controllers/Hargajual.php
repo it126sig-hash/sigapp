@@ -28,6 +28,21 @@ class Hargajual extends BaseController
 		$this->hjfile = new FileHargajualModel();
 		$this->validation =  \Config\Services::validation();
 		$this->db = db_connect();
+		
+		$akses = $this->db->table('modul_akses')->where('user_id', user_id())->get();
+		$hasAccess = false;
+		foreach ($akses->getResult() as $row) {
+			if ($row->module == 'Hargajual') {
+				$hasAccess = true;
+				break;
+			}
+		}
+		if (!$hasAccess) {
+			$data['message'] = 'Kamu tidak memiliki akses <a href="">Klik untuk kembali</a>';
+			echo view('errors/html/unauthorized', $data);
+		die();
+		}
+		
 	}
 
 	public function index()
@@ -231,6 +246,7 @@ class Hargajual extends BaseController
 				hargajual.*,
 				proyek.nama_proyek,
 				tipe.tipe_rumah,
+				tipe.no_tipe_rumah,
 				users.username as uadd_by, 
 				c.username as uedit_by, 
 				fhj.lokasi,

@@ -1,16 +1,15 @@
-<link rel="stylesheet" type="text/css"
-  href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
-<link rel="stylesheet" type="text/css"
-  href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
-<link rel="stylesheet" type="text/css"
-  href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/buttons.bootstrap4.min.css">
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/extensions/sweetalert2.min.css">
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/forms/select/select2.min.css">
-<link rel="stylesheet" type="text/css"
-  href="https://datatables.net/release-datatables/extensions/FixedColumns/css/fixedColumns.bootstrap4.min.css" />
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/buttons.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/extensions/sweetalert2.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/forms/select/select2.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/forms/select/select2.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/fixed-columns/fixedColumns.bootstrap4.css">
+
+  
 <!-- 
-<link rel="stylesheet" href="<?= base_url() ?>/app-assets/vendors/css/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.css">
-<link rel="stylesheet" href="<?= base_url() ?>/app-assets/vendors/css/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.css"> -->
+<link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.css">
+<link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.css"> -->
 
 <script>
   // var csrfName = '<?= csrf_token() ?>';
@@ -86,7 +85,7 @@
 
         <div class="card">
           <div class="card-datatable">
-            <table id="data_tables" style="" class="datatables-basic table compact table-hover">
+            <table id="data_tables" class="datatables-basic table compact table-hover table-bordered">
               <thead>
                 <tr>
                   <th id="tb_no" rowspan="3">NO</th>
@@ -97,7 +96,7 @@
                   <th id="tb_tgl_booking" rowspan="3">TGL BOOKING</th>
                   <th id="tb_tgl_wwc" rowspan="3">TGL WWC</th>
                   <th id="tb_marketing_data" colspan="6">MARKETING DATA</th>
-                  <th id="tb_keuangan" colspan="5">KEUANGAN</th>
+                  <th id="tb_keuangan" colspan="6">KEUANGAN</th>
                   <th></th>
                   <th id="tb_produksi" colspan="4">PRODUKSI</th>
                   <th id="tb_legal" colspan="3">LEGAL</th>
@@ -112,6 +111,7 @@
                   <th id="tb_sikasep" rowspan="2">SIKASEP</th>
                   <th id="tb_tunai" rowspan="2">TUNAI</th>
                   <th id="tb_um" rowspan="2">UM</th>
+                  <th id="tb_badm" rowspan="2">BIAYA ADM + TURUN KPR + HOOK</th>
                   <th id="tb_biaya" rowspan="2">BIAYA</th>
                   <th id="tb_hj" rowspan="2">HJ</th>
                   <th id="tb_kpr" rowspan="2">KPR</th>
@@ -193,24 +193,23 @@
 </div>
 
 <!-- BEGIN: Page Vendor JS-->
-<script src="<?= base_url() ?>/app-assets/vendors/js/vendors.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/tables/datatable/responsive.bootstrap4.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/tables/datatable/datatables.buttons.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/tables/datatable/dataTables.rowGroup.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/forms/validation/jquery.validate.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/extensions/polyfill.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
-<script type="text/javascript"
-  src="https://datatables.net/release-datatables/extensions/FixedColumns/js/dataTables.fixedColumns.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/responsive.bootstrap4.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/datatables.buttons.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/dataTables.rowGroup.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/forms/validation/jquery.validate.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/extensions/polyfill.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/forms/select/select2.full.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/fixed-columns/dataTables.fixedColumns.js"></script>
 <!-- <script src="https://adminlte.io/themes/v3/plugins/jquery-validation/additional-methods.min.js"></script> -->
 
-<!-- <script src="<?= base_url() ?>/app-assets/vendors/js/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.js"></script> -->
+<!-- <script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.js"></script> -->
 
 <script>
   $(function () {
@@ -237,9 +236,10 @@
       scrollY: "50vh",
       scrollX: true,
       scrollCollapse: true,
-      // fixedColumns: {
-      //   left:2
-      // },
+      fixedColumns: true,
+      fixedColumns: {
+        left:0
+      },
       processing: true,
       serverSide: true,
       lengthChange: true,

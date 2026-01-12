@@ -35,7 +35,7 @@ class Direksi extends BaseController
             ')
             ->join('file_hargajual', 'file_hargajual.id_filehj = hargajual.id_filehj')
             ->join('tipe', 'tipe.id_tipe = hargajual.id_tipe')
-            ->where('id', $q->harga_akhir)->get()->getResult()[0];
+            ->where('id', $q->harga_akhir)->get()->getResult();
         }
         $r['data'] = $q;
         $r['harga_akhir'] = $hj;

@@ -74,7 +74,11 @@ class LegalModel extends Model
 		"pbb_is_balik_nama",
 		"sertifikat_is_split",
 		"sertifikat_is_balik_nama",
-		"pbg_is_revisi"
+		"pbg_is_revisi",
+		"add_by",
+		"created_at",
+		"edit_by",
+		"updated_at",
 		// "id_legal",
 		// "pbb_pecah_nop",
 		// "pbb_pecah_luas_bumi",

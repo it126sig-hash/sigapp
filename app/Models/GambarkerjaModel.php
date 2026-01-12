@@ -10,7 +10,7 @@ class GambarkerjaModel extends Model {
 	protected $primaryKey = 'id_gambar_kerja';
 	protected $returnType = 'object';
 	protected $useSoftDeletes = false;
-	protected $allowedFields = ['lokasi', 'default_filename', 'keterangan', 'upload_at', 'upload_by', 'id_tipe'];
+	protected $allowedFields = ['lokasi', 'default_filename', 'keterangan', 'upload_at', 'upload_by', 'id_tipe', 'tipe'];
 	protected $useTimestamps = false;
 	protected $createdField  = 'created_at';
 	protected $updatedField  = 'updated_at';

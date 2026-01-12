@@ -16,6 +16,7 @@ use App\Models\LogPembayaranModel;
 use App\Models\ChecklistSubItemModel;
 use CodeIgniter\HTTP\Response;
 use App\Controllers\Notif;
+use App\Controllers\Home;
 
 class Siteplan extends BaseController
 {
@@ -34,6 +35,7 @@ class Siteplan extends BaseController
     protected $validation;
     protected $db;
     protected $notif;
+    protected $hak_akses;
 
     public function __construct()
     {
@@ -52,6 +54,8 @@ class Siteplan extends BaseController
         $this->siModel = new ChecklistSubItemModel();
         $this->validation = \Config\Services::validation();
         $this->db = \Config\Database::connect();
+
+        $this->hak_akses = new Home();
     }
     public function index()
     {
@@ -62,6 +66,7 @@ class Siteplan extends BaseController
         //ambil data proyek
         $data['data']['proyek'] = $this->proyekModel
             ->select("id_proyek, alamat_proyek, nama_proyek, siteplan, logo")
+            ->orderBy('order_by', 'asc')
             ->findAll();
 
         return view('template', $data);
@@ -76,6 +81,9 @@ class Siteplan extends BaseController
         session()->set([
             'id_proyek' => $a
         ]);
+
+        $data['data']['pph'] = $this->db->table('pph')->get()->getResult();
+        $data['data']['ppn'] = $this->db->table('ppn')->get()->getResult();
 
         //ambil data proyek 
         $data['data']['proyek'] = $this->proyekModel
@@ -105,14 +113,17 @@ class Siteplan extends BaseController
         }
 
 
+
+        $has_akses['proyek'] = false;
+
         if (in_groups(['1', '7', '8'])) {
             //get data ceklist
             $data['data']['list'] = $this->siModel
                 ->select('
-                checklist_group.nama_group,
-                checklist_item.nama_item,
-                checklist_subitem.id_subitem, 
-                checklist_subitem.nama_subitem,
+                    checklist_group.nama_group,
+                    checklist_item.nama_item,
+                    checklist_subitem.id_subitem, 
+                    checklist_subitem.nama_subitem,
                 ')
                 ->join('checklist_item', 'checklist_item.id_item = checklist_subitem.id_item')
                 ->join('checklist_group', 'checklist_item.id_group = checklist_group.id_group')
@@ -122,7 +133,30 @@ class Siteplan extends BaseController
                 ->orderBy('checklist_item.id_group', 'asc')
                 ->orderBy('checklist_item.id_item', 'asc')
                 ->find();
+
+            //mendapatkan hak akses pada proyek
+            $proyek = $this->proyekModel->find($a);
+            $user_id = user_id();
+            $has_akses['proyek'] = in_array($user_id, explode(',', $proyek->id_users)) ? true : false;
+
+            //cek update tanggal pembangunan
+            $tanggal_pembangunan_akses = $this->hak_akses->getHak(user_id());
+            $has_update_access = array_values(array_filter($tanggal_pembangunan_akses, function ($item) {
+                return $item->nama_akses == 'update_tanggal_pembangunan';
+            }));
+
+            if (count($has_update_access) > 0)
+                $has_akses['update_tanggal_pembangunan'] = true;
+        } else  if (in_groups(['5'])) {
+            //mendapatkan hak akses pada proyek
+            $proyek = $this->proyekModel->find($a);
+            $user_id = user_id();
+            $has_akses['legal'] = in_array($user_id, explode(',', $proyek->id_users)) ? true : false;
         }
+
+        $data['data']['has_akses'] = $has_akses;
+
+        // var_dump($has_akses);die();
 
 
         //get config color shape
@@ -169,6 +203,7 @@ class Siteplan extends BaseController
         } else {
             $response = $this->add_others();
         }
+
 
 
         return $this->response->setJSON($response);
@@ -231,6 +266,14 @@ class Siteplan extends BaseController
                 }
             }
         }
+        $notif = 'Menambahkan data kavling ke siteplan: 
+                Jalan ' . $this->request->getVar('nama_jalan') . ' 
+                No. 
+                dengan tipe rumah ' . $this->request->getVar('tp-kavling') . ' 
+                pada tanggal: ' . date_format(date_create(date('Y-m-d')), "d-M-Y") . '';
+
+        $this->notif->tambah_notif("0", $notif, user_id(), null, null); //4 mkdt 9 direksi
+
         return $response;
     }
     function add_others()
@@ -519,7 +562,7 @@ class Siteplan extends BaseController
             $q .= ", " . $divisi_queries[$id_divisi];
             $a = $this->kavlingModel->select($q)->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left');
         } else {
-            $q .= ", mkdt.status_mkdt, mkdt.is_batal";
+            $q .= ", mkdt.status_mkdt, mkdt.is_batal, mkdt.dajam_selesai";
             $a = $this->kavlingModel->select($q)->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left');
         }
 
@@ -732,12 +775,10 @@ class Siteplan extends BaseController
             } else {
                 $r['success'] = false;
                 $r['messages'] = 'Gagal melakukan perubahan data';
-
             }
         }
 
         return $this->response->setJSON($r);
-
     }
     function get_kavling_by_id()
     {
@@ -767,6 +808,7 @@ class Siteplan extends BaseController
     {
         $d['token'] = csrf_hash();
         $id_mkdt = $this->request->getVar('id_mkdt');
+        $id_kavling = $this->request->getVar('id_kavling');
 
         $d['mkdt'] = $this->mkdtModel
             ->select('
@@ -779,12 +821,32 @@ class Siteplan extends BaseController
                 konsumen.no_spptb,
                 konsumen.npwp,
                 konsumen.sales,
+                konsumen.file_npwp,
+                konsumen.file_ktp,
+                konsumen.file_data_diri,
                 username
             ')
             ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
             ->join('users', 'users.id = mkdt.edit_by')
             ->where('id_mkdt', $id_mkdt)
             ->first();
+
+        $d['kavling'] = $this->kavlingModel
+        ->select('
+                perintah_bangun,
+                perintah_bangun_tgl,
+                perintah_bangun_file,
+                username,
+                kavling.id_tipe,
+                pajak.pph42_id_billing,
+                pajak.pph42_ntpn,
+                pajak.pph42_nilai,
+                pajak.pph42_tgl_bayar
+            ')
+        ->join('users', 'users.id = kavling.perintah_bangun_oleh', 'left')
+        ->join('pajak', 'pajak.id_mkdt = kavling.id_mkdt', 'left')
+        ->where('id_kavling', $id_kavling)
+        ->first();
 
         $id_hargajual = $this->request->getVar('id_hargajual');
         $d['pricelist'] = null;
@@ -815,6 +877,7 @@ class Siteplan extends BaseController
                     break;
             }
         }
+
         $d['total_um'] = $tg_um;
         $d['total_um_ll'] = $tg_um_ll;
         $d['total_bb'] = $tg_bb;
@@ -824,7 +887,6 @@ class Siteplan extends BaseController
             ->select('log_pembayaran.nominal,  log_pembayaran.payment_type')
             ->where('log_pembayaran.id_mkdt', $id_mkdt)
             ->get()->getResult();
-
 
         $sb_um = 0;
         $sb_um_ll = 0;
@@ -858,18 +920,32 @@ class Siteplan extends BaseController
         $d['ku'] = (count($ku) > 0) ? $ku[0] : null;
 
         $d['legal'] = $this->legalModel
-            ->select("legal.*, username")
+            ->select("legal.*, a.username as uadd_by, ,b.username as uedit_by")
             ->where('id_legal', $this->request->getVar('id_legal'))
-            ->join('users', 'users.id = legal.edit_by')
+            ->join('users a', 'a.id = legal.add_by', 'left')
+            ->join('users b', 'b.id = legal.edit_by', 'left')
             ->first();
 
         $d['produksi'] = $this->produksiModel
-            ->select("produksi.*, username")
-            ->where('id_produksi', $this->request->getVar('id_produksi'))
-            ->join('users', 'users.id = produksi.edit_by')
+                ->select('
+                produksi.*, 
+                a.username as tanggal_pembangunan_oleh_u,
+                b.username as tanggal_pembangunan_diubah_oleh_u,
+                c.username as tanggal_selesai_pembangunan_diubah_oleh_u,
+                sumurbor,
+                sumurbor_tanggal,
+                sumurbor_keterangan,
+                d.username as sumurbor_oleh_u
+                ')
+            ->where('id_kavling', $id_kavling)
+            ->join('users as a', 'a.id = produksi.tanggal_pembangunan_oleh', 'left')
+            ->join('users as b', 'b.id = produksi.tanggal_pembangunan_diubah_oleh', 'left')
+            ->join('users as c', 'c.id = produksi.tanggal_selesai_pembangunan_diubah_oleh', 'left')
+            ->join('kavling', 'kavling.id_produksi = produksi.id_produksi', 'left')
+            ->join('users as d', 'd.id = kavling.sumurbor_oleh', 'left')
             ->first();
 
-        $id_kavling = $this->request->getVar('id_kavling');
+
         $files = [];
         if ($id_kavling) {
             $files = $this->db->table('file_produksi')
@@ -880,8 +956,392 @@ class Siteplan extends BaseController
         }
         $d['files'] = $files;
 
+        $gambar = $this->db->table('gambar_kerja')
+        ->select('id_gambar_tipe, id_gambar_denah')
+        ->where('id_tipe', $d['kavling']->id_tipe);
+
+
+
+        //get pph ppn bukti bayar
+       $q = '
+    		(SELECT 
+    			file_upload.*,
+    			c.username as uupload_by
+    			FROM `file_upload`
+    			left join users  as c on file_upload.upload_by = c.id
+    			WHERE `id_kavling` = ' . $id_kavling . '
+    			AND `id_group` = 10
+    			AND `kategori` = 9
+    			ORDER BY `upload_at` DESC
+    			LIMIT 1 )
+    		UNION ALL
+    		( SELECT 
+    			file_upload.*,
+    			c.username as uupload_by
+    			FROM `file_upload`
+    			left join users  as c on file_upload.upload_by = c.id
+    			WHERE `id_kavling` = ' . $id_kavling . '
+    			AND `id_group` = 10
+    			AND `kategori` = 10
+    			ORDER BY `upload_at` DESC
+    			LIMIT 1)
+    		';
+
+    		// Query pertama untuk kategori 9
+
+    		// Menggabungkan kedua query dengan UNION ALL
+    		$query = $this->db->query($q);
+
+    		// Menjalankan query dan mendapatkan hasil
+    		$d['file_pph'] = $query->getResult();
+
+
+    		//load file ppn
+    		$q = '
+    		(SELECT 
+    			file_upload.*,
+    			c.username as uupload_by
+    			FROM `file_upload`
+    			left join users  as c on file_upload.upload_by = c.id
+
+    			WHERE `id_kavling` = ' . $id_kavling . '
+    			AND `id_group` = 10
+    			AND `kategori` = 11
+    			ORDER BY `upload_at` DESC
+    			LIMIT 1 )
+    		UNION ALL
+    		( SELECT 
+    			file_upload.*,
+    			c.username as uupload_by
+    			FROM `file_upload`
+    			left join users  as c on file_upload.upload_by = c.id
+    			WHERE `id_kavling` = ' . $id_kavling . '
+    			AND `id_group` = 10
+    			AND `kategori` = 12
+    			ORDER BY `upload_at` DESC
+    			LIMIT 1)
+    			UNION ALL
+    		( SELECT 
+    			file_upload.*,
+    			c.username as uupload_by
+    			FROM `file_upload`
+    			left join users  as c on file_upload.upload_by = c.id
+    			WHERE `id_kavling` = ' . $id_kavling . '
+    			AND `id_group` = 10
+    			AND `kategori` = 13
+    			ORDER BY `upload_at` DESC
+    			LIMIT 1)
+    		';
+
+    		// Query pertama untuk kategori 9
+
+    		// Menggabungkan kedua query dengan UNION ALL
+    		$query = $this->db->query($q);
+
+    		// Menjalankan query dan mendapatkan hasil
+    		$d['file_ppn'] = $query->getResult();
+
+
+            $d['cashout'] =  $this->db->table('list_cashout lc')
+            ->select('lc.id as id_cashout, lc.item, lc.sort, c.*, u.username as add_by_u, e.username as edit_by_u')
+            ->join('cashout c', 'c.id_item_cashout = lc.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
+            ->join('users u', 'u.id = c.add_by', 'left')
+            ->join('users e', 'e.id = c.edit_by', 'left')
+            ->get()->getResult();
+
+            $d['bayar_produksi'] =  $this->db->table('list_bayar_produksi lc')
+            ->select('lc.id as id_bayar_produksi, lc.item, lc.sort, c.*, u.username as add_by_u, e.username as edit_by_u')
+            ->join('bayar_produksi c', 'c.id_item_produksi = lc.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
+            ->join('users u', 'u.id = c.add_by', 'left')
+            ->join('users e', 'e.id = c.edit_by', 'left')
+            ->get()->getResult();
+
+            $d['si'] = $this->db->table('list_si')
+            ->select('si.*, list_si.nama')
+            ->join('si', 'list_si.id = si.id_list_si and si.id_kavling = '.$id_kavling, 'left')
+            ->get()->getResult();
+
         $d['status'] = true;
 
         return $this->response->setJSON($d);
     }
+
+
+    // ini adalah fungsi untuk refaktor fungsi get_detail() karna terlalu berat
+    // function get_detail()
+    // {
+    //     $d['token'] = csrf_hash();
+    //     $id_mkdt = $this->request->getVar('id_mkdt');
+    //     $id_kavling = $this->request->getVar('id_kavling');
+    //     $id_hargajual = $this->request->getVar('id_hargajual');
+    //     $id_legal = $this->request->getVar('id_legal');
+
+    //     // Single comprehensive query to get main data
+    //     $mainQuery = $this->db->table('mkdt')
+    //         ->select('
+    //         mkdt.*,
+    //         konsumen.nama_konsumen,
+    //         konsumen.nik as nik_konsumen,
+    //         konsumen.hp_konsumen,
+    //         konsumen.alamat_konsumen,
+    //         konsumen.status_konsumen,
+    //         konsumen.no_spptb,
+    //         konsumen.npwp,
+    //         konsumen.sales,
+    //         konsumen.file_npwp,
+    //         konsumen.file_ktp,
+    //         konsumen.file_data_diri,
+    //         users.username,
+            
+    //         kavling.perintah_bangun,
+    //         kavling.perintah_bangun_tgl,
+    //         kavling.perintah_bangun_file,
+    //         kavling.id_tipe,
+    //         kavling_users.username as perintah_bangun_username,
+            
+    //         pajak.pph42_id_billing,
+    //         pajak.pph42_ntpn,
+    //         pajak.pph42_nilai,
+    //         pajak.pph42_tgl_bayar,
+            
+    //         produksi.id_produksi,
+    //         produksi.tanggal_pembangunan_oleh,
+    //         produksi.tanggal_pembangunan_diubah_oleh,
+    //         produksi.tanggal_selesai_pembangunan_diubah_oleh,
+    //         produksi_user_a.username as tanggal_pembangunan_oleh_u,
+    //         produksi_user_b.username as tanggal_pembangunan_diubah_oleh_u,
+    //         produksi_user_c.username as tanggal_selesai_pembangunan_diubah_oleh_u,
+            
+    //         kavling.sumurbor,
+    //         kavling.sumurbor_tanggal,
+    //         kavling.sumurbor_keterangan,
+    //         sumurbor_user.username as sumurbor_oleh_u
+    //     ')
+    //         ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
+    //         ->join('users', 'users.id = mkdt.edit_by')
+    //         ->join('kavling', 'kavling.id_mkdt = mkdt.id_mkdt', 'left')
+    //         ->join('users as kavling_users', 'kavling_users.id = kavling.perintah_bangun_oleh', 'left')
+    //         ->join('pajak', 'pajak.id_mkdt = mkdt.id_mkdt', 'left')
+    //         ->join('produksi', 'produksi.id_produksi = kavling.id_produksi', 'left')
+    //         ->join('users as produksi_user_a', 'produksi_user_a.id = produksi.tanggal_pembangunan_oleh', 'left')
+    //         ->join('users as produksi_user_b', 'produksi_user_b.id = produksi.tanggal_pembangunan_diubah_oleh', 'left')
+    //         ->join('users as produksi_user_c', 'produksi_user_c.id = produksi.tanggal_selesai_pembangunan_diubah_oleh', 'left')
+    //         ->join('users as sumurbor_user', 'sumurbor_user.id = kavling.sumurbor_oleh', 'left')
+    //         ->where('mkdt.id_mkdt', $id_mkdt);
+
+    //     if ($id_kavling) {
+    //         $mainQuery->where('kavling.id_kavling', $id_kavling);
+    //     }
+
+    //     $mainData = $mainQuery->get()->getRow();
+
+    //     if (!$mainData) {
+    //         return $this->response->setJSON(['status' => false, 'message' => 'Data not found']);
+    //     }
+
+    //     // Separate mkdt and kavling data
+    //     $d['mkdt'] = (object)[
+    //         'id_mkdt' => $mainData->id_mkdt,
+    //         'id_konsumen' => $mainData->id_konsumen,
+    //         'nama_konsumen' => $mainData->nama_konsumen,
+    //         'nik_konsumen' => $mainData->nik_konsumen,
+    //         'hp_konsumen' => $mainData->hp_konsumen,
+    //         'alamat_konsumen' => $mainData->alamat_konsumen,
+    //         'status_konsumen' => $mainData->status_konsumen,
+    //         'no_spptb' => $mainData->no_spptb,
+    //         'npwp' => $mainData->npwp,
+    //         'sales' => $mainData->sales,
+    //         'file_npwp' => $mainData->file_npwp,
+    //         'file_ktp' => $mainData->file_ktp,
+    //         'file_data_diri' => $mainData->file_data_diri,
+    //         'username' => $mainData->username
+    //     ];
+
+    //     $d['kavling'] = (object)[
+    //         'perintah_bangun' => $mainData->perintah_bangun,
+    //         'perintah_bangun_tgl' => $mainData->perintah_bangun_tgl,
+    //         'perintah_bangun_file' => $mainData->perintah_bangun_file,
+    //         'username' => $mainData->perintah_bangun_username,
+    //         'id_tipe' => $mainData->id_tipe,
+    //         'pph42_id_billing' => $mainData->pph42_id_billing,
+    //         'pph42_ntpn' => $mainData->pph42_ntpn,
+    //         'pph42_nilai' => $mainData->pph42_nilai,
+    //         'pph42_tgl_bayar' => $mainData->pph42_tgl_bayar
+    //     ];
+
+    //     $d['produksi'] = (object)[
+    //         'id_produksi' => $mainData->id_produksi,
+    //         'tanggal_pembangunan_oleh_u' => $mainData->tanggal_pembangunan_oleh_u,
+    //         'tanggal_pembangunan_diubah_oleh_u' => $mainData->tanggal_pembangunan_diubah_oleh_u,
+    //         'tanggal_selesai_pembangunan_diubah_oleh_u' => $mainData->tanggal_selesai_pembangunan_diubah_oleh_u,
+    //         'sumurbor' => $mainData->sumurbor,
+    //         'sumurbor_tanggal' => $mainData->sumurbor_tanggal,
+    //         'sumurbor_keterangan' => $mainData->sumurbor_keterangan,
+    //         'sumurbor_oleh_u' => $mainData->sumurbor_oleh_u
+    //     ];
+
+    //     // Get pricelist if needed
+    //     $d['pricelist'] = null;
+    //     if ($id_hargajual) {
+    //         $d['pricelist'] = $this->db->table('hargajual')
+    //             ->where('id', $id_hargajual)
+    //             ->get()
+    //             ->getRow();
+    //     }
+
+    //     // Get legal data if needed
+    //     $d['legal'] = null;
+    //     if ($id_legal) {
+    //         $d['legal'] = $this->db->table('legal')
+    //             ->select("legal.*, a.username as uadd_by, b.username as uedit_by")
+    //             ->join('users a', 'a.id = legal.add_by', 'left')
+    //             ->join('users b', 'b.id = legal.edit_by', 'left')
+    //             ->where('id_legal', $id_legal)
+    //             ->get()
+    //             ->getRow();
+    //     }
+
+    //     // Batch financial calculations
+    //     $financialData = $this->getFinancialSummary($id_mkdt);
+    //     $d = array_merge($d, $financialData);
+
+    //     // Get last payment user info
+    //     $d['ku'] = $this->db->table('log_pembayaran')
+    //         ->select('users.username, log_pembayaran.created_at')
+    //         ->join('users', 'users.id = log_pembayaran.add_by')
+    //         ->where('id_mkdt', $id_mkdt)
+    //         ->orderBy('log_pembayaran.created_at', 'desc')
+    //         ->limit(1)
+    //         ->get()
+    //         ->getRow();
+
+    //     // Get files if kavling exists
+    //     $d['files'] = [];
+    //     if ($id_kavling) {
+    //         $d['files'] = $this->db->table('file_produksi')
+    //             ->select('file_produksi.*, username')
+    //             ->join('users', 'file_produksi.upload_by = users.id')
+    //             ->where('id_kavling', $id_kavling)
+    //             ->get()
+    //             ->getResult();
+
+    //         // Get file uploads with optimized query
+    //         $d['file_pph'] = $this->getLatestFilesByCategories($id_kavling, [9, 10]);
+    //         $d['file_ppn'] = $this->getLatestFilesByCategories($id_kavling, [11, 12, 13]);
+
+    //         // Get cashout and bayar_produksi data
+    //         $d['cashout'] = $this->db->table('list_cashout lc')
+    //             ->select('lc.id as id_cashout, lc.item, lc.sort, c.*, u.username as add_by_u, e.username as edit_by_u')
+    //             ->join('cashout c', 'c.id_item_cashout = lc.id AND c.id_kavling = ' . $this->db->escape($id_kavling), 'left')
+    //             ->join('users u', 'u.id = c.add_by', 'left')
+    //             ->join('users e', 'e.id = c.edit_by', 'left')
+    //             ->get()
+    //             ->getResult();
+
+    //         $d['bayar_produksi'] = $this->db->table('list_bayar_produksi lc')
+    //             ->select('lc.id as id_bayar_produksi, lc.item, lc.sort, c.*, u.username as add_by_u, e.username as edit_by_u')
+    //             ->join('bayar_produksi c', 'c.id_item_produksi = lc.id AND c.id_kavling = ' . $this->db->escape($id_kavling), 'left')
+    //             ->join('users u', 'u.id = c.add_by', 'left')
+    //             ->join('users e', 'e.id = c.edit_by', 'left')
+    //             ->get()
+    //             ->getResult();
+    //     }
+
+    //     $d['status'] = true;
+    //     return $this->response->setJSON($d);
+    // }
+
+    // /**
+    //  * Get financial summary with optimized calculations
+    //  */
+    // private function getFinancialSummary($id_mkdt)
+    // {
+    //     // Get tagihan (bills) in single query
+    //     $tagihan = $this->db->table('keuangan')
+    //         ->select('status, berita_acara, nominal')
+    //         ->where('id_mkdt', $id_mkdt)
+    //         ->get()
+    //         ->getResult();
+
+    //     $tg_um = 0;
+    //     $tg_um_ll = 0;
+    //     $tg_bb = 0;
+
+    //     foreach ($tagihan as $v) {
+    //         switch ($v->status) {
+    //             case 'UM':
+    //                 if ($v->berita_acara == 'Uang Muka') {
+    //                     $tg_um += $v->nominal;
+    //                 } else {
+    //                     $tg_um_ll += $v->nominal;
+    //                 }
+    //                 break;
+    //             case 'BB':
+    //                 $tg_bb += $v->nominal;
+    //                 break;
+    //         }
+    //     }
+
+    //     // Get payments (sudah bayar) in single query
+    //     $payments = $this->db->table('log_pembayaran')
+    //         ->select('nominal, payment_type')
+    //         ->where('id_mkdt', $id_mkdt)
+    //         ->get()
+    //         ->getResult();
+
+    //     $sb_um = 0;
+    //     $sb_um_ll = 0;
+    //     $sb_bb = 0;
+
+    //     foreach ($payments as $v) {
+    //         if ($v->payment_type != 'Booking') {
+    //             $pt = explode(';', $v->payment_type);
+    //             if (in_array('Uang Muka', $pt)) {
+    //                 $sb_um += $v->nominal;
+    //             } elseif (in_array('BPHTB', $pt) || in_array('PPN', $pt) || in_array('Biaya Proses', $pt)) {
+    //                 $sb_bb += $v->nominal;
+    //             } else {
+    //                 $sb_um_ll += $v->nominal;
+    //             }
+    //         }
+    //     }
+
+    //     // Calculate sisa and adjust sb_um_ll
+    //     $sisa = $sb_um > $tg_um ? $sb_um - $tg_um : 0;
+    //     $sb_um_ll = $sisa > 0 ? $sb_um_ll + $sisa : $sb_um_ll;
+    //     $sb_um = $sisa > 0 ? $tg_um : $sb_um;
+
+    //     return [
+    //         'total_um' => $tg_um,
+    //         'total_um_ll' => $tg_um_ll,
+    //         'total_bb' => $tg_bb,
+    //         'sb_um' => $sb_um,
+    //         'sb_um_ll' => $sb_um_ll,
+    //         'sb_bb' => $sb_bb
+    //     ];
+    // }
+
+    // /**
+    //  * Get latest files by categories with single optimized query
+    //  */
+    // private function getLatestFilesByCategories($id_kavling, $categories)
+    // {
+    //     $categoryConditions = [];
+    //     foreach ($categories as $category) {
+    //         $categoryConditions[] = "
+    //         (SELECT 
+    //             file_upload.*,
+    //             users.username as uupload_by
+    //         FROM file_upload
+    //         LEFT JOIN users ON file_upload.upload_by = users.id
+    //         WHERE file_upload.id_kavling = {$id_kavling}
+    //             AND file_upload.id_group = 10
+    //             AND file_upload.kategori = {$category}
+    //         ORDER BY file_upload.upload_at DESC
+    //         LIMIT 1)";
+    //     }
+
+    //     $query = implode(' UNION ALL ', $categoryConditions);
+    //     return $this->db->query($query)->getResult();
+    // }
 }

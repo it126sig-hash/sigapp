@@ -155,6 +155,7 @@ class Pengguna extends BaseController
         $k = $this->karyawanModel->where('nik', $this->request->getPost('nik'))->first();
 
         $this->validation->setRules([
+            'id' => ['label' => 'ID', 'rules' => 'permit_empty|max_length[255]'],
             'username' => [
                 'rules' => $u,
                 'errors' => [

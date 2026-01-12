@@ -24,6 +24,7 @@ class MkdtModel extends Model {
 		'file_surat_batal',
 		'status_mkdt', 
 		'booking_paid', 
+		'notaris',
 		'booking_tgl', 
 		'tgl_harga', 
 		'id_hargajual', 
@@ -81,8 +82,10 @@ class MkdtModel extends Model {
 		'refund_keterangan',
 		'id_cair',
 		'bank',
+		'id_bank',
 		'file_spptb',
 		'file_surat_kuasa',
+		'dajam_selesai',
 		'promo'
 	];
 	protected $useTimestamps = true;

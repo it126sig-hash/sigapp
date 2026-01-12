@@ -23,25 +23,31 @@ class Legal extends BaseController
     {
         $id_legal = $this->request->getVar('id_legal');
         $id_kavling = $this->request->getVar('id_kavling');
+        
+        $r = (object)[];
+        $r->token = csrf_hash();
         if ($id_legal) {
             $r = $this->legalModel
                 ->where('id_legal', $id_legal)
                 ->first();
-
-            $r->data = $this->db->table('kavling')
-                    ->select('
-                        konsumen.nama_konsumen,
-                        mkdt.harga_bphtb
-                    ')
-                    ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left')
-                    ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
-                    ->where('kavling.id_kavling', $id_kavling)
-                    ->get()->getRow()
-                    ;
             $r->token = csrf_hash();
-        } else {
-            $r['token'] = csrf_hash();
-        }
+        } 
+        $r->data = $this->db->table('kavling')
+        ->select('
+            konsumen.nama_konsumen,
+            mkdt.harga_bphtb,
+            pajak.pph42_id_billing,
+            pajak.pph42_ntpn,
+            pajak.pph42_nilai,
+            pajak.pph42_tgl_bayar
+        ')
+        ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left')
+        ->join('pajak', 'pajak.id_mkdt = mkdt.id_mkdt', 'left')
+        ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
+        ->where('kavling.id_kavling', $id_kavling)
+        ->get()->getRow()
+        ;
+
         return $this->response->setJSON($r);
     }
 
@@ -69,6 +75,11 @@ class Legal extends BaseController
         // $f['pph'] = $this->request->getPost('pph');
         // $f['akad_tgl'] = $this->request->getPost('legal_akad_tgl');
         // $f['keterangan'] = $this->request->getPost('legal_keterangan');
+
+        $f['data']['pbb_pecah_jumlah_tagihan'] = $this->num($f['data']['pbb_pecah_jumlah_tagihan']);
+        $f['data']['pbb_pecah_njop_bumi'] = $this->num($f['data']['pbb_pecah_njop_bumi']);
+        $f['data']['pbb_pecah_njop_bangunan'] = $this->num($f['data']['pbb_pecah_njop_bangunan']);
+
 
         if ($f['data']['id_legal'] == null) {
             $f['data']['add_by'] = user_id();
@@ -132,6 +143,7 @@ class Legal extends BaseController
             ')
             ->join("users as u", "u.id = file_upload.upload_by", "left")
             ->where('id_kavling', $this->request->getVar('id_kavling'))
+            ->where('id_group', 5)
             ->get()->getResult();
         return $this->response->setJSON($r);
     }
@@ -139,8 +151,9 @@ class Legal extends BaseController
         $r = array();
 		$r['token'] = csrf_hash();
 
+        $f['id_group'] = 5;
         $f['id_kavling'] = $this->request->getPost('id_kavling');
-        $f['kategori'] = $this->request->getPost('kategori');
+        $f['kategori'] = $this->request->getPost('fl-kategori');
         $f['file_name'] = $this->request->getPost('fl-file_name');
         $f['keterangan'] = $this->request->getPost('fl-keterangan');
 
@@ -220,9 +233,13 @@ class Legal extends BaseController
              
              konsumen.nama_konsumen,
              konsumen.hp_konsumen,
-             mkdt.akad_tgl
+             mkdt.akad_tgl,
+            c.username as uadd_by,
+            d.username as uedit_by,
          ')
             ->join('legal', "kavling.id_legal = legal.id_legal")
+            ->join('users c', "c.id = legal.add_by", 'left')
+            ->join('users d', "c.id = legal.edit_by", 'left')
             ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
             ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
             ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left')
@@ -264,9 +281,11 @@ class Legal extends BaseController
                 
                 konsumen.nama_konsumen,
                 konsumen.hp_konsumen,
-                mkdt.akad_tgl
+                mkdt.akad_tgl,
+              
             ')
             ->join('legal', "kavling.id_legal = legal.id_legal")
+           
             ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
             ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
             ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left')
@@ -313,28 +332,49 @@ class Legal extends BaseController
                 $v->nama_jalan,
                 $v->no_kavling,
                 $v->tipe_rumah,
-                $v->nama_konsumen,
                 // $v->hp_konsumen,
 
-                $v->sertifikat_no_hgb,
-                $v->sertifikat_no_split,
-                $this->format_tgl($v->sertifikat_tgl),
-                $this->format_tgl($v->sertifikat_masa_berlaku),
-
-                $this->format_tgl($v->imb_tgl),
-                $v->imb_no_induk,
-                $v->imb_no_split,
-
-                $v->nop_pbb,
-                $this->format_tgl($v->bphtb_tgl),
-                $this->format_tgl($v->bphtb_masa_berlaku),
-                $this->format_tgl($v->bphtb_validasi),
+                $v->sertifikat_split_no_hgb_induk,
+                $v->sertifikat_split_no_hgb,
+                $v->sertifikat_split_nib,
+                $v->sertifikat_is_balik_nama,
                 
-                number_format($v->pph),
+                
+                $v->pbb_pecah_nop,
+                
 
-                $this->format_tgl($v->akad_tgl),
+                $this->format_tgl($v->bphtb_tanggal_verifikasi),
+                $this->format_tgl($v->bphtb_tanggal_validasi),
+                
 
-                $v->keterangan,
+                $v->pbg_no,
+
+                $this->format_tgl($v->pph_tgl_permohonan),
+
+
+                
+                $v->ajb_no,
+                $v->ppjb_no,
+                
+                $v->nama_konsumen,
+
+                // $this->format_tgl($v->sertifikat_tgl),
+                // $this->format_tgl($v->sertifikat_masa_berlaku),
+
+                // $this->format_tgl($v->imb_tgl),
+                // $v->imb_no_induk,
+                // $v->imb_no_split,
+
+                // $v->nop_pbb,
+                // $this->format_tgl($v->bphtb_tgl),
+                // $this->format_tgl($v->bphtb_masa_berlaku),
+                // $this->format_tgl($v->bphtb_validasi),
+                
+                // number_format($v->pph),
+
+                // $this->format_tgl($v->akad_tgl),
+
+                // $v->keterangan,
 
                 
                 // number_format($v->harga_diskon),
@@ -346,10 +386,8 @@ class Legal extends BaseController
                 // $this->format_tgl($v->sp3k_tgl),
                 // $this->format_tgl($v->rencana_akad_tgl),
                 // $this->is_active($v->akad, "Sudah", "Belum"),
-                $v->add_by,
-                $this->format_tgl($v->created_at),
-                $v->edit_by,
-                $this->format_tgl($v->updated_at),
+                $v->uadd_by . "<br>" .$this->format_tgl($v->created_at),
+                $v->uedit_by. "<br>" . $this->format_tgl($v->updated_at),
                 $ops
             );
         }
@@ -417,5 +455,13 @@ class Legal extends BaseController
         $r = '<span class="badge badge-pill badge-light-danger" text-capitalized="">' . $textf . '</span>';
         if ($id == "1") $r = '<span class="badge badge-pill badge-light-success" text-capitalized="">' . $texts . '</span>';
         return $r;
+    }
+
+    protected function num($d)
+    {
+        $d = str_replace('.', "", $d);
+        $d = str_replace(',', "", $d);
+
+        return $d;
     }
 }

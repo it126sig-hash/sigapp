@@ -1,4 +1,3 @@
-
 /******************************** direksi ******************************************/
 
 
@@ -31,21 +30,21 @@ function open_diskresi() {
     $("#dir-username, #dir-diskresi_at").text("-")
 
     $.ajax({
-        url: base_url + "/direksi/get_data_by_id",
+        url: base_url + "direksi/get_data_by_id",
         type: "post",
         data: {
             [csrfName]: csrfHash,
             id_kavling: id_kavling,
         },
         dataType: "json",
-        beforeSend: function () {
+        beforeSend: function() {
             $("#loading").removeClass("hidden");
         },
-        success: function (x) {
+        success: function(x) {
             csrfHash = x.token;
             let r = x.data,
                 hj = x.harga_akhir
-                
+
 
             $("#dir-kavling_detail").val(`${dt_proyek.nama_proyek}\n${sh.data.nama_jalan}, No.${sh.data.no_kavling}\n${sh.data2.no_tipe_rumah} (${sh.data2.tipe_rumah})`)
 
@@ -69,10 +68,10 @@ function open_diskresi() {
                 keyboard: false,
             });
         },
-        error: function (xhr, st, err) {
+        error: function(xhr, st, err) {
             return swal("error", err);
         },
-        complete: function () {
+        complete: function() {
             $("#loading").addClass("hidden");
         }
     });
@@ -87,15 +86,15 @@ function save_diskresi() {
 
 
     $.ajax({
-        url: base_url + "/direksi/save",
+        url: base_url + "direksi/save",
         type: "post",
         data: $("#fm-diskresi").serialize() + "&" + csrfName + "=" + csrfHash,
 
         dataType: "json",
-        beforeSend: function () {
+        beforeSend: function() {
             simpanBtn("#btn-save_diskresi", true, "Menyimpan", "Menyimpan <i class='fa fa-spinner fa-spin'></i>")
         },
-        success: function (r) {
+        success: function(r) {
             csrfHash = r.token;
 
             if (r.success === true) {
@@ -119,10 +118,10 @@ function save_diskresi() {
             load_kavling();
             hapus_seleksi();
         },
-        error: function (xhr, st, err) {
+        error: function(xhr, st, err) {
             return swal("error", err);
         },
-        complete: function () {
+        complete: function() {
             simpanBtn("#btn-save_diskresi", false, "Simpan", "Simpan")
         }
     });

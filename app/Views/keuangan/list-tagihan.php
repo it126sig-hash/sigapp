@@ -9,6 +9,19 @@
   var csrfName = '<?= csrf_token() ?>';
   var csrfHash = '<?= csrf_hash() ?>';
 </script>
+<style>
+  table,
+  tr {
+    vertical-align: middle !important;
+    /* text-align: center !important; */
+    font-size: 10px;
+  }
+
+  tr.bbb{
+    text-align: right !important;
+    
+  }
+</style>
 <!-- /.card-header -->
 <div class="app-content content ">
   <div class="content-overlay"></div>
@@ -44,47 +57,47 @@
             <table id="data_table" class="datatables-basic table compact">
               <thead>
                 <tr>
-                  <th>No</th>
+                  <th id="no">No</th>
 
-                  <th>Total</th>
-                  <th>Sudah Bayar</th>
-                  <th>Sisa</th>
-                  <th>Persentase</th>
+                  <th class="bbb" id="total">Total</th>
+                  <th class="bbb"id="sudah_bayar">Sudah Bayar</th>
+                  <th class="bbb"id="sisa">Sisa</th>
+                  <th id="persentase">Persentase</th>
 
-                  <th>Jatuh Tempo</th>
+                  <th id="jatuh_tempo">Jatuh Tempo</th>
 
-                  <th>Blok</th>
-                  <th>No</th>
-                  <th>Tipe</th>
-                  <th>Nama Konsumen</th>
-                  <th>Kontak</th>
-                  <th>Progres Bangunan</th>
-                  <th>Tanggal Booking</th>
+                  <th id="blok">Blok</th>
+                  <th id="no_blok">No</th>
+                  <th id="tipe">Tipe</th>
+                  <th id="nama_konsumen">Nama Konsumen</th>
+                  <th id="kontak">Kontak</th>
+                  <th id="progres_bangunan">Progres Bangunan</th>
+                  <th id="tanggal_booking">Tanggal Booking</th>
 
-                  <th>Booking Fee</th>
-                  <th>Harga Jual</th>
-                  <th>KPR</th>
-                  <th>Penambahan Biaya</th>
-                  <th>ADM</th>
-                  <th>PPN</th>
-                  <th>BPHTB</th>
-                  <th>Biaya Proses</th>
-                  <th>Diskon</th>                 
+                  <th id="booking_fee">Booking Fee</th>
+                  <th id="harga_jual">Harga Jual</th>
+                  <th id="kpr">KPR</th>
+                  <th id="penambahan_biaya">Penambahan Biaya</th>
+                  <th id="adm">ADM</th>
+                  <th id="ppn">PPN</th>
+                  <th id="bphtb">BPHTB</th>
+                  <th id="biaya_proses">Biaya Proses</th>
+                  <th id="diskon">Diskon</th>
 
-                  <th>Wawancara</th>
-                  <th>Tanggal Wawancara</th>
+                  <th id="wawancara">Wawancara</th>
+                  <th id="tanggal_wawancara">Tanggal Wawancara</th>
 
-                  <th>SP3K</th>
-                  <th>Tanggal SP3K</th>
+                  <th id="sp3k">SP3K</th>
+                  <th id="tanggal_sp3k">Tanggal SP3K</th>
 
-                  <th>Rencana Akad</th>
-                  <th>Akad</th>
-                  <th>Tanggal Akad</th>
+                  <th id="rencana_akad">Rencana Akad</th>
+                  <th id="akad">Akad</th>
+                  <th id="tanggal_akad">Tanggal Akad</th>
 
-                  <th>Created At</th>
-                  <th>Created By</th>
-                  <th>Updated At</th>
-                  <th>Updated By</th>
+                  <th id="created_at">Created At</th>
+                  <th id="created_by">Created By</th>
+                  <th id="updated_at">Updated At</th>
+                  <th id="updated_by">Updated By</th>
 
                   <th></th>
                 </tr>
@@ -160,15 +173,13 @@
 <!-- <script type="text/javascript" src="https://cdn.datatables.net/fixedcolumns/3.2.1/js/dataTables.fixedColumns.min.js"></script> -->
 <!-- <script src="https://adminlte.io/themes/v3/plugins/jquery-validation/additional-methods.min.js"></script> -->
 <script>
-
-
   $(function() {
     var table = $('#data_table').DataTable({
       fnDrawCallback: function() {
         $('[data-toggle="popover"]').popover();
       },
       columnDefs: [{
-        'targets': [1,2,3,4],
+        'targets': [1, 2, 3, 4],
         'createdCell': function(td, cellData, rowData, row, col) {
           $(td).attr('data-toggle', 'popover');
           $(td).attr('data-placement', 'top');
@@ -350,105 +361,119 @@
     $(".select2-selection__arrow").removeClass("select2-selection__arrow")
 
   });
- 
-  $('thead > tr> th:nth-child(1)').css({
+
+
+  $('#no').css({
     'min-width': '50px',
     'max-width': '50px'
   });
-  $('thead > tr> th:nth-child(2)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(3)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(4)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(5)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(6)').css({
-    'min-width': '250px',
-    'max-width': '250px'
-  });
-  $('thead > tr> th:nth-child(7)').css({
-    'min-width': '50px',
-    'max-width': '50px'
-  });
-  $('thead > tr> th:nth-child(8)').css({
-    'min-width': '70px',
-    'max-width': '70px'
-  });
-  $('thead > tr> th:nth-child(9)').css({
-    'min-width': '250px',
-    'max-width': '2500px'
-  });
-  $('thead > tr> th:nth-child(10)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(11)').css({
+  $('.bbb').css({
     'min-width': '80px',
     'max-width': '80px'
   });
-  $('thead > tr> th:nth-child(12)').css({
-    'min-width': '150px',
-    'max-width': '150px'
+  $('#blok').css({
+    'min-width': '170px',
+    'max-width': '170px'
   });
-  $('thead > tr> th:nth-child(13)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(14)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(15)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(16)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(17)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(18)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(19)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(20)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(21)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(22)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(23)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(24)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(25)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
+
+  // $('thead > tr> th:nth-child(1)').css({
+  //   'min-width': '50px',
+  //   'max-width': '50px'
+  // });
+  // $('thead > tr> th:nth-child(2)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(3)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(4)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(5)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(6)').css({
+  //   'min-width': '250px',
+  //   'max-width': '250px'
+  // });
+  // $('thead > tr> th:nth-child(7)').css({
+  //   'min-width': '50px',
+  //   'max-width': '50px'
+  // });
+  // $('thead > tr> th:nth-child(8)').css({
+  //   'min-width': '70px',
+  //   'max-width': '70px'
+  // });
+  // $('thead > tr> th:nth-child(9)').css({
+  //   'min-width': '250px',
+  //   'max-width': '2500px'
+  // });
+  // $('thead > tr> th:nth-child(10)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(11)').css({
+  //   'min-width': '80px',
+  //   'max-width': '80px'
+  // });
+  // $('thead > tr> th:nth-child(12)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(13)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(14)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(15)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(16)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(17)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(18)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(19)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(20)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(21)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(22)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(23)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(24)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(25)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
 </script>

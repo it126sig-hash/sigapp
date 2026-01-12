@@ -11,7 +11,7 @@ use CodeIgniter\HTTP\Response;
 use App\Models\ProfilePerusahaanModel;
 use Exception;
 
-use App\Libraries\Pdf;
+// use App\Libraries\Pdf;
 use App\Libraries\Mpdf_lib;
 
 class Keuangan extends BaseController
@@ -24,7 +24,6 @@ class Keuangan extends BaseController
     protected $comproModel;
     protected $lpModel;
     protected $notif;
-    protected $pdf;
     protected $mpdf;
 
     public function __construct()
@@ -37,7 +36,7 @@ class Keuangan extends BaseController
         $this->lpModel = new LogPembayaranModel();
         $this->comproModel = new ProfilePerusahaanModel();
         $this->db = db_connect();
-        $this->pdf = new Pdf();
+        // $this->pdf = new Pdf();
         $this->mpdf = new Mpdf_lib();
     }
     function getDanaAkad()
@@ -50,7 +49,7 @@ class Keuangan extends BaseController
         $r['id_kavling'] = $id_kavling;
 
         $r['mkdt'] = $this->db->table('mkdt')
-            ->select('harga_kpr_acc')
+            ->select('harga_kpr_acc, dajam_selesai')
             ->where(['id_mkdt' => $id_mkdt])
             ->get()->getResult()[0];
 
@@ -63,26 +62,106 @@ class Keuangan extends BaseController
 
         return $this->response->setJSON($r);
     }
+    function getCashOut()
+    {
+        $r['token'] = csrf_hash();
+
+        $id_kavling = $this->request->getVar('id_kavling');
+
+        $r['id_kavling'] = $id_kavling;
+
+
+        $r['list_cashout'] = $this->db->table('list_cashout lc')
+            ->select('lc.id as id_cashout, lc.item, lc.sort, c.*, u.username as add_by_u, e.username as edit_by_u')
+            ->join('cashout c', 'c.id_item_cashout = lc.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
+            ->join('users u', 'u.id = c.add_by', 'left')
+            ->join('users e', 'e.id = c.edit_by', 'left')
+            ->get()->getResult();
+
+        return $this->response->setJSON($r);
+    }
+    function saveCashOut()
+    {
+        $response['token'] = csrf_hash();
+        $id_cashout = $this->request->getVar('id-cashout');
+        $id_kavling = $this->request->getVar('id_kavling');
+
+        foreach ($id_cashout as $i => $v) {
+            $data = [];
+            
+            $data['id_kavling'] = $id_kavling;
+
+
+            $s = false;
+
+          
+              
+            if ($v['nominal'] != "" && $v['tanggal_bayar'] != "") {
+                if (strpos($i, 'n') === false) {
+                    // $data['id_item_cashout'] = $v['id_item_cashout'];
+                    $data['nominal'] = $this->num($v['nominal']);
+                    $data['keterangan'] = $v['keterangan'];
+                    $data['tanggal_bayar'] = $v['tanggal_bayar'];
+
+                    $data['edit_by'] = user_id();
+                    $data['updated_at'] = date("Y-m-d H:i:s");
+
+                    // $data['id'] = $i;
+                    $q = $this->db->table('cashout')
+                        ->where(['id' => $i])
+                        ->update($data);
+                    
+                        $s = $q ;
+                } else {
+                    $data['id_item_cashout'] = substr($v['id_item_cashout'], 1);
+                    $data['nominal'] = $this->num($v['nominal']);
+                    $data['keterangan'] = $v['keterangan'];
+                    $data['tanggal_bayar'] = $v['tanggal_bayar'];
+
+                    $data['id'] = null;
+                    $data['add_by'] = user_id();
+                    $data['created_at'] = date("Y-m-d H:i:s");
+                    
+                    $q = $this->db->table('cashout')
+                        ->insert($data);
+                    
+                    $s = $q;
+                }
+            }
+            
+        }
+     
+        // if ($s) {
+            $response['success'] = true;
+            $response['messages'] = 'Data berhasil diperbaharui';
+        // } else {
+        //     $response['success'] = false;
+        //     $response['messages'] = 'Terjadi kesalahan saat melakukan perubahan data';
+        // }
+        return $this->response->setJSON($response);
+    }
     function saveDanaAkad()
     {
         $response['token'] = csrf_hash();
 
-        $id = $this->request->getVar('id_dana_cair');
+        // $id = $this->request->getVar('id_dana_cair');
         $id_mkdt = $this->request->getVar('id_mkdt');
 
-        $sudah_cair = ($this->request->getVar('dana_akad_cair') == 1) ? 1 : 0;
+        // $sudah_cair = ($this->request->getVar('dana_akad_cair') == 1) ? 1 : 0;
 
-        $id_list_dajam = $this->request->getVar('id_list_dajam');
-        $nominal = $this->request->getVar('nominal');
+        // $id_list_dajam = $this->request->getVar('id_list_dajam');
+        // $nominal = $this->request->getVar('nominal');
         $id_dajam = $this->request->getVar('id_dajam');
 
 
         $data['id_kavling'] = $this->request->getVar('id_kavling');
+        $dajam_selesai = $this->request->getVar('dajam_selesai') ?? 0;
 
-
+        $this->mkdtModel->update( $id_mkdt, ['dajam_selesai' => $dajam_selesai]);
+      
         // $s = false;
         // echo "<pre>";
-        // print_r($id_dajam);
+        // echo $dajam_selesai;
         // echo "</pre>";
 
         // die();
@@ -91,6 +170,7 @@ class Keuangan extends BaseController
         foreach ($id_dajam as $i => $v) {
             $data['id_list_dajam'] = $v['id_list_dajam'];
             $data['nominal'] = $this->num($v['nominal']);
+            
 
             $s = false;
 
@@ -150,7 +230,8 @@ class Keuangan extends BaseController
         }
         return $this->response->setJSON($response);
     }
-    function get_riwayat_gantinama(){
+    function get_riwayat_gantinama()
+    {
         $id_mkdt = $this->request->getVar('id_mkdt');
         $r['token'] = csrf_hash();
         if ($id_mkdt) {
@@ -158,8 +239,7 @@ class Keuangan extends BaseController
                 ->select('file_spptb')
                 ->where("is_ganti_nama = 'Ganti Nama'")
                 ->where("uniq_id = (select uniq_id from mkdt where id_mkdt = $id_mkdt and is_ganti_nama = 'Normal')")
-                ->get()->getResult()
-                ;
+                ->get()->getResult();
             $r['riwayat'] = $x;
         }
         $response['success'] = true;
@@ -271,8 +351,6 @@ class Keuangan extends BaseController
                     ->where('id_mkdt', $x->id_mkdt)
                     ->limit(3)
                     ->get()->getResult();
-                
-
             } else {
                 $r['data'] = null;
                 $r['token'] = csrf_hash();
@@ -357,8 +435,6 @@ class Keuangan extends BaseController
                 ->orderBy('tanggal_bayar', 'asc')
                 // ->notLike('log_pembayaran.keterangan', 'Booking')
                 ->find();
-
-
         }
         return $this->response->setJSON($r);
     }
@@ -505,7 +581,7 @@ class Keuangan extends BaseController
         // $f2['keterangan_penambahan_biaya'] = $this->num($this->request->getPost('mk-keterangan_harga_penambahan'));
 
         $f2['promo'] = $this->request->getPost('promo');
-        
+
         $f2['rincian'] = $this->request->getPost('rincian');
         $f2['jenis_subsidi'] = $this->request->getPost('jenis_subsidi');
 
@@ -514,7 +590,7 @@ class Keuangan extends BaseController
 
         $f2['booking_fee'] = $this->num($this->request->getPost('dt-booking_fee'));
         $f2['booking_tgl'] = $this->request->getPost('dt-booking_tgl');
-        
+
         $f2['keuangan_saved_by'] = user_id();
 
         $f2['id_kavling'] = $id_kavling;
@@ -523,20 +599,18 @@ class Keuangan extends BaseController
         if ($f2['id_mkdt'] == null) {
             $f2['add_by'] = user_id();
             $f2['edit_by'] = user_id();
-            
-            
+
+
             if ($is_ganti_nama == "Ganti Nama") {
                 $uniqid = $this->db->table('mkdt')->select('uniq_id')->where('id_mkdt', $id_mkdt_old)->get()->getRow()->uniq_id;
-                $this->mkdtModel->update($id_mkdt_old,['is_ganti_nama' => $is_ganti_nama]);
+                $this->mkdtModel->update($id_mkdt_old, ['is_ganti_nama' => $is_ganti_nama]);
 
-                $this->konsumenModel->update($id_konsumen_old,['status' => $is_ganti_nama, 'uniq_id' => $uniqid]);
-            }
-            else if($is_ganti_nama == "Ganti Kavling"){
+                $this->konsumenModel->update($id_konsumen_old, ['status' => $is_ganti_nama, 'uniq_id' => $uniqid]);
+            } else if ($is_ganti_nama == "Ganti Kavling") {
                 $uniqid = $this->db->table('mkdt')->select('uniq_id')->where('id_mkdt', $id_mkdt_old)->get()->getRow()->uniq_id;
-                $this->mkdtModel->update($id_mkdt_old,['is_ganti_kavling' => $is_ganti_nama]);
+                $this->mkdtModel->update($id_mkdt_old, ['is_ganti_kavling' => $is_ganti_nama]);
 
-                $this->konsumenModel->update($id_konsumen_old,['status' => $is_ganti_nama, 'uniq_id' => $uniqid]);
-
+                $this->konsumenModel->update($id_konsumen_old, ['status' => $is_ganti_nama, 'uniq_id' => $uniqid]);
             }
 
             $f2['uniq_id'] = $uniqid;
@@ -575,7 +649,7 @@ class Keuangan extends BaseController
 
 
         //ubah status mkdt jadi ganti nama
-       
+
 
 
         ################################## insert ke tagihan ##########################
@@ -587,7 +661,7 @@ class Keuangan extends BaseController
 
         $id_keu_merge = [];
         $len = 0;
-        if ($this->request->getVar('berita_acara[]')) {
+        if (is_array($this->request->getVar('berita_acara[]'))) {
             //input detail tagihan ke table keuangan
             //um
             $len = count($this->request->getVar('berita_acara[]'));
@@ -599,7 +673,7 @@ class Keuangan extends BaseController
         }
 
         $len_bb = 0;
-        if ($this->request->getVar('berita_acara_bb[]')) {
+        if (is_array($this->request->getVar('berita_acara_bb[]'))) {
             //bb
             $len_bb = count($this->request->getVar('berita_acara_bb[]'));
             $idkeu_bb = $this->request->getVar('id_keuangan_bb[]');
@@ -891,32 +965,28 @@ class Keuangan extends BaseController
         $text_keu_bb = $this->request->getVar('text_bb');
 
         $id_keu = '';
-        if($id_keus){
-            foreach($id_keus as $id){
-                $id_keu .= $id .";";
+        if ($id_keus) {
+            foreach ($id_keus as $id) {
+                $id_keu .= $id . ";";
             }
         }
         $id_keu_bb = '';
-        if($id_keu_bbs){
-            foreach($id_keu_bbs as $id){
-                $id_keu_bb .= $id .";";
+        if ($id_keu_bbs) {
+            foreach ($id_keu_bbs as $id) {
+                $id_keu_bb .= $id . ";";
             }
         }
 
         // $response['id_keu'] = $text_keu;
         // $response['id_keu_bb'] = $text_keu_bb;
-        
+
         // return $this->response->setJSON($response);        
         // die();
 
 
         $e = $this->request->getVar('e');
 
-        $is_lunas = 0;
-
-        if ($this->request->getVar('cis_lunas') == "true") {
-            $is_lunas = 1;
-        }
+        $is_lunas = $this->request->getVar('is_lunas') ? 1 : 0;
 
         // $refund_paid = $this->request->getVar('refund_paid');
         $refund_paid = 1;
@@ -1020,7 +1090,7 @@ class Keuangan extends BaseController
                         "nominal" => $bayar_tagihan,
                         "payment_type" => $text_keu,
                         "tanggal_bayar" => $tanggal_bayar,
-                        "keterangan" => "(". $berita_acara. ") Pembayaran: " . $text_keu . " - " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
+                        "keterangan" => "(" . $berita_acara . ") Pembayaran: " . $text_keu . " - " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
                         "add_by" => user_id(),
                         "edit_by" => user_id()
                     );
@@ -1034,7 +1104,7 @@ class Keuangan extends BaseController
                         "nominal" => $bayar_tagihan_bb,
                         "payment_type" => $text_keu_bb,
                         "tanggal_bayar" => $tanggal_bayar_bb,
-                        "keterangan" => "(". $berita_acara_bb. ")Pembayaran: " . $text_keu_bb . " - " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
+                        "keterangan" => "(" . $berita_acara_bb . ")Pembayaran: " . $text_keu_bb . " - " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
                         "add_by" => user_id(),
                         "edit_by" => user_id()
                     );
@@ -1043,7 +1113,7 @@ class Keuangan extends BaseController
             }
 
             $response['success'] = true;
-            $response['msg'] = "Data berhasil diinput";
+            $response['messages'] = "Data berhasil diinput";
         }
 
         return $this->response->setJSON($response);
@@ -1204,17 +1274,16 @@ class Keuangan extends BaseController
 
 
             $tot =
-                $v->harga_uang_muka 
-                + $v->harga_administrasi 
+                $v->harga_uang_muka
+                + $v->harga_administrasi
                 + $v->harga_penambahan
                 + $v->harga_penambahan_tanah
                 + $v->harga_penambahan_um
-                + $v->harga_ppn 
-                + $v->harga_bphtb 
-                + $v->harga_biaya_proses 
+                + $v->harga_ppn
+                + $v->harga_bphtb
+                + $v->harga_biaya_proses
                 - $v->harga_diskon_uang_muka
-                - $v->harga_diskon_hargajual
-            ;
+                - $v->harga_diskon_hargajual;
 
             $persentase = ($v->sudah_bayar == 0) ? 0 : $v->sudah_bayar / $tot * 100;
 
@@ -1508,7 +1577,7 @@ class Keuangan extends BaseController
         $id_mkdt = $this->request->getVar('id_mkdt');
         $id_proyek = $this->request->getVar('id_proyek');
 
-        if($id_mkdt == 'null'){
+        if ($id_mkdt == 'null') {
             echo "Data konsumen belum tersimpan";
             return;
         }
@@ -1580,7 +1649,7 @@ class Keuangan extends BaseController
 
 
         $html[0] = view('pdf/spptb-page1', $data);
-        $filename = 'SPPTB - '.$data['data']->nama_konsumen. ' - '. date('Ymd'). '.pdf';
+        $filename = 'SPPTB - ' . $data['data']->nama_konsumen . ' - ' . date('Ymd') . '.pdf';
 
         $html[1] = view('pdf/spptb-page-next', $data);
         $header = '';
@@ -1590,7 +1659,6 @@ class Keuangan extends BaseController
 
         $this->mpdf->generate($html, $filename, $header, $mg);
         exit();
-
     }
     function print_tagihan($id = null)
     {
@@ -1700,7 +1768,7 @@ class Keuangan extends BaseController
         // die();
 
         $html[0] = view('pdf/kuitansi_pembayaran', $data);
-   
+
         $mg = [15, 15, 10, 2];
 
         // $mg = [$kop->pml, $kop->pmr, $kop->pmt, $kop->pmb];

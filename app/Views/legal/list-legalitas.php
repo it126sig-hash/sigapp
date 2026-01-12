@@ -9,6 +9,14 @@
   var csrfName = '<?= csrf_token() ?>';
   var csrfHash = '<?= csrf_hash() ?>';
 </script>
+<style>
+    table,
+  tr {
+    vertical-align: middle !important;
+    text-align: center !important;
+    font-size: 10px;
+  }
+</style>
 <!-- /.card-header -->
 <div class="app-content content ">
   <div class="content-overlay"></div>
@@ -41,41 +49,36 @@
         </div>
         <div class="card">
           <div class="card-datatable">
-            <table id="data_table" class="datatables-basic table compact">
+            <table id="data_table" class="datatables-basic table compact table-hover">
               <thead>
                 <tr>
-                  <th>No</th>
-                  <th>Blok</th>
-                  <th>No</th>
-                  <th>Tipe</th>
+                  <th id="no">No</th>
+                  <th id="blok">Blok</th>
+                  <th id="no_kavling">No</th>
+                  <th id="tipe_rumah">Tipe</th>
+             
+                  <th id="no_hgb_induk">No HGB Induk</th>
+                  <th id="no_hgb">No HGB</th>
+                  <th id="nib">NIB</th>
+                  <th id="balik_nama">Balik Nama</th>
 
-                  <th>Nama Konsumen</th>
+                  <th id="nop_pbb">NOP PBB</th>
 
-                  <th>No HGB</th>
-                  <th>No Split Sertifikat</th>
-                  <th>Tanggal Sertifikat</th>
-                  <th>Masa Berlaku Sertifikat</th>
+                  <th id="verifikasi_pbb">Verifikasi PBB</th>
+                  <th id="validasi_bphtb">Validasi BPHTB</th>
 
-                  <th>Tanggal IMB</th>
-                  <th>No Induk IMB</th>
-                  <th>No Split IMB</th>
+                  <th id="no_imb_pbg">No IMB/PBG</th>
 
-                  <th>NOP PBB</th>
-                  <th>Tanggal BPHTB</th>
-                  <th>Masa Berlaku BPHTB</th>
-                  <th>Validasi BPHTB</th>
-                  <th>PPh</th>
+                  <th id="tanggal_validasi_pph">Tanggal Validasi PPH</th>
 
-                  <th>Tanggal Akad</th>
+                  <th id="no_ajb">No AJB</th>
+                  <th id="no_ppjb">No PPJB</th>
 
-                  <th>Keterangan</th>
+                  <th id="nama_konsumen">Nama Konsumen</th>
 
 
-                  <th>Created At</th>
-                  <th>Created By</th>
-                  <th>Updated At</th>
-                  <th>Updated By</th>
-
+                  <th class="created" id="created_at">Diinput Oleh</th>
+                  <th class="created" id="created_by">Diubah Oleh</th>
                   <th></th>
                 </tr>
               </thead>
@@ -168,7 +171,7 @@
       // "autoWidth": false,
       // "responsive": true,
       ajax: {
-        url: base_url + '/legal/getListLegalitas',
+        url: base_url + 'legal/getListLegalitas',
         type: "POST",
         dataType: "json",
         data: {
@@ -329,104 +332,117 @@
 
   });
 
-  $('thead > tr> th:nth-child(1)').css({
-    'min-width': '50px',
-    'max-width': '50px'
-  });
-  $('thead > tr> th:nth-child(2)').css({
-    'min-width': '250px',
-    'max-width': '250px'
-  });
-  $('thead > tr> th:nth-child(3)').css({
-    'min-width': '50px',
-    'max-width': '50px'
-  });
-  $('thead > tr> th:nth-child(4)').css({
-    'min-width': '70px',
-    'max-width': '70px'
-  });
-  $('thead > tr> th:nth-child(5)').css({
-    'min-width': '250px',
-    'max-width': '2500px'
-  });
-  $('thead > tr> th:nth-child(6)').css({
-    'min-width': '250px',
-    'max-width': '250px'
-  });
-  $('thead > tr> th:nth-child(7)').css({
-    'min-width': '250px',
-    'max-width': '250px'
-  });
-  $('thead > tr> th:nth-child(8)').css({
-    'min-width': '250px',
-    'max-width': '250px'
-  });
-  $('thead > tr> th:nth-child(9)').css({
-    'min-width': '250px',
-    'max-width': '2500px'
-  });
-  $('thead > tr> th:nth-child(10)').css({
+  $('#blok').css({
     'min-width': '150px',
     'max-width': '150px'
   });
-  $('thead > tr> th:nth-child(11)').css({
-    'min-width': '80px',
-    'max-width': '80px'
-  });
-  $('thead > tr> th:nth-child(12)').css({
+  $('#nop_pbb, #no_imb_pbg, .created').css({
     'min-width': '150px',
     'max-width': '150px'
   });
-  $('thead > tr> th:nth-child(13)').css({
-    'min-width': '150px',
-    'max-width': '150px'
+  $('#tb_tgl_booking, #tb_tgl_wwc, #tb_terbit, #tb_expired, #tb_pricelist').css({
+    'min-width': '100px',
+    'max-width': '100px'
   });
-  $('thead > tr> th:nth-child(14)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(15)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(16)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(17)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(18)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(19)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(20)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(21)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(22)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(23)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(24)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(25)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
+  
+  // $('thead > tr> th:nth-child(1)').css({
+  //   'min-width': '50px',
+  //   'max-width': '50px'
+  // });
+  // $('thead > tr> th:nth-child(2)').css({
+  //   'min-width': '250px',
+  //   'max-width': '250px'
+  // });
+  // $('thead > tr> th:nth-child(3)').css({
+  //   'min-width': '50px',
+  //   'max-width': '50px'
+  // });
+  // $('thead > tr> th:nth-child(4)').css({
+  //   'min-width': '70px',
+  //   'max-width': '70px'
+  // });
+  // $('thead > tr> th:nth-child(5)').css({
+  //   'min-width': '250px',
+  //   'max-width': '2500px'
+  // });
+  // $('thead > tr> th:nth-child(6)').css({
+  //   'min-width': '250px',
+  //   'max-width': '250px'
+  // });
+  // $('thead > tr> th:nth-child(7)').css({
+  //   'min-width': '250px',
+  //   'max-width': '250px'
+  // });
+  // $('thead > tr> th:nth-child(8)').css({
+  //   'min-width': '250px',
+  //   'max-width': '250px'
+  // });
+  // $('thead > tr> th:nth-child(9)').css({
+  //   'min-width': '250px',
+  //   'max-width': '2500px'
+  // });
+  // $('thead > tr> th:nth-child(10)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(11)').css({
+  //   'min-width': '80px',
+  //   'max-width': '80px'
+  // });
+  // $('thead > tr> th:nth-child(12)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(13)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(14)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(15)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(16)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(17)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(18)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(19)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(20)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(21)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(22)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(23)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(24)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
+  // $('thead > tr> th:nth-child(25)').css({
+  //   'min-width': '150px',
+  //   'max-width': '150px'
+  // });
 </script>

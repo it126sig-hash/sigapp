@@ -184,6 +184,24 @@ class Tipe extends BaseController
 
 		return $hex;
 	}
+	function generateSimilarColors($baseColor, $variation = 20, $count = 1) {
+		// Convert HEX to RGB
+		list($r, $g, $b) = sscanf($baseColor, "#%02x%02x%02x");
+	
+		$colors = [];
+		for ($i = 0; $i < $count; $i++) {
+			// Generate random variation within the range
+			$newR = max(0, min(255, $r + rand(-$variation, $variation)));
+			$newG = max(0, min(255, $g + rand(-$variation, $variation)));
+			$newB = max(0, min(255, $b + rand(-$variation, $variation)));
+	
+			// Convert back to HEX
+			$colors[] = sprintf("#%02x%02x%02x", $newR, $newG, $newB);
+		}
+	
+		return $colors[0];
+	}
+	
 	public function add()
 	{
 
@@ -201,7 +219,9 @@ class Tipe extends BaseController
 		$fields['keterangan'] = $this->request->getPost('keterangan');
 
 
-		$fields['id_gambar_kerja'] = '';
+		$fields['id_gambar_kerja'] = null;
+		$fields['id_gambar_tipe'] = null;
+		$fields['id_gambar_denah'] = null;
 
 		$getConf = $this->db->table("config_shape")->select("config_name")->get()->getResult();
 		$st = false;
@@ -211,11 +231,16 @@ class Tipe extends BaseController
 				break;
 			}
 		}
+
+		
+
+		$color = ($fields['is_subsidi'] == 1) ? '#fbff00' : '#718096';
+		// var_dump($this->generateSimilarColors($color));die();
 		//add tipe ke configColor
 		if (!$st) {
 			$conf = [
 				'config_name' => $fields['tipe_rumah'],
-				'fill' => '#fbff00'
+				'fill' => $this->generateSimilarColors($color)
 				// 'fill' => $this->random_color()
 			];
 			$this->db->table("config_shape")->insert($conf);
@@ -234,6 +259,35 @@ class Tipe extends BaseController
 				'rules' => 'uploaded[gambar_kerja]'
 					. '|mime_in[gambar_kerja,application/pdf]'
 					. '|max_size[gambar_kerja,12000]',
+				'errors' => [
+					'uploaded' => 'Harus mengunggah Gambar Kerja ',
+					'mime_in' => 'Gambar Kerja harus berupa file pdf',
+					'max_size' => 'Gambar Kerja tidak lebih dari 12MB'
+				]
+				// . '|max_dims[gambar_kerja,6000,6000]',
+			],
+			'gambar_tipe' => [
+				'label' => 'File',
+				'rules' => 'uploaded[gambar_tipe]'
+					. '|mime_in[gambar_tipe,image/jpeg,image/png]'
+					. '|max_size[gambar_tipe,12000]',
+				'errors' => [
+					'uploaded' => 'Harus mengunggah Gambar Ilustrasi ',
+					'mime_in' => 'Gambar Ilustrasi harus berupa file gambar jpg/png',
+					'max_size' => 'Gambar Ilustrasi tidak lebih dari 12MB'
+				]
+				// . '|max_dims[gambar_kerja,6000,6000]',
+			],
+			'gambar_denah' => [
+				'label' => 'File',
+				'rules' => 'uploaded[gambar_denah]'
+					. '|mime_in[gambar_denah,image/jpeg,image/png]'
+					. '|max_size[gambar_denah,12000]',
+				'errors' => [
+					'uploaded' => 'Harus mengunggah Denah Arsitektural ',
+					'mime_in' => 'Denah Arsitektural harus berupa file gambar jpg/png',
+					'max_size' => 'Denah Arsitektural tidak lebih dari 12MB'
+				]
 				// . '|max_dims[gambar_kerja,6000,6000]',
 			],
 
@@ -245,17 +299,19 @@ class Tipe extends BaseController
 			$response['messages'] = $this->validation->listErrors();
 		} else {
 
+			$proyek = $this->proyekModel->where('id_proyek', $fields['id_proyek'])->first();
+
 			/************************ upload gambar kerja *****************************/
 			$img = $this->request->getFile('gambar_kerja');
 			$originalname = $img->getClientName();
 			$name = $img->getRandomName();
 
 			$lok = 'uploads/gambarkerja/' . date('Ymd') . '/';
-			$proyek = $this->proyekModel->where('id_proyek', $fields['id_proyek'])->first();
+			
 
 			$img->move($lok, $name);
 
-			$f['id_gambar_kerja'] = '';
+			
 			$f['lokasi'] = $lok . $name;
 			$f['default_filename'] = $originalname;
 			$f['keterangan'] = "tipe: " . $fields['tipe_rumah']
@@ -268,13 +324,71 @@ class Tipe extends BaseController
 
 			$fields['id_gambar_kerja'] = $this->gambarkerjaModel->getInsertID();
 
-			/************************ upload gambar kerja *****************************/
+			
+			/************************ end of upload gambar kerja *****************************/
 
+			/************************ upload gambar kerja *****************************/
+			$img = $this->request->getFile('gambar_tipe');
+			$originalname = $img->getClientName();
+			$name = $img->getRandomName();
+
+			$lok = 'uploads/gambartipe/' . date('Ymd') . '/';
+		
+			$img->move($lok, $name);
+
+			
+			$f['lokasi'] = $lok . $name;
+			$f['default_filename'] = $originalname;
+			$f['keterangan'] = "tipe: " . $fields['tipe_rumah']
+				. ", Proyek: " . $proyek->nama_proyek
+				. ", Nomor: " . $fields['no_tipe_rumah'];
+			$f['tipe'] = "gambar ilustrasi";
+			$f['upload_at'] = date('Y-m-d H:i:s');
+			$f['upload_by'] = user_id();
+
+			$this->gambarkerjaModel->insert($f);
+
+			$fields['id_gambar_tipe'] = $this->gambarkerjaModel->getInsertID();
+
+			
+			
+			/************************ end of upload gambar kerja *****************************/
+
+			/************************ upload gambar kerja *****************************/
+			$img = $this->request->getFile('gambar_denah');
+			$originalname = $img->getClientName();
+			$name = $img->getRandomName();
+
+			$lok = 'uploads/gambardenah/' . date('Ymd') . '/';
+		
+			$img->move($lok, $name);
+
+			
+			$f['lokasi'] = $lok . $name;
+			$f['default_filename'] = $originalname;
+			$f['keterangan'] = "tipe: " . $fields['tipe_rumah']
+				. ", Proyek: " . $proyek->nama_proyek
+				. ", Nomor: " . $fields['no_tipe_rumah'];
+			$f['tipe'] = "gambar denah";
+			$f['upload_at'] = date('Y-m-d H:i:s');
+			$f['upload_by'] = user_id();
+
+			$this->gambarkerjaModel->insert($f);
+
+			$fields['id_gambar_denah'] = $this->gambarkerjaModel->getInsertID();
+
+			
+			
+			/************************ end of upload gambar kerja *****************************/
+
+			
 			// $fields['siteplan'] = 
 
 			if ($this->tipeModel->insert($fields)) {
 				//set id_tipe di gambar_kerja
 				$this->gambarkerjaModel->update($fields['id_gambar_kerja'], ['id_tipe' => $this->tipeModel->getInsertID()]);
+				$this->gambarkerjaModel->update($fields['id_gambar_tipe'], ['id_tipe' => $this->tipeModel->getInsertID()]);
+				$this->gambarkerjaModel->update($fields['id_gambar_denah'], ['id_tipe' => $this->tipeModel->getInsertID()]);
 
 				$response['success'] = true;
 				$response['messages'] = 'Data has been inserted successfully';
@@ -358,6 +472,8 @@ class Tipe extends BaseController
 			$response['success'] = false;
 			$response['messages'] = $this->validation->listErrors();
 		} else {
+			$proyek = $this->proyekModel->where('id_proyek', $fields['id_proyek'])->first();
+
 			if ($noup == 0) {
 				/************************ upload gambar kerja *****************************/
 				$img = $this->request->getFile('gambar_kerja');
@@ -365,8 +481,7 @@ class Tipe extends BaseController
 				$name = $img->getRandomName();
 
 				$lok = 'uploads/gambarkerja/' . date('Ymd') . '/';
-				$proyek = $this->proyekModel->where('id_proyek', $fields['id_proyek'])->first();
-
+				
 
 				$img->move($lok, $name);
 
@@ -385,6 +500,58 @@ class Tipe extends BaseController
 				$fields['id_gambar_kerja'] = $this->gambarkerjaModel->getInsertID();
 
 				/************************ upload gambar kerja *****************************/
+			}
+
+			/************************ upload gambar kerja *****************************/
+			if ($this->request->getPost('no_up_gambar_tipe') == 0) {
+				$img = $this->request->getFile('gambar_tipe');
+				$originalname = $img->getClientName();
+				$name = $img->getRandomName();
+
+				$lok = 'uploads/gambartipe/' . date('Ymd') . '/';
+			
+				$img->move($lok, $name);
+
+				
+				$f['lokasi'] = $lok . $name;
+				$f['default_filename'] = $originalname;
+				$f['keterangan'] = "tipe: " . $fields['tipe_rumah']
+					. ", Proyek: " . $proyek->nama_proyek
+					. ", Nomor: " . $fields['no_tipe_rumah'];
+				$f['tipe'] = "gambar ilustrasi";
+				$f['upload_at'] = date('Y-m-d H:i:s');
+				$f['upload_by'] = user_id();
+
+				$this->gambarkerjaModel->insert($f);
+
+				$fields['id_gambar_tipe'] = $this->gambarkerjaModel->getInsertID();
+			}
+			/************************ end of upload gambar kerja *****************************/
+
+
+			/************************ upload gambar kerja *****************************/
+			if ($this->request->getPost('no_up_gambar_denah') == 0) {
+				$img = $this->request->getFile('gambar_denah');
+				$originalname = $img->getClientName();
+				$name = $img->getRandomName();
+
+				$lok = 'uploads/gambardenah/' . date('Ymd') . '/';
+			
+				$img->move($lok, $name);
+
+				
+				$f['lokasi'] = $lok . $name;
+				$f['default_filename'] = $originalname;
+				$f['keterangan'] = "tipe: " . $fields['tipe_rumah']
+					. ", Proyek: " . $proyek->nama_proyek
+					. ", Nomor: " . $fields['no_tipe_rumah'];
+				$f['tipe'] = "gambar denah";
+				$f['upload_at'] = date('Y-m-d H:i:s');
+				$f['upload_by'] = user_id();
+
+				$this->gambarkerjaModel->insert($f);
+
+				$fields['id_gambar_denah'] = $this->gambarkerjaModel->getInsertID();
 			}
 
 			if ($this->tipeModel->update($fields['id_tipe'], $fields)) {
@@ -409,6 +576,7 @@ class Tipe extends BaseController
             ')
 			->join("users as u", "u.id = gambar_kerja.upload_by", "left")
 			->where('id_tipe', $id_tipe)
+			->where('tipe', "gambarkerja")
 			->orderBy('upload_at', 'desc')
 			->get()->getResult();
 		// return $this->response->setJSON($r);

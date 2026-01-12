@@ -156,7 +156,9 @@ class Mkdt extends BaseController
                     konsumen.sales,
                     konsumen.keterangan as keterangan_batal,
                     username,
+                    list_bank.bank as nama_bank,
                 ')
+            ->join('list_bank', 'list_bank.id = mkdt.id_bank', 'left')
             ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
             ->join('users', 'users.id = mkdt.edit_by', 'left')
             ->where($condition)
@@ -235,6 +237,7 @@ class Mkdt extends BaseController
         }
         return $this->response->setJSON($response);
     }
+
     function batal_mkdt()
     {
         $hj = [];
@@ -543,6 +546,7 @@ class Mkdt extends BaseController
 
             $f2['akad'] = 1;
             $f2['is_ajb'] = $this->request->getPost('is_ajb');
+            $f2['notaris'] = $this->request->getPost('notaris');
             $f2['debitur_no'] = $this->request->getPost('debitur_no');
             $f2['bast_no'] = $this->request->getPost('bast_no');
             $f2['akad_tgl'] = $this->request->getPost('akad_tgl');
@@ -591,6 +595,7 @@ class Mkdt extends BaseController
         $f2['is_subsidi'] = $this->request->getPost('is_subsidi');
         $f2['jenis_subsidi'] = $this->request->getPost('jenis_subsidi');
         $f2['bank'] = $this->request->getPost('bank');
+        $f2['id_bank'] = $this->request->getPost('id_bank');
         $f2['keterangan'] = $this->request->getPost('mkdt_keterangan');
         $f2['harga_total'] = $this->num($this->request->getPost('total_biaya'));
 
@@ -937,18 +942,18 @@ class Mkdt extends BaseController
 
             $tunai = $v->sudah_bayar_um > 0 ? $v->sudah_bayar_um / $um * 100 : 0;
 
-            
+
 
             $sudah_bayar_bb = $v->sudah_bayar_bb > 0 ? $v->sudah_bayar_bb : 0;
-            $sudah_bayar_um = $v->sudah_bayar_um > $um ? $um : $v->sudah_bayar_um; 
-            
+            $sudah_bayar_um = $v->sudah_bayar_um > $um ? $um : $v->sudah_bayar_um;
+
             $um_pers = "";
             $bb_pers = "";
 
             $um_pers = 0;
             $bb_pers = 0;
 
-            if($sudah_bayar_bb > 0 && $bb> 0){
+            if ($sudah_bayar_bb > 0 && $bb > 0) {
                 $bb_pers = $sudah_bayar_bb / $bb * 100;
             }
             // $bb_pers = $v->sudah_bayar_bb > 0 ? $v->sudah_bayar_bb / $bb * 100 : 0;
@@ -1069,6 +1074,7 @@ class Mkdt extends BaseController
                 pbg_no,
                 sertifikat_split_no_hgb,
                 (select sum(nominal) from log_pembayaran where log_pembayaran.id_mkdt = mkdt.id_mkdt and payment_type like "%Uang Muka%") as sudah_bayar_um,
+                (select sum(nominal) from log_pembayaran where log_pembayaran.id_mkdt = mkdt.id_mkdt and payment_type not like "%Booking%") as total_sudah_bayar,
                 (select sum(nominal) from log_pembayaran where log_pembayaran.id_mkdt = mkdt.id_mkdt and (payment_type LIKE "%Biaya Proses%" OR payment_type LIKE "%BPHTB%" OR payment_type LIKE "%PPN%")) sudah_bayar_bb,
 
                 a.username as uadd_by,
@@ -1167,23 +1173,23 @@ class Mkdt extends BaseController
             $ops .= '	<button type="button" class="btn btn-sm btn-danger" onclick="remove(' . $v->id_mkdt . ')"><i class="fa ' . $no . '"></i></button>';
             $ops .= '</div>';
 
-            $um = $v->harga_uang_muka ? $v->harga_uang_muka : 0;
+            $um = $v->harga_uang_muka - $v->harga_diskon_uang_muka ?: 0;
+            $badm = $v->harga_administrasi + $v->harga_penambahan_um + $v->harga_penambahan + $v->harga_penambahan_tanah ?: 0; //biaya adm + hook + kelebihan tanah + turun kpr
             $bb = $v->harga_bphtb + $v->harga_biaya_proses + $v->harga_ppn;
 
             $tunai = $v->sudah_bayar_um > 0 ? $v->sudah_bayar_um / $um * 100 : 0;
 
-            
+
 
             $sudah_bayar_bb = $v->sudah_bayar_bb > 0 ? $v->sudah_bayar_bb : 0;
-            $sudah_bayar_um = $v->sudah_bayar_um > $um ? $um : $v->sudah_bayar_um; 
-            
-            $um_pers = "";
-            $bb_pers = "";
+            $sudah_bayar_um = $v->sudah_bayar_um > $um ? $um : $v->sudah_bayar_um;
+            $sudah_bayar_adm = $v->total_sudah_bayar - $sudah_bayar_bb - $sudah_bayar_um ?: 0;
 
             $um_pers = 0;
             $bb_pers = 0;
+            $badm_pers = 0;
 
-            if($sudah_bayar_bb > 0 && $bb> 0){
+            if ($sudah_bayar_bb > 0 && $bb > 0) {
                 $bb_pers = $sudah_bayar_bb / $bb * 100;
             }
             // $bb_pers = $v->sudah_bayar_bb > 0 ? $v->sudah_bayar_bb / $bb * 100 : 0;
@@ -1192,11 +1198,16 @@ class Mkdt extends BaseController
                 $um_pers = $sudah_bayar_um > 0 ? $sudah_bayar_um / $um * 100 : 0;
             }
 
+            if ($sudah_bayar_um > 0 && $badm > 0) {
+                $badm_pers  = $sudah_bayar_um / $badm * 100;
+            }
             // echo $v->is_kpr;    
             // echo $v->sudah_bayar_um;
             // echo "<br>";
             // echo $um;
             // die();
+
+            $is_subsidi = $v->is_subsidi ? '<span >(Subsidi)</span>' : '<span >(Non-Subsidi)</span>';
 
             $data['data'][$key] = array(
 
@@ -1212,7 +1223,7 @@ class Mkdt extends BaseController
                 $this->format_tgl($v->booking_tgl),
                 $this->format_tgl($v->wawancara_tgl),
 
-                $this->is_active($v->is_kpr, "KPR", "TUNAI"),
+                $this->is_active($v->is_kpr, "KPR " . $is_subsidi, "TUNAI " . $is_subsidi),
                 $v->bank,
                 $v->keterangan,
 
@@ -1222,6 +1233,7 @@ class Mkdt extends BaseController
 
                 $tunai ? number_format((float) $tunai, 2, '.', '') . "%" : "-",
                 $um_pers ? number_format((float) $um_pers, 2, '.', '') . "%" : "-",
+                $badm_pers ? number_format((float) $badm_pers, 2, '.', '') . "%" : "-",
                 $bb_pers ? number_format((float) $bb_pers, 2, '.', '') . "%" : "-",
 
 
@@ -1334,6 +1346,7 @@ class Mkdt extends BaseController
 
         $data['draw'] = $var['draw'];
 
+
         //count filtered
         $countfiltered = $this->db->table("mkdt")
             ->select('
@@ -1367,6 +1380,8 @@ class Mkdt extends BaseController
 
         // $countTotal = $countfiltered;
 
+
+
         $countfiltered = $this->if_where($var, $colum, $condition, $countfiltered);
         $data['recordsFiltered'] = count($countfiltered->get()->getResult());
 
@@ -1388,6 +1403,7 @@ class Mkdt extends BaseController
 
         $data['recordsTotal'] = $countTotal->get()->getResult()[0]->count;
 
+
         //looping data untuk datatable
         $no = $var['start'];
         foreach ($x->getResult() as $key => $v) {
@@ -1400,11 +1416,15 @@ class Mkdt extends BaseController
 
 
 
+
+
             if ($v->harga_jual > 0)
                 $um = $v->harga_jual - $v->harga_kpr + $v->harga_penambahan_um;
             else {
                 $um = 0;
             }
+
+
 
             $bb = $v->harga_bphtb + $v->harga_administrasi + $v->harga_biaya_proses + $v->harga_ppn;
 
@@ -1419,10 +1439,12 @@ class Mkdt extends BaseController
             }
 
 
-            $data['data'][$key] = array(
 
+            $surat_batal = $v->surat_batal ? "<br><a target=_blank href='" . base_url($v->surat_batal) . "'>Klik untuk melihat surat batal</a>" : "";
+
+            $data['data'][$key] = array(
                 $no,
-                $v->keterangan_batal . "<br><a target=_blank href='" . base_url($v->surat_batal) . "'>Klik untuk melihat surat batal</a>", //keterangan batal
+                $v->keterangan_batal . ' ' . $surat_batal, //keterangan batal
                 number_format($v->refund), //Nominal Refund
                 $v->nama_jalan,
                 $v->no_kavling,
@@ -1469,8 +1491,10 @@ class Mkdt extends BaseController
                 date_format(date_create($v->created_at), "d-M-Y H:i"),
                 $v->uedit_by,
                 date_format(date_create($v->updated_at), "d-M-Y H:i"),
-                $ops
+                $ops,
+
             );
+            // var_dump($data );die();
         }
         return $this->response->setJSON($data);
     }
@@ -1494,8 +1518,9 @@ class Mkdt extends BaseController
         // $arr = ['mkdt.status_mkdt' => "Batal", 'mkdt.status_mkdt' => "", 'mkdt.status_mkdt' => null];
         $colum = ['nama_konsumen', 'nama_jalan', 'no_kavling'];
         $condition = [
-            "mkdt.status_mkdt " => "Batal",
-            "mkdt.status_mkdt " => null,
+            "mkdt.status_mkdt" => "Batal",
+            "mkdt.status_mkdt" => null,
+            // "mkdt.status_mkdt" => null,
             "produksi.progres_bangunan" => 100,
             // "produksi.progres_bangunan" => 100,
         ];
@@ -1537,19 +1562,41 @@ class Mkdt extends BaseController
             ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left');
 
         if ($var['id_jalan'])
-            $condition = array_merge($condition, ["jalan.id_jalan" => $var['id_jalan']]);
+            $query->where(["jalan.id_jalan" => $var['id_jalan']]);
         elseif ($var['id_cluster'])
-            $condition = array_merge($condition, ["cluster.id_cluster" => $var['id_cluster']]);
+            $query->where(["cluster.id_cluster" => $var['id_cluster']]);
         else
-            $condition = array_merge($condition, ["proyek.id_proyek" => $var['id_proyek']]);
+            $query->where(["proyek.id_proyek" => $var['id_proyek']]);
 
-        $result = $this->if_where($var, $colum, $condition, $query);
+        $query->where('produksi.progres_bangunan', 100);
+        $query->groupStart()
+            ->where('mkdt.status_mkdt', 'Batal')
+            ->orWhere('mkdt.status_mkdt IS NULL', null, false)
+            ->groupEnd();
+
+        // Jika ada parameter pencarian
+        $search = ''; // Ganti dengan input pencarian jika ada
+        if (!empty($search)) {
+            $query->groupStart()
+                ->like('nama_konsumen', $search)
+                ->orLike('nama_jalan', $search)
+                ->orLike('no_kavling', $search)
+                ->groupEnd();
+        }
+
+        // $result = $this->if_where($var, $colum, $condition, $query);
+        $result = $query;
 
         $result
             ->offset($var['start'])
             ->limit($var['length']);
 
+        // echo $result->getCompiledSelect();
+        // die();
+
         $x = $result->get();
+
+
 
         //count filtered
         $countfiltered = $this->db->table("kavling")
@@ -1559,13 +1606,40 @@ class Mkdt extends BaseController
             ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
             ->join('proyek', "proyek.id_proyek = cluster.id_proyek")
 
-            ->join("produksi", "kavling.id_produksi = produksi.id_produksi")
+            ->join('produksi', "kavling.id_produksi = produksi.id_produksi")
             ->join('mkdt', "kavling.id_mkdt = mkdt.id_mkdt", "left")
+
+            ->join('users a', "produksi.add_by = a.id")
+            ->join('users b', "produksi.edit_by = b.id")
+
             ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left');
+
+        if ($var['id_jalan'])
+            $countfiltered->where(["jalan.id_jalan" => $var['id_jalan']]);
+        elseif ($var['id_cluster'])
+            $countfiltered->where(["cluster.id_cluster" => $var['id_cluster']]);
+        else
+            $countfiltered->where(["proyek.id_proyek" => $var['id_proyek']]);
+
+        $countfiltered->where('produksi.progres_bangunan', 100);
+        $countfiltered->groupStart()
+            ->where('mkdt.status_mkdt', 'Batal')
+            ->orWhere('mkdt.status_mkdt IS NULL', null, false)
+            ->groupEnd();
+
+        // Jika ada parameter pencarian
+        // $search = ''; // Ganti dengan input pencarian jika ada
+        if (!empty($search)) {
+            $countfiltered->groupStart()
+                ->like('nama_konsumen', $search)
+                ->orLike('nama_jalan', $search)
+                ->orLike('no_kavling', $search)
+                ->groupEnd();
+        }
 
         // $countTotal = $countfiltered;
 
-        $countfiltered = $this->if_where($var, $colum, $condition, $countfiltered);
+        // $countfiltered = $this->if_where($var, $colum, $condition, $countfiltered);
         $data['recordsFiltered'] = count($countfiltered->get()->getResult());
 
         //count total
@@ -1582,12 +1656,42 @@ class Mkdt extends BaseController
             ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
             ->join('proyek', "proyek.id_proyek = cluster.id_proyek")
 
-            ->join("produksi", "kavling.id_produksi = produksi.id_produksi")
+            ->join('produksi', "kavling.id_produksi = produksi.id_produksi")
             ->join('mkdt', "kavling.id_mkdt = mkdt.id_mkdt", "left")
-            ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left')
-            ->where($condition);
+
+            ->join('users a', "produksi.add_by = a.id")
+            ->join('users b', "produksi.edit_by = b.id")
+
+            ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left');
+        // ->where($condition);
+        if ($var['id_jalan'])
+            $countTotal->where(["jalan.id_jalan" => $var['id_jalan']]);
+        elseif ($var['id_cluster'])
+            $countTotal->where(["cluster.id_cluster" => $var['id_cluster']]);
+        else
+            $countTotal->where(["proyek.id_proyek" => $var['id_proyek']]);
+
+        $countTotal->where('produksi.progres_bangunan', 100);
+        $countTotal->groupStart()
+            ->where('mkdt.status_mkdt', 'Batal')
+            ->orWhere('mkdt.status_mkdt IS NULL', null, false)
+            ->groupEnd();
+
+        // Jika ada parameter pencarian
+        // $search = ''; // Ganti dengan input pencarian jika ada
+        if (!empty($search)) {
+            $countTotal->groupStart()
+                ->like('nama_konsumen', $search)
+                ->orLike('nama_jalan', $search)
+                ->orLike('no_kavling', $search)
+                ->groupEnd();
+        }
+
+        // echo $countTotal->getCompiledSelect();die();
 
         $data['recordsTotal'] = $countTotal->get()->getResult()[0]->count;
+
+        
 
         $data['draw'] = $var['draw'];
 
@@ -1657,6 +1761,81 @@ class Mkdt extends BaseController
         if ($id == "1")
             $r = '<span class="btn btn-success btn-sm" text-capitalized="">' . $texts . '</span>';
         return $r;
+    }
+
+    function getsi()
+    {
+        $id_kavling = $this->request->getVar('id_kavling');
+
+
+        $r['token'] = csrf_hash();
+        $r['data'] = $this->db->table('list_si')
+            ->select('list_si.nama, list_si.id as id_list_si_ori, si.*, a.username as uadd_by, b.username as uedit_by')
+            ->join('si', 'si.id_list_si = list_si.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
+            ->join('users a', 'a.id = si.add_by', 'left')
+            ->join('users b', 'b.id = si.edit_by', 'left')
+            ->get()->getResult();
+
+        return $this->response->setJSON($r);
+    }
+
+    function saveSI()
+    {
+        $response['token'] = csrf_hash();
+        $id_si = $this->request->getVar('id-si');
+        $data['id_kavling'] = $this->request->getVar('id_kavling');
+
+        foreach ($id_si as $i => $v) {
+            $data['tanggal_si'] = $v['tanggal_si'];
+            $data['keterangan'] = $v['keterangan'];
+            $data['file'] = null;
+
+            if ($v['tanggal_si'] != "") {
+                if (strpos($i, 'n') === false) {
+                    if ($this->request->getFile('id-si-file-' . $i)->getSize() > 0) {
+                        $img = $this->request->getFile('id-si-file-' . $i);
+                        $name = $img->getRandomName();
+
+                        $lok = 'uploads/si/' . date('Ymd') . '/';
+
+                        $img->move($lok, $name);
+
+                        $data['file'] = $lok . $name;
+                    }
+
+                    $data['edit_by'] = user_id();
+                    $data['updated_at'] = date("Y-m-d H:i:s");
+
+                    $q = $this->db->table('si')
+                        ->where(['id' => $i])
+                        ->update($data);
+                } else {
+                    if ($this->request->getFile('id-si-file-' . $i)->getSize() > 0) {
+                        $img = $this->request->getFile('id-si-file-' . $i);
+                        $name = $img->getRandomName();
+
+                        $lok = 'uploads/si/' . date('Ymd') . '/';
+
+                        $img->move($lok, $name);
+
+                        $data['file'] = $lok . $name;
+                    }
+
+                    $data['id_list_si'] = substr($i, 1);
+
+                    $data['add_by'] = user_id();
+                    $data['created_at'] = date("Y-m-d H:i:s");
+
+                    $q = $this->db->table('si')
+                        ->insert($data);
+                }
+            }
+        }
+
+        $response['success'] = true;
+        $response['messages'] = 'Data berhasil diperbaharui';
+
+        return $this->response->setJSON($response);
     }
 
     /******************************** export *******************************/

@@ -19,7 +19,7 @@
     <!-- END: Vendor CSS-->
 
     <!-- BEGIN: Theme CSS-->
-    <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/bootstrap-extended.css">
     <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/colors.css">
     <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/components.css">

@@ -7,9 +7,9 @@ foreach (user()->getRoles() as $key => $val) {
 }
 
 ?>
+
 <!-- BEGIN: Vendor CSS-->
-<link rel="stylesheet" type="text/css"
-    href="<?= base_url() ?>/app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/extensions/sweetalert2.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/forms/select/select2.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/assets/css/richtext.min.css">
@@ -43,6 +43,10 @@ foreach (user()->getRoles() as $key => $val) {
 
     const rolename = '<?= $v ?>';
     const roleid = '<?= $k ?>';
+    const has_akses = JSON.parse('<?= json_encode($has_akses) ?>');
+    const pph = JSON.parse('<?= json_encode($pph) ?>')
+    const ppn = JSON.parse('<?= json_encode($ppn) ?>')
+
     let dt_proyek = '<?php echo json_encode($data['proyek']) ?>';
     dt_proyek = JSON.parse(dt_proyek);
 
@@ -77,7 +81,7 @@ foreach (user()->getRoles() as $key => $val) {
         return true;
 
     }
-    Date.prototype.toDateInputValue = (function () {
+    Date.prototype.toDateInputValue = (function() {
         var local = new Date(this);
         local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
         return local.toJSON().slice(0, 10);
@@ -142,7 +146,7 @@ foreach (user()->getRoles() as $key => $val) {
 
     /* div#mkdt,
     div#legal,
-    div#lpt {
+    div#lpt {   
         height: 50vh;
         overflow: auto;
         background: #fff;
@@ -282,6 +286,44 @@ foreach (user()->getRoles() as $key => $val) {
     .flatpickr-human-friendly:enabled {
         background-color: #fff !important;
     }
+
+
+    .input-loading {
+        filter: blur(3px);
+        transition: filter 0.3s ease;
+        /* untuk animasi */
+
+        /* background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loadingShimmer 1.5s infinite;
+        color: transparent !important;
+        position: relative; */
+    }
+
+    .divider-left {
+        border-left: 4px solid #007bff;
+        padding-left: 15px;
+        margin-bottom: 20px;
+    }
+
+    @keyframes loadingShimmer {
+        0% {
+            background-position: 200% 0;
+        }
+
+        100% {
+            background-position: -200% 0;
+        }
+    }
+
+    .guarantee-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
 </style>
 <!-- END: Vendor CSS-->
 
@@ -350,7 +392,7 @@ foreach (user()->getRoles() as $key => $val) {
                                     <option value="7" class="dropdown-item">Produksi</option>
                                     <option value="4" class="dropdown-item">Marketing Data</option>
                                     <option value="5" class="dropdown-item">Legal & Pertanahan</option>
-                                    <!-- <option value="10" class="dropdown-item">Pajak</option> -->
+                                    <option value="10" class="dropdown-item">Pajak</option>
                                     <option value="3" class="dropdown-item">Keuangan</option>
                                     <option value="6" class="dropdown-item">Planning</option>
                                     <!-- <option value="9" class="dropdown-item">Management</option> -->
@@ -632,8 +674,8 @@ foreach (user()->getRoles() as $key => $val) {
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
             </div>
             <div class="modal-body flex-grow-1" style="background-color:#eee">
-                <form action="" id="fm-detail"></form>
-                <div class="row">
+                <form action="" ></form>
+                <div class="row" id="fm-detail">
                     <div class="col-md-3">
                         <div class="card">
                             <div class="card-header">
@@ -735,7 +777,11 @@ foreach (user()->getRoles() as $key => $val) {
                             <div class="card-body pb-0 pt-0">
                                 <ul class="nav nav-pills flex-column flex-md-row mt-1 row-gap-2" role="tablist">
                                     <li class="nav-item">
-                                        <a class="nav-link active" id="dtt-hj-tab" data-toggle="tab" href="#dtt-hj"
+                                        <a class="nav-link active" id="dtt-summary-tab" data-toggle="tab" href="#dtt-summary"
+                                            aria-controls="summary" role="tab" aria-selected="true">Ringkasan</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="dtt-hj-tab" data-toggle="tab" href="#dtt-hj"
                                             aria-controls="dj" role="tab" aria-selected="true">Harga Jual</a>
                                     </li>
                                     <li class="nav-item">
@@ -747,12 +793,20 @@ foreach (user()->getRoles() as $key => $val) {
                                             aria-controls="tgt" role="tab" aria-selected="false">Tagihan</a>
                                     </li>
                                     <li class="nav-item">
+                                        <a class="nav-link" id="dt-cashout-tab" data-toggle="tab" href="#dt-cashout"
+                                            aria-controls="cashout-tab" role="tab" aria-selected="false">Cashout</a>
+                                    </li>
+                                    <li class="nav-item">
                                         <a class="nav-link" id="dt-legal-tab" data-toggle="tab" href="#dt-legal"
                                             aria-controls="legal" role="tab" aria-selected="false">Legal</a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" id="dt-produksi-tab" data-toggle="tab" href="#dt-produksi"
                                             aria-controls="produksi" role="tab" aria-selected="false">Bangunan</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="dt-pajak-tab" data-toggle="tab" href="#dt-pajak"
+                                            aria-controls="pajak" role="tab" aria-selected="false">Bukti Bayar PPH/PPN</a>
                                     </li>
                                 </ul>
                             </div>
@@ -761,14 +815,263 @@ foreach (user()->getRoles() as $key => $val) {
                         <div class="card col-md-12">
                             <div class="card-body">
                                 <div class="tab-content">
-                                    <div class="tab-pane active" id="dtt-hj" aria-labelledby="dtt-hj-tab"
+                                    <div class="tab-pane active" id="dtt-summary" aria-labelledby="dtt-summary-tab"
+                                        role="tabpanel">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="divider divider-left">
+                                                    <div class="divider-text font-weight-bold">Status</div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label mb-0">Status Kavling</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-status_mkdt"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Bank</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-st_bank"></span>
+                                                    </div>
+
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Notaris</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-notaris"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="divider divider-left">
+                                                    <div class="divider-text font-weight-bold">SP3K</div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Tanggal terbit SP3K</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-st_sp3k_tgl"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Tanggal kadaluarsa SP3K</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-st_sp3k_tgl_exp"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="divider divider-left">
+                                                    <div class="divider-text font-weight-bold">Standing Instruction</div>
+                                                </div>
+                                                <div id="s-si"></div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="divider divider-left">
+                                                    <div class="divider-text font-weight-bold">Keuangan</div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Uang Muka</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-persentase_bayar_tagihan_um"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Biaya Adm + Turun KPR + Kav. Strageis + Kelebihan Tanah</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-persentase_bayar_tagihan_um_ll"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Biaya-biaya</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-persentase_bayar_tagihan_bb"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="divider divider-left">
+                                                    <div class="divider-text font-weight-bold">Cashout</div>
+                                                </div>
+                                                <div id="s-co"></div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="divider divider-left">
+                                                    <div class="divider-text font-weight-bold">Bangunan</div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Progres Bangunan</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-progress_bangunan"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Tanggal Turun Pembangunan</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-perintah_bangun_tgl"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Tanggal Pembangunan</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-tanggal_pembangunan"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Tanggal Selesai Pembangunan</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-tanggal_selesai_pembangunan"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Saluran Jalan</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-st_saluran"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Air</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-st_air"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">Listrik</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-st_jalan"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">SLO/NIDI</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-slo"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="info-row row no-gutters">
+                                                    <div class="col-6">
+                                                        <label class="info-label">LPA</label>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        : <span class="info-value" id="s-lpa"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-pane" id="dtt-hj" aria-labelledby="dtt-hj-tab"
                                         role="tabpanel">
                                         <h5>Harga Jual</h5>
                                         <small class="text-muted">Terakhir diperbaharui oleh</small>
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <div class="divider">
-                                                    <div class="divider-text">Harga Jual</div>
+                                                    <div class="divider-text">Pricelist</div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="basic-icon-default-fullname">Tanggal
+                                                        PriceList</label>
+                                                    <input type="text"
+                                                        class="form-control text-right dt-pl_fm flatpickr-human-friendly"
+                                                        id="dt-pl_tgl_harga" disabled name="dt-pl_tgl_harga" value=""
+                                                        readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="basic-icon-default-fullname">Harga
+                                                        Jual</label>
+                                                    <input type="text" class="form-control num dt-pl_fm"
+                                                        id="dt-pl_hargajual" name="dt-pl_hargajual" value="" readonly />
+                                                </div>
+                                                <div class="form-group" id="hjdis">
+                                                    <label class="form-label" for="basic-icon-default-fullname">Diskon
+                                                        Harga
+                                                        Jual</label>
+                                                    <input type="text" class="form-control num dt-pl_fm"
+                                                        id="dt-pl_harga_diskon_hargajual"
+                                                        name="dt-pl_harga_diskon_hargajual" value="" readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="basic-icon-default-fullname">Harga
+                                                        Jual Net</label>
+                                                    <input type="text" class="form-control num dt-pl_fm"
+                                                        id="dt-pl_hargajual_net" name="dt-pl_hargajual_net" value=""
+                                                        readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label"
+                                                        for="basic-icon-default-fullname">KPR</label>
+                                                    <input type="text" class="form-control num dt-pl_fm" id="dt-pl_kpr"
+                                                        name="dt-pl_kpr" value="" readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="basic-icon-default-fullname">Uang
+                                                        Muka</label>
+                                                    <input type="text" class="form-control num dt-pl_fm"
+                                                        id="dt-pl_uang_muka" name="dt-pl_uang_muka" value="" readonly />
+                                                </div>
+                                                <div class="form-group" id="umdis">
+                                                    <label class="form-label" for="basic-icon-default-fullname">Diskon
+                                                        Uang Muka</label>
+                                                    <input type="text" class="form-control num dt-pl_fm"
+                                                        id="dt-pl_harga_diskon_uang_muka"
+                                                        name="dt-pl_harga_diskon_uang_muka" value="" readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="basic-icon-default-fullname">Biaya
+                                                        Adm</label>
+                                                    <input type="text" class="form-control num dt-pl_fm"
+                                                        id="dt-pl_biaya_adm" name="dt-pl_biaya_adm" value="" readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="total_biaya2">PPN</label>
+                                                    <input type="text" class="form-control num dt-pl_fm totalbb"
+                                                        id="dt-pl_ppn" name="dt-pl_ppn" readonly>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label"
+                                                        for="basic-icon-default-fullname">BPHTB</label>
+                                                    <input type="text" class="form-control num dt-pl_fm totalbb"
+                                                        id="dt-pl_bphtb" name="dt-pl_bphtb" value="" readonly />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label" for="basic-icon-default-fullname">Biaya
+                                                        Proses</label>
+                                                    <input type="text" class="form-control num dt-pl_fm totalbb"
+                                                        id="dt-pl_biaya_proses" name="dt-pl_biaya_proses" value=""
+                                                        readonly />
+                                                </div>
+
+
+
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="divider">
+                                                    <div class="divider-text">Harga Jual (SPPTB)</div>
                                                 </div>
                                                 <div class="form-group">
                                                     <label class="form-label" for="basic-icon-default-fullname">Tanggal
@@ -868,111 +1171,7 @@ foreach (user()->getRoles() as $key => $val) {
 
 
                                             </div>
-                                            <div class="col-md-4">
-                                                <div class="divider">
-                                                    <div class="divider-text">Harga Jual dari Pricelist</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Tanggal
-                                                        PriceList</label>
-                                                    <input type="text"
-                                                        class="form-control text-right dt-pl_fm flatpickr-human-friendly"
-                                                        id="dt-pl_tgl_harga" disabled name="dt-pl_tgl_harga" value=""
-                                                        readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Harga
-                                                        Jual</label>
-                                                    <input type="text" class="form-control num dt-pl_fm"
-                                                        id="dt-pl_hargajual" name="dt-pl_hargajual" value="" readonly />
-                                                </div>
-                                                <div class="form-group" id="hjdis">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Diskon
-                                                        Harga
-                                                        Jual</label>
-                                                    <input type="text" class="form-control num dt-pl_fm"
-                                                        id="dt-pl_harga_diskon_hargajual"
-                                                        name="dt-pl_harga_diskon_hargajual" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Harga
-                                                        Jual Net</label>
-                                                    <input type="text" class="form-control num dt-pl_fm"
-                                                        id="dt-pl_hargajual_net" name="dt-pl_hargajual_net" value=""
-                                                        readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">KPR</label>
-                                                    <input type="text" class="form-control num dt-pl_fm" id="dt-pl_kpr"
-                                                        name="dt-pl_kpr" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Uang
-                                                        Muka</label>
-                                                    <input type="text" class="form-control num dt-pl_fm"
-                                                        id="dt-pl_uang_muka" name="dt-pl_uang_muka" value="" readonly />
-                                                </div>
-                                                <div class="form-group" id="umdis">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Diskon
-                                                        Uang Muka</label>
-                                                    <input type="text" class="form-control num dt-pl_fm"
-                                                        id="dt-pl_harga_diskon_uang_muka"
-                                                        name="dt-pl_harga_diskon_uang_muka" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Biaya
-                                                        Adm</label>
-                                                    <input type="text" class="form-control num dt-pl_fm"
-                                                        id="dt-pl_biaya_adm" name="dt-pl_biaya_adm" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="total_biaya2">PPN</label>
-                                                    <input type="text" class="form-control num dt-pl_fm totalbb"
-                                                        id="dt-pl_ppn" name="dt-pl_ppn" readonly>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">BPHTB</label>
-                                                    <input type="text" class="form-control num dt-pl_fm totalbb"
-                                                        id="dt-pl_bphtb" name="dt-pl_bphtb" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Biaya
-                                                        Proses</label>
-                                                    <input type="text" class="form-control num dt-pl_fm totalbb"
-                                                        id="dt-pl_biaya_proses" name="dt-pl_biaya_proses" value=""
-                                                        readonly />
-                                                </div>
 
-
-                                                <!-- <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">ROW</label>
-                                                    <input type="text" class="form-control num dt-pl_fm" id="dt-pl_row"
-                                                        name="dt-pl_row" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">Tipe</label>
-                                                    <input type="text" class="form-control dt-pl_fm text-right"
-                                                        id="dt-pl_tipe" name="dt-pl_tipe" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">LB</label>
-                                                    <input type="text" class="form-control num dt-pl_fm" id="dt-pl_lb"
-                                                        name="dt-pl_lb" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">LT</label>
-                                                    <input type="text" class="form-control num dt-pl_fm" id="dt-pl_lt"
-                                                        name="dt-pl_lt" value="" readonly />
-                                                </div> -->
-
-
-                                            </div>
                                             <div class="col-md-4">
                                                 <div class="divider">
                                                     <div class="divider-text">KPR</div>
@@ -1007,9 +1206,49 @@ foreach (user()->getRoles() as $key => $val) {
                                                         id="dt-st_keterangan_harga_penambahan" class="form-control "
                                                         cols="30" rows="2"></textarea>
                                                 </div>
+                                                <div class="divider">
+                                                    <div class="divider-text">Dokumen</div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>KTP</label>
+                                                    <div>
+                                                        <a href="#" class="btn btn-primary" id="dt-btn-ktp_here"
+                                                            class="files-here dt-cl-ktp_here" target=_blank>
+                                                            Klik untuk lihat file
+                                                            <embed src="" style="width: 90%;"
+                                                                class="files-here dt-cl-ktp_here">
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>NPWP</label>
+                                                    <div>
+                                                        <a href="#" class="btn btn-primary" id="dt-btn-npwp_here"
+                                                            class="files-here dt-cl-npwp_here" target=_blank>
+                                                            Klik untuk lihat file
+                                                            <embed src="" style="width: 90%;"
+                                                                class="files-here dt-cl-npwp_here">
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Berkas Lainnya</label>
+                                                    <div>
+                                                        <a href="#" class="btn btn-primary" id="dt-btn-bl_here"
+                                                            class="files-here dt-cl-bl_here" target=_blank>
+                                                            Klik untuk lihat file
+                                                            <embed src="" style="width: 90%;"
+                                                                class="files-here dt-cl-bl_here">
+                                                        </a>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
+                                    </div>
+                                    <div class="tab-pane" id="dt-cashout" aria-labelledby="dt-cashout-tab"
+                                        role="tabpanel">
+                                        <div id="dt-cashout-here"></div>
                                     </div>
                                     <div class="tab-pane" id="dt-stdetail" aria-labelledby="dt-stdetail-tab"
                                         role="tabpanel">
@@ -1027,6 +1266,16 @@ foreach (user()->getRoles() as $key => $val) {
                                                         <option value="Akad">Akad</option>
                                                         <option value="Batal">Batal</option>
                                                     </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="dt-st_booking_fee">Notaris</label>
+                                                    <input type="text" disabled class="form-control" id="dt-notaris"
+                                                        name="dt-notaris">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="dt-st_booking_fee">PPJB/AJB</label>
+                                                    <input type="text" disabled class="form-control" id="dt-is_ajb"
+                                                        name="dt-is_ajb">
                                                 </div>
                                                 <div class="divider">
                                                     <div class="divider-text">Booking</div>
@@ -1106,14 +1355,13 @@ foreach (user()->getRoles() as $key => $val) {
                                                         class="form-control" placeholder="-" disabled />
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>SP3K</label>
-                                                    <div class="custom-file">
-                                                        <a href="" class="btn btn-primary" target=_blank
-                                                            id="dt-st_list-upload_sp3k_file">Klik
-                                                            untuk
-                                                            lihat file</a>
+                                                    <div class="custom-control custom-switch custom-control-inline">
+                                                        <input type="checkbox" class="custom-control-input" id="dt-sp3k"
+                                                            name="dt-sp3k" value="1" disabled />
+                                                        <label class="custom-control-label" for="dt-sp3k">SP3K</label>
                                                     </div>
                                                 </div>
+
 
                                                 <div class="form-group">
                                                     <label for="dt-st_sp3k_tgl">Tanggal Terbit</label>
@@ -1126,6 +1374,15 @@ foreach (user()->getRoles() as $key => $val) {
                                                     <input type="text" id="dt-st_sp3k_tgl_exp" name="dt-st_sp3k_tgl_exp"
                                                         class="form-control flatpickr-human-friendly" placeholder="-"
                                                         disabled />
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>SP3K</label>
+                                                    <div class="custom-file">
+                                                        <a href="" class="btn btn-primary" target=_blank
+                                                            id="dt-st_list-upload_sp3k_file">Klik untuk lihat file
+                                                            <!-- <embed src="" id="dt-st_list-upload_sp3k_file-here" class="files-here" width="80%"> -->
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
@@ -1152,9 +1409,12 @@ foreach (user()->getRoles() as $key => $val) {
                                                     <div class="custom-file">
                                                         <a href="#" class="btn btn-primary" target=_blank
                                                             id="dt-st_list-upload_perintah_bangun_file">Klik untuk lihat
-                                                            file</a>
+                                                            file
+                                                            <!-- <embed src="" style="width: 80%;" class="files-here" id="dt-st_list-upload_perintah_bangun_file-here"> -->
+                                                        </a>
                                                     </div>
                                                 </div>
+
                                                 <div class="divider">
                                                     <div class="divider-text">Akad</div>
                                                 </div>
@@ -1296,109 +1556,691 @@ foreach (user()->getRoles() as $key => $val) {
                                     </div>
                                     <div class="tab-pane" id="dt-legal" aria-labelledby="dt-legal-tab" role="tabpanel">
                                         <small id="last_update_legal" class="text-muted"></small>
-                                        <div class="row">
-                                            <div class="col-sm-12 col-md-4 col-lg-4">
-                                                <div class="divider">
-                                                    <div class="divider-text">PBB</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-sertifikat_no_hgb">PBB</label>
-                                                    <input type="text" class="form-control" id="dt-pbb" name="dt-pbb"
-                                                        disabled>
-                                                </div>
-                                                <h5 class="modal-title" id="exampleModalLabel">Sertifikat</h5>
-                                                <div class="form-group">
-                                                    <label for="dt-sertifikat_tgl">Tanggal Sertifikat</label>
-                                                    <input type="text" id="dt-sertifikat_tgl" name="dt-sertifikat_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-sertifikat_luas">Luas Tanah</label>
-                                                    <input type="text" class="form-control" id="dt-sertifikat_luas"
-                                                        name="dt-sertifikat_luas" disabled>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-sertifikat_no_hgb">No HGB</label>
-                                                    <input type="text" class="form-control" id="dt-sertifikat_no_hgb"
-                                                        name="dt-sertifikat_no_hgb" disabled>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-sertifikat_no_split">No Split</label>
-                                                    <input type="text" class="form-control" id="dt-sertifikat_no_split"
-                                                        name="dt-sertifikat_no_split" disabled>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-sertifikat_masa_berlaku">Masa Berlaku</label>
-                                                    <input type="text" id="dt-sertifikat_masa_berlaku"
-                                                        name="dt-sertifikat_masa_berlaku"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
+                                        <div>
+                                            <div class="card">
+                                                <ul class="nav nav-pills flex-column flex-md-row mt-1 row-gap-2"
+                                                    role="tablist">
+
+                                                    <li class="nav-item">
+                                                        <a class="nav-link active" id="dt-legal-sertifikat-tab"
+                                                            data-toggle="tab" href="#dt-legal-sertifikat"
+                                                            aria-controls="home" role="tab"
+                                                            aria-selected="true">Sertipikat</a>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a class="nav-link " id="dt-legal-pbb-tab" data-toggle="tab"
+                                                            href="#dt-legal-pbb" aria-controls="home" role="tab"
+                                                            aria-selected="true">PBB</a>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a class="nav-link " id="dt-legal-bphtb-tab" data-toggle="tab"
+                                                            href="#dt-legal-bphtb" aria-controls="home" role="tab"
+                                                            aria-selected="true">BPHTB</a>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a class="nav-link " id="dt-legal-pbg-tab" data-toggle="tab"
+                                                            href="#dt-legal-pbg" aria-controls="home" role="tab"
+                                                            aria-selected="true">IMB/PBG</a>
+                                                    </li>
+
+                                                    <li class="nav-item">
+                                                        <a class="nav-link " id="dt-legal-pph-tab" data-toggle="tab"
+                                                            href="#dt-legal-pph" aria-controls="home" role="tab"
+                                                            aria-selected="true">PPH</a>
+                                                    </li>
+                                                    <li class="nav-item">
+                                                        <a class="nav-link " id="dt-legal-ajb-tab" data-toggle="tab"
+                                                            href="#dt-legal-ajb" aria-controls="home" role="tab"
+                                                            aria-selected="true">AJB</a>
+                                                    </li>
+                                                </ul>
                                             </div>
-                                            <div class="col-sm-12 col-md-4 col-lg-4">
-                                                <div class="divider">
-                                                    <div class="divider-text">IMB</div>
+                                            <div class="tab-content">
+
+                                                <div class="tab-pane" id="dt-legal-pbb"
+                                                    aria-labelledby="dt-legal-pbb-tab" role="tabpanel">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                    <h5>Mutasi Pecah PBB</h5>
+                                                                </div>
+                                                                <div class="card-body">
+
+                                                                    <div class="form-group">
+                                                                        <label>NOP PBB</label>
+                                                                        <input type="text"
+                                                                            class="form-control" id="dt-pbb_pecah_nop"
+                                                                            name="dt-pbb_pecah_nop" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Luas Bumi</label>
+                                                                        <input type="text"
+                                                                            class="form-control" id="dt-pbb_pecah_luas_bumi"
+                                                                            name="dt-pbb_pecah_luas_bumi" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>NJOP Bumi</label>
+                                                                        <input type="text"
+                                                                            class="form-control num" id="dt-pbb_pecah_njop_bumi"
+                                                                            name="dt-pbb_pecah_njop_bumi" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Luas Bangunan</label>
+                                                                        <input type="text"
+                                                                            class="form-control" id="dt-pbb_pecah_luas_bangunan"
+                                                                            name="dt-pbb_pecah_luas_bangunan" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>NJOP Bangunan</label>
+                                                                        <input type="text"
+                                                                            class="form-control num" id="dt-pbb_pecah_njop_bangunan"
+                                                                            name="dt-pbb_pecah_njop_bangunan" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Tanggal bayar</label>
+                                                                        <input type="text"
+                                                                            id="dt-pbb_pecah_tanggal_bayar"
+                                                                            name="dt-pbb_pecah_tanggal_bayar"
+                                                                            class="form-control flatpickr-human-friendly"
+                                                                            placeholder="-" disabled />
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Jumlah Tagihan</label>
+                                                                        <input type="text"
+                                                                            class="form-control num" id="dt-pbb_pecah_jumlah_tagihan"
+                                                                            name="dt-pbb_pecah_jumlah_tagihan" disabled>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                    <h5>Pembetulan</h5>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="form-group">
+                                                                        <label>Pembetulan PBB</label>
+                                                                        <select name="dt-pbb_is_pembetulan"
+                                                                            id="dt-pbb_is_pembetulan"
+                                                                            class="form-control"
+                                                                            disabled>
+                                                                            <option value="Tidak">Tidak</option>
+                                                                            <option value="Iya">Iya</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div id="select-pbb_is_pembetulan">
+                                                                        <div class="form-group">
+                                                                            <label>Tanggal Pembetulan</label>
+                                                                            <input type="text"
+                                                                                id="dt-pbb_tgl_pembetulan"
+                                                                                name="dt-pbb_tgl_pembetulan"
+                                                                                class="form-control flatpickr-human-friendly"
+                                                                                placeholder="-" disabled />
+                                                                        </div>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                    <h5>Balik Nama PBB</h5>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="form-group">
+                                                                        <label>Balik Nama PBB</label>
+                                                                        <select name="dt-pbb_is_balik_nama"
+                                                                            id="dt-pbb_is_balik_nama"
+                                                                            class="form-control"
+                                                                            disabled>
+                                                                            <option value="Belum">Belum</option>
+                                                                            <option value="Sudah">Sudah</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="select-pbb_is_balik_nama">
+                                                                        <div class="form-group">
+                                                                            <label>Nama Konsumen</label>
+                                                                            <input type="text" readonly
+                                                                                id="dt-pbb_balik_nama"
+                                                                                class="form-control"
+                                                                                name="dt-pbb_balik_nama" disabled>
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>Tanggal Pengiriman</label>
+                                                                            <input type="text"
+                                                                                id="dt-pbb_balik_nama_tgl_pengiriman"
+                                                                                name="dt-pbb_balik_nama_tgl_pengiriman"
+                                                                                class="form-control flatpickr-human-friendly"
+                                                                                placeholder="-" disabled />
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>Dikirim Ke
+                                                                                Bank/Konsumen/Notaris</label>
+                                                                            <input type="text"
+                                                                                class="form-control"
+                                                                                id="dt-pbb_balik_nama_ke"
+                                                                                name="dt-pbb_balik_nama_ke" disabled>
+                                                                        </div>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-imb_tgl">Tanggal IMB</label>
-                                                    <input type="text" id="dt-imb_tgl" name="dt-imb_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
+                                                <div class="tab-pane active" id="dt-legal-sertifikat"
+                                                    aria-labelledby="dt-legal-sertifikat-tab" role="tabpanel">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                    <h5>Sertipikat</h5>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="form-group">
+                                                                        <label>No HGB Induk</label>
+                                                                        <input type="text"
+                                                                            class="form-control "
+                                                                            id="dt-sertifikat_split_no_hgb_induk"
+                                                                            name="dt-sertifikat_split_no_hgb_induk"
+                                                                            disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Split Sertifikat</label>
+                                                                        <select name="dt-sertifikat_is_split"
+                                                                            id="dt-sertifikat_is_split"
+                                                                            class="form-control"
+                                                                            disabled>
+                                                                            <option value="0">Tidak</option>
+                                                                            <option value="1">Ya</option>
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                    <h5>Sertipikat Split</h5>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="select-sertifikat_is_split">
+                                                                        <div class="form-group">
+                                                                            <label>No HGB</label>
+                                                                            <input type="text"
+                                                                                class="form-control"
+                                                                                id="dt-sertifikat_split_no_hgb"
+                                                                                name="dt-sertifikat_split_no_hgb"
+                                                                                disabled>
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>Tanggal Terbit Sertipikat</label>
+                                                                            <input type="text"
+                                                                                id="dt-sertifikat_split_tanggal_terbit"
+                                                                                name="dt-sertifikat_split_tanggal_terbit"
+                                                                                class="form-control flatpickr-human-friendly"
+                                                                                placeholder="-" disabled />
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>Tanggal Terbit Berakhir</label>
+                                                                            <input type="text"
+                                                                                id="dt-sertifikat_split_tanggal_berakhir"
+                                                                                name="dt-sertifikat_split_tanggal_berakhir"
+                                                                                class="form-control flatpickr-human-friendly"
+                                                                                placeholder="-" disabled />
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>NIB</label>
+                                                                            <input type="text"
+                                                                                class="form-control "
+                                                                                id="dt-sertifikat_split_nib"
+                                                                                name="dt-sertifikat_split_nib" disabled>
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>Tanggal Surat Ukur</label>
+                                                                            <input type="text"
+                                                                                id="dt-sertifikat_split_tanggal_surat_ukur"
+                                                                                name="dt-sertifikat_split_tanggal_surat_ukur"
+                                                                                class="form-control flatpickr-human-friendly"
+                                                                                placeholder="-" disabled />
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>No Surat Ukur</label>
+                                                                            <input type="text"
+                                                                                id="dt-sertifikat_split_no_surat_ukur"
+                                                                                name="dt-sertifikat_split_no_surat_ukur"
+                                                                                class="form-control" placeholder="-"
+                                                                                disabled />
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>Luas Tanah (m2)</label>
+                                                                            <input type="text"
+                                                                                class="form-control "
+                                                                                id="dt-sertifikat_split_luas_tanah"
+                                                                                name="dt-sertifikat_split_luas_tanah"
+                                                                                disabled>
+                                                                        </div>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                    <h5>Sertipikat Balik Nama</h5>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="form-group">
+                                                                        <label>Balik Nama Sertifikat</label>
+                                                                        <select name="dt-sertifikat_is_balik_nama"
+                                                                            class="form-control "
+                                                                            id="dt-sertifikat_is_balik_nama"
+                                                                            disabled>
+                                                                            <option value="Belum">Belum</option>
+                                                                            <option value="Sudah">Sudah</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="select-sertifikat_is_balik_nama">
+                                                                        <div class="form-group">
+                                                                            <label>Nama Konsumen</label>
+                                                                            <input type="text" readonly
+                                                                                class="form-control "
+                                                                                id="dt-sertifikat_balik_nama"
+                                                                                name="dt-sertifikat_balik_nama"
+                                                                                disabled>
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>NIB Elektronik</label>
+                                                                            <input type="text"
+                                                                                class="form-control "
+                                                                                id="dt-sertifikat_nib_elektronik"
+                                                                                name="dt-sertifikat_nib_elektronik"
+                                                                                disabled>
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>Tanggal Pengiriman</label>
+                                                                            <input type="text"
+                                                                                id="dt-sertifikat_balik_nama_tgl_pengiriman"
+                                                                                name="dt-sertifikat_balik_nama_tgl_pengiriman"
+                                                                                class="form-control flatpickr-human-friendly"
+                                                                                placeholder="-" disabled />
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>Dikirim Ke
+                                                                                Bank/Konsumen/Notaris</label>
+                                                                            <input type="text"
+                                                                                class="form-control "
+                                                                                id="dt-sertifikat_balik_nama_ke"
+                                                                                name="dt-sertifikat_balik_nama_ke"
+                                                                                disabled>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-imb_no_induk">No Induk</label>
-                                                    <input type="text" class="form-control" id="dt-imb_no_induk"
-                                                        name="dt-imb_no_induk" disabled>
+                                                <div class="tab-pane " id="dt-legal-pbg"
+                                                    aria-labelledby="dt-legal-pbg-tab" role="tabpanel">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                    <h5>IMB/PBG</h5>
+                                                                </div>
+                                                                <div class="card-body">
+
+                                                                    <div class="form-group">
+                                                                        <label>No IMB/PBG</label>
+                                                                        <input type="text" class="form-control"
+                                                                            id="dt-pbg_no" name="dt-pbg_no" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Tanggal terbit</label>
+                                                                        <input type="text" id="dt-pbg_tanggal_terbit"
+                                                                            name="dt-pbg_tanggal_terbit"
+                                                                            class="form-control flatpickr-human-friendly"
+                                                                            placeholder="-" disabled />
+                                                                    </div>
+
+                                                                    <div class="form-group">
+                                                                        <label>Tipe</label>
+                                                                        <input type="text" id="dt-pbg_tipe"
+                                                                            name="dt-pbg_tipe" class="form-control"
+                                                                            placeholder="-" disabled />
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Status</label>
+                                                                        <select id="dt-pbg_status" name="dt-pbg_status"
+                                                                            class="form-control" disabled>
+                                                                            <option value="">-</option>
+                                                                            <option value="Proses">Proses</option>
+                                                                            <option value="Selesai">Selesai</option>
+                                                                            <option value="Terjadi Masalah">Terjadi
+                                                                                Masalah</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="divider">
+                                                                        <div class="divider-text">Pengiriman</div>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Dikirim Ke Bank/Konsumen</label>
+                                                                        <select name="dt-pbg_dikirim_ke"
+                                                                            class="form-control" id="dt-pbg_dikirim_ke"
+                                                                            disabled>
+                                                                            <option value="null"></option>
+                                                                            <option value="Bank BTN">Bank BTN</option>
+                                                                            <option value="Konsumen">Konsumen</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Tanggal Kirim Ke Bank/Konsumen</label>
+                                                                        <input type="text" id="dt-pbg_tanggal_kirim"
+                                                                            name="dt-pbg_tanggal_kirim"
+                                                                            class="form-control flatpickr-human-friendly"
+                                                                            placeholder="-" disabled />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                    <h5>Revisi IMB/PBG</h5>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="form-group">
+                                                                        <label>Revisi IMB/PBG</label>
+                                                                        <select name="dt-pbg_is_revisi"
+                                                                            class="form-control" id="dt-pbg_is_revisi"
+                                                                            disabled>
+                                                                            <option value="Tidak">Tidak</option>
+                                                                            <option value="Ya">Ya</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="select-pbg_is_revisi">
+                                                                        <div class="form-group">
+                                                                            <label>No IMB/PBG</label>
+                                                                            <input type="text" class="form-control"
+                                                                                id="dt-pbg_no_revisi"
+                                                                                name="dt-pbg_no_revisi" disabled>
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>Tanggal terbit</label>
+                                                                            <input type="text"
+                                                                                id="dt-pbg_tanggal_terbit_revisi"
+                                                                                name="dt-pbg_tanggal_terbit_revisi"
+                                                                                class="form-control flatpickr-human-friendly"
+                                                                                placeholder="-" disabled />
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>Tipe</label>
+                                                                            <input type="text" id="dt-pbg_tipe_revisi"
+                                                                                name="dt-pbg_tipe_revisi"
+                                                                                class="form-control" placeholder="-"
+                                                                                disabled />
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>Status</label>
+                                                                            <select id="dt-pbg_status_revisi"
+                                                                                name="dt-pbg_status_revisi"
+                                                                                class="form-control" disabled>
+                                                                                <option value="">-</option>
+                                                                                <option value="Proses">Proses</option>
+                                                                                <option value="Selesai">Selesai</option>
+                                                                                <option value="Terjadi Masalah">Terjadi
+                                                                                    Masalah</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-imb_no_split">No Split</label>
-                                                    <input type="text" class="form-control" id="dt-imb_no_split"
-                                                        name="dt-imb_no_split" disabled>
+                                                <div class="tab-pane " id="dt-legal-bphtb"
+                                                    aria-labelledby="dt-legal-bphtb-tab" role="tabpanel">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                    <h5>Verifikasi BPHTB</h5>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="form-group">
+                                                                        <label>Tanggal Verifikasi</label>
+                                                                        <input type="text"
+                                                                            class="form-control flatpickr-human-friendly"
+                                                                            id="dt-bphtb_tanggal_verifikasi"
+                                                                            name="dt-bphtb_tanggal_verifikasi" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Jatuh Tempo</label>
+                                                                        <input type="text"
+                                                                            class="form-control flatpickr-human-friendly"
+                                                                            id="dt-bphtb_jatuh_tempo"
+                                                                            name="dt-bphtb_jatuh_tempo" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Tanggal Perpanjangan Jatuh Tempo</label>
+                                                                        <input type="text"
+                                                                            class="form-control flatpickr-human-friendly"
+                                                                            id="dt-bphtb_perpanjang_jatuh_tempo"
+                                                                            name="dt-bphtb_perpanjang_jatuh_tempo"
+                                                                            disabled>
+                                                                    </div>
+
+                                                                    <div class="form-group">
+                                                                        <label>Tanggal Pembayaran</label>
+                                                                        <input type="text"
+                                                                            class="form-control flatpickr-human-friendly"
+                                                                            id="dt-bphtb_tanggal_pembayaran"
+                                                                            name="dt-bphtb_tanggal_pembayaran" disabled>
+                                                                    </div>
+
+                                                                    <div class="form-group">
+                                                                        <label>Nominal Yang Disetujui</label>
+                                                                        <input type="text" readonly
+                                                                            class="form-control num"
+                                                                            id="dt-bphtb_nominal_disetujui"
+                                                                            name="dt-bphtb_nominal_disetujui" disabled>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                    <h5>Validasi BPHTB</h5>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="form-group">
+                                                                        <label>Tanggal Validasi</label>
+                                                                        <input type="text"
+                                                                            class="form-control flatpickr-human-friendly"
+                                                                            id="dt-bphtb_tanggal_validasi"
+                                                                            name="dt-bphtb_tanggal_validasi" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>No NTPD</label>
+                                                                        <input type="text" class="form-control"
+                                                                            id="dt-bphtb_nominal_tervalidasi"
+                                                                            name="dt-bphtb_nominal_tervalidasi"
+                                                                            disabled>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div class="divider">
-                                                    <div class="divider-text">BPHTB</div>
+                                                <div class="tab-pane " id="dt-legal-pph"
+                                                    aria-labelledby="dt-legal-pph-tab" role="tabpanel">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                </div>
+                                                                <div class="card-body">
+
+                                                                    <div class="form-group">
+                                                                        <label>Nominal Dibayar</label>
+                                                                        <input type="text" class="form-control num"
+                                                                            id="dt-pph_nominal_bayar"
+                                                                            name="dt-pph_nominal_bayar" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Tanggal Bayar</label>
+                                                                        <input type="text"
+                                                                            class="form-control flatpickr-human-friendly"
+                                                                            id="dt-pph_tgl_bayar"
+                                                                            name="dt-pph_tgl_bayar" disabled>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="form-group">
+                                                                        <label>Jenis Validasi</label>
+                                                                        <select class="form-control"
+                                                                            id="dt-pph_jenis_validasi"
+                                                                            name="dt-pph_jenis_validasi" disabled>
+                                                                            <option value=""></option>
+                                                                            <option value="Offline">Offline</option>
+                                                                            <option value="Online">Online</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="select-pph-validasi-offline" class="hide">
+                                                                        <div class="form-group">
+                                                                            <label>Tanggal Validasi</label>
+                                                                            <input type="text"
+                                                                                class="form-control flatpickr-human-friendly"
+                                                                                id="dt-pph_tanggal_validasi"
+                                                                                name="dt-pph_tanggal_validasi" disabled>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="select-pph-validasi-online"
+                                                                        class="hide">
+                                                                        <div class="form-group">
+                                                                            <label>Tanggal Permohonan</label>
+                                                                            <input type="text"
+                                                                                class="form-control flatpickr-human-friendly"
+                                                                                id="dt-pph_tgl_permohonan"
+                                                                                name="dt-pph_tgl_permohonan" disabled>
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label>Tanggal Selesai</label>
+                                                                            <input type="text"
+                                                                                class="form-control flatpickr-human-friendly"
+                                                                                id="dt-pph_tgl_selesai"
+                                                                                name="dt-pph_tgl_selesai" disabled>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>NTPN</label>
+                                                                        <input type="text" class="form-control"
+                                                                            id="dt-pph_ntpn" name="dt-pph_ntpn"
+                                                                            disabled>
+                                                                    </div>
+
+                                                                    <div class="form-group">
+                                                                        <label>No SKET</label>
+                                                                        <input type="text" class="form-control"
+                                                                            id="dt-pph_no_sket" name="dt-pph_no_sket"
+                                                                            disabled>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-bphtb_tgl">Tanggal BPHTB</label>
-                                                    <input type="text" id="dt-bphtb_tgl" name="dt-bphtb_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
+                                                <div class="tab-pane " id="dt-legal-ajb"
+                                                    aria-labelledby="dt-legal-ajb-tab" role="tabpanel">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                    <h5>AJB</h5>
+                                                                </div>
+                                                                <div class="card-body">
+
+                                                                    <div class="form-group">
+                                                                        <label>No AJB</label>
+                                                                        <input type="text" class="form-control "
+                                                                            id="dt-ajb_no" name="dt-ajb_no" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Tanggal AJB</label>
+                                                                        <input type="text"
+                                                                            class="form-control flatpickr-human-friendly"
+                                                                            id="dt-ajb_tanggal" name="dt-ajb_tanggal"
+                                                                            disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Notaris</label>
+                                                                        <input type="text" class="form-control "
+                                                                            id="dt-ajb_notaris" name="dt-ajb_notaris"
+                                                                            disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Dikirim Ke Bank/Konsumen</label>
+                                                                        <input type="text" class="form-control "
+                                                                            id="dt-ajb_dikirim_ke"
+                                                                            name="dt-ajb_dikirim_ke" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Tanggal Dikirim Ke Bank/Konsumen</label>
+                                                                        <input type="text"
+                                                                            class="form-control flatpickr-human-friendly"
+                                                                            id="dt-ajb_tanggal_dikirim"
+                                                                            name="dt-ajb_tanggal_dikirim" disabled>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="card">
+                                                                <div class="card-header">
+                                                                    <h5>PPJB</h5>
+                                                                </div>
+                                                                <div class="card-body">
+                                                                    <div class="form-group">
+                                                                        <label>No PPJB</label>
+                                                                        <input type="text" class="form-control "
+                                                                            id="dt-ppjb_no" name="dt-ppjb_no" disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Tanggal PPJB</label>
+                                                                        <input type="text"
+                                                                            class="form-control flatpickr-human-friendly"
+                                                                            id="dt-ppjb_tanggal" name="dt-ppjb_tanggal"
+                                                                            disabled>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label>Notaris</label>
+                                                                        <input type="text" class="form-control "
+                                                                            id="dt-ppjb_notaris" name="dt-ppjb_notaris"
+                                                                            disabled>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-bphtb_masa_berlaku">Masa Berlaku</label>
-                                                    <input type="text" id="dt-bphtb_masa_berlaku"
-                                                        name="dt-bphtb_masa_berlaku"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-bphtb_validasi">Validasi</label>
-                                                    <input type="text" id="dt-bphtb_validasi" name="dt-bphtb_validasi"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-12 col-md-4 col-lg-4">
-                                                <div class="divider">
-                                                    <div class="divider-text">NOP</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-nop_pbb">NOP</label>
-                                                    <input type="text" class="form-control" id="dt-nop_pbb"
-                                                        name="dt-nop_pbb" disabled>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-pph">PPh</label>
-                                                    <input type="text" class="form-control" id="dt-pph" name="dt-pph"
-                                                        disabled>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-legal_keterangan">Keterangan</label>
-                                                    <textarea class="form-control" id="dt-legal_keterangan"
-                                                        name="dt-legal_keterangan" rows="3" placeholder="Keterangan"
-                                                        disabled></textarea>
-                                                </div>
+
                                             </div>
                                         </div>
                                     </div>
@@ -1410,6 +2252,11 @@ foreach (user()->getRoles() as $key => $val) {
                                                 <a class="nav-link active" id="dt-fm-prod-progress-tab"
                                                     data-toggle="tab" href="#dt-fm-prod-progress" role="tab"
                                                     aria-selected="true">Proges</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" id="dt-fm-prod-bayar_produksi-tab"
+                                                    data-toggle="tab" href="#dt-fm-prod-bayar_produksi" role="tab"
+                                                    aria-selected="true">Pembayaran</a>
                                             </li>
                                             <li class="nav-item">
                                                 <a class="nav-link" id="dt-fm-prod-dokumentasi-tab" data-toggle="tab"
@@ -1434,147 +2281,222 @@ foreach (user()->getRoles() as $key => $val) {
                                             <div class="tab-pane active" id="dt-fm-prod-progress"
                                                 aria-labelledby="dt-fm-prod-progress-tab" role="tabpanel">
                                                 <div class="row">
-                                                    <div class="col-md-4">
+                                                    <div class="col-md-3">
                                                         <div class="form-group">
-                                                            <div
-                                                                class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1"
-                                                                    class="custom-control-input cbp" id="dt-st_0"
+                                                            <div class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-st_0"
                                                                     name="dt-st_0" disabled />
-                                                                <label class="custom-control-label" for="dt-st_0">sd
-                                                                    Sloof</label>
+                                                                <label class="custom-control-label" for="dt-st_0">sd Sloof</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div
-                                                                class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1"
-                                                                    class="custom-control-input cbp" id="dt-st_25"
+                                                            <div class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-st_25"
                                                                     name="dt-st_25" disabled />
-                                                                <label class="custom-control-label"
-                                                                    for="dt-st_25">Dinding
-                                                                    sd Ringbalok</label>
+                                                                <label class="custom-control-label" for="dt-st_25">Dinding sd Ringbalok</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div
-                                                                class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1"
-                                                                    class="custom-control-input cbp" id="dt-st_50"
+                                                            <div class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-st_50"
                                                                     name="dt-st_50" disabled />
-                                                                <label class="custom-control-label"
-                                                                    for="dt-st_50">Dinding
-                                                                    Full, Atap, PLester dan Aci</label>
+                                                                <label class="custom-control-label" for="dt-st_50">Dinding Full, Atap, PLester
+                                                                    dan Aci</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div
-                                                                class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1"
-                                                                    class="custom-control-input cbp" id="dt-st_75"
+                                                            <div class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-st_75"
                                                                     name="dt-st_75" disabled />
-                                                                <label class="custom-control-label"
-                                                                    for="dt-st_75">Plafon,
-                                                                    Keramik, Dapur, Kamar Mandi dan Cat</label>
+                                                                <label class="custom-control-label" for="dt-st_75">Plafon, Keramik, Dapur,
+                                                                    Kamar Mandi dan Cat</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div
-                                                                class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1"
-                                                                    class="custom-control-input cbp" id="dt-st_100"
-                                                                    name="dt-st_100" disabled />
-                                                                <label class="custom-control-label"
-                                                                    for="dt-st_100">Kusen,
-                                                                    Pintu, Jendela, Kaca, Halaman dan Finishing</label>
-                                                            </div>
-                                                        </div>
-
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="form-group">
-                                                            <div
-                                                                class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1"
-                                                                    class="custom-control-input cbp" id="dt-st_saluran"
-                                                                    name="dt-st_saluran" disabled />
-                                                                <label class="custom-control-label"
-                                                                    for="dt-st_saluran">Saluran Jalan</label>
+                                                            <div class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1" class="custom-control-input cbp"
+                                                                    id="dt-st_100" name="dt-st_100" disabled />
+                                                                <label class="custom-control-label" for="dt-st_100">Kusen, Pintu, Jendela,
+                                                                    Kaca, Halaman dan Finishing</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div
-                                                                class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1"
-                                                                    class="custom-control-input cbp" id="dt-st_jalan"
-                                                                    name="dt-st_jalan" disabled />
-                                                                <label class="custom-control-label"
-                                                                    for="dt-st_jalan">Listrik</label>
+                                                            <div class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1" class="custom-control-input cbp"
+                                                                    id="dt-st_saluran" name="dt-st_saluran" disabled />
+                                                                <label class="custom-control-label" for="dt-st_saluran">Saluran Jalan</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
-                                                            <div
-                                                                class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1"
-                                                                    class="custom-control-input cbp" id="dt-st_air"
-                                                                    name="dt-st_air" disabled />
-                                                                <label class="custom-control-label"
-                                                                    for="dt-st_air">Air</label>
+                                                            <div class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1" class="custom-control-input cbp"
+                                                                    id="dt-st_jalan" name="dt-st_jalan" disabled />
+                                                                <label class="custom-control-label" for="dt-st_jalan">Listrik</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <div class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1" class="custom-control-input cbp"
+                                                                    id="dt-st_air" name="dt-st_air" disabled />
+                                                                <label class="custom-control-label" for="dt-st_air">Air</label>
                                                             </div>
                                                         </div>
                                                         <!-- <div class="af"> -->
                                                         <div class="">
                                                             <div class="form-group">
-                                                                <div
-                                                                    class="custom-control custom-switch custom-control-inline">
-                                                                    <input type="checkbox" value="1"
-                                                                        class="custom-control-input cbp" id="dt-slo"
-                                                                        name="dt-slo" disabled />
-                                                                    <label class="custom-control-label"
-                                                                        for="dt-slo">SLO</label>
+                                                                <div class="custom-control custom-switch custom-control-inline">
+                                                                    <input type="checkbox" value="1" class="custom-control-input cbp"
+                                                                        id="dt-slo" name="dt-slo" disabled />
+                                                                    <label class="custom-control-label" for="dt-slo">SLO / NIDI</label>
                                                                 </div>
                                                             </div>
-                                                            <div class="form-group">
-                                                                <div
-                                                                    class="custom-control custom-switch custom-control-inline">
-                                                                    <input type="checkbox" value="1"
-                                                                        class="custom-control-input cbp" id="dt-bp"
-                                                                        name="dt-bp" disabled />
-                                                                    <label class="custom-control-label"
-                                                                        for="dt-bp">BP</label>
+                                                            <!-- <div class="form-group">
+                                                                <div class="custom-control custom-switch custom-control-inline">
+                                                                    <input type="checkbox" value="1" class="custom-control-input cbp"
+                                                                        id="dt-bp" name="dt-bp" disabled />
+                                                                    <label class="custom-control-label" for="dt-bp">BP</label>
                                                                 </div>
-                                                            </div>
+                                                            </div> -->
+
                                                         </div>
+
                                                     </div>
-                                                    <div class="col-md-4">
+                                                    <div class="col-md-3">
+                                                        <div class="divider">
+                                                            <div class="divider-text">LPA</div>
+                                                        </div>
                                                         <div class="form-group">
-                                                            <div
-                                                                class="custom-control custom-switch custom-control-inline">
-                                                                <input type="checkbox" value="1"
-                                                                    class="custom-control-input cbp" id="dt-lpa"
+                                                            <div class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-lpa"
                                                                     name="dt-lpa" disabled />
-                                                                <label class="custom-control-label"
-                                                                    for="dt-lpa">LPA</label>
+                                                                <label class="custom-control-label" for="dt-lpa">LPA</label>
                                                             </div>
                                                         </div>
                                                         <div class="form-group">
                                                             <label>Tanggal LPA</label>
-                                                            <input type="text"
-                                                                class="form-control flatpickr-human-friendly"
+                                                            <input type="text" class="form-control flatpickr-human-friendly"
                                                                 id="dt-lpa_tanggal" name="dt-lpa_tanggal" disabled>
                                                         </div>
+                                                        <div class="divider">
+                                                            <div class="divider-text">Sumur Bor</div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <div class="custom-control custom-switch custom-control-inline">
+                                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-sumurbor"
+                                                                    name="dt-sumurbor" disabled />
+                                                                <label class="custom-control-label" for="dt-sumurbor">Sumur Bor</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label>Tanggal Pemasangan Sumur Bor</label>
+                                                            <input type="text" class="form-control flatpickr-human-friendly"
+                                                                id="dt-sumurbor_tanggal" name="dt-sumurbor_tanggal" disabled>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="dt-sumurbor_keterangan">Keterangan Sumur Bor</label>
+                                                            <textarea class="form-control" id="dt-sumurbor_keterangan"
+                                                                name="dt-sumurbor_keterangan" rows="3" placeholder="Keterangan" disabled></textarea>
+
+                                                            <small id="dt-last_update-sumurbor" class="text-muted"></small>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-3">
                                                         <div class="form-group">
                                                             <label for="dt-progres_bangunan">Progres Bangunan</label>
-                                                            <input type="range" class="form-control-range" value="0"
-                                                                id="dt-progres_bangunan" name="dt-progres_bangunan"
-                                                                step="5" disabled>
+                                                            <input type="range" class="form-control-range" value="0" id="dt-progres_bangunan"
+                                                                name="dt-progres_bangunan" step="1" disabled>
                                                             <span id="dt-t_progres_bangunan"></span>%
                                                         </div>
                                                         <div class="form-group">
-                                                            <label for="dt-produksi_keterangan">Keterangan</label>
+                                                            <label for="dt-produksi_keterangan">Keterangan Pembangunan</label>
                                                             <textarea class="form-control" id="dt-produksi_keterangan"
-                                                                name="dt-produksi_keterangan" rows="3"
-                                                                placeholder="Keterangan" disabled></textarea>
+                                                                name="dt-produksi_keterangan" rows="3" placeholder="Keterangan" disabled></textarea>
+                                                        </div>
+
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="divider">
+                                                            <div class="divider-text">Tanggal Pembangunan Rumah</div>
+                                                        </div>
+                                                        <div>
+
+                                                            <div class="form-group">
+                                                                <label>Tanggal Pembangunan</label>
+                                                                <input type="text" class="form-control tanggal_pembangunan flatpickr-human-friendly tgl_bangun"
+                                                                    id="dt-tanggal_pembangunan" name="dt-tanggal_pembangunan" disabled>
+                                                                <input type="text" class="hidden" id="dt-tanggal_pembangunan_old"
+                                                                    name="dt-tanggal_pembangunan_old" disabled>
+                                                            </div>
+                                                            <span class="text-muted" id="dt-lu-tanggal_pembangunan"></span>
+
+                                                            <div class="form-group">
+                                                                <label>Tanggal Rencana Selesai Pembangunan</label>
+                                                                <input type="text" class="form-control tanggal_rencana_selesai_pembangunan flatpickr-human-friendly tgl_bangun"
+                                                                    id="dt-tanggal_rencana_selesai_pembangunan"
+                                                                    name="dt-tanggal_rencana_selesai_pembangunan" disabled>
+                                                                <input type="text" class="hidden" id="dt-tanggal_rencana_selesai_pembangunan_old"
+                                                                    name="dt-tanggal_rencana_selesai_pembangunan_old" disabled>
+                                                            </div>
+                                                            <span class="text-muted" id="dt-lu-tanggal_rencana_selesai_pembangunan"></span>
+
+
+                                                            <div class="form-group">
+                                                                <label>Tanggal Selesai Pembangunan</label>
+                                                                <input type="text" class="form-control flatpickr-human-friendly "
+                                                                    id="dt-tanggal_selesai_pembangunan" name="dt-tanggal_selesai_pembangunan" disabled>
+                                                                <input type="text" class="hidden" id="dt-tanggal_selesai_pembangunan_old"
+                                                                    name="dt-tanggal_selesai_pembangunan_old" disabled>
+                                                            </div>
+                                                            <span class="text-muted" id="dt-lu-tanggal_selesai_pembangunan"></span>
+
+
+                                                            <div class="hidden">
+                                                                <div class="form-group">
+                                                                    <label>Diinput oleh</label>
+                                                                    <input type="text" class="form-control" id="dt-tanggal_pembangunan_oleh" disabled
+                                                                        name="dt-tanggal_pembangunan_oleh">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Diinput Pada</label>
+                                                                    <input type="text" class="form-control flatpickr-human-friendly"
+                                                                        id="dt-tanggal_pembangunan_pada" disabled name="dt-tanggal_pembangunan_pada">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Diubah oleh</label>
+                                                                    <input type="text" class="form-control" id="dt-tanggal_pembangunan_diubah_oleh"
+                                                                        disabled name="dt-tanggal_pembangunan_diubah_oleh">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Diubah Pada</label>
+                                                                    <input type="text" class="form-control flatpickr-human-friendly"
+                                                                        id="dt-tanggal_pembangunan_diubah_pada" disabled
+                                                                        name="dt-tanggal_pembangunan_diubah_pada">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Diinput oleh</label>
+                                                                    <input type="text" class="form-control" id="dt-tanggal_selesai_pembangunan_oleh"
+                                                                        disabled name="dt-tanggal_selesai_pembangunan_oleh">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Diinput Pada</label>
+                                                                    <input type="text" class="form-control flatpickr-human-friendly"
+                                                                        id="dt-tanggal_selesai_pembangunan_pada" disabled
+                                                                        name="dt-tanggal_selesai_pembangunan_pada">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Diubah oleh</label>
+                                                                    <input type="text" class="form-control"
+                                                                        id="dt-tanggal_selesai_pembangunan_diubah_oleh" disabled
+                                                                        name="dt-tanggal_selesai_pembangunan_diubah_oleh">
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label>Diubah Pada</label>
+                                                                    <input type="text" class="form-control flatpickr-human-friendly"
+                                                                        id="dt-tanggal_selesai_pembangunan_diubah_pada" disabled
+                                                                        name="dt-tanggal_selesai_pembangunan_diubah_pada">
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1586,8 +2508,10 @@ foreach (user()->getRoles() as $key => $val) {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="tab-pane" id="dt-fm-prod-dokumentasi"
-                                                aria-labelledby="dt-fm-prod-dokumentasi-tab" role="tabpanel">
+                                            <div class="tab-pane" id="dt-fm-prod-bayar_produksi" aria-labelledby="dt-fm-prod-bayar_produksi-tab" role="tabpanel">
+                                                <div id="dt-div-bayar_produksi-here" class="row"></div>
+                                            </div>
+                                            <div class="tab-pane" id="dt-fm-prod-dokumentasi" aria-labelledby="dt-fm-prod-dokumentasi-tab" role="tabpanel">
                                                 <div class="form-group foto-container">
                                                     <label>Foto Konstruksi(Jika Ada, Pembesian, Pondasi)</label>
 
@@ -1709,17 +2633,17 @@ foreach (user()->getRoles() as $key => $val) {
                                                         <option value="PDAM">PDAM</option>
                                                     </select>
                                                 </div>
-                                                <div id="air_tanah-input_form">
+                                                <div id="dt-air_tanah-input_form">
                                                     <div class="form-group foto-container">
                                                         <label for="dt-air_tanah">Foto ketersediaan air bersih dengan
                                                             air
                                                             mengalir & sumber air (min. 1 foto)</label>
 
-                                                        <div id="ldt-ist_air_tanah"
+                                                        <div id="dt-list_air_tanah"
                                                             style="display: flex; flex-wrap: wrap;"></div>
                                                     </div>
                                                 </div>
-                                                <div id="air_komunal-input_form" class="hidden">
+                                                <div id="dt-air_komunal-input_form" class="hidden">
                                                     <div class="form-group foto-container">
                                                         <label for="dt-air_komunal">Foto ketersediaan air bersih dengan
                                                             air
@@ -1748,6 +2672,23 @@ foreach (user()->getRoles() as $key => $val) {
                                                     <input type="text" class="form-control" id="dt-air_deskripsi_unit"
                                                         name="dt-air_deskripsi_unit" disabled>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane" id="dt-pajak" aria-labelledby="dt-pajak-tab"
+                                        role="tabpanel">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="divider">
+                                                    <div class="divider-text">Bukti Pembayaran PPH</div>
+                                                </div>
+                                                <div id="dt-file_pph42-here"></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="divider">
+                                                    <div class="divider-text">Bukti Pembayaran PPn</div>
+                                                </div>
+                                                <div id="dt-file_ppn-here"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -2630,7 +3571,23 @@ foreach (user()->getRoles() as $key => $val) {
         </div>
     </div>
 </div>
-
+<div class="fade modal text-left" id="modal_othersdetail" aria-labelledby="modal_othersdetail" role="dialog" aria-hidden="true" tabindex="-1">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Detail</h5><button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <form class="modal-content pt-0 add-new-record" id="fm-fotherproduksi">
+                <div class="modal-body">
+                    <p class="modal-title label_alamat" id="label_fothersproduksi"></p><br><span><strong>Luas di Siteplan :</strong><br><span class="t_luas_planning"></span></span><br><span><strong>Keterangan Planning :</strong><br><span class="t_keterangan_planning"></span></span><br><br><span><strong>Luas di Sertifikat :</strong><br><span class="t_luas_legal"></span></span><br><span><strong>Keterangan Legal :</strong><br><span class="t_keterangan_legal"></span></span><br><br><span><strong>Luas di Lapangan :</strong><br><span class="t_luas_produksi"></span></span><br><span><strong>Keterangan Produksi :</strong><br><span class="t_keterangan_keterangan"></span></span>
+                    <hr>
+                    <div class="form-group"><label for="f_progres_jalan">Progres</label> <input name="f_detail_progres_jalan" class="form-control-range" id="f_detail_progres_jalan" disabled type="range" max="100" min="0" oninput='$(".r_progres").html($(this).val())' step="5"> <span class="r_progres"></span><span>%</span></div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-outline-secondary" type="reset" data-dismiss="modal">Tutup</button></div>
+            </form>
+        </div>
+    </div>
+</div>
 <!-- BEGIN: Vendor JS-->
 <script src="<?= base_url() ?>/app-assets/vendors/js/vendors.min.js"></script>
 <script src="<?= base_url() ?>/app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
@@ -2646,20 +3603,43 @@ foreach (user()->getRoles() as $key => $val) {
 <!-- <script src="<?= base_url() ?>/assets/js/scripts.js"></script> -->
 <!-- END: Page Vendor JS-->
 <script>
+    function applyLoadingEffect(selector) {
+        $(selector).addClass("input-loading");
+    }
+
+    function removeLoadingEffect(selector) {
+        $(selector).removeClass("input-loading")
+    }
     let data_um = [],
         data_bb = []
     //sewwtalert2 fix error cant type after open modal
-    $.fn.modal.Constructor.prototype._enforceFocus = function () { };
+    $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+
+    const list_pekerjaan = {
+        "Pekerjaan Persiapan": ["Persiapan Pembersihan lokasi", "Pemasangan bouplank"],
+        "Pekerjaan Pondasi": ["Galian tanah pondasi", "Pasangan Pondasi Batu kali", "Pasangan Pondasi plat Setempat", "Instalasi Pipa Air Kotor pendam 3 inch", "Instalasi Pipa Air Kotor Pendam 4 inch", "Instalasi Pipa Air Kotor Pendam lebih dari 4 inch", "Urugan tanah pondasi tinggi 0-20 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi 20-50 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi lebih dari 50 cm dari jalan lingkungan"],
+        "Pekerjaan Pembesian/Kontruksi": ["Rangkaian pemasangan besi/tulangan pada sloof Bawah", "Rangkaian pemasangan Pasang besi/tulangan pada Ring Balok/balok atas", "Rangkaian pemasangan besi/tulangan pada kolom", "Rangkaian pemasangan besi/tulangan pada sopi-sopi/Gewel/gunungan", "Rangkaian pemasangan pertemuan Besi Tulangan antara Kolom dan Sloof Bawah", "Rangkaian pemasangan pertemuan Tulangan antara Kolom dan Ring Balk/balok atas", "Rangkaian pemasangan pertemuan Tulangan antara Kolom, Ring Balk/balok atas dan sopi-sopi/gunungan", ],
+        "Pekerjaan Cor Beton": ["Cor Beton sloof bawah", "Cor Beton Ring Balk/balok atas", "Tangga Beton (jika rumah 2 lantai)", "Plat Lantai Beton lantai 2", "Plat Lantai Beton lantai"],
+        "Pekerjaan Pasangan Dinding": ["Pasang Bata/Batako/Bata Ringan/Jenis lain", "Plesteran tebal", "Acian semen", "Pasangan keramik dinding kamar mandi", "Pasangan keramik dinding dapur"],
+        "Pekerjaan Atap": ["Rangka atap & Kuda Kuda", "Tutup atap/genting", "Genting bubung", "Listplang kayu", "Talang sudut"],
+        "Pekerjaan Instalasi": ["Instalasi Air bersih", "Instalasi/Jaringan Listrik"],
+        "Pekerjaan Langit-langit (Plapond)": ["Rangka plapond", "Penutup plapond"],
+        "Pekerjaan Lantai": ["Lantai kerja (pasir lantai)", "Penutup lantai"],
+        "Pekerjaan kusen": ["Kusen/pintu Utama", "Jendela Utama/jendela teras", "Kusen/pintu Kamar", "Jendela Kamar"],
+        "Pekerjaan Kaca dan Kunci": ["Pasang kaca jendela", "Pasang kunci tanam pintu", "Pasang kunci kamar mandi", "Pasang engsel pintu", "Pasang engsel jendela", "Pasang tulak angin/Hak angin /windows stay"],
+        "Pekerjaan Sanitasi": ["Pasang closet", "Pasang washtafel", "Pasang bak mandi", "Pasang bak cuci piring", "Septictank"],
+        "Pekerjaan Finishing & Pegecatan": ["Pengecatan kusen", "Pengecatan pintu dan jendela", "Pengecatan Plapond", "Pengecatan tembok"]
+    };
 
     //carousel
     $('.carousel').carousel('pause')
 
     //datepicker
     var fp = flatpickr(".flatpickr-human-friendly", {
-        altInput: true,
-        altFormat: 'F j, Y',
-        dateFormat: 'Y-m-d'
-    }),
+            altInput: true,
+            altFormat: 'F j, Y',
+            dateFormat: 'Y-m-d'
+        }),
         sp,
         dtt = [], //data point from selection
         batchdtt = [], // multiple data point from selection
@@ -2724,7 +3704,7 @@ foreach (user()->getRoles() as $key => $val) {
 
     // siteplan img object :
     var imageObj = new Image();
-    imageObj.onload = function () {
+    imageObj.onload = function() {
 
         sp = new Konva.Image({
             x: 0,
@@ -2744,7 +3724,7 @@ foreach (user()->getRoles() as $key => $val) {
     imageObj.src = base_url + '' + dt_proyek.siteplan;
 
     //deklarasi kanvas untuk kavling
-    window.onload = function () {
+    window.onload = function() {
         colorThreshold = 15;
         blurRadius = 1;
         simplifyTolerant = 0;
@@ -2819,6 +3799,9 @@ foreach (user()->getRoles() as $key => $val) {
             $('#filter-side').remove();
             $("#btn-filter").removeClass("hidden")
         }
+
+
+
     }
 
     var line_ms = new Konva.Line({
@@ -2832,7 +3815,7 @@ foreach (user()->getRoles() as $key => $val) {
     });
 
     //refresh kavling setelah ganti divisi
-    $("#pilih-divisi").change(function () {
+    $("#pilih-divisi").change(function() {
         change_div()
     });
 
@@ -2877,19 +3860,35 @@ foreach (user()->getRoles() as $key => $val) {
                 // id_role: roleid
             },
             dataType: 'json',
-            beforeSend: function () {
+            beforeSend: function() {
                 $("#loading").removeClass("hidden");
             },
-            success: function (r) {
+            success: function(r) {
                 $("#loading").addClass("hidden");
                 const menu = r.menu;
                 $("#menu_here").html(menu);
+                if (roleid == 7 && has_akses.proyek == false) {
+                    $(".btn-prod").hide()
+                    swal('warning', 'Peringatan!', "Kamu tidak bisa melakukan perubahan untuk proyek ini")
+                } else {
+                    $(".btn-prod").show()
+                }
+                if (roleid == 5 && has_akses.legal == false) {
+                    $("#edit_kavling_batch").hide()
+                    swal('warning', 'Peringatan!', "Kamu tidak bisa melakukan perubahan untuk proyek ini")
+                } else {
+                    $("#edit_kavling_batch").show()
+                }
             },
-            error: function () {
+            error: function() {
                 $("#loading").addClass("hidden");
 
             }
         })
+    }
+
+    function buat_nominatif() {
+
     }
 
     var stroke, fill, strokeWidth, dashed;
@@ -2915,7 +3914,7 @@ foreach (user()->getRoles() as $key => $val) {
         let div = "",
             kv
         // console.log(filterwarna)
-        $.each(filterwarna, function (i, v) {
+        $.each(filterwarna, function(i, v) {
             if (v) {
                 div += `
                 <div class="divider">
@@ -2929,7 +3928,7 @@ foreach (user()->getRoles() as $key => $val) {
                     sortedObj[key] = v[key];
                 });
 
-                $.each(sortedObj, function (x, y) {
+                $.each(sortedObj, function(x, y) {
 
                     kv = (x == "Def") ? "Data yang bisa diolah" : x;
 
@@ -2969,7 +3968,7 @@ foreach (user()->getRoles() as $key => $val) {
             },
             dataType: 'json',
             beforeSend: () => $("#loading").removeClass("hidden"),
-            success: function (result) {
+            success: function(result) {
                 $("#loading").addClass("hidden");
                 csrfHash = result.token;
                 stroke = fill = strokeWidth = dashed = "";
@@ -3140,20 +4139,44 @@ foreach (user()->getRoles() as $key => $val) {
                         // if (r[p].status_mkdt)
                         //     hit = set_fill2(r[p].status_mkdt)
 
-                        if (r[p].perintah_bangun == 1)
-                            hit = set_fill2("Perintah Bangun")
+
+                        if (r[p].status_mkdt == "Akad") {
+                            hit = set_fill2("Akad " + subsidi)
 
 
-                        if (r[p].progres_bangunan == "100") {
-                            // jika sudah selesai
-                            hit = set_fill2("Ready Stock") // warna merah
-                        } else if (parseInt(r[p].progres_bangunan) > 0) {
-                            hit = set_fill2("Pembangunan") // warna merah
+                            // if (r[p].perintah_bangun == 1)
+                            //     hit = set_fill2("Perintah Bangun")
+                            // if (parseInt(r[p].progres_bangunan) > 0 && parseInt(r[p].progres_bangunan) < 100) {
+                            //     hit = set_fill2("Pembangunan") // warna merah
+                            // }else if (parseInt(r[p].progres_bangunan) == 100) {
+                            //     // jika sudah selesai
+                            //     hit = set_fill2("Akad "+ subsidi)
+                            // }
+                        } else if (r[p].status_mkdt == "Booking") {
+                            hit = set_fill2("Booking " + subsidi)
+
+                            if (r[p].perintah_bangun == 1)
+                                hit = set_fill2("Perintah Bangun")
+
+                            // if (r[p].perintah_bangun == 1)
+                            //     hit = set_fill2("Perintah Bangun")
+
+                            if (parseInt(r[p].progres_bangunan) > 0 && parseInt(r[p].progres_bangunan) < 100) {
+                                hit = set_fill2("Pembangunan") // warna merah
+                            } else if (parseInt(r[p].progres_bangunan) == 100) {
+                                // jika sudah selesai
+                                hit = set_fill2("Bangunan 100%")
+                            }
+                        } else {
+                            if (r[p].perintah_bangun == 1)
+                                hit = set_fill2("Perintah Bangun")
+                            if (parseInt(r[p].progres_bangunan) > 0 && parseInt(r[p].progres_bangunan) < 100) {
+                                hit = set_fill2("Pembangunan") // warna merah
+                            } else if (parseInt(r[p].progres_bangunan) == 100) {
+                                // jika sudah selesai
+                                hit = set_fill2("Ready Stock") // warna merah
+                            }
                         }
-
-                        // console.LOG(r[p])
-                        // hit = set_fill2(r[p].status_mkdt)
-
 
                         //jika ada komplain (dari sales)
                         if (r[p].status_komplain == 1 || r[p].status_komplain == 2 || r[p].status_komplain == 3)
@@ -3275,7 +4298,7 @@ foreach (user()->getRoles() as $key => $val) {
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
             },
-            error: function (xhr, st, err) {
+            error: function(xhr, st, err) {
                 $("#loading").addClass("hidden")
                 return swal("error", err);
             },
@@ -3291,10 +4314,10 @@ foreach (user()->getRoles() as $key => $val) {
                 id_role: va
             },
             dataType: 'json',
-            beforeSend: function () {
+            beforeSend: function() {
                 $("#loading").removeClass("hidden");
             },
-            success: function (result) {
+            success: function(result) {
                 stroke = ""
                 fill = ""
                 strokeWidth = ""
@@ -3326,7 +4349,7 @@ foreach (user()->getRoles() as $key => $val) {
                     siteplan.add(kav);
                 }
             },
-            error: function () {
+            error: function() {
                 Swal.fire({
 
                     icon: 'error',
@@ -3437,7 +4460,7 @@ foreach (user()->getRoles() as $key => $val) {
     var editdtt = [];
 
     //event klik kavling
-    masked.on('dblclick', function (e) {
+    masked.on('dblclick', function(e) {
         if (!addMode) {
             if (e.evt.button === 0 && e.target.attrs.id) {
                 //open detail modal
@@ -3452,12 +4475,12 @@ foreach (user()->getRoles() as $key => $val) {
     // })
 
     //hide tooltip on tap at siteplan
-    siteplan.on('tap', function () {
+    siteplan.on('tap', function() {
         group.hide();
     })
 
     //panggil tooltip saat di tap di ponsel
-    siteplan.on('tap', function (e) {
+    siteplan.on('tap', function(e) {
         var data = e.target.attrs;
 
         //posisi tooltip
@@ -3484,7 +4507,7 @@ foreach (user()->getRoles() as $key => $val) {
         }
     })
 
-    siteplan.on('click tap', function (e) {
+    siteplan.on('click tap', function(e) {
         var k = e.target, //get shape
             sh = k.attrs, //get attribut shape
             role = $('#pilih-divisi option:selected').val(),
@@ -3520,7 +4543,7 @@ foreach (user()->getRoles() as $key => $val) {
         }
     })
 
-    stage.on('click tap', function (e) {
+    stage.on('click tap', function(e) {
         if ($("#tambah_jalan").prop('checked')) {
             dtt = [];
             var pos = this.getRelativePointerPosition();
@@ -3545,7 +4568,7 @@ foreach (user()->getRoles() as $key => $val) {
     masked.add(line_ms)
     masked.add(manual_selection)
 
-    manual_selection.on('dragend', function (e) {
+    manual_selection.on('dragend', function(e) {
         dtt = []
         var sj = stage.find("#seljal");
         for (let u = 0; u < sj.length; u++) {
@@ -3557,7 +4580,7 @@ foreach (user()->getRoles() as $key => $val) {
 
     //even mouse move data kavling
     var data, mousePos, persentase;
-    siteplan.on('mousemove', function (e) {
+    siteplan.on('mousemove', function(e) {
         data = e.target.attrs;
         // console.log(data);
 
@@ -3598,7 +4621,7 @@ foreach (user()->getRoles() as $key => $val) {
     })
     //even mouse move data kavling
     var data, mousePos, persentase;
-    siteplan.on('mousemove', function (e) {
+    siteplan.on('mousemove', function(e) {
         data = e.target.attrs;
         // console.log(data);
 
@@ -3639,14 +4662,14 @@ foreach (user()->getRoles() as $key => $val) {
     })
 
     //highligh kavling 
-    siteplan.on('mouseover', function (e) {
+    siteplan.on('mouseover', function(e) {
         var sh = e.target;
         sh.setAttr("strokeWidth", 4);
         sh.setAttr("stroke", "black");
     })
 
     //hide tooltip
-    siteplan.on('mouseout', function (e) {
+    siteplan.on('mouseout', function(e) {
         var sh = e.target;
         sh.setAttr("strokeWidth", 0);
         group.hide();
@@ -3665,7 +4688,7 @@ foreach (user()->getRoles() as $key => $val) {
 
     var lastCenter = null;
     var lastDist = 0;
-    stage.on('touchmove', function (e) {
+    stage.on('touchmove', function(e) {
         e.evt.preventDefault();
         var touch1 = e.evt.touches[0];
         var touch2 = e.evt.touches[1];
@@ -3730,7 +4753,7 @@ foreach (user()->getRoles() as $key => $val) {
         }
     });
 
-    stage.on('touchend', function () {
+    stage.on('touchend', function() {
         lastDist = 0;
         lastCenter = null;
     });
@@ -3746,12 +4769,12 @@ foreach (user()->getRoles() as $key => $val) {
             });
             return;
         }
-        $("#last_update_legal, #last_update_mkdt, #last_update_keuangan, #last_update_prod").html("Terakhir dipudate oleh: -, pada: - ");
-
+        last_update("#last_update_legal, #last_update_mkdt, #last_update_keuangan, #last_update_prod")
         var sh = editdtt[0],
             id_kavling = sh.id.substr(3);
 
-        $("#fm-detail")[0].reset();
+        // $("#fm-detail")[0].reset();
+        $('#fm-detail input,#fm-detail select').val('');
         $("#tb-data-tagihan-detail").html("");
 
         if (sh.data.tipe == 'kavling') {
@@ -3773,7 +4796,7 @@ foreach (user()->getRoles() as $key => $val) {
                 id_kavling: editdtt[0].id.substr(6)
             },
             dataType: 'json',
-            success: function (r) {
+            success: function(r) {
                 csrfHash = r.token;
 
                 if (r.data) {
@@ -3802,7 +4825,7 @@ foreach (user()->getRoles() as $key => $val) {
                 }
 
             },
-            error: function () {
+            error: function() {
                 Swal.fire({
 
                     icon: 'error',
@@ -3822,8 +4845,19 @@ foreach (user()->getRoles() as $key => $val) {
     }
     const isSubsidi = ['Non-Subsidi', 'Subsidi'],
         isKPR = ['Tunai/Cash Keras', 'KPR', 'Tunai/Bertahap']
+
+    let dmkdt,
+        dpl,
+        dpr,
+        dlg,
+        dlc,
+        dbprod,
+        dr;
+
     function detail_kavling(sh, id_kavling) {
+        let src = not_found
         $("#fm-detail :input").prop("disabled", true)
+        $('#dtt-summary-tab').tab('show');
 
         $("#dt-promo").text('-')
         $("#dt-is_kpr").text('-')
@@ -3856,6 +4890,8 @@ foreach (user()->getRoles() as $key => $val) {
             $("#dt-label_" + cat).html("Upload file/Foto");
         });
 
+        $(".files-here").prop('src', src)
+
         $.ajax({
             url: base_url + 'siteplan/get_detail',
             type: 'post',
@@ -3869,188 +4905,38 @@ foreach (user()->getRoles() as $key => $val) {
                 id_hargajual: sh.data2.id_hargajual
             },
             dataType: 'json',
-            beforeSend: function () {
+            beforeSend: function() {
                 $("#loading").removeClass("hidden");
             },
-            success: function (r) {
+            success: function(r) {
                 $("#loading").addClass("hidden");
+
+
+
                 csrfHash = r.token;
-                let mkdt = r.mkdt,
-                    pl = r.pricelist,
-                    pr = r.produksi;
+                // dmkdt = r.mkdt
+                // dpl = r.pricelist
+                // dpr = r.produksi
+                // dlg = r.legal
+                // dlc = r.cashout
+                // dbprod = r.bayar_produksi
+                dr = r
+
+                loadSummary(dr)
+                loaded['sm'] = true
+
+                // loadPL(pl)
+                // loadKavling(r)
+                // loadMKDT(mkdt)
+                // loadTagihan(r)
+                // loadLegal(lg)
+                // loadProduksi(pr)
+                // loadBuktiBayarPajak(r)
+                // loadCashOut(lc)
+                // loadBayarProduksi(bprod)
 
 
-                //load harga pricelist
-                if (pl) {
-                    $.each(pl, function (i, v) {
-                        changeVal("#dt-pl_" + i, v)
-                    });
-                    setDatePicker(pl.tgl_harga, "#dt-pl_tgl_harga")
-                }
-
-                if (mkdt) {
-                    //load data konsumen
-                    setText("#dt-promo", mkdt.promo)
-                    setText("#dt-is_kpr", isKPR[mkdt.is_kpr])
-                    setText("#dt-is_subsidi", isSubsidi[mkdt.is_subsidi])
-                    setText("#dt-no_spptb", mkdt.no_spptb)
-                    setText("#dt-nama_konsumen", mkdt.nama_konsumen)
-                    setText("#dt-alamat_konsumen", mkdt.alamat_konsumen)
-                    setText("#dt-nik_konsumen", mkdt.nik_konsumen)
-                    setText("#dt-npwp_konsumen", mkdt.npwp_konsumen)
-                    setText("#dt-hp_konsumen", mkdt.hp_konsumen)
-                    setText("#dt-email_konsumen", mkdt.email_konsumen)
-                    setText("#dt-sales", mkdt.sales)
-
-                    //load price list dari keuangan
-                    setDatePicker(mkdt.tgl_harga, "#dt-tgl_harga")
-                    changeVal("#dt-hargajual", mkdt.harga_jual)
-                    changeVal("#dt-harga_diskon_hargajual", mkdt.harga_diskon_hargajual)
-                    changeVal("#dt-hargajual_net", mkdt.harga_jual_net)
-                    changeVal("#dt-kpr", mkdt.harga_kpr)
-                    changeVal("#dt-uang_muka", mkdt.harga_uang_muka)
-                    changeVal("#dt-harga_diskon_uang_muka", mkdt.harga_diskon_uang_muka)
-                    changeVal("#dt-biaya_adm", mkdt.harga_administrasi)
-                    changeVal("#dt-bphtb", mkdt.harga_bphtb)
-                    changeVal("#dt-ppn", mkdt.harga_ppn)
-                    changeVal("#dt-biaya_proses", mkdt.harga_biaya_proses)
-                    changeVal("#dt-row", mkdt.row)
-                    changeVal("#dt-tipe", mkdt.tipe)
-                    changeVal("#dt-lt", mkdt.lb)
-                    changeVal("#dt-lb", mkdt.lt)
-
-
-                    //kpr disetujui
-                    changeVal("#dt-st_harga_kpr_acc", mkdt.harga_kpr_acc)
-                    changeVal("#dt-st_harga_penambahan_um", mkdt.harga_penambahan_um)
-                    changeVal("#dt-st_harga_penambahan", mkdt.harga_penambahan)
-                    changeVal("#dt-st_harga_penambahan_tanah", mkdt.harga_penambahan_tanah)
-                    changeVal("#dt-st_keterangan_harga_penambahan", mkdt.keterangan_harga_penambahan)
-
-                    //status
-                    changeVal('#dt-status_mkdt', mkdt.status_mkdt)
-                    setDatePicker(mkdt.booking_tgl, '#dt-st_booking_tgl')
-                    changeVal('#dt-st_bank', mkdt.bank)
-
-                    changeVal('#dt-st_booking_fee', mkdt.booking_fee)
-
-                    $("#dt-st_wawancara").prop('checked', mkdt.wawancara)
-                    setDatePicker(mkdt.wawancara_tgl, '#dt-st_wawancara_tgl')
-
-                    changeVal('#dt-st_harga_kpr', mkdt.harga_kpr)
-                    changeVal('#dt-st_acc_harga_kpr', mkdt.harga_kpr_acc)
-                    changeVal('#dt-st_harga_turun_kpr', parseFloat(mkdt.harga_kpr) - parseFloat(mkdt.harga_kpr_acc))
-                    changeVal('#dt-st_sp3k_no', mkdt.sp3k_no)
-                    setDatePicker(mkdt.sp3k_tgl, "#dt-st_sp3k_tgl")
-                    setDatePicker(mkdt.sp3k_tgl_exp, "#dt-st_sp3k_tgl_exp")
-
-                    let src = not_found
-
-                    if (mkdt.sp3k_file) {
-                        src = mkdt.sp3k_file
-                    }
-                    $("#dt-st_list-upload_sp3k_file").prop('href', base_url + src)
-
-                    setDatePicker(mkdt.perintah_bangun_tgl, '#dt-st_perintah_bangun_tgl')
-                    changeVal("#dt-st_perintah_bangun_oleh", mkdt.perintah_bangun_oleh)
-
-                    src = not_found
-                    if (mkdt.perintah_bangun_file) {
-                        src = mkdt.perintah_bangun_file
-                    }
-                    $("#dt-st_list-upload_perintah_bangun_file").prop('href', base_url + src)
-
-                    setDatePicker(mkdt.rencana_akad_tgl, '#dt-st_rencana_akad_tgl')
-                    $("#dt-st_akad").prop('checked', mkdt.akad)
-                    setDatePicker(mkdt.akad_tgl, '#dt-st_akad_tgl')
-
-                    changeVal("#dt-st_debitur_no", mkdt.debitur_no)
-                    changeVal("#dt-st_bast_no", mkdt.bast_no)
-
-                    src = not_found
-                    if (mkdt.bast_file) {
-                        src = mkdt.bast_file
-                    }
-                    $("#dt-st_list-upload_bast_file").prop('href', base_url + src)
-                }
-
-                /************************ load table tagihan ***************************/
-                r.total_um = parseFloat(r.total_um)
-                r.sb_um = parseFloat(r.sb_um)
-                let sisa_um = r.total_um - r.sb_um,
-                    ldp = (sisa_um == 0) ? 100 : r.sb_um / r.total_um * 100;
-                ldp = (r.sb_um > 0) ? ~~ldp + "%" : "0%";
-
-                changeVal("#dt-total_biaya_um", r.total_um)
-                changeVal("#dt-sudah_bayar_um", r.sb_um)
-                changeVal("#dt-sisa_tagihan_um", sisa_um)
-                changeVal("#dt-persentase_bayar_tagihan_um", ldp)
-
-                let sisa_um_ll = r.total_um_ll - r.sb_um_ll,
-                    ldp_ll = (sisa_um_ll == 0) ? 100 : r.sb_um_ll / r.total_um_ll * 100;
-                ldp_ll = (r.sb_um_ll > 0) ? ~~ldp_ll + "%" : "0%";
-                changeVal("#dt-total_biaya_um_ll", r.total_um_ll)
-                changeVal("#dt-sudah_bayar_um_ll", r.sb_um_ll)
-                changeVal("#dt-sisa_tagihan_um_ll", sisa_um_ll)
-                changeVal("#dt-persentase_bayar_tagihan_um_ll", ldp_ll)
-
-                r.total_bb = parseFloat(r.total_bb)
-                r.sb_bb = parseFloat(r.sb_bb)
-                let sisa_bb = r.total_bb - r.sb_bb,
-                    ldp_bb = (sisa_bb == 0) ? 100 : r.sb_bb / r.total_bb * 100;
-                ldp_bb = (r.sb_bb > 0) ? ~~ldp_bb + "%" : "0%";
-
-                changeVal("#dt-total_biaya_bb", r.total_bb)
-                changeVal("#dt-sudah_bayar_bb", r.sb_bb)
-                changeVal("#dt-sisa_tagihan_bb", sisa_bb)
-                changeVal("#dt-persentase_bayar_tagihan_bb", ldp_bb)
-
-                if (r.ku)
-                    $("#last_update_keuangan").html("Terakhir diupdate oleh: " + r.ku.username + " pada: " + format_datetime(r.ku.created_at));
-                /************************ end of load table tagihan ***************************/
-
-                /************************ load table legal ***************************/
-
-
-                /************************ end of table legal ***************************/
-
-                /************************ load produksi ***************************/
-                if (pr) {
-                    $("#dt-st_0").prop('checked', pr.st_0)
-                    $("#dt-st_25").prop('checked', pr.st_25)
-                    $("#dt-st_50").prop('checked', pr.st_50)
-                    $("#dt-st_75").prop('checked', pr.st_75)
-                    $("#dt-st_100").prop('checked', pr.st_100)
-                    $("#dt-st_saluran").prop('checked', pr.st_saluran)
-                    $("#dt-st_jalan").prop('checked', pr.st_jalan)
-                    $("#dt-st_air").prop('checked', pr.st_air)
-                    $("#dt-bp").prop('checked', pr.bp)
-                    $("#dt-lpa").prop('checked', pr.lpa)
-                    $("#dt-slo").prop('checked', pr.slo)
-
-                    setDatePicker(pr.lpa_tanggal, "#dt-lpa_tanggal")
-
-                    $("#dt-progres_bangunan").val(pr.progres_bangunan)
-                    setText("#dt-t_progres_bangunan", pr.progres_bangunan)
-
-                    $("#dt-produksi_keterangan").val(pr.keterangan)
-
-                    changeVal("#dt-air_jenis", pr.air_jenis);
-                    changeVal("#dt-listrik_jenis", pr.listrik_jenis);
-
-                    changeVal("#dt-listrik_pln", pr.listrik_pln);
-                    changeVal("#dt-listrik_disediakan_no", pr.listrik_disediakan_no);
-                    changeVal("#dt-listrik_disediakan_tanggal", pr.listrik_disediakan_tanggal);
-                    changeVal("#dt-air_deskripsi_unit", pr.air_deskripsi_unit);
-                    changeVal("#dt-air_pdam_no", pr.air_pdam_no);
-
-                }
-                if (r.files)
-                    showFoto(r.files, 'dt-', "false");
-
-
-                /************************ end of produksi ***************************/
-
+                /************************ load bayar produksi  ***************************/
 
                 $(".label_alamat").html("<?= $data['proyek']->nama_proyek ?> <br/>" +
                     sh.data.nama_jalan +
@@ -4062,12 +4948,745 @@ foreach (user()->getRoles() as $key => $val) {
 
                 $("#modal_detail").modal('show');
             },
-            error: function (xhr, st, err) {
+            error: function(xhr, st, err) {
                 $("#loading").addClass("hidden")
                 return swal("error", err);
             },
         });
     }
+    let loaded = [];
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+        const targetId = $(e.target).attr('href'); // ex: #profile
+        if (targetId === '#dtt-summary' && !loaded['sm']) {
+            applyLoadingEffect(targetId)
+            setTimeout(() => {
+                loadSummary(dr)
+                loaded['sm'] = true
+                removeLoadingEffect(targetId);
+            }, 200);
+        }
+        if (targetId === '#dtt-hj' && !loaded['pl']) {
+            applyLoadingEffect(targetId)
+            setTimeout(() => {
+                loadPL(dr.pricelist);
+                loadMKDT(dr.mkdt)
+                removeLoadingEffect(targetId);
+            }, 200);
+            loaded['pl'] = true
+        }
+        if (targetId === '#dt-stdetail' && !loaded['mkdt']) {
+            applyLoadingEffect(targetId)
+            setTimeout(() => {
+                loadMKDT(dr.mkdt)
+                loadKavling(dr)
+                loaded['mkdt'] = true
+                removeLoadingEffect(targetId);
+            }, 200);
+        }
+        if (targetId === '#dt-cashout' && !loaded['co']) {
+            applyLoadingEffect(targetId)
+            setTimeout(() => {
+                loadCashOut(dr.cashout)
+                removeLoadingEffect(targetId);
+            }, 200);
+            loaded['co'] = true
+        }
+        if (targetId === '#dt-tagihan' && !loaded['tg']) {
+            applyLoadingEffect(targetId)
+            setTimeout(() => {
+                loadTagihan(dr)
+                removeLoadingEffect(targetId);
+            }, 200);
+            loaded['tg'] = true
+        }
+        if (targetId === '#dt-legal' && !loaded['lg']) {
+            applyLoadingEffect(targetId)
+            setTimeout(() => {
+                loadLegal(dr.legal)
+                removeLoadingEffect(targetId);
+            }, 200);
+            loaded['lg'] = true
+        }
+        if (targetId === '#dt-produksi' && !loaded['pr']) {
+            applyLoadingEffect(targetId)
+            setTimeout(() => {
+                loadProduksi(dr.produksi)
+                loadBayarProduksi(dr.bayar_produksi)
+                removeLoadingEffect(targetId);
+            }, 200);
+            loaded['pr'] = true
+        }
+        if (targetId === '#dt-pajak' && !loaded['pj']) {
+            loadBuktiBayarPajak(dr)
+            loaded['pj'] = true
+        }
+        if (targetId === '#log_pembayaran' && !loaded['keu_lp']) {
+            applyLoadingEffect(targetId)
+            setTimeout(() => {
+                loadLogPembayaran(keu_lp)
+                removeLoadingEffect(targetId);
+            }, 200);
+            loaded['keu_lp'] = true
+        }
+        if (targetId === '#tagihan' && !loaded['keu_tg'] || targetId === '#bb' && !loaded['keu_tg']) {
+            applyLoadingEffect(targetId)
+            setTimeout(() => {
+                loadTableTagihan(keu_tg)
+                removeLoadingEffect(targetId);
+            }, 200);
+            loaded['keu_tg'] = true            
+        }
+    });
+    $('#modal_detail').on('hidden.bs.modal', function() {
+        // alert()
+        loaded = [];
+    });
+
+    //modal keuangan
+    $('#modal_divisi3').on('hidden.bs.modal', function() {
+        // alert()
+        load_kavling()
+        loaded = [];
+        keu_lp = []
+        keu_tg = []
+    });
+
+    function loadSummary(r) {
+        //load data konsumen
+        if (r.mkdt) {
+            let mkdt = r.mkdt
+            setText("#dt-promo", mkdt.promo)
+            setText("#dt-is_kpr", isKPR[mkdt.is_kpr])
+            setText("#dt-is_subsidi", isSubsidi[mkdt.is_subsidi])
+            setText("#dt-no_spptb", mkdt.no_spptb)
+            setText("#dt-nama_konsumen", mkdt.nama_konsumen)
+            setText("#dt-alamat_konsumen", mkdt.alamat_konsumen)
+            setText("#dt-nik_konsumen", mkdt.nik_konsumen)
+            setText("#dt-npwp_konsumen", mkdt.npwp)
+            setText("#dt-hp_konsumen", mkdt.hp_konsumen)
+            setText("#dt-email_konsumen", mkdt.email_konsumen)
+            setText("#dt-sales", mkdt.sales)
+
+            // console.log()
+
+            setText("#s-status_mkdt", mkdt.status_mkdt)
+            setText("#s-st_bank", mkdt.st_bank)
+            setText("#s-notaris", mkdt.notaris)
+            setText("#s-st_sp3k_tgl", format_date(mkdt.sp3k_tgl))
+            setText("#s-st_sp3k_tgl_exp", format_date(mkdt.sp3k_tgl_exp))
+        }else{
+            setText("#dt-promo", '-')
+            setText("#dt-is_kpr", '-')
+            setText("#dt-is_subsidi", '-')
+            setText("#dt-no_spptb", '-')
+            setText("#dt-nama_konsumen", '-')
+            setText("#dt-alamat_konsumen", '-')
+            setText("#dt-nik_konsumen", '-')
+            setText("#dt-npwp_konsumen", '-')
+            setText("#dt-hp_konsumen", '-')
+            setText("#dt-email_konsumen", '-')
+            setText("#dt-sales", '-')
+
+            // console.log()
+
+            setText("#s-status_mkdt", '-')
+            setText("#s-st_bank", '-')
+            setText("#s-notaris", '-')
+            setText("#s-st_sp3k_tgl", '-')
+            setText("#s-st_sp3k_tgl_exp", '-') 
+        }
+
+        if(r.kavling){
+            setText("#s-perintah_bangun_tgl", format_date(r.kavling.perintah_bangun_tgl))
+        }else{
+            setText("#s-perintah_bangun_tgl", "-")
+        }
+        
+        const tg = hitungTagihan(r)
+        setText("#s-persentase_bayar_tagihan_um", tg.ldp)
+        setText("#s-persentase_bayar_tagihan_um_ll", tg.ldp_ll)
+        setText("#s-persentase_bayar_tagihan_bb", tg.ldp_bb)
+
+        if (r.produksi) {
+            let pr = r.produksi
+            setText("#s-progress_bangunan", pr.progres_bangunan + '%')
+            setText("#s-tanggal_pembangunan", format_date(pr.tanggal_pembangunan))
+            setText("#s-tanggal_selesai_pembangunan", format_date(pr.tanggal_selesai_pembangunan))
+
+            setText("#s-st_saluran", isSudah(pr.st_saluran))
+            setText("#s-st_air", isSudah(pr.st_air))
+            setText("#s-st_jalan", isSudah(pr.st_jalan))
+            setText("#s-slo", isSudah(pr.slo))
+            setText("#s-lpa", isSudah(pr.lpa))
+        }else{
+            setText("#s-progress_bangunan", "-")
+            setText("#s-tanggal_pembangunan", "-")
+            setText("#s-tanggal_selesai_pembangunan", "-")
+
+            setText("#s-st_saluran", "-")
+            setText("#s-st_air", "-")
+            setText("#s-st_jalan", "-")
+            setText("#s-slo", "-")
+            setText("#s-lpa", "-")
+        }
+
+        if (r.si) {
+            let si = ''
+            $.each(r.si, function(i, v) {
+                si += `
+                <div class="info-row row no-gutters">
+                    <div class="col-6">
+                        <label class="info-label mb-0">${v.nama}</label>
+                    </div>
+                    <div class="col-6">
+                        : <span class="info-value">${isSudah(v.id_kavling)} ${v.tanggal_si ? format_date(v.tanggal_si): '-'}</span>
+                    </div>
+                </div>
+                `
+            });
+            applyLoadingEffect("#s-si")
+            setTimeout(() => {
+                setText("#s-si", si)
+                removeLoadingEffect("#s-si");
+            }, 500);
+        }
+
+        if (r.cashout) {
+            let cashout = ''
+            // let nom 
+            $.each(r.cashout, function(i, v) {
+                // nom = v.nominal ? num_format(v.nominal):''
+                cashout += ` 
+                <div class="info-row row no-gutters">
+                    <div class="col-6">
+                        <label class="info-label mb-0">${v.item}</label>
+                    </div>
+                    <div class="col-6">
+                        : <span class="info-value">${isSudah(v.id)} ${v.tanggal_bayar ? format_date(v.tanggal_bayar): '-'}</span>
+                    </div>
+                </div>`
+            });
+
+            applyLoadingEffect("#s-co")
+            setTimeout(() => {
+                setText("#s-co", cashout)
+                removeLoadingEffect("#s-co");
+            }, 500);
+        }
+    }
+
+
+    function isSudah(e) {
+        if (e)
+            return `<i class="fa fa-solid fa-check"></i> Sudah`
+        return `-`
+    }
+
+    function last_update(id, username = null, date = null) {
+        let u = '-',
+            t = '-'
+        if (username) {
+            u = username
+            t = format_datetime(date)
+        }
+        $(id).html(`Terakhir diubah oleh: <b>${u}</b>, pada: <b>${t}</b> `);
+    }
+
+    function loadPL(pl) {
+        //load harga pricelist
+        if (pl) {
+            $.each(pl, function(i, v) {
+                applyLoadingEffect("#dt-pl_" + i, v)
+                setTimeout(() => {
+                    changeVal("#dt-pl_" + i, v)
+                    removeLoadingEffect("#dt-pl_" + i, v);
+                }, 500);
+
+            });
+            setDatePicker(pl.tgl_harga, "#dt-pl_tgl_harga")
+        }
+
+    }
+
+    function loadKavling(r) {
+        if (r.kavling) {
+            setDatePicker(r.kavling.perintah_bangun_tgl, '#dt-st_perintah_bangun_tgl')
+            changeVal("#dt-st_perintah_bangun_oleh", r.kavling.username)
+            src = not_found
+            if (r.kavling.perintah_bangun_file) {
+                src = r.kavling.perintah_bangun_file
+            }
+
+            $("#dt-pph_ntpn").val(r.kavling.pph42_ntpn)
+            $("#dt-pph_nominal_bayar").val(r.kavling.pph42_nilai).keyup()
+            setDatePicker(r.kavling.pph42_tgl_bayar, "#dt-pph_tgl_bayar")
+
+            //  $("#dt-st_list-upload_perintah_bangun_file-here").prop('src', base_url + src)
+            
+        }
+        $("#dt-st_list-upload_perintah_bangun_file").prop('href', base_url + src)
+    }
+
+    function loadMKDT(mkdt) {
+        src = not_found
+
+        $("#dt-st_list-upload_sp3k_file").prop('href', base_url + src)
+
+        $("#dt-st_list-upload_bast_file").prop('href', base_url + src)
+        
+        $("#dt-btn-bl_here").prop('href', base_url + src)
+        $(".dt-cl-bl_here").prop('src', base_url + src)
+        
+        $("#dt-btn-npwp_here").prop('href', base_url + src)
+        $(".dt-cl-npwp_here").prop('src', base_url + src)
+        
+        $("#dt-btn-ktp_here").prop('href', base_url + src)
+        $(".dt-cl-ktp_here").prop('src', base_url + src)
+
+        if (mkdt) {
+            //load price list dari keuangan
+            setDatePicker(mkdt.tgl_harga, "#dt-tgl_harga")
+            changeVal("#dt-hargajual", mkdt.harga_jual)
+            changeVal("#dt-harga_diskon_hargajual", mkdt.harga_diskon_hargajual)
+            changeVal("#dt-hargajual_net", mkdt.harga_jual_net)
+            changeVal("#dt-kpr", mkdt.harga_kpr)
+            changeVal("#dt-uang_muka", mkdt.harga_uang_muka)
+            changeVal("#dt-harga_diskon_uang_muka", mkdt.harga_diskon_uang_muka)
+            changeVal("#dt-biaya_adm", mkdt.harga_administrasi)
+            changeVal("#dt-bphtb", mkdt.harga_bphtb)
+            changeVal("#dt-ppn", mkdt.harga_ppn)
+            changeVal("#dt-biaya_proses", mkdt.harga_biaya_proses)
+            changeVal("#dt-row", mkdt.row)
+            changeVal("#dt-tipe", mkdt.tipe)
+            changeVal("#dt-lt", mkdt.lb)
+            changeVal("#dt-lb", mkdt.lt)
+            changeVal("#dt-is_ajb", mkdt.is_ajb)
+            changeVal("#dt-notaris", mkdt.notaris)
+
+
+
+            //kpr disetujui
+            changeVal("#dt-st_harga_kpr_acc", mkdt.harga_kpr_acc)
+            changeVal("#dt-st_harga_penambahan_um", mkdt.harga_penambahan_um)
+            changeVal("#dt-st_harga_penambahan", mkdt.harga_penambahan)
+            changeVal("#dt-st_harga_penambahan_tanah", mkdt.harga_penambahan_tanah)
+            changeVal("#dt-st_keterangan_harga_penambahan", mkdt.keterangan_harga_penambahan)
+
+            //status
+            changeVal('#dt-status_mkdt', mkdt.status_mkdt)
+            setDatePicker(mkdt.booking_tgl, '#dt-st_booking_tgl')
+            changeVal('#dt-st_bank', mkdt.bank)
+
+            changeVal('#dt-st_booking_fee', mkdt.booking_fee)
+
+            $("#dt-st_wawancara").prop('checked', mkdt.wawancara)
+            setDatePicker(mkdt.wawancara_tgl, '#dt-st_wawancara_tgl')
+
+            changeVal('#dt-st_harga_kpr', mkdt.harga_kpr)
+            changeVal('#dt-st_acc_harga_kpr', mkdt.harga_kpr_acc)
+            changeVal('#dt-st_harga_turun_kpr', parseFloat(mkdt.harga_kpr) - parseFloat(mkdt.harga_kpr_acc))
+            changeVal('#dt-st_sp3k_no', mkdt.sp3k_no)
+            setDatePicker(mkdt.sp3k_tgl, "#dt-st_sp3k_tgl")
+            setDatePicker(mkdt.sp3k_tgl_exp, "#dt-st_sp3k_tgl_exp")
+
+            src = not_found
+
+            if (mkdt.sp3k_file) {
+                src = mkdt.sp3k_file
+            }
+            $("#dt-st_list-upload_sp3k_file").prop('href', base_url + src)
+            // $("#dt-st_list-upload_sp3k_file-here").prop('src', base_url + src)
+
+
+            src = not_found
+            if (mkdt.file_ktp) {
+                src = mkdt.file_ktp
+            }
+            $("#dt-btn-ktp_here").prop('href', base_url + src)
+            $(".dt-cl-ktp_here").prop('src', base_url + src)
+
+            src = not_found
+            if (mkdt.file_npwp) {
+                src = mkdt.file_npwp
+            }
+            $("#dt-btn-npwp_here").prop('href', base_url + src)
+            $(".dt-cl-npwp_here").prop('src', base_url + src)
+
+            src = not_found
+            if (mkdt.file_data_diri) {
+                src = mkdt.file_data_diri
+            }
+            $("#dt-btn-bl_here").prop('href', base_url + src)
+            $(".dt-cl-bl_here").prop('src', base_url + src)
+
+
+
+
+
+            setDatePicker(mkdt.rencana_akad_tgl, '#dt-st_rencana_akad_tgl')
+            $("#dt-st_akad").prop('checked', mkdt.akad == "0" ? 0 : 1)
+            setDatePicker(mkdt.akad_tgl, '#dt-st_akad_tgl')
+
+            changeVal("#dt-st_debitur_no", mkdt.debitur_no)
+            changeVal("#dt-st_bast_no", mkdt.bast_no)
+
+            src = not_found
+            if (mkdt.bast_file) {
+                src = mkdt.bast_file
+            }
+            $("#dt-st_list-upload_bast_file").prop('href', base_url + src)
+
+            // $("#last_update_legal").html(`Terakhir dipudate oleh: ${lg.uadd_by}, pada: ${format_datetime(lg.created_at)} `);
+            // if(lg.uedit_by){
+            //     $("#last_update_legal").html(`Terakhir dipudate oleh: -${lg.uedit_by}, pada: ${format_datetime(lg.updated_at)} `);
+            // }
+        }
+    }
+
+
+    function loadLegal(lg) {
+        /************************ load table legal ***************************/
+        if (lg) {
+            for (let i in lg) {
+                $("#dt-" + i).val(lg[i]).change();
+            }
+
+            if (lg.data) {
+                $("#dt-sertifikat_balik_nama").val(lg.data.nama_konsumen ? lg.data.nama_konsumen : '')
+                $("#dt-bphtb_nominal_disetujui").val(lg.data.harga_bphtb ? lg.data.harga_bphtb : '').change().keyup()
+            }
+
+            setDatePicker(lg.sertifikat_split_tanggal_terbit, "#dt-sertifikat_split_tanggal_terbit")
+            setDatePicker(lg.sertifikat_split_tanggal_berakhir, "#dt-sertifikat_split_tanggal_berakhir")
+            setDatePicker(lg.sertifikat_split_tanggal_surat_ukur, "#dt-sertifikat_split_tanggal_surat_ukur")
+            setDatePicker(lg.sertifikat_balik_nama_tgl_pengiriman, "#dt-sertifikat_balik_nama_tgl_pengiriman")
+            setDatePicker(lg.pbb_pecah_tanggal_bayar, "#dt-pbb_pecah_tanggal_bayar")
+
+            setDatePicker(lg.bphtb_tanggal_verifikasi, "#dt-bphtb_tanggal_verifikasi")
+            setDatePicker(lg.bphtb_jatuh_tempo, "#dt-bphtb_jatuh_tempo")
+            setDatePicker(lg.bphtb_perpanjang_jatuh_tempo, "#dt-bphtb_perpanjang_jatuh_tempo")
+            setDatePicker(lg.bphtb_tanggal_pembayaran, "#dt-bphtb_tanggal_pembayaran")
+            setDatePicker(lg.bphtb_tanggal_validasi, "#dt-bphtb_tanggal_validasi")
+
+            setDatePicker(lg.pph_tgl_permohonan, "#dt-pph_tgl_permohonan")
+            setDatePicker(lg.pph_tanggal_validasi, "#dt-pph_tanggal_validasi")
+            setDatePicker(lg.pph_tgl_bayar, "#dt-pph_tgl_bayar")
+            setDatePicker(lg.ajb_tanggal, "#dt-ajb_tanggal")
+            setDatePicker(lg.ajb_tanggal_dikirim, "#dt-ajb_tanggal_dikirim")
+            setDatePicker(lg.ppjb_tanggal, "#dt-ppjb_tanggal")
+
+            setDatePicker(lg.pbb_balik_nama_tgl_pengiriman, "#dt-pbb_balik_nama_tgl_pengiriman")
+            setDatePicker(lg.pbb_tgl_pembetulan, "#dt-pbb_tgl_pembetulan")
+            setDatePicker(lg.pbg_tanggal_kirim, "#dt-pbg_tanggal_kirim")
+            setDatePicker(lg.pph_tgl_selesai, "#dt-pph_tgl_selesai")
+
+            $("#dt-legal_keterangan").val(lg.keterangan);
+
+            last_update("#last_update_legal", lg.uadd_by, lg.created_at)
+            if (lg.uedit_by) {
+                last_update("#last_update_legal", lg.uedit_by, lg.updated_at)
+            }
+
+        }
+
+        /************************ end of table legal ***************************/
+    }
+
+    function hitungTagihan(r) {
+        //um
+        let total_um = parseFloat(r.total_um)
+        let sb_um = parseFloat(r.sb_um)
+        let sisa_um = r.total_um - r.sb_um,
+            ldp = (sisa_um == 0) ? 100 : r.sb_um / r.total_um * 100;
+        ldp = (r.sb_um > 0) ? ~~ldp + "%" : "0%";
+
+        //um dan ll
+        let sisa_um_ll = r.total_um_ll - r.sb_um_ll,
+            ldp_ll = (sisa_um_ll == 0) ? 100 : r.sb_um_ll / r.total_um_ll * 100;
+        ldp_ll = (r.sb_um_ll > 0) ? ~~ldp_ll + "%" : "0%";
+
+        let total_bb = parseFloat(r.total_bb)
+        let sb_bb = parseFloat(r.sb_bb)
+        let sisa_bb = r.total_bb - r.sb_bb,
+            ldp_bb = (sisa_bb == 0) ? 100 : r.sb_bb / r.total_bb * 100;
+        ldp_bb = (r.sb_bb > 0) ? ~~ldp_bb + "%" : "0%";
+
+        return {
+            sisa_um: sisa_um,
+            ldp: ldp,
+            total_um: total_um,
+            sb_um: sb_um,
+            sisa_um_ll: sisa_um_ll,
+            ldp_ll: ldp_ll,
+            sb_um_ll: r.sb_um_ll,
+            total_um_ll: r.total_um_ll,
+            total_bb: total_bb,
+            sb_bb: sb_bb,
+            sisa_bb: sisa_bb,
+            ldp_bb: ldp_bb
+        }
+    }
+
+    function loadTagihan(r) {
+        /************************ load table tagihan ***************************/
+
+        let tagihan = hitungTagihan(r);
+
+        changeVal("#dt-total_biaya_um", tagihan.total_um)
+        changeVal("#dt-sudah_bayar_um", tagihan.sb_um)
+        changeVal("#dt-sisa_tagihan_um", tagihan.sisa_um)
+        changeVal("#dt-persentase_bayar_tagihan_um", tagihan.ldp)
+
+
+        changeVal("#dt-total_biaya_um_ll", tagihan.total_um_ll)
+        changeVal("#dt-sudah_bayar_um_ll", tagihan.sb_um_ll)
+        changeVal("#dt-sisa_tagihan_um_ll", tagihan.sisa_um_ll)
+        changeVal("#dt-persentase_bayar_tagihan_um_ll", tagihan.ldp_ll)
+
+
+
+        changeVal("#dt-total_biaya_bb", tagihan.total_bb)
+        changeVal("#dt-sudah_bayar_bb", tagihan.sb_bb)
+        changeVal("#dt-sisa_tagihan_bb", tagihan.sisa_bb)
+        changeVal("#dt-persentase_bayar_tagihan_bb", tagihan.ldp_bb)
+
+        if (r.ku)
+            $("#last_update_keuangan").html("Terakhir diupdate oleh: " + r.ku.username + " pada: " + format_datetime(r.ku.created_at));
+        /************************ end of load table tagihan ***************************/
+    }
+
+    function loadProduksi(pr) {
+        /************************ load produksi ***************************/
+        if (pr) {
+            $("#dt-st_0").prop('checked', pr.st_0)
+            $("#dt-st_25").prop('checked', pr.st_25)
+            $("#dt-st_50").prop('checked', pr.st_50)
+            $("#dt-st_75").prop('checked', pr.st_75)
+            $("#dt-st_100").prop('checked', pr.st_100)
+            $("#dt-st_saluran").prop('checked', pr.st_saluran)
+            $("#dt-st_jalan").prop('checked', pr.st_jalan)
+            $("#dt-st_air").prop('checked', pr.st_air)
+            $("#dt-bp").prop('checked', pr.bp)
+            $("#dt-lpa").prop('checked', pr.lpa)
+            $("#dt-slo").prop('checked', pr.slo)
+            $("#dt-sumurbor").prop('checked', pr.sumurbor)
+
+            setDatePicker(pr.lpa_tanggal, "#dt-lpa_tanggal")
+
+            setDatePicker(pr.tanggal_pembangunan, '#dt-tanggal_pembangunan')
+            setDatePicker(pr.tanggal_rencana_selesai_pembangunan, '#dt-tanggal_rencana_selesai_pembangunan')
+            setDatePicker(pr.tanggal_selesai_pembangunan, '#dt-tanggal_selesai_pembangunan')
+
+            $("#dt-progres_bangunan").val(pr.progres_bangunan)
+            setText("#dt-t_progres_bangunan", pr.progres_bangunan)
+
+            $("#dt-produksi_keterangan").val(pr.keterangan)
+
+            changeVal("#dt-air_jenis", pr.air_jenis);
+            changeVal("#dt-listrik_jenis", pr.listrik_jenis);
+
+            changeVal("#dt-listrik_pln", pr.listrik_pln);
+            changeVal("#dt-listrik_disediakan_no", pr.listrik_disediakan_no);
+            changeVal("#dt-listrik_disediakan_tanggal", pr.listrik_disediakan_tanggal);
+            changeVal("#dt-air_deskripsi_unit", pr.air_deskripsi_unit);
+            changeVal("#dt-air_pdam_no", pr.air_pdam_no);
+
+
+            changeVal("#dt-sumurbor_keterangan", pr.sumurbor_keterangan);
+            setDatePicker(pr.sumurbor_tanggal, '#dt-sumurbor_tanggal')
+            $("#dt-last_update-sumurbor").html(
+                `Diubah pada: ${pr.sumurbor_updated ? format_datetime(pr.sumurbor_updated):'-'}, 
+                    oleh: ${pr.sumurbor_oleh_u ? pr.sumurbor_oleh_u:'-'}`
+            )
+
+        } else {
+            $("#dt-st_0").prop('checked', false)
+            $("#dt-st_25").prop('checked', false)
+            $("#dt-st_50").prop('checked', false)
+            $("#dt-st_75").prop('checked', false)
+            $("#dt-st_100").prop('checked', false)
+            $("#dt-st_saluran").prop('checked', false)
+            $("#dt-st_jalan").prop('checked', false)
+            $("#dt-st_air").prop('checked', false)
+            $("#dt-bp").prop('checked', false)
+            $("#dt-lpa").prop('checked', false)
+            $("#dt-slo").prop('checked', false)
+            $("#dt-sumurbor").prop('checked', false)
+
+            setDatePicker(null, "#dt-lpa_tanggal")
+
+            setDatePicker(null, '#dt-tanggal_pembangunan')
+            setDatePicker(null, '#dt-tanggal_rencana_selesai_pembangunan')
+            setDatePicker(null, '#dt-tanggal_selesai_pembangunan')
+
+            $("#dt-progres_bangunan").val(null)
+            setText("#dt-t_progres_bangunan", null)
+
+            $("#dt-produksi_keterangan").val(null)
+
+            changeVal("#dt-air_jenis", null);
+            changeVal("#dt-listrik_jenis", null);
+
+            changeVal("#dt-listrik_pln", null);
+            changeVal("#dt-listrik_disediakan_no", null);
+            changeVal("#dt-listrik_disediakan_tanggal", null);
+            changeVal("#dt-air_deskripsi_unit", null);
+            changeVal("#dt-air_pdam_no", null);
+
+            changeVal("#dt-sumurbor_keterangan", null);
+            setDatePicker(null, '#dt-sumurbor_tanggal')
+            $("#dt-last_update-sumurbor").html(null)
+        }
+        if (r.files)
+            showFoto(r.files, 'dt-', "false");
+
+
+        /************************ end of produksi ***************************/
+    }
+
+    function loadBuktiBayarPajak(r) {
+        /************************ load bukti bayar pajak  ***************************/
+        let dv = ''
+        $.each(r.file_pph, function(i, v) {
+            dv += `
+                <a href="${base_url + v.lokasi}" class="btn btn-outline-primary" target=_blank>
+                    <h5>Bukti pembayaran ${v.default_filename} </h5>
+                    ${v.keterangan}
+                    <br>
+                    <embed src="${base_url + v.lokasi}" style="width: 90%;"
+                        class="files-here dt-cl-ktp_here">
+                        diunggah pada: ${format_datetime(v.upload_at)} (${v.uupload_by})
+                </a>
+                <br>
+                <br>
+                 `;
+        });
+        $("#dt-file_pph42-here").html(dv)
+
+        dv = '';
+        $.each(r.file_ppn, function(i, v) {
+            dv += `
+                <a href="${base_url + v.lokasi}" class="btn btn-outline-primary" target=_blank>
+                    <h5>Bukti pembayaran ${v.default_filename} </h5>
+                    ${v.keterangan}
+                    <br>
+                    <embed src="${base_url + v.lokasi}" style="width: 90%;"
+                        class="files-here dt-cl-ktp_here">
+                        diunggah pada: ${format_datetime(v.upload_at)} (${v.uupload_by})
+                </a>
+                <br>
+                <br>
+                 `;
+        });
+        $("#dt-file_ppn-here").html(dv)
+
+    }
+
+    function loadCashOut(d) {
+        let dv = ''
+        $("#dt-cashout-here").html("")
+        $.each(d, function(i, v) {
+            // co.push(v.id_cashout)
+
+            id_cashout = !v.id ? "n" + v.id_cashout : v.id
+            dv += `
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <strong>${v.item}</strong>
+                            </div>
+                            <div class="card-body">
+                                    <div class="row">
+                                    
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label>Tanggal Pembayaran</label>
+                                            <input type="text" class="form-control flatpickr-human-friendly "
+                                                id="" value="${format_date(v.tanggal_bayar?v.tanggal_bayar:"")}" name="" disabled>
+                                        </div>                        
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <label for="sumurbor_bayar_nominal">Nominal</label>
+                                            <input type="text" disabled class="form-control num" id=""
+                                                name="" value="${v.nominal?v.nominal:''}">
+                                        </div>     
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Keterangan</label>
+                                            <textarea class="form-control" id=""
+                                                name="" rows="1" disabled placeholder="Keterangan">${v.keterangan?v.keterangan:''}</textarea>
+                                            <small id="last_update-sumurbor_bayar" class=""></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                `
+        });
+
+        $("#dt-cashout-here").html(dv)
+        $(".num").change()
+
+    }
+
+    function loadBayarProduksi(bprod) {
+        let dv = ''
+        $("#dt-div-bayar_produksi-here").html("")
+        $.each(bprod, function(i, v) {
+            // console.log(bprod)
+
+            let id = !v.id ? "n" + v.id_bayar_produksi : v.id
+            dv += `
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <strong>${v.item}</strong>
+                            </div>
+                            <div class="card-body">
+                                    <div class="row">
+                                    <div class="col-md-6">
+                                    
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Tanggal Pembayaran</label>
+                                            <input disabled type="text" class="form-control fp-bayar_produksi flatpickr-human-friendly tbp${v.id_bayar_produksi}"
+                                                id="dt-id-bayar_produksi[${id}][tanggal_bayar]" value="${v.tanggal_bayar?v.tanggal_bayar:''}" name="dt-id-bayar_produksi[${id}][tanggal_bayar]">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="sumurbor_bayar_nominal">Nominal</label>
+                                            <input type="text" disabled class="form-control num nbp${v.id_bayar_produksi}" id="dt-id-bayar_produksi[${id}][nominal]"
+                                                name="dt-id-bayar_produksi[${id}][nominal]" value="${v.nominal?v.nominal:''}">
+                                            <input type="hidden" class="form-control" id="id-bayar_produksi[${id}][id_item_produksi]"
+                                                name="id-bayar_produksi[${id}][id_item_produksi]" value="${id}">
+                                        </div>
+                                    </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Keterangan</label>
+                                            <textarea disabled class="form-control" id="dt-id-bayar_produksi[${id}][keterangan]"
+                                                name="dt-id-bayar_produksi[${id}][keterangan]" rows="4" placeholder="Keterangan">${v.keterangan?v.keterangan:''}</textarea>
+                                            <small id="last_update-sumurbor_bayar" class=""></small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+        });
+
+        $("#dt-div-bayar_produksi-here").html(dv)
+        $(".num").change()
+
+    }
+
     function isi_data() {
         if (editdtt.length == 0)
             return swal('error', 'Terjad Kesalahan', 'Tidak ada kavling yang dipilih')
@@ -4127,7 +5746,7 @@ foreach (user()->getRoles() as $key => $val) {
     <?php if ($k == 1 || $k == 6): ?><?php endif; ?>
     <?php if ($k == 1 || $k == 3): ?> <?php endif; ?>
     /********************************* mkdt *******************************************/
-    $("#fm-mkdt .num").change(function () {
+    $("#fm-mkdt .num").change(function() {
         // total()
     })
     //tidak dipakai
@@ -4209,7 +5828,7 @@ foreach (user()->getRoles() as $key => $val) {
                 confirmButtonClass: 'btn btn-primary',
                 cancelButtonClass: 'btn btn-danger ml-1',
                 buttonsStyling: !1
-            }).then(function (t) {
+            }).then(function(t) {
                 if (t.value) {
                     tambah(e)
                 }
@@ -4301,13 +5920,13 @@ foreach (user()->getRoles() as $key => $val) {
             confirmButtonClass: 'btn btn-primary',
             cancelButtonClass: 'btn btn-danger ml-1',
             buttonsStyling: !1
-        }).then(function (t) {
+        }).then(function(t) {
             if (t.value) {
                 $.ajax({
                     url: base_url + 'Keuangan/isSudahBayar/' + editdtt[0].data.id_mkdt,
                     type: 'get',
                     dataType: 'json',
-                    success: function (r) {
+                    success: function(r) {
                         csrfHash = r.token;
 
                         if (r.success === false) {
@@ -4318,7 +5937,7 @@ foreach (user()->getRoles() as $key => $val) {
                         else delete data_um[x];
                         tambah_ketagihan();
                     },
-                    error: function () {
+                    error: function() {
                         return swal('error', 'Terjadi kesalahan')
                     }
                 });
@@ -4493,7 +6112,7 @@ foreach (user()->getRoles() as $key => $val) {
 
         const nama_file = "Siteplan " + dt_proyek.nama_proyek + " Per " + format_date(today_date) + ".png";
 
-        downloadURI(dataURL, nama_file, function () {
+        downloadURI(dataURL, nama_file, function() {
             stage.height(stageh)
             stage.width(stagew)
             stage.scale(stages)
@@ -4552,18 +6171,18 @@ foreach (user()->getRoles() as $key => $val) {
             dataType: 'json',
             delay: 250,
             method: 'post',
-            data: function (params) {
+            data: function(params) {
                 return {
                     [csrfName]: csrfHash,
                     search: params.term,
                     id_proyek: dt_proyek.id_proyek
                 };
             },
-            processResults: function (r) {
+            processResults: function(r) {
                 csrfHash = r.token
 
                 let results = [];
-                $.each(r.data, function (index, item) {
+                $.each(r.data, function(index, item) {
                     results.push({
                         id: item[0],
                         text: item[3]
@@ -4578,7 +6197,7 @@ foreach (user()->getRoles() as $key => $val) {
         },
     })
     // on select cluster
-    $("#filter-id_cluster").on("change", function (e) {
+    $("#filter-id_cluster").on("change", function(e) {
         $('#filter-id_jalan').val(null).trigger('change');
         if (this.value)
             $("#filter-id_jalan").prop("disabled", false)
@@ -4593,7 +6212,7 @@ foreach (user()->getRoles() as $key => $val) {
             dataType: 'json',
             delay: 250,
             method: 'post',
-            data: function (params) {
+            data: function(params) {
                 return {
                     [csrfName]: csrfHash,
                     search: params.term,
@@ -4601,11 +6220,11 @@ foreach (user()->getRoles() as $key => $val) {
                     id_proyek: dt_proyek.id_proyek
                 };
             },
-            processResults: function (r) {
+            processResults: function(r) {
                 csrfHash = r.token
 
                 let results = [];
-                $.each(r.data, function (index, item) {
+                $.each(r.data, function(index, item) {
                     results.push({
                         id: item[0],
                         text: item[3]
@@ -4639,7 +6258,7 @@ foreach (user()->getRoles() as $key => $val) {
         // hide menu
         menuNode.style.display = 'none';
     });
-    stage.on('contextmenu', function (e) {
+    stage.on('contextmenu', function(e) {
         // prevent default behavior
         e.evt.preventDefault();
 
@@ -4685,11 +6304,11 @@ foreach (user()->getRoles() as $key => $val) {
             processData: false,
             data: fd,
             dataType: 'json',
-            beforeSend: function () {
+            beforeSend: function() {
                 $('#btn-simpan_batal_mkdt').prop("disabled", true);
                 $('#btn-simpan_batal_mkdt').html('Menyimpan <i class="fa fa-spinner fa-spin"></i>');
             },
-            success: function (r) {
+            success: function(r) {
                 csrfHash = r.token;
 
                 if (r.success === true) {
@@ -4699,7 +6318,7 @@ foreach (user()->getRoles() as $key => $val) {
                         title: r.messages,
                         showConfirmButton: false,
                         //timer: 1500
-                    }).then(function () {
+                    }).then(function() {
                         $('.modal').modal('hide');
                         $('#btn-simpan_batal_mkdt').html('Simpan');
                         $('#btn-simpan_batal_mkdt').prop("disabled", false);
@@ -4711,7 +6330,7 @@ foreach (user()->getRoles() as $key => $val) {
                         title: r.messages,
                         showConfirmButton: false,
                         //timer: 1500
-                    }).then(function () {
+                    }).then(function() {
                         $('#btn-simpan_batal_mkdt').html('Simpan');
                         $('#btn-simpan_batal_mkdt').prop("disabled", false);
                     })
@@ -4719,7 +6338,7 @@ foreach (user()->getRoles() as $key => $val) {
                 load_kavling();
                 hapus_seleksi();
             },
-            error: function () {
+            error: function() {
                 Swal.fire({
 
                     icon: 'error',
@@ -4775,14 +6394,14 @@ foreach (user()->getRoles() as $key => $val) {
                 id_kavling: id_kavling
             },
             dataType: 'json',
-            beforeSend: function () {
+            beforeSend: function() {
                 $("#loading").removeClass("hidden");
             },
-            success: function (x) {
+            success: function(x) {
                 let mkdt = x.data,
                     sb = x.sudah_bayar,
                     tb = x.total_biaya
-                $.each(mkdt, function (k, v) {
+                $.each(mkdt, function(k, v) {
                     $("#batal-" + k).val(v).change().keyup()
                 })
 
@@ -4815,14 +6434,14 @@ foreach (user()->getRoles() as $key => $val) {
                 });
                 $("#loading").addClass("hidden");
             },
-            error: function (e) {
+            error: function(e) {
                 Swal.fire({
                     //
                     icon: 'error',
                     title: "Token tidak valid, muat ulang halaman",
                     showConfirmButton: true,
                     // //timer: 1500
-                }).then(function () {
+                }).then(function() {
                     location.reload();
                 })
             }
@@ -4904,14 +6523,14 @@ foreach (user()->getRoles() as $key => $val) {
                 id_kavling: id_kavling
             },
             dataType: 'json',
-            beforeSend: function () {
+            beforeSend: function() {
                 $("#loading").removeClass("hidden");
             },
-            success: function (x) {
+            success: function(x) {
                 let mkdt = x.data,
                     sb = x.sudah_bayar,
                     tb = x.total_biaya
-                $.each(mkdt, function (k, v) {
+                $.each(mkdt, function(k, v) {
                     $("#batal-" + k).val(v).change().keyup()
                 })
 
@@ -4944,21 +6563,28 @@ foreach (user()->getRoles() as $key => $val) {
                 });
                 $("#loading").addClass("hidden");
             },
-            error: function (e) {
+            error: function(e) {
                 Swal.fire({
                     //
                     icon: 'error',
                     title: "Token tidak valid, muat ulang halaman",
                     showConfirmButton: true,
                     // //timer: 1500
-                }).then(function () {
+                }).then(function() {
                     location.reload();
                 })
             }
         });
     }
 
-    $("#dt-listrik_jenis").change(function () {
+    $(document).keydown(function(event) {
+        if (event.key === 'Escape') {
+            hapus_seleksi()
+        }
+    });
+
+
+    $("#dt-listrik_jenis").change(function() {
         if (this.value == "PLN") {
             $("#dt-listrik-pln-input-form").removeClass("hidden");
             $("#dt-listrik_disediakan").addClass("hidden");
@@ -4967,7 +6593,7 @@ foreach (user()->getRoles() as $key => $val) {
             $("#dt-listrik_disediakan").removeClass("hidden");
         }
     });
-    $("#dt-air_jenis").change(function () {
+    $("#dt-air_jenis").change(function() {
         if (this.value == "Air Tanah") {
             $("#dt-air_tanah-input_form").removeClass("hidden");
             $("#dt-air_komunal-input_form").addClass("hidden");
@@ -4982,18 +6608,4 @@ foreach (user()->getRoles() as $key => $val) {
             $("#dt-air_pdam-input_form").removeClass("hidden");
         }
     });
-
-    // $('.modal:not(#modal-list-rumah-belum-selesai)').on('hide.bs.modal', function (e) {
-    //     if ($(e.target).hasClass('modal') || $(e.relatedTarget).is('button.close')) {
-    //         console.log("Modal ditutup menggunakan tombol atau backdrop.");
-    //     }else{
-    //         console.log('ewe');   
-    //     }
-    //     // var userConfirmed = confirm("Anda yakin akan menutup jendela ini?");
-
-    //     // // Jika user tidak mengonfirmasi, hentikan penutupan modal
-    //     // if (!userConfirmed) {
-    //     //     e.preventDefault();
-    //     // }
-    // });
 </script>

@@ -59,7 +59,7 @@
                         <select id="id_tipe" name="id_tipe" class="select2 id_tipe custom-select"></select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="basic-icon-default-post">Status Kavling</label>
+                        <label class="form-label" for="basic-icon-default-post">Kategori Kavling</label>
                         <select id="status_tanah" name="status_tanah" class="select2 custom-select"
                             placeholder="standar/kelebihan tanah">
                             <option value="Standar">Standar</option>
@@ -152,10 +152,10 @@
 
 <script>
     function tambah_kavling() {
-
         if (editdtt.length > 0) {
             return swal('error', "Terjadi Kesalahan.", "Lokasi sudah diisi oleh kavling lain")
         }
+        $("#fm-add_kavling")
 
         let shape
         if ($("#tambah_jalan").prop("checked")) {
@@ -171,6 +171,10 @@
                 return swal('error', 'Terjadi Kesalahan', 'Seleksi kavling kosong terlebih dahulu')
             }
         }
+        $("#fm-add_kavling")[0].reset()
+        
+        $("#fm-add_kavling .select2").val(null).trigger('change')
+        
 
         $(".t_luas_legal, .t_luas_produksi, .r_progres").html('-')
         $("#pindah_lokasi_btn").hide()

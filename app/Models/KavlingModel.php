@@ -35,7 +35,17 @@ class KavlingModel extends Model
 			'status_komplain',
 			'luas_tanah',
 
-			
+			'sumurbor',
+			'sumurbor_keterangan',
+			'sumurbor_tanggal',
+			'sumurbor_oleh',
+			'sumurbor_updated',
+			'sumurbor_bayar',
+			'sumurbor_bayar_tanggal',
+			'sumurbor_bayar_oleh',
+			'sumurbor_bayar_updated',
+			'sumurbor_bayar_nominal',
+			'sumurbor_bayar_keterangan',
 
 			'status_tanah',
 			'perintah_bangun_oleh',
