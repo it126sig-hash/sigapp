@@ -11,7 +11,7 @@ use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\HTTP\ResponseInterface;
 use App\Services\KonsumenService;
 use App\Repositories\LogPembayaranRepository;
-
+use App\Repositories\KeuanganRepository;
 use Throwable;
 
 // use App\Libraries\Pdf;
@@ -23,6 +23,7 @@ class Tagihan extends BaseController
     protected $comproModel;
     protected $mpdf;
     protected $logRepo;
+    protected $keuRepo;
 
     /** @var \App\Services\KonsumenService */
     protected $konsumenService;
@@ -51,6 +52,7 @@ class Tagihan extends BaseController
         $this->mpdf = new Mpdf_lib();
 
         $this->logRepo = new LogPembayaranRepository();
+        $this->keuRepo = new KeuanganRepository();
     }
 
     function getByID()
@@ -301,6 +303,52 @@ class Tagihan extends BaseController
                 'messages' => 'Gagal menyimpan data: ' . $e->getMessage(),
             ]);
         }
+    }
+
+    ################################## untuk list tagihan ##########################
+
+    function listTagihan()
+    {
+        $data['content'] = 'keuangan/list-tagihan';
+        $data['data']['controller'] = 'Keuangan';
+        $data['data']['title'] = 'List Tagihan';
+        $data['data']['li_keu'] = json_encode($this->keuRepo->getLIKeu());
+
+        return view('template', $data);
+    }
+
+    function getListTagihan($status = null)
+    {
+        $request = $this->request;
+        $datatbel = $this->keuanganService->getListTagihan($request, $status);
+
+        return $datatbel;
+    }
+    ################################## end of untuk list tagihan ##########################
+
+    ################################## untuk list riwayat bayar ##########################
+    function riwayatBayarIndex()
+    {
+        $data['content'] = 'keuangan/riwayat-bayar';
+        $data['data']['controller'] = 'Tagihan';
+        $data['data']['title'] = 'Riwayat Pembayaran';
+
+        return view('template', $data);
+    }
+    function getRiwayatBayar()
+    {
+        $request = $this->request;
+        $datatbel = $this->keuanganService->getRiwayatBayar($request);;
+
+        return $datatbel;
+    }
+    ################################## end of untuk list riwayat bayar ##########################
+    ################################## untuk jatuh tempo ##########################
+    function getAllJatuhTempo()
+    {
+        $id_proyek = $this->request->getVar('id_proyek');
+        $datatbel = $this->keuanganService->getAllJatuhTempo($id_proyek);
+        return $this->response->setJSON($datatbel);;
     }
     protected function num($d)
     {

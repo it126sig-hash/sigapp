@@ -104,6 +104,11 @@ class Transaksi extends BaseController
         $resp = ['token' => csrf_hash()];
         $input = $this->request;
 
+        echo "<pre>";
+        print_r($input->getVar('id_konsumen'));
+        echo "</pre>";
+        die;
+
         $resp = $this->mkdtService->saveTransaksi($input);
         return $this->response->setJSON($resp);
     }

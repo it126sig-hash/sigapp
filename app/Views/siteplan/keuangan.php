@@ -1,4 +1,5 @@
 <!--#################################### Modal Keuangan #########################################-->
+namespace App\Views\siteplan;
 <div class="modal fade text-left" id="modal_divisi3">
     <div class="modal-dialog modal-dialog-scrollable modal-xl">
         <form id="fm-keuangan" class="add-new-record modal-content pt-0" autocomplete="off">
@@ -16,11 +17,6 @@
                                 <div class="row">
                                     <div class="col-8">
                                         <p class="modal-title label_alamat"></p>
-                                        <div class="custom-control custom-switch custom-control-inline">
-                                            <input type="checkbox" class="custom-control-input cbp" id="is_lunas" name="is_lunas"
-                                                value="1" />
-                                            <label class="custom-control-label text-light" for="is_lunas">Pembayaran Lunas</label>
-                                        </div>
                                     </div>
                                     <div class="col-4">
                                         <div class="card">
@@ -86,8 +82,26 @@
                                         <div class="card">
                                             <div class="card-body">
                                                 <div class="divider divider-left">
+                                                    <div class="divider-text font-weight-bold">Status Konsumen</div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-9">
+                                                        <h5 class="text-primary">Tandai Sebagai Sudah Lunas</h5>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <div class="custom-control custom-switch custom-control-inline">
+                                                            <input type="checkbox" class="custom-control-input cbp" id="is_lunas" name="is_lunas"
+                                                                value="1" />
+                                                            <label class="custom-control-label" for="is_lunas"></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+
+                                                <div class="divider divider-left">
                                                     <div class="divider-text font-weight-bold">List Tagihan</div>
                                                 </div>
+
                                                 <div id="tb-data-tagihan"></div>
                                                 <!-- <div class="table-responsive">
                                                     <table class="table mb-0">
@@ -331,8 +345,6 @@
         </form>
     </div>
 </div>
-
-
 
 <!-- ################################## Modal Tagihan ##########################################-->
 <div class="modal fade text-left" id="print_tagihan_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel17"
@@ -645,7 +657,7 @@
                                                     <small class="form-text text-muted">PDF, maksimum 4 MB.</small>
                                                 </div>
 
-                                                <button type="submit" class="btn btn-primary">
+                                                <button id="btn-saveDanaJaminan" type="submit" class="btn btn-primary">
                                                     Simpan
                                                 </button>
                                             </form>
@@ -714,29 +726,102 @@
 <!-- ################################## isi_cashout ##########################################-->
 <div class="modal fade text-left" id="modal-cashout-keu" tabindex="-1" role="dialog" aria-labelledby="dana_akad_modal"
     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
         <form id="fm-cashout-keu" class="" autocomplete="off">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Cash Out</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Form Isi Cash Out</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body flex-grow-1" style="background-color:#eee">
-                    <div class="card">
-                        <div class="card-body">
-                            <p class="modal-title label_konsumen" id="label_konsumen"></p>
-                            <p class="modal-title label_alamat" id="label_alamat3"></p>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body bg-primary text-light">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <p class="modal-title label_alamat"></p>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h5><i class="fas fa-users"></i> <span>Konsumen</span></h5>
+                                                    <h5><strong><span id="fm-co-label_konsumen"></span></strong></h5>
+                                                    <h5><i class="fas fa-calendar"></i> <span>Tanggal Booking</span></h5>
+                                                    <h5><strong><span id="fm-co-label_tgl"></span>(Rp. <span id="fm-co-label_bookingfee"></span>)</strong></h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="divider divider-left">
+                                        <div class="divider-text font-weight-bold">Form Cash Out</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 col-sm-12 col-lg-3">
+                                            <div class="form-group">
+                                                <label for="co-untuk_pembayaran">Untuk Pembayaran</label>
+                                                <select name="co-untuk_pembayaran" id="co-untuk_pembayaran"
+                                                    class="form-control form-select"></select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-12 col-lg-3">
+                                            <div class="form-group">
+                                                <label for="co-tanggal_bayar">Tanggal Pembayaran</label>
+                                                <input type="text" id="co-tanggal_bayar" name="co-tanggal_bayar"
+                                                    class="form-control flatpickr-human-friendly" placeholder="-" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-12 col-lg-3">
+                                            <div class="form-group">
+                                                <label for="co-nominal">Nominal Pembayaran</label>
+                                                <input type="text" class="form-control num" id="co-nominal"
+                                                    name="co-nominal">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-12 col-lg-3">
+                                            <div class="form-group">
+                                                <label for="co-keterangan">Keterangan Pembayaran</label>
+                                                <textarea class="form-control" id="co-keterangan" name="co-keterangan"
+                                                    rows="3" placeholder="Keterangan"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <input type="hidden" class="form-control" id="cashout-id_kavling" name="id_kavling">
 
-                    <div id="div-cashout-here" class="row">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="divider divider-left">
+                                <div class="divider-text font-weight-bold">Riwayat Pembayaran Cash Out</div>
+                            </div>
+                            <table id="cashout-table" class="datatables-basic table compact">
+                                <thead>
+                                    <tr>
+                                        <th width=""></th>
+                                        <th width="20%">Item</th>
+                                        <th width="20%">Tanggal Pembayaran</th>
+                                        <th width="25%">Nominal</th>
+                                        <th width="35%">Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                            <div id="div-cashout-here" class="row">
+                            </div>
+                        </div>
                     </div>
-
-
-
                 </div>
                 <div class="modal-footer">
                     <button id="add-form-btn-cashout" class="btn btn-primary data-submit mr-1"

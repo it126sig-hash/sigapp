@@ -105,6 +105,12 @@ class PrintController extends BaseController
                     <img src='$npwp' width='85mm' height='54mm'>
                 </div>
                 ";
+            } else {
+                $footer = "
+                <div style='text-align:center;'>
+                    <span style='font-size:12px;color:red;'>Belum melampirkan KTP atau NPWP</span>
+                </div>
+                ";
             }
 
             $this->mpdf->generate($html, $filename, $header, $mg, 'F4', true, $footer);
@@ -113,7 +119,7 @@ class PrintController extends BaseController
             log_message('error', 'SPPTB print error: {msg}', ['msg' => $e->getMessage()]);
             return $this->response->setStatusCode(500)->setJSON([
                 'status' => 'error',
-                'message' => 'Terjadi kesalahan saat menghasilkan PDF.',
+                'message' => $e->getMessage(),
             ]);
         }
     }

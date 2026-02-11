@@ -130,7 +130,7 @@ function isValidKonsumen(i) {
       if ($("#mk-total_tot").val() != $("#mk-total_cicilan_um").val()) {
         showToast(
           "Total tagihan tida sesuai dengan total harus dibayar",
-          "danger"
+          "danger",
         );
         isValid = false;
       }
@@ -222,17 +222,6 @@ function setRichText(html) {
   ui.fields.richText().trigger("setContent", html ?? "");
   ui.fields.rincian.html(html ?? "");
 }
-function setImgOrPlaceholder(
-  $a,
-  src,
-  placeholder,
-  width = "100%",
-  height = "150px"
-) {
-  if (src == null) {
-  }
-  $a.prop("href", base_url + (src || placeholder));
-}
 
 // function updateButtons() {
 //   // ganti logika lamamu jika perlu
@@ -284,7 +273,7 @@ function bindKavlingContext(sh) {
     ui.btn.printSPPTB
       .attr(
         "onclick",
-        `return swal('error', 'Data konsumen harus disimpan terlebih dahulu');`
+        `return swal('error', 'Data konsumen harus disimpan terlebih dahulu');`,
       )
       .attr("target", "")
       .prop("href", "#");
@@ -293,7 +282,7 @@ function bindKavlingContext(sh) {
       .attr("onclick", "")
       .prop(
         "href",
-        `${base_url}print/spptb?id_mkdt=${state.id_mkdt}&id_kavling=${state.id_kavling}&id_proyek=${dt_proyek.id_proyek}`
+        `${base_url}print/spptb?id_mkdt=${state.id_mkdt}&id_kavling=${state.id_kavling}&id_proyek=${dt_proyek.id_proyek}`,
       )
       .attr("target", "_blank");
   }
@@ -466,7 +455,7 @@ function fillSpptbList(list) {
           base_url + val.lokasi
         }" target=_blank>Klik untuk melihat file</a></td>
         <td>${val.username}<br>${format_datetime(val.created_at)}</td>
-      </tr>`
+      </tr>`,
           )
           .join("")
       : '<tr><td colspan="3">Tidak ada data</td></tr>';
@@ -522,6 +511,7 @@ async function isi_data_konsumen() {
   ui.btn.delKons.addClass("hidden");
   $("#idk-show_keterangan_batal, .refresh_fmmkdt_div").addClass("hidden");
 
+  $("#idk-id_konsumen").val("");
   // Siapkan konteks UI & state
   bindKavlingContext(sh);
   state.id_hargajual = sh.data2.id_hargajual;
@@ -569,7 +559,7 @@ async function isi_data_konsumen() {
         sh.data.nama_jalan,
         sh.data.no_kavling,
         sh.data2.no_tipe_rumah,
-        sh.data2.tipe_rumah
+        sh.data2.tipe_rumah,
       );
       $(".label_alamat").html(label_alamat);
 
@@ -617,7 +607,7 @@ function simpan_dt_konsumen_keuangan(e) {
       return swal(
         "error",
         "Gagal Menyimpan Data",
-        "Total tagihan dan total yang harus dibayar tidak sesuai"
+        "Total tagihan dan total yang harus dibayar tidak sesuai",
       );
     }
   }
@@ -643,40 +633,6 @@ function simpan_dt_konsumen_keuangan(e) {
   }
 
   appendCollectionToFormData(fd, state.data_um);
-
-  // for (var k in state.data_um) {
-  //   if (!data_um.hasOwnProperty(k)) continue;
-  //   var obj = state.data_umk[k];
-
-  //   for (var d in obj) {
-  //     if (!obj.hasOwnProperty(d)) continue;
-  //     let x = obj[d];
-
-  //     dt[d + "[" + i + "]"] = is_ganti_nama == "Ganti Nama" ? "" : x;
-  //     fd.append(`${d}[${i}]`, x);
-  //   }
-  //   i++;
-  // }
-
-  // console.log(dt)
-  // fd.forEach((value, key) => {
-  //   console.log(key, value);
-  // });
-  // return
-  //cicilan bb
-  // i = 0;
-  // for (var k in data_bb) {
-  //   if (!data_bb.hasOwnProperty(k)) continue;
-  //   var obj = data_bb[k];
-
-  //   for (var d in obj) {
-  //     if (!obj.hasOwnProperty(d)) continue;
-  //     var x = obj[d];
-  //     dt[d + "[" + i + "]"] = is_ganti_nama == "Ganti Nama" ? "" : x;
-  //     fd.append(`${d}[${i}]`, x);
-  //   }
-  //   i++;
-  // }
 
   $.ajax({
     url: base_url + "transaksi/simpan",
@@ -743,7 +699,7 @@ $("#fm-mkdt #harga_kpr, #fm-mkdt #acc_harga_kpr").change(function () {
     $("#fm-mkdt #harga_turun_kpr")
       .val(
         parseFloat(removeComma($("#fm-mkdt #harga_kpr").val())) -
-          parseFloat(removeComma($("#fm-mkdt #acc_harga_kpr").val()))
+          parseFloat(removeComma($("#fm-mkdt #acc_harga_kpr").val())),
       )
       .change();
   } else {
@@ -766,15 +722,16 @@ function refresh_fmmkdt($st = true) {
   $("#fm-mkdt")[0].reset();
   $("#fm-mkdt input:text, #fm-mkdt select, #fm-mkdt textarea").prop(
     "disabled",
-    $st
+    $st,
   );
   $("#id_konsumen").val("");
+  $("#idk-id_konsumen").val("");
   $("#id_keuangan0").val("");
 }
 
 function delete_kons() {
   $(
-    "#fm-mkdt #nama_konsumen, #fm-mkdt #alamat_konsumen, #fm-mkdt #nik_konsumen, #fm-mkdt #hp_konsumen, #fm-mkdt #status_konsumen"
+    "#fm-mkdt #nama_konsumen, #fm-mkdt #alamat_konsumen, #fm-mkdt #nik_konsumen, #fm-mkdt #hp_konsumen, #fm-mkdt #status_konsumen",
   ).val("");
   $("#id_konsumen, #id_mkdt").val("");
   $("#mkdt_data_baru").val(1);
@@ -791,7 +748,7 @@ function open_mkdt(sh, role, id_kavling) {
     return swal(
       "error",
       "Kavling belum dipasarkan",
-      "Kavling belum memiliki harga jual"
+      "Kavling belum memiliki harga jual",
     );
   }
   $("#lb-st-no_spptb").html("-");
@@ -860,7 +817,7 @@ function open_mkdt(sh, role, id_kavling) {
         if (r.status_mkdt == "Batal") {
           refresh_fmmkdt(true);
           $("#show_keterangan_batal, #refresh_fmmkdt_div").removeClass(
-            "hidden"
+            "hidden",
           );
           $("#delete_kons_div").addClass("hidden");
         }
@@ -935,7 +892,7 @@ function open_mkdt(sh, role, id_kavling) {
         $("#fm-mkdt #perintah_bangun_oleh").val(pb.username);
         setBtnHref(
           "#list-upload_perintah_bangun_file",
-          pb.perintah_bangun_file
+          pb.perintah_bangun_file,
         );
         setDatePicker(pb.perintah_bangun_tgl, "#perintah_bangun_tgl");
       }
@@ -947,7 +904,7 @@ function open_mkdt(sh, role, id_kavling) {
         sh.data.nama_jalan,
         sh.data.no_kavling,
         sh.data2.no_tipe_rumah,
-        sh.data2.tipe_rumah
+        sh.data2.tipe_rumah,
       );
       $(".label_alamat").html(label_alamat);
 
@@ -1038,7 +995,7 @@ function load_tagihankpr(val) {
       <div class="form-group">
           <label for="bank">Tanggal Jatuh Tempo Turun KPR</label>
           <input type="text" readonly class="form-control" value='${format_date(
-            val.jatuh_tempo_tgl
+            val.jatuh_tempo_tgl,
           )}' />
               <a href="#" onclick="hapus_turunkpr(${
                 val.id_keuangan
@@ -1068,7 +1025,7 @@ function save_mkdt(e) {
       "Tagihan untuk turun KPR harus dibuat terlebih dahulu",
       "Karena ada nilai di turun KPR, jadi harus buat tagihannya dulu ya!",
       false,
-      hlButton("#btn-add-tagihan-turunkpr")
+      hlButton("#btn-add-tagihan-turunkpr"),
     );
     return;
   }
@@ -1130,7 +1087,7 @@ function set_harga() {
     dataType: "json",
     beforeSend: function () {
       $("#set-harga-form-btn").html(
-        'Menyimpan <i class="fa fa-spinner fa-spin"></i>'
+        'Menyimpan <i class="fa fa-spinner fa-spin"></i>',
       );
       $("#set-harga-form-btn").addClass("disabled");
     },
@@ -1147,7 +1104,7 @@ function set_harga() {
           }
           $("#set-harga-form-btn").html("Simpan");
           $("#set-harga-form-btn").removeClass("disabled");
-        }
+        },
       );
       load_kavling();
       hapus_seleksi();
@@ -1164,7 +1121,7 @@ function formatDesign(item) {
       selectionText[1] +
       "</br>" +
       selectionText[2] +
-      "</span>"
+      "</span>",
   );
   return $returnString;
 }
@@ -1192,7 +1149,7 @@ $("#sh-id").select2({
         results.push({
           id: v.id,
           text: `Rp. ${num_format(v.hargajual)} Per ${format_date(
-            v.tgl_harga
+            v.tgl_harga,
           )} (ROW ${v.row}); <b>Tipe:</b> ${v.id_tipe}; <b>Ket:</b> ${
             v.keterangan
           };`,
@@ -1280,7 +1237,7 @@ function open_set_turun_pembangunan() {
 
         $("#list-tp-upload_perintah_bangun_file").prop(
           "href",
-          base_url + r[0].perintah_bangun_file
+          base_url + r[0].perintah_bangun_file,
         );
 
         setDatePicker(r[0].perintah_bangun_tgl, "#tp-perintah_bangun_tgl");
@@ -1418,8 +1375,8 @@ function open_set_harga() {
                   .text(
                     `Rp. ${num_format(r[a].hargajual)} (${
                       r[a].tipe_rumah
-                    }) ROW ${r[a].row}: per ${format_date(r[a].tgl_harga)}`
-                  )
+                    }) ROW ${r[a].row}: per ${format_date(r[a].tgl_harga)}`,
+                  ),
               )
               .trigger("change");
 
@@ -1513,8 +1470,10 @@ function isi_si() {
                                                   v.id_list_si_ori
                                                 }"
                                                     id="id-si[${id_si}][tanggal_si]" value="${
-          v.tanggal_si ? v.tanggal_si : ""
-        }" name="id-si[${id_si}][tanggal_si]">
+                                                      v.tanggal_si
+                                                        ? v.tanggal_si
+                                                        : ""
+                                                    }" name="id-si[${id_si}][tanggal_si]">
                                             </div>
                                         </div>
                                         <div class="col-md-12">
@@ -1541,8 +1500,10 @@ function isi_si() {
                                             <label>Keterangan</label>
                                             <textarea class="form-control" id="id-si[${id_si}][keterangan]"
                                                 name="id-si[${id_si}][keterangan]" rows="4" placyeholder="Keterangan">${
-          v.keterangan ? v.keterangan : ""
-        }</textarea>
+                                                  v.keterangan
+                                                    ? v.keterangan
+                                                    : ""
+                                                }</textarea>
                                             <small id="last_update-si${id_si}" class=""></small>
                                             
                                         </div>
@@ -1642,7 +1603,7 @@ $("#refresh-btn-idk_keu").click(function () {
   // refresh_fmmkdt(false);
   $("#fm-idk_keu input:text, #fm-idk_keu select, #fm-idk_keu textarea").prop(
     "disabled",
-    false
+    false,
   );
   $("#fm-idk_keu #idk-id_konsumen").val("");
 
@@ -1657,47 +1618,7 @@ function mkdtUpload() {
   ];
 
   inputs.forEach((item) => {
-    const input = document.getElementById(item.id);
-    const dropzone = input.closest(".dropzone");
-    const preview = dropzone.querySelector(".dz-preview");
-    const placeholder = dropzone.querySelector(".dz-placeholder");
-
-    preview.style.display = "none";
-    placeholder.style.display = "block";
-
-    input.addEventListener("change", function () {
-      preview.innerHTML = ""; // reset dulu
-
-      if (this.files && this.files[0]) {
-        const file = this.files[0];
-
-        // Kalau gambar → tampilkan thumbnail
-        if (file.type.startsWith("image/")) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            preview.innerHTML = `
-                        <img src="${e.target.result}" 
-                             class="preview-thumb" 
-                             style="height:100%;"/>
-                        <div class="text-truncate mb-1">${file.name}</div>
-                    `;
-          };
-          reader.readAsDataURL(file);
-        }
-        // Kalau PDF → tampilkan icon + nama file
-        else if (file.type === "application/pdf") {
-          preview.innerHTML = `
-                    <div class="p-2 border rounded bg-light text-center">
-                        <i class="fa fa-file-pdf fa-3x text-danger"></i>
-                        <div class="text-truncate">${file.name}</div>
-                    </div>
-                `;
-        }
-        // toggle tampil
-        preview.style.display = "block";
-        placeholder.style.display = "none";
-      }
-    });
+    load_dropzone(item.id);
   });
 }
 
@@ -1775,7 +1696,7 @@ async function loadFormTagihan(nominal_kpr) {
         return Swal.showValidationMessage("Nominal tidak boleh 0");
       if (!tgl)
         return Swal.showValidationMessage(
-          "Tanggal jatuh tempo tidak boleh kosong"
+          "Tanggal jatuh tempo tidak boleh kosong",
         );
 
       // ---- POST ke server ----
@@ -1836,7 +1757,7 @@ $(btnTunruKpr).click(async function (e) {
     return swal(
       "error",
       "Terjadi Kesalahan",
-      "Tidak bisa menambahkan ke tagihan jika nominal Turun KPR 0!"
+      "Tidak bisa menambahkan ke tagihan jika nominal Turun KPR 0!",
     );
   }
   const { isConfirmed, isDenied, value } = await loadFormTagihan(nominal_kpr);

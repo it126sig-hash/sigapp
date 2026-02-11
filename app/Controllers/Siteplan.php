@@ -20,6 +20,8 @@ use App\Controllers\Notif;
 use App\Controllers\Home;
 use App\Repositories\KeuanganRepository;
 
+use App\Repositories\CashOutRepository;
+
 class Siteplan extends BaseController
 {
     protected $proyekModel;
@@ -41,6 +43,8 @@ class Siteplan extends BaseController
     protected $kavlingRepo;
     protected $keuRepo;
 
+    protected $cashoutRepo;
+
     public function __construct()
     {
         $this->notif = new Notif();
@@ -59,7 +63,7 @@ class Siteplan extends BaseController
         $this->validation = \Config\Services::validation();
         $this->db = \Config\Database::connect();
         $this->keuRepo = new KeuanganRepository();
-
+        $this->cashoutRepo = new CashOutRepository();
 
         $this->kavlingRepo = new KavlingRepository();
 
@@ -929,12 +933,8 @@ class Siteplan extends BaseController
         $d['file_ppn'] = $query->getResult();
 
 
-        $d['cashout'] = $this->db->table('list_cashout lc')
-            ->select('lc.id as id_cashout, lc.item, lc.sort, c.*, u.username as add_by_u, e.username as edit_by_u')
-            ->join('cashout c', 'c.id_item_cashout = lc.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
-            ->join('users u', 'u.id = c.add_by', 'left')
-            ->join('users e', 'e.id = c.edit_by', 'left')
-            ->get()->getResult();
+        //get cashout riwayat bayar
+        $d['cashout'] = $this->cashoutRepo->getRiwayatBayarCashOutByIDKavling($id_kavling);
 
         $d['bayar_produksi'] = $this->db->table('list_bayar_produksi lc')
             ->select('lc.id as id_bayar_produksi, lc.item, lc.sort, c.*, u.username as add_by_u, e.username as edit_by_u')

@@ -56,15 +56,14 @@ class Keuangan extends BaseController
             ->where(['id_mkdt' => $id_mkdt])
             ->get()->getResult()[0];
 
-
         $r['list_dajam'] = $this->db->table('list_dajam')
             ->select('list_dajam.nama_jaminan, list_dajam.id as id_list_dajam_ori, dana_akad.*')
             ->join('dana_akad', 'dana_akad.id_list_dajam = list_dajam.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
             // ->where('id_kavling', $id_kavling)
             ->get()->getResult();
 
-        $r['list_pengajuan'] = $this->rdajam->where('id_kavling',$id_kavling)->get()->getResult();
 
+        $r['list_pengajuan'] = $this->rdajam->where('id_kavling', $id_kavling)->get()->getResult();
         return $this->response->setJSON($r);
     }
     function getJatuhTempo()
@@ -73,45 +72,65 @@ class Keuangan extends BaseController
         if (!$id_kavling)
             return $this->response->setJSON([]);
 
+        $mkdt = $this->db->table('mkdt m')
+            ->select('
+            c.nama_konsumen,
+            c.hp_konsumen,
+            c.alamat_konsumen,
+            k.no_kavling,
+            t.tipe_rumah,
+            j.nama_jalan,
+            cl.nama_cluster,
+        ')
+            ->join('kavling k', 'm.id_mkdt = k.id_mkdt')
+            ->join('jalan j', 'k.id_jalan = j.id_jalan')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+            ->join('proyek p', 'p.id_proyek = cl.id_proyek')
 
-        $subquery = $this->db->table('keuangan')
-            ->select('JSON_ARRAYAGG(
-                JSON_OBJECT(
-                    "jatuh_tempo_tgl", jatuh_tempo_tgl,
-                    "nominal", nominal,
-                    "berita_acara", berita_acara
-                )
-             )', false)
-            ->where('keuangan.id_mkdt = m.id_mkdt')
-            ->where('sudah_dibayar', 0)
-            ->getCompiledSelect();
+            ->join('konsumen c', 'c.id_konsumen = m.id_konsumen')
+            ->join('hargajual hj', 'hj.id = k.harga_akhir')
+            ->join('tipe t', 't.id_tipe = hj.id_tipe')
+            ->where('m.is_lunas', 0)->get()->getResult();
 
-        $builder = $this->db->table('kavling k');
-        $builder->select("
-                c.nama_konsumen,
-                c.hp_konsumen,
-                c.alamat_konsumen,
-                k.no_kavling,
-                t.tipe_rumah,
-                j.nama_jalan,
-                cl.nama_cluster,
-                ($subquery) AS data_jatuh_tempo
-        ", false);
 
-        $builder->join('jalan j', 'j.id_jalan = k.id_jalan');
-        $builder->join('cluster cl', 'cl.id_cluster = j.id_cluster');
-        $builder->join('proyek p', 'p.id_proyek = cl.id_proyek');
-        $builder->join('mkdt m', 'm.id_mkdt = k.id_mkdt');
-        $builder->join('konsumen c', 'c.id_konsumen = m.id_konsumen');
-        $builder->join('hargajual hj', 'hj.id = k.harga_akhir');
-        $builder->join('tipe t', 't.id_tipe = hj.id_tipe');
+        // $subquery = $this->db->table('keuangan')
+        //     ->select('JSON_ARRAYAGG(
+        //         JSON_OBJECT(
+        //             "jatuh_tempo_tgl", jatuh_tempo_tgl,
+        //             "nominal", nominal,
+        //             "berita_acara", berita_acara
+        //         )
+        //      )', false)
+        //     ->where('keuangan.id_mkdt = m.id_mkdt')
+        //     ->where('sudah_dibayar', 0)
+        //     ->getCompiledSelect();
 
-        $builder->whereIn('k.id_kavling', $id_kavling);
+        // $builder = $this->db->table('kavling k');
+        // $builder->select("
+        //         c.nama_konsumen,
+        //         c.hp_konsumen,
+        //         c.alamat_konsumen,
+        //         k.no_kavling,
+        //         t.tipe_rumah,
+        //         j.nama_jalan,
+        //         cl.nama_cluster,
+        //         ($subquery) AS data_jatuh_tempo
+        // ", false);
 
-        $query = $builder->get();
-        $result = $query->getResult();
+        // $builder->join('jalan j', 'j.id_jalan = k.id_jalan');
+        // $builder->join('cluster cl', 'cl.id_cluster = j.id_cluster');
+        // $builder->join('proyek p', 'p.id_proyek = cl.id_proyek');
+        // $builder->join('mkdt m', 'm.id_mkdt = k.id_mkdt');
+        // $builder->join('konsumen c', 'c.id_konsumen = m.id_konsumen');
+        // $builder->join('hargajual hj', 'hj.id = k.harga_akhir');
+        // $builder->join('tipe t', 't.id_tipe = hj.id_tipe');
 
-        return $this->response->setJSON($result);
+        // $builder->whereIn('k.id_kavling', $id_kavling);
+
+        // $query = $builder->get();
+        // $result = $query->getResult();
+
+        return $this->response->setJSON($mkdt);
     }
     function getCashOut()
     {
@@ -1072,6 +1091,7 @@ class Keuangan extends BaseController
             ->where('kavling.id_kavling', $id_kavling)
             ->first();
     }
+    //sudah dipindajh ke tagihan controller
     function list_tagihan()
     {
         $data['content'] = 'keuangan/list-tagihan';

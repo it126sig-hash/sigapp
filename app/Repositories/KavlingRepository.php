@@ -20,6 +20,7 @@ class KavlingRepository
     {
         return $this->db->table('kavling')
             ->select('
+                        kavling.id_mkdt,
                         kavling.no_kavling, 
                         jalan.nama_jalan, 
                         tipe.id_tipe,
@@ -37,6 +38,7 @@ class KavlingRepository
     public function getKavlingById(int $idKavling): ?object
     {
         return $this->model->select('
+                        kavling.id_mkdt,
                         kavling.no_kavling, 
                         jalan.nama_jalan, 
                         tipe.id_tipe,
@@ -47,14 +49,67 @@ class KavlingRepository
             ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
             ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
             ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
-            ->join('tipe', 'kavling.id_tipe', 'tipe.id_tipe')
+            ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
             ->where('kavling.id_kavling', $idKavling)
             ->first();
+    }
+    public function getKavlingByIds(array $idKavlings): ?array
+    {
+        return $this->model->select('
+                        kavling.id_kavling,
+                        kavling.id_mkdt,
+                        kavling.no_kavling, 
+                        jalan.nama_jalan, 
+                        tipe.id_tipe,
+                        tipe.tipe_rumah,
+                        tipe.lb,
+                        tipe.lt
+                    ')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+            ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
+            ->whereIn('kavling.id_kavling', $idKavlings)
+            ->get()
+            ->getResult();
+    }
+    public function getKavlingList($id_proyek = null, $search = "", $limit = null, $is_cashout_subkon = 0)
+    {
+        $builder = $this->db->table('kavling');
+        $builder->select('kavling.id_kavling, jalan.nama_jalan, kavling.no_kavling');
+        if ($is_cashout_subkon == 1) {
+            $builder->select('cashout_subkon_kavling.id_cashout_subkon');
+        }
+        $builder->join('jalan', 'jalan.id_jalan = kavling.id_jalan');
+        $builder->join('cluster', 'cluster.id_cluster = jalan.id_cluster');
+        $builder->join('proyek', 'proyek.id_proyek = cluster.id_proyek');
+
+        if ($is_cashout_subkon == 1) {
+            $builder->join('cashout_subkon_kavling', 'cashout_subkon_kavling.id_kavling = kavling.id_kavling', 'left');
+        }
+
+        $builder->where('proyek.id_proyek', $id_proyek);
+
+        if (!empty($search)) {
+            // Kita gunakan OR untuk berbagai kemungkinan format penulisan user
+            $builder->groupStart()
+                ->like("CONCAT(nama_jalan, ' ', no_kavling)", $search)
+                ->orLike("CONCAT(nama_jalan, ' no ', no_kavling)", $search)
+                ->orLike('nama_jalan', $search)
+                ->orLike('no_kavling', $search)
+                ->groupEnd();
+        }
+
+        $builder->orderBy("jalan.nama_jalan", 'ASC');
+        $builder->orderBy("ABS(kavling.no_kavling)", 'ASC');
+
+        return $builder->get($limit)->getResult();
     }
     public function getDiskresiByKavlingId(int $idKavling): ?object
     {
         return $this->db->table('kavling k')
             ->select([
+                'k.id_mkdt',
                 'k.harga_akhir_tgl',
                 'a.username AS username_harga_akhir',
                 'k.diskresi_harga',
@@ -110,12 +165,13 @@ class KavlingRepository
     private function addDivisiSelect(BaseBuilder $builder, $id_divisi)
     {
         $divisiFields = [
-            3 => "mkdt.status_mkdt, mkdt.is_lunas, mkdt.is_subsidi as mkdt_is_subsidi, mkdt.is_kpr, mkdt.is_batal,
-                  (SELECT jatuh_tempo_tgl FROM keuangan WHERE keuangan.id_mkdt = mkdt.id_mkdt 
-                   and sudah_dibayar = 0 ORDER BY jatuh_tempo_tgl asc LIMIT 1) AS jatuh_tempo_tgl",
+            3 => "mkdt.status_mkdt, mkdt.is_lunas, mkdt.is_subsidi as mkdt_is_subsidi, mkdt.is_kpr, mkdt.is_batal, mkdt.dajam_selesai,
+                  (SELECT jatuh_tempo_tgl FROM keuangan WHERE keuangan.id_mkdt = mkdt.id_mkdt
+                   and sudah_dibayar = 0 ORDER BY jatuh_tempo_tgl asc LIMIT 1) AS jatuh_tempo_tgl, mkdt.is_sudah_isi_tagihan,
+                   ",
 
             4 => "mkdt.status_mkdt, mkdt.booking_tgl, mkdt.wawancara_tgl, mkdt.sp3k_tgl, mkdt.akad_tgl,
-                  mkdt.is_subsidi as mkdt_is_subsidi, mkdt.is_kpr, mkdt.is_batal",
+                  mkdt.is_subsidi as mkdt_is_subsidi, mkdt.is_kpr, mkdt.is_batal, mkdt.is_sudah_isi_tagihan",
 
             5 => "pbb_pecah_nop, pbb_pecah_luas_bumi, pbb_pecah_njop_bumi, pbb_pecah_luas_bangunan,
                   pbb_pecah_njop_bangunan, pbb_pecah_tanggal_bayar, pbb_pecah_jumlah_tagihan,
@@ -128,7 +184,7 @@ class KavlingRepository
                   bphtb_nominal_disetujui, bphtb_tanggal_validasi, bphtb_nominal_tervalidasi,
                   pph_tgl_permohonan, pph_nominal_validasi, pph_nominal_bayar, pph_nominal_disetujui,
                   pph_tanggal_validasi, pph_no_sket, pph_kode_verifikasi, pph_ntpn, pph_tgl_bayar,
-                  pph_jenis_validasi, ajb_no, ajb_tanggal, ajb_notaris, ajb_dikirim_ke,
+                  pph_jenis_validasi, ajb_no, ajb_tanggal, ajb_notaris, ajb_dikirim_ke,sertifikat_is_balik_nama,
                   ajb_tanggal_dikirim, ppjb_no, ppjb_tanggal, ppjb_notaris",
 
             7 => "produksi.st_0, produksi.st_25, produksi.st_50, produksi.st_75, produksi.st_100,
@@ -156,6 +212,7 @@ class KavlingRepository
     public function getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null)
     {
         $builder = $this->baseQuery();
+
 
         $this->addDivisiSelect($builder, $id_divisi);
 

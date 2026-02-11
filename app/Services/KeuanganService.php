@@ -12,6 +12,7 @@ use App\Repositories\HargaJualRepository;
 use App\Repositories\TransaksiRepository;
 use App\Repositories\SpptbRepository;
 use App\Models\MkdtModel;
+use Hermawan\DataTables\DataTable;
 
 
 class KeuanganService
@@ -112,6 +113,68 @@ class KeuanganService
             $this->model->whereIn('id_keuangan', $toDelete)->delete();
         }
     }
+    public function getListTagihan($request, $status = null)
+    {
+        $status = $status ?? "Booking";
+        $builder = $this->keuRepo->getBelumLunasQuery($status);
+        if ($request->getVar('id_proyek'))
+            $builder->where('p.id_proyek', $request->getVar('id_proyek'));
+        if ($request->getVar('id_cluster'))
+            $builder->where('cl.id_cluster', $request->getVar('id_cluster'));
+        if ($request->getVar('id_jalan'))
+            $builder->where('j.id_jalan', $request->getVar('id_jalan'));
+
+
+        return DataTable::of($builder)
+            ->addSearchableColumns('nama_konsumen', 'no_kavling')
+            ->add('Aksi', function ($value) {
+                $sh = json_encode([
+                    'data' => [
+                        'id_mkdt' => $value->id_mkdt,
+                        'nama_proyek' => $value->nama_proyek,
+                        'nama_jalan' => $value->nama_jalan,
+                        'no_kavling' => $value->no_kavling,
+                    ],
+                    'data2' => [
+                        'no_tipe_rumah' => $value->no_tipe_rumah,
+                        'tipe_rumah' => $value->id_tipe,
+                    ]
+                ]);
+                return '<button class="btn btn-outline-primary btn-sm" onclick="open_keuangan(' .  htmlspecialchars($sh, ENT_QUOTES, 'UTF-8') . ', 3, 0)"><i class="fas fa-receipt"></i> Bayar</button>';
+            }, 'first')
+            ->addNumbering('no')
+            ->edit('booking_tgl', function ($value) {
+                return $this->format_tgl($value->booking_tgl);
+            })
+            ->edit('jatuh_tempo_tgl', function ($value) {
+                return $this->format_tgl($value->jatuh_tempo_tgl);
+            })
+            ->edit('is_kpr', function ($value) {
+                return $this->is_active($value->is_kpr, 'KPR', 'TUNAI');
+            })
+            ->edit('nominal', function ($v) {
+                return number_format($v->nominal);
+            })
+            ->edit('total_tagihan', function ($v) {
+                return number_format($v->um + $v->adm + $v->bb);
+            })
+            ->edit('sudah_bayar', function ($v) {
+                return number_format($v->total_um + $v->total_adm + $v->total_bb);
+            })
+            ->edit('sisa_tagihan', function ($v) {
+                $tot = $v->um + $v->adm + $v->bb;
+                $sb = $v->total_um + $v->total_adm + $v->total_bb;
+                return number_format($tot - $sb);
+            })
+            // ->edit('action', function ($value) {
+            //     return '
+            //     <div class="btn-group">
+            //     <button class="btn btn-primary btn-sm" onclick="openDetail(' . $value->id_mkdt . ')"><i class="fa fa-eye"></i></button>
+            //     <button class="btn btn-warning btn-sm" onclick="openEdit(' . $value->id_mkdt . ')"><i class="fa fa-edit"></i></button>
+            //     </div>';
+            // })
+            ->toJson();
+    }
     public function getTagihanById($id_mkdt, $isTurunKPR = false)
     {
         return $this->keuRepo->getTagihanById($id_mkdt, $isTurunKPR);
@@ -128,7 +191,25 @@ class KeuanganService
         }
         return $log;
     }
+    function getRiwayatBayar($request)
+    {
+        $id_proyek = $request->getVar('id_proyek');
+        $id_cluster = $request->getVar('id_cluster');
+        $id_jalan = $request->getVar('id_jalan');
+        if ($id_proyek == null) {
+            return [];
+        }
+        $builder = $this->pembayaranRepo->getRiwayatBayarQuery($id_proyek, $id_cluster, $id_jalan);
+        return DataTable::of($builder)
+            ->toJson();
+    }
 
+    function getAllJatuhTempo($id_proyek)
+    {
+        $q = $this->keuRepo->getAllJatuhTempo($id_proyek);
+
+        return $q;
+    }
     private function num($v)
     {
         // if ($v === null || $v === '')
@@ -262,5 +343,18 @@ class KeuanganService
             ->where('id_mkdt', $id_mkdt)
             ->where('berita_acara', 'Turun KPR')
             ->countAllResults() > 0;
+    }
+    function format_tgl($tgl)
+    {
+        if ($tgl == "" || $tgl == "0000-00-00" || $tgl == null)
+            return "-";
+        return date_format(date_create($tgl), "d-M-Y");
+    }
+    function is_active($id, $texts, $textf)
+    {
+        $r = '<span class="btn btn-primary btn-sm" text-capitalized="">' . $textf . '</span>';
+        if ($id == "1")
+            $r = '<span class="btn btn-success btn-sm" text-capitalized="">' . $texts . '</span>';
+        return $r;
     }
 }

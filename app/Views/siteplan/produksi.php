@@ -40,6 +40,14 @@
 							min="0" max="100" step="1" id="f_progres_jalan" name="f_progres_jalan">
 						<span class="r_progres"></span><span>%</span>
 					</div>
+					<div class="form-group">
+						<label for="f_progres_jalan">Status</label>
+						<select id="slf_jenis" name="slf_jenis" class="form-control">
+							<option value="">Basecourse</option>
+							<option value="Basecourse">Basecourse</option>
+							<option value="Paving">Paving</option>
+						</select>
+					</div>
 
 					<div class="form-group">
 						<label for="f_produksi_luas">Luas Dilapangan</label>
@@ -1151,33 +1159,75 @@
 </div>
 
 <div class="modal fade text-left" id="modal-bayar_produksi-prod" tabindex="-1" role="dialog" aria-labelledby="dana_akad_modal"
-    aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
-        <form id="fm-bayar_produksi-prod" class="" autocomplete="off">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Pembayaran Produksi</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body flex-grow-1" style="background-color:#eee">
-                    <div class="card">
-                        <div class="card-body">
-                            <p class="modal-title label_konsumen" ></p>
-                            <p class="modal-title label_alamat"></p>
-                        </div>
-                    </div>
-                    <input type="hidden" class="form-control" id="bayar_produksi-id_kavling" name="id_kavling">
-                                    
-                    <div id="div-bayar_produksi-here" class="row"></div>
-                </div>
-                <div class="modal-footer">
-                    <button id="add-form-btn-bayar_produksi" class="btn btn-primary data-submit mr-1"
-                        onclick="save_bayar_produksi(); return false;" href="javascript:void(0)">Simpan</button>
-                    <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
-                </div>
-            </div>
-        </form>
-    </div>
+	aria-hidden="true">
+	<div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+		<form id="fm-bayar_produksi-prod" class="" autocomplete="off">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLabel">Pembayaran Produksi</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body flex-grow-1" style="background-color:#eee">
+					<div class="card">
+						<div class="card-body">
+							<p class="modal-title label_konsumen"></p>
+							<p class="modal-title label_alamat"></p>
+						</div>
+					</div>
+					<input type="hidden" class="form-control" id="bayar_produksi-id_kavling" name="id_kavling">
+
+					<div id="div-bayar_produksi-here" class="row"></div>
+				</div>
+				<div class="modal-footer">
+					<button id="add-form-btn-bayar_produksi" class="btn btn-primary data-submit mr-1"
+						onclick="save_bayar_produksi(); return false;" href="javascript:void(0)">Simpan</button>
+					<button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+
+<div class="modal fade text-left" id="modal-cashoutsubkon" tabindex="-1" role="dialog">
+	<div class="modal-dialog modal-dialog-scrollable modal-xl">
+		<div class="modal-content pt-0">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Produksi</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-md-12">
+						<div class="card">
+							<div class="card-body bg-primary text-light">
+								<p class="modal-title label_alamat"></p>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-12">
+						<div class="card">
+							<div class="card-body pb-0 pt-0">
+								<ul class="nav nav-pills flex-column flex-md-row mt-1 row-gap-2" role="tablist">
+									<li class="nav-item">
+										<a class="nav-link active" id="status-tab" data-toggle="tab" href="#status"
+											aria-controls="detail_tagihan" role="tab" aria-selected="false">Status </a>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button id="add-form-btn-produksi" class="btn btn-primary data-submit mr-1" onclick="save_produksi()"
+					href="javascript:void(0)">Simpan</button>
+				<button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+			</div>
+		</div>
+	</div>
 </div>

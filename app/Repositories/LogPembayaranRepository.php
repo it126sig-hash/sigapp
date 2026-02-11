@@ -34,6 +34,26 @@ class LogPembayaranRepository extends Model
             ->orderBy('log_pembayaran.tanggal_bayar', 'ASC')
             ->findAll();
     }
+    public function getRiwayatBayarQuery($id_proyek, $id_cluster, $id_jalan)
+    {
+        $q =  $this->select([
+            'log_pembayaran.*',
+            'users.username',
+            'keuangan.status',
+        ])
+            ->join('users', 'users.id = log_pembayaran.add_by')
+            ->join('keuangan', 'keuangan.id_keuangan = log_pembayaran.id_keuangan', 'left')
+            ->join('mkdt', 'mkdt.id_mkdt = log_pembayaran.id_mkdt')
+            ->join('proyek', 'proyek.id_proyek = mkdt.id_proyek')
+            ->join('cluster', 'cluster.id_cluster = mkdt.id_cluster')
+            ->join('jalan', 'jalan.id_jalan = mkdt.id_jalan')
+            ->where('log_pembayaran.is_deleted', 0);
+
+
+        $q->orderBy('log_pembayaran.tanggal_bayar', 'ASC');
+
+        return $q;
+    }
 
     public function softDeleteAndReturnIdMkdt($idPembayaran)
     {

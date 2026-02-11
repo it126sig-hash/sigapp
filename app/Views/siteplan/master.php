@@ -44,7 +44,7 @@ foreach (user()->getRoles() as $key => $val) {
 
 
     const rolename = '<?= $v ?>';
-    const roleid = '<?= $k ?>';
+    const roleid = <?= $k ?>;
     const has_akses = JSON.parse('<?= json_encode($has_akses) ?>');
     const pph = JSON.parse('<?= json_encode($pph) ?>')
     const ppn = JSON.parse('<?= json_encode($ppn) ?>')
@@ -566,7 +566,10 @@ foreach (user()->getRoles() as $key => $val) {
 
                             <div class="form-group">
                                 <select id="filter-kategori" name="filter-kategori"
-                                    class="select2 select-sm form-control-sm"></select>
+                                    class="select2 select-sm form-control-sm">
+                                    <option value="">Semua</option>
+
+                                </select>
                             </div>
                             <div class="form-group">
                                 <select id="filter-id_cluster" name="id_cluster"
@@ -616,215 +619,6 @@ foreach (user()->getRoles() as $key => $val) {
     <?php echo view('siteplan/sales'); ?>
 <?php endif; ?>
 
-<div class="modal fade" id="modal_komplain_sales">
-    <div class="modal-dialog modal-dialog-scrollable modal-xl">
-        <form id="fm-komplain-sales" enctype="multipart/form-data" class="add-new-record modal-content pt-0">
-            <div class="modal-header mb-1">
-                <h5 class="modal-title" id="exampleModalLabel">Komplain Kavling</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
-            </div>
-            <div class="modal-body flex-grow-1">
-                <p class="modal-title label_alamat" id="label_alamat5"></p>
-                <hr>
-
-                <input type="hidden" class="form-control id_kavling" name="id_kavling" value="" />
-                <input type="hidden" class="form-control" id="id_komplain" name="id_komplain" value="" />
-                <small id="last_update_komplain_sales" class="text-muted"></small>
-                <ul class="nav nav-tabs" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="fmks-komplain-tab" data-toggle="tab" href="#fmks-komplain"
-                            aria-controls="fmks-komplain" role="tab" aria-selected="true">Komplain</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="fmks-ditangani-tab" data-toggle="tab" href="#fmks-ditangani"
-                            aria-controls="fmks-ditangani" role="tab" aria-selected="true">Ditangani</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="fmks-selesai-tab" data-toggle="tab" href="#fmks-selesai"
-                            aria-controls="fmks-ditangani" role="tab" aria-selected="true">Selesai</a>
-                    </li>
-                </ul>
-                <div class="tab-content">
-                    <div class="tab-pane active" id="fmks-komplain" aria-labelledby="fmks-komplain-tab" role="tabpanel">
-                        <!-------------------------------------- dikomplain  ------------------------------------->
-                        <div class="row">
-                            <div class="col-sm-12 col-md-6 col-lg-6">
-                                <div id="div_upload_komplain_sales">
-                                    <label for="label_upload_komplain_sales">Foto Komplain</label>
-                                    <div class="custom-file">
-                                        <input type="file" class="custom-file-input" accept="image/*"
-                                            name="upload_komplain_sales[]" id="upload_komplain_sales" multiple />
-                                        <label class="custom-file-label" id="label_upload_komplain_sales"
-                                            for="upload_komplain_sales">Bisa Lebih dari 1 foto</label>
-                                        <div id="list_upload_komplain_sales"></div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="keterangan_komplain">Keterangan Komplain</label>
-                                    <textarea class="form-control" id="keterangan_komplain" name="keterangan_komplain"
-                                        rows="3" placeholder="Keterangan"></textarea>
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-6">
-                                <div id="batal_komplain" class="hidden">
-                                    <button id="batal_komplain_btn" type="button"
-                                        class="btn btn-outline-danger btn-block waves-effect"
-                                        onclick="batal_komplain()">Batalkan Komplain</button>
-                                    <div class="form-group">
-                                        <label for="username_komplain_oleh">Dikomplain Oleh</label>
-                                        <input readonly type="text" class="form-control" id="username_komplain_oleh"
-                                            name="username_komplain_oleh" />
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="komplain_tgl">Tanggal Komplain</label>
-                                        <input disabled type="text" class="form-control flatpickr-human-friendly"
-                                            id="komplain_tgl" name="komplain_tgl" />
-                                    </div>
-                                    <div id="control_sales_foto_komplain_sales" class="carousel slide">
-                                        <div class="carousel-inner" id="foto_komplain_sales">
-                                            <!-- Foto komplain belongs here -->
-                                        </div>
-                                        <a class="carousel-control-prev" href="#control_sales_foto_komplain_sales"
-                                            role="button" data-slide="prev">
-                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                            <span class="sr-only">Previous</span>
-                                        </a>
-                                        <a class="carousel-control-next" href="#control_sales_foto_komplain_sales"
-                                            role="button" data-slide="next">
-                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                            <span class="sr-only">Next</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tab-pane" id="fmks-ditangani" aria-labelledby="fmks-ditangani-tab" role="tabpanel">
-                        <!-------------------------------------- komplain ditangani  ------------------------------------->
-                        <div class="divider">
-                            <div class="divider-text">Komplain Ditangani</div>
-                        </div>
-                        <div id="komplain_ditangani_sales" class="hidden">
-                            <div class="form-group">
-                                <label for="keterangan_ditangani">Keterangan</label>
-                                <textarea disabled class="form-control" id="keterangan_ditangani"
-                                    name="keterangan_ditangani" rows="3" placeholder="Keterangan"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="username_ditangani_oleh">Komplain Diterima Oleh</label>
-                                <input disabled type="text" class="form-control" id="username_ditangani_oleh"
-                                    name="username_ditangani_oleh" />
-                            </div>
-                            <div class="form-group">
-                                <label for="ditangani_tgl">Tanggal Komplain Diterima</label>
-                                <input disabled type="text" class="form-control flatpickr-human-friendly"
-                                    id="ditangani_tgl" name="ditangani_tgl" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="tab-pane" id="fmks-selesai" aria-labelledby="fmks-selesai-tab" role="tabpanel">
-                        <div class="row">
-                            <div class="col-sm-12 col-md-6 col-lg-6">
-                                <!-- ---------------------------------------- komplain diselesaikan ---------------------------->
-                                <div id="selesaikan_komplain_div_sales" class="hidden">
-                                    <div class="divider">
-                                        <div class="divider-text">Komplain diselesaikan Produksi</div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="selesai_keterangan_produksi">Keterangan </label>
-                                        <textarea disabled class="form-control" id="selesai_keterangan_produksi"
-                                            name="selesai_keterangan_produksi" rows="3"
-                                            placeholder="Keterangan"></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="username_selesai_oleh_produksi">Diselesakan Oleh</label>
-                                        <input disabled type="text" class="form-control"
-                                            id="username_selesai_oleh_produksi" name="username_selesai_oleh_produksi" />
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="selesai_tgl_produksi">Tanggal Diselesaikan</label>
-                                        <input disabled type="text" class="form-control flatpickr-human-friendly"
-                                            id="selesai_tgl_produksi" name="selesai_tgl_produksi" />
-                                    </div>
-                                    <div id="controls_sales_foto_komplain_produksi" class="carousel slide">
-                                        <div class="carousel-inner" id="foto_komplain_produksi">
-                                            <!-- Foto komplain belongs here -->
-                                        </div>
-                                        <a class="carousel-control-prev" href="#controls_sales_foto_komplain_produksi"
-                                            role="button" data-slide="prev">
-                                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                            <span class="sr-only">Previous</span>
-                                        </a>
-                                        <a class="carousel-control-next" href="#controls_sales_foto_komplain_produksi"
-                                            role="button" data-slide="next">
-                                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                            <span class="sr-only">Next</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-12 col-md-6 col-lg-6">
-                                <!-- ---------------------------------------- komplain diselesaikan ---------------------------->
-
-                                <div class="divider">
-                                    <div class="divider-text">Selesaikan Komplain</div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="custom-control custom-switch custom-control-inline">
-                                        <input type="checkbox" value="1" class="custom-control-input"
-                                            id="is_selesai_sales" name="is_selesai_sales" />
-                                        <label class="custom-control-label" for="is_selesai_sales">Selesaikan
-                                            Komplain</label>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="selesai_keterangan_sales">Keterangan </label>
-                                    <textarea class="form-control" id="selesai_keterangan_sales"
-                                        name="selesai_keterangan_sales" rows="3" placeholder="Keterangan"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="username_selesai_oleh_sales">Diselesakan Oleh</label>
-                                    <input disabled type="text" class="form-control" id="username_selesai_oleh_sales"
-                                        name="username_selesai_oleh_sales" />
-                                </div>
-                                <div class="form-group">
-                                    <label for="selesai_tgl_sales">Tanggal Diselesaikan</label>
-                                    <input disabled type="text" class="form-control flatpickr-human-friendly"
-                                        id="selesai_tgl_sales" name="selesai_tgl_sales" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="komplain-sales-form-btn" class="btn btn-primary data-submit mr-1"
-                    onclick="save_komplain_sales()" href="javascript:void(0)">Simpan</button>
-                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<section class="toast_section">
-    <!-- Toast Container -->
-    <div aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
-        <div id="toast-container" style="position: fixed; top: 1rem; right: 1rem; z-index: 1080;">
-            <div id="myToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true"
-                data-delay="3000">
-                <div class="toast-header bg-primary text-white">
-                    <strong class="mr-auto">Terjadi Kesalahan</strong>
-                    <button type="button" class="ml-2 mb-1 close text-white" data-dismiss="toast" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="toast-body">
-                    Data berhasil disimpan!
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
 <?php if ($k == 5 || $k == 1): ?>
     <?php echo view('siteplan/legal'); ?>
@@ -845,6 +639,10 @@ foreach (user()->getRoles() as $key => $val) {
 <?php if ($k == 10 || $k == 1): ?>
     <?php echo view('siteplan/pajak'); ?>
 <?php endif; ?>
+<?php if (in_array($k, [1, 7, 3])): ?>
+    <?php echo view('siteplan/cashout_subkon'); ?>
+<?php endif; ?>
+
 
 <!-- modal detail kavling -->
 <div class="modal fade" id="modal_detail">
@@ -910,7 +708,6 @@ foreach (user()->getRoles() as $key => $val) {
                                 <div class="divider divider-left pb-0">
                                     <div class="divider-text font-weight-bold"><strong><i class="fas fa-user"></i> Detail Konsumen</strong></div>
                                 </div>
-
                             </div>
                             <div class="card-body">
                                 <ul class="list-unstyled mb-0">
@@ -1448,7 +1245,19 @@ foreach (user()->getRoles() as $key => $val) {
                                     </div>
                                     <div class="tab-pane" id="dt-cashout" aria-labelledby="dt-cashout-tab"
                                         role="tabpanel">
-                                        <div id="dt-cashout-here"></div>
+                                        <table id="dt-cashout-table" class="datatables-basic table compact">
+                                            <thead>
+                                                <tr>
+                                                    <th width="20%">Item</th>
+                                                    <th width="20%">Tanggal Pembayaran</th>
+                                                    <th width="25%">Nominal</th>
+                                                    <th width="35%">Keterangan</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            </tbody>
+                                        </table>
+
                                     </div>
                                     <div class="tab-pane" id="dt-stdetail" aria-labelledby="dt-stdetail-tab"
                                         role="tabpanel">
@@ -2964,593 +2773,7 @@ foreach (user()->getRoles() as $key => $val) {
         </div>
     </div>
 </div>
-<!-- modal detail kavling -->
-<?php
-/*<div class="modal fade" id="modal_detail">
-    <div class="modal-dialog modal-dialog-scrollable modal-xl">
-        <div class="add-new-record modal-content pt-0">
-            <div class="modal-header mb-1">
-                <h5 class="modal-title" id="exampleModalLabel">Detail Kavling</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
-            </div>
-            <div class="modal-body flex-grow-1">
-                <div class="card">
-                    <form action="" id="fm-detail">
-                        <div class="card-header">
-                            <p class="modal-title label_alamat" id="detail_kavling_header"></p>
-                        </div>
-                        <div class="card-body">
-                            <ul class="nav nav-tabs" role="tablist">
-                                <li class="nav-item">
-                                    <a class="nav-link active" id="dt-mkdt-tab" data-toggle="tab" href="#dt-mkdt" aria-controls="mkdt" role="tab" aria-selected="true">Konsumen</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="dt-stdetail-tab" data-toggle="tab" href="#dt-stdetail" aria-controls="dt-stdetail-dt" role="tab" aria-selected="false">Status</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="dt-tagihan-tab" data-toggle="tab" href="#dt-tagihan" aria-controls="tgt" role="tab" aria-selected="false">Tagihan</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="dt-legal-tab" data-toggle="tab" href="#dt-legal" aria-controls="legal" role="tab" aria-selected="false">Legal</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="dt-produksi-tab" data-toggle="tab" href="#dt-produksi" aria-controls="produksi" role="tab" aria-selected="false">Bangunan</a>
-                                </li>
-                            </ul>
-                            <div class="tab-content">
-                                <!-- tab mkdt -->
-                                <div class="tab-pane active" id="dt-mkdt" aria-labelledby="dt-mkdt-tab" role="tabpanel">
-                                    <small id="last_update_mkdt" class="text-muted"></small>
-                                    <div class="row">
-                                        <div class="col-sm-12 col-md-3 col-lg-3">
-                                            <div class="divider">
-                                                <div class="divider-text">Data Konsumen</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="nama_konsumen">No SPPTB</label>
-                                                <input type="text" class="form-control" id="dt-no_spptb" name="dt-no_spptb">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="nama_konsumen">Nama Konsumen</label>
-                                                <input type="text" class="form-control" id="dt-nama_konsumen" required name="dt-nama_konsumen">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="alamat_konsumen">Alamat Konsumen</label>
-                                                <input type="text" class="form-control" id="dt-alamat_konsumen" name="dt-alamat_konsumen">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="nik_konsumen">NIK</label>
-                                                <input type="text" class="form-control" id="dt-nik_konsumen" name="dt-nik_konsumen">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="npwp_konsumen">NPWP</label>
-                                                <input type="text" class="form-control" id="dt-npwp_konsumen" name="dt-npwp_konsumen">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="hp_konsumen">Kontak Konsumen</label>
-                                                <input type="text" class="form-control" id="dt-hp_konsumen" name="dt-hp_konsumen">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="hp_konsumen">Email Konsumen</label>
-                                                <input type="text" class="form-control" id="dt-email_konsumen" name="dt-email_konsumen">
-                                            </div>
-                                            <div class="form-group hidden">
-                                                <label for="status_kavling">Status Konsumen</label>
-                                                <select class="form-control" id="dt-status_konsumen" name="dt-status_konsumen">
-                                                    <option value="">-</option>
-                                                    <option value="Umum">Umum</option>
-                                                    <option value="TWP">TWP</option>
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="sales">Sales</label>
-                                                <input type="text" class="form-control" id="dt-sales" required name="dt-sales">
-                                            </div>
-                                        </div>
 
-                                        <div class="col-sm-12 col-md-3 col-lg-3">
-                                            <input readonly type="hidden" class="form-control num" id="id_mkdt" name="id_mkdt">
-                                            <div class="divider">
-                                                <div class="divider-text">TUNAI/KPR</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="is_kpr">Tunai/KPR</label>
-                                                <select required class="form-control" id="dt-is_kpr" name="dt-is_kpr">
-                                                    <option value="">-</option>
-                                                    <option value="0">TUNAI/CASH KERAS</option>
-                                                    <option value="2">TUNAI/CASH BERTAHAP</option>
-                                                    <option value="1">KPR</option>
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="is_subsidi">Subsidi/Non-Subsidi</label>
-                                                <select required class="form-control" id="dt-is_subsidi" name="dt-is_subsidi">
-                                                    <option value="">-</option>
-                                                    <option value="0">Non-Subsidi</option>
-                                                    <option value="1">Subsidi</option>
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="total_biaya2">ACC KPR</label>
-                                                <input readonly type="text" class="form-control num" id="dt-harga_kpr_acc" name="dt-harga_kpr_acc">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="total_biaya2">Turun KPR</label>
-                                                <input readonly type="text" class="form-control num" id="dt-harga_penambahan_um" name="dt-harga_penambahan_um">
-                                            </div>
-                                            <div class="divider">
-                                                <div class="divider-text">Penambahan Biaya</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="total_biaya2">Penambahan Biaya</label>
-                                                <input type="text" class="form-control num totalbb" id="dt-harga_penambahan" name="dt-harga_penambahan">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="total_biaya2">Keterangan Penambahan Biaya</label>
-                                                <textarea name="dt-keterangan_penambahan_biaya" id="dt-keterangan_penambahan_biaya" class="form-control dt-fm" cols="30" rows="2"></textarea>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-12 col-md-3 col-lg-3">
-                                            <div class="divider">
-                                                <div class="divider-text">Harga Jual</div>
-                                            </div>
-                                            <input type="hidden" name="dt-id_mkdt" id="dt-id_mkdt">
-                                            <!-- <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Tanggal PriceList</label>
-                                                <input type="text" class="form-control text-right dt-fm" id="dt-tgl_harga" name="dt-tgl_harga" value="" readonly />
-                                            </div> -->
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Harga Jual</label>
-                                                <input type="text" class="form-control num dt-fm" id="dt-harga_jual" name="dt-harga_jual" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="total_biaya2">Diskon Harga Jual</label>
-                                                <input type="text" class="form-control num" id="dt-harga_diskon_hargajual" name="dt-harga_diskon_hargajual">
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Harga Jual Net</label>
-                                                <input type="text" class="form-control num dt-fm" id="dt-harga_jual_net" name="dt-harga_jual_net" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">KPR</label>
-                                                <input type="text" class="form-control num dt-fm" id="dt-harga_kpr" name="dt-harga_kpr" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Uang Muka</label>
-                                                <input type="text" class="form-control num dt-fm totalbb" id="dt-harga_uang_muka" name="dt-harga_uang_muka" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="total_biaya2">Diskon Uang Muka</label>
-                                                <input type="text" class="form-control num" id="dt-harga_diskon_uang_muka" name="dt-harga_diskon_uang_muka">
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Biaya Adm</label>
-                                                <input type="text" class="form-control num dt-fm totalbb" id="dt-harga_administrasi" name="dt-harga_administrasi" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="total_biaya2">PPN</label>
-                                                <input type="text" class="form-control num totalbb" id="dt-harga_ppn" name="dt-harga_ppn">
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">BPHTB</label>
-                                                <input type="text" class="form-control num dt-fm totalbb" id="dt-harga_bphtb" name="dt-harga_bphtb" value="" readonly />
-                                            </div>
-
-
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Biaya Proses</label>
-                                                <input type="text" class="form-control num dt-fm totalbb" id="dt-harga_biaya_proses" name="dt-harga_biaya_proses" value="" readonly />
-                                            </div>
-                                            <!-- <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">ROW</label>
-                                                <input type="text" class="form-control num dt-fm" id="dt-row" name="dt-row" value="" readonly />
-                                            </div> -->
-                                        </div>
-                                        <div class="col-sm-12 col-md-3 col-lg-3">
-                                            <div class="divider">
-                                                <div class="divider-text">Harga di Price List</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Tanggal PriceList</label>
-                                                <input type="text" class="form-control text-right dt-fm" id="pl-tgl_harga" name="pl-tgl_harga" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Harga Jual</label>
-                                                <input type="text" class="form-control num dt-fm" id="pl-hargajual" name="pl-hargajual" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Harga Jual Net</label>
-                                                <input type="text" class="form-control num dt-fm" id="pl-hargajual_net" name="pl-hargajual_net" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">KPR</label>
-                                                <input type="text" class="form-control num dt-fm" id="pl-kpr" name="pl-kpr" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Uang Muka</label>
-                                                <input type="text" class="form-control num dt-fm totalbb" id="pl-uang_muka" name="pl-uang_muka" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Biaya Adm</label>
-                                                <input type="text" class="form-control num dt-fm totalbb" id="pl-biaya_adm" name="pl-biaya_adm" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="total_biaya2">PPN</label>
-                                                <input type="text" class="form-control num totalbb" id="pl-ppn" name="pl-ppn">
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">BPHTB</label>
-                                                <input type="text" class="form-control num dt-fm totalbb" id="pl-bphtb" name="pl-bphtb" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Biaya Proses</label>
-                                                <input type="text" class="form-control num pl-fm totalbb" id="pl-biaya_proses" name="pl-biaya_proses" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">ROW</label>
-                                                <input type="text" class="form-control num dt-fm" id="pl-row" name="pl-row" value="" readonly />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tab-pane" id="dt-stdetail" aria-labelledby="dt-stdetail-tab" role="tabpanel">
-                                    <div class="row">
-                                        <div class="col-sm-12 col-md-4 col-lg-4">
-                                            <div class="divider">
-                                                <div class="divider-text">Status</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="status_kavling">Status Kavling</label>
-                                                <select required class="form-control" id="dt-status_mkdt" name="dt-status_mkdt">
-                                                    <option value="">-</option>
-                                                    <option value="Booking">Booking</option>
-                                                    <option value="Akad">Akad</option>
-                                                    <option value="Batal">Batal</option>
-                                                </select>
-                                            </div>
-                                            <div id="dt-show_keterangan_batal" class="hidden">
-                                                <div class="form-group">
-                                                    <label for="keterangan_batal">Keterangan Batal</label>
-                                                    <textarea class="form-control" id="dt-keterangan_batal" name="dt-keterangan_batal" rows="3" placeholder="Keterangan"></textarea>
-                                                </div>
-
-                                            </div>
-                                            <div class="divider">
-                                                <div class="divider-text">Booking</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="booking_tgl">Tanggal Booking</label>
-                                                <input type="text" id="dt-booking_tgl" name="dt-booking_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="harga_jual">Booking Fee</label>
-                                                <input type="text" class="form-control num" id="dt-booking_fee" name="dt-booking_fee">
-                                            </div>
-                                            <div class="divider">
-                                                <div class="divider-text">Wawancara</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="custom-control custom-switch custom-control-inline">
-                                                    <input type="checkbox" class="custom-control-input" id="dt-wawancara" name="dt-wawancara" value="1" />
-                                                    <label class="custom-control-label" for="dt-wawancara">Sudah Wawancara</label>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="bank">Bank</label>
-                                                <input type="text" id="dt-bank" name="dt-bank" class="form-control" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-wawancara_tgl">Tanggal Wawancara</label>
-                                                <input type="text" id="dt-wawancara_tgl" name="dt-wawancara_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-
-
-                                        </div>
-                                        <div class="col-sm-12 col-md-4 col-lg-4">
-                                            <div class="divider">
-                                                <div class="divider-text">SP3K</div>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="ewe_keterangan">Status</label>
-                                                <input type="text" id="dt-mkdt_keterangan" name="dt-mkdt_keterangan" class="form-control" placeholder="TUNAI/AAC SP3K/LAIN-LAIN" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-harga_kpr">Pengajuan</label>
-                                                <input type="text" id="dt-harga_kpr" name="dt-harga_kpr" class="form-control num" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="bank">ACC</label>
-                                                <input type="text" id="dt-acc_harga_kpr" name="dt-acc_harga_kpr" class="form-control num" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="bank">Turun KPR</label>
-                                                <input type="text" id="dt-harga_turun_kpr" name="dt-harga_turun_kpr" class="form-control num" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-sp3k_tgl">Tanggal Terbit</label>
-                                                <input type="text" id="dt-sp3k_tgl" name="dt-sp3k_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-sp3k_tgl_exp">Tanggal Expire</label>
-                                                <input type="text" id="dt-sp3k_tgl_exp" name="dt-sp3k_tgl_exp" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <a href="" class="btn btn-primary" target=_blank id="dt-sp3k_file">Klik untuk lihat file SP3K</a>
-                                        </div>
-                                        <div class="col-sm-12 col-md-4 col-lg-4">
-                                            <div class="divider">
-                                                <div class="divider-text">Perintah Bangun</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="custom-control custom-switch custom-control-inline">
-                                                    <input type="checkbox" class="custom-control-input" id="dt-perintah_bangun" name="dt-perintah_bangun" value="1" />
-                                                    <label class="custom-control-label" for="dt-perintah_bangun">Perintah Bangun</label>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-perintah_bangun_tgl">Tanggal Perintah Bangun</label>
-                                                <input type="text" readonly="readonly" id="dt-perintah_bangun_tgl" name="dt-perintah_bangun_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-perintah_bangun_oleh">Oleh</label>
-                                                <input type="text" readonly="readonly" id="dt-perintah_bangun_oleh" name="dt-perintah_bangun_oleh" class="form-control" placeholder="-" />
-                                            </div>
-                                            <a href="" class="btn btn-primary" target=_blank id="dt-perintah_bangun_file">Klik untuk lihat file Perintah Bangun</a>
-                                            <div class="divider">
-                                                <div class="divider-text">Akad</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-rencana_akad_tgl">Rencana Akad</label>
-                                                <input type="text" id="dt-rencana_akad_tgl" name="dt-rencana_akad_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-
-                                            <div class="form-group">
-                                                <div class="custom-control custom-switch custom-control-inline">
-                                                    <input type="checkbox" class="custom-control-input" id="dt-akad" name="dt-akad" value="1" />
-                                                    <label class="custom-control-label" for="dt-akad">Akad</label>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="dt-akad_tgl">Tanggal Akad</label>
-                                                <input type="text" id="dt-akad_tgl" name="dt-akad_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-perintah_bangun_oleh">No Debitur</label>
-                                                <input type="text" readonly="readonly" id="dt-debitur_no" name="dt-debitur_no" class="form-control" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-perintah_bangun_oleh">No BAST</label>
-                                                <input type="text" readonly="readonly" id="dt-bast_no" name="dt-bast_no" class="form-control" placeholder="-" />
-                                            </div>
-                                            <a href="" class="btn btn-primary" target=_blank id="dt-bast_file">Klik untuk lihat file BAST</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- tab tagihan -->
-                                <div class="tab-pane" id="dt-tagihan" aria-labelledby="dt-tagihan-tab" role="tabpanel">
-                                    <small id="last_update_keuangan" class="text-muted"></small>
-                                    <div class="row">
-                                        <div class="col-md-6 col-sm-12 col-lg-6">
-                                            <div class="divider">
-                                                <div class="divider-text">Total Uang Muka</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-total_biaya_um">Total Uang Muka</label>
-                                                <input readonly type="text" class="form-control num" id="dt-total_biaya_um" name="dt-total_biaya_um">
-                                            </div>
-
-                                            <hr>
-                                            <div class="form-group">
-                                                <label for="dt-sudah_bayar_um">Sudah Bayar Uang Muka</label>
-                                                <input type="text" class="form-control num" readonly id="dt-sudah_bayar_um" name="dt-sudah_bayar_um">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-sisa_tagihan_um">Sisa Tagihan Uang Muka</label>
-                                                <input type="text" class="form-control num" readonly id="dt-sisa_tagihan_um" name="dt-sisa_tagihan_um">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-persentase_bayar_tagihan_um">Persentase</label>
-                                                <input type="text" class="form-control" style="text-align:right" readonly id="dt-persentase_bayar_tagihan_um" name="dt-persentase_bayar_tagihan_um">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 col-sm-12 col-lg-6">
-
-                                            <div class="divider">
-                                                <div class="divider-text">Total Biaya-biaya</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-total_biaya_bb">Total Biaya-biaya</label>
-                                                <input readonly type="text" class="form-control num" id="dt-total_biaya_bb" name="dt-total_biaya_bb">
-                                            </div>
-
-                                            <hr>
-                                            <div class="form-group">
-                                                <label for="dt-sudah_bayar_bb">Sudah Bayar Biaya-biaya</label>
-                                                <input type="text" class="form-control num" readonly id="dt-sudah_bayar_bb" name="dt-sudah_bayar_bb">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-sisa_tagihan_um">Sisa Tagihan Biaya-biaya</label>
-                                                <input type="text" class="form-control num" readonly id="dt-sisa_tagihan_bb" name="dt-sisa_tagihan_bb">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-persentase_bayar_tagihan_bb">Persentase</label>
-                                                <input type="text" class="form-control" style="text-align:right" readonly id="dt-persentase_bayar_tagihan_bb" name="dt-persentase_bayar_tagihan_bb">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tab-pane" id="dt-legal" aria-labelledby="dt-legal-tab" role="tabpanel">
-                                    <small id="last_update_legal" class="text-muted"></small>
-                                    <div class="row">
-                                        <div class="col-sm-12 col-md-4 col-lg-4">
-                                            <div class="divider">
-                                                <div class="divider-text">PBB</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-sertifikat_no_hgb">PBB</label>
-                                                <input type="text" class="form-control" id="dt-pbb" name="dt-pbb">
-                                            </div>
-                                            <h5 class="modal-title" id="exampleModalLabel">Sertifikat</h5>
-                                            <div class="form-group">
-                                                <label for="dt-sertifikat_tgl">Tanggal Sertifikat</label>
-                                                <input type="text" id="dt-sertifikat_tgl" name="dt-sertifikat_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-sertifikat_luas">Luas Tanah</label>
-                                                <input type="text" class="form-control" id="dt-sertifikat_luas" name="dt-sertifikat_luas">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-sertifikat_no_hgb">No HGB</label>
-                                                <input type="text" class="form-control" id="dt-sertifikat_no_hgb" name="dt-sertifikat_no_hgb">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-sertifikat_no_split">No Split</label>
-                                                <input type="text" class="form-control" id="dt-sertifikat_no_split" name="dt-sertifikat_no_split">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-sertifikat_masa_berlaku">Masa Berlaku</label>
-                                                <input type="text" id="dt-sertifikat_masa_berlaku" name="dt-sertifikat_masa_berlaku" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-12 col-md-4 col-lg-4">
-                                            <div class="divider">
-                                                <div class="divider-text">IMB</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-imb_tgl">Tanggal IMB</label>
-                                                <input type="text" id="dt-imb_tgl" name="dt-imb_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-imb_no_induk">No Induk</label>
-                                                <input type="text" class="form-control" id="dt-imb_no_induk" name="dt-imb_no_induk">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-imb_no_split">No Split</label>
-                                                <input type="text" class="form-control" id="dt-imb_no_split" name="dt-imb_no_split">
-                                            </div>
-                                            <div class="divider">
-                                                <div class="divider-text">BPHTB</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-bphtb_tgl">Tanggal BPHTB</label>
-                                                <input type="text" id="dt-bphtb_tgl" name="dt-bphtb_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-bphtb_masa_berlaku">Masa Berlaku</label>
-                                                <input type="text" id="dt-bphtb_masa_berlaku" name="dt-bphtb_masa_berlaku" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-bphtb_validasi">Validasi</label>
-                                                <input type="text" id="dt-bphtb_validasi" name="dt-bphtb_validasi" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-12 col-md-4 col-lg-4">
-                                            <div class="divider">
-                                                <div class="divider-text">NOP</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-nop_pbb">NOP</label>
-                                                <input type="text" class="form-control" id="dt-nop_pbb" name="dt-nop_pbb">
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="dt-pph">PPh</label>
-                                                <input type="text" class="form-control" id="dt-pph" name="dt-pph">
-                                            </div>
-                                            <!-- <div class="form-group">
-                                            <label for="legal_akad_tgl">Tanggal Akad</label>
-                                            <input type="text" id="legal_akad_tgl" name="legal_akad_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                        </div> -->
-                                            <div class="form-group">
-                                                <label for="dt-legal_keterangan">Keterangan</label>
-                                                <textarea class="form-control" id="dt-legal_keterangan" name="dt-legal_keterangan" rows="3" placeholder="Keterangan"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- tab produksi  -->
-                                <div class="tab-pane" id="dt-produksi" aria-labelledby="dt-produksi-tab" role="tabpanel">
-                                    <small id="last_update_produksi" class="text-muted"></small>
-                                    <div class="form-group">
-                                        <div class="custom-control custom-switch custom-control-inline">
-                                            <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-pondasi" name="dt-pondasi" disabled />
-                                            <label class="custom-control-label" for="dt-pondasi">Pondasi</label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <div class="custom-control custom-switch custom-control-inline">
-                                            <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-naik_dinding" name="dt-naik_dinding" disabled />
-                                            <label class="custom-control-label" for="dt-naik_dinding">Naik Dinding</label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <div class="custom-control custom-switch custom-control-inline">
-                                            <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-topping_off" name="dt-topping_off" disabled />
-                                            <label class="custom-control-label" for="dt-topping_off">Topping Off</label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <div class="custom-control custom-switch custom-control-inline">
-                                            <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-finishing" name="dt-finishing" disabled />
-                                            <label class="custom-control-label" for="dt-finishing">Finishing</label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <div class="custom-control custom-switch custom-control-inline">
-                                            <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-saluran" name="dt-saluran" disabled />
-                                            <label class="custom-control-label" for="dt-saluran">Saluran</label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <div class="custom-control custom-switch custom-control-inline">
-                                            <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-jalan" name="dt-jalan" disabled />
-                                            <label class="custom-control-label" for="dt-jalan">Jalan</label>
-                                        </div>
-                                    </div>
-                                    <hr>
-                                    <div class="af">
-                                        <div class="form-group">
-                                            <div class="custom-control custom-switch custom-control-inline">
-                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-slo" name="dt-slo" disabled />
-                                                <label class="custom-control-label" for="dt-slo">SLO</label>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <div class="custom-control custom-switch custom-control-inline">
-                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-bp" name="dt-bp" disabled />
-                                                <label class="custom-control-label" for="dt-bp">BP</label>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <div class="custom-control custom-switch custom-control-inline">
-                                                <input type="checkbox" value="1" class="custom-control-input cbp" id="dt-lpa" name="dt-lpa" disabled />
-                                                <label class="custom-control-label" for="dt-lpa">LPA</label>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="dt-progres_bangunan">Progres Bangunan</label>
-                                        <input type="range" class="form-control-range" disabled value="0" id="dt-progres_bangunan" name="dt-progres_bangunan" disabled>
-                                        <span id="dt-t_progres_bangunan"></span>%
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="dt-produksi_keterangan">Keterangan</label>
-                                        <textarea class="form-control" id="dt-produksi_keterangan" name="dt-produksi_keterangan" rows="3" placeholder="Keterangan"></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="modal-footer">
-            </div>
-        </div>
-    </div>
-</div>*/
-?>
 
 <!-- END: Content-->
 <div class="modal fade text-left" id="modal-batal" tabindex="-1" role="dialog" aria-labelledby="modal-batal"
@@ -3828,6 +3051,7 @@ foreach (user()->getRoles() as $key => $val) {
                                 <th>No</th>
                                 <th>Konsumen</th>
                                 <th>Tagihan</th>
+                                <th></th>
                             </tr>
 
                         </thead>
@@ -3902,13 +3126,6 @@ foreach (user()->getRoles() as $key => $val) {
 <!-- <script src="<?= base_url() ?>assets/js/scripts.js"></script> -->
 <!-- END: Page Vendor JS-->
 <script>
-    function applyLoadingEffect(selector) {
-        $(selector).addClass("input-loading");
-    }
-
-    function removeLoadingEffect(selector) {
-        $(selector).removeClass("input-loading")
-    }
     let data_um = [],
         data_bb = []
 
@@ -4235,6 +3452,10 @@ foreach (user()->getRoles() as $key => $val) {
 
     function set_keterangan_warna() {
         $("#keterangan-warna-here").html(" ")
+
+        //filter
+        $("#filter-kategori option").remove()
+        $("#filter-kategori").append(`<option value="">Semua</option>`);
         let div = "",
             kv
         // console.log(filterwarna)
@@ -4253,7 +3474,8 @@ foreach (user()->getRoles() as $key => $val) {
                 });
 
                 $.each(sortedObj, function(x, y) {
-
+                    //untuk tambah option di filter
+                    $("#filter-kategori").append(`<option value="${x}">${x}</option>`);
                     kv = (x == "Def") ? "Data yang bisa diolah" : x;
 
                     div += `<div class="form-group row">
@@ -4406,16 +3628,24 @@ foreach (user()->getRoles() as $key => $val) {
 
                     if (va == 3) { //keuangan
                         if (r[p].is_lunas == 0 || r[p].is_lunas == null || r[p].is_lunas == "undefined") {
-
                             if (r[p].jatuh_tempo_tgl != null && r[p].jatuh_tempo_tgl != "0000-00-00") {
                                 if (daysBetween(today_date, r[p].jatuh_tempo_tgl) < 7)
                                     hit = set_fill2('Jatuh Tempo')
                             }
+
+                            if (r[p].is_sudah_isi_tagihan != 1) {
+                                hit = set_fill2('SPPTB Belum Lengkap')
+                            }
                         } else if (r[p].is_lunas == 1) {
                             hit = set_fill2('Lunas')
-                            if (r[p].status_mkdt == 'Akad')
-                                hit = set_fill2('Akad')
+                            if (r[p].status_mkdt == 'Akad') {
+                                if (r[p].dajam_selesai == 0)
+                                    hit = set_fill2('Dajam Belum Cair')
+                                else
+                                    hit = set_fill2('Akad')
+                            }
                         }
+
                         if (r[p].is_batal == 1)
                             hit = set_fill2("Batal")
                     } else if (va == 4) { //mkdt
@@ -4430,6 +3660,9 @@ foreach (user()->getRoles() as $key => $val) {
                                 hit = set_fill2(r[p].status_mkdt)
                         } else if (r[p].status_mkdt == "Akad") { //jika akad
                             hit = set_fill2('Akad')
+                            if (r[p].is_sudah_isi_tagihan != 1) {
+                                hit = set_fill2('SPPTB Belum Lengkap')
+                            }
                         } else if (r[p].status_mkdt == "Booking") {
                             //jika booking
                             if (r[p].booking_tgl != null && r[p].booking_tgl != "0000-00-00") {
@@ -4447,10 +3680,17 @@ foreach (user()->getRoles() as $key => $val) {
                             if (r[p].sp3k_tgl != null && r[p].sp3k_tgl != "0000-00-00") {
                                 hit = set_fill2('SP3K')
                             }
+                            if (r[p].is_sudah_isi_tagihan != 1) {
+                                hit = set_fill2('SPPTB Belum Lengkap')
+                            }
                         }
                     } else if (va == 5) { //legal
                         if (r[p].id_legal)
                             hit = set_fill2("Sudah Diisi")
+                        if (r[p].sertifikat_is_balik_nama == "Sudah") {
+                            hit = set_fill2("Sudah Balik Nama")
+                        }
+
                         // if (
                         //     r[p].sertifikat_tgl != null && r[p].sertifikat_tgl != "0000-00-00" &&
                         //     r[p].sertifikat_masa_berlaku != null && r[p].sertifikat_masa_berlaku != "0000-00-00" &&
@@ -4498,11 +3738,10 @@ foreach (user()->getRoles() as $key => $val) {
                     } else if (va == 7) { //produksi
                         // if (r[p].status_mkdt)
                         //     hit = set_fill2(r[p].status_mkdt)
-
-
                         if (r[p].status_mkdt == "Akad") {
                             hit = set_fill2("Akad " + subsidi)
-
+                            if (r[p].progres_bangunan == null)
+                                hit = set_fill2("Pembangunan") // warna merah
 
                             // if (r[p].perintah_bangun == 1)
                             //     hit = set_fill2("Perintah Bangun")
@@ -4852,11 +4091,6 @@ foreach (user()->getRoles() as $key => $val) {
         }
     })
 
-    // siteplan.on('dbltap', function(e) {
-    //     //open detail modal
-    //     lihat_detail();
-    // })
-
     //hide tooltip on tap at siteplan
     siteplan.on('tap', function() {
         group.hide();
@@ -4903,14 +4137,13 @@ foreach (user()->getRoles() as $key => $val) {
             addMode = e.evt.ctrlKey;
 
             //jika hak akses = planning dan pilihan data yang ditampilkan = planning
-            if (roleid == 1 || roleid == 4 || roleid == 6 || roleid == 7) {
+            //admin, pro
+            if ([1, 3, 4, 6, 7].includes(roleid)) {
                 if (addMode) {
                     if (sh.data.tipe != "kavling") {
                         return swal('error', 'Terjadi kesalahan', 'Multiple Selection hanya untuk data kavling ')
                     }
-                    // if (editdtt && editdtt[0].data.tipe != 'kavling') {
-                    //     return swal('error', 'Terjadi kesalahan', 'Multiple Selection hanya untuk data kavling ')
-                    // }
+
                     editdtt.push(sh)
                     drawBorderEdit(sh)
                 } else {
@@ -4977,17 +4210,6 @@ foreach (user()->getRoles() as $key => $val) {
         if (data.data) {
             if (!data.data.nama_jalan || !data.data.no_kavling)
                 return;
-            // if(roleid == 3 || roleid == 1){
-            //     console.log(data.data.sudah_bayar)
-            //     persentase = (parseInt(data.data.sudah_bayar) > 0)?parseInt(data.data.sudah_bayar)/parseInt(data.data.total_biaya)*100:0;
-            //     tooltip.text(
-            //         data.data.nama_jalan +
-            //         " No. " + data.data.no_kavling + "\n" +
-            //         data.data2.no_tipe_rumah + "\n" +
-            //         data.data2.tipe_rumah + " ( " + data.data.status_tanah + ")\n" +
-            //         "Uang Muka: " + t
-            //     );
-            // }else{
             tooltip.text(
                 data.data.nama_jalan +
                 " No. " + data.data.no_kavling + "\n" +
@@ -5018,17 +4240,6 @@ foreach (user()->getRoles() as $key => $val) {
         if (data.data) {
             if (!data.data.nama_jalan || !data.data.no_kavling)
                 return;
-            // if(roleid == 3 || roleid == 1){
-            //     console.log(data.data.sudah_bayar)
-            //     persentase = (parseInt(data.data.sudah_bayar) > 0)?parseInt(data.data.sudah_bayar)/parseInt(data.data.total_biaya)*100:0;
-            //     tooltip.text(
-            //         data.data.nama_jalan +
-            //         " No. " + data.data.no_kavling + "\n" +
-            //         data.data2.no_tipe_rumah + "\n" +
-            //         data.data2.tipe_rumah + " ( " + data.data.status_tanah + ")\n" +
-            //         "Uang Muka: " + t
-            //     );
-            // }else{
             tooltip.text(
                 data.data.nama_jalan +
                 " No. " + data.data.no_kavling + "\n" +
@@ -5297,30 +4508,11 @@ foreach (user()->getRoles() as $key => $val) {
             success: function(r) {
                 $("#loading").addClass("hidden");
 
-
-
                 csrfHash = r.token;
-                // dmkdt = r.mkdt
-                // dpl = r.pricelist
-                // dpr = r.produksi
-                // dlg = r.legal
-                // dlc = r.cashout
-                // dbprod = r.bayar_produksi
                 dr = r
 
                 loadSummary(dr)
                 loaded['sm'] = true
-
-                // loadPL(pl)
-                // loadKavling(r)
-                // loadMKDT(mkdt)
-                // loadTagihan(r)
-                // loadLegal(lg)
-                // loadProduksi(pr)
-                // loadBuktiBayarPajak(r)
-                // loadCashOut(lc)
-                // loadBayarProduksi(bprod)
-
 
                 /************************ load bayar produksi  ***************************/
 
@@ -5330,8 +4522,6 @@ foreach (user()->getRoles() as $key => $val) {
                 $("#label-hargajual").html(`
                     Harga Jual: <h2 class="text-primary mb-0"><strong>Rp. ${sh.data2.harga_akhir}</strong></h5>
                     <small class="text-muted">(${format_date(sh.data2.harga_akhir_tgl)} - ${sh.data2.harga_akhir_oleh})</small>`);
-
-
 
                 $("#modal_detail").modal('show');
             },
@@ -5374,110 +4564,12 @@ foreach (user()->getRoles() as $key => $val) {
                 console.error('Fetch error:', error);
             });
     }
-    let loaded = [];
-    let tabId
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
-        const targetId = $(e.target).attr('href'); // ex: #profile
-        tabId = targetId
-        if (targetId === '#dtt-summary' && !loaded['sm']) {
-            applyLoadingEffect(targetId)
-            setTimeout(() => {
-                loadSummary(dr)
-                loaded['sm'] = true
-                removeLoadingEffect(targetId);
-            }, 200);
-        }
-        if (targetId === '#dtt-hj' && !loaded['pl']) {
-            applyLoadingEffect(targetId)
-            setTimeout(() => {
-                loadPL(dr.pricelist);
-                loadMKDT(dr.mkdt)
-                removeLoadingEffect(targetId);
-            }, 200);
-            loaded['pl'] = true
-        }
-        if (targetId === '#dt-stdetail' && !loaded['mkdt']) {
-            applyLoadingEffect(targetId)
-            setTimeout(() => {
-                loadMKDT(dr.mkdt)
-                loadKavling(dr)
-                loaded['mkdt'] = true
-                removeLoadingEffect(targetId);
-            }, 200);
-        }
-        if (targetId === '#dt-cashout' && !loaded['co']) {
-            applyLoadingEffect(targetId)
-            setTimeout(() => {
-                loadCashOut(dr.cashout)
-                removeLoadingEffect(targetId);
-            }, 200);
-            loaded['co'] = true
-        }
-        if (targetId === '#dt-tagihan' && !loaded['tg']) {
-            applyLoadingEffect(targetId)
-            setTimeout(() => {
-                loadTagihan(dr)
-                removeLoadingEffect(targetId);
-            }, 200);
-            loaded['tg'] = true
-        }
-        if (targetId === '#dt-legal' && !loaded['lg']) {
-            applyLoadingEffect(targetId)
-            setTimeout(() => {
-                loadLegal(dr.legal)
-                removeLoadingEffect(targetId);
-            }, 200);
-            loaded['lg'] = true
-        }
-        if (targetId === '#dt-produksi' && !loaded['pr']) {
-            applyLoadingEffect(targetId)
-            setTimeout(() => {
-                loadProduksi(dr.produksi, dr.files)
-                loadBayarProduksi(dr.bayar_produksi)
-                removeLoadingEffect(targetId);
-            }, 200);
-            loaded['pr'] = true
-        }
-        if (targetId === '#dt-pajak' && !loaded['pj']) {
-            loadBuktiBayarPajak(dr)
-            loaded['pj'] = true
-        }
-        if (targetId === '#log_pembayaran' && !loaded['keu_lp']) {
-            applyLoadingEffect(targetId)
-            setTimeout(() => {
-                loadLogPembayaran(keu_lp)
-                removeLoadingEffect(targetId);
-            }, 200);
-            loaded['keu_lp'] = true
-        }
-        if (targetId === '#tagihan' && !loaded['keu_tg'] || targetId === '#bb' && !loaded['keu_tg']) {
-            applyLoadingEffect(targetId)
-            setTimeout(() => {
-                loadTableTagihan(keu_tg)
-                removeLoadingEffect(targetId);
-            }, 200);
-            loaded['keu_tg'] = true
-        }
 
-        if (targetId === '#idk_data_konsumen' || targetId === '#idk_biaya' || targetId === '#idk_tagihan') {
-            let btnN = '#add-form-btn-idk_keu';
-            let btnPr = '#prev-form-btn-idk_keu';
-            // updateButtons(btnN, btnPr)
-        }
-    });
     $('#modal_detail').on('hidden.bs.modal', function() {
         // alert()
         loaded = [];
     });
 
-    //modal keuangan
-    // $('#modal_divisi3').on('hidden.bs.modal', function() {
-    //     // alert()
-    //     load_kavling()
-    //     loaded = [];
-    //     keu_lp = []
-    //     keu_tg = []
-    // });
 
     function loadSummary(r) {
         //load data konsumen
@@ -5530,6 +4622,7 @@ foreach (user()->getRoles() as $key => $val) {
             setText("#s-perintah_bangun_tgl", "-")
         }
 
+        //keuangan
         const tg = hitungTagihan(r)
         setText("#s-persentase_bayar_tagihan_um", tg.ldp)
         setText("#s-persentase_bayar_tagihan_um_ll", tg.ldp_semua)
@@ -5581,10 +4674,23 @@ foreach (user()->getRoles() as $key => $val) {
 
         if (r.cashout) {
             let cashout = ''
-            // let nom 
-            $.each(r.cashout, function(i, v) {
-                // nom = v.nominal ? num_format(v.nominal):''
-                cashout += ` 
+
+            // FILTER UNIK DI SINI
+            const uniqueCashout = r.cashout.filter((v, index, self) =>
+                index === self.findIndex((t) => t.id_item_cashout === v.id_item_cashout)
+            );
+            if (uniqueCashout.length == 0) {
+                cashout += `<div class="info-row row no-gutters">
+                    <div class="col-12">
+                        <label class="info-label mb-0">Belum ada pembayaran</label>
+                    </div>
+                </div>`
+
+            } else {
+                // let nom 
+                $.each(uniqueCashout, function(i, v) {
+                    // nom = v.nominal ? num_format(v.nominal):''
+                    cashout += ` 
                 <div class="info-row row no-gutters">
                     <div class="col-6">
                         <label class="info-label mb-0">${v.item}</label>
@@ -5593,7 +4699,9 @@ foreach (user()->getRoles() as $key => $val) {
                         : <span class="info-value">${isSudah(v.id)} ${v.tanggal_bayar ? format_date(v.tanggal_bayar) : '-'}</span>
                     </div>
                 </div>`
-            });
+                });
+            }
+
 
             applyLoadingEffect("#s-co")
             setTimeout(() => {
@@ -5986,9 +5094,9 @@ foreach (user()->getRoles() as $key => $val) {
 
         /************************ end of produksi ***************************/
     }
-
+    /************************ load bukti bayar pajak  ***************************/
     function loadBuktiBayarPajak(r) {
-        /************************ load bukti bayar pajak  ***************************/
+
         let dv = ''
         $.each(r.file_pph, function(i, v) {
             dv += `
@@ -6027,52 +5135,19 @@ foreach (user()->getRoles() as $key => $val) {
 
     function loadCashOut(d) {
         let dv = ''
-        $("#dt-cashout-here").html("")
-        $.each(d, function(i, v) {
-            // co.push(v.id_cashout)
-
-            id_cashout = !v.id ? "n" + v.id_cashout : v.id
-            dv += `
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <strong>${v.item}</strong>
-                            </div>
-                            <div class="card-body">
-                                    <div class="row">
-                                    
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label>Tanggal Pembayaran</label>
-                                            <input type="text" class="form-control flatpickr-human-friendly "
-                                                id="" value="${format_date(v.tanggal_bayar ? v.tanggal_bayar : "")}" name="" disabled>
-                                        </div>                        
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label for="sumurbor_bayar_nominal">Nominal</label>
-                                            <input type="text" disabled class="form-control num" id=""
-                                                name="" value="${v.nominal ? v.nominal : ''}">
-                                        </div>     
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Keterangan</label>
-                                            <textarea class="form-control" id=""
-                                                name="" rows="1" disabled placeholder="Keterangan">${v.keterangan ? v.keterangan : ''}</textarea>
-                                            <small id="last_update-sumurbor_bayar" class=""></small>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                `
+        if (d.lenght == 0) {
+            $("#dt-cashout-table tbody").html(`"<tr><td colspan='4' class='text-center'>Data tidak ditemukan</td></tr>"`)
+        }
+        $.each(d, function(i, val) {
+            let row = `
+        <tr>
+            <td>${val.item}</td>
+            <td>${format_date(val.tanggal_bayar) ?? "-"}</td>
+            <td>${num_format(val.nominal) ?? "0"}</td>
+            <td>${val.keterangan ?? "-"}</td>
+        </tr>`;
+            $("#dt-cashout-table tbody").append(row);
         });
-
-        $("#dt-cashout-here").html(dv)
-        $(".num").change()
 
     }
 
@@ -6286,7 +5361,7 @@ foreach (user()->getRoles() as $key => $val) {
         if (state.data_um[$("#id_list_keu" + e).val()])
             i = $("#id_list_keu" + e).val()
 
-        // if (e == '') {
+
         state.data_um[i] = ({
             id_list_keu: i,
             id_keuangan: $("#id_keuangan").val(),
@@ -6294,15 +5369,7 @@ foreach (user()->getRoles() as $key => $val) {
             nominal: $("#nominal").val(),
             jatuh_tempo_tgl: $("#jatuh_tempo_tgl").val(),
         })
-        // } else {
-        //     state.data_bb[i] = ({
-        //         id_list_keu_bb: i,
-        //         id_keuangan_bb: $("#id_keuangan_bb").val(),
-        //         berita_acara_bb: $("#berita_acara_bb").val(),
-        //         nominal_bb: $("#nominal_bb").val(),
-        //         jatuh_tempo_tgl_bb: $("#jatuh_tempo_tgl_bb").val(),
-        //     })
-        // }
+
 
         tambah_ketagihan(e)
 
@@ -6322,28 +5389,6 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     function removeFromTable(x, y = null) {
-        // if (y == '_bb') {
-        //     if (data_bb[x].id_keuangan != '' || data_bb[x].id_keuangan != 'null') {
-        //         return Swal.fire({
-        //             //
-        //             icon: 'error',
-        //             title: "tidak dapat menghapus tagihan",
-        //             showConfirmButton: true,
-        //             // //timer: 1500
-        //         })
-        //     }
-        // } else {
-        //     if (data_um[x].id_keuangan != '' || data_um[x].id_keuangan != 'null') {
-        //         return Swal.fire({
-        //             //
-        //             icon: 'error',
-        //             title: "tidak dapat menghapus tagihan",
-        //             showConfirmButton: true,
-        //             // //timer: 1500
-        //         })
-        //     }
-        // }
-
         Swal.fire({
             title: 'Hapus Data?',
             text: "Data tidak bisa dipulihkan!",
@@ -6489,33 +5534,53 @@ foreach (user()->getRoles() as $key => $val) {
     });
 
     $("#pilih-divisi").select2()
+    $("#filter-kategori").select2()
+    $("#filter-kategori").change(function() {
+        filterKategori(this.value)
+    })
+
+    function filterKategori(kat) {
+        siteplan.find('Line').forEach(function(i, v) {
+            if (kat == "") {
+                return i.visible(true)
+            }
+            if (i.attrs.kategori == kat) {
+                i.visible(true)
+            } else {
+                i.visible(false)
+            }
+        })
+    }
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 
 <?php if ($k == 1 || $k == 3): ?>
-    <script src="<?= base_url() ?>assets/js/keuangan.js"></script>
+    <script src="<?= base_url() ?>assets/js/keuangan.js?<?= filemtime(FCPATH . 'assets/js/keuangan.js') ?>"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 4): ?>
-    <script src="<?= base_url() ?>assets/js/mkdt.js"></script>
+    <script src="<?= base_url() ?>assets/js/mkdt.js?<?= filemtime(FCPATH . 'assets/js/mkdt.js') ?>"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 5): ?>
-    <script src="<?= base_url() ?>assets/js/legal.js"></script>
+    <script src="<?= base_url() ?>assets/js/legal.js?<?= filemtime(FCPATH . 'assets/js/legal.js') ?>"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 6): ?>
-    <script src="<?= base_url() ?>assets/js/planning.js"></script>
+    <script src="<?= base_url() ?>assets/js/planning.js?<?= filemtime(FCPATH . 'assets/js/planning.js') ?>"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 7): ?>
-    <script src="<?= base_url() ?>assets/js/produksi.js"></script>
+    <script src="<?= base_url() ?>assets/js/produksi.js?<?= filemtime(FCPATH . 'assets/js/produksi.js') ?>"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 8): ?>
-    <script src="<?= base_url() ?>assets/js/sales.js"></script>
+    <script src="<?= base_url() ?>assets/js/sales.js?<?= filemtime(FCPATH . 'assets/js/sales.js') ?>"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 9): ?>
-    <script src="<?= base_url() ?>assets/js/direksi.js"></script>
+    <script src="<?= base_url() ?>assets/js/direksi.js?<?= filemtime(FCPATH . 'assets/js/direksi.js') ?>"></script>
 <?php endif; ?>
 <?php if ($k == 1 || $k == 10): ?>
-    <script src="<?= base_url() ?>assets/js/pajak.js"></script>
+    <script src="<?= base_url() ?>assets/js/pajak.js?<?= filemtime(FCPATH . 'assets/js/pajak.js') ?>"></script>
+<?php endif; ?>
+<?php if (in_array($k, [1, 7, 3])): ?>
+    <script src="<?= base_url() ?>assets/js/cashout_subkon.js?<?= filemtime(FCPATH . 'assets/js/cashout_subkon.js') ?>"></script>
 <?php endif; ?>
 
 <script>
@@ -6962,10 +6027,10 @@ foreach (user()->getRoles() as $key => $val) {
 
         $.ajax({
             type: "post",
-            url: base_url + 'keuangan/jatuhtempo/get',
+            url: base_url + 'tagihan/jatuhtempo',
             data: {
                 [csrfName]: csrfHash,
-                list_jatuhtempo
+                id_proyek: dt_proyek.id_proyek
             },
             dataType: "json",
             beforeSend: function() {
@@ -6976,26 +6041,79 @@ foreach (user()->getRoles() as $key => $val) {
                 if (r.length > 0) {
                     arr = ''
                     let n = 1
-                    r.forEach(i => {
-                        arr += `
-                        <tr>
-                            <td>${n++}</td>
-                            <td>
-                                ${i.nama_konsumen} <br> 
-                                <a target=_blank href='https://wa.me/${formatNomorHP(i.hp_konsumen)}'>${i.hp_konsumen}</a> <br>
-                                ${i.nama_jalan} No. ${i.no_kavling}<br>
-                                Tipe: ${i.tipe_rumah} 
-                            </td>
-                            `
-                        let jt = JSON.parse(i.data_jatuh_tempo)
-                        arr += '<td>'
-                        jt.forEach(j => {
-                            arr += `<b>${format_date(j.jatuh_tempo_tgl)}</b>: Rp. ${num_format(j.nominal)} (${j.berita_acara}) <br>`;
-                        })
-                        arr += '</td>'
-                    })
+                    var groupedData = {};
+
+                    $.each(r, function(i, v) {
+                        if (!groupedData[v.id_mkdt]) {
+                            // Jika id_mkdt belum ada, buat objek baru
+                            groupedData[v.id_mkdt] = {
+                                nama_konsumen: v.nama_konsumen,
+                                no_kavling: v.no_kavling,
+                                nama_cluster: v.nama_cluster,
+                                nama_jalan: v.nama_jalan,
+                                nama_proyek: v.nama_proyek,
+                                id_tipe: v.id_tipe,
+                                tagihan_list: [] // Tempat menampung banyak tagihan
+                            };
+                        }
+                        // Masukkan tagihan ke dalam list
+                        groupedData[v.id_mkdt].tagihan_list.push({
+                            berita: v.berita_acara,
+                            nominal: v.nominal,
+                            tgl: v.jatuh_tempo_tgl
+                        });
+                    });
+                    var html = "";
+                    var no = 1;
+
+                    $.each(groupedData, function(id, item) {
+                        var tagihanHtml = "";
+
+                        // Build tampilan list tagihan di dalam satu kolom
+                        $.each(item.tagihan_list, function(idx, tg) {
+                            // Format nominal ke rupiah sederhana
+                            let formattedNominal = new Intl.NumberFormat('id-ID').format(tg.nominal);
+
+                            tagihanHtml += `
+                                <div style="border-bottom: 1px solid #eee; margin-bottom: 5px; padding-bottom: 5px;">
+                                    <strong>${tg.berita}</strong>: Rp ${formattedNominal} <br>
+                                    <small class="text-muted">Tempo: ${tg.tgl}</small>
+                                </div>`;
+                        });
+                        let sh = {
+                            data: {
+                                id_mkdt: id,
+                                nama_proyek: item.nama_proyek,
+                                nama_jalan: item.nama_jalan,
+                                no_kavling: item.no_kavling
+                            },
+                            data2: {
+                                no_tipe_rumah: item.id_tipe,
+                                tipe_rumah: item.id_tipe
+                            }
+                        };
+                        let shString = JSON.stringify(sh).replace(/"/g, '&quot;');
+                        var btn = `<button class="btn btn-outline-primary btn-sm" 
+                                    onclick="if(confirm('Apakah Anda yakin ingin melakukan pembayaran?')) { $('.modal').modal('hide'); open_keuangan(${shString}, 3, 0); }">
+                                    <i class="fas fa-receipt"></i> Bayar
+                                </button>`
+
+                        html += `
+                            <tr>
+                                <td class="text-center">${no++}</td>
+                                <td>
+                                    <strong>${item.nama_konsumen}</strong><br>
+                                    <small>${item.nama_jalan} No. ${item.no_kavling}: Tipe ${item.id_tipe}</small>
+                                </td>
+                                <td>${tagihanHtml}</td>
+                                <td>${btn}</td>
+                            </tr>`;
+                    });
+
+                    // 3. Masukkan ke dalam tbody
+                    $("#list-jatuh-tempo-here").html(html);
                 }
-                $("#list-jatuh-tempo-here").html(arr)
+                // $("#list-jatuh-tempo-here").html(arr)
                 $("#modal-list-jatuh-tempo").modal();
 
             },
@@ -7227,35 +6345,14 @@ foreach (user()->getRoles() as $key => $val) {
         });
     }
 
-    function initModalListener(id) {
-        $(id).on('hide.bs.modal', function(e) {
-            // Panggil fungsi kamu di sini
-            e.preventDefault();
-
-            Swal.fire({
-                title: "Konfirmasi",
-                text: "Apakah Anda yakin ingin membatalkan dan menutup form?",
-                showDenyButton: true,
-                confirmButtonText: "Ya",
-                denyButtonText: `Tidak`,
-            }).then((result) => {
-                /* Read more about isConfirmed, isDenied below */
-                if (result.isConfirmed) {
-                    // lepas listener agar tidak loop
-                    removeModalListener(id)
-                    // tutup modal manual
-                    $(id).modal('hide');
-                    state.status.tab.isClosed = true;
-                }
-            });
 
 
-        });
-    }
+    /*************************** cashout subkon ***************************/
 
-    function removeModalListener(id) {
-        $(id).off('hide.bs.modal');
-    }
+
+
+
+    /*************************** End of cashout subkon ***************************/
 
     $(document).keydown(function(event) {
         if (event.key === 'Escape') {
@@ -7287,24 +6384,5 @@ foreach (user()->getRoles() as $key => $val) {
             $("#dt-air_komunal-input_form").addClass("hidden");
             $("#dt-air_pdam-input_form").removeClass("hidden");
         }
-    });
-
-
-    function showToast(message, type = 'primary') {
-        let toast = $('#myToast');
-
-        // Update isi pesan
-        toast.find('.toast-body').text(message);
-
-        // Update warna header
-        toast.find('.toast-header')
-            .removeClass('bg-primary bg-success bg-danger bg-warning')
-            .addClass(`bg-${type} text-white`);
-
-        toast.toast('show');
-    }
-    $('.toast').toast({
-        autohide: true,
-        delay: 3000
     });
 </script>

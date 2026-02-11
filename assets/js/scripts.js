@@ -55,7 +55,7 @@ var isLoading = false;
         // to not prevent something useful.
       }
     },
-    false
+    false,
   );
 
   getNotif();
@@ -83,6 +83,37 @@ function setBtnHref(id, target, teks = null) {
   }
   $(id).html(teks);
 }
+function showToast(message, type = "primary") {
+  const id = "toast-" + Date.now();
+  $(".toast-container").css("z-index", 1080);
+
+  const toastHtml = `
+        <div id="${id}" class="toast" role="alert" data-delay="5000" data-autohide="true">
+            <div class="toast-header bg-${type} text-white" data-bs-dismiss="toast">
+                <strong class="me-auto">Info</strong>
+            </div>
+            <div class="toast-body">
+                ${message}
+            </div>
+        </div>
+    `;
+
+  const container = $("#toast-container");
+  container.append(toastHtml);
+
+  const toastElement = $("#" + id);
+  const toast = new bootstrap.Toast(toastElement[0], {
+    delay: 5000,
+  });
+
+  toast.show();
+
+  // Hapus dari DOM setelah selesai
+  toastElement.on("hidden.bs.toast", function () {
+    $(this).remove();
+    $(".toast-container").css("z-index", 0);
+  });
+}
 
 function num_format(e) {
   if (e == null) return e;
@@ -105,7 +136,7 @@ function setLabelAlamat(
   no_kavling,
   no_tipe_rumah,
   tipe_rumah,
-  dark = false
+  dark = false,
 ) {
   let text_dark = dark ? "text-dark" : "text-light";
   return `
@@ -167,11 +198,149 @@ function format_date(e) {
     return e;
   }
 }
+function initModalListener(id) {
+  $(id).on("hide.bs.modal", function (e) {
+    // Panggil fungsi kamu di sini
+    e.preventDefault();
 
+    Swal.fire({
+      title: "Konfirmasi",
+      text: "Apakah Anda yakin ingin membatalkan dan menutup form?",
+      showDenyButton: true,
+      confirmButtonText: "Ya",
+      denyButtonText: `Tidak`,
+    }).then((result) => {
+      /* Read more about isConfirmed, isDenied below */
+      if (result.isConfirmed) {
+        // lepas listener agar tidak loop
+        removeModalListener(id);
+        // tutup modal manual
+        $(id).modal("hide");
+        state.status.tab.isClosed = true;
+        state.id_cashout_subkon = null;
+      }
+    });
+  });
+}
+function removeModalListener(id) {
+  $(id).off("hide.bs.modal");
+}
+function applyLoadingEffect(selector) {
+  $(selector).addClass("input-loading");
+}
+
+function removeLoadingEffect(selector) {
+  $(selector).removeClass("input-loading");
+}
+let loaded = [];
+let tabId;
+$('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
+  const targetId = $(e.target).attr("href"); // ex: #profile
+  tabId = targetId;
+  if (targetId === "#dtt-summary" && !loaded["sm"]) {
+    applyLoadingEffect(targetId);
+    setTimeout(() => {
+      loadSummary(dr);
+      loaded["sm"] = true;
+      removeLoadingEffect(targetId);
+    }, 200);
+  }
+  if (targetId === "#dtt-hj" && !loaded["pl"]) {
+    applyLoadingEffect(targetId);
+    setTimeout(() => {
+      loadPL(dr.pricelist);
+      loadMKDT(dr.mkdt);
+      removeLoadingEffect(targetId);
+    }, 200);
+    loaded["pl"] = true;
+  }
+  if (targetId === "#dt-stdetail" && !loaded["mkdt"]) {
+    applyLoadingEffect(targetId);
+    setTimeout(() => {
+      loadMKDT(dr.mkdt);
+      loadKavling(dr);
+      loaded["mkdt"] = true;
+      removeLoadingEffect(targetId);
+    }, 200);
+  }
+  if (targetId === "#dt-cashout" && !loaded["co"]) {
+    applyLoadingEffect(targetId);
+    setTimeout(() => {
+      loadCashOut(dr.cashout);
+      removeLoadingEffect(targetId);
+    }, 200);
+    loaded["co"] = true;
+  }
+  if (targetId === "#dt-tagihan" && !loaded["tg"]) {
+    applyLoadingEffect(targetId);
+    setTimeout(() => {
+      loadTagihan(dr);
+      removeLoadingEffect(targetId);
+    }, 200);
+    loaded["tg"] = true;
+  }
+  if (targetId === "#dt-legal" && !loaded["lg"]) {
+    applyLoadingEffect(targetId);
+    setTimeout(() => {
+      loadLegal(dr.legal);
+      removeLoadingEffect(targetId);
+    }, 200);
+    loaded["lg"] = true;
+  }
+  if (targetId === "#dt-produksi" && !loaded["pr"]) {
+    applyLoadingEffect(targetId);
+    setTimeout(() => {
+      loadProduksi(dr.produksi, dr.files);
+      loadBayarProduksi(dr.bayar_produksi);
+      removeLoadingEffect(targetId);
+    }, 200);
+    loaded["pr"] = true;
+  }
+  if (targetId === "#dt-pajak" && !loaded["pj"]) {
+    loadBuktiBayarPajak(dr);
+    loaded["pj"] = true;
+  }
+  if (targetId === "#log_pembayaran" && !loaded["keu_lp"]) {
+    applyLoadingEffect(targetId);
+    setTimeout(() => {
+      loadLogPembayaran(keu_lp);
+      removeLoadingEffect(targetId);
+    }, 200);
+    loaded["keu_lp"] = true;
+  }
+  if (
+    (targetId === "#tagihan" && !loaded["keu_tg"]) ||
+    (targetId === "#bb" && !loaded["keu_tg"])
+  ) {
+    applyLoadingEffect(targetId);
+    setTimeout(() => {
+      loadTableTagihan(keu_tg);
+      removeLoadingEffect(targetId);
+    }, 200);
+    loaded["keu_tg"] = true;
+  }
+  if (targetId === "#fm-cashout-subkon-status") {
+    applyLoadingEffect(targetId);
+    setTimeout(() => {
+      loadHistoryStatusCashoutSubkon();
+      removeLoadingEffect(targetId);
+    }, 200);
+    loaded["fm_cs_st"] = true;
+  }
+  if (
+    targetId === "#idk_data_konsumen" ||
+    targetId === "#idk_biaya" ||
+    targetId === "#idk_tagihan"
+  ) {
+    let btnN = "#add-form-btn-idk_keu";
+    let btnPr = "#prev-form-btn-idk_keu";
+    // updateButtons(btnN, btnPr)
+  }
+});
 /******************************** modified magicwand js start *********************************/
 //untuk set warna shape kavling
 function set_fill(t, a, e, d) {
-  (fill = t), (stroke = a), (strokeWidth = e), (dashed = d);
+  ((fill = t), (stroke = a), (strokeWidth = e), (dashed = d));
 }
 
 function onRadiusChange(t) {
@@ -194,17 +363,17 @@ function drawMask(t, a) {
     bytes: 4,
   };
   let d = oldMask ? oldMask.data : null;
-  (mask = MagicWand.floodFill(
+  ((mask = MagicWand.floodFill(
     e,
     Math.trunc(t),
     Math.trunc(a),
     currentThreshold,
     d,
-    !1
+    !1,
   )),
     mask && (mask = MagicWand.gaussBlurOnlyBorder(mask, blurRadius, d)),
     addMode && batchMask.push(mask),
-    drawBorder();
+    drawBorder());
 }
 
 function drawBorder(t) {
@@ -231,7 +400,7 @@ function drawBorderEdit(t) {
   // console.log(box)
   // console.log(t.points)
 
-  (tpoly = new Konva.Text({
+  ((tpoly = new Konva.Text({
     // x: t.points[0],
     // y: t.points[t.points.length - 1] + 20,
     x: box.x - 20 + box.width / 2,
@@ -247,18 +416,18 @@ function drawBorderEdit(t) {
   })),
     maskedGroup.add(poly),
     maskedGroup.add(tpoly),
-    masked.add(maskedGroup);
+    masked.add(maskedGroup));
 }
 
 function drawBorderAct(t, a, e = null) {
   let d = MagicWand.traceContours(t);
-  (d = MagicWand.simplifyContours(d, simplifyTolerant, simplifyCount)),
-    imageInfo.context.clearRect(0, 0, imageInfo.width, imageInfo.height);
+  ((d = MagicWand.simplifyContours(d, simplifyTolerant, simplifyCount)),
+    imageInfo.context.clearRect(0, 0, imageInfo.width, imageInfo.height));
   for (let o = 0; o < d.length; o++)
     if (!d[o].inner) {
       let n = d[o].points;
-      dtt.push(n[0].x), dtt.push(n[0].y);
-      for (let i = 1; i < n.length; i++) dtt.push(n[i].x), dtt.push(n[i].y);
+      (dtt.push(n[0].x), dtt.push(n[0].y));
+      for (let i = 1; i < n.length; i++) (dtt.push(n[i].x), dtt.push(n[i].y));
     }
   let l = stage.find("#sel"),
     s = l ? l.length : 0,
@@ -274,7 +443,7 @@ function drawBorderAct(t, a, e = null) {
     })).getClientRect(),
     h = r.x + r.width / 5,
     u = r.y + r.height / 3;
-  (tpoly = new Konva.Text({
+  ((tpoly = new Konva.Text({
     x: h,
     y: u,
     text: s + 1,
@@ -289,7 +458,7 @@ function drawBorderAct(t, a, e = null) {
     maskedGroup.add(poly),
     maskedGroup.add(tpoly),
     masked.add(maskedGroup),
-    null != e || 0 == s ? batchdtt.push(dtt) : (batchdtt = []);
+    null != e || 0 == s ? batchdtt.push(dtt) : (batchdtt = []));
 }
 
 function paint(t, a, e, d = null) {
@@ -323,7 +492,7 @@ function paint(t, a, e, d = null) {
       },
       id: "kav" + t,
     });
-  datal.add(o), datal.draw(), (dtt = []);
+  (datal.add(o), datal.draw(), (dtt = []));
 }
 
 // function drawLine(point) {
@@ -358,7 +527,7 @@ function getNotif() {
     beforeSend: function () {
       $("#load-more-notif").prop("disabled", true);
       $("#load-more-notif").html(
-        'Memuat <i class="fa fa-spinner fa-spin"></i>'
+        'Memuat <i class="fa fa-spinner fa-spin"></i>',
       );
       $("#notif-here").addClass("blur");
     },
@@ -480,7 +649,7 @@ function swal(
   title,
   text = null,
   showConfirmButton = false,
-  callback = null
+  callback = null,
 ) {
   Swal.fire({
     icon: icon,
@@ -502,7 +671,7 @@ function simpanBtn(
   id,
   simpan = true,
   tekss = 'Menyimpan <i class="fa fa-spinner fa-spin"></i>',
-  tekse = "Simpan"
+  tekse = "Simpan",
 ) {
   $(id).prop("disabled", simpan);
   if (simpan) {
@@ -551,7 +720,7 @@ function createInputForm(
   el = "input",
   ty = "text",
   cl = [],
-  dt = null
+  dt = null,
 ) {
   const Input = document.createElement(el);
   Input.type = ty;
@@ -651,7 +820,7 @@ function displayUploadedFiles(input, listId) {
       "input",
       "date",
       ["form-control", "flatpickr-human-friendly", "ml-1"],
-      new Date().toISOString().split("T")[0]
+      new Date().toISOString().split("T")[0],
     );
     imgContainer.appendChild(tanggalInput);
 
@@ -668,7 +837,7 @@ function displayUploadedFiles(input, listId) {
         "select",
         "select",
         ["form-control", "ml-1", "kategoriPekerjaan"],
-        list_pekerjaan
+        list_pekerjaan,
       );
       imgContainer.appendChild(keteranganInput);
 
@@ -676,7 +845,7 @@ function displayUploadedFiles(input, listId) {
         "tugasPekerjaan_" + input.name,
         "select",
         "select",
-        ["form-control", "ml-1"]
+        ["form-control", "ml-1"],
       );
       imgContainer.appendChild(keteranganInput2);
 
@@ -699,7 +868,7 @@ function displayUploadedFiles(input, listId) {
         "ket_" + input.name,
         "input",
         "text",
-        ["form-control", "ml-1"]
+        ["form-control", "ml-1"],
       );
       imgContainer.appendChild(keteranganInput);
 
@@ -718,7 +887,7 @@ function showFoto(data, imbuhan = "", del = true) {
 
   data.forEach((item) => {
     containerElement = document.getElementById(
-      `${imbuhan}list_${item.kategori}`
+      `${imbuhan}list_${item.kategori}`,
     );
     if (containerElement) {
       const imgDiv = document.createElement("div");
@@ -894,7 +1063,7 @@ $("#sertifikat_is_balik_nama, #dt-sertifikat_is_balik_nama").change(
     } else if (this.value === "Sudah") {
       $(".select-sertifikat_is_balik_nama").show();
     }
-  }
+  },
 );
 
 $("#pbb_is_balik_nama, #dt-pbb_is_balik_nama").change(function () {
@@ -950,7 +1119,71 @@ function updateTugasPekerjaan(kategori) {
     }
   }
 }
+function isNotEmpty(val) {
+  if (val === null || val === undefined) return false;
+  if (val === "") return false;
+  if (Array.isArray(val)) return val.length > 0;
+  if (typeof val === "object") return Object.keys(val).length > 0;
+  return true;
+}
+function setImgOrPlaceholder(
+  $a,
+  src,
+  placeholder,
+  width = "100%",
+  height = "150px",
+) {
+  if (!isNotEmpty(src)) {
+    $a.html("Belum Unggah File");
+    $a.prop("href", base_url + placeholder);
+  } else {
+    $a.html("Klik untuk melihat file");
+    $a.prop("href", base_url + src);
+  }
+}
+function load_dropzone(id) {
+  const input = document.getElementById(id);
+  const dropzone = input.closest(".dropzone");
+  const preview = dropzone.querySelector(".dz-preview");
+  const placeholder = dropzone.querySelector(".dz-placeholder");
 
+  preview.style.display = "none";
+  placeholder.style.display = "block";
+
+  input.addEventListener("change", function () {
+    preview.innerHTML = ""; // reset dulu
+
+    if (this.files && this.files[0]) {
+      const file = this.files[0];
+
+      // Kalau gambar → tampilkan thumbnail
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          preview.innerHTML = `
+                        <img src="${e.target.result}" 
+                             class="preview-thumb" 
+                             style="height:100%;"/>
+                        <div class="text-truncate mb-1">${file.name}</div>
+                    `;
+        };
+        reader.readAsDataURL(file);
+      }
+      // Kalau PDF → tampilkan icon + nama file
+      else if (file.type === "application/pdf") {
+        preview.innerHTML = `
+                    <div class="p-2 border rounded bg-light text-center">
+                        <i class="fa fa-file-pdf fa-3x text-danger"></i>
+                        <div class="text-truncate">${file.name}</div>
+                    </div>
+                `;
+      }
+      // toggle tampil
+      preview.style.display = "block";
+      placeholder.style.display = "none";
+    }
+  });
+}
 function createTable(cols, rows) {
   const table = document.createElement("table");
   table.style.borderCollapse = "collapse";

@@ -186,6 +186,8 @@ class TransaksiService
             'id_mkdt' => $kons['id_mkdt'],
             'id_konsumen' => null, // set setelah upsert konsumen
             'status_mkdt' => $statusMkdt,
+            'is_allin' => $input->getPost('idk-is_allin') ?? 0,
+            'harga_allin' => $this->num($input->getPost('mk-harga_allin') ?? 0),
             'id_hargajual' => $input->getPost('idk-harga_akhir') ?? null,
             'tgl_harga' => $this->num($input->getPost('mk-tgl_harga') ?? ''),
             'harga_uang_muka' => $this->num($input->getPost('mk-uang_muka') ?? ''),
@@ -208,6 +210,7 @@ class TransaksiService
             'booking_tgl' => $input->getPost('dt-booking_tgl') ?? null,
             'keuangan_saved_by' => user_id(),
             'id_kavling' => $idKavling,
+            'is_sudah_isi_tagihan' => 1,
         ];
 
         // tagihan UM
@@ -415,7 +418,7 @@ class TransaksiService
         }
 
         // --- 2) Transactional flow
-        $db = \Config\Database::connect();
+        $db = $this->db;
         $db->transException(true);
         try {
             $db->transStart();

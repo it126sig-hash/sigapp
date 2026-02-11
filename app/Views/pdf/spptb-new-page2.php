@@ -103,7 +103,7 @@
                 $pengurang = $data->harga_sbum + $data->harga_diskon_uang_muka;
                 $total = $data->harga_uang_muka + $data->harga_bphtb + $data->harga_biaya_proses + $data->harga_administrasi + $data->harga_penambahan_tanah + $data->harga_penambahan;
                 $grandTotal = $total - $pengurang;
-                ?>
+            ?>
                 <tr>
                     <td width="160" valign="top">UM </td>
                     <td width="208" valign="top"></td>
@@ -199,74 +199,8 @@
                 </tr>
             <?php else:
                 $grandTotal = $data->harga_allin;
-                ?>
-                <tr>
-                    <td width="160" valign="top">UM </td>
-                    <td width="208" valign="top"></td>
-                    <td> : Rp.</td>
-                    <td width="208" valign="top" class="button-green" align="right">
-                        <span style="margin:500pt"><?= num_format($data->harga_allin) ?></span>
-                    </td>
-                </tr>
-                <tr class="is_hidden">
-                    <td width="160" valign="top">
-                        <ul>
-                            <li>Biaya Administrasi</li>
-                        </ul>
-                    </td>
-                    <td width="208" valign="top"></td>
-                    <td> : Rp.</td>
-                    <td width="208" valign="top" class="button-green" align="right">
-                        <span style="margin:500pt">-</span>
-                    </td>
-                </tr>
-                <tr class="is_hidden">
-                    <td width="160" valign="top">
-                        <ul>
-                            <li>PPN11 %</li>
-                        </ul>
-                    </td>
-                    <td width="208" valign="top"></td>
-                    <td> : Rp.</td>
-                    <td width="208" valign="top" class="button-green" align="right">
-                        <span style="margin:500pt">-</span>
-                    </td>
-                </tr>
-                <tr class="is_hidden">
-                    <td width="160" valign="top">
-                        <ul>
-                            <li>BPHTB</li>
-                        </ul>
-                    </td>
-                    <td width="208" valign="top"></td>
-                    <td> : Rp.</td>
-                    <td width="208" valign="top" class="button-green" align="right">
-                        <span style="margin:500pt">-</span>
-                    </td>
-                </tr>
-                <tr class="is_hidden">
-                    <td width="160" valign="top">
-                        <ul>
-                            <li>Biaya Proses</li>
-                        </ul>
-                    </td>
-                    <td width="208" valign="top"></td>
-                    <td> : Rp.</td>
-                    <td width="208" valign="top" class="button-green" align="right">
-                        <span style="margin:500pt">-</span>
-                    </td>
-                </tr>
-                <tr class="is_hidden">
-                    <td width="160" valign="top">
-                        <ul>
-                            <li>Biaya lain-lain (Kavling Strategis dll)</li>
-                        </ul>
-                    </td>
-                    <td width="208" valign="top"></td>
-                    <td> : Rp.</td>
-                    <td width="208" valign="top" class="button-green" align="right">
-                        <span style="margin:500pt">-</span>
-                    </td>
+            ?>
+
                 </tr>
 
             <?php endif; ?>
@@ -276,7 +210,7 @@
     </table>
 
     <p style="margin-bottom:20px;padding-top:-10px">
-        <strong>Total yang harus dibayar: Rp. <?= num_format($grandTotal) ?>(Tidak termasuk <i>booking
+        <strong>Total yang harus dibayar: Rp. <?= num_format($grandTotal) ?>( <?= $data->booking_fee == 0 ? "Termasuk" : "Tidak termasuk" ?> <i>booking
                 fee</i>)</strong>
     </p>
     <table border="0" cellspacing="0" cellpadding="0">

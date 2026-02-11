@@ -58,7 +58,7 @@ $("#btn-add-item-alokasi").click(function () {
   }).then((result) => {
     if (result.value) {
       let selectedItem = li_keu.find(
-        (item) => item.id_keuangan_item_list === result.value
+        (item) => item.id_keuangan_item_list === result.value,
       );
       if (selectedItem) {
         // alokasi_items.push(selectedItem);
@@ -102,7 +102,7 @@ function deleteItemAlokasi(id) {
   }).then((result) => {
     if (result.isConfirmed) {
       let index = alokasi_items.findIndex(
-        (item) => item.id_keuangan_item_list == id
+        (item) => item.id_keuangan_item_list == id,
       );
       if (index !== -1) {
         alokasi_items.splice(index, 1);
@@ -353,14 +353,14 @@ function print_tagihan() {
           kons.hp_konsumen +
           ")" +
           "<br>" +
-          kons.alamat_konsumen
+          kons.alamat_konsumen,
       );
       $("#pt_detail_kavling").html(
         dt_proyek.nama_proyek +
           "<br>" +
           sh.data.nama_jalan +
           " No. " +
-          sh.data.no_kavling
+          sh.data.no_kavling,
       );
       // $("#pt_hp_konsumen").html(kons.hp_konsumen)
 
@@ -528,7 +528,7 @@ function print_inv(e) {
   var myWindow = window.open(
     base_url + "/keuangan/print_tagihan/?id=" + e,
     "_blank",
-    "top=100,left=300,width=700,height=600"
+    "top=100,left=300,width=700,height=600",
   );
   setTimeout(function () {
     myWindow.focus();
@@ -695,7 +695,7 @@ $("#mk-id").change(function () {
   if (!this.value) $(".mk-fm").val("");
 });
 $(
-  "#mk-harga_ppn, #mk-harga_penambahan, #mk-harga_penambahan_tanah, #mk-diskon"
+  "#mk-harga_ppn, #mk-harga_penambahan, #mk-harga_penambahan_tanah, #mk-diskon",
 ).on("focusin", function () {
   $(this).data("val", $(this).val());
 });
@@ -822,7 +822,7 @@ function ganti_nama() {
   if ($("#spptb_ttd_file").html() == "Tidak ada data") {
     return swal(
       "error",
-      "Kamu harus mengunggah file SPPTB yang sudah ditandatangani"
+      "Kamu harus mengunggah file SPPTB yang sudah ditandatangani",
     );
   }
   Swal.fire({
@@ -1048,7 +1048,7 @@ function ganti_nama() {
 //     sum_mktotal()
 // })
 $(
-  "#add-form-isi-tagihan, #btn-ganti_nama, #add-form-btn-idk_keu, #btn-ganti_kavling"
+  "#add-form-isi-tagihan, #btn-ganti_nama, #add-form-btn-idk_keu, #btn-ganti_kavling",
 ).click(function (e) {
   e.preventDefault();
 });
@@ -1111,7 +1111,7 @@ function save_isi_tagihan(e) {
     dataType: "json",
     beforeSend: function () {
       $("#add-form-isi-tagihan").html(
-        'Menyimpan <i class="fa fa-spinner fa-spin"></i>'
+        'Menyimpan <i class="fa fa-spinner fa-spin"></i>',
       );
       $("#add-form-isi-tagihan").addClass("disabled");
     },
@@ -1167,6 +1167,7 @@ let keu_tg, keu_lp, keu_nom_ll, keu_nom_bb, keu_sb;
 
 function open_keuangan(sh, role, id_kavling) {
   $("#tb-alokasi-dana").html("");
+  // console.log(sh);
   loaded = [];
   keu_lp = [];
   keu_tg = [];
@@ -1183,7 +1184,7 @@ function open_keuangan(sh, role, id_kavling) {
   $("#fm-keuangan")[0].reset(); //reset form
   $("#label_konsumen").html(""); //reset label nama
   $(
-    "#tb-data-log_pembayaran, #tb-data-log_pembayaran_bb, #tb-data-tagihan, #tb-data-tagihan_bb"
+    "#tb-data-log_pembayaran, #tb-data-log_pembayaran_bb, #tb-data-tagihan, #tb-data-tagihan_bb",
   ).empty(); //reset table log
   $("#booking_fee_paid, #keu_booking_fee").prop("disabled", false); //set disabled false untuk input booking
 
@@ -1200,7 +1201,7 @@ function open_keuangan(sh, role, id_kavling) {
   $("#add-form-btn-keuangan").prop("disabled", false);
   $("#keterangan_refund, #nominal_refund, #tanggal_refund, #refund_paid").prop(
     "disabled",
-    0
+    0,
   );
   document.querySelector("#tanggal_refund")._flatpickr._input.disabled = false;
 
@@ -1209,10 +1210,10 @@ function open_keuangan(sh, role, id_kavling) {
     type: "post",
     data: {
       [csrfName]: csrfHash,
-      id_keuangan: sh.data.id_keuangan,
-      id_kavling: id_kavling,
+      // id_keuangan: sh.data.id_keuangan,
+      // id_kavling: id_kavling,
       id_mkdt: sh.data.id_mkdt,
-      id_hargajual: sh.data2.id_hargajual,
+      // id_hargajual: sh.data2.id_hargajual,
     },
     dataType: "json",
     beforeSend: function () {
@@ -1237,13 +1238,15 @@ function open_keuangan(sh, role, id_kavling) {
         return;
       }
 
+      let nama_proyek = dt_proyek?.nama_proyek ?? sh.data.nama_proyek;
+
       //load label alamat
       let label_alamat = setLabelAlamat(
-        dt_proyek.nama_proyek,
+        nama_proyek,
         sh.data.nama_jalan,
         sh.data.no_kavling,
         sh.data2.no_tipe_rumah,
-        sh.data2.tipe_rumah
+        sh.data2.tipe_rumah,
       );
       $(".label_alamat").html(label_alamat);
 
@@ -1276,7 +1279,7 @@ function open_keuangan(sh, role, id_kavling) {
           $("#add-form-btn-keuangan").prop("disabled", true);
           $("#hide_lunas").addClass("hidden");
           $(
-            "#keterangan_refund, #nominal_refund, #tanggal_refund, #refund_paid"
+            "#keterangan_refund, #nominal_refund, #tanggal_refund, #refund_paid",
           ).prop("disabled", 1);
           $("#fm-keuangan #refund_paid").prop("checked", 1);
 
@@ -1284,9 +1287,8 @@ function open_keuangan(sh, role, id_kavling) {
           $("#nominal_refund").val(mkdt.refund).change();
 
           setDatePicker(mkdt.refund_tgl, "#tanggal_refund");
-          document.querySelector(
-            "#tanggal_refund"
-          )._flatpickr._input.disabled = true;
+          document.querySelector("#tanggal_refund")._flatpickr._input.disabled =
+            true;
 
           disabled = "disabled";
         }
@@ -1303,7 +1305,7 @@ function open_keuangan(sh, role, id_kavling) {
         $("#bt-total_biaya_um")
           .val(
             parseFloat(mkdt.harga_uang_muka) -
-              parseFloat(mkdt.harga_diskon_uang_muka)
+              parseFloat(mkdt.harga_diskon_uang_muka),
           )
           .change();
         // $("#bt-total_biaya_um_ll")
@@ -1351,7 +1353,7 @@ function open_keuangan(sh, role, id_kavling) {
       keu_tg = tg;
       state.total_cicilan = tg.reduce(
         (sum, item) => sum + parseInt(item.nominal, 10),
-        0
+        0,
       );
 
       // /************************ load table log pembayaran ***************************/
@@ -1463,10 +1465,10 @@ function loadTableTagihan(tg) {
             <div class="col-9">
                 <h5 class="text-primary"><strong>${v.berita_acara}</strong></h5>
                 <h5 class="text-success"><strong>Rp. ${num_format(
-                  v.nominal
+                  v.nominal,
                 )}</strong></h5>
                 <small class="muted">Jatuh Tempo: ${format_date(
-                  v.jatuh_tempo_tgl
+                  v.jatuh_tempo_tgl,
                 )}</small>
             </div>
             <div class="col-3 text-right">
@@ -1488,7 +1490,7 @@ function loadTableTagihan(tg) {
             </div>
             <div class="col-8 text-right">
                 <h5 class="text-success text-right"><strong>Rp. ${num_format(
-                  tot_tg
+                  tot_tg,
                 )}</strong></h5>
             </div>
             <div class="col-4">
@@ -1496,7 +1498,7 @@ function loadTableTagihan(tg) {
             </div>
             <div class="col-8 text-right">
                 <h5 class="text-primary text-right"><strong>Rp. ${num_format(
-                  sudah_bayar.total_sudah_bayar
+                  sudah_bayar.total_sudah_bayar,
                 )}</strong></h5>
             </div>
             <div class="col-4">
@@ -1504,7 +1506,7 @@ function loadTableTagihan(tg) {
             </div>
             <div class="col-8 text-right">
                 <h5 class="text-danger text-right"><strong>Rp. ${num_format(
-                  tot_tg - sudah_bayar.total_sudah_bayar
+                  tot_tg - sudah_bayar.total_sudah_bayar,
                 )}</strong></h5>
             </div>
           </div>
@@ -1557,8 +1559,8 @@ function loadLogPembayaran(lp) {
               type="button" 
               class="btn btn-outline-primary waves-effect btn-sm" 
               onclick="printRiwayatBayar('${v.id_pembayaran}', '${
-      v.id_mkdt
-    }', '${dt_proyek["id_proyek"]}')"
+                v.id_mkdt
+              }', '${dt_proyek["id_proyek"]}')"
             >
               <i class="fa fa-print"></i>
             </button>
@@ -1614,7 +1616,7 @@ function printRiwayatBayar(ee, e2, e3) {
     var myWindow = window.open(
       base_url + `pembayaran/kuitansi/cetak?e=${ee}&e2=${e2}&e3=${e3}`,
       "_blank",
-      "top=100,left=300,width=700,height=600"
+      "top=100,left=300,width=700,height=600",
     );
     setTimeout(function () {
       myWindow.focus();
@@ -1625,7 +1627,7 @@ function printRiwayatBayar(ee, e2, e3) {
     var myWindow = window.open(
       base_url + `pembayaran/kuitansi-um/cetak?e=${ee}&e2=${e2}&e3=${e3}`,
       "_blank",
-      "top=100,left=300,width=700,height=600"
+      "top=100,left=300,width=700,height=600",
     );
     setTimeout(function () {
       myWindow.focus();
@@ -1697,48 +1699,6 @@ function removeRiwayatBayar(e) {
 }
 
 function save_keuangan(e = "") {
-  // if ($("#fm-keuangan #status_mkdt").val() == "Batal") {
-  //   // if (!palid("keterangan_refund", "", "Keterangan harus diisi"))
-  //   //     return;
-  //   // if (!palid("nominal_refund", "", "Nominal harus diisi"))
-  //   //     return;
-  // } else {
-  //   if (e == "") {
-  //     //validasi manual cuuukk
-  //     if ($("#booking_fee_paid").prop("disabled") == true) {
-  //       if ($("#fm-keuangan #is_lunas").prop("checked") == false) {
-  //         if ($("#bt-sisa_tagihan_um").val() != "0") {
-  //           if (
-  //             !palid(
-  //               "bt-berita_acara_um",
-  //               "",
-  //               "Keterangan pembayaran harus diisi"
-  //             )
-  //           )
-  //             return;
-  //           //nominal harus diisi
-  //           if (!palid("bt-bayar_tagihan_um", "0", "Nominal Tidak boleh 0"))
-  //             return;
-  //           if (
-  //             !palid("bt-bayar_tagihan_um", null, "Nominal Tidak boleh kosong")
-  //           )
-  //             return;
-  //           if (!palid("bt-bayar_tagihan_um", "", "Nominal Tidak boleh kosong"))
-  //             return;
-  //           if (
-  //             !palid(
-  //               "bt-tanggal_bayar_um",
-  //               "",
-  //               "Tanggal bayar Tidak boleh kosong"
-  //             )
-  //           )
-  //             return;
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-
   let nominal = removeComma($("#bt-bayar_tagihan_um").val());
   let tanggal = $("#bt-tanggal_bayar_um").val();
   let metode = $("#bt-for").val();
@@ -1857,8 +1817,11 @@ function save_keuangan(e = "") {
           if (r.status === true) {
             swal("success", r.message);
 
-            isi_data();
-            // $('.modal').modal('hide');
+            if (typeof isi_data === "function") {
+              isi_data(); // Panggil jika ada
+            } else {
+              $(".modal").modal("hide");
+            }
           } else {
             swal("error", r.messages);
           }
@@ -1880,6 +1843,8 @@ function badgeStatus(s) {
     ? '<span class="badge badge-success">Sudah Cair</span>'
     : '<span class="badge badge-secondary">Belum Cair</span>';
 }
+
+/* ************************ dana akad ************************ */
 function dana_akad() {
   $("#fm-dana_akad")[0].reset();
   $("#da-jaminan_here").html("");
@@ -1899,7 +1864,7 @@ function dana_akad() {
       "Belum ada data konsumen di kavling" +
         sh.data.nama_jalan +
         ", No." +
-        sh.data.no_kavling
+        sh.data.no_kavling,
     );
   }
 
@@ -1911,7 +1876,7 @@ function dana_akad() {
         sh.data.nama_jalan +
         ", No." +
         sh.data.no_kavling +
-        "Belum Akad!"
+        "Belum Akad!",
     );
   }
 
@@ -1948,59 +1913,90 @@ function dana_akad() {
       $("#da-dajam_selesai").prop("checked", parseInt(r.mkdt.dajam_selesai)); //set chceked status selesai
       changeVal("#da-kpr_acc", kpr_acc);
 
+      dv = `
+      <table class="datatables-basic table compact">
+      <thead>
+        <tr>
+          <th>Nama Jaminan</th>
+          <th>Nilai Jaminan</th>
+          <th>Sudah Cair</th>
+          <th>Tanggal Cair</th>
+          <th>Keterangan</th>
+        </tr>
+      </thead>
+      <tbody>
+      `;
       $.each(ld, function (i, v) {
+        // --- Bagian Logika (Tidak Berubah) ---
         hasil_akad += parseFloat(v.nominal ? v.nominal : 0);
         id_list_dajam = v.id_list_dajam ? v.id_list_dajam : v.id_list_dajam_ori;
         id_dajam = v.id == null ? "n" + z : v.id;
         sc = v.sudah_cair == 1 ? "checked" : "";
         dis = v.sudah_cair == 1 ? "" : "disabled";
+
+        // --- Bagian Tampilan (Diubah ke Table Row) ---
         dv += `
-                    <div class="form-group row">
-                        <div class="col-12 guarantee-item">
-                            <div class="row">
-                                <div class="col-12">
-                                    <label><h5>${v.nama_jaminan}</h5></label>
-                                </div>
-                                <div class="col-md-3">
-                                    <label>Nominal</label>
-                                    <input type="hidden" value="${id_list_dajam}" id="da-id_dajam[${id_dajam}][id_list_dajam]" name="id_dajam[${id_dajam}][id_list_dajam]" class="form-control" />
-                                    <input type="text" value="${
-                                      v.nominal ? v.nominal : 0
-                                    }" id="da-id_dajam[${id_dajam}][nominal]" name="id_dajam[${id_dajam}][nominal]" class="form-control num daf" onchange="hitung_dana_akad()"/>
-                                    <input type="hidden" ${dis} value="${
-          v.nominal_cair ? v.nominal_cair : 0
-        }" id="da-id_dajam[${id_dajam}][nominal_cair]" name="id_dajam[${id_dajam}][nominal_cair]" class="form-control num cl${id_dajam}" onchange="" />
-                                </div>
-                                <div class="col-md-2">
-                                    <label style="text-align: center; display: block;">Sudah Cair</label>
-                                    <input type="checkbox"  ${sc} value="1" id="da-id_dajam[${id_dajam}][sudah_cair]" name="id_dajam[${id_dajam}][sudah_cair]" class="form-control" onclick="is_cair(this, '${id_dajam}')"/>
-                                </div>
-                                <div class="col-md-3">
-                                    <label>Tanggal Cair</label>
-                                    <input ${dis} type="text" value="${
-          v.tgl_cair ? v.tgl_cair : ""
-        }" id="da-id_dajam[${id_dajam}][tgl_cair]" name="id_dajam[${id_dajam}][tgl_cair]" class="form-control flatpickr-human-friendly fp-dajam cl${id_dajam}" />
-                                </div>
-                                <div class="col-md-4">
-                                    <label>Catatan</label>
-                                    <textarea row="4" ${dis} class="form-control cl${id_dajam}" id="da-id_dajam[${id_dajam}][keterangan]" name="id_dajam[${id_dajam}][keterangan]">${
-          v.keterangan == null ? "" : v.keterangan
-        }</textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                 `;
+        <tr>
+            <td style="vertical-align: middle;">
+                <strong>${v.nama_jaminan}</strong>
+            </td>
+
+            <td style="vertical-align: middle;">
+                <input type="hidden" value="${id_list_dajam}" id="da-id_dajam[${id_dajam}][id_list_dajam]" name="id_dajam[${id_dajam}][id_list_dajam]" />
+                
+                <input type="text" value="${v.nominal ? v.nominal : 0}" 
+                      id="da-id_dajam[${id_dajam}][nominal]" 
+                      name="id_dajam[${id_dajam}][nominal]" 
+                      class="form-control num daf" 
+                      onchange="hitung_dana_akad()"/>
+                      
+                <input type="hidden" ${dis} value="${
+                  v.nominal_cair ? v.nominal_cair : 0
+                }" 
+                      id="da-id_dajam[${id_dajam}][nominal_cair]" 
+                      name="id_dajam[${id_dajam}][nominal_cair]" 
+                      class="form-control num cl${id_dajam}" />
+            </td>
+
+            <td style="vertical-align: middle; text-align: center;">
+                <input type="checkbox" ${sc} value="1" 
+                      id="da-id_dajam[${id_dajam}][sudah_cair]" 
+                      name="id_dajam[${id_dajam}][sudah_cair]" 
+                      onclick="is_cair(this, '${id_dajam}')" 
+                      style="transform: scale(1.5); margin-top: 5px;"/>
+            </td>
+
+            <td style="vertical-align: middle;">
+                <input ${dis} type="text" value="${
+                  v.tgl_cair ? v.tgl_cair : ""
+                }" 
+                      id="da-id_dajam[${id_dajam}][tgl_cair]" 
+                      name="id_dajam[${id_dajam}][tgl_cair]" 
+                      class="form-control flatpickr-human-friendly fp-dajam cl${id_dajam}" />
+            </td>
+
+            <td style="vertical-align: middle;">
+                <textarea rows="2" ${dis} 
+                          class="form-control cl${id_dajam}" 
+                          id="da-id_dajam[${id_dajam}][keterangan]" 
+                          name="id_dajam[${id_dajam}][keterangan]">${
+                            v.keterangan == null ? "" : v.keterangan
+                          }</textarea>
+            </td>
+        </tr>
+        `;
         z++;
       });
-      dv += ``;
+      dv += "</tbody></table>";
+      console.log(dv);
+      $("#da-jaminan_here").append(dv);
 
       if (r.list_pengajuan.length > 0) {
         const tb = document.querySelector("#tbl-riwayat tbody");
         tb.innerHTML = "";
         let i = 0;
         $.each(r.list_pengajuan, function (k, v) {
-          console.log(v);
+          // console.log(v);
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>${i + 1}</td>
@@ -2009,8 +2005,8 @@ function dana_akad() {
             <td>${v.tanggal_cair ?? ""}</td>
             <td>${(v.keterangan || "").replace(/\n/g, "<br>")}</td>
             <td data-status="${v.status_cair}">${badgeStatus(
-            v.status_cair
-          )}</td>
+              v.status_cair,
+            )}</td>
             <td>
               ${
                 v.file_path
@@ -2031,7 +2027,6 @@ function dana_akad() {
         });
       }
 
-      $("#da-jaminan_here").append(dv);
       // $("#da-cair_jaminan_here").append(dvc)
 
       flatpickr(".fp-dajam", {
@@ -2055,7 +2050,7 @@ function dana_akad() {
           sh.data2.no_tipe_rumah +
           " (" +
           sh.data2.tipe_rumah +
-          ")<br/>"
+          ")<br/>",
       );
       $("#dana_akad_modal").modal({
         backdrop: "static",
@@ -2138,7 +2133,7 @@ function getRiwayatGantinama() {
         "#btn-refresh-ganti_nama",
         true,
         'Sedang Memuat <i class="fa fa-spinner fa-spin"></i>',
-        "Muat ulang riwayat"
+        "Muat ulang riwayat",
       );
     },
     success: function (x) {
@@ -2171,7 +2166,7 @@ function getRiwayatGantinama() {
         "#btn-refresh-ganti_nama",
         false,
         'Sedang Memuat <i class="fa fa-spinner fa-spin"></i>',
-        "Muat ulang riwayat"
+        "Muat ulang riwayat",
       );
     },
     error: function (xhr, st, err) {
@@ -2179,25 +2174,250 @@ function getRiwayatGantinama() {
         "#btn-refresh-ganti_nama",
         false,
         'Sedang Memuat <i class="fa fa-spinner fa-spin"></i>',
-        "Muat ulang riwayat"
+        "Muat ulang riwayat",
       );
       return swal("error", err);
     },
   });
 }
-var co = [];
 
-function isi_cashout() {
+$(".modal").on("hidden.bs.modal", function () {
+  data_um = {};
+  data_bb = {};
+});
+
+$("#idk_riwayat-tab").click(function () {
+  getRiwayatGantinama();
+});
+
+$("#btn-saveDanaJaminan").click(function (e) {
+  e.preventDefault();
+  savePengajuanDajam();
+});
+function savePengajuanDajam() {
+  const btnSave = "#add-form-btn-idk_keu";
+  // updateButtons(btnSave, "#prev-form-btn-idk_keu");
+
+  if (parseFloat(removeComma($("#mk-total_cicilan_um").val() || 0)) > 0) {
+    if ($("#mk-total_tot").val() != $("#mk-total_cicilan_um").val()) {
+      return swal(
+        "error",
+        "Gagal Menyimpan Data",
+        "Total tagihan dan total yang harus dibayar tidak sesuai",
+      );
+    }
+  }
+
+  let dt = {};
+  dt[csrfName] = csrfHash;
+  $("form#fm-idk_keu :input").each(function () {
+    dt[this.name] = this.value;
+  });
+
+  let i = 0;
+  //cicilan um
+
+  let form = $("#fm-idk_keu")[0];
+  let fd = new FormData(form);
+  fd.append(csrfName, csrfHash);
+  let is_ganti_nama = false;
+
+  if (is_ganti_nama) {
+    fd.append("id_mkdt_old", id_mkdt_old);
+    fd.append("id_konsumen_old", id_konsumen_old);
+    fd.append("is_ganti_nama", is_ganti_nama);
+  }
+
+  appendCollectionToFormData(fd, state.data_um);
+
+  // for (var k in state.data_um) {
+  //   if (!data_um.hasOwnProperty(k)) continue;
+  //   var obj = state.data_umk[k];
+
+  //   for (var d in obj) {
+  //     if (!obj.hasOwnProperty(d)) continue;
+  //     let x = obj[d];
+
+  //     dt[d + "[" + i + "]"] = is_ganti_nama == "Ganti Nama" ? "" : x;
+  //     fd.append(`${d}[${i}]`, x);
+  //   }
+  //   i++;
+  // }
+
+  // console.log(dt)
+  // fd.forEach((value, key) => {
+  //   console.log(key, value);
+  // });
+  // return
+  //cicilan bb
+  // i = 0;
+  // for (var k in data_bb) {
+  //   if (!data_bb.hasOwnProperty(k)) continue;
+  //   var obj = data_bb[k];
+
+  //   for (var d in obj) {
+  //     if (!obj.hasOwnProperty(d)) continue;
+  //     var x = obj[d];
+  //     dt[d + "[" + i + "]"] = is_ganti_nama == "Ganti Nama" ? "" : x;
+  //     fd.append(`${d}[${i}]`, x);
+  //   }
+  //   i++;
+  // }
+
+  $.ajax({
+    url: base_url + "transaksi/simpan",
+    type: "post",
+    contentType: false,
+    processData: false,
+    data: fd,
+    dataType: "json",
+    beforeSend: function () {
+      simpanBtn(btnSave, true);
+    },
+    success: function (r) {
+      csrfHash = r.token;
+      if (r.success === true) {
+        Swal.fire({
+          //position: 'bottom-end',
+          icon: "success",
+          title: r.messages,
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(function () {
+          removeModalListener("#modal-isi_data_konsumen");
+          $(".modal").modal("hide");
+          simpanBtn(btnSave, false);
+
+          load_kavling();
+          hapus_seleksi();
+        });
+      } else {
+        Swal.fire({
+          //position: 'bottom-end',
+          icon: "error",
+          title: r.messages,
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(function () {
+          simpanBtn(btnSave, false);
+        });
+      }
+    },
+    error: function (e) {
+      Swal.fire({
+        //position: 'bottom-end',
+        icon: "error",
+        title: "Terjadi kesalahan",
+        showConfirmButton: true,
+        // timer: 1500
+      }).then(function () {
+        simpanBtn(btnSave, false);
+      });
+    },
+  });
+}
+
+/****************************** end of dana akad ****************************************/
+/****************************** end of keunagan ****************************************/
+/****************************** Cash Out ****************************************/
+var co = [];
+$("#co-untuk_pembayaran").select2({
+  placeholder: "Pilih Item Pembayaran",
+  allowClear: true,
+  ajax: {
+    url: base_url + "keuangan/cashout/listitem/ambil",
+    dataType: "json",
+    delay: 250,
+    method: "post",
+    data: function (params) {
+      return {
+        [csrfName]: csrfHash,
+        search: params.term,
+      };
+    },
+    processResults: function (r) {
+      csrfHash = r.token;
+
+      let results = [];
+      $.each(r.list_item, function (k, v) {
+        results.push({
+          id: v.id,
+          text: v.item,
+        });
+      });
+
+      return {
+        results: results,
+      };
+    },
+    cache: false,
+  },
+});
+function hapus_cashout(id) {
+  Swal.fire({
+    title: "Hapus Data?",
+    text: "",
+    type: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Ya!",
+    confirmButtonClass: "btn btn-primary",
+    cancelButtonClass: "btn btn-danger ml-1",
+    buttonsStyling: !1,
+  }).then(function (t) {
+    if (t.value) {
+      let sbtn = ".co-del-btn";
+      $.ajax({
+        url: base_url + "keuangan/cashout/delete",
+        type: "post",
+        data: {
+          [csrfName]: csrfHash,
+          id: id,
+        },
+        dataType: "json",
+        beforeSend: function () {
+          simpanBtn(sbtn, true, '<i class="fa fa-spinner fa-spin"></i>');
+        },
+        success: function (r) {
+          csrfHash = r.token;
+          if (r.success === true) {
+            swal("success", r.messages);
+            simpanBtn(sbtn, false, "", '<i class="fa fa-trash"></i>');
+            isi_cashout(r.id_kavling);
+          } else {
+            swal("error", "Terjadi kesalahan", r.messages);
+            simpanBtn(sbtn, false, "", '<i class="fa fa-trash"></i>');
+          }
+        },
+        error: function (r) {
+          Swal.fire({
+            //position: 'bottom-end',
+            icon: "error",
+            title: "terjadi kesalahan",
+            showConfirmButton: false,
+            // timer: 1500
+          });
+          simpanBtn(sbtn, false, "", '<i class="fa fa-trash"></i>');
+        },
+      });
+    }
+  });
+}
+function isi_cashout(id_kav = null) {
+  if (!editdtt[0] && !id_kav) {
+    return swal("error", "Tidak ada kavling yang dipilih");
+  }
+
   var sh = editdtt[0],
-    id_kavling = sh.id.substr(3);
+    id_kavling = id_kav ?? sh.id.substr(3);
 
   co = [];
 
   $("#fm-cashout-keu")[0].reset();
-  $("#div-cashout-here").html("");
-
+  $("#cashout-table tbody").html("");
   $.ajax({
-    url: base_url + "keuangan/getCashOut",
+    url: base_url + "keuangan/cashout/ambil",
     type: "post",
     data: {
       [csrfName]: csrfHash,
@@ -2210,102 +2430,44 @@ function isi_cashout() {
     success: function (r) {
       $("#loading").addClass("hidden");
       csrfHash = r.token;
-      let d = r.list_cashout;
-      let div = "",
-        id_cashout;
+      let d = r.riwayat_bayar;
 
-      $.each(d, function (i, v) {
-        co.push(v.id_cashout);
-
-        id_cashout = !v.id ? "n" + v.id_cashout : v.id;
-        div += `
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <strong>${v.item}</strong>
-                            </div>
-                            <div class="card-body">
-                                    <div class="row">
-                                    <div class="col-md-6">
-                                    
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label>Tanggal Pembayaran</label>
-                                            <input type="text" class="form-control fp-cashout flatpickr-human-friendly tb${
-                                              v.id_cashout
-                                            }"
-                                                id="id-cashout[${id_cashout}][tanggal_bayar]" value="${
-          v.tanggal_bayar ? v.tanggal_bayar : ""
-        }" name="id-cashout[${id_cashout}][tanggal_bayar]">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label for="sumurbor_bayar_nominal">Nominal</label>
-                                            <input type="text" class="form-control num nb${
-                                              v.id_cashout
-                                            }" id="id-cashout[${id_cashout}][nominal]"
-                                                name="id-cashout[${id_cashout}][nominal]" value="${
-          v.nominal ? v.nominal : ""
-        }">
-                                            <input type="hidden" class="form-control" id="id-cashout[${id_cashout}][id_item_cashout]"
-                                                name="id-cashout[${id_cashout}][id_item_cashout]" value="${id_cashout}">
-                                        </div>
-                                    </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Keterangan</label>
-                                            <textarea class="form-control" id="id-cashout[${id_cashout}][keterangan]"
-                                                name="id-cashout[${id_cashout}][keterangan]" rows="4" placeholder="Keterangan">${
-          v.keterangan ? v.keterangan : ""
-        }</textarea>
-                                            <small id="last_update-sumurbor_bayar" class=""></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                 `;
-      });
-
-      $("#div-cashout-here").html(div);
-
-      flatpickr(".fp-cashout", {
-        altInput: true,
-        altFormat: "F j, Y",
-        dateFormat: "Y-m-d",
-      });
-      $(".num").change();
-
-      // if (d) {
-      //     $("#sumurbor_bayar").prop("checked", d.sumurbor_bayar == 1).change();
-
-      //     changeVal("#sumurbor_bayar_nominal", d.sumurbor_bayar_nominal);
-      //     changeVal("#sumurbor_bayar_keterangan", d.sumurbor_bayar_keterangan);
-      //     setDatePicker(d.sumurbor_bayar_tanggal, '#sumurbor_bayar_tanggal')
-
-      //     $("#last_update-sumurbor_bayar").html(
-      //         `Diubah pada: ${d.sumurbor_bayar_updated ? format_datetime(d.sumurbor_bayar_updated):'-'},
-      //         oleh: ${d.sumurbor_bayar_oleh_u ? d.sumurbor_bayar_oleh_u:'-'}`
-      //     )
-      // }
+      if (d.length == 0) {
+        $("#cashout-table tbody").html(
+          "<tr><td colspan='5' class='text-center'>Data tidak ditemukan</td></tr>",
+        );
+      } else {
+        $.each(d, function (index, val) {
+          let btn = `<button type="button" class="btn btn-danger btn-sm co-del-btn" onclick="hapus_cashout(${val.id})"><i class="fa fa-trash"></i></button>`;
+          let row = `
+        <tr>
+            <td>${btn}</td>
+            <td>${val.item}</td>
+            <td>${format_date(val.tanggal_bayar) ?? "-"}</td>
+            <td>${num_format(val.nominal) ?? "0"}</td>
+            <td>${val.keterangan ?? "-"}</td>
+        </tr>`;
+          $("#cashout-table tbody").append(row);
+        });
+      }
 
       $("#cashout-id_kavling").val(id_kavling);
 
-      $(".label_alamat").html(
-        dt_proyek.nama_proyek +
-          "<br/>" +
-          sh.data.nama_jalan +
-          ", No." +
-          sh.data.no_kavling +
-          "<br/>" +
-          sh.data2.no_tipe_rumah +
-          " (" +
-          sh.data2.tipe_rumah +
-          ")<br/>"
+      let nama_proyek = dt_proyek?.nama_proyek ?? sh.data.nama_proyek;
+      let label_alamat = setLabelAlamat(
+        nama_proyek,
+        sh.data.nama_jalan,
+        sh.data.no_kavling,
+        sh.data2.no_tipe_rumah,
+        sh.data2.tipe_rumah,
       );
+      $(".label_alamat").html(label_alamat);
+
+      // load label konsumen
+      $("#fm-co-la bel_konsumen").html(r.konsumen.nama_konsumen);
+      $("#fm-co-label_tgl").html(format_date(r.konsumen.booking_tgl));
+      $("#fm-co-label_bookingfee").html(num_format(r.konsumen.harga_jual));
+      initModalListener("#modal-cashout-keu");
       $("#modal-cashout-keu").modal({
         backdrop: "static",
         keyboard: false,
@@ -2325,68 +2487,66 @@ function isi_cashout() {
 }
 
 function save_cashout() {
-  $.each(co, function (i, v) {
-    if ($(".tb" + v)[0].value != "") {
-      if ($(".nb" + v)[0].value == "") {
-        $(".nb").addClass("is-invalid");
-        return swal("error", "Nominal pembayaran harus diisi");
-      } else {
-        $(".nb").removeClass("is-invalid");
-      }
-    }
-    if ($(".nb" + v)[0].value != "") {
-      if ($(".tb" + v)[0].value == "") {
-        $(".tb").addClass("is-invalid");
-        return swal("error", "Tanggal pembayaran harus diisi");
-      } else {
-        $(".tb").removeClass("is-invalid");
-      }
-    }
-  });
+  if ($("#co-untuk_pembayaran").val() == null) {
+    return swal("error", "Item pembayaran harus diisi");
+  }
+  if ($("#co-tanggal_bayar").val() == "") {
+    return swal("error", "Tanggal pembayaran harus diisi");
+  }
+  if ($("#co-nominal").val() == "" || $("#co-nominal").val() <= 0) {
+    return swal("error", "Nominal pembayaran harus diisi");
+  }
 
-  let sbtn = "#add-form-btn-cashout";
-  $.ajax({
-    url: base_url + "keuangan/saveCashOut",
-    type: "post",
-    data: $("#fm-cashout-keu").serialize() + "&" + csrfName + "=" + csrfHash,
-    dataType: "json",
-    beforeSend: function () {
-      simpanBtn(sbtn, true);
-    },
-    success: function (r) {
-      csrfHash = r.token;
-      if (r.success === true) {
-        swal("success", r.messages);
-        $(".modal").modal("hide");
-        simpanBtn(sbtn, false);
-      } else {
-        swal("error", "Terjadi kesalahan", r.messages);
-        simpanBtn(sbtn, false);
-      }
-      load_kavling();
-      hapus_seleksi();
-    },
-    error: function (r) {
-      Swal.fire({
-        //position: 'bottom-end',
-        icon: "error",
-        title: "terjadi kesalahan",
-        showConfirmButton: false,
-        // timer: 1500
+  Swal.fire({
+    title: "Simpan Data?",
+    text: "",
+    type: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Ya!",
+    confirmButtonClass: "btn btn-primary",
+    cancelButtonClass: "btn btn-danger ml-1",
+    buttonsStyling: !1,
+  }).then(function (t) {
+    if (t.value) {
+      let sbtn = "#add-form-btn-cashout";
+      $.ajax({
+        url: base_url + "keuangan/cashout/save",
+        type: "post",
+        data:
+          $("#fm-cashout-keu").serialize() + "&" + csrfName + "=" + csrfHash,
+        dataType: "json",
+        beforeSend: function () {
+          simpanBtn(sbtn, true);
+        },
+        success: function (r) {
+          csrfHash = r.token;
+          if (r.success === true) {
+            swal("success", r.messages);
+            simpanBtn(sbtn, false);
+            isi_cashout(r.id_kavling);
+          } else {
+            swal("error", "Terjadi kesalahan", r.messages);
+            simpanBtn(sbtn, false);
+          }
+        },
+        error: function (r) {
+          Swal.fire({
+            //position: 'bottom-end',
+            icon: "error",
+            title: "terjadi kesalahan",
+            showConfirmButton: false,
+            // timer: 1500
+          });
+          simpanBtn(sbtn, false);
+        },
       });
-      simpanBtn(sbtn, false);
-    },
+    }
   });
 }
-$(".modal").on("hidden.bs.modal", function () {
-  data_um = {};
-  data_bb = {};
-});
 
-$("#idk_riwayat-tab").click(function () {
-  getRiwayatGantinama();
-});
-/****************************** end of keunagan ****************************************/
+/****************************** End Of Cash Out ****************************************/
 
 (function () {
   function badgeStatus(s) {

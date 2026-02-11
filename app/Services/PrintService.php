@@ -157,7 +157,7 @@ class PrintService
         }
         // var_dump($status);
         // die;
-        $st = $status == "Aktif" ? "Booking" : $status;
+        $st = ucfirst($status) == "Aktif" ? "Booking" : ucfirst($status);
         $dataRumah = $this->posisiKonsumen->getBaseQuery($st);
         if ($id_proyek != null) {
             $dataRumah->where('proyek.id_proyek', $id_proyek);
@@ -206,8 +206,8 @@ class PrintService
     }
     public function exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status)
     {
-        $st = $status == "Aktif" ? "Booking" : $status;
 
+        $st = ucfirst($status) == "Aktif" ? "Booking" : ucfirst($status);
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 

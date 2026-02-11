@@ -125,7 +125,6 @@
 <!-- <script type="text/javascript" src="https://cdn.datatables.net/fixedcolumns/3.2.1/js/dataTables.fixedColumns.min.js"></script> -->
 <!-- <script src="https://adminlte.io/themes/v3/plugins/jquery-validation/additional-methods.min.js"></script> -->
 <script>
-
   $(function() {
     var table = $('#data_table').DataTable({
       scrollY: "50vh",
@@ -142,7 +141,7 @@
       // "autoWidth": false,
       // "responsive": true,
       ajax: {
-        url: base_url + '/keuangan/getRiwayatBayar',
+        url: base_url + '/tagihan/riwayat-bayar/ambil',
         type: "POST",
         dataType: "json",
         data: {
@@ -302,7 +301,7 @@
     $(".select2-selection__arrow").removeClass("select2-selection__arrow")
 
   });
- 
+
   $('thead > tr> th:nth-child(1)').css({
     'min-width': '50px',
     'max-width': '50px'
@@ -327,5 +326,4 @@
     'min-width': '125px',
     'max-width': '125px'
   });
- 
 </script>

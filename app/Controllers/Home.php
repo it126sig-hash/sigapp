@@ -54,12 +54,11 @@ class Home extends BaseController
             ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
             ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
             ->where("proyek.id_proyek", $id_proyek);
-        
-      
+
+
 
         // Execute and return the query result
         return $builder->get()->getRow();
-    
     }
 
     function getDashboard()
@@ -108,7 +107,6 @@ class Home extends BaseController
                 'pembangunan_telat' => $q->jumlah_bangunan_telat,
                 // 'perintah_bangun' => $q->jumlah_perintah_bangun,
             ];
-            
         }
 
         // get aktivitas dashboard
@@ -118,7 +116,7 @@ class Home extends BaseController
 
         if ($this->request->getVar('aktivitas')) {
             $r['cbooking'] = $this->getBookingAkad('booking_tgl',  $id_proyek, $tahun);
-            $r['cakad'] = $this->getBookingAkad('akad_tgl', $id_proyek,  $tahun );
+            $r['cakad'] = $this->getBookingAkad('akad_tgl', $id_proyek,  $tahun);
         }
 
         //get chart dashboard
@@ -129,25 +127,25 @@ class Home extends BaseController
     {
         if (!$thn)
             return;
-        if($bln){
+        if ($bln) {
             return $this->db->table('mkdt')
-            ->select("
+                ->select("
                 YEAR($field) AS tahun, 
                 MONTH($field) AS bulan,
                 day(booking_tgl) as hari,
                 COUNT($field) AS jumlah
             ")
-            ->join('kavling', 'kavling.id_kavling = mkdt.id_kavling')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+                ->join('kavling', 'kavling.id_kavling = mkdt.id_kavling')
+                ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+                ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+                ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
 
-            ->where("proyek.id_proyek", $id_proyek)
+                ->where("proyek.id_proyek", $id_proyek)
 
-            ->where("YEAR($field)", $thn)
-            ->where("MONTH($field)", $bln)
-            ->groupBy("YEAR($field), MONTH($field), day(booking_tgl)")
-            ->get()->getResult();
+                ->where("YEAR($field)", $thn)
+                ->where("MONTH($field)", $bln)
+                ->groupBy("YEAR($field), MONTH($field), day(booking_tgl)")
+                ->get()->getResult();
         }
         return $this->db->table('mkdt')
             ->select("
@@ -225,8 +223,10 @@ class Home extends BaseController
         //keunagan
         $menu[3] = '
         <div id="keuangan_menu" class="float div_menu">
-            '.$generik.'
-            
+            ' . $generik . '
+
+            <div id="bayar_sumurbor-btn" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="openCOSubkon(1)">Cash Out Subkon</div>
+
             <div id="bayar_sumurbor-btn" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_cashout()">Cash Out</div>
             <div id="bayar_tagihan-btn" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_data()">Bayar Tagihan</div>
             <div id="print_tagihan-btn" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="print_tagihan()">Print Tagihan</div>
@@ -237,7 +237,7 @@ class Home extends BaseController
         //mkdt
         $menu[4] = '
         <div id="mkdt_menu" class="float div_menu">
-            '.$generik.'
+            ' . $generik . '
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_set_harga()">Set Harga</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_data_konsumen()">Isi Data Konsumen</div>
             <div id="edit_kavling_batch" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_data()">Ubah Status Kavling</div>
@@ -249,7 +249,9 @@ class Home extends BaseController
         //produksi
         $menu[7] = '
         <div id="produksi_menu" class="float div_menu">
-            '.$generik.'
+            ' . $generik . '
+            <div id="btn-cashout_subkon-pr" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="openCOSubkon()">Cash Out Subkon</div>
+
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float btn-prod" onclick="isi_data()">Isi/ubah Data</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float btn-prod" onclick="isi_pembayaran()">Pembayaran</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float btn-prod" onclick="buat_slf()">SLF</div>
@@ -260,7 +262,7 @@ class Home extends BaseController
         //sales
         $menu[8] = '
         <div id="sales_menu" class="float div_menu">
-           '.$generik.'
+           ' . $generik . '
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_checklist_sales()">Checklist</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_serah_terima()">Serah Terima</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_komplain_sales()">Komplain</div>
@@ -270,14 +272,14 @@ class Home extends BaseController
         // Direksi
         $menu[9] = '
         <div id="direksi_menu" class="float div_menu">
-            '.$generik.'
+            ' . $generik . '
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_diskresi()">Diskresi HargaJual</div>
         </div>';
 
         //other
         $menu[0] = '
         <div id="others_menu" class="float div_menu">
-            '.$generik.'
+            ' . $generik . '
             <div id="edit_kavling_batch" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_data()">Isi/ubah Data</div>
 
         </div>';
@@ -306,11 +308,12 @@ class Home extends BaseController
         // $data['token'] = csrf_hash();
         return $this->response->setJSON($data);
     }
-    function getHak($id_user, $nama_hak = null){
+    function getHak($id_user, $nama_hak = null)
+    {
         $q = $this->db->table('hak_akses')
             ->like('id_users', $id_user);
-        if($nama_hak)
-            $q->like('nama_hak', ";".$nama_hak.";" );
+        if ($nama_hak)
+            $q->like('nama_hak', ";" . $nama_hak . ";");
         return $q->get()->getResult();
     }
 }
