@@ -83,52 +83,57 @@ class Siteplan extends BaseController
 
         return view('template', $data);
     }
-    function view_siteplan($a = null)
+    public function view_siteplan($a = null)
     {
-        $data['content'] = 'siteplan/master';
-        $b = $this->db->table('profile_perusahaan');
+        $idProyek = $this->normalizeIdProyek($a);
+        if ($idProyek === null) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
 
-        $data['data']['profile'] = $b->get()->getRow();
+        session()->set(['id_proyek' => $idProyek]);
 
-        session()->set([
-            'id_proyek' => $a
-        ]);
+        $data = [
+            'content' => 'siteplan/master',
+            'data' => [
+                'profile' => $this->getProfilePerusahaan(),
+                'pph'     => $this->db->table('pph')->get()->getResult(),
+                'ppn'     => $this->db->table('ppn')->get()->getResult(),
+            ],
+        ];
 
-        $data['data']['pph'] = $this->db->table('pph')->get()->getResult();
-        $data['data']['ppn'] = $this->db->table('ppn')->get()->getResult();
-
-        //ambil data proyek 
-        $data['data']['proyek'] = $this->proyekModel
-            ->select("*")
-            ->where("id_proyek", session('id_proyek'))
-            ->first();
+        // ambil data proyek
+        $data['data']['proyek'] = $this->getProyekOr404($idProyek);
 
         // var_dump($data);die();
 
         if (in_groups(['9', '10', '4', '1'])) {
+            $idProyek = (int) $data['data']['proyek']->id_proyek;
             // get data cluster
             $data['data']['cluster'] = $this->clusterModel
                 ->select('id_cluster, nama_cluster')
-                ->where('cluster.id_proyek', $data['data']['proyek']->id_proyek)
+                ->where('cluster.id_proyek', $idProyek)
                 ->findAll();
 
             //get data jalan
             $data['data']['jalan'] = $this->jalanModel
                 ->select('id_jalan, nama_jalan, nama_cluster')
                 ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
-                ->where('cluster.id_proyek', $data['data']['proyek']->id_proyek)
+                ->where('cluster.id_proyek', $idProyek)
                 ->findAll();
 
             //get data tipe
             $data['data']['tipe'] = $this->tipeModel
                 ->select('id_tipe, tipe_rumah, harga, no_tipe_rumah')
-                ->where('id_proyek', $data['data']['proyek']->id_proyek)
+                ->where('id_proyek', $idProyek)
                 ->findAll();
         }
 
         $data['data']['li_keu'] = json_encode($this->keuRepo->getLIKeu());
 
-        $has_akses['proyek'] = false;
+        $has_akses = [
+            'proyek' => false,
+            'legal'  => false,
+        ];
 
         if (in_groups(['1', '7', '8'])) {
             //get data ceklist
@@ -146,26 +151,23 @@ class Siteplan extends BaseController
                 ->where('checklist_subitem.is_active = 1')
                 ->orderBy('checklist_item.id_group', 'asc')
                 ->orderBy('checklist_item.id_item', 'asc')
-                ->find();
+                ->findAll();
 
             //mendapatkan hak akses pada proyek
-            $proyek = $this->proyekModel->find($a);
             $user_id = user_id();
-            $has_akses['proyek'] = in_array($user_id, explode(',', $proyek->id_users)) ? true : false;
+            $has_akses['proyek'] = $this->userHasProjectAccess($data['data']['proyek'], (int) $user_id);
 
             //cek update tanggal pembangunan
-            $tanggal_pembangunan_akses = $this->hak_akses->getHak(user_id());
+            $tanggal_pembangunan_akses = $this->hak_akses->getHak((int) $user_id);
             $has_update_access = array_values(array_filter($tanggal_pembangunan_akses, function ($item) {
                 return $item->nama_akses == 'update_tanggal_pembangunan';
             }));
 
-            if (count($has_update_access) > 0)
-                $has_akses['update_tanggal_pembangunan'] = true;
+            $has_akses['update_tanggal_pembangunan'] = count($has_update_access) > 0;
         } else if (in_groups(['5'])) {
             //mendapatkan hak akses pada proyek
-            $proyek = $this->proyekModel->find($a);
             $user_id = user_id();
-            $has_akses['legal'] = in_array($user_id, explode(',', $proyek->id_users)) ? true : false;
+            $has_akses['legal'] = $this->userHasProjectAccess($data['data']['proyek'], (int) $user_id);
         }
 
         $data['data']['has_akses'] = $has_akses;
@@ -173,21 +175,80 @@ class Siteplan extends BaseController
         // var_dump($has_akses);die();
 
 
-        //get config color shape
-        $conf = $this->db->table('config_shape')->get()->getResult();
-        foreach ($conf as $conf) {
-            $c[$conf->config_name] = [
-                'fill' => $conf->fill,
-                'stroke' => $conf->stroke,
-                'strokeWidth' => $conf->strokeWidth,
-                'dashed' => $conf->dashed,
-                'keterangan' => $conf->keterangan
-            ];
-        }
-        $data['data']['conf'] = json_encode($c);
+        // get config color shape
+        $data['data']['conf'] = json_encode($this->getConfigShapeMap());
 
         // var_dump($data['data']['conf']);die();
         return view('template', $data);
+    }
+
+    private function normalizeIdProyek($raw): ?int
+    {
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        if (is_int($raw)) {
+            return $raw > 0 ? $raw : null;
+        }
+
+        if (!is_string($raw) && !is_numeric($raw)) {
+            return null;
+        }
+
+        $id = (int) $raw;
+        return $id > 0 ? $id : null;
+    }
+
+    private function getProfilePerusahaan()
+    {
+        return $this->db->table('profile_perusahaan')->get()->getRow();
+    }
+
+    private function getProyekOr404(int $idProyek)
+    {
+        $proyek = $this->proyekModel
+            ->select('*')
+            ->where('id_proyek', $idProyek)
+            ->first();
+
+        if (!$proyek) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
+
+        return $proyek;
+    }
+
+    private function userHasProjectAccess($proyek, int $userId): bool
+    {
+        if (!$proyek || !isset($proyek->id_users) || $proyek->id_users === null || $proyek->id_users === '') {
+            return false;
+        }
+
+        $allowedUserIds = array_filter(array_map('trim', explode(',', (string) $proyek->id_users)));
+        return in_array((string) $userId, $allowedUserIds, true);
+    }
+
+    private function getConfigShapeMap(): array
+    {
+        $rows = $this->db->table('config_shape')->get()->getResult();
+        $map = [];
+
+        foreach ($rows as $row) {
+            if (!isset($row->config_name)) {
+                continue;
+            }
+
+            $map[$row->config_name] = [
+                'fill'        => $row->fill ?? null,
+                'stroke'      => $row->stroke ?? null,
+                'strokeWidth' => $row->strokeWidth ?? null,
+                'dashed'      => $row->dashed ?? null,
+                'keterangan'  => $row->keterangan ?? null,
+            ];
+        }
+
+        return $map;
     }
     function add_kavling()
     {
