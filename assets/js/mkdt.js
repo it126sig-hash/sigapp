@@ -52,6 +52,7 @@ $("#id_bank").select2({
 // tab button
 
 const containerIsiKonsumen = $("#tab-isi-konsumen");
+let latestIsiDataKonsumenRequestId = 0;
 
 // Array urutan tab
 // const tabOrder = ["#idk_data_konsumen", "#idk_biaya", "#idk_tagihan"];
@@ -236,7 +237,7 @@ function formatDateSafe(d) {
 // ====== Data layer ======
 function getTransaksiDetail({ id_mkdt, id_kavling, id_hargajual }) {
   return $.ajax({
-    url: base_url + "transaksi/ambilsatu",
+    url: base_url + "api/transaksi/ambilsatu",
     type: "POST",
     dataType: "json",
     data: { [csrfName]: csrfHash, id_mkdt, id_kavling, id_hargajual },
@@ -303,6 +304,8 @@ function fillPriceSection(h, dk) {
     "harga_penambahan",
     "harga_penambahan_tanah",
   ];
+  console.log(h, dk);
+  setVal("#mk-diskon_uang_muka", h.diskon_uang_muka);
   mkMap.forEach((k) => setVal(`#mk-${k}`, h[k]));
 
   setDatePicker(h.tgl_harga, "#mk-tgl_harga");
@@ -359,7 +362,7 @@ function fillMkdt(v) {
   if (v.status_mkdt === "Batal") {
     disableForm(true);
     $("#idk-show_keterangan_batal, .refresh_fmmkdt_div").removeClass("hidden");
-    $("#idk-id_konsumen, #idk-id_keuangan0").val("");
+    ui.form.kons.find("#idk-id_konsumen, #idk-id_keuangan0").val("");
     ui.btn.delKons.removeClass("hidden");
   }
 
@@ -378,7 +381,7 @@ function fillMkdt(v) {
   setDate(v.booking_tgl, "#idk-booking_tgl");
   setVal("#idk-booking_fee", v.booking_fee);
 
-  setVal("#idk-id_konsumen", v.id_konsumen);
+  ui.form.kons.find("#idk-id_konsumen").val(v.id_konsumen ?? "");
 
   setVal("#st-mkdt-no_spptb", v.no_spptb);
   setVal("#idk-nama_konsumen", v.nama_konsumen);
@@ -425,6 +428,7 @@ function fillMkdt(v) {
   setVal("#mk-harga_sbum", v.harga_sbum);
   setVal("#mk-harga_penambahan", v.harga_penambahan);
   setVal("#mk-harga_penambahan_tanah", v.harga_penambahan_tanah);
+  setVal("#mk-diskon_uang_muka", v.harga_diskon_uang_muka);
   // }
 
   setVal("#idk-promo", v.promo);
@@ -498,6 +502,7 @@ function fillTagihan(tg) {
 }
 
 async function isi_data_konsumen() {
+  const requestId = ++latestIsiDataKonsumenRequestId;
   mkdtUpload();
   // VALIDASI PILIHAN
   if (!editdtt?.[0]) return swal("error", "Tidak ada kavling yang dipilih");
@@ -511,7 +516,7 @@ async function isi_data_konsumen() {
   ui.btn.delKons.addClass("hidden");
   $("#idk-show_keterangan_batal, .refresh_fmmkdt_div").addClass("hidden");
 
-  $("#idk-id_konsumen").val("");
+  ui.form.kons.find("#idk-id_konsumen").val("");
   // Siapkan konteks UI & state
   bindKavlingContext(sh);
   state.id_hargajual = sh.data2.id_hargajual;
@@ -526,6 +531,7 @@ async function isi_data_konsumen() {
         id_kavling: state.id_kavling,
         id_hargajual: state.id_hargajual,
       });
+      if (requestId !== latestIsiDataKonsumenRequestId) return;
 
       // CSRF update
       csrfHash = res.token;
@@ -534,6 +540,11 @@ async function isi_data_konsumen() {
       const h = res.hj; // pricelist
       const tg = res.tagihan;
       const dk = res.diskresi;
+
+      state.mkdt = {
+        harga_jual: res.hj,
+        diskresi: res.diskresi,
+      };
 
       // Diskresi & HJ
       fillDiskresi(dk);
@@ -614,14 +625,14 @@ function simpan_dt_konsumen_keuangan(e) {
 
   let dt = {};
   dt[csrfName] = csrfHash;
-  $("form#fm-idk_keu :input").each(function () {
+  ui.form.kons.find(":input").each(function () {
     dt[this.name] = this.value;
   });
 
   let i = 0;
   //cicilan um
 
-  let form = $("#fm-idk_keu")[0];
+  let form = ui.form.kons[0];
   let fd = new FormData(form);
   fd.append(csrfName, csrfHash);
   let is_ganti_nama = false;
@@ -635,7 +646,7 @@ function simpan_dt_konsumen_keuangan(e) {
   appendCollectionToFormData(fd, state.data_um);
 
   $.ajax({
-    url: base_url + "transaksi/simpan",
+    url: base_url + "api/transaksi/simpan",
     type: "post",
     contentType: false,
     processData: false,
@@ -725,7 +736,7 @@ function refresh_fmmkdt($st = true) {
     $st,
   );
   $("#id_konsumen").val("");
-  $("#idk-id_konsumen").val("");
+  ui.form.kons.find("#idk-id_konsumen").val("");
   $("#id_keuangan0").val("");
 }
 
@@ -775,7 +786,7 @@ function open_mkdt(sh, role, id_kavling) {
   $("#id_mkdt").val(sh.data.id_mkdt);
 
   $.ajax({
-    url: base_url + "transaksi/status/ambilsatu",
+    url: base_url + "api/transaksi/status/ambilsatu",
     type: "post",
     data: {
       [csrfName]: csrfHash,
@@ -820,6 +831,7 @@ function open_mkdt(sh, role, id_kavling) {
             "hidden",
           );
           $("#delete_kons_div").addClass("hidden");
+          $("#delete-btn-idk_keu").addClass("hidden");
         }
 
         //autoload field ke input
@@ -1047,7 +1059,7 @@ function save_mkdt(e) {
   fd.append(csrfName, csrfHash);
 
   $.ajax({
-    url: base_url + "transaksi/status/simpan",
+    url: base_url + "api/transaksi/status/simpan",
     type: "post",
     // data: $("#fm-mkdt").serialize() + "&" + csrfName + "=" + csrfHash,
     contentType: false,
@@ -1594,20 +1606,26 @@ $("#fm-mkdt #sp3k_tgl").change(function () {
     ._flatpickr.setDate(new Date(this.value).fp_incr(88));
 });
 
+//untuk tambah konsumen baru ketika batal
 $("#refresh-btn-idk_keu").click(function () {
   $("#fm-idk_keu .num").prop("disabled", false);
-
-  $("#idk_data_baru").val(1);
-  // $("#fm-idk_keu")[0].reset();
+  $("#fm-idk_keu")[0].reset();
 
   // refresh_fmmkdt(false);
   $("#fm-idk_keu input:text, #fm-idk_keu select, #fm-idk_keu textarea").prop(
     "disabled",
     false,
   );
-  $("#fm-idk_keu #idk-id_konsumen").val("");
-
+  ui.form.kons.find("#idk-id_konsumen").val("");
+  $("#idk_data_baru").val(1);
   $("#idk-show_keterangan_batal").addClass("hidden");
+
+  if (state.mkdt.harga_jual && state.mkdt.diskresi) {
+    fillPriceSection(state.mkdt.harga_jual, state.mkdt.diskresi);
+  }
+  state.data_um = {};
+  tambah_ketagihan();
+  sum_mktotal();
 });
 
 function mkdtUpload() {
