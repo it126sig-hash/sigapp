@@ -324,6 +324,13 @@ class Tagihan extends BaseController
 
         return $datatbel;
     }
+    function getListTagihanGrouped()
+    {
+        $request   = $this->request;
+        $datatbel = $this->keuanganService->getListTagihanGrouped($request);
+
+        return $datatbel;
+    }
     ################################## end of untuk list tagihan ##########################
 
     ################################## untuk list riwayat bayar ##########################

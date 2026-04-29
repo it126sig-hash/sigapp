@@ -13,16 +13,27 @@
 <script>
   // var csrfName = '<?= csrf_token() ?>';
   // var csrfHash = '<?= csrf_hash() ?>';
+  const state = {
+    status: {
+      tab: {
+        isClosed: false
+      }
+    }
+  };
+
+  let dt_proyek = [];
+
+  document.addEventListener("DOMContentLoaded", function() {
+    var fp = flatpickr(".flatpickr-human-friendly", {
+      altInput: true,
+      altFormat: 'F j, Y',
+      dateFormat: 'Y-m-d'
+    })
+  });
+  const not_found = "images/not_found.png"
 </script>
 
-<style>
-  table,
-  tr {
-    vertical-align: middle !important;
-    text-align: center !important;
-    font-size: 10px;
-  }
-</style>
+
 <!-- /.card-header -->
 <div class="app-content content ">
   <div class="content-overlay"></div>
@@ -30,7 +41,7 @@
   <section id="basic-datatable">
     <div class="row">
       <div class="col-12">
-        <div class="card">
+        <div class="card" id="poskon-filter">
           <h2 class="card-header">
             Posisi Konsumen Aktif
           </h2>
@@ -107,6 +118,7 @@
                 <table id="data_tables" class="datatables-basic table compact table-hover table-bordered">
                   <thead>
                     <tr>
+                      <th rowspan="3" id="tb-action">AKSI</th>
                       <th rowspan="3" id="tb-NO">NO</th>
                       <th colspan="2" id="tb-KAVLING">KAVLING</th>
                       <th rowspan="3" id="tb-TYPE">TYPE</th>
@@ -119,7 +131,6 @@
                       <th colspan="4" id="tb-PRODUKSI">PRODUKSI</th>
                       <th colspan="3" id="tb-LEGAL">LEGAL</th>
                       <th id="tb-GA">GA</th>
-                      <th rowspan="3" id="tb-action"></th>
                     </tr>
 
                     <tr>
@@ -206,7 +217,115 @@
 <!-- <script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.js"></script> -->
 
+<?php
+$k = null;
+$v = null;
+$roles = user()->getRoles();
+if (!empty($roles)) {
+  foreach ($roles as $key => $val) {
+    $k = $key;
+    $v = $val;
+    break; // Just need the first one if multiple
+  }
+}
+?>
 <script>
+  var roleid = "<?= $k; ?>";
+  var rolename = "<?= $v; ?>";
+  var has_akses = true;
+  var pph = 0;
+  var ppn = 0;
+  var li_keu = [];
+
+  window.editdtt = [];
+
+  window.load_kavling = function() {
+    if ($.fn.DataTable.isDataTable('#data_tables')) {
+      $('#data_tables').DataTable().draw(false);
+    }
+  };
+
+  window.hapus_seleksi = function() {
+    window.editdtt = [];
+  };
+
+  window.openEdit = function(btn) {
+    let rowData = $(btn).attr('data-kavling');
+
+    if (!rowData) {
+      console.error("Data baris tidak ditemukan pada atribut data-kavling");
+      return;
+    }
+
+    let row = JSON.parse(rowData);
+    console.log("Extracted row data:", row);
+
+    // Construct fake Konva shape object
+    window.editdtt = [{
+      id: "kav" + row.id_kavling,
+      data: {
+        tipe: "kavling", // required by mkdt validator
+        id_mkdt: row.id_mkdt,
+        id_keuangan: row.id_keuangan,
+        id_legal: row.id_legal,
+        id_produksi: row.id_produksi,
+        nama_jalan: row.nama_jalan,
+        no_kavling: row.no_kavling
+      },
+      data2: {
+        harga_akhir: row.harga_akhir ?? "-",
+        id_hargajual: row.id_hargajual ?? "-",
+        id_komplain: row.id_komplain ?? null,
+        no_tipe_rumah: row.no_tipe_rumah,
+        tipe_rumah: row.tipe_rumah
+      }
+    }];
+
+    let sh = window.editdtt[0];
+
+    // Debug:
+    console.log("Membuka Modal dengan Mock editdtt:", window.editdtt);
+
+    // Triggers based on role
+    switch (parseInt(roleid)) {
+      case 6: // Planning
+      case 1:
+        if (typeof open_planning === 'function') open_planning(sh, roleid, row.id_kavling);
+        break;
+      case 7: // Produksi
+        if (typeof open_produksi === 'function') open_produksi(sh, roleid, row.id_kavling);
+        break;
+      case 8: // Sales
+        if (typeof open_sales === 'function') open_sales(sh, roleid, row.id_kavling);
+        break;
+      case 5: // Legal
+        if (typeof open_legal === 'function') open_legal(sh, roleid, row.id_kavling);
+        break;
+      case 4: // MKDT
+        if (typeof isi_data_konsumen === 'function') isi_data_konsumen();
+        break;
+      case 9: // Direksi
+        if (typeof open_direksi === 'function') open_direksi(sh, roleid, row.id_kavling);
+        break;
+      case 3: // Keuangan
+        if (typeof open_keuangan === 'function') open_keuangan(sh, roleid, row.id_kavling);
+        break;
+      case 10: // Pajak
+        if (typeof open_pajak === 'function') open_pajak(sh, roleid, row.id_kavling);
+        break;
+      default:
+        console.error("[INFO] :: Modul untuk role ini tidak tersedia atau komponen form belum dimuat.");
+    }
+  };
+
+  $(document).ajaxSuccess(function(event, xhr, settings) {
+    if (settings.url.includes('simpan')) {
+      if ($.fn.DataTable.isDataTable('#data_tables')) {
+        $('#data_tables').DataTable().draw(false);
+      }
+    }
+  });
+
   $(function() {
     var table = $('#data_tables').DataTable({
       fnDrawCallback: function() {
@@ -215,9 +334,8 @@
       scrollY: "50vh",
       scrollX: true,
       scrollCollapse: true,
-      fixedColumns: true,
       fixedColumns: {
-        leftColumns: 5
+        leftColumns: 6
       },
       processing: true,
       serverSide: true,
@@ -284,7 +402,8 @@
           $.each(r.data, function(index, item) {
             results.push({
               id: item['id_proyek'],
-              text: item[1] + ' (' + item[2] + ')'
+              text: item[1] + ' (' + item[2] + ')',
+              data: item
             });
           });
 
@@ -297,8 +416,10 @@
     })
 
     //on select proyek
-    $("#id_proyek").on("change", function(e) {
+    $("#id_proyek").on("select2:select", function(e) {
       $('#id_cluster').val(null).trigger('change');
+
+      dt_proyek = e.params.data;
 
       if (this.value)
         $("#id_cluster").prop("disabled", false)
@@ -510,6 +631,301 @@
 
   });
 
+  function sum_mktotal() {
+    let hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0)
+    let tot = hitung_total()
+
+    $("#mk-hargajual_net").val(hj_net).keyup()
+
+    $("#mk-tgt").val(tot.total_keseluruhan).keyup(); //grand total keseluruhan
+    $("#mk-total_tot").val(tot.harus_dibayar).keyup(); //total yang harus dibayar konsumen
+
+  }
+
+  function hitung_total(isForm = false, mkdt = []) {
+    let totalum = 0,
+      totalbb = 0,
+      pengurangan = 0,
+      hj = parseFloat(removeComma($("#mk-hargajual").val()) || 0), // 
+      diskon_hj = parseFloat(removeComma($("#mk-diskon_harga_jual").val()) || 0),
+      hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0),
+      kpr = parseFloat(removeComma($("#mk-kpr").val()) || 0),
+      um = parseFloat(removeComma($("#mk-uang_muka").val()) || 0),
+      diskon_um = parseFloat(removeComma($("#mk-diskon_uang_muka").val()) || 0),
+      badm = parseFloat(removeComma($("#mk-biaya_adm").val()) || 0),
+      ppn = parseFloat(removeComma($("#mk-ppn").val()) || 0),
+      bphtb = parseFloat(removeComma($("#mk-bphtb").val()) || 0),
+      bproses = parseFloat(removeComma($("#mk-biaya_proses").val()) || 0),
+      sbum = parseFloat(removeComma($("#mk-harga_sbum").val()) || 0),
+
+      hj_real = 0,
+      persentase_kpr = ($("#idk-is_subsidi").val() == 1) ? 0.05 : 0.1, //persentase kpr
+      penambahan_biaya = parseFloat(removeComma($("#mk-harga_penambahan").val()) || 0),
+      penambahan_biaya_tanah = parseFloat(removeComma($("#mk-harga_penambahan_tanah").val()) || 0),
+      is_allin = $("#idk-is_allin").val(),
+      harga_allin = parseFloat(removeComma($("#mk-harga_allin").val() || 0))
+    if (isForm) {
+      if (mkdt.length == 0)
+        return showToast('tidak ada data tersedia', 'warning')
+
+      um = parseFloat(mkdt.harga_uang_muka || 0)
+      diskon_um = parseFloat(mkdt.harga_diskon_uang_muka || 0)
+      badm = parseFloat(mkdt.harga_administrasi || 0)
+      ppn = parseFloat(mkdt.harga_ppn || 0)
+      bphtb = parseFloat(mkdt.harga_bphtb || 0)
+      bproses = parseFloat(mkdt.harga_biaya_proses || 0)
+      sbum = parseFloat(mkdt.harga_sbum || 0)
+      penambahan_biaya = parseFloat(mkdt.harga_penambahan || 0)
+      penambahan_biaya_tanah = parseFloat(mkdt.harga_penambahan_tanah || 0)
+      is_allin = parseFloat(mkdt.is_allin || 0)
+      harga_allin = parseFloat(mkdt.harga_allin || 0)
+    }
+
+    pengurangan = diskon_um + sbum
+
+    totalum = um + badm + penambahan_biaya + penambahan_biaya_tanah
+    totalbb = ppn + bphtb + bproses
+
+    let tottot = totalum + totalbb - pengurangan;
+
+    let grandtotal = tottot;
+    if (is_allin == "1")
+      grandtotal = harga_allin
+
+    return {
+      'total_keseluruhan': tottot,
+      'harus_dibayar': grandtotal
+    }
+  }
+
+  function lihat_total() {
+    var harga_jual = removeComma(($("#detail_harga_jual").val() == '') ? 0 : $("#detail_harga_jual").val()),
+      harga_diskon = removeComma(($("#detail_harga_diskon").val() == '') ? 0 : $("#detail_harga_diskon").val()),
+      harga_penambahan = removeComma(($("#detail_harga_penambahan").val() == '') ? 0 : $("#detail_harga_penambahan").val()),
+      harga_administrasi = removeComma(($("#detail_harga_administrasi").val() == '') ? 0 : $("#detail_harga_administrasi").val()),
+      harga_ppn = removeComma(($("#detail_harga_ppn").val() == '') ? 0 : $("#detail_harga_ppn").val()),
+      harga_bphtb = removeComma(($("#detail_harga_bphtb").val() == '') ? 0 : $("#detail_harga_bphtb").val()),
+      harga_biaya_proses = removeComma(($("#detail_harga_biaya_proses").val() == '') ? 0 : $("#detail_harga_biaya_proses").val()),
+      harga_kpr = removeComma(($("#detail_harga_kpr").val() == '') ? 0 : $("#detail_harga_kpr").val()),
+      total_biaya = 0;
+
+    total_biaya = (harga_jual - harga_kpr) - harga_diskon + harga_penambahan + harga_ppn + harga_bphtb + harga_biaya_proses;
+
+    $("#detail_total_biaya").val(total_biaya).keyup();
+
+  }
+  //sum tagihan
+
+  function sum_tg(e = 0, bb = '') {
+    e = parseFloat(removeComma(e))
+
+    let total_keu = parseFloat(removeComma($("#mk-total_tot").val()) || 0)
+    let cicilan_keu = parseFloat(removeComma($("#mk-total_cicilan_um").val()) || 0)
+
+    if (cicilan_keu + e > total_keu)
+      $("#nominal").val(total_keu - cicilan_keu).keyup()
+  }
+  var it = 0;
+  /***************** list tagihan ****************/
+  function tambah_(e = '') {
+    let a = (e == '_bb') ? e : '_um'
+    if ($("#mk-total_cicilan_um").val() == $("#mk-total_tot").val()) {
+      swal('error', "Tidak bisa menambahkan tagihan", "Total tagihan tidak bisa melebeihi total harus dibayar", false);
+      return false;
+    } else {
+      if (!$("#berita_acara" + e).val() || !$("#nominal" + e).val() || !$("#jatuh_tempo_tgl" + e).val()) {
+        swal('error', "Nominal dan jatuh tempo tidak boleh kosong", null, false);
+        return false;
+      }
+      Swal.fire({
+        title: 'Simpan data?',
+        text: "Pastikan data sudah terisi dengan benar!",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya!',
+        confirmButtonClass: 'btn btn-primary',
+        cancelButtonClass: 'btn btn-danger ml-1',
+        buttonsStyling: !1
+      }).then(function(t) {
+        if (t.value) {
+          tambah(e)
+        }
+      })
+    }
+  }
+
+  function tambah(e = '') {
+    let i = 'lk' + it
+
+    if (state.data_um[$("#id_list_keu" + e).val()])
+      i = $("#id_list_keu" + e).val()
+
+    state.data_um[i] = ({
+      id_list_keu: i,
+      id_keuangan: $("#id_keuangan").val(),
+      berita_acara: $("#berita_acara").val(),
+      nominal: $("#nominal").val(),
+      jatuh_tempo_tgl: $("#jatuh_tempo_tgl").val(),
+    })
+
+    tambah_ketagihan(e)
+
+    fp = flatpickr("#jatuh_tempo_tgl", {
+      altInput: true,
+      altFormat: 'F j, Y',
+      dateFormat: 'Y-m-d'
+    })
+
+    var d = new Date(
+      $("#jatuh_tempo_tgl").val()
+    ).fp_incr(30);
+
+    fp.setDate(d);
+
+    it += 1;
+  }
+
+  function removeFromTable(x, y = null) {
+    Swal.fire({
+      title: 'Hapus Data?',
+      text: "Data tidak bisa dipulihkan!",
+      type: 'danger',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Ya!',
+      confirmButtonClass: 'btn btn-primary',
+      cancelButtonClass: 'btn btn-danger ml-1',
+      buttonsStyling: !1
+    }).then(function(t) {
+      if (t.value) {
+        $.ajax({
+          url: base_url + 'Keuangan/isSudahBayar/' + editdtt[0].data.id_mkdt,
+          type: 'get',
+          dataType: 'json',
+          success: function(r) {
+            csrfHash = r.token;
+
+            if (r.success === false) {
+              return swal('error', r.messages)
+            }
+
+            if (y == '_bb') delete state.data_bb[x];
+            else delete state.data_um[x];
+            tambah_ketagihan();
+          },
+          error: function() {
+            return swal('error', 'Terjadi kesalahan')
+          }
+        });
+
+      }
+    })
+
+  }
+
+  function editFromTable(x) {
+    var d = state.data_um[x]
+
+    $("#id_list_keu").val(x);
+    $("#berita_acara").val(d.berita_acara);
+    $("#nominal").val(d.nominal).keyup();
+    $("#jatuh_tempo_tgl").val(d.jatuh_tempo_tgl);
+    $("#tambah_list").html("Simpan Perubahan")
+  }
+
+
+  function rowHTML({
+    title,
+    date,
+    amount,
+    key,
+    suffix = ''
+  }) {
+    return `
+            <tr data-key="${key}" data-suffix="${suffix}">
+            <td>${title}</td>
+            <td>${format_date(date)}</td>
+            <td>${num_format(amount)}</td>
+            <td>
+                <div class="btn-group">
+                <button type="button" class="btn btn-outline-danger waves-effect btn-sm js-remove">
+                    <i class="fa fa-trash"></i>
+                </button>
+                </div>
+            </td>
+            </tr>`;
+  }
+
+  function sectionHTML({
+    rows,
+    label,
+    suffix = ''
+  }) {
+    let total = 0;
+    const body = rows.map(r => {
+      total += Number(removeComma(r.amount));
+      return rowHTML({
+        ...r,
+        suffix
+      });
+    }).join('');
+    const foot = `
+                    <tr class="table-secondary">
+                        <td colspan="2">Total Tagihan </td>
+                        <td>${num_format(total)}</td>
+                        <td></td>
+                    </tr>`;
+    return {
+      html: body + foot,
+      total
+    };
+  }
+
+  function tambah_ketagihan() {
+    const umRows = Object.keys(state.data_um || {}).map(k => ({
+      key: k,
+      title: state.data_um[k].berita_acara,
+      date: state.data_um[k].jatuh_tempo_tgl,
+      amount: state.data_um[k].nominal
+    }));
+
+    // const bbRows = Object.keys(state.data_bb || {}).map(k => ({
+    //     key: k,
+    //     title: state.data_bb[k].berita_acara_bb,
+    //     date: state.data_bb[k].jatuh_tempo_tgl_bb,
+    //     amount: state.data_bb[k].nominal_bb
+    // }));
+
+    const um = sectionHTML({
+      rows: umRows,
+      label: 'Tagihan Uang Muka',
+      suffix: ''
+    });
+
+    // const bb = sectionHTML({
+    //     rows: bbRows,
+    //     label: 'Tagihan Biaya Biaya',
+    //     suffix: '_bb'
+    // });
+
+    // 1x write ke DOM
+    $("#list_cicilan_here").html(um.html);
+
+    // update total & UI state
+    $("#mk-total_cicilan_um").val(um.total).trigger('change');
+    // $("#total_cicilan_bb").val(bb.total).trigger('change');
+    $("#id_list_keu").val('');
+    $("#id_list_keu_bb").val('');
+    $("#nominal, #nominal_bb").trigger('change');
+    // $("#tambah_list").text("+ Cicilan UM");
+    // $("#tambah_list_bb").text("+ Cicilan BB");
+  }
+
+
+
   $('#tb-BLOK').css({
     'min-width': '150px',
     'max-width': '150px'
@@ -523,3 +939,42 @@
     'max-width': '100px'
   });
 </script>
+
+<?php
+// Dapatkan role_id dari variable $k yang sudah di-set di atas
+$role_id = $k;
+
+// Include Modal View Sesuai Role
+if (in_array($role_id, [6, 1])) {
+  echo view('siteplan/planning');
+  echo '<script src="' . base_url() . 'assets/js/planning.js?' . filemtime(FCPATH . 'assets/js/planning.js') . '"></script>';
+}
+if (in_array($role_id, [7, 1])) {
+  echo view('siteplan/produksi');
+  echo '<script src="' . base_url() . 'assets/js/produksi.js?' . filemtime(FCPATH . 'assets/js/produksi.js') . '"></script>';
+}
+if (in_array($role_id, [8, 1])) {
+  echo view('siteplan/sales');
+  echo '<script src="' . base_url() . 'assets/js/sales.js?' . filemtime(FCPATH . 'assets/js/sales.js') . '"></script>';
+}
+if (in_array($role_id, [5, 1])) {
+  echo view('siteplan/legal');
+  echo '<script src="' . base_url() . 'assets/js/legal.js?' . filemtime(FCPATH . 'assets/js/legal.js') . '"></script>';
+}
+if (in_array($role_id, [4, 1])) {
+  echo view('siteplan/mkdt');
+  echo '<script src="' . base_url() . 'assets/js/mkdt.js?' . filemtime(FCPATH . 'assets/js/mkdt.js') . '"></script>';
+}
+if (in_array($role_id, [9, 1])) {
+  echo view('siteplan/direksi');
+  echo '<script src="' . base_url() . 'assets/js/direksi.js?' . filemtime(FCPATH . 'assets/js/direksi.js') . '"></script>';
+}
+if (in_array($role_id, [3, 1])) {
+  echo view('siteplan/keuangan');
+  echo '<script src="' . base_url() . 'assets/js/keuangan.js?' . filemtime(FCPATH . 'assets/js/keuangan.js') . '"></script>';
+}
+if (in_array($role_id, [10, 1])) {
+  echo view('siteplan/pajak');
+  echo '<script src="' . base_url() . 'assets/js/pajak.js?' . filemtime(FCPATH . 'assets/js/pajak.js') . '"></script>';
+}
+?>

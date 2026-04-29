@@ -218,6 +218,13 @@ function initModalListener(id) {
         $(id).modal("hide");
         state.status.tab.isClosed = true;
         state.id_cashout_subkon = null;
+
+        //
+        state.mkdt = {};
+
+        //unload data um & bb
+        state.data_um = {};
+        state.data_bb = {};
       }
     });
   });
@@ -521,7 +528,6 @@ function getNotif() {
     url: base_url + "/getnotif",
     data: {
       [csrfName]: csrfHash,
-      // offset: loadmore,
     },
     dataType: "json",
     beforeSend: function () {
@@ -533,18 +539,22 @@ function getNotif() {
     },
     success: function (r) {
       $("#notif-here").html(" ");
-      // if(r.notif.length > 0 <5)
-      //   loadmore += parseInt(r.notif.length)
-      // else
-      //   loadmore += 5
-      // console.log(r)
       $("#load-more-notif").prop("disabled", false);
       $("#load-more-notif").html("Perbarui Aktivitas");
       $("#notif-here").removeClass("blur");
+      
+      // Update Unread Badge
+      if (r.unread_count > 0) {
+        $("#notif-badge").text(r.unread_count).show();
+      } else {
+        $("#notif-badge").hide();
+      }
+
       $.each(r.notif, function (i, v) {
+        let unread_class = v.is_read == 0 ? 'bg-light-warning' : '';
         notif +=
           `
-          <a class="d-flex" href="javascript:void(0)">
+          <a class="d-flex ${unread_class}" href="javascript:void(0)" onclick="handleNotificationClick(${v.id}, '${v.id_kavling}', '${v.type}')">
               <div class="media d-flex align-items-start">
                   <div class="media-body">
                       <p class="media-heading"><span class="font-weight-bolder">` +
@@ -577,7 +587,7 @@ $("#load-more-notif").click(function () {
 function loadData() {
   isLoading = true;
   $.ajax({
-    url: base_url + "/loadnotif", // Gantilah dengan path menuju file yang menyediakan data
+    url: base_url + "/loadnotif", 
     method: "GET",
     data: {
       [csrfName]: csrfHash,
@@ -586,9 +596,10 @@ function loadData() {
     success: function (r) {
       let notif = "";
       $.each(r.notif, function (i, v) {
+        let unread_class = v.is_read == 0 ? 'bg-light-warning' : '';
         notif +=
           `
-                  <a class="d-flex" href="javascript:void(0)">
+                  <a class="d-flex ${unread_class}" href="javascript:void(0)" onclick="handleNotificationClick(${v.id}, '${v.id_kavling}', '${v.type}')">
                       <div class="media d-flex align-items-start">
                           <div class="media-body">
                               <p class="media-heading"><span class="font-weight-bolder">` +
@@ -617,6 +628,54 @@ function loadData() {
       console.log("Error loading data");
     },
   });
+}
+
+function handleNotificationClick(id_notif, id_kavling, type) {
+    // Tandai notifikasi sebagai dibaca
+    $.ajax({
+        url: base_url + "/notif/mark-as-read/" + id_notif,
+        type: "POST",
+        data: {
+            [csrfName]: csrfHash
+        },
+        dataType: "json",
+        success: function(response) {
+            // Update csrf hash
+            if(response.token) {
+                csrfHash = response.token;
+                $('input[name="' + csrfName + '"]').val(csrfHash);
+            }
+            
+            // Refresh list notifikasi (agar badge & warna bg terupdate)
+            getNotif();
+            
+            // Routing aksi berdasarkan tipe notifikasi
+            // Pastikan fungsi-fungsi ini tersedia (contoh: di scope global)
+            if (type === 'cashout_subkon') {
+                if(typeof openCOSubkon === 'function') {
+                    // Mungkin perlu fetch data kavling dulu atau langsung buka
+                    // Tergantung logika existing di `openCOSubkon`
+                    // Kita asumsikan openCOSubkon bisa menerima id_kavling langsung
+                    // atau butuh state diset dulu
+                    openCOSubkon(id_kavling); 
+                } else {
+                    console.log('openCOSubkon function is not available.');
+                }
+            } else if (type === 'tagihan') {
+                if(typeof modal_tagihan === 'function') {
+                    modal_tagihan(id_kavling); // Atau fungsi sejenis
+                }
+            } else if (type === 'progress') {
+                // panggil form produksi
+            } else {
+                // Default action jika type null/tidak dikenali:
+                // Misalnya buka modal_detail kavling
+                if(typeof view_detail === 'function') {
+                    view_detail(id_kavling);
+                }
+            }
+        }
+    });
 }
 
 // Deteksi scroll pada div

@@ -10,6 +10,8 @@ use CodeIgniter\HTTP\Response;
 use App\Models\KeuanganModel;
 use App\Services\PrintService;
 use App\Libraries\Mpdf_lib;
+use App\Models\ChecklistSubItemModel;
+use App\Models\ProyekModel;
 
 use App\Controllers\Notif;
 use App\Services\PosisiKonsumenService;
@@ -27,6 +29,10 @@ class PosisiKonsumen extends BaseController
     protected $username;
     protected $posisiKonsumenService;
     protected $printService;
+    protected $proyekModel;
+
+
+    protected $siModel;
 
     public function __construct()
     {
@@ -39,11 +45,48 @@ class PosisiKonsumen extends BaseController
         $this->konsumenModel = new KonsumenModel();
         $this->validation = \Config\Services::validation();
         $this->lpModel = new LogPembayaranModel();
+        $this->proyekModel = new ProyekModel();
+        $this->siModel = new ChecklistSubItemModel();
+
         $this->db = db_connect();
         $this->username = $this->db->table('users')->select('username')->get()->getRow();
     }
     function index($status = null)
     {
+
+        $data = [
+            'data' => [
+                'pph'     => $this->db->table('pph')->get()->getResult(),
+                'ppn'     => $this->db->table('ppn')->get()->getResult(),
+            ],
+        ];
+        if (in_groups(['1', '7', '8'])) {
+            //get data ceklist
+            $data['data']['list'] = $this->siModel
+                ->select('
+                    checklist_group.nama_group,
+                    checklist_item.nama_item,
+                    checklist_subitem.id_subitem, 
+                    checklist_subitem.nama_subitem,
+                ')
+                ->join('checklist_item', 'checklist_item.id_item = checklist_subitem.id_item')
+                ->join('checklist_group', 'checklist_item.id_group = checklist_group.id_group')
+                ->where('checklist_item.is_active = 1')
+                ->where('checklist_group.is_active = 1')
+                ->where('checklist_subitem.is_active = 1')
+                ->orderBy('checklist_item.id_group', 'asc')
+                ->orderBy('checklist_item.id_item', 'asc')
+                ->findAll();
+
+            //mendapatkan hak akses pada proyek
+            $user_id = user_id();
+        } else if (in_groups(['5'])) {
+            //mendapatkan hak akses pada proyek
+            $user_id = user_id();
+        }
+
+
+
         $data['content'] = 'kavling/list-kavling';
         if ($status == "akad") {
             $data['content'] = 'kavling/list-kavling-akad';
@@ -52,7 +95,8 @@ class PosisiKonsumen extends BaseController
         }
         $data['data']['controller'] = 'PosisiKonsumen';
         $data['data']['title'] = 'Posisi Konsumen ' . $status;
-
+        //ambil data proyek 
+        $data['data']['proyek'] = $this->proyekModel->first();
         return view('template', $data);
     }
     function getDataTables($status = null)

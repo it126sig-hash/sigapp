@@ -304,7 +304,7 @@ function fillPriceSection(h, dk) {
     "harga_penambahan",
     "harga_penambahan_tanah",
   ];
-  console.log(h, dk);
+  // console.log(h, dk);
   setVal("#mk-diskon_uang_muka", h.diskon_uang_muka);
   mkMap.forEach((k) => setVal(`#mk-${k}`, h[k]));
 
@@ -1365,8 +1365,12 @@ function open_set_harga() {
       id_kavling: data,
     },
     dataType: "json",
+    beforeSend: function () {
+      $("#loading").removeClass("hidden");
+    },
     success: function (res) {
       csrfHash = res.token;
+      $("#loading").addClass("hidden");
       let r = res.data,
         id_kavling = "",
         src,
@@ -1427,6 +1431,7 @@ function open_set_harga() {
       });
     },
     error: function (xhr, st, err) {
+      $("#loading").addClass("hidden");
       return swal("error", err);
     },
   });

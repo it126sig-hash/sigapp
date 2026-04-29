@@ -149,7 +149,7 @@ class CashoutSubkonService
         try {
             $this->db->transStart();
 
-            $this->repo->updateJatuhTempo($id_detail, $tanggal_jatuh_tempo, $berita_acara);
+            $detail = $this->repo->updateJatuhTempo($id_detail, $tanggal_jatuh_tempo, $berita_acara);
 
             $this->db->transComplete();
 
@@ -158,6 +158,25 @@ class CashoutSubkonService
                     'status' => 'error',
                     'message' => 'Gagal menyimpan data',
                 ];
+            }
+
+            // Kirim notifikasi ke divisi Produksi (group_id=7)
+            // setelah Jatuh Tempo berhasil diturunkan oleh Keuangan
+            if ($detail && !empty($detail['id_cashout_subkon'])) {
+                $id_kavlings = $this->repo->getKavlingBySubkonId((int) $detail['id_cashout_subkon']);
+                if (!empty($id_kavlings)) {
+                    $notif = new \App\Controllers\Notif();
+                    foreach ($id_kavlings as $id_kavling) {
+                        $notif->tambah_notif(
+                            [7],   // Target: Divisi Produksi
+                            'Jatuh Tempo Cashout Subkon telah diturunkan untuk: ' . $berita_acara,
+                            user_id(),
+                            $id_kavling,
+                            null,
+                            'cashout_subkon'
+                        );
+                    }
+                }
             }
 
             return [

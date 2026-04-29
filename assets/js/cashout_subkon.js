@@ -327,14 +327,14 @@ function load_cashout_subkon_detail(data) {
       }
 
       const tr = $("<tr>");
-      tr.append(`<td>
+      tr.append(`<td style="min-width:100px; nowrap">
       <input type="hidden" id="fm-cashout-subkon-berita_acara-${i}" name="berita_acara[]" value="${
         item.berita_acara ?? ""
       }">
       ${item.berita_acara ?? "-"} 
       </td>`);
       tr.append(
-        `<td>
+        `<td style="min-width:100px">
         <input type="hidden" id="fm-cashout-subkon-id_cashout_subkon_detail-${i}" name="id_cashout_subkon_detail[]" value="${item.id_cashout_subkon_detail ?? ""}">
         <input type="text" class="form-control form-control-sm termin-percentage num" id="fm-cashout-subkon-persentase-${i}" name="persentase[]" value="${num_format(item.persentase)}">
         </td>`,
@@ -345,7 +345,7 @@ function load_cashout_subkon_detail(data) {
         )}" readonly></td>`,
       );
       tr.append(
-        `<td><input type="text" disabled class="form-control form-control-sm flatpickr-human-friendly termin-jatuh-tempo" id="fm-cashout-subkon-tanggal_jatuh_tempo-${i}" name="tanggal_jatuh_tempo[]" value="${
+        `<td style="min-width:150px"><input type="text" disabled class="form-control form-control-sm flatpickr-human-friendly termin-jatuh-tempo" id="fm-cashout-subkon-tanggal_jatuh_tempo-${i}" name="tanggal_jatuh_tempo[]" value="${
           item.tanggal_jatuh_tempo || ""
         }"></td>`,
       );

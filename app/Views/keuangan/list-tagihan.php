@@ -85,8 +85,8 @@
                   <th rowspan="2">Nama Konsumen</th>
                   <th rowspan="2">Tanggal Booking</th>
                   <th rowspan="2">TUNAI/KPR</th>
-                  <th rowspan="2" id="tb-TOTAL_TAGIHAN">TGL JATUH TEMPO</th>
-                  <th rowspan="2" id="tb-TOTAL_TAGIHAN">NOMINAL</th>
+                  <th rowspan="2" id="tb-JML_TAGIHAN">TAGIHAN BELUM LUNAS</th>
+                  <th rowspan="2" id="tb-JATUH_TEMPO">JATUH TEMPO TERDEKAT</th>
                   <th rowspan="2" id="tb-TOTAL_TAGIHAN">TOTAL TAGIHAN</th>
                   <th rowspan="2" id="tb-SUDAH_BAYAR">SUDAH BAYAR</th>
                   <th rowspan="2" id="tb-SISA_TAGIHAN">SISA TAGIHAN</th>
@@ -443,7 +443,7 @@
       // "autoWidth": false,
       // "responsive": true,
       ajax: {
-        url: base_url + 'tagihan/list/ambil',
+        url: base_url + 'tagihan/list/ambil-grouped',
         type: "POST",
         dataType: "json",
         data: {

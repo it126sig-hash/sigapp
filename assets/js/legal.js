@@ -18,7 +18,7 @@ function removeDoc(e, id) {
     }).then(function(t) {
         if (t.value) {
             $.ajax({
-                url: base_url + '/Legal/removeDoc',
+                url: base_url + '/api/legal/removeDoc',
                 type: 'post',
                 data: {
                     [csrfName]: csrfHash,
@@ -57,7 +57,7 @@ function removeDoc(e, id) {
 
 function load_file_upload(id_kavling) {
     $.ajax({
-        url: base_url + '/Legal/getDoc',
+        url: base_url + '/api/legal/getDoc',
         type: 'post',
         data: {
             [csrfName]: csrfHash,
@@ -116,7 +116,7 @@ function fl_upload() {
     fd.append('id_kavling', $(".id_kavling").val());
 
     $.ajax({
-        url: base_url + '/Legal/upload',
+        url: base_url + '/api/legal/upload',
         type: 'POST',
         contentType: false,
         processData: false,
@@ -183,7 +183,7 @@ function open_flegal(sh, role, id_kavling) {
     $("#id_legal").val(sh.data.id_legal);
 
     $.ajax({
-        url: base_url + '/legal/get_data_by_id',
+        url: base_url + '/api/legal/get_data_by_id',
         type: 'post',
         data: {
             [csrfName]: csrfHash,
@@ -319,7 +319,7 @@ function open_fotherlegal(sh) {
 
 function save_legal() {
     $.ajax({
-        url: base_url + 'legal/save',
+        url: base_url + '/api/legal/save',
         type: 'post',
         data: $("#fm-legal").serialize() + "&" + csrfName + "=" + csrfHash,
         dataType: 'json',
@@ -350,7 +350,7 @@ function save_legal() {
 
 function save_fotherlegal() {
     $.ajax({
-        url: base_url + '/legal/edit_others',
+        url: base_url + '/api/legal/edit_others',
         type: 'POST',
         // data: $("#fm-komplain-sales").serialize() + "&" + csrfName + "=" + csrfHash,
         data: $("#fm-fotherlegal").serialize() + "&" + csrfName + "=" + csrfHash,
@@ -399,4 +399,52 @@ function save_fotherlegal() {
         }
     });
 }
+
+$(document).ready(function() {
+    // ScrollSpy Modal Legal — scoped to #modal_flegal
+    const legalModal = document.getElementById("modal_flegal");
+    if (!legalModal) return;
+
+    const scrollArea = legalModal.querySelector(".modal-main");
+    const sections = Array.from(legalModal.querySelectorAll(".scroll-section"));
+    const navItems = legalModal.querySelectorAll(".sidebar-nav-item");
+
+    if (scrollArea && sections.length > 0) {
+        // Klik Sidebar = Scroll smooth ke section terkait
+        navItems.forEach(item => {
+            item.addEventListener("click", function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute("href").substring(1);
+                const targetEl = document.getElementById(targetId);
+                if (targetEl && scrollArea) {
+                    scrollArea.scrollTo({
+                        top: targetEl.offsetTop - scrollArea.offsetTop,
+                        behavior: "smooth"
+                    });
+                }
+            });
+        });
+
+        // Scroll konten = Update Sidebar Active
+        scrollArea.addEventListener("scroll", function() {
+            let current = "";
+            const currentPosition = scrollArea.scrollTop;
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - scrollArea.offsetTop - 50; 
+                if (currentPosition >= sectionTop) {
+                    current = section.getAttribute("id");
+                }
+            });
+
+            navItems.forEach(item => {
+                item.classList.remove("active");
+                if (item.getAttribute("href") === "#" + current) {
+                    item.classList.add("active");
+                }
+            });
+        });
+    }
+});
+
 /****************************** end of Legal ****************************************/

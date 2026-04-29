@@ -36,7 +36,6 @@ class PosisiKonsumenService
             $builder->where('mkdt.akad', $request->getVar('akad'));
 
         return DataTable::of($builder)
-            ->addNumbering('no')
             ->edit('booking_tgl', function ($value) {
                 return $this->format_tgl($value->booking_tgl);
             })
@@ -114,10 +113,11 @@ class PosisiKonsumenService
                 return round($persen) . '%'; // tanpa desimal
             })
             ->edit('action', function ($value) {
+                $jsonData = htmlspecialchars(json_encode($value), ENT_QUOTES, 'UTF-8');
                 return '
                 <div class="btn-group">
                 <button class="btn btn-primary btn-sm" onclick="openDetail(' . $value->id_mkdt . ')"><i class="fa fa-eye"></i></button>
-                <button class="btn btn-warning btn-sm" onclick="openEdit(' . $value->id_mkdt . ')"><i class="fa fa-edit"></i></button>
+                <button class="btn btn-warning btn-sm" data-kavling="' . $jsonData . '" onclick="openEdit(this)"><i class="fa fa-edit"></i></button>
                 </div>';
             })
             ->toJson();
@@ -176,10 +176,11 @@ class PosisiKonsumenService
             })
 
             ->edit('action', function ($value) {
+                $jsonData = htmlspecialchars(json_encode($value), ENT_QUOTES, 'UTF-8');
                 return '
                 <div class="btn-group">
                 <button class="btn btn-primary btn-sm" onclick="openDetail(' . $value->id_mkdt . ')"><i class="fa fa-eye"></i></button>
-                <button class="btn btn-warning btn-sm" onclick="openEdit(' . $value->id_mkdt . ')"><i class="fa fa-edit"></i></button>
+                <button class="btn btn-warning btn-sm" data-kavling="' . $jsonData . '" onclick="openEdit(this)"><i class="fa fa-edit"></i></button>
                 </div>';
             })
             ->toJson();

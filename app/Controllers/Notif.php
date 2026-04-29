@@ -27,20 +27,40 @@ class Notif extends BaseController
         else
             $this->group_id = session()->group_id;
     }
-    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen)
+    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null)
     {
-        
-        $data = [
-            'notif' => $notif,
-            'group_target' => $target,
-            'add_by' => $add_by,
-            'id_kavling' => $id_kavling,
-            'id_konsumen' => $id_konsumen,
-            'created_at' => date('Y-m-d H:i:s')
-        ];
-        return $this->db->table('notification')
-            ->insert($data);
+        if (is_array($target)) {
+            $batchData = [];
+            foreach ($target as $t) {
+                $batchData[] = [
+                    'notif' => $notif,
+                    'group_target' => $t,
+                    'add_by' => $add_by,
+                    'id_kavling' => $id_kavling,
+                    'id_konsumen' => $id_konsumen,
+                    'type' => $type,
+                    'is_read' => 0,
+                    'created_at' => date('Y-m-d H:i:s')
+                ];
+            }
+            return $this->db->table('notification')
+                ->insertBatch($batchData);
+        } else {
+            $data = [
+                'notif' => $notif,
+                'group_target' => $target,
+                'add_by' => $add_by,
+                'id_kavling' => $id_kavling,
+                'id_konsumen' => $id_konsumen,
+                'type' => $type,
+                'is_read' => 0,
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+            return $this->db->table('notification')
+                ->insert($data);
+        }
     }
+    
     function getNotif($all = false){
         $r['token'] = csrf_hash();
 
@@ -50,6 +70,16 @@ class Notif extends BaseController
             $this->group_id = '';
 
         $r['notif'] = $this->getActivity(false, $offset);
+        
+        // Dapatkan jumlah unread notifikasi
+        if ($this->group_id != '') {
+            $r['unread_count'] = $this->db->table('notification')
+                ->where('group_target', $this->group_id)
+                ->where('is_read', 0)
+                ->countAllResults();
+        } else {
+            $r['unread_count'] = 0;
+        }
 
         return $this->response->setJSON($r);
     }
@@ -79,10 +109,18 @@ class Notif extends BaseController
         ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
         ->like("proyek.id_proyek", ''.$id_proyek.'')
         ->like('group_target', $this->group_id)
+            ->orderBy('is_read', 'asc') // Urutkan yang belum dibaca terlebih dahulu
             ->orderBy('created_at', 'desc')
-            ->limit(5,$offset)
+            ->limit(10,$offset) // Menampilkan 10 agar history lebih banyak
             ->get()->getResult();
 
         return $q;
+    }
+    
+    function markAsRead($id) {
+        $this->db->table('notification')
+            ->where('id', $id)
+            ->update(['is_read' => 1]);
+        return $this->response->setJSON(['status' => 'success', 'token' => csrf_hash()]);
     }
 }

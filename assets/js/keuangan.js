@@ -2265,7 +2265,7 @@ function savePengajuanDajam() {
   // }
 
   $.ajax({
-    url: base_url + "transaksi/simpan",
+    url: base_url + "api/transaksi/simpan",
     type: "post",
     contentType: false,
     processData: false,
