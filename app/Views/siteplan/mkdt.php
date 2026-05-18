@@ -8,6 +8,74 @@
         box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
         z-index: 10;
     }
+
+    /* Mobile Friendly Styles untuk Modal Mkdt Divisi 4 */
+    @media (max-width: 768px) {
+        #modal_divisi4 .modal-body-custom {
+            flex-direction: column !important;
+            overflow: hidden !important; /* Tetap hidden di body, biarkan main content yang scroll */
+        }
+        
+        #modal_divisi4 .modal-sidebar {
+            width: 100% !important;
+            border-right: none !important;
+            border-bottom: 1px solid #ddd;
+            padding: 15px 15px 5px 15px !important;
+            flex: 0 0 auto !important; /* Jangan biarkan membesar/mengecil */
+        }
+        
+        /* Ubah sidebar info box layout agar lebih hemat tempat */
+        #modal_divisi4 .sidebar-info-box {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        #modal_divisi4 .sidebar-info-box .sidebar-info-label {
+            margin-bottom: 2px;
+            font-size: 0.75rem;
+        }
+        #modal_divisi4 .sidebar-info-box > div {
+            width: 48%; /* Bagi 2 kolom */
+        }
+        #modal_divisi4 .sidebar-section-label {
+            display: none; /* Sembunyikan label "Informasi Utama" agar lebih rapi di HP */
+        }
+
+        /* Navigasi menjadi mendatar dan bisa di-swipe */
+        #modal_divisi4 .modal-sidebar-nav {
+            display: flex;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 10px; /* Jarak untuk scrollbar */
+            margin-bottom: 0 !important;
+            scrollbar-width: thin;
+        }
+        
+        #modal_divisi4 .sidebar-nav-item {
+            white-space: nowrap;
+            margin-right: 8px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: #f8f9fa;
+            border: 1px solid #eee;
+        }
+        
+        #modal_divisi4 .sidebar-nav-item.active {
+            background: #007bff !important; /* Menggunakan standar primary Bootstrap */
+            color: #fff !important;
+            border-color: #007bff !important;
+        }
+
+        #modal_divisi4 .modal-main {
+            padding: 15px !important;
+            flex: 1 1 auto !important;
+            overflow-y: auto !important;
+        }
+    }
 </style>
 <!-- ################################## Modal Isi Data Konsumen ##########################################-->
 <?php /*echo view('siteplan/modal/mkdt-isi_data_konsumen'); */ ?>
