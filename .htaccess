@@ -13,6 +13,9 @@ Options All -Indexes
 	RewriteCond %{REQUEST_URI} (.+)/$
 	RewriteRule ^ %1 [L,R=301]
 
+	# Kirim request root ke public/
+	RewriteRule ^$ public/ [L]
+
 	# Arahkan semua request ke folder public/
 	# kecuali file/folder yang memang ada di root (assets, uploads, dll)
 	RewriteCond %{REQUEST_URI} !^/public/

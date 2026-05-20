@@ -1,5 +1,4 @@
 <!--#################################### Modal Keuangan #########################################-->
-namespace App\Views\siteplan;
 <div class="modal fade text-left" id="modal_divisi3">
     <div class="modal-dialog modal-dialog-scrollable modal-xl">
         <form id="fm-keuangan" class="add-new-record modal-content pt-0" autocomplete="off">
