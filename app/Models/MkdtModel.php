@@ -92,6 +92,8 @@ class MkdtModel extends Model
 		'id_bank',
 		'file_spptb',
 		'file_surat_kuasa',
+		'harga_diskon_hargajual',
+		'harga_diskon_uang_muka',
 		'dajam_selesai',
 		'promo'
 	];

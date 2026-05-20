@@ -101,7 +101,7 @@
                     <br>
                     <br>
                     <br>
-                    (<?= $data->nama_konsumen ?>)
+                    (<?= strtoupper($data->nama_konsumen) ?>)
                 </p>
             </td>
         </tr>

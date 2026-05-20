@@ -171,7 +171,7 @@
       // "autoWidth": false,
       // "responsive": true,
       ajax: {
-        url: base_url + 'legal/getListLegalitas',
+        url: base_url + '/api/legal/getListLegalitas',
         type: "POST",
         dataType: "json",
         data: {

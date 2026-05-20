@@ -19,9 +19,11 @@ class PosisiKonsumenRepository
         //st jalan adalah status listrik
         return $this->db->table('mkdt')
             ->select('
+            "" as action,
+            kavling.id_kavling,
             jalan.nama_jalan,
             kavling.no_kavling,
-             hargajual.id_tipe,
+            hargajual.id_tipe,
             konsumen.nama_konsumen,
             konsumen.sales,
             mkdt.booking_tgl,
@@ -44,7 +46,6 @@ class PosisiKonsumenRepository
             legal.pbg_no,
             legal.pbb_pecah_nop,
             "" as sikumbang,
-            "" as action,
             mps.total_um,
             mps.total_adm,
             mps.total_bb,
@@ -53,7 +54,16 @@ class PosisiKonsumenRepository
 
             tipe.lb,
             tipe.lt,
-           tipe.tipe_rumah,
+            tipe.tipe_rumah,
+            tipe.no_tipe_rumah,
+            kavling.id_produksi,
+            kavling.id_legal,
+            kavling.id_keuangan,
+            kavling.id_komplain,
+            kavling.id_jalan,
+            jalan.id_cluster,
+            hargajual.id as id_hargajual,
+            hargajual.hargajual as harga_akhir,
 
             a.username as uadd_by,
             b.username as uedit_by,
@@ -78,6 +88,8 @@ class PosisiKonsumenRepository
     {
         return $this->db->table('mkdt')
             ->select('
+            "" as action,
+            kavling.id_kavling,
             jalan.nama_jalan,
             kavling.no_kavling,
             hargajual.id_tipe,
@@ -99,6 +111,16 @@ class PosisiKonsumenRepository
 
             mkdt.id_mkdt,
             mkdt.mkdt_batal_tgl,
+
+            tipe.no_tipe_rumah,
+            kavling.id_produksi,
+            kavling.id_legal,
+            kavling.id_keuangan,
+            kavling.id_komplain,
+            kavling.id_jalan,
+            jalan.id_cluster,
+            hargajual.id as id_hargajual,
+            hargajual.hargajual as harga_akhir,
 
             a.username as uadd_by,
             b.username as uedit_by,

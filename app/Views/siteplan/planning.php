@@ -1,3 +1,11 @@
+<script>
+    const pl_id_proyek = "<?= isset($data['proyek']->id_proyek) ? $data['proyek']->id_proyek : '' ?>";
+    const pl_nama_proyek = "<?= isset($data['proyek']->nama_proyek) ? $data['proyek']->nama_proyek : '' ?>";
+    document.addEventListener("DOMContentLoaded", function() {
+        document.getElementById("nama_proyek").value = pl_nama_proyek;
+        document.getElementById("id_proyek").value = pl_id_proyek;
+    });
+</script>
 <div class="modal modal-slide-in fade" id="modals-slide-in">
     <div class="modal-dialog sidebar-sm">
         <form id="fm-add_kavling" class="add-new-record modal-content pt-0">
@@ -11,8 +19,8 @@
                     <input type="hidden" class="form-control" id="points" readonly name="points" value="" />
                     <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
                     <input type="text" class="form-control" id="nama_proyek" readonly name="nama_proyek"
-                        value="<?= $data['proyek']->nama_proyek ?>" placeholder="ASI" />
-                    <input type="hidden" name="id_proyek" id="id_proyek" value="<?= $data['proyek']->id_proyek ?>">
+                        placeholder="ASI" />
+                    <input type="hidden" name="id_proyek" id="id_proyek">
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="basic-icon-default-post">Jenis</label>
@@ -172,9 +180,9 @@
             }
         }
         $("#fm-add_kavling")[0].reset()
-        
+
         $("#fm-add_kavling .select2").val(null).trigger('change')
-        
+
 
         $(".t_luas_legal, .t_luas_produksi, .r_progres").html('-')
         $("#pindah_lokasi_btn").hide()
@@ -194,5 +202,4 @@
         });
         $("#points").val(dtt);
     }
-
 </script>

@@ -30,7 +30,11 @@
             </li>*/
             ?>
 
-            <li class="nav-item dropdown dropdown-notification mr-25"><a id="header-notif" class="nav-link" href="javascript:void(0);" data-toggle="dropdown"><i class="ficon" data-feather="bell"></i></a>
+            <li class="nav-item dropdown dropdown-notification mr-25">
+                <a id="header-notif" class="nav-link" href="javascript:void(0);" data-toggle="dropdown">
+                    <i class="ficon" data-feather="bell"></i>
+                    <span class="badge badge-pill badge-danger badge-up" id="notif-badge" style="display:none;">0</span>
+                </a>
                 <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right" id='list-notif'>
                     <li class="dropdown-menu-header">
                         <div class="dropdown-header d-flex">

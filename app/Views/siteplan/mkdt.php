@@ -8,8 +8,78 @@
         box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
         z-index: 10;
     }
+
+    /* Mobile Friendly Styles untuk Modal Mkdt Divisi 4 */
+    @media (max-width: 768px) {
+        #modal_divisi4 .modal-body-custom {
+            flex-direction: column !important;
+            overflow: hidden !important; /* Tetap hidden di body, biarkan main content yang scroll */
+        }
+        
+        #modal_divisi4 .modal-sidebar {
+            width: 100% !important;
+            border-right: none !important;
+            border-bottom: 1px solid #ddd;
+            padding: 15px 15px 5px 15px !important;
+            flex: 0 0 auto !important; /* Jangan biarkan membesar/mengecil */
+        }
+        
+        /* Ubah sidebar info box layout agar lebih hemat tempat */
+        #modal_divisi4 .sidebar-info-box {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        #modal_divisi4 .sidebar-info-box .sidebar-info-label {
+            margin-bottom: 2px;
+            font-size: 0.75rem;
+        }
+        #modal_divisi4 .sidebar-info-box > div {
+            width: 48%; /* Bagi 2 kolom */
+        }
+        #modal_divisi4 .sidebar-section-label {
+            display: none; /* Sembunyikan label "Informasi Utama" agar lebih rapi di HP */
+        }
+
+        /* Navigasi menjadi mendatar dan bisa di-swipe */
+        #modal_divisi4 .modal-sidebar-nav {
+            display: flex;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 10px; /* Jarak untuk scrollbar */
+            margin-bottom: 0 !important;
+            scrollbar-width: thin;
+        }
+        
+        #modal_divisi4 .sidebar-nav-item {
+            white-space: nowrap;
+            margin-right: 8px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: #f8f9fa;
+            border: 1px solid #eee;
+        }
+        
+        #modal_divisi4 .sidebar-nav-item.active {
+            background: #007bff !important; /* Menggunakan standar primary Bootstrap */
+            color: #fff !important;
+            border-color: #007bff !important;
+        }
+
+        #modal_divisi4 .modal-main {
+            padding: 15px !important;
+            flex: 1 1 auto !important;
+            overflow-y: auto !important;
+        }
+    }
 </style>
 <!-- ################################## Modal Isi Data Konsumen ##########################################-->
+<?php /*echo view('siteplan/modal/mkdt-isi_data_konsumen'); */ ?>
+
 <section class="isi_konsumen">
     <div class="modal fade" id="modal-isi_data_konsumen">
         <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
@@ -33,13 +103,13 @@
                         </div>
                         <div class="col-md-3">
                             <div class="card">
-                                <div class="col-12">
+                                <div class="col-12 pt-1">
                                     <div class="refresh_fmmkdt_div ">
                                         <button id="refresh-btn-idk_keu" type="button"
                                             class="btn btn-primary btn-block waves-effect">Tambah Konsumen
                                             Baru</button>
                                     </div>
-                                    <div class="delete_kons_div">
+                                    <div class="delete_kons_div" hidden>
                                         <button id="delete-btn-idk_keu" type="button"
                                             class="btn btn-outline-danger btn-block waves-effect"
                                             onclick="delete_kons(false)">Hapus Konsumen</button>
@@ -860,6 +930,9 @@
                                                                     <option value="Biaya Kelebihan Tanah">Biaya
                                                                         Kelebihan Tanah
                                                                     </option>
+                                                                    <option value="PPN">PPN</option>
+                                                                    <option value="BPHTB">BPHTB</option>
+                                                                    <option value="Biaya Proses">Biaya Proses</option>
                                                                 </select>
                                                                 <label>Untuk Tagihan</label>
                                                                 <!-- <input required name="berita_acara" id="berita_acara"
@@ -1176,6 +1249,7 @@
         </form>
     </div>
 </section>
+
 <!-- ################################### modal mkdt turun pembangunan ##################################### -->
 <div class="modal fade " id="modals-turun_pembangunan">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -1239,801 +1313,535 @@
     </div>
 </div>
 <!-- ################################### modal mkdt set harga ##################################### -->
-<div class="modal fade " id="modals-set_harga">
+<div class="modal fade" id="modals-set_harga">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <form id="fm-set_harga" class="add-new-record modal-content pt-0">
-            <div class="modal-header mb-1">
-                <h5 class="modal-title" id="exampleModalLabel">Set Harga</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
-            </div>
-            <div class="modal-body flex-grow-1" style="background-color: #eee;">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="divider divider-left pb-0">
-                                    <div class="divider-text font-weight-bold"><strong><i
-                                                class="fas fa-files"></i>Kavling</strong></div>
-                                </div>
-                            </div>
-
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Proyek</label>
-                                            <input type="hidden" class="form-control" id="points" readonly name="points"
-                                                value="" />
-                                            <input type="hidden" class="form-control id_kavling" readonly
-                                                name="id_kavling" value="" />
-                                            <input type="text" class="form-control" id="nama_proyek" readonly
-                                                name="nama_proyek" value="<?= $data['proyek']->nama_proyek ?>"
-                                                placeholder="ASI" />
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-post">Kavling</label>
-                                            <textarea class="form-control" id="sh-kavling" name="sh-kavling" rows="6"
-                                                readonly placeholder="Kavling"></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="divider divider-left pb-0">
-                                    <div class="divider-text font-weight-bold"><strong>
-                                            Pilih Pricelist</strong></div>
-                                </div>
-
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <select class="select2 custom-select sh-fm" id="sh-id" name="sh-id"
-                                                value=""></select>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <a href="javascript:void(0)" target="_blank" id="sh-pricelist_file"
-                                                rel="noopener noreferrer"
-                                                class="form-control btn btn-outline btn-primary"><i
-                                                    class="fas fa-file"></i>Klik unuk melihat
-                                                file</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="divider divider-left pb-0">
-                                    <div class="divider-text font-weight-bold"><strong><i class="fas fa-files"></i>
-                                            Detail Pricelist</strong></div>
-                                </div>
-
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">ROW</label>
-                                            <input type="text" class="form-control num sh-fm" id="sh-row" name="sh-row"
-                                                value="" readonly />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Tipe</label>
-                                            <input type="text" class="form-control sh-fm text-right" id="sh-tipe"
-                                                name="sh-tipe" value="" readonly />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Luas
-                                                Bangunan</label>
-                                            <input type="text" class="form-control num sh-fm" id="sh-lb" name="sh-lb"
-                                                value="" readonly />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Luas
-                                                Tanah</label>
-                                            <input type="text" class="form-control num sh-fm" id="sh-lt" name="sh-lt"
-                                                value="" readonly />
-                                        </div>
-
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Harga
-                                                Jual</label>
-                                            <input type="text" class="form-control num sh-fm" id="sh-hargajual"
-                                                name="sh-hargajual" value="" readonly />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Harga Jual
-                                                Net</label>
-                                            <input type="text" class="form-control num sh-fm" id="sh-hargajual_net"
-                                                name="sh-hargajual_net" value="" readonly />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">KPR</label>
-                                            <input type="text" class="form-control num sh-fm" id="sh-kpr" name="sh-kpr"
-                                                value="" readonly />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Uang
-                                                Muka</label>
-                                            <input type="text" class="form-control num sh-fm" id="sh-uang_muka"
-                                                name="sh-uang_muka" value="" readonly />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Biaya
-                                                Adm</label>
-                                            <input type="text" class="form-control num sh-fm" id="sh-biaya_adm"
-                                                name="sh-biaya_adm" value="" readonly />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">BPHTB</label>
-                                            <input type="text" class="form-control num sh-fm" id="sh-bphtb"
-                                                name="sh-bphtb" value="" readonly />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">PPN</label>
-                                            <input type="text" class="form-control num sh-fm" id="sh-ppn" name="sh-ppn"
-                                                value="" readonly />
-                                        </div>
-                                        <div class="form-group">
-                                            <label class="form-label" for="basic-icon-default-fullname">Biaya
-                                                Proses</label>
-                                            <input type="text" class="form-control num sh-fm" id="sh-biaya_proses"
-                                                name="sh-biaya_proses" value="" readonly />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="basic-icon-default-fullname">*catatan: gunakan titik koma ";"
-                            untuk pemisah nomor rumah jika akan input rumah lebih dari 1 kavling sekaligus</label>
+        <form id="fm-set_harga" class="add-new-record modal-content modal-content-custom pt-0" style="background-color: transparent;">
+            <div class="modal-header-custom">
+                <div>
+                    <div class="modal-title-main">Manajemen Kavling</div>
+                    <div class="modal-title-kavling">Set Harga</div>
+                    <div class="header-meta">
+                        <span class="header-meta-item"><i class="fas fa-home"></i> Proyek: <?= $data['proyek']->nama_proyek ?></span>
                     </div>
                 </div>
-
-
+                <button type="button" class="btn-close-modal" data-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-footer">
-                <a id="set-harga-form-btn" class="btn btn-primary mr-1" onclick="set_harga()"
-                    href="javascript:void(0)">Simpan</a>
-                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+
+            <div class="modal-body-custom">
+                <div class="modal-main">
+
+
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="section-card">
+                                <div class="section-card-header">
+                                    <div class="section-card-icon icon-amber"><i class="fas fa-map-marker-alt"></i></div>
+                                    <h6 class="section-card-title">Kavling Terpilih</h6>
+                                </div>
+                                <div class="section-card-body">
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="sh-kavling">Kavling</label>
+                                        <input type="hidden" class="form-control" id="points" readonly name="points" value="" />
+                                        <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
+                                        <input type="hidden" class="form-control" id="nama_proyek" readonly name="nama_proyek" value="<?= $data['proyek']->nama_proyek ?>" />
+
+                                        <textarea class="form-control-custom" id="sh-kavling" name="sh-kavling" rows="3" readonly placeholder="Kavling"></textarea>
+                                        <small style="display:block; margin-top:5px; color:var(--text-light); font-size:0.75rem;">*catatan: gunakan titik koma ";" untuk pemisah nomor rumah jika akan input rumah lebih dari 1 kavling sekaligus</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="section-card">
+                                <div class="section-card-header">
+                                    <div class="section-card-icon icon-blue"><i class="fas fa-list"></i></div>
+                                    <h6 class="section-card-title">Pilih Pricelist</h6>
+                                </div>
+                                <div class="section-card-body">
+                                    <div class="one-col">
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">Pricelist</label>
+                                            <select class="select2 custom-select sh-fm form-control-custom" id="sh-id" name="sh-id" value=""></select>
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">&nbsp;</label>
+                                            <a href="javascript:void(0)" target="_blank" id="sh-pricelist_file" rel="noopener noreferrer" class="btn-outline-custom w-100"><i class="fas fa-file mr-1"></i> Klik untuk melihat file</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="section-card">
+                                <div class="section-card-header">
+                                    <div class="section-card-icon icon-green"><i class="fas fa-money-bill-wave"></i></div>
+                                    <h6 class="section-card-title">Detail Pricelist</h6>
+                                </div>
+                                <div class="section-card-body">
+                                    <div class="one-col">
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">ROW</label>
+                                            <input type="text" class="form-control-custom num sh-fm" id="sh-row" name="sh-row" value="" readonly />
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">Tipe</label>
+                                            <input type="text" class="form-control-custom sh-fm text-right" id="sh-tipe" name="sh-tipe" value="" readonly />
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">Luas Bangunan</label>
+                                            <input type="text" class="form-control-custom num sh-fm" id="sh-lb" name="sh-lb" value="" readonly />
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">Luas Tanah</label>
+                                            <input type="text" class="form-control-custom num sh-fm" id="sh-lt" name="sh-lt" value="" readonly />
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">Harga Jual</label>
+                                            <input type="text" class="form-control-custom num sh-fm" id="sh-hargajual" name="sh-hargajual" value="" readonly />
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">Harga Jual Net</label>
+                                            <input type="text" class="form-control-custom num sh-fm" id="sh-hargajual_net" name="sh-hargajual_net" value="" readonly />
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">KPR</label>
+                                            <input type="text" class="form-control-custom num sh-fm" id="sh-kpr" name="sh-kpr" value="" readonly />
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">Uang Muka</label>
+                                            <input type="text" class="form-control-custom num sh-fm" id="sh-uang_muka" name="sh-uang_muka" value="" readonly />
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">Biaya Adm</label>
+                                            <input type="text" class="form-control-custom num sh-fm" id="sh-biaya_adm" name="sh-biaya_adm" value="" readonly />
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">BPHTB</label>
+                                            <input type="text" class="form-control-custom num sh-fm" id="sh-bphtb" name="sh-bphtb" value="" readonly />
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">PPN</label>
+                                            <input type="text" class="form-control-custom num sh-fm" id="sh-ppn" name="sh-ppn" value="" readonly />
+                                        </div>
+                                        <div class="form-group-custom">
+                                            <label class="form-label-custom">Biaya Proses</label>
+                                            <input type="text" class="form-control-custom num sh-fm" id="sh-biaya_proses" name="sh-biaya_proses" value="" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-cancel" data-dismiss="modal"><i class="fas fa-times mr-1"></i> Cancel</button>
+                <a id="set-harga-form-btn" class="btn-save" onclick="set_harga()" href="javascript:void(0)"><i class="fas fa-save mr-1"></i> Simpan Terpilih</a>
             </div>
         </form>
     </div>
 </div>
 <!--#################################### Modal Mkdt #########################################-->
 <div class="modal fade" id="modal_divisi4">
-    <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
-        <form id="fm-mkdt" enctype="multipart/form-data" class="add-new-record modal-content pt-0" autocomplete="off">
-            <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button> -->
-            <div class="modal-header mb-1">
-                <h5 class="modal-title" id="exampleModalLabel">Marketing Data: Perbaharui Status Kavling</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+        <form id="fm-mkdt" enctype="multipart/form-data" class="add-new-record modal-content modal-content-custom pt-0" autocomplete="off" style="background-color: transparent;">
+
+            <div class="modal-header-custom">
+                <div>
+                    <div class="modal-title-main">Marketing Data</div>
+                    <div class="modal-title-kavling">Perbaharui Status Kavling</div>
+                    <div class="header-meta">
+                        <span class="header-meta-item label_alamat"></span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close-modal" data-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body flex-grow-1" style="background-color:#eee">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-body bg-primary text-light">
-                                <p class="modal-title label_alamat"></p>
-                            </div>
+
+            <div class="modal-body-custom" style="padding: 0; overflow: hidden; align-items: stretch;">
+                <!-- SIDEBAR NAVIGATION -->
+                <div class="modal-sidebar">
+                    <div class="sidebar-info-box">
+                        <div class="sidebar-info-label">No. SPPTB</div>
+                        <div class="sidebar-info-value">
+                            <div id="lb-st-no_spptb" class="font-weight-bold" style="min-height:24px;"></div>
+                        </div>
+                        <div class="sidebar-info-label">Konsumen</div>
+                        <div class="sidebar-info-value" style="margin-bottom:8px">
+                            <div id="lb-st-nama_konsumen" class="font-weight-bold" style="min-height:24px;"></div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="divider divider-left">
-                                    <div class="divider-text font-weight-bold"><i class="fa fa-user"></i> Konsumen</div>
+                    <div class="sidebar-section-label">Informasi Utama</div>
+
+                    <ul class="nav nav-pills modal-sidebar-nav" id="sidebar-tabs-alur" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link sidebar-nav-item" id="tab-sd-status" href="#sd-status">
+                                <i class="fas fa-flag"></i> Status Kavling
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sidebar-nav-item" id="tab-sd-wawancara" href="#sd-wawancara">
+                                <i class="fas fa-comments"></i> Wawancara
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sidebar-nav-item" id="tab-sd-pb" href="#sd-pb">
+                                <i class="fas fa-hammer"></i> Perintah Bangun
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sidebar-nav-item" id="tab-sd-sp3k" href="#sd-sp3k">
+                                <i class="fas fa-file-contract"></i> SP3K
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sidebar-nav-item" id="tab-sd-kpr" href="#sd-kpr">
+                                <i class="fas fa-money-check-alt"></i> KPR
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sidebar-nav-item" id="tab-sd-akad" href="#sd-akad">
+                                <i class="fas fa-handshake"></i> Akad
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- MAIN CONTENT AREA (SCROLLABLE) -->
+                <div class="modal-main" id="mkdt-main-scroll-area" style="flex-grow: 1; padding: 24px; overflow-y: auto; scroll-behavior: smooth;">
+                    <input type="hidden" class="form-control id_kavling" name="id_kavling" value="" />
+                    <input type="hidden" class="form-control" id="id_mkdt" name="id_mkdt" value="" />
+                    <input type="hidden" class="form-control" id="id_konsumen" name="id_konsumen" value="" />
+                    <input type="hidden" class="form-control" id="mkdt_data_baru" name="mkdt_data_baru" value="" />
+
+                    <?php
+                    /*
+                    <!-- KONSUMEN BLOCK -->
+                    <div id="sd-konsumen" class="scroll-section" style="padding-bottom: 2rem;">
+                        <div class="section-card mb-2">
+                            <div class="section-card-header">
+                                <div class="section-card-icon icon-blue"><i class="fas fa-user"></i></div>
+                                <h6 class="section-card-title">Data Konsumen Utama</h6>
+                            </div>
+                            <div class="section-card-body">
+                                <div class="form-group-custom pl-1 pr-1">
+                                    <label class="form-label-custom">No SPPTB</label>
+                                    <div id="lb-st-no_spptb" class="font-weight-bold" style="min-height:24px;"></div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="no_spptb"><strong>No SPPTB</strong></label>
-                                    <div id="lb-st-no_spptb"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="nama_konsumen"><strong>Nama Konsumen</strong></label>
-                                    <div id="lb-st-nama_konsumen"></div>
+                                <div class="form-group-custom pl-1 pr-1">
+                                    <label class="form-label-custom">Nama Konsumen</label>
+                                    <div id="lb-st-nama_konsumen" class="font-weight-bold" style="min-height:24px;"></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="divider divider-left">
-                                    <div class="divider-text font-weight-bold">Status Kavling</div>
+                        <!-- Aksi Konsumen Tambahan -->
+                        <div class="section-card mb-2">
+                            <div class="section-card-header">
+                                <div class="section-card-icon icon-grey"><i class="fas fa-cog"></i></div>
+                                <h6 class="section-card-title">Aksi</h6>
+                            </div>
+                            <div class="section-card-body">
+                                <div id="refresh_fmmkdt_div" class="mb-1">
+                                    <button id="refresh_fmmkdt_btn" type="button" class="btn btn-outline-custom w-100">Tambah Konsumen Baru</button>
                                 </div>
-                                <div class="form-group floating-label floating-label-select">
+                                <div id="delete_kons_div">
+                                    <button id="delete_kons_btn" type="button" class="btn btn-outline-danger w-100" onclick="delete_kons(false)">Hapus Konsumen</button>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>*/ ?>
 
-                                    <select required class="form-control" id="status_mkdt" name="status_mkdt">
+                    <!-- STATUS KAVLING BLOCK -->
+                    <div id="sd-status" class="scroll-section" style="padding-bottom: 2rem;">
+                        <div class="section-card mb-2">
+                            <div class="section-card-header">
+                                <div class="section-card-icon icon-amber"><i class="fas fa-flag"></i></div>
+                                <h6 class="section-card-title">Status Booking Kavling</h6>
+                            </div>
+                            <div class="section-card-body">
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="status_mkdt">Status Booking</label>
+                                    <select required class="form-control-custom custom-select" id="status_mkdt" name="status_mkdt">
                                         <option value="">-</option>
                                         <option value="Booking">Booking</option>
                                         <option value="Akad">Akad</option>
                                         <option disabled value="Batal">Batal</option>
                                     </select>
-                                    <label for="status_mkdt">Status Booking</label>
                                 </div>
                                 <div id="show_keterangan_batal" class="hidden">
-                                    <div class="form-group">
-                                        <label for="keterangan_batal">Keterangan Batal</label>
-                                        <textarea class="form-control" id="keterangan_batal" name="keterangan_batal"
-                                            rows="3" placeholder="Keterangan"></textarea>
+                                    <div class="form-group-custom">
+                                        <label class="form-label-custom" for="keterangan_batal">Keterangan Batal</label>
+                                        <textarea class="form-control-custom" id="keterangan_batal" name="keterangan_batal" rows="3" placeholder="Keterangan"></textarea>
                                     </div>
-                                    <!-- <div class="form-group">
-                                                        <label for="harga_jual">Refund</label>
-                                                        <input type="text" class="form-control num" id="refund" name="refund">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label for="refund_tgl">Tanggal Refund</label>
-                                                        <input type="text" id="refund_tgl" name="refund_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
-                                                    </div> -->
                                 </div>
-                                <div class="form-group">
-                                    <label for="booking_tgl">Tanggal Booking</label>
-                                    <input type="text" id="booking_tgl" name="booking_tgl"
-                                        class="form-control flatpickr-human-friendly" placeholder="-" readonly />
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="booking_tgl">Tanggal Booking</label>
+                                    <input type="text" id="booking_tgl" name="booking_tgl" class="form-control-custom flatpickr-human-friendly" placeholder="-" readonly />
                                 </div>
-                                <div class="form-group">
-                                    <label for="booking_fee">Booking Fee</label>
-                                    <input type="text" readonly class="form-control num" id="booking_fee"
-                                        name="booking_fee">
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="booking_fee">Booking Fee</label>
+                                    <input type="text" readonly class="form-control-custom num" id="booking_fee" name="booking_fee">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-card mb-2">
+                            <div class="section-card-header">
+                                <div class="section-card-icon icon-grey"><i class="fas fa-clipboard-list"></i></div>
+                                <h6 class="section-card-title">Status Keterangan</h6>
+                            </div>
+                            <div class="section-card-body">
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom">Keterangan Khusus</label>
+                                    <input type="text" id="mkdt_keterangan" name="mkdt_keterangan" class="form-control-custom" placeholder="ACC SP3K/REJECT/WAWANCARA/DLL" />
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-9">
-                        <div class="card">
-                            <div class="card-body pb-0 pt-0">
-                                <ul class="nav nav-pills flex-column flex-md-row mt-1 row-gap-2" role="tablist">
-                                    <!-- <li class="nav-item">
-                                        <a class="nav-link active" id="data_konsumen-tab" data-toggle="tab"
-                                            href="#data_konsumen" aria-controls="data_konsumen" role="tab"
-                                            aria-selected="true">Data Konsumen</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" id="detail_biaya-tab" data-toggle="tab" href="#detail_biaya"
-                                            aria-controls="detail_biaya" role="tab" aria-selected="true">Detail</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" id="detail_tagihan-tab" data-toggle="tab"
-                                            href="#detail_tagihan" aria-controls="detail_tagihan" role="tab"
-                                            aria-selected="false">Detail Tagihan</a>
-                                    </li> -->
-                                    <li class="nav-item">
-                                        <a class="nav-link active" id="status-tab" data-toggle="tab" href="#status"
-                                            aria-controls="detail_tagihan" role="tab" aria-selected="false">Status </a>
-                                    </li>
-                                </ul>
+
+                    <!-- WAWANCARA BLOCK -->
+                    <div id="sd-wawancara" class="scroll-section" style="padding-bottom: 2rem;">
+                        <div class="section-card mb-2">
+                            <div class="section-card-header">
+                                <div class="section-card-icon icon-teal"><i class="fas fa-comments"></i></div>
+                                <h6 class="section-card-title">Detail Wawancara</h6>
                             </div>
-                        </div>
-
-                        <!-- <div class="card"> -->
-                        <!-- <div class="card-body"> -->
-                        <div class="tab-content">
-                            <div class="tab-pane" id="data_konsumen" aria-labelledby="data_konsumen-tab"
-                                role="tabpanel">
-                                <input type="hidden" class="form-control id_kavling" name="id_kavling"
-                                    value="" />
-                                <input type="hidden" class="form-control" id="id_mkdt" name="id_mkdt"
-                                    value="" />
-                                <input type="hidden" class="form-control" id="id_konsumen" name="id_konsumen"
-                                    value="" />
-
-                                <input type="hidden" class="form-control" id="mkdt_data_baru"
-                                    name="mkdt_data_baru" value="" />
-                                <div class="row">
-                                    <div class="col-sm-12 col-md-4 col-lg-4">
-                                        <div id="refresh_fmmkdt_div">
-                                            <button id="refresh_fmmkdt_btn" type="button"
-                                                class="btn btn-outline-primary btn-block waves-effect">Tambah
-                                                Konsumen
-                                                Baru</button>
-                                        </div>
-                                        <div id="delete_kons_div">
-                                            <button id="delete_kons_btn" type="button"
-                                                class="btn btn-outline-danger btn-block waves-effect"
-                                                onclick="delete_kons(false)">Hapus Konsumen</button>
-                                        </div>
+                            <div class="section-card-body">
+                                <div class="form-group-custom">
+                                    <div class="custom-control custom-switch custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="wawancara" name="wawancara" value="1" />
+                                        <label class="custom-control-label" for="wawancara">Sudah Wawancara</label>
                                     </div>
                                 </div>
-                                <div class="row">
-                                    <!-- <div class="col-sm-12 col-md-3 col-lg-3">
-                                                <div class="divider">
-                                                    <div class="divider-text">Status</div>
-                                                </div>
-
-                                                <div class="divider">
-                                                    <div class="divider-text">Data Konsumen</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="no_spptb">No SPPTB</label>
-                                                    <input type="text" class="form-control" id="no_spptb"
-                                                        name="no_spptb">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="nama_konsumen">Nama Konsumen</label>
-                                                    <input type="text" class="form-control" id="nama_konsumen" required
-                                                        name="nama_konsumen">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="alamat_konsumen">Alamat Konsumen</label>
-                                                    <input type="text" class="form-control" id="alamat_konsumen"
-                                                        name="alamat_konsumen">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="nik_konsumen">NIK</label>
-                                                    <input type="text" class="form-control" id="nik_konsumen"
-                                                        name="nik_konsumen">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="npwp_konsumen">NPWP</label>
-                                                    <input type="text" class="form-control" id="npwp_konsumen"
-                                                        name="npwp_konsumen">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="hp_konsumen">Kontak Konsumen</label>
-                                                    <input type="text" class="form-control" id="hp_konsumen"
-                                                        name="hp_konsumen">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="hp_konsumen">Email Konsumen</label>
-                                                    <input type="text" class="form-control" id="email_konsumen"
-                                                        name="email_konsumen">
-                                                </div>
-                                                <div class="form-group hidden">
-                                                    <label for="status_kavling">Status Konsumen</label>
-                                                    <select class="form-control" id="status_konsumen"
-                                                        name="status_konsumen">
-                                                        <option value="">-</option>
-                                                        <option value="Umum">Umum</option>
-                                                        <option value="TWP">TWP</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-12 col-md-3 col-lg-3">
-                                                <div class="divider">
-                                                    <div class="divider-text">Data Pasangan</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="status_kavling">Status Pernikahan</label>
-                                                    <select class="form-control" id="status_pernikahan"
-                                                        name="status_pernikahan">
-                                                        <option value="Belum Kawin">Belum Kawin</option>
-                                                        <option value="Kawin">Kawin</option>
-                                                        <option value="Cerai Mati">Cerai Mati</option>
-                                                        <option value="Cerai Hidup">Cerai Hidup</option>
-                                                    </select>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="nama_pasangan">Nama Pasangan</label>
-                                                    <input type="text" class="form-control" id="nama_pasangan"
-                                                        name="nama_pasangan">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="hp_konsumen">NIK Pasangan</label>
-                                                    <input type="text" class="form-control" id="nik_pasangan"
-                                                        name="nik_pasangan">
-                                                </div>
-                                                <div class="divider">
-                                                    <div class="divider-text">Data Instansi</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="nama_instansi">Nama Instansi</label>
-                                                    <input type="text" class="form-control" id="nama_instansi"
-                                                        name="nama_instansi">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="alamat_instansi">Alamat Instansi</label>
-                                                    <input type="text" class="form-control" id="alamat_instansi"
-                                                        name="alamat_instansi">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="tel_instansi">Telepon Instansi</label>
-                                                    <input type="text" class="form-control" id="tel_instansi"
-                                                        name="tel_instansi">
-                                                </div>
-
-                                            </div>
-                                            <div class="col-sm-12 col-md-3 col-lg-3">
-                                                <div class="divider">
-                                                    <div class="divider-text">Sales</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="alamat_instansi">Sales</label>
-                                                    <input type="text" class="form-control" id="sales" name="sales">
-                                                </div>
-                                                <div class="divider">
-                                                    <div class="divider-text">TUNAI/KPR</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="is_kpr">Tunai/KPR</label>
-                                                    <select required class="form-control" id="is_kpr" name="is_kpr">
-                                                        <option value="0">TUNAI</option>
-                                                        <option value="1">KPR</option>
-                                                    </select>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="is_subsidi">Subsidi/Non-Subsidi</label>
-                                                    <select required class="form-control" id="is_subsidi"
-                                                        name="is_subsidi">
-                                                        <option value="0">Non-Subsidi</option>
-                                                        <option value="1">Subsidi</option>
-                                                    </select>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="jenis_subsidi">Jenis Subsidi</label>
-                                                    <input type="text" placeholder="FLPP/TAPERA/LAIN-LAIN"
-                                                        class="form-control" id="jenis_subsidi" name="jenis_subsidi">
-                                                </div>
-                                                <div class="divider">
-                                                    <div class="divider-text">File Upload</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>KTP</label>
-                                                    <div class="custom-file">
-                                                        <input type="file" class="custom-file-input" accept="image/*"
-                                                            name="file_ktp" id="file_ktp" />
-                                                        <label class="custom-file-label" id="label-file_ktp"
-                                                            for="label-file_ktp">Upload
-                                                            File KTP</label>
-                                                        <div id="list-upload_file_ktp"></div>
-
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>NPWP</label>
-                                                    <div class="custom-file">
-                                                        <input type="file" class="custom-file-input" accept="image/*"
-                                                            name="file_npwp" id="file_npwp" />
-                                                        <label class="custom-file-label" id="label-file_npwp"
-                                                            for="label-file_npwp">Upload File NPWP</label>
-                                                        <div id="list-upload_file_npwp"></div>
-
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Data Diri</label>
-                                                    <div class="custom-file">
-                                                        <input type="file" class="custom-file-input"
-                                                            accept="application/pdf" name="file_data_diri"
-                                                            id="file_data_diri" />
-                                                        <label class="custom-file-label" id="label-file_data_diri"
-                                                            for="label-file_data_diri">Upload
-                                                            Data Diri</label>
-                                                        <div id="list-upload_file_data_diri"></div>
-
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-sm-12 col-md-3 col-lg-3 text-center">
-                                                <div class="divider">
-                                                    <div class="divider-text">KTP</div>
-                                                </div>
-                                                <button href="" id="file_ktp-here"
-                                                    class="w-100 btn btn-outline-primary">klik untuk melihat
-                                                    file</button>
-
-                                                <div class="divider">
-                                                    <div class="divider-text">NPWP</div>
-                                                </div>
-                                                <a href="" id="file_npwp-here" target="_blank"
-                                                    class=" btn btn-outline-primary w-100">klik untuk melihat file</a>
-                                                <div class="divider">
-                                                    <div class="divider-text">Data Diri</div>
-                                                </div>
-                                                <a href="" id="file_data_diri-here"
-                                                    class="btn btn-outline-primary w-100" target="_blank">klik untuk
-                                                    melihat file</a>
-                                            </div> -->
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="id_bank">Bank</label>
+                                    <select type="text" id="id_bank" name="id_bank" class="form-control-custom select2"></select>
                                 </div>
-                            </div>
-                            <div class="tab-pane" id="detail_biaya" aria-labelledby="detail_biaya-tab"
-                                role="tabpanel">
-                                <div class="row">
-                                    <div class="col-sm-12 col-md-6 col-lg-6"></div>
-                                    <div class="col-sm-12 col-md-6 col-lg-6"></div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="bank">Keterangan Bank</label>
+                                    <input type="text" id="bank" name="bank" class="form-control-custom" placeholder="-" />
                                 </div>
-                            </div>
-
-                            <div class="tab-pane  show active" id="status" aria-labelledby="status-tab"
-                                role="tabpanel">
-                                <div class="card-columns">
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <div class="divider divider-left">
-                                                <div class="divider-text font-weight-bold">Status Konsumen</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Status</label>
-                                                <input type="text" id="mkdt_keterangan" name="mkdt_keterangan"
-                                                    class="form-control"
-                                                    placeholder="ACC SP3K/REJECT/WAWANCARA/DLL" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <div class="divider divider-left">
-                                                <div class="divider-text font-weight-bold">Wawancara</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="custom-control custom-switch custom-control-inline">
-                                                    <input type="checkbox" class="custom-control-input"
-                                                        id="wawancara" name="wawancara" value="1" />
-                                                    <label class="custom-control-label" for="wawancara">Sudah
-                                                        Wawancara</label>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="bank">Bank</label>
-                                                <select type="text" id="id_bank" name="id_bank"
-                                                    class="form-control select2">
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="bank">Keterangan</label>
-                                                <input type="text" id="bank" name="bank" class="form-control"
-                                                    placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="wawancara_tgl">Tanggal Wawancara</label>
-                                                <input type="text" id="wawancara_tgl" name="wawancara_tgl"
-                                                    class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <div class="divider divider-left">
-                                                <div class="divider-text font-weight-bold">Perintah Bangun</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="custom-control custom-switch custom-control-inline">
-                                                    <input type="checkbox" class="custom-control-input"
-                                                        id="perintah_bangun" name="perintah_bangun" value="1" />
-                                                    <label class="custom-control-label"
-                                                        for="perintah_bangun">Perintah
-                                                        Bangun</label>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="perintah_bangun_tgl">Tanggal Perintah Bangun</label>
-                                                <input type="text" readonly="readonly" id="perintah_bangun_tgl"
-                                                    name="perintah_bangun_tgl"
-                                                    class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="perintah_bangun_oleh">Oleh</label>
-                                                <input type="text" readonly="readonly" id="perintah_bangun_oleh"
-                                                    name="perintah_bangun_oleh" class="form-control"
-                                                    placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Perintah Bangun</label>
-                                                <div class="custom-file">
-                                                    <input type="file" class="custom-file-input"
-                                                        accept="application/pdf" name="perintah_bangun_file"
-                                                        id="perintah_bangun_file" />
-                                                    <label class="custom-file-label" id="label-perintah_bangun_file"
-                                                        for="label-perintah_bangun_file">Upload File Perintah
-                                                        Bangun</label>
-                                                    <btn id="list-upload_perintah_bangun_file" class='btn btn-outline-primary waves-effect btn-sm col-12 mt-1'>Lihat File</btn>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <div class="divider divider-left">
-                                                <div class="divider-text font-weight-bold">SP3K</div>
-                                            </div>
-
-
-                                            <div class="form-group">
-                                                <label for="bank">No SP3K</label>
-                                                <input type="text" id="sp3k_no" name="sp3k_no" class="form-control"
-                                                    placeholder="-" />
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label>SP3K</label>
-                                                <div class="custom-file">
-                                                    <input type="file" class="custom-file-input"
-                                                        accept="application/pdf" name="sp3k_file" id="sp3k_file" />
-                                                    <label class="custom-file-label" id="label-sp3k_file"
-                                                        for="label-sp3k_file">Upload File SP3K</label>
-                                                    <btn id="list-upload_sp3k_file" class='btn btn-outline-primary waves-effect btn-sm col-12 mt-1'>Lihat File</btn>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <div class="custom-control custom-switch custom-control-inline">
-                                                    <input type="checkbox" class="custom-control-input" id="sp3k"
-                                                        name="sp3k" value="1" />
-                                                    <label class="custom-control-label" for="sp3k">SP3K</label>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="sp3k_tgl">Tanggal Terbit</label>
-                                                <input type="text" id="sp3k_tgl" name="sp3k_tgl"
-                                                    class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="sp3k_tgl_exp">Tanggal Kadaluarsa</label>
-                                                <input type="text" id="sp3k_tgl_exp" name="sp3k_tgl_exp"
-                                                    class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <div class="divider divider-left">
-                                                <div class="divider-text font-weight-bold">KPR</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="bank">Pengajuan</label>
-                                                <input type="text" id="harga_kpr" name="harga_kpr"
-                                                    class="form-control num" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="bank">Disetujui</label>
-                                                <input type="text" id="acc_harga_kpr" name="acc_harga_kpr"
-                                                    class="form-control num" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="bank">Turun KPR</label>
-                                                <input type="text" id="harga_turun_kpr" name="harga_turun_kpr"
-                                                    class="form-control num" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <button id="btn-add-tagihan-turunkpr"
-                                                    class="btn btn-primary col-12">Buat Tagihan untuk Turun
-                                                    KPR</button>
-                                            </div>
-                                            <div id="mkdt-tagihan_kpr"></div>
-                                        </div>
-                                    </div>
-
-
-                                    <div class="card">
-                                        <div class="card-body">
-                                            <div class="divider divider-left">
-                                                <div class="divider-text font-weight-bold">Akad</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="rencana_akad_tgl">Tanggal Rencana Akad</label>
-                                                <input type="text" id="rencana_akad_tgl" name="rencana_akad_tgl"
-                                                    class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Notaris</label>
-                                                <input type="text" id="notaris" name="notaris" class="form-control"
-                                                    placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label>PPJB/AJB</label>
-                                                <select class="form-control" id="is_ajb" name="is_ajb">
-                                                    <option value=""></option>
-                                                    <option value="AJB">AJB</option>
-                                                    <option value="PPJB">PPJB</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <div class="custom-control custom-switch custom-control-inline">
-                                                    <input type="checkbox" class="custom-control-input" id="akad"
-                                                        name="akad" value="1" />
-                                                    <label class="custom-control-label" for="akad">Akad</label>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="akad_tgl">Tanggal Akad</label>
-                                                <input type="text" id="akad_tgl" name="akad_tgl"
-                                                    class="form-control flatpickr-human-friendly" placeholder="-" />
-                                            </div>
-                                            <div class="form-group">
-                                                <label>No Debitur</label>
-                                                <input type="text" id="debitur_no" name="debitur_no"
-                                                    class="form-control" placeholder="-" />
-                                            </div>
-                                            <div class="form-group hidden">
-                                                <label>No BAST</label>
-                                                <input type="text" id="bast_no" name="bast_no" class="form-control"
-                                                    placeholder="-" />
-                                            </div>
-                                            <div class="form-group hidden">
-                                                <label>BAST</label>
-                                                <div class="custom-file">
-                                                    <input type="file" class="custom-file-input"
-                                                        accept="application/pdf" name="bast_file" id="bast_file" />
-                                                    <label class="custom-file-label" id="label-bast_file"
-                                                        for="label-bast_file">Upload File BAST</label>
-                                                    <a href="" target=_blank id="list-upload_bast_file">Klik untuk
-                                                        lihat
-                                                        file</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="wawancara_tgl">Tanggal Wawancara</label>
+                                    <input type="text" id="wawancara_tgl" name="wawancara_tgl" class="form-control-custom flatpickr-human-friendly" placeholder="-" />
                                 </div>
-                                <div class="row">
-                                    <div class="col-sm-12 col-md-4 col-lg-4">
-                                    </div>
-                                    <div class="col-sm-12 col-md-4 col-lg-4">
-                                    </div>
-                                    <div class="col-sm-12 col-md-4 col-lg-4">
-                                        <!-- <div class="form-group">
-                                                <label for="mkdt_keterangan">Keterangan</label>
-                                                <textarea class="form-control" id="mkdt_keterangan" name="mkdt_keterangan" rows="3" placeholder="Keterangan"></textarea>
-                                            </div> -->
-                                        <!-- <div class="divider">
-                                                <div class="divider-text">Harga Jual</div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Tanggaal Pricelist</label>
-                                                <input type="text" class="form-control text-right" id="mkdt-tgl_harga" name="mkdt-tgl_harga" value="" readonly />
-                                            </div>
-
-                                            <input type="hidden" class="form-control" id="mkdt-harga_akhir" name="mkdt-harga_akhir" value="" readonly />
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Harga Jual</label>
-                                                <input type="text" class="form-control num" id="mkdt-hargajual" name="mkdt-hargajual" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">KPR</label>
-                                                <input type="text" class="form-control num" id="mkdt-kpr" name="mkdt-kpr" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Uang Muka</label>
-                                                <input type="text" class="form-control num" id="mkdt-uang_muka" name="mkdt-uang_muka" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">BPHTB</label>
-                                                <input type="text" class="form-control num" id="mkdt-bphtb" name="mkdt-bphtb" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Biaya Adm</label>
-                                                <input type="text" class="form-control num" id="mkdt-biaya_adm" name="mkdt-biaya_adm" value="" readonly />
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="form-label" for="basic-icon-default-fullname">Biaya Proses</label>
-                                                <input type="text" class="form-control num" id="mkdt-biaya_proses" name="mkdt-biaya_proses" value="" readonly />
-                                            </div> -->
-                                    </div>
-
-                                </div>
-
                             </div>
                         </div>
                     </div>
-                    <!-- </div> -->
-                    <!-- </div> -->
+
+                    <!-- PERINTAH BANGUN BLOCK -->
+                    <div id="sd-pb" class="scroll-section" style="padding-bottom: 2rem;">
+                        <div class="section-card mb-2">
+                            <div class="section-card-header">
+                                <div class="section-card-icon icon-amber"><i class="fas fa-hammer"></i></div>
+                                <h6 class="section-card-title">Instruksi Pembangunan</h6>
+                            </div>
+                            <div class="section-card-body">
+                                <div class="form-group-custom">
+                                    <div class="custom-control custom-switch custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="perintah_bangun" name="perintah_bangun" value="1" />
+                                        <label class="custom-control-label" for="perintah_bangun">Perintah Bangun</label>
+                                    </div>
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="perintah_bangun_tgl">Tanggal Perintah Bangun</label>
+                                    <input type="text" readonly="readonly" id="perintah_bangun_tgl" name="perintah_bangun_tgl" class="form-control-custom flatpickr-human-friendly" placeholder="-" />
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="perintah_bangun_oleh">Oleh</label>
+                                    <input type="text" readonly="readonly" id="perintah_bangun_oleh" name="perintah_bangun_oleh" class="form-control-custom" placeholder="-" />
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom">File Perintah Bangun (PDF)</label>
+                                    <div class="custom-file mb-1">
+                                        <input type="file" class="custom-file-input" accept="application/pdf" name="perintah_bangun_file" id="perintah_bangun_file" />
+                                        <label class="custom-file-label form-control-custom" id="label-perintah_bangun_file" for="label-perintah_bangun_file" style="line-height: inherit; color: var(--text-light);">Pilih File</label>
+                                    </div>
+                                    <btn id="list-upload_perintah_bangun_file" class='btn-outline-custom w-100' style="display:block; text-align:center;"><i class="fas fa-file-pdf"></i> Lihat File</btn>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SP3K BLOCK -->
+                    <div id="sd-sp3k" class="scroll-section" style="padding-bottom: 2rem;">
+                        <div class="section-card mb-2">
+                            <div class="section-card-header">
+                                <div class="section-card-icon icon-green"><i class="fas fa-file-contract"></i></div>
+                                <h6 class="section-card-title">Surat Penegasan Persetujuan Penyediaan Kredit</h6>
+                            </div>
+                            <div class="section-card-body">
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="sp3k_no">No SP3K</label>
+                                    <input type="text" id="sp3k_no" name="sp3k_no" class="form-control-custom" placeholder="-" />
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom">File SP3K</label>
+                                    <div class="custom-file mb-1">
+                                        <input type="file" class="custom-file-input" accept="application/pdf" name="sp3k_file" id="sp3k_file" />
+                                        <label class="custom-file-label form-control-custom" id="label-sp3k_file" for="label-sp3k_file" style="line-height: inherit; color: var(--text-light);">Pilih File</label>
+                                    </div>
+                                    <btn id="list-upload_sp3k_file" class='btn-outline-custom w-100' style="display:block; text-align:center;"><i class="fas fa-file-pdf"></i> Lihat File</btn>
+                                </div>
+                                <div class="form-group-custom">
+                                    <div class="custom-control custom-switch custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="sp3k" name="sp3k" value="1" />
+                                        <label class="custom-control-label" for="sp3k">Status Verifikasi SP3K</label>
+                                    </div>
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="sp3k_tgl">Tanggal Terbit</label>
+                                    <input type="text" id="sp3k_tgl" name="sp3k_tgl" class="form-control-custom flatpickr-human-friendly" placeholder="-" />
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="sp3k_tgl_exp">Tanggal Kadaluarsa</label>
+                                    <input type="text" id="sp3k_tgl_exp" name="sp3k_tgl_exp" class="form-control-custom flatpickr-human-friendly" placeholder="-" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPR BLOCK -->
+                    <div id="sd-kpr" class="scroll-section" style="padding-bottom: 2rem;">
+                        <div class="section-card mb-2">
+                            <div class="section-card-header">
+                                <div class="section-card-icon icon-blue"><i class="fas fa-money-check-alt"></i></div>
+                                <h6 class="section-card-title">Kredit Pemilikan Rumah (KPR)</h6>
+                            </div>
+                            <div class="section-card-body">
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="harga_kpr">Nilai Pengajuan</label>
+                                    <input type="text" id="harga_kpr" name="harga_kpr" class="form-control-custom num" placeholder="-" />
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="acc_harga_kpr">Nilai Disetujui</label>
+                                    <input type="text" id="acc_harga_kpr" name="acc_harga_kpr" class="form-control-custom num" placeholder="-" />
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="harga_turun_kpr">Turun KPR (Selisih)</label>
+                                    <input type="text" id="harga_turun_kpr" name="harga_turun_kpr" class="form-control-custom num" placeholder="-" />
+                                </div>
+                                <div class="form-group-custom">
+                                    <button type="button" id="btn-add-tagihan-turunkpr" class="btn-save w-100" style="padding: 10px; font-size: 0.85rem;"><i class="fas fa-plus mr-1"></i> Buat Tagihan untuk Turun KPR</button>
+                                </div>
+                                <div id="mkdt-tagihan_kpr"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AKAD BLOCK -->
+                    <div id="sd-akad" class="scroll-section" style="padding-bottom: 3rem;">
+                        <div class="section-card mb-2">
+                            <div class="section-card-header">
+                                <div class="section-card-icon icon-amber"><i class="fas fa-handshake"></i></div>
+                                <h6 class="section-card-title">Persiapan Akad</h6>
+                            </div>
+                            <div class="section-card-body">
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="rencana_akad_tgl">Tanggal Rencana Akad</label>
+                                    <input type="text" id="rencana_akad_tgl" name="rencana_akad_tgl" class="form-control-custom flatpickr-human-friendly" placeholder="-" />
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom">Notaris</label>
+                                    <input type="text" id="notaris" name="notaris" class="form-control-custom" placeholder="-" />
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom">PPJB/AJB</label>
+                                    <select class="form-control-custom custom-select" id="is_ajb" name="is_ajb">
+                                        <option value=""></option>
+                                        <option value="AJB">AJB</option>
+                                        <option value="PPJB">PPJB</option>
+                                    </select>
+                                </div>
+                                <div class="form-group-custom">
+                                    <div class="custom-control custom-switch custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="akad" name="akad" value="1" />
+                                        <label class="custom-control-label" for="akad">Status Akad Rampung</label>
+                                    </div>
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom" for="akad_tgl">Tanggal Akad</label>
+                                    <input type="text" id="akad_tgl" name="akad_tgl" class="form-control-custom flatpickr-human-friendly" placeholder="-" />
+                                </div>
+                                <div class="form-group-custom">
+                                    <label class="form-label-custom">No Debitur</label>
+                                    <input type="text" id="debitur_no" name="debitur_no" class="form-control-custom" placeholder="-" />
+                                </div>
+                                <div class="form-group-custom hidden">
+                                    <label class="form-label-custom">No BAST</label>
+                                    <input type="text" id="bast_no" name="bast_no" class="form-control-custom" placeholder="-" />
+                                </div>
+                                <div class="form-group-custom hidden">
+                                    <label class="form-label-custom">BAST File</label>
+                                    <div class="custom-file mb-1">
+                                        <input type="file" class="custom-file-input" accept="application/pdf" name="bast_file" id="bast_file" />
+                                        <label class="custom-file-label form-control-custom" id="label-bast_file" for="label-bast_file" style="line-height:inherit; color:var(--text-light);">Pilih File BAST</label>
+                                    </div>
+                                    <a href="" target=_blank id="list-upload_bast_file" class="btn-outline-custom w-100" style="display:block; text-align:center;"><i class="fas fa-file-pdf"></i> Lihat File BAST</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-                <br>
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-cancel" data-dismiss="modal"><i class="fas fa-times mr-1"></i> Cancel</button>
+                <button type="button" id="add-form-btn-mkdt" class="btn-save" onclick="save_mkdt(this)"><i class="fas fa-save mr-1"></i> Simpan Data</button>
             </div>
-            <div class="modal-footer">
-                <button id="add-form-btn-mkdt" class="btn btn-primary data-submit mr-1" onclick="save_mkdt(this)"
-                    href="javascript:void(0)">Simpan</button>
-                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
-            </div>
+        </form>
     </div>
-    </form>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const mkdtModal = document.getElementById("modal_divisi4");
+        if (!mkdtModal) return;
+
+        const scrollArea = document.getElementById("mkdt-main-scroll-area");
+        const sections = Array.from(mkdtModal.querySelectorAll(".scroll-section"));
+        const navItems = mkdtModal.querySelectorAll(".sidebar-nav-item");
+
+        if (scrollArea && sections.length > 0) {
+            // Handle Sidebar Clicks to scroll to section
+            navItems.forEach(item => {
+                item.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute("href").substring(1);
+                    const targetEl = document.getElementById(targetId);
+                    if (targetEl && scrollArea) {
+                        scrollArea.scrollTo({
+                            top: targetEl.offsetTop - scrollArea.offsetTop,
+                            behavior: "smooth"
+                        });
+                    }
+                });
+            });
+
+            // Handle scroll syncing
+            scrollArea.addEventListener("scroll", function() {
+                let current = "";
+                const currentPosition = scrollArea.scrollTop;
+
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop - scrollArea.offsetTop - 50;
+                    if (currentPosition >= sectionTop) {
+                        current = section.getAttribute("id");
+                    }
+                });
+
+                navItems.forEach(item => {
+                    item.classList.remove("active");
+                    if (item.getAttribute("href") === "#" + current) {
+                        item.classList.add("active");
+                    }
+                });
+            });
+        }
+    });
+</script>
+
+
+
 <!-- ################################### modal mkdt standing instruction ##################################### -->
 <div class="modal fade " id="modals-si">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">

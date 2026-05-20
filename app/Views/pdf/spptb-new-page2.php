@@ -210,7 +210,7 @@
     </table>
 
     <p style="margin-bottom:20px;padding-top:-10px">
-        <strong>Total yang harus dibayar: Rp. <?= num_format($grandTotal) ?>( <?= $data->booking_fee == 0 ? "Termasuk" : "Tidak termasuk" ?> <i>booking
+        <strong>Total yang harus dibayar: Rp. <?= num_format($grandTotal) ?>( <?= $data->booking_fee == 0 ? "TERMASUK" : "TIDAK TERMASUK" ?> <i>booking
                 fee</i>)</strong>
     </p>
     <table border="0" cellspacing="0" cellpadding="0">
@@ -290,8 +290,8 @@
 
             <li>Saya telah mengetahui bahwa pembayaran yang sah yaitu apabila pembayaran dilakukan melalui transfer
                 ke
-                rekening <strong><?= $proyek->bank ?></strong> No. Acc <strong><?= $proyek->no_rek ?></strong> a/n
-                <strong><?= $proyek->atas_nama ?>.
+                rekening <strong><?= strtoupper($proyek->bank) ?></strong> No. Acc <strong><?= strtoupper($proyek->no_rek) ?></strong> a/n
+                <strong><?= strtoupper($proyek->atas_nama) ?>.
             </li>
 
             <li>Apabila keterlambatan pembayaran melewati waktu 30 hari kerja. Saya bersedia pembelian tanah dan
@@ -306,7 +306,7 @@
 
             <li>Persyaratan data-data untuk pengajuan KPR dan semua data lain yang diperlukan atau saya serahkan
                 secara
-                lengkap <?= $proyek->nama_pt ?>. paling lambat 2 (dua) minggu setelah tanggal SPPTB ini
+                lengkap <?= strtoupper($proyek->nama_pt) ?>. paling lambat 2 (dua) minggu setelah tanggal SPPTB ini
                 ditandatangani.
             </li>
 
@@ -325,10 +325,10 @@
                 atau kelebihan ukuran tanah maka saya bersedia:
                 <br>a. Membayar kekurangan pembayaran tersebut paling lambat 1 bulan setelah tanggal surat
                 pemberitahuan
-                dari <?= $proyek->nama_pt ?>.
+                dari <?= strtoupper($proyek->nama_pt) ?>.
                 <br>b. Menerima kelebihan pembayaran tersebut paling lambat 1 bulan setelah tanggal surat
                 pemberitahuan
-                dari <?= $proyek->nama_pt ?>.
+                dari <?= strtoupper($proyek->nama_pt) ?>.
             </li>
 
             <li>Jika semua persyaratan untuk akad kredit sudah terpenuhi maka selambat- lambatnya 30 hari sejak

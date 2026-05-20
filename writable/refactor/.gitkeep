@@ -1,0 +1,8 @@
+# Refactor System Storage
+
+This directory stores JSON files for the refactoring system:
+- module_inventory.json - Complete inventory of discovered modules
+- dependency_graph.json - Dependency relationships between modules
+- security_reports/ - Security scan reports for each module
+- progress.json - Progress tracking for refactoring operations
+- backups/ - Backup files for rollback functionality

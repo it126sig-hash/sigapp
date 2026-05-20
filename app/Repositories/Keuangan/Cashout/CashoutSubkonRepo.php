@@ -175,7 +175,19 @@ class CashoutSubkonRepo extends Model
             ]);
         }
 
-        return true;
+        return $detail; // Kembalikan detail agar Service bisa ambil id_cashout_subkon
+    }
+
+    /**
+     * Ambil daftar id_kavling yang terkait dengan sebuah id_cashout_subkon
+     */
+    public function getKavlingBySubkonId(int $id_cashout_subkon): array
+    {
+        $result = $this->cashoutSubkonKavlingModel
+            ->select('id_kavling')
+            ->where('id_cashout_subkon', $id_cashout_subkon)
+            ->get()->getResultArray();
+        return array_column($result, 'id_kavling');
     }
 
     public function updateSPP($id_detail, $spp_no, $spp_tgl)

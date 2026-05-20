@@ -175,6 +175,58 @@ class KeuanganService
             // })
             ->toJson();
     }
+    public function getListTagihanGrouped($request)
+    {
+        $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+
+        if ($request->getVar('id_proyek'))
+            $builder->where('p.id_proyek', $request->getVar('id_proyek'));
+        if ($request->getVar('id_cluster'))
+            $builder->where('cl.id_cluster', $request->getVar('id_cluster'));
+        if ($request->getVar('id_jalan'))
+            $builder->where('j.id_jalan', $request->getVar('id_jalan'));
+
+        return DataTable::of($builder)
+            ->addSearchableColumns('nama_konsumen', 'no_kavling')
+            ->add('Aksi', function ($value) {
+                $sh = json_encode([
+                    'data' => [
+                        'id_mkdt'     => $value->id_mkdt,
+                        'nama_proyek' => $value->nama_proyek,
+                        'nama_jalan'  => $value->nama_jalan,
+                        'no_kavling'  => $value->no_kavling,
+                    ],
+                    'data2' => [
+                        'no_tipe_rumah' => $value->no_tipe_rumah,
+                        'tipe_rumah'    => $value->id_tipe,
+                    ]
+                ]);
+                return '<button class="btn btn-outline-primary btn-sm" onclick="open_keuangan(' . htmlspecialchars($sh, ENT_QUOTES, 'UTF-8') . ', 3, 0)"><i class="fas fa-receipt"></i> Bayar</button>';
+            }, 'first')
+            ->addNumbering('no')
+            ->edit('booking_tgl', function ($value) {
+                return $this->format_tgl($value->booking_tgl);
+            })
+            ->edit('jatuh_tempo_tgl', function ($value) {
+                return $this->format_tgl($value->jatuh_tempo_tgl);
+            })
+            ->edit('is_kpr', function ($value) {
+                return $this->is_active($value->is_kpr, 'KPR', 'TUNAI');
+            })
+            ->edit('total_tagihan', function ($v) {
+                return number_format($v->um + $v->adm + $v->bb);
+            })
+            ->edit('sudah_bayar', function ($v) {
+                return number_format($v->total_um + $v->total_adm + $v->total_bb);
+            })
+            ->edit('sisa_tagihan', function ($v) {
+                $tot = $v->um + $v->adm + $v->bb;
+                $sb  = $v->total_um + $v->total_adm + $v->total_bb;
+                return number_format($tot - $sb);
+            })
+            ->toJson();
+    }
+
     public function getTagihanById($id_mkdt, $isTurunKPR = false)
     {
         return $this->keuRepo->getTagihanById($id_mkdt, $isTurunKPR);

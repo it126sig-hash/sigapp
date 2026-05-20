@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modal Status Kavling</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+  :root {
+    --primary:       #5B4FCF;
+    --primary-light: #EEF0FF;
+    --primary-dark:  #3e35a0;
+    --accent:        #F59E0B;
+    --success:       #10B981;
+    --danger:        #EF4444;
+    --text-main:     #1E1B3A;
+    --text-muted:    #6B7280;
+    --text-light:    #9CA3AF;
+    --border:        #E5E7EB;
+    --bg-body:       #F3F4F6;
+    --bg-card:       #FFFFFF;
+    --sidebar-bg:    #1E1B3A;
+    --sidebar-text:  #C4C6D8;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg-body);
+    color: var(--text-main);
+  }
+
+  /* ── MODAL OVERRIDES ─────────────────────────── */
+  .modal-dialog {
+    max-width: 960px;
+    margin: 1.5rem auto;
+  }
+
+  .modal-content {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+  }
+
+  /* ── HEADER ──────────────────────────────────── */
+  .modal-header-custom {
+    background: linear-gradient(130deg, #3B2F9E 0%, #5B4FCF 60%, #7B6FE0 100%);
+    padding: 20px 28px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .modal-header-custom::before {
+    content: '';
+    position: absolute;
+    right: -40px; top: -60px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+
+  .modal-header-custom::after {
+    content: '';
+    position: absolute;
+    right: 60px; bottom: -80px;
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .modal-title-main {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 2px;
+  }
+
+  .modal-title-kavling {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+  }
+
+  .header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 10px;
+  }
+
+  .header-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.75);
+  }
+
+  .header-meta-item i { font-size: 0.72rem; opacity: 0.8; }
+
+  .btn-close-modal {
+    position: absolute;
+    top: 16px; right: 20px;
+    background: rgba(255,255,255,0.12);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    z-index: 2;
+  }
+  .btn-close-modal:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── BODY LAYOUT ─────────────────────────────── */
+  .modal-body-custom {
+    display: flex;
+    gap: 0;
+    background: var(--bg-body);
+    min-height: 500px;
+  }
+
+  /* Left sidebar */
+  .modal-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    padding: 20px 0;
+  }
+
+  .sidebar-section-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    padding: 0 18px 6px;
+    margin-top: 12px;
+  }
+
+  .sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 18px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--sidebar-text);
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+
+  .sidebar-nav-item:hover {
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .sidebar-nav-item.active {
+    background: rgba(91,79,207,0.25);
+    border-left-color: var(--primary);
+    color: #fff;
+  }
+
+  .sidebar-nav-item i { width: 16px; text-align: center; font-size: 0.78rem; }
+
+  /* Info box in sidebar */
+  .sidebar-info-box {
+    margin: 16px 12px 0;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 14px;
+  }
+
+  .sidebar-info-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 3px;
+  }
+
+  .sidebar-info-value {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .badge-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
+  .badge-booking {
+    background: rgba(245,158,11,0.2);
+    color: #F59E0B;
+    border: 1px solid rgba(245,158,11,0.3);
+  }
+
+  /* Right content */
+  .modal-main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 24px;
+    max-height: 72vh;
+  }
+
+  /* ── SECTION CARDS ───────────────────────────── */
+  .section-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .section-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    background: #FAFAFA;
+  }
+
+  .section-card-icon {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem;
+  }
+
+  .icon-purple { background: var(--primary-light); color: var(--primary); }
+  .icon-blue   { background: #EFF6FF; color: #3B82F6; }
+  .icon-green  { background: #ECFDF5; color: #10B981; }
+  .icon-amber  { background: #FFFBEB; color: #F59E0B; }
+  .icon-rose   { background: #FFF1F2; color: #F43F5E; }
+
+  .section-card-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+  }
+
+  .section-card-body {
+    padding: 16px 18px;
+  }
+
+  /* ── FORM ELEMENTS ───────────────────────────── */
+  .form-label-custom {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 5px;
+    display: block;
+  }
+
+  .form-control-custom {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.82rem;
+    padding: 8px 12px;
+    color: var(--text-main);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%;
+    background: #fff;
+  }
+
+  .form-control-custom:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(91,79,207,0.1);
+  }
+
+  .form-control-custom::placeholder { color: var(--text-light); }
+
+  .form-control-custom:disabled,
+  .form-control-custom[readonly] {
+    background: #F9FAFB;
+    color: var(--text-muted);
+  }
+
+  select.form-control-custom {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  .form-group-custom { margin-bottom: 14px; }
+
+  /* Toggle switch */
+  .toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-body);
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+  }
+
+  .toggle-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-main);
+    margin: 0;
+  }
+
+  .custom-switch .custom-control-input:checked ~ .custom-control-label::before {
+    background-color: var(--primary);
+    border-color: var(--primary);
+  }
+
+  /* File upload zone */
+  .file-upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    background: #FAFAFA;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .file-upload-zone:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+
+  .file-upload-zone i { color: var(--text-light); font-size: 1.2rem; margin-bottom: 4px; }
+  .file-upload-zone p { font-size: 0.72rem; color: var(--text-muted); margin: 0; }
+
+  .btn-view-file {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 7px;
+    border-radius: 7px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1.5px solid var(--border);
+    background: #fff;
+    color: var(--primary);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .btn-view-file:hover { border-color: var(--primary); background: var(--primary-light); }
+
+  /* Number input with formatting hint */
+  .input-prefix {
+    position: relative;
+  }
+  .input-prefix .prefix-text {
+    position: absolute;
+    left: 11px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    pointer-events: none;
+  }
+  .input-prefix .form-control-custom { padding-left: 42px; }
+
+  /* Divider in section */
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 14px 0;
+  }
+
+  /* ── FOOTER ──────────────────────────────────── */
+  .modal-footer-custom {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 24px;
+    background: #fff;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-cancel {
+    padding: 9px 22px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .btn-cancel:hover { background: var(--bg-body); color: var(--text-main); }
+
+  .btn-save {
+    padding: 9px 28px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  .btn-save:hover { background: var(--primary-dark); }
+
+  .btn-tagihan {
+    display: block;
+    width: 100%;
+    padding: 9px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border: none;
+    background: linear-gradient(135deg, var(--primary) 0%, #7B6FE0 100%);
+    color: #fff;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 10px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: opacity 0.15s;
+  }
+  .btn-tagihan:hover { opacity: 0.88; }
+
+  /* ── GRID HELPERS ────────────────────────────── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  /* ── BERKAS BADGE ────────────────────────────── */
+  .berkas-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .berkas-unavailable { background: #FFF1F2; color: #F43F5E; border: 1px solid #FECDD3; }
+  .berkas-available   { background: #ECFDF5; color: #10B981; border: 1px solid #A7F3D0; }
+
+  /* scrollbar styling */
+  .modal-main::-webkit-scrollbar { width: 5px; }
+  .modal-main::-webkit-scrollbar-track { background: transparent; }
+  .modal-main::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
+
+  /* ── DEMO WRAPPER ────────────────────────────── */
+  .demo-bg {
+    min-height: 100vh;
+    background: #E5E7EB;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+</style>
+</head>
+<body>
+
+<div class="demo-bg">
+<div style="width:100%; max-width:960px;">
+
+<!-- ══ MODAL ══════════════════════════════════════════════════════════ -->
+<div class="modal-content">
+
+  <!-- HEADER -->
+  <div class="modal-header-custom">
+    <div>
+      <div class="modal-title-main">Marketing Data</div>
+      <div class="modal-title-kavling">BKI <span style="opacity:.55;font-weight:400">(Dummy Data)</span></div>
+      <div class="header-meta">
+        <span class="header-meta-item"><i class="fas fa-map-marker-alt"></i> Astrajingga 3, No.18</span>
+        <span class="header-meta-item"><i class="fas fa-home"></i> Tipe 22/60</span>
+        <span class="header-meta-item"><i class="fas fa-tag"></i> BKI/2260/DUMMY/TIPE</span>
+      </div>
+    </div>
+    <button class="btn-close-modal" onclick="void(0)"><i class="fas fa-times"></i></button>
+  </div>
+
+  <!-- BODY -->
+  <div class="modal-body-custom">
+
+    <!-- SIDEBAR -->
+    <div class="modal-sidebar">
+
+      <!-- Info Box -->
+      <div class="sidebar-info-box">
+        <div class="sidebar-info-label">No. SPPTB</div>
+        <div class="sidebar-info-value">00102</div>
+        <div class="sidebar-info-label">Konsumen</div>
+        <div class="sidebar-info-value" style="margin-bottom:8px">Memed</div>
+        <div class="sidebar-info-label">Status Kavling</div>
+        <div style="margin-top:4px"><span class="badge-status badge-booking">Booking</span></div>
+      </div>
+
+      <!-- Nav -->
+      <div class="sidebar-section-label" style="margin-top:20px">Sections</div>
+      <a class="sidebar-nav-item active" href="#sec-status">
+        <i class="fas fa-circle-dot"></i> Status Konsumen
+      </a>
+      <a class="sidebar-nav-item" href="#sec-wawancara">
+        <i class="fas fa-comments"></i> Wawancara
+      </a>
+      <a class="sidebar-nav-item" href="#sec-perintah">
+        <i class="fas fa-hammer"></i> Perintah Bangun
+      </a>
+      <a class="sidebar-nav-item" href="#sec-sp3k">
+        <i class="fas fa-file-contract"></i> SP3K
+      </a>
+      <a class="sidebar-nav-item" href="#sec-kpr">
+        <i class="fas fa-university"></i> KPR
+      </a>
+      <a class="sidebar-nav-item" href="#sec-akad">
+        <i class="fas fa-handshake"></i> Akad
+      </a>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="modal-main">
+
+      <!-- ── Status Booking ────────────── -->
+      <div class="section-card" id="sec-booking">
+        <div class="section-card-header">
+          <div class="section-card-icon icon-amber"><i class="fas fa-calendar-check"></i></div>
+          <h6 class="section-card-title">Status Kavling & Booking</h6>
+        </div>
+        <div class="section-card-body">
+          <div class="three-col">
+            <div class="form-group-custom">
+              <label class="form-label-custom">Status Booking</label>
+              <select class="form-control-custom">
+                <option>Booking</option>
+                <option>ACC SP3K</option>
+                <option>Reject</option>
+                <option>Wawancara</option>
+              </select>
+            </div>
+            <div class="form-group-custom">
+              <label class="form-label-custom">Tanggal Booking</label>
+              <input type="date" class="form-control-custom" value="2026-04-22">
+            </div>
+            <div class="form-group-custom">
+              <label class="form-label-custom">Booking Fee</label>
+              <div class="input-prefix">
+                <span class="prefix-text">Rp</span>
+                <input type="text" class="form-control-custom" value="1,500,000">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Status Konsumen ───────────── -->
+      <div class="section-card" id="sec-status">
+        <div class="section-card-header">
+          <div class="section-card-icon icon-purple"><i class="fas fa-user-check"></i></div>
+          <h6 class="section-card-title">Status Konsumen</h6>
+        </div>
+        <div class="section-card-body">
+          <div class="form-group-custom">
+            <label class="form-label-custom">Status</label>
+            <input type="text" class="form-control-custom" placeholder="ACC SP3K / REJECT / WAWANCARA / DLL">
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Wawancara ──────────────────── -->
+      <div class="section-card" id="sec-wawancara">
+        <div class="section-card-header">
+          <div class="section-card-icon icon-blue"><i class="fas fa-comments"></i></div>
+          <h6 class="section-card-title">Wawancara</h6>
+        </div>
+        <div class="section-card-body">
+          <div style="margin-bottom:14px">
+            <div class="toggle-wrapper">
+              <div class="custom-control custom-switch mb-0">
+                <input type="checkbox" class="custom-control-input" id="toggleWawancara">
+                <label class="custom-control-label toggle-label" for="toggleWawancara">Sudah Wawancara</label>
+              </div>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="form-group-custom">
+              <label class="form-label-custom">Bank</label>
+              <select class="form-control-custom">
+                <option>BTN</option>
+                <option>BRI</option>
+                <option>Mandiri</option>
+                <option>BCA</option>
+              </select>
+            </div>
+            <div class="form-group-custom">
+              <label class="form-label-custom">Tanggal Wawancara</label>
+              <input type="date" class="form-control-custom">
+            </div>
+          </div>
+          <div class="form-group-custom">
+            <label class="form-label-custom">Keterangan</label>
+            <textarea class="form-control-custom" rows="2" placeholder="Keterangan tambahan..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Perintah Bangun ────────────── -->
+      <div class="section-card" id="sec-perintah">
+        <div class="section-card-header">
+          <div class="section-card-icon icon-green"><i class="fas fa-hammer"></i></div>
+          <h6 class="section-card-title">Perintah Bangun</h6>
+        </div>
+        <div class="section-card-body">
+          <div style="margin-bottom:14px">
+            <div class="toggle-wrapper">
+              <div class="custom-control custom-switch mb-0">
+                <input type="checkbox" class="custom-control-input" id="togglePerintah">
+                <label class="custom-control-label toggle-label" for="togglePerintah">Perintah Bangun</label>
+              </div>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="form-group-custom">
+              <label class="form-label-custom">Tanggal Perintah Bangun</label>
+              <input type="date" class="form-control-custom">
+            </div>
+            <div class="form-group-custom">
+              <label class="form-label-custom">Oleh</label>
+              <input type="text" class="form-control-custom" placeholder="-">
+            </div>
+          </div>
+          <div class="form-group-custom">
+            <label class="form-label-custom">Upload File Perintah Bangun</label>
+            <div class="file-upload-zone">
+              <i class="fas fa-cloud-upload-alt d-block mx-auto mb-1"></i>
+              <p>Klik atau seret file ke sini</p>
+              <p style="font-size:0.65rem;color:#9CA3AF">PDF / JPG / PNG</p>
+            </div>
+            <button class="btn-view-file"><i class="fas fa-eye mr-1"></i> Lihat File</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SP3K ──────────────────────── -->
+      <div class="section-card" id="sec-sp3k">
+        <div class="section-card-header">
+          <div class="section-card-icon icon-rose"><i class="fas fa-file-contract"></i></div>
+          <h6 class="section-card-title">SP3K</h6>
+        </div>
+        <div class="section-card-body">
+          <div class="form-group-custom">
+            <label class="form-label-custom">No. SP3K</label>
+            <input type="text" class="form-control-custom" placeholder="-">
+          </div>
+
+          <div class="form-group-custom">
+            <label class="form-label-custom">Upload File SP3K</label>
+            <span class="berkas-badge berkas-unavailable"><i class="fas fa-circle-xmark"></i> Berkas tidak tersedia</span>
+            <div class="file-upload-zone">
+              <i class="fas fa-cloud-upload-alt d-block mx-auto mb-1"></i>
+              <p>Klik atau seret file ke sini</p>
+            </div>
+          </div>
+
+          <div class="toggle-wrapper mb-3">
+            <div class="custom-control custom-switch mb-0">
+              <input type="checkbox" class="custom-control-input" id="toggleSP3K">
+              <label class="custom-control-label toggle-label" for="toggleSP3K">SP3K</label>
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="form-group-custom">
+              <label class="form-label-custom">Tanggal Terbit</label>
+              <input type="date" class="form-control-custom">
+            </div>
+            <div class="form-group-custom">
+              <label class="form-label-custom">Tanggal Kadaluarsa</label>
+              <input type="date" class="form-control-custom">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── KPR ───────────────────────── -->
+      <div class="section-card" id="sec-kpr">
+        <div class="section-card-header">
+          <div class="section-card-icon icon-blue"><i class="fas fa-university"></i></div>
+          <h6 class="section-card-title">KPR</h6>
+        </div>
+        <div class="section-card-body">
+          <div class="three-col">
+            <div class="form-group-custom">
+              <label class="form-label-custom">Pengajuan</label>
+              <div class="input-prefix">
+                <span class="prefix-text">Rp</span>
+                <input type="text" class="form-control-custom" value="140,000,000">
+              </div>
+            </div>
+            <div class="form-group-custom">
+              <label class="form-label-custom">Disetujui</label>
+              <div class="input-prefix">
+                <span class="prefix-text">Rp</span>
+                <input type="text" class="form-control-custom" value="0">
+              </div>
+            </div>
+            <div class="form-group-custom">
+              <label class="form-label-custom">Turun KPR</label>
+              <div class="input-prefix">
+                <span class="prefix-text">Rp</span>
+                <input type="text" class="form-control-custom" value="0">
+              </div>
+            </div>
+          </div>
+          <button class="btn-tagihan"><i class="fas fa-receipt mr-1"></i> Buat Tagihan untuk Turun KPR</button>
+        </div>
+      </div>
+
+      <!-- ── Akad ──────────────────────── -->
+      <div class="section-card" id="sec-akad">
+        <div class="section-card-header">
+          <div class="section-card-icon icon-green"><i class="fas fa-handshake"></i></div>
+          <h6 class="section-card-title">Akad</h6>
+        </div>
+        <div class="section-card-body">
+          <div class="two-col">
+            <div class="form-group-custom">
+              <label class="form-label-custom">Tanggal Rencana Akad</label>
+              <input type="date" class="form-control-custom">
+            </div>
+            <div class="form-group-custom">
+              <label class="form-label-custom">Notaris</label>
+              <input type="text" class="form-control-custom" placeholder="-">
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="form-group-custom">
+              <label class="form-label-custom">PPJB / AJB</label>
+              <select class="form-control-custom">
+                <option value="">-- Pilih --</option>
+                <option>PPJB</option>
+                <option>AJB</option>
+              </select>
+            </div>
+            <div class="form-group-custom">
+              <label class="form-label-custom">No. Debitur</label>
+              <input type="text" class="form-control-custom" placeholder="-">
+            </div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <div class="toggle-wrapper mb-3">
+            <div class="custom-control custom-switch mb-0">
+              <input type="checkbox" class="custom-control-input" id="toggleAkad">
+              <label class="custom-control-label toggle-label" for="toggleAkad">Akad</label>
+            </div>
+          </div>
+
+          <div class="form-group-custom">
+            <label class="form-label-custom">Tanggal Akad</label>
+            <input type="date" class="form-control-custom">
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /modal-main -->
+  </div><!-- /modal-body-custom -->
+
+  <!-- FOOTER -->
+  <div class="modal-footer-custom">
+    <button class="btn-cancel"><i class="fas fa-times mr-1"></i> Cancel</button>
+    <button class="btn-save"><i class="fas fa-save"></i> Simpan Perubahan</button>
+  </div>
+
+</div><!-- /modal-content -->
+</div>
+</div><!-- /demo-bg -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Smooth scroll sidebar nav
+  document.querySelectorAll('.sidebar-nav-item').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.querySelectorAll('.sidebar-nav-item').forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  // Highlight active section on scroll
+  const mainScroll = document.querySelector('.modal-main');
+  const sections = document.querySelectorAll('.section-card[id]');
+  mainScroll.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(sec => {
+      if (sec.offsetTop - mainScroll.scrollTop <= 60) current = sec.id;
+    });
+    document.querySelectorAll('.sidebar-nav-item').forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

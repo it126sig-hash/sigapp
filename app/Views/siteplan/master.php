@@ -5354,13 +5354,10 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     function tambah(e = '') {
-
-
         let i = 'lk' + it
 
         if (state.data_um[$("#id_list_keu" + e).val()])
             i = $("#id_list_keu" + e).val()
-
 
         state.data_um[i] = ({
             id_list_keu: i,
@@ -5369,7 +5366,6 @@ foreach (user()->getRoles() as $key => $val) {
             nominal: $("#nominal").val(),
             jatuh_tempo_tgl: $("#jatuh_tempo_tgl").val(),
         })
-
 
         tambah_ketagihan(e)
 
@@ -5474,11 +5470,11 @@ foreach (user()->getRoles() as $key => $val) {
             });
         }).join('');
         const foot = `
-    <tr class="table-secondary">
-      <td colspan="2">Total Tagihan </td>
-      <td>${num_format(total)}</td>
-      <td></td>
-    </tr>`;
+                    <tr class="table-secondary">
+                        <td colspan="2">Total Tagihan </td>
+                        <td>${num_format(total)}</td>
+                        <td></td>
+                    </tr>`;
         return {
             html: body + foot,
             total
@@ -5486,7 +5482,6 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     function tambah_ketagihan() {
-
         const umRows = Object.keys(state.data_um || {}).map(k => ({
             key: k,
             title: state.data_um[k].berita_acara,
@@ -5506,6 +5501,7 @@ foreach (user()->getRoles() as $key => $val) {
             label: 'Tagihan Uang Muka',
             suffix: ''
         });
+
         // const bb = sectionHTML({
         //     rows: bbRows,
         //     label: 'Tagihan Biaya Biaya',

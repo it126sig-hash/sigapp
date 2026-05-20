@@ -169,11 +169,11 @@ function mark($cond)
         <tr>
             <td width="359" valign="top">
                 <p>
-                    Proyek: <?= $proyek->nama_proyek ?>
+                    Proyek: <?= strtoupper($proyek->nama_proyek) ?>
                 </p>
             </td>
             <td width="265" align="right">
-                <strong>No. SPPTB : <?= $data->no_spptb ?></strong>
+                <strong>No. SPPTB : <?= strtoupper($data->no_spptb) ?></strong>
             </td>
         </tr>
     </tbody>
@@ -199,7 +199,7 @@ function mark($cond)
             </td>
             <td valign="top">
 
-                : <?= $data->nama_konsumen ?>
+                : <?= strtoupper($data->nama_konsumen) ?>
 
             </td>
         </tr>
@@ -211,7 +211,7 @@ function mark($cond)
             </td>
             <td valign="top">
 
-                : <?= $data->nik ?>
+                : <?= strtoupper($data->nik) ?>
 
             </td>
         </tr>
@@ -221,7 +221,7 @@ function mark($cond)
             </td>
             <td>
 
-                : <?= $data->alamat_konsumen ?>
+                : <?= strtoupper($data->alamat_konsumen) ?>
 
             </td>
         </tr>
@@ -233,7 +233,7 @@ function mark($cond)
             </td>
             <td valign="top">
 
-                : <?= $data->npwp ?>
+                : <?= strtoupper($data->npwp) ?>
 
             </td>
         </tr>
@@ -245,7 +245,7 @@ function mark($cond)
             </td>
             <td valign="top">
 
-                : <?= $data->email_konsumen ?>
+                : <?= strtoupper($data->email_konsumen) ?>
 
             </td>
         </tr>
@@ -257,7 +257,7 @@ function mark($cond)
             </td>
             <td valign="top">
 
-                : <?= $data->nama_instansi ?>
+                : <?= strtoupper($data->nama_instansi) ?>
 
             </td>
         </tr>
@@ -267,7 +267,7 @@ function mark($cond)
             </td>
             <td valign="top">
 
-                : <?= $data->alamat_instansi ?>
+                : <?= strtoupper($data->alamat_instansi) ?>
 
             </td>
         </tr>
@@ -276,7 +276,7 @@ function mark($cond)
                 No HP/telp
             </td>
             <td valign="top">
-                : <?= $data->tel_instansi ?>
+                : <?= strtoupper($data->tel_instansi) ?>
             </td>
         </tr>
         <tr>
@@ -284,7 +284,7 @@ function mark($cond)
                 Email
             </td>
             <td valign="top">
-                : <?= $data->email_instansi ?>
+                : <?= strtoupper($data->email_instansi) ?>
             </td>
         </tr>
         <tr>
@@ -292,7 +292,7 @@ function mark($cond)
                 Alamat Surat
             </td>
             <td valign="top">
-                : <?= $data->alamat_surat ?>
+                : <?= strtoupper($data->alamat_surat) ?>
             </td>
         </tr>
         <tr>
@@ -313,11 +313,11 @@ function mark($cond)
         </tr>
         <tr>
             <td></td>
-            <td>1. Sudah berapa lama? <b><?= $data->lama_bekerja ?></b></td>
+            <td>1. Sudah berapa lama? <b><?= strtoupper($data->lama_bekerja) ?></b></td>
         </tr>
         <tr>
             <td></td>
-            <td>2. Di bidang apa? <b><?= $data->bidang_pekerjaan ?></b></td>
+            <td>2. Di bidang apa? <b><?= strtoupper($data->bidang_pekerjaan) ?></b></td>
         </tr>
     </tbody>
 </table>
@@ -331,7 +331,7 @@ function mark($cond)
                 Nama
             </td>
             <td valign="top">
-                : <?= $data->nama_pasangan ?>
+                : <?= strtoupper($data->nama_pasangan) ?>
             </td>
         </tr>
         <tr>
@@ -339,7 +339,7 @@ function mark($cond)
                 No. KTP
             </td>
             <td valign="top">
-                : <?= $data->nik_pasangan ?>
+                : <?= strtoupper($data->nik_pasangan) ?>
             </td>
         </tr>
         <tr>
@@ -348,7 +348,7 @@ function mark($cond)
             </td>
             <td>
 
-                : <?= $data->hp_pasangan ?>
+                : <?= strtoupper($data->hp_pasangan) ?>
 
             </td>
         </tr>
@@ -375,7 +375,7 @@ function mark($cond)
         </tr>
         <tr>
             <td></td>
-            <td>Instansi: <b><?= $data->instansi_pasangan ?></b></td>
+            <td>Instansi: <b><?= strtoupper($data->instansi_pasangan) ?></b></td>
         </tr>
     </tbody>
 </table>
@@ -385,7 +385,7 @@ function mark($cond)
 <p class="mb-0">Dengan ini <b>"menyatakan"</b></p>
 <p class="mb-0">
     1. Setuju untuk membeli tanah &amp; bangunan rumah di lokasi Perumahan <span
-        class="firstletter"><?= htmlspecialchars($proyek->nama_proyek) ?></span>.
+        class="firstletter"><?= strtoupper(htmlspecialchars($proyek->nama_proyek)) ?></span>.
 </p>
 <table class="ml-17" border="0" cellspacing="0" cellpadding="0">
     <tbody>
@@ -397,7 +397,7 @@ function mark($cond)
             </td>
             <td width="189" valign="top">
                 <p>
-                    : <?= $data->tipe_rumah ?>
+                    : <?= strtoupper($data->tipe_rumah) ?>
                 </p>
             </td>
             <td width="123" valign="top">
@@ -419,7 +419,7 @@ function mark($cond)
             </td>
             <td width="189" valign="top">
                 <p>
-                    : <span class="firstletter"><?= $data->nama_jalan ?> No. <?= $data->no_kavling ?></span>
+                    : <span class="firstletter"><?= strtoupper($data->nama_jalan) ?> No. <?= strtoupper($data->no_kavling) ?></span>
                 </p>
             </td>
             <td width="123" valign="top">
@@ -441,11 +441,10 @@ function mark($cond)
             </td>
             <td width="189" valign="top">
                 <p>
-                    : <span class="firstletter"><?= $data->sales ?></span>
+                    : <span class="firstletter"><?= strtoupper($data->sales) ?></span>
                 </p>
             </td>
         </tr>
     </tbody>
 </table>
 <!-- <sethtmlpagefooter name="footer_page1" value="on" page="1" /> -->
-   

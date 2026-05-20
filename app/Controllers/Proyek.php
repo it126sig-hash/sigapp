@@ -45,7 +45,7 @@ class Proyek extends BaseController
 		$data['token'] = csrf_hash();
 
 		$result = $this->proyekModel->select('id_proyek, nama_proyek, alamat_proyek, kelurahan, kecamatan, kota, provinsi, siteplan, logo')
-		->orderBy('order_by');
+			->orderBy('order_by');
 
 		if ($this->request->getVar('search'))
 			$result->like("nama_proyek", $this->request->getVar('search'));
@@ -54,10 +54,10 @@ class Proyek extends BaseController
 		foreach ($result->find() as $key => $value) {
 
 			// if (in_groups(6) || in_groups(1)) {
-				$ops = '<div class="btn-group">';
-				$ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_proyek . ')"><i class="fas fa-edit"></i></button>';
-				// $ops .= '	<button type="button" class="btn btn-outline-danger waves-effect  btn-sm" onclick="remove(' . $value->id_proyek . ')"><i class="fa fa-trash"></i></button>';
-				$ops .= '</div>';
+			$ops = '<div class="btn-group">';
+			$ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_proyek . ')"><i class="fas fa-edit"></i></button>';
+			// $ops .= '	<button type="button" class="btn btn-outline-danger waves-effect  btn-sm" onclick="remove(' . $value->id_proyek . ')"><i class="fa fa-trash"></i></button>';
+			$ops .= '</div>';
 			// } else {
 			// 	$ops = "";
 			// }
@@ -68,6 +68,12 @@ class Proyek extends BaseController
 				$value->nama_proyek,
 				$value->alamat_proyek,
 				"<img width='50px' src='" . base_url() . "/" . $value->logo . "'>",
+				$value->kelurahan,
+				$value->kecamatan,
+				$value->kota,
+				$value->provinsi,
+				$value->siteplan,
+				$value->logo,
 
 				$ops,
 			);
