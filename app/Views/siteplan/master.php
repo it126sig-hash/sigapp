@@ -3112,6 +3112,7 @@ foreach (user()->getRoles() as $key => $val) {
     </div>
 </div>
 <!-- BEGIN: Vendor JS-->
+<script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
 <!-- BEGIN Vendor JS-->
 
@@ -3130,9 +3131,7 @@ foreach (user()->getRoles() as $key => $val) {
 
 
     //sewwtalert2 fix error cant type after open modal
-    if ($.fn && $.fn.modal && $.fn.modal.Constructor) {
-        $.fn.modal.Constructor.prototype._enforceFocus = function() {};
-    }
+    $.fn.modal.Constructor.prototype._enforceFocus = function() {};
 
     const state = {
         id_kavling: null,

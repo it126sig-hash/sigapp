@@ -10,7 +10,7 @@ class Menu
     {
         $db = db_connect();
         $get_menu = new MenuModel();
-        $fullmenu = '<ul class="sidebar-menu" id="main-menu-navigation">';
+        $fullmenu = '<ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">';
 
         $mr = $db->table("menu_roles")
             ->select("id_menu")
@@ -43,33 +43,25 @@ class Menu
 
     private function generateMenuItem($menu, $mr, $get_menu)
     {
+        $html = "
+        <li class='nav-item'>
+            <a class='d-flex align-items-center' href='" . base_url() . $menu->url . "'>
+                <i data-feather='" . $menu->icon . "'></i>
+                <span class='menu-title text-truncate' data-i18n='" . $menu->name . "'>" . $menu->name . "</span>
+            </a>";
         $sm = $get_menu
             ->where('parent_id', $menu->id)
             ->where("is_active", 1)
             ->findAll();
-
-        $has_submenu = !empty($sm);
-        $li_class = $has_submenu ? 'menu-item-parent has-submenu' : 'menu-item-parent';
-
-        $html = "
-        <li class='{$li_class}'>
-            <a class='d-flex align-items-center' href='" . base_url() . $menu->url . "'>
-                <i data-feather='" . $menu->icon . "' class='menu-icon'></i>
-                <span class='menu-title'>" . $menu->name . "</span>";
-        if ($has_submenu) {
-            $html .= "<i class='fa-solid fa-chevron-right submenu-arrow ml-auto'></i>";
-        }
-        $html .= "</a>";
-
-        if ($has_submenu) {
-            $html .= '<ul class="menu-content" style="display: none;">';
-            foreach ($sm as $sm_item) {
-                if (in_array($sm_item->id, $mr)) {
+        if ($sm) {
+            $html .= '<ul class="menu-content">';
+            foreach ($sm as $sm) {
+                if (in_array($sm->id, $mr)) {
                     $html .= ' 
-                    <li class="menu-item-sub">
-                        <a class="d-flex align-items-center" href="' . base_url() . $sm_item->url . '">
-                            <span class="menu-dot"></span>
-                            <span class="menu-title-sub">' . $sm_item->name . '</span>
+                    <li>
+                        <a class="d-flex align-items-center" href="' . base_url() . $sm->url . '">
+                            <i data-feather="circle"></i>
+                            <span class="menu-item text-truncate" data-i18n="Collapsed Menu">' . $sm->name . '</span>
                         </a>
                     </li>';
                 }
