@@ -490,3 +490,66 @@ select.form-control-custom {
     color: #F59E0B;
     border: 1px solid rgba(245,158,11,0.3);
   }
+
+/* ==============================================================================
+   ROUNDED DESIGN SYSTEM OVERRIDES (Global buttons, inputs, textareas, selects, select2, and cards)
+   ============================================================================== */
+
+/* Buttons */
+.btn,
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+    border-radius: 12px !important;
+}
+
+/* Inputs, textareas, and standard selects */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"],
+input[type="week"],
+input[type="month"],
+textarea,
+select,
+.form-control,
+.form-control-custom {
+    border-radius: 12px !important;
+}
+
+/* Select2 dropdown selector and selections */
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+    border-radius: 12px !important;
+}
+
+/* Select2 dropdown search input and dropdown borders */
+.select2-dropdown {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    border-radius: 8px !important;
+}
+
+/* Cards */
+.card,
+.section-card,
+.card-header,
+.card-footer {
+    border-radius: 16px !important;
+}
+
+/* Card headers/footers with border radius should clip content */
+.card,
+.section-card {
+    overflow: hidden !important;
+}

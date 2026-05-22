@@ -119,20 +119,203 @@ foreach (user()->getRoles() as $key => $val) {
 
     .float {
         position: fixed;
-        width: '100%';
-        /* height: 70px; */
-        bottom: 40px;
-        background-color: #fff;
-        border: 1px solid;
-        border-radius: 5px;
-        text-align: center;
-        box-shadow: 2px 2px 3px #999;
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(229, 231, 235, 0.6) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.02) !important;
         z-index: 1040;
-        padding: 5px;
-        margin: 5px;
-        max-width: 90vw;
-        /* left: 50%;
-        transform: translateX(-50%); */
+        padding: 6px 14px !important;
+        margin: 0 !important;
+        max-width: 95vw;
+        width: auto !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        scrollbar-width: none; /* Hide scrollbar Firefox */
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        animation: floatDockEntrance 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+    }
+
+    /* Desktop (min-width: 1201px) - Align Left, Offset by Floating Sidebar */
+    @media (min-width: 1201px) {
+        .float {
+            bottom: 24px !important;
+            left: calc(290px + 24px) !important;
+            right: auto !important;
+            transform: none !important;
+        }
+        body.menu-collapsed .float {
+            left: calc(110px + 24px) !important;
+        }
+    }
+
+    /* Tablet (min-width: 768px and max-width: 1200px) - Align Left */
+    @media (min-width: 768px) and (max-width: 1200px) {
+        .float {
+            bottom: 24px !important;
+            left: 24px !important;
+            right: auto !important;
+            transform: none !important;
+        }
+    }
+
+    .float::-webkit-scrollbar {
+        display: none; /* Hide scrollbar Chrome/Safari */
+    }
+
+    .dark-layout .float {
+        background: rgba(40, 48, 70, 0.85) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.02) !important;
+    }
+
+    @keyframes floatDockEntrance {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Style for buttons inside float dock */
+    .float .btn, 
+    .float .btn-icon {
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        padding: 6px 12px !important;
+        font-size: 0.75rem !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s ease-in-out !important;
+        margin: 2px 1px !important;
+        box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.04) !important;
+        border: 1px solid transparent !important;
+        white-space: nowrap !important;
+        width: auto !important; /* Button width is auto, fits content */
+    }
+
+    .float .btn:hover {
+        transform: translateY(-1.5px);
+        box-shadow: 0 4px 8px -2px rgba(91, 79, 207, 0.15) !important;
+    }
+
+    .float .btn-primary {
+        background: linear-gradient(135deg, #5B4FCF, #7B6FE0) !important;
+        color: #fff !important;
+    }
+    
+    .float .btn-primary:hover {
+        background: linear-gradient(135deg, #4b3ebf, #6c5fd0) !important;
+    }
+
+    .float .btn-success {
+        background: linear-gradient(135deg, #10B981, #059669) !important;
+        color: #fff !important;
+    }
+
+    .float .btn-success:hover {
+        background: linear-gradient(135deg, #0d9668, #047857) !important;
+    }
+
+    .float .btn-outline-warning {
+        border: 1.5px solid #F59E0B !important;
+        color: #F59E0B !important;
+        background: transparent !important;
+    }
+
+    .float .btn-outline-warning:hover {
+        background: rgba(245, 158, 11, 0.08) !important;
+        color: #d97706 !important;
+        border-color: #d97706 !important;
+    }
+
+    /* Styling manual selection switch */
+    .float .custom-switch {
+        padding-left: 2.25rem !important;
+        margin-right: 6px !important;
+        display: inline-flex;
+        align-items: center;
+        height: 32px;
+        white-space: nowrap !important;
+    }
+    
+    .float .custom-control-label {
+        font-weight: 600;
+        color: #4B5563;
+        font-size: 0.75rem;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .dark-layout .float .custom-control-label {
+        color: #C4C6D8;
+    }
+
+    /* Mobile styles (max-width: 767px) */
+    @media (max-width: 767px) {
+        .float {
+            bottom: 16px !important;
+            right: 16px !important;
+            left: auto !important;
+            transform: none !important;
+            padding: 4px !important;
+            border-radius: 24px !important;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            max-width: 90vw;
+            flex-wrap: nowrap !important;
+        }
+
+        /* Hide all buttons except the mobile-menu-trigger by default on mobile */
+        .float > *:not(.mobile-menu-trigger) {
+            display: none !important;
+        }
+
+        /* When expanded, show all buttons */
+        .float.mobile-expanded {
+            border-radius: 16px !important;
+            padding: 10px !important;
+            display: flex !important;
+            flex-direction: column !important; /* Stack vertically */
+            align-items: flex-end !important; /* Align button list items to the right */
+            width: auto !important;
+            max-height: 60vh;
+            overflow-y: auto;
+            flex-wrap: wrap !important;
+        }
+
+        .float.mobile-expanded > * {
+            display: inline-flex !important;
+            width: auto !important; /* Buttons not full width */
+            justify-content: flex-end !important;
+            align-self: flex-end !important; /* Force right alignment of button */
+            margin: 3px 0 !important;
+        }
+
+        .float.mobile-expanded .custom-switch {
+            display: flex !important;
+            justify-content: flex-end !important;
+            align-self: flex-end !important;
+            width: auto !important;
+            margin: 6px 0 !important;
+            padding-left: 2rem !important;
+        }
+
+        .float.mobile-expanded .mobile-menu-trigger {
+            order: -1;
+            margin-bottom: 6px !important;
+            background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+            color: #fff !important;
+            align-self: flex-end !important;
+        }
     }
 
     #table-selesai th {
@@ -602,7 +785,6 @@ foreach (user()->getRoles() as $key => $val) {
 </div>
 <div id="btn-filter" class="btn hidden btn-primary center-right p-1" onclick="open_setting()">
     <div class="spinner feather feather-settings"><i data-feather="settings"></i></div>
-</div>
 </div>
 
 <!-- Modal to add new record -->
@@ -3017,7 +3199,7 @@ foreach (user()->getRoles() as $key => $val) {
                         <thead>
                             <tr>
                                 <th rowspan=2>No</th>
-                                <th rowspan=2>Kavling</t>
+                                <th rowspan=2>Kavling</th>
                                 <th rowspan="2">Progress</th>
                                 <th colspan="2">Tanggal</th>
                                 <th rowspan="2">Keterangan</th>
@@ -3426,6 +3608,33 @@ foreach (user()->getRoles() as $key => $val) {
 
             }
         })
+    }
+
+    // Automatically inject mobile menu toggle trigger on mobile devices
+    if (!window.menuObserverInitialized) {
+        window.menuObserverInitialized = true;
+        const observer = new MutationObserver(function(mutations) {
+            $("#menu_here .float").each(function() {
+                if ($(this).find(".mobile-menu-trigger").length === 0) {
+                    $(this).prepend('<button type="button" class="btn btn-primary d-md-none mobile-menu-trigger"><i class="fas fa-ellipsis-h"></i> Aksi</button>');
+                }
+            });
+        });
+        const menuTarget = document.getElementById('menu_here');
+        if (menuTarget) {
+            observer.observe(menuTarget, { childList: true, subtree: true });
+        }
+
+        $(document).on('click', '.mobile-menu-trigger', function(e) {
+            e.preventDefault();
+            const parentFloat = $(this).closest('.float');
+            parentFloat.toggleClass('mobile-expanded');
+            if (parentFloat.hasClass('mobile-expanded')) {
+                $(this).html('<i class="fas fa-times"></i> Tutup');
+            } else {
+                $(this).html('<i class="fas fa-ellipsis-h"></i> Aksi');
+            }
+        });
     }
 
     function buat_nominatif() {

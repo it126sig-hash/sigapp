@@ -1118,6 +1118,7 @@
                                                                 href="#spptb_riwayat" aria-controls="spptb_riwayat"
                                                                 role="tab" aria-selected="true">Riwayat Upload SPPTB</a>
                                                         </li>
+                                                    </ul>
                                                 </div>
                                                 <div class="card-body">
                                                     <div class="tab-content">
@@ -1245,9 +1246,9 @@
                         Simpan <i class="fa fa-arrow-right" aria-hidden="true"></i></a>
 
                 </div> -->
-        </div>
         </form>
     </div>
+</div>
 </section>
 
 <!-- ################################### modal mkdt turun pembangunan ##################################### -->
