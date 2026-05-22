@@ -53,6 +53,9 @@ Karena sistem ini ditargetkan untuk *mobile-ready* (menggunakan Capacitor sebaga
 - **State Management:** **Pinia** (Pengganti Vuex, lebih ringan dan dukungan TypeScript yang sangat baik).
 - **HTTP Client:** **Axios** (Untuk komunikasi ke REST API Laravel).
 - **Routing:** **Vue Router**.
+- **Interactive Map/Siteplan:**
+  - **Konva.js:** Library canvas 2D untuk memuat gambar siteplan dan membuat *layer* untuk *shapes* interaktif di atas gambar tersebut.
+  - **Magic Wand JS:** Digunakan untuk memudahkan pemilihan (selection) area kavling dari gambar siteplan. Koordinat hasil dari *selection* akan digunakan untuk menggambar *polygon* atau *line shape* di Konva.js pada *layer* baru. Hal ini akan membuat tiap unit/kavling menjadi elemen interaktif (bisa diklik, berubah warna sesuai status penjualan, dll).
 
 ---
 
