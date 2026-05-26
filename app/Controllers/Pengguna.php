@@ -36,7 +36,8 @@ class Pengguna extends BaseController
     //         return redirect()->to(base_url('siteplan'));
 
     //     $data['content'] = '';
-    //     return view('user/login', $data);
+    //     // WARNING: Ensure output escaping for all user-provided data passed to views
+        // return view('user/login', $data);
     // }
 
 
@@ -116,6 +117,11 @@ class Pengguna extends BaseController
     public function getOne()
     {
 
+        
+        // Validate input
+        if (!$this->validate(['id_user' => 'required|integer'])) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
         $id = $this->request->getPost('id_user');
 
         if ($this->validation->check($id, 'required|numeric')) {
@@ -147,7 +153,17 @@ class Pengguna extends BaseController
 
 
 
+        
+        // Validate input
+        if (!$this->validate(['id' => 'required|integer'])) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
         $id = $this->request->getPost('id');
+        
+        // Validate input
+        if (!$this->validate(['username' => 'required|max_length[255]'])) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
         $username = $this->request->getPost('username');
         $fields['active'] = $this->request->getPost('active');
 
@@ -233,6 +249,11 @@ class Pengguna extends BaseController
 
         $fields['created_at'] = date('Y-m-d H:i:s');
 
+        
+        // Validate input
+        if (!$this->validate(['nik' => 'required|max_length[255]'])) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
         $nik = $this->request->getPost('nik');
         //get karyawan data
         $k = $this->karyawanModel->where('nik', $this->request->getPost('nik'))->first();
@@ -298,6 +319,11 @@ class Pengguna extends BaseController
         $response = array();
         $response['token'] = csrf_hash();
 
+        
+        // Validate input
+        if (!$this->validate(['active' => 'required|max_length[255]'])) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
         $st = $this->request->getPost('active');
         $f['id'] = $this->request->getPost('id');
         $f['active'] = ($st == 1) ? 0 : 1;

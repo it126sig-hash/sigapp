@@ -5,6 +5,10 @@
             <ul class="nav navbar-nav d-xl-none">
                 <li class="nav-item"><a class="nav-link menu-toggle" href="javascript:void(0);"><i class="ficon" data-feather="menu"></i></a></li>
             </ul>
+            <a class="navbar-brand d-xl-none d-flex align-items-center ml-1" href="<?= base_url() ?>" style="gap: 8px;">
+                <img src="<?= base_url("uploads/logo/logo.png") ?>" height="24" />
+                <span class="brand-text font-weight-bold" style="color: #5B4FCF; font-size: 1.15rem; letter-spacing: 0.5px;">SIGAPP</span>
+            </a>
             <ul class="nav navbar-nav">
                 <!-- <li class="nav-item d-none d-lg-block"><button onclick="export_siteplan()" class="btn btn-outline-primary " id="btn-export-siteplan"> Export </button></li> -->
             </ul>
@@ -73,7 +77,7 @@
                     </span>
                     <h2 class="brand-text">SIGAPP</h2>
                 </a></li>
-            <!-- <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pr-0" data-toggle="collapse"><i class="d-block d-xl-none text-primary toggle-icon font-medium-4" data-feather="x"></i><i class="d-none d-xl-block collapse-toggle-icon font-medium-4  text-primary" data-feather="disc" data-ticon="disc"></i></a></li> -->
+            <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pr-0" data-toggle="collapse"><i class="d-block d-xl-none text-primary toggle-icon font-medium-4" data-feather="x"></i><i class="d-none d-xl-block collapse-toggle-icon font-medium-4  text-primary" data-feather="disc" data-ticon="disc"></i></a></li>
         </ul>
     </div>
     <div class="shadow-bottom"></div>

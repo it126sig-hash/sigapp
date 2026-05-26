@@ -124,6 +124,12 @@ class CodeGenerator implements GeneratorInterface
         }
 
         // Class declaration
+        if (isset($options['abstract']) && $options['abstract']) {
+            $code .= "abstract ";
+        } elseif (isset($options['final']) && $options['final']) {
+            $code .= "final ";
+        }
+
         $code .= "class {$className}";
 
         if (isset($options['extends'])) {
@@ -547,6 +553,389 @@ class CodeGenerator implements GeneratorInterface
     }
 
     /**
+     * Generate a namespace declaration line
+     *
+     * @param string $namespace Namespace string
+     * @return string Namespace declaration
+     */
+    public function generateNamespaceDeclaration(string $namespace): string
+    {
+        return "namespace {$namespace};";
+    }
+
+    /**
+     * Generate use statement lines from an array of class names
+     *
+     * @param array<string> $classes Fully qualified class names
+     * @return string Use statements block
+     */
+    public function generateUseBlock(array $classes): string
+    {
+        $statements = [];
+
+        foreach ($classes as $key => $value) {
+            if (is_numeric($key)) {
+                $statements[] = "use {$value};";
+            } else {
+                $statements[] = "use {$key} as {$value};";
+            }
+        }
+
+        sort($statements);
+
+        return implode("\n", $statements);
+    }
+
+    /**
+     * Generate a class declaration line with optional extends and implements
+     *
+     * @param string $className Class name
+     * @param string|null $extends Parent class name
+     * @param array<string>|string|null $implements Interface(s) to implement
+     * @param bool $isAbstract Whether the class is abstract
+     * @param bool $isFinal Whether the class is final
+     * @return string Class declaration line
+     */
+    public function generateClassDeclaration(
+        string $className,
+        ?string $extends = null,
+        array|string|null $implements = null,
+        bool $isAbstract = false,
+        bool $isFinal = false
+    ): string {
+        $declaration = '';
+
+        if ($isAbstract) {
+            $declaration .= 'abstract ';
+        } elseif ($isFinal) {
+            $declaration .= 'final ';
+        }
+
+        $declaration .= "class {$className}";
+
+        if ($extends !== null) {
+            $declaration .= " extends {$extends}";
+        }
+
+        if ($implements !== null) {
+            $implementsList = is_array($implements)
+                ? implode(', ', $implements)
+                : $implements;
+            $declaration .= " implements {$implementsList}";
+        }
+
+        return $declaration;
+    }
+
+    /**
+     * Generate a method signature string with type hints
+     *
+     * @param string $name Method name
+     * @param string $visibility Visibility (public, protected, private)
+     * @param array<array<string, mixed>> $params Parameters with type and name
+     * @param string|null $returnType Return type hint
+     * @param bool $isStatic Whether the method is static
+     * @param bool $isAbstract Whether the method is abstract
+     * @return string Method signature
+     */
+    public function generateMethodSignature(
+        string $name,
+        string $visibility = 'public',
+        array $params = [],
+        ?string $returnType = null,
+        bool $isStatic = false,
+        bool $isAbstract = false
+    ): string {
+        $signature = $visibility . ' ';
+
+        if ($isStatic) {
+            $signature .= 'static ';
+        }
+
+        if ($isAbstract) {
+            $signature .= 'abstract ';
+        }
+
+        $signature .= "function {$name}(";
+
+        $paramStrings = [];
+        foreach ($params as $param) {
+            $paramStr = '';
+            if (isset($param['type'])) {
+                $paramStr .= $param['type'] . ' ';
+            }
+            $paramStr .= '$' . $param['name'];
+            if (isset($param['default'])) {
+                $defaultValue = $param['default'];
+                $specialValues = ['[]', '{}', 'null', 'true', 'false'];
+                if (is_string($defaultValue) && !in_array($defaultValue, $specialValues) && !is_numeric($defaultValue)) {
+                    $defaultValue = "'{$defaultValue}'";
+                }
+                $paramStr .= " = {$defaultValue}";
+            }
+            $paramStrings[] = $paramStr;
+        }
+
+        $signature .= implode(', ', $paramStrings) . ')';
+
+        if ($returnType !== null) {
+            $signature .= ": {$returnType}";
+        }
+
+        return $signature;
+    }
+
+    /**
+     * Generate a PHPDoc block from structured data
+     *
+     * @param string|null $description Description text
+     * @param array<array<string, string>> $params Parameter annotations
+     * @param string|null $returnType Return type annotation
+     * @param string|null $returnDescription Return description
+     * @param array<string> $throws Exception annotations
+     * @param int $indentLevel Indentation level
+     * @return string PHPDoc block
+     */
+    public function generateDocBlock(
+        ?string $description = null,
+        array $params = [],
+        ?string $returnType = null,
+        ?string $returnDescription = null,
+        array $throws = [],
+        int $indentLevel = 0
+    ): string {
+        $indent = $this->indent($indentLevel);
+        $doc = $indent . "/**\n";
+
+        if ($description !== null) {
+            $lines = $this->wrapText($description, 75);
+            foreach ($lines as $line) {
+                $doc .= $indent . " * {$line}\n";
+            }
+            if (!empty($params) || $returnType !== null || !empty($throws)) {
+                $doc .= $indent . " *\n";
+            }
+        }
+
+        foreach ($params as $param) {
+            $type = $param['type'] ?? 'mixed';
+            $name = $param['name'];
+            $desc = $param['description'] ?? '';
+            $doc .= $indent . " * @param {$type} \${$name}";
+            if ($desc) {
+                $doc .= " {$desc}";
+            }
+            $doc .= "\n";
+        }
+
+        if ($returnType !== null) {
+            $doc .= $indent . " * @return {$returnType}";
+            if ($returnDescription) {
+                $doc .= " {$returnDescription}";
+            }
+            $doc .= "\n";
+        }
+
+        foreach ($throws as $exception) {
+            $doc .= $indent . " * @throws {$exception}\n";
+        }
+
+        $doc .= $indent . " */\n";
+
+        return $doc;
+    }
+
+    /**
+     * Generate an interface declaration
+     *
+     * @param string $interfaceName Interface name
+     * @param array<string> $extends Interfaces to extend
+     * @param array<array<string, mixed>> $methods Method signatures (abstract by nature)
+     * @return string Generated interface code
+     */
+    public function generateInterface(string $interfaceName, array $extends = [], array $methods = []): string
+    {
+        $code = "<?php\n\n";
+
+        if ($this->namespace) {
+            $code .= "namespace {$this->namespace};\n\n";
+        }
+
+        if (!empty($this->useStatements)) {
+            $code .= $this->generateUseStatements() . "\n\n";
+        }
+
+        $code .= "interface {$interfaceName}";
+
+        if (!empty($extends)) {
+            $code .= ' extends ' . implode(', ', $extends);
+        }
+
+        $code .= "\n{\n";
+
+        foreach ($methods as $method) {
+            // Generate method doc block
+            if (isset($method['description']) || isset($method['params']) || isset($method['return'])) {
+                $code .= $this->generateMethodDocBlock($method);
+            }
+
+            // Generate method signature (no body for interfaces)
+            $visibility = $method['visibility'] ?? 'public';
+            $static = isset($method['static']) && $method['static'] ? 'static ' : '';
+            $name = $method['name'];
+
+            $code .= $this->indent(1) . "{$visibility} {$static}function {$name}(";
+
+            if (isset($method['params']) && is_array($method['params'])) {
+                $params = [];
+                foreach ($method['params'] as $param) {
+                    $paramStr = '';
+                    if (isset($param['type'])) {
+                        $paramStr .= $param['type'] . ' ';
+                    }
+                    $paramStr .= '$' . $param['name'];
+                    if (isset($param['default'])) {
+                        $defaultValue = $param['default'];
+                        $specialValues = ['[]', '{}', 'null', 'true', 'false'];
+                        if (is_string($defaultValue) && !in_array($defaultValue, $specialValues) && !is_numeric($defaultValue)) {
+                            $defaultValue = "'{$defaultValue}'";
+                        }
+                        $paramStr .= " = {$defaultValue}";
+                    }
+                    $params[] = $paramStr;
+                }
+                $code .= implode(', ', $params);
+            }
+
+            $code .= ')';
+
+            if (isset($method['return'])) {
+                $code .= ": {$method['return']}";
+            }
+
+            $code .= ";\n\n";
+        }
+
+        $code .= "}\n";
+
+        return $this->formatCode($code);
+    }
+
+    /**
+     * Generate a complete PHP file with proper structure
+     *
+     * @param string $content File content (without opening PHP tag)
+     * @return string Complete PHP file content
+     */
+    public function generatePhpFile(string $content): string
+    {
+        $code = "<?php\n\n";
+
+        if ($this->namespace) {
+            $code .= "namespace {$this->namespace};\n\n";
+        }
+
+        if (!empty($this->useStatements)) {
+            $code .= $this->generateUseStatements() . "\n\n";
+        }
+
+        $code .= $content;
+
+        return $this->formatCode($code);
+    }
+
+    /**
+     * Generate dependency injection constructor with promoted properties (PHP 8.0+)
+     *
+     * @param array<array<string, mixed>> $dependencies Array of dependencies with type and name
+     * @return string Constructor code with promoted properties
+     */
+    public function generateDIConstructor(array $dependencies): string
+    {
+        if (empty($dependencies)) {
+            return '';
+        }
+
+        $code = $this->indent(1) . "/**\n";
+        $code .= $this->indent(1) . " * Constructor\n";
+        $code .= $this->indent(1) . " *\n";
+
+        foreach ($dependencies as $dep) {
+            $type = $dep['type'] ?? 'mixed';
+            $name = $dep['name'];
+            $desc = $dep['description'] ?? '';
+            $code .= $this->indent(1) . " * @param {$type} \${$name}";
+            if ($desc) {
+                $code .= " {$desc}";
+            }
+            $code .= "\n";
+        }
+
+        $code .= $this->indent(1) . " */\n";
+        $code .= $this->indent(1) . "public function __construct(\n";
+
+        $params = [];
+        foreach ($dependencies as $dep) {
+            $visibility = $dep['visibility'] ?? 'private';
+            $type = $dep['type'] ?? '';
+            $name = $dep['name'];
+            $paramStr = $this->indent(2) . "{$visibility} {$type} \${$name}";
+            $params[] = $paramStr;
+        }
+
+        $code .= implode(",\n", $params) . "\n";
+        $code .= $this->indent(1) . ") {\n";
+        $code .= $this->indent(1) . "}\n";
+
+        return $code;
+    }
+
+    /**
+     * Validate that a class name follows CodeIgniter 4 naming conventions
+     *
+     * @param string $className Class name to validate
+     * @return bool True if valid
+     */
+    public function isValidClassName(string $className): bool
+    {
+        return (bool) preg_match('/^[A-Z][a-zA-Z0-9]*$/', $className);
+    }
+
+    /**
+     * Validate that a method name follows CodeIgniter 4 naming conventions (camelCase)
+     *
+     * @param string $methodName Method name to validate
+     * @return bool True if valid
+     */
+    public function isValidMethodName(string $methodName): bool
+    {
+        return (bool) preg_match('/^[a-z][a-zA-Z0-9]*$/', $methodName);
+    }
+
+    /**
+     * Generate indentation string (public accessor)
+     *
+     * @param int $level Indentation level
+     * @return string Indentation string
+     */
+    public function getIndent(int $level): string
+    {
+        return $this->indent($level);
+    }
+
+    /**
+     * Indent multiple lines of code (public accessor)
+     *
+     * @param string $code Code to indent
+     * @param int $level Indentation level
+     * @return string Indented code
+     */
+    public function indentCode(string $code, int $level): string
+    {
+        return $this->indentLines($code, $level);
+    }
+
+    /**
      * Reset generator state
      * 
      * @return self
@@ -569,5 +958,25 @@ class CodeGenerator implements GeneratorInterface
     {
         $this->indentSize = $size;
         return $this;
+    }
+
+    /**
+     * Get the current namespace
+     *
+     * @return string|null Current namespace
+     */
+    public function getNamespace(): ?string
+    {
+        return $this->namespace;
+    }
+
+    /**
+     * Get the current use statements
+     *
+     * @return array<string> Current use statements
+     */
+    public function getUseStatements(): array
+    {
+        return $this->useStatements;
     }
 }

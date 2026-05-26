@@ -6,6 +6,7 @@
   href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/buttons.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/extensions/sweetalert2.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/forms/select/select2.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
 <link rel="stylesheet" type="text/css"
   href="https://datatables.net/release-datatables/extensions/FixedColumns/css/fixedColumns.bootstrap4.min.css" />
 <!-- 

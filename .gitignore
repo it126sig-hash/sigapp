@@ -133,3 +133,9 @@ db/
 uploads/
 upload/
 vendor/
+
+#-------------------------
+# Agent / Refactoring Temp
+#-------------------------
+.agent/
+writable/refactor/

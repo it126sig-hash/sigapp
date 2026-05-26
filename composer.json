@@ -16,6 +16,7 @@
         "hermawan/codeigniter4-datatables": "^0.8.0",
         "mpdf/mpdf": "^8.2",
         "myth/auth": "^1.2",
+        "nikic/php-parser": "^5.7",
         "phpoffice/phpspreadsheet": "^2.2"
     },
     "require-dev": {
