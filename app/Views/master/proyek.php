@@ -383,8 +383,8 @@
 				$("#edit-form #provinsiProyek").val(response.provinsi);
 				$("#edit-form #siteplan").val(response.siteplan);
 
-				$("#link-siteplan").prop("href", base_url + "/" + response.siteplan)
-				$("#link-logo").prop("href", base_url + "/" + response.logo)
+				$("#link-siteplan").prop("href", response.siteplan_access_url || file_url('proyek_siteplan', response.id_proyek))
+				$("#link-logo").prop("href", response.logo_access_url || file_url('proyek_logo', response.id_proyek))
 
 				//set riwayat upload siteplan
 				$("#tb-upload_siteplan").html("");
@@ -400,7 +400,7 @@
                       <td>` + v.width + ` px</td>
                       <td>` + v.height + ` px</td>
                       <td>` + v.file_type + `</td>
-                      <td> <a href='` + base_url + '/' + v.location + `' target=blank>Klik disini untuk mengunduh</a></td>
+                      <td> <a href='` + (v.access_url || file_url('siteplan_upload', v.id)) + `' target=blank>Klik disini untuk mengunduh</a></td>
                       <td> ` + v.uadd_by + `</td>
                       <td> ` + format_datetime(v.upload_at) + ` </td>
                     </tr>`

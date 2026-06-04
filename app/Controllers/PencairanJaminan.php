@@ -4,13 +4,16 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\RiwayatPencairanJaminanModel;
+use App\Services\FileAccessService;
 
 class PencairanJaminan extends BaseController
 {
     protected $model;
+    protected $fileAccessService;
     public function __construct()
     {
         $this->model = new RiwayatPencairanJaminanModel();
+        $this->fileAccessService = new FileAccessService();
         helper(['form']);
     }
 
@@ -47,8 +50,7 @@ class PencairanJaminan extends BaseController
         // Simpan file PDF
         $file = $this->request->getFile('surat');
         $newName = $file->getRandomName();
-        $file->move(WRITEPATH.'uploads/pencairan', $newName);
-        $suratPath = 'writable/uploads/pencairan/'.$newName;
+        $suratPath = $this->fileAccessService->storeAs($file, 'uploads/pencairan', $newName);
 
         $data = [
             'id_kavling'        => (int)$this->request->getPost('id_kavling'),
@@ -78,9 +80,10 @@ class PencairanJaminan extends BaseController
     public function download($id)
     {
         $row = $this->model->find($id);
-        if(!$row || empty($row['surat_path']) || !is_file(FCPATH.$row['surat_path'])){
+        if (!$row) {
             return $this->response->setBody('Lampiran tidak ditemukan')->setStatusCode(404);
         }
-        return $this->response->download(FCPATH.$row['surat_path'], null);
+
+        return redirect()->to(site_url('files/pencairan_jaminan/' . $id . '?download=1'));
     }
 }

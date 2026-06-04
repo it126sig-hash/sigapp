@@ -7,6 +7,7 @@ use App\Controllers\BaseController;
 
 use App\Models\ProyekModel;
 use App\Models\SiteplanuploadModel;
+use App\Services\FileAccessService;
 use CodeIgniter\Files\File;
 use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 
@@ -17,6 +18,7 @@ class Proyek extends BaseController
 	protected $validation;
 	protected $sp;
 	protected $db;
+	protected $fileAccessService;
 
 	public function __construct()
 	{
@@ -24,6 +26,7 @@ class Proyek extends BaseController
 		$this->sp = new SiteplanuploadModel();
 		$this->db = db_connect();
 		$this->validation =  \Config\Services::validation();
+		$this->fileAccessService = new FileAccessService();
 	}
 
 	public function index()
@@ -67,7 +70,7 @@ class Proyek extends BaseController
 				$x,
 				$value->nama_proyek,
 				$value->alamat_proyek,
-				"<img width='50px' src='" . base_url() . "/" . $value->logo . "'>",
+				"<img width='50px' src='" . $this->fileAccessService->accessUrl('proyek_logo', (int) $value->id_proyek) . "'>",
 				$value->kelurahan,
 				$value->kecamatan,
 				$value->kota,
@@ -94,6 +97,8 @@ class Proyek extends BaseController
 
 			$data = $this->proyekModel->where('id_proyek', $id)->first();
 			$data->token = csrf_hash();
+			$data->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', (int) $id);
+			$data->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', (int) $id);
 
 			//get data gambar kerja
 			$data->list_siteplan = $this->getSiteplanList($id);
@@ -156,7 +161,7 @@ class Proyek extends BaseController
 			$originalname = $img->getClientName();
 			$fileExtension = $img->getMimeType();
 
-			$img->move('uploads/siteplan/', $name);
+			$this->fileAccessService->storeAs($img, 'uploads/siteplan/', $name);
 
 			$img = $this->request->getFile('file');
 
@@ -164,7 +169,7 @@ class Proyek extends BaseController
 
 			//cuma untuk get width height image yang udah di upload
 			$info = \Config\Services::image()
-				->withFile($newloc)
+				->withFile($this->fileAccessService->privatePath($newloc))
 				->getFile()
 				->getProperties(true);
 
@@ -184,7 +189,7 @@ class Proyek extends BaseController
 			//logo aplod
 			$logo = $this->request->getFile('logo');
 			$name2 = $logo->getRandomName();
-			$logo->move('uploads/logo/', $name2);
+			$this->fileAccessService->storeAs($logo, 'uploads/logo/', $name2);
 
 			$fields['logo'] = 'uploads/logo/' . $name2;
 
@@ -274,13 +279,13 @@ class Proyek extends BaseController
 				$originalname = $img->getClientName();
 				$fileExtension = $img->getMimeType();
 				$name = $img->getRandomName();
-				$img->move('uploads/siteplan/', $name);
+				$this->fileAccessService->storeAs($img, 'uploads/siteplan/', $name);
 
 				$newloc = 'uploads/siteplan/' . $name;
 
 				//cuma untuk get width height image yang udah di upload
 				$info = \Config\Services::image()
-					->withFile($newloc)
+					->withFile($this->fileAccessService->privatePath($newloc))
 					->getFile()
 					->getProperties(true);
 
@@ -303,7 +308,7 @@ class Proyek extends BaseController
 			if ($noupl == 0) {
 				$logo = $this->request->getFile('logon');
 				$name2 = $logo->getRandomName();
-				$logo->move('uploads/logo/', $name2);
+				$this->fileAccessService->storeAs($logo, 'uploads/logo/', $name2);
 
 				$fields['logo'] = 'uploads/logo/' . $name2;
 			}
@@ -325,7 +330,7 @@ class Proyek extends BaseController
 	{
 		$id_tipe = ($id) ? $id : $this->request->getVar('idProyek');
 		// $r['token'] = csrf_hash();
-		return $this->db->table('siteplan_upload')
+		$rows = $this->db->table('siteplan_upload')
 			->select('
 				siteplan_upload.*,
                 u.username as uadd_by
@@ -334,6 +339,7 @@ class Proyek extends BaseController
 			->where('id_proyek', $id_tipe)
 			->orderBy('upload_at', 'desc')
 			->get()->getResult();
+		return $this->fileAccessService->addAccessUrlsToRows($rows, 'siteplan_upload');
 		// return $this->response->setJSON($r);
 	}
 

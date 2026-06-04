@@ -1,6 +1,6 @@
 <?php
-$k;
-$v;
+$k = '';
+$v = '';
 foreach (user()->getRoles() as $key => $val) {
     $k = $key;
     $v = $val;
@@ -186,7 +186,7 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     /* Style for buttons inside float dock */
-    .float .btn, 
+    .float .btn,
     .float .btn-icon {
         border-radius: 12px !important;
         font-weight: 600 !important;
@@ -212,7 +212,7 @@ foreach (user()->getRoles() as $key => $val) {
         background: linear-gradient(135deg, #5B4FCF, #7B6FE0) !important;
         color: #fff !important;
     }
-    
+
     .float .btn-primary:hover {
         background: linear-gradient(135deg, #4b3ebf, #6c5fd0) !important;
     }
@@ -247,7 +247,7 @@ foreach (user()->getRoles() as $key => $val) {
         height: 32px;
         white-space: nowrap !important;
     }
-    
+
     .float .custom-control-label {
         font-weight: 600;
         color: #4B5563;
@@ -255,7 +255,7 @@ foreach (user()->getRoles() as $key => $val) {
         cursor: pointer;
         user-select: none;
     }
-    
+
     .dark-layout .float .custom-control-label {
         color: #C4C6D8;
     }
@@ -334,7 +334,7 @@ foreach (user()->getRoles() as $key => $val) {
 
     /* div#mkdt,
     div#legal,
-    div#lpt {   
+    div#lpt {
         height: 50vh;
         overflow: auto;
         background: #fff;
@@ -786,6 +786,3285 @@ foreach (user()->getRoles() as $key => $val) {
 <div id="btn-filter" class="btn hidden btn-primary center-right p-1" onclick="open_setting()">
     <div class="spinner feather feather-settings"><i data-feather="settings"></i></div>
 </div>
+
+<!-- BEGIN: Vendor JS-->
+<script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
+<!-- BEGIN Vendor JS-->
+
+<!-- BEGIN: Page Vendor JS-->
+<script src="<?= base_url() ?>assets/js/magic-wand.min.js"></script>
+<script src="<?= base_url() ?>assets/js/konva.min.js"></script>
+<script src="<?= base_url() ?>assets/js/jquery.richtext.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/forms/select/select2.full.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/html2canvas/html2canvas.min.js"></script>
+<!-- <script src="<?= base_url() ?>assets/js/scripts.js"></script> -->
+<!-- END: Page Vendor JS-->
+<script>
+    let data_um = [],
+        data_bb = []
+
+
+    //sewwtalert2 fix error cant type after open modal
+    $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+
+    const state = {
+        id_kavling: null,
+        id_hargajual: null,
+        id_mkdt: null,
+        data_um: {},
+        data_bb: {},
+        sisa_cicilan: 0,
+        sudah_bayar: 0,
+        total_cicilan: 0,
+        status: {
+            tab: {
+                isClosed: false
+            }
+        }
+
+    };
+    const list_pekerjaan = {
+        "Pekerjaan Persiapan": ["Persiapan Pembersihan lokasi", "Pemasangan bouplank"],
+        "Pekerjaan Pondasi": ["Galian tanah pondasi", "Pasangan Pondasi Batu kali", "Pasangan Pondasi plat Setempat", "Instalasi Pipa Air Kotor pendam 3 inch", "Instalasi Pipa Air Kotor Pendam 4 inch", "Instalasi Pipa Air Kotor Pendam lebih dari 4 inch", "Urugan tanah pondasi tinggi 0-20 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi 20-50 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi lebih dari 50 cm dari jalan lingkungan"],
+        "Pekerjaan Pembesian/Kontruksi": ["Rangkaian pemasangan besi/tulangan pada sloof Bawah", "Rangkaian pemasangan Pasang besi/tulangan pada Ring Balok/balok atas", "Rangkaian pemasangan besi/tulangan pada kolom", "Rangkaian pemasangan besi/tulangan pada sopi-sopi/Gewel/gunungan", "Rangkaian pemasangan pertemuan Besi Tulangan antara Kolom dan Sloof Bawah", "Rangkaian pemasangan pertemuan Tulangan antara Kolom dan Ring Balk/balok atas", "Rangkaian pemasangan pertemuan Tulangan antara Kolom, Ring Balk/balok atas dan sopi-sopi/gunungan", ],
+        "Pekerjaan Cor Beton": ["Cor Beton sloof bawah", "Cor Beton Ring Balk/balok atas", "Tangga Beton (jika rumah 2 lantai)", "Plat Lantai Beton lantai 2", "Plat Lantai Beton lantai"],
+        "Pekerjaan Pasangan Dinding": ["Pasang Bata/Batako/Bata Ringan/Jenis lain", "Plesteran tebal", "Acian semen", "Pasangan keramik dinding kamar mandi", "Pasangan keramik dinding dapur"],
+        "Pekerjaan Atap": ["Rangka atap & Kuda Kuda", "Tutup atap/genting", "Genting bubung", "Listplang kayu", "Talang sudut"],
+        "Pekerjaan Instalasi": ["Instalasi Air bersih", "Instalasi/Jaringan Listrik"],
+        "Pekerjaan Langit-langit (Plapond)": ["Rangka plapond", "Penutup plapond"],
+        "Pekerjaan Lantai": ["Lantai kerja (pasir lantai)", "Penutup lantai"],
+        "Pekerjaan kusen": ["Kusen/pintu Utama", "Jendela Utama/jendela teras", "Kusen/pintu Kamar", "Jendela Kamar"],
+        "Pekerjaan Kaca dan Kunci": ["Pasang kaca jendela", "Pasang kunci tanam pintu", "Pasang kunci kamar mandi", "Pasang engsel pintu", "Pasang engsel jendela", "Pasang tulak angin/Hak angin /windows stay"],
+        "Pekerjaan Sanitasi": ["Pasang closet", "Pasang washtafel", "Pasang bak mandi", "Pasang bak cuci piring", "Septictank"],
+        "Pekerjaan Finishing & Pegecatan": ["Pengecatan kusen", "Pengecatan pintu dan jendela", "Pengecatan Plapond", "Pengecatan tembok"]
+    };
+
+    //carousel
+    $('.carousel').carousel('pause')
+
+    //datepicker
+    var fp = flatpickr(".flatpickr-human-friendly", {
+            altInput: true,
+            altFormat: 'F j, Y',
+            dateFormat: 'Y-m-d'
+        }),
+        sp,
+        dtt = [], //data point from selection
+        batchdtt = [], // multiple data point from selection
+        kav, //kavling poly
+        imageInfo,
+        bml_old = 0, //batch mask old
+        batchMask = [], //for multiple selection
+        dtt_first = [], //for multiple selection
+        sceneWidth = screen.width,
+        sceneHeight = Math.min(window.innerHeight, window.innerHeight * 0.7);
+    //declare stage
+    var stage = new Konva.Stage({
+        height: sceneHeight,
+        width: sceneWidth,
+        container: "konva-holder",
+        draggable: true
+    });
+
+    //declare layer
+    var siteplan = new Konva.Layer(), //siteplan layer
+        masked = new Konva.Layer(), //selection layer
+        // datal = new Konva.Layer(), //kavling shape layer
+        group = new Konva.Group({ //group for tooltip
+            visible: false,
+        }),
+        shape_ket = new Konva.Image({
+            x: 10,
+            y: 10,
+            draggable: true,
+            stroke: 'red',
+            scaleX: 2,
+            scaleY: 2,
+        }),
+
+        manual_selection = new Konva.Group(),
+
+        maskedGroup = new Konva.Group(), //group for selection line and number
+        tooltip = new Konva.Text({ //tooltip text on hovering at kavling
+            text: '',
+            fontFamily: 'Calibri',
+            fontSize: 12,
+            padding: 5,
+            textFill: 'white',
+            fill: 'black',
+            text: 'vertical align',
+            alpha: 0.75,
+        }),
+        tooltipbg = new Konva.Rect({ //tooltip bg on hovering at kavling
+            width: 270,
+            height: 57,
+            stroke: "black",
+            strokeWidth: 1,
+            fill: "#f2ff7d",
+        })
+
+    Konva.hitOnDragEnabled = true; //for zoom on touchscreen
+
+    group.add(tooltipbg, tooltip) //grouping tooltip bg & text
+    siteplan.add(group);
+    masked.add(shape_ket);
+    masked.add(group);
+
+    // siteplan img object :
+    var imageObj = new Image();
+    imageObj.onload = function() {
+
+        sp = new Konva.Image({
+            x: 0,
+            y: 0,
+            image: imageObj,
+            width: imageObj.width,
+            height: imageObj.height,
+            globalCompositeOperation: 'overlay'
+        });
+
+        // add image to the layer
+        siteplan.add(sp);
+    };
+
+
+    //siteplan src
+    imageObj.src = dt_proyek.siteplan_access_url || file_url('proyek_siteplan', dt_proyek.id_proyek);
+
+    //deklarasi kanvas untuk kavling
+    window.onload = function() {
+        colorThreshold = 15;
+        blurRadius = 1;
+        simplifyTolerant = 0;
+        simplifyCount = 30;
+        hatchLength = 4;
+        hatchOffset = 0;
+
+        imageInfo = null;
+        cacheInd = null;
+        mask = null;
+        oldMask = null;
+        downPoint = null;
+        allowDraw = false;
+        addMode = false;
+        currentThreshold = colorThreshold;
+
+        showThreshold();
+
+        //imginfo
+        var img = imageObj;
+        var cvs = masked;
+        cvs.width = img.width;
+        cvs.height = img.height;
+        imageInfo = {
+            width: img.width,
+            height: img.height,
+            context: cvs.getContext("2d", {
+                willReadFrequently: true
+            })._context
+        };
+        mask = null;
+
+        var tempCtx = document.createElement("canvas").getContext("2d", {
+            willReadFrequently: true
+        });
+        tempCtx.canvas.width = imageInfo.width;
+        tempCtx.canvas.height = imageInfo.height;
+        tempCtx.drawImage(img, 0, 0);
+        imageInfo.data = tempCtx.getImageData(0, 0, imageInfo.width, imageInfo.height);
+
+        //load kavling dari database
+        load_kavling(roleid == 1 || roleid == 7);
+
+        // $("#pilih-divisi").select2("val", roleid)
+        // change_div();
+        load_menu();
+
+
+        // scaling layer to fit stage
+        let konva_w = parseFloat($("#konva-holder").width())
+        let konva_h = parseFloat($("#konva-holder").height())
+        let l
+        if (konva_w > konva_h)
+            l = parseFloat($("#konva-holder").width()) / imageObj.width;
+        else
+            l = parseFloat($("#konva-holder").height()) / imageObj.height;
+
+        new Konva.Tween({
+            node: stage,
+            duration: 0.5,
+            scaleX: l,
+            scaleY: l,
+            x: 0,
+            y: 0,
+            easing: Konva.Easings.EaseInOut,
+        }).play();
+
+        // stage.scale({
+        //     x: l,
+        //     y: l
+        // });
+
+        group.scale({
+            x: 1 / l,
+            y: 1 / l
+        })
+
+        $('#filter-side').css('height', konva_h)
+
+        if ($(window).width() < 768) {
+            $('#filter-side').children().appendTo('#modal-filter');
+            $('#filter-side').remove();
+            $("#btn-filter").removeClass("hidden")
+        }
+    }
+
+    var line_ms = new Konva.Line({
+        points: [0, 0],
+        stroke: "red",
+        strokeWidth: 2,
+        dash: [5, 5],
+        opacity: 1,
+        closed: !0,
+        id: "line_sel"
+    });
+
+    //refresh kavling setelah ganti divisi
+    $("#pilih-divisi").change(function() {
+        change_div()
+    });
+
+    function change_div() {
+        $("#tambah_jalan").prop("checked", 0)
+        hapus_seleksi(); //hapus seleksi kavling
+
+        //tampilkan menu sesuai divisi jika login sebagai admin
+        if (roleid == 1) {
+            let va = $("#pilih-divisi option:selected").val();
+            $(".div_menu").addClass("hidden");
+            if (va == 6) {
+                $("#planning_menu").removeClass("hidden")
+            } else if (va == 4) {
+                $("#mkdt_menu").removeClass("hidden")
+            } else if (va == 7) {
+                $("#produksi_menu").removeClass("hidden")
+            } else if (va == 8) {
+                $("#sales_menu").removeClass("hidden")
+            } else if (va == 3) {
+                $("#keuangan_menu").removeClass("hidden")
+            } else if (va == 9) {
+                $("#direksi_menu").removeClass("hidden")
+            } else if (va == 0) {
+                $("#others_menu").addClass("hidden")
+            } else {
+                $("#others_menu").removeClass("hidden")
+            }
+        }
+
+        //load ulang kavling
+        load_kavling();
+    }
+
+    function load_menu() {
+        // let va = $("#pilih-divisi option:selected").val();
+        $.ajax({
+            url: base_url + 'home/getMenuBtn',
+            type: 'post',
+            data: {
+                [csrfName]: csrfHash,
+                // id_role: roleid
+            },
+            dataType: 'json',
+            beforeSend: function() {
+                $("#loading").removeClass("hidden");
+            },
+            success: function(r) {
+                $("#loading").addClass("hidden");
+                const menu = r.menu;
+                $("#menu_here").html(menu);
+                if (roleid == 7 && has_akses.proyek == false) {
+                    $(".btn-prod").hide()
+                    swal('warning', 'Peringatan!', "Kamu tidak bisa melakukan perubahan untuk proyek ini")
+                } else {
+                    $(".btn-prod").show()
+                }
+                if (roleid == 5 && has_akses.legal == false) {
+                    $("#edit_kavling_batch").hide()
+                    swal('warning', 'Peringatan!', "Kamu tidak bisa melakukan perubahan untuk proyek ini")
+                } else {
+                    $("#edit_kavling_batch").show()
+                }
+            },
+            error: function() {
+                $("#loading").addClass("hidden");
+
+            }
+        })
+    }
+
+    // Automatically inject mobile menu toggle trigger on mobile devices
+    if (!window.menuObserverInitialized) {
+        window.menuObserverInitialized = true;
+        const observer = new MutationObserver(function(mutations) {
+            $("#menu_here .float").each(function() {
+                if ($(this).find(".mobile-menu-trigger").length === 0) {
+                    $(this).prepend('<button type="button" class="btn btn-primary d-md-none mobile-menu-trigger"><i class="fas fa-ellipsis-h"></i> Aksi</button>');
+                }
+            });
+        });
+        const menuTarget = document.getElementById('menu_here');
+        if (menuTarget) {
+            observer.observe(menuTarget, { childList: true, subtree: true });
+        }
+
+        $(document).on('click', '.mobile-menu-trigger', function(e) {
+            e.preventDefault();
+            const parentFloat = $(this).closest('.float');
+            parentFloat.toggleClass('mobile-expanded');
+            if (parentFloat.hasClass('mobile-expanded')) {
+                $(this).html('<i class="fas fa-times"></i> Tutup');
+            } else {
+                $(this).html('<i class="fas fa-ellipsis-h"></i> Aksi');
+            }
+        });
+    }
+
+    function buat_nominatif() {
+
+    }
+
+    var stroke, fill, strokeWidth, dashed;
+    let filterwarnahitung = {};
+
+    function set_fill2(e) { //test set fill dengan config dari db
+        // console.log(conf[e])
+        if (!conf[e])
+            e = "Warna Tidak Ditemukan"
+        set_fill(conf[e].fill, conf[e].stroke, conf[e].strokeWidth, conf[e].dashed)
+        return e;
+    }
+
+    function hitung_kavling(fill) {
+        let e = fill.fill
+        let p = filterwarnahitung[e] ? filterwarnahitung[e] : 0;
+        filterwarnahitung[e] = p + 1;
+
+    }
+
+    function set_keterangan_warna() {
+        $("#keterangan-warna-here").html(" ")
+
+        //filter
+        $("#filter-kategori option").remove()
+        $("#filter-kategori").append(`<option value="">Semua</option>`);
+        let div = "",
+            kv
+        // console.log(filterwarna)
+        $.each(filterwarna, function(i, v) {
+            if (v) {
+                div += `
+                <div class="divider">
+                    <div class="divider-text">${i} ${i == 'Subsidi' || i == 'Komersil' ? 'Dipasarkan' : ''}</div>
+                </div>`;
+                const sortedKeys = Object.keys(v).sort();
+
+                // Step 2: Create a new object with sorted keys
+                const sortedObj = {};
+                sortedKeys.forEach(key => {
+                    sortedObj[key] = v[key];
+                });
+
+                $.each(sortedObj, function(x, y) {
+                    //untuk tambah option di filter
+                    $("#filter-kategori").append(`<option value="${x}">${x}</option>`);
+                    kv = (x == "Def") ? "Data yang bisa diolah" : x;
+
+                    div += `<div class="form-group row">
+                                <div class="btn col-2 ml-1" style="background-color:${y}"></div>
+                                <div class="col-9"> ${kv} (${filterwarnahitung[x]})</div>
+                            </div>`;
+                })
+            }
+        })
+        $("#keterangan-warna-here").html(div)
+    }
+    //load shape kavling
+    function load_kavling(refresh = false) {
+        hapus_seleksi();
+        filterwarna = {
+            Status: null,
+            Subsidi: null,
+            Komersil: null,
+            'Lain-lain': null
+        };
+        filterwarnahitung = {};
+
+        const fields = [ //untuk pengecekan status kavling yang sudah done
+            'nama_jalan',
+            'no_kavling',
+            'status_mkdt',
+            'is_lunas',
+            'progres_bangunan',
+            'sertifikat_split_no_hgb_induk',
+            'sertifikat_split_no_hgb',
+            'sertifikat_is_balik_nama',
+            'pbb_pecah_nop',
+            'pbb_is_balik_nama',
+            'pbg_no',
+            'ajb_no',
+            'pph_tgl_bayar',
+            'bphtb_tanggal_pembayaran'
+        ];
+        const isValidDate = (val) => {
+            return typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val) && !isNaN(new Date(val).getTime()) && val !== "0000-00-00";
+        };
+
+        siteplan.find('Line').forEach(line => line.destroy());
+
+        let va = $("#pilih-divisi option:selected").val();
+        wr_pembangunan = [];
+        list_jatuhtempo = [];
+        $.ajax({
+            url: base_url + 'siteplan/get/all',
+            type: 'post',
+            data: {
+                [csrfName]: csrfHash,
+                id_proyek: dt_proyek.id_proyek,
+                id_cluster: filter.id_cluster,
+                id_jalan: filter.id_jalan,
+                id_role: va
+            },
+            dataType: 'json',
+            beforeSend: () => $("#loading").removeClass("hidden"),
+            success: function(result) {
+                $("#loading").addClass("hidden");
+                csrfHash = result.token;
+                stroke = fill = strokeWidth = dashed = "";
+
+                let r = result['data'],
+                    data2,
+                    hit,
+                    tp_rumah,
+                    subsidi;
+
+
+
+                for (var p = 0; p < r.length; p++) {
+                    tp_rumah = r[p].tipe_rumah
+                    no_tp_rumah = r[p].no_tipe_rumah
+
+                    subsidi = (r[p].is_subsidi == 1) ? "Subsidi" : "Komersil"
+
+                    //set default shape color
+                    // set_fill("#fff67a", "#000000", 0, null)
+                    hit = {
+                        fill: set_fill2("Def"),
+                        tipe: 'Lain-lain'
+                    }
+
+                    //add list to belum selesai bangun
+                    if (r[p].tanggal_rencana_selesai_pembangunan != null) {
+                        if (r[p].tanggal_selesai_pembangunan == null) {
+                            if (daysBetween(today_date, r[p].tanggal_rencana_selesai_pembangunan) < 3) {
+                                wr_pembangunan.push({
+                                    progres: r[p].progres_bangunan ? r[p].progres_bangunan : 0,
+                                    nama_jalan: r[p].nama_jalan,
+                                    no_kavling: r[p].no_kavling,
+                                    tipe: r[p].tipe_rumah,
+                                    keterangan: r[p].keterangan_produksi,
+                                    tanggal_pembangunan: r[p].tanggal_pembangunan,
+                                    tanggal_rencana_selesai_pembangunan: r[p].tanggal_rencana_selesai_pembangunan,
+                                    tanggal_selesai_pembangunan: r[p].tanggal_selesai_pembangunan
+                                })
+                            }
+                        }
+                    }
+
+                    //add to list jatuh tempo
+                    const today = new Date();
+                    const sevenDaysLater = new Date();
+                    sevenDaysLater.setDate(today.getDate() + 7);
+
+
+                    if (r[p].jatuh_tempo_tgl) {
+                        const jatuhTempo = new Date(r[p].jatuh_tempo_tgl);
+
+                        if (jatuhTempo <= today && jatuhTempo <= sevenDaysLater) {
+                            list_jatuhtempo.push(r[p].id_kavling)
+                        }
+                    }
+
+
+                    // if (r[p].tanggal_selesai_pembangunan != '0000-00-00' || r[p].tanggal_selesai_pembangunan != '' || r[p].tanggal_selesai_pembangunan != null) {
+
+                    // }
+
+                    if (r[p].harga_akhir) {
+                        tp_rumah = r[p].tipe_rumah
+                        no_tp_rumah = r[p].no_tipe_rumah
+                        hit = set_fill2(r[p].tipe_rumah)
+                        hit = {
+                            fill: hit,
+                            tipe: subsidi
+                        }
+                        // if (r[p].is_subsidi == 1)
+                        //     hit = set_fill2("Subsidi")
+                        // else
+                        //     hit = set_fill2("Non-Subsidi")
+                    }
+
+
+                    if (r[p].status_mkdt) {
+                        hit = set_fill2(r[p].status_mkdt)
+                        if (hit == "Akad" || hit == "Booking") {
+                            hit = hit + " " + subsidi
+                        }
+                    } else {
+                        if (r[p].progres_bangunan == "100") {
+                            // jika sudah selesai
+                            hit = set_fill2("Ready Stock")
+                        }
+                    }
+
+
+                    if (va == 3) { //keuangan
+                        if (r[p].is_lunas == 0 || r[p].is_lunas == null || r[p].is_lunas == "undefined") {
+                            if (r[p].jatuh_tempo_tgl != null && r[p].jatuh_tempo_tgl != "0000-00-00") {
+                                if (daysBetween(today_date, r[p].jatuh_tempo_tgl) < 7)
+                                    hit = set_fill2('Jatuh Tempo')
+                            }
+
+                            if (r[p].is_sudah_isi_tagihan != 1) {
+                                hit = set_fill2('SPPTB Belum Lengkap')
+                            }
+                        } else if (r[p].is_lunas == 1) {
+                            hit = set_fill2('Lunas')
+                            if (r[p].status_mkdt == 'Akad') {
+                                if (r[p].dajam_selesai == 0)
+                                    hit = set_fill2('Dajam Belum Cair')
+                                else
+                                    hit = set_fill2('Akad')
+                            }
+                        }
+
+                        if (r[p].is_batal == 1)
+                            hit = set_fill2("Batal")
+                    } else if (va == 4) { //mkdt
+                        if (r[p].perintah_bangun == 1)
+                            hit = set_fill2("Perintah Bangun")
+
+                        //status kavling
+                        if (r[p].status_mkdt == "Batal") { //jika batal
+                            if (r[p].is_batal == 1)
+                                hit = set_fill2("Batal")
+                            else
+                                hit = set_fill2(r[p].status_mkdt)
+                        } else if (r[p].status_mkdt == "Akad") { //jika akad
+                            hit = set_fill2('Akad')
+                            if (r[p].is_sudah_isi_tagihan != 1) {
+                                hit = set_fill2('SPPTB Belum Lengkap')
+                            }
+                        } else if (r[p].status_mkdt == "Booking") {
+                            //jika booking
+                            if (r[p].booking_tgl != null && r[p].booking_tgl != "0000-00-00") {
+                                // if (r[p].is_kpr == 1)
+                                //     hit = set_fill2('KPR')
+                                // else if (r[p].is_kpr == 0)
+                                //     hit = set_fill2('Tunai')
+                                // if (r[p].mkdt_is_subsidi == 1) {
+                                //     hit = set_fill2('Subsidi')
+                                // } else if (r[p].mkdt_is_subsidi == 0) {
+                                //     hit = set_fill2('Non-Subsidi')
+                                // }
+                            }
+                            //jika turun sp3k
+                            if (r[p].sp3k_tgl != null && r[p].sp3k_tgl != "0000-00-00") {
+                                hit = set_fill2('SP3K')
+                            }
+                            if (r[p].is_sudah_isi_tagihan != 1) {
+                                hit = set_fill2('SPPTB Belum Lengkap')
+                            }
+                        }
+                    } else if (va == 5) { //legal
+                        if (r[p].id_legal)
+                            hit = set_fill2("Sudah Diisi")
+                        if (r[p].sertifikat_is_balik_nama == "Sudah") {
+                            hit = set_fill2("Sudah Balik Nama")
+                        }
+
+                        // if (
+                        //     r[p].sertifikat_tgl != null && r[p].sertifikat_tgl != "0000-00-00" &&
+                        //     r[p].sertifikat_masa_berlaku != null && r[p].sertifikat_masa_berlaku != "0000-00-00" &&
+                        //     r[p].bphtb_masa_berlaku != null && r[p].bphtb_masa_berlaku != "0000-00-00" &&
+                        //     r[p].imb_tgl != null && r[p].imb_tgl != "0000-00-00" &&
+                        //     r[p].bphtb_tgl != null && r[p].bphtb_tgl != "0000-00-00" &&
+                        //     r[p].sertifikat_no_hgb != null &&
+                        //     r[p].sertifikat_no_split != null &&
+                        //     r[p].imb_no_induk != null &&
+                        //     r[p].imb_no_split != null &&
+                        //     r[p].nop_pbb != null &&
+                        //     r[p].pph != null
+                        // )
+                        //     hit = set_fill2("Sudah Diisi")
+                        // else {
+                        //     if (
+                        //         r[p].sertifikat_tgl != null && r[p].sertifikat_tgl != "0000-00-00" ||
+                        //         r[p].sertifikat_masa_berlaku != null && r[p].sertifikat_masa_berlaku != "0000-00-00" ||
+                        //         r[p].bphtb_masa_berlaku != null && r[p].bphtb_masa_berlaku != "0000-00-00" ||
+                        //         r[p].imb_tgl != null && r[p].imb_tgl != "0000-00-00" ||
+                        //         r[p].bphtb_tgl != null && r[p].bphtb_tgl != "0000-00-00" ||
+                        //         r[p].sertifikat_no_hgb != null ||
+                        //         r[p].sertifikat_no_split != null ||
+                        //         r[p].imb_no_induk != null ||
+                        //         r[p].imb_no_split != null ||
+                        //         r[p].nop_pbb != null ||
+                        //         r[p].pph != null
+                        //     )
+                        //         hit = set_fill2("Sebagian Diisi")
+                        // }
+                        // if (r[p].sertifikat_masa_berlaku != null && r[p].sertifikat_masa_berlaku != "0000-00-00") {
+                        //     if (daysBetween(today_date, r[p].sertifikat_masa_berlaku) < 30)
+                        //         hit = set_fill2("h-30 Kadaluarsa") //warna merah
+                        //     else if (daysBetween(today_date, r[p].sertifikat_masa_berlaku) < 60)
+                        //         hit = set_fill2("h-60 Kadaluarsa") // warna orange
+                        // }
+
+                        // if (r[p].bphtb_masa_berlaku != null && r[p].bphtb_masa_berlaku != "0000-00-00") {
+                        //     if (daysBetween(today_date, r[p].bphtb_masa_berlaku) < 30)
+                        //         hit = set_fill2("h-30 Kadaluarsa") //warna merah
+                        //     else if (daysBetween(today_date, r[p].bphtb_masa_berlaku) < 60)
+                        //         hit = set_fill2("h-60 Kadaluarsa") // warna orange
+                        // }
+
+                    } else if (va == 7) { //produksi
+                        // if (r[p].status_mkdt)
+                        //     hit = set_fill2(r[p].status_mkdt)
+                        if (r[p].status_mkdt == "Akad") {
+                            hit = set_fill2("Akad " + subsidi)
+                            if (r[p].progres_bangunan == null)
+                                hit = set_fill2("Pembangunan") // warna merah
+
+                            // if (r[p].perintah_bangun == 1)
+                            //     hit = set_fill2("Perintah Bangun")
+                            // if (parseInt(r[p].progres_bangunan) > 0 && parseInt(r[p].progres_bangunan) < 100) {
+                            //     hit = set_fill2("Pembangunan") // warna merah
+                            // }else if (parseInt(r[p].progres_bangunan) == 100) {
+                            //     // jika sudah selesai
+                            //     hit = set_fill2("Akad "+ subsidi)
+                            // }
+                        } else if (r[p].status_mkdt == "Booking") {
+                            hit = set_fill2("Booking " + subsidi)
+
+                            if (r[p].perintah_bangun == 1)
+                                hit = set_fill2("Perintah Bangun")
+
+                            // if (r[p].perintah_bangun == 1)
+                            //     hit = set_fill2("Perintah Bangun")
+
+                            if (parseInt(r[p].progres_bangunan) > 0 && parseInt(r[p].progres_bangunan) < 100) {
+                                hit = set_fill2("Pembangunan") // warna merah
+                            } else if (parseInt(r[p].progres_bangunan) == 100) {
+                                // jika sudah selesai
+                                hit = set_fill2("Bangunan 100%")
+                            }
+                        } else {
+                            if (r[p].perintah_bangun == 1)
+                                hit = set_fill2("Perintah Bangun")
+                            if (parseInt(r[p].progres_bangunan) > 0 && parseInt(r[p].progres_bangunan) < 100) {
+                                hit = set_fill2("Pembangunan") // warna merah
+                            } else if (parseInt(r[p].progres_bangunan) == 100) {
+                                // jika sudah selesai
+                                hit = set_fill2("Ready Stock") // warna merah
+                            }
+                        }
+
+                        //jika ada komplain (dari sales)
+                        if (r[p].status_komplain == 1 || r[p].status_komplain == 2 || r[p].status_komplain == 3)
+                            hit = set_fill2("Komplain")
+
+                    } else if (va == 8) { //sales
+                        //jika bangunan sudah 100%
+                        if (r[p].progres_bangunan == "100") {
+                            hit = set_fill2("Pembangunan Selesai") // warna biru
+                            if (r[p].id_mkdt == null)
+                                hit = set_fill2("Ready Stock") // warna biru
+                        }
+
+                        //jika sudah akad
+                        if (r[p].status_mkdt == "Akad")
+                            hit = set_fill2("Akad") //warna ungu
+                        //jika ada komplain
+                        if (r[p].status_komplain == 1 || r[p].status_komplain == 2 || r[p].status_komplain == 3)
+                            hit = set_fill2("Komplain") //warna merah
+                        // jika sudah dicek
+                        if (r[p].is_checked == 1)
+                            hit = set_fill2("Sudah dicek") // warna orange
+                        // jika sudah dicek
+                        if (r[p].is_serah_terima == 1)
+                            hit = set_fill2("Serah Terima") // warna hijau
+
+                    } else if (va == 9) {
+                        if (r[p].harga_akhir) {
+                            tp_rumah = r[p].tipe_rumah
+                            no_tp_rumah = r[p].no_tipe_rumah
+                            hit = set_fill2(r[p].tipe_rumah)
+
+                            //ubah var hit ke object
+                            hit = {
+                                fill: hit,
+                                tipe: subsidi
+                            }
+
+                        }
+                    }
+
+
+                    // }
+
+
+
+                    const fieldChecks = {
+                        'sertifikat_is_balik_nama': (val) => val === 'Sudah',
+                        'pbb_is_balik_nama':        (val) => val === 'Sudah',
+                        'progres_bangunan':         (val) => parseInt(val) === 100,
+                        'is_lunas':                 (val) => val == 1,
+                    };
+                    const isComplete = fields.every(field => {
+                        const val = r[p][field];
+
+                        if (fieldChecks[field]) {
+                            return fieldChecks[field](val);
+                        }
+
+                        if (field.includes('tgl') || field.includes('tanggal')) {
+                            return isValidDate(val);
+                        }
+
+                        return val !== null && val !== '';
+                    });
+
+                    if (isComplete) {
+                        hit = set_fill2("Selesai");
+                    }
+
+
+                    //harga jual
+                    let id_hargajual = r[p].harga_akhir;
+                    r[p].harga_akhir = (r[p].hargajual) ? num_format(r[p].hargajual) + " (Per " + format_date(r[p].tgl_harga) + ")" : '-';
+
+
+
+                    if (typeof hit !== 'object') {
+                        hit = {
+                            fill: hit,
+                            tipe: 'Status'
+                        }
+                    }
+
+                    // return;
+
+                    //set untuk filter warna
+                    filterwarna[hit.tipe] = {
+                        ...filterwarna[hit.tipe],
+                        [hit.fill]: conf[hit.fill].fill
+                    }
+
+
+                    // console.log(hit.fill, conf[hit.fill].fill);
+
+                    hitung_kavling(hit)
+                    //data di tiap kavling harus disesuaikan dengan divisi yang dipilih
+                    kav = new Konva.Line({
+                        points: JSON.parse("[" + r[p].points + "]"),
+                        // lineCap: 'round',
+                        // lineJoin: 'round',
+                        // stroke: stroke,
+                        fill: conf[hit.fill].fill,
+                        // strokeWidth: strokeWidth,
+                        dash: dashed,
+                        opacity: 1,
+                        closed: true,
+                        globalCompositeOperation: 'multiply',
+                        kategori: hit.fill,
+                        data: {
+                            nama_jalan: r[p].nama_jalan,
+                            no_kavling: r[p].no_kavling,
+                            id_produksi: r[p].id_produksi,
+                            id_legal: r[p].id_legal,
+                            id_keuangan: r[p].id_keuangan,
+                            id_sales: r[p].id_sales,
+                            id_planning: r[p].id_planning,
+                            id_mkdt: r[p].id_mkdt,
+                            id_umum: r[p].id_umum,
+                            id_direksi: r[p].id_direksi,
+                            tipe: 'kavling',
+                            status_tanah: r[p].status_tanah,
+                            luas_tanah: r[p].luas_tanah,
+                            is_batal: r[p].is_batal,
+                            // total_biaya: ktotal_biaya,
+                            // sudah_bayar: ksudah_bayar
+                        },
+                        data2: {
+                            id_hargajual: id_hargajual,
+                            status_mkdt: r[p].status_mkdt,
+                            id_tipe: r[p].id_tipe,
+                            tipe_rumah: tp_rumah,
+                            no_tipe_rumah: no_tp_rumah,
+                            id_gambar_kerja: r[p].id_gambar_kerja,
+                            harga_akhir: r[p].harga_akhir,
+                            harga_akhir_tgl: r[p].harga_akhir_tgl,
+                            harga_akhir_oleh: r[p].harga_akhir_oleh_username,
+                            id_serah_terima: r[p].id_serah_terima,
+                            id_komplain: r[p].id_komplain,
+                        },
+                        id: 'kav' + r[p].id_kavling
+                    });
+                    siteplan.add(kav);
+                }
+                set_keterangan_warna()
+                cek_tanggal_pembangunan(refresh)
+
+                if (roleid == 3)
+                    cek_jatuh_tempo(true)
+            },
+            error: function(xhr, st, err) {
+                $("#loading").addClass("hidden")
+                return swal("error", err);
+            },
+        });
+
+        //load jalan fasos rth
+        $.ajax({
+            url: base_url + 'siteplan/get_others',
+            type: 'post',
+            data: {
+                [csrfName]: csrfHash,
+                id_proyek: dt_proyek.id_proyek,
+                id_role: va
+            },
+            dataType: 'json',
+            beforeSend: function() {
+                $("#loading").removeClass("hidden");
+            },
+            success: function(result) {
+                stroke = ""
+                fill = ""
+                strokeWidth = ""
+                dashed = ""
+
+                var r = result.data
+
+                for (var p = 0; p < r.length; p++) {
+                    if (r[p].tipe == "jalan")
+                        set_fill("#ccc", "#000", "0", null) // warna abu
+                    else if (r[p].tipe == "fasos")
+                        set_fill("#9000ff", "#000", "0", null) // warna ungu
+                    else if (r[p].tipe == "rth")
+                        set_fill("#0f0", "#000", "0", null) // warna merah
+                    kav = new Konva.Line({
+                        points: JSON.parse("[" + r[p].points + "]"),
+                        fill: fill,
+                        dash: dashed,
+                        opacity: 1,
+                        closed: true,
+                        globalCompositeOperation: 'multiply',
+                        data: {
+                            tipe: r[p].tipe,
+                            nama_jalan: r[p].nama_jalan,
+                        },
+                        data2: {},
+                        id: 'others' + r[p].id
+                    });
+                    siteplan.add(kav);
+                }
+            },
+            error: function() {
+                Swal.fire({
+
+                    icon: 'error',
+                    title: "Terjadi kesalahan",
+                    showConfirmButton: false,
+                    //timer: 1500
+                })
+                return;
+            }
+        });
+        group.hide();
+    }
+
+    //zoom
+    var scaleBy = 1.1;
+    stage.on('wheel', (e) => {
+        // stop default scrolling
+        menuNode.style.display = 'none';
+        e.evt.preventDefault();
+
+        var oldScale = stage.scaleX();
+        var pointer = stage.getPointerPosition();
+
+        var mousePointTo = {
+            x: (pointer.x - stage.x()) / oldScale,
+            y: (pointer.y - stage.y()) / oldScale,
+        };
+
+        // how to scale? Zoom in? Or zoom out?
+        let direction = e.evt.deltaY > 0 ? -1 : 1;
+
+        // when we zoom on trackpad, e.evt.ctrlKey is true
+        // in that case lets revert direction
+        if (e.evt.ctrlKey) {
+            direction = -direction;
+        }
+
+        var newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+
+        stage.scale({
+            x: newScale,
+            y: newScale
+        });
+
+        group.scale({
+            x: 1 / newScale,
+            y: 1 / newScale
+        })
+        var newPos = {
+            x: pointer.x - mousePointTo.x * newScale,
+            y: pointer.y - mousePointTo.y * newScale,
+        };
+        stage.position(newPos);
+    });
+
+    //clear selction
+    var idss, idsb, idst, idstb, ajal, seljal;
+
+    function hapus_seleksi() {
+        line_ms.points([0, 0])
+
+        bml_old = 0;
+        dtt_first = [];
+
+        idss = stage.find('#sel')[0]; //find selection line
+        idst = stage.find('#tsel')[0]; //find selection text
+
+
+        // ajal = stage.find('#ajal')[0];
+        // if(ajal) ajal.destroy();
+
+        //remove point select jalan
+        seljal = stage.find('#seljal');
+        for (let p = 0; p <= seljal.length; p++) {
+            if (seljal[p])
+                seljal[p].destroy();
+        }
+        dtt = [];
+
+
+
+        if (idss)
+            idss.destroy(); //destroy shape
+        if (idst)
+            idst.destroy(); //destroy shape
+
+        hapus_seleksi_batch() //destroy multiple selection
+    }
+    //destroy multiple selection
+    function hapus_seleksi_batch() {
+        idsb = stage.find('#sel'); //find selection line
+        idstb = stage.find('#tsel'); //find selection text
+
+        for (let p = 0; p <= idsb.length; p++) {
+            if (idsb[p])
+                idsb[p].destroy();
+
+            if (idstb[p])
+                idstb[p].destroy();
+        }
+
+        batchMask = [];
+        batchdtt = [];
+        editdtt = [];
+        siteplan.draw();
+    }
+
+    var editdtt = [];
+
+    //event klik kavling
+    masked.on('dblclick', function(e) {
+        if (!addMode) {
+            if (e.evt.button === 0 && e.target.attrs.id) {
+                //open detail modal
+                lihat_detail();
+            }
+        }
+    })
+
+    //hide tooltip on tap at siteplan
+    siteplan.on('tap', function() {
+        group.hide();
+    })
+
+    //panggil tooltip saat di tap di ponsel
+    siteplan.on('tap', function(e) {
+        var data = e.target.attrs;
+
+        //posisi tooltip
+        var mousePos = stage.getRelativePointerPosition();
+        group.position({
+            x: mousePos.x + 20,
+            y: mousePos.y + 5,
+        });
+
+        //text tooltip
+        if (data.data) {
+            if (!data.data.nama_jalan || !data.data.no_kavling)
+                return;
+            tooltip.text(
+                data.data.nama_jalan +
+                " No. " + data.data.no_kavling + "\n" +
+                data.data2.no_tipe_rumah + "\n" +
+                data.data2.tipe_rumah + " ( " + data.data.luas_tanah + " / " + data.data.status_tanah + ") \n" +
+                "HJ: Rp. " + data.data2.harga_akhir +
+                ""
+            );
+            group.moveToTop();
+            group.show(); //show tooltip
+        }
+    })
+
+    siteplan.on('click tap', function(e) {
+        var k = e.target, //get shape
+            sh = k.attrs, //get attribut shape
+            role = $('#pilih-divisi option:selected').val(),
+            id_kavling = ''
+
+        if (!sh.id) return false;
+        id_kavling = sh.id.substr(3)
+
+        if (!$("#tambah_jalan").prop('checked')) {
+            addMode = e.evt.ctrlKey;
+
+            //jika hak akses = planning dan pilihan data yang ditampilkan = planning
+            //admin, pro
+            if ([1, 3, 4, 6, 7].includes(roleid)) {
+                if (addMode) {
+                    if (sh.data.tipe != "kavling") {
+                        return swal('error', 'Terjadi kesalahan', 'Multiple Selection hanya untuk data kavling ')
+                    }
+
+                    editdtt.push(sh)
+                    drawBorderEdit(sh)
+                } else {
+                    hapus_seleksi();
+                    editdtt.push(sh)
+                    drawBorderEdit(sh)
+                }
+            } else {
+                hapus_seleksi();
+                editdtt.push(sh)
+                drawBorderEdit(sh)
+            }
+        }
+    })
+
+    stage.on('click tap', function(e) {
+        if ($("#tambah_jalan").prop('checked')) {
+            dtt = [];
+            var pos = this.getRelativePointerPosition();
+
+            var dot = new Konva.Circle({
+                x: pos.x,
+                y: pos.y,
+                fill: 'red',
+                radius: 5,
+                id: "seljal",
+                draggable: true
+            })
+            manual_selection.add(dot);
+
+            var sj = stage.find("#seljal");
+            for (let u = 0; u < sj.length; u++) {
+                dtt.push(Math.trunc(sj[u].attrs.x), Math.trunc(sj[u].attrs.y))
+            }
+            line_ms.points(dtt)
+        }
+    })
+    masked.add(line_ms)
+    masked.add(manual_selection)
+
+    manual_selection.on('dragend', function(e) {
+        dtt = []
+        var sj = stage.find("#seljal");
+        for (let u = 0; u < sj.length; u++) {
+            dtt.push(Math.trunc(sj[u].attrs.x), Math.trunc(sj[u].attrs.y))
+        }
+
+        line_ms.points(dtt)
+    })
+
+    //even mouse move data kavling
+    var data, mousePos, persentase;
+    siteplan.on('mousemove', function(e) {
+        data = e.target.attrs;
+        // console.log(data);
+
+        //posisi tooltip
+        mousePos = stage.getRelativePointerPosition();
+        group.position({
+            x: mousePos.x + 20,
+            y: mousePos.y + 5,
+        });
+        //text tooltip
+        if (data.data) {
+            if (!data.data.nama_jalan || !data.data.no_kavling)
+                return;
+            tooltip.text(
+                data.data.nama_jalan +
+                " No. " + data.data.no_kavling + "\n" +
+                data.data2.no_tipe_rumah + "\n" +
+                data.data2.tipe_rumah + " ( " + data.data.luas_tanah + " / " + data.data.status_tanah + ") \n" +
+                "HJ: Rp. " + data.data2.harga_akhir
+            );
+            // }
+            group.moveToTop();
+            group.show(); //show tooltip
+
+        }
+
+    })
+    //even mouse move data kavling
+    var data, mousePos, persentase;
+    siteplan.on('mousemove', function(e) {
+        data = e.target.attrs;
+        // console.log(data);
+
+        //posisi tooltip
+        mousePos = stage.getRelativePointerPosition();
+        group.position({
+            x: mousePos.x + 20,
+            y: mousePos.y + 5,
+        });
+        //text tooltip
+        if (data.data) {
+            if (!data.data.nama_jalan || !data.data.no_kavling)
+                return;
+            tooltip.text(
+                data.data.nama_jalan +
+                " No. " + data.data.no_kavling + "\n" +
+                data.data2.no_tipe_rumah + "\n" +
+                data.data2.tipe_rumah + " ( " + data.data.luas_tanah + " / " + data.data.status_tanah + ") \n" +
+                "HJ: Rp. " + data.data2.harga_akhir
+            );
+            // }
+            group.moveToTop();
+            group.show(); //show tooltip
+
+        }
+
+    })
+
+    //highligh kavling
+    siteplan.on('mouseover', function(e) {
+        var sh = e.target;
+        sh.setAttr("strokeWidth", 4);
+        sh.setAttr("stroke", "black");
+    })
+
+    //hide tooltip
+    siteplan.on('mouseout', function(e) {
+        var sh = e.target;
+        sh.setAttr("strokeWidth", 0);
+        group.hide();
+    })
+
+    function getDistance(p1, p2) {
+        return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+    }
+
+    function getCenter(p1, p2) {
+        return {
+            x: (p1.x + p2.x) / 2,
+            y: (p1.y + p2.y) / 2,
+        };
+    }
+
+    var lastCenter = null;
+    var lastDist = 0;
+    stage.on('touchmove', function(e) {
+        e.evt.preventDefault();
+        var touch1 = e.evt.touches[0];
+        var touch2 = e.evt.touches[1];
+
+        if (touch1 && touch2) {
+            // if the stage was under Konva's drag&drop
+            // we need to stop it, and implement our own pan logic with two pointers
+            if (stage.isDragging()) {
+                stage.stopDrag();
+            }
+
+            var p1 = {
+                x: touch1.clientX,
+                y: touch1.clientY,
+            };
+            var p2 = {
+                x: touch2.clientX,
+                y: touch2.clientY,
+            };
+
+            if (!lastCenter) {
+                lastCenter = getCenter(p1, p2);
+                return;
+            }
+            var newCenter = getCenter(p1, p2);
+
+            var dist = getDistance(p1, p2);
+
+            if (!lastDist) {
+                lastDist = dist;
+            }
+
+            // local coordinates of center point
+            var pointTo = {
+                x: (newCenter.x - stage.x()) / stage.scaleX(),
+                y: (newCenter.y - stage.y()) / stage.scaleX(),
+            };
+
+            var scale = stage.scaleX() * (dist / lastDist);
+
+            stage.scaleX(scale);
+            stage.scaleY(scale);
+
+            // calculate new position of the stage
+            var dx = newCenter.x - lastCenter.x;
+            var dy = newCenter.y - lastCenter.y;
+
+            var newPos = {
+                x: newCenter.x - pointTo.x * scale + dx,
+                y: newCenter.y - pointTo.y * scale + dy,
+            };
+
+            group.scale({
+                x: 1 / scale,
+                y: 1 / scale
+            })
+
+            stage.position(newPos);
+
+            lastDist = dist;
+            lastCenter = newCenter;
+        }
+    });
+
+    stage.on('touchend', function() {
+        lastDist = 0;
+        lastCenter = null;
+    });
+
+    function lihat_detail() {
+        if (editdtt.length == 0) {
+            Swal.fire({
+
+                icon: 'error',
+                title: "Terjadi Kesalahan.",
+                text: "Tidak ada kavling yang dipilih",
+                showConfirmButton: false,
+            });
+            return;
+        }
+        last_update("#last_update_legal, #last_update_mkdt, #last_update_keuangan, #last_update_prod")
+        var sh = editdtt[0],
+            id_kavling = sh.id.substr(3);
+
+        // $("#fm-detail")[0].reset();
+        $('#fm-detail input,#fm-detail select').val('');
+        $("#tb-data-tagihan-detail").html("");
+
+        if (sh.data.tipe == 'kavling') {
+            return detail_kavling(sh, id_kavling)
+        } else {
+            return detail_others(sh)
+        }
+    }
+
+    function detail_others(sh) {
+        // alert(sh.data.tipe)
+        $("#f_detail_progres_jalan").val(0)
+        $(".t_luas_planning, .t_keterangan_planning, .t_luas_legal, .t_keterangan_legal, .t_luas_produksi, .t_keterangan_produksi, .r_progres").html("-")
+        $.ajax({
+            url: base_url + 'siteplan/get_others',
+            type: 'post',
+            data: {
+                [csrfName]: csrfHash,
+                id_kavling: editdtt[0].id.substr(6)
+            },
+            dataType: 'json',
+            success: function(r) {
+                csrfHash = r.token;
+
+                if (r.data) {
+                    let d = r.data[0],
+                        progres = (d.progres) ? d.progres : 0;
+                    // $(".id_kavling").val(d.id)
+                    // $(".t_luas_legal, .t_luas_produksi").html("-")
+
+                    if (d.planning_luas) {
+                        $(".t_luas_planning").html(d.planning_luas + "  m&sup2  (" + d.planning_edit + ": " + format_datetime(d.planning_updated_at) + ")")
+                        $(".t_keterangan_planning").html(d.planning_keterangan)
+                    }
+
+                    if (d.legal_luas) {
+                        $(".t_luas_legal").html(d.legal_luas + "  m&sup2  (" + d.legal_edit + ": " + format_datetime(d.legal_updated_at) + ")")
+                        $(".t_keterangan_legal").html(d.legal_keterangan)
+                    }
+
+                    if (d.produksi_luas) {
+                        $(".t_luas_produksi").html(d.produksi_luas + "  m&sup2  (" + d.produksi_edit + ": " + format_datetime(d.produksi_updated_at) + ")")
+                        $(".t_keterangan_produksi").html(d.produksi_keterangan)
+                    }
+                    $("#f_detail_progres_jalan").val(progres)
+                    $(".r_progres").html(progres)
+
+                }
+
+            },
+            error: function() {
+                Swal.fire({
+
+                    icon: 'error',
+                    title: "Terjadi kesalahan",
+                    showConfirmButton: false,
+                    //timer: 1500
+                })
+                return;
+            }
+        });
+
+
+
+        $(".label_alamat").html("<b>" + dt_proyek.nama_proyek + "</b>" + "<br/> <span class='capitalize'>" + sh.data.tipe + "<span>: " + sh.data.nama_jalan + "");
+        $('#modal_othersdetail').modal({
+            backdrop: 'static',
+            keyboard: false
+        });
+    }
+    const isSubsidi = ['Non-Subsidi', 'Subsidi'],
+        isKPR = ['Tunai/Cash Keras', 'KPR', 'Tunai/Bertahap']
+
+    let dmkdt,
+        dpl,
+        dpr,
+        dlg,
+        dlc,
+        dbprod,
+        dr;
+
+    function detail_kavling(sh, id_kavling) {
+        $(".id_sikumbang").html("Memuat data sikumbang...");
+        let src = not_found
+        $("#fm-detail :input").prop("disabled", true)
+        $('#dtt-summary-tab').tab('show');
+
+        $("#dt-promo").text('-')
+        $("#dt-is_kpr").text('-')
+        $("#dt-is_subsidi").text('-')
+        $("#dt-no_spptb").text('-')
+        $("#dt-nama_konsumen").text('-')
+        $("#dt-alamat_konsumen").text('-')
+        $("#dt-nik_konsumen").text('-')
+        $("#dt-npwp_konsumen").text('-')
+        $("#dt-hp_konsumen").text('-')
+        $("#dt-email_konsumen").text('-')
+        $("#dt-sales").text('-')
+
+        let categories = [
+            "rab_dokumen",
+            "prod_foto_konstruksi",
+            "prod_foto_exterior",
+            "prod_foto_interior",
+            "jalan_foto",
+            "jalan_foto_update",
+            "listrik_pln_foto",
+            "listrik_disediakan_dokumen",
+            "air_komunal",
+            "air_tanah",
+            "air_pdam",
+        ];
+
+        categories.forEach((cat) => {
+            $("#dt-list_" + cat).html("");
+            $("#dt-label_" + cat).html("Upload file/Foto");
+        });
+
+        $(".files-here").prop('src', src)
+
+        $.ajax({
+            url: base_url + 'siteplan/get/detail',
+            type: 'post',
+            data: {
+                [csrfName]: csrfHash,
+                id_kavling: id_kavling,
+                id_legal: sh.data.id_legal,
+                id_produksi: sh.data.id_produksi,
+                id_keuangan: sh.data.id_keuangan,
+                id_mkdt: sh.data.id_mkdt,
+                id_hargajual: sh.data2.id_hargajual
+            },
+            dataType: 'json',
+            beforeSend: function() {
+                $("#loading").removeClass("hidden");
+            },
+            success: function(r) {
+                $("#loading").addClass("hidden");
+
+                csrfHash = r.token;
+                dr = r
+
+                loadSummary(dr)
+                loaded['sm'] = true
+
+                /************************ load bayar produksi  ***************************/
+
+                let lAlamat = setLabelAlamat("<?= $data['proyek']->nama_proyek ?>", sh.data.nama_jalan, sh.data.no_kavling, sh.data2.no_tipe_rumah, sh.data2.tipe_rumah)
+
+                $(".label_alamat").html(lAlamat);
+                $("#label-hargajual").html(`
+                    Harga Jual: <h2 class="text-primary mb-0"><strong>Rp. ${sh.data2.harga_akhir}</strong></h5>
+                    <small class="text-muted">(${format_date(sh.data2.harga_akhir_tgl)} - ${sh.data2.harga_akhir_oleh})</small>`);
+
+                $("#modal_detail").modal('show');
+            },
+            error: function(xhr, st, err) {
+                $("#loading").addClass("hidden")
+                return swal("error", err);
+            },
+        });
+
+
+
+        let no_kavling_pad = (parseInt(sh.data.no_kavling, 10) < 10 ? '0' : '') + sh.data.no_kavling;
+        let id_kavling_sikumbang = dt_proyek.id_perumahan_sikumbang + sh.data.nama_jalan.replace(/\s+/g, '').toUpperCase() + no_kavling_pad;
+
+
+        fetch('https://sikumbang.tapera.go.id/ajax/trilogi/' + id_kavling_sikumbang)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Fetched data from SIKUMBANG:', data);
+
+                let tpengembang, tbank, tmbr, txt
+                if (data.error === true) {
+                    txt = "ID TIdak Ditemukan/Sikumbang Sedang tidak bisa diakses."
+                } else {
+                    tpengembang = (data.data.pengembang === true) ? '<span class="badge badge-success">Ready Stock</span>' : '';
+                    tbank = (data.data.bank === true) ? '<span class="badge badge-success">Trilogy Bank</span>' : '';
+                    tmbr = (data.data.mbr === true) ? '<span class="badge badge-success">Trilogy MBR</span>' : '';
+
+                    txt = `<b>${id_kavling_sikumbang}</b> <br>${tpengembang} ${tbank} ${tmbr}`;
+                }
+                // You can handle/use the fetched data as needed here
+                $(".id_sikumbang").html(txt);
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    }
+
+    $('#modal_detail').on('hidden.bs.modal', function() {
+        // alert()
+        loaded = [];
+    });
+
+
+    function loadSummary(r) {
+        //load data konsumen
+        if (r.mkdt) {
+            let mkdt = r.mkdt
+            setText("#dt-promo", mkdt.promo)
+            setText("#dt-is_kpr", isKPR[mkdt.is_kpr], true, "success")
+            setText("#dt-is_subsidi", isSubsidi[mkdt.is_subsidi], true, "success")
+            setText("#dt-no_spptb", mkdt.no_spptb)
+            setText("#dt-nama_konsumen", mkdt.nama_konsumen)
+            setText("#dt-alamat_konsumen", mkdt.alamat_konsumen)
+            setText("#dt-nik_konsumen", mkdt.nik_konsumen)
+            setText("#dt-npwp_konsumen", mkdt.npwp)
+            setText("#dt-hp_konsumen", mkdt.hp_konsumen)
+            setText("#dt-email_konsumen", mkdt.email_konsumen)
+            setText("#dt-sales", mkdt.sales)
+
+            // console.log()
+
+            setText("#s-status_mkdt", mkdt.status_mkdt)
+            setText("#s-st_bank", mkdt.st_bank)
+            setText("#s-notaris", mkdt.notaris)
+            setText("#s-st_sp3k_tgl", format_date(mkdt.sp3k_tgl))
+            setText("#s-st_sp3k_tgl_exp", format_date(mkdt.sp3k_tgl_exp))
+        } else {
+            setText("#dt-promo", '-')
+            setText("#dt-is_kpr", '-')
+            setText("#dt-is_subsidi", '-')
+            setText("#dt-no_spptb", '-')
+            setText("#dt-nama_konsumen", '-')
+            setText("#dt-alamat_konsumen", '-')
+            setText("#dt-nik_konsumen", '-')
+            setText("#dt-npwp_konsumen", '-')
+            setText("#dt-hp_konsumen", '-')
+            setText("#dt-email_konsumen", '-')
+            setText("#dt-sales", '-')
+
+            // console.log()
+
+            setText("#s-status_mkdt", '-')
+            setText("#s-st_bank", '-')
+            setText("#s-notaris", '-')
+            setText("#s-st_sp3k_tgl", '-')
+            setText("#s-st_sp3k_tgl_exp", '-')
+        }
+
+        if (r.kavling) {
+            setText("#s-perintah_bangun_tgl", format_date(r.kavling.perintah_bangun_tgl))
+        } else {
+            setText("#s-perintah_bangun_tgl", "-")
+        }
+
+        //keuangan
+        const tg = hitungTagihan(r)
+        setText("#s-persentase_bayar_tagihan_um", tg.ldp)
+        setText("#s-persentase_bayar_tagihan_um_ll", tg.ldp_semua)
+        setText("#s-persentase_bayar_tagihan_bb", tg.ldp_bb)
+
+        if (r.produksi) {
+            let pr = r.produksi
+            setText("#s-progress_bangunan", pr.progres_bangunan + '%')
+            setText("#s-tanggal_pembangunan", format_date(pr.tanggal_pembangunan))
+            setText("#s-tanggal_selesai_pembangunan", format_date(pr.tanggal_selesai_pembangunan))
+
+            setText("#s-st_saluran", isSudah(pr.st_saluran))
+            setText("#s-st_air", isSudah(pr.st_air))
+            setText("#s-st_jalan", isSudah(pr.st_jalan))
+            setText("#s-slo", isSudah(pr.slo))
+            setText("#s-lpa", isSudah(pr.lpa))
+        } else {
+            setText("#s-progress_bangunan", "-")
+            setText("#s-tanggal_pembangunan", "-")
+            setText("#s-tanggal_selesai_pembangunan", "-")
+
+            setText("#s-st_saluran", "-")
+            setText("#s-st_air", "-")
+            setText("#s-st_jalan", "-")
+            setText("#s-slo", "-")
+            setText("#s-lpa", "-")
+        }
+
+        if (r.si) {
+            let si = ''
+            $.each(r.si, function(i, v) {
+                si += `
+                <div class="info-row row no-gutters">
+                    <div class="col-6">
+                        <label class="info-label mb-0">${v.nama}</label>
+                    </div>
+                    <div class="col-6">
+                        : <span class="info-value">${isSudah(v.id_kavling)} ${v.tanggal_si ? format_date(v.tanggal_si) : '-'}</span>
+                    </div>
+                </div>
+                `
+            });
+            applyLoadingEffect("#s-si")
+            setTimeout(() => {
+                setText("#s-si", si)
+                removeLoadingEffect("#s-si");
+            }, 500);
+        }
+
+        if (r.cashout) {
+            let cashout = ''
+
+            // FILTER UNIK DI SINI
+            const uniqueCashout = r.cashout.filter((v, index, self) =>
+                index === self.findIndex((t) => t.id_item_cashout === v.id_item_cashout)
+            );
+            if (uniqueCashout.length == 0) {
+                cashout += `<div class="info-row row no-gutters">
+                    <div class="col-12">
+                        <label class="info-label mb-0">Belum ada pembayaran</label>
+                    </div>
+                </div>`
+
+            } else {
+                // let nom
+                $.each(uniqueCashout, function(i, v) {
+                    // nom = v.nominal ? num_format(v.nominal):''
+                    cashout += `
+                <div class="info-row row no-gutters">
+                    <div class="col-6">
+                        <label class="info-label mb-0">${v.item}</label>
+                    </div>
+                    <div class="col-6">
+                        : <span class="info-value">${isSudah(v.id)} ${v.tanggal_bayar ? format_date(v.tanggal_bayar) : '-'}</span>
+                    </div>
+                </div>`
+                });
+            }
+
+
+            applyLoadingEffect("#s-co")
+            setTimeout(() => {
+                setText("#s-co", cashout)
+                removeLoadingEffect("#s-co");
+            }, 500);
+        }
+    }
+
+
+    function isSudah(e) {
+        if (e)
+            return `<i class="fa fa-solid fa-check"></i> Sudah`
+        return `-`
+    }
+
+    function last_update(id, username = null, date = null) {
+        let u = '-',
+            t = '-'
+        if (username) {
+            u = username
+            t = format_datetime(date)
+        }
+        $(id).html(`Terakhir diubah oleh: <b>${u}</b>, pada: <b>${t}</b> `);
+    }
+
+    function loadPL(pl) {
+        //load harga pricelist
+        if (pl) {
+            $.each(pl, function(i, v) {
+                applyLoadingEffect("#dt-pl_" + i, v)
+                setTimeout(() => {
+                    changeVal("#dt-pl_" + i, v)
+                    removeLoadingEffect("#dt-pl_" + i, v);
+                }, 500);
+
+            });
+            setDatePicker(pl.tgl_harga, "#dt-pl_tgl_harga")
+        }
+
+    }
+
+    function loadKavling(r) {
+        if (r.kavling) {
+            setDatePicker(r.kavling.perintah_bangun_tgl, '#dt-st_perintah_bangun_tgl')
+            changeVal("#dt-st_perintah_bangun_oleh", r.kavling.username)
+            src = not_found
+            if (r.kavling.perintah_bangun_file) {
+                src = r.kavling.perintah_bangun_file
+            }
+
+            $("#dt-pph_ntpn").val(r.kavling.pph42_ntpn)
+            $("#dt-pph_nominal_bayar").val(r.kavling.pph42_nilai).keyup()
+            setDatePicker(r.kavling.pph42_tgl_bayar, "#dt-pph_tgl_bayar")
+
+            //  $("#dt-st_list-upload_perintah_bangun_file-here").prop('src', base_url + src)
+
+        }
+        $("#dt-st_list-upload_perintah_bangun_file").prop('href', base_url + src)
+    }
+
+    function loadMKDT(mkdt) {
+        src = not_found
+
+        $("#dt-st_list-upload_sp3k_file").prop('href', base_url + src)
+
+        $("#dt-st_list-upload_bast_file").prop('href', base_url + src)
+
+        $("#dt-btn-bl_here").prop('href', base_url + src)
+        $(".dt-cl-bl_here").prop('src', base_url + src)
+
+        $("#dt-btn-npwp_here").prop('href', base_url + src)
+        $(".dt-cl-npwp_here").prop('src', base_url + src)
+
+        $("#dt-btn-ktp_here").prop('href', base_url + src)
+        $(".dt-cl-ktp_here").prop('src', base_url + src)
+
+        if (mkdt) {
+            //load price list dari keuangan
+            setDatePicker(mkdt.tgl_harga, "#dt-tgl_harga")
+            changeVal("#dt-hargajual", mkdt.harga_jual)
+            changeVal("#dt-harga_diskon_hargajual", mkdt.harga_diskon_hargajual)
+            changeVal("#dt-hargajual_net", mkdt.harga_jual_net)
+            changeVal("#dt-kpr", mkdt.harga_kpr)
+            changeVal("#dt-uang_muka", mkdt.harga_uang_muka)
+            changeVal("#dt-harga_diskon_uang_muka", mkdt.harga_diskon_uang_muka)
+            changeVal("#dt-biaya_adm", mkdt.harga_administrasi)
+            changeVal("#dt-bphtb", mkdt.harga_bphtb)
+            changeVal("#dt-ppn", mkdt.harga_ppn)
+            changeVal("#dt-biaya_proses", mkdt.harga_biaya_proses)
+            changeVal("#dt-row", mkdt.row)
+            changeVal("#dt-tipe", mkdt.tipe)
+            changeVal("#dt-lt", mkdt.lb)
+            changeVal("#dt-lb", mkdt.lt)
+            changeVal("#dt-is_ajb", mkdt.is_ajb)
+            changeVal("#dt-notaris", mkdt.notaris)
+
+
+
+            //kpr disetujui
+            changeVal("#dt-st_harga_kpr_acc", mkdt.harga_kpr_acc)
+            changeVal("#dt-st_harga_penambahan_um", mkdt.harga_penambahan_um)
+            changeVal("#dt-st_harga_penambahan", mkdt.harga_penambahan)
+            changeVal("#dt-st_harga_penambahan_tanah", mkdt.harga_penambahan_tanah)
+            changeVal("#dt-st_keterangan_harga_penambahan", mkdt.keterangan_harga_penambahan)
+
+            //status
+            changeVal('#dt-status_mkdt', mkdt.status_mkdt)
+            setDatePicker(mkdt.booking_tgl, '#dt-st_booking_tgl')
+            changeVal('#dt-st_bank', mkdt.bank)
+
+            changeVal('#dt-st_booking_fee', mkdt.booking_fee)
+
+            $("#dt-st_wawancara").prop('checked', mkdt.wawancara)
+            setDatePicker(mkdt.wawancara_tgl, '#dt-st_wawancara_tgl')
+
+            changeVal('#dt-st_harga_kpr', mkdt.harga_kpr)
+            changeVal('#dt-st_acc_harga_kpr', mkdt.harga_kpr_acc)
+            changeVal('#dt-st_harga_turun_kpr', parseFloat(mkdt.harga_kpr) - parseFloat(mkdt.harga_kpr_acc))
+            changeVal('#dt-st_sp3k_no', mkdt.sp3k_no)
+            setDatePicker(mkdt.sp3k_tgl, "#dt-st_sp3k_tgl")
+            setDatePicker(mkdt.sp3k_tgl_exp, "#dt-st_sp3k_tgl_exp")
+
+            src = not_found
+
+            if (mkdt.sp3k_file) {
+                src = mkdt.sp3k_file
+            }
+            $("#dt-st_list-upload_sp3k_file").prop('href', base_url + src)
+            // $("#dt-st_list-upload_sp3k_file-here").prop('src', base_url + src)
+
+
+            src = not_found
+            if (mkdt.file_ktp) {
+                src = mkdt.file_ktp
+            }
+            $("#dt-btn-ktp_here").prop('href', base_url + src)
+            $(".dt-cl-ktp_here").prop('src', base_url + src)
+
+            src = not_found
+            if (mkdt.file_npwp) {
+                src = mkdt.file_npwp
+            }
+            $("#dt-btn-npwp_here").prop('href', base_url + src)
+            $(".dt-cl-npwp_here").prop('src', base_url + src)
+
+            src = not_found
+            if (mkdt.file_data_diri) {
+                src = mkdt.file_data_diri
+            }
+            $("#dt-btn-bl_here").prop('href', base_url + src)
+            $(".dt-cl-bl_here").prop('src', base_url + src)
+
+
+
+
+
+            setDatePicker(mkdt.rencana_akad_tgl, '#dt-st_rencana_akad_tgl')
+            $("#dt-st_akad").prop('checked', mkdt.akad == "0" ? 0 : 1)
+            setDatePicker(mkdt.akad_tgl, '#dt-st_akad_tgl')
+
+            changeVal("#dt-st_debitur_no", mkdt.debitur_no)
+            changeVal("#dt-st_bast_no", mkdt.bast_no)
+
+            src = not_found
+            if (mkdt.bast_file) {
+                src = mkdt.bast_file
+            }
+            $("#dt-st_list-upload_bast_file").prop('href', base_url + src)
+
+            // $("#last_update_legal").html(`Terakhir dipudate oleh: ${lg.uadd_by}, pada: ${format_datetime(lg.created_at)} `);
+            // if(lg.uedit_by){
+            //     $("#last_update_legal").html(`Terakhir dipudate oleh: -${lg.uedit_by}, pada: ${format_datetime(lg.updated_at)} `);
+            // }
+        }
+    }
+
+
+    function loadLegal(lg) {
+        /************************ load table legal ***************************/
+        if (lg) {
+            for (let i in lg) {
+                $("#dt-" + i).val(lg[i]).change();
+            }
+
+            if (lg.data) {
+                $("#dt-sertifikat_balik_nama").val(lg.data.nama_konsumen ? lg.data.nama_konsumen : '')
+                $("#dt-pbb_balik_nama").val(lg.data.nama_konsumen ? lg.data.nama_konsumen : '')
+                $("#dt-bphtb_nominal_disetujui").val(lg.data.harga_bphtb ? lg.data.harga_bphtb : '').change().keyup()
+            }
+
+            setDatePicker(lg.sertifikat_split_tanggal_terbit, "#dt-sertifikat_split_tanggal_terbit")
+            setDatePicker(lg.sertifikat_split_tanggal_berakhir, "#dt-sertifikat_split_tanggal_berakhir")
+            setDatePicker(lg.sertifikat_split_tanggal_surat_ukur, "#dt-sertifikat_split_tanggal_surat_ukur")
+            setDatePicker(lg.sertifikat_balik_nama_tgl_pengiriman, "#dt-sertifikat_balik_nama_tgl_pengiriman")
+            setDatePicker(lg.pbb_pecah_tanggal_bayar, "#dt-pbb_pecah_tanggal_bayar")
+
+            setDatePicker(lg.bphtb_tanggal_verifikasi, "#dt-bphtb_tanggal_verifikasi")
+            setDatePicker(lg.bphtb_jatuh_tempo, "#dt-bphtb_jatuh_tempo")
+            setDatePicker(lg.bphtb_perpanjang_jatuh_tempo, "#dt-bphtb_perpanjang_jatuh_tempo")
+            setDatePicker(lg.bphtb_tanggal_pembayaran, "#dt-bphtb_tanggal_pembayaran")
+            setDatePicker(lg.bphtb_tanggal_validasi, "#dt-bphtb_tanggal_validasi")
+
+            setDatePicker(lg.pph_tgl_permohonan, "#dt-pph_tgl_permohonan")
+            setDatePicker(lg.pph_tanggal_validasi, "#dt-pph_tanggal_validasi")
+            setDatePicker(lg.pph_tgl_bayar, "#dt-pph_tgl_bayar")
+            setDatePicker(lg.ajb_tanggal, "#dt-ajb_tanggal")
+            setDatePicker(lg.ajb_tanggal_dikirim, "#dt-ajb_tanggal_dikirim")
+            setDatePicker(lg.ppjb_tanggal, "#dt-ppjb_tanggal")
+
+            setDatePicker(lg.pbb_balik_nama_tgl_pengiriman, "#dt-pbb_balik_nama_tgl_pengiriman")
+            setDatePicker(lg.pbb_tgl_pembetulan, "#dt-pbb_tgl_pembetulan")
+            setDatePicker(lg.pbg_tanggal_kirim, "#dt-pbg_tanggal_kirim")
+            setDatePicker(lg.pph_tgl_selesai, "#dt-pph_tgl_selesai")
+
+            $("#dt-legal_keterangan").val(lg.keterangan);
+
+            last_update("#last_update_legal", lg.uadd_by, lg.created_at)
+            if (lg.uedit_by) {
+                last_update("#last_update_legal", lg.uedit_by, lg.updated_at)
+            }
+
+        }
+
+        /************************ end of table legal ***************************/
+    }
+
+    function hitungTagihan(r) {
+        //um
+        let total_um = parseFloat(r.total_um)
+        let sb_um = parseFloat(r.sb_um)
+        let sisa_um = r.total_um - r.sb_um,
+            ldp = (sisa_um == 0) ? 100 : r.sb_um / r.total_um * 100;
+        ldp = (r.sb_um > 0) ? ~~ldp + "%" : "0%";
+
+        //um dan ll
+        let total_um_ll = parseFloat(r.total_um_ll),
+            sb_um_ll = parseFloat(r.sb_um_ll)
+        let sisa_um_ll = r.total_um_ll - r.sb_um_ll,
+            ldp_ll = (sisa_um_ll == 0) ? 100 : r.sb_um_ll / r.total_um_ll * 100;
+        ldp_ll = (r.sb_um_ll > 0) ? ~~ldp_ll + "%" : "0%";
+
+        let total_bb = parseFloat(r.total_bb)
+        let sb_bb = parseFloat(r.sb_bb)
+        let sisa_bb = r.total_bb - r.sb_bb,
+            ldp_bb = (sisa_bb == 0) ? 100 : r.sb_bb / r.total_bb * 100;
+        ldp_bb = (r.sb_bb > 0) ? ~~ldp_bb + "%" : "0%";
+
+        let total_semua = total_um + total_bb + total_um_ll,
+            sb_semua = sb_um + sb_um_ll + sb_bb,
+            sisa_semua = total_semua - sb_semua,
+            ldp_semua = (sisa_semua == 0) ? 100 : sb_semua / total_semua * 100;
+        ldp_semua = sb_semua > 0 ? ~~ldp_semua + "%" : "0%"
+        // console.log(total_semua, sb_semua)
+        return {
+            sisa_um: sisa_um,
+            ldp: ldp,
+            total_um: total_um,
+            sb_um: sb_um,
+            sisa_um_ll: sisa_um_ll,
+            ldp_ll: ldp_ll,
+            sb_um_ll: r.sb_um_ll,
+            total_um_ll: r.total_um_ll,
+            total_bb: total_bb,
+            sb_bb: sb_bb,
+            sisa_bb: sisa_bb,
+            ldp_bb: ldp_bb,
+            total_semua: total_semua,
+            sb_semua: sb_semua,
+            sisa_semua: sisa_semua,
+            ldp_semua: ldp_semua
+
+        }
+    }
+
+    function loadTagihan(r) {
+        /************************ load table tagihan ***************************/
+
+        let tagihan = hitungTagihan(r);
+
+        changeVal("#dt-total_biaya_um", tagihan.total_um)
+        changeVal("#dt-sudah_bayar_um", tagihan.sb_um)
+        changeVal("#dt-sisa_tagihan_um", tagihan.sisa_um)
+        changeVal("#dt-persentase_bayar_tagihan_um", tagihan.ldp)
+
+
+        changeVal("#dt-total_biaya_um_ll", tagihan.total_um_ll)
+        changeVal("#dt-sudah_bayar_um_ll", tagihan.sb_um_ll)
+        changeVal("#dt-sisa_tagihan_um_ll", tagihan.sisa_um_ll)
+        changeVal("#dt-persentase_bayar_tagihan_um_ll", tagihan.ldp_ll)
+
+
+
+        changeVal("#dt-total_biaya_bb", tagihan.total_bb)
+        changeVal("#dt-sudah_bayar_bb", tagihan.sb_bb)
+        changeVal("#dt-sisa_tagihan_bb", tagihan.sisa_bb)
+        changeVal("#dt-persentase_bayar_tagihan_bb", tagihan.ldp_bb)
+
+        if (r.ku)
+            $("#last_update_keuangan").html("Terakhir diupdate oleh: " + r.ku.username + " pada: " + format_datetime(r.ku.created_at));
+        /************************ end of load table tagihan ***************************/
+    }
+
+    function loadProduksi(pr, files) {
+        /************************ load produksi ***************************/
+        if (pr) {
+            $("#dt-st_0").prop('checked', pr.st_0)
+            $("#dt-st_25").prop('checked', pr.st_25)
+            $("#dt-st_50").prop('checked', pr.st_50)
+            $("#dt-st_75").prop('checked', pr.st_75)
+            $("#dt-st_100").prop('checked', pr.st_100)
+            $("#dt-st_saluran").prop('checked', pr.st_saluran)
+            $("#dt-st_jalan").prop('checked', pr.st_jalan)
+            $("#dt-st_air").prop('checked', pr.st_air)
+            $("#dt-bp").prop('checked', pr.bp)
+            $("#dt-lpa").prop('checked', pr.lpa)
+            $("#dt-slo").prop('checked', pr.slo)
+            $("#dt-sumurbor").prop('checked', pr.sumurbor)
+
+            setDatePicker(pr.lpa_tanggal, "#dt-lpa_tanggal")
+
+            setDatePicker(pr.tanggal_pembangunan, '#dt-tanggal_pembangunan')
+            setDatePicker(pr.tanggal_rencana_selesai_pembangunan, '#dt-tanggal_rencana_selesai_pembangunan')
+            setDatePicker(pr.tanggal_selesai_pembangunan, '#dt-tanggal_selesai_pembangunan')
+
+            $("#dt-progres_bangunan").val(pr.progres_bangunan)
+            setText("#dt-t_progres_bangunan", pr.progres_bangunan)
+
+            $("#dt-produksi_keterangan").val(pr.keterangan)
+
+            changeVal("#dt-air_jenis", pr.air_jenis);
+            changeVal("#dt-listrik_jenis", pr.listrik_jenis);
+
+            changeVal("#dt-listrik_pln", pr.listrik_pln);
+            changeVal("#dt-listrik_disediakan_no", pr.listrik_disediakan_no);
+            changeVal("#dt-listrik_disediakan_tanggal", pr.listrik_disediakan_tanggal);
+            changeVal("#dt-air_deskripsi_unit", pr.air_deskripsi_unit);
+            changeVal("#dt-air_pdam_no", pr.air_pdam_no);
+
+
+            changeVal("#dt-sumurbor_keterangan", pr.sumurbor_keterangan);
+            setDatePicker(pr.sumurbor_tanggal, '#dt-sumurbor_tanggal')
+            $("#dt-last_update-sumurbor").html(
+                `Diubah pada: ${pr.sumurbor_updated ? format_datetime(pr.sumurbor_updated) : '-'},
+                    oleh: ${pr.sumurbor_oleh_u ? pr.sumurbor_oleh_u : '-'}`
+            )
+
+        } else {
+            $("#dt-st_0").prop('checked', false)
+            $("#dt-st_25").prop('checked', false)
+            $("#dt-st_50").prop('checked', false)
+            $("#dt-st_75").prop('checked', false)
+            $("#dt-st_100").prop('checked', false)
+            $("#dt-st_saluran").prop('checked', false)
+            $("#dt-st_jalan").prop('checked', false)
+            $("#dt-st_air").prop('checked', false)
+            $("#dt-bp").prop('checked', false)
+            $("#dt-lpa").prop('checked', false)
+            $("#dt-slo").prop('checked', false)
+            $("#dt-sumurbor").prop('checked', false)
+
+            setDatePicker(null, "#dt-lpa_tanggal")
+
+            setDatePicker(null, '#dt-tanggal_pembangunan')
+            setDatePicker(null, '#dt-tanggal_rencana_selesai_pembangunan')
+            setDatePicker(null, '#dt-tanggal_selesai_pembangunan')
+
+            $("#dt-progres_bangunan").val(null)
+            setText("#dt-t_progres_bangunan", null)
+
+            $("#dt-produksi_keterangan").val(null)
+
+            changeVal("#dt-air_jenis", null);
+            changeVal("#dt-listrik_jenis", null);
+
+            changeVal("#dt-listrik_pln", null);
+            changeVal("#dt-listrik_disediakan_no", null);
+            changeVal("#dt-listrik_disediakan_tanggal", null);
+            changeVal("#dt-air_deskripsi_unit", null);
+            changeVal("#dt-air_pdam_no", null);
+
+            changeVal("#dt-sumurbor_keterangan", null);
+            setDatePicker(null, '#dt-sumurbor_tanggal')
+            $("#dt-last_update-sumurbor").html(null)
+        }
+        // console.log(files)
+        if (files)
+            showFoto(files, 'dt-', "false");
+
+
+        /************************ end of produksi ***************************/
+    }
+    /************************ load bukti bayar pajak  ***************************/
+    function loadBuktiBayarPajak(r) {
+
+        let dv = ''
+        $.each(r.file_pph, function(i, v) {
+            dv += `
+                <a href="${v.access_url || file_url('file_upload', v.id)}" class="btn btn-outline-primary" target=_blank>
+                    <h5>Bukti pembayaran ${v.default_filename} </h5>
+                    ${v.keterangan}
+                    <br>
+                    <embed src="${v.access_url || file_url('file_upload', v.id)}" style="width: 90%;"
+                        class="files-here dt-cl-ktp_here">
+                        diunggah pada: ${format_datetime(v.upload_at)} (${v.uupload_by})
+                </a>
+                <br>
+                <br>
+                 `;
+        });
+        $("#dt-file_pph42-here").html(dv)
+
+        dv = '';
+        $.each(r.file_ppn, function(i, v) {
+            dv += `
+                <a href="${v.access_url || file_url('file_upload', v.id)}" class="btn btn-outline-primary" target=_blank>
+                    <h5>Bukti pembayaran ${v.default_filename} </h5>
+                    ${v.keterangan}
+                    <br>
+                    <embed src="${v.access_url || file_url('file_upload', v.id)}" style="width: 90%;"
+                        class="files-here dt-cl-ktp_here">
+                        diunggah pada: ${format_datetime(v.upload_at)} (${v.uupload_by})
+                </a>
+                <br>
+                <br>
+                 `;
+        });
+        $("#dt-file_ppn-here").html(dv)
+
+    }
+
+    function loadCashOut(d) {
+        let dv = ''
+        if (d.lenght == 0) {
+            $("#dt-cashout-table tbody").html(`"<tr><td colspan='4' class='text-center'>Data tidak ditemukan</td></tr>"`)
+        }
+        $.each(d, function(i, val) {
+            let row = `
+        <tr>
+            <td>${val.item}</td>
+            <td>${format_date(val.tanggal_bayar) ?? "-"}</td>
+            <td>${num_format(val.nominal) ?? "0"}</td>
+            <td>${val.keterangan ?? "-"}</td>
+        </tr>`;
+            $("#dt-cashout-table tbody").append(row);
+        });
+
+    }
+
+    function loadBayarProduksi(bprod) {
+        let dv = ''
+        $("#dt-div-bayar_produksi-here").html("")
+        $.each(bprod, function(i, v) {
+            // console.log(bprod)
+
+            let id = !v.id ? "n" + v.id_bayar_produksi : v.id
+            dv += `
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <strong>${v.item}</strong>
+                            </div>
+                            <div class="card-body">
+                                    <div class="row">
+                                    <div class="col-md-6">
+
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Tanggal Pembayaran</label>
+                                            <input disabled type="text" class="form-control fp-bayar_produksi flatpickr-human-friendly tbp${v.id_bayar_produksi}"
+                                                id="dt-id-bayar_produksi[${id}][tanggal_bayar]" value="${v.tanggal_bayar ? v.tanggal_bayar : ''}" name="dt-id-bayar_produksi[${id}][tanggal_bayar]">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label for="sumurbor_bayar_nominal">Nominal</label>
+                                            <input type="text" disabled class="form-control num nbp${v.id_bayar_produksi}" id="dt-id-bayar_produksi[${id}][nominal]"
+                                                name="dt-id-bayar_produksi[${id}][nominal]" value="${v.nominal ? v.nominal : ''}">
+                                            <input type="hidden" class="form-control" id="id-bayar_produksi[${id}][id_item_produksi]"
+                                                name="id-bayar_produksi[${id}][id_item_produksi]" value="${id}">
+                                        </div>
+                                    </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Keterangan</label>
+                                            <textarea disabled class="form-control" id="dt-id-bayar_produksi[${id}][keterangan]"
+                                                name="dt-id-bayar_produksi[${id}][keterangan]" rows="4" placeholder="Keterangan">${v.keterangan ? v.keterangan : ''}</textarea>
+                                            <small id="last_update-sumurbor_bayar" class=""></small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+        });
+
+        $("#dt-div-bayar_produksi-here").html(dv)
+        $(".num").change()
+
+    }
+
+    function loading(hiden = ture) {
+        if (hiden) return $("#loading").removeClass('hidden')
+        return $("#loading").addClass('hidden')
+    }
+
+    function isi_data() {
+        if (editdtt.length == 0)
+            return swal('error', 'Terjad Kesalahan', 'Tidak ada kavling yang dipilih')
+
+        //bug isi data with addmode
+        if (editdtt.length > 1) {
+            swal('error', 'Terjad Kesalahan', 'Tidak bisa merubah data lebih dari 1 kavling')
+            hapus_seleksi();
+            return;
+        }
+
+        let role,
+            sh = editdtt[0],
+            id_kavling = sh.id.substr(3);
+
+        //jika admin login
+        if (roleid == 1)
+            role = $('#pilih-divisi option:selected').val()
+        else
+            role = roleid
+
+        if (role == 7) { //produksi
+            open_produksi(sh, role, id_kavling)
+        } else if (role == 5) { //legal
+            open_legal(sh, role, id_kavling)
+        } else if (role == 4) { //mkdt
+            open_mkdt(sh, role, id_kavling)
+        } else if (role == 3) { //keunagan
+            if (!sh.data.id_mkdt) {
+                return swal('error', 'Terjad Kesalahan', `Belum ada data konsumen di kavling ${sh.data.nama_jalan}, No. ${sh.data.no_kavling}`)
+            }
+            open_keuangan(sh, role, id_kavling)
+        } else if (role == 6) { //planning
+            if (!addMode) {
+                hapus_seleksi();
+                open_planning(sh, role, id_kavling)
+            } else {
+                editdtt.push(sh)
+                drawBorderEdit(sh)
+            }
+            $(".label_alamat").html(dt_proyek.nama_proyek + "<br/>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling + "<br/>" + sh.data2.no_tipe_rumah + " (" + sh.data2.tipe_rumah + ")<br/>");
+            $('#modal_divisi' + role).modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+        } else if (role == 8) { //sales promotion
+            $(".label_alamat").html(dt_proyek.nama_proyek + "<br/>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling + "<br/>" + sh.data2.no_tipe_rumah + " (" + sh.data2.tipe_rumah + ")<br/>");
+            $('#modal_divisi' + role).modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+        } else if (role == 10) { //pajak
+            open_pajak(sh, role, id_kavling);
+        }
+    }
+
+    <?php if ($k == 1 || $k == 6): ?><?php endif; ?>
+    <?php if ($k == 1 || $k == 3): ?> <?php endif; ?>
+    /********************************* mkdt *******************************************/
+    $("#fm-mkdt .num").change(function() {
+        // total()
+    })
+    //tidak dipakai
+    function total(id_form = "") {
+        var harga_jual = removeComma(($(id_form + " #harga_jual").val() == '') ? 0 : $(id_form + " #harga_jual").val()),
+            harga_diskon = removeComma(($(id_form + " #harga_diskon").val() == '') ? 0 : $(id_form + " #harga_diskon").val()),
+            harga_penambahan = removeComma(($(id_form + " #harga_penambahan").val() == '') ? 0 : $(id_form + " #harga_penambahan").val()),
+            harga_administrasi = removeComma(($(id_form + " #harga_administrasi").val() == '') ? 0 : $(id_form + " #harga_administrasi").val()),
+            harga_ppn = removeComma(($(id_form + " #harga_ppn").val() == '') ? 0 : $(id_form + " #harga_ppn").val()),
+            harga_bphtb = removeComma(($(id_form + " #harga_bphtb").val() == '') ? 0 : $(id_form + " #harga_bphtb").val()),
+            harga_biaya_proses = removeComma(($(id_form + " #harga_biaya_proses").val() == '') ? 0 : $(id_form + " #harga_biaya_proses").val()),
+            harga_kpr = removeComma(($(id_form + " #harga_kpr").val() == '') ? 0 : $(id_form + " #harga_kpr").val()),
+            total_biaya = 0;
+
+        total_biaya = (harga_jual - harga_kpr) - harga_diskon + harga_penambahan + harga_ppn + harga_bphtb + harga_biaya_proses;
+
+        $(id_form + " #total_biaya").val(total_biaya).keyup();
+
+        // console.log(total_biaya)
+
+        $("#total_biaya2").val(total_biaya).keyup();
+
+    }
+
+    function lihat_total() {
+        var harga_jual = removeComma(($("#detail_harga_jual").val() == '') ? 0 : $("#detail_harga_jual").val()),
+            harga_diskon = removeComma(($("#detail_harga_diskon").val() == '') ? 0 : $("#detail_harga_diskon").val()),
+            harga_penambahan = removeComma(($("#detail_harga_penambahan").val() == '') ? 0 : $("#detail_harga_penambahan").val()),
+            harga_administrasi = removeComma(($("#detail_harga_administrasi").val() == '') ? 0 : $("#detail_harga_administrasi").val()),
+            harga_ppn = removeComma(($("#detail_harga_ppn").val() == '') ? 0 : $("#detail_harga_ppn").val()),
+            harga_bphtb = removeComma(($("#detail_harga_bphtb").val() == '') ? 0 : $("#detail_harga_bphtb").val()),
+            harga_biaya_proses = removeComma(($("#detail_harga_biaya_proses").val() == '') ? 0 : $("#detail_harga_biaya_proses").val()),
+            harga_kpr = removeComma(($("#detail_harga_kpr").val() == '') ? 0 : $("#detail_harga_kpr").val()),
+            total_biaya = 0;
+
+        total_biaya = (harga_jual - harga_kpr) - harga_diskon + harga_penambahan + harga_ppn + harga_bphtb + harga_biaya_proses;
+
+        $("#detail_total_biaya").val(total_biaya).keyup();
+
+    }
+    //sum tagihan
+
+    function sum_tg(e = 0, bb = '') {
+        e = parseFloat(removeComma(e))
+
+        let total_keu = parseFloat(removeComma($("#mk-total_tot").val()) || 0)
+        let cicilan_keu = parseFloat(removeComma($("#mk-total_cicilan_um").val()) || 0)
+
+        if (cicilan_keu + e > total_keu)
+            $("#nominal").val(total_keu - cicilan_keu).keyup()
+    }
+
+    var it = 0;
+    /***************** list tagihan ****************/
+    function tambah_(e = '') {
+        let a = (e == '_bb') ? e : '_um'
+        if ($("#mk-total_cicilan_um").val() == $("#mk-total_tot").val()) {
+            swal('error', "Tidak bisa menambahkan tagihan", "Total tagihan tidak bisa melebeihi total harus dibayar", false);
+            return false;
+        } else {
+            if (!$("#berita_acara" + e).val() || !$("#nominal" + e).val() || !$("#jatuh_tempo_tgl" + e).val()) {
+                swal('error', "Nominal dan jatuh tempo tidak boleh kosong", null, false);
+                return false;
+            }
+            Swal.fire({
+                title: 'Simpan data?',
+                text: "Pastikan data sudah terisi dengan benar!",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya!',
+                confirmButtonClass: 'btn btn-primary',
+                cancelButtonClass: 'btn btn-danger ml-1',
+                buttonsStyling: !1
+            }).then(function(t) {
+                if (t.value) {
+                    tambah(e)
+                }
+            })
+        }
+    }
+
+    function tambah(e = '') {
+        let i = 'lk' + it
+
+        if (state.data_um[$("#id_list_keu" + e).val()])
+            i = $("#id_list_keu" + e).val()
+
+        state.data_um[i] = ({
+            id_list_keu: i,
+            id_keuangan: $("#id_keuangan").val(),
+            berita_acara: $("#berita_acara").val(),
+            nominal: $("#nominal").val(),
+            jatuh_tempo_tgl: $("#jatuh_tempo_tgl").val(),
+        })
+
+        tambah_ketagihan(e)
+
+        fp = flatpickr("#jatuh_tempo_tgl", {
+            altInput: true,
+            altFormat: 'F j, Y',
+            dateFormat: 'Y-m-d'
+        })
+
+        var d = new Date(
+            $("#jatuh_tempo_tgl").val()
+        ).fp_incr(30);
+
+        fp.setDate(d);
+
+        it += 1;
+    }
+
+    function removeFromTable(x, y = null) {
+        Swal.fire({
+            title: 'Hapus Data?',
+            text: "Data tidak bisa dipulihkan!",
+            type: 'danger',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya!',
+            confirmButtonClass: 'btn btn-primary',
+            cancelButtonClass: 'btn btn-danger ml-1',
+            buttonsStyling: !1
+        }).then(function(t) {
+            if (t.value) {
+                $.ajax({
+                    url: base_url + 'Keuangan/isSudahBayar/' + editdtt[0].data.id_mkdt,
+                    type: 'get',
+                    dataType: 'json',
+                    success: function(r) {
+                        csrfHash = r.token;
+
+                        if (r.success === false) {
+                            return swal('error', r.messages)
+                        }
+
+                        if (y == '_bb') delete state.data_bb[x];
+                        else delete state.data_um[x];
+                        tambah_ketagihan();
+                    },
+                    error: function() {
+                        return swal('error', 'Terjadi kesalahan')
+                    }
+                });
+
+            }
+        })
+
+    }
+
+    function editFromTable(x) {
+        var d = state.data_um[x]
+
+        $("#id_list_keu").val(x);
+        $("#berita_acara").val(d.berita_acara);
+        $("#nominal").val(d.nominal).keyup();
+        $("#jatuh_tempo_tgl").val(d.jatuh_tempo_tgl);
+        $("#tambah_list").html("Simpan Perubahan")
+    }
+
+
+    function rowHTML({
+        title,
+        date,
+        amount,
+        key,
+        suffix = ''
+    }) {
+        return `
+    <tr data-key="${key}" data-suffix="${suffix}">
+      <td>${title}</td>
+      <td>${format_date(date)}</td>
+      <td>${num_format(amount)}</td>
+      <td>
+        <div class="btn-group">
+          <button type="button" class="btn btn-outline-danger waves-effect btn-sm js-remove">
+            <i class="fa fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+    }
+
+    function sectionHTML({
+        rows,
+        label,
+        suffix = ''
+    }) {
+        let total = 0;
+        const body = rows.map(r => {
+            total += Number(removeComma(r.amount));
+            return rowHTML({
+                ...r,
+                suffix
+            });
+        }).join('');
+        const foot = `
+                    <tr class="table-secondary">
+                        <td colspan="2">Total Tagihan </td>
+                        <td>${num_format(total)}</td>
+                        <td></td>
+                    </tr>`;
+        return {
+            html: body + foot,
+            total
+        };
+    }
+
+    function tambah_ketagihan() {
+        const umRows = Object.keys(state.data_um || {}).map(k => ({
+            key: k,
+            title: state.data_um[k].berita_acara,
+            date: state.data_um[k].jatuh_tempo_tgl,
+            amount: state.data_um[k].nominal
+        }));
+
+        // const bbRows = Object.keys(state.data_bb || {}).map(k => ({
+        //     key: k,
+        //     title: state.data_bb[k].berita_acara_bb,
+        //     date: state.data_bb[k].jatuh_tempo_tgl_bb,
+        //     amount: state.data_bb[k].nominal_bb
+        // }));
+
+        const um = sectionHTML({
+            rows: umRows,
+            label: 'Tagihan Uang Muka',
+            suffix: ''
+        });
+
+        // const bb = sectionHTML({
+        //     rows: bbRows,
+        //     label: 'Tagihan Biaya Biaya',
+        //     suffix: '_bb'
+        // });
+
+        // 1x write ke DOM
+        $("#list_cicilan_here").html(um.html);
+
+        // update total & UI state
+        $("#mk-total_cicilan_um").val(um.total).trigger('change');
+        // $("#total_cicilan_bb").val(bb.total).trigger('change');
+        $("#id_list_keu").val('');
+        $("#id_list_keu_bb").val('');
+        $("#nominal, #nominal_bb").trigger('change');
+        // $("#tambah_list").text("+ Cicilan UM");
+        // $("#tambah_list_bb").text("+ Cicilan BB");
+    }
+
+    // Event delegation untuk remove
+    $(document).on('click', '#list_cicilan_here .js-remove', function() {
+        const $tr = $(this).closest('tr');
+        const key = $tr.data('key');
+        const suffix = $tr.data('suffix');
+        removeFromTable(String(key), String(suffix || ''));
+    });
+
+    $("#pilih-divisi").select2()
+    $("#filter-kategori").select2()
+    $("#filter-kategori").change(function() {
+        filterKategori(this.value)
+    })
+
+    function filterKategori(kat) {
+        siteplan.find('Line').forEach(function(i, v) {
+            if (kat == "") {
+                return i.visible(true)
+            }
+            if (i.attrs.kategori == kat) {
+                i.visible(true)
+            } else {
+                i.visible(false)
+            }
+        })
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+
+<script>
+    // stage.add(siteplan, masked, datal);
+    stage.add(siteplan, masked);
+    stage.draw();
+
+    function downloadURI(uri, name, callback) {
+        var link = document.createElement('a');
+        link.download = name;
+        link.href = uri;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        delete link;
+
+        callback()
+    }
+
+    function export_siteplan() {
+        $('#btn-export-siteplan').prop("disabled", true);
+        $('#btn-export-siteplan').html('Export<i class="fa fa-spinner fa-spin"></i>');
+
+        const stageh = stage.height()
+        const stagew = stage.width()
+        const stages = stage.scale()
+        const stagep = stage.position()
+
+        stage.height(imageObj.height)
+        stage.width(imageObj.width)
+
+        stage.position({
+            x: 0,
+            y: 0
+        })
+
+        var dataURL = stage.scale({
+            x: 1,
+            y: 1
+        }).toDataURL({
+            pixelRatio: 1
+        });
+
+        const nama_file = "Siteplan " + dt_proyek.nama_proyek + " Per " + format_date(today_date) + ".png";
+
+        downloadURI(dataURL, nama_file, function() {
+            stage.height(stageh)
+            stage.width(stagew)
+            stage.scale(stages)
+            stage.position(stagep)
+            $('#btn-export-siteplan').prop("disabled", false);
+            $('#btn-export-siteplan').html('Export');
+        })
+    }
+
+    //context menu
+
+
+    //autofit
+    function fitStageIntoParentContainer() {
+        var container = document.querySelector('#stage-parent');
+
+        // now we need to fit stage into parent container
+        var containerWidth = container.offsetWidth;
+
+        // but we also make the full scene visible
+        // so we need to scale all objects on canvas
+        var scale = containerWidth / sceneWidth;
+
+
+
+        stage.width(sceneWidth * scale);
+        stage.height(sceneHeight);
+        new Konva.Tween({
+            node: stage,
+            duration: 0.5,
+            scaleX: scale,
+            scaleY: scale,
+            easing: Konva.Easings.EaseInOut,
+        }).play();
+        // stage.scale({
+        //     x: scale,
+        //     y: scale
+        // });
+    }
+
+    fitStageIntoParentContainer();
+
+    function open_setting() {
+        // $("#modal-setting-filter").modal()
+        $("#modalEwe").modal()
+    }
+
+    function filter_option() {
+        filter.id_cluster = $("#filter-id_cluster").val()
+        filter.id_jalan = $("#filter-id_jalan").val()
+        load_kavling()
+    }
+
+    function hapus_filter_option() {
+        $('#filter-id_cluster').val(null).trigger('change');
+        filter_option()
+    }
+
+    //select2 cluster
+    $("#filter-id_cluster").select2({
+        placeholder: "Pilih Cluster",
+        allowClear: true,
+        ajax: {
+            url: base_url + "/cluster/getAll",
+            dataType: 'json',
+            delay: 250,
+            method: 'post',
+            data: function(params) {
+                return {
+                    [csrfName]: csrfHash,
+                    search: params.term,
+                    id_proyek: dt_proyek.id_proyek
+                };
+            },
+            processResults: function(r) {
+                csrfHash = r.token
+
+                let results = [];
+                $.each(r.data, function(index, item) {
+                    results.push({
+                        id: item[0],
+                        text: item[3]
+                    });
+                });
+
+                return {
+                    results: results
+                };
+            },
+            cache: true
+        },
+    })
+    // on select cluster
+    $("#filter-id_cluster").on("change", function(e) {
+        $('#filter-id_jalan').val(null).trigger('change');
+        if (this.value)
+            $("#filter-id_jalan").prop("disabled", false)
+        else
+            $("#filter-id_jalan").prop("disabled", true)
+    });
+    $("#filter-id_jalan").select2({
+        placeholder: "Pilih Blok",
+        allowClear: true,
+        ajax: {
+            url: base_url + "/jalan/getAll",
+            dataType: 'json',
+            delay: 250,
+            method: 'post',
+            data: function(params) {
+                return {
+                    [csrfName]: csrfHash,
+                    search: params.term,
+                    id_cluster: $("#filter-id_cluster").val(),
+                    id_proyek: dt_proyek.id_proyek
+                };
+            },
+            processResults: function(r) {
+                csrfHash = r.token
+
+                let results = [];
+                $.each(r.data, function(index, item) {
+                    results.push({
+                        id: item[0],
+                        text: item[3]
+                    });
+                });
+
+                return {
+                    results: results
+                };
+            },
+            cache: true
+        },
+    })
+
+    //remove bug arrow select2
+    $(".select2-selection__arrow").removeClass("select2-selection__arrow")
+
+    $("#br_siteplan").html(dt_proyek.nama_proyek)
+
+
+    //context menu
+    let currentShape;
+    document.getElementById('menu-btn-lihat_detail').addEventListener('click', () => {
+        if (currentShape.target.attrs.id) {
+            //open detail modal
+            lihat_detail();
+        }
+    });
+    var menuNode = document.getElementById('menu');
+    window.addEventListener('click', () => {
+        // hide menu
+        menuNode.style.display = 'none';
+    });
+    stage.on('contextmenu', function(e) {
+        // prevent default behavior
+        e.evt.preventDefault();
+
+        if (e.target === stage) {
+            // if we are on empty place of the stage we will do nothing
+            return;
+        }
+        currentShape = e;
+        // show menu
+        menuNode.style.display = 'initial';
+        var containerRect = stage.container().getBoundingClientRect();
+        menuNode.style.top = stage.getPointerPosition().y + 4 + 'px';
+        menuNode.style.left = stage.getPointerPosition().x + 20 + 'px';
+    });
+
+    function renderText() {
+
+        $("#btn-renderText").prop("disabled", true);
+        $("#btn-renderText").html('Tampilkan Keterangan Warna Di Siteplan <i class="fa fa-spinner fa-spin"></i>');
+        // convert DOM into image
+        html2canvas(document.querySelector("#keterangan-warna-here"))
+            .then((canvas) => {
+                // show it inside Konva.Image
+                shape_ket.image(canvas);
+                $("#btn-renderText").prop("disabled", false);
+                $("#btn-renderText").html('Tampilkan Keterangan Warna Di Siteplan');
+            });
+    }
+    $("#btn-simpan_batal_mkdt").click(function(e) {
+        e.preventDefault()
+    })
+
+    function simpan_batal() {
+        let btn = "#btn-simpan_batal_mkdt"
+
+        if (!palid("batal-keterangan_batal", "", "Keterangan Batal harus diisi"))
+            return;
+
+
+        var form = $('#fm-batal_booking')[0];
+        var fd = new FormData(form);
+        fd.append(csrfName, csrfHash);
+
+        $.ajax({
+            url: base_url + 'mkdt/simpan_batal',
+            type: 'post',
+            contentType: false,
+            processData: false,
+            data: fd,
+            dataType: 'json',
+            beforeSend: function() {
+                $(btn).prop("disabled", true);
+                $(btn).html('Menyimpan <i class="fa fa-spinner fa-spin"></i>');
+            },
+            success: function(r) {
+                csrfHash = r.token;
+
+                if (r.success === true) {
+                    Swal.fire({
+                        //
+                        icon: 'success',
+                        title: r.messages,
+                        showConfirmButton: false,
+                        //timer: 1500
+                    }).then(function() {
+                        $('.modal').modal('hide');
+                        $(btn).html('Simpan');
+                        $(btn).prop("disabled", false);
+                    })
+                } else {
+                    Swal.fire({
+                        //
+                        icon: 'error',
+                        title: r.messages,
+                        showConfirmButton: false,
+                        //timer: 1500
+                    }).then(function() {
+                        $(btn).html('Simpan');
+                        $(btn).prop("disabled", false);
+                    })
+                }
+                load_kavling();
+                hapus_seleksi();
+            },
+            error: function() {
+                Swal.fire({
+
+                    icon: 'error',
+                    title: "Terjadi kesalahan",
+                    showConfirmButton: false,
+                    //timer: 1500
+                })
+                $(btn).html('Simpan');
+                $(btn).prop("disabled", false);
+                return;
+            }
+        });
+    }
+
+    function ajukan_batal() {
+        let sh = editdtt[0],
+            id_kavling = sh.id.substr(3);
+        if (sh.data.tipe != "kavling") {
+            Swal.fire({
+                //
+                icon: 'error',
+                title: "Tidak ada kavling terpilih ",
+                showConfirmButton: true,
+                // //timer: 1500
+            })
+            return;
+        }
+        if (!sh.data.id_mkdt) {
+            Swal.fire({
+                //
+                icon: 'error',
+                title: "Belum ada data konsumen di kavling: <br>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling,
+                showConfirmButton: false,
+                //timer: 1500
+            })
+            return;
+        }
+        $("#fm-batal_booking")[0].reset();
+        $("#last_update-batal_mkdt").html("Dibatalkan oleh: -  Pada: -")
+
+        $("#batal-id_kavling").val(id_kavling);
+        $("#batal-id_mkdt").val(sh.data.id_mkdt);
+
+        $(".label_alamat").html(dt_proyek.nama_proyek + "<br/>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling + "<br/>" + sh.data2.no_tipe_rumah + " (" + sh.data2.tipe_rumah + ")<br/>");
+
+        $.ajax({
+            url: base_url + 'mkdt/batal_mkdt',
+            type: 'post',
+            data: {
+                [csrfName]: csrfHash,
+                id_mkdt: sh.data.id_mkdt,
+                id_hargajual: sh.data2.id_hargajual,
+                id_kavling: id_kavling
+            },
+            dataType: 'json',
+            beforeSend: function() {
+                $("#loading").removeClass("hidden");
+            },
+            success: function(x) {
+                let mkdt = x.data,
+                    sb = x.sudah_bayar,
+                    tb = x.total_biaya
+                $.each(mkdt, function(k, v) {
+                    $("#batal-" + k).val(v).change().keyup()
+                })
+
+                let src = not_found
+                //load ktp npwp
+                if (mkdt.surat_batal != null) {
+                    src = mkdt.surat_batal
+                }
+
+                $("#list-file_surat_batal").prop("href", base_url + "/" + src)
+
+                $("#last_update-batal_mkdt").html("Dibatalkan oleh: " + mkdt.mkdt_batal_oleh_u + " Pada: " + format_datetime(mkdt.mkdt_batal_tgl))
+
+                $("#batal-total_biaya_um").val(tb.uang_muka).keyup()
+                $("#batal-total_biaya_bb").val(tb.biaya_biaya).keyup()
+
+                $("#batal-sudah_bayar_um").val(sb.uang_muka).keyup()
+                $("#batal-sudah_bayar_bb").val(sb.biaya_biaya).keyup()
+
+                $("#batal-sisa_tagihan_um").val(tb.uang_muka - sb.biaya_biaya).keyup()
+                $("#batal-sisa_tagihan_bb").val(tb.biaya_biaya - sb.biaya_biaya).keyup()
+
+                // $("#batal-persentase_bayar_tagihan_bb").val(tb.biaya_biaya - sb.biaya_biaya).keyup()
+                // $("#batal-persentase_bayar_tagihan_um").val(tb.biaya_biaya - sb.biaya_biaya).keyup()
+
+
+                $('#modal-batal').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+                $("#loading").addClass("hidden");
+            },
+            error: function(e) {
+                Swal.fire({
+                    //
+                    icon: 'error',
+                    title: "Token tidak valid, muat ulang halaman",
+                    showConfirmButton: true,
+                    // //timer: 1500
+                }).then(function() {
+                    location.reload();
+                })
+            }
+        });
+    }
+
+    function cek_tanggal_pembangunan(x = false) {
+        let arr = `<tr><td colspan='6'> Tidak ada Data</td></tr>`;
+        if (wr_pembangunan.length > 0) {
+            let n = 1;
+            arr = ''
+            wr_pembangunan.forEach(i => {
+                arr += `
+                    <tr>
+                        <td>${n++}</td>
+                        <td>${i.nama_jalan} No. ${i.no_kavling} <br> (${i.tipe})</td>
+                        <td>${i.progres} %</td>
+                        <td>${format_date(i.tanggal_pembangunan)}</td>
+                        <td>${format_date(i.tanggal_rencana_selesai_pembangunan)} (${daysBetween(today_date, i.tanggal_rencana_selesai_pembangunan)} hari)</td>
+                        <td>${i.keterangan}</td>
+                    </tr>
+                `
+            });
+        }
+        $("#list-rumah-belum-selesai-here").html(arr)
+        if (x == true)
+            $("#modal-list-rumah-belum-selesai").modal();
+    }
+
+    function formatNomorHP(nomor) {
+        // Hapus semua karakter non-digit
+        let cleaned = nomor.replace(/\D/g, '');
+
+        // Jika sudah diawali dengan 62, tambahkan tanda +
+        if (cleaned.startsWith('+')) {
+            return '' + cleaned.slice(1);
+        }
+
+        // Jika diawali 0, ubah jadi +62
+        if (cleaned.startsWith('0')) {
+            return '62' + cleaned.slice(1);
+        }
+
+        // Jika sudah diawali dengan 8, asumsikan masih nomor lokal
+        if (cleaned.startsWith('8')) {
+            return '62' + cleaned;
+        }
+
+        // Jika sudah diawali +62 dan hanya simbol + yang dihapus
+        return cleaned;
+    }
+
+    function cek_jatuh_tempo(x = false) {
+        let arr = `<tr><td colspan='6'> Tidak ada Data</td></tr>`;
+
+        $.ajax({
+            type: "post",
+            url: base_url + 'tagihan/jatuhtempo',
+            data: {
+                [csrfName]: csrfHash,
+                id_proyek: dt_proyek.id_proyek
+            },
+            dataType: "json",
+            beforeSend: function() {
+                $("#loading").removeClass("hidden");
+            },
+            success: function(r) {
+                $("#loading").addClass("hidden");
+                if (r.length > 0) {
+                    arr = ''
+                    let n = 1
+                    var groupedData = {};
+
+                    $.each(r, function(i, v) {
+                        if (!groupedData[v.id_mkdt]) {
+                            // Jika id_mkdt belum ada, buat objek baru
+                            groupedData[v.id_mkdt] = {
+                                nama_konsumen: v.nama_konsumen,
+                                no_kavling: v.no_kavling,
+                                nama_cluster: v.nama_cluster,
+                                nama_jalan: v.nama_jalan,
+                                nama_proyek: v.nama_proyek,
+                                id_tipe: v.id_tipe,
+                                tagihan_list: [] // Tempat menampung banyak tagihan
+                            };
+                        }
+                        // Masukkan tagihan ke dalam list
+                        groupedData[v.id_mkdt].tagihan_list.push({
+                            berita: v.berita_acara,
+                            nominal: v.nominal,
+                            tgl: v.jatuh_tempo_tgl
+                        });
+                    });
+                    var html = "";
+                    var no = 1;
+
+                    $.each(groupedData, function(id, item) {
+                        var tagihanHtml = "";
+
+                        // Build tampilan list tagihan di dalam satu kolom
+                        $.each(item.tagihan_list, function(idx, tg) {
+                            // Format nominal ke rupiah sederhana
+                            let formattedNominal = new Intl.NumberFormat('id-ID').format(tg.nominal);
+
+                            tagihanHtml += `
+                                <div style="border-bottom: 1px solid #eee; margin-bottom: 5px; padding-bottom: 5px;">
+                                    <strong>${tg.berita}</strong>: Rp ${formattedNominal} <br>
+                                    <small class="text-muted">Tempo: ${tg.tgl}</small>
+                                </div>`;
+                        });
+                        let sh = {
+                            data: {
+                                id_mkdt: id,
+                                nama_proyek: item.nama_proyek,
+                                nama_jalan: item.nama_jalan,
+                                no_kavling: item.no_kavling
+                            },
+                            data2: {
+                                no_tipe_rumah: item.id_tipe,
+                                tipe_rumah: item.id_tipe
+                            }
+                        };
+                        let shString = JSON.stringify(sh).replace(/"/g, '&quot;');
+                        var btn = `<button class="btn btn-outline-primary btn-sm"
+                                    onclick="if(confirm('Apakah Anda yakin ingin melakukan pembayaran?')) { $('.modal').modal('hide'); open_keuangan(${shString}, 3, 0); }">
+                                    <i class="fas fa-receipt"></i> Bayar
+                                </button>`
+
+                        html += `
+                            <tr>
+                                <td class="text-center">${no++}</td>
+                                <td>
+                                    <strong>${item.nama_konsumen}</strong><br>
+                                    <small>${item.nama_jalan} No. ${item.no_kavling}: Tipe ${item.id_tipe}</small>
+                                </td>
+                                <td>${tagihanHtml}</td>
+                                <td>${btn}</td>
+                            </tr>`;
+                    });
+
+                    // 3. Masukkan ke dalam tbody
+                    $("#list-jatuh-tempo-here").html(html);
+                }
+                // $("#list-jatuh-tempo-here").html(arr)
+                $("#modal-list-jatuh-tempo").modal();
+
+            },
+            error: function() {
+                $("#loading").addClass("hidden");
+
+            }
+        });
+
+    }
+    $(".mk-fm, #idk-is_subsidi").change(function() {
+        sum_mktotal()
+    })
+
+
+    function hitung_total(isForm = false, mkdt = []) {
+        let totalum = 0,
+            totalbb = 0,
+            pengurangan = 0,
+            hj = parseFloat(removeComma($("#mk-hargajual").val()) || 0), //
+            diskon_hj = parseFloat(removeComma($("#mk-diskon_harga_jual").val()) || 0),
+            hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0),
+            kpr = parseFloat(removeComma($("#mk-kpr").val()) || 0),
+            um = parseFloat(removeComma($("#mk-uang_muka").val()) || 0),
+            diskon_um = parseFloat(removeComma($("#mk-diskon_uang_muka").val()) || 0),
+            badm = parseFloat(removeComma($("#mk-biaya_adm").val()) || 0),
+            ppn = parseFloat(removeComma($("#mk-ppn").val()) || 0),
+            bphtb = parseFloat(removeComma($("#mk-bphtb").val()) || 0),
+            bproses = parseFloat(removeComma($("#mk-biaya_proses").val()) || 0),
+            sbum = parseFloat(removeComma($("#mk-harga_sbum").val()) || 0),
+
+            hj_real = 0,
+            persentase_kpr = ($("#idk-is_subsidi").val() == 1) ? 0.05 : 0.1, //persentase kpr
+            penambahan_biaya = parseFloat(removeComma($("#mk-harga_penambahan").val()) || 0),
+            penambahan_biaya_tanah = parseFloat(removeComma($("#mk-harga_penambahan_tanah").val()) || 0),
+            is_allin = $("#idk-is_allin").val(),
+            harga_allin = parseFloat(removeComma($("#mk-harga_allin").val() || 0))
+        if (isForm) {
+            if (mkdt.length == 0)
+                return showToast('tidak ada data tersedia', 'warning')
+
+            um = parseFloat(mkdt.harga_uang_muka || 0)
+            diskon_um = parseFloat(mkdt.harga_diskon_uang_muka || 0)
+            badm = parseFloat(mkdt.harga_administrasi || 0)
+            ppn = parseFloat(mkdt.harga_ppn || 0)
+            bphtb = parseFloat(mkdt.harga_bphtb || 0)
+            bproses = parseFloat(mkdt.harga_biaya_proses || 0)
+            sbum = parseFloat(mkdt.harga_sbum || 0)
+            penambahan_biaya = parseFloat(mkdt.harga_penambahan || 0)
+            penambahan_biaya_tanah = parseFloat(mkdt.harga_penambahan_tanah || 0)
+            is_allin = parseFloat(mkdt.is_allin || 0)
+            harga_allin = parseFloat(mkdt.harga_allin || 0)
+        }
+
+        pengurangan = diskon_um + sbum
+
+        totalum = um + badm + penambahan_biaya + penambahan_biaya_tanah
+        totalbb = ppn + bphtb + bproses
+
+        let tottot = totalum + totalbb - pengurangan;
+
+        let grandtotal = tottot;
+        if (is_allin == "1")
+            grandtotal = harga_allin
+
+        return {
+            'total_keseluruhan': tottot,
+            'harus_dibayar': grandtotal
+        }
+    }
+
+    function sum_mktotal() {
+        let hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0)
+        // let totalum = 0,
+        //     totalbb = 0,
+        //     pengurangan = 0,
+        //     hj = parseFloat(removeComma($("#mk-hargajual").val()) || 0), //
+        //     diskon_hj = parseFloat(removeComma($("#mk-diskon_harga_jual").val()) || 0),
+        //     hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0),
+        //     kpr = parseFloat(removeComma($("#mk-kpr").val()) || 0),
+        //     um = parseFloat(removeComma($("#mk-uang_muka").val()) || 0),
+        //     diskon_um = parseFloat(removeComma($("#mk-diskon_uang_muka").val()) || 0),
+        //     badm = parseFloat(removeComma($("#mk-biaya_adm").val()) || 0),
+        //     ppn = parseFloat(removeComma($("#mk-ppn").val()) || 0),
+        //     bphtb = parseFloat(removeComma($("#mk-bphtb").val()) || 0),
+        //     bproses = parseFloat(removeComma($("#mk-biaya_proses").val()) || 0),
+        //     sbum = parseFloat(removeComma($("#mk-harga_sbum").val()) || 0),
+
+        //     hj_real = 0,
+        //     persentase_kpr = ($("#idk-is_subsidi").val() == 1) ? 0.05 : 0.1, //persentase kpr
+        //     penambahan_biaya = parseFloat(removeComma($("#mk-harga_penambahan").val()) || 0),
+        //     penambahan_biaya_tanah = parseFloat(removeComma($("#mk-harga_penambahan_tanah").val()) || 0),
+        //     is_allin = $("#idk-is_allin").val(),
+        //     harga_allin = parseFloat(removeComma($("#mk-harga_allin").val() || 0))
+        // penambahan_biaya_um = parseFloat(removeComma($("#mk-harga_penambahan_um").val()) || 0); //turun kpr, tapi todak ada di isi data kosumen
+
+        // hj_net = hj - diskon_hj
+        // um = hj_net - kpr
+
+        // kpr = hj - (hj * persentase_kpr)
+
+        let tot = hitung_total()
+
+        $("#mk-hargajual_net").val(hj_net).keyup()
+        // $("#mk-kpr").val(kpr).keyup()
+
+        // pengurangan = diskon_um + sbum
+
+        // totalum = um + badm + penambahan_biaya + penambahan_biaya_tanah
+        // totalbb = ppn + bphtb + bproses
+
+        // let tottot = totalum + totalbb - pengurangan;
+
+        // let grandtotal = tottot;
+        // if (is_allin == "1")
+        //     grandtotal = harga_allin
+
+        $("#mk-tgt").val(tot.total_keseluruhan).keyup(); //grand total keseluruhan
+        $("#mk-total_tot").val(tot.harus_dibayar).keyup(); //total yang harus dibayar konsumen
+
+        // alert(totalbb)
+        // $(".tum").val(totalum).keyup();
+        // $(".tbb").val(totalbb).keyup();
+    }
+
+    function terima_batal() {
+
+        let sh = editdtt[0],
+            id_kavling = sh.id.substr(3);
+        if (sh.data.tipe != "kavling") {
+            Swal.fire({
+                //
+                icon: 'error',
+                title: "Tidak ada kavling terpilih ",
+                showConfirmButton: true,
+                // //timer: 1500
+            })
+            return;
+        }
+        if (!sh.data.id_mkdt) {
+            Swal.fire({
+                //
+                icon: 'error',
+                title: "Belum ada data konsumen di kavling: <br>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling,
+                showConfirmButton: false,
+                // ////timer: 1500
+            })
+            return;
+        }
+        // if (sh.data.is_batal == '0') {
+        //     Swal.fire({
+        //         //
+        //         icon: 'error',
+        //         title: "Belum ada data surat batal dari MKDT",
+        //         showConfirmButton: false,
+        //         // //timer: 1500
+        //     })
+        //     return;
+        // }
+        $("#fm-batal_booking")[0].reset();
+        $("#last_update-batal_mkdt").html("Dibatalkan oleh: -  Pada: -")
+
+        $("#batal-id_kavling").val(id_kavling);
+        $("#batal-id_mkdt").val(sh.data.id_mkdt);
+
+        $(".label_alamat").html(dt_proyek.nama_proyek + "<br/>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling + "<br/>" + sh.data2.no_tipe_rumah + " (" + sh.data2.tipe_rumah + ")<br/>");
+
+        $.ajax({
+            url: base_url + 'mkdt/batal_mkdt',
+            type: 'post',
+            data: {
+                [csrfName]: csrfHash,
+                id_mkdt: sh.data.id_mkdt,
+                id_hargajual: sh.data2.id_hargajual,
+                id_kavling: id_kavling
+            },
+            dataType: 'json',
+            beforeSend: function() {
+                $("#loading").removeClass("hidden");
+            },
+            success: function(x) {
+                let mkdt = x.data,
+                    sb = x.sudah_bayar,
+                    tb = x.total_biaya
+                $.each(mkdt, function(k, v) {
+                    $("#batal-" + k).val(v).change().keyup()
+                })
+
+                let src = not_found
+                //load ktp npwp
+                if (mkdt.surat_batal != null) {
+                    src = mkdt.surat_batal
+                }
+
+                $("#list-file_surat_batal").prop("href", base_url + "/" + src)
+
+                $("#last_update-batal_mkdt").html("Dibatalkan oleh: " + mkdt.mkdt_batal_oleh_u + " Pada: " + format_datetime(mkdt.mkdt_batal_tgl))
+
+                $("#batal-total_biaya_um").val(tb.uang_muka).keyup()
+                $("#batal-total_biaya_bb").val(tb.biaya_biaya).keyup()
+
+                $("#batal-sudah_bayar_um").val(sb.uang_muka).keyup()
+                $("#batal-sudah_bayar_bb").val(sb.biaya_biaya).keyup()
+
+                $("#batal-sisa_tagihan_um").val(tb.uang_muka - sb.biaya_biaya).keyup()
+                $("#batal-sisa_tagihan_bb").val(tb.biaya_biaya - sb.biaya_biaya).keyup()
+
+                // $("#batal-persentase_bayar_tagihan_bb").val(tb.biaya_biaya - sb.biaya_biaya).keyup()
+                // $("#batal-persentase_bayar_tagihan_um").val(tb.biaya_biaya - sb.biaya_biaya).keyup()
+
+
+                $('#modal-batal').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+                $("#loading").addClass("hidden");
+            },
+            error: function(e) {
+                Swal.fire({
+                    //
+                    icon: 'error',
+                    title: "Token tidak valid, muat ulang halaman",
+                    showConfirmButton: true,
+                    // //timer: 1500
+                }).then(function() {
+                    location.reload();
+                })
+            }
+        });
+    }
+
+
+
+    /*************************** cashout subkon ***************************/
+
+
+
+
+    /*************************** End of cashout subkon ***************************/
+
+    $(document).keydown(function(event) {
+        if (event.key === 'Escape') {
+            hapus_seleksi()
+        }
+    });
+
+
+    $("#dt-listrik_jenis").change(function() {
+        if (this.value == "PLN") {
+            $("#dt-listrik-pln-input-form").removeClass("hidden");
+            $("#dt-listrik_disediakan").addClass("hidden");
+        } else {
+            $("#dt-listrik-pln-input-form").addClass("hidden");
+            $("#dt-listrik_disediakan").removeClass("hidden");
+        }
+    });
+    $("#dt-air_jenis").change(function() {
+        if (this.value == "Air Tanah") {
+            $("#dt-air_tanah-input_form").removeClass("hidden");
+            $("#dt-air_komunal-input_form").addClass("hidden");
+            $("#dt-air_pdam-input_form").addClass("hidden");
+        } else if (this.value == "Komunal Warga") {
+            $("#dt-air_tanah-input_form").addClass("hidden");
+            $("#dt-air_komunal-input_form").removeClass("hidden");
+            $("#dt-air_pdam-input_form").addClass("hidden");
+        } else {
+            $("#dt-air_tanah-input_form").addClass("hidden");
+            $("#dt-air_komunal-input_form").addClass("hidden");
+            $("#dt-air_pdam-input_form").removeClass("hidden");
+        }
+    });
+</script>
+
+
 
 <!-- Modal to add new record -->
 <?php if ($k == 1 || $k == 6): ?>
@@ -3293,3301 +6572,3 @@ foreach (user()->getRoles() as $key => $val) {
         </div>
     </div>
 </div>
-<!-- BEGIN: Vendor JS-->
-<script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
-<script src="<?= base_url() ?>app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
-<!-- BEGIN Vendor JS-->
-
-<!-- BEGIN: Page Vendor JS-->
-<script src="<?= base_url() ?>assets/js/magic-wand.min.js"></script>
-<script src="<?= base_url() ?>assets/js/konva.min.js"></script>
-<script src="<?= base_url() ?>assets/js/jquery.richtext.min.js"></script>
-<script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
-<script src="<?= base_url() ?>app-assets/vendors/js/forms/select/select2.full.min.js"></script>
-<script src="<?= base_url() ?>app-assets/vendors/js/html2canvas/html2canvas.min.js"></script>
-<!-- <script src="<?= base_url() ?>assets/js/scripts.js"></script> -->
-<!-- END: Page Vendor JS-->
-<script>
-    let data_um = [],
-        data_bb = []
-
-
-    //sewwtalert2 fix error cant type after open modal
-    $.fn.modal.Constructor.prototype._enforceFocus = function() {};
-
-    const state = {
-        id_kavling: null,
-        id_hargajual: null,
-        id_mkdt: null,
-        data_um: {},
-        data_bb: {},
-        sisa_cicilan: 0,
-        sudah_bayar: 0,
-        total_cicilan: 0,
-        status: {
-            tab: {
-                isClosed: false
-            }
-        }
-
-    };
-    const list_pekerjaan = {
-        "Pekerjaan Persiapan": ["Persiapan Pembersihan lokasi", "Pemasangan bouplank"],
-        "Pekerjaan Pondasi": ["Galian tanah pondasi", "Pasangan Pondasi Batu kali", "Pasangan Pondasi plat Setempat", "Instalasi Pipa Air Kotor pendam 3 inch", "Instalasi Pipa Air Kotor Pendam 4 inch", "Instalasi Pipa Air Kotor Pendam lebih dari 4 inch", "Urugan tanah pondasi tinggi 0-20 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi 20-50 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi lebih dari 50 cm dari jalan lingkungan"],
-        "Pekerjaan Pembesian/Kontruksi": ["Rangkaian pemasangan besi/tulangan pada sloof Bawah", "Rangkaian pemasangan Pasang besi/tulangan pada Ring Balok/balok atas", "Rangkaian pemasangan besi/tulangan pada kolom", "Rangkaian pemasangan besi/tulangan pada sopi-sopi/Gewel/gunungan", "Rangkaian pemasangan pertemuan Besi Tulangan antara Kolom dan Sloof Bawah", "Rangkaian pemasangan pertemuan Tulangan antara Kolom dan Ring Balk/balok atas", "Rangkaian pemasangan pertemuan Tulangan antara Kolom, Ring Balk/balok atas dan sopi-sopi/gunungan", ],
-        "Pekerjaan Cor Beton": ["Cor Beton sloof bawah", "Cor Beton Ring Balk/balok atas", "Tangga Beton (jika rumah 2 lantai)", "Plat Lantai Beton lantai 2", "Plat Lantai Beton lantai"],
-        "Pekerjaan Pasangan Dinding": ["Pasang Bata/Batako/Bata Ringan/Jenis lain", "Plesteran tebal", "Acian semen", "Pasangan keramik dinding kamar mandi", "Pasangan keramik dinding dapur"],
-        "Pekerjaan Atap": ["Rangka atap & Kuda Kuda", "Tutup atap/genting", "Genting bubung", "Listplang kayu", "Talang sudut"],
-        "Pekerjaan Instalasi": ["Instalasi Air bersih", "Instalasi/Jaringan Listrik"],
-        "Pekerjaan Langit-langit (Plapond)": ["Rangka plapond", "Penutup plapond"],
-        "Pekerjaan Lantai": ["Lantai kerja (pasir lantai)", "Penutup lantai"],
-        "Pekerjaan kusen": ["Kusen/pintu Utama", "Jendela Utama/jendela teras", "Kusen/pintu Kamar", "Jendela Kamar"],
-        "Pekerjaan Kaca dan Kunci": ["Pasang kaca jendela", "Pasang kunci tanam pintu", "Pasang kunci kamar mandi", "Pasang engsel pintu", "Pasang engsel jendela", "Pasang tulak angin/Hak angin /windows stay"],
-        "Pekerjaan Sanitasi": ["Pasang closet", "Pasang washtafel", "Pasang bak mandi", "Pasang bak cuci piring", "Septictank"],
-        "Pekerjaan Finishing & Pegecatan": ["Pengecatan kusen", "Pengecatan pintu dan jendela", "Pengecatan Plapond", "Pengecatan tembok"]
-    };
-
-    //carousel
-    $('.carousel').carousel('pause')
-
-    //datepicker
-    var fp = flatpickr(".flatpickr-human-friendly", {
-            altInput: true,
-            altFormat: 'F j, Y',
-            dateFormat: 'Y-m-d'
-        }),
-        sp,
-        dtt = [], //data point from selection
-        batchdtt = [], // multiple data point from selection
-        kav, //kavling poly
-        imageInfo,
-        bml_old = 0, //batch mask old
-        batchMask = [], //for multiple selection
-        dtt_first = [], //for multiple selection
-        sceneWidth = screen.width,
-        sceneHeight = Math.min(window.innerHeight, window.innerHeight * 0.7);
-    //declare stage
-    var stage = new Konva.Stage({
-        height: sceneHeight,
-        width: sceneWidth,
-        container: "konva-holder",
-        draggable: true
-    });
-
-    //declare layer
-    var siteplan = new Konva.Layer(), //siteplan layer
-        masked = new Konva.Layer(), //selection layer
-        // datal = new Konva.Layer(), //kavling shape layer
-        group = new Konva.Group({ //group for tooltip
-            visible: false,
-        }),
-        shape_ket = new Konva.Image({
-            x: 10,
-            y: 10,
-            draggable: true,
-            stroke: 'red',
-            scaleX: 2,
-            scaleY: 2,
-        }),
-
-        manual_selection = new Konva.Group(),
-
-        maskedGroup = new Konva.Group(), //group for selection line and number
-        tooltip = new Konva.Text({ //tooltip text on hovering at kavling
-            text: '',
-            fontFamily: 'Calibri',
-            fontSize: 12,
-            padding: 5,
-            textFill: 'white',
-            fill: 'black',
-            text: 'vertical align',
-            alpha: 0.75,
-        }),
-        tooltipbg = new Konva.Rect({ //tooltip bg on hovering at kavling
-            width: 270,
-            height: 57,
-            stroke: "black",
-            strokeWidth: 1,
-            fill: "#f2ff7d",
-        })
-
-    Konva.hitOnDragEnabled = true; //for zoom on touchscreen
-
-    group.add(tooltipbg, tooltip) //grouping tooltip bg & text
-    siteplan.add(group);
-    masked.add(shape_ket);
-    masked.add(group);
-
-    // siteplan img object :
-    var imageObj = new Image();
-    imageObj.onload = function() {
-
-        sp = new Konva.Image({
-            x: 0,
-            y: 0,
-            image: imageObj,
-            width: imageObj.width,
-            height: imageObj.height,
-            globalCompositeOperation: 'overlay'
-        });
-
-        // add image to the layer
-        siteplan.add(sp);
-    };
-
-
-    //siteplan src
-    imageObj.src = base_url + '' + dt_proyek.siteplan;
-
-    //deklarasi kanvas untuk kavling
-    window.onload = function() {
-        colorThreshold = 15;
-        blurRadius = 1;
-        simplifyTolerant = 0;
-        simplifyCount = 30;
-        hatchLength = 4;
-        hatchOffset = 0;
-
-        imageInfo = null;
-        cacheInd = null;
-        mask = null;
-        oldMask = null;
-        downPoint = null;
-        allowDraw = false;
-        addMode = false;
-        currentThreshold = colorThreshold;
-
-        showThreshold();
-
-        //imginfo
-        var img = imageObj;
-        var cvs = masked;
-        cvs.width = img.width;
-        cvs.height = img.height;
-        imageInfo = {
-            width: img.width,
-            height: img.height,
-            context: cvs.getContext("2d", {
-                willReadFrequently: true
-            })._context
-        };
-        mask = null;
-
-        var tempCtx = document.createElement("canvas").getContext("2d", {
-            willReadFrequently: true
-        });
-        tempCtx.canvas.width = imageInfo.width;
-        tempCtx.canvas.height = imageInfo.height;
-        tempCtx.drawImage(img, 0, 0);
-        imageInfo.data = tempCtx.getImageData(0, 0, imageInfo.width, imageInfo.height);
-
-        //load kavling dari database
-        load_kavling(roleid == 1 || roleid == 7);
-
-        // $("#pilih-divisi").select2("val", roleid)
-        // change_div();
-        load_menu();
-
-
-        // scaling layer to fit stage
-        let konva_w = parseFloat($("#konva-holder").width())
-        let konva_h = parseFloat($("#konva-holder").height())
-        let l
-        if (konva_w > konva_h)
-            l = parseFloat($("#konva-holder").width()) / imageObj.width;
-        else
-            l = parseFloat($("#konva-holder").height()) / imageObj.height;
-
-        new Konva.Tween({
-            node: stage,
-            duration: 0.5,
-            scaleX: l,
-            scaleY: l,
-            x: 0,
-            y: 0,
-            easing: Konva.Easings.EaseInOut,
-        }).play();
-
-        // stage.scale({
-        //     x: l,
-        //     y: l
-        // });
-
-        group.scale({
-            x: 1 / l,
-            y: 1 / l
-        })
-
-        $('#filter-side').css('height', konva_h)
-
-        if ($(window).width() < 768) {
-            $('#filter-side').children().appendTo('#modal-filter');
-            $('#filter-side').remove();
-            $("#btn-filter").removeClass("hidden")
-        }
-    }
-
-    var line_ms = new Konva.Line({
-        points: [0, 0],
-        stroke: "red",
-        strokeWidth: 2,
-        dash: [5, 5],
-        opacity: 1,
-        closed: !0,
-        id: "line_sel"
-    });
-
-    //refresh kavling setelah ganti divisi
-    $("#pilih-divisi").change(function() {
-        change_div()
-    });
-
-    function change_div() {
-        $("#tambah_jalan").prop("checked", 0)
-        hapus_seleksi(); //hapus seleksi kavling
-
-        //tampilkan menu sesuai divisi jika login sebagai admin
-        if (roleid == 1) {
-            let va = $("#pilih-divisi option:selected").val();
-            $(".div_menu").addClass("hidden");
-            if (va == 6) {
-                $("#planning_menu").removeClass("hidden")
-            } else if (va == 4) {
-                $("#mkdt_menu").removeClass("hidden")
-            } else if (va == 7) {
-                $("#produksi_menu").removeClass("hidden")
-            } else if (va == 8) {
-                $("#sales_menu").removeClass("hidden")
-            } else if (va == 3) {
-                $("#keuangan_menu").removeClass("hidden")
-            } else if (va == 9) {
-                $("#direksi_menu").removeClass("hidden")
-            } else if (va == 0) {
-                $("#others_menu").addClass("hidden")
-            } else {
-                $("#others_menu").removeClass("hidden")
-            }
-        }
-
-        //load ulang kavling
-        load_kavling();
-    }
-
-    function load_menu() {
-        // let va = $("#pilih-divisi option:selected").val();
-        $.ajax({
-            url: base_url + 'home/getMenuBtn',
-            type: 'post',
-            data: {
-                [csrfName]: csrfHash,
-                // id_role: roleid
-            },
-            dataType: 'json',
-            beforeSend: function() {
-                $("#loading").removeClass("hidden");
-            },
-            success: function(r) {
-                $("#loading").addClass("hidden");
-                const menu = r.menu;
-                $("#menu_here").html(menu);
-                if (roleid == 7 && has_akses.proyek == false) {
-                    $(".btn-prod").hide()
-                    swal('warning', 'Peringatan!', "Kamu tidak bisa melakukan perubahan untuk proyek ini")
-                } else {
-                    $(".btn-prod").show()
-                }
-                if (roleid == 5 && has_akses.legal == false) {
-                    $("#edit_kavling_batch").hide()
-                    swal('warning', 'Peringatan!', "Kamu tidak bisa melakukan perubahan untuk proyek ini")
-                } else {
-                    $("#edit_kavling_batch").show()
-                }
-            },
-            error: function() {
-                $("#loading").addClass("hidden");
-
-            }
-        })
-    }
-
-    // Automatically inject mobile menu toggle trigger on mobile devices
-    if (!window.menuObserverInitialized) {
-        window.menuObserverInitialized = true;
-        const observer = new MutationObserver(function(mutations) {
-            $("#menu_here .float").each(function() {
-                if ($(this).find(".mobile-menu-trigger").length === 0) {
-                    $(this).prepend('<button type="button" class="btn btn-primary d-md-none mobile-menu-trigger"><i class="fas fa-ellipsis-h"></i> Aksi</button>');
-                }
-            });
-        });
-        const menuTarget = document.getElementById('menu_here');
-        if (menuTarget) {
-            observer.observe(menuTarget, { childList: true, subtree: true });
-        }
-
-        $(document).on('click', '.mobile-menu-trigger', function(e) {
-            e.preventDefault();
-            const parentFloat = $(this).closest('.float');
-            parentFloat.toggleClass('mobile-expanded');
-            if (parentFloat.hasClass('mobile-expanded')) {
-                $(this).html('<i class="fas fa-times"></i> Tutup');
-            } else {
-                $(this).html('<i class="fas fa-ellipsis-h"></i> Aksi');
-            }
-        });
-    }
-
-    function buat_nominatif() {
-
-    }
-
-    var stroke, fill, strokeWidth, dashed;
-    let filterwarnahitung = {};
-
-    function set_fill2(e) { //test set fill dengan config dari db
-        // console.log(conf[e])
-        if (!conf[e])
-            e = "Warna Tidak Ditemukan"
-        set_fill(conf[e].fill, conf[e].stroke, conf[e].strokeWidth, conf[e].dashed)
-        return e;
-    }
-
-    function hitung_kavling(fill) {
-        let e = fill.fill
-        let p = filterwarnahitung[e] ? filterwarnahitung[e] : 0;
-        filterwarnahitung[e] = p + 1;
-
-    }
-
-    function set_keterangan_warna() {
-        $("#keterangan-warna-here").html(" ")
-
-        //filter
-        $("#filter-kategori option").remove()
-        $("#filter-kategori").append(`<option value="">Semua</option>`);
-        let div = "",
-            kv
-        // console.log(filterwarna)
-        $.each(filterwarna, function(i, v) {
-            if (v) {
-                div += `
-                <div class="divider">
-                    <div class="divider-text">${i} ${i == 'Subsidi' || i == 'Komersil' ? 'Dipasarkan' : ''}</div>
-                </div>`;
-                const sortedKeys = Object.keys(v).sort();
-
-                // Step 2: Create a new object with sorted keys
-                const sortedObj = {};
-                sortedKeys.forEach(key => {
-                    sortedObj[key] = v[key];
-                });
-
-                $.each(sortedObj, function(x, y) {
-                    //untuk tambah option di filter
-                    $("#filter-kategori").append(`<option value="${x}">${x}</option>`);
-                    kv = (x == "Def") ? "Data yang bisa diolah" : x;
-
-                    div += `<div class="form-group row">
-                                <div class="btn col-2 ml-1" style="background-color:${y}"></div>
-                                <div class="col-9"> ${kv} (${filterwarnahitung[x]})</div>
-                            </div>`;
-                })
-            }
-        })
-        $("#keterangan-warna-here").html(div)
-    }
-    //load shape kavling
-    function load_kavling(refresh = false) {
-        hapus_seleksi();
-        filterwarna = {
-            Status: null,
-            Subsidi: null,
-            Komersil: null,
-            'Lain-lain': null
-        };
-        filterwarnahitung = {};
-
-        const fields = [ //untuk pengecekan status kavling yang sudah done
-            'nama_jalan',
-            'no_kavling',
-            'status_mkdt',
-            'is_lunas',
-            'progres_bangunan',
-            'sertifikat_split_no_hgb_induk',
-            'sertifikat_split_no_hgb',
-            'sertifikat_is_balik_nama',
-            'pbb_pecah_nop',
-            'pbb_is_balik_nama',
-            'pbg_no',
-            'ajb_no',
-            'pph_tgl_bayar',
-            'bphtb_tanggal_pembayaran'
-        ];
-        const isValidDate = (val) => {
-            return typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val) && !isNaN(new Date(val).getTime()) && val !== "0000-00-00";
-        };
-
-        siteplan.find('Line').forEach(line => line.destroy());
-
-        let va = $("#pilih-divisi option:selected").val();
-        wr_pembangunan = [];
-        list_jatuhtempo = [];
-        $.ajax({
-            url: base_url + 'siteplan/get/all',
-            type: 'post',
-            data: {
-                [csrfName]: csrfHash,
-                id_proyek: dt_proyek.id_proyek,
-                id_cluster: filter.id_cluster,
-                id_jalan: filter.id_jalan,
-                id_role: va
-            },
-            dataType: 'json',
-            beforeSend: () => $("#loading").removeClass("hidden"),
-            success: function(result) {
-                $("#loading").addClass("hidden");
-                csrfHash = result.token;
-                stroke = fill = strokeWidth = dashed = "";
-
-                let r = result['data'],
-                    data2,
-                    hit,
-                    tp_rumah,
-                    subsidi;
-
-
-
-                for (var p = 0; p < r.length; p++) {
-                    tp_rumah = r[p].tipe_rumah
-                    no_tp_rumah = r[p].no_tipe_rumah
-
-                    subsidi = (r[p].is_subsidi == 1) ? "Subsidi" : "Komersil"
-
-                    //set default shape color 
-                    // set_fill("#fff67a", "#000000", 0, null)
-                    hit = {
-                        fill: set_fill2("Def"),
-                        tipe: 'Lain-lain'
-                    }
-
-                    //add list to belum selesai bangun
-                    if (r[p].tanggal_rencana_selesai_pembangunan != null) {
-                        if (r[p].tanggal_selesai_pembangunan == null) {
-                            if (daysBetween(today_date, r[p].tanggal_rencana_selesai_pembangunan) < 3) {
-                                wr_pembangunan.push({
-                                    progres: r[p].progres_bangunan ? r[p].progres_bangunan : 0,
-                                    nama_jalan: r[p].nama_jalan,
-                                    no_kavling: r[p].no_kavling,
-                                    tipe: r[p].tipe_rumah,
-                                    keterangan: r[p].keterangan_produksi,
-                                    tanggal_pembangunan: r[p].tanggal_pembangunan,
-                                    tanggal_rencana_selesai_pembangunan: r[p].tanggal_rencana_selesai_pembangunan,
-                                    tanggal_selesai_pembangunan: r[p].tanggal_selesai_pembangunan
-                                })
-                            }
-                        }
-                    }
-
-                    //add to list jatuh tempo
-                    const today = new Date();
-                    const sevenDaysLater = new Date();
-                    sevenDaysLater.setDate(today.getDate() + 7);
-
-
-                    if (r[p].jatuh_tempo_tgl) {
-                        const jatuhTempo = new Date(r[p].jatuh_tempo_tgl);
-
-                        if (jatuhTempo <= today && jatuhTempo <= sevenDaysLater) {
-                            list_jatuhtempo.push(r[p].id_kavling)
-                        }
-                    }
-
-
-                    // if (r[p].tanggal_selesai_pembangunan != '0000-00-00' || r[p].tanggal_selesai_pembangunan != '' || r[p].tanggal_selesai_pembangunan != null) {
-
-                    // }
-
-                    if (r[p].harga_akhir) {
-                        tp_rumah = r[p].tipe_rumah
-                        no_tp_rumah = r[p].no_tipe_rumah
-                        hit = set_fill2(r[p].tipe_rumah)
-                        hit = {
-                            fill: hit,
-                            tipe: subsidi
-                        }
-                        // if (r[p].is_subsidi == 1)
-                        //     hit = set_fill2("Subsidi")
-                        // else
-                        //     hit = set_fill2("Non-Subsidi")
-                    }
-
-
-                    if (r[p].status_mkdt) {
-                        hit = set_fill2(r[p].status_mkdt)
-                        if (hit == "Akad" || hit == "Booking") {
-                            hit = hit + " " + subsidi
-                        }
-                    } else {
-                        if (r[p].progres_bangunan == "100") {
-                            // jika sudah selesai
-                            hit = set_fill2("Ready Stock")
-                        }
-                    }
-
-
-                    if (va == 3) { //keuangan
-                        if (r[p].is_lunas == 0 || r[p].is_lunas == null || r[p].is_lunas == "undefined") {
-                            if (r[p].jatuh_tempo_tgl != null && r[p].jatuh_tempo_tgl != "0000-00-00") {
-                                if (daysBetween(today_date, r[p].jatuh_tempo_tgl) < 7)
-                                    hit = set_fill2('Jatuh Tempo')
-                            }
-
-                            if (r[p].is_sudah_isi_tagihan != 1) {
-                                hit = set_fill2('SPPTB Belum Lengkap')
-                            }
-                        } else if (r[p].is_lunas == 1) {
-                            hit = set_fill2('Lunas')
-                            if (r[p].status_mkdt == 'Akad') {
-                                if (r[p].dajam_selesai == 0)
-                                    hit = set_fill2('Dajam Belum Cair')
-                                else
-                                    hit = set_fill2('Akad')
-                            }
-                        }
-
-                        if (r[p].is_batal == 1)
-                            hit = set_fill2("Batal")
-                    } else if (va == 4) { //mkdt
-                        if (r[p].perintah_bangun == 1)
-                            hit = set_fill2("Perintah Bangun")
-
-                        //status kavling
-                        if (r[p].status_mkdt == "Batal") { //jika batal
-                            if (r[p].is_batal == 1)
-                                hit = set_fill2("Batal")
-                            else
-                                hit = set_fill2(r[p].status_mkdt)
-                        } else if (r[p].status_mkdt == "Akad") { //jika akad
-                            hit = set_fill2('Akad')
-                            if (r[p].is_sudah_isi_tagihan != 1) {
-                                hit = set_fill2('SPPTB Belum Lengkap')
-                            }
-                        } else if (r[p].status_mkdt == "Booking") {
-                            //jika booking
-                            if (r[p].booking_tgl != null && r[p].booking_tgl != "0000-00-00") {
-                                // if (r[p].is_kpr == 1)
-                                //     hit = set_fill2('KPR')
-                                // else if (r[p].is_kpr == 0)
-                                //     hit = set_fill2('Tunai')
-                                // if (r[p].mkdt_is_subsidi == 1) {
-                                //     hit = set_fill2('Subsidi')
-                                // } else if (r[p].mkdt_is_subsidi == 0) {
-                                //     hit = set_fill2('Non-Subsidi')
-                                // }
-                            }
-                            //jika turun sp3k
-                            if (r[p].sp3k_tgl != null && r[p].sp3k_tgl != "0000-00-00") {
-                                hit = set_fill2('SP3K')
-                            }
-                            if (r[p].is_sudah_isi_tagihan != 1) {
-                                hit = set_fill2('SPPTB Belum Lengkap')
-                            }
-                        }
-                    } else if (va == 5) { //legal
-                        if (r[p].id_legal)
-                            hit = set_fill2("Sudah Diisi")
-                        if (r[p].sertifikat_is_balik_nama == "Sudah") {
-                            hit = set_fill2("Sudah Balik Nama")
-                        }
-
-                        // if (
-                        //     r[p].sertifikat_tgl != null && r[p].sertifikat_tgl != "0000-00-00" &&
-                        //     r[p].sertifikat_masa_berlaku != null && r[p].sertifikat_masa_berlaku != "0000-00-00" &&
-                        //     r[p].bphtb_masa_berlaku != null && r[p].bphtb_masa_berlaku != "0000-00-00" &&
-                        //     r[p].imb_tgl != null && r[p].imb_tgl != "0000-00-00" &&
-                        //     r[p].bphtb_tgl != null && r[p].bphtb_tgl != "0000-00-00" &&
-                        //     r[p].sertifikat_no_hgb != null &&
-                        //     r[p].sertifikat_no_split != null &&
-                        //     r[p].imb_no_induk != null &&
-                        //     r[p].imb_no_split != null &&
-                        //     r[p].nop_pbb != null &&
-                        //     r[p].pph != null
-                        // )
-                        //     hit = set_fill2("Sudah Diisi")
-                        // else {
-                        //     if (
-                        //         r[p].sertifikat_tgl != null && r[p].sertifikat_tgl != "0000-00-00" ||
-                        //         r[p].sertifikat_masa_berlaku != null && r[p].sertifikat_masa_berlaku != "0000-00-00" ||
-                        //         r[p].bphtb_masa_berlaku != null && r[p].bphtb_masa_berlaku != "0000-00-00" ||
-                        //         r[p].imb_tgl != null && r[p].imb_tgl != "0000-00-00" ||
-                        //         r[p].bphtb_tgl != null && r[p].bphtb_tgl != "0000-00-00" ||
-                        //         r[p].sertifikat_no_hgb != null ||
-                        //         r[p].sertifikat_no_split != null ||
-                        //         r[p].imb_no_induk != null ||
-                        //         r[p].imb_no_split != null ||
-                        //         r[p].nop_pbb != null ||
-                        //         r[p].pph != null
-                        //     )
-                        //         hit = set_fill2("Sebagian Diisi")
-                        // }
-                        // if (r[p].sertifikat_masa_berlaku != null && r[p].sertifikat_masa_berlaku != "0000-00-00") {
-                        //     if (daysBetween(today_date, r[p].sertifikat_masa_berlaku) < 30)
-                        //         hit = set_fill2("h-30 Kadaluarsa") //warna merah
-                        //     else if (daysBetween(today_date, r[p].sertifikat_masa_berlaku) < 60)
-                        //         hit = set_fill2("h-60 Kadaluarsa") // warna orange
-                        // }
-
-                        // if (r[p].bphtb_masa_berlaku != null && r[p].bphtb_masa_berlaku != "0000-00-00") {
-                        //     if (daysBetween(today_date, r[p].bphtb_masa_berlaku) < 30)
-                        //         hit = set_fill2("h-30 Kadaluarsa") //warna merah
-                        //     else if (daysBetween(today_date, r[p].bphtb_masa_berlaku) < 60)
-                        //         hit = set_fill2("h-60 Kadaluarsa") // warna orange
-                        // }
-
-                    } else if (va == 7) { //produksi
-                        // if (r[p].status_mkdt)
-                        //     hit = set_fill2(r[p].status_mkdt)
-                        if (r[p].status_mkdt == "Akad") {
-                            hit = set_fill2("Akad " + subsidi)
-                            if (r[p].progres_bangunan == null)
-                                hit = set_fill2("Pembangunan") // warna merah
-
-                            // if (r[p].perintah_bangun == 1)
-                            //     hit = set_fill2("Perintah Bangun")
-                            // if (parseInt(r[p].progres_bangunan) > 0 && parseInt(r[p].progres_bangunan) < 100) {
-                            //     hit = set_fill2("Pembangunan") // warna merah
-                            // }else if (parseInt(r[p].progres_bangunan) == 100) {
-                            //     // jika sudah selesai
-                            //     hit = set_fill2("Akad "+ subsidi)
-                            // }
-                        } else if (r[p].status_mkdt == "Booking") {
-                            hit = set_fill2("Booking " + subsidi)
-
-                            if (r[p].perintah_bangun == 1)
-                                hit = set_fill2("Perintah Bangun")
-
-                            // if (r[p].perintah_bangun == 1)
-                            //     hit = set_fill2("Perintah Bangun")
-
-                            if (parseInt(r[p].progres_bangunan) > 0 && parseInt(r[p].progres_bangunan) < 100) {
-                                hit = set_fill2("Pembangunan") // warna merah
-                            } else if (parseInt(r[p].progres_bangunan) == 100) {
-                                // jika sudah selesai
-                                hit = set_fill2("Bangunan 100%")
-                            }
-                        } else {
-                            if (r[p].perintah_bangun == 1)
-                                hit = set_fill2("Perintah Bangun")
-                            if (parseInt(r[p].progres_bangunan) > 0 && parseInt(r[p].progres_bangunan) < 100) {
-                                hit = set_fill2("Pembangunan") // warna merah
-                            } else if (parseInt(r[p].progres_bangunan) == 100) {
-                                // jika sudah selesai
-                                hit = set_fill2("Ready Stock") // warna merah
-                            }
-                        }
-
-                        //jika ada komplain (dari sales)
-                        if (r[p].status_komplain == 1 || r[p].status_komplain == 2 || r[p].status_komplain == 3)
-                            hit = set_fill2("Komplain")
-
-                    } else if (va == 8) { //sales
-                        //jika bangunan sudah 100%
-                        if (r[p].progres_bangunan == "100") {
-                            hit = set_fill2("Pembangunan Selesai") // warna biru
-                            if (r[p].id_mkdt == null)
-                                hit = set_fill2("Ready Stock") // warna biru
-                        }
-
-                        //jika sudah akad
-                        if (r[p].status_mkdt == "Akad")
-                            hit = set_fill2("Akad") //warna ungu
-                        //jika ada komplain
-                        if (r[p].status_komplain == 1 || r[p].status_komplain == 2 || r[p].status_komplain == 3)
-                            hit = set_fill2("Komplain") //warna merah
-                        // jika sudah dicek
-                        if (r[p].is_checked == 1)
-                            hit = set_fill2("Sudah dicek") // warna orange
-                        // jika sudah dicek
-                        if (r[p].is_serah_terima == 1)
-                            hit = set_fill2("Serah Terima") // warna hijau
-
-                    } else if (va == 9) {
-                        if (r[p].harga_akhir) {
-                            tp_rumah = r[p].tipe_rumah
-                            no_tp_rumah = r[p].no_tipe_rumah
-                            hit = set_fill2(r[p].tipe_rumah)
-
-                            //ubah var hit ke object
-                            hit = {
-                                fill: hit,
-                                tipe: subsidi
-                            }
-
-                        }
-                    }
-
-
-                    // }
-
-
-
-                    const isComplete = fields.every(field => {
-                        const val = r[p][field];
-
-                        // Field yang berupa tanggal
-                        if (field.includes('tgl') || field.includes('tanggal')) {
-                            return isValidDate(val);
-                        }
-
-                        //balik nama jika berisi belum masih terdetek sebagai true
-
-                        // Field lainnya cukup tidak null atau tidak kosong
-                        return val !== null && val !== '';
-                    });
-
-                    if (isComplete) {
-                        hit = set_fill2("Selesai");
-                    }
-
-
-                    //harga jual
-                    let id_hargajual = r[p].harga_akhir;
-                    r[p].harga_akhir = (r[p].hargajual) ? num_format(r[p].hargajual) + " (Per " + format_date(r[p].tgl_harga) + ")" : '-';
-
-
-
-                    if (typeof hit !== 'object') {
-                        hit = {
-                            fill: hit,
-                            tipe: 'Status'
-                        }
-                    }
-
-                    // return;
-
-                    //set untuk filter warna
-                    filterwarna[hit.tipe] = {
-                        ...filterwarna[hit.tipe],
-                        [hit.fill]: conf[hit.fill].fill
-                    }
-
-
-                    // console.log(hit.fill, conf[hit.fill].fill);
-
-                    hitung_kavling(hit)
-                    //data di tiap kavling harus disesuaikan dengan divisi yang dipilih
-                    kav = new Konva.Line({
-                        points: JSON.parse("[" + r[p].points + "]"),
-                        // lineCap: 'round',
-                        // lineJoin: 'round',
-                        // stroke: stroke,
-                        fill: conf[hit.fill].fill,
-                        // strokeWidth: strokeWidth,
-                        dash: dashed,
-                        opacity: 1,
-                        closed: true,
-                        globalCompositeOperation: 'multiply',
-                        kategori: hit.fill,
-                        data: {
-                            nama_jalan: r[p].nama_jalan,
-                            no_kavling: r[p].no_kavling,
-                            id_produksi: r[p].id_produksi,
-                            id_legal: r[p].id_legal,
-                            id_keuangan: r[p].id_keuangan,
-                            id_sales: r[p].id_sales,
-                            id_planning: r[p].id_planning,
-                            id_mkdt: r[p].id_mkdt,
-                            id_umum: r[p].id_umum,
-                            id_direksi: r[p].id_direksi,
-                            tipe: 'kavling',
-                            status_tanah: r[p].status_tanah,
-                            luas_tanah: r[p].luas_tanah,
-                            is_batal: r[p].is_batal,
-                            // total_biaya: ktotal_biaya,
-                            // sudah_bayar: ksudah_bayar
-                        },
-                        data2: {
-                            id_hargajual: id_hargajual,
-                            status_mkdt: r[p].status_mkdt,
-                            id_tipe: r[p].id_tipe,
-                            tipe_rumah: tp_rumah,
-                            no_tipe_rumah: no_tp_rumah,
-                            id_gambar_kerja: r[p].id_gambar_kerja,
-                            harga_akhir: r[p].harga_akhir,
-                            harga_akhir_tgl: r[p].harga_akhir_tgl,
-                            harga_akhir_oleh: r[p].harga_akhir_oleh_username,
-                            id_serah_terima: r[p].id_serah_terima,
-                            id_komplain: r[p].id_komplain,
-                        },
-                        id: 'kav' + r[p].id_kavling
-                    });
-                    siteplan.add(kav);
-                }
-                set_keterangan_warna()
-                cek_tanggal_pembangunan(refresh)
-
-                if (roleid == 3)
-                    cek_jatuh_tempo(true)
-            },
-            error: function(xhr, st, err) {
-                $("#loading").addClass("hidden")
-                return swal("error", err);
-            },
-        });
-
-        //load jalan fasos rth
-        $.ajax({
-            url: base_url + 'siteplan/get_others',
-            type: 'post',
-            data: {
-                [csrfName]: csrfHash,
-                id_proyek: dt_proyek.id_proyek,
-                id_role: va
-            },
-            dataType: 'json',
-            beforeSend: function() {
-                $("#loading").removeClass("hidden");
-            },
-            success: function(result) {
-                stroke = ""
-                fill = ""
-                strokeWidth = ""
-                dashed = ""
-
-                var r = result.data
-
-                for (var p = 0; p < r.length; p++) {
-                    if (r[p].tipe == "jalan")
-                        set_fill("#ccc", "#000", "0", null) // warna abu
-                    else if (r[p].tipe == "fasos")
-                        set_fill("#9000ff", "#000", "0", null) // warna ungu
-                    else if (r[p].tipe == "rth")
-                        set_fill("#0f0", "#000", "0", null) // warna merah
-                    kav = new Konva.Line({
-                        points: JSON.parse("[" + r[p].points + "]"),
-                        fill: fill,
-                        dash: dashed,
-                        opacity: 1,
-                        closed: true,
-                        globalCompositeOperation: 'multiply',
-                        data: {
-                            tipe: r[p].tipe,
-                            nama_jalan: r[p].nama_jalan,
-                        },
-                        data2: {},
-                        id: 'others' + r[p].id
-                    });
-                    siteplan.add(kav);
-                }
-            },
-            error: function() {
-                Swal.fire({
-
-                    icon: 'error',
-                    title: "Terjadi kesalahan",
-                    showConfirmButton: false,
-                    //timer: 1500
-                })
-                return;
-            }
-        });
-        group.hide();
-    }
-
-    //zoom
-    var scaleBy = 1.1;
-    stage.on('wheel', (e) => {
-        // stop default scrolling
-        menuNode.style.display = 'none';
-        e.evt.preventDefault();
-
-        var oldScale = stage.scaleX();
-        var pointer = stage.getPointerPosition();
-
-        var mousePointTo = {
-            x: (pointer.x - stage.x()) / oldScale,
-            y: (pointer.y - stage.y()) / oldScale,
-        };
-
-        // how to scale? Zoom in? Or zoom out?
-        let direction = e.evt.deltaY > 0 ? -1 : 1;
-
-        // when we zoom on trackpad, e.evt.ctrlKey is true
-        // in that case lets revert direction
-        if (e.evt.ctrlKey) {
-            direction = -direction;
-        }
-
-        var newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
-
-        stage.scale({
-            x: newScale,
-            y: newScale
-        });
-
-        group.scale({
-            x: 1 / newScale,
-            y: 1 / newScale
-        })
-        var newPos = {
-            x: pointer.x - mousePointTo.x * newScale,
-            y: pointer.y - mousePointTo.y * newScale,
-        };
-        stage.position(newPos);
-    });
-
-    //clear selction
-    var idss, idsb, idst, idstb, ajal, seljal;
-
-    function hapus_seleksi() {
-        line_ms.points([0, 0])
-
-        bml_old = 0;
-        dtt_first = [];
-
-        idss = stage.find('#sel')[0]; //find selection line
-        idst = stage.find('#tsel')[0]; //find selection text
-
-
-        // ajal = stage.find('#ajal')[0];
-        // if(ajal) ajal.destroy();
-
-        //remove point select jalan
-        seljal = stage.find('#seljal');
-        for (let p = 0; p <= seljal.length; p++) {
-            if (seljal[p])
-                seljal[p].destroy();
-        }
-        dtt = [];
-
-
-
-        if (idss)
-            idss.destroy(); //destroy shape
-        if (idst)
-            idst.destroy(); //destroy shape
-
-        hapus_seleksi_batch() //destroy multiple selection
-    }
-    //destroy multiple selection
-    function hapus_seleksi_batch() {
-        idsb = stage.find('#sel'); //find selection line
-        idstb = stage.find('#tsel'); //find selection text
-
-        for (let p = 0; p <= idsb.length; p++) {
-            if (idsb[p])
-                idsb[p].destroy();
-
-            if (idstb[p])
-                idstb[p].destroy();
-        }
-
-        batchMask = [];
-        batchdtt = [];
-        editdtt = [];
-        siteplan.draw();
-    }
-
-    var editdtt = [];
-
-    //event klik kavling
-    masked.on('dblclick', function(e) {
-        if (!addMode) {
-            if (e.evt.button === 0 && e.target.attrs.id) {
-                //open detail modal
-                lihat_detail();
-            }
-        }
-    })
-
-    //hide tooltip on tap at siteplan
-    siteplan.on('tap', function() {
-        group.hide();
-    })
-
-    //panggil tooltip saat di tap di ponsel
-    siteplan.on('tap', function(e) {
-        var data = e.target.attrs;
-
-        //posisi tooltip
-        var mousePos = stage.getRelativePointerPosition();
-        group.position({
-            x: mousePos.x + 20,
-            y: mousePos.y + 5,
-        });
-
-        //text tooltip
-        if (data.data) {
-            if (!data.data.nama_jalan || !data.data.no_kavling)
-                return;
-            tooltip.text(
-                data.data.nama_jalan +
-                " No. " + data.data.no_kavling + "\n" +
-                data.data2.no_tipe_rumah + "\n" +
-                data.data2.tipe_rumah + " ( " + data.data.luas_tanah + " / " + data.data.status_tanah + ") \n" +
-                "HJ: Rp. " + data.data2.harga_akhir +
-                ""
-            );
-            group.moveToTop();
-            group.show(); //show tooltip
-        }
-    })
-
-    siteplan.on('click tap', function(e) {
-        var k = e.target, //get shape
-            sh = k.attrs, //get attribut shape
-            role = $('#pilih-divisi option:selected').val(),
-            id_kavling = ''
-
-        if (!sh.id) return false;
-        id_kavling = sh.id.substr(3)
-
-        if (!$("#tambah_jalan").prop('checked')) {
-            addMode = e.evt.ctrlKey;
-
-            //jika hak akses = planning dan pilihan data yang ditampilkan = planning
-            //admin, pro
-            if ([1, 3, 4, 6, 7].includes(roleid)) {
-                if (addMode) {
-                    if (sh.data.tipe != "kavling") {
-                        return swal('error', 'Terjadi kesalahan', 'Multiple Selection hanya untuk data kavling ')
-                    }
-
-                    editdtt.push(sh)
-                    drawBorderEdit(sh)
-                } else {
-                    hapus_seleksi();
-                    editdtt.push(sh)
-                    drawBorderEdit(sh)
-                }
-            } else {
-                hapus_seleksi();
-                editdtt.push(sh)
-                drawBorderEdit(sh)
-            }
-        }
-    })
-
-    stage.on('click tap', function(e) {
-        if ($("#tambah_jalan").prop('checked')) {
-            dtt = [];
-            var pos = this.getRelativePointerPosition();
-
-            var dot = new Konva.Circle({
-                x: pos.x,
-                y: pos.y,
-                fill: 'red',
-                radius: 5,
-                id: "seljal",
-                draggable: true
-            })
-            manual_selection.add(dot);
-
-            var sj = stage.find("#seljal");
-            for (let u = 0; u < sj.length; u++) {
-                dtt.push(Math.trunc(sj[u].attrs.x), Math.trunc(sj[u].attrs.y))
-            }
-            line_ms.points(dtt)
-        }
-    })
-    masked.add(line_ms)
-    masked.add(manual_selection)
-
-    manual_selection.on('dragend', function(e) {
-        dtt = []
-        var sj = stage.find("#seljal");
-        for (let u = 0; u < sj.length; u++) {
-            dtt.push(Math.trunc(sj[u].attrs.x), Math.trunc(sj[u].attrs.y))
-        }
-
-        line_ms.points(dtt)
-    })
-
-    //even mouse move data kavling
-    var data, mousePos, persentase;
-    siteplan.on('mousemove', function(e) {
-        data = e.target.attrs;
-        // console.log(data);
-
-        //posisi tooltip
-        mousePos = stage.getRelativePointerPosition();
-        group.position({
-            x: mousePos.x + 20,
-            y: mousePos.y + 5,
-        });
-        //text tooltip
-        if (data.data) {
-            if (!data.data.nama_jalan || !data.data.no_kavling)
-                return;
-            tooltip.text(
-                data.data.nama_jalan +
-                " No. " + data.data.no_kavling + "\n" +
-                data.data2.no_tipe_rumah + "\n" +
-                data.data2.tipe_rumah + " ( " + data.data.luas_tanah + " / " + data.data.status_tanah + ") \n" +
-                "HJ: Rp. " + data.data2.harga_akhir
-            );
-            // }
-            group.moveToTop();
-            group.show(); //show tooltip
-
-        }
-
-    })
-    //even mouse move data kavling
-    var data, mousePos, persentase;
-    siteplan.on('mousemove', function(e) {
-        data = e.target.attrs;
-        // console.log(data);
-
-        //posisi tooltip
-        mousePos = stage.getRelativePointerPosition();
-        group.position({
-            x: mousePos.x + 20,
-            y: mousePos.y + 5,
-        });
-        //text tooltip
-        if (data.data) {
-            if (!data.data.nama_jalan || !data.data.no_kavling)
-                return;
-            tooltip.text(
-                data.data.nama_jalan +
-                " No. " + data.data.no_kavling + "\n" +
-                data.data2.no_tipe_rumah + "\n" +
-                data.data2.tipe_rumah + " ( " + data.data.luas_tanah + " / " + data.data.status_tanah + ") \n" +
-                "HJ: Rp. " + data.data2.harga_akhir
-            );
-            // }
-            group.moveToTop();
-            group.show(); //show tooltip
-
-        }
-
-    })
-
-    //highligh kavling 
-    siteplan.on('mouseover', function(e) {
-        var sh = e.target;
-        sh.setAttr("strokeWidth", 4);
-        sh.setAttr("stroke", "black");
-    })
-
-    //hide tooltip
-    siteplan.on('mouseout', function(e) {
-        var sh = e.target;
-        sh.setAttr("strokeWidth", 0);
-        group.hide();
-    })
-
-    function getDistance(p1, p2) {
-        return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-    }
-
-    function getCenter(p1, p2) {
-        return {
-            x: (p1.x + p2.x) / 2,
-            y: (p1.y + p2.y) / 2,
-        };
-    }
-
-    var lastCenter = null;
-    var lastDist = 0;
-    stage.on('touchmove', function(e) {
-        e.evt.preventDefault();
-        var touch1 = e.evt.touches[0];
-        var touch2 = e.evt.touches[1];
-
-        if (touch1 && touch2) {
-            // if the stage was under Konva's drag&drop
-            // we need to stop it, and implement our own pan logic with two pointers
-            if (stage.isDragging()) {
-                stage.stopDrag();
-            }
-
-            var p1 = {
-                x: touch1.clientX,
-                y: touch1.clientY,
-            };
-            var p2 = {
-                x: touch2.clientX,
-                y: touch2.clientY,
-            };
-
-            if (!lastCenter) {
-                lastCenter = getCenter(p1, p2);
-                return;
-            }
-            var newCenter = getCenter(p1, p2);
-
-            var dist = getDistance(p1, p2);
-
-            if (!lastDist) {
-                lastDist = dist;
-            }
-
-            // local coordinates of center point
-            var pointTo = {
-                x: (newCenter.x - stage.x()) / stage.scaleX(),
-                y: (newCenter.y - stage.y()) / stage.scaleX(),
-            };
-
-            var scale = stage.scaleX() * (dist / lastDist);
-
-            stage.scaleX(scale);
-            stage.scaleY(scale);
-
-            // calculate new position of the stage
-            var dx = newCenter.x - lastCenter.x;
-            var dy = newCenter.y - lastCenter.y;
-
-            var newPos = {
-                x: newCenter.x - pointTo.x * scale + dx,
-                y: newCenter.y - pointTo.y * scale + dy,
-            };
-
-            group.scale({
-                x: 1 / scale,
-                y: 1 / scale
-            })
-
-            stage.position(newPos);
-
-            lastDist = dist;
-            lastCenter = newCenter;
-        }
-    });
-
-    stage.on('touchend', function() {
-        lastDist = 0;
-        lastCenter = null;
-    });
-
-    function lihat_detail() {
-        if (editdtt.length == 0) {
-            Swal.fire({
-
-                icon: 'error',
-                title: "Terjadi Kesalahan.",
-                text: "Tidak ada kavling yang dipilih",
-                showConfirmButton: false,
-            });
-            return;
-        }
-        last_update("#last_update_legal, #last_update_mkdt, #last_update_keuangan, #last_update_prod")
-        var sh = editdtt[0],
-            id_kavling = sh.id.substr(3);
-
-        // $("#fm-detail")[0].reset();
-        $('#fm-detail input,#fm-detail select').val('');
-        $("#tb-data-tagihan-detail").html("");
-
-        if (sh.data.tipe == 'kavling') {
-            return detail_kavling(sh, id_kavling)
-        } else {
-            return detail_others(sh)
-        }
-    }
-
-    function detail_others(sh) {
-        // alert(sh.data.tipe)
-        $("#f_detail_progres_jalan").val(0)
-        $(".t_luas_planning, .t_keterangan_planning, .t_luas_legal, .t_keterangan_legal, .t_luas_produksi, .t_keterangan_produksi, .r_progres").html("-")
-        $.ajax({
-            url: base_url + 'siteplan/get_others',
-            type: 'post',
-            data: {
-                [csrfName]: csrfHash,
-                id_kavling: editdtt[0].id.substr(6)
-            },
-            dataType: 'json',
-            success: function(r) {
-                csrfHash = r.token;
-
-                if (r.data) {
-                    let d = r.data[0],
-                        progres = (d.progres) ? d.progres : 0;
-                    // $(".id_kavling").val(d.id)
-                    // $(".t_luas_legal, .t_luas_produksi").html("-")
-
-                    if (d.planning_luas) {
-                        $(".t_luas_planning").html(d.planning_luas + "  m&sup2  (" + d.planning_edit + ": " + format_datetime(d.planning_updated_at) + ")")
-                        $(".t_keterangan_planning").html(d.planning_keterangan)
-                    }
-
-                    if (d.legal_luas) {
-                        $(".t_luas_legal").html(d.legal_luas + "  m&sup2  (" + d.legal_edit + ": " + format_datetime(d.legal_updated_at) + ")")
-                        $(".t_keterangan_legal").html(d.legal_keterangan)
-                    }
-
-                    if (d.produksi_luas) {
-                        $(".t_luas_produksi").html(d.produksi_luas + "  m&sup2  (" + d.produksi_edit + ": " + format_datetime(d.produksi_updated_at) + ")")
-                        $(".t_keterangan_produksi").html(d.produksi_keterangan)
-                    }
-                    $("#f_detail_progres_jalan").val(progres)
-                    $(".r_progres").html(progres)
-
-                }
-
-            },
-            error: function() {
-                Swal.fire({
-
-                    icon: 'error',
-                    title: "Terjadi kesalahan",
-                    showConfirmButton: false,
-                    //timer: 1500
-                })
-                return;
-            }
-        });
-
-
-
-        $(".label_alamat").html("<b>" + dt_proyek.nama_proyek + "</b>" + "<br/> <span class='capitalize'>" + sh.data.tipe + "<span>: " + sh.data.nama_jalan + "");
-        $('#modal_othersdetail').modal({
-            backdrop: 'static',
-            keyboard: false
-        });
-    }
-    const isSubsidi = ['Non-Subsidi', 'Subsidi'],
-        isKPR = ['Tunai/Cash Keras', 'KPR', 'Tunai/Bertahap']
-
-    let dmkdt,
-        dpl,
-        dpr,
-        dlg,
-        dlc,
-        dbprod,
-        dr;
-
-    function detail_kavling(sh, id_kavling) {
-        $(".id_sikumbang").html("Memuat data sikumbang...");
-        let src = not_found
-        $("#fm-detail :input").prop("disabled", true)
-        $('#dtt-summary-tab').tab('show');
-
-        $("#dt-promo").text('-')
-        $("#dt-is_kpr").text('-')
-        $("#dt-is_subsidi").text('-')
-        $("#dt-no_spptb").text('-')
-        $("#dt-nama_konsumen").text('-')
-        $("#dt-alamat_konsumen").text('-')
-        $("#dt-nik_konsumen").text('-')
-        $("#dt-npwp_konsumen").text('-')
-        $("#dt-hp_konsumen").text('-')
-        $("#dt-email_konsumen").text('-')
-        $("#dt-sales").text('-')
-
-        let categories = [
-            "rab_dokumen",
-            "prod_foto_konstruksi",
-            "prod_foto_exterior",
-            "prod_foto_interior",
-            "jalan_foto",
-            "jalan_foto_update",
-            "listrik_pln_foto",
-            "listrik_disediakan_dokumen",
-            "air_komunal",
-            "air_tanah",
-            "air_pdam",
-        ];
-
-        categories.forEach((cat) => {
-            $("#dt-list_" + cat).html("");
-            $("#dt-label_" + cat).html("Upload file/Foto");
-        });
-
-        $(".files-here").prop('src', src)
-
-        $.ajax({
-            url: base_url + 'siteplan/get/detail',
-            type: 'post',
-            data: {
-                [csrfName]: csrfHash,
-                id_kavling: id_kavling,
-                id_legal: sh.data.id_legal,
-                id_produksi: sh.data.id_produksi,
-                id_keuangan: sh.data.id_keuangan,
-                id_mkdt: sh.data.id_mkdt,
-                id_hargajual: sh.data2.id_hargajual
-            },
-            dataType: 'json',
-            beforeSend: function() {
-                $("#loading").removeClass("hidden");
-            },
-            success: function(r) {
-                $("#loading").addClass("hidden");
-
-                csrfHash = r.token;
-                dr = r
-
-                loadSummary(dr)
-                loaded['sm'] = true
-
-                /************************ load bayar produksi  ***************************/
-
-                let lAlamat = setLabelAlamat("<?= $data['proyek']->nama_proyek ?>", sh.data.nama_jalan, sh.data.no_kavling, sh.data2.no_tipe_rumah, sh.data2.tipe_rumah)
-
-                $(".label_alamat").html(lAlamat);
-                $("#label-hargajual").html(`
-                    Harga Jual: <h2 class="text-primary mb-0"><strong>Rp. ${sh.data2.harga_akhir}</strong></h5>
-                    <small class="text-muted">(${format_date(sh.data2.harga_akhir_tgl)} - ${sh.data2.harga_akhir_oleh})</small>`);
-
-                $("#modal_detail").modal('show');
-            },
-            error: function(xhr, st, err) {
-                $("#loading").addClass("hidden")
-                return swal("error", err);
-            },
-        });
-
-
-
-        let no_kavling_pad = (parseInt(sh.data.no_kavling, 10) < 10 ? '0' : '') + sh.data.no_kavling;
-        let id_kavling_sikumbang = dt_proyek.id_perumahan_sikumbang + sh.data.nama_jalan.replace(/\s+/g, '').toUpperCase() + no_kavling_pad;
-
-
-        fetch('https://sikumbang.tapera.go.id/ajax/trilogi/' + id_kavling_sikumbang)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Fetched data from SIKUMBANG:', data);
-
-                let tpengembang, tbank, tmbr, txt
-                if (data.error === true) {
-                    txt = "ID TIdak Ditemukan/Sikumbang Sedang tidak bisa diakses."
-                } else {
-                    tpengembang = (data.data.pengembang === true) ? '<span class="badge badge-success">Ready Stock</span>' : '';
-                    tbank = (data.data.bank === true) ? '<span class="badge badge-success">Trilogy Bank</span>' : '';
-                    tmbr = (data.data.mbr === true) ? '<span class="badge badge-success">Trilogy MBR</span>' : '';
-
-                    txt = `<b>${id_kavling_sikumbang}</b> <br>${tpengembang} ${tbank} ${tmbr}`;
-                }
-                // You can handle/use the fetched data as needed here
-                $(".id_sikumbang").html(txt);
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-            });
-    }
-
-    $('#modal_detail').on('hidden.bs.modal', function() {
-        // alert()
-        loaded = [];
-    });
-
-
-    function loadSummary(r) {
-        //load data konsumen
-        if (r.mkdt) {
-            let mkdt = r.mkdt
-            setText("#dt-promo", mkdt.promo)
-            setText("#dt-is_kpr", isKPR[mkdt.is_kpr], true, "success")
-            setText("#dt-is_subsidi", isSubsidi[mkdt.is_subsidi], true, "success")
-            setText("#dt-no_spptb", mkdt.no_spptb)
-            setText("#dt-nama_konsumen", mkdt.nama_konsumen)
-            setText("#dt-alamat_konsumen", mkdt.alamat_konsumen)
-            setText("#dt-nik_konsumen", mkdt.nik_konsumen)
-            setText("#dt-npwp_konsumen", mkdt.npwp)
-            setText("#dt-hp_konsumen", mkdt.hp_konsumen)
-            setText("#dt-email_konsumen", mkdt.email_konsumen)
-            setText("#dt-sales", mkdt.sales)
-
-            // console.log()
-
-            setText("#s-status_mkdt", mkdt.status_mkdt)
-            setText("#s-st_bank", mkdt.st_bank)
-            setText("#s-notaris", mkdt.notaris)
-            setText("#s-st_sp3k_tgl", format_date(mkdt.sp3k_tgl))
-            setText("#s-st_sp3k_tgl_exp", format_date(mkdt.sp3k_tgl_exp))
-        } else {
-            setText("#dt-promo", '-')
-            setText("#dt-is_kpr", '-')
-            setText("#dt-is_subsidi", '-')
-            setText("#dt-no_spptb", '-')
-            setText("#dt-nama_konsumen", '-')
-            setText("#dt-alamat_konsumen", '-')
-            setText("#dt-nik_konsumen", '-')
-            setText("#dt-npwp_konsumen", '-')
-            setText("#dt-hp_konsumen", '-')
-            setText("#dt-email_konsumen", '-')
-            setText("#dt-sales", '-')
-
-            // console.log()
-
-            setText("#s-status_mkdt", '-')
-            setText("#s-st_bank", '-')
-            setText("#s-notaris", '-')
-            setText("#s-st_sp3k_tgl", '-')
-            setText("#s-st_sp3k_tgl_exp", '-')
-        }
-
-        if (r.kavling) {
-            setText("#s-perintah_bangun_tgl", format_date(r.kavling.perintah_bangun_tgl))
-        } else {
-            setText("#s-perintah_bangun_tgl", "-")
-        }
-
-        //keuangan
-        const tg = hitungTagihan(r)
-        setText("#s-persentase_bayar_tagihan_um", tg.ldp)
-        setText("#s-persentase_bayar_tagihan_um_ll", tg.ldp_semua)
-        setText("#s-persentase_bayar_tagihan_bb", tg.ldp_bb)
-
-        if (r.produksi) {
-            let pr = r.produksi
-            setText("#s-progress_bangunan", pr.progres_bangunan + '%')
-            setText("#s-tanggal_pembangunan", format_date(pr.tanggal_pembangunan))
-            setText("#s-tanggal_selesai_pembangunan", format_date(pr.tanggal_selesai_pembangunan))
-
-            setText("#s-st_saluran", isSudah(pr.st_saluran))
-            setText("#s-st_air", isSudah(pr.st_air))
-            setText("#s-st_jalan", isSudah(pr.st_jalan))
-            setText("#s-slo", isSudah(pr.slo))
-            setText("#s-lpa", isSudah(pr.lpa))
-        } else {
-            setText("#s-progress_bangunan", "-")
-            setText("#s-tanggal_pembangunan", "-")
-            setText("#s-tanggal_selesai_pembangunan", "-")
-
-            setText("#s-st_saluran", "-")
-            setText("#s-st_air", "-")
-            setText("#s-st_jalan", "-")
-            setText("#s-slo", "-")
-            setText("#s-lpa", "-")
-        }
-
-        if (r.si) {
-            let si = ''
-            $.each(r.si, function(i, v) {
-                si += `
-                <div class="info-row row no-gutters">
-                    <div class="col-6">
-                        <label class="info-label mb-0">${v.nama}</label>
-                    </div>
-                    <div class="col-6">
-                        : <span class="info-value">${isSudah(v.id_kavling)} ${v.tanggal_si ? format_date(v.tanggal_si) : '-'}</span>
-                    </div>
-                </div>
-                `
-            });
-            applyLoadingEffect("#s-si")
-            setTimeout(() => {
-                setText("#s-si", si)
-                removeLoadingEffect("#s-si");
-            }, 500);
-        }
-
-        if (r.cashout) {
-            let cashout = ''
-
-            // FILTER UNIK DI SINI
-            const uniqueCashout = r.cashout.filter((v, index, self) =>
-                index === self.findIndex((t) => t.id_item_cashout === v.id_item_cashout)
-            );
-            if (uniqueCashout.length == 0) {
-                cashout += `<div class="info-row row no-gutters">
-                    <div class="col-12">
-                        <label class="info-label mb-0">Belum ada pembayaran</label>
-                    </div>
-                </div>`
-
-            } else {
-                // let nom 
-                $.each(uniqueCashout, function(i, v) {
-                    // nom = v.nominal ? num_format(v.nominal):''
-                    cashout += ` 
-                <div class="info-row row no-gutters">
-                    <div class="col-6">
-                        <label class="info-label mb-0">${v.item}</label>
-                    </div>
-                    <div class="col-6">
-                        : <span class="info-value">${isSudah(v.id)} ${v.tanggal_bayar ? format_date(v.tanggal_bayar) : '-'}</span>
-                    </div>
-                </div>`
-                });
-            }
-
-
-            applyLoadingEffect("#s-co")
-            setTimeout(() => {
-                setText("#s-co", cashout)
-                removeLoadingEffect("#s-co");
-            }, 500);
-        }
-    }
-
-
-    function isSudah(e) {
-        if (e)
-            return `<i class="fa fa-solid fa-check"></i> Sudah`
-        return `-`
-    }
-
-    function last_update(id, username = null, date = null) {
-        let u = '-',
-            t = '-'
-        if (username) {
-            u = username
-            t = format_datetime(date)
-        }
-        $(id).html(`Terakhir diubah oleh: <b>${u}</b>, pada: <b>${t}</b> `);
-    }
-
-    function loadPL(pl) {
-        //load harga pricelist
-        if (pl) {
-            $.each(pl, function(i, v) {
-                applyLoadingEffect("#dt-pl_" + i, v)
-                setTimeout(() => {
-                    changeVal("#dt-pl_" + i, v)
-                    removeLoadingEffect("#dt-pl_" + i, v);
-                }, 500);
-
-            });
-            setDatePicker(pl.tgl_harga, "#dt-pl_tgl_harga")
-        }
-
-    }
-
-    function loadKavling(r) {
-        if (r.kavling) {
-            setDatePicker(r.kavling.perintah_bangun_tgl, '#dt-st_perintah_bangun_tgl')
-            changeVal("#dt-st_perintah_bangun_oleh", r.kavling.username)
-            src = not_found
-            if (r.kavling.perintah_bangun_file) {
-                src = r.kavling.perintah_bangun_file
-            }
-
-            $("#dt-pph_ntpn").val(r.kavling.pph42_ntpn)
-            $("#dt-pph_nominal_bayar").val(r.kavling.pph42_nilai).keyup()
-            setDatePicker(r.kavling.pph42_tgl_bayar, "#dt-pph_tgl_bayar")
-
-            //  $("#dt-st_list-upload_perintah_bangun_file-here").prop('src', base_url + src)
-
-        }
-        $("#dt-st_list-upload_perintah_bangun_file").prop('href', base_url + src)
-    }
-
-    function loadMKDT(mkdt) {
-        src = not_found
-
-        $("#dt-st_list-upload_sp3k_file").prop('href', base_url + src)
-
-        $("#dt-st_list-upload_bast_file").prop('href', base_url + src)
-
-        $("#dt-btn-bl_here").prop('href', base_url + src)
-        $(".dt-cl-bl_here").prop('src', base_url + src)
-
-        $("#dt-btn-npwp_here").prop('href', base_url + src)
-        $(".dt-cl-npwp_here").prop('src', base_url + src)
-
-        $("#dt-btn-ktp_here").prop('href', base_url + src)
-        $(".dt-cl-ktp_here").prop('src', base_url + src)
-
-        if (mkdt) {
-            //load price list dari keuangan
-            setDatePicker(mkdt.tgl_harga, "#dt-tgl_harga")
-            changeVal("#dt-hargajual", mkdt.harga_jual)
-            changeVal("#dt-harga_diskon_hargajual", mkdt.harga_diskon_hargajual)
-            changeVal("#dt-hargajual_net", mkdt.harga_jual_net)
-            changeVal("#dt-kpr", mkdt.harga_kpr)
-            changeVal("#dt-uang_muka", mkdt.harga_uang_muka)
-            changeVal("#dt-harga_diskon_uang_muka", mkdt.harga_diskon_uang_muka)
-            changeVal("#dt-biaya_adm", mkdt.harga_administrasi)
-            changeVal("#dt-bphtb", mkdt.harga_bphtb)
-            changeVal("#dt-ppn", mkdt.harga_ppn)
-            changeVal("#dt-biaya_proses", mkdt.harga_biaya_proses)
-            changeVal("#dt-row", mkdt.row)
-            changeVal("#dt-tipe", mkdt.tipe)
-            changeVal("#dt-lt", mkdt.lb)
-            changeVal("#dt-lb", mkdt.lt)
-            changeVal("#dt-is_ajb", mkdt.is_ajb)
-            changeVal("#dt-notaris", mkdt.notaris)
-
-
-
-            //kpr disetujui
-            changeVal("#dt-st_harga_kpr_acc", mkdt.harga_kpr_acc)
-            changeVal("#dt-st_harga_penambahan_um", mkdt.harga_penambahan_um)
-            changeVal("#dt-st_harga_penambahan", mkdt.harga_penambahan)
-            changeVal("#dt-st_harga_penambahan_tanah", mkdt.harga_penambahan_tanah)
-            changeVal("#dt-st_keterangan_harga_penambahan", mkdt.keterangan_harga_penambahan)
-
-            //status
-            changeVal('#dt-status_mkdt', mkdt.status_mkdt)
-            setDatePicker(mkdt.booking_tgl, '#dt-st_booking_tgl')
-            changeVal('#dt-st_bank', mkdt.bank)
-
-            changeVal('#dt-st_booking_fee', mkdt.booking_fee)
-
-            $("#dt-st_wawancara").prop('checked', mkdt.wawancara)
-            setDatePicker(mkdt.wawancara_tgl, '#dt-st_wawancara_tgl')
-
-            changeVal('#dt-st_harga_kpr', mkdt.harga_kpr)
-            changeVal('#dt-st_acc_harga_kpr', mkdt.harga_kpr_acc)
-            changeVal('#dt-st_harga_turun_kpr', parseFloat(mkdt.harga_kpr) - parseFloat(mkdt.harga_kpr_acc))
-            changeVal('#dt-st_sp3k_no', mkdt.sp3k_no)
-            setDatePicker(mkdt.sp3k_tgl, "#dt-st_sp3k_tgl")
-            setDatePicker(mkdt.sp3k_tgl_exp, "#dt-st_sp3k_tgl_exp")
-
-            src = not_found
-
-            if (mkdt.sp3k_file) {
-                src = mkdt.sp3k_file
-            }
-            $("#dt-st_list-upload_sp3k_file").prop('href', base_url + src)
-            // $("#dt-st_list-upload_sp3k_file-here").prop('src', base_url + src)
-
-
-            src = not_found
-            if (mkdt.file_ktp) {
-                src = mkdt.file_ktp
-            }
-            $("#dt-btn-ktp_here").prop('href', base_url + src)
-            $(".dt-cl-ktp_here").prop('src', base_url + src)
-
-            src = not_found
-            if (mkdt.file_npwp) {
-                src = mkdt.file_npwp
-            }
-            $("#dt-btn-npwp_here").prop('href', base_url + src)
-            $(".dt-cl-npwp_here").prop('src', base_url + src)
-
-            src = not_found
-            if (mkdt.file_data_diri) {
-                src = mkdt.file_data_diri
-            }
-            $("#dt-btn-bl_here").prop('href', base_url + src)
-            $(".dt-cl-bl_here").prop('src', base_url + src)
-
-
-
-
-
-            setDatePicker(mkdt.rencana_akad_tgl, '#dt-st_rencana_akad_tgl')
-            $("#dt-st_akad").prop('checked', mkdt.akad == "0" ? 0 : 1)
-            setDatePicker(mkdt.akad_tgl, '#dt-st_akad_tgl')
-
-            changeVal("#dt-st_debitur_no", mkdt.debitur_no)
-            changeVal("#dt-st_bast_no", mkdt.bast_no)
-
-            src = not_found
-            if (mkdt.bast_file) {
-                src = mkdt.bast_file
-            }
-            $("#dt-st_list-upload_bast_file").prop('href', base_url + src)
-
-            // $("#last_update_legal").html(`Terakhir dipudate oleh: ${lg.uadd_by}, pada: ${format_datetime(lg.created_at)} `);
-            // if(lg.uedit_by){
-            //     $("#last_update_legal").html(`Terakhir dipudate oleh: -${lg.uedit_by}, pada: ${format_datetime(lg.updated_at)} `);
-            // }
-        }
-    }
-
-
-    function loadLegal(lg) {
-        /************************ load table legal ***************************/
-        if (lg) {
-            for (let i in lg) {
-                $("#dt-" + i).val(lg[i]).change();
-            }
-
-            if (lg.data) {
-                $("#dt-sertifikat_balik_nama").val(lg.data.nama_konsumen ? lg.data.nama_konsumen : '')
-                $("#dt-pbb_balik_nama").val(lg.data.nama_konsumen ? lg.data.nama_konsumen : '')
-                $("#dt-bphtb_nominal_disetujui").val(lg.data.harga_bphtb ? lg.data.harga_bphtb : '').change().keyup()
-            }
-
-            setDatePicker(lg.sertifikat_split_tanggal_terbit, "#dt-sertifikat_split_tanggal_terbit")
-            setDatePicker(lg.sertifikat_split_tanggal_berakhir, "#dt-sertifikat_split_tanggal_berakhir")
-            setDatePicker(lg.sertifikat_split_tanggal_surat_ukur, "#dt-sertifikat_split_tanggal_surat_ukur")
-            setDatePicker(lg.sertifikat_balik_nama_tgl_pengiriman, "#dt-sertifikat_balik_nama_tgl_pengiriman")
-            setDatePicker(lg.pbb_pecah_tanggal_bayar, "#dt-pbb_pecah_tanggal_bayar")
-
-            setDatePicker(lg.bphtb_tanggal_verifikasi, "#dt-bphtb_tanggal_verifikasi")
-            setDatePicker(lg.bphtb_jatuh_tempo, "#dt-bphtb_jatuh_tempo")
-            setDatePicker(lg.bphtb_perpanjang_jatuh_tempo, "#dt-bphtb_perpanjang_jatuh_tempo")
-            setDatePicker(lg.bphtb_tanggal_pembayaran, "#dt-bphtb_tanggal_pembayaran")
-            setDatePicker(lg.bphtb_tanggal_validasi, "#dt-bphtb_tanggal_validasi")
-
-            setDatePicker(lg.pph_tgl_permohonan, "#dt-pph_tgl_permohonan")
-            setDatePicker(lg.pph_tanggal_validasi, "#dt-pph_tanggal_validasi")
-            setDatePicker(lg.pph_tgl_bayar, "#dt-pph_tgl_bayar")
-            setDatePicker(lg.ajb_tanggal, "#dt-ajb_tanggal")
-            setDatePicker(lg.ajb_tanggal_dikirim, "#dt-ajb_tanggal_dikirim")
-            setDatePicker(lg.ppjb_tanggal, "#dt-ppjb_tanggal")
-
-            setDatePicker(lg.pbb_balik_nama_tgl_pengiriman, "#dt-pbb_balik_nama_tgl_pengiriman")
-            setDatePicker(lg.pbb_tgl_pembetulan, "#dt-pbb_tgl_pembetulan")
-            setDatePicker(lg.pbg_tanggal_kirim, "#dt-pbg_tanggal_kirim")
-            setDatePicker(lg.pph_tgl_selesai, "#dt-pph_tgl_selesai")
-
-            $("#dt-legal_keterangan").val(lg.keterangan);
-
-            last_update("#last_update_legal", lg.uadd_by, lg.created_at)
-            if (lg.uedit_by) {
-                last_update("#last_update_legal", lg.uedit_by, lg.updated_at)
-            }
-
-        }
-
-        /************************ end of table legal ***************************/
-    }
-
-    function hitungTagihan(r) {
-        //um
-        let total_um = parseFloat(r.total_um)
-        let sb_um = parseFloat(r.sb_um)
-        let sisa_um = r.total_um - r.sb_um,
-            ldp = (sisa_um == 0) ? 100 : r.sb_um / r.total_um * 100;
-        ldp = (r.sb_um > 0) ? ~~ldp + "%" : "0%";
-
-        //um dan ll
-        let total_um_ll = parseFloat(r.total_um_ll),
-            sb_um_ll = parseFloat(r.sb_um_ll)
-        let sisa_um_ll = r.total_um_ll - r.sb_um_ll,
-            ldp_ll = (sisa_um_ll == 0) ? 100 : r.sb_um_ll / r.total_um_ll * 100;
-        ldp_ll = (r.sb_um_ll > 0) ? ~~ldp_ll + "%" : "0%";
-
-        let total_bb = parseFloat(r.total_bb)
-        let sb_bb = parseFloat(r.sb_bb)
-        let sisa_bb = r.total_bb - r.sb_bb,
-            ldp_bb = (sisa_bb == 0) ? 100 : r.sb_bb / r.total_bb * 100;
-        ldp_bb = (r.sb_bb > 0) ? ~~ldp_bb + "%" : "0%";
-
-        let total_semua = total_um + total_bb + total_um_ll,
-            sb_semua = sb_um + sb_um_ll + sb_bb,
-            sisa_semua = total_semua - sb_semua,
-            ldp_semua = (sisa_semua == 0) ? 100 : sb_semua / total_semua * 100;
-        ldp_semua = sb_semua > 0 ? ~~ldp_semua + "%" : "0%"
-        // console.log(total_semua, sb_semua)
-        return {
-            sisa_um: sisa_um,
-            ldp: ldp,
-            total_um: total_um,
-            sb_um: sb_um,
-            sisa_um_ll: sisa_um_ll,
-            ldp_ll: ldp_ll,
-            sb_um_ll: r.sb_um_ll,
-            total_um_ll: r.total_um_ll,
-            total_bb: total_bb,
-            sb_bb: sb_bb,
-            sisa_bb: sisa_bb,
-            ldp_bb: ldp_bb,
-            total_semua: total_semua,
-            sb_semua: sb_semua,
-            sisa_semua: sisa_semua,
-            ldp_semua: ldp_semua
-
-        }
-    }
-
-    function loadTagihan(r) {
-        /************************ load table tagihan ***************************/
-
-        let tagihan = hitungTagihan(r);
-
-        changeVal("#dt-total_biaya_um", tagihan.total_um)
-        changeVal("#dt-sudah_bayar_um", tagihan.sb_um)
-        changeVal("#dt-sisa_tagihan_um", tagihan.sisa_um)
-        changeVal("#dt-persentase_bayar_tagihan_um", tagihan.ldp)
-
-
-        changeVal("#dt-total_biaya_um_ll", tagihan.total_um_ll)
-        changeVal("#dt-sudah_bayar_um_ll", tagihan.sb_um_ll)
-        changeVal("#dt-sisa_tagihan_um_ll", tagihan.sisa_um_ll)
-        changeVal("#dt-persentase_bayar_tagihan_um_ll", tagihan.ldp_ll)
-
-
-
-        changeVal("#dt-total_biaya_bb", tagihan.total_bb)
-        changeVal("#dt-sudah_bayar_bb", tagihan.sb_bb)
-        changeVal("#dt-sisa_tagihan_bb", tagihan.sisa_bb)
-        changeVal("#dt-persentase_bayar_tagihan_bb", tagihan.ldp_bb)
-
-        if (r.ku)
-            $("#last_update_keuangan").html("Terakhir diupdate oleh: " + r.ku.username + " pada: " + format_datetime(r.ku.created_at));
-        /************************ end of load table tagihan ***************************/
-    }
-
-    function loadProduksi(pr, files) {
-        /************************ load produksi ***************************/
-        if (pr) {
-            $("#dt-st_0").prop('checked', pr.st_0)
-            $("#dt-st_25").prop('checked', pr.st_25)
-            $("#dt-st_50").prop('checked', pr.st_50)
-            $("#dt-st_75").prop('checked', pr.st_75)
-            $("#dt-st_100").prop('checked', pr.st_100)
-            $("#dt-st_saluran").prop('checked', pr.st_saluran)
-            $("#dt-st_jalan").prop('checked', pr.st_jalan)
-            $("#dt-st_air").prop('checked', pr.st_air)
-            $("#dt-bp").prop('checked', pr.bp)
-            $("#dt-lpa").prop('checked', pr.lpa)
-            $("#dt-slo").prop('checked', pr.slo)
-            $("#dt-sumurbor").prop('checked', pr.sumurbor)
-
-            setDatePicker(pr.lpa_tanggal, "#dt-lpa_tanggal")
-
-            setDatePicker(pr.tanggal_pembangunan, '#dt-tanggal_pembangunan')
-            setDatePicker(pr.tanggal_rencana_selesai_pembangunan, '#dt-tanggal_rencana_selesai_pembangunan')
-            setDatePicker(pr.tanggal_selesai_pembangunan, '#dt-tanggal_selesai_pembangunan')
-
-            $("#dt-progres_bangunan").val(pr.progres_bangunan)
-            setText("#dt-t_progres_bangunan", pr.progres_bangunan)
-
-            $("#dt-produksi_keterangan").val(pr.keterangan)
-
-            changeVal("#dt-air_jenis", pr.air_jenis);
-            changeVal("#dt-listrik_jenis", pr.listrik_jenis);
-
-            changeVal("#dt-listrik_pln", pr.listrik_pln);
-            changeVal("#dt-listrik_disediakan_no", pr.listrik_disediakan_no);
-            changeVal("#dt-listrik_disediakan_tanggal", pr.listrik_disediakan_tanggal);
-            changeVal("#dt-air_deskripsi_unit", pr.air_deskripsi_unit);
-            changeVal("#dt-air_pdam_no", pr.air_pdam_no);
-
-
-            changeVal("#dt-sumurbor_keterangan", pr.sumurbor_keterangan);
-            setDatePicker(pr.sumurbor_tanggal, '#dt-sumurbor_tanggal')
-            $("#dt-last_update-sumurbor").html(
-                `Diubah pada: ${pr.sumurbor_updated ? format_datetime(pr.sumurbor_updated) : '-'}, 
-                    oleh: ${pr.sumurbor_oleh_u ? pr.sumurbor_oleh_u : '-'}`
-            )
-
-        } else {
-            $("#dt-st_0").prop('checked', false)
-            $("#dt-st_25").prop('checked', false)
-            $("#dt-st_50").prop('checked', false)
-            $("#dt-st_75").prop('checked', false)
-            $("#dt-st_100").prop('checked', false)
-            $("#dt-st_saluran").prop('checked', false)
-            $("#dt-st_jalan").prop('checked', false)
-            $("#dt-st_air").prop('checked', false)
-            $("#dt-bp").prop('checked', false)
-            $("#dt-lpa").prop('checked', false)
-            $("#dt-slo").prop('checked', false)
-            $("#dt-sumurbor").prop('checked', false)
-
-            setDatePicker(null, "#dt-lpa_tanggal")
-
-            setDatePicker(null, '#dt-tanggal_pembangunan')
-            setDatePicker(null, '#dt-tanggal_rencana_selesai_pembangunan')
-            setDatePicker(null, '#dt-tanggal_selesai_pembangunan')
-
-            $("#dt-progres_bangunan").val(null)
-            setText("#dt-t_progres_bangunan", null)
-
-            $("#dt-produksi_keterangan").val(null)
-
-            changeVal("#dt-air_jenis", null);
-            changeVal("#dt-listrik_jenis", null);
-
-            changeVal("#dt-listrik_pln", null);
-            changeVal("#dt-listrik_disediakan_no", null);
-            changeVal("#dt-listrik_disediakan_tanggal", null);
-            changeVal("#dt-air_deskripsi_unit", null);
-            changeVal("#dt-air_pdam_no", null);
-
-            changeVal("#dt-sumurbor_keterangan", null);
-            setDatePicker(null, '#dt-sumurbor_tanggal')
-            $("#dt-last_update-sumurbor").html(null)
-        }
-        // console.log(files)
-        if (files)
-            showFoto(files, 'dt-', "false");
-
-
-        /************************ end of produksi ***************************/
-    }
-    /************************ load bukti bayar pajak  ***************************/
-    function loadBuktiBayarPajak(r) {
-
-        let dv = ''
-        $.each(r.file_pph, function(i, v) {
-            dv += `
-                <a href="${base_url + v.lokasi}" class="btn btn-outline-primary" target=_blank>
-                    <h5>Bukti pembayaran ${v.default_filename} </h5>
-                    ${v.keterangan}
-                    <br>
-                    <embed src="${base_url + v.lokasi}" style="width: 90%;"
-                        class="files-here dt-cl-ktp_here">
-                        diunggah pada: ${format_datetime(v.upload_at)} (${v.uupload_by})
-                </a>
-                <br>
-                <br>
-                 `;
-        });
-        $("#dt-file_pph42-here").html(dv)
-
-        dv = '';
-        $.each(r.file_ppn, function(i, v) {
-            dv += `
-                <a href="${base_url + v.lokasi}" class="btn btn-outline-primary" target=_blank>
-                    <h5>Bukti pembayaran ${v.default_filename} </h5>
-                    ${v.keterangan}
-                    <br>
-                    <embed src="${base_url + v.lokasi}" style="width: 90%;"
-                        class="files-here dt-cl-ktp_here">
-                        diunggah pada: ${format_datetime(v.upload_at)} (${v.uupload_by})
-                </a>
-                <br>
-                <br>
-                 `;
-        });
-        $("#dt-file_ppn-here").html(dv)
-
-    }
-
-    function loadCashOut(d) {
-        let dv = ''
-        if (d.lenght == 0) {
-            $("#dt-cashout-table tbody").html(`"<tr><td colspan='4' class='text-center'>Data tidak ditemukan</td></tr>"`)
-        }
-        $.each(d, function(i, val) {
-            let row = `
-        <tr>
-            <td>${val.item}</td>
-            <td>${format_date(val.tanggal_bayar) ?? "-"}</td>
-            <td>${num_format(val.nominal) ?? "0"}</td>
-            <td>${val.keterangan ?? "-"}</td>
-        </tr>`;
-            $("#dt-cashout-table tbody").append(row);
-        });
-
-    }
-
-    function loadBayarProduksi(bprod) {
-        let dv = ''
-        $("#dt-div-bayar_produksi-here").html("")
-        $.each(bprod, function(i, v) {
-            // console.log(bprod)
-
-            let id = !v.id ? "n" + v.id_bayar_produksi : v.id
-            dv += `
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <strong>${v.item}</strong>
-                            </div>
-                            <div class="card-body">
-                                    <div class="row">
-                                    <div class="col-md-6">
-                                    
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label>Tanggal Pembayaran</label>
-                                            <input disabled type="text" class="form-control fp-bayar_produksi flatpickr-human-friendly tbp${v.id_bayar_produksi}"
-                                                id="dt-id-bayar_produksi[${id}][tanggal_bayar]" value="${v.tanggal_bayar ? v.tanggal_bayar : ''}" name="dt-id-bayar_produksi[${id}][tanggal_bayar]">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label for="sumurbor_bayar_nominal">Nominal</label>
-                                            <input type="text" disabled class="form-control num nbp${v.id_bayar_produksi}" id="dt-id-bayar_produksi[${id}][nominal]"
-                                                name="dt-id-bayar_produksi[${id}][nominal]" value="${v.nominal ? v.nominal : ''}">
-                                            <input type="hidden" class="form-control" id="id-bayar_produksi[${id}][id_item_produksi]"
-                                                name="id-bayar_produksi[${id}][id_item_produksi]" value="${id}">
-                                        </div>
-                                    </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Keterangan</label>
-                                            <textarea disabled class="form-control" id="dt-id-bayar_produksi[${id}][keterangan]"
-                                                name="dt-id-bayar_produksi[${id}][keterangan]" rows="4" placeholder="Keterangan">${v.keterangan ? v.keterangan : ''}</textarea>
-                                            <small id="last_update-sumurbor_bayar" class=""></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `
-        });
-
-        $("#dt-div-bayar_produksi-here").html(dv)
-        $(".num").change()
-
-    }
-
-    function loading(hiden = ture) {
-        if (hiden) return $("#loading").removeClass('hidden')
-        return $("#loading").addClass('hidden')
-    }
-
-    function isi_data() {
-        if (editdtt.length == 0)
-            return swal('error', 'Terjad Kesalahan', 'Tidak ada kavling yang dipilih')
-
-        //bug isi data with addmode
-        if (editdtt.length > 1) {
-            swal('error', 'Terjad Kesalahan', 'Tidak bisa merubah data lebih dari 1 kavling')
-            hapus_seleksi();
-            return;
-        }
-
-        let role,
-            sh = editdtt[0],
-            id_kavling = sh.id.substr(3);
-
-        //jika admin login
-        if (roleid == 1)
-            role = $('#pilih-divisi option:selected').val()
-        else
-            role = roleid
-
-        if (role == 7) { //produksi
-            open_produksi(sh, role, id_kavling)
-        } else if (role == 5) { //legal
-            open_legal(sh, role, id_kavling)
-        } else if (role == 4) { //mkdt
-            open_mkdt(sh, role, id_kavling)
-        } else if (role == 3) { //keunagan
-            if (!sh.data.id_mkdt) {
-                return swal('error', 'Terjad Kesalahan', `Belum ada data konsumen di kavling ${sh.data.nama_jalan}, No. ${sh.data.no_kavling}`)
-            }
-            open_keuangan(sh, role, id_kavling)
-        } else if (role == 6) { //planning
-            if (!addMode) {
-                hapus_seleksi();
-                open_planning(sh, role, id_kavling)
-            } else {
-                editdtt.push(sh)
-                drawBorderEdit(sh)
-            }
-            $(".label_alamat").html(dt_proyek.nama_proyek + "<br/>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling + "<br/>" + sh.data2.no_tipe_rumah + " (" + sh.data2.tipe_rumah + ")<br/>");
-            $('#modal_divisi' + role).modal({
-                backdrop: 'static',
-                keyboard: false
-            });
-        } else if (role == 8) { //sales promotion
-            $(".label_alamat").html(dt_proyek.nama_proyek + "<br/>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling + "<br/>" + sh.data2.no_tipe_rumah + " (" + sh.data2.tipe_rumah + ")<br/>");
-            $('#modal_divisi' + role).modal({
-                backdrop: 'static',
-                keyboard: false
-            });
-        } else if (role == 10) { //pajak
-            open_pajak(sh, role, id_kavling);
-        }
-    }
-
-    <?php if ($k == 1 || $k == 6): ?><?php endif; ?>
-    <?php if ($k == 1 || $k == 3): ?> <?php endif; ?>
-    /********************************* mkdt *******************************************/
-    $("#fm-mkdt .num").change(function() {
-        // total()
-    })
-    //tidak dipakai
-    function total(id_form = "") {
-        var harga_jual = removeComma(($(id_form + " #harga_jual").val() == '') ? 0 : $(id_form + " #harga_jual").val()),
-            harga_diskon = removeComma(($(id_form + " #harga_diskon").val() == '') ? 0 : $(id_form + " #harga_diskon").val()),
-            harga_penambahan = removeComma(($(id_form + " #harga_penambahan").val() == '') ? 0 : $(id_form + " #harga_penambahan").val()),
-            harga_administrasi = removeComma(($(id_form + " #harga_administrasi").val() == '') ? 0 : $(id_form + " #harga_administrasi").val()),
-            harga_ppn = removeComma(($(id_form + " #harga_ppn").val() == '') ? 0 : $(id_form + " #harga_ppn").val()),
-            harga_bphtb = removeComma(($(id_form + " #harga_bphtb").val() == '') ? 0 : $(id_form + " #harga_bphtb").val()),
-            harga_biaya_proses = removeComma(($(id_form + " #harga_biaya_proses").val() == '') ? 0 : $(id_form + " #harga_biaya_proses").val()),
-            harga_kpr = removeComma(($(id_form + " #harga_kpr").val() == '') ? 0 : $(id_form + " #harga_kpr").val()),
-            total_biaya = 0;
-
-        total_biaya = (harga_jual - harga_kpr) - harga_diskon + harga_penambahan + harga_ppn + harga_bphtb + harga_biaya_proses;
-
-        $(id_form + " #total_biaya").val(total_biaya).keyup();
-
-        // console.log(total_biaya)
-
-        $("#total_biaya2").val(total_biaya).keyup();
-
-    }
-
-    function lihat_total() {
-        var harga_jual = removeComma(($("#detail_harga_jual").val() == '') ? 0 : $("#detail_harga_jual").val()),
-            harga_diskon = removeComma(($("#detail_harga_diskon").val() == '') ? 0 : $("#detail_harga_diskon").val()),
-            harga_penambahan = removeComma(($("#detail_harga_penambahan").val() == '') ? 0 : $("#detail_harga_penambahan").val()),
-            harga_administrasi = removeComma(($("#detail_harga_administrasi").val() == '') ? 0 : $("#detail_harga_administrasi").val()),
-            harga_ppn = removeComma(($("#detail_harga_ppn").val() == '') ? 0 : $("#detail_harga_ppn").val()),
-            harga_bphtb = removeComma(($("#detail_harga_bphtb").val() == '') ? 0 : $("#detail_harga_bphtb").val()),
-            harga_biaya_proses = removeComma(($("#detail_harga_biaya_proses").val() == '') ? 0 : $("#detail_harga_biaya_proses").val()),
-            harga_kpr = removeComma(($("#detail_harga_kpr").val() == '') ? 0 : $("#detail_harga_kpr").val()),
-            total_biaya = 0;
-
-        total_biaya = (harga_jual - harga_kpr) - harga_diskon + harga_penambahan + harga_ppn + harga_bphtb + harga_biaya_proses;
-
-        $("#detail_total_biaya").val(total_biaya).keyup();
-
-    }
-    //sum tagihan
-
-    function sum_tg(e = 0, bb = '') {
-        e = parseFloat(removeComma(e))
-
-        let total_keu = parseFloat(removeComma($("#mk-total_tot").val()) || 0)
-        let cicilan_keu = parseFloat(removeComma($("#mk-total_cicilan_um").val()) || 0)
-
-        if (cicilan_keu + e > total_keu)
-            $("#nominal").val(total_keu - cicilan_keu).keyup()
-    }
-
-    var it = 0;
-    /***************** list tagihan ****************/
-    function tambah_(e = '') {
-        let a = (e == '_bb') ? e : '_um'
-        if ($("#mk-total_cicilan_um").val() == $("#mk-total_tot").val()) {
-            swal('error', "Tidak bisa menambahkan tagihan", "Total tagihan tidak bisa melebeihi total harus dibayar", false);
-            return false;
-        } else {
-            if (!$("#berita_acara" + e).val() || !$("#nominal" + e).val() || !$("#jatuh_tempo_tgl" + e).val()) {
-                swal('error', "Nominal dan jatuh tempo tidak boleh kosong", null, false);
-                return false;
-            }
-            Swal.fire({
-                title: 'Simpan data?',
-                text: "Pastikan data sudah terisi dengan benar!",
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Ya!',
-                confirmButtonClass: 'btn btn-primary',
-                cancelButtonClass: 'btn btn-danger ml-1',
-                buttonsStyling: !1
-            }).then(function(t) {
-                if (t.value) {
-                    tambah(e)
-                }
-            })
-        }
-    }
-
-    function tambah(e = '') {
-        let i = 'lk' + it
-
-        if (state.data_um[$("#id_list_keu" + e).val()])
-            i = $("#id_list_keu" + e).val()
-
-        state.data_um[i] = ({
-            id_list_keu: i,
-            id_keuangan: $("#id_keuangan").val(),
-            berita_acara: $("#berita_acara").val(),
-            nominal: $("#nominal").val(),
-            jatuh_tempo_tgl: $("#jatuh_tempo_tgl").val(),
-        })
-
-        tambah_ketagihan(e)
-
-        fp = flatpickr("#jatuh_tempo_tgl", {
-            altInput: true,
-            altFormat: 'F j, Y',
-            dateFormat: 'Y-m-d'
-        })
-
-        var d = new Date(
-            $("#jatuh_tempo_tgl").val()
-        ).fp_incr(30);
-
-        fp.setDate(d);
-
-        it += 1;
-    }
-
-    function removeFromTable(x, y = null) {
-        Swal.fire({
-            title: 'Hapus Data?',
-            text: "Data tidak bisa dipulihkan!",
-            type: 'danger',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya!',
-            confirmButtonClass: 'btn btn-primary',
-            cancelButtonClass: 'btn btn-danger ml-1',
-            buttonsStyling: !1
-        }).then(function(t) {
-            if (t.value) {
-                $.ajax({
-                    url: base_url + 'Keuangan/isSudahBayar/' + editdtt[0].data.id_mkdt,
-                    type: 'get',
-                    dataType: 'json',
-                    success: function(r) {
-                        csrfHash = r.token;
-
-                        if (r.success === false) {
-                            return swal('error', r.messages)
-                        }
-
-                        if (y == '_bb') delete state.data_bb[x];
-                        else delete state.data_um[x];
-                        tambah_ketagihan();
-                    },
-                    error: function() {
-                        return swal('error', 'Terjadi kesalahan')
-                    }
-                });
-
-            }
-        })
-
-    }
-
-    function editFromTable(x) {
-        var d = state.data_um[x]
-
-        $("#id_list_keu").val(x);
-        $("#berita_acara").val(d.berita_acara);
-        $("#nominal").val(d.nominal).keyup();
-        $("#jatuh_tempo_tgl").val(d.jatuh_tempo_tgl);
-        $("#tambah_list").html("Simpan Perubahan")
-    }
-
-
-    function rowHTML({
-        title,
-        date,
-        amount,
-        key,
-        suffix = ''
-    }) {
-        return `
-    <tr data-key="${key}" data-suffix="${suffix}">
-      <td>${title}</td>
-      <td>${format_date(date)}</td>
-      <td>${num_format(amount)}</td>
-      <td>
-        <div class="btn-group">
-          <button type="button" class="btn btn-outline-danger waves-effect btn-sm js-remove">
-            <i class="fa fa-trash"></i>
-          </button>
-        </div>
-      </td>
-    </tr>`;
-    }
-
-    function sectionHTML({
-        rows,
-        label,
-        suffix = ''
-    }) {
-        let total = 0;
-        const body = rows.map(r => {
-            total += Number(removeComma(r.amount));
-            return rowHTML({
-                ...r,
-                suffix
-            });
-        }).join('');
-        const foot = `
-                    <tr class="table-secondary">
-                        <td colspan="2">Total Tagihan </td>
-                        <td>${num_format(total)}</td>
-                        <td></td>
-                    </tr>`;
-        return {
-            html: body + foot,
-            total
-        };
-    }
-
-    function tambah_ketagihan() {
-        const umRows = Object.keys(state.data_um || {}).map(k => ({
-            key: k,
-            title: state.data_um[k].berita_acara,
-            date: state.data_um[k].jatuh_tempo_tgl,
-            amount: state.data_um[k].nominal
-        }));
-
-        // const bbRows = Object.keys(state.data_bb || {}).map(k => ({
-        //     key: k,
-        //     title: state.data_bb[k].berita_acara_bb,
-        //     date: state.data_bb[k].jatuh_tempo_tgl_bb,
-        //     amount: state.data_bb[k].nominal_bb
-        // }));
-
-        const um = sectionHTML({
-            rows: umRows,
-            label: 'Tagihan Uang Muka',
-            suffix: ''
-        });
-
-        // const bb = sectionHTML({
-        //     rows: bbRows,
-        //     label: 'Tagihan Biaya Biaya',
-        //     suffix: '_bb'
-        // });
-
-        // 1x write ke DOM
-        $("#list_cicilan_here").html(um.html);
-
-        // update total & UI state
-        $("#mk-total_cicilan_um").val(um.total).trigger('change');
-        // $("#total_cicilan_bb").val(bb.total).trigger('change');
-        $("#id_list_keu").val('');
-        $("#id_list_keu_bb").val('');
-        $("#nominal, #nominal_bb").trigger('change');
-        // $("#tambah_list").text("+ Cicilan UM");
-        // $("#tambah_list_bb").text("+ Cicilan BB");
-    }
-
-    // Event delegation untuk remove
-    $(document).on('click', '#list_cicilan_here .js-remove', function() {
-        const $tr = $(this).closest('tr');
-        const key = $tr.data('key');
-        const suffix = $tr.data('suffix');
-        removeFromTable(String(key), String(suffix || ''));
-    });
-
-    $("#pilih-divisi").select2()
-    $("#filter-kategori").select2()
-    $("#filter-kategori").change(function() {
-        filterKategori(this.value)
-    })
-
-    function filterKategori(kat) {
-        siteplan.find('Line').forEach(function(i, v) {
-            if (kat == "") {
-                return i.visible(true)
-            }
-            if (i.attrs.kategori == kat) {
-                i.visible(true)
-            } else {
-                i.visible(false)
-            }
-        })
-    }
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-
-<?php if ($k == 1 || $k == 3): ?>
-    <script src="<?= base_url() ?>assets/js/keuangan.js?<?= filemtime(FCPATH . 'assets/js/keuangan.js') ?>"></script>
-<?php endif; ?>
-<?php if ($k == 1 || $k == 4): ?>
-    <script src="<?= base_url() ?>assets/js/mkdt.js?<?= filemtime(FCPATH . 'assets/js/mkdt.js') ?>"></script>
-<?php endif; ?>
-<?php if ($k == 1 || $k == 5): ?>
-    <script src="<?= base_url() ?>assets/js/legal.js?<?= filemtime(FCPATH . 'assets/js/legal.js') ?>"></script>
-<?php endif; ?>
-<?php if ($k == 1 || $k == 6): ?>
-    <script src="<?= base_url() ?>assets/js/planning.js?<?= filemtime(FCPATH . 'assets/js/planning.js') ?>"></script>
-<?php endif; ?>
-<?php if ($k == 1 || $k == 7): ?>
-    <script src="<?= base_url() ?>assets/js/produksi.js?<?= filemtime(FCPATH . 'assets/js/produksi.js') ?>"></script>
-<?php endif; ?>
-<?php if ($k == 1 || $k == 8): ?>
-    <script src="<?= base_url() ?>assets/js/sales.js?<?= filemtime(FCPATH . 'assets/js/sales.js') ?>"></script>
-<?php endif; ?>
-<?php if ($k == 1 || $k == 9): ?>
-    <script src="<?= base_url() ?>assets/js/direksi.js?<?= filemtime(FCPATH . 'assets/js/direksi.js') ?>"></script>
-<?php endif; ?>
-<?php if ($k == 1 || $k == 10): ?>
-    <script src="<?= base_url() ?>assets/js/pajak.js?<?= filemtime(FCPATH . 'assets/js/pajak.js') ?>"></script>
-<?php endif; ?>
-<?php if (in_array($k, [1, 7, 3])): ?>
-    <script src="<?= base_url() ?>assets/js/cashout_subkon.js?<?= filemtime(FCPATH . 'assets/js/cashout_subkon.js') ?>"></script>
-<?php endif; ?>
-
-<script>
-    // stage.add(siteplan, masked, datal);
-    stage.add(siteplan, masked);
-    stage.draw();
-
-    function downloadURI(uri, name, callback) {
-        var link = document.createElement('a');
-        link.download = name;
-        link.href = uri;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        delete link;
-
-        callback()
-    }
-
-    function export_siteplan() {
-        $('#btn-export-siteplan').prop("disabled", true);
-        $('#btn-export-siteplan').html('Export<i class="fa fa-spinner fa-spin"></i>');
-
-        const stageh = stage.height()
-        const stagew = stage.width()
-        const stages = stage.scale()
-        const stagep = stage.position()
-
-        stage.height(imageObj.height)
-        stage.width(imageObj.width)
-
-        stage.position({
-            x: 0,
-            y: 0
-        })
-
-        var dataURL = stage.scale({
-            x: 1,
-            y: 1
-        }).toDataURL({
-            pixelRatio: 1
-        });
-
-        const nama_file = "Siteplan " + dt_proyek.nama_proyek + " Per " + format_date(today_date) + ".png";
-
-        downloadURI(dataURL, nama_file, function() {
-            stage.height(stageh)
-            stage.width(stagew)
-            stage.scale(stages)
-            stage.position(stagep)
-            $('#btn-export-siteplan').prop("disabled", false);
-            $('#btn-export-siteplan').html('Export');
-        })
-    }
-
-    //context menu
-
-
-    //autofit
-    function fitStageIntoParentContainer() {
-        var container = document.querySelector('#stage-parent');
-
-        // now we need to fit stage into parent container
-        var containerWidth = container.offsetWidth;
-
-        // but we also make the full scene visible
-        // so we need to scale all objects on canvas
-        var scale = containerWidth / sceneWidth;
-
-
-
-        stage.width(sceneWidth * scale);
-        stage.height(sceneHeight);
-        new Konva.Tween({
-            node: stage,
-            duration: 0.5,
-            scaleX: scale,
-            scaleY: scale,
-            easing: Konva.Easings.EaseInOut,
-        }).play();
-        // stage.scale({
-        //     x: scale,
-        //     y: scale
-        // });
-    }
-
-    fitStageIntoParentContainer();
-
-    function open_setting() {
-        // $("#modal-setting-filter").modal()
-        $("#modalEwe").modal()
-    }
-
-    function filter_option() {
-        filter.id_cluster = $("#filter-id_cluster").val()
-        filter.id_jalan = $("#filter-id_jalan").val()
-        load_kavling()
-    }
-
-    function hapus_filter_option() {
-        $('#filter-id_cluster').val(null).trigger('change');
-        filter_option()
-    }
-
-    //select2 cluster
-    $("#filter-id_cluster").select2({
-        placeholder: "Pilih Cluster",
-        allowClear: true,
-        ajax: {
-            url: base_url + "/cluster/getAll",
-            dataType: 'json',
-            delay: 250,
-            method: 'post',
-            data: function(params) {
-                return {
-                    [csrfName]: csrfHash,
-                    search: params.term,
-                    id_proyek: dt_proyek.id_proyek
-                };
-            },
-            processResults: function(r) {
-                csrfHash = r.token
-
-                let results = [];
-                $.each(r.data, function(index, item) {
-                    results.push({
-                        id: item[0],
-                        text: item[3]
-                    });
-                });
-
-                return {
-                    results: results
-                };
-            },
-            cache: true
-        },
-    })
-    // on select cluster
-    $("#filter-id_cluster").on("change", function(e) {
-        $('#filter-id_jalan').val(null).trigger('change');
-        if (this.value)
-            $("#filter-id_jalan").prop("disabled", false)
-        else
-            $("#filter-id_jalan").prop("disabled", true)
-    });
-    $("#filter-id_jalan").select2({
-        placeholder: "Pilih Blok",
-        allowClear: true,
-        ajax: {
-            url: base_url + "/jalan/getAll",
-            dataType: 'json',
-            delay: 250,
-            method: 'post',
-            data: function(params) {
-                return {
-                    [csrfName]: csrfHash,
-                    search: params.term,
-                    id_cluster: $("#filter-id_cluster").val(),
-                    id_proyek: dt_proyek.id_proyek
-                };
-            },
-            processResults: function(r) {
-                csrfHash = r.token
-
-                let results = [];
-                $.each(r.data, function(index, item) {
-                    results.push({
-                        id: item[0],
-                        text: item[3]
-                    });
-                });
-
-                return {
-                    results: results
-                };
-            },
-            cache: true
-        },
-    })
-
-    //remove bug arrow select2
-    $(".select2-selection__arrow").removeClass("select2-selection__arrow")
-
-    $("#br_siteplan").html(dt_proyek.nama_proyek)
-
-
-    //context menu
-    let currentShape;
-    document.getElementById('menu-btn-lihat_detail').addEventListener('click', () => {
-        if (currentShape.target.attrs.id) {
-            //open detail modal
-            lihat_detail();
-        }
-    });
-    var menuNode = document.getElementById('menu');
-    window.addEventListener('click', () => {
-        // hide menu
-        menuNode.style.display = 'none';
-    });
-    stage.on('contextmenu', function(e) {
-        // prevent default behavior
-        e.evt.preventDefault();
-
-        if (e.target === stage) {
-            // if we are on empty place of the stage we will do nothing
-            return;
-        }
-        currentShape = e;
-        // show menu
-        menuNode.style.display = 'initial';
-        var containerRect = stage.container().getBoundingClientRect();
-        menuNode.style.top = stage.getPointerPosition().y + 4 + 'px';
-        menuNode.style.left = stage.getPointerPosition().x + 20 + 'px';
-    });
-
-    function renderText() {
-
-        $("#btn-renderText").prop("disabled", true);
-        $("#btn-renderText").html('Tampilkan Keterangan Warna Di Siteplan <i class="fa fa-spinner fa-spin"></i>');
-        // convert DOM into image
-        html2canvas(document.querySelector("#keterangan-warna-here"))
-            .then((canvas) => {
-                // show it inside Konva.Image
-                shape_ket.image(canvas);
-                $("#btn-renderText").prop("disabled", false);
-                $("#btn-renderText").html('Tampilkan Keterangan Warna Di Siteplan');
-            });
-    }
-    $("#btn-simpan_batal_mkdt").click(function(e) {
-        e.preventDefault()
-    })
-
-    function simpan_batal() {
-        let btn = "#btn-simpan_batal_mkdt"
-
-        if (!palid("batal-keterangan_batal", "", "Keterangan Batal harus diisi"))
-            return;
-
-
-        var form = $('#fm-batal_booking')[0];
-        var fd = new FormData(form);
-        fd.append(csrfName, csrfHash);
-
-        $.ajax({
-            url: base_url + 'mkdt/simpan_batal',
-            type: 'post',
-            contentType: false,
-            processData: false,
-            data: fd,
-            dataType: 'json',
-            beforeSend: function() {
-                $(btn).prop("disabled", true);
-                $(btn).html('Menyimpan <i class="fa fa-spinner fa-spin"></i>');
-            },
-            success: function(r) {
-                csrfHash = r.token;
-
-                if (r.success === true) {
-                    Swal.fire({
-                        //
-                        icon: 'success',
-                        title: r.messages,
-                        showConfirmButton: false,
-                        //timer: 1500
-                    }).then(function() {
-                        $('.modal').modal('hide');
-                        $(btn).html('Simpan');
-                        $(btn).prop("disabled", false);
-                    })
-                } else {
-                    Swal.fire({
-                        //
-                        icon: 'error',
-                        title: r.messages,
-                        showConfirmButton: false,
-                        //timer: 1500
-                    }).then(function() {
-                        $(btn).html('Simpan');
-                        $(btn).prop("disabled", false);
-                    })
-                }
-                load_kavling();
-                hapus_seleksi();
-            },
-            error: function() {
-                Swal.fire({
-
-                    icon: 'error',
-                    title: "Terjadi kesalahan",
-                    showConfirmButton: false,
-                    //timer: 1500
-                })
-                $(btn).html('Simpan');
-                $(btn).prop("disabled", false);
-                return;
-            }
-        });
-    }
-
-    function ajukan_batal() {
-        let sh = editdtt[0],
-            id_kavling = sh.id.substr(3);
-        if (sh.data.tipe != "kavling") {
-            Swal.fire({
-                //
-                icon: 'error',
-                title: "Tidak ada kavling terpilih ",
-                showConfirmButton: true,
-                // //timer: 1500
-            })
-            return;
-        }
-        if (!sh.data.id_mkdt) {
-            Swal.fire({
-                //
-                icon: 'error',
-                title: "Belum ada data konsumen di kavling: <br>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling,
-                showConfirmButton: false,
-                //timer: 1500
-            })
-            return;
-        }
-        $("#fm-batal_booking")[0].reset();
-        $("#last_update-batal_mkdt").html("Dibatalkan oleh: -  Pada: -")
-
-        $("#batal-id_kavling").val(id_kavling);
-        $("#batal-id_mkdt").val(sh.data.id_mkdt);
-
-        $(".label_alamat").html(dt_proyek.nama_proyek + "<br/>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling + "<br/>" + sh.data2.no_tipe_rumah + " (" + sh.data2.tipe_rumah + ")<br/>");
-
-        $.ajax({
-            url: base_url + 'mkdt/batal_mkdt',
-            type: 'post',
-            data: {
-                [csrfName]: csrfHash,
-                id_mkdt: sh.data.id_mkdt,
-                id_hargajual: sh.data2.id_hargajual,
-                id_kavling: id_kavling
-            },
-            dataType: 'json',
-            beforeSend: function() {
-                $("#loading").removeClass("hidden");
-            },
-            success: function(x) {
-                let mkdt = x.data,
-                    sb = x.sudah_bayar,
-                    tb = x.total_biaya
-                $.each(mkdt, function(k, v) {
-                    $("#batal-" + k).val(v).change().keyup()
-                })
-
-                let src = not_found
-                //load ktp npwp
-                if (mkdt.surat_batal != null) {
-                    src = mkdt.surat_batal
-                }
-
-                $("#list-file_surat_batal").prop("href", base_url + "/" + src)
-
-                $("#last_update-batal_mkdt").html("Dibatalkan oleh: " + mkdt.mkdt_batal_oleh_u + " Pada: " + format_datetime(mkdt.mkdt_batal_tgl))
-
-                $("#batal-total_biaya_um").val(tb.uang_muka).keyup()
-                $("#batal-total_biaya_bb").val(tb.biaya_biaya).keyup()
-
-                $("#batal-sudah_bayar_um").val(sb.uang_muka).keyup()
-                $("#batal-sudah_bayar_bb").val(sb.biaya_biaya).keyup()
-
-                $("#batal-sisa_tagihan_um").val(tb.uang_muka - sb.biaya_biaya).keyup()
-                $("#batal-sisa_tagihan_bb").val(tb.biaya_biaya - sb.biaya_biaya).keyup()
-
-                // $("#batal-persentase_bayar_tagihan_bb").val(tb.biaya_biaya - sb.biaya_biaya).keyup()
-                // $("#batal-persentase_bayar_tagihan_um").val(tb.biaya_biaya - sb.biaya_biaya).keyup()
-
-
-                $('#modal-batal').modal({
-                    backdrop: 'static',
-                    keyboard: false
-                });
-                $("#loading").addClass("hidden");
-            },
-            error: function(e) {
-                Swal.fire({
-                    //
-                    icon: 'error',
-                    title: "Token tidak valid, muat ulang halaman",
-                    showConfirmButton: true,
-                    // //timer: 1500
-                }).then(function() {
-                    location.reload();
-                })
-            }
-        });
-    }
-
-    function cek_tanggal_pembangunan(x = false) {
-        let arr = `<tr><td colspan='6'> Tidak ada Data</td></tr>`;
-        if (wr_pembangunan.length > 0) {
-            let n = 1;
-            arr = ''
-            wr_pembangunan.forEach(i => {
-                arr += `
-                    <tr>
-                        <td>${n++}</td>
-                        <td>${i.nama_jalan} No. ${i.no_kavling} <br> (${i.tipe})</td>
-                        <td>${i.progres} %</td>
-                        <td>${format_date(i.tanggal_pembangunan)}</td>
-                        <td>${format_date(i.tanggal_rencana_selesai_pembangunan)} (${daysBetween(today_date, i.tanggal_rencana_selesai_pembangunan)} hari)</td>
-                        <td>${i.keterangan}</td>
-                    </tr>
-                `
-            });
-        }
-        $("#list-rumah-belum-selesai-here").html(arr)
-        if (x == true)
-            $("#modal-list-rumah-belum-selesai").modal();
-    }
-
-    function formatNomorHP(nomor) {
-        // Hapus semua karakter non-digit
-        let cleaned = nomor.replace(/\D/g, '');
-
-        // Jika sudah diawali dengan 62, tambahkan tanda +
-        if (cleaned.startsWith('+')) {
-            return '' + cleaned.slice(1);
-        }
-
-        // Jika diawali 0, ubah jadi +62
-        if (cleaned.startsWith('0')) {
-            return '62' + cleaned.slice(1);
-        }
-
-        // Jika sudah diawali dengan 8, asumsikan masih nomor lokal
-        if (cleaned.startsWith('8')) {
-            return '62' + cleaned;
-        }
-
-        // Jika sudah diawali +62 dan hanya simbol + yang dihapus
-        return cleaned;
-    }
-
-    function cek_jatuh_tempo(x = false) {
-        let arr = `<tr><td colspan='6'> Tidak ada Data</td></tr>`;
-
-        $.ajax({
-            type: "post",
-            url: base_url + 'tagihan/jatuhtempo',
-            data: {
-                [csrfName]: csrfHash,
-                id_proyek: dt_proyek.id_proyek
-            },
-            dataType: "json",
-            beforeSend: function() {
-                $("#loading").removeClass("hidden");
-            },
-            success: function(r) {
-                $("#loading").addClass("hidden");
-                if (r.length > 0) {
-                    arr = ''
-                    let n = 1
-                    var groupedData = {};
-
-                    $.each(r, function(i, v) {
-                        if (!groupedData[v.id_mkdt]) {
-                            // Jika id_mkdt belum ada, buat objek baru
-                            groupedData[v.id_mkdt] = {
-                                nama_konsumen: v.nama_konsumen,
-                                no_kavling: v.no_kavling,
-                                nama_cluster: v.nama_cluster,
-                                nama_jalan: v.nama_jalan,
-                                nama_proyek: v.nama_proyek,
-                                id_tipe: v.id_tipe,
-                                tagihan_list: [] // Tempat menampung banyak tagihan
-                            };
-                        }
-                        // Masukkan tagihan ke dalam list
-                        groupedData[v.id_mkdt].tagihan_list.push({
-                            berita: v.berita_acara,
-                            nominal: v.nominal,
-                            tgl: v.jatuh_tempo_tgl
-                        });
-                    });
-                    var html = "";
-                    var no = 1;
-
-                    $.each(groupedData, function(id, item) {
-                        var tagihanHtml = "";
-
-                        // Build tampilan list tagihan di dalam satu kolom
-                        $.each(item.tagihan_list, function(idx, tg) {
-                            // Format nominal ke rupiah sederhana
-                            let formattedNominal = new Intl.NumberFormat('id-ID').format(tg.nominal);
-
-                            tagihanHtml += `
-                                <div style="border-bottom: 1px solid #eee; margin-bottom: 5px; padding-bottom: 5px;">
-                                    <strong>${tg.berita}</strong>: Rp ${formattedNominal} <br>
-                                    <small class="text-muted">Tempo: ${tg.tgl}</small>
-                                </div>`;
-                        });
-                        let sh = {
-                            data: {
-                                id_mkdt: id,
-                                nama_proyek: item.nama_proyek,
-                                nama_jalan: item.nama_jalan,
-                                no_kavling: item.no_kavling
-                            },
-                            data2: {
-                                no_tipe_rumah: item.id_tipe,
-                                tipe_rumah: item.id_tipe
-                            }
-                        };
-                        let shString = JSON.stringify(sh).replace(/"/g, '&quot;');
-                        var btn = `<button class="btn btn-outline-primary btn-sm" 
-                                    onclick="if(confirm('Apakah Anda yakin ingin melakukan pembayaran?')) { $('.modal').modal('hide'); open_keuangan(${shString}, 3, 0); }">
-                                    <i class="fas fa-receipt"></i> Bayar
-                                </button>`
-
-                        html += `
-                            <tr>
-                                <td class="text-center">${no++}</td>
-                                <td>
-                                    <strong>${item.nama_konsumen}</strong><br>
-                                    <small>${item.nama_jalan} No. ${item.no_kavling}: Tipe ${item.id_tipe}</small>
-                                </td>
-                                <td>${tagihanHtml}</td>
-                                <td>${btn}</td>
-                            </tr>`;
-                    });
-
-                    // 3. Masukkan ke dalam tbody
-                    $("#list-jatuh-tempo-here").html(html);
-                }
-                // $("#list-jatuh-tempo-here").html(arr)
-                $("#modal-list-jatuh-tempo").modal();
-
-            },
-            error: function() {
-                $("#loading").addClass("hidden");
-
-            }
-        });
-
-    }
-    $(".mk-fm, #idk-is_subsidi").change(function() {
-        sum_mktotal()
-    })
-
-
-    function hitung_total(isForm = false, mkdt = []) {
-        let totalum = 0,
-            totalbb = 0,
-            pengurangan = 0,
-            hj = parseFloat(removeComma($("#mk-hargajual").val()) || 0), // 
-            diskon_hj = parseFloat(removeComma($("#mk-diskon_harga_jual").val()) || 0),
-            hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0),
-            kpr = parseFloat(removeComma($("#mk-kpr").val()) || 0),
-            um = parseFloat(removeComma($("#mk-uang_muka").val()) || 0),
-            diskon_um = parseFloat(removeComma($("#mk-diskon_uang_muka").val()) || 0),
-            badm = parseFloat(removeComma($("#mk-biaya_adm").val()) || 0),
-            ppn = parseFloat(removeComma($("#mk-ppn").val()) || 0),
-            bphtb = parseFloat(removeComma($("#mk-bphtb").val()) || 0),
-            bproses = parseFloat(removeComma($("#mk-biaya_proses").val()) || 0),
-            sbum = parseFloat(removeComma($("#mk-harga_sbum").val()) || 0),
-
-            hj_real = 0,
-            persentase_kpr = ($("#idk-is_subsidi").val() == 1) ? 0.05 : 0.1, //persentase kpr
-            penambahan_biaya = parseFloat(removeComma($("#mk-harga_penambahan").val()) || 0),
-            penambahan_biaya_tanah = parseFloat(removeComma($("#mk-harga_penambahan_tanah").val()) || 0),
-            is_allin = $("#idk-is_allin").val(),
-            harga_allin = parseFloat(removeComma($("#mk-harga_allin").val() || 0))
-        if (isForm) {
-            if (mkdt.length == 0)
-                return showToast('tidak ada data tersedia', 'warning')
-
-            um = parseFloat(mkdt.harga_uang_muka || 0)
-            diskon_um = parseFloat(mkdt.harga_diskon_uang_muka || 0)
-            badm = parseFloat(mkdt.harga_administrasi || 0)
-            ppn = parseFloat(mkdt.harga_ppn || 0)
-            bphtb = parseFloat(mkdt.harga_bphtb || 0)
-            bproses = parseFloat(mkdt.harga_biaya_proses || 0)
-            sbum = parseFloat(mkdt.harga_sbum || 0)
-            penambahan_biaya = parseFloat(mkdt.harga_penambahan || 0)
-            penambahan_biaya_tanah = parseFloat(mkdt.harga_penambahan_tanah || 0)
-            is_allin = parseFloat(mkdt.is_allin || 0)
-            harga_allin = parseFloat(mkdt.harga_allin || 0)
-        }
-
-        pengurangan = diskon_um + sbum
-
-        totalum = um + badm + penambahan_biaya + penambahan_biaya_tanah
-        totalbb = ppn + bphtb + bproses
-
-        let tottot = totalum + totalbb - pengurangan;
-
-        let grandtotal = tottot;
-        if (is_allin == "1")
-            grandtotal = harga_allin
-
-        return {
-            'total_keseluruhan': tottot,
-            'harus_dibayar': grandtotal
-        }
-    }
-
-    function sum_mktotal() {
-        let hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0)
-        // let totalum = 0,
-        //     totalbb = 0,
-        //     pengurangan = 0,
-        //     hj = parseFloat(removeComma($("#mk-hargajual").val()) || 0), // 
-        //     diskon_hj = parseFloat(removeComma($("#mk-diskon_harga_jual").val()) || 0),
-        //     hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0),
-        //     kpr = parseFloat(removeComma($("#mk-kpr").val()) || 0),
-        //     um = parseFloat(removeComma($("#mk-uang_muka").val()) || 0),
-        //     diskon_um = parseFloat(removeComma($("#mk-diskon_uang_muka").val()) || 0),
-        //     badm = parseFloat(removeComma($("#mk-biaya_adm").val()) || 0),
-        //     ppn = parseFloat(removeComma($("#mk-ppn").val()) || 0),
-        //     bphtb = parseFloat(removeComma($("#mk-bphtb").val()) || 0),
-        //     bproses = parseFloat(removeComma($("#mk-biaya_proses").val()) || 0),
-        //     sbum = parseFloat(removeComma($("#mk-harga_sbum").val()) || 0),
-
-        //     hj_real = 0,
-        //     persentase_kpr = ($("#idk-is_subsidi").val() == 1) ? 0.05 : 0.1, //persentase kpr
-        //     penambahan_biaya = parseFloat(removeComma($("#mk-harga_penambahan").val()) || 0),
-        //     penambahan_biaya_tanah = parseFloat(removeComma($("#mk-harga_penambahan_tanah").val()) || 0),
-        //     is_allin = $("#idk-is_allin").val(),
-        //     harga_allin = parseFloat(removeComma($("#mk-harga_allin").val() || 0))
-        // penambahan_biaya_um = parseFloat(removeComma($("#mk-harga_penambahan_um").val()) || 0); //turun kpr, tapi todak ada di isi data kosumen
-
-        // hj_net = hj - diskon_hj
-        // um = hj_net - kpr
-
-        // kpr = hj - (hj * persentase_kpr)
-
-        let tot = hitung_total()
-
-        $("#mk-hargajual_net").val(hj_net).keyup()
-        // $("#mk-kpr").val(kpr).keyup()
-
-        // pengurangan = diskon_um + sbum
-
-        // totalum = um + badm + penambahan_biaya + penambahan_biaya_tanah
-        // totalbb = ppn + bphtb + bproses
-
-        // let tottot = totalum + totalbb - pengurangan;
-
-        // let grandtotal = tottot;
-        // if (is_allin == "1")
-        //     grandtotal = harga_allin
-
-        $("#mk-tgt").val(tot.total_keseluruhan).keyup(); //grand total keseluruhan
-        $("#mk-total_tot").val(tot.harus_dibayar).keyup(); //total yang harus dibayar konsumen
-
-        // alert(totalbb)
-        // $(".tum").val(totalum).keyup();
-        // $(".tbb").val(totalbb).keyup();
-    }
-
-    function terima_batal() {
-
-        let sh = editdtt[0],
-            id_kavling = sh.id.substr(3);
-        if (sh.data.tipe != "kavling") {
-            Swal.fire({
-                //
-                icon: 'error',
-                title: "Tidak ada kavling terpilih ",
-                showConfirmButton: true,
-                // //timer: 1500
-            })
-            return;
-        }
-        if (!sh.data.id_mkdt) {
-            Swal.fire({
-                //
-                icon: 'error',
-                title: "Belum ada data konsumen di kavling: <br>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling,
-                showConfirmButton: false,
-                // ////timer: 1500
-            })
-            return;
-        }
-        // if (sh.data.is_batal == '0') {
-        //     Swal.fire({
-        //         //
-        //         icon: 'error',
-        //         title: "Belum ada data surat batal dari MKDT",
-        //         showConfirmButton: false,
-        //         // //timer: 1500
-        //     })
-        //     return;
-        // }
-        $("#fm-batal_booking")[0].reset();
-        $("#last_update-batal_mkdt").html("Dibatalkan oleh: -  Pada: -")
-
-        $("#batal-id_kavling").val(id_kavling);
-        $("#batal-id_mkdt").val(sh.data.id_mkdt);
-
-        $(".label_alamat").html(dt_proyek.nama_proyek + "<br/>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling + "<br/>" + sh.data2.no_tipe_rumah + " (" + sh.data2.tipe_rumah + ")<br/>");
-
-        $.ajax({
-            url: base_url + 'mkdt/batal_mkdt',
-            type: 'post',
-            data: {
-                [csrfName]: csrfHash,
-                id_mkdt: sh.data.id_mkdt,
-                id_hargajual: sh.data2.id_hargajual,
-                id_kavling: id_kavling
-            },
-            dataType: 'json',
-            beforeSend: function() {
-                $("#loading").removeClass("hidden");
-            },
-            success: function(x) {
-                let mkdt = x.data,
-                    sb = x.sudah_bayar,
-                    tb = x.total_biaya
-                $.each(mkdt, function(k, v) {
-                    $("#batal-" + k).val(v).change().keyup()
-                })
-
-                let src = not_found
-                //load ktp npwp
-                if (mkdt.surat_batal != null) {
-                    src = mkdt.surat_batal
-                }
-
-                $("#list-file_surat_batal").prop("href", base_url + "/" + src)
-
-                $("#last_update-batal_mkdt").html("Dibatalkan oleh: " + mkdt.mkdt_batal_oleh_u + " Pada: " + format_datetime(mkdt.mkdt_batal_tgl))
-
-                $("#batal-total_biaya_um").val(tb.uang_muka).keyup()
-                $("#batal-total_biaya_bb").val(tb.biaya_biaya).keyup()
-
-                $("#batal-sudah_bayar_um").val(sb.uang_muka).keyup()
-                $("#batal-sudah_bayar_bb").val(sb.biaya_biaya).keyup()
-
-                $("#batal-sisa_tagihan_um").val(tb.uang_muka - sb.biaya_biaya).keyup()
-                $("#batal-sisa_tagihan_bb").val(tb.biaya_biaya - sb.biaya_biaya).keyup()
-
-                // $("#batal-persentase_bayar_tagihan_bb").val(tb.biaya_biaya - sb.biaya_biaya).keyup()
-                // $("#batal-persentase_bayar_tagihan_um").val(tb.biaya_biaya - sb.biaya_biaya).keyup()
-
-
-                $('#modal-batal').modal({
-                    backdrop: 'static',
-                    keyboard: false
-                });
-                $("#loading").addClass("hidden");
-            },
-            error: function(e) {
-                Swal.fire({
-                    //
-                    icon: 'error',
-                    title: "Token tidak valid, muat ulang halaman",
-                    showConfirmButton: true,
-                    // //timer: 1500
-                }).then(function() {
-                    location.reload();
-                })
-            }
-        });
-    }
-
-
-
-    /*************************** cashout subkon ***************************/
-
-
-
-
-    /*************************** End of cashout subkon ***************************/
-
-    $(document).keydown(function(event) {
-        if (event.key === 'Escape') {
-            hapus_seleksi()
-        }
-    });
-
-
-    $("#dt-listrik_jenis").change(function() {
-        if (this.value == "PLN") {
-            $("#dt-listrik-pln-input-form").removeClass("hidden");
-            $("#dt-listrik_disediakan").addClass("hidden");
-        } else {
-            $("#dt-listrik-pln-input-form").addClass("hidden");
-            $("#dt-listrik_disediakan").removeClass("hidden");
-        }
-    });
-    $("#dt-air_jenis").change(function() {
-        if (this.value == "Air Tanah") {
-            $("#dt-air_tanah-input_form").removeClass("hidden");
-            $("#dt-air_komunal-input_form").addClass("hidden");
-            $("#dt-air_pdam-input_form").addClass("hidden");
-        } else if (this.value == "Komunal Warga") {
-            $("#dt-air_tanah-input_form").addClass("hidden");
-            $("#dt-air_komunal-input_form").removeClass("hidden");
-            $("#dt-air_pdam-input_form").addClass("hidden");
-        } else {
-            $("#dt-air_tanah-input_form").addClass("hidden");
-            $("#dt-air_komunal-input_form").addClass("hidden");
-            $("#dt-air_pdam-input_form").removeClass("hidden");
-        }
-    });
-</script>

@@ -1,22 +1,22 @@
 <?php
 namespace App\Services;
 
-use CodeIgniter\Files\File;
 use CodeIgniter\HTTP\Files\UploadedFile;
 
 class StorageService
 {
+    protected FileAccessService $fileAccessService;
+
+    public function __construct()
+    {
+        $this->fileAccessService = new FileAccessService();
+    }
+
     /**
-     * Simpan file ke subdir, buat folder jika belum ada, kembalikan path relatif yg disimpan.
+     * Simpan file ke storage privat, kembalikan logical path yang tetap kompatibel dengan data lama.
      */
     public function store(UploadedFile $file, string $subdir): string
     {
-        $subdir = rtrim($subdir, '/').'/';
-        if (!is_dir($subdir)) {
-            @mkdir($subdir, 0775, true);
-        }
-        $newName = $file->getRandomName();
-        $file->move($subdir, $newName);
-        return $subdir . $newName;
+        return $this->fileAccessService->store($file, $subdir);
     }
 }

@@ -9,6 +9,7 @@ use App\Models\ClusterModel;
 use App\Models\KavlingModel;
 use App\Models\ProyekModel;
 use App\Models\FileHargajualModel;
+use App\Services\FileAccessService;
 
 class Hargajual extends BaseController
 {
@@ -19,6 +20,7 @@ class Hargajual extends BaseController
 	protected $kavlingModel;
 	protected $validation;
 	protected $db;
+	protected $fileAccessService;
 
 	public function __construct()
 	{
@@ -28,6 +30,7 @@ class Hargajual extends BaseController
 		$this->hjfile = new FileHargajualModel();
 		$this->validation =  \Config\Services::validation();
 		$this->db = db_connect();
+		$this->fileAccessService = new FileAccessService();
 		
 		$akses = $this->db->table('modul_akses')->where('user_id', user_id())->get();
 		$hasAccess = false;
@@ -137,7 +140,7 @@ class Hargajual extends BaseController
 			$ops .= '</div>';
 			$no++;
 
-			$fu = ($value->id_filehj)? "<br><a target=_blank href='".base_url($value->lokasi.$value->file_name)."'>klik untuk melihat softfile <a>":'';
+			$fu = ($value->id_filehj)? "<br><a target=_blank href='".$this->fileAccessService->accessUrl('file_hargajual', (int) $value->id_filehj)."'>klik untuk melihat softfile <a>":'';
 
 			$data['data'][$key] = array(
 				$no,
@@ -261,6 +264,11 @@ class Hargajual extends BaseController
 			->like('hargajual.hargajual', $search)
 			->orderBy('hargajual.tgl_harga','DESC')
 			->get()->getResult();
+		foreach ($data['data'] as $row) {
+			if (!empty($row->id_filehj)) {
+				$row->access_url = $this->fileAccessService->accessUrl('file_hargajual', (int) $row->id_filehj);
+			}
+		}
 		// $data['token'] = csrf_hash();
 		return $this->response->setJSON($data);
 	}
@@ -285,6 +293,9 @@ class Hargajual extends BaseController
 			->join('users as c', 'c.id = hargajual.edit_by', 'left')
 			->where('hargajual.id', $id)->get()->getRow(0);
 		$data->token = csrf_hash();
+		if (!empty($data->id_filehj)) {
+			$data->access_url = $this->fileAccessService->accessUrl('file_hargajual', (int) $data->id_filehj);
+		}
 		// $data['token'] = csrf_hash();
 		return $this->response->setJSON($data);
 	}
@@ -308,7 +319,7 @@ class Hargajual extends BaseController
 			$lok = 'uploads/pricelist/' . date('Ymd') . '/';
 
 			//pindahkan file ke folder uplaod
-			$img->move($lok, $name);
+			$this->fileAccessService->storeAs($img, $lok, $name);
 
 			$sp['lokasi'] = $lok;
 			$sp['default_filename'] = $originalname;
@@ -377,7 +388,7 @@ class Hargajual extends BaseController
 			$lok = 'uploads/pricelist/' . date('Ymd') . '/';
 
 			//pindahkan file ke folder uplaod
-			$img->move($lok, $name);
+			$this->fileAccessService->storeAs($img, $lok, $name);
 
 			$sp['lokasi'] = $lok;
 			$sp['default_filename'] = $originalname;

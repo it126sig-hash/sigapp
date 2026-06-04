@@ -142,6 +142,7 @@
 
             .app-content {
                 margin-left: 290px !important;
+                margin-right: 15px !important;
                 transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
                 padding-top: 100px !important;
             }
@@ -149,6 +150,7 @@
             /* Collapsed State overrides */
             body.menu-collapsed .app-content {
                 margin-left: 110px !important;
+                margin-right: 15px !important;
             }
 
             body.menu-collapsed .main-menu {

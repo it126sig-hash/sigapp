@@ -10,9 +10,12 @@ use App\Models\KavlingModel;
 use App\Models\KomplainModel;
 use App\Models\SerahTerimaModel;
 use App\Models\ChecklistWorkModel;
+use App\Services\FileAccessService;
 
 class Sales extends BaseController
 {
+    protected $fileAccessService;
+
     public function __construct()
     {
         $this->produksiModel = new ProduksiModel();
@@ -23,6 +26,7 @@ class Sales extends BaseController
         $this->stModel = new SerahTerimaModel();
         $this->validation =  \Config\Services::validation();
         $this->komplainModel = new KomplainModel();
+        $this->fileAccessService = new FileAccessService();
     }
     function get_data_by_id()
     {
@@ -238,7 +242,7 @@ class Sales extends BaseController
                         
                         $f['upload_komplain_sales'] .= $lok.$name.";";
                 
-                        $img->move($lok, $name);
+                        $this->fileAccessService->storeAs($img, $lok, $name);
                     }
                 //    }
 

@@ -19,6 +19,7 @@ use CodeIgniter\HTTP\Response;
 use App\Controllers\Notif;
 use App\Controllers\Home;
 use App\Repositories\KeuanganRepository;
+use App\Services\FileAccessService;
 
 use App\Repositories\CashOutRepository;
 
@@ -44,6 +45,7 @@ class Siteplan extends BaseController
     protected $keuRepo;
 
     protected $cashoutRepo;
+    protected $fileAccessService;
 
     public function __construct()
     {
@@ -64,6 +66,7 @@ class Siteplan extends BaseController
         $this->db = \Config\Database::connect();
         $this->keuRepo = new KeuanganRepository();
         $this->cashoutRepo = new CashOutRepository();
+        $this->fileAccessService = new FileAccessService();
 
         $this->kavlingRepo = new KavlingRepository();
 
@@ -80,6 +83,10 @@ class Siteplan extends BaseController
             ->select("id_proyek, alamat_proyek, nama_proyek, siteplan, logo")
             ->orderBy('order_by', 'asc')
             ->findAll();
+        foreach ($data['data']['proyek'] as $proyek) {
+            $proyek->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', (int) $proyek->id_proyek);
+            $proyek->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', (int) $proyek->id_proyek);
+        }
 
         return view('template', $data);
     }
@@ -103,6 +110,8 @@ class Siteplan extends BaseController
 
         // ambil data proyek
         $data['data']['proyek'] = $this->getProyekOr404($idProyek);
+        $data['data']['proyek']->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', (int) $data['data']['proyek']->id_proyek);
+        $data['data']['proyek']->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', (int) $data['data']['proyek']->id_proyek);
 
         // var_dump($data);die();
 
@@ -632,6 +641,7 @@ class Siteplan extends BaseController
                     biaya_adm,
                     biaya_proses,
                     hargajual.keterangan as ket_hj,
+                    hargajual.id_filehj,
                     fhj.lokasi,
                     fhj.file_name
                     ')
@@ -643,6 +653,9 @@ class Siteplan extends BaseController
                 // ->join('config_shape', 'config_shape.id_config = kavling.id_config')
                 ->where('kavling.id_kavling', $id[$x])
                 ->first();
+            if ($result['data'][$x] && !empty($result['data'][$x]->id_filehj)) {
+                $result['data'][$x]->access_url = $this->fileAccessService->accessUrl('file_hargajual', (int) $result['data'][$x]->id_filehj);
+            }
         }
 
 
@@ -706,7 +719,7 @@ class Siteplan extends BaseController
             $img = $this->request->getFile('perintah_bangun_file');
             $name = $img->getRandomName();
             $lok = 'uploads/perintah_bangun_file/' . date('Ymd') . '/';
-            $img->move($lok, $name);
+            $this->fileAccessService->storeAs($img, $lok, $name);
 
             $f['perintah_bangun_file'] = $lok . $name;
         }
@@ -905,6 +918,7 @@ class Siteplan extends BaseController
                 ->join('users', 'file_produksi.upload_by = users.id')
                 ->where('id_kavling', $id_kavling)
                 ->get()->getResult();
+            $files = $this->fileAccessService->addAccessUrlsToRows($files, 'file_produksi');
         }
         $d['files'] = $files;
 
@@ -945,7 +959,7 @@ class Siteplan extends BaseController
         $query = $this->db->query($q);
 
         // Menjalankan query dan mendapatkan hasil
-        $d['file_pph'] = $query->getResult();
+        $d['file_pph'] = $this->fileAccessService->addAccessUrlsToRows($query->getResult(), 'file_upload');
 
 
         //load file ppn
@@ -991,7 +1005,7 @@ class Siteplan extends BaseController
         $query = $this->db->query($q);
 
         // Menjalankan query dan mendapatkan hasil
-        $d['file_ppn'] = $query->getResult();
+        $d['file_ppn'] = $this->fileAccessService->addAccessUrlsToRows($query->getResult(), 'file_upload');
 
 
         //get cashout riwayat bayar

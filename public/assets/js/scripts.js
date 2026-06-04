@@ -961,7 +961,7 @@ function showFoto(data, imbuhan = "", del = true) {
 
       if (item.file_name.endsWith(".pdf") || item.file_name.endsWith(".xlsx")) {
         const link = document.createElement("a");
-        link.href = `${base_url}/${item.lokasi}/${item.file_name}`;
+        link.href = item.access_url || file_url('file_produksi', item.id);
         link.innerText = "Lihat File";
         link.target = "_blank";
         link.style.minWidth = "150px";
@@ -970,7 +970,7 @@ function showFoto(data, imbuhan = "", del = true) {
         imgDiv.appendChild(link);
       } else {
         const img = document.createElement("img");
-        img.src = `${base_url}${item.lokasi}thumbnails/${item.file_name}`;
+        img.src = item.thumbnail_url || file_thumbnail_url('file_produksi', item.id);
         img.style.width = "150px";
         img.style.height = "150px";
         img.style.objectFit = "cover";
@@ -1023,7 +1023,7 @@ function showFoto(data, imbuhan = "", del = true) {
       downloadButton.addEventListener("click", function (event) {
         event.preventDefault();
         const link = document.createElement("a");
-        link.href = `${base_url}${item.lokasi}${item.file_name}`;
+        link.href = item.download_url || file_url('file_produksi', item.id, true);
         link.innerText = "Lihat File";
         link.target = "_blank";
         link.click();

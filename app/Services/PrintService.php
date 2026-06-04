@@ -35,6 +35,7 @@ class PrintService
     protected $kavling;
     protected $keuRepo;
     protected $posisiKonsumen;
+    protected $fileAccessService;
     public function __construct()
     {
         $this->comproModel = new ProfilePerusahaanModel();
@@ -48,6 +49,7 @@ class PrintService
         $this->kavling = new KavlingRepository();
         $this->keuRepo = new KeuanganRepository();
         $this->posisiKonsumen = new PosisiKonsumenRepository();
+        $this->fileAccessService = new FileAccessService();
     }
 
     public function printKuitansi($var)
@@ -121,14 +123,16 @@ class PrintService
         $subFolder = date('Ym'); // Folder berdasarkan tanggal agar rapi
         $targetDir = 'upload/poskon/' . $subFolder . '/';
 
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0777, true);
+        $absoluteTargetDir = dirname($this->fileAccessService->privatePath($targetDir . 'dummy.pdf'));
+        if (!is_dir($absoluteTargetDir)) {
+            mkdir($absoluteTargetDir, 0777, true);
         }
 
         // Penamaan File
         $randomName = bin2hex(random_bytes(5)) . '.pdf';
         $filename = 'Poskon_' . $st . '_' . date('His') . '.pdf';
-        $fullPath = $targetDir . $randomName;
+        $logicalPath = $targetDir . $randomName;
+        $fullPath = $this->fileAccessService->privatePath($logicalPath);
 
         // Generate HTML View
         $html[] = view('pdf/poskon-batal', $data);
@@ -144,7 +148,7 @@ class PrintService
             'randomName' => $randomName,
             'filename'   => $filename,
             'path'       => $targetDir,
-            'file'       => base_url($fullPath) // URL lengkap untuk akses file
+            'file'       => 'data:application/pdf;base64,' . base64_encode(file_get_contents($fullPath))
         );
 
         return $response;
@@ -176,14 +180,16 @@ class PrintService
         $subFolder = date('Ym'); // Folder berdasarkan tanggal agar rapi
         $targetDir = 'upload/poskon/' . $subFolder . '/';
 
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0777, true);
+        $absoluteTargetDir = dirname($this->fileAccessService->privatePath($targetDir . 'dummy.pdf'));
+        if (!is_dir($absoluteTargetDir)) {
+            mkdir($absoluteTargetDir, 0777, true);
         }
 
         // Penamaan File
         $randomName = bin2hex(random_bytes(5)) . '.pdf';
         $filename = 'Poskon_' . $status . '_' . date('His') . '.pdf';
-        $fullPath = $targetDir . $randomName;
+        $logicalPath = $targetDir . $randomName;
+        $fullPath = $this->fileAccessService->privatePath($logicalPath);
 
         // Generate HTML View
         $html[] = view('pdf/poskon', $data);
@@ -199,7 +205,7 @@ class PrintService
             'randomName' => $randomName,
             'filename'   => $filename,
             'path'       => $targetDir,
-            'file'       => base_url($fullPath) // URL lengkap untuk akses file
+            'file'       => 'data:application/pdf;base64,' . base64_encode(file_get_contents($fullPath))
         );
 
         return $response;
@@ -362,7 +368,7 @@ class PrintService
         header('Cache-Control: max-age=0');
         // 1. Tentukan folder tujuan (Public path biasanya digunakan agar bisa diakses via URL)
         $subFolder = date('Ym'); // Hasil: 202512
-        $directory = ROOTPATH . 'upload/poskon/' . $subFolder;
+        $directory = dirname($this->fileAccessService->privatePath('upload/poskon/' . $subFolder . '/dummy.xlsx'));
 
         // 2. Cek apakah folder ada, jika tidak, buat folder secara recursive
         if (!is_dir($directory)) {
@@ -373,7 +379,7 @@ class PrintService
 
         // 3. Generate nama file random
         $randomName = bin2hex(random_bytes(10)) . '.xlsx'; // Nama random seperti: a1b2c3d4e5...xlsx
-        $fullPath = $directory . '/' . $randomName;
+        $fullPath = $directory . DIRECTORY_SEPARATOR . $randomName;
 
         // 4. Proses Simpan ke Server (Bukan ke browser)
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);

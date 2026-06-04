@@ -17,6 +17,7 @@ foreach (user()->getRoles() as $key => $val) {
     const rolename = '<?= $v ?>';
     const roleid = '<?= $k ?>';
     const base_url = "<?= base_url() ?>"
+    const file_url = (source, id, download = false) => `${base_url}files/${source}/${id}${download ? '?download=1' : ''}`;
     var dt_proyek = '<?php echo json_encode($data['proyek']) ?>',
         dt_proyek = JSON.parse(dt_proyek);
 
@@ -1282,7 +1283,7 @@ foreach (user()->getRoles() as $key => $val) {
             x: 1 / a,
             y: 1 / a
         })
-    }, imageObj.src = base_url + "/" + dt_proyek.siteplan, window.onload = function() {
+    }, imageObj.src = dt_proyek.siteplan_access_url || file_url('proyek_siteplan', dt_proyek.id_proyek), window.onload = function() {
         colorThreshold = 15, blurRadius = 1, simplifyTolerant = 0, simplifyCount = 30, hatchLength = 4, hatchOffset = 0, imageInfo = null, cacheInd = null, mask = null, oldMask = null, downPoint = null, allowDraw = !1, addMode = !1, currentThreshold = colorThreshold, showThreshold();
         var a = imageObj,
             t = masked;

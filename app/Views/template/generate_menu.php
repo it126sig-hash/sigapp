@@ -6,7 +6,7 @@
                 <li class="nav-item"><a class="nav-link menu-toggle" href="javascript:void(0);"><i class="ficon" data-feather="menu"></i></a></li>
             </ul>
             <a class="navbar-brand d-xl-none d-flex align-items-center ml-1" href="<?= base_url() ?>" style="gap: 8px;">
-                <img src="<?= base_url("uploads/logo/logo.png") ?>" height="24" />
+                <img src="<?= base_url("images/logo.png") ?>" height="24" />
                 <span class="brand-text font-weight-bold" style="color: #5B4FCF; font-size: 1.15rem; letter-spacing: 0.5px;">SIGAPP</span>
             </a>
             <ul class="nav navbar-nav">
@@ -73,7 +73,7 @@
     <div class="navbar-header">
         <ul class="nav navbar-nav flex-row">
             <li class="nav-item mr-auto"><a class="navbar-brand" href="<?= base_url() ?>/starter-kit/ltr/vertical-menu-template/"><span class="brand-logo">
-                        <img src="<?= base_url("uploads/logo/logo.png") ?>" height="28" />
+                        <img src="<?= base_url("images/logo.png") ?>" height="28" />
                     </span>
                     <h2 class="brand-text">SIGAPP</h2>
                 </a></li>

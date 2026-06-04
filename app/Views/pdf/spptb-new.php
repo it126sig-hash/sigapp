@@ -133,7 +133,7 @@ function mark($cond)
     <tbody>
         <tr>
             <td width="50%" valign="top">
-                <img height="150" src="<?= base_url($proyek->logo) ?>" />
+                <img height="150" src="<?= (new \App\Services\FileAccessService())->existingPath($proyek->logo) ?: base_url($proyek->logo) ?>" />
             </td>
             <td width="30%" style="border: 1px solid #111">
                 <div>

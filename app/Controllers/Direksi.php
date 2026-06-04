@@ -3,16 +3,19 @@
 namespace App\Controllers;
 
 use App\Controllers\Notif;
+use App\Services\FileAccessService;
 
 class Direksi extends BaseController
 {
     protected $db;
     protected $notif;
+    protected $fileAccessService;
 
     public function __construct()
     {
         $this->notif = new Notif();
         $this->db = db_connect();
+        $this->fileAccessService = new FileAccessService();
     }
     function get_data_by_id($st = null)
     {
@@ -36,6 +39,13 @@ class Direksi extends BaseController
             ->join('file_hargajual', 'file_hargajual.id_filehj = hargajual.id_filehj')
             ->join('tipe', 'tipe.id_tipe = hargajual.id_tipe')
             ->where('id', $q->harga_akhir)->get()->getResult();
+        }
+        if (!empty($hj)) {
+            foreach ($hj as $row) {
+                if (!empty($row->id_filehj)) {
+                    $row->access_url = $this->fileAccessService->accessUrl('file_hargajual', (int) $row->id_filehj);
+                }
+            }
         }
         $r['data'] = $q;
         $r['harga_akhir'] = $hj;

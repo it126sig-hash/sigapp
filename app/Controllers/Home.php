@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\ProyekModel;
+use App\Services\FileAccessService;
 
 
 class Home extends BaseController
@@ -10,11 +11,13 @@ class Home extends BaseController
     protected $db;
     protected $proyekModel;
     protected $notif;
+    protected $fileAccessService;
     public function __construct()
     {
         $this->proyekModel = new ProyekModel();
         $this->notif = new Notif();
         $this->db = db_connect();
+        $this->fileAccessService = new FileAccessService();
     }
     public function index()
     {
@@ -29,6 +32,10 @@ class Home extends BaseController
         $data['data']['proyek'] = $this->proyekModel
             ->select("id_proyek, alamat_proyek, nama_proyek, siteplan, logo")
             ->findAll();
+        foreach ($data['data']['proyek'] as $proyek) {
+            $proyek->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', (int) $proyek->id_proyek);
+            $proyek->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', (int) $proyek->id_proyek);
+        }
 
         return view('template', $data);
     }
@@ -204,7 +211,7 @@ class Home extends BaseController
             <button id="selesai_pindah_btn" type="button" onclick="selesai_selection(1)" class="my-float btn-icon btn btn-primary btn-round btn-sm" style="display: none;">
                 Selesai
             </button>
-            <button id="batal_pindah_btn" type="button" onclick="selesai_selection(0)" class="my-float btn-icon btn btn-primary btn-round btn-sm" style="display: none;">
+            <button id="batal_pindah_btn" type="button" onclick="selesai_selection(0)" class="my-float btn-icon btn btn-danger btn-round btn-sm" style="display: none;">
                 Batal
             </button>
 
@@ -212,7 +219,7 @@ class Home extends BaseController
                 Tambah Data
             </button>
 
-            <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="hapus_seleksi()">Hapus Seleksi</div>
+            <div class="btn-icon btn btn-secondary btn-round btn-sm my-float" onclick="hapus_seleksi()">Hapus Seleksi</div>
             <div id="edit_kavling_batch" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="edit_kavling_batch()">Ubah Kavling</div>
             <button id="planning_toggle_btn" class="btn-icon btn btn-primary btn-round btn-sm my-float" data-toggle="collapse" data-target="#planningCollapse" aria-expanded="false" aria-controls="planningCollapse">Cek Legenda</button>
             <div class="collapse" id="planningCollapse">

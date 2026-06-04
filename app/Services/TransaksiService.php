@@ -33,6 +33,7 @@ class TransaksiService
     protected $logRepo;
     protected $spptbRepo;
     protected $storageService;
+    protected $fileAccessService;
 
     // $kavlingRepo,
     //         $hargaRepo,
@@ -56,6 +57,7 @@ class TransaksiService
         $this->logRepo = new LogPembayaranRepository();
         $this->spptbRepo = new SpptbRepository($this->db);
         $this->storageService = new StorageService();
+        $this->fileAccessService = new FileAccessService();
 
         $this->mkdt = new MkdtModel();
         $this->kavling = new KavlingModel();
@@ -98,7 +100,7 @@ class TransaksiService
                 $resp['data'] = $data;
                 $resp['tagihan'] = $this->keuRepo->getTagihanOnlyByID($idMkdt);
                 $resp['log_pembayaran'] = $this->logRepo->getRiwayatBayarById($idMkdt);
-                $resp['list_spptb'] = $this->spptbRepo->getLatestByMkdtId($idMkdt, 3);
+                $resp['list_spptb'] = $this->fileAccessService->addAccessUrlsToRows($this->spptbRepo->getLatestByMkdtId($idMkdt, 3), 'file_spptb');
             }
         }
 

@@ -218,7 +218,7 @@ function terbilang($nilai)
         <table class="header-table">
             <tr>
                 <td class="header-logo" align="center">
-                    <img src="<?= base_url($proyek->logo_pt) ?>" style="width: auto; height: 50px; display: block; margin: 0 auto;" alt="Logo">
+                    <img src="<?= (new \App\Services\FileAccessService())->existingPath($proyek->logo_pt) ?: base_url($proyek->logo_pt) ?>" style="width: auto; height: 50px; display: block; margin: 0 auto;" alt="Logo">
                 </td>
                 <td class="header-text">
                     <div class="company-name"><?= $proyek->nama_pt ?></div>

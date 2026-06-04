@@ -12,6 +12,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 use App\Controllers\Notif;
+use App\Services\FileAccessService;
 
 class Mkdt extends BaseController
 {
@@ -24,6 +25,7 @@ class Mkdt extends BaseController
     protected $lpModel;
     protected $notif;
     protected $username;
+    protected $fileAccessService;
 
     public function __construct()
     {
@@ -36,6 +38,7 @@ class Mkdt extends BaseController
         $this->lpModel = new LogPembayaranModel();
         $this->db = db_connect();
         $this->username = $this->db->table('users')->select('username')->get()->getRow();
+        $this->fileAccessService = new FileAccessService();
     }
     function get_data_by_id($st = null)
     {
@@ -169,7 +172,7 @@ class Mkdt extends BaseController
 
             $lok = 'uploads/batal/' . date('Ymd') . '/';
 
-            $img->move($lok, $name);
+            $this->fileAccessService->storeAs($img, $lok, $name);
 
             $f['surat_batal'] = $lok . $name;
         }
@@ -356,7 +359,7 @@ class Mkdt extends BaseController
 
             $lok = 'uploads/konsumen/k/' . date('Ymd') . '/';
 
-            $img->move($lok, $name);
+            $this->fileAccessService->storeAs($img, $lok, $name);
 
             $f['file_ktp'] = $lok . $name;
         }
@@ -369,7 +372,7 @@ class Mkdt extends BaseController
 
             $lok = 'uploads/konsumen/n/' . date('Ymd') . '/';
 
-            $img2->move($lok, $name);
+            $this->fileAccessService->storeAs($img2, $lok, $name);
 
             $f['file_npwp'] = $lok . $name;
         }
@@ -382,7 +385,7 @@ class Mkdt extends BaseController
 
             $lok = 'uploads/konsumen/d/' . date('Ymd') . '/';
 
-            $img3->move($lok, $name);
+            $this->fileAccessService->storeAs($img3, $lok, $name);
 
             $f['file_data_diri'] = $lok . $name;
         }
@@ -439,7 +442,7 @@ class Mkdt extends BaseController
 
                 $lok = 'uploads/perintah_bangun/' . date('Ymd') . '/';
 
-                $img->move($lok, $name);
+                $this->fileAccessService->storeAs($img, $lok, $name);
 
                 $f2['perintah_bangun_file'] = $lok . $name;
             }
@@ -489,7 +492,7 @@ class Mkdt extends BaseController
 
                 $lok = 'uploads/bast_file/' . date('Ymd') . '/';
 
-                $img->move($lok, $name);
+                $this->fileAccessService->storeAs($img, $lok, $name);
 
                 $f2['bast_file'] = $lok . $name;
             }
@@ -519,7 +522,7 @@ class Mkdt extends BaseController
 
             $lok = 'uploads/sp3k_file/' . date('Ymd') . '/';
 
-            $img->move($lok, $name);
+            $this->fileAccessService->storeAs($img, $lok, $name);
 
             $f2['sp3k_file'] = $lok . $name;
         }
@@ -1751,7 +1754,7 @@ class Mkdt extends BaseController
 
                         $lok = 'uploads/si/' . date('Ymd') . '/';
 
-                        $img->move($lok, $name);
+                        $this->fileAccessService->storeAs($img, $lok, $name);
 
                         $data['file'] = $lok . $name;
                     }
@@ -1769,7 +1772,7 @@ class Mkdt extends BaseController
 
                         $lok = 'uploads/si/' . date('Ymd') . '/';
 
-                        $img->move($lok, $name);
+                        $this->fileAccessService->storeAs($img, $lok, $name);
 
                         $data['file'] = $lok . $name;
                     }

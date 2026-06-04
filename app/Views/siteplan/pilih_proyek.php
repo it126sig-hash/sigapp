@@ -68,7 +68,7 @@
                             </div>
                             <div class="card-body" style="text-align: center; height: 400px;">
                                 <h4 class="card-title"><?=$a->nama_proyek?></h4>
-                                <img style="width: 100%; max-height: 350px  ; object-fit: contain;" src="<?=base_url("/$a->logo")?>">
+                                <img style="width: 100%; max-height: 350px  ; object-fit: contain;" src="<?=$a->logo_access_url ?? site_url('files/proyek_logo/' . $a->id_proyek)?>">
                             </div>
                         </div>
                     </a>

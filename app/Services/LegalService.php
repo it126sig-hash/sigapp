@@ -11,6 +11,7 @@ class LegalService
     protected $legalModel;
     protected $kavlingModel;
     protected $legalRepository;
+    protected $fileAccessService;
     protected $db;
 
     public function __construct()
@@ -18,6 +19,7 @@ class LegalService
         $this->legalModel = new LegalModel();
         $this->kavlingModel = new KavlingModel();
         $this->legalRepository = new LegalRepository();
+        $this->fileAccessService = new FileAccessService();
         $this->db = \Config\Database::connect();
     }
 
@@ -94,8 +96,8 @@ class LegalService
             }
 
             if (!empty($fileDoc->lokasi)) {
-                $str = FCPATH . str_replace('/', '\\', $fileDoc->lokasi);
-                if (file_exists($str)) {
+                $str = $this->fileAccessService->existingPath($fileDoc->lokasi);
+                if ($str && file_exists($str)) {
                     unlink($str);
                 }
             }
@@ -119,7 +121,7 @@ class LegalService
         $name = $file->getRandomName();
 
         $lok = 'uploads/file/' . date('Ymd') . '/';
-        $file->move($lok, $name);
+        $this->fileAccessService->storeAs($file, $lok, $name);
 
         $data['lokasi'] = $lok . $name;
         $data['default_filename'] = $originalname;

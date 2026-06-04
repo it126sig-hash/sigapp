@@ -113,7 +113,7 @@ function terbilang($nilai)
 <body>
     <div class="row">
         <div class="col-30 logo">
-            <h1><img src='<?= base_url($proyek->logo_pt) ?>' height="50px"></h1>
+            <h1><img src='<?= (new \App\Services\FileAccessService())->existingPath($proyek->logo_pt) ?: base_url($proyek->logo_pt) ?>' height="50px"></h1>
         </div>
         <div class="col-70 alamat">
             <h3 style="padding-bottom: -12px"><?= $proyek->nama_pt ?></h3>

@@ -8,6 +8,7 @@ use \App\Models\MenuModel;
 use App\Models\TipeModel;
 use App\Models\ProyekModel;
 use App\Models\GambarkerjaModel;
+use App\Services\FileAccessService;
 use CodeIgniter\Files\File;
 
 
@@ -19,6 +20,7 @@ class Tipe extends BaseController
 	protected $proyekModel;
 	protected $gambarkerjaModel;
 	protected $db;
+	protected $fileAccessService;
 
 	public function __construct()
 	{
@@ -27,6 +29,7 @@ class Tipe extends BaseController
 		$this->gambarkerjaModel = new GambarkerjaModel();
 		$this->validation =  \Config\Services::validation();
 		$this->db = db_connect();
+		$this->fileAccessService = new FileAccessService();
 	}
 
 	public function index()
@@ -314,7 +317,7 @@ class Tipe extends BaseController
 			$lok = 'uploads/gambarkerja/' . date('Ymd') . '/';
 			
 
-			$img->move($lok, $name);
+			$this->fileAccessService->storeAs($img, $lok, $name);
 
 			
 			$f['lokasi'] = $lok . $name;
@@ -339,7 +342,7 @@ class Tipe extends BaseController
 
 			$lok = 'uploads/gambartipe/' . date('Ymd') . '/';
 		
-			$img->move($lok, $name);
+			$this->fileAccessService->storeAs($img, $lok, $name);
 
 			
 			$f['lokasi'] = $lok . $name;
@@ -366,7 +369,7 @@ class Tipe extends BaseController
 
 			$lok = 'uploads/gambardenah/' . date('Ymd') . '/';
 		
-			$img->move($lok, $name);
+			$this->fileAccessService->storeAs($img, $lok, $name);
 
 			
 			$f['lokasi'] = $lok . $name;
@@ -491,7 +494,7 @@ class Tipe extends BaseController
 				$lok = 'uploads/gambarkerja/' . date('Ymd') . '/';
 				
 
-				$img->move($lok, $name);
+				$this->fileAccessService->storeAs($img, $lok, $name);
 
 				$f['id_gambar_kerja'] = '';
 				$f['id_tipe'] = $fields['id_tipe'];
@@ -518,7 +521,7 @@ class Tipe extends BaseController
 
 				$lok = 'uploads/gambartipe/' . date('Ymd') . '/';
 			
-				$img->move($lok, $name);
+				$this->fileAccessService->storeAs($img, $lok, $name);
 
 				
 				$f['lokasi'] = $lok . $name;
@@ -545,7 +548,7 @@ class Tipe extends BaseController
 
 				$lok = 'uploads/gambardenah/' . date('Ymd') . '/';
 			
-				$img->move($lok, $name);
+				$this->fileAccessService->storeAs($img, $lok, $name);
 
 				
 				$f['lokasi'] = $lok . $name;
@@ -577,7 +580,7 @@ class Tipe extends BaseController
 	{
 		$id_tipe = ($id) ? $id : $this->request->getVar('id_tipe');
 		// $r['token'] = csrf_hash();
-		return $this->db->table('gambar_kerja')
+		$rows = $this->db->table('gambar_kerja')
 			->select('
 				gambar_kerja.*,
                 u.username as uadd_by
@@ -587,6 +590,7 @@ class Tipe extends BaseController
 			->where('tipe', "gambarkerja")
 			->orderBy('upload_at', 'desc')
 			->get()->getResult();
+		return $this->fileAccessService->addAccessUrlsToRows($rows, 'gambar_kerja', 'id_gambar_kerja');
 		// return $this->response->setJSON($r);
 	}
 	public function remove()

@@ -7,6 +7,7 @@ use App\Controllers\BaseController;
 
 use App\Models\ClusterModel;
 use App\Models\ProyekModel;
+use App\Services\FileAccessService;
 
 class Pajak extends BaseController
 {
@@ -16,6 +17,7 @@ class Pajak extends BaseController
 	protected $validation;
 	protected $db;
 	protected $notif;
+	protected $fileAccessService;
 
 	public function __construct()
 	{
@@ -24,6 +26,7 @@ class Pajak extends BaseController
 		$this->proyekModel = new ProyekModel();
 		$this->validation =  \Config\Services::validation();
 		$this->db = db_connect();
+		$this->fileAccessService = new FileAccessService();
 	}
 
 	// public function index()
@@ -243,7 +246,7 @@ class Pajak extends BaseController
 			$query = $this->db->query($query);
 
 			// Menjalankan query dan mendapatkan hasil
-			$data->file_ajb = $query->getResult();
+			$data->file_ajb = $this->fileAccessService->addAccessUrlsToRows($query->getResult(), 'file_upload');
 
 
 			//getFile
@@ -277,7 +280,7 @@ class Pajak extends BaseController
 			$query = $this->db->query($query);
 
 			// Menjalankan query dan mendapatkan hasil
-			$data->file = $query->getResult();
+			$data->file = $this->fileAccessService->addAccessUrlsToRows($query->getResult(), 'file_upload');
 
 
 			//load file ppn
@@ -323,7 +326,7 @@ class Pajak extends BaseController
 			$query = $this->db->query($query);
 
 			// Menjalankan query dan mendapatkan hasil
-			$data->file_ppn = $query->getResult();
+			$data->file_ppn = $this->fileAccessService->addAccessUrlsToRows($query->getResult(), 'file_upload');
 
 
 			// if (!$data) {
@@ -385,7 +388,7 @@ class Pajak extends BaseController
 
 			$lok = 'uploads/l/' . date('Ymd') . '/';
 
-			$img->move($lok, $name);
+			$this->fileAccessService->storeAs($img, $lok, $name);
 
 			$f = [
 				'id_kavling' => $id_kavling,
@@ -410,7 +413,7 @@ class Pajak extends BaseController
 
 			$lok = 'uploads/l/' . date('Ymd') . '/';
 
-			$img->move($lok, $name);
+			$this->fileAccessService->storeAs($img, $lok, $name);
 
 			$f = [
 				'id_kavling' => $id_kavling,
@@ -435,7 +438,7 @@ class Pajak extends BaseController
 
 			$lok = 'uploads/l/' . date('Ymd') . '/';
 
-			$img->move($lok, $name);
+			$this->fileAccessService->storeAs($img, $lok, $name);
 
 			$f = [
 				'id_kavling' => $id_kavling,
@@ -460,7 +463,7 @@ class Pajak extends BaseController
 
 			$lok = 'uploads/l/' . date('Ymd') . '/';
 
-			$img->move($lok, $name);
+			$this->fileAccessService->storeAs($img, $lok, $name);
 
 			$f = [
 				'id_kavling' => $id_kavling,
@@ -484,7 +487,7 @@ class Pajak extends BaseController
 
 			$lok = 'uploads/l/' . date('Ymd') . '/';
 
-			$img->move($lok, $name);
+			$this->fileAccessService->storeAs($img, $lok, $name);
 
 			$f = [
 				'id_kavling' => $id_kavling,

@@ -3,18 +3,21 @@
 namespace App\Controllers\Api;
 
 use App\Services\LegalService;
+use App\Services\FileAccessService;
 use App\Repositories\LegalRepository;
 
 class LegalController extends BaseApiController
 {
     protected $legalService;
     protected $legalRepository;
+    protected $fileAccessService;
     protected $validation;
 
     public function __construct()
     {
         $this->legalService = new LegalService();
         $this->legalRepository = new LegalRepository();
+        $this->fileAccessService = new FileAccessService();
         $this->validation =  \Config\Services::validation();
     }
 
@@ -42,7 +45,7 @@ class LegalController extends BaseApiController
         }
     }
 
-    public function get_data_by_id()
+    public function getDataByID()
     {
         $id_legal = $this->request->getVar('id_legal');
         $id_kavling = $this->request->getVar('id_kavling');
@@ -76,6 +79,7 @@ class LegalController extends BaseApiController
     public function getDoc()
     {
         $data = $this->legalRepository->getFileDocsByKavling($this->request->getVar('id_kavling'), 5);
+        $data = $this->fileAccessService->addAccessUrlsToRows($data, 'file_upload');
 
         return $this->respond([
             'token' => csrf_hash(),

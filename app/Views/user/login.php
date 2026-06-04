@@ -55,7 +55,7 @@
 					<div class="auth-inner row m-0">
 						<!-- Brand logo-->
 						<a class="brand-logo" href="javascript:void(0);">
-							<img src="<?=base_url("uploads/logo/logo.png")?>" height="28"/>
+							<img src="<?=base_url("images/logo.png")?>" height="28"/>
 							<!-- <svg viewBox="0 0 139 95" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="28">
 								<defs>
 									<lineargradient id="linearGradient-1" x1="100%" y1="10.5120544%" x2="50%" y2="89.4879456%">

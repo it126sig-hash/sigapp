@@ -547,7 +547,7 @@
 								<td>` + no + `</td>
 								<td>` + v.default_filename + `</td>
 								<td>` + v.keterangan + `</td>
-								<td> <a href='` + base_url + '/' + v.lokasi + `' target=blank>Klik disini untuk mengunduh</a></td>
+								<td> <a href='` + (v.access_url || file_url('gambar_kerja', v.id_gambar_kerja)) + `' target=blank>Klik disini untuk mengunduh</a></td>
 								<td> ` + v.uadd_by + `</td>
 								<td> ` + format_datetime(v.upload_at) + ` </td>
 								</tr>`
