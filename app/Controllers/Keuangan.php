@@ -10,6 +10,8 @@ use App\Models\LogPembayaranModel;
 use CodeIgniter\HTTP\Response;
 use App\Models\ProfilePerusahaanModel;
 use App\Models\RiwayatPencairanJaminanModel;
+use App\Services\FileAccessService;
+use App\Services\KeuanganService;
 use Exception;
 
 // use App\Libraries\Pdf;
@@ -27,6 +29,8 @@ class Keuangan extends BaseController
     protected $notif;
     protected $mpdf;
     protected $rdajam;
+    protected $fileAccessService;
+    protected $keuanganService;
 
     public function __construct()
     {
@@ -41,6 +45,8 @@ class Keuangan extends BaseController
         $this->db = db_connect();
         // $this->pdf = new Pdf();
         $this->mpdf = new Mpdf_lib();
+        $this->fileAccessService = new FileAccessService();
+        $this->keuanganService = new KeuanganService();
     }
     function getDanaAkad()
     {
@@ -62,8 +68,10 @@ class Keuangan extends BaseController
             // ->where('id_kavling', $id_kavling)
             ->get()->getResult();
 
-
-        $r['list_pengajuan'] = $this->rdajam->where('id_kavling', $id_kavling)->get()->getResult();
+        $r['list_pengajuan'] = $this->fileAccessService->addAccessUrlsToRows(
+            $this->rdajam->where('id_kavling', $id_kavling)->get()->getResult(),
+            'pencairan_jaminan'
+        );
         return $this->response->setJSON($r);
     }
     function getJatuhTempo()
@@ -211,91 +219,9 @@ class Keuangan extends BaseController
     }
     function saveDanaAkad()
     {
-        $response['token'] = csrf_hash();
-
-        // $id = $this->request->getVar('id_dana_cair');
-        $id_mkdt = $this->request->getVar('id_mkdt');
-
-        // $sudah_cair = ($this->request->getVar('dana_akad_cair') == 1) ? 1 : 0;
-
-        // $id_list_dajam = $this->request->getVar('id_list_dajam');
-        // $nominal = $this->request->getVar('nominal');
-        $id_dajam = $this->request->getVar('id_dajam');
-
-
-        $data['id_kavling'] = $this->request->getVar('id_kavling');
-        $dajam_selesai = $this->request->getVar('dajam_selesai') ?? 0;
-
-        $this->mkdtModel->update($id_mkdt, ['dajam_selesai' => $dajam_selesai]);
-
-        // $s = false;
-        // echo "<pre>";
-        // echo $dajam_selesai;
-        // echo "</pre>";
-
-        // die();
-
-        // var_dump($this->request->getVar());die();
-        foreach ($id_dajam as $i => $v) {
-            $data['id_list_dajam'] = $v['id_list_dajam'];
-            $data['nominal'] = $this->num($v['nominal']);
-
-
-            $s = false;
-
-            // jika sudah cair
-            if (isset($v['sudah_cair']) && $v['sudah_cair']) {
-                $data['sudah_cair'] = $v['sudah_cair'];
-                $data['tgl_cair'] = $v['tgl_cair'];
-                $data['keterangan'] = $v['keterangan'];
-                $data['cair_oleh'] = user_id();
-                $data['cair_created_at'] = date("Y-m-d H:i:s");
-                $data['nominal_cair'] = $this->num($v['nominal_cair']);
-            } else {
-                $data['sudah_cair'] = 0;
-                $data['tgl_cair'] = null;
-                $data['keterangan'] = null;
-                $data['cair_oleh'] = null;
-                $data['cair_created_at'] = null;
-                $data['nominal_cair'] = null;
-            }
-
-            if (strpos($i, 'n') === false) {
-                $data['edit_by'] = user_id();
-                $data['updated_at'] = date("Y-m-d H:i:s");
-
-                $data['id'] = $i;
-                $q = $this->db->table('dana_akad')
-                    ->where(['id' => $i])
-                    ->update($data);
-                $s = $q;
-            } else {
-                $data['id'] = null;
-                $data['add_by'] = user_id();
-                $data['created_at'] = date("Y-m-d H:i:s");
-
-                $q = $this->db->table('dana_akad')
-                    ->insert($data);
-                $s = $q;
-            }
-
-
-            // echo "<pre>";
-            // print_r($data);
-            // echo "</pre>";
-            if (!$s) {
-                break;
-            }
-        }
-
-        if ($s) {
-            $response['success'] = true;
-            $response['messages'] = 'Data berhasil diperbaharui';
-        } else {
-            $response['success'] = false;
-            $response['messages'] = 'Terjadi kesalahan saat melakukan perubahan data';
-        }
-        return $this->response->setJSON($response);
+        return $this->response->setJSON(
+            $this->keuanganService->simpanDanaAkad($this->request, user_id())
+        );
     }
     function get_riwayat_gantinama()
     {
@@ -303,10 +229,15 @@ class Keuangan extends BaseController
         $r['token'] = csrf_hash();
         if ($id_mkdt) {
             $x = $this->db->table('mkdt')
-                ->select('file_spptb')
+                ->select('id_mkdt, file_spptb')
                 ->where("is_ganti_nama = 'Ganti Nama'")
                 ->where("uniq_id = (select uniq_id from mkdt where id_mkdt = $id_mkdt and is_ganti_nama = 'Normal')")
                 ->get()->getResult();
+            foreach ($x as $row) {
+                if (!empty($row->file_spptb)) {
+                    $row->file_spptb_access_url = $this->fileAccessService->accessUrl('mkdt_file_spptb', (int) $row->id_mkdt);
+                }
+            }
             $r['riwayat'] = $x;
         }
         $response['success'] = true;
@@ -697,195 +628,21 @@ class Keuangan extends BaseController
     // }
     function isi_tagihan()
     {
-        $response['token'] = csrf_hash();
-        $id_mkdt = $this->request->getPost('mk-id_mkdt');
-
-        //cek jika sudah ada pembayaran
-        $cek = $this->db->table("keuangan")->where("id_mkdt", $id_mkdt)->get()->getResult();
-        $cek_lp = $this->db->table("log_pembayaran")->where("id_mkdt", $id_mkdt)->get()->getResult();
-
-        foreach ($cek_lp as $cl) {
-            foreach ($cek as $c) {
-                $q = array_search($cl->id_keuangan, (array) $c);
-                if ($q == 'id_keuangan') {
-                    $response['success'] = false;
-                    $response['messages'] = 'Sudah ada pembayaran. Tidak bisa merubah detail biaya/tagihan';
-
-                    return $this->response->setJSON($response);
-                }
-            }
-        }
-
-        ################################## update detail biaya #######################
-        $time = strtotime($this->request->getVar('mk-tgl_harga'));
-        $newformat = date('Y-m-d', $time);
-
-        $data = [
-            'id_hargajual' => $this->request->getVar('mk-id'),
-            'tgl_harga' => $newformat,
-            'harga_jual' => $this->num($this->request->getVar('mk-hargajual')),
-            'harga_kpr' => $this->num($this->request->getVar('mk-kpr')),
-            'harga_diskon_harga_jual' => $this->num($this->request->getVar('mk-diskon_harga_jual')),
-            'harga_diskon_uang_muka' => $this->num($this->request->getVar('mk-diskon_uang_muka')),
-            'harga_administrasi' => $this->num($this->request->getVar('mk-biaya_adm')),
-            'harga_ppn' => $this->num($this->request->getVar('mk-harga_ppn')),
-            'harga_bphtb' => $this->num($this->request->getVar('mk-bphtb')),
-            'harga_biaya_proses' => $this->num($this->request->getVar('mk-biaya_proses')),
-            'harga_penambahan' => $this->num($this->request->getVar('mk-harga_penambahan')),
-            'harga_penambahan_tanah' => $this->num($this->request->getVar('mk-harga_penambahan_tanah')),
-            'keterangan_penambahan_biaya' => $this->num($this->request->getVar('mk-keterangan_harga_penambahan')),
-        ];
-
-        $this->mkdtModel->update($id_mkdt, $data);
-
-        ################################## insert ke tagihan ##########################
-        if ($this->request->getVar('berita_acara[]')) {
-
-            //input detail tagihan ke table keuangan
-            //um
-            $len = count($this->request->getVar('berita_acara[]'));
-            $idkeu = $this->request->getVar('id_keuangan[]');
-            $ba = $this->request->getVar('berita_acara[]');
-            $jt = $this->request->getVar('jatuh_tempo_tgl[]');
-            $nm = $this->request->getVar('nominal[]');
-
-            //bb
-            $len_bb = count($this->request->getVar('berita_acara_bb[]'));
-            $idkeu_bb = $this->request->getVar('id_keuangan_bb[]');
-            $ba_bb = $this->request->getVar('berita_acara_bb[]');
-            $jt_bb = $this->request->getVar('jatuh_tempo_tgl_bb[]');
-            $nm_bb = $this->request->getVar('nominal_bb[]');
-
-            //input detail tagihan ke table keuangan
-            $ft['ins'] = null;
-
-            //hapus tagihan di table keuangan
-            if (count($cek) > $len) {
-                foreach ($cek as $a) {
-                    if ($a->status == "UM") {
-                        if (array_search($a->id_keuangan, $idkeu) === false) {
-                            $this->keuanganModel->where('id_keuangan', $a->id_keuangan)->delete();
-                        }
-                    }
-                }
-            }
-            if (count($cek) > $len_bb) {
-                foreach ($cek as $a) {
-                    if ($a->status == "BB") {
-                        if (array_search($a->id_keuangan, $idkeu_bb) === false) {
-                            $this->keuanganModel->where('id_keuangan', $a->id_keuangan)->delete();
-                        }
-                    }
-                }
-            }
-
-            for ($x = 0; $x < $len; $x++) {
-                if ($idkeu[$x] != '' || $idkeu[$x] != null) {
-                    $ft['upt']['berita_acara'] = $ba[$x];
-                    $ft['upt']['jatuh_tempo_tgl'] = $jt[$x];
-                    $ft['upt']['nominal'] = $this->num($nm[$x]);
-                    $ft['upt']['status'] = "UM";
-                    $ft['upt']['id_mkdt'] = $id_mkdt;
-                    $ft['upt']['edit_by'] = user_id();
-
-                    $res['upt'][$x] = $this->keuanganModel->update($idkeu[$x], $ft['upt']);
-                } else {
-                    $ft['ins'][$x]['berita_acara'] = $ba[$x];
-                    $ft['ins'][$x]['jatuh_tempo_tgl'] = $jt[$x];
-                    $ft['ins'][$x]['nominal'] = $this->num($nm[$x]);
-                    $ft['ins'][$x]['id_mkdt'] = $id_mkdt;
-                    $ft['ins'][$x]['status'] = "UM";
-                    $ft['ins'][$x]['add_by'] = user_id();
-                    $ft['ins'][$x]['edit_by'] = user_id();
-
-                    $res['ins'][$x] = $this->keuanganModel->insert($ft['ins'][$x]);
-                }
-            }
-
-            $ft = [];
-            for ($y = 0; $y < $len_bb; $y++) {
-                if ($idkeu_bb[$y] != '' || $idkeu_bb[$y] != null) {
-                    $ft['upt']['berita_acara'] = $ba_bb[$y];
-                    $ft['upt']['jatuh_tempo_tgl'] = $jt_bb[$y];
-                    $ft['upt']['nominal'] = $this->num($nm_bb[$y]);
-                    $ft['upt']['status'] = "BB";
-                    $ft['upt']['id_mkdt'] = $id_mkdt;
-                    $ft['upt']['edit_by'] = user_id();
-
-                    $res['upt'][$y] = $this->keuanganModel->update($idkeu_bb[$y], $ft['upt']);
-                } else {
-                    $ft['ins'][$y]['berita_acara'] = $ba_bb[$y];
-                    $ft['ins'][$y]['jatuh_tempo_tgl'] = $jt_bb[$y];
-                    $ft['ins'][$y]['nominal'] = $this->num($nm_bb[$y]);
-                    $ft['ins'][$y]['id_mkdt'] = $id_mkdt;
-                    $ft['ins'][$y]['status'] = "BB";
-                    $ft['ins'][$y]['add_by'] = user_id();
-                    $ft['ins'][$y]['edit_by'] = user_id();
-
-                    $res['ins'][$y] = $this->keuanganModel->insert($ft['ins'][$y]);
-                }
-            }
-            $ft = [];
-        }
-        $response['success'] = true;
-        $response['messages'] = 'Data berhasil diperbaharui';
-
-        return $this->response->setJSON($response);
-        //insert ke table keuangan
-
-        // if ($ft['ins'])
-        //     $res['ins'] = $this->keuModel->insertBatch($ft['ins']);
+        return $this->response->setJSON(
+            $this->keuanganService->simpanIsiTagihan($this->request, user_id())
+        );
     }
     function save_inv()
     {
-
-        $response['token'] = csrf_hash();
-        $data = [
-            'no_inv' => $this->request->getVar('no_inv'),
-            'id_mkdt' => $this->request->getVar('id_mkdt'),
-            'id_konsumen' => $this->request->getVar('id_konsumen'),
-            'id_kavling' => $this->request->getVar('id_kavling'),
-            'id_kopsurat' => $this->request->getVar('id_kopsurat'),
-            'tanggal_invoice' => $this->request->getVar('tanggal_invoice'),
-            'tanggal_jatuh_tempo' => $this->request->getVar('tanggal_jatuh_tempo'),
-            'tagihan' => $this->request->getVar('tagihan'),
-            'terms' => $this->request->getVar('terms'),
-
-            'add_by' => user_id(),
-            'date_add' => date("Y-m-d  H:i:s")
-        ];
-
-        $r = $this->db->table('invoice_log')
-            ->insert($data);
-
-        if ($r) {
-            $response['success'] = true;
-            $response['messages'] = 'Data berhasil ditambahkan';
-        } else {
-            $response['success'] = false;
-            $response['messages'] = 'Data berhasil diperbaharui';
-        }
-        return $this->response->setJSON($response);
+        return $this->response->setJSON(
+            $this->keuanganService->simpanInvoice($this->request, user_id())
+        );
     }
     function save_sb()
     {
-
-        $response['token'] = csrf_hash();
-        $r = $this->keuanganModel->update(
-            $this->request->getVar('id_keuangan'),
-            array(
-                'sudah_dibayar' => $this->request->getVar('sb')
-            )
+        return $this->response->setJSON(
+            $this->keuanganService->updateSudahDibayar($this->request)
         );
-
-        if ($r) {
-            $response['success'] = true;
-            $response['messages'] = 'Data berhasil diperbaharui';
-        } else {
-            $response['success'] = false;
-            $response['messages'] = 'Data berhasil diperbaharui';
-        }
-        return $this->response->setJSON($response);
     }
     function save()
     {

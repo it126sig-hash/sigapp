@@ -8,6 +8,58 @@
 		height: auto;
 	}
 </style>
+<div class="modal fade text-left" id="modal_produksi_add_jalan" tabindex="-1" role="dialog"
+	aria-labelledby="modal_produksi_add_jalan" aria-hidden="true">
+	<div class="modal-dialog modal-sm" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Tambah Jalan Produksi</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<form id="fm-produksi-add-jalan" class="add-new-record modal-content pt-0">
+				<div class="modal-body">
+					<input type="hidden" class="form-control" id="prod_jalan_points" name="points" value="" />
+
+					<div class="form-group">
+						<label for="prod_jalan_id_cluster">Cluster</label>
+						<select id="prod_jalan_id_cluster" name="id_cluster" class="select2 form-control"></select>
+					</div>
+
+					<div class="form-group">
+						<label for="prod_jalan_id_jalan">Blok/Jalan</label>
+						<select disabled id="prod_jalan_id_jalan" name="id_jalan" class="select2 form-control"></select>
+					</div>
+
+					<div class="form-group">
+						<label for="prod_jalan_progres">Progres</label>
+						<input type="range" onInput="$('.prod_jalan_r_progres').html($(this).val())" class="form-control-range"
+							min="0" max="100" step="1" id="prod_jalan_progres" name="f_progres_jalan" value="0">
+						<span class="prod_jalan_r_progres">0</span><span>%</span>
+					</div>
+
+					<div class="form-group">
+						<label for="prod_jalan_luas">Luas Dilapangan</label>
+						<input type="text" class="form-control" id="prod_jalan_luas" name="f_produksi_luas"
+							placeholder="Luas jalan dilapangan" />
+					</div>
+
+					<div class="form-group">
+						<label for="prod_jalan_keterangan">Keterangan</label>
+						<textarea class="form-control" id="prod_jalan_keterangan" name="f_produksi_keterangan" rows="3"
+							placeholder="Keterangan"></textarea>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="save_produksi_add_jalan-btn" class="btn btn-primary data-submit mr-1"
+						onclick="save_jalan_produksi()" href="javascript:void(0)">Simpan</button>
+					<button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
 <div class="modal fade text-left" id="modal_fothersproduksi" tabindex="-1" role="dialog"
 	aria-labelledby="modal_fothersproduksi" aria-hidden="true">
 	<div class="modal-dialog modal-sm" role="document">
@@ -1262,6 +1314,168 @@ updateState("#st_75", "st_75");
 updateState("#st_100", "st_100");
 updateState("#st_saluran", "st_saluran");
 
+function isProduksiManualSelectionActive() {
+  return $("#produksi_tambah_jalan").prop("checked");
+}
+
+function tambah_jalan_produksi() {
+  if (!isProduksiManualSelectionActive()) {
+    return swal("error", "Aktifkan Manual Seleksi terlebih dahulu");
+  }
+
+  if (!dtt || dtt.length < 6) {
+    return swal("error", "Seleksi manual minimal 3 titik");
+  }
+
+  $("#fm-produksi-add-jalan")[0].reset();
+  $("#prod_jalan_id_cluster, #prod_jalan_id_jalan").val(null).trigger("change");
+  $("#prod_jalan_id_jalan").prop("disabled", true);
+  $("#prod_jalan_points").val(dtt.join(","));
+  $(".prod_jalan_r_progres").html("0");
+
+  $("#modal_produksi_add_jalan").modal({
+    backdrop: "static",
+    keyboard: false,
+  });
+}
+
+function save_jalan_produksi() {
+  let points = $("#prod_jalan_points").val().split(",").filter(function (point) {
+    return point !== "";
+  });
+
+  if (!$("#prod_jalan_id_jalan").val()) {
+    return swal("error", "Blok/Jalan harus diisi");
+  }
+
+  if (points.length < 6) {
+    return swal("error", "Seleksi manual minimal 3 titik");
+  }
+
+  $.ajax({
+    url: base_url + "api/produksi/add_jalan",
+    type: "POST",
+    data: $("#fm-produksi-add-jalan").serialize() + "&" + csrfName + "=" + csrfHash,
+    dataType: "json",
+    beforeSend: function () {
+      $("#save_produksi_add_jalan-btn").prop("disabled", true);
+      $("#save_produksi_add_jalan-btn").html(
+        'Menyimpan <i class="fa fa-spinner fa-spin"></i>',
+      );
+    },
+    success: function (r) {
+      csrfHash = r.token;
+
+      if (r.success === true) {
+        Swal.fire({
+          icon: "success",
+          title: r.messages,
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(function () {
+          $("#modal_produksi_add_jalan").modal("hide");
+          load_kavling();
+          hapus_seleksi();
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: r.messages,
+          showConfirmButton: false,
+        });
+      }
+
+      $("#save_produksi_add_jalan-btn").html("Simpan");
+      $("#save_produksi_add_jalan-btn").prop("disabled", false);
+    },
+    error: function () {
+      Swal.fire({
+        icon: "error",
+        title: "Terjadi kesalahan saat menambahkan jalan",
+        showConfirmButton: false,
+      });
+      $("#save_produksi_add_jalan-btn").html("Simpan");
+      $("#save_produksi_add_jalan-btn").prop("disabled", false);
+    },
+  });
+}
+
+$("#prod_jalan_id_cluster").select2({
+  placeholder: "Pilih Cluster",
+  allowClear: true,
+  dropdownParent: $("#modal_produksi_add_jalan"),
+  ajax: {
+    url: base_url + "/cluster/getAll",
+    dataType: "json",
+    delay: 250,
+    method: "post",
+    data: function (params) {
+      return {
+        [csrfName]: csrfHash,
+        search: params.term,
+        id_proyek: dt_proyek.id_proyek,
+      };
+    },
+    processResults: function (r) {
+      csrfHash = r.token;
+
+      let results = [];
+      $.each(r.data, function (index, item) {
+        results.push({
+          id: item[0],
+          text: item[3],
+        });
+      });
+
+      return {
+        results: results,
+      };
+    },
+    cache: false,
+  },
+});
+
+$("#prod_jalan_id_cluster").on("change", function () {
+  $("#prod_jalan_id_jalan").val(null).trigger("change");
+  $("#prod_jalan_id_jalan").prop("disabled", !this.value);
+});
+
+$("#prod_jalan_id_jalan").select2({
+  placeholder: "Pilih Blok",
+  allowClear: true,
+  dropdownParent: $("#modal_produksi_add_jalan"),
+  ajax: {
+    url: base_url + "/jalan/getAll",
+    dataType: "json",
+    delay: 250,
+    method: "post",
+    data: function (params) {
+      return {
+        [csrfName]: csrfHash,
+        search: params.term,
+        id_cluster: $("#prod_jalan_id_cluster").val(),
+        id_proyek: dt_proyek.id_proyek,
+      };
+    },
+    processResults: function (r) {
+      csrfHash = r.token;
+
+      let results = [];
+      $.each(r.data, function (index, item) {
+        results.push({
+          id: item[0],
+          text: item[3],
+        });
+      });
+
+      return {
+        results: results,
+      };
+    },
+    cache: true,
+  },
+});
+
 
 $("#listrik_jenis").change(function () {
   if (this.value == "PLN") {
@@ -1436,14 +1650,11 @@ function open_komplain_produksi() {
 
       if (st) {
         //display foto komplain dari sales
-        fotok = st.upload_komplain_sales;
-
-        // console.log(fotok)
-        if (fotok) fotok = fotok.split(";");
+        fotok = st.upload_komplain_sales_urls || [];
 
         if (Array.isArray(fotok)) {
           let is_active = "active";
-          for (let e = 0; e < fotok.length - 1; e++) {
+          for (let e = 0; e < fotok.length; e++) {
             if (e > 0) is_active = "";
 
             fotok_display +=
@@ -1451,8 +1662,6 @@ function open_komplain_produksi() {
               is_active +
               '">' +
               '<img class="d-block w-100 ft_kom" src="' +
-              base_url +
-              "/" +
               fotok[e] +
               '" alt="First slide">' +
               "</div>";
@@ -1461,12 +1670,11 @@ function open_komplain_produksi() {
         $("#fm-komplain-produksi #foto_komplain_sales").html(fotok_display);
 
         //display foto penyelsaian dari produksi
-        fotokp = st.upload_komplain_produksi;
-        if (fotokp) fotokp = fotokp.split(";");
+        fotokp = st.upload_komplain_produksi_urls || [];
 
         if (Array.isArray(fotokp)) {
           let is_active = "active";
-          for (let e = 0; e < fotokp.length - 1; e++) {
+          for (let e = 0; e < fotokp.length; e++) {
             if (e > 0) is_active = "";
 
             fotokp_display +=
@@ -1474,8 +1682,6 @@ function open_komplain_produksi() {
               is_active +
               '">' +
               '<img class="d-block w-100 ft_kom" src="' +
-              base_url +
-              "/" +
               fotokp[e] +
               '" alt="First slide">' +
               "</div>";

@@ -10,7 +10,7 @@ class MenuModel extends Model {
 	protected $primaryKey = 'id';
 	protected $returnType = 'object';
 	protected $useSoftDeletes = false;
-	protected $allowedFields = ['name', 'url', 'icon', 'slug', 'parent_id', 'is_active', 'date_add', 'date_edit'];
+	protected $allowedFields = ['name', 'url', 'icon', 'slug', 'parent_id', 'is_active', 'sort_order', 'date_add', 'date_edit'];
 	protected $useTimestamps = false;
 	protected $createdField  = 'created_at';
 	protected $updatedField  = 'updated_at';

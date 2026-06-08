@@ -25,6 +25,17 @@ description: >
 
 ---
 
+## Ketentuan Form Upload
+
+- Simpan file dinamis melalui `App\Services\FileAccessService`; jangan pindahkan upload langsung ke `public/uploads`.
+- Database tetap menyimpan logical path, sedangkan view/API harus menerima `access_url` dan `download_url` dari service/controller.
+- Link preview, embed, lihat, dan unduh harus lewat gateway `/files/{source}/{id}` atau helper `file_url(source, id, download)`, bukan `base_url + lokasi`.
+- Form upload gambar/PDF gunakan pola dropzone preview: wrapper `.dropzone.dropzone-lg.custom-file`, input `.custom-file-input.dz-input`, `.dz-preview`, dan `.dz-placeholder`.
+- Upload gambar boleh mendukung paste dari clipboard dengan `DataTransfer` dan popup pilihan target; jangan tawarkan field yang validasinya bukan gambar, misalnya PDF-only.
+- AJAX multipart wajib mempertahankan CSRF token, validasi file tetap di backend, dan setiap response JSON mengembalikan token terbaru.
+
+---
+
 ## Struktur Direktori
 
 ```

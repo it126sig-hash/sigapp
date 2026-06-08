@@ -18,6 +18,23 @@
 		z-index: 9999;
 		/* padding:0 10px 10px 10px; */
 	}
+
+	.proyek-preview {
+		display: none;
+		margin-top: .75rem;
+		padding: .5rem;
+		border: 1px solid #ebe9f1;
+		border-radius: .25rem;
+		background: #f8f8f8;
+	}
+
+	.proyek-preview img {
+		display: block;
+		width: 100%;
+		max-height: 220px;
+		object-fit: contain;
+		background: #fff;
+	}
 </style>
 <script>
 	// var csrfName = '<?= csrf_token() ?>';
@@ -153,6 +170,9 @@
 									<input type="file" name="file" id="file" />
 									<input type="hidden" name="no_up" id="no_up" />
 									<input type="hidden" id="siteplan" name="siteplan" class="form-control" placeholder="Siteplan" maxlength="255">
+									<div class="proyek-preview" id="preview-siteplan-wrapper">
+										<img id="preview-siteplan" alt="Preview Siteplan">
+									</div>
 									<a href="" id="link-siteplan" target=_blank><button id="view_siteplan" type="button" class="btn btn-outline-primary btn-block waves-effect">Lihat Siteplan</button></a>
 
 								</div>
@@ -161,10 +181,13 @@
 									<input type="file" name="logon" id="logon" />
 									<input type="hidden" name="no_up_logo" id="no_up_logo" />
 									<input type="hidden" id="logo" name="logo" class="form-control" placeholder="Logo" maxlength="255">
+									<div class="proyek-preview" id="preview-logo-wrapper">
+										<img id="preview-logo" alt="Preview Logo">
+									</div>
 									<a href="" id="link-logo" target=_blank><button id="view_logo" type="button" class="btn btn-outline-primary btn-block waves-effect">Lihat Logo</button></a>
 								</div>
 
-								<button type="submit" class="btn btn-primary data-submit mr-1" id="add-form-btn">Simpan</button>
+								<button type="submit" class="btn btn-primary data-submit mr-1" id="edit-form-btn">Simpan</button>
 								<button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
 							</div>
 							<div class="tab-pane" id="upload-siteplan" aria-labelledby="upload-siteplan-tab" role="tabpanel">
@@ -243,7 +266,46 @@
 				async: "true"
 			}
 		});
+
+		$('#edit-form #file').on('change', function() {
+			previewSelectedImage(this, '#preview-siteplan', '#preview-siteplan-wrapper');
+		});
+
+		$('#edit-form #logon').on('change', function() {
+			previewSelectedImage(this, '#preview-logo', '#preview-logo-wrapper');
+		});
 	});
+
+	const proyekPreviewUrls = {};
+
+	function setImagePreview(previewSelector, wrapperSelector, src) {
+		const previewKey = previewSelector.replace('#', '');
+		if (proyekPreviewUrls[previewKey]) {
+			URL.revokeObjectURL(proyekPreviewUrls[previewKey]);
+			delete proyekPreviewUrls[previewKey];
+		}
+
+		if (!src) {
+			$(previewSelector).removeAttr('src');
+			$(wrapperSelector).hide();
+			return;
+		}
+
+		$(previewSelector).attr('src', src);
+		$(wrapperSelector).show();
+	}
+
+	function previewSelectedImage(input, previewSelector, wrapperSelector) {
+		const file = input.files && input.files[0] ? input.files[0] : null;
+		if (!file || !file.type.match(/^image\//)) {
+			return;
+		}
+
+		const previewKey = previewSelector.replace('#', '');
+		const objectUrl = URL.createObjectURL(file);
+		setImagePreview(previewSelector, wrapperSelector, objectUrl);
+		proyekPreviewUrls[previewKey] = objectUrl;
+	}
 
 	function add() {
 		// reset the form 
@@ -382,9 +444,16 @@
 				$("#edit-form #kotaProyek").val(response.kota);
 				$("#edit-form #provinsiProyek").val(response.provinsi);
 				$("#edit-form #siteplan").val(response.siteplan);
+				$("#edit-form #logo").val(response.logo);
 
-				$("#link-siteplan").prop("href", response.siteplan_access_url || file_url('proyek_siteplan', response.id_proyek))
-				$("#link-logo").prop("href", response.logo_access_url || file_url('proyek_logo', response.id_proyek))
+				const siteplanUrl = response.siteplan ? (response.siteplan_access_url || file_url('proyek_siteplan', response.id_proyek)) : '';
+				const logoUrl = response.logo ? (response.logo_access_url || file_url('proyek_logo', response.id_proyek)) : '';
+				$("#link-siteplan").prop("href", siteplanUrl || '#')
+				$("#link-logo").prop("href", logoUrl || '#')
+				$("#view_siteplan").prop("disabled", !siteplanUrl)
+				$("#view_logo").prop("disabled", !logoUrl)
+				setImagePreview('#preview-siteplan', '#preview-siteplan-wrapper', siteplanUrl);
+				setImagePreview('#preview-logo', '#preview-logo-wrapper', logoUrl);
 
 				//set riwayat upload siteplan
 				$("#tb-upload_siteplan").html("");
@@ -504,7 +573,7 @@
 									}
 								}
 								$('#edit-form-btn').html('Simpan');
-								$('#edit-form-btn').prop('disabled', true);
+								$('#edit-form-btn').prop('disabled', false);
 							},
 							error: function(request, error) {
 								Swal.fire({
@@ -513,7 +582,7 @@
 									showConfirmButton: false,
 								})
 								$('#edit-form-btn').html('Simpan');
-								$('#edit-form-btn').prop('disabled', true);
+								$('#edit-form-btn').prop('disabled', false);
 							}
 						});
 

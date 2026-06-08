@@ -52,6 +52,38 @@ class PrintService
         $this->fileAccessService = new FileAccessService();
     }
 
+    public function printSpptb(int $idKavling, int $idMkdt, int $idProyek): void
+    {
+        $data['proyek']       = $this->proyek->find($idProyek);
+        $data['data']         = $this->transaksi->getKonsumenByIdKavling($idKavling);
+        $data['list_tagihan'] = $this->keuanganModel
+            ->where('id_mkdt', $idMkdt)
+            ->orderBy('jatuh_tempo_tgl')
+            ->find();
+
+        $html[] = view('pdf/spptb-new',       $data);
+        $html[] = view('pdf/spptb-new-page2', $data);
+        $html[] = view('pdf/spptb-new-page3', $data);
+
+        if ($data['data']->is_allin) {
+            $html[] = view('pdf/spptb-memo', $data);
+        }
+
+        $ktpPath  = !empty($data['data']->file_ktp)  ? $this->fileAccessService->existingPath($data['data']->file_ktp)  : null;
+        $npwpPath = !empty($data['data']->file_npwp) ? $this->fileAccessService->existingPath($data['data']->file_npwp) : null;
+
+        if ($ktpPath || $npwpPath) {
+            $ktpImg  = $ktpPath  ? "<img src='{$ktpPath}'  width='85mm' height='54mm'>" : '';
+            $npwpImg = $npwpPath ? "<img src='{$npwpPath}' width='85mm' height='54mm'>" : '';
+            $footer  = "<div style='text-align:center;'>{$ktpImg}{$npwpImg}</div>";
+        } else {
+            $footer = "<div style='text-align:center;'><span style='font-size:12px;color:red;'>Belum melampirkan KTP atau NPWP</span></div>";
+        }
+
+        $filename = 'SPPTB - ' . $data['data']->nama_konsumen . ' - ' . date('Ymd') . '.pdf';
+        $this->mpdf->generate($html, $filename, '', [15, 15, 10, 25], 'F4', true, $footer);
+    }
+
     public function printKuitansi($var)
     {
         $id = trim((string) $var->getVar('e'));

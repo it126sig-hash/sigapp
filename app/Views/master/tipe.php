@@ -8,6 +8,63 @@
 	// var csrfHash = '<?= csrf_hash() ?>';
 	// var base_url = '<?= base_url() ?>'
 </script>
+<style>
+	.tipe-upload-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+		gap: 1rem;
+	}
+
+	.tipe-upload-card .dropzone {
+		position: relative;
+		border: 2px dashed #ced4da;
+		border-radius: .75rem;
+		background: #fff;
+		transition: .15s border-color, .15s background;
+	}
+
+	.tipe-upload-card .dropzone-lg {
+		min-height: 120px;
+	}
+
+	.tipe-upload-card .dz-input {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		cursor: pointer;
+	}
+
+	.tipe-upload-card .dz-inner {
+		height: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		padding: 1rem;
+	}
+
+	.tipe-upload-card .dz-placeholder {
+		pointer-events: none;
+	}
+
+	.tipe-upload-card .dz-preview {
+		display: none;
+		width: 100%;
+		height: 100%;
+	}
+
+	.tipe-upload-card .dz-preview img,
+	.tipe-upload-card .preview-thumb {
+		display: block;
+		max-height: 95px;
+		width: auto;
+		max-width: 100%;
+		margin: 0 auto .25rem;
+		object-fit: contain;
+	}
+</style>
 
 <div class="app-content content ">
 	<div class="content-overlay"></div>
@@ -48,8 +105,8 @@
 			</div>
 		</div>
 		<!-- Modal to add new record -->
-		<div class="modal modal-slide-in fade" id="add-modal">
-			<div class="modal-dialog sidebar-sm">
+		<div class="modal fade" id="add-modal">
+			<div class="modal-dialog modal-dialog-scrollable modal-xl">
 				<form id="add-form" enctype="multipart/form-data" class="add-new-record modal-content pt-0">
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
 					<div class="modal-header mb-1">
@@ -105,20 +162,46 @@
 						</div> -->
 
 
-						<div class="form-group">
-							<label for="siteplan"> Gambar Kerja: </label>
-							<input type="file" name="gambar_kerja" id="gambar_kerja" accept="application/pdf" />
-							<!-- <input type="text" id="siteplan" name="siteplan" class="form-control" placeholder="Siteplan" maxlength="255"> -->
-						</div>
-						<div class="form-group">
-							<label for="siteplan"> Gambar Ilustrasi: </label>
-							<input type="file" name="gambar_tipe" id="gambar_tipe" accept="image/*" />
-							<!-- <input type="text" id="siteplan" name="siteplan" class="form-control" placeholder="Siteplan" maxlength="255"> -->
-						</div>
-						<div class="form-group">
-							<label for="siteplan"> Denah Arsitektural: </label>
-							<input type="file" name="gambar_denah" id="gambar_denah" accept="image/*" />
-							<!-- <input type="text" id="siteplan" name="siteplan" class="form-control" placeholder="Siteplan" maxlength="255"> -->
+						<div class="tipe-upload-grid mb-1">
+							<div class="form-group tipe-upload-card">
+								<label class="font-weight-bold" for="add_gambar_kerja">Gambar Kerja</label>
+								<div class="dropzone dropzone-lg custom-file">
+									<input type="file" name="gambar_kerja" id="add_gambar_kerja" accept="application/pdf" class="custom-file-input dz-input" />
+									<div class="dz-inner">
+										<div class="dz-preview" id="prev_add_gambar_kerja"></div>
+										<div class="dz-placeholder">
+											<div class="h5 mb-1">Tarik & letakkan PDF</div>
+											<div class="text-muted">atau klik untuk pilih file (maks 12 MB)</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="form-group tipe-upload-card">
+								<label class="font-weight-bold" for="add_gambar_tipe">Gambar Ilustrasi</label>
+								<div class="dropzone dropzone-lg custom-file">
+									<input type="file" name="gambar_tipe" id="add_gambar_tipe" accept="image/*" class="custom-file-input dz-input" />
+									<div class="dz-inner">
+										<div class="dz-preview" id="prev_add_gambar_tipe"></div>
+										<div class="dz-placeholder">
+											<div class="h5 mb-1">Tarik & letakkan gambar</div>
+											<div class="text-muted">atau klik untuk pilih file (PNG/JPG maks 12 MB)</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="form-group tipe-upload-card">
+								<label class="font-weight-bold" for="add_gambar_denah">Denah Arsitektural</label>
+								<div class="dropzone dropzone-lg custom-file">
+									<input type="file" name="gambar_denah" id="add_gambar_denah" accept="image/*" class="custom-file-input dz-input" />
+									<div class="dz-inner">
+										<div class="dz-preview" id="prev_add_gambar_denah"></div>
+										<div class="dz-placeholder">
+											<div class="h5 mb-1">Tarik & letakkan gambar</div>
+											<div class="text-muted">atau klik untuk pilih file (PNG/JPG maks 12 MB)</div>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 
 						<div class="form-group">
@@ -193,28 +276,55 @@
 									<input type="text" id="lt" name="lt" class="form-control" placeholder="Lt">
 								</div>
 
-								<div class="form-group">
-									<label for="siteplan"> Gambar Kerja: </label>
-									<input type="file" name="gambar_kerja" id="gambar_kerja" accept="application/pdf" class="form-control-file" />
-									<input type="hidden" name="no_up" id="no_up" />
-									<input type="hidden" id="id_gambar_kerja" name="id_gambar_kerja" class="form-control" maxlength="255">
-									<button id="download_gambar_kerja" type="button" class="btn btn-primary btn-block waves-effect">Unduh Gambar Kerja</button>
-								</div>
-
-								<div class="form-group">
-									<label for="siteplan"> Gambar Ilustrasi: </label>
-									<input type="file" name="gambar_tipe" id="gambar_tipe" accept="image/*" class="form-control-file" />
-									<input type="hidden" name="no_up_gambar_tipe" id="no_up_gambar_tipe" />
-									<input type="hidden" id="id_gambar_tipe" name="id_gambar_tipe" class="form-control" maxlength="255">
-									<button id="download_gambar_tipe" type="button" class="btn btn-primary btn-block waves-effect">Unduh Gambar Ilustrasi</button>
-								</div>
-
-								<div class="form-group">
-									<label for="siteplan"> Dengah Arsitektural: </label>
-									<input type="file" name="gambar_denah" id="gambar_denah" accept="image/*" class="form-control-file" />
-									<input type="hidden" name="no_up_gambar_denah" id="no_up_gambar_denah" />
-									<input type="hidden" id="id_gambar_denah" name="id_gambar_denah" class="form-control" maxlength="255">
-									<button id="download_gambar_denah" type="button" class="btn btn-primary btn-block waves-effect">Unduh Denah Arsitektural</button>
+								<div class="tipe-upload-grid mb-1">
+									<div class="form-group tipe-upload-card">
+										<label class="font-weight-bold" for="edit_gambar_kerja">Gambar Kerja</label>
+										<div class="dropzone dropzone-lg custom-file">
+											<input type="file" name="gambar_kerja" id="edit_gambar_kerja" accept="application/pdf" class="custom-file-input dz-input" />
+											<div class="dz-inner">
+												<div class="dz-preview" id="prev_edit_gambar_kerja"></div>
+												<div class="dz-placeholder">
+													<div class="h5 mb-1">Tarik & letakkan PDF</div>
+													<div class="text-muted">atau klik untuk pilih file (maks 12 MB)</div>
+												</div>
+											</div>
+										</div>
+										<input type="hidden" name="no_up" id="no_up" />
+										<input type="hidden" id="id_gambar_kerja" name="id_gambar_kerja" class="form-control" maxlength="255">
+										<a id="download_gambar_kerja" href="javascript:void(0)" target="_blank" class="btn btn-primary btn-block waves-effect mt-1">Lihat / Unduh Gambar Kerja</a>
+									</div>
+									<div class="form-group tipe-upload-card">
+										<label class="font-weight-bold" for="edit_gambar_tipe">Gambar Ilustrasi</label>
+										<div class="dropzone dropzone-lg custom-file">
+											<input type="file" name="gambar_tipe" id="edit_gambar_tipe" accept="image/*" class="custom-file-input dz-input" />
+											<div class="dz-inner">
+												<div class="dz-preview" id="prev_edit_gambar_tipe"></div>
+												<div class="dz-placeholder">
+													<div class="h5 mb-1">Tarik & letakkan gambar</div>
+													<div class="text-muted">atau klik untuk pilih file (PNG/JPG maks 12 MB)</div>
+												</div>
+											</div>
+										</div>
+										<input type="hidden" name="no_up_gambar_tipe" id="no_up_gambar_tipe" />
+										<input type="hidden" id="id_gambar_tipe" name="id_gambar_tipe" class="form-control" maxlength="255">
+										<a id="download_gambar_tipe" href="javascript:void(0)" target="_blank" class="btn btn-primary btn-block waves-effect mt-1">Lihat / Unduh Gambar Ilustrasi</a>
+									</div>
+									<div class="form-group tipe-upload-card">
+										<label class="font-weight-bold" for="edit_gambar_denah">Denah Arsitektural</label>
+										<div class="dropzone dropzone-lg custom-file">
+											<input type="file" name="gambar_denah" id="edit_gambar_denah" accept="image/*" class="custom-file-input dz-input" />
+											<div class="dz-inner">
+												<div class="dz-preview" id="prev_edit_gambar_denah"></div>
+												<div class="dz-placeholder">
+													<div class="h5 mb-1">Tarik & letakkan gambar</div>
+													<div class="text-muted">atau klik untuk pilih file (PNG/JPG maks 12 MB)</div>
+												</div>
+											</div>
+										</div>
+										<input type="hidden" name="no_up_gambar_denah" id="no_up_gambar_denah" />
+										<input type="hidden" id="id_gambar_denah" name="id_gambar_denah" class="form-control" maxlength="255">
+										<a id="download_gambar_denah" href="javascript:void(0)" target="_blank" class="btn btn-primary btn-block waves-effect mt-1">Lihat / Unduh Denah Arsitektural</a>
+									</div>
 								</div>
 
 
@@ -283,7 +393,155 @@
 	const formattedDate = `${day}-${month}-${year}`;
 	
 	var table
+	const tipeUploadInputs = [
+		'add_gambar_kerja',
+		'add_gambar_tipe',
+		'add_gambar_denah',
+		'edit_gambar_kerja',
+		'edit_gambar_tipe',
+		'edit_gambar_denah',
+	];
+
+	function initTipeUploadInputs() {
+		tipeUploadInputs.forEach(function(inputId) {
+			const input = document.getElementById(inputId);
+			if (!input || input.dataset.dropzoneLoaded === '1') return;
+			load_dropzone(inputId);
+			input.dataset.dropzoneLoaded = '1';
+		});
+	}
+
+	function resetUploadPreviews(formSelector) {
+		$(formSelector).find('.dz-preview').html('').hide();
+		$(formSelector).find('.dz-placeholder').show();
+	}
+
+	function renderExistingUploadPreview(inputId, src, label, type = 'image') {
+		const input = document.getElementById(inputId);
+		if (!input) return;
+
+		const dropzone = input.closest('.dropzone');
+		if (!dropzone) return;
+
+		const preview = dropzone.querySelector('.dz-preview');
+		const placeholder = dropzone.querySelector('.dz-placeholder');
+		if (!preview || !placeholder) return;
+
+		if (!src) {
+			preview.innerHTML = '';
+			preview.style.display = 'none';
+			placeholder.style.display = 'block';
+			return;
+		}
+
+		preview.innerHTML = type === 'pdf'
+			? `<div class="p-2 border rounded bg-light text-center">
+				<i class="fa fa-file-pdf fa-3x text-danger"></i>
+				<div class="text-truncate">${escapeHtml(label)} sudah diunggah</div>
+			</div>`
+			: `<img src="${escapeAttribute(src)}" class="preview-thumb" alt="${escapeAttribute(label)}">
+				<div class="text-truncate mb-1">${escapeHtml(label)} sudah diunggah</div>`;
+		preview.style.display = 'block';
+		placeholder.style.display = 'none';
+	}
+
+	function setFileAction(selector, url) {
+		if (url) {
+			$(selector).attr('href', url).removeClass('disabled');
+		} else {
+			$(selector).attr('href', 'javascript:void(0)').addClass('disabled');
+		}
+	}
+
+	function getImageFileFromClipboard(e) {
+		const clipboard = (e.originalEvent && e.originalEvent.clipboardData) || e.clipboardData;
+		if (!clipboard || !clipboard.items) return null;
+
+		for (const item of clipboard.items) {
+			if (item.kind === 'file' && item.type.startsWith('image/')) {
+				return item.getAsFile();
+			}
+		}
+
+		return null;
+	}
+
+	function assignFileToInput(inputId, file, prefix) {
+		const input = document.getElementById(inputId);
+		if (!input || !file) return;
+
+		const extension = getImageExtension(file.type);
+		const uploadFile = new File(
+			[file],
+			file.name || `${prefix}-${Date.now()}.${extension}`,
+			{ type: file.type || 'image/png' },
+		);
+		const dataTransfer = new DataTransfer();
+		dataTransfer.items.add(uploadFile);
+		input.files = dataTransfer.files;
+		input.dispatchEvent(new Event('change', { bubbles: true }));
+	}
+
+	function getImageExtension(type) {
+		const map = {
+			'image/jpeg': 'jpg',
+			'image/png': 'png',
+			'image/webp': 'webp',
+		};
+
+		return map[type] || 'png';
+	}
+
+	function bindTipeClipboardUpload() {
+		if (window.tipeClipboardUploadBound) return;
+		window.tipeClipboardUploadBound = true;
+
+		document.addEventListener('paste', async function(e) {
+			const addVisible = $('#add-modal').hasClass('show');
+			const editVisible = $('#edit-modal').hasClass('show');
+			if (!addVisible && !editVisible) return;
+
+			const pastedFile = getImageFileFromClipboard(e);
+			if (!pastedFile) return;
+
+			e.preventDefault();
+			const result = await Swal.fire({
+				title: 'Upload dari Clipboard',
+				text: 'Pilih tujuan gambar yang ditempel.',
+				icon: 'question',
+				showDenyButton: true,
+				showCancelButton: true,
+				confirmButtonText: 'Gambar Ilustrasi',
+				denyButtonText: 'Denah Arsitektural',
+				cancelButtonText: 'Batal',
+			});
+
+			const prefix = addVisible ? 'add' : 'edit';
+			if (result.isConfirmed) {
+				assignFileToInput(`${prefix}_gambar_tipe`, pastedFile, `${prefix}-gambar-ilustrasi`);
+			} else if (result.isDenied) {
+				assignFileToInput(`${prefix}_gambar_denah`, pastedFile, `${prefix}-denah`);
+			}
+		});
+	}
+
+	function escapeHtml(value) {
+		return String(value == null ? '' : value)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#039;');
+	}
+
+	function escapeAttribute(value) {
+		return escapeHtml(value).replace(/`/g, '&#096;');
+	}
+
 	$(function() {
+		initTipeUploadInputs();
+		bindTipeClipboardUpload();
+
 		table = $('#data_table').DataTable({
 			paging: true,
 			lengthChange: true,
@@ -337,9 +595,13 @@
 
 				let results = [];
 				$.each(r.data, function(index, item) {
+					const itemId = item.id_proyek || item[0];
+					const itemText = item.nama_proyek || item[1] || '';
+					const itemAddress = item.alamat_proyek || item[2] || '';
+
 					results.push({
-						id: item['id_proyek'],
-						text: item[1] + ' (' + item[2] + ')'
+						id: itemId,
+						text: itemAddress ? itemText + ' (' + itemAddress + ')' : itemText
 					});
 				});
 
@@ -357,6 +619,7 @@
 	function add() {
 		// reset the form 
 		$("#add-form")[0].reset();
+		resetUploadPreviews('#add-form');
 		$(".form-control").removeClass('is-invalid').removeClass('is-valid');
 		$('#add-modal').modal('show');
 
@@ -386,7 +649,6 @@
 			},
 
 			submitHandler: function(form) {
-				var files = $('#gambar_kerja')[0].files;
 				var form = $('#add-form')[0];
 				var fd = new FormData(form);
 				fd.append(csrfName, csrfHash);
@@ -455,48 +717,6 @@
 		$('#add-form').validate();
 	}
 
-	// function load_file_upload(id_kavling) {
-	// $.ajax({
-	// url: base_url + '/Legal/getDoc',
-	// type: 'post',
-	// data: {
-	// [csrfName]: csrfHash,
-	// id_kavling: id_kavling
-	// },
-	// dataType: 'json',
-	// success: function(r) {
-	// csrfHash = r.token;
-	// $("#tb-fl-file").html("");
-	// let tb = `<tr><td colspan="6" class="text-center">Tidak ada data</td></tr>`
-	// if (r.data) {
-	// tb = '';
-	// let no = 0
-	// $.each(r.data, function(i, v) {
-	// no++
-	// tb += `<tr>
-	// <td>` + no + `</td>
-	// <td>` + v.file_name + `</td>
-	// <td>` + v.keterangan + `</td>
-	// <td> <a href='` + base_url + '/' + v.lokasi + `' target=blank>Klik disini untuk mengunduh</a></td>
-	// <td> ` + v.uadd_by + `</td>
-	// <td> ` + format_datetime(v.upload_at) + ` </td>
-	// <td>
-	// <div class="btn-group">
-	// <button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="removeDoc('` + v.id + `', '` + id_kavling + `')"><i class="fa fa-trash"></i></button>
-	// </div>
-	// </td>
-	// </tr>`
-	// });
-	// }
-	// $("#tb-fl-file").html(tb);
-	// },
-	// error: function() {
-
-	// }
-	// });
-
-	// }
-
 	function edit(id_tipe) {
 		$.ajax({
 			url: '<?php echo base_url($controller . '/getOne') ?>',
@@ -510,6 +730,7 @@
 				csrfHash = response.token;
 				// reset the form 
 				$("#edit-form")[0].reset();
+				resetUploadPreviews('#edit-form');
 				$(".form-control").removeClass('is-invalid').removeClass('is-valid');
 				$('#edit-modal').modal('show');
 
@@ -525,10 +746,16 @@
 				// console.log(response.no_tipe_rumah, response.tipe_rumah)
 
 				$("#edit-form #id_gambar_kerja").val(response.id_gambar_kerja);
+				$("#edit-form #id_gambar_tipe").val(response.id_gambar_tipe);
+				$("#edit-form #id_gambar_denah").val(response.id_gambar_denah);
 
-				$("#download_gambar_kerja").attr("onclick", `download(${response.id_gambar_kerja}, 'Gambar Kerja: ${response.no_tipe_rumah} (${response.tipe_rumah}): ${formattedDate}', '.pdf')`)
-				$("#download_gambar_tipe").attr("onclick", `download(${response.id_gambar_tipe}, 'Gambar Ilustrasi: ${response.no_tipe_rumah} (${response.tipe_rumah}): ${formattedDate}', '.jpeg')`)
-				$("#download_gambar_denah").attr("onclick", `download(${response.id_gambar_denah}, 'Denah Arsitektural: ${response.no_tipe_rumah} (${response.tipe_rumah}): ${formattedDate}', '.jpeg')`)
+				renderExistingUploadPreview('edit_gambar_kerja', response.gambar_kerja_access_url, 'Gambar Kerja', 'pdf');
+				renderExistingUploadPreview('edit_gambar_tipe', response.gambar_tipe_access_url, 'Gambar Ilustrasi');
+				renderExistingUploadPreview('edit_gambar_denah', response.gambar_denah_access_url, 'Denah Arsitektural');
+
+				setFileAction('#download_gambar_kerja', response.gambar_kerja_download_url || (response.id_gambar_kerja ? file_url('gambar_kerja', response.id_gambar_kerja, true) : null));
+				setFileAction('#download_gambar_tipe', response.gambar_tipe_download_url || (response.id_gambar_tipe ? file_url('gambar_kerja', response.id_gambar_tipe, true) : null));
+				setFileAction('#download_gambar_denah', response.gambar_denah_download_url || (response.id_gambar_denah ? file_url('gambar_kerja', response.id_gambar_denah, true) : null));
 
 				// $("#edit-form #harga").val(response.harga);
 				$("#edit-form #keterangan").val(response.keterangan);
@@ -542,17 +769,14 @@
 					let no = 0
 					$.each(response.gambarkerja, function(i, v) {
 						no++
-						if (v.tipe == "gambarkerja") {
-							tb += `<tr>
+						tb += `<tr>
 								<td>` + no + `</td>
 								<td>` + v.default_filename + `</td>
 								<td>` + v.keterangan + `</td>
-								<td> <a href='` + (v.access_url || file_url('gambar_kerja', v.id_gambar_kerja)) + `' target=blank>Klik disini untuk mengunduh</a></td>
+								<td> <a href='` + (v.download_url || v.access_url || file_url('gambar_kerja', v.id_gambar_kerja, true)) + `' target=blank>Klik disini untuk mengunduh</a></td>
 								<td> ` + v.uadd_by + `</td>
 								<td> ` + format_datetime(v.upload_at) + ` </td>
 								</tr>`
-						}
-
 					});
 				}
 				$("#tb-gambar-kerja-file").html(tb);
@@ -584,9 +808,9 @@
 					},
 
 					submitHandler: function(form) {
-						var files = $('#edit-form #gambar_kerja')[0].files,
-							files_d = $('#edit-form #gambar_denah')[0].files,
-							files_t = $('#edit-form #gambar_tipe')[0].files;
+						var files = $('#edit_gambar_kerja')[0].files,
+							files_d = $('#edit_gambar_denah')[0].files,
+							files_t = $('#edit_gambar_tipe')[0].files;
 						var form = $('#edit-form')[0];
 
 						$("#no_up").val(files.length == 0 ? 1 : 0)
@@ -662,107 +886,12 @@
 		});
 	}
 
-	function download(e, nama = 'gambar', tipe = '.pdf') {
-		// Swal.fire({
-		// title: 'Masukan password',
-		// input: 'text',
-		// customClass: {
-		// confirmButton: 'btn btn-primary',
-		// cancelButton: 'btn btn-outline-danger ml-1'
-		// },
-		// buttonsStyling: false,
-		// inputAttributes: {
-		// autocapitalize: 'off'
-		// },
-		// showCancelButton: true,
-		// confirmButtonText: 'Look up',
-		// showLoaderOnConfirm: true,
-		// preConfirm: function(login) {
-		// return fetch('//api.github.com/users/' + login + '')
-		// .then(function(response) {
-		// if (!response.ok) {
-		// throw new Error(response.statusText);
-		// }
-		// return response.json();
-		// })
-		// .catch(function(error) {
-		// Swal.showValidationMessage('Request failed:  ' + error + '');
-		// });
-		// },
-		// allowOutsideClick: function() {
-		// !Swal.isLoading();
-		// }
-		// }).then(function(result) {
-		// if (result.value) {
-		// Swal.fire({
-		// title: '' + result.value.login + "'s avatar",
-		// imageUrl: result.value.avatar_url,
-		// customClass: {
-		// confirmButton: 'btn btn-primary'
-		// }
-		// });
-		// }
-		// });
-		(async () => {
-			const response = await fetch(base_url + "produksi/get_gambarkerja", {
-				method: "POST",
-				headers: {
-					Accept: "application/json",
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					[csrfName]: csrfHash,
-					id_gambar_kerja: e,
-					pass: "password",
-				}),
-			});
+	function download(id) {
+		if (!id) {
+			return swal('error', 'File tidak ditemukan');
+		}
 
-			if (!response.ok) {
-				throw new Error('Gagal mengunduh file');
-			}
-
-			const data = await response.json();
-			const url = data.lokasi;
-			const a = document.createElement("a");
-
-			a.href = url;
-			a.download = `${nama}${tipe}`;
-			a.click();
-		})().catch((error) => {
-			swal('error', error);
-		});
-
-		// (async () => {
-		// const rawResponse = await fetch(base_url + '/produksi/get_gambarkerja', {
-		// method: 'POST',
-		// headers: {
-		// 'Accept': 'application/json',
-		// 'Content-Type': 'application/json'
-		// },
-		// body: JSON.stringify({
-		// [csrfName]: csrfHash,
-		// id_gambar_kerja: e,
-		// pass: "password"
-		// })
-		// })
-		// .then(resp => resp.blob())
-		// .then(blob => {
-		// const url = window.URL.createObjectURL(blob);
-		// const a = document.createElement('a');
-		// a.style.display = 'none';
-		// a.href = url;
-
-		// // the filename you want
-		// a.download = nama + tipe;
-		// document.body.appendChild(a);
-		// a.click();
-		// window.URL.revokeObjectURL(url);
-		// })
-		// .catch(() => alert('oh no!'));
-
-		// })();
-
-
+		window.open(file_url('gambar_kerja', id, true), '_blank');
 	}
 
 	function remove(id_tipe) {

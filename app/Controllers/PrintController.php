@@ -8,6 +8,7 @@ use App\Repositories\TransaksiRepository;
 use App\Models\ProyekModel;
 use App\Models\KeuanganModel;
 use App\Repositories\PosisiKonsumenRepository;
+use App\Services\PrintService;
 
 use CodeIgniter\HTTP\ResponseInterface;
 
@@ -25,6 +26,7 @@ class PrintController extends BaseController
     protected $proyek;
     protected $keuanganModel;
     protected $posisiKonsumen;
+    protected PrintService $printService;
 
 
     public function __construct()
@@ -37,88 +39,42 @@ class PrintController extends BaseController
         $this->proyek = new ProyekModel();
         $this->transaksi = new TransaksiRepository();
         $this->keuanganModel = new KeuanganModel();
+        $this->printService = new PrintService();
     }
     public function printSpptb()
     {
-        // 1) Normalisasi & validasi input
         $idKavling = trim((string) $this->request->getVar('id_kavling'));
-        $idMkdt = trim((string) $this->request->getVar('id_mkdt'));
-        $idProyek = trim((string) $this->request->getVar('id_proyek'));
+        $idMkdt    = trim((string) $this->request->getVar('id_mkdt'));
+        $idProyek  = trim((string) $this->request->getVar('id_proyek'));
 
-        // Frontend kadang kirim string "null" → normalisasi jadi null
         if ($idMkdt === 'null' || $idMkdt === '') {
             return $this->response->setStatusCode(400)->setJSON([
-                'status' => 'error',
-                'message' => 'Data konsumen belum tersimpan (id_mkdt kosong).'
+                'status'  => 'error',
+                'message' => 'Data konsumen belum tersimpan (id_mkdt kosong).',
             ]);
         }
 
         $validation = \Config\Services::validation();
         $rules = [
             'id_kavling' => 'required|is_natural_no_zero',
-            'id_mkdt' => 'required|is_natural_no_zero',
-            'id_proyek' => 'required|is_natural_no_zero',
+            'id_mkdt'    => 'required|is_natural_no_zero',
+            'id_proyek'  => 'required|is_natural_no_zero',
         ];
-        $payload = [
-            'id_kavling' => $idKavling,
-            'id_mkdt' => $idMkdt,
-            'id_proyek' => $idProyek,
-        ];
-        if (!$validation->setRules($rules)->run($payload)) {
+        if (!$validation->setRules($rules)->run(['id_kavling' => $idKavling, 'id_mkdt' => $idMkdt, 'id_proyek' => $idProyek])) {
             return $this->response->setStatusCode(422)->setJSON([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Validasi gagal.',
-                'errors' => $validation->getErrors(),
+                'errors'  => $validation->getErrors(),
             ]);
         }
 
-        $data['proyek'] = $this->proyek->find($idProyek);
-        $data['data'] = $this->transaksi->getKonsumenByIdKavling($idKavling);
-        $data['list_tagihan'] = $this->keuanganModel
-            ->where('id_mkdt', $this->request->getVar('id_mkdt'))
-            ->orderBy('jatuh_tempo_tgl')
-            ->find();
-
-
         try {
-
-            $html[] = view('pdf/spptb-new', $data);
-            $html[] = view('pdf/spptb-new-page2', $data);
-            $html[] = view('pdf/spptb-new-page3', $data);
-
-            if ($data['data']->is_allin) {
-                $html[] = view('pdf/spptb-memo', $data);
-            }
-
-            $filename = 'SPPTB - ' . $data['data']->nama_konsumen . ' - ' . date('Ymd') . '.pdf';
-            $header = '';
-            $mg = [15, 15, 10, 25];
-
-            $ktp = $data['data']->file_ktp ? base_url($data['data']->file_ktp) : "";
-            $npwp = $data['data']->file_npwp ? base_url($data['data']->file_npwp) : "";
-
-            // $mg = [$kop->pml, $kop->pmr, $kop->pmt, $kop->pmb];
-            if ($ktp != "" || $npwp != "") {
-                $footer = "
-                <div style='text-align:center;'>
-                    <img src='$ktp' width='85mm' height='54mm'>
-                    <img src='$npwp' width='85mm' height='54mm'>
-                </div>
-                ";
-            } else {
-                $footer = "
-                <div style='text-align:center;'>
-                    <span style='font-size:12px;color:red;'>Belum melampirkan KTP atau NPWP</span>
-                </div>
-                ";
-            }
-
-            $this->mpdf->generate($html, $filename, $header, $mg, 'F4', true, $footer);
+            $this->printService->printSpptb((int) $idKavling, (int) $idMkdt, (int) $idProyek);
             exit();
         } catch (\Throwable $e) {
             log_message('error', 'SPPTB print error: {msg}', ['msg' => $e->getMessage()]);
             return $this->response->setStatusCode(500)->setJSON([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => $e->getMessage(),
             ]);
         }

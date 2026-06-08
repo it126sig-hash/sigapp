@@ -949,34 +949,26 @@ $role_id = $k;
 // Include Modal View Sesuai Role
 if (in_array($role_id, [6, 1])) {
   echo view('siteplan/planning');
-  echo '<script src="' . base_url() . 'assets/js/planning.js?' . filemtime(FCPATH . 'assets/js/planning.js') . '"></script>';
 }
 if (in_array($role_id, [7, 1])) {
   echo view('siteplan/produksi');
-  echo '<script src="' . base_url() . 'assets/js/produksi.js?' . filemtime(FCPATH . 'assets/js/produksi.js') . '"></script>';
 }
 if (in_array($role_id, [8, 1])) {
   echo view('siteplan/sales');
-  echo '<script src="' . base_url() . 'assets/js/sales.js?' . filemtime(FCPATH . 'assets/js/sales.js') . '"></script>';
 }
 if (in_array($role_id, [5, 1])) {
   echo view('siteplan/legal');
-  echo '<script src="' . base_url() . 'assets/js/legal.js?' . filemtime(FCPATH . 'assets/js/legal.js') . '"></script>';
 }
 if (in_array($role_id, [4, 1])) {
   echo view('siteplan/mkdt');
-  echo '<script src="' . base_url() . 'assets/js/mkdt.js?' . filemtime(FCPATH . 'assets/js/mkdt.js') . '"></script>';
 }
 if (in_array($role_id, [9, 1])) {
   echo view('siteplan/direksi');
-  echo '<script src="' . base_url() . 'assets/js/direksi.js?' . filemtime(FCPATH . 'assets/js/direksi.js') . '"></script>';
 }
 if (in_array($role_id, [3, 1])) {
   echo view('siteplan/keuangan');
-  echo '<script src="' . base_url() . 'assets/js/keuangan.js?' . filemtime(FCPATH . 'assets/js/keuangan.js') . '"></script>';
 }
 if (in_array($role_id, [10, 1])) {
   echo view('siteplan/pajak');
-  echo '<script src="' . base_url() . 'assets/js/pajak.js?' . filemtime(FCPATH . 'assets/js/pajak.js') . '"></script>';
 }
 ?>

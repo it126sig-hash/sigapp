@@ -130,6 +130,10 @@ class Produksi extends BaseController
                 ->join('users as lu', 'lu.id = komplain.edit_by', 'left')
                 ->where('id_kavling', $this->request->getVar('id_kavling'))
                 ->first();
+            if ($r['komplain']) {
+                $r['komplain']->upload_komplain_sales_urls = $this->fileAccessService->pathUrlsFromDelimitedString($r['komplain']->upload_komplain_sales, 'komplain_sales');
+                $r['komplain']->upload_komplain_produksi_urls = $this->fileAccessService->pathUrlsFromDelimitedString($r['komplain']->upload_komplain_produksi, 'komplain_produksi');
+            }
         }
 
         return $this->response->setJSON($r);

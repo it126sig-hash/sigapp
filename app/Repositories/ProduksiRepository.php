@@ -187,6 +187,11 @@ class ProduksiRepository
             ->get()->getResult();
     }
 
+    public function createOther(array $fields): bool
+    {
+        return (bool) $this->db->table('others')->insert($fields);
+    }
+
     public function updateOthers(int $id, array $fields): bool
     {
         return (bool) $this->db->table('others')->where('id', $id)->update($fields);

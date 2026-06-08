@@ -24,6 +24,21 @@ class FileController extends BaseController
         return $this->stream($source, $id, true);
     }
 
+    public function path(string $source)
+    {
+        try {
+            $file = $this->fileAccessService->resolvePath($source, (string) $this->request->getGet('path'));
+        } catch (RuntimeException $e) {
+            if ($e->getMessage() === 'FORBIDDEN') {
+                return $this->response->setStatusCode(403)->setBody('Akses file ditolak');
+            }
+
+            return $this->response->setStatusCode(404)->setBody('File tidak ditemukan');
+        }
+
+        return $this->streamFile($file);
+    }
+
     private function stream(string $source, int $id, bool $thumbnail)
     {
         try {
@@ -36,6 +51,11 @@ class FileController extends BaseController
             return $this->response->setStatusCode(404)->setBody('File tidak ditemukan');
         }
 
+        return $this->streamFile($file);
+    }
+
+    private function streamFile(array $file)
+    {
         $download = (bool) $this->request->getGet('download');
         $disposition = $download ? 'attachment' : 'inline';
         $fileName = str_replace('"', '', (string) $file['file_name']);

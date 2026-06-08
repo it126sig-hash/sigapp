@@ -26,6 +26,60 @@
    <!-- END: Page JS-->
 
    <script>
+       function initFlatpickrHumanFriendly(scope) {
+           if (typeof flatpickr === 'undefined') {
+               return;
+           }
+
+           var root = scope || document;
+           var inputs = root.querySelectorAll ? root.querySelectorAll('.flatpickr-human-friendly') : [];
+
+           inputs.forEach(function(input) {
+               if ((!input.name && !input.id) || input._flatpickr || input.dataset.flatpickrHumanFriendlyReady === '1') {
+                   return;
+               }
+
+               input.dataset.flatpickrHumanFriendlyReady = '1';
+               flatpickr(input, {
+                   altInput: true,
+                   altFormat: 'F j, Y',
+                   dateFormat: 'Y-m-d'
+               });
+           });
+       }
+
+       $(function() {
+           initFlatpickrHumanFriendly();
+
+           if (typeof MutationObserver !== 'undefined') {
+               var flatpickrObserverTimer = null;
+               var flatpickrObserver = new MutationObserver(function(mutations) {
+                   var shouldInit = mutations.some(function(mutation) {
+                       return Array.prototype.some.call(mutation.addedNodes, function(node) {
+                           return node.nodeType === 1 && (
+                               node.classList && node.classList.contains('flatpickr-human-friendly') ||
+                               node.querySelector && node.querySelector('.flatpickr-human-friendly')
+                           );
+                       });
+                   });
+
+                   if (!shouldInit) {
+                       return;
+                   }
+
+                   clearTimeout(flatpickrObserverTimer);
+                   flatpickrObserverTimer = setTimeout(function() {
+                       initFlatpickrHumanFriendly();
+                   }, 50);
+               });
+
+               flatpickrObserver.observe(document.body, {
+                   childList: true,
+                   subtree: true
+               });
+           }
+       });
+
        $(window).on('load', function() {
            if (feather) {
                feather.replace({

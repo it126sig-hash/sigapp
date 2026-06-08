@@ -259,6 +259,13 @@ class Home extends BaseController
             ' . $generik . '
             <div id="btn-cashout_subkon-pr" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="openCOSubkon()">Cash Out Subkon</div>
 
+            <div class="custom-control custom-switch custom-control-inline btn-prod">
+                <input onchange="hapus_seleksi()" type="checkbox" value="1" class="custom-control-input" id="produksi_tambah_jalan" name="produksi_tambah_jalan" />
+                <label class="custom-control-label" for="produksi_tambah_jalan">Manual Seleksi</label>
+            </div>
+            <button id="produksi_add_jalan" type="button" onclick="tambah_jalan_produksi()" class="my-float btn-icon btn btn-primary btn-round btn-sm btn-prod">
+                Tambah Jalan
+            </button>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float btn-prod" onclick="isi_data()">Isi/ubah Data</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float btn-prod" onclick="isi_pembayaran()">Pembayaran</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float btn-prod" onclick="buat_slf()">SLF</div>
@@ -283,6 +290,14 @@ class Home extends BaseController
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_diskresi()">Diskresi HargaJual</div>
         </div>';
 
+        // Target
+        $menu[11] = '
+        <div id="target_menu" class="float div_menu">
+            ' . $generik . '
+            <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_target_siteplan()">Set Target</div>
+            <div class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="open_target_history()">Histori Target</div>
+        </div>';
+
         //other
         $menu[0] = '
         <div id="others_menu" class="float div_menu">
@@ -290,7 +305,7 @@ class Home extends BaseController
             <div id="edit_kavling_batch" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="isi_data()">Isi/ubah Data</div>
 
         </div>';
-        $arr = [3, 4, 6, 7, 8, 9];
+        $arr = [3, 4, 6, 7, 8, 9, 11];
         if ($k != 1) {
             $menu = in_array($k, $arr) ? $menu[$k] : $menu[0];
         } else {

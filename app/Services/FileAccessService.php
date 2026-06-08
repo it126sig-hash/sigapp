@@ -18,13 +18,18 @@ class FileAccessService
         'pencairan_jaminan' => [1, 3, 9],
         'file_hargajual'    => [1, 3, 4, 9],
         'cashout_subkon'    => [1, 3, 7, 9],
+        'kavling_perintah_bangun' => [1, 4, 7, 9],
         'mkdt_perintah'     => [1, 4, 7, 9],
         'mkdt_file_spptb'   => [1, 3, 4, 9],
         'mkdt_sp3k'         => [1, 3, 4, 9],
         'mkdt_bast'         => [1, 3, 4, 9],
+        'mkdt_surat_batal'  => [1, 3, 4, 5, 8, 9],
         'konsumen_ktp'      => [1, 3, 4, 5, 8, 9],
         'konsumen_npwp'     => [1, 3, 4, 5, 8, 9],
         'konsumen_data'     => [1, 3, 4, 5, 8, 9],
+        'si'                => [1, 4, 7, 9],
+        'komplain_sales'    => [1, 7, 8, 9],
+        'komplain_produksi' => [1, 7, 8, 9],
     ];
 
     private array $projectAssetRoles = [1, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -91,10 +96,35 @@ class FileAccessService
         return site_url('files/' . rawurlencode($source) . '/' . $id . '/thumbnail');
     }
 
+    public function pathUrl(string $source, string $logicalPath, bool $download = false): string
+    {
+        $token = $this->encodePathToken($this->normalizeLogicalPath($logicalPath));
+        $url = site_url('files/' . rawurlencode($source) . '/path?path=' . rawurlencode($token));
+        return $download ? $url . '&download=1' : $url;
+    }
+
     public function resolve(string $source, int $id, bool $thumbnail = false): array
     {
         $file = $this->resolveMetadata($source, $id, $thumbnail);
 
+        return $this->resolveFile($file);
+    }
+
+    public function resolvePath(string $source, string $pathToken): array
+    {
+        $logicalPath = $this->decodePathToken($pathToken);
+        $file = $this->fileMeta(
+            $logicalPath,
+            basename($logicalPath),
+            $this->sourceRoles[$source] ?? [],
+            (object) ['logical_path' => $logicalPath]
+        );
+
+        return $this->resolveFile($file);
+    }
+
+    private function resolveFile(array $file): array
+    {
         if (!$this->canAccess($file['roles'])) {
             throw new RuntimeException('FORBIDDEN');
         }
@@ -169,6 +199,25 @@ class FileAccessService
         return $rows;
     }
 
+    public function pathUrlsFromDelimitedString(?string $paths, string $source): array
+    {
+        $urls = [];
+        foreach (explode(';', (string) $paths) as $path) {
+            $path = trim($path);
+            if ($path === '') {
+                continue;
+            }
+
+            try {
+                $urls[] = $this->pathUrl($source, $path);
+            } catch (RuntimeException) {
+                continue;
+            }
+        }
+
+        return $urls;
+    }
+
     private function resolveMetadata(string $source, int $id, bool $thumbnail): array
     {
         switch ($source) {
@@ -221,15 +270,22 @@ class FileAccessService
                 $this->assertRow($row);
                 return $this->fileMeta($row->file_surat, basename((string) $row->file_surat), $this->sourceRoles[$source], $row);
 
+            case 'kavling_perintah_bangun':
+                $row = $this->db->table('kavling')->select('id_kavling, perintah_bangun_file')->where('id_kavling', $id)->get()->getRow();
+                $this->assertRow($row);
+                return $this->fileMeta($row->perintah_bangun_file, basename((string) $row->perintah_bangun_file), $this->sourceRoles[$source], $row);
+
             case 'mkdt_perintah':
             case 'mkdt_file_spptb':
             case 'mkdt_sp3k':
             case 'mkdt_bast':
+            case 'mkdt_surat_batal':
                 $field = [
                     'mkdt_perintah'   => 'perintah_bangun_file',
                     'mkdt_file_spptb' => 'file_spptb',
                     'mkdt_sp3k'       => 'sp3k_file',
                     'mkdt_bast'       => 'bast_file',
+                    'mkdt_surat_batal' => 'surat_batal',
                 ][$source];
                 $row = $this->db->table('mkdt')->select("id_mkdt, {$field}")->where('id_mkdt', $id)->get()->getRow();
                 $this->assertRow($row);
@@ -246,6 +302,11 @@ class FileAccessService
                 $row = $this->db->table('konsumen')->select("id_konsumen, {$field}")->where('id_konsumen', $id)->get()->getRow();
                 $this->assertRow($row);
                 return $this->fileMeta($row->{$field}, basename((string) $row->{$field}), $this->sourceRoles[$source], $row);
+
+            case 'si':
+                $row = $this->db->table('si')->select('id, file')->where('id', $id)->get()->getRow();
+                $this->assertRow($row);
+                return $this->fileMeta($row->file, basename((string) $row->file), $this->sourceRoles[$source], $row);
         }
 
         throw new RuntimeException('NOT_FOUND');
@@ -323,5 +384,20 @@ class FileAccessService
         }
 
         return false;
+    }
+
+    private function encodePathToken(string $logicalPath): string
+    {
+        return rtrim(strtr(base64_encode($logicalPath), '+/', '-_'), '=');
+    }
+
+    private function decodePathToken(string $token): string
+    {
+        $decoded = base64_decode(strtr($token, '-_', '+/'), true);
+        if ($decoded === false) {
+            throw new RuntimeException('INVALID_PATH');
+        }
+
+        return $this->normalizeLogicalPath($decoded);
     }
 }

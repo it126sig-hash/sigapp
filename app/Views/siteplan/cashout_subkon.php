@@ -341,43 +341,99 @@ const status_cashout_subkon = {
   4: ["bg-success", "fa fa-check"],
 };
 
+function syncCashoutSubkonToken(response) {
+  if (response && response.token) {
+    csrfHash = response.token;
+    $(`input[name="${csrfName}"]`).val(csrfHash);
+  }
+}
+
+function cashoutSubkonPostData(data = {}) {
+  return Object.assign({ [csrfName]: csrfHash }, data);
+}
+
 /******** Checkout Subkon **********/
-function openCOSubkon() {
-  let sh = editdtt;
-  const id_kavlings = sh.map((item) => item.id.substr(3));
+function normalizeCashoutSubkonOptions(options) {
+  if (options === undefined || options === null) {
+    return {};
+  }
+
+  if (Array.isArray(options)) {
+    return { id_kavlings: options };
+  }
+
+  if (typeof options === "number" || typeof options === "string") {
+    return { id_kavlings: [String(options)] };
+  }
+
+  return options;
+}
+
+function resetCashoutSubkonForm() {
+  const select2_id_kavling = "#fm-cashout-subkon-id_kavling";
+
+  load_cashout_subkon_detail([]);
+  $("#fm-cashout-subkon")[0].reset();
+  $(select2_id_kavling).val(null).trigger("change");
+  $("#fm-cashout-subkon-id_subkon").val(null).trigger("change");
+  state.id_cashout_subkon = null;
+  load_cashout_subkon(null);
+  load_subkon([]);
+  load_list_kavling([]);
+  setImgOrPlaceholder(
+    $("#fm-cashout-subkon-file_surat-here"),
+    "",
+    typeof not_found !== "undefined" ? not_found : "images/not_found.png",
+  );
+  load_dropzone("fm-cashout-subkon-file_surat");
+}
+
+function openCashoutSubkonCreate() {
+  resetCashoutSubkonForm();
+  initModalListener("#modal-cashout-subkon");
+  $("#modal-cashout-subkon").modal("show");
+}
+
+function openCOSubkon(options = {}) {
+  options = normalizeCashoutSubkonOptions(options);
+
+  if (options.id_proyek && typeof dt_proyek === "object") {
+    dt_proyek.id_proyek = options.id_proyek;
+  }
+
+  let sh = typeof editdtt !== "undefined" && Array.isArray(editdtt) ? editdtt : [];
+  const id_kavlings = isNotEmpty(options.id_kavlings)
+    ? options.id_kavlings.map((item) => String(item))
+    : sh.map((item) => item.id.substr(3));
 
   if (id_kavlings.length == 0) {
     return swal("error", "Pilih kavling terlebih dahulu");
   }
   const select2_id_kavling = "#fm-cashout-subkon-id_kavling";
-  load_cashout_subkon_detail([]);
+  resetCashoutSubkonForm();
 
-  $("#fm-cashout-subkon")[0].reset();
-  $(select2_id_kavling).val(null).trigger("change");
-  $("#fm-cashout-subkon-id_subkon").val(null).trigger("change");
-
-  const selected_kavlings = sh.map((item) => ({
-    id_kavling: item.id.substr(3),
-    nama_jalan: item.data.nama_jalan,
-    no_kavling: item.data.no_kavling,
-  }));
+  const selected_kavlings = isNotEmpty(options.selected_kavlings)
+    ? options.selected_kavlings
+    : sh.map((item) => ({
+        id_kavling: item.id.substr(3),
+        nama_jalan: item.data.nama_jalan,
+        no_kavling: item.data.no_kavling,
+      }));
 
   const modal = "#modal-cashout-subkon";
-
-  setImgOrPlaceholder($("#fm-cashout-subkon-file_surat-here"), "", not_found);
-  load_dropzone("fm-cashout-subkon-file_surat");
 
   $.ajax({
     url: base_url + "cashout/subkon/ambil",
     type: "post",
-    data: {
+    data: cashoutSubkonPostData({
       id_kavlings: id_kavlings,
-    },
+    }),
     dataType: "json",
     beforeSend: function () {
       $("#loading").removeClass("hidden");
     },
     success: function (r) {
+      syncCashoutSubkonToken(r);
       $("#loading").addClass("hidden");
       if (r.status == "error") {
         return swal("error", r.message);
@@ -399,7 +455,7 @@ function openCOSubkon() {
         load_cashout_subkon(r.cashout_subkon);
         setImgOrPlaceholder(
           $("#fm-cashout-subkon-file_surat-here"),
-          r.cashout_subkon.file_surat,
+          r.cashout_subkon.file_surat_access_url,
           not_found,
         );
       }
@@ -426,9 +482,9 @@ function loadHistoryStatusCashoutSubkon() {
   $.ajax({
     url: base_url + "cashout/subkon/history",
     type: "post",
-    data: {
+    data: cashoutSubkonPostData({
       id_cashout_subkon: state.id_cashout_subkon,
-    },
+    }),
     dataType: "json",
     beforeSend: function () {
       $(id_timeline).html(
@@ -436,6 +492,7 @@ function loadHistoryStatusCashoutSubkon() {
       );
     },
     success: function (r) {
+      syncCashoutSubkonToken(r);
       $(id_timeline).html("");
       if (r.status == "error") {
         return swal("error", r.message);
@@ -537,6 +594,7 @@ $("#fm-cashout-subkon-submit").click(function (e) {
   if (file) {
     formData.append("file_surat", file);
   }
+  formData.append(csrfName, csrfHash);
   $.ajax({
     url: base_url + "cashout/subkon/save",
     type: "POST",
@@ -544,13 +602,16 @@ $("#fm-cashout-subkon-submit").click(function (e) {
     processData: false,
     contentType: false,
     success: function (r) {
+      syncCashoutSubkonToken(r);
       if (r.status == "error") {
         return swal("error", r.message);
       }
       removeModalListener("#modal-cashout-subkon");
       swal("success", r.message);
       $("#modal-cashout-subkon").modal("hide");
-      // load_cashout_subkon();
+      if ($.fn.DataTable.isDataTable("#cashout-subkon-table")) {
+        $("#cashout-subkon-table").DataTable().ajax.reload(null, false);
+      }
     },
     error: function (r) {
       return swal("error", "Terjadi kesalahan saat menyimpan data");
@@ -647,6 +708,8 @@ function load_cashout_subkon_detail(data) {
           "No SPP: " + item.spp_no + "(" + format_date(item.spp_tgl) + ")";
         btn = `<button type="button" class="btn btn-sm btn-warning ajukan-pencairan w-100" data-i="${i}" data-id="${item.id_cashout_subkon_detail}" data-status="${item.status}"><i class="fa fa-plus"></i> Ajukan Pencairan</button>`;
       } else if (roleid == 3 && item.status == 3) {
+        status =
+          "Tgl Pengajuan Cair: " + format_date(item.pengajuan_cair_tgl);
         btn = `<button type="button" class="btn btn-sm btn-warning ajukan-pencairan w-100" data-i="${i}" data-id="${item.id_cashout_subkon_detail}" data-status="${item.status}"><i class="fa fa-edit"></i> Ubah Tanggal</button>`;
         btn += `<button type="button" class="btn btn-sm btn-success pembayaran-pencairan w-100" data-i="${i}" data-id="${item.id_cashout_subkon_detail}" data-status="${item.status}"><i class="fa fa-plus"></i> Pembayaran</button>`;
       } else if (item.status == 4) {
@@ -754,16 +817,17 @@ $(document).on("click", ".confirm-jatuh-tempo", function () {
   $.ajax({
     url: base_url + "cashout/subkon/turun-jatuh-tempo",
     type: "POST",
-    data: {
+    data: cashoutSubkonPostData({
       id_cashout_subkon_detail: id,
       tanggal_jatuh_tempo: tanggal,
       berita_acara: berita_acara,
-    },
+    }),
     dataType: "json",
     beforeSend: function () {
       btn.prop("disabled", true);
     },
     success: function (r) {
+      syncCashoutSubkonToken(r);
       btn.prop("disabled", false);
       if (r.status == "error") {
         return swal("error", r.message);
@@ -854,11 +918,11 @@ $(document).on("click", ".ajukan-spp", function () {
       $.ajax({
         url: base_url + "cashout/subkon/ajukan-spp",
         type: "POST",
-        data: {
+        data: cashoutSubkonPostData({
           id_cashout_subkon_detail: id,
           spp_no: result.value.spp_no,
           spp_tgl: result.value.spp_tgl,
-        },
+        }),
         dataType: "json",
         beforeSend: function () {
           Swal.fire({
@@ -870,6 +934,7 @@ $(document).on("click", ".ajukan-spp", function () {
           });
         },
         success: function (r) {
+          syncCashoutSubkonToken(r);
           if (r.status == "error") {
             return swal("error", r.message);
           }
@@ -933,10 +998,10 @@ $(document).on("click", ".ajukan-pencairan", function () {
       $.ajax({
         url: base_url + "cashout/subkon/ajukan-pencairan",
         type: "POST",
-        data: {
+        data: cashoutSubkonPostData({
           id_cashout_subkon_detail: id,
           pencairan_tgl: result.value.pencairan_tgl,
-        },
+        }),
         dataType: "json",
         beforeSend: function () {
           Swal.fire({
@@ -948,6 +1013,7 @@ $(document).on("click", ".ajukan-pencairan", function () {
           });
         },
         success: function (r) {
+          syncCashoutSubkonToken(r);
           if (r.status == "error") {
             return swal("error", r.message);
           }
@@ -1014,11 +1080,11 @@ $(document).on("click", ".pembayaran-pencairan", function () {
       $.ajax({
         url: base_url + "cashout/subkon/pembayaran",
         type: "POST",
-        data: {
+        data: cashoutSubkonPostData({
           id_cashout_subkon_detail: id,
           cek_no: result.value.cek_no,
           cek_tgl: result.value.cek_tgl,
-        },
+        }),
         dataType: "json",
         beforeSend: function () {
           Swal.fire({
@@ -1030,6 +1096,7 @@ $(document).on("click", ".pembayaran-pencairan", function () {
           });
         },
         success: function (r) {
+          syncCashoutSubkonToken(r);
           if (r.status == "error") {
             return swal("error", r.message);
           }
@@ -1109,7 +1176,7 @@ function load_selected_kavling(data, id_select2) {
   $(id_select2).trigger("change");
 }
 function load_subkon(data) {
-  if (data == []) {
+  if (!isNotEmpty(data)) {
     $("#fm-cashout-subkon-id_subkon").val("");
     $("#fm-cashout-subkon-nama_subkon").val("");
     $("#fm-cashout-subkon-hp1_subkon").val("");

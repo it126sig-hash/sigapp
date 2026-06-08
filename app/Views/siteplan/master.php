@@ -29,6 +29,7 @@ foreach (user()->getRoles() as $key => $val) {
             Status: null,
             Subsidi: null,
             Komersil: null,
+            Target: null,
             'Lain-lain': null
         };
 
@@ -736,6 +737,7 @@ foreach (user()->getRoles() as $key => $val) {
                                     <option value="10" class="dropdown-item">Pajak</option>
                                     <option value="3" class="dropdown-item">Keuangan</option>
                                     <option value="6" class="dropdown-item">Planning</option>
+                                    <option value="11" class="dropdown-item">Target</option>
                                     <!-- <option value="9" class="dropdown-item">Management</option> -->
                                 </select>
                                 <button onclick="load_kavling()" class="btn btn-sm btn-primary col-12 mt-1">
@@ -1036,8 +1038,13 @@ foreach (user()->getRoles() as $key => $val) {
         change_div()
     });
 
+    function isManualSelectionActive() {
+        return $("#tambah_jalan").prop("checked") || $("#produksi_tambah_jalan").prop("checked");
+    }
+
     function change_div() {
         $("#tambah_jalan").prop("checked", 0)
+        $("#produksi_tambah_jalan").prop("checked", 0)
         hapus_seleksi(); //hapus seleksi kavling
 
         //tampilkan menu sesuai divisi jika login sebagai admin
@@ -1056,6 +1063,8 @@ foreach (user()->getRoles() as $key => $val) {
                 $("#keuangan_menu").removeClass("hidden")
             } else if (va == 9) {
                 $("#direksi_menu").removeClass("hidden")
+            } else if (va == 11) {
+                $("#target_menu").removeClass("hidden")
             } else if (va == 0) {
                 $("#others_menu").addClass("hidden")
             } else {
@@ -1146,6 +1155,16 @@ foreach (user()->getRoles() as $key => $val) {
         return e;
     }
 
+    function get_kategori_color(kategori) {
+        if (kategori == 'Belum Target') return '#f8fafc';
+        if (String(kategori).indexOf('Target ') === 0) {
+            const colors = ['#f59e0b', '#14b8a6', '#3b82f6', '#a855f7', '#ef4444', '#22c55e'];
+            const year = parseInt(String(kategori).replace('Target ', ''), 10);
+            return colors[Math.abs(year || 0) % colors.length];
+        }
+        return conf[kategori] ? conf[kategori].fill : '#d1d5db';
+    }
+
     function hitung_kavling(fill) {
         let e = fill.fill
         let p = filterwarnahitung[e] ? filterwarnahitung[e] : 0;
@@ -1197,6 +1216,7 @@ foreach (user()->getRoles() as $key => $val) {
             Status: null,
             Subsidi: null,
             Komersil: null,
+            Target: null,
             'Lain-lain': null
         };
         filterwarnahitung = {};
@@ -1244,6 +1264,7 @@ foreach (user()->getRoles() as $key => $val) {
                 stroke = fill = strokeWidth = dashed = "";
 
                 let r = result['data'],
+                    targetKavling = result.target_kavling || {},
                     data2,
                     hit,
                     tp_rumah,
@@ -1525,6 +1546,22 @@ foreach (user()->getRoles() as $key => $val) {
 
 
 
+                    let targetInfo = null;
+                    if (va == 11) {
+                        targetInfo = targetKavling[r[p].id_kavling] || null;
+                        if (targetInfo) {
+                            hit = {
+                                fill: 'Target ' + targetInfo.tahun_target,
+                                tipe: 'Target'
+                            }
+                        } else {
+                            hit = {
+                                fill: 'Belum Target',
+                                tipe: 'Target'
+                            }
+                        }
+                    }
+
                     const fieldChecks = {
                         'sertifikat_is_balik_nama': (val) => val === 'Sudah',
                         'pbb_is_balik_nama':        (val) => val === 'Sudah',
@@ -1545,7 +1582,7 @@ foreach (user()->getRoles() as $key => $val) {
                         return val !== null && val !== '';
                     });
 
-                    if (isComplete) {
+                    if (va != 11 && isComplete) {
                         hit = set_fill2("Selesai");
                     }
 
@@ -1568,7 +1605,7 @@ foreach (user()->getRoles() as $key => $val) {
                     //set untuk filter warna
                     filterwarna[hit.tipe] = {
                         ...filterwarna[hit.tipe],
-                        [hit.fill]: conf[hit.fill].fill
+                        [hit.fill]: get_kategori_color(hit.fill)
                     }
 
 
@@ -1581,7 +1618,7 @@ foreach (user()->getRoles() as $key => $val) {
                         // lineCap: 'round',
                         // lineJoin: 'round',
                         // stroke: stroke,
-                        fill: conf[hit.fill].fill,
+                        fill: get_kategori_color(hit.fill),
                         // strokeWidth: strokeWidth,
                         dash: dashed,
                         opacity: 1,
@@ -1618,6 +1655,7 @@ foreach (user()->getRoles() as $key => $val) {
                             harga_akhir_oleh: r[p].harga_akhir_oleh_username,
                             id_serah_terima: r[p].id_serah_terima,
                             id_komplain: r[p].id_komplain,
+                            target: targetInfo,
                         },
                         id: 'kav' + r[p].id_kavling
                     });
@@ -1842,12 +1880,12 @@ foreach (user()->getRoles() as $key => $val) {
         if (!sh.id) return false;
         id_kavling = sh.id.substr(3)
 
-        if (!$("#tambah_jalan").prop('checked')) {
+        if (!isManualSelectionActive()) {
             addMode = e.evt.ctrlKey;
 
             //jika hak akses = planning dan pilihan data yang ditampilkan = planning
             //admin, pro
-            if ([1, 3, 4, 6, 7].includes(roleid)) {
+            if ([1, 3, 4, 6, 7, 11].includes(roleid)) {
                 if (addMode) {
                     if (sh.data.tipe != "kavling") {
                         return swal('error', 'Terjadi kesalahan', 'Multiple Selection hanya untuk data kavling ')
@@ -1869,7 +1907,7 @@ foreach (user()->getRoles() as $key => $val) {
     })
 
     stage.on('click tap', function(e) {
-        if ($("#tambah_jalan").prop('checked')) {
+        if (isManualSelectionActive()) {
             dtt = [];
             var pos = this.getRelativePointerPosition();
 
@@ -2458,35 +2496,33 @@ foreach (user()->getRoles() as $key => $val) {
             setDatePicker(r.kavling.perintah_bangun_tgl, '#dt-st_perintah_bangun_tgl')
             changeVal("#dt-st_perintah_bangun_oleh", r.kavling.username)
             src = not_found
-            if (r.kavling.perintah_bangun_file) {
-                src = r.kavling.perintah_bangun_file
+            if (r.kavling.perintah_bangun_access_url) {
+                src = r.kavling.perintah_bangun_access_url
             }
 
             $("#dt-pph_ntpn").val(r.kavling.pph42_ntpn)
             $("#dt-pph_nominal_bayar").val(r.kavling.pph42_nilai).keyup()
             setDatePicker(r.kavling.pph42_tgl_bayar, "#dt-pph_tgl_bayar")
 
-            //  $("#dt-st_list-upload_perintah_bangun_file-here").prop('src', base_url + src)
-
         }
-        $("#dt-st_list-upload_perintah_bangun_file").prop('href', base_url + src)
+        $("#dt-st_list-upload_perintah_bangun_file").prop('href', resolveFileHref(src))
     }
 
     function loadMKDT(mkdt) {
         src = not_found
 
-        $("#dt-st_list-upload_sp3k_file").prop('href', base_url + src)
+        $("#dt-st_list-upload_sp3k_file").prop('href', resolveFileHref(src))
 
-        $("#dt-st_list-upload_bast_file").prop('href', base_url + src)
+        $("#dt-st_list-upload_bast_file").prop('href', resolveFileHref(src))
 
-        $("#dt-btn-bl_here").prop('href', base_url + src)
-        $(".dt-cl-bl_here").prop('src', base_url + src)
+        $("#dt-btn-bl_here").prop('href', resolveFileHref(src))
+        $(".dt-cl-bl_here").prop('src', resolveFileHref(src))
 
-        $("#dt-btn-npwp_here").prop('href', base_url + src)
-        $(".dt-cl-npwp_here").prop('src', base_url + src)
+        $("#dt-btn-npwp_here").prop('href', resolveFileHref(src))
+        $(".dt-cl-npwp_here").prop('src', resolveFileHref(src))
 
-        $("#dt-btn-ktp_here").prop('href', base_url + src)
-        $(".dt-cl-ktp_here").prop('src', base_url + src)
+        $("#dt-btn-ktp_here").prop('href', resolveFileHref(src))
+        $(".dt-cl-ktp_here").prop('src', resolveFileHref(src))
 
         if (mkdt) {
             //load price list dari keuangan
@@ -2536,33 +2572,31 @@ foreach (user()->getRoles() as $key => $val) {
 
             src = not_found
 
-            if (mkdt.sp3k_file) {
-                src = mkdt.sp3k_file
+            if (mkdt.sp3k_access_url) {
+                src = mkdt.sp3k_access_url
             }
-            $("#dt-st_list-upload_sp3k_file").prop('href', base_url + src)
-            // $("#dt-st_list-upload_sp3k_file-here").prop('src', base_url + src)
-
+            $("#dt-st_list-upload_sp3k_file").prop('href', resolveFileHref(src))
 
             src = not_found
-            if (mkdt.file_ktp) {
-                src = mkdt.file_ktp
+            if (mkdt.ktp_access_url) {
+                src = mkdt.ktp_access_url
             }
-            $("#dt-btn-ktp_here").prop('href', base_url + src)
-            $(".dt-cl-ktp_here").prop('src', base_url + src)
+            $("#dt-btn-ktp_here").prop('href', resolveFileHref(src))
+            $(".dt-cl-ktp_here").prop('src', resolveFileHref(src))
 
             src = not_found
-            if (mkdt.file_npwp) {
-                src = mkdt.file_npwp
+            if (mkdt.npwp_access_url) {
+                src = mkdt.npwp_access_url
             }
-            $("#dt-btn-npwp_here").prop('href', base_url + src)
-            $(".dt-cl-npwp_here").prop('src', base_url + src)
+            $("#dt-btn-npwp_here").prop('href', resolveFileHref(src))
+            $(".dt-cl-npwp_here").prop('src', resolveFileHref(src))
 
             src = not_found
-            if (mkdt.file_data_diri) {
-                src = mkdt.file_data_diri
+            if (mkdt.data_diri_access_url) {
+                src = mkdt.data_diri_access_url
             }
-            $("#dt-btn-bl_here").prop('href', base_url + src)
-            $(".dt-cl-bl_here").prop('src', base_url + src)
+            $("#dt-btn-bl_here").prop('href', resolveFileHref(src))
+            $(".dt-cl-bl_here").prop('src', resolveFileHref(src))
 
 
 
@@ -2576,10 +2610,10 @@ foreach (user()->getRoles() as $key => $val) {
             changeVal("#dt-st_bast_no", mkdt.bast_no)
 
             src = not_found
-            if (mkdt.bast_file) {
-                src = mkdt.bast_file
+            if (mkdt.bast_access_url) {
+                src = mkdt.bast_access_url
             }
-            $("#dt-st_list-upload_bast_file").prop('href', base_url + src)
+            $("#dt-st_list-upload_bast_file").prop('href', resolveFileHref(src))
 
             // $("#last_update_legal").html(`Terakhir dipudate oleh: ${lg.uadd_by}, pada: ${format_datetime(lg.created_at)} `);
             // if(lg.uedit_by){
@@ -3612,11 +3646,11 @@ foreach (user()->getRoles() as $key => $val) {
 
                 let src = not_found
                 //load ktp npwp
-                if (mkdt.surat_batal != null) {
-                    src = mkdt.surat_batal
+                if (mkdt.surat_batal_access_url != null) {
+                    src = mkdt.surat_batal_access_url
                 }
 
-                $("#list-file_surat_batal").prop("href", base_url + "/" + src)
+                $("#list-file_surat_batal").prop("href", resolveFileHref(src))
 
                 $("#last_update-batal_mkdt").html("Dibatalkan oleh: " + mkdt.mkdt_batal_oleh_u + " Pada: " + format_datetime(mkdt.mkdt_batal_tgl))
 
@@ -3981,11 +4015,11 @@ foreach (user()->getRoles() as $key => $val) {
 
                 let src = not_found
                 //load ktp npwp
-                if (mkdt.surat_batal != null) {
-                    src = mkdt.surat_batal
+                if (mkdt.surat_batal_access_url != null) {
+                    src = mkdt.surat_batal_access_url
                 }
 
-                $("#list-file_surat_batal").prop("href", base_url + "/" + src)
+                $("#list-file_surat_batal").prop("href", resolveFileHref(src))
 
                 $("#last_update-batal_mkdt").html("Dibatalkan oleh: " + mkdt.mkdt_batal_oleh_u + " Pada: " + format_datetime(mkdt.mkdt_batal_tgl))
 
@@ -4069,6 +4103,10 @@ foreach (user()->getRoles() as $key => $val) {
 <!-- Modal to add new record -->
 <?php if ($k == 1 || $k == 6): ?>
     <?php echo view('siteplan/planning'); ?>
+<?php endif; ?>
+
+<?php if ($k == 1 || $k == 11): ?>
+    <?php echo view('siteplan/target'); ?>
 <?php endif; ?>
 
 <?php if ($k == 7 || $k == 1): ?>

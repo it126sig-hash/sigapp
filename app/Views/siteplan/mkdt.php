@@ -129,14 +129,6 @@
                                         </select>
                                         <label for="idk-status_mkdt">Status Kavling</label>
                                     </div>
-                                    <div class="form-group floating-label floating-label-select">
-                                        <select required class="form-control tab1" id="idk-is_allin"
-                                            name="idk-is_allin">
-                                            <option value=0>Tidak</option>
-                                            <option value=1>Ya</option>
-                                        </select>
-                                        <label for="idk-is_allin">Harga All In</label>
-                                    </div>
 
                                     <div id="idk-show_keterangan_batal" class="hidden">
                                         <div class="form-group">
@@ -296,6 +288,10 @@
                                                                 onclick="window.open(this.href, '_blank'); return false;"
                                                                 class="w-100 btn btn-outline-primary">klik
                                                                 untuk melihat file</a>
+                                                            <button type="button" id="btn-ocr-ktp"
+                                                                class="w-100 btn btn-outline-secondary btn-sm mt-1">
+                                                                <i class="fa fa-search"></i> OCR KTP
+                                                            </button>
                                                         </div>
                                                         <div class="col-md-4"> <!-- NPWP -->
                                                             <div class="form-group">
@@ -830,6 +826,14 @@
                                                             <div class="divider divider-left">
                                                                 <div class="divider-text font-weight-bold">7. Total
                                                                 </div>
+                                                            </div>
+                                                            <div class="form-group floating-label floating-label-select">
+                                                                <select required class="form-control tab1" id="idk-is_allin"
+                                                                    name="idk-is_allin">
+                                                                    <option value=0>Tidak</option>
+                                                                    <option value=1>Ya</option>
+                                                                </select>
+                                                                <label for="idk-is_allin">Harga All In</label>
                                                             </div>
                                                             <div class="form-group hidden">
                                                                 <label>Total Uang Muka + Biaya ADM</label>
@@ -2203,11 +2207,351 @@ function fillDiskresi(dk) {
 }
 
 function fillFiles(v) {
-  setImgOrPlaceholder(ui.fields.ktpHere, v?.ktp_lok, not_found);
-  setImgOrPlaceholder(ui.fields.npwpHere, v?.npwp_lok, not_found, "90%");
+  const ktpUrl = v?.ktp_access_url || v?.ktp_lok;
+  const npwpUrl = v?.npwp_access_url || v?.npwp_lok;
+  const dataDiriUrl = v?.data_diri_access_url || v?.data_diri_lok;
+
+  renderExistingUploadPreview("file_ktp", ktpUrl, "KTP");
+  renderExistingUploadPreview("file_npwp", npwpUrl, "NPWP");
+  renderExistingUploadPreview("file_data_diri", dataDiriUrl, "Data Diri", "pdf");
+
+  setImgOrPlaceholder(ui.fields.ktpHere, ktpUrl, not_found);
+  setImgOrPlaceholder(ui.fields.npwpHere, npwpUrl, not_found, "90%");
   ui.fields.ddHere
-    .html(v?.data_diri_lok ? "Klik untuk melihat file" : "Tidak ada data")
-    .prop("href", base_url + (v?.data_diri_lok || not_found));
+    .html(dataDiriUrl ? "Klik untuk melihat file" : "Tidak ada data")
+    .prop("href", resolveFileHref(dataDiriUrl, not_found));
+}
+
+function renderExistingUploadPreview(inputId, src, label, type = "image") {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  const dropzone = input.closest(".dropzone");
+  if (!dropzone) return;
+
+  const preview = dropzone.querySelector(".dz-preview");
+  const placeholder = dropzone.querySelector(".dz-placeholder");
+  if (!preview || !placeholder) return;
+
+  if (!isNotEmpty(src)) {
+    preview.innerHTML = "";
+    preview.style.display = "none";
+    placeholder.style.display = "block";
+    return;
+  }
+
+  const href = resolveFileHref(src);
+  preview.innerHTML =
+    type === "pdf"
+      ? `<div class="p-2 border rounded bg-light text-center">
+          <i class="fa fa-file-pdf fa-3x text-danger"></i>
+          <div class="text-truncate">${escapeHtml(label)} sudah diunggah</div>
+        </div>`
+      : `<img src="${escapeAttribute(href)}"
+             class="preview-thumb"
+             style="height:100%; object-fit:contain;"
+             alt="${escapeAttribute(label)}">
+        <div class="text-truncate mb-1">${escapeHtml(label)} sudah diunggah</div>`;
+  preview.style.display = "block";
+  placeholder.style.display = "none";
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function escapeAttribute(value) {
+  return escapeHtml(value).replace(/`/g, "&#096;");
+}
+
+let mkdtClipboardBound = false;
+let ktpOcrBound = false;
+let tesseractLoadPromise = null;
+
+function bindMkdtClipboardUpload() {
+  if (mkdtClipboardBound) return;
+  mkdtClipboardBound = true;
+
+  document.addEventListener("paste", async function (e) {
+    if (!$("#modal-isi_data_konsumen").hasClass("show")) return;
+
+    const pastedFile = getImageFileFromClipboard(e);
+    if (!pastedFile) return;
+
+    e.preventDefault();
+    const result = await Swal.fire({
+      title: "Upload dari Clipboard",
+      text: "Pilih tujuan file yang ditempel.",
+      icon: "question",
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: "KTP",
+      denyButtonText: "NPWP",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      assignFileToInput("file_ktp", pastedFile, "ktp-clipboard");
+      runKtpOcrFromInput(true);
+    } else if (result.isDenied) {
+      assignFileToInput("file_npwp", pastedFile, "npwp-clipboard");
+    }
+  });
+}
+
+function bindKtpOcr() {
+  if (ktpOcrBound) return;
+  ktpOcrBound = true;
+
+  $("#btn-ocr-ktp").on("click", function () {
+    runKtpOcrFromInput(false);
+  });
+}
+
+function getImageFileFromClipboard(e) {
+  const clipboard = e.originalEvent?.clipboardData || e.clipboardData;
+  if (!clipboard?.items) return null;
+
+  for (const item of clipboard.items) {
+    if (item.kind === "file" && item.type.startsWith("image/")) {
+      return item.getAsFile();
+    }
+  }
+
+  return null;
+}
+
+function assignFileToInput(inputId, file, prefix) {
+  const input = document.getElementById(inputId);
+  if (!input || !file) return;
+
+  const extension = getImageExtension(file.type);
+  const uploadFile = new File(
+    [file],
+    file.name || `${prefix}-${Date.now()}.${extension}`,
+    { type: file.type || "image/png" },
+  );
+  const dataTransfer = new DataTransfer();
+  dataTransfer.items.add(uploadFile);
+  input.files = dataTransfer.files;
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function getImageExtension(type) {
+  const map = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+  };
+  return map[type] || "png";
+}
+
+async function runKtpOcrFromInput(fromClipboard = false) {
+  const input = document.getElementById("file_ktp");
+  const file = input?.files?.[0];
+
+  if (!file) {
+    return Swal.fire("OCR KTP", "Pilih atau paste gambar KTP terlebih dahulu.", "warning");
+  }
+
+  if (!file.type.startsWith("image/")) {
+    return Swal.fire("OCR KTP", "OCR hanya bisa membaca file gambar.", "warning");
+  }
+
+  if (fromClipboard) {
+    const confirmOcr = await Swal.fire({
+      title: "Jalankan OCR KTP?",
+      text: "Sistem akan membaca gambar KTP dan menyiapkan isian form.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, baca KTP",
+      cancelButtonText: "Lewati",
+    });
+    if (!confirmOcr.isConfirmed) return;
+  }
+
+  try {
+    Swal.fire({
+      title: "Membaca KTP",
+      html: "Menyiapkan OCR...",
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
+    const Tesseract = await loadTesseract();
+    const result = await Tesseract.recognize(file, "ind+eng", {
+      logger: updateOcrProgress,
+    });
+
+    Swal.close();
+    const parsed = parseKtpOcrText(result?.data?.text || "");
+    if (!parsed.nik && !parsed.nama && !parsed.alamat) {
+      return Swal.fire(
+        "OCR KTP",
+        "Teks KTP belum bisa dikenali dengan cukup jelas.",
+        "warning",
+      );
+    }
+
+    await confirmApplyKtpOcr(parsed);
+  } catch (err) {
+    Swal.close();
+    console.error(err);
+    Swal.fire("OCR KTP", "Gagal menjalankan OCR KTP.", "error");
+  }
+}
+
+function loadTesseract() {
+  if (window.Tesseract) return Promise.resolve(window.Tesseract);
+  if (tesseractLoadPromise) return tesseractLoadPromise;
+
+  tesseractLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+    script.async = true;
+    script.onload = () => resolve(window.Tesseract);
+    script.onerror = () => reject(new Error("Gagal memuat Tesseract.js"));
+    document.head.appendChild(script);
+  });
+
+  return tesseractLoadPromise;
+}
+
+function updateOcrProgress(message) {
+  if (!message?.status) return;
+
+  const progress = Number.isFinite(message.progress)
+    ? ` ${Math.round(message.progress * 100)}%`
+    : "";
+  const container = document.getElementById("swal2-html-container");
+  if (container) {
+    container.textContent = `${message.status}${progress}`;
+  }
+}
+
+function parseKtpOcrText(text) {
+  const lines = String(text || "")
+    .split(/\r?\n/)
+    .map((line) => cleanOcrLine(line))
+    .filter(Boolean);
+  const normalized = lines.join("\n");
+
+  return {
+    nik: extractKtpNik(normalized),
+    nama: extractKtpLine(lines, /^NAMA\b/i, [/TEMPAT/i, /LAHIR/i, /JENIS/i, /ALAMAT/i]),
+    alamat: extractKtpAddress(lines),
+  };
+}
+
+function cleanOcrLine(line) {
+  return String(line || "")
+    .replace(/[|]/g, "I")
+    .replace(/\s+/g, " ")
+    .replace(/^[^\w]+|[^\w]+$/g, "")
+    .trim();
+}
+
+function extractKtpNik(text) {
+  const byLabel = text.match(/(?:NIK|N1K)\s*[:=\-]?\s*([0-9OILSB\s.\-]{12,24})/i);
+  const fallback = text.match(/(?:[0-9OILSB][\s.\-]?){16,}/i);
+  const raw = byLabel?.[1] || fallback?.[0] || "";
+  const nik = raw
+    .replace(/[Oo]/g, "0")
+    .replace(/[IiLl]/g, "1")
+    .replace(/[Ss]/g, "5")
+    .replace(/[Bb]/g, "8")
+    .replace(/\D/g, "");
+  return nik.length >= 16 ? nik.substring(0, 16) : "";
+}
+
+function extractKtpLine(lines, labelRegex, stopRegexes = []) {
+  for (let i = 0; i < lines.length; i++) {
+    if (!labelRegex.test(lines[i])) continue;
+
+    let value = lines[i]
+      .replace(labelRegex, "")
+      .replace(/^[:=\-\s]+/, "")
+      .trim();
+
+    if (!value && lines[i + 1] && !matchesAny(lines[i + 1], stopRegexes)) {
+      value = lines[i + 1].trim();
+    }
+
+    return cleanKtpValue(value);
+  }
+
+  return "";
+}
+
+function extractKtpAddress(lines) {
+  const stopRegexes = [/AGAMA/i, /STATUS/i, /PEKERJAAN/i, /KEWARGANEGARAAN/i, /BERLAKU/i];
+  for (let i = 0; i < lines.length; i++) {
+    if (!/^ALAMAT\b/i.test(lines[i])) continue;
+
+    const parts = [];
+    const first = lines[i]
+      .replace(/^ALAMAT\b/i, "")
+      .replace(/^[:=\-\s]+/, "")
+      .trim();
+    if (first) parts.push(first);
+
+    for (let j = i + 1; j < Math.min(lines.length, i + 6); j++) {
+      if (matchesAny(lines[j], stopRegexes)) break;
+      if (/^(RT|RW|KEL|DESA|KEC|KAB|KOTA)\b/i.test(lines[j]) || parts.length === 0) {
+        parts.push(lines[j]);
+      }
+    }
+
+    return cleanKtpValue(parts.join(", "));
+  }
+
+  return "";
+}
+
+function matchesAny(value, regexes) {
+  return regexes.some((regex) => regex.test(value));
+}
+
+function cleanKtpValue(value) {
+  return String(value || "")
+    .replace(/\s*[:=]\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/^\W+|\W+$/g, "")
+    .trim();
+}
+
+async function confirmApplyKtpOcr(parsed) {
+  const rows = [
+    ["NIK", parsed.nik],
+    ["Nama", parsed.nama],
+    ["Alamat", parsed.alamat],
+  ]
+    .filter(([, value]) => isNotEmpty(value))
+    .map(
+      ([label, value]) =>
+        `<tr><th class="text-left pr-2">${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>`,
+    )
+    .join("");
+
+  const result = await Swal.fire({
+    title: "Gunakan hasil OCR?",
+    html: `<table class="table table-sm mb-0">${rows}</table>`,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "Isi Form",
+    cancelButtonText: "Batal",
+  });
+
+  if (!result.isConfirmed) return;
+
+  if (parsed.nik) setVal("#idk-nik_konsumen", parsed.nik);
+  if (parsed.nama) setVal("#idk-nama_konsumen", parsed.nama);
+  if (parsed.alamat) setVal("#idk-alamat_konsumen", parsed.alamat);
 }
 
 $("#idk-is_allin").change(function () {
@@ -2750,20 +3094,7 @@ function open_mkdt(sh, role, id_kavling) {
         // $("#file_ktp-here").html("Tidak ada data");
         // src = not_found;
 
-        // src = not_found;
-        //load bast
-        // if (r.bast_file != null) {
-        //   src = r.bast_file;
-        // }
-        // $("#list-upload_bast_file").prop("href", base_url + src);
-
-        // src = not_found;
-        //load sp3k
-        // if (r.sp3k_file != null) {
-        //   src = r.sp3k_file;
-        // }
-        // $("#list-upload_sp3k_file").prop("href", base_url + src);
-        setBtnHref("#list-upload_sp3k_file", r.sp3k_file);
+        setBtnHref("#list-upload_sp3k_file", r.sp3k_access_url);
       }
 
       if (pb.perintah_bangun == 1) {
@@ -2771,7 +3102,7 @@ function open_mkdt(sh, role, id_kavling) {
         $("#fm-mkdt #perintah_bangun_oleh").val(pb.username);
         setBtnHref(
           "#list-upload_perintah_bangun_file",
-          pb.perintah_bangun_file,
+          pb.perintah_bangun_access_url,
         );
         setDatePicker(pb.perintah_bangun_tgl, "#perintah_bangun_tgl");
       }
@@ -3072,7 +3403,7 @@ $("#sh-id").change(function () {
 });
 
 function open_set_turun_pembangunan() {
-  $("#list-tp-upload_perintah_bangun_file").prop("href", base_url + not_found);
+  $("#list-tp-upload_perintah_bangun_file").prop("href", resolveFileHref(not_found));
   $("#label-perintah_bangun_file").html("File Turun Perintah Bangun");
   if (editdtt.length == 0) {
     return swal("error", "Tidak ada kavling terpilih");
@@ -3116,7 +3447,7 @@ function open_set_turun_pembangunan() {
 
         $("#list-tp-upload_perintah_bangun_file").prop(
           "href",
-          base_url + r[0].perintah_bangun_file,
+          resolveFileHref(r[0].perintah_bangun_access_url, not_found),
         );
 
         setDatePicker(r[0].perintah_bangun_tgl, "#tp-perintah_bangun_tgl");
@@ -3205,7 +3536,7 @@ function setFileHref(id, remove = true, url = null) {
     $(id).removeAttr("target");
     $(id).prop("href", "javascript:void(0)");
   } else {
-    $(id).prop("href", `${base_url}${url}`);
+    $(id).prop("href", resolveFileHref(url));
     $(id).prop("target", "_blank");
   }
 }
@@ -3373,9 +3704,7 @@ function isi_si() {
                                         </div>
                                         <div class="col-md-12">
 
-                                         <a href="${
-                                           base_url + v.file
-                                         }" target=_blank id="list-si-file-${id_si}"
+                                         <a href="${v.access_url || "#"}" target=_blank id="list-si-file-${id_si}"
                                                 class="btn btn-outline-primary col-12">Klik untuk lihat file</a>
                                         </div>
                                     </div>
@@ -3508,8 +3837,15 @@ function mkdtUpload() {
   ];
 
   inputs.forEach((item) => {
+    const input = document.getElementById(item.id);
+    if (!input || input.dataset.dropzoneLoaded === "1") return;
+
     load_dropzone(item.id);
+    input.dataset.dropzoneLoaded = "1";
   });
+
+  bindMkdtClipboardUpload();
+  bindKtpOcr();
 }
 
 function postTurunKPR(val) {
