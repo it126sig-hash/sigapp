@@ -20,6 +20,7 @@ use App\Controllers\Notif;
 use App\Controllers\Home;
 use App\Repositories\KeuanganRepository;
 use App\Services\FileAccessService;
+use App\Services\TargetSiteplanService;
 
 use App\Repositories\CashOutRepository;
 
@@ -46,6 +47,7 @@ class Siteplan extends BaseController
 
     protected $cashoutRepo;
     protected $fileAccessService;
+    protected $targetSiteplanService;
 
     public function __construct()
     {
@@ -67,6 +69,7 @@ class Siteplan extends BaseController
         $this->keuRepo = new KeuanganRepository();
         $this->cashoutRepo = new CashOutRepository();
         $this->fileAccessService = new FileAccessService();
+        $this->targetSiteplanService = new TargetSiteplanService();
 
         $this->kavlingRepo = new KavlingRepository();
 
@@ -544,6 +547,9 @@ class Siteplan extends BaseController
         );
 
         $result['data'] = $data;
+        if ((int) $this->request->getVar('id_role') === 11) {
+            $result['target_kavling'] = $this->targetSiteplanService->getKavlingTargetMap((int) $this->request->getVar('id_proyek'));
+        }
         return $this->response->setJSON($result);
     }
     function get_others()
@@ -581,6 +587,20 @@ class Siteplan extends BaseController
             ->join("users as e", "e.id = others.produksi_edit_by", "left")
             ->join("users as f", "f.id = others.legal_edit_by", "left")
             ->where($where);
+
+        if (($id == null || $id == "") && $this->db->fieldExists('scope', 'others')) {
+            $idRole = (int) $this->request->getVar('id_role');
+
+            $q->groupStart()
+                ->where('others.scope', 'siteplan');
+
+            if ($idRole === 7) {
+                $q->orWhere('others.scope', 'produksi');
+            }
+
+            $q->orWhere('others.scope IS NULL', null, false)
+                ->groupEnd();
+        }
 
         $result['data'] = $q->get()->getResult();
         return $this->response->setJSON($result);
@@ -696,6 +716,11 @@ class Siteplan extends BaseController
             ->join('users', 'users.id = kavling.perintah_bangun_oleh', 'left')
             ->whereIn('kavling.id_kavling', $id)
             ->findAll();
+        foreach ($q as $row) {
+            if (!empty($row->perintah_bangun_file)) {
+                $row->perintah_bangun_access_url = $this->fileAccessService->accessUrl('kavling_perintah_bangun', (int) $row->id_kavling);
+            }
+        }
         if ($q) {
             $result['data'] = $q;
             $result['success'] = true;
@@ -793,9 +818,28 @@ class Siteplan extends BaseController
             ->join('users', 'users.id = mkdt.edit_by')
             ->where('id_mkdt', $id_mkdt)
             ->first();
+        if ($d['mkdt'] && !empty($d['mkdt']->surat_batal)) {
+            $d['mkdt']->surat_batal_access_url = $this->fileAccessService->accessUrl('mkdt_surat_batal', (int) $d['mkdt']->id_mkdt);
+        }
+        if ($d['mkdt'] && !empty($d['mkdt']->sp3k_file)) {
+            $d['mkdt']->sp3k_access_url = $this->fileAccessService->accessUrl('mkdt_sp3k', (int) $d['mkdt']->id_mkdt);
+        }
+        if ($d['mkdt'] && !empty($d['mkdt']->bast_file)) {
+            $d['mkdt']->bast_access_url = $this->fileAccessService->accessUrl('mkdt_bast', (int) $d['mkdt']->id_mkdt);
+        }
+        if ($d['mkdt'] && !empty($d['mkdt']->file_ktp)) {
+            $d['mkdt']->ktp_access_url = $this->fileAccessService->accessUrl('konsumen_ktp', (int) $d['mkdt']->id_konsumen);
+        }
+        if ($d['mkdt'] && !empty($d['mkdt']->file_npwp)) {
+            $d['mkdt']->npwp_access_url = $this->fileAccessService->accessUrl('konsumen_npwp', (int) $d['mkdt']->id_konsumen);
+        }
+        if ($d['mkdt'] && !empty($d['mkdt']->file_data_diri)) {
+            $d['mkdt']->data_diri_access_url = $this->fileAccessService->accessUrl('konsumen_data', (int) $d['mkdt']->id_konsumen);
+        }
 
         $d['kavling'] = $this->kavlingModel
             ->select('
+                kavling.id_kavling,
                 perintah_bangun,
                 perintah_bangun_tgl,
                 perintah_bangun_file,
@@ -810,6 +854,9 @@ class Siteplan extends BaseController
             ->join('pajak', 'pajak.id_mkdt = kavling.id_mkdt', 'left')
             ->where('id_kavling', $id_kavling)
             ->first();
+        if ($d['kavling'] && !empty($d['kavling']->perintah_bangun_file)) {
+            $d['kavling']->perintah_bangun_access_url = $this->fileAccessService->accessUrl('kavling_perintah_bangun', (int) $d['kavling']->id_kavling);
+        }
 
         $id_hargajual = $this->request->getVar('id_hargajual');
         $d['pricelist'] = null;
@@ -1022,6 +1069,7 @@ class Siteplan extends BaseController
             ->select('si.*, list_si.nama')
             ->join('si', 'list_si.id = si.id_list_si and si.id_kavling = ' . $id_kavling, 'left')
             ->get()->getResult();
+        $d['si'] = $this->fileAccessService->addAccessUrlsToRows($d['si'], 'si');
 
         $d['status'] = true;
 

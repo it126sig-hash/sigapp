@@ -36,6 +36,276 @@ class KeuanganService
         $this->notif = new NotifRepository();
     }
 
+    public function simpanIsiTagihan($request, int $actorId): array
+    {
+        $response = [
+            'token' => csrf_hash(),
+            'success' => false,
+            'messages' => 'Terjadi kesalahan saat melakukan perubahan data',
+        ];
+
+        $idMkdt = (int) $request->getPost('mk-id_mkdt');
+        if ($idMkdt <= 0) {
+            $response['messages'] = 'Data MKDT tidak valid';
+            return $response;
+        }
+
+        $existing = $this->db->table('keuangan')
+            ->where('id_mkdt', $idMkdt)
+            ->get()
+            ->getResult();
+
+        if ($this->hasPaidTagihan($idMkdt, $existing)) {
+            $response['messages'] = 'Sudah ada pembayaran. Tidak bisa merubah detail biaya/tagihan';
+            return $response;
+        }
+
+        $db = $this->db;
+        $db->transException(true);
+
+        try {
+            $db->transStart();
+
+            if (! $this->mkdtModel->update($idMkdt, $this->buildMkdtTagihanPayload($request))) {
+                throw new \RuntimeException('Gagal memperbarui detail biaya');
+            }
+
+            if ($this->hasRequestArray($request, 'berita_acara')) {
+                $this->syncTagihanStatus($idMkdt, 'UM', $this->buildTagihanRows($request, '', 'UM'), $actorId);
+            }
+
+            if ($this->hasRequestArray($request, 'berita_acara_bb')) {
+                $this->syncTagihanStatus($idMkdt, 'BB', $this->buildTagihanRows($request, '_bb', 'BB'), $actorId);
+            }
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            return [
+                'token' => csrf_hash(),
+                'success' => true,
+                'messages' => 'Data berhasil diperbaharui',
+            ];
+        } catch (\Throwable $e) {
+            try {
+                $db->transRollback();
+            } catch (\Throwable $rollback) {
+            }
+
+            log_message('error', '[KeuanganService::simpanIsiTagihan] {message}', ['message' => $e->getMessage()]);
+            $response['messages'] = 'Gagal menyimpan data: ' . $e->getMessage();
+            return $response;
+        }
+    }
+
+    public function simpanDanaAkad($request, int $actorId): array
+    {
+        $response = [
+            'token' => csrf_hash(),
+            'success' => false,
+            'messages' => 'Terjadi kesalahan saat melakukan perubahan data',
+        ];
+
+        $idMkdt = (int) $request->getVar('id_mkdt');
+        $idKavling = (int) $request->getVar('id_kavling');
+        $idDajam = $request->getVar('id_dajam');
+
+        if ($idMkdt <= 0 || $idKavling <= 0 || ! is_array($idDajam)) {
+            $response['messages'] = 'Data dana akad tidak lengkap';
+            return $response;
+        }
+
+        $db = $this->db;
+        $db->transException(true);
+
+        try {
+            $db->transStart();
+
+            if (! $this->mkdtModel->update($idMkdt, ['dajam_selesai' => $request->getVar('dajam_selesai') ? 1 : 0])) {
+                throw new \RuntimeException('Gagal memperbarui status dana akad');
+            }
+
+            foreach ($idDajam as $key => $row) {
+                if (! is_array($row)) {
+                    continue;
+                }
+
+                $payload = [
+                    'id_kavling' => $idKavling,
+                    'id_list_dajam' => $row['id_list_dajam'] ?? null,
+                    'nominal' => $this->num($row['nominal'] ?? 0),
+                ];
+
+                if (! empty($row['sudah_cair'])) {
+                    $payload += [
+                        'sudah_cair' => 1,
+                        'tgl_cair' => $row['tgl_cair'] ?? null,
+                        'keterangan' => $row['keterangan'] ?? null,
+                        'cair_oleh' => $actorId,
+                        'cair_created_at' => date('Y-m-d H:i:s'),
+                        'nominal_cair' => $this->num($row['nominal_cair'] ?? 0),
+                    ];
+                } else {
+                    $payload += [
+                        'sudah_cair' => 0,
+                        'tgl_cair' => null,
+                        'keterangan' => null,
+                        'cair_oleh' => null,
+                        'cair_created_at' => null,
+                        'nominal_cair' => null,
+                    ];
+                }
+
+                if (strpos((string) $key, 'n') === false) {
+                    $payload['id'] = $key;
+                    $payload['edit_by'] = $actorId;
+                    $payload['updated_at'] = date('Y-m-d H:i:s');
+                    $saved = $db->table('dana_akad')->where('id', $key)->update($payload);
+                } else {
+                    $payload['id'] = null;
+                    $payload['add_by'] = $actorId;
+                    $payload['created_at'] = date('Y-m-d H:i:s');
+                    $saved = $db->table('dana_akad')->insert($payload);
+                }
+
+                if (! $saved) {
+                    throw new \RuntimeException('Gagal menyimpan detail dana akad');
+                }
+            }
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            return [
+                'token' => csrf_hash(),
+                'success' => true,
+                'messages' => 'Data berhasil diperbaharui',
+            ];
+        } catch (\Throwable $e) {
+            try {
+                $db->transRollback();
+            } catch (\Throwable $rollback) {
+            }
+
+            log_message('error', '[KeuanganService::simpanDanaAkad] {message}', ['message' => $e->getMessage()]);
+            $response['messages'] = 'Gagal menyimpan dana akad: ' . $e->getMessage();
+            return $response;
+        }
+    }
+
+    public function simpanInvoice($request, int $actorId): array
+    {
+        $response = [
+            'token' => csrf_hash(),
+            'success' => false,
+            'messages' => 'Terjadi kesalahan saat menyimpan invoice',
+        ];
+
+        if (! $request->getVar('no_inv') || ! $request->getVar('id_mkdt') || ! $request->getVar('id_konsumen') || ! $request->getVar('id_kavling')) {
+            $response['messages'] = 'Data invoice tidak lengkap';
+            return $response;
+        }
+
+        $db = $this->db;
+        $db->transException(true);
+
+        try {
+            $db->transStart();
+
+            $saved = $db->table('invoice_log')->insert([
+                'no_inv' => $request->getVar('no_inv'),
+                'id_mkdt' => $request->getVar('id_mkdt'),
+                'id_konsumen' => $request->getVar('id_konsumen'),
+                'id_kavling' => $request->getVar('id_kavling'),
+                'id_kopsurat' => $request->getVar('id_kopsurat'),
+                'tanggal_invoice' => $request->getVar('tanggal_invoice'),
+                'tanggal_jatuh_tempo' => $request->getVar('tanggal_jatuh_tempo'),
+                'tagihan' => $request->getVar('tagihan'),
+                'terms' => $request->getVar('terms'),
+                'add_by' => $actorId,
+                'date_add' => date('Y-m-d H:i:s'),
+            ]);
+
+            if (! $saved) {
+                throw new \RuntimeException('Gagal menambahkan invoice');
+            }
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            return [
+                'token' => csrf_hash(),
+                'success' => true,
+                'messages' => 'Data berhasil ditambahkan',
+            ];
+        } catch (\Throwable $e) {
+            try {
+                $db->transRollback();
+            } catch (\Throwable $rollback) {
+            }
+
+            log_message('error', '[KeuanganService::simpanInvoice] {message}', ['message' => $e->getMessage()]);
+            $response['messages'] = 'Gagal menyimpan invoice: ' . $e->getMessage();
+            return $response;
+        }
+    }
+
+    public function updateSudahDibayar($request): array
+    {
+        $response = [
+            'token' => csrf_hash(),
+            'success' => false,
+            'messages' => 'Terjadi kesalahan saat melakukan perubahan data',
+        ];
+
+        $idKeuangan = (int) $request->getVar('id_keuangan');
+        if ($idKeuangan <= 0) {
+            $response['messages'] = 'Data tagihan tidak valid';
+            return $response;
+        }
+
+        $db = $this->db;
+        $db->transException(true);
+
+        try {
+            $db->transStart();
+
+            if (! $this->model->update($idKeuangan, ['sudah_dibayar' => $request->getVar('sb') ? 1 : 0])) {
+                throw new \RuntimeException('Gagal memperbarui status tagihan');
+            }
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            return [
+                'token' => csrf_hash(),
+                'success' => true,
+                'messages' => 'Data berhasil diperbaharui',
+            ];
+        } catch (\Throwable $e) {
+            try {
+                $db->transRollback();
+            } catch (\Throwable $rollback) {
+            }
+
+            log_message('error', '[KeuanganService::updateSudahDibayar] {message}', ['message' => $e->getMessage()]);
+            $response['messages'] = 'Gagal memperbarui status tagihan: ' . $e->getMessage();
+            return $response;
+        }
+    }
+
     /**
      * Sinkronisasi tagihan UM & BB:
      * - Update jika id_keuangan ada
@@ -262,6 +532,159 @@ class KeuanganService
 
         return $q;
     }
+
+    private function buildMkdtTagihanPayload($request): array
+    {
+        $tglHarga = $request->getVar('mk-tgl_harga');
+
+        return [
+            'id_hargajual' => $request->getVar('mk-id'),
+            'tgl_harga' => $tglHarga ? date('Y-m-d', strtotime($tglHarga)) : null,
+            'harga_jual' => $this->num($request->getVar('mk-hargajual')),
+            'harga_kpr' => $this->num($request->getVar('mk-kpr')),
+            'harga_diskon_harga_jual' => $this->num($request->getVar('mk-diskon_harga_jual')),
+            'harga_diskon_uang_muka' => $this->num($request->getVar('mk-diskon_uang_muka')),
+            'harga_administrasi' => $this->num($request->getVar('mk-biaya_adm')),
+            'harga_ppn' => $this->num($request->getVar('mk-harga_ppn')),
+            'harga_bphtb' => $this->num($request->getVar('mk-bphtb')),
+            'harga_biaya_proses' => $this->num($request->getVar('mk-biaya_proses')),
+            'harga_penambahan' => $this->num($request->getVar('mk-harga_penambahan')),
+            'harga_penambahan_tanah' => $this->num($request->getVar('mk-harga_penambahan_tanah')),
+            'keterangan_penambahan_biaya' => $this->num($request->getVar('mk-keterangan_harga_penambahan')),
+        ];
+    }
+
+    private function buildTagihanRows($request, string $suffix, string $status): array
+    {
+        $beritaAcara = $this->requestArray($request, 'berita_acara' . $suffix);
+        $jatuhTempo = $this->requestArray($request, 'jatuh_tempo_tgl' . $suffix);
+        $nominal = $this->requestArray($request, 'nominal' . $suffix);
+        $idKeuangan = $this->requestArray($request, $suffix === '_bb' ? 'id_keuangan_bb' : 'id_keuangan');
+
+        $rows = [];
+        $length = max(count($beritaAcara), count($jatuhTempo), count($nominal), count($idKeuangan));
+
+        for ($i = 0; $i < $length; $i++) {
+            $ba = $beritaAcara[$i] ?? null;
+            $jt = $jatuhTempo[$i] ?? null;
+            $nm = $nominal[$i] ?? null;
+            $id = $idKeuangan[$i] ?? null;
+
+            if ($ba === null && $jt === null && $nm === null && $id === null) {
+                continue;
+            }
+
+            $rows[] = [
+                'id_keuangan' => $id,
+                'berita_acara' => $ba,
+                'jatuh_tempo_tgl' => $jt,
+                'nominal' => $this->num($nm),
+                'status' => $status,
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function syncTagihanStatus(int $idMkdt, string $status, array $rows, int $actorId): void
+    {
+        $incomingIds = [];
+
+        foreach ($rows as $row) {
+            $payload = [
+                'berita_acara' => $row['berita_acara'],
+                'jatuh_tempo_tgl' => $row['jatuh_tempo_tgl'],
+                'nominal' => $row['nominal'],
+                'status' => $status,
+                'id_mkdt' => $idMkdt,
+                'edit_by' => $actorId,
+            ];
+
+            $idKeuangan = (int) ($row['id_keuangan'] ?? 0);
+            if ($idKeuangan > 0) {
+                if (! $this->model->update($idKeuangan, $payload)) {
+                    throw new \RuntimeException('Gagal memperbarui tagihan');
+                }
+
+                $incomingIds[] = $idKeuangan;
+                continue;
+            }
+
+            $payload['add_by'] = $actorId;
+            $insertId = $this->model->insert($payload);
+            if (! $insertId) {
+                throw new \RuntimeException('Gagal menambahkan tagihan');
+            }
+
+            $incomingIds[] = (int) $insertId;
+        }
+
+        $existingIds = array_map(
+            static fn($row) => (int) $row['id_keuangan'],
+            $this->db->table('keuangan')
+                ->select('id_keuangan')
+                ->where('id_mkdt', $idMkdt)
+                ->where('status', $status)
+                ->get()
+                ->getResultArray()
+        );
+
+        $deleteIds = array_diff($existingIds, $incomingIds);
+        if ($deleteIds !== []) {
+            if (! $this->model->whereIn('id_keuangan', $deleteIds)->delete()) {
+                throw new \RuntimeException('Gagal menghapus tagihan lama');
+            }
+        }
+    }
+
+    private function hasPaidTagihan(int $idMkdt, array $existingTagihan): bool
+    {
+        $existingIds = array_map(
+            static fn($row) => (string) $row->id_keuangan,
+            $existingTagihan
+        );
+
+        if ($existingIds === []) {
+            return false;
+        }
+
+        $logs = $this->db->table('log_pembayaran')
+            ->select('id_keuangan')
+            ->where('id_mkdt', $idMkdt)
+            ->get()
+            ->getResult();
+
+        foreach ($logs as $log) {
+            $paidIds = preg_split('/[;,]+/', (string) $log->id_keuangan, -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($paidIds as $paidId) {
+                if (in_array(trim($paidId), $existingIds, true)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function hasRequestArray($request, string $name): bool
+    {
+        return $request->getVar($name . '[]') !== null || $request->getVar($name) !== null;
+    }
+
+    private function requestArray($request, string $name): array
+    {
+        $value = $request->getVar($name . '[]');
+        if ($value === null) {
+            $value = $request->getVar($name);
+        }
+
+        if ($value === null) {
+            return [];
+        }
+
+        return is_array($value) ? array_values($value) : [$value];
+    }
+
     private function num($v)
     {
         // if ($v === null || $v === '')
@@ -269,6 +692,10 @@ class KeuanganService
         // $v = (string) $v;
         // $v = str_replace(',', "", $v);
         // return (int) round((float) $v);
+        if ($v === null || $v === '') {
+            return 0;
+        }
+
         $v = str_replace(',', "", $v);
         return $v;
     }

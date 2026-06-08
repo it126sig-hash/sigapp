@@ -27,6 +27,7 @@ class PencairanJaminan extends BaseController
         $rows = $this->model->where('id_kavling', $id_kavling)
                             ->orderBy('created_at','DESC')
                             ->findAll();
+        $rows = $this->fileAccessService->addAccessUrlsToRows($rows, 'pencairan_jaminan');
         return $this->response->setJSON(['data'=>$rows]);
     }
 

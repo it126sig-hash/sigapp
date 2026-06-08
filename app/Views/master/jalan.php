@@ -58,30 +58,27 @@
           </div>
           <div class="modal-body flex-grow-1">
             <div class="row">
-              <input type="hidden" id="idJalan" name="idJalan" class="form-control" placeholder="Id jalan" maxlength="255" required>
+              <input type="hidden" id="addIdJalan" name="idJalan" class="form-control" placeholder="Id jalan" maxlength="255" required>
             </div>
             <div>
               <div class="form-group">
-                <label for="idCluster"> Cluster: </label>
-                <select id="idCluster" name="idCluster" class="custom-select select2">
+                <label for="addIdCluster"> Cluster: </label>
+                <select id="addIdCluster" name="idCluster" class="custom-select select2">
                   <?php
-                  $x = 0;
-                  $group = "";
+                  $group = null;
                   foreach ($cluster as $p) {
-                    if($group != $p->nama_proyek){
-                      $x = 0;
+                    if ($group !== $p->nama_proyek) {
+                      if ($group !== null) {
+                        echo "</optgroup>";
+                      }
                       $group = $p->nama_proyek;
+                      echo "<optgroup label='" . esc($group) . "'>";
                     }
 
-                    if($x == 0)
-                      echo "<optgroup label='".$group."'>";
-                    
-                    echo "<option  value='$p->id_cluster'>$p->nama_cluster</option>";
-
-                    if($x == 0)
-                      echo "</optgroup>";
-
-                    $x++;
+                    echo "<option value='" . esc($p->id_cluster) . "'>" . esc($p->nama_cluster) . "</option>";
+                  }
+                  if ($group !== null) {
+                    echo "</optgroup>";
                   }
                   ?>
                 </select>
@@ -89,8 +86,8 @@
             </div>
             <div>
               <div class="form-group">
-                <label for="namaJalan"> Nama jalan: </label>
-                <input type="text" id="namaJalan" name="namaJalan" class="form-control" placeholder="Nama jalan" maxlength="255">
+                <label for="addNamaJalan"> Nama jalan: </label>
+                <input type="text" id="addNamaJalan" name="namaJalan" class="form-control" placeholder="Nama jalan" maxlength="255">
               </div>
             </div>
             <button type="submit" class="btn btn-primary data-submit mr-1" id="add-form-btn">Simpan</button>
@@ -109,15 +106,27 @@
           </div>
           <div class="modal-body flex-grow-1">
             <div class="row">
-              <input type="hidden" id="idJalan" name="idJalan" class="form-control" placeholder="Id jalan" maxlength="255" required>
+              <input type="hidden" id="editIdJalan" name="idJalan" class="form-control" placeholder="Id jalan" maxlength="255" required>
             </div>
             <div>
               <div class="form-group">
-                <label for="idCluster"> Cluster: </label>
-                <select id="idCluster" name="idCluster" class="custom-select">
+                <label for="editIdCluster"> Cluster: </label>
+                <select id="editIdCluster" name="idCluster" class="custom-select select2">
                   <?php
+                  $group = null;
                   foreach ($cluster as $p) {
-                    echo "<option  value='$p->id_cluster'>($p->nama_proyek) $p->nama_cluster</option>";
+                    if ($group !== $p->nama_proyek) {
+                      if ($group !== null) {
+                        echo "</optgroup>";
+                      }
+                      $group = $p->nama_proyek;
+                      echo "<optgroup label='" . esc($group) . "'>";
+                    }
+
+                    echo "<option value='" . esc($p->id_cluster) . "'>" . esc($p->nama_cluster) . "</option>";
+                  }
+                  if ($group !== null) {
+                    echo "</optgroup>";
                   }
                   ?>
                 </select>
@@ -125,11 +134,11 @@
             </div>
             <div>
               <div class="form-group">
-                <label for="namaJalan"> Nama jalan: </label>
-                <input type="text" id="namaJalan" name="namaJalan" class="form-control" placeholder="Nama jalan" maxlength="255">
+                <label for="editNamaJalan"> Nama jalan: </label>
+                <input type="text" id="editNamaJalan" name="namaJalan" class="form-control" placeholder="Nama jalan" maxlength="255">
               </div>
             </div>
-            <button type="submit" class="btn btn-primary data-submit mr-1" id="add-form-btn">Simpan</button>
+            <button type="submit" class="btn btn-primary data-submit mr-1" id="edit-form-btn">Simpan</button>
             <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
           </div>
         </form>
@@ -278,9 +287,16 @@
           },
         })
 
-        $("#idCluster").select2({
+        $("#addIdCluster").select2({
           placeholder: "Pilih cluster",
-          allowClear: true
+          allowClear: true,
+          dropdownParent: $('#add-modal')
+        });
+
+        $("#editIdCluster").select2({
+          placeholder: "Pilih cluster",
+          allowClear: true,
+          dropdownParent: $('#edit-modal')
         });
 
         //on click btn filter
@@ -297,7 +313,8 @@
         $("#add-form")[0].reset();
         $(".form-control").removeClass('is-invalid').removeClass('is-valid');
         $('#add-modal').modal('show');
-        $("#idCluster").val('').trigger('change')
+        $("#addIdCluster").val(null).trigger('change')
+        $('#add-form-btn').html('Simpan').prop("disabled", false);
         // submit the add from 
         $.validator.setDefaults({
           highlight: function(element) {
@@ -352,7 +369,6 @@
                   }).then(function() {
                     $('#data_table').DataTable().ajax.reload(null, false).draw(false);
                     $('#add-modal').modal('hide');
-                    $('#add-form-btn').prop("disabled", false);
                   })
 
                 } else {
@@ -380,7 +396,18 @@
 
                   }
                 }
-                $('#add-form-btn').html('Add');
+              },
+              error: function() {
+                Swal.fire({
+                  position: 'bottom-end',
+                  icon: 'error',
+                  title: 'Terjadi kesalahan saat menyimpan data',
+                  showConfirmButton: false,
+                  timer: 1500
+                })
+              },
+              complete: function() {
+                $('#add-form-btn').html('Simpan');
                 $('#add-form-btn').prop("disabled", false);
               }
             });
@@ -407,9 +434,9 @@
             $(".form-control").removeClass('is-invalid').removeClass('is-valid');
             $('#edit-modal').modal('show');
 
-            $("#edit-form #idJalan").val(response.id_jalan);
-            $("#edit-form #idCluster").val(response.id_cluster);
-            $("#edit-form #namaJalan").val(response.nama_jalan);
+            $("#edit-form #editIdJalan").val(response.id_jalan);
+            $("#edit-form #editIdCluster").val(response.id_cluster).trigger('change');
+            $("#edit-form #editNamaJalan").val(response.nama_jalan);
 
             // submit the edit from 
             $.validator.setDefaults({
@@ -445,6 +472,7 @@
                   data: form.serialize() + "&" + csrfName + "=" + csrfHash,
                   dataType: 'json',
                   beforeSend: function() {
+                    $('#edit-form-btn').prop("disabled", true);
                     $('#edit-form-btn').html('<i class="fa fa-spinner fa-spin"></i>');
                   },
                   success: function(response) {
@@ -488,7 +516,19 @@
 
                       }
                     }
-                    $('#edit-form-btn').html('Update');
+                  },
+                  error: function() {
+                    Swal.fire({
+                      position: 'bottom-end',
+                      icon: 'error',
+                      title: 'Terjadi kesalahan saat menyimpan data',
+                      showConfirmButton: false,
+                      timer: 1500
+                    })
+                  },
+                  complete: function() {
+                    $('#edit-form-btn').html('Simpan');
+                    $('#edit-form-btn').prop("disabled", false);
                   }
                 });
 

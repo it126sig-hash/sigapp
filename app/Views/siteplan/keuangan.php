@@ -1393,7 +1393,7 @@ function save_inv() {
         Swal.fire({
           //position: 'bottom-end',
           icon: "success",
-          title: r.messages,
+          title: r.messages || r.message || "Data berhasil disimpan",
           showConfirmButton: false,
         }).then(function () {
           print_tagihan();
@@ -1405,7 +1405,7 @@ function save_inv() {
         Swal.fire({
           //position: 'bottom-end',
           icon: "error",
-          title: r.messages,
+          title: r.messages || r.message || "Terjadi kesalahan",
           showConfirmButton: false,
         }).then(function () {
           $("#form_add_inv-btn").html("Simpan");
@@ -1502,6 +1502,13 @@ function save_sb(id) {
     success: function (r) {
       csrfHash = r.token;
       $("#loading").addClass("hidden");
+      if (r.success === false) {
+        Swal.fire({
+          icon: "error",
+          title: r.messages || r.message || "Terjadi kesalahan",
+          showConfirmButton: false,
+        });
+      }
     },
   });
 }
@@ -2026,7 +2033,7 @@ function save_isi_tagihan(e) {
         Swal.fire({
           //position: 'bottom-end',
           icon: "success",
-          title: r.messages,
+          title: r.messages || r.message || "Data berhasil disimpan",
           showConfirmButton: false,
           timer: 1500,
         }).then(function () {
@@ -2040,7 +2047,7 @@ function save_isi_tagihan(e) {
         Swal.fire({
           //position: 'bottom-end',
           icon: "error",
-          title: r.messages,
+          title: r.messages || r.message || "Terjadi kesalahan",
           showConfirmButton: false,
           // timer: 1500
         }).then(function () {
@@ -2727,7 +2734,7 @@ function save_keuangan(e = "") {
               $(".modal").modal("hide");
             }
           } else {
-            swal("error", r.messages);
+            swal("error", r.message || r.messages || "Terjadi kesalahan");
           }
           simpanBtn(".add-form-btn-keuangan", false);
 
@@ -2913,8 +2920,8 @@ function dana_akad() {
             )}</td>
             <td>
               ${
-                v.file_path
-                  ? `<a href="${base_url}${v.file_path}" target="_blank" class="btn btn-link btn-sm">Lihat Surat</a>`
+                v.access_url
+                  ? `<a href="${v.access_url}" target="_blank" class="btn btn-link btn-sm">Lihat Surat</a>`
                   : "-"
               }
             </td>
@@ -2995,11 +3002,11 @@ function save_dana_akad() {
     success: function (r) {
       csrfHash = r.token;
       if (r.success === true) {
-        swal("success", r.messages);
+        swal("success", r.messages || r.message || "Data berhasil disimpan");
         $(".modal").modal("hide");
         simpanBtn("#add-form-btn-dana_akad", false);
       } else {
-        swal("error", "Terjadi kesalahan", r.messages);
+        swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");
         simpanBtn("#add-form-btn-dana_akad", false);
       }
       load_kavling();
@@ -3052,9 +3059,11 @@ function getRiwayatGantinama() {
                     <tr>
                             <td>${n}</td>
                             <td>
-                                <a href="${
-                                  base_url + e.file_spptb
-                                }" target=_blank class="btn btn-outline-primary">Klik untuk melihat file SPPTB Seblumnya</a>
+                                ${
+                                  e.file_spptb_access_url
+                                    ? `<a href="${e.file_spptb_access_url}" target=_blank class="btn btn-outline-primary">Klik untuk melihat file SPPTB Seblumnya</a>`
+                                    : "-"
+                                }
                             </td>
                             <td>
                                 -
@@ -3474,9 +3483,9 @@ function save_cashout() {
         <td data-status="${r.status_cair}">${badgeStatus(r.status_cair)}</td>
         <td>
           ${
-            r.surat_path
-              ? `<a href="${base_url}${r.surat_path}" target="_blank" class="btn btn-link btn-sm">Lihat PDF</a>
-                            <a href="${base_url}pencairan/download/${r.id}" class="btn btn-outline-secondary btn-sm">Unduh</a>`
+            r.access_url
+              ? `<a href="${r.access_url}" target="_blank" class="btn btn-link btn-sm">Lihat PDF</a>
+                            <a href="${r.download_url}" class="btn btn-outline-secondary btn-sm">Unduh</a>`
               : "-"
           }
         </td>

@@ -73,6 +73,7 @@ class Mkdt extends BaseController
         $condition = ['kavling.id_kavling' => $this->request->getVar('id_kavling')];
         $y = $this->kavlingModel
             ->select('
+                    kavling.id_kavling,
                     perintah_bangun,
                     perintah_bangun_tgl,
                     perintah_bangun_file,
@@ -81,6 +82,9 @@ class Mkdt extends BaseController
             ->join('users', 'users.id = kavling.perintah_bangun_oleh', 'left')
             ->where($condition)
             ->first();
+        if ($y && !empty($y->perintah_bangun_file)) {
+            $y->perintah_bangun_access_url = $this->fileAccessService->accessUrl('kavling_perintah_bangun', (int) $y->id_kavling);
+        }
 
         $r['perintah_bangun'] = $y;
 
@@ -88,6 +92,7 @@ class Mkdt extends BaseController
         $x = $this->mkdtModel
             ->select('
                     mkdt.*,
+                    konsumen.id_konsumen,
                     konsumen.nama_konsumen,
                     konsumen.no_spptb,
                     konsumen.nik as nik_konsumen,
@@ -119,6 +124,21 @@ class Mkdt extends BaseController
             ->first();
 
         if ($x) {
+            if (!empty($x->ktp_lok)) {
+                $x->ktp_access_url = $this->fileAccessService->accessUrl('konsumen_ktp', (int) $x->id_konsumen);
+            }
+            if (!empty($x->npwp_lok)) {
+                $x->npwp_access_url = $this->fileAccessService->accessUrl('konsumen_npwp', (int) $x->id_konsumen);
+            }
+            if (!empty($x->data_diri_lok)) {
+                $x->data_diri_access_url = $this->fileAccessService->accessUrl('konsumen_data', (int) $x->id_konsumen);
+            }
+            if (!empty($x->sp3k_file)) {
+                $x->sp3k_access_url = $this->fileAccessService->accessUrl('mkdt_sp3k', (int) $x->id_mkdt);
+            }
+            if (!empty($x->bast_file)) {
+                $x->bast_access_url = $this->fileAccessService->accessUrl('mkdt_bast', (int) $x->id_mkdt);
+            }
             $r['data'] = $x;
             $r['hj'] = $hj;
             $r['token'] = csrf_hash();
@@ -1731,6 +1751,7 @@ class Mkdt extends BaseController
             ->join('users a', 'a.id = si.add_by', 'left')
             ->join('users b', 'b.id = si.edit_by', 'left')
             ->get()->getResult();
+        $r['data'] = $this->fileAccessService->addAccessUrlsToRows($r['data'], 'si');
 
         return $this->response->setJSON($r);
     }

@@ -135,26 +135,18 @@ function mark($cond)
             <td width="50%" valign="top">
                 <img height="150" src="<?= (new \App\Services\FileAccessService())->existingPath($proyek->logo) ?: base_url($proyek->logo) ?>" />
             </td>
-            <td width="30%" style="border: 1px solid #111">
-                <div>
+            <td width="30%" style="border: 1px solid #111; padding-left: 100px">
+                <div style="text-align: left;">
                     <p>
-                        &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
-                        &nbsp; &nbsp;
                         Asli : Keuangan Pusat
                     </p>
                     <p>
-                        &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
-                        &nbsp; &nbsp;
                         Copy 1 : Konsumen
                     </p>
                     <p>
-                        &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
-                        &nbsp; &nbsp;
                         Copy 2 : Keuangan Proyek
                     </p>
                     <p>
-                        &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
-                        &nbsp; &nbsp;
                         Copy 3 : Marketing
                     </p>
                 </div>

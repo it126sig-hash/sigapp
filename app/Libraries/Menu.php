@@ -2,34 +2,18 @@
 
 namespace App\Libraries;
 
-use \App\Models\MenuModel;
+use App\Services\MenuAccessService;
 
 class Menu
 {
     public function get_menu()
     {
-        $db = db_connect();
-        $get_menu = new MenuModel();
+        $menuAccess = new MenuAccessService();
+        $tree = $menuAccess->getMenuTreeForUser((int) user_id());
         $fullmenu = '<ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">';
 
-        $mr = $db->table("menu_roles")
-            ->select("id_menu")
-            ->join('auth_groups_users', "auth_groups_users.group_id = menu_roles.id_groups")
-            ->join('users', "users.id = auth_groups_users.user_id")
-            ->where("users.id", user_id())
-            ->get()
-            ->getResult()[0]
-            ->id_menu;
-        $mr = explode(",", $mr);
-
-        $m = $get_menu
-            ->where("parent_id", 0)
-            ->where("is_active", 1)
-            ->findAll();
-        foreach ($m as $m) {
-            if (in_array($m->id, $mr)) {
-                $fullmenu .= $this->generateMenuItem($m, $mr, $get_menu);
-            }
+        foreach ($tree as $menu) {
+            $fullmenu .= $this->generateMenuItem($menu);
         }
 
         $fullmenu .= "</ul>";
@@ -41,35 +25,70 @@ class Menu
         return view('template/generate_menu', $d);
     }
 
-    private function generateMenuItem($menu, $mr, $get_menu)
+    private function generateMenuItem($menu)
     {
+        $name = esc($menu->name ?? '');
+        $icon = esc($menu->icon ?: 'circle');
+        $href = $this->buildHref($menu->url ?? '#');
+        $hasChildren = !empty($menu->children);
+
         $html = "
         <li class='nav-item'>
-            <a class='d-flex align-items-center' href='" . base_url() . $menu->url . "'>
-                <i data-feather='" . $menu->icon . "'></i>
-                <span class='menu-title text-truncate' data-i18n='" . $menu->name . "'>" . $menu->name . "</span>
+            <a class='d-flex align-items-center' href='" . $href . "'>
+                <i data-feather='" . $icon . "'></i>
+                <span class='menu-title text-truncate' data-i18n='" . $name . "'>" . $name . "</span>
             </a>";
-        $sm = $get_menu
-            ->where('parent_id', $menu->id)
-            ->where("is_active", 1)
-            ->findAll();
-        if ($sm) {
+
+        if ($hasChildren) {
             $html .= '<ul class="menu-content">';
-            foreach ($sm as $sm) {
-                if (in_array($sm->id, $mr)) {
-                    $html .= ' 
-                    <li>
-                        <a class="d-flex align-items-center" href="' . base_url() . $sm->url . '">
-                            <i data-feather="circle"></i>
-                            <span class="menu-item text-truncate" data-i18n="Collapsed Menu">' . $sm->name . '</span>
-                        </a>
-                    </li>';
-                }
+            foreach ($menu->children as $child) {
+                $html .= $this->generateSubMenuItem($child);
             }
             $html .= "</ul>";
         }
+
         $html .= "</li>";
         return $html;
+    }
+
+    private function generateSubMenuItem($menu)
+    {
+        $name = esc($menu->name ?? '');
+        $href = $this->buildHref($menu->url ?? '#');
+        $hasChildren = !empty($menu->children);
+
+        $html = '
+            <li>
+                <a class="d-flex align-items-center" href="' . $href . '">
+                    <i data-feather="circle"></i>
+                    <span class="menu-item text-truncate" data-i18n="' . $name . '">' . $name . '</span>
+                </a>';
+
+        if ($hasChildren) {
+            $html .= '<ul class="menu-content">';
+            foreach ($menu->children as $child) {
+                $html .= $this->generateSubMenuItem($child);
+            }
+            $html .= '</ul>';
+        }
+
+        $html .= '</li>';
+
+        return $html;
+    }
+
+    private function buildHref(string $url): string
+    {
+        $url = trim($url);
+        if ($url === '' || $url === '#') {
+            return 'javascript:void(0);';
+        }
+
+        if (preg_match('/^https?:\/\//', $url)) {
+            return esc($url);
+        }
+
+        return base_url(ltrim($url, '/'));
     }
 
     function getNotif()

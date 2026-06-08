@@ -96,7 +96,36 @@ class TransaksiService
 
         if (!empty($idMkdt)) {
             $data = $this->transaksiRepo->getKonsumenTransaksi($idMkdt);
+
             if ($data) {
+                if (!empty($data->id_konsumen)) {
+                    if (!empty($data->ktp_lok)) {
+                        $data->ktp_access_url = $this->fileAccessService->accessUrl('konsumen_ktp', $data->id_konsumen);
+                    }
+                    if (!empty($data->npwp_lok)) {
+                        $data->npwp_access_url = $this->fileAccessService->accessUrl('konsumen_npwp', $data->id_konsumen);
+                    }
+                    if (!empty($data->data_diri_lok)) {
+                        $data->data_diri_access_url = $this->fileAccessService->accessUrl('konsumen_data', $data->id_konsumen);
+                    }
+                }
+
+                if (!empty($data->id_mkdt)) {
+                    $mkdtFiles = [
+                        'perintah_bangun_file' => 'mkdt_perintah',
+                        'file_spptb'           => 'mkdt_file_spptb',
+                        'sp3k_file'            => 'mkdt_sp3k',
+                        'bast_file'            => 'mkdt_bast',
+                        'surat_batal'          => 'mkdt_surat_batal'
+                    ];
+
+                    foreach ($mkdtFiles as $field => $source) {
+                        if (!empty($data->$field)) {
+                            $data->$field = $this->fileAccessService->accessUrl($source, $data->id_mkdt);
+                        }
+                    }
+                }
+
                 $resp['data'] = $data;
                 $resp['tagihan'] = $this->keuRepo->getTagihanOnlyByID($idMkdt);
                 $resp['log_pembayaran'] = $this->logRepo->getRiwayatBayarById($idMkdt);

@@ -115,6 +115,10 @@ class ProduksiController extends BaseApiController
                 ->join('users as lu', 'lu.id = komplain.edit_by', 'left')
                 ->where('id_kavling', $this->request->getVar('id_kavling'))
                 ->first();
+            if ($r['komplain']) {
+                $r['komplain']->upload_komplain_sales_urls = $this->fileAccessService->pathUrlsFromDelimitedString($r['komplain']->upload_komplain_sales, 'komplain_sales');
+                $r['komplain']->upload_komplain_produksi_urls = $this->fileAccessService->pathUrlsFromDelimitedString($r['komplain']->upload_komplain_produksi, 'komplain_produksi');
+            }
         }
 
         return $this->response->setJSON($r);
@@ -354,6 +358,67 @@ class ProduksiController extends BaseApiController
         }
 
         return $this->response->setJSON(['lokasi' => $this->fileAccessService->accessUrl('gambar_kerja', $id, true)]);
+    }
+
+    public function add_jalan(): ResponseInterface
+    {
+        $roleIds = array_map('intval', array_keys(user()->getRoles()));
+
+        if (!in_array(1, $roleIds, true) && !in_array(7, $roleIds, true)) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Kamu tidak memiliki akses untuk menambahkan jalan produksi',
+            ]);
+        }
+
+        $idJalan = (int) $this->request->getPost('id_jalan');
+        $points  = trim((string) $this->request->getPost('points'));
+        $pointList = array_filter(array_map('trim', explode(',', $points)), static function ($point) {
+            return $point !== '';
+        });
+
+        if ($idJalan <= 0) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Blok/Jalan harus diisi',
+            ]);
+        }
+
+        if (count($pointList) < 6 || count($pointList) % 2 !== 0) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Seleksi manual minimal 3 titik',
+            ]);
+        }
+
+        $progres = $this->request->getPost('f_progres_jalan');
+        $progres = $progres === null || $progres === '' ? 0 : max(0, min(100, (int) $progres));
+
+        $now = date('Y-m-d H:i:s');
+        $fields = [
+            'id_jalan'             => $idJalan,
+            'tipe'                 => 'jalan',
+            'scope'                => 'produksi',
+            'points'               => implode(',', $pointList),
+            'progres'              => $progres,
+            'produksi_luas'        => $this->request->getPost('f_produksi_luas'),
+            'produksi_keterangan'  => $this->request->getPost('f_produksi_keterangan'),
+            'produksi_add_by'      => user_id(),
+            'produksi_created_at'  => $now,
+            'produksi_edit_by'     => user_id(),
+            'produksi_updated_at'  => $now,
+        ];
+
+        $success = $this->repo->createOther($fields);
+
+        return $this->response->setJSON([
+            'token'    => csrf_hash(),
+            'success'  => $success,
+            'messages' => $success ? 'Jalan produksi berhasil ditambahkan' : 'Jalan produksi gagal ditambahkan',
+        ]);
     }
 
     public function edit_others(): ResponseInterface

@@ -387,11 +387,12 @@ select.form-control-custom {
 .modal-main::-webkit-scrollbar-track { background: transparent; }
 .modal-main::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 10px; }
 
-/* additional fixes for select2 under modal-main */
+/* Select2 global fixes */
 .select2-container--default .select2-selection--single {
   border: 1.5px solid var(--border);
   border-radius: 8px;
   height: 38px;
+  position: relative; /* ensures arrow absolute-positions against selection, not a distant ancestor */
 }
 .select2-container--default .select2-selection--single .select2-selection__rendered {
   line-height: 35px;
@@ -400,7 +401,11 @@ select.form-control-custom {
   color: var(--text-main);
 }
 .select2-container--default .select2-selection--single .select2-selection__arrow {
-  height: 36px;
+  position: absolute; /* explicit — do not rely on vendor select2.min.css being loaded */
+  top: 0;
+  right: 0;
+  width: 30px;
+  height: 100%;
 }
 /* ── SIDEBAR MODAL ─────────────────────────────── */
 .modal-sidebar {

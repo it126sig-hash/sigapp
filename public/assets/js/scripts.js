@@ -61,6 +61,19 @@ var isLoading = false;
   getNotif();
 })(window);
 
+function resolveFileHref(src, placeholder = null) {
+  if (!isNotEmpty(src)) {
+    return placeholder ? base_url + placeholder : null;
+  }
+
+  src = String(src);
+  if (/^(https?:)?\/\//.test(src) || src.startsWith("/")) {
+    return src;
+  }
+
+  return base_url + src;
+}
+
 function setBtnHref(id, target, teks = null) {
   $(id).off("click"); // hapus semua event click sebelumnya
   if (
@@ -72,7 +85,7 @@ function setBtnHref(id, target, teks = null) {
     teks = "Klik untuk melihat file";
     $(id).on("click", function (e) {
       e.preventDefault();
-      window.open(base_url + target, "_blank");
+      window.open(resolveFileHref(target), "_blank");
     });
   } else {
     teks = "Berkas tidak tersedia";
@@ -689,18 +702,59 @@ $("#notif-here").scroll(function () {
 });
 
 function setDatePicker(val, id) {
-  const el = document.querySelector(id);
+  let el = null;
+
+  if (typeof id === "string") {
+    try {
+      el = document.querySelector(id);
+    } catch (error) {
+      return false;
+    }
+  } else if (id && id.jquery) {
+    el = id.get(0);
+  } else {
+    el = id;
+  }
+
   const isValidDate = (dateStr) => {
-    const date = new Date(dateStr);
-    return !isNaN(date.getTime()) && /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
+    if (typeof dateStr !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return false;
+    }
+
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+
+    return (
+      date.getFullYear() === year &&
+      date.getMonth() === month - 1 &&
+      date.getDate() === day
+    );
   };
 
-  if (val && val !== "0000-00-00" && isValidDate(val)) {
-    el._flatpickr.setDate(val);
-  } else {
-    el._flatpickr.clear(); // menghapus nilai flatpickr
+  if (!el) {
+    return false;
+  }
+
+  const fp = el._flatpickr;
+  const validDate = val && val !== "0000-00-00" && isValidDate(val);
+
+  if (validDate) {
+    if (fp && typeof fp.setDate === "function") {
+      fp.setDate(val);
+    } else if ("value" in el) {
+      el.value = val;
+    }
+    return true;
+  }
+
+  if (fp && typeof fp.clear === "function") {
+    fp.clear(); // menghapus nilai flatpickr
+  }
+  if ("value" in el) {
     el.value = ""; // kosongkan input jika tidak valid
   }
+
+  return false;
 }
 
 function swal(
@@ -1197,7 +1251,7 @@ function setImgOrPlaceholder(
     $a.prop("href", base_url + placeholder);
   } else {
     $a.html("Klik untuk melihat file");
-    $a.prop("href", base_url + src);
+    $a.prop("href", resolveFileHref(src));
   }
 }
 function load_dropzone(id) {
