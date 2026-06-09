@@ -6,6 +6,118 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/fixed-columns/fixedColumns.bootstrap4.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/richtext.min.css">
+<style>
+  #poskon-filter .card-header.border-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: .75rem;
+  }
+
+  #poskon-filter .card-header.border-bottom > .col-md-4,
+  #poskon-filter .card-header.border-bottom > .col-12 {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .poskon-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    align-items: center;
+  }
+
+  .poskon-table-card .card-body {
+    padding: 1rem;
+  }
+
+  #data_tables {
+    width: 100% !important;
+  }
+
+  #poskon-filter .select2-container,
+  #modal-tambah-poskon .select2-container {
+    width: 100% !important;
+  }
+
+  .select2-dropdown {
+    z-index: 1060;
+  }
+
+  @media (max-width: 767.98px) {
+    .app-content.content {
+      padding-left: .75rem;
+      padding-right: .75rem;
+    }
+
+    #poskon-filter h2.card-header {
+      padding: 1rem 1rem .25rem;
+      font-size: 1.2rem;
+      line-height: 1.35;
+    }
+
+    #poskon-filter .card-header.border-bottom {
+      padding: 1rem;
+      display: block;
+    }
+
+    #poskon-filter .card-header.border-bottom > .col-md-4,
+    #poskon-filter .card-header.border-bottom > .col-12 {
+      width: 100%;
+      max-width: 100%;
+      flex: 0 0 100%;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .poskon-filter-actions,
+    .poskon-filter-actions .btn-group {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: .5rem;
+    }
+
+    .poskon-filter-actions .btn,
+    .poskon-filter-actions .btn-group .btn {
+      width: 100%;
+      margin-left: 0 !important;
+    }
+
+    .nav-tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-tabs .nav-link {
+      white-space: nowrap;
+    }
+
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+      width: 100%;
+      text-align: left;
+      margin-bottom: .75rem;
+    }
+
+    .dataTables_wrapper .dataTables_filter input {
+      width: 100%;
+      margin-left: 0;
+      margin-top: .35rem;
+    }
+
+    .dataTables_scrollBody {
+      max-height: 62vh !important;
+    }
+
+    #data_tables,
+    #riwayat_export {
+      font-size: .82rem;
+    }
+  }
+</style>
 <!--
 <link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.css">
 <link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.css"> -->
@@ -86,15 +198,18 @@
               </select>
             </div>
             <hr class="col-12" />
-            <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm">Filter Data</button>
-            <div class="btn-group">
-              <button type="button" id="btn_export_excel" class="btn btn-success waves-effect btn-sm"><i class="fa fa-file-excel"></i> Export Excel</button>
-              <button type="button" id="btn_export_pdf" class="btn btn-danger waves-effect btn-sm"><i class="fa fa-file-pdf"></i> Export PDF</button>
+            <div class="poskon-filter-actions col-12">
+              <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm">Filter Data</button>
+              <button type="button" id="btn_open_add_modal" class="btn btn-primary waves-effect btn-sm"><i class="fa fa-plus"></i> Tambah Data</button>
+              <div class="btn-group">
+                <button type="button" id="btn_export_excel" class="btn btn-success waves-effect btn-sm"><i class="fa fa-file-excel"></i> Export Excel</button>
+                <button type="button" id="btn_export_pdf" class="btn btn-danger waves-effect btn-sm"><i class="fa fa-file-pdf"></i> Export PDF</button>
+              </div>
             </div>
 
           </div>
         </div>
-        <div class="card">
+        <div class="card poskon-table-card">
           <div class="card-body pb-0 pt-0">
             <ul class="nav nav-tabs mb-1 mt-1" role="tablist">
               <li class="nav-item">
@@ -198,6 +313,47 @@
   </section>
 </div>
 
+<div class="modal fade" id="modal-tambah-poskon" tabindex="-1" role="dialog" aria-labelledby="modalTambahPoskonLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTambahPoskonLabel">Tambah Data Kavling</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-md-6 mb-1">
+            <label>Proyek</label>
+            <select id="add_id_proyek" class="select2 form-control"></select>
+          </div>
+          <div class="col-md-6 mb-1">
+            <label>Cluster</label>
+            <select disabled id="add_id_cluster" class="select2 form-control"></select>
+          </div>
+          <div class="col-md-6 mb-1">
+            <label>Blok</label>
+            <select disabled id="add_id_jalan" class="select2 form-control"></select>
+          </div>
+          <div class="col-md-6 mb-1">
+            <label>Kavling</label>
+            <select disabled id="add_id_kavling" class="select2 form-control"></select>
+          </div>
+          <div class="col-md-6 mb-1">
+            <label>Departemen</label>
+            <select id="add_id_role" class="form-control"></select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btn_add_open_department" class="btn btn-primary"><i class="fa fa-plus"></i> Lanjut Tambah Data</button>
+        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- BEGIN: Page Vendor JS-->
 <script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js"></script>
@@ -238,8 +394,114 @@ if (!empty($roles)) {
   var pph = 0;
   var ppn = 0;
   var li_keu = [];
+  const roleOptions = {
+    4: 'MKDT',
+    3: 'Keuangan',
+    6: 'Planning',
+    7: 'Produksi',
+    8: 'Sales',
+    5: 'Legal',
+    9: 'Direksi',
+    10: 'Pajak'
+  };
 
   window.editdtt = [];
+
+  function normalizeProjectContext(item) {
+    if (!item) return {};
+
+    return {
+      id_proyek: item.id_proyek || item.id || item[0] || '',
+      nama_proyek: item.nama_proyek || item.text || item[1] || ''
+    };
+  }
+
+  function setProjectContextFromSelect($select) {
+    const selected = $select.select2('data')[0] || {};
+    dt_proyek = normalizeProjectContext(selected);
+    return dt_proyek;
+  }
+
+  function getKavlingIdFromShape(sh, fallbackId) {
+    if (!sh) return fallbackId || '';
+    return (sh.data && sh.data.id_kavling) || fallbackId || String(sh.id || '').replace(/^kav/, '');
+  }
+
+  function buildKavlingShape(row) {
+    const idKavling = row.id_kavling || row.id || '';
+
+    return {
+      id: "kav" + idKavling,
+      data: {
+        tipe: "kavling",
+        id_kavling: idKavling,
+        id_mkdt: row.id_mkdt || null,
+        id_keuangan: row.id_keuangan || null,
+        id_legal: row.id_legal || null,
+        id_produksi: row.id_produksi || null,
+        nama_jalan: row.nama_jalan || '',
+        no_kavling: row.no_kavling || ''
+      },
+      data2: {
+        harga_akhir: row.harga_akhir || row.id_hargajual || "-",
+        id_hargajual: row.id_hargajual || row.harga_akhir || "-",
+        id_komplain: row.id_komplain || null,
+        no_tipe_rumah: row.no_tipe_rumah || '',
+        tipe_rumah: row.tipe_rumah || ''
+      }
+    };
+  }
+
+  function openDepartmentModal(roleToOpen, sh, source = 'edit') {
+    const targetRole = parseInt(roleToOpen, 10);
+    const idKavling = getKavlingIdFromShape(sh);
+
+    window.editdtt = [sh];
+
+    if ([3, 9, 10].includes(targetRole) && !sh.data.id_mkdt) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Data konsumen belum ada',
+        text: 'Isi data konsumen dari MKDT terlebih dahulu sebelum membuka departemen ini.',
+        showConfirmButton: true
+      });
+    }
+
+    if (targetRole === 6) {
+      if (!$('#modals-slide-in-edit').length) {
+        return Swal.fire({
+          icon: 'info',
+          title: 'Planning dibuka dari Siteplan',
+          text: 'Tambah atau ubah data planning kavling masih membutuhkan seleksi area di Siteplan.',
+          showConfirmButton: true
+        });
+      }
+      if (typeof open_planning === 'function') return open_planning(sh, targetRole, idKavling);
+    }
+    if (targetRole === 7 && typeof open_produksi === 'function') return open_produksi(sh, targetRole, idKavling);
+    if (targetRole === 8) {
+      if (typeof open_sales === 'function') return open_sales(sh, targetRole, idKavling);
+      if (typeof open_checklist_sales === 'function') return open_checklist_sales();
+    }
+    if (targetRole === 5 && typeof open_legal === 'function') return open_legal(sh, targetRole, idKavling);
+    if (targetRole === 4) {
+      if (typeof isi_data_konsumen === 'function') return isi_data_konsumen();
+      if (typeof open_mkdt === 'function') return open_mkdt(sh, targetRole, idKavling);
+    }
+    if (targetRole === 9) {
+      if (typeof open_direksi === 'function') return open_direksi(sh, targetRole, idKavling);
+      if (typeof open_diskresi === 'function') return open_diskresi();
+    }
+    if (targetRole === 3 && typeof open_keuangan === 'function') return open_keuangan(sh, targetRole, idKavling);
+    if (targetRole === 10 && typeof open_pajak === 'function') return open_pajak(sh, targetRole, idKavling);
+
+    return Swal.fire({
+      icon: 'error',
+      title: 'Modal tidak tersedia',
+      text: 'Komponen form departemen ini belum dimuat pada halaman.',
+      showConfirmButton: true
+    });
+  }
 
   window.load_kavling = function() {
     if ($.fn.DataTable.isDataTable('#data_tables')) {
@@ -262,62 +524,11 @@ if (!empty($roles)) {
     let row = JSON.parse(rowData);
     console.log("Extracted row data:", row);
 
-    // Construct fake Konva shape object
-    window.editdtt = [{
-      id: "kav" + row.id_kavling,
-      data: {
-        tipe: "kavling", // required by mkdt validator
-        id_mkdt: row.id_mkdt,
-        id_keuangan: row.id_keuangan,
-        id_legal: row.id_legal,
-        id_produksi: row.id_produksi,
-        nama_jalan: row.nama_jalan,
-        no_kavling: row.no_kavling
-      },
-      data2: {
-        harga_akhir: row.harga_akhir ?? "-",
-        id_hargajual: row.id_hargajual ?? "-",
-        id_komplain: row.id_komplain ?? null,
-        no_tipe_rumah: row.no_tipe_rumah,
-        tipe_rumah: row.tipe_rumah
-      }
-    }];
-
-    let sh = window.editdtt[0];
+    let sh = buildKavlingShape(row);
 
     // Debug:
-    console.log("Membuka Modal dengan Mock editdtt:", window.editdtt);
-
-    // Triggers based on role
-    switch (parseInt(roleid)) {
-      case 6: // Planning
-      case 1:
-        if (typeof open_planning === 'function') open_planning(sh, roleid, row.id_kavling);
-        break;
-      case 7: // Produksi
-        if (typeof open_produksi === 'function') open_produksi(sh, roleid, row.id_kavling);
-        break;
-      case 8: // Sales
-        if (typeof open_sales === 'function') open_sales(sh, roleid, row.id_kavling);
-        break;
-      case 5: // Legal
-        if (typeof open_legal === 'function') open_legal(sh, roleid, row.id_kavling);
-        break;
-      case 4: // MKDT
-        if (typeof isi_data_konsumen === 'function') isi_data_konsumen();
-        break;
-      case 9: // Direksi
-        if (typeof open_direksi === 'function') open_direksi(sh, roleid, row.id_kavling);
-        break;
-      case 3: // Keuangan
-        if (typeof open_keuangan === 'function') open_keuangan(sh, roleid, row.id_kavling);
-        break;
-      case 10: // Pajak
-        if (typeof open_pajak === 'function') open_pajak(sh, roleid, row.id_kavling);
-        break;
-      default:
-        console.error("[INFO] :: Modul untuk role ini tidak tersedia atau komponen form belum dimuat.");
-    }
+    console.log("Membuka Modal dengan Mock editdtt:", [sh]);
+    openDepartmentModal(roleid == 1 ? 6 : roleid, sh, 'edit');
   };
 
   $(document).ajaxSuccess(function(event, xhr, settings) {
@@ -329,58 +540,96 @@ if (!empty($roles)) {
   });
 
   $(function() {
-    var table = $('#data_tables').DataTable({
-      fnDrawCallback: function() {
-        $('[data-toggle="popover"]').popover();
-      },
-      scrollY: "50vh",
-      scrollX: true,
-      scrollCollapse: true,
-      fixedColumns: {
-        leftColumns: 6
-      },
-      processing: true,
-      serverSide: true,
-      lengthChange: true,
-      searching: true,
-      ordering: false,
-      paging: true,
-      // "info": true,
-      // "autoWidth": false,
-      // "responsive": true,
-      ajax: {
-        url: base_url + 'list-kavling/ambil',
-        type: "POST",
-        dataType: "json",
-        data: {
-          [csrfName]: csrfHash
+    if ($.fn.modal && $.fn.modal.Constructor && $.fn.modal.Constructor.prototype) {
+      $.fn.modal.Constructor.prototype.enforceFocus = function() {};
+      $.fn.modal.Constructor.prototype._enforceFocus = function() {};
+    }
+
+    var isMobileTable = window.matchMedia("(max-width: 767.98px)").matches;
+    var table = null;
+
+    try {
+      table = $('#data_tables').DataTable({
+        fnDrawCallback: function() {
+          $('[data-toggle="popover"]').popover();
         },
-        data: function(data) {
-          data[csrfName] = csrfHash
-          data.id_proyek = $("#id_proyek").val()
-          data.id_cluster = $("#id_cluster").val()
-          data.id_jalan = $("#id_jalan").val()
-          data.sp3k = $("#sp3k").val()
-          data.wawancara = $("#wawancara").val()
-          data.akad = $("#akad").val()
+        scrollY: isMobileTable ? "60vh" : "50vh",
+        scrollX: true,
+        scrollCollapse: true,
+        fixedColumns: {
+          leftColumns: isMobileTable ? 0 : 6
         },
-        dataSrc: function(r) {
-          csrfHash = r.token
-          return r.data;
-        },
-        async: "true"
-      }
-    });
+        processing: true,
+        serverSide: true,
+        lengthChange: true,
+        searching: true,
+        ordering: false,
+        paging: true,
+        // "info": true,
+        // "autoWidth": false,
+        // "responsive": true,
+        ajax: {
+          url: base_url + 'list-kavling/ambil',
+          type: "POST",
+          dataType: "json",
+          data: {
+            [csrfName]: csrfHash
+          },
+          data: function(data) {
+            data[csrfName] = csrfHash
+            data.id_proyek = $("#id_proyek").val()
+            data.id_cluster = $("#id_cluster").val()
+            data.id_jalan = $("#id_jalan").val()
+            data.sp3k = $("#sp3k").val()
+            data.wawancara = $("#wawancara").val()
+            data.akad = $("#akad").val()
+          },
+          dataSrc: function(r) {
+            csrfHash = r.token
+            return r.data;
+          },
+          async: "true"
+        }
+      });
+    } catch (error) {
+      console.error('Gagal memuat DataTables list kavling:', error);
+    }
 
     //on chnage search
     $(".dataTables_filter input")
       .off()
       .on('change', function(e) {
+        if (!table) return;
         table.search(this.value).draw();
       });
 
     //select filter for sp3k, wawancara, akad
     $(".self").select2();
+
+    function fillRoleOptions() {
+      const $role = $("#add_id_role");
+      $role.empty();
+
+      if (roleid == 1) {
+        $.each(roleOptions, function(id, label) {
+          $role.append(new Option(label, id));
+        });
+      } else {
+        $role.append(new Option(roleOptions[roleid] || rolename || 'Departemen aktif', roleid));
+      }
+
+      $role.select2({
+        dropdownParent: $("#modal-tambah-poskon"),
+        width: '100%'
+      });
+    }
+
+    function resetAddSelect($select, disabled = true) {
+      $select.prop('disabled', disabled);
+      $select.val(null).trigger('change.select2');
+    }
+
+    fillRoleOptions();
 
     //select2 proyek
     $("#id_proyek").select2({
@@ -421,7 +670,7 @@ if (!empty($roles)) {
     $("#id_proyek").on("select2:select", function(e) {
       $('#id_cluster').val(null).trigger('change');
 
-      dt_proyek = e.params.data;
+      dt_proyek = normalizeProjectContext(e.params.data);
 
       if (this.value)
         $("#id_cluster").prop("disabled", false)
@@ -508,9 +757,236 @@ if (!empty($roles)) {
       },
     })
 
+    $("#btn_open_add_modal").on("click", function() {
+      $("#modal-tambah-poskon").modal({
+        backdrop: "static",
+        keyboard: false
+      });
+    });
+
+    $("#add_id_proyek").select2({
+      dropdownParent: $("#modal-tambah-poskon"),
+      placeholder: "Pilih Proyek",
+      allowClear: true,
+      width: '100%',
+      ajax: {
+        url: base_url + "proyek/getAll",
+        dataType: 'json',
+        delay: 250,
+        method: 'post',
+        data: function(params) {
+          return {
+            [csrfName]: csrfHash,
+            search: params.term
+          };
+        },
+        processResults: function(r) {
+          csrfHash = r.token
+
+          let results = [];
+          $.each(r.data, function(index, item) {
+            results.push({
+              id: item['id_proyek'],
+              text: item[1] + ' (' + item[2] + ')',
+              id_proyek: item['id_proyek'],
+              nama_proyek: item[1],
+              data: item
+            });
+          });
+
+          return {
+            results: results
+          };
+        },
+        cache: true
+      },
+    });
+
+    $("#add_id_proyek").on("select2:select", function() {
+      setProjectContextFromSelect($(this));
+      resetAddSelect($("#add_id_cluster"), false);
+      resetAddSelect($("#add_id_jalan"));
+      resetAddSelect($("#add_id_kavling"));
+    });
+
+    $("#add_id_proyek").on("select2:clear", function() {
+      dt_proyek = {};
+      resetAddSelect($("#add_id_cluster"));
+      resetAddSelect($("#add_id_jalan"));
+      resetAddSelect($("#add_id_kavling"));
+    });
+
+    $("#add_id_cluster").select2({
+      dropdownParent: $("#modal-tambah-poskon"),
+      placeholder: "Pilih Cluster",
+      allowClear: true,
+      width: '100%',
+      ajax: {
+        url: base_url + "/cluster/getAll",
+        dataType: 'json',
+        delay: 250,
+        method: 'post',
+        data: function(params) {
+          return {
+            [csrfName]: csrfHash,
+            search: params.term,
+            id_proyek: $("#add_id_proyek").val()
+          };
+        },
+        processResults: function(r) {
+          csrfHash = r.token
+
+          let results = [];
+          $.each(r.data, function(index, item) {
+            results.push({
+              id: item[0],
+              text: item[3]
+            });
+          });
+
+          return {
+            results: results
+          };
+        },
+        cache: true
+      },
+    });
+
+    $("#add_id_cluster").on("select2:select", function() {
+      resetAddSelect($("#add_id_jalan"), false);
+      resetAddSelect($("#add_id_kavling"));
+    });
+
+    $("#add_id_cluster").on("select2:clear", function() {
+      resetAddSelect($("#add_id_jalan"), !this.value);
+      resetAddSelect($("#add_id_kavling"));
+    });
+
+    $("#add_id_jalan").select2({
+      dropdownParent: $("#modal-tambah-poskon"),
+      placeholder: "Pilih Blok",
+      allowClear: true,
+      width: '100%',
+      ajax: {
+        url: base_url + "/jalan/getAll",
+        dataType: 'json',
+        delay: 250,
+        method: 'post',
+        data: function(params) {
+          return {
+            [csrfName]: csrfHash,
+            search: params.term,
+            id_cluster: $("#add_id_cluster").val(),
+            id_proyek: $("#add_id_proyek").val()
+          };
+        },
+        processResults: function(r) {
+          csrfHash = r.token
+
+          let results = [];
+          $.each(r.data, function(index, item) {
+            results.push({
+              id: item[0],
+              text: item[3]
+            });
+          });
+
+          return {
+            results: results
+          };
+        },
+        cache: true
+      },
+    });
+
+    $("#add_id_jalan").on("select2:select", function() {
+      resetAddSelect($("#add_id_kavling"), false);
+    });
+
+    $("#add_id_jalan").on("select2:clear", function() {
+      resetAddSelect($("#add_id_kavling"), !this.value);
+    });
+
+    $("#add_id_kavling").select2({
+      dropdownParent: $("#modal-tambah-poskon"),
+      placeholder: "Pilih Kavling",
+      allowClear: true,
+      width: '100%',
+      ajax: {
+        url: base_url + "kavling/list/ambil",
+        dataType: 'json',
+        delay: 250,
+        method: 'post',
+        data: function(params) {
+          return {
+            [csrfName]: csrfHash,
+            search: params.term,
+            id_proyek: $("#add_id_proyek").val(),
+            id_cluster: $("#add_id_cluster").val(),
+            id_jalan: $("#add_id_jalan").val(),
+            limit: 25
+          };
+        },
+        processResults: function(r) {
+          let results = [];
+          $.each(r, function(index, item) {
+            results.push({
+              id: item.id_kavling,
+              text: item.nama_jalan + ' No. ' + item.no_kavling,
+              id_kavling: item.id_kavling,
+              nama_jalan: item.nama_jalan,
+              no_kavling: item.no_kavling
+            });
+          });
+
+          return {
+            results: results
+          };
+        },
+        cache: true
+      },
+    });
+
+    $("#btn_add_open_department").on("click", function() {
+      if (!$("#add_id_proyek").val()) return swal('error', 'Pilih proyek terlebih dahulu');
+      if (!$("#add_id_cluster").val()) return swal('error', 'Pilih cluster terlebih dahulu');
+      if (!$("#add_id_jalan").val()) return swal('error', 'Pilih blok terlebih dahulu');
+      if (!$("#add_id_kavling").val()) return swal('error', 'Pilih kavling terlebih dahulu');
+
+      const selectedRole = $("#add_id_role").val();
+      const selectedKavling = $("#add_id_kavling").select2('data')[0] || {};
+      setProjectContextFromSelect($("#add_id_proyek"));
+
+      $.ajax({
+        url: base_url + "siteplan/get_kavling_by_id",
+        type: "post",
+        dataType: "json",
+        data: {
+          [csrfName]: csrfHash,
+          id_kavling: $("#add_id_kavling").val()
+        },
+        beforeSend: function() {
+          $("#btn_add_open_department").prop("disabled", true).html("<i class='fa fa-spinner fa-spin'></i> Memuat");
+        },
+        success: function(res) {
+          csrfHash = res.token;
+          const row = $.extend({}, selectedKavling, res.data || {});
+          const sh = buildKavlingShape(row);
+          $("#modal-tambah-poskon").modal("hide");
+          openDepartmentModal(selectedRole, sh, 'add');
+        },
+        error: function() {
+          swal('error', 'Terjadi kesalahan saat memuat kavling');
+        },
+        complete: function() {
+          $("#btn_add_open_department").prop("disabled", false).html("<i class='fa fa-plus'></i> Lanjut Tambah Data");
+        }
+      });
+    });
+
     //on click btn filter
     $("#btn_draw").on("click", function(e) {
-      table.draw();
+      if (table) table.draw();
       load_riwayat();
     })
 

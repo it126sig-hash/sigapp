@@ -476,6 +476,698 @@ foreach (user()->getRoles() as $key => $val) {
         background-color: #fff !important;
     }
 
+    #modal_detail .modal-dialog {
+        max-width: min(1440px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modal_detail .modal-content {
+        border: 0;
+        border-radius: 10px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+        overflow: hidden;
+    }
+
+    #modal_detail .modal-header {
+        align-items: center;
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1rem 1.25rem;
+    }
+
+    #modal_detail .modal-title {
+        color: #111827;
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    #modal_detail .modal-body {
+        background: #f3f5f7 !important;
+        max-height: calc(100vh - 7rem);
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    #modal_detail .detail-kavling-layout {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        margin: 0;
+    }
+
+    #modal_detail .detail-kavling-sidebar,
+    #modal_detail .detail-kavling-content {
+        padding: 0;
+    }
+
+    #modal_detail .detail-kavling-sidebar {
+        align-self: flex-start;
+        flex: 0 0 320px;
+        position: sticky;
+        top: 0;
+        max-width: 320px;
+        z-index: 2;
+    }
+
+    #modal_detail .detail-kavling-content {
+        flex: 1 1 auto;
+        max-width: calc(100% - 336px);
+        min-width: 0;
+    }
+
+    #modal_detail .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+        margin-bottom: 1rem;
+    }
+
+    #modal_detail .card-body {
+        padding: 1rem;
+    }
+
+    #modal_detail .detail-hero-card {
+        background: linear-gradient(145deg, #2056a4 0%, #1f7a8c 100%);
+        border: 0;
+        color: #fff;
+        overflow: hidden;
+    }
+
+    #modal_detail .detail-hero-card .card-body {
+        background: transparent !important;
+    }
+
+    #modal_detail .detail-hero-card .label_alamat {
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-bottom: .75rem;
+    }
+
+    #modal_detail .detail-price-card,
+    #modal_detail .detail-meta-card {
+        background: rgba(255, 255, 255, 0.94);
+        border: 0;
+        color: #111827;
+        margin-top: .85rem;
+    }
+
+    #modal_detail .detail-price-card h5 {
+        color: #374151;
+        font-size: .85rem;
+        margin-bottom: .35rem;
+    }
+
+    #modal_detail #label-hargajual h2 {
+        font-size: 1.25rem;
+        line-height: 1.2;
+    }
+
+    #modal_detail .detail-meta-card h6 {
+        color: #374151;
+        font-size: .78rem;
+        line-height: 1.35;
+    }
+
+    #modal_detail .detail-consumer-card .card-header,
+    #modal_detail .detail-tabs-card .card-body {
+        background: #fff;
+        border-bottom: 1px solid #edf0f2;
+        padding: .85rem 1rem;
+    }
+
+    #modal_detail .detail-consumer-card .card-body {
+        padding: .85rem 1rem 1rem;
+    }
+
+    #modal_detail .detail-consumer-card li {
+        border-bottom: 1px solid #edf0f2;
+        margin-bottom: 0 !important;
+        padding: .55rem 0;
+    }
+
+    #modal_detail .detail-consumer-card li:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    #modal_detail .detail-consumer-card b,
+    #modal_detail label,
+    #modal_detail .info-label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    #modal_detail .detail-consumer-card span {
+        color: #111827;
+        display: block;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .detail-consumer-toggle {
+        font-size: .78rem;
+        margin-top: .75rem;
+        padding: .45rem .65rem;
+    }
+
+    #modal_detail .detail-consumer-toggle .hide-label,
+    #modal_detail .detail-consumer-toggle[aria-expanded="true"] .show-label {
+        display: none;
+    }
+
+    #modal_detail .detail-consumer-toggle[aria-expanded="true"] .hide-label {
+        display: inline;
+    }
+
+    #modal_detail .detail-consumer-toggle i {
+        transition: transform .2s ease;
+    }
+
+    #modal_detail .detail-consumer-toggle[aria-expanded="true"] i {
+        transform: rotate(180deg);
+    }
+
+    #modal_detail .detail-tabs-card {
+        margin-bottom: .75rem;
+    }
+
+    #modal_detail .detail-tabs-card .card-body {
+        padding: .65rem;
+    }
+
+    #modal_detail .nav-pills {
+        gap: .4rem;
+    }
+
+    #modal_detail .nav-pills .nav-link {
+        border-radius: 6px;
+        color: #4b5563;
+        font-size: .82rem;
+        font-weight: 700;
+        padding: .55rem .8rem;
+        white-space: nowrap;
+    }
+
+    #modal_detail .nav-pills .nav-link.active {
+        background-color: #2056a4;
+        box-shadow: 0 6px 14px rgba(32, 86, 164, .2);
+        color: #fff;
+    }
+
+    #modal_detail .detail-panel-card {
+        margin-bottom: 0;
+    }
+
+    #modal_detail .tab-content {
+        min-width: 0;
+    }
+
+    #modal_detail .tab-pane {
+        overflow-x: auto;
+    }
+
+    #modal_detail .divider {
+        margin: .65rem 0 .85rem;
+    }
+
+    #modal_detail .divider-left {
+        border-left-color: #2056a4;
+        margin-bottom: .85rem;
+        padding-left: .75rem;
+    }
+
+    #modal_detail .divider .divider-text {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 700;
+    }
+
+    #modal_detail .info-row {
+        align-items: flex-start;
+        background: #f9fafb;
+        border: 1px solid #edf0f2;
+        border-radius: 6px;
+        margin: 0 0 .45rem;
+        padding: .45rem .55rem;
+    }
+
+    #modal_detail .info-value {
+        color: #111827;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .form-group {
+        margin-bottom: .8rem;
+    }
+
+    #modal_detail .form-control {
+        background-color: #fff;
+        border-color: #d8dde3;
+        border-radius: 6px;
+        min-height: 36px;
+    }
+
+    #modal_detail .form-control:disabled,
+    #modal_detail .form-control[readonly] {
+        background-color: #f8fafc;
+        color: #111827;
+        opacity: 1;
+    }
+
+    #modal_detail .btn {
+        border-radius: 6px;
+        white-space: normal;
+    }
+
+    #modal_detail table {
+        width: 100% !important;
+    }
+
+    #modal_detail .detail-dashboard-grid,
+    #modal_detail .detail-card-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    #modal_detail .detail-summary-card,
+    #modal_detail .detail-metric-card,
+    #modal_detail .detail-accordion-card,
+    #modal_detail .detail-status-step,
+    #modal_detail .detail-progress-card,
+    #modal_detail .detail-mini-card {
+        background: #fff;
+        border: 1px solid #cfd6e3;
+        border-radius: 8px;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
+    }
+
+    #modal_detail .detail-summary-card,
+    #modal_detail .detail-status-step {
+        padding: 1rem;
+    }
+
+    #modal_detail .detail-summary-card .divider,
+    #modal_detail .detail-status-step .divider {
+        margin-top: 0;
+    }
+
+    #modal_detail .detail-card-icon {
+        align-items: center;
+        background: #205792;
+        border-radius: 10px;
+        color: #dbeafe;
+        display: inline-flex;
+        height: 48px;
+        justify-content: center;
+        width: 48px;
+    }
+
+    #modal_detail .detail-metric-card {
+        min-height: 250px;
+        padding: 1.5rem;
+        position: relative;
+    }
+
+    #modal_detail .detail-metric-card .detail-percent {
+        color: #003b78;
+        font-size: 1.25rem;
+        font-weight: 700;
+        position: absolute;
+        right: 1.5rem;
+        top: 1.45rem;
+    }
+
+    #modal_detail .detail-metric-title {
+        color: #344054;
+        font-size: .98rem;
+        font-weight: 700;
+        margin-top: 1.5rem;
+    }
+
+    #modal_detail .detail-metric-total {
+        color: #020617;
+        font-size: 1.55rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin: .35rem 0 1.6rem;
+    }
+
+    #modal_detail .detail-metric-row {
+        align-items: center;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        margin-bottom: .85rem;
+    }
+
+    #modal_detail .detail-metric-label {
+        color: #344054;
+        font-size: .96rem;
+    }
+
+    #modal_detail .detail-metric-value {
+        color: #020617;
+        font-weight: 800;
+        text-align: right;
+    }
+
+    #modal_detail .detail-metric-value.is-paid {
+        color: #006b35;
+    }
+
+    #modal_detail .detail-metric-value.is-due {
+        color: #c40000;
+    }
+
+    #modal_detail .detail-progress-track {
+        background: #e7eefb;
+        border-radius: 999px;
+        height: 9px;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    #modal_detail .detail-progress-fill {
+        background: #4ade80;
+        border-radius: inherit;
+        height: 100%;
+        transition: width .2s ease;
+        width: 0%;
+    }
+
+    #modal_detail .detail-progress-fill.is-partial {
+        background: #2563eb;
+    }
+
+    #modal_detail .detail-progress-fill.is-empty {
+        background: transparent;
+    }
+
+    #modal_detail .detail-legacy-hidden {
+        display: none !important;
+    }
+
+    #modal_detail .detail-accordion {
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+    }
+
+    #modal_detail .detail-accordion-card {
+        overflow: hidden;
+    }
+
+    #modal_detail .detail-accordion-toggle {
+        align-items: center;
+        background: #fff;
+        border: 0;
+        color: #111827;
+        display: flex;
+        font-weight: 800;
+        justify-content: space-between;
+        padding: 1rem 1.1rem;
+        text-align: left;
+        width: 100%;
+    }
+
+    #modal_detail .detail-accordion-toggle i {
+        color: #2056a4;
+        transition: transform .2s ease;
+    }
+
+    #modal_detail .detail-accordion-toggle[aria-expanded="true"] i {
+        transform: rotate(180deg);
+    }
+
+    #modal_detail .detail-accordion-body {
+        border-top: 1px solid #edf0f2;
+        padding: 1rem;
+    }
+
+    #modal_detail .detail-status-timeline {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    #modal_detail .detail-status-step {
+        border-left: 4px solid #2056a4;
+        height: 100%;
+    }
+
+    #modal_detail .detail-status-step-title {
+        color: #003b78;
+        font-size: 1rem;
+        font-weight: 800;
+        margin-bottom: .75rem;
+    }
+
+    #modal_detail .detail-price-comparison > .row > [class*="col-md-"] {
+        background: #fff;
+        border: 1px solid #cfd6e3;
+        border-radius: 8px;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .05);
+        margin-bottom: 1rem;
+        padding: 0 1rem 1rem;
+    }
+
+    #modal_detail .detail-price-comparison > .row > [class*="col-md-"] > .divider:first-child {
+        background: #f8fafc;
+        border: 1px solid #edf0f2;
+        border-radius: 8px 8px 0 0;
+        margin: 0 -1rem 1rem;
+        padding: .75rem 1rem;
+    }
+
+    #modal_detail .detail-production-dashboard {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: minmax(220px, 1.4fr) repeat(4, minmax(120px, 1fr));
+        margin-bottom: 1rem;
+    }
+
+    #modal_detail .detail-progress-card,
+    #modal_detail .detail-mini-card {
+        padding: 1rem;
+    }
+
+    #modal_detail .detail-progress-number {
+        color: #003b78;
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    #modal_detail .detail-mini-label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    #modal_detail .detail-mini-value {
+        color: #111827;
+        font-size: 1rem;
+        font-weight: 800;
+        margin-top: .35rem;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .foto-container {
+        min-height: 0;
+    }
+
+    #modal_detail [id^="dt-list_"],
+    #modal_detail #list_rab_dokumen,
+    #modal_detail #dt-file_pph42-here,
+    #modal_detail #dt-file_ppn-here {
+        display: grid !important;
+        gap: .85rem;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    }
+
+    #modal_detail .input-foto-container,
+    #modal_detail .detail-file-tile {
+        background: #fff;
+        border: 1px solid #d7deea;
+        border-radius: 8px;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .05);
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        min-height: 0;
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+    }
+
+    #modal_detail .input-foto,
+    #modal_detail .detail-file-preview {
+        background: #f3f6fb;
+        border-bottom: 1px solid #e5eaf2;
+        display: block;
+        min-height: 128px;
+        position: relative;
+        width: 100%;
+    }
+
+    #modal_detail .input-foto img,
+    #modal_detail .detail-file-preview img,
+    #modal_detail .detail-file-preview embed {
+        display: block;
+        height: 128px;
+        object-fit: cover;
+        width: 100%;
+    }
+
+    #modal_detail .detail-file-icon {
+        align-items: center;
+        color: #2056a4;
+        display: flex;
+        font-size: 2rem;
+        height: 128px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    #modal_detail .detail-file-body,
+    #modal_detail .input-foto-container .detail-file-body {
+        padding: .75rem;
+    }
+
+    #modal_detail .detail-file-title {
+        color: #111827;
+        font-size: .9rem;
+        font-weight: 800;
+        line-height: 1.25;
+        margin-bottom: .35rem;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .detail-file-meta {
+        color: #667085;
+        font-size: .78rem;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .detail-file-action {
+        align-items: center;
+        display: flex;
+        gap: .45rem;
+        justify-content: space-between;
+        margin-top: .75rem;
+    }
+
+    #modal_detail .detail-file-action .btn,
+    #modal_detail .input-foto-container .btn {
+        border-radius: 6px;
+        font-size: .78rem;
+        padding: .35rem .65rem;
+    }
+
+    .dark-layout #modal_detail .modal-header,
+    .dark-layout #modal_detail .detail-consumer-card .card-header,
+    .dark-layout #modal_detail .detail-tabs-card .card-body,
+    .dark-layout #modal_detail .card,
+    .dark-layout #modal_detail .detail-summary-card,
+    .dark-layout #modal_detail .detail-metric-card,
+    .dark-layout #modal_detail .detail-accordion-card,
+    .dark-layout #modal_detail .detail-status-step,
+    .dark-layout #modal_detail .detail-progress-card,
+    .dark-layout #modal_detail .detail-mini-card,
+    .dark-layout #modal_detail .detail-accordion-toggle,
+    .dark-layout #modal_detail .input-foto-container,
+    .dark-layout #modal_detail .detail-file-tile {
+        background: #283046;
+        border-color: rgba(255, 255, 255, .08);
+    }
+
+    .dark-layout #modal_detail .modal-title,
+    .dark-layout #modal_detail .detail-consumer-card span,
+    .dark-layout #modal_detail .info-value,
+    .dark-layout #modal_detail .divider .divider-text,
+    .dark-layout #modal_detail .detail-metric-total,
+    .dark-layout #modal_detail .detail-metric-value,
+    .dark-layout #modal_detail .detail-accordion-toggle,
+    .dark-layout #modal_detail .detail-mini-value,
+    .dark-layout #modal_detail .detail-file-title {
+        color: #f8fafc;
+    }
+
+    .dark-layout #modal_detail .modal-body,
+    .dark-layout #modal_detail .info-row,
+    .dark-layout #modal_detail .form-control:disabled,
+    .dark-layout #modal_detail .form-control[readonly] {
+        background: #1f2937 !important;
+    }
+
+    .dark-layout #modal_detail .detail-hero-card {
+        background: linear-gradient(145deg, #2056a4 0%, #1f7a8c 100%);
+    }
+
+    .dark-layout #modal_detail .detail-price-card,
+    .dark-layout #modal_detail .detail-meta-card {
+        background: rgba(255, 255, 255, 0.94);
+        color: #111827;
+    }
+
+    .dark-layout #modal_detail .detail-price-card h5,
+    .dark-layout #modal_detail .detail-meta-card h6 {
+        color: #374151;
+    }
+
+    @media (max-width: 1199.98px) {
+        #modal_detail .detail-kavling-layout {
+            flex-wrap: wrap;
+        }
+
+        #modal_detail .detail-kavling-sidebar,
+        #modal_detail .detail-kavling-content {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        #modal_detail .detail-kavling-sidebar {
+            position: static;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        #modal_detail .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
+        }
+
+        #modal_detail .modal-body {
+            max-height: calc(100vh - 5.5rem);
+            padding: .75rem;
+        }
+
+        #modal_detail .nav-pills {
+            flex-direction: row !important;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: .25rem;
+        }
+
+        #modal_detail .detail-dashboard-grid,
+        #modal_detail .detail-card-grid,
+        #modal_detail .detail-status-timeline,
+        #modal_detail .detail-production-dashboard {
+            grid-template-columns: 1fr;
+        }
+
+        #modal_detail .card-body {
+            padding: .85rem;
+        }
+    }
+
 
     .input-loading {
         filter: blur(3px);
@@ -2198,10 +2890,13 @@ foreach (user()->getRoles() as $key => $val) {
         dr;
 
     function detail_kavling(sh, id_kavling) {
+        prepareDetailModalRedesign();
         $(".id_sikumbang").html("Memuat data sikumbang...");
         let src = not_found
-        $("#fm-detail :input").prop("disabled", true)
+        $("#fm-detail input, #fm-detail select, #fm-detail textarea").prop("disabled", true)
         $('#dtt-summary-tab').tab('show');
+        $("#detailConsumerMore").collapse('hide');
+        $(".detail-consumer-toggle").attr('aria-expanded', 'false');
 
         $("#dt-promo").text('-')
         $("#dt-is_kpr").text('-')
@@ -2259,6 +2954,15 @@ foreach (user()->getRoles() as $key => $val) {
                 dr = r
 
                 loadSummary(dr)
+                loadPL(r.pricelist)
+                loadKavling(r)
+                loadMKDT(r.mkdt)
+                loadLegal(r.legal)
+                loadTagihan(r)
+                loadProduksi(r.produksi, r.files)
+                loadBuktiBayarPajak(r)
+                loadCashOut(r.cashout || [])
+                loadBayarProduksi(r.bayar_produksi || [])
                 loaded['sm'] = true
 
                 /************************ load bayar produksi  ***************************/
@@ -2267,7 +2971,7 @@ foreach (user()->getRoles() as $key => $val) {
 
                 $(".label_alamat").html(lAlamat);
                 $("#label-hargajual").html(`
-                    Harga Jual: <h2 class="text-primary mb-0"><strong>Rp. ${sh.data2.harga_akhir}</strong></h5>
+                    <h5 class="text-primary mb-0"><strong>Rp. ${sh.data2.harga_akhir}</strong></h5>
                     <small class="text-muted">(${format_date(sh.data2.harga_akhir_tgl)} - ${sh.data2.harga_akhir_oleh})</small>`);
 
                 $("#modal_detail").modal('show');
@@ -2473,6 +3177,312 @@ foreach (user()->getRoles() as $key => $val) {
             t = format_datetime(date)
         }
         $(id).html(`Terakhir diubah oleh: <b>${u}</b>, pada: <b>${t}</b> `);
+    }
+
+    let detailModalRedesignPrepared = false;
+
+    function detailMoneyValue(value) {
+        if (value === null || value === undefined || value === '') return 0;
+        if (typeof value === 'number') return value;
+        return Number(String(value).replace(/[^0-9.-]/g, '')) || 0;
+    }
+
+    function detailRupiah(value) {
+        return 'Rp ' + new Intl.NumberFormat('id-ID').format(detailMoneyValue(value));
+    }
+
+    function detailPercentValue(value) {
+        const n = Number(String(value || '0').replace('%', '')) || 0;
+        return Math.max(0, Math.min(100, n));
+    }
+
+    function detailAccordionItem(parentId, itemId, title, isOpen = false) {
+        return `
+            <div class="detail-accordion-card">
+                <button class="detail-accordion-toggle" type="button" data-toggle="collapse"
+                    data-target="#${itemId}" aria-expanded="${isOpen ? 'true' : 'false'}"
+                    aria-controls="${itemId}">
+                    <span>${title}</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="${itemId}" class="collapse ${isOpen ? 'show' : ''}" data-parent="#${parentId}">
+                    <div class="detail-accordion-body" id="${itemId}-body"></div>
+                </div>
+            </div>`;
+    }
+
+    function detailTagihanCard(key, title, icon, totalId, paidId, dueId, percentId) {
+        return `
+            <div class="detail-metric-card" data-tagihan-card="${key}">
+                <input type="hidden" id="${totalId}" name="${totalId}">
+                <input type="hidden" id="${paidId}" name="${paidId}">
+                <input type="hidden" id="${dueId}" name="${dueId}">
+                <input type="hidden" id="${percentId}" name="${percentId}">
+                <div class="detail-card-icon"><i class="${icon}"></i></div>
+                <div class="detail-percent" id="${percentId}_text">0%</div>
+                <div class="detail-metric-title">${title}</div>
+                <div class="detail-metric-total" id="${totalId}_text">Rp 0</div>
+                <div class="detail-metric-row">
+                    <span class="detail-metric-label">Sudah Bayar</span>
+                    <span class="detail-metric-value" id="${paidId}_text">Rp 0</span>
+                </div>
+                <div class="detail-metric-row">
+                    <span class="detail-metric-label">Sisa Tagihan</span>
+                    <span class="detail-metric-value" id="${dueId}_text">Rp 0</span>
+                </div>
+                <div class="detail-progress-track">
+                    <div class="detail-progress-fill is-empty" id="detail-tagihan-${key}-bar"></div>
+                </div>
+            </div>`;
+    }
+
+    function renderTagihanCard(key, total, paid, due, percent) {
+        const map = {
+            um: {
+                total: '#dt-total_biaya_um',
+                paid: '#dt-sudah_bayar_um',
+                due: '#dt-sisa_tagihan_um',
+                percent: '#dt-persentase_bayar_tagihan_um',
+                bar: '#detail-tagihan-um-bar'
+            },
+            um_ll: {
+                total: '#dt-total_biaya_um_ll',
+                paid: '#dt-sudah_bayar_um_ll',
+                due: '#dt-sisa_tagihan_um_ll',
+                percent: '#dt-persentase_bayar_tagihan_um_ll',
+                bar: '#detail-tagihan-um_ll-bar'
+            },
+            bb: {
+                total: '#dt-total_biaya_bb',
+                paid: '#dt-sudah_bayar_bb',
+                due: '#dt-sisa_tagihan_bb',
+                percent: '#dt-persentase_bayar_tagihan_bb',
+                bar: '#detail-tagihan-bb-bar'
+            }
+        }[key];
+
+        if (!map) return;
+
+        const paidValue = detailMoneyValue(paid);
+        const dueValue = detailMoneyValue(due);
+        const percentValue = detailPercentValue(percent);
+        const $paidText = $(map.paid + '_text');
+        const $dueText = $(map.due + '_text');
+        const $bar = $(map.bar);
+
+        $(map.total + '_text').text(detailRupiah(total));
+        $paidText.text(detailRupiah(paid)).toggleClass('is-paid', paidValue > 0);
+        $dueText.text(detailRupiah(due)).toggleClass('is-due', dueValue > 0);
+        $(map.percent + '_text').text(percent || '0%');
+        $bar
+            .css('width', `${percentValue}%`)
+            .toggleClass('is-empty', percentValue <= 0)
+            .toggleClass('is-partial', percentValue > 0 && percentValue < 100);
+    }
+
+    function prepareDetailModalRedesign() {
+        if (detailModalRedesignPrepared || !$('#modal_detail').length) return;
+        detailModalRedesignPrepared = true;
+
+        $('#dtt-hj-tab').text('Keuangan');
+        $('#dt-stdetail-tab').text('Status & Akad');
+        $('#dt-legal-tab').text('Legal & Pajak');
+        $('#dt-tagihan-tab, #dt-cashout-tab, #dt-pajak-tab').closest('.nav-item').addClass('detail-legacy-hidden');
+
+        const $summaryRow = $('#dtt-summary > .row');
+        $summaryRow.addClass('detail-dashboard-grid').removeClass('row');
+        $summaryRow.children('[class*="col-md-"]').each(function(i) {
+            $(this).removeClass('col-md-4').addClass('detail-summary-card');
+            if (!$(this).find('.detail-card-icon').length) {
+                const icons = ['fas fa-clipboard-check', 'fas fa-wallet', 'fas fa-hard-hat'];
+                $(this).prepend(`<div class="detail-card-icon mb-1"><i class="${icons[i] || 'fas fa-info'}"></i></div>`);
+            }
+        });
+
+        const statusTitles = ['Booking & Wawancara', 'SP3K', 'Perintah Bangun & Akad'];
+        const $statusRow = $('#dt-stdetail > .row');
+        $statusRow.addClass('detail-status-timeline').removeClass('row');
+        $statusRow.children('[class*="col-md-"]').each(function(i) {
+            $(this).removeClass('col-md-4').addClass('detail-status-step');
+            if (!$(this).find('.detail-status-step-title').length) {
+                $(this).prepend(`<div class="detail-status-step-title">${statusTitles[i] || 'Status'}</div>`);
+            }
+        });
+
+        buildDetailFinancePanel();
+        buildDetailLegalPanel();
+        buildDetailProductionPanel();
+        bindDetailModalRedesignEvents();
+    }
+
+    function buildDetailFinancePanel() {
+        const $finance = $('#dtt-hj');
+        if ($('#detailFinanceAccordion').length) return;
+
+        const $hargaContent = $finance.children().detach();
+
+        $('#dt-tagihan').empty().append(`
+            <small id="last_update_keuangan" class="text-muted d-block mb-1"></small>
+            <div class="detail-card-grid" id="detail-tagihan-cards">
+                ${detailTagihanCard('um', 'Total Uang Muka', 'far fa-money-bill-alt', 'dt-total_biaya_um', 'dt-sudah_bayar_um', 'dt-sisa_tagihan_um', 'dt-persentase_bayar_tagihan_um')}
+                ${detailTagihanCard('um_ll', 'Total Biaya Adm + KPR', 'fas fa-receipt', 'dt-total_biaya_um_ll', 'dt-sudah_bayar_um_ll', 'dt-sisa_tagihan_um_ll', 'dt-persentase_bayar_tagihan_um_ll')}
+                ${detailTagihanCard('bb', 'Total Biaya-biaya', 'fas fa-list-alt', 'dt-total_biaya_bb', 'dt-sudah_bayar_bb', 'dt-sisa_tagihan_bb', 'dt-persentase_bayar_tagihan_bb')}
+            </div>
+        `);
+
+        const $tagihanContent = $('#dt-tagihan').children().detach();
+        const $cashoutContent = $('#dt-cashout').children().detach();
+
+        $finance.append(`
+            <div class="detail-accordion" id="detailFinanceAccordion">
+                ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-tagihan', 'Tagihan', true)}
+                ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-harga', 'Harga Jual')}
+                ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-cashout', 'Cashout')}
+            </div>
+        `);
+
+        $('#detail-finance-harga-body').addClass('detail-price-comparison').append($hargaContent);
+        $('#detail-finance-tagihan-body').append($tagihanContent);
+        $('#detail-finance-cashout-body').append(`
+            <div class="detail-card-grid mb-1">
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Total Cashout</div>
+                    <div class="detail-mini-value" id="dt-cashout-summary-total">Rp 0</div>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Jumlah Item</div>
+                    <div class="detail-mini-value" id="dt-cashout-summary-count">0 item</div>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Status</div>
+                    <div class="detail-mini-value" id="dt-cashout-summary-status">Belum ada data</div>
+                </div>
+            </div>
+        `).append($cashoutContent);
+    }
+
+    function buildDetailLegalPanel() {
+        const $legal = $('#dt-legal');
+        if ($('#detailLegalAccordion').length) return;
+
+        const $lastUpdate = $('#last_update_legal').detach();
+        const groups = {
+            sertifikat: [
+                $('#dt-legal-sertifikat').children().detach(),
+                $('#dt-legal-pbb').children().detach()
+            ],
+            pajak: [
+                $('#dt-legal-bphtb').children().detach(),
+                $('#dt-legal-pph').children().detach(),
+                $('#dt-pajak').children().detach()
+            ],
+            akad: [
+                $('#dt-legal-pbg').children().detach(),
+                $('#dt-legal-ajb').children().detach()
+            ]
+        };
+
+        $legal.empty().append($lastUpdate).append(`
+            <div class="detail-accordion mt-1" id="detailLegalAccordion">
+                ${detailAccordionItem('detailLegalAccordion', 'detail-legal-sertifikat', 'Sertipikat & PBB', true)}
+                ${detailAccordionItem('detailLegalAccordion', 'detail-legal-pajak', 'BPHTB, PPH & Bukti Bayar')}
+                ${detailAccordionItem('detailLegalAccordion', 'detail-legal-akad', 'PBG & AJB/PPJB')}
+            </div>
+        `);
+
+        groups.sertifikat.forEach($content => $('#detail-legal-sertifikat-body').append($content));
+        groups.pajak.forEach($content => $('#detail-legal-pajak-body').append($content));
+        groups.akad.forEach($content => $('#detail-legal-akad-body').append($content));
+    }
+
+    function buildDetailProductionPanel() {
+        const $produksi = $('#dt-produksi');
+        if ($('#detailProductionAccordion').length) return;
+
+        const $lastUpdate = $('#last_update_produksi').detach();
+        const sections = {
+            progress: $('#dt-fm-prod-progress').children().detach(),
+            bayar: $('#dt-fm-prod-bayar_produksi').children().detach(),
+            dokumentasi: $('#dt-fm-prod-dokumentasi').children().detach(),
+            jalan: $('#dt-fm-prod-jalan').children().detach(),
+            listrik: $('#dt-fm-prod-listrik').children().detach(),
+            air: $('#dt-fm-prod-air').children().detach()
+        };
+
+        $produksi.empty().append($lastUpdate).append(`
+            <div class="detail-production-dashboard mt-1">
+                <div class="detail-progress-card">
+                    <div class="detail-mini-label">Progres Bangunan</div>
+                    <div class="detail-progress-number"><span id="dt-produksi-progress-summary">0</span>%</div>
+                    <div class="detail-progress-track mt-1">
+                        <div class="detail-progress-fill is-empty" id="dt-produksi-progress-bar"></div>
+                    </div>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Tanggal Bangun</div>
+                    <div class="detail-mini-value" id="dt-produksi-tanggal-bangun">-</div>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Tanggal Selesai</div>
+                    <div class="detail-mini-value" id="dt-produksi-tanggal-selesai">-</div>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Listrik</div>
+                    <div class="detail-mini-value" id="dt-produksi-listrik-summary">-</div>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Air</div>
+                    <div class="detail-mini-value" id="dt-produksi-air-summary">-</div>
+                </div>
+            </div>
+            <div class="detail-accordion" id="detailProductionAccordion">
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-progress', 'Progres & Jadwal', true)}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-bayar', 'Pembayaran Produksi')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-dokumentasi', 'Dokumentasi')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-jalan', 'Jalan')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-listrik', 'Listrik')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-air', 'Air')}
+            </div>
+        `);
+
+        $('#detail-produksi-progress-body').append(sections.progress);
+        $('#detail-produksi-bayar-body').append(sections.bayar);
+        $('#detail-produksi-dokumentasi-body').append(sections.dokumentasi);
+        $('#detail-produksi-jalan-body').append(sections.jalan);
+        $('#detail-produksi-listrik-body').append(sections.listrik);
+        $('#detail-produksi-air-body').append(sections.air);
+    }
+
+    function bindDetailModalRedesignEvents() {
+        $(document)
+            .off('change.detailRedesign', '#dt-listrik_jenis')
+            .on('change.detailRedesign', '#dt-listrik_jenis', function() {
+                if (this.value == "PLN") {
+                    $("#dt-listrik-pln-input-form").removeClass("hidden");
+                    $("#listrik_disediakan").addClass("hidden");
+                } else {
+                    $("#dt-listrik-pln-input-form").addClass("hidden");
+                    $("#listrik_disediakan").removeClass("hidden");
+                }
+            });
+
+        $(document)
+            .off('change.detailRedesign', '#dt-air_jenis')
+            .on('change.detailRedesign', '#dt-air_jenis', function() {
+                if (this.value == "Air Tanah") {
+                    $("#dt-air_tanah-input_form").removeClass("hidden");
+                    $("#dt-air_komunal-input_form").addClass("hidden");
+                    $("#dt-air_pdam-input_form").addClass("hidden");
+                } else if (this.value == "Komunal Warga") {
+                    $("#dt-air_tanah-input_form").addClass("hidden");
+                    $("#dt-air_komunal-input_form").removeClass("hidden");
+                    $("#dt-air_pdam-input_form").addClass("hidden");
+                } else {
+                    $("#dt-air_tanah-input_form").addClass("hidden");
+                    $("#dt-air_komunal-input_form").addClass("hidden");
+                    $("#dt-air_pdam-input_form").removeClass("hidden");
+                }
+            });
     }
 
     function loadPL(pl) {
@@ -2729,12 +3739,14 @@ foreach (user()->getRoles() as $key => $val) {
         changeVal("#dt-sudah_bayar_um", tagihan.sb_um)
         changeVal("#dt-sisa_tagihan_um", tagihan.sisa_um)
         changeVal("#dt-persentase_bayar_tagihan_um", tagihan.ldp)
+        renderTagihanCard('um', tagihan.total_um, tagihan.sb_um, tagihan.sisa_um, tagihan.ldp)
 
 
         changeVal("#dt-total_biaya_um_ll", tagihan.total_um_ll)
         changeVal("#dt-sudah_bayar_um_ll", tagihan.sb_um_ll)
         changeVal("#dt-sisa_tagihan_um_ll", tagihan.sisa_um_ll)
         changeVal("#dt-persentase_bayar_tagihan_um_ll", tagihan.ldp_ll)
+        renderTagihanCard('um_ll', tagihan.total_um_ll, tagihan.sb_um_ll, tagihan.sisa_um_ll, tagihan.ldp_ll)
 
 
 
@@ -2742,6 +3754,7 @@ foreach (user()->getRoles() as $key => $val) {
         changeVal("#dt-sudah_bayar_bb", tagihan.sb_bb)
         changeVal("#dt-sisa_tagihan_bb", tagihan.sisa_bb)
         changeVal("#dt-persentase_bayar_tagihan_bb", tagihan.ldp_bb)
+        renderTagihanCard('bb', tagihan.total_bb, tagihan.sb_bb, tagihan.sisa_bb, tagihan.ldp_bb)
 
         if (r.ku)
             $("#last_update_keuangan").html("Terakhir diupdate oleh: " + r.ku.username + " pada: " + format_datetime(r.ku.created_at));
@@ -2772,6 +3785,12 @@ foreach (user()->getRoles() as $key => $val) {
 
             $("#dt-progres_bangunan").val(pr.progres_bangunan)
             setText("#dt-t_progres_bangunan", pr.progres_bangunan)
+            const progress = detailPercentValue(pr.progres_bangunan)
+            $("#dt-produksi-progress-summary").text(progress)
+            $("#dt-produksi-progress-bar")
+                .css('width', `${progress}%`)
+                .toggleClass('is-empty', progress <= 0)
+                .toggleClass('is-partial', progress > 0 && progress < 100)
 
             $("#dt-produksi_keterangan").val(pr.keterangan)
 
@@ -2783,6 +3802,10 @@ foreach (user()->getRoles() as $key => $val) {
             changeVal("#dt-listrik_disediakan_tanggal", pr.listrik_disediakan_tanggal);
             changeVal("#dt-air_deskripsi_unit", pr.air_deskripsi_unit);
             changeVal("#dt-air_pdam_no", pr.air_pdam_no);
+            $("#dt-produksi-tanggal-bangun").text(pr.tanggal_pembangunan ? format_date(pr.tanggal_pembangunan) : '-')
+            $("#dt-produksi-tanggal-selesai").text(pr.tanggal_selesai_pembangunan ? format_date(pr.tanggal_selesai_pembangunan) : '-')
+            $("#dt-produksi-listrik-summary").text(isSudah(pr.st_jalan).replace(/<[^>]*>/g, ''))
+            $("#dt-produksi-air-summary").text(isSudah(pr.st_air).replace(/<[^>]*>/g, ''))
 
 
             changeVal("#dt-sumurbor_keterangan", pr.sumurbor_keterangan);
@@ -2814,6 +3837,8 @@ foreach (user()->getRoles() as $key => $val) {
 
             $("#dt-progres_bangunan").val(null)
             setText("#dt-t_progres_bangunan", null)
+            $("#dt-produksi-progress-summary").text('0')
+            $("#dt-produksi-progress-bar").css('width', '0%').addClass('is-empty').removeClass('is-partial')
 
             $("#dt-produksi_keterangan").val(null)
 
@@ -2825,6 +3850,10 @@ foreach (user()->getRoles() as $key => $val) {
             changeVal("#dt-listrik_disediakan_tanggal", null);
             changeVal("#dt-air_deskripsi_unit", null);
             changeVal("#dt-air_pdam_no", null);
+            $("#dt-produksi-tanggal-bangun").text('-')
+            $("#dt-produksi-tanggal-selesai").text('-')
+            $("#dt-produksi-listrik-summary").text('-')
+            $("#dt-produksi-air-summary").text('-')
 
             changeVal("#dt-sumurbor_keterangan", null);
             setDatePicker(null, '#dt-sumurbor_tanggal')
@@ -2842,34 +3871,46 @@ foreach (user()->getRoles() as $key => $val) {
 
         let dv = ''
         $.each(r.file_pph, function(i, v) {
+            const href = v.access_url || file_url('file_upload', v.id);
             dv += `
-                <a href="${v.access_url || file_url('file_upload', v.id)}" class="btn btn-outline-primary" target=_blank>
-                    <h5>Bukti pembayaran ${v.default_filename} </h5>
-                    ${v.keterangan}
-                    <br>
-                    <embed src="${v.access_url || file_url('file_upload', v.id)}" style="width: 90%;"
-                        class="files-here dt-cl-ktp_here">
-                        diunggah pada: ${format_datetime(v.upload_at)} (${v.uupload_by})
-                </a>
-                <br>
-                <br>
+                <div class="detail-file-tile">
+                    <a class="detail-file-preview" href="${href}" target="_blank">
+                        <embed src="${href}" class="files-here dt-cl-ktp_here">
+                    </a>
+                    <div class="detail-file-body">
+                        <div class="detail-file-title">Bukti pembayaran ${v.default_filename}</div>
+                        <div class="detail-file-meta">${v.keterangan || '-'}</div>
+                        <div class="detail-file-meta">Diunggah ${format_datetime(v.upload_at)} (${v.uupload_by || '-'})</div>
+                        <div class="detail-file-action">
+                            <a href="${href}" class="btn btn-outline-primary btn-sm" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Lihat
+                            </a>
+                        </div>
+                    </div>
+                </div>
                  `;
         });
         $("#dt-file_pph42-here").html(dv)
 
         dv = '';
         $.each(r.file_ppn, function(i, v) {
+            const href = v.access_url || file_url('file_upload', v.id);
             dv += `
-                <a href="${v.access_url || file_url('file_upload', v.id)}" class="btn btn-outline-primary" target=_blank>
-                    <h5>Bukti pembayaran ${v.default_filename} </h5>
-                    ${v.keterangan}
-                    <br>
-                    <embed src="${v.access_url || file_url('file_upload', v.id)}" style="width: 90%;"
-                        class="files-here dt-cl-ktp_here">
-                        diunggah pada: ${format_datetime(v.upload_at)} (${v.uupload_by})
-                </a>
-                <br>
-                <br>
+                <div class="detail-file-tile">
+                    <a class="detail-file-preview" href="${href}" target="_blank">
+                        <embed src="${href}" class="files-here dt-cl-ktp_here">
+                    </a>
+                    <div class="detail-file-body">
+                        <div class="detail-file-title">Bukti pembayaran ${v.default_filename}</div>
+                        <div class="detail-file-meta">${v.keterangan || '-'}</div>
+                        <div class="detail-file-meta">Diunggah ${format_datetime(v.upload_at)} (${v.uupload_by || '-'})</div>
+                        <div class="detail-file-action">
+                            <a href="${href}" class="btn btn-outline-primary btn-sm" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Lihat
+                            </a>
+                        </div>
+                    </div>
+                </div>
                  `;
         });
         $("#dt-file_ppn-here").html(dv)
@@ -2877,11 +3918,16 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     function loadCashOut(d) {
-        let dv = ''
-        if (d.lenght == 0) {
-            $("#dt-cashout-table tbody").html(`"<tr><td colspan='4' class='text-center'>Data tidak ditemukan</td></tr>"`)
+        let total = 0;
+        const rows = Array.isArray(d) ? d : [];
+        $("#dt-cashout-table tbody").html("");
+
+        if (rows.length == 0) {
+            $("#dt-cashout-table tbody").html(`<tr><td colspan='4' class='text-center'>Data tidak ditemukan</td></tr>`)
         }
-        $.each(d, function(i, val) {
+
+        $.each(rows, function(i, val) {
+            total += detailMoneyValue(val.nominal);
             let row = `
         <tr>
             <td>${val.item}</td>
@@ -2892,6 +3938,9 @@ foreach (user()->getRoles() as $key => $val) {
             $("#dt-cashout-table tbody").append(row);
         });
 
+        $("#dt-cashout-summary-total").text(detailRupiah(total));
+        $("#dt-cashout-summary-count").text(`${rows.length} item`);
+        $("#dt-cashout-summary-status").text(rows.length > 0 ? 'Ada pembayaran' : 'Belum ada data');
     }
 
     function loadBayarProduksi(bprod) {
@@ -4153,40 +5202,41 @@ foreach (user()->getRoles() as $key => $val) {
             </div>
             <div class="modal-body flex-grow-1" style="background-color:#eee">
                 <form action=""></form>
-                <div class="row" id="fm-detail">
-                    <div class="col-md-12">
-                        <div class="card">
+                <div class="row detail-kavling-layout" id="fm-detail">
+                    <div class="col-md-3 detail-kavling-sidebar">
+                         <div class="card detail-hero-card">
                             <div class="card-body bg-primary text-light">
                                 <div class="row">
-                                    <div class="col-md-8">
+                                    <div class="col-12">
                                         <p class="card-text label_alamat" id="detail_kavling_header"></p>
                                         <p class="mb-0 text-light"><strong>ID SIKUMABANG:</strong></p>
                                         <p class="card-text id_sikumbang mb-1"></p>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="card">
+                                    <div class="col-12">
+                                        <div class="card detail-price-card">
                                             <div class="card-body">
                                                 <h5><i class="fas fa-money-bill"></i> Harga Jual</h5>
                                                 <span id="label-hargajual"></span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-12">
-                                        <div class="card mb-0">
+                                    <div class="col-12">
+                                        <div class="card detail-meta-card mb-0">
                                             <div class="card-body p-1">
                                                 <div class="row">
-                                                    <div class="col-md-4">
-                                                        <h6 class="mb-0"><strong>Tunai/KPR:</strong> <span
-                                                                id="dt-is_kpr">-</span></h6>
+                                                    <div class="col-md-6">
+                                                        <h6 class="mb-0"><span id="dt-is_kpr">-</span></h6>
                                                     </div>
-                                                    <div class="col-md-4">
-                                                        <h6 class="mb-0"><strong>Subsidi/Komersil: </strong> <span
-                                                                id="dt-is_subsidi">-</span>
+                                                    <div class="col-md-6">
+                                                        <h6 class="mb-0">
+                                                            <span id="dt-is_subsidi">-</span>
                                                         </h6>
                                                     </div>
-                                                    <div class="col-md-4">
-                                                        <h6 class="mb-0"><strong>Promo: </strong> <span
-                                                                id="dt-promo">-</span></h6>
+                                                    <div class="col-12">
+                                                        <h6 class="mb-0">
+                                                            <strong>Promo: </strong>
+                                                            <span id="dt-promo">-</span>
+                                                        </h6>
                                                     </div>
                                                 </div>
 
@@ -4198,11 +5248,7 @@ foreach (user()->getRoles() as $key => $val) {
                             </div>
                         </div>
 
-
-                    </div>
-                    <div class="col-md-3">
-
-                        <div class="card">
+                        <div class="card detail-consumer-card">
                             <div class="card-header">
                                 <div class="divider divider-left pb-0">
                                     <div class="divider-text font-weight-bold"><strong><i class="fas fa-user"></i> Detail Konsumen</strong></div>
@@ -4222,48 +5268,59 @@ foreach (user()->getRoles() as $key => $val) {
                                             <span id="dt-nama_konsumen">-</span>
                                         </div>
                                     </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <b class="mb-0 d-block">Alamat Konsumen</b>
-                                            <span id="dt-alamat_konsumen">-</span>
-                                        </div>
-                                    </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <b class="mb-0 d-block">NIK</b>
-                                            <span id="dt-nik_konsumen">-</span>
-                                        </div>
-                                    </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <b class="mb-0 d-block">NPWP</b>
-                                            <span id="dt-npwp_konsumen">-</span>
-                                        </div>
-                                    </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <b class="mb-0 d-block">Kontak Konsumen</b>
-                                            <span id="dt-hp_konsumen">-</span>
-                                        </div>
-                                    </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <b class="mb-0 d-block">Email Konsumen</b>
-                                            <span id="dt-email_konsumen">-</span>
-                                        </div>
-                                    </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <b class="mb-0 d-block">Sales</b>
-                                            <span id="dt-sales">-</span>
-                                        </div>
-                                    </li>
                                 </ul>
+                                <button class="btn btn-outline-primary btn-block waves-effect detail-consumer-toggle"
+                                    type="button" data-toggle="collapse" data-target="#detailConsumerMore"
+                                    aria-expanded="false" aria-controls="detailConsumerMore">
+                                    <span class="show-label">Tampilkan info lainnya</span>
+                                    <span class="hide-label">Sembunyikan info lainnya</span>
+                                    <i class="fas fa-chevron-down ml-1"></i>
+                                </button>
+                                <div class="collapse" id="detailConsumerMore">
+                                    <ul class="list-unstyled mb-0 mt-1">
+                                        <li class="mb-2">
+                                            <div class="me-2">
+                                                <b class="mb-0 d-block">Alamat Konsumen</b>
+                                                <span id="dt-alamat_konsumen">-</span>
+                                            </div>
+                                        </li>
+                                        <li class="mb-2">
+                                            <div class="me-2">
+                                                <b class="mb-0 d-block">NIK</b>
+                                                <span id="dt-nik_konsumen">-</span>
+                                            </div>
+                                        </li>
+                                        <li class="mb-2">
+                                            <div class="me-2">
+                                                <b class="mb-0 d-block">NPWP</b>
+                                                <span id="dt-npwp_konsumen">-</span>
+                                            </div>
+                                        </li>
+                                        <li class="mb-2">
+                                            <div class="me-2">
+                                                <b class="mb-0 d-block">Kontak Konsumen</b>
+                                                <span id="dt-hp_konsumen">-</span>
+                                            </div>
+                                        </li>
+                                        <li class="mb-2">
+                                            <div class="me-2">
+                                                <b class="mb-0 d-block">Email Konsumen</b>
+                                                <span id="dt-email_konsumen">-</span>
+                                            </div>
+                                        </li>
+                                        <li class="mb-2">
+                                            <div class="me-2">
+                                                <b class="mb-0 d-block">Sales</b>
+                                                <span id="dt-sales">-</span>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-9">
-                        <div class="card">
+                    <div class="col-md-9 detail-kavling-content">
+                        <div class="card detail-tabs-card">
                             <div class="card-body pb-0 pt-0">
                                 <ul class="nav nav-pills flex-column flex-md-row mt-1 row-gap-2" role="tablist">
                                     <li class="nav-item">
@@ -4304,7 +5361,7 @@ foreach (user()->getRoles() as $key => $val) {
                             </div>
                         </div>
 
-                        <div class="card col-md-12">
+                        <div class="card detail-panel-card">
                             <div class="card-body">
                                 <div class="tab-content">
                                     <div class="tab-pane active" id="dtt-summary" aria-labelledby="dtt-summary-tab"

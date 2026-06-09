@@ -995,89 +995,62 @@ function displayUploadedFiles(input, listId) {
 }
 
 function showFoto(data, imbuhan = "", del = true) {
-  let containerElement = "",
-    coor = {};
-
   data.forEach((item) => {
-    containerElement = document.getElementById(
+    const containerElement = document.getElementById(
       `${imbuhan}list_${item.kategori}`,
     );
     if (containerElement) {
+      const isDocument = item.file_name.endsWith(".pdf") || item.file_name.endsWith(".xlsx");
+      const fileHref = item.access_url || file_url('file_produksi', item.id);
+      const downloadHref = item.download_url || file_url('file_produksi', item.id, true);
       const imgDiv = document.createElement("div");
       imgDiv.id = `${imbuhan}foto_produksi_${item.id}`;
       imgDiv.style.position = "relative";
-      imgDiv.style.height = "auto";
-      // imgDiv.style.margin = "5px";
-      imgDiv.classList.add("input-foto-container", "mt-1", "mr-1");
+      imgDiv.classList.add("input-foto-container");
 
       const imgContainer = document.createElement("div");
       imgContainer.classList.add("input-foto");
 
-      if (item.file_name.endsWith(".pdf") || item.file_name.endsWith(".xlsx")) {
+      if (isDocument) {
         const link = document.createElement("a");
-        link.href = item.access_url || file_url('file_produksi', item.id);
-        link.innerText = "Lihat File";
+        link.href = fileHref;
         link.target = "_blank";
-        link.style.minWidth = "150px";
-        link.classList.add("btn", "btn-primary");
-        link.style.textAlign = "left";
-        imgDiv.appendChild(link);
+        link.classList.add("detail-file-icon", "btn", "btn-outline-primary");
+        link.innerHTML = `<i class="${item.file_name.endsWith(".pdf") ? "far fa-file-pdf" : "far fa-file-excel"}"></i><span class="ml-50">Lihat File</span>`;
+        imgContainer.appendChild(link);
       } else {
         const img = document.createElement("img");
         img.src = item.thumbnail_url || file_thumbnail_url('file_produksi', item.id);
-        img.style.width = "150px";
-        img.style.height = "150px";
-        img.style.objectFit = "cover";
-        img.onload = function () {
-          const coorDiv = document.createElement("div");
-          coorDiv.position = "absolute";
-          coorDiv.left = "160px";
-
-          coorDiv.innerHTML = `
-            <strong>Tanggal Pengambilan Foto:</strong><br/>
-            ${format_date(item.tgl_capture)}<br/>
-            <strong>Diunggah oleh:</strong><br/>
-            ${item.username}<br/>
-            <strong>Keterangan:</strong><br/>
-            ${item.file_keterangan}<br/>
-            <strong>Titik koordinat:</strong> <br>-, -
-            `;
-
-          imgDiv.appendChild(coorDiv);
-          //load image 2 kali jika tanpa cache
-          // tampilkanKoordinatGPS(img, function (koordinat) {
-          //   coor = koordinat;
-          //   coorDiv.innerHTML = `
-          //   <strong>Tanggal Pengambilan Foto:</strong><br/>
-          //   ${format_date(item.tgl_capture)}<br/>
-          //   <strong>Diunggah oleh:</strong><br/>
-          //   ${item.username}<br/>
-          //   <strong>Keterangan:</strong><br/>
-          //   ${item.file_keterangan}<br/>
-          //   <strong>Titik koordinat:</strong> <br>${coor.lat}, ${coor.lon}
-          //   `;
-
-          //   imgDiv.appendChild(coorDiv);
-          // });
-        };
         imgContainer.appendChild(img);
       }
 
+      const bodyDiv = document.createElement("div");
+      bodyDiv.classList.add("detail-file-body");
+      bodyDiv.innerHTML = `
+        <div class="detail-file-title">${item.file_name || (isDocument ? "File" : "Foto")}</div>
+        ${isDocument ? "" : `<div class="detail-file-meta">Tanggal foto: ${item.tgl_capture ? format_date(item.tgl_capture) : "-"}</div>`}
+        <div class="detail-file-meta">Diunggah oleh: ${item.username || "-"}</div>
+        <div class="detail-file-meta">${item.file_keterangan || "-"}</div>
+        ${isDocument ? "" : '<div class="detail-file-meta">Titik koordinat: -, -</div>'}
+      `;
+
+      const actionDiv = document.createElement("div");
+      actionDiv.classList.add("detail-file-action");
+
+      const viewButton = document.createElement("a");
+      viewButton.href = fileHref;
+      viewButton.target = "_blank";
+      viewButton.innerHTML = '<i class="fas fa-external-link-alt"></i> Lihat';
+      viewButton.classList.add("btn", "btn-outline-primary", "btn-sm");
+
       const downloadButton = document.createElement("button");
-      downloadButton.innerText = "Download";
-      downloadButton.style.position = "absolute";
-      downloadButton.style.top = "120px";
-      downloadButton.style.left = "35px";
+      downloadButton.innerHTML = '<i class="fas fa-download"></i>';
       downloadButton.classList.add("btn", "btn-primary", "btn-sm");
-      // downloadButton.style.backgroundColor = "green";
-      // downloadButton.style.color = "white";
-      downloadButton.style.border = "none";
-      downloadButton.style.cursor = "pointer";
 
       downloadButton.addEventListener("click", function (event) {
         event.preventDefault();
         const link = document.createElement("a");
-        link.href = item.download_url || file_url('file_produksi', item.id, true);
+        link.href = downloadHref;
         link.innerText = "Lihat File";
         link.target = "_blank";
         link.click();
@@ -1104,7 +1077,10 @@ function showFoto(data, imbuhan = "", del = true) {
       }
 
       imgDiv.appendChild(imgContainer);
-      imgDiv.appendChild(downloadButton);
+      bodyDiv.appendChild(actionDiv);
+      actionDiv.appendChild(viewButton);
+      actionDiv.appendChild(downloadButton);
+      imgDiv.appendChild(bodyDiv);
 
       containerElement.appendChild(imgDiv);
     }

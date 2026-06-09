@@ -73,7 +73,7 @@ class KavlingRepository
             ->get()
             ->getResult();
     }
-    public function getKavlingList($id_proyek = null, $search = "", $limit = null, $is_cashout_subkon = 0)
+    public function getKavlingList($id_proyek = null, $search = "", $limit = null, $is_cashout_subkon = 0, $id_cluster = null, $id_jalan = null)
     {
         $builder = $this->db->table('kavling');
         $builder->select('kavling.id_kavling, jalan.nama_jalan, kavling.no_kavling');
@@ -89,6 +89,14 @@ class KavlingRepository
         }
 
         $builder->where('proyek.id_proyek', $id_proyek);
+
+        if (!empty($id_cluster)) {
+            $builder->where('cluster.id_cluster', $id_cluster);
+        }
+
+        if (!empty($id_jalan)) {
+            $builder->where('kavling.id_jalan', $id_jalan);
+        }
 
         if (!empty($search)) {
             // Kita gunakan OR untuk berbagai kemungkinan format penulisan user
