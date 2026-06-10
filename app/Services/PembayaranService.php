@@ -9,6 +9,7 @@ use App\Repositories\LogPembayaranRepository;
 use App\Repositories\PaymentSummaryRepository;
 use App\Models\MkdtModel;
 use App\Exceptions\DataNotFoundException;
+use App\Services\FinanceLedgerService;
 
 class PembayaranService
 {
@@ -19,6 +20,7 @@ class PembayaranService
     protected $kavRepo;
     protected $mkdtModel;
     protected $summaryRepo;
+    protected $ledgerService;
 
     public function __construct()
     {
@@ -28,6 +30,7 @@ class PembayaranService
         $this->mkdtModel = new MkdtModel();
         $this->lpModel = new LogPembayaranRepository();
         $this->summaryRepo = new PaymentSummaryRepository();
+        $this->ledgerService = new FinanceLedgerService();
         $this->db = \Config\Database::connect();
     }
 
@@ -123,6 +126,9 @@ class PembayaranService
                     return $response;
                 }
             }
+
+            $this->ledgerService->recordIncomeFromLogPembayaran((int) $id_pembayaran, user_id());
+
             $db->transCommit();
             $response = [
                 'status' => true,
@@ -176,6 +182,7 @@ class PembayaranService
                     "edit_by" => user_id()
                 ];
                 $this->lpModel->insertDetail($form_pembayaran);
+                $this->ledgerService->recordIncomeFromLogPembayaran((int) $id_pembyaaran, user_id());
 
                 $db->transCommit();
             } catch (\Throwable $th) {
@@ -221,6 +228,7 @@ class PembayaranService
             $db->transBegin();
             //soft delete log pembayaran
             $idMkdt = $this->lpModel->softDeleteAndReturnIdMkdt($idPembayaran);
+            $this->ledgerService->voidByLogPembayaran((int) $idPembayaran, user_id());
             //recalculate summary
             $this->recalculateSummary($idMkdt);
 
