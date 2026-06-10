@@ -505,11 +505,22 @@ class KeuanganService
     {
         return $this->pembayaranRepo->getRiwayatBayarById($id_mkdt);
     }
+    public function getTotalBayarById($id_mkdt): float
+    {
+        return $this->pembayaranRepo->getTotalBayarByIdMkdt($id_mkdt);
+    }
     function getRiwayatBayarWithDetailById($id_mkdt)
     {
         $log = $this->pembayaranRepo->getRiwayatBayarById($id_mkdt);
+        $detailRows = $this->pembayaranRepo->getDetailRiwayatBayarByIdMkdt($id_mkdt);
+        $detailByPayment = [];
+
+        foreach ($detailRows as $detail) {
+            $detailByPayment[$detail['id_pembayaran']][] = $detail;
+        }
+
         foreach ($log as $key => $value) {
-            $log[$key]->detail = $this->pembayaranRepo->getDetailRiwayatBayarById($value->id_pembayaran);
+            $log[$key]->detail = $detailByPayment[$value->id_pembayaran] ?? [];
         }
         return $log;
     }

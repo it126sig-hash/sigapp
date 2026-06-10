@@ -106,8 +106,8 @@ class Siteplan extends BaseController
             'content' => 'siteplan/master',
             'data' => [
                 'profile' => $this->getProfilePerusahaan(),
-                'pph'     => $this->db->table('pph')->get()->getResult(),
-                'ppn'     => $this->db->table('ppn')->get()->getResult(),
+                'pph'     => $this->db->table('pph')->where('deleted_at', null)->get()->getResult(),
+                'ppn'     => $this->db->table('ppn')->where('deleted_at', null)->get()->getResult(),
             ],
         ];
 
@@ -589,20 +589,49 @@ class Siteplan extends BaseController
             ->where($where);
 
         if (($id == null || $id == "") && $this->db->fieldExists('scope', 'others')) {
-            $idRole = (int) $this->request->getVar('id_role');
-
             $q->groupStart()
-                ->where('others.scope', 'siteplan');
-
-            if ($idRole === 7) {
-                $q->orWhere('others.scope', 'produksi');
-            }
-
-            $q->orWhere('others.scope IS NULL', null, false)
+                ->whereIn('others.scope', ['siteplan', 'produksi'])
+                ->orWhere('others.scope IS NULL', null, false)
                 ->groupEnd();
         }
 
         $result['data'] = $q->get()->getResult();
+        $result['history'] = [];
+        $result['history_total'] = 0;
+        $result['history_limit'] = 0;
+        $result['history_offset'] = 0;
+        $result['history_next_offset'] = 0;
+        $result['history_has_more'] = false;
+
+        if (($id !== null && $id !== '') && $this->db->tableExists('produksi_jalan_progress_history')) {
+            $historyLimit = (int) ($this->request->getVar('history_limit') ?? 10);
+            $historyLimit = max(1, min(50, $historyLimit));
+            $historyOffset = max(0, (int) ($this->request->getVar('history_offset') ?? 0));
+
+            $historyTotal = $this->db->table('produksi_jalan_progress_history')
+                ->where('id_others', $id)
+                ->countAllResults();
+
+            $history = $this->db->table('produksi_jalan_progress_history h')
+                ->select('h.*, users.username')
+                ->join('users', 'users.id = h.add_by', 'left')
+                ->where('h.id_others', $id)
+                ->orderBy('h.created_at', 'DESC')
+                ->limit($historyLimit, $historyOffset)
+                ->get()->getResult();
+
+            foreach ($history as $item) {
+                $item->foto_urls = $this->fileAccessService->pathUrlsFromDelimitedString($item->foto ?? '', 'produksi_jalan_progress');
+            }
+
+            $result['history'] = $history;
+            $result['history_total'] = $historyTotal;
+            $result['history_limit'] = $historyLimit;
+            $result['history_offset'] = $historyOffset;
+            $result['history_next_offset'] = $historyOffset + count($history);
+            $result['history_has_more'] = $result['history_next_offset'] < $historyTotal;
+        }
+
         return $this->response->setJSON($result);
     }
     function get_kavling_by_multiple_id()
@@ -1063,6 +1092,9 @@ class Siteplan extends BaseController
             ->join('bayar_produksi c', 'c.id_item_produksi = lc.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
             ->join('users u', 'u.id = c.add_by', 'left')
             ->join('users e', 'e.id = c.edit_by', 'left')
+            ->where('lc.deleted_at', null)
+            ->orderBy('lc.sort', 'ASC')
+            ->orderBy('lc.id', 'ASC')
             ->get()->getResult();
 
         $d['si'] = $this->db->table('list_si')

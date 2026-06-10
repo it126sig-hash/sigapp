@@ -323,8 +323,12 @@ $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
   if (targetId === "#log_pembayaran" && !loaded["keu_lp"]) {
     applyLoadingEffect(targetId);
     setTimeout(() => {
-      loadLogPembayaran(keu_lp);
-      removeLoadingEffect(targetId);
+      if (typeof loadKeuanganRiwayatLazy === "function") {
+        loadKeuanganRiwayatLazy(() => removeLoadingEffect(targetId));
+      } else {
+        loadLogPembayaran(keu_lp);
+        removeLoadingEffect(targetId);
+      }
     }, 200);
     loaded["keu_lp"] = true;
   }
@@ -1329,3 +1333,19 @@ function hlButton(selector) {
 }
 
 // buatOpsiSelect('kategoriPekerjaan', data);
+
+const list_pekerjaan = {
+        "Pekerjaan Persiapan": ["Persiapan Pembersihan lokasi", "Pemasangan bouplank"],
+        "Pekerjaan Pondasi": ["Galian tanah pondasi", "Pasangan Pondasi Batu kali", "Pasangan Pondasi plat Setempat", "Instalasi Pipa Air Kotor pendam 3 inch", "Instalasi Pipa Air Kotor Pendam 4 inch", "Instalasi Pipa Air Kotor Pendam lebih dari 4 inch", "Urugan tanah pondasi tinggi 0-20 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi 20-50 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi lebih dari 50 cm dari jalan lingkungan"],
+        "Pekerjaan Pembesian/Kontruksi": ["Rangkaian pemasangan besi/tulangan pada sloof Bawah", "Rangkaian pemasangan Pasang besi/tulangan pada Ring Balok/balok atas", "Rangkaian pemasangan besi/tulangan pada kolom", "Rangkaian pemasangan besi/tulangan pada sopi-sopi/Gewel/gunungan", "Rangkaian pemasangan pertemuan Besi Tulangan antara Kolom dan Sloof Bawah", "Rangkaian pemasangan pertemuan Tulangan antara Kolom dan Ring Balk/balok atas", "Rangkaian pemasangan pertemuan Tulangan antara Kolom, Ring Balk/balok atas dan sopi-sopi/gunungan", ],
+        "Pekerjaan Cor Beton": ["Cor Beton sloof bawah", "Cor Beton Ring Balk/balok atas", "Tangga Beton (jika rumah 2 lantai)", "Plat Lantai Beton lantai 2", "Plat Lantai Beton lantai"],
+        "Pekerjaan Pasangan Dinding": ["Pasang Bata/Batako/Bata Ringan/Jenis lain", "Plesteran tebal", "Acian semen", "Pasangan keramik dinding kamar mandi", "Pasangan keramik dinding dapur"],
+        "Pekerjaan Atap": ["Rangka atap & Kuda Kuda", "Tutup atap/genting", "Genting bubung", "Listplang kayu", "Talang sudut"],
+        "Pekerjaan Instalasi": ["Instalasi Air bersih", "Instalasi/Jaringan Listrik"],
+        "Pekerjaan Langit-langit (Plapond)": ["Rangka plapond", "Penutup plapond"],
+        "Pekerjaan Lantai": ["Lantai kerja (pasir lantai)", "Penutup lantai"],
+        "Pekerjaan kusen": ["Kusen/pintu Utama", "Jendela Utama/jendela teras", "Kusen/pintu Kamar", "Jendela Kamar"],
+        "Pekerjaan Kaca dan Kunci": ["Pasang kaca jendela", "Pasang kunci tanam pintu", "Pasang kunci kamar mandi", "Pasang engsel pintu", "Pasang engsel jendela", "Pasang tulak angin/Hak angin /windows stay"],
+        "Pekerjaan Sanitasi": ["Pasang closet", "Pasang washtafel", "Pasang bak mandi", "Pasang bak cuci piring", "Septictank"],
+        "Pekerjaan Finishing & Pegecatan": ["Pengecatan kusen", "Pengecatan pintu dan jendela", "Pengecatan Plapond", "Pengecatan tembok"]
+    };

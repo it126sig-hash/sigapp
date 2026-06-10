@@ -72,6 +72,7 @@ class DanaAkad extends BaseController
         $r['list_dajam'] = $this->db->table('list_dajam')
             ->select('list_dajam.nama_jaminan, list_dajam.id as id_list_dajam_ori, dana_akad.*')
             ->join('dana_akad', 'dana_akad.id_list_dajam = list_dajam.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
+            ->where('list_dajam.deleted_at', null)
             // ->where('id_kavling', $id_kavling)
             ->get()->getResult();
 

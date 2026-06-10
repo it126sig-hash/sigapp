@@ -9,6 +9,372 @@
         z-index: 10;
     }
 
+    #modal-isi_data_konsumen .modal-dialog {
+        max-width: min(1440px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modal-isi_data_konsumen .modal-content {
+        border: 0;
+        border-radius: 10px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+        overflow: hidden;
+    }
+
+    #modal-isi_data_konsumen .modal-header {
+        align-items: center;
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0 !important;
+        padding: 1rem 1.25rem;
+    }
+
+    #modal-isi_data_konsumen .modal-title {
+        color: #111827;
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    #modal-isi_data_konsumen .modal-body {
+        background: #f3f5f7 !important;
+        max-height: calc(100vh - 7rem);
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    #modal-isi_data_konsumen .modal-body > .row {
+        margin-left: -.5rem;
+        margin-right: -.5rem;
+    }
+
+    #modal-isi_data_konsumen .modal-body > .row > [class*="col-"] {
+        padding-left: .5rem;
+        padding-right: .5rem;
+    }
+
+    #modal-isi_data_konsumen .idk-konsumen-layout {
+        align-items: flex-start;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        margin: 0;
+    }
+
+    #modal-isi_data_konsumen .idk-konsumen-layout > .idk-sidebar,
+    #modal-isi_data_konsumen .idk-konsumen-layout > .idk-main-content {
+        padding: 0;
+    }
+
+    #modal-isi_data_konsumen .idk-sidebar {
+        align-self: flex-start;
+        flex: 0 0 320px;
+        max-height: calc(100vh - 8rem);
+        max-width: 320px;
+        overflow-y: auto;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    #modal-isi_data_konsumen .idk-main-content {
+        flex: 1 1 auto;
+        max-width: calc(100% - 336px);
+        min-width: 0;
+    }
+
+    #modal-isi_data_konsumen .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    #modal-isi_data_konsumen .card-header,
+    #modal-isi_data_konsumen #tab-isi-konsumen > .card .card-body {
+        background: #fff;
+        border-bottom: 1px solid #edf0f2;
+        padding: .85rem 1rem;
+    }
+
+    #modal-isi_data_konsumen .card-body {
+        padding: 1rem;
+    }
+
+    #modal-isi_data_konsumen .card-title {
+        color: #111827;
+        font-size: .95rem;
+        font-weight: 700;
+        margin-bottom: 0;
+    }
+
+    #modal-isi_data_konsumen .bg-primary {
+        background: linear-gradient(145deg, #2057a3 0%, #1f7a8c 100%) !important;
+    }
+
+    #modal-isi_data_konsumen .label_alamat {
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-bottom: 0;
+        overflow-wrap: anywhere;
+    }
+
+    #modal-isi_data_konsumen .idk-hero-card {
+        border: 0;
+    }
+
+    #modal-isi_data_konsumen .idk-sidebar .card-body {
+        padding: .9rem 1rem;
+    }
+
+    #modal-isi_data_konsumen .idk-sidebar > .card > .col-12.pt-1 {
+        padding: .9rem 1rem 0 !important;
+    }
+
+    #modal-isi_data_konsumen .idk-sidebar .btn-block {
+        padding-left: .75rem;
+        padding-right: .75rem;
+    }
+
+    #modal-isi_data_konsumen .idk-sidebar #div-hargajual .card {
+        background: #fff;
+        border-color: #cfd6e3;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .05);
+    }
+
+    #modal-isi_data_konsumen .idk-sidebar #btn-print_spptb {
+        margin-bottom: 1rem;
+    }
+
+    #modal-isi_data_konsumen #idk-diskresi_st {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    #modal-isi_data_konsumen #idk-diskresi_st > [class*="col-"] {
+        background: #fff !important;
+        border: 1px solid #fecaca !important;
+        border-left: 4px solid #dc2626 !important;
+        border-radius: 8px !important;
+        color: #111827 !important;
+        flex: 0 0 100%;
+        margin-bottom: .75rem;
+        max-width: 100%;
+        padding: .85rem 1rem;
+    }
+
+    #modal-isi_data_konsumen #idk-diskresi_st label,
+    #modal-isi_data_konsumen #idk-diskresi_st span {
+        color: #991b1b !important;
+    }
+
+    #modal-isi_data_konsumen #idk-diskresi_st .form-group {
+        margin-bottom: 0;
+    }
+
+    #modal-isi_data_konsumen .divider {
+        margin: .65rem 0 .85rem;
+    }
+
+    #modal-isi_data_konsumen .divider-left {
+        border-left-color: #2057a3;
+        margin-bottom: .85rem;
+        padding-left: .75rem;
+    }
+
+    #modal-isi_data_konsumen .divider .divider-text {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 700;
+    }
+
+    #modal-isi_data_konsumen label,
+    #modal-isi_data_konsumen .form-label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    #modal-isi_data_konsumen .form-group {
+        margin-bottom: .8rem;
+    }
+
+    #modal-isi_data_konsumen .form-control {
+        background-color: #fff;
+        border-color: #d8dde3;
+        border-radius: 6px;
+        min-height: 36px;
+    }
+
+    #modal-isi_data_konsumen .form-control:disabled,
+    #modal-isi_data_konsumen .form-control[readonly] {
+        background-color: #f8fafc;
+        color: #111827;
+        opacity: 1;
+    }
+
+    #modal-isi_data_konsumen .btn {
+        border-radius: 6px;
+        font-weight: 700;
+        white-space: normal;
+    }
+
+    #modal-isi_data_konsumen .btn-primary {
+        background-color: #2057a3 !important;
+        border-color: #2057a3 !important;
+    }
+
+    #modal-isi_data_konsumen .btn-primary:hover,
+    #modal-isi_data_konsumen .btn-primary:focus {
+        background-color: #174b8f !important;
+        border-color: #174b8f !important;
+    }
+
+    #modal-isi_data_konsumen .btn-outline-primary {
+        border-color: #2057a3 !important;
+        color: #2057a3 !important;
+    }
+
+    #modal-isi_data_konsumen .btn-outline-primary:hover,
+    #modal-isi_data_konsumen .btn-outline-primary:focus {
+        background-color: #2057a3 !important;
+        color: #fff !important;
+    }
+
+    #modal-isi_data_konsumen .nav-tabs {
+        border-bottom: 0;
+        gap: .4rem;
+        margin: 0 !important;
+    }
+
+    #modal-isi_data_konsumen .nav-tabs .nav-link {
+        border: 0;
+        border-radius: 6px;
+        color: #4b5563;
+        font-size: .82rem;
+        font-weight: 700;
+        padding: .55rem .8rem;
+        white-space: nowrap;
+    }
+
+    #modal-isi_data_konsumen .nav-tabs .nav-link.active {
+        background-color: #2057a3;
+        box-shadow: 0 6px 14px rgba(32, 87, 163, .2);
+        color: #fff;
+    }
+
+    #modal-isi_data_konsumen .tab-content {
+        min-width: 0;
+    }
+
+    #modal-isi_data_konsumen .tab-pane {
+        overflow-x: auto;
+    }
+
+    #modal-isi_data_konsumen .dropzone {
+        border: 1px dashed #b7c4d7;
+        border-radius: 8px;
+        min-height: 150px;
+        overflow: hidden;
+    }
+
+    #modal-isi_data_konsumen .dz-inner {
+        background: #f8fafc;
+        min-height: 150px;
+    }
+
+    #modal-isi_data_konsumen .dz-placeholder {
+        padding: .85rem;
+    }
+
+    #modal-isi_data_konsumen .dz-placeholder .h5 {
+        color: #111827;
+        font-size: .9rem;
+        font-weight: 800;
+    }
+
+    #modal-isi_data_konsumen .sticky-button-wrapper {
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+        box-shadow: 0 -8px 18px rgba(15, 23, 42, .06);
+        margin: 1rem -1rem -1rem;
+        padding: .85rem 1rem;
+    }
+
+    .dark-layout #modal-isi_data_konsumen .modal-header,
+    .dark-layout #modal-isi_data_konsumen .card,
+    .dark-layout #modal-isi_data_konsumen .card-header,
+    .dark-layout #modal-isi_data_konsumen .idk-sidebar #div-hargajual .card,
+    .dark-layout #modal-isi_data_konsumen #idk-diskresi_st > [class*="col-"],
+    .dark-layout #modal-isi_data_konsumen #tab-isi-konsumen > .card .card-body,
+    .dark-layout #modal-isi_data_konsumen .sticky-button-wrapper {
+        background: #283046 !important;
+        border-color: rgba(255, 255, 255, .08) !important;
+    }
+
+    .dark-layout #modal-isi_data_konsumen .modal-title,
+    .dark-layout #modal-isi_data_konsumen .card-title,
+    .dark-layout #modal-isi_data_konsumen .divider .divider-text {
+        color: #f8fafc;
+    }
+
+    .dark-layout #modal-isi_data_konsumen .modal-body,
+    .dark-layout #modal-isi_data_konsumen .form-control:disabled,
+    .dark-layout #modal-isi_data_konsumen .form-control[readonly],
+    .dark-layout #modal-isi_data_konsumen .dz-inner {
+        background: #1f2937 !important;
+    }
+
+    @media (max-width: 1199.98px) {
+        #modal-isi_data_konsumen .idk-konsumen-layout {
+            flex-wrap: wrap;
+        }
+
+        #modal-isi_data_konsumen .idk-sidebar,
+        #modal-isi_data_konsumen .idk-main-content {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        #modal-isi_data_konsumen .idk-sidebar {
+            max-height: none;
+            overflow-y: visible;
+            position: static;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        #modal-isi_data_konsumen .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
+        }
+
+        #modal-isi_data_konsumen .modal-body {
+            max-height: calc(100vh - 5.5rem);
+            padding: .75rem;
+        }
+
+        #modal-isi_data_konsumen .card-body {
+            padding: .85rem;
+        }
+
+        #modal-isi_data_konsumen .nav-tabs {
+            flex-direction: row !important;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: .25rem;
+        }
+
+        #modal-isi_data_konsumen .nav-tabs .nav-link {
+            white-space: nowrap;
+        }
+
+        #modal-isi_data_konsumen .sticky-button-wrapper {
+            margin: .85rem -.85rem -.85rem;
+        }
+    }
+
     /* Mobile Friendly Styles untuk Modal Mkdt Divisi 4 */
     @media (max-width: 768px) {
         #modal_divisi4 .modal-body-custom {
@@ -93,15 +459,13 @@
                     </button>
                 </div>
                 <div class="modal-body flex-grow-1" style="background-color:#eee; overflow-y: auto;">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="card">
+                    <div class="row idk-konsumen-layout">
+                        <div class="col-md-3 idk-sidebar">
+                            <div class="card idk-hero-card">
                                 <div class="card-body bg-primary text-light">
                                     <p class="modal-title label_alamat"></p>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-3">
                             <div class="card">
                                 <div class="col-12 pt-1">
                                     <div class="refresh_fmmkdt_div ">
@@ -194,7 +558,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-9" id="tab-isi-konsumen">
+                        <div class="col-md-9 idk-main-content" id="tab-isi-konsumen">
                             <div class="card">
                                 <div class="card-body pb-0 pt-0">
                                     <ul class="nav nav-tabs mb-1 mt-1" role="tablist">

@@ -26,7 +26,13 @@ class CashOutRepository extends Model
 
     public function getListItem(string $search)
     {
-        return $this->db->table('list_cashout lc')->where('lc.item LIKE', '%' . $search . '%')->get()->getResult();
+        return $this->db->table('list_cashout lc')
+            ->where('lc.deleted_at', null)
+            ->where('lc.item LIKE', '%' . $search . '%')
+            ->orderBy('lc.sort', 'ASC')
+            ->orderBy('lc.id', 'ASC')
+            ->get()
+            ->getResult();
     }
     public function getRiwayatBayarCashOutByIDKavling(int $id_kavling)
     {

@@ -64,7 +64,10 @@ class KeuanganRepository extends Model
     {
         //ambil list item keuangan
         return  $this->db->table('keuangan_item_list')
-            ->select("*")->get()->getResult();
+            ->select("*")
+            ->where('deleted_at', null)
+            ->orderBy('id_keuangan_item_list', 'ASC')
+            ->get()->getResult();
     }
     public function getBelumLunasQuery()
     {

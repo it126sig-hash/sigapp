@@ -93,6 +93,8 @@
 									<th>Subsidi</th>
 									<th>Lb</th>
 									<th>Lt</th>
+									<th>Jumlah Kamar Tidur</th>
+									<th>Jumlah Kamar Mandi</th>
 									<!-- <th>Harga</th> -->
 									<th>Keterangan</th>
 
@@ -106,7 +108,7 @@
 		</div>
 		<!-- Modal to add new record -->
 		<div class="modal fade" id="add-modal">
-			<div class="modal-dialog modal-dialog-scrollable modal-xl">
+			<div class="modal-dialog modal-dialog-scrollable modal-lg">
 				<form id="add-form" enctype="multipart/form-data" class="add-new-record modal-content pt-0">
 					<button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
 					<div class="modal-header mb-1">
@@ -154,6 +156,38 @@
 						<div class="form-group">
 							<label for="lt"> Luas Tanah: </label>
 							<input type="text" id="lt" name="lt" class="form-control" placeholder="Lt">
+						</div>
+
+						<div class="row">
+							<div class="form-group col-md-6">
+								<label for="jumlah_kamar_tidur"> Jumlah Kamar Tidur: </label>
+								<input type="number" id="jumlah_kamar_tidur" name="jumlah_kamar_tidur" class="form-control" placeholder="Jumlah Kamar Tidur" min="0">
+							</div>
+
+							<div class="form-group col-md-6">
+								<label for="jumlah_kamar_mandi"> Jumlah Kamar Mandi: </label>
+								<input type="number" id="jumlah_kamar_mandi" name="jumlah_kamar_mandi" class="form-control" placeholder="Jumlah Kamar Mandi" min="0">
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label for="spesifikasi_teknis_atap"> Spesifikasi Teknis Atap: </label>
+							<textarea cols="40" rows="3" id="spesifikasi_teknis_atap" name="spesifikasi_teknis_atap" class="form-control" placeholder="Spesifikasi Teknis Atap"></textarea>
+						</div>
+
+						<div class="form-group">
+							<label for="spesifikasi_teknis_dinding"> Spesifikasi Teknis Dinding: </label>
+							<textarea cols="40" rows="3" id="spesifikasi_teknis_dinding" name="spesifikasi_teknis_dinding" class="form-control" placeholder="Spesifikasi Teknis Dinding"></textarea>
+						</div>
+
+						<div class="form-group">
+							<label for="spesifikasi_teknis_lantai"> Spesifikasi Teknis Lantai: </label>
+							<textarea cols="40" rows="3" id="spesifikasi_teknis_lantai" name="spesifikasi_teknis_lantai" class="form-control" placeholder="Spesifikasi Teknis Lantai"></textarea>
+						</div>
+
+						<div class="form-group">
+							<label for="spesifikasi_teknis_pondasi"> Spesifikasi Teknis Pondasi: </label>
+							<textarea cols="40" rows="3" id="spesifikasi_teknis_pondasi" name="spesifikasi_teknis_pondasi" class="form-control" placeholder="Spesifikasi Teknis Pondasi"></textarea>
 						</div>
 
 						<!-- <div class="form-group">
@@ -274,6 +308,38 @@
 								<div class="form-group">
 									<label for="lt"> Lt: </label>
 									<input type="text" id="lt" name="lt" class="form-control" placeholder="Lt">
+								</div>
+
+								<div class="row">
+									<div class="form-group col-md-6">
+										<label for="jumlah_kamar_tidur"> Jumlah Kamar Tidur: </label>
+										<input type="number" id="jumlah_kamar_tidur" name="jumlah_kamar_tidur" class="form-control" placeholder="Jumlah Kamar Tidur" min="0">
+									</div>
+
+									<div class="form-group col-md-6">
+										<label for="jumlah_kamar_mandi"> Jumlah Kamar Mandi: </label>
+										<input type="number" id="jumlah_kamar_mandi" name="jumlah_kamar_mandi" class="form-control" placeholder="Jumlah Kamar Mandi" min="0">
+									</div>
+								</div>
+
+								<div class="form-group">
+									<label for="spesifikasi_teknis_atap"> Spesifikasi Teknis Atap: </label>
+									<textarea cols="40" rows="3" id="spesifikasi_teknis_atap" name="spesifikasi_teknis_atap" class="form-control" placeholder="Spesifikasi Teknis Atap"></textarea>
+								</div>
+
+								<div class="form-group">
+									<label for="spesifikasi_teknis_dinding"> Spesifikasi Teknis Dinding: </label>
+									<textarea cols="40" rows="3" id="spesifikasi_teknis_dinding" name="spesifikasi_teknis_dinding" class="form-control" placeholder="Spesifikasi Teknis Dinding"></textarea>
+								</div>
+
+								<div class="form-group">
+									<label for="spesifikasi_teknis_lantai"> Spesifikasi Teknis Lantai: </label>
+									<textarea cols="40" rows="3" id="spesifikasi_teknis_lantai" name="spesifikasi_teknis_lantai" class="form-control" placeholder="Spesifikasi Teknis Lantai"></textarea>
+								</div>
+
+								<div class="form-group">
+									<label for="spesifikasi_teknis_pondasi"> Spesifikasi Teknis Pondasi: </label>
+									<textarea cols="40" rows="3" id="spesifikasi_teknis_pondasi" name="spesifikasi_teknis_pondasi" class="form-control" placeholder="Spesifikasi Teknis Pondasi"></textarea>
 								</div>
 
 								<div class="tipe-upload-grid mb-1">
@@ -601,7 +667,7 @@
 
 					results.push({
 						id: itemId,
-						text: itemAddress ? itemText + ' (' + itemAddress + ')' : itemText
+						text: itemText
 					});
 				});
 
@@ -742,6 +808,12 @@
 				$("#edit-form #isSubsidi").val(response.is_subsidi);
 				$("#edit-form #lb").val(response.lb);
 				$("#edit-form #lt").val(response.lt);
+				$("#edit-form #jumlah_kamar_tidur").val(response.jumlah_kamar_tidur);
+				$("#edit-form #jumlah_kamar_mandi").val(response.jumlah_kamar_mandi);
+				$("#edit-form #spesifikasi_teknis_atap").val(response.spesifikasi_teknis_atap);
+				$("#edit-form #spesifikasi_teknis_dinding").val(response.spesifikasi_teknis_dinding);
+				$("#edit-form #spesifikasi_teknis_lantai").val(response.spesifikasi_teknis_lantai);
+				$("#edit-form #spesifikasi_teknis_pondasi").val(response.spesifikasi_teknis_pondasi);
 
 				// console.log(response.no_tipe_rumah, response.tipe_rumah)
 

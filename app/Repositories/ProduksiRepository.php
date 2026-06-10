@@ -42,6 +42,9 @@ class ProduksiRepository
             ->join('bayar_produksi c', 'c.id_item_produksi = lc.id and id_kavling = ' . $this->db->escape($idKavling), 'left')
             ->join('users u', 'u.id = c.add_by', 'left')
             ->join('users e', 'e.id = c.edit_by', 'left')
+            ->where('lc.deleted_at', null)
+            ->orderBy('lc.sort', 'ASC')
+            ->orderBy('lc.id', 'ASC')
             ->get()->getResult();
     }
 
@@ -192,8 +195,23 @@ class ProduksiRepository
         return (bool) $this->db->table('others')->insert($fields);
     }
 
+    public function getOtherById(int $id): ?object
+    {
+        return $this->db->table('others')->where('id', $id)->get()->getRow() ?: null;
+    }
+
     public function updateOthers(int $id, array $fields): bool
     {
         return (bool) $this->db->table('others')->where('id', $id)->update($fields);
+    }
+
+    public function hasJalanProgressHistoryTable(): bool
+    {
+        return $this->db->tableExists('produksi_jalan_progress_history');
+    }
+
+    public function insertJalanProgressHistory(array $fields): bool
+    {
+        return (bool) $this->db->table('produksi_jalan_progress_history')->insert($fields);
     }
 }

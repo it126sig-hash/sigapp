@@ -227,6 +227,31 @@ foreach (user()->getRoles() as $key => $val) {
         background: linear-gradient(135deg, #0d9668, #047857) !important;
     }
 
+    #produksi_menu.produksi-jalan-selecting {
+        width: fit-content !important;
+        max-width: calc(100vw - 48px) !important;
+        overflow-x: visible !important;
+        justify-content: flex-start !important;
+    }
+
+    #produksi_menu > .hidden,
+    #produksi_menu > .d-none {
+        display: none !important;
+    }
+
+    #produksi_menu.produksi-jalan-selecting #produksi_add_jalan_hint {
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+        font-size: 0.75rem;
+        line-height: 1;
+        padding: 0 8px;
+    }
+
+    #produksi_menu.produksi-jalan-selecting #produksi_add_jalan_undo {
+        display: inline-flex !important;
+    }
+
     .float .btn-outline-warning {
         border: 1.5px solid #F59E0B !important;
         color: #F59E0B !important;
@@ -299,6 +324,10 @@ foreach (user()->getRoles() as $key => $val) {
             justify-content: flex-end !important;
             align-self: flex-end !important; /* Force right alignment of button */
             margin: 3px 0 !important;
+        }
+
+        .float.mobile-expanded > .d-none {
+            display: none !important;
         }
 
         .float.mobile-expanded .custom-switch {
@@ -1122,6 +1151,64 @@ foreach (user()->getRoles() as $key => $val) {
         color: #374151;
     }
 
+    .produksi-jalan-history-card {
+        border: 1px solid #edf0f2;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .produksi-jalan-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: .9rem;
+        margin: 0;
+        padding: 0;
+    }
+
+    .produksi-jalan-timeline-item {
+        border-left: 3px solid #2056a4;
+        padding-left: .9rem;
+        position: relative;
+    }
+
+    .produksi-jalan-timeline-item::before {
+        background: #2056a4;
+        border: 3px solid #fff;
+        border-radius: 999px;
+        box-shadow: 0 0 0 2px rgba(32, 86, 164, .18);
+        content: "";
+        height: 13px;
+        left: -8px;
+        position: absolute;
+        top: .2rem;
+        width: 13px;
+    }
+
+    .produksi-jalan-timeline-title {
+        color: #003b78;
+        font-weight: 800;
+    }
+
+    .produksi-jalan-timeline-meta {
+        color: #6b7280;
+        font-size: .78rem;
+    }
+
+    .produksi-jalan-timeline-photo {
+        height: 72px;
+        object-fit: cover;
+        width: 96px;
+    }
+
+    .dark-layout .produksi-jalan-history-card {
+        background: #283046;
+        border-color: rgba(255, 255, 255, .08);
+    }
+
+    .dark-layout .produksi-jalan-timeline-title {
+        color: #f8fafc;
+    }
+
     @media (max-width: 1199.98px) {
         #modal_detail .detail-kavling-layout {
             flex-wrap: wrap;
@@ -1519,21 +1606,7 @@ foreach (user()->getRoles() as $key => $val) {
         }
 
     };
-    const list_pekerjaan = {
-        "Pekerjaan Persiapan": ["Persiapan Pembersihan lokasi", "Pemasangan bouplank"],
-        "Pekerjaan Pondasi": ["Galian tanah pondasi", "Pasangan Pondasi Batu kali", "Pasangan Pondasi plat Setempat", "Instalasi Pipa Air Kotor pendam 3 inch", "Instalasi Pipa Air Kotor Pendam 4 inch", "Instalasi Pipa Air Kotor Pendam lebih dari 4 inch", "Urugan tanah pondasi tinggi 0-20 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi 20-50 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi lebih dari 50 cm dari jalan lingkungan"],
-        "Pekerjaan Pembesian/Kontruksi": ["Rangkaian pemasangan besi/tulangan pada sloof Bawah", "Rangkaian pemasangan Pasang besi/tulangan pada Ring Balok/balok atas", "Rangkaian pemasangan besi/tulangan pada kolom", "Rangkaian pemasangan besi/tulangan pada sopi-sopi/Gewel/gunungan", "Rangkaian pemasangan pertemuan Besi Tulangan antara Kolom dan Sloof Bawah", "Rangkaian pemasangan pertemuan Tulangan antara Kolom dan Ring Balk/balok atas", "Rangkaian pemasangan pertemuan Tulangan antara Kolom, Ring Balk/balok atas dan sopi-sopi/gunungan", ],
-        "Pekerjaan Cor Beton": ["Cor Beton sloof bawah", "Cor Beton Ring Balk/balok atas", "Tangga Beton (jika rumah 2 lantai)", "Plat Lantai Beton lantai 2", "Plat Lantai Beton lantai"],
-        "Pekerjaan Pasangan Dinding": ["Pasang Bata/Batako/Bata Ringan/Jenis lain", "Plesteran tebal", "Acian semen", "Pasangan keramik dinding kamar mandi", "Pasangan keramik dinding dapur"],
-        "Pekerjaan Atap": ["Rangka atap & Kuda Kuda", "Tutup atap/genting", "Genting bubung", "Listplang kayu", "Talang sudut"],
-        "Pekerjaan Instalasi": ["Instalasi Air bersih", "Instalasi/Jaringan Listrik"],
-        "Pekerjaan Langit-langit (Plapond)": ["Rangka plapond", "Penutup plapond"],
-        "Pekerjaan Lantai": ["Lantai kerja (pasir lantai)", "Penutup lantai"],
-        "Pekerjaan kusen": ["Kusen/pintu Utama", "Jendela Utama/jendela teras", "Kusen/pintu Kamar", "Jendela Kamar"],
-        "Pekerjaan Kaca dan Kunci": ["Pasang kaca jendela", "Pasang kunci tanam pintu", "Pasang kunci kamar mandi", "Pasang engsel pintu", "Pasang engsel jendela", "Pasang tulak angin/Hak angin /windows stay"],
-        "Pekerjaan Sanitasi": ["Pasang closet", "Pasang washtafel", "Pasang bak mandi", "Pasang bak cuci piring", "Septictank"],
-        "Pekerjaan Finishing & Pegecatan": ["Pengecatan kusen", "Pengecatan pintu dan jendela", "Pengecatan Plapond", "Pengecatan tembok"]
-    };
+
 
     //carousel
     $('.carousel').carousel('pause')
@@ -2598,9 +2671,45 @@ foreach (user()->getRoles() as $key => $val) {
         }
     })
 
+    function refresh_manual_selection_points() {
+        dtt = [];
+        var sj = stage.find("#seljal");
+
+        for (let u = 0; u < sj.length; u++) {
+            dtt.push(Math.trunc(sj[u].attrs.x), Math.trunc(sj[u].attrs.y))
+        }
+
+        line_ms.points(dtt)
+        masked.batchDraw()
+        return dtt;
+    }
+
+    function undo_manual_selection() {
+        var sj = stage.find("#seljal");
+
+        if (!sj.length) {
+            return swal('error', 'Terjadi kesalahan', 'Belum ada titik seleksi manual')
+        }
+
+        sj[sj.length - 1].destroy();
+        refresh_manual_selection_points();
+    }
+
+    $(document).on('keydown', function(e) {
+        var tagName = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
+
+        if (!isManualSelectionActive() || ['input', 'textarea', 'select'].includes(tagName)) {
+            return;
+        }
+
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+            e.preventDefault();
+            undo_manual_selection();
+        }
+    });
+
     stage.on('click tap', function(e) {
         if (isManualSelectionActive()) {
-            dtt = [];
             var pos = this.getRelativePointerPosition();
 
             var dot = new Konva.Circle({
@@ -2612,25 +2721,14 @@ foreach (user()->getRoles() as $key => $val) {
                 draggable: true
             })
             manual_selection.add(dot);
-
-            var sj = stage.find("#seljal");
-            for (let u = 0; u < sj.length; u++) {
-                dtt.push(Math.trunc(sj[u].attrs.x), Math.trunc(sj[u].attrs.y))
-            }
-            line_ms.points(dtt)
+            refresh_manual_selection_points();
         }
     })
     masked.add(line_ms)
     masked.add(manual_selection)
 
     manual_selection.on('dragend', function(e) {
-        dtt = []
-        var sj = stage.find("#seljal");
-        for (let u = 0; u < sj.length; u++) {
-            dtt.push(Math.trunc(sj[u].attrs.x), Math.trunc(sj[u].attrs.y))
-        }
-
-        line_ms.points(dtt)
+        refresh_manual_selection_points();
     })
 
     //even mouse move data kavling
@@ -2821,12 +2919,16 @@ foreach (user()->getRoles() as $key => $val) {
         // alert(sh.data.tipe)
         $("#f_detail_progres_jalan").val(0)
         $(".t_luas_planning, .t_keterangan_planning, .t_luas_legal, .t_keterangan_legal, .t_luas_produksi, .t_keterangan_produksi, .r_progres").html("-")
+        $("#detail_produksi_jalan_history_wrap").addClass("d-none")
+        resetProduksiJalanHistoryTimeline("#detail_produksi_jalan_history")
         $.ajax({
             url: base_url + 'siteplan/get_others',
             type: 'post',
             data: {
                 [csrfName]: csrfHash,
-                id_kavling: editdtt[0].id.substr(6)
+                id_kavling: editdtt[0].id.substr(6),
+                history_limit: PRODUKSI_JALAN_HISTORY_LIMIT,
+                history_offset: 0
             },
             dataType: 'json',
             success: function(r) {
@@ -2854,6 +2956,8 @@ foreach (user()->getRoles() as $key => $val) {
                     }
                     $("#f_detail_progres_jalan").val(progres)
                     $(".r_progres").html(progres)
+                    $("#detail_produksi_jalan_history_wrap").toggleClass("d-none", d.tipe !== "jalan")
+                    renderProduksiJalanHistoryTimeline("#detail_produksi_jalan_history", r.history || [], r, false)
 
                 }
 
@@ -2876,6 +2980,115 @@ foreach (user()->getRoles() as $key => $val) {
         $('#modal_othersdetail').modal({
             backdrop: 'static',
             keyboard: false
+        });
+    }
+
+    const PRODUKSI_JALAN_HISTORY_LIMIT = 5;
+
+    function escapeProduksiJalanHistoryValue(value) {
+        return $("<div>").text(value === null || value === undefined ? "" : value).html();
+    }
+
+    function resetProduksiJalanHistoryTimeline(targetSelector) {
+        const $target = $(targetSelector);
+        $target
+            .data("id-others", "")
+            .data("next-offset", 0)
+            .data("history-limit", PRODUKSI_JALAN_HISTORY_LIMIT)
+            .html('<div class="text-muted">Memuat history...</div>');
+    }
+
+    function renderProduksiJalanHistoryTimeline(targetSelector, history, meta, append) {
+        const $target = $(targetSelector);
+        const idOthers = meta && meta.data && meta.data[0] ? meta.data[0].id : $target.data("id-others");
+        const nextOffset = meta ? (meta.history_next_offset || 0) : 0;
+        const limit = meta ? (meta.history_limit || PRODUKSI_JALAN_HISTORY_LIMIT) : PRODUKSI_JALAN_HISTORY_LIMIT;
+        const hasMore = !!(meta && meta.history_has_more);
+
+        $target
+            .data("id-others", idOthers || "")
+            .data("next-offset", nextOffset)
+            .data("history-limit", limit);
+
+        if (!append) {
+            $target.html('<div class="produksi-jalan-timeline"></div><div class="produksi-jalan-history-action mt-1"></div>');
+        }
+
+        const $timeline = $target.find(".produksi-jalan-timeline");
+        if (!history.length && !append) {
+            $timeline.html('<div class="text-muted">Belum ada history progres.</div>');
+        }
+
+        $.each(history, function(index, item) {
+            let photos = "";
+            $.each(item.foto_urls || [], function(fotoIndex, url) {
+                photos +=
+                    '<a href="' + url + '" target="_blank" class="mr-1 mb-1 d-inline-block">' +
+                    '<img src="' + url + '" class="img-thumbnail produksi-jalan-timeline-photo" />' +
+                    '</a>';
+            });
+
+            $timeline.append(
+                '<div class="produksi-jalan-timeline-item">' +
+                    '<div class="d-flex justify-content-between align-items-start flex-wrap">' +
+                        '<div class="produksi-jalan-timeline-title">Progres ' +
+                            escapeProduksiJalanHistoryValue(item.progres) + '%</div>' +
+                        '<div class="produksi-jalan-timeline-meta">' + format_datetime(item.created_at) + '</div>' +
+                    '</div>' +
+                    '<div class="produksi-jalan-timeline-meta mb-1">Oleh: ' +
+                        escapeProduksiJalanHistoryValue(item.username || '-') + '</div>' +
+                    '<div>' + escapeProduksiJalanHistoryValue(item.keterangan || '-') + '</div>' +
+                    (photos ? '<div class="mt-1">' + photos + '</div>' : '') +
+                '</div>'
+            );
+        });
+
+        const $action = $target.find(".produksi-jalan-history-action");
+        if (hasMore) {
+            $action.html(
+                '<button type="button" class="btn btn-outline-primary btn-sm produksi-jalan-load-more" data-target="' +
+                    escapeProduksiJalanHistoryValue(targetSelector) + '">Muat lagi</button>'
+            );
+        } else {
+            $action.empty();
+        }
+    }
+
+    $(document).off("click", ".produksi-jalan-load-more").on("click", ".produksi-jalan-load-more", function() {
+        loadProduksiJalanHistoryMore($(this).data("target"));
+    });
+
+    function loadProduksiJalanHistoryMore(targetSelector) {
+        const $target = $(targetSelector);
+        const idOthers = $target.data("id-others");
+        if (!idOthers) return;
+
+        const $button = $target.find(".produksi-jalan-history-action .btn");
+        $button.prop("disabled", true).html('Memuat <i class="fa fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: base_url + 'siteplan/get_others',
+            type: 'post',
+            data: {
+                [csrfName]: csrfHash,
+                id_kavling: idOthers,
+                history_limit: $target.data("history-limit") || PRODUKSI_JALAN_HISTORY_LIMIT,
+                history_offset: $target.data("next-offset") || 0
+            },
+            dataType: 'json',
+            success: function(r) {
+                csrfHash = r.token;
+                renderProduksiJalanHistoryTimeline(targetSelector, r.history || [], r, true);
+            },
+            error: function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terjadi kesalahan saat memuat history',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                $button.prop("disabled", false).html("Muat lagi");
+            }
         });
     }
     const isSubsidi = ['Non-Subsidi', 'Subsidi'],
@@ -3997,10 +4210,6 @@ foreach (user()->getRoles() as $key => $val) {
 
     }
 
-    function loading(hiden = ture) {
-        if (hiden) return $("#loading").removeClass('hidden')
-        return $("#loading").addClass('hidden')
-    }
 
     function isi_data() {
         if (editdtt.length == 0)
@@ -7638,7 +7847,7 @@ foreach (user()->getRoles() as $key => $val) {
 </div>
 <div class="fade modal text-left" id="modal_othersdetail" aria-labelledby="modal_othersdetail" role="dialog"
     aria-hidden="true" tabindex="-1">
-    <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Detail</h5><button class="close" type="button"
@@ -7654,12 +7863,18 @@ foreach (user()->getRoles() as $key => $val) {
                             class="t_luas_legal"></span></span><br><span><strong>Keterangan Legal :</strong><br><span
                             class="t_keterangan_legal"></span></span><br><br><span><strong>Luas di Lapangan
                             :</strong><br><span class="t_luas_produksi"></span></span><br><span><strong>Keterangan
-                            Produksi :</strong><br><span class="t_keterangan_keterangan"></span></span>
+                            Produksi :</strong><br><span class="t_keterangan_produksi"></span></span>
                     <hr>
                     <div class="form-group"><label for="f_progres_jalan">Progres</label> <input
                             name="f_detail_progres_jalan" class="form-control-range" id="f_detail_progres_jalan"
                             disabled type="range" max="100" min="0" oninput='$(".r_progres").html($(this).val())'
                             step="5"> <span class="r_progres"></span><span>%</span></div>
+                    <div id="detail_produksi_jalan_history_wrap" class="produksi-jalan-history-card mt-2 d-none">
+                        <div class="divider divider-left mb-1">
+                            <div class="divider-text font-weight-bold">History Progres</div>
+                        </div>
+                        <div id="detail_produksi_jalan_history"></div>
+                    </div>
                 </div>
                 <div class="modal-footer"><button class="btn btn-outline-secondary" type="reset"
                         data-dismiss="modal">Tutup</button></div>

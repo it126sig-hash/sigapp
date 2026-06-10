@@ -10,5 +10,7 @@ class ListCashoutModel extends Model
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
-    protected $allowedFields    = ['item', 'sort'];
+    protected $useSoftDeletes   = true;
+    protected $allowedFields    = ['item', 'sort', 'deleted_at'];
+    protected $deletedField     = 'deleted_at';
 }

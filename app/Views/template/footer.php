@@ -87,10 +87,13 @@
                    height: 14
                });
            }
+
+           loading(false)
        })
 
-       function loading() {
-
+       function loading(hiden = true) {
+           if (hiden) return $("#loading").removeClass('hidden')
+           return $("#loading").addClass('hidden')
        }
    </script>
    </body>

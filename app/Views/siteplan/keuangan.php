@@ -1,3 +1,223 @@
+<style>
+    #modal_divisi3 .modal-dialog {
+        max-width: min(1440px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modal_divisi3 .modal-content {
+        border: 0;
+        border-radius: 10px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+        overflow: hidden;
+    }
+
+    #modal_divisi3 .modal-header {
+        align-items: center;
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1rem 1.25rem;
+    }
+
+    #modal_divisi3 .modal-title {
+        color: #111827;
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    #modal_divisi3 .keu-pay-body {
+        background: #f3f5f7 !important;
+        max-height: calc(100vh - 7rem);
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    #modal_divisi3 .keu-pay-layout {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        min-width: 0;
+    }
+
+    #modal_divisi3 .keu-pay-sidebar {
+        align-self: flex-start;
+        flex: 0 0 340px;
+        max-height: calc(100vh - 7rem);
+        max-width: 340px;
+        overflow-y: auto;
+        padding-right: .15rem;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    #modal_divisi3 .keu-pay-content {
+        flex: 1 1 auto;
+        max-width: calc(100% - 356px);
+        min-width: 0;
+    }
+
+    #modal_divisi3 .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+        margin-bottom: 1rem;
+    }
+
+    #modal_divisi3 .card-body {
+        padding: 1rem;
+    }
+
+    #modal_divisi3 .keu-pay-hero {
+        background: linear-gradient(145deg, #2057a3 0%, #1f7a8c 100%);
+        border: 0;
+        color: #fff;
+        overflow: hidden;
+    }
+
+    #modal_divisi3 .keu-pay-hero .card-body {
+        background: transparent !important;
+    }
+
+    #modal_divisi3 .keu-pay-hero .label_alamat {
+        font-size: .95rem;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-bottom: .85rem;
+    }
+
+    #modal_divisi3 .keu-pay-meta-card {
+        background: rgba(255, 255, 255, .94);
+        border: 0;
+        color: #111827;
+        margin-bottom: 0;
+    }
+
+    #modal_divisi3 .keu-pay-meta-card h6,
+    #modal_divisi3 .keu-pay-meta-card h5 {
+        color: #374151;
+        line-height: 1.35;
+        margin-bottom: .45rem;
+    }
+
+    #modal_divisi3 .divider {
+        margin: .65rem 0 .85rem;
+    }
+
+    #modal_divisi3 .divider-left {
+        border-left-color: #2057a3;
+        padding-left: .75rem;
+    }
+
+    #modal_divisi3 .divider .divider-text {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 700;
+    }
+
+    #modal_divisi3 .info-row,
+    #modal_divisi3 .keu-cost-row {
+        align-items: flex-start;
+        background: #f9fafb;
+        border: 1px solid #edf0f2;
+        border-radius: 6px;
+        display: flex;
+        justify-content: space-between;
+        gap: .75rem;
+        margin-bottom: .45rem;
+        padding: .45rem .55rem;
+    }
+
+    #modal_divisi3 .keu-cost-row.is-total {
+        background: #eef5ff;
+        border-color: #c9ddf5;
+    }
+
+    #modal_divisi3 .keu-cost-label,
+    #modal_divisi3 label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    #modal_divisi3 .keu-cost-value,
+    #modal_divisi3 .info-value {
+        color: #111827;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+        text-align: right;
+    }
+
+    #modal_divisi3 .form-control {
+        border-color: #d8dde3;
+        border-radius: 6px;
+        min-height: 36px;
+    }
+
+    #modal_divisi3 .btn {
+        border-radius: 6px;
+        white-space: normal;
+    }
+
+    #modal_divisi3 .nav-tabs {
+        border-bottom-color: #e5e7eb;
+        gap: .35rem;
+    }
+
+    #modal_divisi3 .nav-tabs .nav-link {
+        color: #4b5563;
+        font-size: .82rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    #modal_divisi3 .nav-tabs .nav-link.active {
+        color: #2057a3;
+    }
+
+    @media (max-width: 1199.98px) {
+        #modal_divisi3 .keu-pay-layout {
+            flex-wrap: wrap;
+        }
+
+        #modal_divisi3 .keu-pay-sidebar,
+        #modal_divisi3 .keu-pay-content {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        #modal_divisi3 .keu-pay-sidebar {
+            max-height: none;
+            overflow-y: visible;
+            padding-right: 0;
+            position: static;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        #modal_divisi3 .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
+        }
+
+        #modal_divisi3 .keu-pay-body {
+            max-height: calc(100vh - 5.5rem);
+            padding: .75rem;
+        }
+
+        #modal_divisi3 .nav-tabs {
+            flex-direction: row !important;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: .25rem;
+        }
+
+        #modal_divisi3 .card-body {
+            padding: .85rem;
+        }
+    }
+</style>
+
 <!--#################################### Modal Keuangan #########################################-->
 <div class="modal fade text-left" id="modal_divisi3">
     <div class="modal-dialog modal-dialog-scrollable modal-xl">
@@ -8,30 +228,108 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body flex-grow-1" style="background-color:#eee">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card">
+            <div class="modal-body flex-grow-1 keu-pay-body">
+                <div class="keu-pay-layout">
+                    <aside class="keu-pay-sidebar">
+                        <div class="card keu-pay-hero">
                             <div class="card-body bg-primary text-light">
                                 <div class="row">
-                                    <div class="col-8">
+                                    <div class="col-12">
                                         <p class="modal-title label_alamat"></p>
                                     </div>
-                                    <div class="col-4">
-                                        <div class="card">
+                                    <div class="col-12">
+                                        <div class="card keu-pay-meta-card">
                                             <div class="card-body">
-                                                <h5><i class="fas fa-users"></i> <span>Konsumen</span></h5>
-                                                <h5><strong><span id="fm-bayar-label_konsumen"></span></strong></h5>
-                                                <h5><i class="fas fa-calendar"></i> <span>Tanggal Booking</span></h5>
-                                                <h5><strong><span id="fm-bayar-label_tgl"></span>(Rp. <span id="fm-bayar-label_bookingfee"></span>)</strong></h5>
+                                                <h6><i class="fas fa-users"></i> <span>Konsumen</span></h6>
+                                                <h5><strong><span id="fm-bayar-label_konsumen">-</span></strong></h5>
+                                                <h6><i class="fas fa-calendar"></i> <span>Tanggal Booking</span></h6>
+                                                <h5 class="mb-0"><strong><span id="fm-bayar-label_tgl">-</span> (Rp. <span id="fm-bayar-label_bookingfee">0</span>)</strong></h5>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-12">
+
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text font-weight-bold">Harga & Detail Biaya MKDT</div>
+                                </div>
+                                <div id="fm-keu-biaya-mkdt">
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">Harga Jual</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_jual">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">Harga Jual Net</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_jual_net">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">Harga KPR</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_kpr">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">KPR ACC</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_kpr_acc">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">Uang Muka</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_uang_muka">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">Diskon UM</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_diskon_uang_muka">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">SBUM</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_sbum">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row is-total">
+                                        <span class="keu-cost-label">Total UM</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="total_um">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">Administrasi</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_administrasi">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">BPHTB</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_bphtb">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">Biaya Proses</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_biaya_proses">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">PPN</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_ppn">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">Penambahan UM</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_penambahan_um">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">Penambahan</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_penambahan">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row">
+                                        <span class="keu-cost-label">Penambahan Tanah</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="harga_penambahan_tanah">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row is-total">
+                                        <span class="keu-cost-label">Total Biaya Lain</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="total_biaya_lain">Rp. 0</span>
+                                    </div>
+                                    <div class="keu-cost-row is-total mb-0">
+                                        <span class="keu-cost-label">Total Tercatat</span>
+                                        <span class="keu-cost-value" data-biaya-mkdt="total_tercatat">Rp. 0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                    <section class="keu-pay-content">
                         <div class="card">
                             <div class="card-body pb-0 pt-0">
                                 <input type="hidden" class="form-control" name="status_mkdt" id="status_mkdt" value="" />
@@ -333,7 +631,7 @@
                             </div> -->
                             </div>
                         </div>
-                    </div>
+                    </section>
                 </div>
             </div>
             <div class="modal-footer">
@@ -2074,14 +2372,84 @@ function save_isi_tagihan(e) {
 }
 
 $("#bt-for, #bt-for_bb").select2();
-let keu_tg, keu_lp, keu_nom_ll, keu_nom_bb, keu_sb;
+let keu_tg,
+  keu_lp,
+  keu_nom_ll,
+  keu_nom_bb,
+  keu_sb,
+  keu_current_id_mkdt,
+  keu_total_sudah_bayar = 0,
+  keu_riwayat_loaded = false,
+  keu_riwayat_loading = false;
+
+function keuToNumber(value) {
+  if (value === null || value === undefined || value === "") return 0;
+  return parseFloat(String(value).replace(/,/g, "")) || 0;
+}
+
+function renderBiayaMkdt(biaya = {}) {
+  $("#fm-keu-biaya-mkdt [data-biaya-mkdt]").each(function () {
+    const key = $(this).data("biaya-mkdt");
+    $(this).html("Rp. " + num_format(keuToNumber(biaya[key])));
+  });
+}
+
+function loadKeuanganRiwayatLazy(done) {
+  if (keu_riwayat_loaded) {
+    loadLogPembayaran(keu_lp);
+    if (typeof done === "function") done();
+    return;
+  }
+
+  if (keu_riwayat_loading || !keu_current_id_mkdt) {
+    if (typeof done === "function") done();
+    return;
+  }
+
+  keu_riwayat_loading = true;
+  $.ajax({
+    url: base_url + "tagihan/riwayat/ambilsatu",
+    type: "post",
+    data: {
+      [csrfName]: csrfHash,
+      id_mkdt: keu_current_id_mkdt,
+    },
+    dataType: "json",
+    success: function (r) {
+      csrfHash = r.token;
+      if (r.success === false) {
+        loaded["keu_lp"] = false;
+        swal("error", r.messages || "Riwayat pembayaran tidak ditemukan");
+        return;
+      }
+      keu_lp = Array.isArray(r.log_pembayaran) ? r.log_pembayaran : [];
+      keu_sb = keu_lp;
+      keu_riwayat_loaded = true;
+      loadLogPembayaran(keu_lp);
+    },
+    error: function (xhr, st, err) {
+      loaded["keu_lp"] = false;
+      swal("error", "Terjadi kesalahan saat memuat riwayat pembayaran", err);
+    },
+    complete: function () {
+      keu_riwayat_loading = false;
+      if (typeof done === "function") done();
+    },
+  });
+}
 
 function open_keuangan(sh, role, id_kavling) {
+  loading(true);
   $("#tb-alokasi-dana").html("");
-  // console.log(sh);
+
   loaded = [];
   keu_lp = [];
   keu_tg = [];
+  keu_current_id_mkdt = sh.data.id_mkdt;
+  keu_total_sudah_bayar = 0;
+  keu_riwayat_loaded = false;
+  keu_riwayat_loading = false;
+  renderBiayaMkdt({});
 
   keu_sb = [];
   keu_nom_bb = 0;
@@ -2124,6 +2492,7 @@ function open_keuangan(sh, role, id_kavling) {
       // id_keuangan: sh.data.id_keuangan,
       // id_kavling: id_kavling,
       id_mkdt: sh.data.id_mkdt,
+      include_log: 0,
       // id_hargajual: sh.data2.id_hargajual,
     },
     dataType: "json",
@@ -2133,11 +2502,13 @@ function open_keuangan(sh, role, id_kavling) {
     success: function (r) {
       loading(false);
       let mkdt = r.mkdt,
-        sb = r.log_pembayaran,
-        lp = r.log_pembayaran,
+        sb = Array.isArray(r.log_pembayaran) ? r.log_pembayaran : [],
+        lp = Array.isArray(r.log_pembayaran) ? r.log_pembayaran : [],
         disabled = "";
       tg = r.tagihan;
       csrfHash = r.token;
+      keu_total_sudah_bayar = keuToNumber(r.total_sudah_bayar);
+      renderBiayaMkdt(r.biaya_mkdt || mkdt || {});
 
       if (!Array.isArray(tg) || tg.length === 0) {
         Swal.fire({
@@ -2274,7 +2645,9 @@ function open_keuangan(sh, role, id_kavling) {
       /************************ end of load table log pembayaran ***************************/
 
       loadTableTagihan(tg);
+      loaded["keu_tg"] = true;
 
+      removeModalListener("#modal_divisi3");
       initModalListener("#modal_divisi3");
     },
     error: function (xhr, st, err) {
@@ -2298,6 +2671,18 @@ function loadKeuSB(sb) {
   // sisa_ll = 0,
   // prs_ll = 0;
 
+  if ((!Array.isArray(sb) || sb.length === 0) && keu_total_sudah_bayar > 0) {
+    nom = keu_total_sudah_bayar;
+    nom = nom > tot ? tot : nom;
+    prs = nom == 0 || tot == 0 ? 0 : (nom / tot) * 100;
+
+    return {
+      total_sudah_bayar: nom,
+      sisa_tagihan: sisa,
+      persentase: prs.toFixed(2) + "%",
+    };
+  }
+
   $.each(sb, function (i, v) {
     if (v.payment_type != "Booking") {
       nom += parseFloat(v.nominal) || 0;
@@ -2312,7 +2697,7 @@ function loadKeuSB(sb) {
   // sisa = tot - nom;
   // sisa_bb = tot_bb - nom_bb;
 
-  prs = nom == 0 ? 0 : (nom / tot) * 100;
+  prs = nom == 0 || tot == 0 ? 0 : (nom / tot) * 100;
 
   return {
     total_sudah_bayar: nom,
@@ -2435,6 +2820,7 @@ function loadLogPembayaran(lp) {
   if (!loaded["keu_sb"]) {
     loadKeuSB(keu_sb);
   }
+  $("#tb-data-log_pembayaran").html("");
   let t = "",
     tot_lp = 0,
     no = 1;

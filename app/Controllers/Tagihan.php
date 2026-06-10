@@ -58,6 +58,7 @@ class Tagihan extends BaseController
     function getByID()
     {
         $id_mkdt = trim((string) $this->request->getVar('id_mkdt'));
+        $includeLog = (string) ($this->request->getVar('include_log') ?? '1') !== '0';
 
         $data['token'] = csrf_hash();
 
@@ -69,10 +70,77 @@ class Tagihan extends BaseController
             ]);
         }
         $data['mkdt'] = $this->konsumenService->getKonsumenTransaksi($id_mkdt);
+        $data['biaya_mkdt'] = $this->formatBiayaMkdt($data['mkdt']);
         $data['tagihan'] =  $this->keuanganService->getTagihanById($id_mkdt);
-        $data['log_pembayaran'] = $this->keuanganService->getRiwayatBayarWithDetailById($id_mkdt);
+        $data['total_sudah_bayar'] = $this->keuanganService->getTotalBayarById($id_mkdt);
+        $data['log_pembayaran'] = $includeLog ? $this->keuanganService->getRiwayatBayarWithDetailById($id_mkdt) : [];
 
         return $this->response->setJSON($data);
+    }
+
+    public function getRiwayatByID(): ResponseInterface
+    {
+        $id_mkdt = trim((string) $this->request->getVar('id_mkdt'));
+
+        if (empty($id_mkdt)) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'data tidak ditemukan',
+                'log_pembayaran' => [],
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'token' => csrf_hash(),
+            'success' => true,
+            'log_pembayaran' => $this->keuanganService->getRiwayatBayarWithDetailById($id_mkdt),
+        ]);
+    }
+
+    protected function formatBiayaMkdt($mkdt): array
+    {
+        $num = static function ($value): float {
+            return (float) ($value ?? 0);
+        };
+
+        if (!$mkdt) {
+            return [];
+        }
+
+        $hargaUangMuka = $num($mkdt->harga_uang_muka ?? 0);
+        $diskonUangMuka = $num($mkdt->harga_diskon_uang_muka ?? 0);
+        $sbum = $num($mkdt->harga_sbum ?? 0);
+        $administrasi = $num($mkdt->harga_administrasi ?? 0);
+        $bphtb = $num($mkdt->harga_bphtb ?? 0);
+        $biayaProses = $num($mkdt->harga_biaya_proses ?? 0);
+        $ppn = $num($mkdt->harga_ppn ?? 0);
+        $penambahanUm = $num($mkdt->harga_penambahan_um ?? 0);
+        $penambahan = $num($mkdt->harga_penambahan ?? 0);
+        $penambahanTanah = $num($mkdt->harga_penambahan_tanah ?? 0);
+
+        $totalUm = $hargaUangMuka - $diskonUangMuka - $sbum;
+        $totalBiayaLain = $administrasi + $bphtb + $biayaProses + $ppn + $penambahanUm + $penambahan + $penambahanTanah;
+
+        return [
+            'harga_jual' => $num($mkdt->harga_jual ?? 0),
+            'harga_jual_net' => $num($mkdt->harga_jual_net ?? 0),
+            'harga_kpr' => $num($mkdt->harga_kpr ?? 0),
+            'harga_kpr_acc' => $num($mkdt->harga_kpr_acc ?? 0),
+            'harga_uang_muka' => $hargaUangMuka,
+            'harga_diskon_uang_muka' => $diskonUangMuka,
+            'harga_sbum' => $sbum,
+            'harga_administrasi' => $administrasi,
+            'harga_bphtb' => $bphtb,
+            'harga_biaya_proses' => $biayaProses,
+            'harga_ppn' => $ppn,
+            'harga_penambahan_um' => $penambahanUm,
+            'harga_penambahan' => $penambahan,
+            'harga_penambahan_tanah' => $penambahanTanah,
+            'total_um' => $totalUm,
+            'total_biaya_lain' => $totalBiayaLain,
+            'total_tercatat' => $totalUm + $totalBiayaLain,
+        ];
     }
     public function hapusTurunKPR(): ResponseInterface
     {

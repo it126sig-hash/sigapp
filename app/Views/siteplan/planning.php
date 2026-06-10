@@ -651,7 +651,7 @@ var editdtt_tmp;
 function pindah_kavling() {
   editdtt_tmp = editdtt;
   $("#modals-slide-in").modal("hide");
-  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").hide();
+  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn, #planning_undo_manual_selection").hide();
   $("#selesai_pindah_btn, #batal_pindah_btn").show();
   hapus_seleksi();
 }
@@ -674,7 +674,7 @@ function selesai_selection(e) {
   editdtt = editdtt_tmp;
 
   $("#modals-slide-in").modal("show");
-  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").show();
+  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn, #planning_undo_manual_selection").show();
   $("#selesai_pindah_btn, #batal_pindah_btn").hide();
 }
 

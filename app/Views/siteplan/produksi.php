@@ -54,7 +54,7 @@
 				<div class="modal-footer">
 					<button type="button" id="save_produksi_add_jalan-btn" class="btn btn-primary data-submit mr-1"
 						onclick="save_jalan_produksi()" href="javascript:void(0)">Simpan</button>
-					<button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+					<button type="button" class="btn btn-outline-secondary" onclick="cancel_tambah_jalan_produksi()">Cancel</button>
 				</div>
 			</form>
 		</div>
@@ -62,59 +62,95 @@
 </div>
 <div class="modal fade text-left" id="modal_fothersproduksi" tabindex="-1" role="dialog"
 	aria-labelledby="modal_fothersproduksi" aria-hidden="true">
-	<div class="modal-dialog modal-sm" role="document">
+	<div class="modal-dialog modal-lg" role="document">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title" id="exampleModalLabel">Produksi</h5>
+				<h5 class="modal-title" id="exampleModalLabel">Progres Jalan Produksi</h5>
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
-			<form id="fm-fotherproduksi" class="add-new-record modal-content pt-0">
+			<form id="fm-fotherproduksi" enctype="multipart/form-data" class="add-new-record modal-content pt-0">
 				<div class="modal-body">
 					<p class="modal-title label_alamat" id="label_fothersproduksi"></p>
-					<br>
-					<span>Luas di Siteplan : <br>
-						<span class='t_luas_planning'></span>
-					</span>
-					<br>
-					<br>
-					<span>Luas di Sertifikat : <br>
-						<span class='t_luas_legal'></span>
-					</span>
-					<hr>
 					<input type="hidden" class="form-control id_kavling" name="id_kavling" value="" />
 					<input type="hidden" class="form-control" id="id_proyek" name="id_produksi" value="" />
 
-					<div class="form-group">
-						<label for="f_progres_jalan">Progres</label>
-						<input type="range" onInput="$('.r_progres').html($(this).val())" class="form-control-range"
-							min="0" max="100" step="1" id="f_progres_jalan" name="f_progres_jalan">
-						<span class="r_progres"></span><span>%</span>
-					</div>
-					<div class="form-group">
-						<label for="f_progres_jalan">Status</label>
-						<select id="slf_jenis" name="slf_jenis" class="form-control">
-							<option value="">Basecourse</option>
-							<option value="Basecourse">Basecourse</option>
-							<option value="Paving">Paving</option>
-						</select>
-					</div>
+					<ul class="nav nav-tabs" role="tablist">
+						<li class="nav-item">
+							<a class="nav-link active" id="prod-jalan-progress-tab" data-toggle="tab"
+								href="#prod-jalan-progress" role="tab" aria-selected="true">Progres</a>
+						</li>
+						<li class="nav-item produksi-jalan-only">
+							<a class="nav-link" id="prod-jalan-history-tab" data-toggle="tab" href="#prod-jalan-history"
+								role="tab" aria-selected="false">History</a>
+						</li>
+					</ul>
 
-					<div class="form-group">
-						<label for="f_produksi_luas">Luas Dilapangan</label>
-						<input type="text" class="form-control" id="f_produksi_luas" name="f_produksi_luas"
-							placeholder="Luas jalan dilapangan" />
-					</div>
+					<div class="tab-content pt-1">
+						<div class="tab-pane active" id="prod-jalan-progress" aria-labelledby="prod-jalan-progress-tab"
+							role="tabpanel">
+							<div class="row">
+								<div class="col-md-6">
+									<span>Luas di Siteplan : <br>
+										<span class='t_luas_planning'></span>
+									</span>
+								</div>
+								<div class="col-md-6">
+									<span>Luas di Sertifikat : <br>
+										<span class='t_luas_legal'></span>
+									</span>
+								</div>
+							</div>
+							<hr>
 
-					<div class="form-group">
-						<label for="f_produksi_keterangan">Keterangan</label>
-						<textarea class="form-control" id="f_produksi_keterangan" name="f_produksi_keterangan" rows="3"
-							placeholder="Keterangan"></textarea>
+							<div class="form-group">
+								<label for="f_progres_jalan">Progres</label>
+								<input type="range" onInput="$('.r_progres').html($(this).val())" class="form-control-range"
+									min="0" max="100" step="1" id="f_progres_jalan" name="f_progres_jalan">
+								<span class="r_progres"></span><span>%</span>
+							</div>
+							<div class="form-group">
+								<label for="f_progres_jalan">Status</label>
+								<select id="slf_jenis" name="slf_jenis" class="form-control">
+									<option value="">Basecourse</option>
+									<option value="Basecourse">Basecourse</option>
+									<option value="Paving">Paving</option>
+								</select>
+							</div>
+
+							<div class="form-group">
+								<label for="f_produksi_luas">Luas Dilapangan</label>
+								<input type="text" class="form-control" id="f_produksi_luas" name="f_produksi_luas"
+									placeholder="Luas jalan dilapangan" />
+							</div>
+
+							<div class="form-group">
+								<label for="f_produksi_keterangan">Keterangan</label>
+								<textarea class="form-control" id="f_produksi_keterangan" name="f_produksi_keterangan" rows="3"
+									placeholder="Keterangan"></textarea>
+							</div>
+
+							<div class="form-group produksi-jalan-only">
+								<label for="produksi_jalan_foto">Foto Kondisi Jalan Saat Ini</label>
+								<div class="custom-file">
+									<input type="file" class="custom-file-input" accept="image/*" multiple
+										name="produksi_jalan_foto[]" id="produksi_jalan_foto"
+										onchange="displayUploadedFiles(this, 'list_produksi_jalan_foto')" />
+									<label class="custom-file-label" id="label_produksi_jalan_foto"
+										for="produksi_jalan_foto">Bisa lebih dari 1 foto</label>
+								</div>
+								<div id="list_produksi_jalan_foto" class="mt-1"></div>
+							</div>
+						</div>
+						<div class="tab-pane produksi-jalan-only" id="prod-jalan-history" aria-labelledby="prod-jalan-history-tab"
+							role="tabpanel">
+							<div id="produksi_jalan_history" class="pt-1"></div>
+						</div>
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button id="save_fotherproduksi-btn" class="btn btn-primary data-submit mr-1"
+					<button type="button" id="save_fotherproduksi-btn" class="btn btn-primary data-submit mr-1"
 						onclick="save_fotherproduksi()" href="javascript:void(0)">Simpan</button>
 					<button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
 				</div>
@@ -1318,9 +1354,35 @@ function isProduksiManualSelectionActive() {
   return $("#produksi_tambah_jalan").prop("checked");
 }
 
+function setProduksiJalanSelectionMode(active, clearSelection) {
+  $("#produksi_tambah_jalan").prop("checked", active);
+  $("#produksi_menu").toggleClass("produksi-jalan-selecting", active);
+  $("#produksi_menu > button, #produksi_menu > .btn-icon")
+    .not("#produksi_add_jalan_ok, #produksi_add_jalan_undo, #produksi_add_jalan_batal")
+    .toggleClass("d-none", active);
+  $("#produksi_add_jalan_ok, #produksi_add_jalan_undo, #produksi_add_jalan_batal").toggleClass(
+    "d-none",
+    !active,
+  );
+  $("#produksi_add_jalan_hint").toggleClass("d-none", !active);
+
+  if (clearSelection) {
+    hapus_seleksi();
+  }
+}
+
+function start_tambah_jalan_produksi() {
+  setProduksiJalanSelectionMode(true, true);
+}
+
+function cancel_tambah_jalan_produksi() {
+  $("#modal_produksi_add_jalan").modal("hide");
+  setProduksiJalanSelectionMode(false, true);
+}
+
 function tambah_jalan_produksi() {
   if (!isProduksiManualSelectionActive()) {
-    return swal("error", "Aktifkan Manual Seleksi terlebih dahulu");
+    setProduksiJalanSelectionMode(true, false);
   }
 
   if (!dtt || dtt.length < 6) {
@@ -1332,6 +1394,7 @@ function tambah_jalan_produksi() {
   $("#prod_jalan_id_jalan").prop("disabled", true);
   $("#prod_jalan_points").val(dtt.join(","));
   $(".prod_jalan_r_progres").html("0");
+  setProduksiJalanSelectionMode(false, false);
 
   $("#modal_produksi_add_jalan").modal({
     backdrop: "static",
@@ -1375,7 +1438,7 @@ function save_jalan_produksi() {
         }).then(function () {
           $("#modal_produksi_add_jalan").modal("hide");
           load_kavling();
-          hapus_seleksi();
+          setProduksiJalanSelectionMode(false, true);
         });
       } else {
         Swal.fire({
@@ -1903,11 +1966,16 @@ function open_produksi(sh, role, id_kavling) {
 }
 
 function save_fotherproduksi() {
+  let form = $("#fm-fotherproduksi")[0],
+    formData = new FormData(form);
+  formData.append(csrfName, csrfHash);
+
   $.ajax({
     url: base_url + "api/produksi/edit_others",
     type: "POST",
-    // data: $("#fm-komplain-sales").serialize() + "&" + csrfName + "=" + csrfHash,
-    data: $("#fm-fotherproduksi").serialize() + "&" + csrfName + "=" + csrfHash,
+    data: formData,
+    processData: false,
+    contentType: false,
     dataType: "json",
     beforeSend: function () {
       $("#save_fotherproduksi-btn").prop("disabled", true);
@@ -1961,14 +2029,20 @@ $("#save_fotherproduksi-btn").click(function (e) {
 
 function open_fotherproduksi(sh) {
   $("#fm-fotherproduksi")[0].reset();
+  $("#list_produksi_jalan_foto, #produksi_jalan_history").html("");
+  resetProduksiJalanHistoryTimeline("#produksi_jalan_history");
+  $("#label_produksi_jalan_foto").html("Bisa lebih dari 1 foto");
   $("#f_progres_jalan").val(0);
   $(".t_luas_legal, .t_luas_produksi, .r_progres").html(" ");
+  $("#prod-jalan-progress-tab").tab("show");
   $.ajax({
     url: base_url + "siteplan/get_others",
     type: "post",
     data: {
       [csrfName]: csrfHash,
       id_kavling: editdtt[0].id.substr(6),
+      history_limit: PRODUKSI_JALAN_HISTORY_LIMIT,
+      history_offset: 0,
     },
     dataType: "json",
     success: function (r) {
@@ -1977,6 +2051,7 @@ function open_fotherproduksi(sh) {
       if (r.data) {
         let d = r.data[0],
           progres = d.progres ? d.progres : 0;
+        $(".produksi-jalan-only").toggleClass("hidden", d.tipe !== "jalan");
         $(".id_kavling").val(d.id);
         $(".t_luas_legal, .t_luas_produksi").html("-");
 
@@ -2003,6 +2078,7 @@ function open_fotherproduksi(sh) {
         $("#f_produksi_keterangan").val(d.produksi_keterangan);
         $("#f_progres_jalan").val(progres);
         $(".r_progres").html(progres);
+        renderProduksiJalanHistoryTimeline("#produksi_jalan_history", r.history || [], r, false);
       }
     },
     error: function () {

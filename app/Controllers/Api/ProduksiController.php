@@ -423,21 +423,115 @@ class ProduksiController extends BaseApiController
 
     public function edit_others(): ResponseInterface
     {
-        $id     = (int) $this->request->getPost('id_kavling');
+        $id    = (int) $this->request->getPost('id_kavling');
+        $other = $this->repo->getOtherById($id);
+
+        if (!$other) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Data jalan tidak ditemukan',
+            ]);
+        }
+
+        $progres = $this->request->getPost('f_progres_jalan');
+        $progres = $progres === null || $progres === '' ? 0 : max(0, min(100, (int) $progres));
+        $now     = date('Y-m-d H:i:s');
+        $foto    = '';
+        $isJalan = ($other->tipe ?? '') === 'jalan';
+
+        if ($isJalan && !$this->repo->hasJalanProgressHistoryTable()) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Tabel history progres jalan belum tersedia. Jalankan migration terlebih dahulu.',
+            ]);
+        }
+
+        if ($isJalan) {
+            $storedFoto = $this->storeJalanProgressPhotos();
+            if ($storedFoto['success'] === false) {
+                return $this->response->setJSON([
+                    'token'    => csrf_hash(),
+                    'success'  => false,
+                    'messages' => $storedFoto['messages'],
+                ]);
+            }
+            $foto = implode(';', $storedFoto['paths']);
+            if ($foto !== '') {
+                $foto .= ';';
+            }
+        }
+
         $fields = [
-            'progres'             => $this->request->getPost('f_progres_jalan'),
+            'progres'             => $progres,
             'produksi_luas'       => $this->request->getPost('f_produksi_luas'),
             'produksi_keterangan' => $this->request->getPost('f_produksi_keterangan'),
             'produksi_edit_by'    => user_id(),
-            'produksi_updated_at' => date('Y-m-d H:i:s'),
+            'produksi_updated_at' => $now,
         ];
 
-        $success = $this->repo->updateOthers($id, $fields);
+        $db = \Config\Database::connect();
+        $db->transStart();
+        $this->repo->updateOthers($id, $fields);
+
+        if ($isJalan) {
+            $this->repo->insertJalanProgressHistory([
+                'id_others'       => $id,
+                'progres'         => $progres,
+                'produksi_luas'   => $fields['produksi_luas'],
+                'keterangan'      => $fields['produksi_keterangan'],
+                'foto'            => $foto,
+                'add_by'          => user_id(),
+                'created_at'      => $now,
+            ]);
+        }
+
+        $db->transComplete();
+        $success = $db->transStatus() !== false;
 
         return $this->response->setJSON([
             'token'    => csrf_hash(),
             'success'  => $success,
             'messages' => $success ? 'Data berhasil diperbaharui' : 'Data gagal diperbaharui!',
         ]);
+    }
+
+    private function storeJalanProgressPhotos(): array
+    {
+        $files = $this->request->getFileMultiple('produksi_jalan_foto') ?: [];
+        $paths = [];
+        $allowedMime = ['image/jpg', 'image/jpeg', 'image/gif', 'image/png', 'image/webp'];
+
+        foreach ($files as $img) {
+            if (!$img || $img->getError() === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+
+            if (!$img->isValid()) {
+                return ['success' => false, 'messages' => 'Foto kondisi jalan tidak valid', 'paths' => []];
+            }
+
+            if (!in_array($img->getMimeType(), $allowedMime, true)) {
+                return ['success' => false, 'messages' => 'Foto kondisi jalan harus berupa gambar', 'paths' => []];
+            }
+
+            if ($img->getSize() > 12000 * 1024) {
+                return ['success' => false, 'messages' => 'Ukuran foto kondisi jalan maksimal 12MB', 'paths' => []];
+            }
+
+            $imageSize = @getimagesize($img->getTempName());
+            if ($imageSize && ($imageSize[0] > 6000 || $imageSize[1] > 6000)) {
+                return ['success' => false, 'messages' => 'Dimensi foto kondisi jalan maksimal 6000x6000 px', 'paths' => []];
+            }
+
+            $paths[] = $this->fileAccessService->storeAs(
+                $img,
+                'uploads/produksi_jalan_progress/' . date('Ymd') . '/',
+                $img->getRandomName()
+            );
+        }
+
+        return ['success' => true, 'messages' => '', 'paths' => $paths];
     }
 }

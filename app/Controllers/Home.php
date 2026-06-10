@@ -219,6 +219,9 @@ class Home extends BaseController
                 Tambah Data
             </button>
 
+            <button id="planning_undo_manual_selection" type="button" onclick="undo_manual_selection()" class="my-float btn-icon btn btn-outline-warning btn-round btn-sm">
+                Undo Titik
+            </button>
             <div class="btn-icon btn btn-secondary btn-round btn-sm my-float" onclick="hapus_seleksi()">Hapus Seleksi</div>
             <div id="edit_kavling_batch" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="edit_kavling_batch()">Ubah Kavling</div>
             <button id="planning_toggle_btn" class="btn-icon btn btn-primary btn-round btn-sm my-float" data-toggle="collapse" data-target="#planningCollapse" aria-expanded="false" aria-controls="planningCollapse">Cek Legenda</button>
@@ -259,13 +262,14 @@ class Home extends BaseController
             ' . $generik . '
             <div id="btn-cashout_subkon-pr" class="btn-icon btn btn-primary btn-round btn-sm my-float" onclick="openCOSubkon()">Cash Out Subkon</div>
 
-            <div class="custom-control custom-switch custom-control-inline btn-prod">
-                <input onchange="hapus_seleksi()" type="checkbox" value="1" class="custom-control-input" id="produksi_tambah_jalan" name="produksi_tambah_jalan" />
-                <label class="custom-control-label" for="produksi_tambah_jalan">Manual Seleksi</label>
-            </div>
-            <button id="produksi_add_jalan" type="button" onclick="tambah_jalan_produksi()" class="my-float btn-icon btn btn-primary btn-round btn-sm btn-prod">
+            <input type="checkbox" value="1" class="d-none" id="produksi_tambah_jalan" name="produksi_tambah_jalan" />
+            <button id="produksi_add_jalan" type="button" onclick="start_tambah_jalan_produksi()" class="my-float btn-icon btn btn-primary btn-round btn-sm btn-prod">
                 Tambah Jalan
             </button>
+            <button id="produksi_add_jalan_ok" type="button" onclick="tambah_jalan_produksi()" class="my-float btn-icon btn btn-success btn-round btn-sm btn-prod d-none">OK</button>
+            <button id="produksi_add_jalan_undo" type="button" onclick="undo_manual_selection()" class="my-float btn-icon btn btn-outline-warning btn-round btn-sm btn-prod d-none">Undo Titik</button>
+            <button id="produksi_add_jalan_batal" type="button" onclick="cancel_tambah_jalan_produksi()" class="my-float btn-icon btn btn-outline-secondary btn-round btn-sm btn-prod d-none">Batal</button>
+            <div id="produksi_add_jalan_hint" class="my-float text-warning font-weight-bold d-none">Tandai jalan yang akan dibuat</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float btn-prod" onclick="isi_data()">Isi/ubah Data</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float btn-prod" onclick="isi_pembayaran()">Pembayaran</div>
             <div class="btn-icon btn btn-primary btn-round btn-sm my-float btn-prod" onclick="buat_slf()">SLF</div>

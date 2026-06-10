@@ -30,6 +30,7 @@ class FileAccessService
         'si'                => [1, 4, 7, 9],
         'komplain_sales'    => [1, 7, 8, 9],
         'komplain_produksi' => [1, 7, 8, 9],
+        'produksi_jalan_progress' => [1, 7, 9],
     ];
 
     private array $projectAssetRoles = [1, 3, 4, 5, 6, 7, 8, 9, 10];
