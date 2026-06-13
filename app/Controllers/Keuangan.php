@@ -852,6 +852,7 @@ class Keuangan extends BaseController
         $data['data'] = array();
 
         $var = $this->request->getVar();
+        $id_proyek = resolve_active_proyek_id($var['id_proyek'] ?? null);
 
         $colum = ['nama_konsumen', 'nama_jalan', 'no_kavling'];
         $condition = [
@@ -892,7 +893,7 @@ class Keuangan extends BaseController
         elseif ($var['id_cluster'])
             $condition = array_merge($condition, ["cluster.id_cluster" => $var['id_cluster']]);
         else
-            $condition = array_merge($condition, ["proyek.id_proyek" => $var['id_proyek']]);
+            $condition = array_merge($condition, ["proyek.id_proyek" => $id_proyek]);
         $result = $this->if_where($var, $colum, $condition, $query);
 
         $result
@@ -1043,6 +1044,7 @@ class Keuangan extends BaseController
         $data['data'] = array();
 
         $var = $this->request->getVar();
+        $id_proyek = resolve_active_proyek_id($var['id_proyek'] ?? null);
 
         $colum = ['log_pembayaran.keterangan', 'nominal', 'no_kavling', 'users.username'];
         $condition = [
@@ -1067,7 +1069,7 @@ class Keuangan extends BaseController
         elseif ($var['id_cluster'])
             $condition = array_merge($condition, ["cluster.id_cluster" => $var['id_cluster']]);
         else
-            $condition = array_merge($condition, ["proyek.id_proyek" => $var['id_proyek']]);
+            $condition = array_merge($condition, ["proyek.id_proyek" => $id_proyek]);
 
         $result = $this->if_where($var, $colum, $condition, $query);
 

@@ -47,6 +47,7 @@ class Cluster extends BaseController
 		$data['test2'] = $var;		
 		
 		$var = $this->request->getVar();
+		$id_proyek = resolve_active_proyek_id($var['id_proyek'] ?? null);
 		
 		$data['test'] = $var;
 		// if(!$var['search'])
@@ -59,8 +60,8 @@ class Cluster extends BaseController
 			->select('id_cluster, cluster.id_proyek, nama_proyek, nama_cluster, is_active')
 			->join('proyek', 'proyek.id_proyek = cluster.id_proyek');
 
-		if ($var['id_proyek'])
-			$condition = array_merge($condition, ["cluster.id_proyek" => $var['id_proyek']]);
+		if ($id_proyek)
+			$condition = array_merge($condition, ["cluster.id_proyek" => $id_proyek]);
 
 		$result = $this->if_where($var, $colum, $condition, $query);
 
@@ -112,7 +113,7 @@ class Cluster extends BaseController
 		$data['token'] = csrf_hash();
 		$data['data'] = array();
 
-		$id_proyek = $this->request->getVar('id_proyek');
+		$id_proyek = resolve_active_proyek_id($this->request->getVar('id_proyek'));
 		$search = $this->request->getVar('search');
 		if(!$search)
 			$search = "";

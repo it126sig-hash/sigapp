@@ -28,17 +28,7 @@ class Home extends BaseController
     }
     public function dashboard()
     {
-        // var_dump(session('token'));die();
         $data['content'] = 'home/dashboard';
-
-        //ambil data proyek
-        $data['data']['proyek'] = $this->proyekModel
-            ->select("id_proyek, alamat_proyek, nama_proyek, siteplan, logo")
-            ->findAll();
-        foreach ($data['data']['proyek'] as $proyek) {
-            $proyek->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', (int) $proyek->id_proyek);
-            $proyek->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', (int) $proyek->id_proyek);
-        }
 
         return view('template', $data);
     }
@@ -78,7 +68,7 @@ class Home extends BaseController
         $edate = $this->request->getVar('edate') ?: date('Y-m-t');
         $tahun = $this->request->getVar('tahun') ?: date('Y');
 
-        $id_proyek = (int) $this->request->getVar('id_proyek');
+        $id_proyek = resolve_active_proyek_id($this->request->getVar('id_proyek'));
         $withStatistik = $this->requestBool('statistik');
         $withAktivitas = $this->requestBool('aktivitas');
         $withChart = $this->requestBool('chart');
@@ -431,7 +421,7 @@ class Home extends BaseController
     {
         $r['token'] = csrf_hash();
         $offset = $this->request->getVar('offset');
-        $id_proyek = $this->request->getVar('id_proyek');
+        $id_proyek = resolve_active_proyek_id($this->request->getVar('id_proyek'));
 
         $r['aktivitas'] = $this->notif->getActivity(true, $offset, $id_proyek);
 

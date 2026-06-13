@@ -34,49 +34,44 @@
     <div class="content-overlay"></div>
     <div class="header-navbar-shadow"></div>
     <div class="content-wrapper">
-        <div class="content-header row">
-            <div class="content-header-left col-md-9 col-12 mb-2">
-                <div class="row breadcrumbs-top">
-                    <div class="col-12">
-                        <h2 class="content-header-title float-left mb-0">Siteplan</h2>
-                        <div class="breadcrumb-wrapper">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="<?= base_url() ?>proyek">Siteplan</a>
-                                </li>
-                                <li class="breadcrumb-item active">Index
-                                </li>
-                            </ol>
+        <div class="content-header row"></div>
+        <div class="content-body">
+            <?php if (empty($data['proyek'])) : ?>
+            <div class="row match-height">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body text-center py-3">
+                            <h4 class="mb-1">Belum ada proyek yang dapat diakses</h4>
+                            <p class="text-muted mb-0">Hubungi administrator untuk mendapatkan akses proyek.</p>
                         </div>
                     </div>
                 </div>
             </div>
-
-        </div>
-        <div class="content-body">
+            <?php else : ?>
             <div class="row match-height">
-                <!-- Timeline Card -->
-                <?php 
-                foreach($proyek as $a){?>
-                
-                <div class="col-lg-4 col-12">
-                    <a href="<?=base_url("siteplan/view_siteplan/$a->id_proyek")?>">
-                        <div class="card card-user-timeline">
-                            <div class="card-header" style="text-align: center;">
-                                <div class="d-flex align-items-center" >
-                                    
-                                </div>
-                            </div>
-                            <div class="card-body" style="text-align: center; height: 400px;">
-                                <h4 class="card-title"><?=$a->nama_proyek?></h4>
-                                <img style="width: 100%; max-height: 350px  ; object-fit: contain;" src="<?=$a->logo_access_url ?? site_url('files/proyek_logo/' . $a->id_proyek)?>">
+                <div class="col-12 mb-1">
+                    <h4 class="mb-25">Pilih Proyek</h4>
+                    <p class="text-muted mb-0">Pilih proyek yang ingin Anda kerjakan.</p>
+                </div>
+                <?php
+                foreach ($data['proyek'] as $a) { ?>
+
+                <div class="col-lg-4 col-md-6 col-12">
+                    <a href="<?= base_url('siteplan/view_siteplan/' . $a->id_proyek) ?>" class="text-body">
+                        <div class="card project-select-card-page h-100">
+                            <div class="card-body d-flex flex-column align-items-center text-center py-2">
+                                <img
+                                    class="project-select-card-logo mb-1"
+                                    src="<?= esc($a->logo_access_url ?? site_url('files/proyek_logo/' . $a->id_proyek)) ?>"
+                                    alt="">
+                                <h5 class="card-title mb-0"><?= esc($a->nama_proyek) ?></h5>
                             </div>
                         </div>
                     </a>
                 </div>
-                <?php }?>
-                
-                <!--/ Timeline Card -->
+                <?php } ?>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>

@@ -32,14 +32,20 @@ class Tipe extends BaseController
 
     public function getAll()
     {
+        $params = (array) $this->request->getVar();
+        $params['id_proyek'] = resolve_active_proyek_id($params['id_proyek'] ?? null);
+
         return $this->json([
-            'data' => $this->tipeService->getAll((array) $this->request->getVar()),
+            'data' => $this->tipeService->getAll($params),
         ]);
     }
 
     public function getDataTables()
     {
-        return $this->json($this->tipeService->getDataTables((array) $this->request->getVar()));
+        $params = (array) $this->request->getVar();
+        $params['id_proyek'] = resolve_active_proyek_id($params['id_proyek'] ?? null);
+
+        return $this->json($this->tipeService->getDataTables($params));
     }
 
     public function getOne()

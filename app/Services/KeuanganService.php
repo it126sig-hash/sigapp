@@ -387,8 +387,9 @@ class KeuanganService
     {
         $status = $status ?? "Booking";
         $builder = $this->keuRepo->getBelumLunasQuery($status);
-        if ($request->getVar('id_proyek'))
-            $builder->where('p.id_proyek', $request->getVar('id_proyek'));
+        $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
+        if ($id_proyek)
+            $builder->where('p.id_proyek', $id_proyek);
         if ($request->getVar('id_cluster'))
             $builder->where('cl.id_cluster', $request->getVar('id_cluster'));
         if ($request->getVar('id_jalan'))
@@ -449,8 +450,9 @@ class KeuanganService
     {
         $builder = $this->keuRepo->getBelumLunasGroupedQuery();
 
-        if ($request->getVar('id_proyek'))
-            $builder->where('p.id_proyek', $request->getVar('id_proyek'));
+        $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
+        if ($id_proyek)
+            $builder->where('p.id_proyek', $id_proyek);
         if ($request->getVar('id_cluster'))
             $builder->where('cl.id_cluster', $request->getVar('id_cluster'));
         if ($request->getVar('id_jalan'))
@@ -530,7 +532,7 @@ class KeuanganService
     }
     function getRiwayatBayar($request)
     {
-        $id_proyek = $request->getVar('id_proyek');
+        $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
         $id_cluster = $request->getVar('id_cluster');
         $id_jalan = $request->getVar('id_jalan');
         if ($id_proyek == null) {

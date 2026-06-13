@@ -36,10 +36,6 @@
           </h2>
           <div class="card-header border-bottom">
             <div class="col-md-4 mb-1">
-              <label>Proyek</label>
-              <select id="id_proyek" name="id_proyek" class="select2 form-control"></select>
-            </div>
-            <div class="col-md-4 mb-1">
               <label>Cluster</label>
               <select disabled id="id_cluster" name="id_cluster" class="select2  form-control"></select>
             </div>
@@ -237,7 +233,7 @@
         },
         data: function(data) {
           data[csrfName] = csrfHash
-          data.id_proyek = $("#id_proyek").val()
+          data.id_proyek = activeProyekId()
           data.id_cluster = $("#id_cluster").val()
           data.id_jalan = $("#id_jalan").val()
           data.sp3k = $("#sp3k").val()
@@ -262,49 +258,9 @@
     //select filter for sp3k, wawancara, akad
     $(".self").select2();
 
-    //select2 proyek
-    $("#id_proyek").select2({
-      placeholder: "Pilih Proyek",
-      allowClear: true,
-      ajax: {
-        url: base_url + "proyek/getAll",
-        dataType: 'json',
-        delay: 250,
-        method: 'post',
-        data: function(params) {
-          return {
-            [csrfName]: csrfHash,
-            search: params.term
-          };
-        },
-        processResults: function(r) {
-          csrfHash = r.token
-
-          let results = [];
-          $.each(r.data, function(index, item) {
-            results.push({
-              id: item[0],
-              text: item[1] + ' (' + item[2] + ')'
-            });
-          });
-
-          return {
-            results: results
-          };
-        },
-        cache: true
-      },
-    })
-
-    //on select proyek
-    $("#id_proyek").on("change", function(e) {
-      $('#id_cluster').val(null).trigger('change');
-
-      if (this.value)
-        $("#id_cluster").prop("disabled", false)
-      else
-        $("#id_cluster").prop("disabled", true)
-    });
+    if (activeProyekId()) {
+      $("#id_cluster").prop("disabled", false);
+    }
 
     //select2 cluster
     $("#id_cluster").select2({
@@ -319,7 +275,7 @@
           return {
             [csrfName]: csrfHash,
             search: params.term,
-            id_proyek: $("#id_proyek").val()
+            id_proyek: activeProyekId()
           };
         },
         processResults: function(r) {
@@ -363,7 +319,7 @@
             [csrfName]: csrfHash,
             search: params.term,
             id_cluster: $("#id_cluster").val(),
-            id_proyek: $("#id_proyek").val()
+            id_proyek: activeProyekId()
           };
         },
         processResults: function(r) {
@@ -392,7 +348,7 @@
     })
 
     $("#btn_export_excel").on('click', function(e) {
-      if (!$("#id_proyek").val()) {
+      if (!activeProyekId()) {
         return Swal.fire({
           icon: 'error',
           title: "Proyek belum dipilih",
@@ -409,7 +365,7 @@
       export_file("xlsx", $btn)
     })
     $("#btn_export_pdf").on('click', function(e) {
-      if (!$("#id_proyek").val()) {
+      if (!activeProyekId()) {
         return Swal.fire({
           icon: 'error',
           title: "Proyek belum dipilih",
@@ -432,7 +388,7 @@
         url: base_url + "export/poskon/" + type + "/akad",
         data: {
           [csrfName]: csrfHash,
-          id_proyek: $("#id_proyek").val(),
+          id_proyek: activeProyekId(),
           id_cluster: $("#id_cluster").val(),
           id_jalan: $("#id_jalan").val(),
         },
@@ -448,7 +404,7 @@
           var $a = $("<a>");
           $a.attr("href", data.file);
           $("body").append($a);
-          $a.attr("download", "Konsumen Akad  Per " + d + ": " + $("#id_proyek").select2('data')[0].text + "." + type);
+          $a.attr("download", "Konsumen Akad  Per " + d + ": " + (window.SIGAPP.activeProyekName || "Proyek") + "." + type);
           $a[0].click();
           $a.remove();
           $btn.html($btn.data("old-text"))
@@ -469,7 +425,7 @@
         url: base_url + "riwayat/poskon/akad",
         data: {
           [csrfName]: csrfHash,
-          id_proyek: $("#id_proyek").val(),
+          id_proyek: activeProyekId(),
           id_cluster: $("#id_cluster").val(),
           id_jalan: $("#id_jalan").val(),
         },

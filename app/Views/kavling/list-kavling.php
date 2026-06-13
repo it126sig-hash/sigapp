@@ -300,10 +300,6 @@
           </div>
           <div class="poskon-filter-grid">
             <div class="poskon-filter-field">
-              <label>Proyek</label>
-              <select id="id_proyek" name="id_proyek" class="select2 form-control"></select>
-            </div>
-            <div class="poskon-filter-field">
               <label>Cluster</label>
               <select disabled id="id_cluster" name="id_cluster" class="select2  form-control"></select>
             </div>
@@ -745,7 +741,7 @@ if (!empty($roles)) {
           },
           data: function(data) {
             data[csrfName] = csrfHash
-            data.id_proyek = $("#id_proyek").val()
+            data.id_proyek = activeProyekId()
             data.id_cluster = $("#id_cluster").val()
             data.id_jalan = $("#id_jalan").val()
             data.sp3k = $("#sp3k").val()
@@ -799,57 +795,20 @@ if (!empty($roles)) {
 
     fillRoleOptions();
 
+    if (activeProyekId()) {
+      $("#id_cluster").prop("disabled", false);
+      dt_proyek = {
+        id_proyek: activeProyekId(),
+        nama_proyek: window.SIGAPP.activeProyekName || ""
+      };
+    }
+
     function initFilterSelect2($el, options) {
       if ($el.hasClass('select2-hidden-accessible')) {
         $el.select2('destroy');
       }
       $el.select2(options);
     }
-
-    //select2 proyek
-    initFilterSelect2($("#id_proyek"), {
-      placeholder: "Pilih Proyek",
-      allowClear: true,
-      ajax: {
-        url: base_url + "proyek/getAll",
-        dataType: 'json',
-        delay: 250,
-        method: 'post',
-        data: function(params) {
-          return {
-            [csrfName]: csrfHash,
-            search: params.term
-          };
-        },
-        processResults: function(r) {
-          csrfHash = r.token
-
-          let results = [];
-          $.each(r.data, function(index, item) {
-            results.push(createProjectSelectOption(item));
-          });
-
-          return {
-            results: results
-          };
-        },
-        cache: true
-      },
-      templateResult: renderProjectSelectOption,
-      templateSelection: renderProjectSelectOption
-    });
-
-    //on select proyek
-    $("#id_proyek").on("select2:select", function(e) {
-      $('#id_cluster').val(null).trigger('change');
-
-      dt_proyek = normalizeProjectContext(e.params.data);
-
-      if (this.value)
-        $("#id_cluster").prop("disabled", false)
-      else
-        $("#id_cluster").prop("disabled", true)
-    });
 
     //select2 cluster
     initFilterSelect2($("#id_cluster"), {
@@ -864,7 +823,7 @@ if (!empty($roles)) {
           return {
             [csrfName]: csrfHash,
             search: params.term,
-            id_proyek: $("#id_proyek").val()
+            id_proyek: activeProyekId()
           };
         },
         processResults: function(r) {
@@ -908,7 +867,7 @@ if (!empty($roles)) {
             [csrfName]: csrfHash,
             search: params.term,
             id_cluster: $("#id_cluster").val(),
-            id_proyek: $("#id_proyek").val()
+            id_proyek: activeProyekId()
           };
         },
         processResults: function(r) {
@@ -1160,7 +1119,7 @@ if (!empty($roles)) {
     })
 
     $("#btn_export_excel").on('click', function(e) {
-      if (!$("#id_proyek").val()) {
+      if (!activeProyekId()) {
         return Swal.fire({
           icon: 'error',
           title: "Proyek belum dipilih",
@@ -1177,7 +1136,7 @@ if (!empty($roles)) {
       export_file("xlsx", $btn)
     })
     $("#btn_export_pdf").on('click', function(e) {
-      if (!$("#id_proyek").val()) {
+      if (!activeProyekId()) {
         return Swal.fire({
           icon: 'error',
           title: "Proyek belum dipilih",
@@ -1200,7 +1159,7 @@ if (!empty($roles)) {
         url: base_url + "export/poskon/" + type + "/aktif",
         data: {
           [csrfName]: csrfHash,
-          id_proyek: $("#id_proyek").val(),
+          id_proyek: activeProyekId(),
           id_cluster: $("#id_cluster").val(),
           id_jalan: $("#id_jalan").val(),
         },
@@ -1216,7 +1175,7 @@ if (!empty($roles)) {
           var $a = $("<a>");
           $a.attr("href", data.file);
           $("body").append($a);
-          $a.attr("download", "Konsumen Aktif  Per " + d + ": " + $("#id_proyek").select2('data')[0].text + "." + type);
+          $a.attr("download", "Konsumen Aktif  Per " + d + ": " + (window.SIGAPP.activeProyekName || "Proyek") + "." + type);
           $a[0].click();
           $a.remove();
           $btn.html($btn.data("old-text"))
@@ -1237,7 +1196,7 @@ if (!empty($roles)) {
         url: base_url + "riwayat/poskon/aktif",
         data: {
           [csrfName]: csrfHash,
-          id_proyek: $("#id_proyek").val(),
+          id_proyek: activeProyekId(),
           id_cluster: $("#id_cluster").val(),
           id_jalan: $("#id_jalan").val(),
         },

@@ -17,18 +17,78 @@ if (! empty($currentUser->profile_photo)) {
         $profilePhotoUrl = base_url('app-assets/images/portrait/small/avatar-s-11.jpg');
     }
 }
+
+$activeProyek = $activeProyek ?? null;
+$accessibleProyek = $accessibleProyek ?? [];
+$defaultProjectLogo = base_url('app-assets/images/ico/apple-icon-120.png');
+$activeProyekId = $activeProyek ? (int) $activeProyek->id_proyek : null;
+$activeProyekName = $activeProyek->nama_proyek ?? 'Pilih proyek';
+$activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_access_url))
+    ? $activeProyek->logo_access_url
+    : $defaultProjectLogo;
 ?>
 <!-- BEGIN: Header-->
 <nav class="header-navbar navbar navbar-expand-lg align-items-center floating-nav navbar-light ">
-    <div class="navbar-container d-flex content">
-        <div class="bookmark-wrapper d-flex align-items-center">
-            <ul class="nav navbar-nav d-xl-none">
+    <div class="navbar-container d-flex content align-items-center w-100">
+        <div class="bookmark-wrapper d-flex align-items-center flex-grow-1 min-width-0">
+            <ul class="nav navbar-nav d-xl-none flex-shrink-0">
                 <li class="nav-item"><a class="nav-link menu-toggle" href="javascript:void(0);"><i class="ficon" data-feather="menu"></i></a></li>
             </ul>
-            <a class="navbar-brand d-xl-none d-flex align-items-center ml-1" href="<?= base_url() ?>" style="gap: 8px;">
+            <a class="navbar-brand d-xl-none d-flex align-items-center ml-1 flex-shrink-0" href="<?= base_url() ?>" style="gap: 8px;">
                 <img src="<?= base_url("images/logo.png") ?>" height="24" />
                 <span class="brand-text font-weight-bold" style="color: #5B4FCF; font-size: 1.15rem; letter-spacing: 0.5px;">SIGAPP</span>
             </a>
+
+            <div class="navbar-project-switcher dropdown ml-50 ml-md-1 min-width-0">
+                <?php if (empty($accessibleProyek)) : ?>
+                    <div class="navbar-project-pill navbar-project-pill--empty">
+                        <span class="navbar-project-logo-wrap">
+                            <img src="<?= esc($defaultProjectLogo) ?>" alt="" class="navbar-project-logo">
+                        </span>
+                        <span class="navbar-project-name text-truncate">Belum ada proyek</span>
+                    </div>
+                <?php else : ?>
+                    <button
+                        class="navbar-project-pill dropdown-toggle"
+                        type="button"
+                        id="navbar-project-switcher"
+                        data-toggle="dropdown"
+                        aria-haspopup="true"
+                        aria-expanded="false">
+                        <span class="navbar-project-logo-wrap">
+                            <img
+                                src="<?= esc($activeProyekLogoUrl) ?>"
+                                alt=""
+                                class="navbar-project-logo"
+                                id="navbar-project-logo">
+                        </span>
+                        <span class="navbar-project-name" id="navbar-project-name"><?= esc($activeProyekName) ?></span>
+                        <i data-feather="chevron-down" class="navbar-project-chevron"></i>
+                    </button>
+                    <div class="dropdown-menu navbar-project-dropdown" aria-labelledby="navbar-project-switcher">
+                        <?php foreach ($accessibleProyek as $proyek) :
+                            $isActive = $activeProyekId === (int) $proyek->id_proyek;
+                            $logoUrl = ! empty($proyek->logo_access_url) ? $proyek->logo_access_url : $defaultProjectLogo;
+                        ?>
+                            <a
+                                class="dropdown-item navbar-project-item<?= $isActive ? ' active' : '' ?>"
+                                href="javascript:void(0);"
+                                data-id-proyek="<?= (int) $proyek->id_proyek ?>"
+                                data-nama-proyek="<?= esc($proyek->nama_proyek) ?>"
+                                data-logo-url="<?= esc($logoUrl) ?>">
+                                <span class="navbar-project-item-logo-wrap">
+                                    <img src="<?= esc($logoUrl) ?>" alt="" class="navbar-project-item-logo">
+                                </span>
+                                <span class="navbar-project-item-name"><?= esc($proyek->nama_proyek) ?></span>
+                                <?php if ($isActive) : ?>
+                                    <i data-feather="check" class="navbar-project-item-check"></i>
+                                <?php endif; ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+
             <ul class="nav navbar-nav">
                 <!-- <li class="nav-item d-none d-lg-block"><button onclick="export_siteplan()" class="btn btn-outline-primary " id="btn-export-siteplan"> Export </button></li> -->
             </ul>

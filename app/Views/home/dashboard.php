@@ -239,10 +239,7 @@
 					<div class="card dashboard-filter-card">
 						<div class="card-body">
 							<h4 class="card-title mb-1">Dashboard Proyek</h4>
-							<div class="form-group">
-								<label for="id_proyek">Pilih Proyek</label>
-								<select id="id_proyek" name="id_proyek" class="select2 form-control"></select>
-							</div>
+							<p class="card-text font-small-3 text-muted mb-1" id="dashboard-active-proyek"></p>
 							<button id="btn-filter_data" type="button" class="btn btn-primary btn-block">Tampilkan Data</button>
 							<p class="card-text font-small-2 text-muted mt-1 mb-0" id="filter-statistik">Per <?= date("F") ?></p>
 							<div class="dropdown chart-dropdown mt-50">
@@ -516,39 +513,9 @@
 		offset = 10,
 		isLoading = false;
 
-
-	$("#id_proyek").select2({
-		placeholder: "Pilih Proyek",
-		allowClear: true,
-		ajax: {
-			url: base_url + "/proyek/getAll",
-			dataType: 'json',
-			delay: 250,
-			method: 'post',
-			data: function(params) {
-				return {
-					[csrfName]: csrfHash,
-					search: params.term
-				};
-			},
-			processResults: function(r) {
-				csrfHash = r.token
-
-				let results = [];
-				$.each(r.data, function(index, item) {
-					results.push({
-						id: item[0],
-						text: item[1] + ' (' + item[2] + ')'
-					});
-				});
-
-				return {
-					results: results
-				};
-			},
-			cache: true
-		},
-	})
+	if (window.SIGAPP && window.SIGAPP.activeProyekName) {
+		$("#dashboard-active-proyek").text("Proyek: " + window.SIGAPP.activeProyekName);
+	}
 
 	$("#btn-filter_data").click(function() {
 		// $("#filter-statistik").html($("#filter-bulan").html())
@@ -612,8 +579,8 @@
 	})
 
 	function load_dashboard(statistik = false, aktivitas = false, chart = false) {
-		if (!$("#id_proyek").val()) {
-			return toastr['error']('Pilih proyek terlebih dahulu.', 'Terjadi Kesalahan!', {
+		if (!activeProyekId()) {
+			return toastr['error']('Belum ada proyek aktif. Pilih proyek dari navbar.', 'Terjadi Kesalahan!', {
 				timeOut: 3000,
 				closeButton: true,
 				tapToDismiss: true,
@@ -627,7 +594,7 @@
 			url: base_url + "get-dashboard",
 			data: {
 				[csrfName]: csrfHash,
-				id_proyek: $("#id_proyek").val(),
+				id_proyek: activeProyekId(),
 				statistik: statistik,
 				aktivitas: aktivitas,
 				chart: chart,
@@ -743,7 +710,7 @@
 			data: {
 				[csrfName]: csrfHash,
 				offset: start,
-				id_proyek: $("#id_proyek").val()
+				id_proyek: activeProyekId()
 			},
 			success: function(r) {
 				let ac = r.aktivitas
@@ -833,5 +800,9 @@
 		data: data,
 		options: options
 	});
+
+	if (activeProyekId()) {
+		load_dashboard(true, true, true);
+	}
 
 </script>

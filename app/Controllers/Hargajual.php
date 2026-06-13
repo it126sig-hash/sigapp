@@ -77,6 +77,7 @@ class Hargajual extends BaseController
 		// $data['test2'] = $var;
 
 		$var = $this->request->getVar();
+		$id_proyek = resolve_active_proyek_id($var['id_proyek'] ?? null);
 
 
 
@@ -98,8 +99,8 @@ class Hargajual extends BaseController
 			->join('users', 'users.id = hargajual.add_by', 'left')
 			->join('users as c', 'c.id = hargajual.edit_by', 'left');
 
-		if ($var['id_proyek'])
-			$condition = array_merge($condition, ["hargajual.id_proyek" => $var['id_proyek']]);
+		if ($id_proyek)
+			$condition = array_merge($condition, ["hargajual.id_proyek" => $id_proyek]);
 
 		$result = $this->if_where($var, $colum, $condition, $query);
 
@@ -261,7 +262,7 @@ class Hargajual extends BaseController
 	{
 
 		$data['token'] = csrf_hash();
-		$id_proyek = $this->request->getPost('id_proyek');
+		$id_proyek = resolve_active_proyek_id($this->request->getPost('id_proyek'));
 
 		$search = "";
 		if ($this->request->getPost('search'))

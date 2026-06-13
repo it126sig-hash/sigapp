@@ -19,6 +19,7 @@ use CodeIgniter\HTTP\Response;
 use App\Controllers\Notif;
 use App\Controllers\Home;
 use App\Repositories\KeuanganRepository;
+use App\Services\ActiveProyekService;
 use App\Services\FileAccessService;
 use App\Services\MkdtHistoryService;
 use App\Services\SiteplanUrgentService;
@@ -52,6 +53,7 @@ class Siteplan extends BaseController
     protected $mkdtHistoryService;
     protected $siteplanUrgentService;
     protected $targetSiteplanService;
+    protected $activeProyekService;
 
     public function __construct()
     {
@@ -76,6 +78,7 @@ class Siteplan extends BaseController
         $this->mkdtHistoryService = new MkdtHistoryService();
         $this->siteplanUrgentService = new SiteplanUrgentService();
         $this->targetSiteplanService = new TargetSiteplanService();
+        $this->activeProyekService = new ActiveProyekService();
 
         $this->kavlingRepo = new KavlingRepository();
 
@@ -83,19 +86,13 @@ class Siteplan extends BaseController
     }
     public function index()
     {
-        // var_dump(session('token'));die();
-        $data['content'] = 'siteplan/pilih_proyek';
-
-
-        //ambil data proyek
-        $data['data']['proyek'] = $this->proyekModel
-            ->select("id_proyek, alamat_proyek, nama_proyek, siteplan, logo")
-            ->orderBy('order_by', 'asc')
-            ->findAll();
-        foreach ($data['data']['proyek'] as $proyek) {
-            $proyek->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', (int) $proyek->id_proyek);
-            $proyek->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', (int) $proyek->id_proyek);
+        $activeId = $this->activeProyekService->getActiveId();
+        if ($activeId && $this->activeProyekService->userCanAccess($activeId, (int) user_id())) {
+            return redirect()->to(base_url('siteplan/view_siteplan/' . $activeId));
         }
+
+        $data['content'] = 'siteplan/pilih_proyek';
+        $data['data']['proyek'] = $this->activeProyekService->getAccessibleList((int) user_id());
 
         return view('template', $data);
     }
@@ -106,7 +103,10 @@ class Siteplan extends BaseController
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
 
-        session()->set(['id_proyek' => $idProyek]);
+        $setResult = $this->activeProyekService->setActive($idProyek);
+        if (!$setResult['success']) {
+            return redirect()->to(base_url('siteplan'))->with('error', $setResult['message']);
+        }
 
         $data = [
             'content' => 'siteplan/master',

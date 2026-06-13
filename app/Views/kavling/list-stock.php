@@ -23,10 +23,6 @@
           </h5>
           <div class="card-header border-bottom">
             <div class="col-md-4 mb-1">
-              <label>Proyek</label>
-              <select id="id_proyek" name="id_proyek" class="select2 form-control"></select>
-            </div>
-            <div class="col-md-4 mb-1">
               <label>Cluster</label>
               <select disabled id="id_cluster" name="id_cluster" class="select2  form-control"></select>
             </div>
@@ -195,7 +191,7 @@
         },
         data: function(data) {
           data[csrfName] = csrfHash
-          data.id_proyek = $("#id_proyek").val()
+          data.id_proyek = activeProyekId()
           data.id_cluster = $("#id_cluster").val()
           data.id_jalan = $("#id_jalan").val()
           data.sp3k = ""
@@ -221,49 +217,9 @@
     //select filter for sp3k, wawancara, akad
     $(".self").select2();
 
-    //select2 proyek
-    $("#id_proyek").select2({
-      placeholder: "Pilih Proyek",
-      allowClear: true,
-      ajax: {
-        url: base_url + "/proyek/getAll",
-        dataType: 'json',
-        delay: 250,
-        method: 'post',
-        data: function(params) {
-          return {
-            [csrfName]: csrfHash,
-            search: params.term
-          };
-        },
-        processResults: function(r) {
-          csrfHash = r.token
-
-          let results = [];
-          $.each(r.data, function(index, item) {
-            results.push({
-              id: item[0],
-              text: item[1] + ' (' + item[2] + ')'
-            });
-          });
-
-          return {
-            results: results
-          };
-        },
-        cache: true
-      },
-    })
-
-    //on select proyek
-    $("#id_proyek").on("change", function(e) {
-      $('#id_cluster').val(null).trigger('change');
-
-      if (this.value)
-        $("#id_cluster").prop("disabled", false)
-      else
-        $("#id_cluster").prop("disabled", true)
-    });
+    if (activeProyekId()) {
+      $("#id_cluster").prop("disabled", false);
+    }
 
     //select2 cluster
     $("#id_cluster").select2({
@@ -278,7 +234,7 @@
           return {
             [csrfName]: csrfHash,
             search: params.term,
-            id_proyek: $("#id_proyek").val()
+            id_proyek: activeProyekId()
           };
         },
         processResults: function(r) {
@@ -322,7 +278,7 @@
             [csrfName]: csrfHash,
             search: params.term,
             id_cluster: $("#id_cluster").val(),
-            id_proyek: $("#id_proyek").val()
+            id_proyek: activeProyekId()
           };
         },
         processResults: function(r) {

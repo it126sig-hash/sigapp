@@ -544,6 +544,10 @@ function notificationProjectId() {
     return dt_proyek.id_proyek;
   }
 
+  if (window.SIGAPP && window.SIGAPP.activeProyekId) {
+    return window.SIGAPP.activeProyekId;
+  }
+
   return "";
 }
 

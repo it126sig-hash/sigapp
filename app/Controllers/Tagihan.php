@@ -429,7 +429,7 @@ class Tagihan extends BaseController
     ################################## untuk jatuh tempo ##########################
     function getAllJatuhTempo()
     {
-        $id_proyek = $this->request->getVar('id_proyek');
+        $id_proyek = resolve_active_proyek_id($this->request->getVar('id_proyek'));
         $datatbel = $this->keuanganService->getAllJatuhTempo($id_proyek);
         return $this->response->setJSON($datatbel);;
     }

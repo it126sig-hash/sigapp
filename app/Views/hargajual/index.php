@@ -32,10 +32,6 @@
 			<div class="col-12">
 				<div class="card">
 					<div class="card-header border-bottom">
-						<div class="col-md-4 mb-1">
-							<!-- <label>Pilih Proyek </label> -->
-							<select id="id_proyek" name="id_proyek" class="select2 form-control"></select>
-						</div>
 						<div class="col-md-4 mb-1 ">
 							<select id="filter-is_active" name="filter-is_active" class="select2 form-control">
 								<option value=1>Aktif</option>
@@ -311,7 +307,7 @@
 				},
 				data: function (data) {
 					data[csrfName] = csrfHash
-					data.id_proyek = $("#id_proyek").val()
+					data.id_proyek = activeProyekId()
 					data.is_active = $("#filter-is_active").val()
 				},
 				dataSrc: function (r) {
@@ -335,41 +331,16 @@
 				table.search(this.value).draw();
 			});
 
-		//select2 proyek
-		$("#id_proyek, #idProyek").select2({
+		$("#idProyek").select2({
 			placeholder: "Pilih Proyek",
-			allowClear: true,
-			ajax: {
-				url: base_url + "proyek/get/all",
-				dataType: 'json',
-				delay: 250,
-				method: 'post',
-				data: function (params) {
-					return {
-						[csrfName]: csrfHash,
-						search: params.term
-					};
-				},
-				processResults: function (r) {
-					csrfHash = r.token
+			allowClear: true
+		});
 
-					let results = [];
-					$.each(r.data, function (index, item) {
-						results.push({
-							id: item[0],
-							text: item[1] + ' (' + item[2] + ')'
-						});
-					});
+		if (activeProyekId()) {
+			table.draw();
+		}
 
-					return {
-						results: results
-					};
-				},
-				cache: true
-			},
-		})
-
-		//select2 id tipe
+		//on click btn filter
 		// $("#id_tipe").select2({
 		// 	placeholder: "Pilih Tipe",
 		// 	allowClear: true,
@@ -463,7 +434,11 @@
 
 		$(".form-control").removeClass('is-invalid').removeClass('is-valid');
 		$('#add-modal').modal('show');
-		$("#idProyek, #id_tipe").append($("<option selected></option>")).trigger('change');
+		if (activeProyekId()) {
+			$("#add-form #idProyek").val(activeProyekId()).trigger('change');
+		} else {
+			$("#idProyek, #id_tipe").append($("<option selected></option>")).trigger('change');
+		}
 
 		// submit the add from 
 		$.validator.setDefaults({

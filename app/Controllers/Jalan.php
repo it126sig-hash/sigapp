@@ -24,14 +24,20 @@ class Jalan extends BaseController
 
 	public function getAll()
 	{
+		$params = (array) $this->request->getVar();
+		$params['id_proyek'] = resolve_active_proyek_id($params['id_proyek'] ?? null);
+
 		return $this->json([
-			'data' => $this->jalanService->getAll((array) $this->request->getVar()),
+			'data' => $this->jalanService->getAll($params),
 		]);
 	}
 
 	public function getDatatable()
 	{
-		return $this->json($this->jalanService->getDataTables((array) $this->request->getVar()));
+		$params = (array) $this->request->getVar();
+		$params['id_proyek'] = resolve_active_proyek_id($params['id_proyek'] ?? null);
+
+		return $this->json($this->jalanService->getDataTables($params));
 	}
 
 	public function getOne()

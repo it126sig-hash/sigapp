@@ -19,6 +19,7 @@
    <script src="<?= base_url() ?>/app-assets/js/core/app-menu.min.js"></script>
    <script src="<?= base_url() ?>/app-assets/js/core/app.min.js"></script>
    <script src="<?= base_url() ?>/app-assets/vendors/js/forms/cleave/cleave.min.js"></script>
+   <script src="<?= base_url() ?>/assets/js/active-proyek.js?<?= filemtime(FCPATH . 'assets/js/active-proyek.js') ?>"></script>
    <script src="<?= base_url() ?>/assets/js/scripts.js?<?= filemtime(FCPATH . 'assets/js/scripts.js') ?>"></script>
    <!-- END: Theme JS-->
 
