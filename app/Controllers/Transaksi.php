@@ -137,6 +137,9 @@ class Transaksi extends BaseController
         if ($statusMkdt === 'Batal') {
             $kons['keterangan'] = trim((string) ($p['dt-keterangan_batal'] ?? ''));
         }
+        $perluRefund = $statusMkdt === 'Batal'
+            ? (int) (($p['dt-perlu_refund'] ?? $p['dt_perlu_refund'] ?? 0) == 1)
+            : 0;
 
         $mk = [
             'id_mkdt'               => $kons['id_mkdt'],
@@ -164,6 +167,7 @@ class Transaksi extends BaseController
             'is_subsidi'            => $p['is_subsidi'] ?? null,
             'booking_fee'           => $this->num($p['dt-booking_fee'] ?? 0),
             'booking_tgl'           => $p['dt-booking_tgl'] ?? null,
+            'perlu_refund'          => $perluRefund,
             'id_kavling'            => $kons['id_kavling'],
             'is_sudah_isi_tagihan'  => 1,
         ];
@@ -186,6 +190,7 @@ class Transaksi extends BaseController
             'id_konsumen_old' => $p['id_konsumen_old'] ?? null,
             'id_konsumen'     => $p['id_konsumen'] ?: null,
             'is_data_baru'    => (int) ($p['mkdt_data_baru'] ?? 0) === 1,
+            'allow_duplicate_nik' => (int) ($p['allow_duplicate_nik'] ?? 0) === 1,
         ];
 
         $resp = $this->mkdtService->saveTransaksi($kons, $mk, $um, $files, $opt);

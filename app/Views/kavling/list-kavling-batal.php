@@ -89,7 +89,7 @@
               <li class="nav-item">
                 <a class="nav-link active" id="list_poskon-tab"
                   data-toggle="tab" href="#list_poskon"
-                  aria-controls="list_poskon" role="tab" aria-selected="true">List Posisi Konsumen Akad</a>
+                  aria-controls="list_poskon" role="tab" aria-selected="true">List Posisi Konsumen Batal</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" id="riwayat_eksport-tab" data-toggle="tab"
@@ -111,6 +111,7 @@
                       <th colspan="2" id="tb-KAVLING">KAVLING</th>
                       <th rowspan="2" id="tb-TYPE">TYPE</th>
                       <th rowspan="2" id="tb-KET_BATAL">Keterangan Batal</th>
+                      <th rowspan="2" id="tb-STATUS_REFUND">Status Refund</th>
                       <th rowspan="2">Nama Konsumen</th>
                       <th rowspan="2">Tanggal Booking</th>
                       <th rowspan="2">TUNAI/KPR</th>
@@ -183,7 +184,7 @@
       scrollCollapse: true,
       fixedColumns: true,
       fixedColumns: {
-        leftColumns: 5
+        leftColumns: 6
       },
       processing: true,
       serverSide: true,
@@ -249,7 +250,7 @@
           let results = [];
           $.each(r.data, function(index, item) {
             results.push({
-              id: item['id_proyek'],
+              id: item[0],
               text: item[1] + ' (' + item[2] + ')'
             });
           });
@@ -472,7 +473,7 @@
       }
     });
     //remove bug arrow select2
-    $(".select2-selection__arrow").removeClass("select2-selection__arrow")
+    $(".select2-selection__arrow").css("pointer-events", "none")
 
   });
 

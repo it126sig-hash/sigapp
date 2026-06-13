@@ -1,51 +1,510 @@
 <!--#################################### Modal Legal #########################################-->
-<div class="modal modal-slide-in fade" id="modal_fotherlegal">
-    <div class="modal-dialog sidebar-sm">
-        <form id="fm-fotherlegal" class="add-new-record modal-content pt-0">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
-            <div class="modal-header mb-1">
-                <h5 class="modal-title" id="exampleModalLabel">Legal</h5>
+<style>
+    #modal_fotherlegal .modal-dialog {
+        max-width: min(700px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modal_fotherlegal .modal-content-custom {
+        border: 1px solid #e5e7eb !important;
+        border-radius: 10px !important;
+        box-shadow: none !important;
+        font-family: inherit !important;
+        overflow: hidden !important;
+    }
+
+    #modal_fotherlegal .modal-header-custom {
+        align-items: center;
+        background: #fff !important;
+        border-bottom: 1px solid #e5e7eb;
+        border-radius: 10px 10px 0 0 !important;
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 1.25rem !important;
+    }
+
+    #modal_fotherlegal .modal-title-main {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+    }
+
+    #modal_fotherlegal .modal-title-kavling {
+        color: #111827;
+        font-size: 1.05rem;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    #modal_fotherlegal .btn-close-modal {
+        align-items: center;
+        background: #fff;
+        border: 1px solid #d8dde3;
+        border-radius: 6px;
+        color: #4b5563;
+        display: inline-flex;
+        height: 34px;
+        justify-content: center;
+        width: 34px;
+    }
+
+    #modal_fotherlegal .btn-close-modal:hover {
+        background: #f3f5f7;
+        color: #111827;
+    }
+
+    #modal_fotherlegal .modal-body-custom {
+        background: #f3f5f7;
+        max-height: calc(100vh - 10rem);
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    #modal_fotherlegal .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+    }
+
+    #modal_fotherlegal .card-body {
+        padding: 1rem;
+    }
+
+    #modal_fotherlegal label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+
+    #modal_fotherlegal .form-control {
+        border-color: #d8dde3;
+        border-radius: 6px;
+    }
+
+    #modal_fotherlegal .modal-footer-custom {
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: .75rem;
+        justify-content: flex-end;
+        padding: .85rem 1.25rem;
+    }
+
+    #modal_fotherlegal .btn-save {
+        background: #2057a3 !important;
+        border-color: #2057a3 !important;
+        border-radius: 6px !important;
+        color: #fff !important;
+    }
+
+    #modal_fotherlegal .btn-save:hover {
+        background: #1b4a8b !important;
+    }
+
+    #modal_fotherlegal .btn-cancel {
+        background: #fff !important;
+        border: 1px solid #d8dde3 !important;
+        border-radius: 6px !important;
+        color: #4b5563 !important;
+    }
+
+    #modal_fotherlegal .btn-cancel:hover {
+        background: #f3f5f7 !important;
+        color: #111827 !important;
+    }
+
+    #modal_fotherlegal .detail-highlight-box {
+        background: #eaf2fd;
+        border-radius: 8px;
+        margin-bottom: .9rem;
+        padding: .85rem 1rem;
+    }
+
+    #modal_fotherlegal .detail-highlight-label {
+        color: #2057a3;
+        display: block;
+        font-size: .76rem;
+        font-weight: 700;
+        margin-bottom: .25rem;
+    }
+
+    #modal_fotherlegal .detail-highlight-value {
+        color: #2057a3;
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+</style>
+<div class="modal fade" id="modal_fotherlegal">
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <form id="fm-fotherlegal" class="modal-content modal-content-custom pt-0" onsubmit="event.preventDefault(); save_fotherlegal();">
+            <!-- HEADER MODAL -->
+            <div class="modal-header-custom">
+                <div>
+                    <div class="modal-title-main">Legal</div>
+                    <div class="modal-title-kavling">Ubah Data Fasum / Jalan</div>
+                </div>
+                <button type="button" class="btn-close-modal" data-dismiss="modal"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body flex-grow-1">
-                <p class="modal-title label_alamat" id="label_alamat5"></p>
-                <br>
-                <span>Luas di Siteplan : <br>
-                    <span class='t_luas_planning'></span>
-                </span>
-                <br>
-                <br>
-                <span>Luas di Lapangan : <br>
-                    <span class='t_luas_produksi'></span>
-                </span>
-                <hr>
+
+            <!-- BODY MODAL -->
+            <div class="modal-body-custom">
+                <div class="detail-highlight-box mb-3">
+                    <div class="label_alamat font-weight-bold text-dark mb-2" id="label_alamat5" style="font-size: 1rem;"></div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <div>
+                            <span class="detail-highlight-label">Luas di Siteplan</span>
+                            <span class="detail-highlight-value t_luas_planning"></span>
+                        </div>
+                        <div class="text-right">
+                            <span class="detail-highlight-label">Luas di Lapangan</span>
+                            <span class="detail-highlight-value t_luas_produksi"></span>
+                        </div>
+                    </div>
+                </div>
+
                 <input type="hidden" class="form-control id_kavling" name="id_kavling" value="" />
 
-                <div class="form-group">
-                    <label for="fl_progres_jalan">Progres</label>
-                    <input disabled type="range" onInput="$('.r_progres').html($(this).val())"
-                        class="form-control-range" min="0" max="100" step="5" id="fl_progres_jalan">
-                    <span class="r_progres"></span><span>%</span>
-                </div>
+                <div class="card mb-0">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="fl_progres_jalan">Progres Pembangunan: <span class="r_progres font-weight-bold"></span>%</label>
+                            <input disabled type="range" onInput="$('.r_progres').html($(this).val())"
+                                class="form-control-range mt-1" min="0" max="100" step="5" id="fl_progres_jalan">
+                        </div>
 
-                <div class="form-group">
-                    <label for="f_legal_luas">Luas di Sertifikat</label>
-                    <input type="text" class="form-control" id="f_legal_luas" name="f_legal_luas"
-                        placeholder="Luas jalan di sertifikat" />
-                </div>
+                        <div class="form-group">
+                            <label for="f_legal_luas">Luas di Sertipikat</label>
+                            <input type="text" class="form-control" id="f_legal_luas" name="f_legal_luas"
+                                placeholder="Luas di sertipikat" />
+                        </div>
 
-                <div class="form-group">
-                    <label for="f_legal_keterangan">Keterangan</label>
-                    <textarea class="form-control" id="f_legal_keterangan" name="f_legal_keterangan" rows="3"
-                        placeholder="Keterangan"></textarea>
+                        <div class="form-group mb-0">
+                            <label for="f_legal_keterangan">Keterangan</label>
+                            <textarea class="form-control" id="f_legal_keterangan" name="f_legal_keterangan" rows="3"
+                                placeholder="Keterangan"></textarea>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-                <button id="save-fother-btn-legal" class="btn btn-primary data-submit mr-1" onclick="save_fotherlegal()"
-                    href="javascript:void(0)">Simpan</button>
-                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+            <!-- FOOTER MODAL -->
+            <div class="modal-footer-custom">
+                <button type="button" class="btn-cancel" data-dismiss="modal"><i class="fas fa-times mr-1"></i> Batal</button>
+                <button type="button" id="save-fother-btn-legal" class="btn-save" onclick="save_fotherlegal()">Simpan</button>
             </div>
         </form>
     </div>
 </div>
+<style>
+    #modal_flegal .modal-dialog {
+        max-width: min(1400px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modal_flegal .modal-content-custom {
+        border: 1px solid #e5e7eb !important;
+        border-radius: 10px !important;
+        box-shadow: none !important;
+        font-family: inherit !important;
+        overflow: hidden !important;
+    }
+
+    #modal_flegal .modal-header-custom {
+        align-items: center;
+        background: #fff !important;
+        border-bottom: 1px solid #e5e7eb;
+        border-radius: 10px 10px 0 0 !important;
+        display: flex;
+        justify-content: space-between;
+        overflow: visible !important;
+        padding: 1rem 1.25rem !important;
+    }
+
+    #modal_flegal .modal-header-custom::before,
+    #modal_flegal .modal-header-custom::after {
+        display: none !important;
+    }
+
+    #modal_flegal .modal-title-main {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+    }
+
+    #modal_flegal .modal-title-kavling {
+        color: #111827;
+        font-size: 1.05rem;
+        font-weight: 700;
+        line-height: 1.35;
+    }
+
+    #modal_flegal .btn-close-modal {
+        align-items: center;
+        background: #fff;
+        border: 1px solid #d8dde3;
+        border-radius: 6px;
+        color: #4b5563;
+        display: inline-flex;
+        height: 34px;
+        justify-content: center;
+        width: 34px;
+    }
+
+    #modal_flegal .btn-close-modal:hover {
+        background: #f3f5f7;
+        color: #111827;
+    }
+
+    #modal_flegal .modal-body-custom {
+        align-items: stretch;
+        background: #f3f5f7;
+        display: flex;
+        max-height: calc(100vh - 10rem);
+        min-height: 62vh;
+        overflow: hidden;
+        padding: 0;
+    }
+
+    #modal_flegal .modal-sidebar {
+        background: #fff !important;
+        border-right: 1px solid #e5e7eb;
+        color: #111827 !important;
+        flex: 0 0 280px;
+        padding: 1rem;
+        width: 280px;
+    }
+
+    #modal_flegal .legal-sidebar-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    #modal_flegal .legal-sidebar-label {
+        color: #6b7280;
+        font-size: .75rem;
+        font-weight: 700;
+        margin-bottom: .35rem;
+        text-transform: uppercase;
+    }
+
+    #modal_flegal .legal-sidebar-name {
+        color: #111827;
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_flegal .legal-sidebar-row {
+        align-items: flex-start;
+        border-top: 1px solid #edf0f2;
+        color: #374151;
+        display: flex;
+        gap: .6rem;
+        margin-top: .85rem;
+        padding-top: .85rem;
+    }
+
+    #modal_flegal .legal-sidebar-row i {
+        color: #2057a3;
+        line-height: 1.4;
+        width: 16px;
+    }
+
+    #modal_flegal .legal-sidebar-value {
+        color: #111827;
+        font-weight: 600;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_flegal .modal-main {
+        background: #f3f5f7;
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-y: auto;
+    }
+
+    #modal_flegal .legal-content-pad {
+        padding: 1rem;
+    }
+
+    #modal_flegal .legal-tab-nav-wrap {
+        background: #f3f5f7;
+        margin-bottom: .75rem;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+
+    #modal_flegal .legal-tab-nav {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: .45rem;
+        overflow-x: auto;
+        padding: .65rem;
+    }
+
+    #modal_flegal .legal-tab-nav-item {
+        align-items: center;
+        border-radius: 6px;
+        color: #4b5563;
+        display: inline-flex;
+        flex: 0 0 auto;
+        font-size: .82rem;
+        font-weight: 700;
+        gap: .45rem;
+        padding: .55rem .75rem;
+        white-space: nowrap;
+    }
+
+    #modal_flegal .legal-tab-nav-item:hover {
+        background: #eef3fb;
+        color: #2057a3;
+    }
+
+    #modal_flegal .legal-tab-nav-item.active {
+        background: #2057a3;
+        color: #fff;
+    }
+
+    #modal_flegal .divider {
+        margin: .65rem 0 .85rem;
+    }
+
+    #modal_flegal .divider-left {
+        border-left-color: #2057a3;
+        padding-left: .75rem;
+    }
+
+    #modal_flegal .divider .divider-text {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 700;
+    }
+
+    #modal_flegal .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+    }
+
+    #modal_flegal .card-header {
+        background: #fff;
+        border-bottom: 1px solid #edf0f2;
+        padding: .85rem 1rem;
+    }
+
+    #modal_flegal .card-header h5 {
+        color: #111827;
+        font-size: .9rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    #modal_flegal .card-body {
+        padding: 1rem;
+    }
+
+    #modal_flegal label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+
+    #modal_flegal .form-control {
+        border-color: #d8dde3;
+        border-radius: 6px;
+    }
+
+    #modal_flegal .form-control[readonly] {
+        background-color: #f8fafc;
+        color: #111827;
+        opacity: 1;
+    }
+
+    #modal_flegal .modal-footer-custom {
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        gap: .75rem;
+        justify-content: flex-end;
+        padding: .85rem 1.25rem;
+    }
+
+    #modal_flegal .btn-save {
+        background: #2057a3 !important;
+        border-color: #2057a3 !important;
+        border-radius: 6px !important;
+        color: #fff !important;
+    }
+
+    #modal_flegal .btn-save:hover {
+        background: #1b4a8b !important;
+    }
+
+    #modal_flegal .btn-cancel {
+        background: #fff !important;
+        border: 1px solid #d8dde3 !important;
+        border-radius: 6px !important;
+        color: #4b5563 !important;
+    }
+
+    #modal_flegal .btn-cancel:hover {
+        background: #f3f5f7 !important;
+        color: #111827 !important;
+    }
+
+    @media (max-width: 767.98px) {
+        #modal_flegal .modal-dialog {
+            max-width: calc(100vw - 16px);
+            margin: .5rem auto;
+        }
+
+        #modal_flegal .modal-body-custom {
+            flex-direction: column;
+            max-height: calc(100vh - 9rem);
+        }
+
+        #modal_flegal .modal-sidebar {
+            border-bottom: 1px solid #e5e7eb;
+            border-right: 0;
+            flex: 0 0 auto;
+            width: 100%;
+        }
+
+        #modal_flegal .legal-sidebar-card {
+            display: grid;
+            gap: .75rem;
+            grid-template-columns: 1fr;
+        }
+
+        #modal_flegal .legal-sidebar-row {
+            margin-top: 0;
+            padding-top: .75rem;
+        }
+
+        #modal_flegal .legal-tab-nav {
+            flex-direction: row !important;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: .65rem;
+        }
+
+        #modal_flegal .legal-tab-nav-item {
+            white-space: nowrap;
+        }
+    }
+</style>
 <div class="modal fade" id="modal_flegal">
     <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
         <div class="modal-content modal-content-custom pt-0">
@@ -59,25 +518,43 @@
             </div>
 
             <!-- BODY MODAL -->
-            <div class="modal-body-custom" style="padding: 0; align-items: stretch;">
-                <!-- SIDEBAR NAVIGATION -->
+            <div class="modal-body-custom">
+                <!-- SIDEBAR SUMMARY -->
                 <div class="modal-sidebar">
-                    <div class="sidebar-section-label">Navigasi</div>
-                    <nav class="sidebar-nav" style="display: flex; flex-direction: column;">
-                        <a href="#legal-sertifikat" class="sidebar-nav-item active"><i class="fas fa-file-signature"></i> Sertipikat</a>
-                        <a href="#legal-pbb" class="sidebar-nav-item"><i class="fas fa-file-invoice-dollar"></i> PBB</a>
-                        <a href="#legal-bphtb" class="sidebar-nav-item"><i class="fas fa-money-check-alt"></i> BPHTB</a>
-                        <a href="#legal-pbg" class="sidebar-nav-item"><i class="fas fa-building"></i> IMB/PBG</a>
-                        <a href="#legal-pph" class="sidebar-nav-item"><i class="fas fa-percent"></i> PPH</a>
-                        <a href="#legal-ajb" class="sidebar-nav-item"><i class="fas fa-handshake"></i> AJB & PPJB</a>
-                        <a href="#upload-sertifikat" class="sidebar-nav-item"><i class="fas fa-upload"></i> Upload Softfile</a>
-                    </nav>
+                    <div class="legal-sidebar-card">
+                        <div class="legal-sidebar-label">Nama Konsumen</div>
+                        <div class="legal-sidebar-name" id="legal-sidebar-consumer">-</div>
+                        <div class="legal-sidebar-row">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div>
+                                <div class="legal-sidebar-label mb-25">Kavling</div>
+                                <div class="legal-sidebar-value" id="legal-sidebar-kavling">-</div>
+                            </div>
+                        </div>
+                        <div class="legal-sidebar-row">
+                            <i class="fas fa-city"></i>
+                            <div>
+                                <div class="legal-sidebar-label mb-25">Proyek</div>
+                                <div class="legal-sidebar-value" id="legal-sidebar-project">-</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Main Scrollable Content -->
                 <div class="modal-main" id="legal-main-scroll-area">
-                    <div class="p-2">
-                            <p class="modal-title label_alamat mb-2" id="label_alamat5"></p>
+                    <div class="legal-content-pad">
+                            <div class="legal-tab-nav-wrap">
+                                <nav class="legal-tab-nav" aria-label="Navigasi data legal">
+                                    <a href="#legal-sertifikat" class="legal-tab-nav-item active"><i class="fas fa-file-signature"></i> Sertipikat</a>
+                                    <a href="#legal-pbb" class="legal-tab-nav-item"><i class="fas fa-file-invoice-dollar"></i> PBB</a>
+                                    <a href="#legal-bphtb" class="legal-tab-nav-item"><i class="fas fa-money-check-alt"></i> BPHTB</a>
+                                    <a href="#legal-pbg" class="legal-tab-nav-item"><i class="fas fa-building"></i> IMB/PBG</a>
+                                    <a href="#legal-pph" class="legal-tab-nav-item"><i class="fas fa-percent"></i> PPH</a>
+                                    <a href="#legal-ajb" class="legal-tab-nav-item"><i class="fas fa-handshake"></i> AJB & PPJB</a>
+                                    <a href="#upload-sertifikat" class="legal-tab-nav-item"><i class="fas fa-upload"></i> Upload Softfile</a>
+                                </nav>
+                            </div>
 
                             <form id="fm-legal">
                                 <input type="hidden" class="form-control id_kavling" name="id_kavling" value="" />
@@ -85,7 +562,9 @@
 
                                 <!-- Section: Sertipikat -->
                                 <div id="legal-sertifikat" class="scroll-section mb-3">
-                                    <h4 class="section-title">Sertipikat</h4>
+                                    <div class="divider divider-left">
+                                        <div class="divider-text">Sertipikat</div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="card mb-2">
@@ -184,7 +663,9 @@
 
                                 <!-- Section: PBB -->
                                 <div id="legal-pbb" class="scroll-section mb-3">
-                                    <h4 class="section-title">PBB</h4>
+                                    <div class="divider divider-left">
+                                        <div class="divider-text">PBB</div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="card mb-2">
@@ -278,7 +759,9 @@
 
                                 <!-- Section: BPHTB -->
                                 <div id="legal-bphtb" class="scroll-section mb-3">
-                                    <h4 class="section-title">BPHTB</h4>
+                                    <div class="divider divider-left">
+                                        <div class="divider-text">BPHTB</div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="card mb-2">
@@ -331,7 +814,9 @@
 
                                 <!-- Section: IMB/PBG -->
                                 <div id="legal-pbg" class="scroll-section mb-3">
-                                    <h4 class="section-title">IMB/PBG</h4>
+                                    <div class="divider divider-left">
+                                        <div class="divider-text">IMB/PBG</div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="card mb-2">
@@ -422,7 +907,9 @@
 
                                 <!-- Section: PPH -->
                                 <div id="legal-pph" class="scroll-section mb-3">
-                                    <h4 class="section-title">PPH</h4>
+                                    <div class="divider divider-left">
+                                        <div class="divider-text">PPH</div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="card mb-2">
@@ -481,7 +968,9 @@
 
                                 <!-- Section: AJB -->
                                 <div id="legal-ajb" class="scroll-section mb-3">
-                                    <h4 class="section-title">AJB & PPJB</h4>
+                                    <div class="divider divider-left">
+                                        <div class="divider-text">AJB & PPJB</div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="card mb-2">
@@ -539,7 +1028,9 @@
 
                             <!-- Section: Upload Softfile -->
                             <div id="upload-sertifikat" class="scroll-section mb-3">
-                                <h4 class="section-title">Upload Softfile</h4>
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Upload Softfile</div>
+                                </div>
                                 <div class="card mb-2">
                                     <div class="card-body">
                                         <div class="table-responsive">
@@ -802,6 +1293,17 @@ function open_flegal(sh, role, id_kavling) {
     $(".id_kavling").val(id_kavling);
     $("#id_legal").val(sh.data.id_legal);
 
+    const legalProjectName = dt_proyek && dt_proyek.nama_proyek ? dt_proyek.nama_proyek : "-";
+    const legalKavlingLabel = [
+        sh.data.tipe,
+        sh.data.nama_jalan,
+        sh.data.no_kavling ? "No " + sh.data.no_kavling : ""
+    ].filter(Boolean).join(" ");
+
+    $("#legal-sidebar-project").text(legalProjectName);
+    $("#legal-sidebar-kavling").text(legalKavlingLabel || "-");
+    $("#legal-sidebar-consumer").text("Belum ada konsumen");
+
     $.ajax({
         url: base_url + '/api/legal/get',
         type: 'post',
@@ -853,8 +1355,11 @@ function open_flegal(sh, role, id_kavling) {
 
             }
             if (r.data) {
-                $("#sertifikat_balik_nama").val(r.data.nama_konsumen ? r.data.nama_konsumen : "tidak")
-                $("#pbb_balik_nama").val(r.data.nama_konsumen ? r.data.nama_konsumen : "tidak")
+                const namaKonsumenLegal = r.data.nama_konsumen ? r.data.nama_konsumen : "tidak";
+
+                $("#legal-sidebar-consumer").text(namaKonsumenLegal)
+                $("#sertifikat_balik_nama").val(namaKonsumenLegal)
+                $("#pbb_balik_nama").val(namaKonsumenLegal)
                 $("#bphtb_nominal_disetujui").val(r.data.harga_bphtb ? r.data.harga_bphtb : '').change().keyup()
 
 
@@ -1027,10 +1532,10 @@ $(document).ready(function() {
 
     const scrollArea = legalModal.querySelector(".modal-main");
     const sections = Array.from(legalModal.querySelectorAll(".scroll-section"));
-    const navItems = legalModal.querySelectorAll(".sidebar-nav-item");
+    const navItems = legalModal.querySelectorAll(".legal-tab-nav-item");
 
     if (scrollArea && sections.length > 0) {
-        // Klik Sidebar = Scroll smooth ke section terkait
+        // Klik tab = Scroll smooth ke section terkait
         navItems.forEach(item => {
             item.addEventListener("click", function(e) {
                 e.preventDefault();
@@ -1045,7 +1550,7 @@ $(document).ready(function() {
             });
         });
 
-        // Scroll konten = Update Sidebar Active
+        // Scroll konten = Update tab active
         scrollArea.addEventListener("scroll", function() {
             let current = "";
             const currentPosition = scrollArea.scrollTop;

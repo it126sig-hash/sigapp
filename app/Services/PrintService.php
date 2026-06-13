@@ -242,8 +242,123 @@ class PrintService
 
         return $response;
     }
+
+    private function exportBatalPoskonXlsx($id_proyek, $id_cluster, $id_jalan)
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $headers = [
+            'A1' => 'NO',
+            'B1' => 'BLOK',
+            'C1' => 'NO KAVLING',
+            'D1' => 'TYPE',
+            'E1' => 'KETERANGAN BATAL',
+            'F1' => 'STATUS REFUND',
+            'G1' => 'NAMA KONSUMEN',
+            'H1' => 'TANGGAL BOOKING',
+            'I1' => 'TUNAI/KPR',
+            'J1' => 'TOTAL TAGIHAN',
+            'K1' => 'SUDAH BAYAR',
+            'L1' => 'SISA TAGIHAN',
+        ];
+
+        foreach ($headers as $cell => $label) {
+            $sheet->setCellValue($cell, $label);
+        }
+
+        $headerStyle = [
+            'font' => ['bold' => true],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'wrapText' => true,
+            ],
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_THIN],
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'F2F2F2'],
+            ],
+        ];
+        $sheet->getStyle('A1:L1')->applyFromArray($headerStyle);
+
+        $dataRumah = $this->posisiKonsumen->getQueryBatal();
+        if ($id_proyek != null) {
+            $dataRumah->where('proyek.id_proyek', $id_proyek);
+        }
+        if ($id_cluster != null) {
+            $dataRumah->where('cluster.id_cluster', $id_cluster);
+        }
+        if ($id_jalan != null) {
+            $dataRumah->where('jalan.id_jalan', $id_jalan);
+        }
+
+        $dataRumah = $dataRumah->get()->getResult();
+        $column = 2;
+        $no = 1;
+
+        foreach ($dataRumah as $row) {
+            $total = $row->um + $row->adm + $row->bb;
+            $bayar = $row->total_um + $row->total_adm + $row->total_bb;
+            $sisa = $total - $bayar;
+            $statusRefund = ((int) ($row->perlu_refund ?? 0) === 1) ? 'Perlu Refund' : 'Tidak Perlu Refund';
+            $kpr = ((int) $row->is_kpr === 0) ? 'TUNAI' : 'KPR';
+
+            $sheet->setCellValue('A' . $column, $no++);
+            $sheet->setCellValue('B' . $column, $row->nama_jalan);
+            $sheet->setCellValue('C' . $column, $row->no_kavling);
+            $sheet->setCellValue('D' . $column, $row->id_tipe);
+            $sheet->setCellValue('E' . $column, $row->keterangan_batal);
+            $sheet->setCellValue('F' . $column, $statusRefund);
+            $sheet->setCellValue('G' . $column, $row->nama_konsumen);
+            $sheet->setCellValue('H' . $column, $row->booking_tgl == "0000-00-00" ? "" : $row->booking_tgl);
+            $sheet->setCellValue('I' . $column, $kpr);
+            $sheet->setCellValue('J' . $column, $total);
+            $sheet->setCellValue('K' . $column, $bayar);
+            $sheet->setCellValue('L' . $column, $sisa);
+            $sheet->getStyle('A' . $column . ':L' . $column)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $column++;
+        }
+
+        foreach (range('A', 'L') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $projectName = $dataRumah[0]->nama_proyek ?? 'Semua Proyek';
+        $filename = "Poskon Batal Per " . date('d-m-Y') . " " . $projectName . ".xlsx";
+        $subFolder = date('Ym');
+        $directory = dirname($this->fileAccessService->privatePath('upload/poskon/' . $subFolder . '/dummy.xlsx'));
+
+        if (!is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        $randomName = bin2hex(random_bytes(10)) . '.xlsx';
+        $fullPath = $directory . DIRECTORY_SEPARATOR . $randomName;
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($fullPath);
+
+        $xlsData = file_get_contents($fullPath);
+
+        return [
+            'status'     => true,
+            'message'    => 'File berhasil disimpan di server',
+            'tipe'       => 'xlsx',
+            'randomName' => $randomName,
+            'filename'   => $filename,
+            'path'       => 'upload/poskon/' . $subFolder . "/",
+            'file'       => "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," . base64_encode($xlsData),
+        ];
+    }
+
     public function exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status)
     {
+        if ($status == "batal") {
+            return $this->exportBatalPoskonXlsx($id_proyek, $id_cluster, $id_jalan);
+        }
 
         $st = ucfirst($status) == "Aktif" ? "Booking" : ucfirst($status);
         $spreadsheet = new Spreadsheet();

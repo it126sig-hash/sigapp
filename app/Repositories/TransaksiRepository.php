@@ -60,6 +60,48 @@ class TransaksiRepository extends Model
             ->where('mkdt.id_mkdt', $idMkdt)
             ->first();
     }
+
+    public function findNikUsage(string $nik, ?int $excludeMkdt = null, ?int $excludeKonsumen = null): array
+    {
+        $nik = trim($nik);
+        if ($nik === '') {
+            return [];
+        }
+
+        $builder = $this->db->table('mkdt')
+            ->select('
+                mkdt.id_mkdt,
+                konsumen.id_konsumen,
+                konsumen.nama_konsumen,
+                konsumen.nik,
+                kavling.id_kavling,
+                kavling.no_kavling,
+                jalan.nama_jalan,
+                cluster.nama_cluster,
+                proyek.nama_proyek
+            ')
+            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
+            ->join('kavling', 'kavling.id_mkdt = mkdt.id_mkdt', 'left')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster', 'left')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left')
+            ->where('konsumen.nik', $nik);
+
+        if (!empty($excludeMkdt)) {
+            $builder->where('mkdt.id_mkdt !=', $excludeMkdt);
+        }
+
+        if (!empty($excludeKonsumen)) {
+            $builder->where('konsumen.id_konsumen !=', $excludeKonsumen);
+        }
+
+        return $builder
+            ->orderBy('mkdt.updated_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->getResultArray();
+    }
+
     public function getKonsumenByIdKavling($idKavling)
     {
         return $this->db->table('kavling')

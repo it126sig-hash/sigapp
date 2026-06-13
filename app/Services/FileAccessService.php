@@ -30,6 +30,8 @@ class FileAccessService
         'si'                => [1, 4, 7, 9],
         'komplain_sales'    => [1, 7, 8, 9],
         'komplain_produksi' => [1, 7, 8, 9],
+        'produksi_jalan_progress' => [1, 7, 9],
+        'profile_photo'     => [1, 3, 4, 5, 6, 7, 8, 9, 10],
     ];
 
     private array $projectAssetRoles = [1, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -258,7 +260,8 @@ class FileAccessService
             case 'pencairan_jaminan':
                 $row = $this->db->table('riwayat_pencairan_jaminan')->where('id', $id)->get()->getRow();
                 $this->assertRow($row);
-                return $this->fileMeta($row->surat_path, basename((string) $row->surat_path), $this->sourceRoles[$source], $row);
+                $path = $row->surat_path ?? ($row->file_path ?? null);
+                return $this->fileMeta($path, basename((string) $path), $this->sourceRoles[$source], $row);
 
             case 'file_hargajual':
                 $row = $this->db->table('file_hargajual')->where('id_filehj', $id)->get()->getRow();

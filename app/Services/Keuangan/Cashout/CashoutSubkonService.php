@@ -5,6 +5,7 @@ namespace App\Services\Keuangan\Cashout;
 use App\Repositories\Keuangan\Cashout\CashoutSubkonRepo;
 use App\Repositories\KavlingRepository;
 use App\Services\FileAccessService;
+use App\Services\FinanceLedgerService;
 use App\Services\StorageService;
 
 class CashoutSubkonService
@@ -14,6 +15,7 @@ class CashoutSubkonService
     protected $db;
     protected $storageService;
     protected $fileAccessService;
+    protected $ledgerService;
 
     public function __construct()
     {
@@ -22,6 +24,7 @@ class CashoutSubkonService
         $this->db = \Config\Database::connect();
         $this->storageService = new StorageService();
         $this->fileAccessService = new FileAccessService();
+        $this->ledgerService = new FinanceLedgerService();
     }
 
     public function getDataTables(array $var): array
@@ -67,8 +70,12 @@ class CashoutSubkonService
         ];
     }
 
-    public function getCashoutSubkon(array $id_kavlings)
+    public function getCashoutSubkon(array $id_kavlings, ?int $id_cashout_subkon = null)
     {
+        if (!empty($id_cashout_subkon)) {
+            return $this->cashoutSubkonResponse($id_cashout_subkon);
+        }
+
         $id_kavlings = array_values(array_filter($id_kavlings));
         if (empty($id_kavlings)) {
             return $this->errorResponse('Data tidak ditemukan');
@@ -91,18 +98,25 @@ class CashoutSubkonService
                 'subkon' => [],
             ];
         }
-        $kavling_subkon = $this->repo->getKavlingSubkonByID($id_cashout_subkon[0]->id_cashout_subkon);
+        return $this->cashoutSubkonResponse((int) $id_cashout_subkon[0]->id_cashout_subkon);
+    }
+
+    private function cashoutSubkonResponse(int $id_cashout_subkon): array
+    {
+        $cashout_subkon = $this->repo->getCashoutSubkonByID($id_cashout_subkon);
+        if (empty($cashout_subkon)) {
+            return $this->errorResponse('Data cashout subkon tidak ditemukan');
+        }
+
+        $kavling_subkon = $this->repo->getKavlingSubkonByID($id_cashout_subkon);
         $detail_kavling = $this->kavlingRepo->getKavlingByIds($kavling_subkon);
-        $cashout_subkon_detail = $this->repo->getListItemDetailByIDCashoutsubkon($id_cashout_subkon[0]->id_cashout_subkon);
-        $cashout_subkon = $this->repo->getCashoutSubkonByID($id_cashout_subkon[0]->id_cashout_subkon);
+        $cashout_subkon_detail = $this->repo->getListItemDetailByIDCashoutsubkon($id_cashout_subkon);
         if (!empty($cashout_subkon['file_surat'])) {
             $idCashoutSubkon = (int) $cashout_subkon['id_cashout_subkon'];
             $cashout_subkon['file_surat_access_url'] = $this->fileAccessService->accessUrl('cashout_subkon', $idCashoutSubkon);
             $cashout_subkon['file_surat_download_url'] = $this->fileAccessService->accessUrl('cashout_subkon', $idCashoutSubkon, true);
         }
-        $subkon = $this->repo->getSubkonByID($cashout_subkon['id_subkon']);
-        // var_dump($cashout_subkon['id_subkon']);
-        // die;
+        $subkon = !empty($cashout_subkon['id_subkon']) ? $this->repo->getSubkonByID((int) $cashout_subkon['id_subkon']) : [];
 
         return [
             'status' => 'success',
@@ -134,6 +148,7 @@ class CashoutSubkonService
 
         //define data cashout subkon
         $id_cashout_subkon = !empty($data['id_cashout_subkon']) ? $data['id_cashout_subkon'] : null;
+        $isNew = empty($id_cashout_subkon);
 
         $data_cashout_subkon = [
             'id_cashout_subkon' => $id_cashout_subkon,
@@ -197,8 +212,22 @@ class CashoutSubkonService
                 ];
             }
             $this->repo->saveCashoutSubkonKavling($data_cashout_subkon_kavling);
+            $this->repo->syncAutomaticDetailAllocations((int) $id_cashout_subkon, $data['id_kavling']);
 
             $this->db->transComplete();
+            if ($this->db->transStatus() === false) {
+                return [
+                    'status' => 'error',
+                    'message' => 'Gagal menyimpan data',
+                ];
+            }
+
+            $this->notifyCashoutSubkon(
+                (int) $id_cashout_subkon,
+                [3],
+                ($isNew ? 'Cashout Subkon baru perlu diturunkan jatuh tempo' : 'Cashout Subkon diperbarui dan perlu diperiksa Keuangan')
+            );
+
             return [
                 'status' => 'success',
                 'message' => 'Data berhasil disimpan',
@@ -338,6 +367,12 @@ class CashoutSubkonService
                 ];
             }
 
+            $this->notifyCashoutSubkon(
+                (int) $detail['id_cashout_subkon'],
+                [3],
+                'SPP Cashout Subkon telah diajukan untuk: ' . ($detail['berita_acara'] ?? '-')
+            );
+
             return [
                 'status' => 'success',
                 'message' => 'Pengajuan SPP berhasil disimpan',
@@ -396,6 +431,12 @@ class CashoutSubkonService
                 ];
             }
 
+            $this->notifyCashoutSubkon(
+                (int) $detail['id_cashout_subkon'],
+                [3],
+                'Pengajuan Pencairan Cashout Subkon telah dibuat untuk: ' . ($detail['berita_acara'] ?? '-')
+            );
+
             return [
                 'status' => 'success',
                 'message' => 'Pengajuan Pencairan berhasil disimpan',
@@ -439,6 +480,9 @@ class CashoutSubkonService
                 'cek_tgl' => $cek_tgl,
                 'cek_add_by' => user_id(),
                 'cek_created_at' => date('Y-m-d H:i:s'),
+                'is_paid' => 1,
+                'paid_by' => user_id(),
+                'paid_at' => date('Y-m-d H:i:s'),
                 'status' => 4,
             ]);
             $this->repo->saveHistory(
@@ -450,6 +494,13 @@ class CashoutSubkonService
             if ($this->allTerminPaid((int) $detail['id_cashout_subkon'])) {
                 $this->repo->updateCashoutSubkonStatus((int) $detail['id_cashout_subkon'], 1);
             }
+            if (empty($this->repo->getAllocationsByDetailID((int) $id_detail))) {
+                $this->repo->syncAutomaticDetailAllocations(
+                    (int) $detail['id_cashout_subkon'],
+                    $this->repo->getKavlingBySubkonId((int) $detail['id_cashout_subkon'])
+                );
+            }
+            $this->ledgerService->recordExpenseFromCashoutSubkonDetail((int) $id_detail, user_id());
 
             $this->db->transComplete();
 
@@ -500,6 +551,26 @@ class CashoutSubkonService
         }
 
         return true;
+    }
+
+    private function notifyCashoutSubkon(int $id_cashout_subkon, array $targets, string $message): void
+    {
+        $id_kavlings = $this->repo->getKavlingBySubkonId($id_cashout_subkon);
+        if (empty($id_kavlings)) {
+            return;
+        }
+
+        $notif = new \App\Controllers\Notif();
+        foreach ($id_kavlings as $id_kavling) {
+            $notif->tambah_notif(
+                $targets,
+                $message,
+                user_id(),
+                $id_kavling,
+                null,
+                'cashout_subkon'
+            );
+        }
     }
 
     private function hasProgressedTermin(int $id_cashout_subkon): bool

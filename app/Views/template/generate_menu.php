@@ -1,3 +1,23 @@
+<?php
+$currentUser = user();
+$profileName = $currentUser->name ?? '';
+$profileName = $profileName !== '' ? $profileName : ($currentUser->username ?? '');
+$profileUsername = $currentUser->username ?? '';
+$profileDisplayName = ($profileUsername !== '' && $profileName !== $profileUsername)
+    ? $profileName . ' (' . $profileUsername . ')'
+    : $profileName;
+$profileRoles = $currentUser ? array_values($currentUser->getRoles()) : [];
+$profileDivisi = ! empty($profileRoles) ? implode(', ', $profileRoles) : '-';
+$profilePhotoUrl = base_url('app-assets/images/portrait/small/avatar-s-11.jpg');
+
+if (! empty($currentUser->profile_photo)) {
+    try {
+        $profilePhotoUrl = (new \App\Services\FileAccessService())->pathUrl('profile_photo', $currentUser->profile_photo);
+    } catch (\Throwable $e) {
+        $profilePhotoUrl = base_url('app-assets/images/portrait/small/avatar-s-11.jpg');
+    }
+}
+?>
 <!-- BEGIN: Header-->
 <nav class="header-navbar navbar navbar-expand-lg align-items-center floating-nav navbar-light ">
     <div class="navbar-container d-flex content">
@@ -39,26 +59,60 @@
                     <i class="ficon" data-feather="bell"></i>
                     <span class="badge badge-pill badge-danger badge-up" id="notif-badge" style="display:none;">0</span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right" id='list-notif'>
+                <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right notification-center-menu" id="list-notif">
                     <li class="dropdown-menu-header">
-                        <div class="dropdown-header d-flex">
-                            <h4 class="notification-title mb-0 mr-auto">Aktivitas</h4>
-                            <!-- <div class="badge badge-pill badge-light-primary">6 New</div> -->
+                        <div class="dropdown-header d-flex align-items-center">
+                            <h4 class="notification-title mb-0 mr-auto">Notifikasi</h4>
+                            <span class="badge badge-pill badge-light-primary" id="notif-summary-badge" style="display:none;">0</span>
                         </div>
                     </li>
-                    <li class="scrollable-container media-list" id="notif-here">
-                        <?= $notif ?>    
+                    <li class="notification-center-tabs px-1 pt-50">
+                        <ul class="nav nav-tabs nav-justified" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="notif-urgent-tab" href="javascript:void(0)" data-notif-target="urgent" role="tab">
+                                    Jatuh Tempo <span class="badge badge-pill badge-light-danger ml-25" id="notif-urgent-count">0</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="notif-activity-tab" href="javascript:void(0)" data-notif-target="activity" role="tab">
+                                    Aktivitas <span class="badge badge-pill badge-light-primary ml-25" id="notif-activity-count">0</span>
+                                </a>
+                            </li>
+                        </ul>
                     </li>
-                    <li class="dropdown-menu-footer"><a class="btn btn-primary btn-block" href="javascript:void(0)" id="load-more-notif">Perbaharui Aktivitas</a></li>
+                    <li class="scrollable-container media-list notification-center-body" id="notification-center-body">
+                        <div class="notification-center-content">
+                            <div class="notification-center-pane is-active" id="notif-urgent-pane" role="tabpanel" aria-labelledby="notif-urgent-tab">
+                                <div id="notif-urgent-here">
+                                    <div class="notification-center-empty">Memuat jatuh tempo...</div>
+                                </div>
+                            </div>
+                            <div class="notification-center-pane" id="notif-activity-pane" role="tabpanel" aria-labelledby="notif-activity-tab">
+                                <div id="notif-here">
+                                    <?= $notif ?>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="dropdown-menu-footer">
+                        <div class="d-flex">
+                            <a class="btn btn-primary flex-fill mr-50" href="javascript:void(0)" id="refresh-notif-center">Perbarui</a>
+                            <a class="btn btn-outline-primary flex-fill" href="javascript:void(0)" id="load-more-notif">Aktivitas Lagi</a>
+                        </div>
+                    </li>
                 </ul>
             </li>
             <li class="nav-item dropdown dropdown-user">
                 <a class="nav-link dropdown-toggle dropdown-user-link" id="dropdown-user" href="javascript:void(0);" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <div class="user-nav d-sm-flex d-none"><span class="user-name font-weight-bolder"><?= user()->username ?></span><span class="user-status"></span></div><span class="avatar"><img class="round" src="<?= base_url() ?>/app-assets/images/portrait/small/avatar-s-11.jpg" alt="avatar" height="40" width="40"><span class="avatar-status-online"></span></span>
+                    <div class="user-nav d-sm-flex d-none flex-column align-items-end">
+                        <span class="user-name font-weight-bolder"><?= esc($profileDisplayName) ?></span>
+                        <span class="user-status text-muted small"><?= esc($profileDivisi) ?></span>
+                    </div><span class="avatar"><img class="round" src="<?= esc($profilePhotoUrl) ?>" alt="avatar" height="40" width="40"><span class="avatar-status-online"></span></span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-user">
-                    <!-- <a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="user"></i> Profile</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="mail"></i> Inbox</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="check-square"></i> Task</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="message-square"></i> Chats</a> -->
+                    <a class="dropdown-item" href="<?= base_url('profil') ?>"><i class="mr-50" data-feather="user"></i> Ubah Profil</a>
                     <!-- <div class="dropdown-divider"></div><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="settings"></i> Settings</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="credit-card"></i> Pricing</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="help-circle"></i> FAQ</a> -->
+                    <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href="<?= base_url('logout') ?>"><i class="mr-50" data-feather="power"></i> Logout</a>
                 </div>
             </li>

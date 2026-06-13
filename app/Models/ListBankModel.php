@@ -10,9 +10,9 @@ class ListBankModel extends Model
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
-    protected $useSoftDeletes = false;
+    protected $useSoftDeletes = true;
     protected $protectFields = true;
-    protected $allowedFields = ['bank', 'keterangan', 'exp_days'];
+    protected $allowedFields = ['bank', 'keterangan', 'exp_days', 'deleted_at'];
 
     // Validation rules
     protected $validationRules = [
@@ -38,6 +38,7 @@ class ListBankModel extends Model
 
     // Dates
     protected $useTimestamps = false;
+    protected $deletedField = 'deleted_at';
 
     // Custom methods
     public function getAllBanks($search = null)

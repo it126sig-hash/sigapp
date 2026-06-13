@@ -8,6 +8,8 @@ use App\Models\KavlingModel;
 use App\Models\KomplainModel;
 use App\Libraries\Mpdf_lib;
 use App\Services\FileAccessService;
+use App\Services\FinanceLedgerService;
+use App\Services\KonsumenService;
 use App\Services\ProduksiService;
 use App\Services\ProduksiFileService;
 use App\Repositories\ProduksiRepository;
@@ -16,28 +18,34 @@ use CodeIgniter\HTTP\ResponseInterface;
 class ProduksiController extends BaseApiController
 {
     protected ProduksiRepository  $repo;
+    protected KonsumenService     $konsumenService;
     protected ProduksiService     $produksiService;
     protected ProduksiFileService $fileService;
     protected FileAccessService   $fileAccessService;
+    protected FinanceLedgerService $ledgerService;
     protected GambarkerjaModel    $gambarkerjaModel;
     protected KavlingModel        $kavlingModel;
     protected ChecklistWorkModel  $cwModel;
     protected KomplainModel       $komplainModel;
     protected Mpdf_lib            $mpdf;
     protected $validation;
+    protected $db;
 
     public function __construct()
     {
         $this->repo              = new ProduksiRepository();
+        $this->konsumenService   = new KonsumenService();
         $this->produksiService   = new ProduksiService();
         $this->fileService       = new ProduksiFileService();
         $this->fileAccessService = new FileAccessService();
+        $this->ledgerService     = new FinanceLedgerService();
         $this->gambarkerjaModel  = new GambarkerjaModel();
         $this->kavlingModel      = new KavlingModel();
         $this->cwModel           = new ChecklistWorkModel();
         $this->komplainModel     = new KomplainModel();
         $this->mpdf              = new Mpdf_lib();
         $this->validation        = \Config\Services::validation();
+        $this->db                = \Config\Database::connect();
     }
 
     public function get_data_by_id(): ResponseInterface
@@ -68,28 +76,166 @@ class ProduksiController extends BaseApiController
         return $this->response->setJSON($r);
     }
 
+    public function history(): ResponseInterface
+    {
+        $idKavling = (int) $this->request->getVar('id_kavling');
+        $limit = (int) ($this->request->getVar('history_limit') ?? 10);
+        $limit = max(1, min(50, $limit));
+        $offset = max(0, (int) ($this->request->getVar('history_offset') ?? 0));
+
+        $total = $this->repo->countProduksiChangeHistory($idKavling);
+        $history = $this->repo->getProduksiChangeHistory($idKavling, $limit, $offset);
+
+        foreach ($history as $item) {
+            $item->old_data = json_decode($item->old_data ?? '{}', true) ?: [];
+            $item->new_data = json_decode($item->new_data ?? '{}', true) ?: [];
+            $item->files = json_decode($item->files ?? '[]', true) ?: [];
+        }
+
+        return $this->response->setJSON([
+            'token'               => csrf_hash(),
+            'history'             => $history,
+            'history_total'       => $total,
+            'history_limit'       => $limit,
+            'history_offset'      => $offset,
+            'history_next_offset' => $offset + count($history),
+            'history_has_more'    => ($offset + count($history)) < $total,
+        ]);
+    }
+
+    public function getBayarProduksiListItem(): ResponseInterface
+    {
+        $search = trim((string) $this->request->getVar('search'));
+
+        return $this->response->setJSON([
+            'token'     => csrf_hash(),
+            'list_item' => $this->repo->getBayarItemList($search),
+        ]);
+    }
+
     public function getBayarProduksi(): ResponseInterface
     {
         $idKavling = (int) $this->request->getVar('id_kavling');
 
+        if ($idKavling <= 0) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'data tidak ditemukan',
+            ]);
+        }
+
         return $this->response->setJSON([
             'token'               => csrf_hash(),
             'id_kavling'          => $idKavling,
+            'konsumen'            => $this->konsumenService->getByIDKavling($idKavling),
+            'riwayat_bayar'       => $this->repo->getRiwayatBayarByKavling($idKavling),
             'list_bayar_produksi' => $this->repo->getBayarList($idKavling),
         ]);
     }
 
     public function saveBayarProduksi(): ResponseInterface
     {
-        $items     = $this->request->getVar('id-bayar_produksi');
-        $idKavling = $this->request->getVar('id_kavling');
+        $idKavling       = (int) $this->request->getVar('id_kavling');
+        $idItemProduksi  = (int) $this->request->getVar('bp-untuk_pembayaran');
+        $tanggalBayar    = trim((string) $this->request->getVar('bp-tanggal_bayar'));
+        $nominal         = str_replace(',', '', (string) $this->request->getVar('bp-nominal'));
+        $keterangan      = (string) $this->request->getVar('bp-keterangan');
 
-        $this->repo->upsertBayarItems($idKavling, $items, user_id());
+        if ($idKavling <= 0 || $idItemProduksi <= 0 || $tanggalBayar === '' || $nominal === '' || (float) $nominal <= 0) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'data tidak lengkap',
+            ]);
+        }
+
+        try {
+            $this->db->transBegin();
+
+            $idBayarProduksi = $this->repo->insertBayarSingle([
+                'id_kavling'       => $idKavling,
+                'id_item_produksi' => $idItemProduksi,
+                'nominal'          => $nominal,
+                'keterangan'       => $keterangan,
+                'tanggal_bayar'    => $tanggalBayar,
+                'add_by'           => user_id(),
+            ]);
+
+            if (!$idBayarProduksi) {
+                throw new \RuntimeException('data gagal disimpan');
+            }
+
+            $this->ledgerService->recordExpenseFromBayarProduksi((int) $idBayarProduksi, user_id());
+
+            if ($this->db->transStatus() === false) {
+                throw new \RuntimeException('transaksi gagal');
+            }
+
+            $this->db->transCommit();
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            log_message('error', $e->getMessage());
+
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'data gagal disimpan',
+            ]);
+        }
 
         return $this->response->setJSON([
-            'token'    => csrf_hash(),
-            'success'  => true,
-            'messages' => 'Data berhasil diperbaharui',
+            'token'      => csrf_hash(),
+            'id_kavling' => $idKavling,
+            'success'    => true,
+            'messages'   => 'data berhasil disimpan',
+        ]);
+    }
+
+    public function deleteBayarProduksi(): ResponseInterface
+    {
+        $id = (int) $this->request->getVar('id');
+
+        if ($id <= 0) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'data tidak ditemukan',
+            ]);
+        }
+
+        try {
+            $this->db->transBegin();
+
+            $idKavling = $this->repo->deleteBayar($id);
+
+            if ($idKavling === null) {
+                throw new \RuntimeException('data gagal dihapus');
+            }
+
+            $this->ledgerService->voidByBayarProduksi($id, user_id());
+
+            if ($this->db->transStatus() === false) {
+                throw new \RuntimeException('transaksi gagal');
+            }
+
+            $this->db->transCommit();
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            log_message('error', $e->getMessage());
+
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'data gagal dihapus',
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'token'      => csrf_hash(),
+            'id_kavling' => $idKavling,
+            'success'    => true,
+            'messages'   => 'data berhasil dihapus',
         ]);
     }
 
@@ -338,6 +484,23 @@ class ProduksiController extends BaseApiController
 
         if ($this->fileService->moveFotoToTrash($file)) {
             $deleted = $this->repo->deleteFileById($id);
+            if ($deleted && $this->repo->hasProduksiChangeHistoryTable()) {
+                $this->repo->insertProduksiChangeHistory([
+                    'id_kavling'  => (int) $file->id_kavling,
+                    'id_produksi' => null,
+                    'action'      => 'delete_file',
+                    'summary'     => 'File/foto produksi dihapus',
+                    'old_data'    => null,
+                    'new_data'    => null,
+                    'files'       => json_encode([[
+                        'kategori'        => $file->kategori ?? null,
+                        'file_name'       => $file->file_name ?? null,
+                        'file_keterangan' => $file->file_keterangan ?? null,
+                    ]]),
+                    'add_by'      => user_id(),
+                    'created_at'  => date('Y-m-d H:i:s'),
+                ]);
+            }
             return $this->response->setJSON([
                 'token'    => csrf_hash(),
                 'success'  => $deleted,
@@ -423,21 +586,115 @@ class ProduksiController extends BaseApiController
 
     public function edit_others(): ResponseInterface
     {
-        $id     = (int) $this->request->getPost('id_kavling');
+        $id    = (int) $this->request->getPost('id_kavling');
+        $other = $this->repo->getOtherById($id);
+
+        if (!$other) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Data jalan tidak ditemukan',
+            ]);
+        }
+
+        $progres = $this->request->getPost('f_progres_jalan');
+        $progres = $progres === null || $progres === '' ? 0 : max(0, min(100, (int) $progres));
+        $now     = date('Y-m-d H:i:s');
+        $foto    = '';
+        $isJalan = ($other->tipe ?? '') === 'jalan';
+
+        if ($isJalan && !$this->repo->hasJalanProgressHistoryTable()) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Tabel history progres jalan belum tersedia. Jalankan migration terlebih dahulu.',
+            ]);
+        }
+
+        if ($isJalan) {
+            $storedFoto = $this->storeJalanProgressPhotos();
+            if ($storedFoto['success'] === false) {
+                return $this->response->setJSON([
+                    'token'    => csrf_hash(),
+                    'success'  => false,
+                    'messages' => $storedFoto['messages'],
+                ]);
+            }
+            $foto = implode(';', $storedFoto['paths']);
+            if ($foto !== '') {
+                $foto .= ';';
+            }
+        }
+
         $fields = [
-            'progres'             => $this->request->getPost('f_progres_jalan'),
+            'progres'             => $progres,
             'produksi_luas'       => $this->request->getPost('f_produksi_luas'),
             'produksi_keterangan' => $this->request->getPost('f_produksi_keterangan'),
             'produksi_edit_by'    => user_id(),
-            'produksi_updated_at' => date('Y-m-d H:i:s'),
+            'produksi_updated_at' => $now,
         ];
 
-        $success = $this->repo->updateOthers($id, $fields);
+        $db = \Config\Database::connect();
+        $db->transStart();
+        $this->repo->updateOthers($id, $fields);
+
+        if ($isJalan) {
+            $this->repo->insertJalanProgressHistory([
+                'id_others'       => $id,
+                'progres'         => $progres,
+                'produksi_luas'   => $fields['produksi_luas'],
+                'keterangan'      => $fields['produksi_keterangan'],
+                'foto'            => $foto,
+                'add_by'          => user_id(),
+                'created_at'      => $now,
+            ]);
+        }
+
+        $db->transComplete();
+        $success = $db->transStatus() !== false;
 
         return $this->response->setJSON([
             'token'    => csrf_hash(),
             'success'  => $success,
             'messages' => $success ? 'Data berhasil diperbaharui' : 'Data gagal diperbaharui!',
         ]);
+    }
+
+    private function storeJalanProgressPhotos(): array
+    {
+        $files = $this->request->getFileMultiple('produksi_jalan_foto') ?: [];
+        $paths = [];
+        $allowedMime = ['image/jpg', 'image/jpeg', 'image/gif', 'image/png', 'image/webp'];
+
+        foreach ($files as $img) {
+            if (!$img || $img->getError() === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+
+            if (!$img->isValid()) {
+                return ['success' => false, 'messages' => 'Foto kondisi jalan tidak valid', 'paths' => []];
+            }
+
+            if (!in_array($img->getMimeType(), $allowedMime, true)) {
+                return ['success' => false, 'messages' => 'Foto kondisi jalan harus berupa gambar', 'paths' => []];
+            }
+
+            if ($img->getSize() > 12000 * 1024) {
+                return ['success' => false, 'messages' => 'Ukuran foto kondisi jalan maksimal 12MB', 'paths' => []];
+            }
+
+            $imageSize = @getimagesize($img->getTempName());
+            if ($imageSize && ($imageSize[0] > 6000 || $imageSize[1] > 6000)) {
+                return ['success' => false, 'messages' => 'Dimensi foto kondisi jalan maksimal 6000x6000 px', 'paths' => []];
+            }
+
+            $paths[] = $this->fileAccessService->storeAs(
+                $img,
+                'uploads/produksi_jalan_progress/' . date('Ymd') . '/',
+                $img->getRandomName()
+            );
+        }
+
+        return ['success' => true, 'messages' => '', 'paths' => $paths];
     }
 }

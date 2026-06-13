@@ -3,6 +3,7 @@
 namespace App\Repositories\Keuangan\Cashout;
 
 use App\Models\CashoutSubkonDetailModel;
+use App\Models\CashoutSubkonDetailAllocationModel;
 use App\Models\CashoutSubkonKavlingModel;
 use App\Models\CashoutSubkonModel;
 use App\Models\SubkonModel;
@@ -36,6 +37,7 @@ class CashoutSubkonRepo extends Model
     protected $cashoutSubkonModel;
     protected $subkonModel;
     protected $cashoutSubkonDetailModel;
+    protected $cashoutSubkonDetailAllocationModel;
     protected $cashoutSubkonHistoryModel;
 
     public function __construct()
@@ -45,6 +47,7 @@ class CashoutSubkonRepo extends Model
         $this->cashoutSubkonModel = new CashoutSubkonModel();
         $this->subkonModel = new SubkonModel();
         $this->cashoutSubkonDetailModel = new CashoutSubkonDetailModel();
+        $this->cashoutSubkonDetailAllocationModel = new CashoutSubkonDetailAllocationModel();
         $this->cashoutSubkonHistoryModel = new CashoutSubkonHistoryModel();
     }
 
@@ -266,6 +269,52 @@ class CashoutSubkonRepo extends Model
             ->findAll();
     }
 
+    public function syncAutomaticDetailAllocations(int $id_cashout_subkon, array $id_kavlings): bool
+    {
+        if (!$this->db->tableExists('cashout_subkon_detail_allocation')) {
+            return true;
+        }
+
+        $id_kavlings = array_values(array_unique(array_map('intval', array_filter($id_kavlings))));
+        sort($id_kavlings, SORT_NUMERIC);
+        if (empty($id_kavlings)) {
+            return false;
+        }
+
+        $details = $this->getDetailByCashoutSubkonID($id_cashout_subkon);
+        if (empty($details)) {
+            return true;
+        }
+
+        $this->cashoutSubkonDetailAllocationModel
+            ->where('id_cashout_subkon', $id_cashout_subkon)
+            ->delete();
+
+        $now = date('Y-m-d H:i:s');
+        $rows = [];
+        foreach ($details as $detail) {
+            $rows = array_merge($rows, $this->buildEqualAllocationRows($detail, $id_kavlings, $now));
+        }
+
+        if (empty($rows)) {
+            return true;
+        }
+
+        return (bool) $this->cashoutSubkonDetailAllocationModel->insertBatch($rows);
+    }
+
+    public function getAllocationsByDetailID(int $id_cashout_subkon_detail): array
+    {
+        if (!$this->db->tableExists('cashout_subkon_detail_allocation')) {
+            return [];
+        }
+
+        return $this->cashoutSubkonDetailAllocationModel
+            ->where('id_cashout_subkon_detail', $id_cashout_subkon_detail)
+            ->orderBy('id_kavling', 'ASC')
+            ->findAll();
+    }
+
     public function updateCashoutSubkonStatus(int $id_cashout_subkon, int $status): bool
     {
         return (bool) $this->cashoutSubkonModel->update($id_cashout_subkon, ['status' => $status]);
@@ -289,5 +338,36 @@ class CashoutSubkonRepo extends Model
             ->where('csh.id_cashout_subkon', $id_cashout_subkon)
             ->orderBy('csh.created_at', 'DESC')
             ->get()->getResult();
+    }
+
+    private function buildEqualAllocationRows(array $detail, array $id_kavlings, string $now): array
+    {
+        $rows = [];
+        $count = count($id_kavlings);
+        $total = round((float) ($detail['nominal'] ?? 0), 2);
+        $allocated = 0.0;
+        $lastIndex = $count - 1;
+
+        foreach ($id_kavlings as $index => $id_kavling) {
+            $nominal = round($total / $count, 2);
+            if ($index === $lastIndex) {
+                $nominal = round($total - $allocated, 2);
+            }
+            $allocated = round($allocated + $nominal, 2);
+
+            $rows[] = [
+                'id_cashout_subkon_detail' => (int) $detail['id_cashout_subkon_detail'],
+                'id_cashout_subkon' => (int) $detail['id_cashout_subkon'],
+                'id_kavling' => (int) $id_kavling,
+                'nominal' => $nominal,
+                'allocation_type' => 'auto_equal',
+                'created_at' => $now,
+                'add_by' => user_id(),
+                'updated_at' => $now,
+                'edit_by' => user_id(),
+            ];
+        }
+
+        return $rows;
     }
 }

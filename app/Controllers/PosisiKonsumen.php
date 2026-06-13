@@ -56,8 +56,8 @@ class PosisiKonsumen extends BaseController
 
         $data = [
             'data' => [
-                'pph'     => $this->db->table('pph')->get()->getResult(),
-                'ppn'     => $this->db->table('ppn')->get()->getResult(),
+                'pph'     => $this->db->table('pph')->where('deleted_at', null)->get()->getResult(),
+                'ppn'     => $this->db->table('ppn')->where('deleted_at', null)->get()->getResult(),
             ],
         ];
         if (in_groups(['1', '7', '8'])) {

@@ -2,8 +2,13 @@
     const pl_id_proyek = "<?= isset($data['proyek']->id_proyek) ? $data['proyek']->id_proyek : '' ?>";
     const pl_nama_proyek = "<?= isset($data['proyek']->nama_proyek) ? $data['proyek']->nama_proyek : '' ?>";
     document.addEventListener("DOMContentLoaded", function() {
-        document.getElementById("nama_proyek").value = pl_nama_proyek;
-        document.getElementById("id_proyek").value = pl_id_proyek;
+        const planningForm = document.getElementById("fm-add_kavling");
+        if (!planningForm) return;
+
+        const namaProyek = planningForm.querySelector("#nama_proyek");
+        const idProyek = planningForm.querySelector("[name=id_proyek]");
+        if (namaProyek) namaProyek.value = pl_nama_proyek;
+        if (idProyek) idProyek.value = pl_id_proyek;
     });
 </script>
 <div class="modal modal-slide-in fade" id="modals-slide-in">
@@ -288,7 +293,7 @@ function edit_kavling_batch() {
     },
     success: function (res) {
       csrfHash = res.token;
-      $("#id_jenis").val(tipe).change();
+      $("#fm-add_kavling #id_jenis").val(tipe).change();
 
       let r = res.data,
         id_kavling = "",
@@ -298,21 +303,21 @@ function edit_kavling_batch() {
         no = "",
         points = "";
 
-      $("#id_cluster")
+      $("#fm-add_kavling #id_cluster")
         .append(
           $("<option selected></option>")
             .attr("value", r[0].id_cluster)
             .text(r[0].nama_cluster),
         )
         .trigger("change");
-      $("#id_jalan")
+      $("#fm-add_kavling #id_jalan")
         .append(
           $("<option selected></option>")
             .attr("value", r[0].id_jalan)
             .text(r[0].nama_jalan),
         )
         .trigger("change");
-      $("#id_tipe")
+      $("#fm-add_kavling #id_tipe")
         .append(
           $("<option selected></option>")
             .attr("value", r[0].id_tipe)
@@ -528,7 +533,7 @@ function edit_kavling() {
 function add_kavling() {
   if (act == "edit") return edit_kavling();
 
-  if ($("#id_jenis").val() == "") {
+  if ($("#fm-add_kavling #id_jenis").val() == "") {
     Swal.fire({
       //position: 'bottom-end',
       icon: "error",
@@ -538,7 +543,7 @@ function add_kavling() {
     });
     return;
   }
-  if (!$("#id_cluster").val()) {
+  if (!$("#fm-add_kavling #id_cluster").val()) {
     Swal.fire({
       //position: 'bottom-end',
       icon: "error",
@@ -548,7 +553,7 @@ function add_kavling() {
     });
     return;
   }
-  if (!$("#id_jalan").val()) {
+  if (!$("#fm-add_kavling #id_jalan").val()) {
     Swal.fire({
       //position: 'bottom-end',
       icon: "error",
@@ -571,7 +576,7 @@ function add_kavling() {
     no_kavlen =
       no_kav[no_kav.length - 1] == "" ? no_kav.length - 1 : no_kav.length;
 
-  if ($("#id_jenis").val() == "kavling") {
+  if ($("#fm-add_kavling #id_jenis").val() == "kavling") {
     //jika no kavling dan selection tidak sesuai
     if (batchdtt.length != no_kavlen) {
       Swal.fire({
@@ -589,7 +594,7 @@ function add_kavling() {
       return;
     }
   }
-  par += `&nama_jalan=${$("#id_jalan").text()}&nama_tipe=${$("#id_tipe").text()}`;
+  par += `&nama_jalan=${$("#fm-add_kavling #id_jalan").text()}&nama_tipe=${$("#fm-add_kavling #id_tipe").text()}`;
 
   $.ajax({
     url: base_url + "/siteplan/add_kavling",
@@ -651,7 +656,7 @@ var editdtt_tmp;
 function pindah_kavling() {
   editdtt_tmp = editdtt;
   $("#modals-slide-in").modal("hide");
-  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").hide();
+  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn, #planning_undo_manual_selection").hide();
   $("#selesai_pindah_btn, #batal_pindah_btn").show();
   hapus_seleksi();
 }
@@ -674,125 +679,143 @@ function selesai_selection(e) {
   editdtt = editdtt_tmp;
 
   $("#modals-slide-in").modal("show");
-  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").show();
+  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn, #planning_undo_manual_selection").show();
   $("#selesai_pindah_btn, #batal_pindah_btn").hide();
 }
 
-//select2 cluster
-$("#id_cluster").select2({
-  placeholder: "Pilih Cluster",
-  allowClear: true,
-  ajax: {
-    url: base_url + "/cluster/getAll",
-    dataType: "json",
-    delay: 250,
-    method: "post",
-    data: function (params) {
-      return {
-        [csrfName]: csrfHash,
-        search: params.term,
-        id_proyek: $("#id_proyek").val(),
-      };
-    },
-    processResults: function (r) {
-      csrfHash = r.token;
+(function () {
+  const $planningForm = $("#fm-add_kavling");
+  if (!$planningForm.length) return;
 
-      let results = [];
-      $.each(r.data, function (index, item) {
-        results.push({
-          id: item[0],
-          text: item[3],
+  const $planningModal = $("#modals-slide-in");
+  const $planningCluster = $planningForm.find("#id_cluster");
+  const $planningJalan = $planningForm.find("#id_jalan");
+  const $planningTipe = $planningForm.find("#id_tipe");
+  const $planningJenis = $planningForm.find("#id_jenis");
+  const getPlanningProyekId = () => $planningForm.find("[name=id_proyek]").val() || "";
+
+  //select2 cluster
+  $planningCluster.select2({
+    dropdownParent: $planningModal,
+    placeholder: "Pilih Cluster",
+    allowClear: true,
+    ajax: {
+      url: base_url + "/cluster/getAll",
+      dataType: "json",
+      delay: 250,
+      method: "post",
+      data: function (params) {
+        return {
+          [csrfName]: csrfHash,
+          search: params.term,
+          id_proyek: getPlanningProyekId(),
+        };
+      },
+      processResults: function (r) {
+        csrfHash = r.token;
+
+        let results = [];
+        $.each(r.data, function (index, item) {
+          results.push({
+            id: item[0],
+            text: item[3],
+          });
         });
-      });
 
-      return {
-        results: results,
-      };
+        return {
+          results: results,
+        };
+      },
+      cache: false,
     },
-    cache: false,
-  },
-});
-// on select cluster
-$("#id_cluster").on("change", function (e) {
-  $("#id_jalan").val(null).trigger("change");
-  if (this.value) $("#id_jalan").prop("disabled", false);
-  else $("#id_jalan").prop("disabled", true);
-});
+  });
+  // on select cluster
+  $planningCluster.on("change", function (e) {
+    $planningJalan.val(null).trigger("change");
+    if (this.value) $planningJalan.prop("disabled", false);
+    else $planningJalan.prop("disabled", true);
+  });
 
-//select jalan
-$("#id_jalan").select2({
-  placeholder: "Pilih Blok",
-  allowClear: true,
-  ajax: {
-    url: base_url + "/jalan/getAll",
-    dataType: "json",
-    delay: 250,
-    method: "post",
-    data: function (params) {
-      return {
-        [csrfName]: csrfHash,
-        search: params.term,
-        id_cluster: $("#id_cluster").val(),
-        id_proyek: $("#id_proyek").val(),
-      };
-    },
-    processResults: function (r) {
-      csrfHash = r.token;
+  //select jalan
+  $planningJalan.select2({
+    dropdownParent: $planningModal,
+    placeholder: "Pilih Blok",
+    allowClear: true,
+    ajax: {
+      url: base_url + "/jalan/getAll",
+      dataType: "json",
+      delay: 250,
+      method: "post",
+      data: function (params) {
+        return {
+          [csrfName]: csrfHash,
+          search: params.term,
+          id_cluster: $planningCluster.val(),
+          id_proyek: getPlanningProyekId(),
+        };
+      },
+      processResults: function (r) {
+        csrfHash = r.token;
 
-      let results = [];
-      $.each(r.data, function (index, item) {
-        results.push({
-          id: item[0],
-          text: item[3],
+        let results = [];
+        $.each(r.data, function (index, item) {
+          results.push({
+            id: item[0],
+            text: item[3],
+          });
         });
-      });
 
-      return {
-        results: results,
-      };
+        return {
+          results: results,
+        };
+      },
+      cache: true,
     },
-    cache: true,
-  },
-});
+  });
 
-$("#id_tipe").select2({
-  placeholder: "Pilih Tipe",
-  allowClear: true,
-  ajax: {
-    url: base_url + "/tipe/getAll",
-    dataType: "json",
-    delay: 250,
-    method: "post",
-    data: function (params) {
-      return {
-        [csrfName]: csrfHash,
-        search: params.term,
-        id_proyek: $("#id_proyek").val(),
-      };
-    },
-    processResults: function (r) {
-      csrfHash = r.token;
+  $planningTipe.select2({
+    dropdownParent: $planningModal,
+    placeholder: "Pilih Tipe",
+    allowClear: true,
+    ajax: {
+      url: base_url + "/tipe/getAll",
+      dataType: "json",
+      delay: 250,
+      method: "post",
+      data: function (params) {
+        return {
+          [csrfName]: csrfHash,
+          search: params.term,
+          id_proyek: getPlanningProyekId(),
+        };
+      },
+      processResults: function (r) {
+        csrfHash = r.token;
 
-      let results = [];
-      $.each(r.data, function (index, item) {
-        results.push({
-          id: item[0],
-          text: item[2] + "(" + item[3] + ")",
+        let results = [];
+        $.each(r.data, function (index, item) {
+          results.push({
+            id: item[0],
+            text: item[2] + "(" + item[3] + ")",
+          });
         });
-      });
 
-      return {
-        results: results,
-      };
+        return {
+          results: results,
+        };
+      },
+      cache: true,
     },
-    cache: true,
-  },
-});
+  });
 
-$("#status_tanah").select2();
+  $planningForm.find("#status_tanah").select2({
+    dropdownParent: $planningModal,
+  });
 
-$("#id_jenis").select2();
-$("#id_jenis").change(function () {
+  $planningJenis.select2({
+    dropdownParent: $planningModal,
+  });
+  $planningJenis.change(function () {
   if (this.value == "") {
     $(".h").hide();
   } else if (this.value == "kavling") {
@@ -807,7 +830,8 @@ $("#id_jenis").change(function () {
   } else {
     $(".h").hide();
   }
-});
+  });
+})();
 
 /**************************** planning ***************************** */
 

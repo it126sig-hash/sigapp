@@ -323,8 +323,12 @@ $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
   if (targetId === "#log_pembayaran" && !loaded["keu_lp"]) {
     applyLoadingEffect(targetId);
     setTimeout(() => {
-      loadLogPembayaran(keu_lp);
-      removeLoadingEffect(targetId);
+      if (typeof loadKeuanganRiwayatLazy === "function") {
+        loadKeuanganRiwayatLazy(() => removeLoadingEffect(targetId));
+      } else {
+        loadLogPembayaran(keu_lp);
+        removeLoadingEffect(targetId);
+      }
     }, 200);
     loaded["keu_lp"] = true;
   }
@@ -533,107 +537,230 @@ function paint(t, a, e, d = null) {
 
 /******************************** getNotif *********************************/
 
+let notificationCenterUrgentItems = {};
+
+function notificationProjectId() {
+  if (typeof dt_proyek !== "undefined" && dt_proyek && dt_proyek.id_proyek) {
+    return dt_proyek.id_proyek;
+  }
+
+  return "";
+}
+
+function notificationEscape(value) {
+  return $("<div>")
+    .text(value === null || value === undefined || value === "" ? "-" : value)
+    .html();
+}
+
+function updateNotificationBadge(total) {
+  total = parseInt(total || 0, 10);
+  if (total > 0) {
+    $("#notif-badge").text(total).show();
+    $("#notif-summary-badge").text(total).show();
+  } else {
+    $("#notif-badge").hide();
+    $("#notif-summary-badge").hide();
+  }
+}
+
 function getNotif() {
   start = 0;
-  let notif = "";
   $.ajax({
     type: "get",
-    url: base_url + "/getnotif",
+    url: base_url + "/notif/center",
     data: {
       [csrfName]: csrfHash,
+      id_proyek: notificationProjectId(),
     },
     dataType: "json",
     beforeSend: function () {
-      $("#load-more-notif").prop("disabled", true);
-      $("#load-more-notif").html(
+      $("#refresh-notif-center, #load-more-notif").prop("disabled", true);
+      $("#refresh-notif-center").html(
         'Memuat <i class="fa fa-spinner fa-spin"></i>',
       );
-      $("#notif-here").addClass("blur");
+      $("#notification-center-body").addClass("blur");
     },
     success: function (r) {
-      $("#notif-here").html(" ");
-      $("#load-more-notif").prop("disabled", false);
-      $("#load-more-notif").html("Perbarui Aktivitas");
-      $("#notif-here").removeClass("blur");
-      
-      // Update Unread Badge
-      if (r.unread_count > 0) {
-        $("#notif-badge").text(r.unread_count).show();
-      } else {
-        $("#notif-badge").hide();
+      if (r.token) {
+        csrfHash = r.token;
+        $('input[name="' + csrfName + '"]').val(csrfHash);
       }
 
-      $.each(r.notif, function (i, v) {
-        let unread_class = v.is_read == 0 ? 'bg-light-warning' : '';
-        notif +=
-          `
-          <a class="d-flex ${unread_class}" href="javascript:void(0)" onclick="handleNotificationClick(${v.id}, '${v.id_kavling}', '${v.type}')">
-              <div class="media d-flex align-items-start">
-                  <div class="media-body">
-                      <p class="media-heading"><span class="font-weight-bolder">` +
-          v.nama_jalan +
-          ` No. ` +
-          v.no_kavling +
-          `</span></p>
-                      <p class="media-heading"><b>` +
-          v.username +
-          `</b>:  ` +
-          v.notif +
-          `</p>
-                      <small class="media-heading"><b>` +
-          format_datetime(v.created_at) +
-          `</b></small>
-                  </div>
-              </div>
-          </a>`;
-      });
-      $("#notif-here").append(notif);
+      $("#refresh-notif-center, #load-more-notif").prop("disabled", false);
+      $("#refresh-notif-center").html("Perbarui");
+      $("#notification-center-body").removeClass("blur");
+      renderNotificationCenter(r);
+    },
+    error: function () {
+      $("#refresh-notif-center, #load-more-notif").prop("disabled", false);
+      $("#refresh-notif-center").html("Perbarui");
+      $("#notification-center-body").removeClass("blur");
+      $("#notif-urgent-here").html(
+        '<div class="notification-center-empty">Gagal memuat jatuh tempo.</div>',
+      );
     },
   });
 }
 
-$("#load-more-notif").click(function () {
+function renderNotificationCenter(response) {
+  const urgent = response.urgent || {};
+  const activity = response.activity || {};
+  const urgentTotal = parseInt(response.urgent_total || urgent.total || 0, 10);
+  const activityUnread = parseInt(response.activity_unread_count || 0, 10);
+  const badgeTotal = parseInt(response.badge_total || urgentTotal + activityUnread, 10);
+
+  updateNotificationBadge(badgeTotal);
+  $("#notif-urgent-count").text(urgentTotal);
+  $("#notif-activity-count").text(activityUnread);
+  renderNotificationUrgent(urgent.sections || {}, urgentTotal);
+  renderNotificationActivity(activity.items || [], true);
+  start = (activity.items || []).length;
+}
+
+function renderNotificationUrgent(sections, total) {
+  const sectionOrder = [
+    "tagihan_overdue",
+    "tagihan_due",
+    "cashout_subkon",
+    "sp3k_expire",
+    "rencana_akad",
+    "pembangunan_telat",
+  ];
+  let html = "";
+  notificationCenterUrgentItems = {};
+
+  if (!total) {
+    $("#notif-urgent-here").html(
+      '<div class="notification-center-empty">Belum ada jatuh tempo urgent untuk proyek aktif.</div>',
+    );
+    return;
+  }
+
+  $.each(sectionOrder, function (_, sectionKey) {
+    const section = sections[sectionKey] || {};
+    const items = section.items || [];
+    if (!items.length) {
+      return;
+    }
+
+    html += `
+      <div class="notification-center-section">
+        <div class="notification-center-section-title">
+          <span>${notificationEscape(section.label || sectionKey)}</span>
+          <span class="badge badge-light-primary">${items.length}</span>
+        </div>
+    `;
+
+    $.each(items, function (i, item) {
+      const key = sectionKey + "-" + i;
+      const severity = ["danger", "warning", "info", "primary"].includes(item.severity)
+        ? item.severity
+        : "primary";
+      notificationCenterUrgentItems[key] = item;
+      html += `
+        <div class="notification-center-item is-${severity}" onclick="openNotificationUrgentItem('${key}')">
+          <div class="notification-center-item-title">${notificationEscape(item.title)}</div>
+          <div class="notification-center-item-desc">${notificationEscape(item.description)}</div>
+          <div class="notification-center-item-meta">${notificationEscape(item.meta)}</div>
+          <div class="notification-center-snooze">
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="snoozeNotificationUrgent(event, '${key}', 15)">15 menit</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="snoozeNotificationUrgent(event, '${key}', 60)">1 jam</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="snoozeNotificationUrgent(event, '${key}', 240)">4 jam</button>
+          </div>
+        </div>
+      `;
+    });
+
+    html += "</div>";
+  });
+
+  $("#notif-urgent-here").html(html);
+}
+
+function renderNotificationActivity(items, replace = false) {
+  let notif = "";
+
+  if (replace) {
+    $("#notif-here").html("");
+  }
+
+  if (!items.length && replace) {
+    $("#notif-here").html(
+      '<div class="notification-center-empty">Belum ada aktivitas perubahan.</div>',
+    );
+    return;
+  }
+
+  $.each(items, function (i, v) {
+    notif += renderNotificationActivityItem(v);
+  });
+
+  $("#notif-here").append(notif);
+}
+
+function renderNotificationActivityItem(v) {
+  const unreadClass = v.is_read == 0 ? "bg-light-warning" : "";
+  return `
+    <a class="d-flex ${unreadClass}" href="javascript:void(0)" onclick="handleNotificationClick(${v.id}, '${v.id_kavling}', '${v.type || ""}')">
+      <div class="media d-flex align-items-start">
+        <div class="media-body">
+          <p class="media-heading"><span class="font-weight-bolder">${notificationEscape(v.nama_jalan)} No. ${notificationEscape(v.no_kavling)}</span></p>
+          <p class="media-heading"><b>${notificationEscape(v.username)}</b>: ${notificationEscape(v.notif)}</p>
+          <small class="media-heading"><b>${notificationEscape(format_datetime(v.created_at))}</b></small>
+        </div>
+      </div>
+    </a>
+  `;
+}
+
+$("#refresh-notif-center").click(function () {
   getNotif();
+});
+
+$("#load-more-notif").click(function () {
+  loadData();
+});
+
+function setNotificationCenterTab(target) {
+  const normalizedTarget = target === "activity" ? "activity" : "urgent";
+  $("#notif-urgent-tab, #notif-activity-tab").removeClass("active");
+  $("#notif-urgent-pane, #notif-activity-pane").removeClass("is-active active");
+
+  if (normalizedTarget === "activity") {
+    $("#notif-activity-tab").addClass("active");
+    $("#notif-activity-pane").addClass("is-active active");
+  } else {
+    $("#notif-urgent-tab").addClass("active");
+    $("#notif-urgent-pane").addClass("is-active active");
+  }
+
+  $("#notification-center-body").scrollTop(0);
+}
+
+$("#notif-urgent-tab, #notif-activity-tab").on("click", function (event) {
+  event.preventDefault();
+  setNotificationCenterTab($(this).data("notif-target"));
 });
 
 // Fungsi untuk memuat data dari server
 function loadData() {
   isLoading = true;
   $.ajax({
-    url: base_url + "/loadnotif", 
+    url: base_url + "/loadnotif",
     method: "GET",
     data: {
       [csrfName]: csrfHash,
       offset: start,
+      id_proyek: notificationProjectId(),
     },
     success: function (r) {
-      let notif = "";
-      $.each(r.notif, function (i, v) {
-        let unread_class = v.is_read == 0 ? 'bg-light-warning' : '';
-        notif +=
-          `
-                  <a class="d-flex ${unread_class}" href="javascript:void(0)" onclick="handleNotificationClick(${v.id}, '${v.id_kavling}', '${v.type}')">
-                      <div class="media d-flex align-items-start">
-                          <div class="media-body">
-                              <p class="media-heading"><span class="font-weight-bolder">` +
-          v.nama_jalan +
-          ` No. ` +
-          v.no_kavling +
-          `</span></p>
-                              <p class="media-heading"><b>` +
-          v.username +
-          `</b>:  ` +
-          v.notif +
-          `</p>
-                              <small class="media-heading"><b>` +
-          format_datetime(v.created_at) +
-          `</b></small>
-                          </div>
-                      </div>
-                  </a>`;
-      });
-      $("#notif-here").append(notif);
-      if (r.notif.length > 0) start += offset;
+      if (r.token) {
+        csrfHash = r.token;
+        $('input[name="' + csrfName + '"]').val(csrfHash);
+      }
+      renderNotificationActivity(r.notif || [], false);
+      if (r.notif && r.notif.length > 0) start += r.notif.length;
       isLoading = false;
     },
     error: function () {
@@ -643,59 +770,136 @@ function loadData() {
   });
 }
 
-function handleNotificationClick(id_notif, id_kavling, type) {
-    // Tandai notifikasi sebagai dibaca
-    $.ajax({
-        url: base_url + "/notif/mark-as-read/" + id_notif,
-        type: "POST",
-        data: {
-            [csrfName]: csrfHash
+function snoozeNotificationUrgent(event, key, minutes) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  const item = notificationCenterUrgentItems[key];
+  if (!item || !item.item_key) {
+    return;
+  }
+
+  $.ajax({
+    url: base_url + "/notif/snooze",
+    type: "POST",
+    dataType: "json",
+    data: {
+      [csrfName]: csrfHash,
+      item_key: item.item_key,
+      id_proyek: item.id_proyek || notificationProjectId(),
+      minutes: minutes,
+    },
+    success: function (response) {
+      if (response.token) {
+        csrfHash = response.token;
+        $('input[name="' + csrfName + '"]').val(csrfHash);
+      }
+      if (response.success) {
+        showToast(response.messages || "Notifikasi urgent ditunda", "primary");
+        getNotif();
+      } else {
+        showToast(response.messages || "Gagal menunda notifikasi", "warning");
+      }
+    },
+    error: function () {
+      showToast("Gagal menunda notifikasi", "warning");
+    },
+  });
+}
+
+function openNotificationUrgentItem(key) {
+  const item = notificationCenterUrgentItems[key];
+  if (!item) {
+    return;
+  }
+
+  if (item.type === "cashout_subkon" && typeof openCOSubkon === "function") {
+    return openCOSubkon({
+      id_proyek: item.id_proyek || notificationProjectId(),
+      id_cashout_subkon: item.id_cashout_subkon,
+      id_kavlings: [String(item.id_kavling)],
+      selected_kavlings: [
+        {
+          id_kavling: item.id_kavling,
+          nama_jalan: item.nama_jalan || "-",
+          no_kavling: item.no_kavling || "-",
         },
-        dataType: "json",
-        success: function(response) {
-            // Update csrf hash
-            if(response.token) {
-                csrfHash = response.token;
-                $('input[name="' + csrfName + '"]').val(csrfHash);
-            }
-            
-            // Refresh list notifikasi (agar badge & warna bg terupdate)
-            getNotif();
-            
-            // Routing aksi berdasarkan tipe notifikasi
-            // Pastikan fungsi-fungsi ini tersedia (contoh: di scope global)
-            if (type === 'cashout_subkon') {
-                if(typeof openCOSubkon === 'function') {
-                    // Mungkin perlu fetch data kavling dulu atau langsung buka
-                    // Tergantung logika existing di `openCOSubkon`
-                    // Kita asumsikan openCOSubkon bisa menerima id_kavling langsung
-                    // atau butuh state diset dulu
-                    openCOSubkon(id_kavling); 
-                } else {
-                    console.log('openCOSubkon function is not available.');
-                }
-            } else if (type === 'tagihan') {
-                if(typeof modal_tagihan === 'function') {
-                    modal_tagihan(id_kavling); // Atau fungsi sejenis
-                }
-            } else if (type === 'progress') {
-                // panggil form produksi
-            } else {
-                // Default action jika type null/tidak dikenali:
-                // Misalnya buka modal_detail kavling
-                if(typeof view_detail === 'function') {
-                    view_detail(id_kavling);
-                }
-            }
-        }
+      ],
     });
+  }
+
+  if (item.type === "tagihan") {
+    if (typeof openSiteplanKeuanganFromNotification === "function") {
+      return openSiteplanKeuanganFromNotification(item.id_kavling);
+    }
+    if (typeof modal_tagihan === "function") {
+      return modal_tagihan(item.id_kavling);
+    }
+  }
+
+  if (typeof openSiteplanKavlingFromNotification === "function") {
+    return openSiteplanKavlingFromNotification(item.id_kavling);
+  }
+
+  if (typeof view_detail === "function") {
+    return view_detail(item.id_kavling);
+  }
+}
+
+function handleNotificationClick(id_notif, id_kavling, type) {
+  // Tandai notifikasi sebagai dibaca
+  $.ajax({
+    url: base_url + "/notif/mark-as-read/" + id_notif,
+    type: "POST",
+    data: {
+      [csrfName]: csrfHash,
+    },
+    dataType: "json",
+    success: function (response) {
+      // Update csrf hash
+      if (response.token) {
+        csrfHash = response.token;
+        $('input[name="' + csrfName + '"]').val(csrfHash);
+      }
+
+      // Refresh list notifikasi (agar badge & warna bg terupdate)
+      getNotif();
+
+      if (type === "cashout_subkon") {
+        if (typeof openCOSubkon === "function") {
+          openCOSubkon({
+            id_kavlings: [String(id_kavling)],
+          });
+        } else {
+          console.log("openCOSubkon function is not available.");
+        }
+      } else if (type === "tagihan") {
+        if (typeof openSiteplanKeuanganFromNotification === "function") {
+          openSiteplanKeuanganFromNotification(id_kavling);
+        } else if (typeof modal_tagihan === "function") {
+          modal_tagihan(id_kavling);
+        }
+      } else if (type === "progress" && typeof openSiteplanKavlingFromNotification === "function") {
+        openSiteplanKavlingFromNotification(id_kavling);
+      } else {
+        if (typeof openSiteplanKavlingFromNotification === "function") {
+          openSiteplanKavlingFromNotification(id_kavling);
+        } else if (typeof view_detail === "function") {
+          view_detail(id_kavling);
+        }
+      }
+    },
+  });
 }
 
 // Deteksi scroll pada div
-$("#notif-here").scroll(function () {
+$("#notification-center-body").scroll(function () {
   if (
     $(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight &&
-    !isLoading
+    !isLoading &&
+    $("#notif-activity-pane").hasClass("is-active")
   ) {
     loadData();
   }
@@ -854,6 +1058,22 @@ function createInputForm(
 
 function displayUploadedFiles(input, listId) {
   const listElement = document.getElementById(listId);
+  const inputKey = input.id || input.name;
+  const inputBaseName = String(input.name || "").replace(/\[\]$/, "");
+
+  if (input.classList.contains("produksi-photo-input")) {
+    window.produksiUploadFileStore = window.produksiUploadFileStore || {};
+    const existingFiles = window.produksiUploadFileStore[inputKey] || [];
+    window.produksiUploadFileStore[inputKey] = existingFiles.concat(
+      Array.from(input.files),
+    );
+
+    const dataTransfer = new DataTransfer();
+    window.produksiUploadFileStore[inputKey].forEach((file) =>
+      dataTransfer.items.add(file),
+    );
+    input.files = dataTransfer.files;
+  }
 
   // Hanya menghapus elemen yang belum terupload
   Array.from(listElement.children).forEach((child) => {
@@ -868,25 +1088,22 @@ function displayUploadedFiles(input, listId) {
     imgDiv.style.position = "relative";
     imgDiv.style.flexWrap = "wrap";
     imgDiv.classList.add("input-foto-container", "mt-1", "mr-1");
+    const previewUrl = URL.createObjectURL(file);
+    let previewElement;
 
     //tampilkan gambar/ tombol link
     if (file.type.startsWith("image/")) {
       const img = document.createElement("img");
-      img.src = URL.createObjectURL(file);
-      img.style.width = "150px";
-      img.style.height = "150px";
-      img.style.objectFit = "cover";
-      imgDiv.appendChild(img);
+      img.src = previewUrl;
+      previewElement = img;
     } else {
       const link = document.createElement("a");
-      link.href = URL.createObjectURL(file);
+      link.href = previewUrl;
       link.innerText = "Lihat File";
       link.target = "_blank";
-      link.style.minWidth = "250px";
-      link.style.minHeight = "60px";
       link.classList.add("btn", "btn-outline-primary");
       link.style.textAlign = "left";
-      imgDiv.appendChild(link);
+      previewElement = link;
     }
 
     //tombol hapus
@@ -894,7 +1111,7 @@ function displayUploadedFiles(input, listId) {
     deleteButton.innerText = "Hapus";
     deleteButton.style.position = "absolute";
     deleteButton.style.top = "5px";
-    deleteButton.style.left = "5px";
+    deleteButton.style.right = "5px";
     deleteButton.style.backgroundColor = "red";
     deleteButton.style.color = "white";
     deleteButton.style.border = "none";
@@ -903,7 +1120,11 @@ function displayUploadedFiles(input, listId) {
     //event tombol hapus
     deleteButton.addEventListener("click", function (event) {
       event.preventDefault();
-      imgDiv.remove();
+      if (input.classList.contains("produksi-photo-input")) {
+        removeSelectedUploadFile(input, listId, index);
+      } else {
+        imgDiv.remove();
+      }
     });
 
     //keterangan
@@ -920,28 +1141,79 @@ function displayUploadedFiles(input, listId) {
     //
     const imgContainer = document.createElement("div");
     imgContainer.classList.add("input-foto");
+    imgContainer.appendChild(previewElement);
+    imgContainer.appendChild(keterangan);
+    imgContainer.appendChild(deleteButton);
+    const metaContainer = document.createElement("div");
+    metaContainer.classList.add("input-foto-meta");
 
     //text input tanggal foto
     let te = document.createElement("div");
     te.innerHTML = "<strong>Tanggal Ambil Foto</strong>";
-    te.classList.add("ml-1");
-    imgContainer.appendChild(te);
+    metaContainer.appendChild(te);
 
     //input tanggal foto
     const tanggalInput = createInputForm(
       "tgl_" + input.name,
       "input",
       "date",
-      ["form-control", "flatpickr-human-friendly", "ml-1"],
+      ["form-control", "flatpickr-human-friendly", "mb-50"],
       new Date().toISOString().split("T")[0],
     );
-    imgContainer.appendChild(tanggalInput);
+    tanggalInput.id = `tgl_${inputBaseName}_${index}`;
+    metaContainer.appendChild(tanggalInput);
+
+    if (file.type.startsWith("image/")) {
+      const latInput = createInputForm(
+        `foto_lat_${inputBaseName}[]`,
+        "input",
+        "hidden",
+        [],
+      );
+      const lngInput = createInputForm(
+        `foto_lng_${inputBaseName}[]`,
+        "input",
+        "hidden",
+        [],
+      );
+      const accuracyInput = createInputForm(
+        `foto_accuracy_${inputBaseName}[]`,
+        "input",
+        "hidden",
+        [],
+      );
+      const sourceInput = createInputForm(
+        `foto_coordinate_source_${inputBaseName}[]`,
+        "input",
+        "hidden",
+        [],
+      );
+      const coordinateStatus = document.createElement("div");
+      coordinateStatus.classList.add("foto-coordinate-status", "mt-50");
+      coordinateStatus.innerText = "Titik koordinat: memeriksa...";
+
+      metaContainer.appendChild(latInput);
+      metaContainer.appendChild(lngInput);
+      metaContainer.appendChild(accuracyInput);
+      metaContainer.appendChild(sourceInput);
+      metaContainer.appendChild(coordinateStatus);
+
+      readSelectedPhotoCoordinate(file, function (coordinate) {
+        latInput.value = coordinate.lat || "";
+        lngInput.value = coordinate.lng || "";
+        accuracyInput.value = coordinate.accuracy || "";
+        sourceInput.value = coordinate.source || "";
+        coordinateStatus.innerText =
+          coordinate.lat && coordinate.lng
+            ? `Titik koordinat: ${Number(coordinate.lat).toFixed(6)}, ${Number(coordinate.lng).toFixed(6)}`
+            : "Titik koordinat: tidak tersedia";
+      });
+    }
 
     //text keterangan
     te = document.createElement("div");
     te.innerHTML = "<strong>Keterangan Foto</strong>";
-    te.classList.add("ml-1");
-    imgContainer.appendChild(te);
+    metaContainer.appendChild(te);
 
     // console.log(input, listId)
     if (listId == "list_prod_foto_konstruksi") {
@@ -949,135 +1221,180 @@ function displayUploadedFiles(input, listId) {
         "kategoriPekerjaan_" + input.name,
         "select",
         "select",
-        ["form-control", "ml-1", "kategoriPekerjaan"],
+        ["form-control", "mb-50", "kategoriPekerjaan"],
         list_pekerjaan,
       );
-      imgContainer.appendChild(keteranganInput);
+      keteranganInput.id = `kategoriPekerjaan_${inputBaseName}_${index}`;
+      metaContainer.appendChild(keteranganInput);
 
       const keteranganInput2 = createInputForm(
         "tugasPekerjaan_" + input.name,
         "select",
         "select",
-        ["form-control", "ml-1"],
+        ["form-control"],
       );
-      imgContainer.appendChild(keteranganInput2);
+      keteranganInput2.id = `tugasPekerjaan_${inputBaseName}_${index}`;
+      metaContainer.appendChild(keteranganInput2);
 
-      imgDiv.appendChild(keterangan);
-      imgDiv.appendChild(deleteButton);
       imgDiv.appendChild(imgContainer);
+      imgDiv.appendChild(metaContainer);
 
       listElement.appendChild(imgDiv);
 
-      buatOpsiSelect("kategoriPekerjaan", list_pekerjaan);
+      buatOpsiSelect(keteranganInput, list_pekerjaan);
+      updateTugasPekerjaan(keteranganInput.value, keteranganInput2);
       // Event listener untuk mengubah opsi tugas saat kategori berubah
-      document
-        .getElementById("kategoriPekerjaan_" + input.name)
-        .addEventListener("change", (event) => {
-          const kategoriTerpilih = event.target.value;
-          updateTugasPekerjaan(kategoriTerpilih);
-        });
+      keteranganInput.addEventListener("change", (event) => {
+        updateTugasPekerjaan(event.target.value, keteranganInput2);
+      });
     } else {
       const keteranganInput = createInputForm(
         "ket_" + input.name,
         "input",
         "text",
-        ["form-control", "ml-1"],
+        ["form-control"],
       );
-      imgContainer.appendChild(keteranganInput);
+      keteranganInput.id = `ket_${inputBaseName}_${index}`;
+      metaContainer.appendChild(keteranganInput);
 
-      imgDiv.appendChild(keterangan);
-      imgDiv.appendChild(deleteButton);
       imgDiv.appendChild(imgContainer);
+      imgDiv.appendChild(metaContainer);
 
       listElement.appendChild(imgDiv);
     }
   });
 }
 
-function showFoto(data, imbuhan = "", del = true) {
-  let containerElement = "",
-    coor = {};
+function triggerProduksiUpload(inputId) {
+  const input = document.getElementById(inputId);
+  if (input) input.click();
+}
 
+function removeSelectedUploadFile(input, listId, removeIndex) {
+  const inputKey = input.id || input.name;
+  window.produksiUploadFileStore = window.produksiUploadFileStore || {};
+  const files = Array.from(input.files).filter((file, index) => index !== removeIndex);
+  window.produksiUploadFileStore[inputKey] = files;
+
+  const dataTransfer = new DataTransfer();
+  files.forEach((file) => dataTransfer.items.add(file));
+  input.files = dataTransfer.files;
+  displayUploadedFiles(input, listId);
+}
+
+function readSelectedPhotoCoordinate(file, callback) {
+  const fallback = function () {
+    if (!navigator.geolocation) {
+      callback({ lat: null, lng: null, accuracy: null, source: "" });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      function (position) {
+        callback({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          source: "browser",
+        });
+      },
+      function () {
+        callback({ lat: null, lng: null, accuracy: null, source: "" });
+      },
+      { enableHighAccuracy: true, timeout: 7000, maximumAge: 60000 },
+    );
+  };
+
+  if (typeof EXIF === "undefined" || !file.type.startsWith("image/")) {
+    fallback();
+    return;
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = function () {
+    tampilkanKoordinatGPS(img, function (gps) {
+      URL.revokeObjectURL(objectUrl);
+      if (gps.lat && gps.lon) {
+        callback({
+          lat: gps.lat,
+          lng: gps.lon,
+          accuracy: null,
+          source: "exif",
+        });
+      } else {
+        fallback();
+      }
+    });
+  };
+  img.onerror = function () {
+    URL.revokeObjectURL(objectUrl);
+    fallback();
+  };
+  img.src = objectUrl;
+}
+
+function showFoto(data, imbuhan = "", del = true) {
   data.forEach((item) => {
-    containerElement = document.getElementById(
+    const containerElement = document.getElementById(
       `${imbuhan}list_${item.kategori}`,
     );
     if (containerElement) {
+      const isDocument = item.file_name.endsWith(".pdf") || item.file_name.endsWith(".xlsx");
+      const fileHref = item.access_url || file_url('file_produksi', item.id);
+      const downloadHref = item.download_url || file_url('file_produksi', item.id, true);
       const imgDiv = document.createElement("div");
       imgDiv.id = `${imbuhan}foto_produksi_${item.id}`;
       imgDiv.style.position = "relative";
-      imgDiv.style.height = "auto";
-      // imgDiv.style.margin = "5px";
-      imgDiv.classList.add("input-foto-container", "mt-1", "mr-1");
+      imgDiv.classList.add("input-foto-container");
 
       const imgContainer = document.createElement("div");
       imgContainer.classList.add("input-foto");
 
-      if (item.file_name.endsWith(".pdf") || item.file_name.endsWith(".xlsx")) {
+      if (isDocument) {
         const link = document.createElement("a");
-        link.href = item.access_url || file_url('file_produksi', item.id);
-        link.innerText = "Lihat File";
+        link.href = fileHref;
         link.target = "_blank";
-        link.style.minWidth = "150px";
-        link.classList.add("btn", "btn-primary");
-        link.style.textAlign = "left";
-        imgDiv.appendChild(link);
+        link.classList.add("detail-file-icon", "btn", "btn-outline-primary");
+        link.innerHTML = `<i class="${item.file_name.endsWith(".pdf") ? "far fa-file-pdf" : "far fa-file-excel"}"></i><span class="ml-50">Lihat File</span>`;
+        imgContainer.appendChild(link);
       } else {
         const img = document.createElement("img");
         img.src = item.thumbnail_url || file_thumbnail_url('file_produksi', item.id);
-        img.style.width = "150px";
-        img.style.height = "150px";
-        img.style.objectFit = "cover";
-        img.onload = function () {
-          const coorDiv = document.createElement("div");
-          coorDiv.position = "absolute";
-          coorDiv.left = "160px";
-
-          coorDiv.innerHTML = `
-            <strong>Tanggal Pengambilan Foto:</strong><br/>
-            ${format_date(item.tgl_capture)}<br/>
-            <strong>Diunggah oleh:</strong><br/>
-            ${item.username}<br/>
-            <strong>Keterangan:</strong><br/>
-            ${item.file_keterangan}<br/>
-            <strong>Titik koordinat:</strong> <br>-, -
-            `;
-
-          imgDiv.appendChild(coorDiv);
-          //load image 2 kali jika tanpa cache
-          // tampilkanKoordinatGPS(img, function (koordinat) {
-          //   coor = koordinat;
-          //   coorDiv.innerHTML = `
-          //   <strong>Tanggal Pengambilan Foto:</strong><br/>
-          //   ${format_date(item.tgl_capture)}<br/>
-          //   <strong>Diunggah oleh:</strong><br/>
-          //   ${item.username}<br/>
-          //   <strong>Keterangan:</strong><br/>
-          //   ${item.file_keterangan}<br/>
-          //   <strong>Titik koordinat:</strong> <br>${coor.lat}, ${coor.lon}
-          //   `;
-
-          //   imgDiv.appendChild(coorDiv);
-          // });
-        };
         imgContainer.appendChild(img);
       }
 
+      const bodyDiv = document.createElement("div");
+      bodyDiv.classList.add("detail-file-body");
+      const coordinateText =
+        item.foto_lat && item.foto_lng
+          ? `${Number(item.foto_lat).toFixed(6)}, ${Number(item.foto_lng).toFixed(6)}`
+          : "-, -";
+      bodyDiv.innerHTML = `
+        <div class="detail-file-title">${item.file_name || (isDocument ? "File" : "Foto")}</div>
+        ${isDocument ? "" : `<div class="detail-file-meta">Tanggal foto: ${item.tgl_capture ? format_date(item.tgl_capture) : "-"}</div>`}
+        <div class="detail-file-meta">Diunggah oleh: ${item.username || "-"}</div>
+        <div class="detail-file-meta">${item.file_keterangan || "-"}</div>
+        ${isDocument ? "" : `<div class="detail-file-meta">Titik koordinat: ${coordinateText}</div>`}
+      `;
+
+      const actionDiv = document.createElement("div");
+      actionDiv.classList.add("detail-file-action");
+
+      const viewButton = document.createElement("a");
+      viewButton.href = fileHref;
+      viewButton.target = "_blank";
+      viewButton.innerHTML = '<i class="fas fa-external-link-alt"></i> Lihat';
+      viewButton.classList.add("btn", "btn-outline-primary", "btn-sm");
+
       const downloadButton = document.createElement("button");
-      downloadButton.innerText = "Download";
-      downloadButton.style.position = "absolute";
-      downloadButton.style.top = "120px";
-      downloadButton.style.left = "35px";
+      downloadButton.innerHTML = '<i class="fas fa-download"></i>';
       downloadButton.classList.add("btn", "btn-primary", "btn-sm");
-      // downloadButton.style.backgroundColor = "green";
-      // downloadButton.style.color = "white";
-      downloadButton.style.border = "none";
-      downloadButton.style.cursor = "pointer";
 
       downloadButton.addEventListener("click", function (event) {
         event.preventDefault();
         const link = document.createElement("a");
-        link.href = item.download_url || file_url('file_produksi', item.id, true);
+        link.href = downloadHref;
         link.innerText = "Lihat File";
         link.target = "_blank";
         link.click();
@@ -1104,7 +1421,10 @@ function showFoto(data, imbuhan = "", del = true) {
       }
 
       imgDiv.appendChild(imgContainer);
-      imgDiv.appendChild(downloadButton);
+      bodyDiv.appendChild(actionDiv);
+      actionDiv.appendChild(viewButton);
+      actionDiv.appendChild(downloadButton);
+      imgDiv.appendChild(bodyDiv);
 
       containerElement.appendChild(imgDiv);
     }
@@ -1203,11 +1523,16 @@ $("#sertifikat_is_split, #dt-sertifikat_is_split").change(function () {
   }
 });
 
-function buatOpsiSelect(selectId, data) {
-  const selectElement = document.getElementsByClassName(selectId);
+function buatOpsiSelect(selectTarget, data) {
+  const selectElement =
+    typeof selectTarget === "string"
+      ? document.getElementsByClassName(selectTarget)
+      : [selectTarget];
 
   for (let i = 0; i < selectElement.length; i++) {
     const select = selectElement[i];
+    if (!select) continue;
+    select.innerHTML = "";
     for (const kategori in data) {
       const option = document.createElement("option");
       option.value = kategori;
@@ -1218,12 +1543,19 @@ function buatOpsiSelect(selectId, data) {
   }
 }
 
-function updateTugasPekerjaan(kategori) {
-  const tugasSelect = document.getElementById("tugasPekerjaan");
-  tugasSelect.innerHTML = "";
+function updateTugasPekerjaan(kategori, tugasTarget = "tugasPekerjaan") {
+  const tugasSelect =
+    typeof tugasTarget === "string"
+      ? document.getElementById(tugasTarget)
+      : tugasTarget;
+  if (!tugasSelect) return;
 
-  if (kategori.value in data) {
-    const tugasList = data[kategori];
+  tugasSelect.innerHTML = "";
+  const selectedKategori = typeof kategori === "string" ? kategori : kategori.value;
+  const data = typeof list_pekerjaan !== "undefined" ? list_pekerjaan : {};
+
+  if (selectedKategori in data) {
+    const tugasList = data[selectedKategori];
     for (const tugas of tugasList) {
       const option = document.createElement("option");
       option.value = tugas;
@@ -1353,3 +1685,19 @@ function hlButton(selector) {
 }
 
 // buatOpsiSelect('kategoriPekerjaan', data);
+
+const list_pekerjaan = {
+        "Pekerjaan Persiapan": ["Persiapan Pembersihan lokasi", "Pemasangan bouplank"],
+        "Pekerjaan Pondasi": ["Galian tanah pondasi", "Pasangan Pondasi Batu kali", "Pasangan Pondasi plat Setempat", "Instalasi Pipa Air Kotor pendam 3 inch", "Instalasi Pipa Air Kotor Pendam 4 inch", "Instalasi Pipa Air Kotor Pendam lebih dari 4 inch", "Urugan tanah pondasi tinggi 0-20 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi 20-50 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi lebih dari 50 cm dari jalan lingkungan"],
+        "Pekerjaan Pembesian/Kontruksi": ["Rangkaian pemasangan besi/tulangan pada sloof Bawah", "Rangkaian pemasangan Pasang besi/tulangan pada Ring Balok/balok atas", "Rangkaian pemasangan besi/tulangan pada kolom", "Rangkaian pemasangan besi/tulangan pada sopi-sopi/Gewel/gunungan", "Rangkaian pemasangan pertemuan Besi Tulangan antara Kolom dan Sloof Bawah", "Rangkaian pemasangan pertemuan Tulangan antara Kolom dan Ring Balk/balok atas", "Rangkaian pemasangan pertemuan Tulangan antara Kolom, Ring Balk/balok atas dan sopi-sopi/gunungan", ],
+        "Pekerjaan Cor Beton": ["Cor Beton sloof bawah", "Cor Beton Ring Balk/balok atas", "Tangga Beton (jika rumah 2 lantai)", "Plat Lantai Beton lantai 2", "Plat Lantai Beton lantai"],
+        "Pekerjaan Pasangan Dinding": ["Pasang Bata/Batako/Bata Ringan/Jenis lain", "Plesteran tebal", "Acian semen", "Pasangan keramik dinding kamar mandi", "Pasangan keramik dinding dapur"],
+        "Pekerjaan Atap": ["Rangka atap & Kuda Kuda", "Tutup atap/genting", "Genting bubung", "Listplang kayu", "Talang sudut"],
+        "Pekerjaan Instalasi": ["Instalasi Air bersih", "Instalasi/Jaringan Listrik"],
+        "Pekerjaan Langit-langit (Plapond)": ["Rangka plapond", "Penutup plapond"],
+        "Pekerjaan Lantai": ["Lantai kerja (pasir lantai)", "Penutup lantai"],
+        "Pekerjaan kusen": ["Kusen/pintu Utama", "Jendela Utama/jendela teras", "Kusen/pintu Kamar", "Jendela Kamar"],
+        "Pekerjaan Kaca dan Kunci": ["Pasang kaca jendela", "Pasang kunci tanam pintu", "Pasang kunci kamar mandi", "Pasang engsel pintu", "Pasang engsel jendela", "Pasang tulak angin/Hak angin /windows stay"],
+        "Pekerjaan Sanitasi": ["Pasang closet", "Pasang washtafel", "Pasang bak mandi", "Pasang bak cuci piring", "Septictank"],
+        "Pekerjaan Finishing & Pegecatan": ["Pengecatan kusen", "Pengecatan pintu dan jendela", "Pengecatan Plapond", "Pengecatan tembok"]
+    };

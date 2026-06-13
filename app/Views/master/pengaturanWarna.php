@@ -536,5 +536,5 @@
   })
 
   //remove bug arrow select2
-  $(".select2-selection__arrow").removeClass("select2-selection__arrow")
+  $(".select2-selection__arrow").css("pointer-events", "none")
 </script>

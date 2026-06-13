@@ -10,6 +10,7 @@ use App\Models\KavlingModel;
 use App\Models\ProyekModel;
 use App\Models\FileHargajualModel;
 use App\Services\FileAccessService;
+use App\Services\MkdtHistoryService;
 
 class Hargajual extends BaseController
 {
@@ -21,6 +22,7 @@ class Hargajual extends BaseController
 	protected $validation;
 	protected $db;
 	protected $fileAccessService;
+	protected $mkdtHistoryService;
 
 	public function __construct()
 	{
@@ -31,6 +33,7 @@ class Hargajual extends BaseController
 		$this->validation =  \Config\Services::validation();
 		$this->db = db_connect();
 		$this->fileAccessService = new FileAccessService();
+		$this->mkdtHistoryService = new MkdtHistoryService();
 		
 		$akses = $this->db->table('modul_akses')->where('user_id', user_id())->get();
 		$hasAccess = false;
@@ -202,13 +205,7 @@ class Hargajual extends BaseController
 					$response['success'] = false;
 					$response['messages'] = $this->validation->listErrors();
 				} else {
-					if ($this->kavlingModel->update($fields['id_kavling'], $fields)) {
-						$response['success'] = true;
-						$response['messages'] = 'Successfully updated';
-					} else {
-						$response['success'] = false;
-						$response['messages'] = 'Update error!';
-					}
+					$response = $this->applySetHarga($fields, $response);
 				}
 			}
 		} else {
@@ -216,20 +213,50 @@ class Hargajual extends BaseController
 				$response['success'] = false;
 				$response['messages'] = $this->validation->listErrors();
 			} else {
-
-				if ($this->kavlingModel->update($fields['id_kavling'], $fields)) {
-
-					$response['success'] = true;
-					$response['messages'] = 'Successfully updated';
-				} else {
-
-					$response['success'] = false;
-					$response['messages'] = 'Update error!';
-				}
+				$response = $this->applySetHarga($fields, $response);
 			}
 		}
 		return $this->response->setJSON($response);
 	}
+
+	protected function applySetHarga(array $fields, array $response): array
+	{
+		$idKavling = (int) $fields['id_kavling'];
+		$oldKavling = $this->kavlingModel->find($idKavling);
+		$pricelist = $this->db->table('hargajual')
+			->select('hargajual, tgl_harga, row')
+			->where('id', $fields['harga_akhir'])
+			->get()->getRow();
+
+		if ($this->kavlingModel->update($idKavling, $fields)) {
+			$pricelistLabel = $pricelist
+				? ('Rp ' . number_format((float) $pricelist->hargajual, 0, ',', '.') . ' / ' . $pricelist->tgl_harga . ' ROW ' . $pricelist->row)
+				: null;
+
+			$this->mkdtHistoryService->log(
+				$idKavling,
+				$oldKavling ? (int) ($oldKavling->id_mkdt ?? 0) ?: null : null,
+				MkdtHistoryService::ACTION_SET_HARGA_JUAL,
+				$this->mkdtHistoryService->buildSetHargaSummary(
+					$oldKavling ? ['harga_akhir' => $oldKavling->harga_akhir ?? null] : null,
+					['harga_akhir' => $fields['harga_akhir']],
+					$pricelistLabel
+				),
+				$oldKavling ? ['harga_akhir' => $oldKavling->harga_akhir ?? null] : null,
+				['harga_akhir' => $fields['harga_akhir']],
+				user_id()
+			);
+
+			$response['success'] = true;
+			$response['messages'] = 'Successfully updated';
+		} else {
+			$response['success'] = false;
+			$response['messages'] = 'Update error!';
+		}
+
+		return $response;
+	}
+
 	function getAll()
 	{
 

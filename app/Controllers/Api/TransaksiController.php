@@ -96,6 +96,9 @@ class TransaksiController extends BaseApiController
         if ($statusMkdt === 'Batal') {
             $kons['keterangan'] = trim((string) ($req->getPost('dt_keterangan_batal') ?? $req->getPost('dt-keterangan_batal') ?? ''));
         }
+        $perluRefund = $statusMkdt === 'Batal'
+            ? (int) (($req->getPost('dt_perlu_refund') ?? $req->getPost('dt-perlu_refund') ?? 0) == 1)
+            : 0;
 
         // --- Data mkdt (keuangan/harga) ---
         // Nama field dengan '-' dikonversi PHP ke '_' di $_POST.
@@ -129,6 +132,7 @@ class TransaksiController extends BaseApiController
             'is_subsidi'            => $req->getPost('is_subsidi') ?? null,
             'booking_fee'           => $this->cleanNum($req->getPost('dt-booking_fee') ?? $req->getPost('dt_booking_fee') ?? 0),
             'booking_tgl'           => $req->getPost('dt-booking_tgl') ?? $req->getPost('dt_booking_tgl') ?? null,
+            'perlu_refund'          => $perluRefund,
             'id_kavling'            => $kons['id_kavling'],
             'is_sudah_isi_tagihan'  => 1,
         ];
@@ -155,6 +159,7 @@ class TransaksiController extends BaseApiController
             'id_konsumen_old' => $req->getPost('id_konsumen_old') ?? null,
             'id_konsumen'     => $req->getPost('id_konsumen') ?: null,
             'is_data_baru'    => (int) ($req->getPost('mkdt_data_baru') ?? 0) === 1,
+            'allow_duplicate_nik' => (int) ($req->getPost('allow_duplicate_nik') ?? 0) === 1,
         ];
 
         $resp = $this->mkdtService->saveTransaksi($kons, $mk, $um, $files, $opt);

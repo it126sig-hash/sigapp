@@ -1,328 +1,513 @@
 <style>
-	.select2-selection__choice {
+	#modal-cashout-subkon .select2-selection__choice {
 		display: block;
 		margin: 2px 0;
 	}
 
-	.select2-container--default .select2-selection--multiple {
+	#modal-cashout-subkon .select2-container--default .select2-selection--multiple {
 		height: auto;
 	}
 
-	/* Termin: pendek, 1 baris */
-	.col-termin {
+	/* SIGAPP UI Acuan - Modal Cashout Subkon (mengikuti modal pembayaran produksi) */
+	#modal-cashout-subkon .modal-dialog {
+		max-width: min(1440px, calc(100vw - 32px));
+		margin: 1rem auto;
+	}
+
+	#modal-cashout-subkon .modal-content {
+		border: 0;
+		border-radius: 10px;
+		box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+		overflow: hidden;
+	}
+
+	#modal-cashout-subkon .modal-header {
+		align-items: center;
+		background: #fff;
+		border-bottom: 1px solid #e5e7eb;
+		margin-bottom: 0 !important;
+		padding: 1rem 1.25rem;
+	}
+
+	#modal-cashout-subkon .modal-title {
+		color: #111827;
+		font-size: 1.05rem;
+		font-weight: 700;
+	}
+
+	#modal-cashout-subkon .cos-sk-body {
+		background: #f3f5f7 !important;
+		max-height: calc(100vh - 7rem);
+		overflow-y: auto;
+		padding: 1rem;
+	}
+
+	#modal-cashout-subkon .cos-sk-layout {
+		display: flex;
+		flex-wrap: nowrap;
+		gap: 1rem;
+		min-width: 0;
+	}
+
+	#modal-cashout-subkon .cos-sk-sidebar {
+		align-self: flex-start;
+		flex: 0 0 320px;
+		max-height: calc(100vh - 8rem);
+		max-width: 320px;
+		overflow-y: auto;
+		position: sticky;
+		top: 0;
+		z-index: 2;
+	}
+
+	#modal-cashout-subkon .cos-sk-content {
+		flex: 1 1 auto;
+		max-width: calc(100% - 336px);
+		min-width: 0;
+	}
+
+	#modal-cashout-subkon .card {
+		border: 1px solid #e5e7eb;
+		border-radius: 8px;
+		box-shadow: none;
+		margin-bottom: 1rem;
+		overflow: hidden;
+	}
+
+	#modal-cashout-subkon .card-body {
+		padding: 1rem;
+	}
+
+	#modal-cashout-subkon .cos-sk-hero {
+		border: 0;
+	}
+
+	#modal-cashout-subkon .bg-primary {
+		background: linear-gradient(145deg, #2057a3 0%, #1f7a8c 100%) !important;
+	}
+
+	#modal-cashout-subkon .cos-sk-hero-label {
+		font-size: 1rem;
+		font-weight: 700;
+		line-height: 1.35;
+		margin-bottom: 0;
+		overflow-wrap: anywhere;
+	}
+
+	#modal-cashout-subkon .cos-sk-meta-card {
+		background: #fff;
+		border: 1px solid #cfd6e3;
+		border-radius: 8px;
+		box-shadow: 0 8px 18px rgba(15, 23, 42, .05);
+		margin-bottom: 0;
+	}
+
+	#modal-cashout-subkon .cos-sk-meta-card h6,
+	#modal-cashout-subkon .cos-sk-meta-card h5 {
+		color: #374151;
+		line-height: 1.35;
+		margin-bottom: .45rem;
+	}
+
+	#modal-cashout-subkon .cos-sk-meta-card h5:last-child,
+	#modal-cashout-subkon .cos-sk-meta-card h6:last-of-type {
+		margin-bottom: 0;
+	}
+
+	#modal-cashout-subkon .divider {
+		margin: .65rem 0 .85rem;
+	}
+
+	#modal-cashout-subkon .divider-left {
+		border-left-color: #2057a3;
+		margin-bottom: .85rem;
+		padding-left: .75rem;
+	}
+
+	#modal-cashout-subkon .divider .divider-text {
+		color: #111827;
+		font-size: .86rem;
+		font-weight: 700;
+	}
+
+	#modal-cashout-subkon label,
+	#modal-cashout-subkon .form-label {
+		color: #6b7280;
+		font-size: .78rem;
+		font-weight: 700;
+		letter-spacing: 0;
+	}
+
+	#modal-cashout-subkon .form-group {
+		margin-bottom: .8rem;
+	}
+
+	#modal-cashout-subkon .form-control {
+		background-color: #fff;
+		border-color: #d8dde3;
+		border-radius: 6px;
+		min-height: 36px;
+	}
+
+	#modal-cashout-subkon .btn {
+		border-radius: 6px;
+		font-weight: 700;
+		white-space: normal;
+	}
+
+	#modal-cashout-subkon .btn-primary {
+		background-color: #2057a3 !important;
+		border-color: #2057a3 !important;
+	}
+
+	#modal-cashout-subkon .btn-primary:hover,
+	#modal-cashout-subkon .btn-primary:focus {
+		background-color: #174b8f !important;
+		border-color: #174b8f !important;
+	}
+
+	#modal-cashout-subkon .btn-outline-primary {
+		border-color: #2057a3;
+		color: #2057a3;
+	}
+
+	#modal-cashout-subkon .btn-outline-primary:hover {
+		background-color: #2057a3;
+		border-color: #2057a3;
+	}
+
+	#modal-cashout-subkon .cos-sk-tabs-card {
+		margin-bottom: .75rem;
+	}
+
+	#modal-cashout-subkon .cos-sk-tabs-card .card-body {
+		padding: .65rem 1rem;
+	}
+
+	#modal-cashout-subkon .cos-sk-tabs .nav-link {
+		border-radius: 6px;
+		color: #4b5563;
+		font-size: .84rem;
+		font-weight: 700;
+		padding: .45rem .85rem;
+	}
+
+	#modal-cashout-subkon .cos-sk-tabs .nav-link.active {
+		background: #2057a3;
+		color: #fff;
+	}
+
+	#modal-cashout-subkon #fm-cashout-subkon-termin-table {
+		margin-bottom: 0;
+	}
+
+	#modal-cashout-subkon #fm-cashout-subkon-termin-table thead th {
+		background: #f8fafc;
+		border-bottom: 1px solid #e5e7eb;
+		color: #374151;
+		font-size: .78rem;
+		font-weight: 700;
 		white-space: nowrap;
-		width: 90px;
-		font-weight: 500;
 	}
 
-	/* Persentase */
-	.col-percent {
-		white-space: nowrap;
-		width: 100px;
+	#modal-cashout-subkon #fm-cashout-subkon-termin-table tbody td {
+		font-size: .84rem;
+		vertical-align: middle;
 	}
 
-	.percent-input {
-		max-width: 60px;
-		margin: auto;
-		padding: 4px 6px;
-	}
-
-	/* Jatuh tempo: 1 baris, format teks */
-	.col-date {
-		white-space: nowrap;
-		width: 120px;
-	}
-
-	.termin-nominal {
-		width: 90px;
+	#modal-cashout-subkon .termin-nominal {
 		text-align: right;
 	}
 
-	/* Status: maksimal 2 baris */
-	.col-status span {
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-		line-height: 1.3em;
-		max-height: 2.6em;
+	#modal-cashout-subkon .cos-sk-timeline {
+		position: relative;
+		padding-left: 50px;
 	}
 
-	/* Keterangan: panjang & multi-line */
-	.col-keterangan {
-		white-space: normal;
-		min-width: 250px;
-		max-width: 250px;
-		line-height: 1.4em;
+	#modal-cashout-subkon .cos-sk-timeline .timeline-item {
+		position: relative;
+	}
+
+	#modal-cashout-subkon .cos-sk-timeline .timeline-item::before {
+		background: #e5e7eb;
+		content: "";
+		height: calc(100% - 30px);
+		left: -32px;
+		position: absolute;
+		top: 40px;
+		width: 2px;
+	}
+
+	#modal-cashout-subkon .cos-sk-timeline .timeline-item:last-child::before {
+		display: none;
+	}
+
+	#modal-cashout-subkon .cos-sk-timeline .timeline-icon {
+		align-items: center;
+		border-radius: 50%;
+		box-shadow: 0 4px 6px rgba(15, 23, 42, .12);
+		color: #fff;
+		display: flex;
+		height: 40px;
+		justify-content: center;
+		left: -50px;
+		position: absolute;
+		width: 40px;
+		z-index: 1;
+	}
+
+	#modal-cashout-subkon .cos-sk-timeline .badge-success-light {
+		background-color: rgba(40, 167, 69, .1);
+	}
+
+	#modal-cashout-subkon .cos-sk-timeline .badge-primary-light {
+		background-color: rgba(32, 87, 163, .12);
+		color: #2057a3;
+	}
+
+	#modal-cashout-subkon .modal-footer {
+		background: #fff;
+		border-top: 1px solid #e5e7eb;
+		padding: .85rem 1.25rem;
+	}
+
+	.dark-layout #modal-cashout-subkon .modal-header,
+	.dark-layout #modal-cashout-subkon .card,
+	.dark-layout #modal-cashout-subkon .cos-sk-meta-card,
+	.dark-layout #modal-cashout-subkon .modal-footer {
+		background: #283046 !important;
+		border-color: rgba(255, 255, 255, .08) !important;
+	}
+
+	.dark-layout #modal-cashout-subkon .modal-title,
+	.dark-layout #modal-cashout-subkon .divider .divider-text {
+		color: #f8fafc;
+	}
+
+	.dark-layout #modal-cashout-subkon .cos-sk-body {
+		background: #1f2937 !important;
+	}
+
+	@media (max-width: 1199.98px) {
+		#modal-cashout-subkon .cos-sk-layout {
+			flex-wrap: wrap;
+		}
+
+		#modal-cashout-subkon .cos-sk-sidebar,
+		#modal-cashout-subkon .cos-sk-content {
+			flex: 0 0 100%;
+			max-width: 100%;
+		}
+
+		#modal-cashout-subkon .cos-sk-sidebar {
+			max-height: none;
+			overflow-y: visible;
+			position: static;
+		}
+	}
+
+	@media (max-width: 767.98px) {
+		#modal-cashout-subkon .modal-dialog {
+			max-width: calc(100vw - 12px);
+			margin: .5rem auto;
+		}
+
+		#modal-cashout-subkon .cos-sk-body {
+			max-height: calc(100vh - 5.5rem);
+			padding: .75rem;
+		}
+
+		#modal-cashout-subkon .card-body {
+			padding: .85rem;
+		}
+
+		#modal-cashout-subkon .cos-sk-tabs,
+		#modal-cashout-subkon .cos-sk-tabs .nav-pills {
+			flex-direction: row !important;
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			padding-bottom: .25rem;
+		}
+
+		#modal-cashout-subkon .cos-sk-tabs .nav-link {
+			white-space: nowrap;
+		}
 	}
 </style>
 
-<div class="modal fade" id="modal-cashout-subkon" tabindex="-1" role="dialog">
-	<div class="modal-dialog modal-xl" role="document">
-		<div class="modal-content spk-modal">
-			<!-- Header -->
+<div class="modal fade text-left" id="modal-cashout-subkon" tabindex="-1" role="dialog"
+	aria-labelledby="modal-cashout-subkon-label" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
+		<form id="fm-cashout-subkon" class="add-new-record modal-content pt-0" autocomplete="off">
 			<div class="modal-header">
-				<div>
-					<h5 class="modal-title">SPK Sub-Konstruksi</h5>
-					<small class="text-muted">Detail Cashout Subkon</small>
-				</div>
-				<button type="button" class="close" data-dismiss="modal">
-					<span>&times;</span>
+				<h5 class="modal-title" id="modal-cashout-subkon-label">SPK Sub-Konstruksi</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
 				</button>
 			</div>
-
-			<!-- Tabs -->
-			<div class="modal-body pt-0" style="background-color: #eee;">
-				<form id="fm-cashout-subkon">
-					<div class="row">
-						<div class="col-md-3">
-							<!-- Subkontraktor -->
-							<div class="card mb-3">
-								<div class="card-body">
-									<div class="divider divider-left">
-										<div class="divider-text font-weight-bold">SUBKONTRAKTOR</div>
-									</div>
-									<div class="form-group">
-										<label for="fm-cashout-subkon-id_subkon">Pilih Subkon</label>
-										<select class="form-control form-control-sm select2 fm-input" id="fm-cashout-subkon-id_subkon" name="id_subkon">
-										</select>
-									</div>
-									<div class="form-row">
-										<div class="form-group col-md-12 floating-label">
-											<input type="text" placeholder=" " class="form-control fm-input" id="fm-cashout-subkon-nama_subkon" name="nama_subkon">
-											<label for="fm-cashout-subkon-nama_subkon">Nama Subkontraktor</label>
-										</div>
-										<div class="form-group col-md-12 floating-label">
-											<input type="text" placeholder=" " class="form-control fm-input" id="fm-cashout-subkon-hp1_subkon" name="hp1_subkon">
-											<label for="fm-cashout-subkon-hp1_subkon">Kontak</label>
-										</div>
-										<div class="form-group col-md-12 floating-label">
-											<input type="text" placeholder=" " class="form-control fm-input" id="fm-cashout-subkon-alamat_subkon" name="alamat_subkon">
-											<label for="fm-cashout-subkon-alamat_subkon">Alamat</label>
-										</div>
-									</div>
-
-									<!-- Detail SPK -->
-									<div class="divider divider-left">
-										<div class="divider-text font-weight-bold">SPK</div>
-									</div>
-									<div class="form-group">
-										<label for="fm-cashout-subkon-id_kavling">Pilih Kavling</label>
-										<select class="form-control form-control-sm select2 fm-input" multiple="multiple"
-											id="fm-cashout-subkon-id_kavling" name="id_kavling[]">
-										</select>
-									</div>
-									<div class="form-row">
-										<div class="form-group col-md-12 floating-label">
-											<input type="hidden" id="fm-cashout-subkon-id_cashout_subkon" name="id_cashout_subkon">
-											<input type="text" placeholder=" " class="form-control fm-input" id="fm-cashout-subkon-nomor_surat" name="nomor_surat">
-											<label for="fm-cashout-subkon-nomor_surat">No. SPK</label>
-										</div>
-										<div class="form-group col-md-12 floating-label">
-											<input type="text" placeholder=" " class="form-control flatpickr-human-friendly fm-input" id="fm-cashout-subkon-tanggal_surat" name="tanggal_surat">
-											<label for="fm-cashout-subkon-tanggal_surat">Tanggal SPK</label>
-										</div>
-										<div class="form-group col-md-12 floating-label">
-											<input type="text" placeholder=" " class="form-control num fm-input" id="fm-cashout-subkon-total_nominal" name="total_nominal">
-											<label for="fm-cashout-subkon-total_nominal">Total Nilai Kontrak</label>
-										</div>
-										<div class="form-group col-md-12 floating-label">
-											<input type="text" placeholder=" " class="form-control fm-input" id="fm-cashout-subkon-keterangan_cashout_subkon" name="keterangan_cashout_subkon">
-											<label for="fm-cashout-subkon-keterangan_cashout_subkon">Keterangan</label>
-										</div>
-									</div>
-
-									<div class="form-group">
-										<div class="form-group">
-											<label class="font-weight-bold">SPK</label>
-											<div class="dropzone dropzone-lg custom-file"
-												id="dz-spk">
-												<input type="file"
-													class="custom-file-input dz-input fm-input"
-													accept="application/pdf" name="file_surat"
-													id="fm-cashout-subkon-file_surat">
-												<div class="dz-inner">
-													<div class="dz-preview" id="prev_file_surat">
-													</div>
-													<div class="dz-placeholder">
-														<div class="h5 mb-1">Tarik & letakkan gambar
-															ke sini</div>
-														<div class="text-muted">atau klik (PDF maks 5 MB)</div>
-													</div>
-												</div>
-											</div>
-										</div>
-										<a href="" id="fm-cashout-subkon-file_surat-here"
-											onclick="window.open(this.href, '_blank'); return false;"
-											class=" btn btn-outline-primary w-100">klik untuk
-											melihat file</a>
-									</div>
+			<div class="modal-body flex-grow-1 cos-sk-body">
+				<div class="cos-sk-layout">
+					<aside class="cos-sk-sidebar">
+						<div class="card cos-sk-hero">
+							<div class="card-body bg-primary text-light">
+								<p class="cos-sk-hero-label mb-0">Belum ada kavling dipilih</p>
+							</div>
+						</div>
+						<div class="card">
+							<div class="card-body">
+								<div class="divider divider-left">
+									<div class="divider-text">Subkontraktor</div>
+								</div>
+								<div class="form-group">
+									<label for="fm-cashout-subkon-id_subkon">Pilih Subkon</label>
+									<select class="form-control select2 fm-input" id="fm-cashout-subkon-id_subkon" name="id_subkon"></select>
+								</div>
+								<div class="form-group">
+									<label for="fm-cashout-subkon-nama_subkon">Nama Subkontraktor</label>
+									<input type="text" class="form-control fm-input" id="fm-cashout-subkon-nama_subkon" name="nama_subkon">
+								</div>
+								<div class="form-group">
+									<label for="fm-cashout-subkon-hp1_subkon">Kontak</label>
+									<input type="text" class="form-control fm-input" id="fm-cashout-subkon-hp1_subkon" name="hp1_subkon">
+								</div>
+								<div class="form-group mb-0">
+									<label for="fm-cashout-subkon-alamat_subkon">Alamat</label>
+									<input type="text" class="form-control fm-input" id="fm-cashout-subkon-alamat_subkon" name="alamat_subkon">
 								</div>
 							</div>
 						</div>
-						<div class="col-md-9">
-							<div class="card">
-								<div class="card-body pb-0 pt-0">
-									<ul class="nav nav-pills flex-column flex-md-row mt-1 row-gap-2">
-										<li class="nav-item">
-											<a class="nav-link active" data-toggle="tab" href="#form">Form SPK</a>
-										</li>
-										<li class="nav-item">
-											<a class="nav-link" data-toggle="tab" href="#fm-cashout-subkon-status">Riwayat Perubahan Status</a>
-										</li>
-										<!-- <li class="nav-item">
-											<a class="nav-link" data-toggle="tab" href="#pembayaran">Riwayat Pembayaran</a>
-										</li> -->
-									</ul>
+						<div class="card mb-0">
+							<div class="card-body">
+								<div class="divider divider-left">
+									<div class="divider-text">Dokumen SPK</div>
 								</div>
-							</div>
-							<div class="tab-content">
-								<!-- FORM -->
-								<div class="tab-pane fade show active" id="form">
-									<div class="card">
-										<div class="card-body">
-											<div class="divider divider-left">
-												<div class="divider-text font-weight-bold">LIST KAVLING</div>
-											</div>
-											<ul class="list-group list-group-flush" id="fm-cashout-subkon-list_kavlings"></ul>
+								<div class="dropzone dropzone-lg custom-file" id="dz-spk">
+									<input type="file" class="custom-file-input dz-input fm-input"
+										accept="application/pdf" name="file_surat" id="fm-cashout-subkon-file_surat">
+									<div class="dz-inner">
+										<div class="dz-preview" id="prev_file_surat"></div>
+										<div class="dz-placeholder">
+											<div class="h6 mb-1">Tarik & letakkan file ke sini</div>
+											<div class="text-muted small">atau klik (PDF maks 5 MB)</div>
 										</div>
-										<!-- Termin -->
-										<div class="card">
-											<div class="card-header d-flex justify-content-between align-items-center">
-												<div class="divider divider-left">
-													<div class="divider-text font-weight-bold">TERMIN PEMBAYARAN</div>
-												</div>
-												<!-- <button class="btn btn-sm btn-outline-primary">AUTO-BREAKDOWN</button> -->
-											</div>
-											<div class="card-body p-0">
-												<div class="table-responsive">
-													<table class="table mb-0">
-														<thead>
-															<tr>
-																<th>Termin</th>
-																<th style="width: 80px;">(%)</th>
-																<th>Nominal</th>
-																<th>Jatuh Tempo</th>
-																<th>Status</th>
-																<th>Keterangan</th>
-																<th></th>
-															</tr>
-														</thead>
-														<tbody id="fm-cashout-subkon-termin">
-														</tbody>
-													</table>
+									</div>
+								</div>
+								<a href="" id="fm-cashout-subkon-file_surat-here"
+									onclick="window.open(this.href, '_blank'); return false;"
+									class="btn btn-outline-primary btn-sm w-100 mt-2">Lihat file SPK</a>
+							</div>
+						</div>
+					</aside>
+					<section class="cos-sk-content">
+						<input type="hidden" id="fm-cashout-subkon-id_cashout_subkon" name="id_cashout_subkon">
 
+						<div class="card cos-sk-tabs-card">
+							<div class="card-body">
+								<ul class="nav nav-pills cos-sk-tabs flex-column flex-md-row row-gap-2" role="tablist">
+									<li class="nav-item">
+										<a class="nav-link active" data-toggle="tab" href="#form" role="tab">Form SPK</a>
+									</li>
+									<li class="nav-item">
+										<a class="nav-link" data-toggle="tab" href="#fm-cashout-subkon-status" role="tab">Riwayat Perubahan Status</a>
+									</li>
+								</ul>
+							</div>
+						</div>
+
+						<div class="tab-content">
+							<div class="tab-pane fade show active" id="form" role="tabpanel">
+								<div class="card">
+									<div class="card-body">
+										<div class="divider divider-left">
+											<div class="divider-text">Detail SPK</div>
+										</div>
+										<div class="row">
+											<div class="col-md-6 col-lg-4">
+												<div class="form-group">
+													<label for="fm-cashout-subkon-id_kavling">Pilih Kavling</label>
+													<select class="form-control select2 fm-input" multiple="multiple"
+														id="fm-cashout-subkon-id_kavling" name="id_kavling[]"></select>
+												</div>
+											</div>
+											<div class="col-md-6 col-lg-4">
+												<div class="form-group">
+													<label for="fm-cashout-subkon-nomor_surat">No. SPK</label>
+													<input type="text" class="form-control fm-input" id="fm-cashout-subkon-nomor_surat" name="nomor_surat">
+												</div>
+											</div>
+											<div class="col-md-6 col-lg-4">
+												<div class="form-group">
+													<label for="fm-cashout-subkon-tanggal_surat">Tanggal SPK</label>
+													<input type="text" class="form-control flatpickr-human-friendly fm-input"
+														id="fm-cashout-subkon-tanggal_surat" name="tanggal_surat" placeholder="-">
+												</div>
+											</div>
+											<div class="col-md-6 col-lg-4">
+												<div class="form-group">
+													<label for="fm-cashout-subkon-total_nominal">Total Nilai Kontrak</label>
+													<input type="text" class="form-control num fm-input" id="fm-cashout-subkon-total_nominal" name="total_nominal">
+												</div>
+											</div>
+											<div class="col-md-6 col-lg-8">
+												<div class="form-group mb-0">
+													<label for="fm-cashout-subkon-keterangan_cashout_subkon">Keterangan</label>
+													<input type="text" class="form-control fm-input"
+														id="fm-cashout-subkon-keterangan_cashout_subkon" name="keterangan_cashout_subkon"
+														placeholder="Keterangan SPK">
 												</div>
 											</div>
 										</div>
 									</div>
 								</div>
 
-								<div class="tab-pane fade" id="fm-cashout-subkon-status">
-									<div class="card">
-										<div class="card-body">
-											<style>
-												.timeline {
-													position: relative;
-													padding-left: 50px;
-												}
+								<div class="card mb-0">
+									<div class="card-body">
+										<div class="divider divider-left">
+											<div class="divider-text">Termin Pembayaran</div>
+										</div>
+										<div class="table-responsive">
+											<table id="fm-cashout-subkon-termin-table" class="table table-sm compact mb-0">
+												<thead>
+													<tr>
+														<th>Termin</th>
+														<th style="width: 80px;">(%)</th>
+														<th>Nominal</th>
+														<th>Jatuh Tempo</th>
+														<th>Status</th>
+														<th>Keterangan</th>
+														<th></th>
+													</tr>
+												</thead>
+												<tbody id="fm-cashout-subkon-termin"></tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+							</div>
 
-												/* Garis Vertikal */
-												.timeline-item {
-													position: relative;
-												}
-
-												.timeline-item::before {
-													content: "";
-													position: absolute;
-													left: -32px;
-													top: 40px;
-													height: calc(100% - 30px);
-													width: 2px;
-													background: #e9ecef;
-													/* Default color */
-												}
-
-												/* Warna garis khusus (optional jika ingin berwarna sesuai status) */
-												.timeline-item:nth-child(1)::before {
-													background: #28a745;
-													opacity: 0.3;
-												}
-
-												.timeline-item:nth-child(2)::before {
-													background: #007bff;
-													opacity: 0.3;
-												}
-
-												.timeline-item:nth-child(3)::before {
-													background: #ffc107;
-													opacity: 0.3;
-												}
-
-												.timeline-item:last-child::before {
-													display: none;
-												}
-
-												/* Ikon Lingkaran */
-												.timeline-icon {
-													position: absolute;
-													left: -50px;
-													width: 40px;
-													height: 40px;
-													border-radius: 50%;
-													display: flex;
-													align-items: center;
-													justify-content: center;
-													color: white;
-													z-index: 1;
-													box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-												}
-
-												/* Styling Badge Transparan */
-												.badge-success-light {
-													background-color: rgba(40, 167, 69, 0.1);
-												}
-
-												.badge-primary-light {
-													background-color: rgba(0, 123, 255, 0.1);
-												}
-
-												.badge-warning-light {
-													background-color: rgba(255, 193, 7, 0.1);
-												}
-
-												.italic {
-													font-style: italic;
-												}
-											</style>
-
-											<div class="container py-5">
-												<div class="row">
-													<div class="col-md-8 offset-md-2">
-														<h5 class="mb-4"><i class="fas fa-history mr-2 text-primary"></i><strong>Aktivitas Terbaru</strong></h5>
-														<div class="timeline" id="cashout-subkon-history-timeline">
-															<div class="text-center text-muted py-3">
-																<i class="fas fa-spinner fa-spin mr-1"></i> Memuat riwayat...
-															</div>
-														</div>
-													</div>
-												</div>
+							<div class="tab-pane fade" id="fm-cashout-subkon-status" role="tabpanel">
+								<div class="card mb-0">
+									<div class="card-body">
+										<div class="divider divider-left">
+											<div class="divider-text">Aktivitas Terbaru</div>
+										</div>
+										<div class="cos-sk-timeline" id="cashout-subkon-history-timeline">
+											<div class="text-center text-muted py-3">
+												<i class="fas fa-spinner fa-spin mr-1"></i> Memuat riwayat...
 											</div>
 										</div>
 									</div>
 								</div>
 							</div>
 						</div>
-					</div>
-				</form>
+					</section>
+				</div>
 			</div>
-
-			<!-- Footer -->
 			<div class="modal-footer">
-				<button class="btn btn-link" data-dismiss="modal">Cancel</button>
-				<button class="btn btn-primary" id="fm-cashout-subkon-submit">Simpan</button>
+				<button type="button" class="btn btn-primary data-submit mr-1" id="fm-cashout-subkon-submit">Simpan</button>
+				<button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
 			</div>
-		</div>
+		</form>
 	</div>
 </div>
 <script>
@@ -352,6 +537,17 @@ function cashoutSubkonPostData(data = {}) {
   return Object.assign({ [csrfName]: csrfHash }, data);
 }
 
+function updateCashoutSubkonHeroLabel(data) {
+  let text = "Belum ada kavling dipilih";
+  if (isNotEmpty(data)) {
+    const parts = data.map((item) => {
+      return item.text || `${item.nama_jalan} No ${item.no_kavling}`;
+    });
+    text = parts.join(", ");
+  }
+  $("#modal-cashout-subkon .cos-sk-hero-label").text(text);
+}
+
 /******** Checkout Subkon **********/
 function normalizeCashoutSubkonOptions(options) {
   if (options === undefined || options === null) {
@@ -360,6 +556,15 @@ function normalizeCashoutSubkonOptions(options) {
 
   if (Array.isArray(options)) {
     return { id_kavlings: options };
+  }
+
+  if (
+    (typeof options === "number" || typeof options === "string") &&
+    String(options) === "1" &&
+    typeof roleid !== "undefined" &&
+    roleid == 3
+  ) {
+    return {};
   }
 
   if (typeof options === "number" || typeof options === "string") {
@@ -380,6 +585,7 @@ function resetCashoutSubkonForm() {
   load_cashout_subkon(null);
   load_subkon([]);
   load_list_kavling([]);
+  updateCashoutSubkonHeroLabel([]);
   setImgOrPlaceholder(
     $("#fm-cashout-subkon-file_surat-here"),
     "",
@@ -394,6 +600,25 @@ function openCashoutSubkonCreate() {
   $("#modal-cashout-subkon").modal("show");
 }
 
+function refreshCashoutSubkonContext() {
+  if (typeof loadSiteplanUrgentPanel === "function") {
+    loadSiteplanUrgentPanel({ force: false });
+  }
+}
+
+function reloadCurrentCashoutSubkon() {
+  if (!state.id_cashout_subkon) {
+    refreshCashoutSubkonContext();
+    return;
+  }
+
+  openCOSubkon({
+    id_cashout_subkon: state.id_cashout_subkon,
+    id_proyek: typeof dt_proyek === "object" ? dt_proyek.id_proyek : "",
+  });
+  refreshCashoutSubkonContext();
+}
+
 function openCOSubkon(options = {}) {
   options = normalizeCashoutSubkonOptions(options);
 
@@ -402,11 +627,12 @@ function openCOSubkon(options = {}) {
   }
 
   let sh = typeof editdtt !== "undefined" && Array.isArray(editdtt) ? editdtt : [];
+  const id_cashout_subkon = options.id_cashout_subkon || "";
   const id_kavlings = isNotEmpty(options.id_kavlings)
     ? options.id_kavlings.map((item) => String(item))
     : sh.map((item) => item.id.substr(3));
 
-  if (id_kavlings.length == 0) {
+  if (!id_cashout_subkon && id_kavlings.length == 0) {
     return swal("error", "Pilih kavling terlebih dahulu");
   }
   const select2_id_kavling = "#fm-cashout-subkon-id_kavling";
@@ -425,9 +651,11 @@ function openCOSubkon(options = {}) {
   $.ajax({
     url: base_url + "cashout/subkon/ambil",
     type: "post",
-    data: cashoutSubkonPostData({
-      id_kavlings: id_kavlings,
-    }),
+    data: cashoutSubkonPostData(
+      id_cashout_subkon
+        ? { id_cashout_subkon: id_cashout_subkon }
+        : { id_kavlings: id_kavlings }
+    ),
     dataType: "json",
     beforeSend: function () {
       $("#loading").removeClass("hidden");
@@ -833,18 +1061,7 @@ $(document).on("click", ".confirm-jatuh-tempo", function () {
         return swal("error", r.message);
       }
       swal("success", r.message);
-      // Disable input again and remove action buttons
-      dateInput.prop("disabled", true);
-      if (dateInput[0]._flatpickr && dateInput[0]._flatpickr.altInput) {
-        dateInput[0]._flatpickr.altInput.disabled = true;
-      }
-      const td = btn.closest("td");
-      td.html("");
-
-      // Update status badge
-      const tr = dateInput.closest("tr");
-      const statusTd = tr.find("td").eq(4);
-      statusTd.html(status_spp[1] || "-");
+      reloadCurrentCashoutSubkon();
     },
     error: function () {
       btn.prop("disabled", false);
@@ -939,14 +1156,7 @@ $(document).on("click", ".ajukan-spp", function () {
             return swal("error", r.message);
           }
           swal("success", r.message);
-
-          // Update status badge
-          const tr = btn.closest("tr");
-          const statusTd = tr.find("td").eq(4);
-          statusTd.html(status_spp[2] || "-");
-
-          // Remove the button or update it
-          btn.closest("td").html("");
+          reloadCurrentCashoutSubkon();
         },
         error: function () {
           return swal("error", "Terjadi kesalahan saat menyimpan data");
@@ -1018,14 +1228,7 @@ $(document).on("click", ".ajukan-pencairan", function () {
             return swal("error", r.message);
           }
           swal("success", r.message);
-
-          // Update status badge
-          const tr = btn.closest("tr");
-          const statusTd = tr.find("td").eq(4);
-          statusTd.html(status_spp[3] || "-");
-
-          // Remove the button or update it
-          btn.closest("td").html("");
+          reloadCurrentCashoutSubkon();
         },
         error: function () {
           return swal("error", "Terjadi kesalahan saat menyimpan data");
@@ -1101,14 +1304,7 @@ $(document).on("click", ".pembayaran-pencairan", function () {
             return swal("error", r.message);
           }
           swal("success", r.message);
-
-          // Update status badge
-          const tr = btn.closest("tr");
-          const statusTd = tr.find("td").eq(4);
-          statusTd.html(status_spp[4] || "-");
-
-          // Remove the button or update it
-          btn.closest("td").html("");
+          reloadCurrentCashoutSubkon();
         },
         error: function () {
           return swal("error", "Terjadi kesalahan saat menyimpan data");
@@ -1118,34 +1314,7 @@ $(document).on("click", ".pembayaran-pencairan", function () {
   });
 });
 function load_list_kavling(data, is_locked = false) {
-  const ul = $("#fm-cashout-subkon-list_kavlings");
-  ul.empty();
-  data.forEach((item) => {
-    let text = item.text || `${item.nama_jalan} No ${item.no_kavling}`;
-    let id = item.id || item.id_kavling;
-    const li = $("<li>").addClass(
-      "list-group-item d-flex justify-content-between align-items-center",
-    );
-    // console.log(roleid, is_locked);
-    if (roleid == 7 && !is_locked) {
-      li.html(
-        `${text} <button type="button" class="btn btn-sm btn-danger remove-kavling" data-id="${id}"><i class="fa fa-trash"></i></button>`,
-      );
-    } else {
-      li.html(`${text}`);
-    }
-    ul.append(li);
-  });
-  $(".remove-kavling")
-    .off("click")
-    .click(function () {
-      const id = $(this).data("id");
-      const select = $("#fm-cashout-subkon-id_kavling");
-      let values = select.val() || [];
-      values = values.filter((v) => v != id);
-      select.val(values).trigger("change");
-      $(this).closest("li").remove();
-    });
+  updateCashoutSubkonHeroLabel(data);
 }
 function load_cashout_subkon(data) {
   if (data == null) {
@@ -1246,7 +1415,7 @@ $("#fm-cashout-subkon-id_kavling")
           results.push({
             id: v.id_kavling,
             text: text,
-            // disabled: disabled,
+            disabled: disabled,
           });
         });
         return {
@@ -1257,7 +1426,13 @@ $("#fm-cashout-subkon-id_kavling")
     },
   })
   .on("change", function () {
-    load_list_kavling($(this).select2("data"));
+    const items = $(this).select2("data").map((item) => ({
+      id_kavling: item.id,
+      nama_jalan: item.text ? item.text.split(" No ")[0] : "",
+      no_kavling: item.text ? item.text.split(" No ")[1] : "",
+      text: item.text,
+    }));
+    load_list_kavling(items);
   });
 
 $("#fm-cashout-subkon-id_subkon")

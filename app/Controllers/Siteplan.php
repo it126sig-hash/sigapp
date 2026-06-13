@@ -20,6 +20,8 @@ use App\Controllers\Notif;
 use App\Controllers\Home;
 use App\Repositories\KeuanganRepository;
 use App\Services\FileAccessService;
+use App\Services\MkdtHistoryService;
+use App\Services\SiteplanUrgentService;
 use App\Services\TargetSiteplanService;
 
 use App\Repositories\CashOutRepository;
@@ -47,6 +49,8 @@ class Siteplan extends BaseController
 
     protected $cashoutRepo;
     protected $fileAccessService;
+    protected $mkdtHistoryService;
+    protected $siteplanUrgentService;
     protected $targetSiteplanService;
 
     public function __construct()
@@ -69,6 +73,8 @@ class Siteplan extends BaseController
         $this->keuRepo = new KeuanganRepository();
         $this->cashoutRepo = new CashOutRepository();
         $this->fileAccessService = new FileAccessService();
+        $this->mkdtHistoryService = new MkdtHistoryService();
+        $this->siteplanUrgentService = new SiteplanUrgentService();
         $this->targetSiteplanService = new TargetSiteplanService();
 
         $this->kavlingRepo = new KavlingRepository();
@@ -106,8 +112,8 @@ class Siteplan extends BaseController
             'content' => 'siteplan/master',
             'data' => [
                 'profile' => $this->getProfilePerusahaan(),
-                'pph'     => $this->db->table('pph')->get()->getResult(),
-                'ppn'     => $this->db->table('ppn')->get()->getResult(),
+                'pph'     => $this->db->table('pph')->where('deleted_at', null)->get()->getResult(),
+                'ppn'     => $this->db->table('ppn')->where('deleted_at', null)->get()->getResult(),
             ],
         ];
 
@@ -192,6 +198,41 @@ class Siteplan extends BaseController
 
         // var_dump($data['data']['conf']);die();
         return view('template', $data);
+    }
+
+    public function urgentSummary()
+    {
+        $idProyek = (int) $this->request->getVar('id_proyek');
+        if ($idProyek <= 0) {
+            return $this->response->setJSON([
+                'token' => csrf_hash(),
+                'success' => false,
+                'messages' => 'id_proyek wajib diisi',
+                'summary' => [
+                    'total' => 0,
+                    'sections' => [],
+                ],
+            ]);
+        }
+
+        $groupId = (int) (session()->group_id ?? 0);
+        if ($groupId <= 0 && function_exists('user_id')) {
+            $group = $this->db->table('auth_groups_users')
+                ->select('group_id')
+                ->where('user_id', user_id())
+                ->get()
+                ->getRow();
+            $groupId = (int) ($group->group_id ?? 0);
+            if ($groupId > 0) {
+                session()->set('group_id', $groupId);
+            }
+        }
+
+        return $this->response->setJSON([
+            'token' => csrf_hash(),
+            'success' => true,
+            'summary' => $this->siteplanUrgentService->getSummary($idProyek, $groupId, (int) user_id()),
+        ]);
     }
 
     private function normalizeIdProyek($raw): ?int
@@ -589,20 +630,49 @@ class Siteplan extends BaseController
             ->where($where);
 
         if (($id == null || $id == "") && $this->db->fieldExists('scope', 'others')) {
-            $idRole = (int) $this->request->getVar('id_role');
-
             $q->groupStart()
-                ->where('others.scope', 'siteplan');
-
-            if ($idRole === 7) {
-                $q->orWhere('others.scope', 'produksi');
-            }
-
-            $q->orWhere('others.scope IS NULL', null, false)
+                ->whereIn('others.scope', ['siteplan', 'produksi'])
+                ->orWhere('others.scope IS NULL', null, false)
                 ->groupEnd();
         }
 
         $result['data'] = $q->get()->getResult();
+        $result['history'] = [];
+        $result['history_total'] = 0;
+        $result['history_limit'] = 0;
+        $result['history_offset'] = 0;
+        $result['history_next_offset'] = 0;
+        $result['history_has_more'] = false;
+
+        if (($id !== null && $id !== '') && $this->db->tableExists('produksi_jalan_progress_history')) {
+            $historyLimit = (int) ($this->request->getVar('history_limit') ?? 10);
+            $historyLimit = max(1, min(50, $historyLimit));
+            $historyOffset = max(0, (int) ($this->request->getVar('history_offset') ?? 0));
+
+            $historyTotal = $this->db->table('produksi_jalan_progress_history')
+                ->where('id_others', $id)
+                ->countAllResults();
+
+            $history = $this->db->table('produksi_jalan_progress_history h')
+                ->select('h.*, users.username')
+                ->join('users', 'users.id = h.add_by', 'left')
+                ->where('h.id_others', $id)
+                ->orderBy('h.created_at', 'DESC')
+                ->limit($historyLimit, $historyOffset)
+                ->get()->getResult();
+
+            foreach ($history as $item) {
+                $item->foto_urls = $this->fileAccessService->pathUrlsFromDelimitedString($item->foto ?? '', 'produksi_jalan_progress');
+            }
+
+            $result['history'] = $history;
+            $result['history_total'] = $historyTotal;
+            $result['history_limit'] = $historyLimit;
+            $result['history_offset'] = $historyOffset;
+            $result['history_next_offset'] = $historyOffset + count($history);
+            $result['history_has_more'] = $result['history_next_offset'] < $historyTotal;
+        }
+
         return $this->response->setJSON($result);
     }
     function get_kavling_by_multiple_id()
@@ -753,9 +823,26 @@ class Siteplan extends BaseController
         $f['perintah_bangun_tgl'] = $this->request->getVar('perintah_bangun_tgl');
 
         foreach ($id_kavling as $id) {
+            $oldKavling = $this->kavlingModel
+                ->select('id_kavling, id_mkdt, perintah_bangun, perintah_bangun_tgl, perintah_bangun_oleh')
+                ->find($id);
+
             if ($this->kavlingModel->update($id, $f)) {
                 $r['success'] = true;
                 $r['messages'] = 'Berhasil melakukan perubahan data';
+
+                $this->mkdtHistoryService->log(
+                    (int) $id,
+                    $oldKavling ? (int) ($oldKavling->id_mkdt ?? 0) ?: null : null,
+                    MkdtHistoryService::ACTION_TURUN_PEMBANGUNAN,
+                    $this->mkdtHistoryService->buildTurunPembangunanSummary(
+                        $oldKavling ? (array) $oldKavling : null,
+                        $f
+                    ),
+                    $oldKavling ? (array) $oldKavling : null,
+                    $f,
+                    user_id()
+                );
 
                 $notif = 'Turun pembanguanan untuk kavling: ' . $this->request->getVar('tp-kavling') . ' pada tanggal: ' . date_format(date_create($f['perintah_bangun_tgl']), "d-M-Y") . '';
                 $this->notif->tambah_notif("4;9", $notif, user_id(), $id, null); //4 mkdt 9 direksi
@@ -888,6 +975,18 @@ class Siteplan extends BaseController
             }
         }
 
+        if ($d['mkdt']) {
+            $hargaKpr = (float) ($d['mkdt']->harga_kpr ?? 0);
+            $hargaKprAcc = (float) ($d['mkdt']->harga_kpr_acc ?? 0);
+            $turunKpr = (float) ($d['mkdt']->harga_penambahan_um ?? 0);
+
+            if ($turunKpr <= 0 && $hargaKprAcc > 0 && $hargaKprAcc < $hargaKpr) {
+                $turunKpr = $hargaKpr - $hargaKprAcc;
+            }
+
+            $tg_um_ll = (float) ($d['mkdt']->harga_administrasi ?? 0) + $turunKpr;
+        }
+
 
         $d['query'] = (string) $this->db->getLastQuery();
         $d['total_um'] = $tg_um;
@@ -903,15 +1002,52 @@ class Siteplan extends BaseController
         $sb_um = 0;
         $sb_um_ll = 0;
         $sb_bb = 0;
-        foreach ($sb as $v) {
-            if ($v->payment_type != 'Booking') {
-                $pt = explode(';', $v->payment_type);
-                if (in_array('Uang Muka', $pt))
-                    $sb_um += $v->nominal;
-                elseif (in_array('BPHTB', $pt) || in_array('PPN', $pt) || in_array('BPHTB', $pt) || in_array('Biaya Proses', $pt))
-                    $sb_bb += $v->nominal;
-                else
-                    $sb_um_ll += $v->nominal;
+        $sb_detail = $this->db->table('log_pembayaran_detail lpd')
+            ->select('kl.kategori, COALESCE(SUM(lpd.nominal), 0) AS nominal')
+            ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
+            ->join('keuangan_item_list kl', 'kl.id_keuangan_item_list = lpd.id_keuangan_item_list')
+            ->where('lp.id_mkdt', $id_mkdt)
+            ->where('lp.is_deleted', 0)
+            ->groupBy('kl.kategori')
+            ->get()
+            ->getResult();
+
+        if (count($sb_detail) > 0) {
+            foreach ($sb_detail as $v) {
+                switch ($v->kategori) {
+                    case 'UM':
+                        $sb_um += (float) $v->nominal;
+                        break;
+                    case 'ADM':
+                        $sb_um_ll += (float) $v->nominal;
+                        break;
+                    case 'BB':
+                        $sb_bb += (float) $v->nominal;
+                        break;
+                }
+            }
+        } else {
+            $summary = $this->db->table('mkdt_payment_summary')
+                ->where('id_mkdt', $id_mkdt)
+                ->get()
+                ->getRow();
+
+            if ($summary && (((float) $summary->total_um + (float) $summary->total_adm + (float) $summary->total_bb) > 0)) {
+                $sb_um = (float) $summary->total_um;
+                $sb_um_ll = (float) $summary->total_adm;
+                $sb_bb = (float) $summary->total_bb;
+            } else {
+                foreach ($sb as $v) {
+                    if ($v->payment_type != 'Booking') {
+                        $pt = explode(';', $v->payment_type);
+                        if (in_array('Uang Muka', $pt))
+                            $sb_um += $v->nominal;
+                        elseif (in_array('BPHTB', $pt) || in_array('PPN', $pt) || in_array('Biaya Proses', $pt))
+                            $sb_bb += $v->nominal;
+                        else
+                            $sb_um_ll += $v->nominal;
+                    }
+                }
             }
         }
         $sisa = $sb_um > $tg_um ? $sb_um - $tg_um : 0;
@@ -1057,12 +1193,79 @@ class Siteplan extends BaseController
 
         //get cashout riwayat bayar
         $d['cashout'] = $this->cashoutRepo->getRiwayatBayarCashOutByIDKavling($id_kavling);
+        $incomeRows = [];
+        $ledgerExpenseRows = [];
+        if ($this->db->tableExists('finance_ledger')) {
+            $incomeBuilder = $this->db->table('finance_ledger')
+                ->select('tanggal_transaksi, label, nominal, keterangan, source_type')
+                ->where('direction', 'income')
+                ->where('status', 'active')
+                ->where('is_deleted', 0);
+
+            if ($id_mkdt && $id_kavling) {
+                $incomeBuilder
+                    ->groupStart()
+                    ->where('id_mkdt', $id_mkdt)
+                    ->orWhere('id_kavling', $id_kavling)
+                    ->groupEnd();
+            } elseif ($id_mkdt) {
+                $incomeBuilder->where('id_mkdt', $id_mkdt);
+            } elseif ($id_kavling) {
+                $incomeBuilder->where('id_kavling', $id_kavling);
+            }
+
+            $incomeRows = $incomeBuilder
+                ->orderBy('tanggal_transaksi', 'desc')
+                ->orderBy('id', 'desc')
+                ->get()
+                ->getResult();
+
+            $expenseBuilder = $this->db->table('finance_ledger')
+                ->select('tanggal_transaksi, label, nominal, keterangan, source_type')
+                ->where('direction', 'expense')
+                ->where('status', 'active')
+                ->where('is_deleted', 0);
+
+            if ($id_kavling) {
+                $expenseBuilder->where('id_kavling', $id_kavling);
+            }
+
+            $ledgerExpenseRows = $expenseBuilder
+                ->orderBy('tanggal_transaksi', 'desc')
+                ->orderBy('id', 'desc')
+                ->get()
+                ->getResult();
+        }
+
+        $incomeTotal = 0;
+        foreach ($incomeRows as $row) {
+            $incomeTotal += (float) ($row->nominal ?? 0);
+        }
+
+        $expenseRows = array_merge($d['cashout'], $ledgerExpenseRows);
+        $expenseTotal = 0;
+        foreach ($expenseRows as $row) {
+            $expenseTotal += (float) ($row->nominal ?? 0);
+        }
+
+        $d['finance_flow'] = [
+            'income_total' => $incomeTotal,
+            'income_count' => count($incomeRows),
+            'income_rows' => $incomeRows,
+            'expense_total' => $expenseTotal,
+            'expense_count' => count($expenseRows),
+            'expense_rows' => $expenseRows,
+            'balance' => $incomeTotal - $expenseTotal,
+        ];
 
         $d['bayar_produksi'] = $this->db->table('list_bayar_produksi lc')
             ->select('lc.id as id_bayar_produksi, lc.item, lc.sort, c.*, u.username as add_by_u, e.username as edit_by_u')
             ->join('bayar_produksi c', 'c.id_item_produksi = lc.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
             ->join('users u', 'u.id = c.add_by', 'left')
             ->join('users e', 'e.id = c.edit_by', 'left')
+            ->where('lc.deleted_at', null)
+            ->orderBy('lc.sort', 'ASC')
+            ->orderBy('lc.id', 'ASC')
             ->get()->getResult();
 
         $d['si'] = $this->db->table('list_si')

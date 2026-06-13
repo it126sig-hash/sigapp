@@ -21,6 +21,7 @@ class MkdtModel extends Model
 		'harga_allin',
 		'is_sudah_isi_tagihan',
 		'keterangan_batal',
+		'perlu_refund',
 		'surat_batal',
 		'mkdt_batal_oleh',
 		'mkdt_batal_tgl',

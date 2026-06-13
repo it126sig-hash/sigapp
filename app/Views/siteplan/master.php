@@ -210,12 +210,12 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     .float .btn-primary {
-        background: linear-gradient(135deg, #5B4FCF, #7B6FE0) !important;
+        background: linear-gradient(135deg, #2057a3, #2f74c4) !important;
         color: #fff !important;
     }
 
     .float .btn-primary:hover {
-        background: linear-gradient(135deg, #4b3ebf, #6c5fd0) !important;
+        background: linear-gradient(135deg, #184272, #2057a3) !important;
     }
 
     .float .btn-success {
@@ -225,6 +225,49 @@ foreach (user()->getRoles() as $key => $val) {
 
     .float .btn-success:hover {
         background: linear-gradient(135deg, #0d9668, #047857) !important;
+    }
+
+    .float .btn-info {
+        background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
+        color: #fff !important;
+    }
+
+    .float .btn-info:hover {
+        background: linear-gradient(135deg, #0284C7, #0369A1) !important;
+    }
+
+    .float .btn-danger {
+        background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+        color: #fff !important;
+    }
+
+    .float .btn-danger:hover {
+        background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
+    }
+
+    #produksi_menu.produksi-jalan-selecting {
+        width: fit-content !important;
+        max-width: calc(100vw - 48px) !important;
+        overflow-x: visible !important;
+        justify-content: flex-start !important;
+    }
+
+    #produksi_menu > .hidden,
+    #produksi_menu > .d-none {
+        display: none !important;
+    }
+
+    #produksi_menu.produksi-jalan-selecting #produksi_add_jalan_hint {
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+        font-size: 0.75rem;
+        line-height: 1;
+        padding: 0 8px;
+    }
+
+    #produksi_menu.produksi-jalan-selecting #produksi_add_jalan_undo {
+        display: inline-flex !important;
     }
 
     .float .btn-outline-warning {
@@ -237,6 +280,23 @@ foreach (user()->getRoles() as $key => $val) {
         background: rgba(245, 158, 11, 0.08) !important;
         color: #d97706 !important;
         border-color: #d97706 !important;
+    }
+
+    .float .btn-outline-danger {
+        border: 1.5px solid #EF4444 !important;
+        color: #EF4444 !important;
+        background: transparent !important;
+    }
+
+    .float .btn-outline-danger:hover {
+        background: rgba(239, 68, 68, 0.08) !important;
+        color: #DC2626 !important;
+        border-color: #DC2626 !important;
+    }
+
+    /* Group separator labels for the mobile expanded menu panel */
+    .float .menu-group-label {
+        display: none;
     }
 
     /* Styling manual selection switch */
@@ -299,6 +359,30 @@ foreach (user()->getRoles() as $key => $val) {
             justify-content: flex-end !important;
             align-self: flex-end !important; /* Force right alignment of button */
             margin: 3px 0 !important;
+        }
+
+        .float.mobile-expanded > .d-none {
+            display: none !important;
+        }
+
+        .float.mobile-expanded .menu-group-label {
+            display: block !important;
+            width: 100%;
+            text-align: right;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: #94a3b8;
+            margin: 8px 0 2px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .float.mobile-expanded .menu-group-label:first-of-type {
+            border-top: none;
+            margin-top: 0;
+            padding-top: 0;
         }
 
         .float.mobile-expanded .custom-switch {
@@ -459,6 +543,150 @@ foreach (user()->getRoles() as $key => $val) {
         height: auto;
     }
 
+    .siteplan-urgent-toggle {
+        align-items: center;
+        background: #2057a3;
+        border: 0;
+        border-radius: 8px;
+        bottom: 1.25rem;
+        box-shadow: 0 10px 26px rgba(32, 87, 163, .24);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        font-weight: 700;
+        gap: .45rem;
+        padding: .65rem .85rem;
+        position: fixed;
+        right: 1.25rem;
+        z-index: 1035;
+    }
+
+    .siteplan-urgent-toggle .badge {
+        background: #ea5455;
+        color: #fff;
+        margin-left: .15rem;
+    }
+
+    .siteplan-urgent-panel {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        bottom: 4.5rem;
+        box-shadow: 0 18px 42px rgba(15, 23, 42, .22);
+        max-height: calc(100vh - 8rem);
+        overflow: hidden;
+        position: fixed;
+        right: 1.25rem;
+        width: min(410px, calc(100vw - 2rem));
+        z-index: 1036;
+    }
+
+    .siteplan-urgent-header {
+        align-items: center;
+        border-bottom: 1px solid #edf0f2;
+        display: flex;
+        justify-content: space-between;
+        padding: .85rem 1rem;
+    }
+
+    .siteplan-urgent-title {
+        color: #111827;
+        font-size: .98rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .siteplan-urgent-body {
+        background: #f8fafc;
+        max-height: calc(100vh - 12rem);
+        overflow-y: auto;
+        padding: .85rem;
+    }
+
+    .siteplan-urgent-section {
+        margin-bottom: .85rem;
+    }
+
+    .siteplan-urgent-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .siteplan-urgent-section-title {
+        align-items: center;
+        color: #4b5563;
+        display: flex;
+        font-size: .78rem;
+        font-weight: 700;
+        justify-content: space-between;
+        margin-bottom: .45rem;
+        text-transform: uppercase;
+    }
+
+    .siteplan-urgent-item {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-left: 4px solid #2057a3;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: .5rem;
+        padding: .7rem .75rem;
+    }
+
+    .siteplan-urgent-item:hover {
+        border-color: #c8d7ee;
+    }
+
+    .siteplan-urgent-item.is-danger {
+        border-left-color: #ea5455;
+    }
+
+    .siteplan-urgent-item.is-warning {
+        border-left-color: #ff9f43;
+    }
+
+    .siteplan-urgent-item.is-info {
+        border-left-color: #00cfe8;
+    }
+
+    .siteplan-urgent-item-title {
+        color: #111827;
+        font-size: .88rem;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-bottom: .25rem;
+    }
+
+    .siteplan-urgent-item-desc,
+    .siteplan-urgent-item-meta,
+    .siteplan-urgent-empty {
+        color: #6b7280;
+        font-size: .78rem;
+        line-height: 1.35;
+    }
+
+    .siteplan-urgent-empty {
+        background: #fff;
+        border: 1px dashed #d8dde3;
+        border-radius: 8px;
+        padding: .85rem;
+        text-align: center;
+    }
+
+    @media (max-width: 767.98px) {
+        .siteplan-urgent-toggle {
+            bottom: .75rem;
+            left: .75rem;
+            right: auto;
+        }
+
+        .siteplan-urgent-panel {
+            bottom: 4rem;
+            left: .75rem;
+            right: auto;
+            width: min(410px, calc(100vw - 5.5rem));
+        }
+    }
+
     .input-foto-container {
         width: 350px;
         height: 150px;
@@ -474,6 +702,934 @@ foreach (user()->getRoles() as $key => $val) {
 
     .flatpickr-human-friendly:enabled {
         background-color: #fff !important;
+    }
+
+    #modal_detail .modal-dialog {
+        max-width: min(1440px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modal_detail .modal-content {
+        border: 0;
+        border-radius: 10px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+        overflow: hidden;
+    }
+
+    #modal_detail .modal-header {
+        align-items: center;
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1rem 1.25rem;
+    }
+
+    #modal_detail .modal-title {
+        /* color: #111827; */
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    #modal_detail .modal-body {
+        background: #f3f5f7 !important;
+        max-height: calc(100vh - 7rem);
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    #modal_detail .detail-kavling-layout {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        margin: 0;
+    }
+
+    #modal_detail .detail-kavling-sidebar,
+    #modal_detail .detail-kavling-content {
+        padding: 0;
+    }
+
+    #modal_detail .detail-kavling-sidebar {
+        align-self: flex-start;
+        flex: 0 0 320px;
+        position: sticky;
+        top: 0;
+        max-width: 320px;
+        z-index: 2;
+    }
+
+    #modal_detail .detail-kavling-content {
+        flex: 1 1 auto;
+        max-width: calc(100% - 336px);
+        min-width: 0;
+    }
+
+    #modal_detail .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+        margin-bottom: 1rem;
+    }
+
+    #modal_detail .card-body {
+        padding: 1rem;
+    }
+
+    #modal_detail .detail-hero-card {
+        background: linear-gradient(145deg, #2056a4 0%, #1f7a8c 100%);
+        border: 0;
+        color: #fff;
+        overflow: hidden;
+    }
+
+    #modal_detail .detail-hero-card .card-body {
+        background: transparent !important;
+    }
+
+    #modal_detail .detail-hero-card .label_alamat {
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-bottom: .75rem;
+    }
+
+    #modal_detail .detail-price-card,
+    #modal_detail .detail-meta-card {
+        background: rgba(255, 255, 255, 0.94);
+        border: 0;
+        color: #111827;
+        margin-top: .85rem;
+    }
+
+    #modal_detail .detail-price-card h5 {
+        color: #374151;
+        font-size: .85rem;
+        margin-bottom: .35rem;
+    }
+
+    #modal_detail #label-hargajual h2 {
+        font-size: 1.25rem;
+        line-height: 1.2;
+    }
+
+    #modal_detail .detail-meta-card h6 {
+        color: #374151;
+        font-size: .78rem;
+        line-height: 1.35;
+    }
+
+    #modal_detail .detail-consumer-card .card-header,
+    #modal_detail .detail-tabs-card .card-body {
+        background: #fff;
+        border-bottom: 1px solid #edf0f2;
+        padding: .85rem 1rem;
+    }
+
+    #modal_detail .detail-consumer-card .card-body {
+        padding: .85rem 1rem 1rem;
+    }
+
+    #modal_detail .detail-consumer-card li {
+        border-bottom: 1px solid #edf0f2;
+        margin-bottom: 0 !important;
+        padding: .55rem 0;
+    }
+
+    #modal_detail .detail-consumer-card li:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    #modal_detail .detail-consumer-card b,
+    #modal_detail label,
+    #modal_detail .info-label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    #modal_detail .detail-consumer-card span {
+        color: #111827;
+        display: block;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .detail-consumer-toggle {
+        font-size: .78rem;
+        margin-top: .75rem;
+        padding: .45rem .65rem;
+    }
+
+    #modal_detail .detail-consumer-toggle .hide-label,
+    #modal_detail .detail-consumer-toggle[aria-expanded="true"] .show-label {
+        display: none;
+    }
+
+    #modal_detail .detail-consumer-toggle[aria-expanded="true"] .hide-label {
+        display: inline;
+    }
+
+    #modal_detail .detail-consumer-toggle i {
+        transition: transform .2s ease;
+    }
+
+    #modal_detail .detail-consumer-toggle[aria-expanded="true"] i {
+        transform: rotate(180deg);
+    }
+
+    #modal_detail .detail-tabs-card {
+        margin-bottom: .75rem;
+    }
+
+    #modal_detail .detail-tabs-card .card-body {
+        padding: .65rem;
+    }
+
+    #modal_detail .nav-pills {
+        gap: .4rem;
+    }
+
+    #modal_detail .nav-pills .nav-link {
+        border-radius: 6px;
+        color: #4b5563;
+        font-size: .82rem;
+        font-weight: 700;
+        padding: .55rem .8rem;
+        white-space: nowrap;
+    }
+
+    #modal_detail .nav-pills .nav-link.active {
+        background-color: #2056a4;
+        box-shadow: 0 6px 14px rgba(32, 86, 164, .2);
+        color: #fff;
+    }
+
+    #modal_detail .detail-panel-card {
+        margin-bottom: 0;
+    }
+
+    #modal_detail .tab-content {
+        min-width: 0;
+    }
+
+    #modal_detail .tab-pane {
+        overflow-x: auto;
+    }
+
+    #modal_detail .divider {
+        margin: .65rem 0 .85rem;
+    }
+
+    #modal_detail .divider-left {
+        border-left-color: #2056a4;
+        margin-bottom: .85rem;
+        padding-left: .75rem;
+    }
+
+    #modal_detail .divider .divider-text {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 700;
+    }
+
+    #modal_detail .info-row {
+        align-items: flex-start;
+        background: #f9fafb;
+        border: 1px solid #edf0f2;
+        border-radius: 6px;
+        margin: 0 0 .45rem;
+        padding: .45rem .55rem;
+    }
+
+    #modal_detail .info-value {
+        color: #111827;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .form-group {
+        margin-bottom: .8rem;
+    }
+
+    #modal_detail .form-control {
+        background-color: #fff;
+        border-color: #d8dde3;
+        border-radius: 6px;
+        min-height: 36px;
+    }
+
+    #modal_detail .form-control:disabled,
+    #modal_detail .form-control[readonly] {
+        background-color: #f8fafc;
+        color: #111827;
+        opacity: 1;
+    }
+
+    #modal_detail .btn {
+        border-radius: 6px;
+        white-space: normal;
+    }
+
+    #modal_detail table {
+        width: 100% !important;
+    }
+
+    #modal_detail .detail-dashboard-grid,
+    #modal_detail .detail-card-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    #modal_detail .detail-summary-card,
+    #modal_detail .detail-metric-card,
+    #modal_detail .detail-accordion-card,
+    #modal_detail .detail-progress-card,
+    #modal_detail .detail-mini-card {
+        background: #fff;
+        border: 1px solid #cfd6e3;
+        border-radius: 8px;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
+    }
+
+    #modal_detail .detail-summary-card {
+        padding: 1rem;
+    }
+
+    #modal_detail .detail-summary-card .divider {
+        margin-top: 0;
+    }
+
+    #modal_detail .detail-card-icon {
+        align-items: center;
+        background: #205792;
+        border-radius: 10px;
+        color: #dbeafe;
+        display: inline-flex;
+        height: 48px;
+        justify-content: center;
+        width: 48px;
+    }
+
+    #modal_detail .detail-metric-card {
+        min-height: 250px;
+        padding: 1.5rem;
+        position: relative;
+    }
+
+    #modal_detail .detail-metric-card .detail-percent {
+        color: #003b78;
+        font-size: 1.25rem;
+        font-weight: 700;
+        position: absolute;
+        right: 1.5rem;
+        top: 1.45rem;
+    }
+
+    #modal_detail .detail-metric-title {
+        color: #344054;
+        font-size: .98rem;
+        font-weight: 700;
+        margin-top: 1.5rem;
+    }
+
+    #modal_detail .detail-metric-total {
+        color: #020617;
+        font-size: 1.55rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin: .35rem 0 1.6rem;
+    }
+
+    #modal_detail .detail-metric-row {
+        align-items: center;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        margin-bottom: .85rem;
+    }
+
+    #modal_detail .detail-metric-label {
+        color: #344054;
+        font-size: .96rem;
+    }
+
+    #modal_detail .detail-metric-value {
+        color: #020617;
+        font-weight: 800;
+        text-align: right;
+    }
+
+    #modal_detail .detail-metric-value.is-paid {
+        color: #006b35;
+    }
+
+    #modal_detail .detail-metric-value.is-due {
+        color: #c40000;
+    }
+
+    #modal_detail .detail-progress-track {
+        background: #e7eefb;
+        border-radius: 999px;
+        height: 9px;
+        overflow: hidden;
+        width: 100%;
+    }
+
+    #modal_detail .detail-progress-fill {
+        background: #4ade80;
+        border-radius: inherit;
+        height: 100%;
+        transition: width .2s ease;
+        width: 0%;
+    }
+
+    #modal_detail .detail-progress-fill.is-partial {
+        background: #2563eb;
+    }
+
+    #modal_detail .detail-progress-fill.is-empty {
+        background: transparent;
+    }
+
+    #modal_detail .detail-legacy-hidden {
+        display: none !important;
+    }
+
+    #modal_detail .detail-accordion {
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+    }
+
+    #modal_detail .detail-accordion-card {
+        overflow: hidden;
+    }
+
+    #modal_detail .detail-accordion-toggle {
+        align-items: center;
+        background: #fff;
+        border: 0;
+        color: #111827;
+        display: flex;
+        font-weight: 800;
+        justify-content: space-between;
+        padding: 1rem 1.1rem;
+        text-align: left;
+        width: 100%;
+    }
+
+    #modal_detail .detail-accordion-toggle i {
+        color: #2056a4;
+        transition: transform .2s ease;
+    }
+
+    #modal_detail .detail-accordion-toggle[aria-expanded="true"] i {
+        transform: rotate(180deg);
+    }
+
+    #modal_detail .detail-accordion-body {
+        border-top: 1px solid #edf0f2;
+        padding: 1rem;
+    }
+
+    #modal_detail .detail-status-card-header {
+        align-items: center;
+        display: flex;
+        gap: .65rem;
+        margin-bottom: 1rem;
+    }
+
+    #modal_detail .detail-status-card-title {
+        color: #111827;
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    #modal_detail .detail-status-card-toggle {
+        margin-left: auto;
+    }
+
+    #modal_detail .detail-info-row {
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        margin-bottom: .9rem;
+    }
+
+    #modal_detail .detail-info-col {
+        display: flex;
+        flex: 1 1 0;
+        flex-direction: column;
+        gap: .3rem;
+        min-width: 0;
+    }
+
+    #modal_detail .detail-info-col.text-right {
+        align-items: flex-end;
+    }
+
+    #modal_detail .detail-info-label {
+        color: #6b7280;
+        font-size: .76rem;
+        font-weight: 700;
+    }
+
+    #modal_detail .detail-info-value {
+        background-color: transparent !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        color: #111827;
+        font-size: .92rem;
+        font-weight: 700;
+        height: auto !important;
+        min-height: 0 !important;
+        opacity: 1 !important;
+        overflow-wrap: anywhere;
+        padding: 0 !important;
+        width: 100%;
+    }
+
+    #modal_detail select.detail-info-value {
+        appearance: none;
+        -moz-appearance: none;
+        -webkit-appearance: none;
+    }
+
+    #modal_detail .detail-info-col.text-right .detail-info-value {
+        text-align: right;
+        text-align-last: right;
+    }
+
+    #modal_detail .detail-text-primary {
+        color: #2056a4 !important;
+    }
+
+    #modal_detail .detail-text-danger {
+        color: #dc2626 !important;
+    }
+
+    #modal_detail .detail-highlight-box {
+        background: #eaf2fd;
+        border-radius: 8px;
+        margin-bottom: .9rem;
+        padding: .65rem .9rem;
+    }
+
+    #modal_detail .detail-highlight-label {
+        color: #2056a4;
+        display: block;
+        font-size: .76rem;
+        font-weight: 700;
+        margin-bottom: .15rem;
+    }
+
+    #modal_detail .detail-highlight-value {
+        background-color: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        color: #2056a4 !important;
+        font-size: 1.2rem;
+        font-weight: 800;
+        height: auto !important;
+        min-height: 0 !important;
+        opacity: 1 !important;
+        padding: 0 !important;
+        width: 100%;
+    }
+
+    #modal_detail .detail-section-divider {
+        align-items: center;
+        border-top: 1px dashed #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        margin: 1rem 0 .9rem;
+        padding-top: .85rem;
+    }
+
+    #modal_detail .detail-section-title {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 800;
+    }
+
+    #modal_detail .detail-section-title-dot::before {
+        background: #2056a4;
+        border-radius: 50%;
+        content: "";
+        display: inline-block;
+        height: 7px;
+        margin-right: .45rem;
+        width: 7px;
+    }
+
+    #modal_detail .detail-status-badge {
+        border-radius: 999px;
+        display: inline-block;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .03em;
+        padding: .15rem .65rem;
+        text-transform: uppercase;
+    }
+
+    #modal_detail .detail-status-badge.badge-success {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    #modal_detail .detail-status-badge.badge-secondary {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    #modal_detail .detail-status-badge.badge-danger {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    #modal_detail .detail-file-btn {
+        align-items: center;
+        display: flex;
+        font-size: .86rem;
+        font-weight: 700;
+        justify-content: center;
+        margin-top: .25rem;
+    }
+
+    #modal_detail .detail-file-btn-success {
+        background: #eafaf0;
+        border-color: #34d399;
+        color: #0f9d58;
+    }
+
+    #modal_detail .detail-file-btn-success:hover {
+        background: #d6f5e3;
+        color: #0f9d58;
+    }
+
+    #modal_detail .detail-status-card .custom-switch .custom-control-input:disabled ~ .custom-control-label {
+        opacity: 1;
+    }
+
+    #modal_detail .detail-status-card .custom-switch .custom-control-input:disabled ~ .custom-control-label::before {
+        opacity: .65;
+    }
+
+    #modal_detail .detail-status-card .custom-switch .custom-control-input:disabled:checked ~ .custom-control-label::before {
+        background-color: #2057a3;
+        border-color: #2057a3;
+        opacity: 1;
+    }
+
+    #modal_detail .detail-price-comparison > .row > [class*="col-md-"] {
+        background: #fff;
+        border: 1px solid #cfd6e3;
+        border-radius: 8px;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .05);
+        margin-bottom: 1rem;
+        padding: 0 1rem 1rem;
+    }
+
+    #modal_detail .detail-price-comparison > .row > [class*="col-md-"] > .divider:first-child {
+        background: #f8fafc;
+        border: 1px solid #edf0f2;
+        border-radius: 8px 8px 0 0;
+        margin: 0 -1rem 1rem;
+        padding: .75rem 1rem;
+    }
+
+    #modal_detail .detail-production-dashboard {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: minmax(220px, 1.4fr) repeat(4, minmax(120px, 1fr));
+        margin-bottom: 1rem;
+    }
+
+    #modal_detail .detail-progress-card,
+    #modal_detail .detail-mini-card {
+        padding: 1rem;
+    }
+
+    #modal_detail .detail-progress-number {
+        color: #003b78;
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    #modal_detail .detail-mini-label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    #modal_detail .detail-mini-value {
+        color: #111827;
+        font-size: 1rem;
+        font-weight: 800;
+        margin-top: .35rem;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .foto-container {
+        min-height: 0;
+    }
+
+    #modal_detail [id^="dt-list_"],
+    #modal_detail #list_rab_dokumen,
+    #modal_detail #dt-file_pph42-here,
+    #modal_detail #dt-file_ppn-here {
+        display: grid !important;
+        gap: .85rem;
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    }
+
+    #modal_detail .input-foto-container,
+    #modal_detail .detail-file-tile {
+        background: #fff;
+        border: 1px solid #d7deea;
+        border-radius: 8px;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .05);
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        min-height: 0;
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+    }
+
+    #modal_detail .input-foto,
+    #modal_detail .detail-file-preview {
+        background: #f3f6fb;
+        border-bottom: 1px solid #e5eaf2;
+        display: block;
+        min-height: 128px;
+        position: relative;
+        width: 100%;
+    }
+
+    #modal_detail .input-foto img,
+    #modal_detail .detail-file-preview img,
+    #modal_detail .detail-file-preview embed {
+        display: block;
+        height: 128px;
+        object-fit: cover;
+        width: 100%;
+    }
+
+    #modal_detail .detail-file-icon {
+        align-items: center;
+        color: #2056a4;
+        display: flex;
+        font-size: 2rem;
+        height: 128px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    #modal_detail .detail-file-body,
+    #modal_detail .input-foto-container .detail-file-body {
+        padding: .75rem;
+    }
+
+    #modal_detail .detail-file-title {
+        color: #111827;
+        font-size: .9rem;
+        font-weight: 800;
+        line-height: 1.25;
+        margin-bottom: .35rem;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .detail-file-meta {
+        color: #667085;
+        font-size: .78rem;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .detail-file-action {
+        align-items: center;
+        display: flex;
+        gap: .45rem;
+        justify-content: space-between;
+        margin-top: .75rem;
+    }
+
+    #modal_detail .detail-file-action .btn,
+    #modal_detail .input-foto-container .btn {
+        border-radius: 6px;
+        font-size: .78rem;
+        padding: .35rem .65rem;
+    }
+
+    .dark-layout #modal_detail .modal-header,
+    .dark-layout #modal_detail .detail-consumer-card .card-header,
+    .dark-layout #modal_detail .detail-tabs-card .card-body,
+    .dark-layout #modal_detail .card,
+    .dark-layout #modal_detail .detail-summary-card,
+    .dark-layout #modal_detail .detail-metric-card,
+    .dark-layout #modal_detail .detail-accordion-card,
+    .dark-layout #modal_detail .detail-progress-card,
+    .dark-layout #modal_detail .detail-mini-card,
+    .dark-layout #modal_detail .detail-accordion-toggle,
+    .dark-layout #modal_detail .input-foto-container,
+    .dark-layout #modal_detail .detail-file-tile {
+        background: #283046;
+        border-color: rgba(255, 255, 255, .08);
+    }
+
+    .dark-layout #modal_detail .modal-title,
+    .dark-layout #modal_detail .detail-consumer-card span,
+    .dark-layout #modal_detail .info-value,
+    .dark-layout #modal_detail .divider .divider-text,
+    .dark-layout #modal_detail .detail-metric-total,
+    .dark-layout #modal_detail .detail-metric-value,
+    .dark-layout #modal_detail .detail-accordion-toggle,
+    .dark-layout #modal_detail .detail-mini-value,
+    .dark-layout #modal_detail .detail-file-title,
+    .dark-layout #modal_detail .detail-info-value,
+    .dark-layout #modal_detail .detail-status-card-title,
+    .dark-layout #modal_detail .detail-section-title {
+        color: #f8fafc;
+    }
+
+    .dark-layout #modal_detail .detail-highlight-box {
+        background: rgba(32, 86, 164, .25);
+    }
+
+    .dark-layout #modal_detail .detail-section-divider {
+        border-top-color: rgba(255, 255, 255, .08);
+    }
+
+    .dark-layout #modal_detail .modal-body,
+    .dark-layout #modal_detail .info-row,
+    .dark-layout #modal_detail .form-control:disabled,
+    .dark-layout #modal_detail .form-control[readonly] {
+        background: #1f2937 !important;
+    }
+
+    .dark-layout #modal_detail .detail-hero-card {
+        background: linear-gradient(145deg, #2056a4 0%, #1f7a8c 100%);
+    }
+
+    .dark-layout #modal_detail .detail-price-card,
+    .dark-layout #modal_detail .detail-meta-card {
+        background: rgba(255, 255, 255, 0.94);
+        color: #111827;
+    }
+
+    .dark-layout #modal_detail .detail-price-card h5,
+    .dark-layout #modal_detail .detail-meta-card h6 {
+        color: #374151;
+    }
+
+    .produksi-jalan-history-card {
+        border: 1px solid #edf0f2;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .produksi-jalan-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: .9rem;
+        margin: 0;
+        padding: 0;
+    }
+
+    .produksi-jalan-timeline-item {
+        border-left: 3px solid #2056a4;
+        padding-left: .9rem;
+        position: relative;
+    }
+
+    .produksi-jalan-timeline-item::before {
+        background: #2056a4;
+        border: 3px solid #fff;
+        border-radius: 999px;
+        box-shadow: 0 0 0 2px rgba(32, 86, 164, .18);
+        content: "";
+        height: 13px;
+        left: -8px;
+        position: absolute;
+        top: .2rem;
+        width: 13px;
+    }
+
+    .produksi-jalan-timeline-title {
+        color: #003b78;
+        font-weight: 800;
+    }
+
+    .produksi-jalan-timeline-meta {
+        color: #6b7280;
+        font-size: .78rem;
+    }
+
+    .produksi-jalan-timeline-photo {
+        height: 72px;
+        object-fit: cover;
+        width: 96px;
+    }
+
+    .dark-layout .produksi-jalan-history-card {
+        background: #283046;
+        border-color: rgba(255, 255, 255, .08);
+    }
+
+    .dark-layout .produksi-jalan-timeline-title {
+        color: #f8fafc;
+    }
+
+    @media (max-width: 1199.98px) {
+        #modal_detail .detail-kavling-layout {
+            flex-wrap: wrap;
+        }
+
+        #modal_detail .detail-kavling-sidebar,
+        #modal_detail .detail-kavling-content {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        #modal_detail .detail-kavling-sidebar {
+            position: static;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        #modal_detail .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
+        }
+
+        #modal_detail .modal-body {
+            max-height: calc(100vh - 5.5rem);
+            padding: .75rem;
+        }
+
+        #modal_detail .nav-pills {
+            flex-direction: row !important;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: .25rem;
+        }
+
+        #modal_detail .detail-dashboard-grid,
+        #modal_detail .detail-card-grid,
+        #modal_detail .detail-production-dashboard {
+            grid-template-columns: 1fr;
+        }
+
+        #modal_detail .card-body {
+            padding: .85rem;
+        }
     }
 
 
@@ -827,21 +1983,7 @@ foreach (user()->getRoles() as $key => $val) {
         }
 
     };
-    const list_pekerjaan = {
-        "Pekerjaan Persiapan": ["Persiapan Pembersihan lokasi", "Pemasangan bouplank"],
-        "Pekerjaan Pondasi": ["Galian tanah pondasi", "Pasangan Pondasi Batu kali", "Pasangan Pondasi plat Setempat", "Instalasi Pipa Air Kotor pendam 3 inch", "Instalasi Pipa Air Kotor Pendam 4 inch", "Instalasi Pipa Air Kotor Pendam lebih dari 4 inch", "Urugan tanah pondasi tinggi 0-20 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi 20-50 cm dari jalan lingkungan", "Urugan tanah pondasi tinggi lebih dari 50 cm dari jalan lingkungan"],
-        "Pekerjaan Pembesian/Kontruksi": ["Rangkaian pemasangan besi/tulangan pada sloof Bawah", "Rangkaian pemasangan Pasang besi/tulangan pada Ring Balok/balok atas", "Rangkaian pemasangan besi/tulangan pada kolom", "Rangkaian pemasangan besi/tulangan pada sopi-sopi/Gewel/gunungan", "Rangkaian pemasangan pertemuan Besi Tulangan antara Kolom dan Sloof Bawah", "Rangkaian pemasangan pertemuan Tulangan antara Kolom dan Ring Balk/balok atas", "Rangkaian pemasangan pertemuan Tulangan antara Kolom, Ring Balk/balok atas dan sopi-sopi/gunungan", ],
-        "Pekerjaan Cor Beton": ["Cor Beton sloof bawah", "Cor Beton Ring Balk/balok atas", "Tangga Beton (jika rumah 2 lantai)", "Plat Lantai Beton lantai 2", "Plat Lantai Beton lantai"],
-        "Pekerjaan Pasangan Dinding": ["Pasang Bata/Batako/Bata Ringan/Jenis lain", "Plesteran tebal", "Acian semen", "Pasangan keramik dinding kamar mandi", "Pasangan keramik dinding dapur"],
-        "Pekerjaan Atap": ["Rangka atap & Kuda Kuda", "Tutup atap/genting", "Genting bubung", "Listplang kayu", "Talang sudut"],
-        "Pekerjaan Instalasi": ["Instalasi Air bersih", "Instalasi/Jaringan Listrik"],
-        "Pekerjaan Langit-langit (Plapond)": ["Rangka plapond", "Penutup plapond"],
-        "Pekerjaan Lantai": ["Lantai kerja (pasir lantai)", "Penutup lantai"],
-        "Pekerjaan kusen": ["Kusen/pintu Utama", "Jendela Utama/jendela teras", "Kusen/pintu Kamar", "Jendela Kamar"],
-        "Pekerjaan Kaca dan Kunci": ["Pasang kaca jendela", "Pasang kunci tanam pintu", "Pasang kunci kamar mandi", "Pasang engsel pintu", "Pasang engsel jendela", "Pasang tulak angin/Hak angin /windows stay"],
-        "Pekerjaan Sanitasi": ["Pasang closet", "Pasang washtafel", "Pasang bak mandi", "Pasang bak cuci piring", "Septictank"],
-        "Pekerjaan Finishing & Pegecatan": ["Pengecatan kusen", "Pengecatan pintu dan jendela", "Pengecatan Plapond", "Pengecatan tembok"]
-    };
+
 
     //carousel
     $('.carousel').carousel('pause')
@@ -1051,24 +2193,14 @@ foreach (user()->getRoles() as $key => $val) {
         if (roleid == 1) {
             let va = $("#pilih-divisi option:selected").val();
             $(".div_menu").addClass("hidden");
-            if (va == 6) {
-                $("#planning_menu").removeClass("hidden")
-            } else if (va == 4) {
-                $("#mkdt_menu").removeClass("hidden")
-            } else if (va == 7) {
-                $("#produksi_menu").removeClass("hidden")
-            } else if (va == 8) {
-                $("#sales_menu").removeClass("hidden")
-            } else if (va == 3) {
-                $("#keuangan_menu").removeClass("hidden")
-            } else if (va == 9) {
-                $("#direksi_menu").removeClass("hidden")
-            } else if (va == 11) {
-                $("#target_menu").removeClass("hidden")
-            } else if (va == 0) {
-                $("#others_menu").addClass("hidden")
-            } else {
-                $("#others_menu").removeClass("hidden")
+
+            if (va != 0) {
+                const $selectedMenu = $('.div_menu[data-siteplan-role="' + va + '"]');
+                if ($selectedMenu.length) {
+                    $selectedMenu.removeClass("hidden");
+                } else {
+                    $('.div_menu[data-siteplan-role="0"]').removeClass("hidden");
+                }
             }
         }
 
@@ -1155,7 +2287,42 @@ foreach (user()->getRoles() as $key => $val) {
         return e;
     }
 
+    const legalStatusOrder = [
+        'Belum Legal',
+        'Data Legal Masuk',
+        'Sertipikat Induk Ada',
+        'Split Sertipikat Diproses',
+        'Sertipikat Split Terbit',
+        'PBB Pecah / NOP Terbit',
+        'PBG/IMB Terbit',
+        'PPJB Dibuat',
+        'PPH Dibayar / Validasi',
+        'BPHTB Dibayar / Validasi',
+        'AJB Dibuat',
+        'Balik Nama Sertipikat',
+        'Balik Nama PBB',
+        'Selesai Legal'
+    ];
+
+    const legalStatusColors = {
+        'Belum Legal': '#f8fafc',
+        'Data Legal Masuk': '#94a3b8',
+        'Sertipikat Induk Ada': '#a78bfa',
+        'Split Sertipikat Diproses': '#c084fc',
+        'Sertipikat Split Terbit': '#7c3aed',
+        'PBB Pecah / NOP Terbit': '#38bdf8',
+        'PBG/IMB Terbit': '#2563eb',
+        'PPJB Dibuat': '#6366f1',
+        'PPH Dibayar / Validasi': '#f59e0b',
+        'BPHTB Dibayar / Validasi': '#d97706',
+        'AJB Dibuat': '#ec4899',
+        'Balik Nama Sertipikat': '#22c55e',
+        'Balik Nama PBB': '#16a34a',
+        'Selesai Legal': '#047857'
+    };
+
     function get_kategori_color(kategori) {
+        if (legalStatusColors[kategori]) return legalStatusColors[kategori];
         if (kategori == 'Belum Target') return '#f8fafc';
         if (String(kategori).indexOf('Target ') === 0) {
             const colors = ['#f59e0b', '#14b8a6', '#3b82f6', '#a855f7', '#ef4444', '#22c55e'];
@@ -1163,6 +2330,87 @@ foreach (user()->getRoles() as $key => $val) {
             return colors[Math.abs(year || 0) % colors.length];
         }
         return conf[kategori] ? conf[kategori].fill : '#d1d5db';
+    }
+
+    function legalHasValue(value) {
+        return value !== null &&
+            value !== undefined &&
+            value !== '' &&
+            value !== 'null' &&
+            value !== '0000-00-00';
+    }
+
+    function legalIsYes(value) {
+        return value === 1 || value === '1' || value === true || value === 'Ya' || value === 'Iya' || value === 'Sudah';
+    }
+
+    function getLegalStatus(row) {
+        if (!row.id_legal) {
+            return {
+                fill: 'Belum Legal',
+                tipe: 'Legal'
+            };
+        }
+
+        const sertifikatBalikNama = legalIsYes(row.sertifikat_is_balik_nama);
+        const pbbBalikNama = legalIsYes(row.pbb_is_balik_nama);
+        const sertifikatDikirim = legalHasValue(row.sertifikat_balik_nama_tgl_pengiriman) || legalHasValue(row.sertifikat_balik_nama_ke);
+        const pbbDikirim = legalHasValue(row.pbb_balik_nama_tgl_pengiriman) || legalHasValue(row.pbb_balik_nama_ke);
+
+        let status = 'Data Legal Masuk';
+
+        if (legalHasValue(row.sertifikat_split_no_hgb_induk)) {
+            status = 'Sertipikat Induk Ada';
+        }
+
+        if (legalIsYes(row.sertifikat_is_split) && !legalHasValue(row.sertifikat_split_no_hgb)) {
+            status = 'Split Sertipikat Diproses';
+        }
+
+        if (legalHasValue(row.sertifikat_split_no_hgb) || legalHasValue(row.sertifikat_split_nib) || legalHasValue(row.sertifikat_split_tanggal_terbit)) {
+            status = 'Sertipikat Split Terbit';
+        }
+
+        if (legalHasValue(row.pbb_pecah_nop)) {
+            status = 'PBB Pecah / NOP Terbit';
+        }
+
+        if (row.pbg_status === 'Selesai' || legalHasValue(row.pbg_no) || legalHasValue(row.pbg_tanggal_terbit)) {
+            status = 'PBG/IMB Terbit';
+        }
+
+        if (legalHasValue(row.ppjb_no) || legalHasValue(row.ppjb_tanggal)) {
+            status = 'PPJB Dibuat';
+        }
+
+        if (legalHasValue(row.pph_tgl_bayar) || legalHasValue(row.pph_ntpn) || legalHasValue(row.pph_tanggal_validasi) || legalHasValue(row.pph_tgl_selesai) || legalHasValue(row.pph_no_sket)) {
+            status = 'PPH Dibayar / Validasi';
+        }
+
+        if (legalHasValue(row.bphtb_tanggal_pembayaran) || legalHasValue(row.bphtb_tanggal_validasi)) {
+            status = 'BPHTB Dibayar / Validasi';
+        }
+
+        if (legalHasValue(row.ajb_no) || legalHasValue(row.ajb_tanggal)) {
+            status = 'AJB Dibuat';
+        }
+
+        if (sertifikatBalikNama) {
+            status = 'Balik Nama Sertipikat';
+        }
+
+        if (pbbBalikNama) {
+            status = 'Balik Nama PBB';
+        }
+
+        if (sertifikatBalikNama && pbbBalikNama && (sertifikatDikirim || pbbDikirim)) {
+            status = 'Selesai Legal';
+        }
+
+        return {
+            fill: status,
+            tipe: 'Legal'
+        };
     }
 
     function hitung_kavling(fill) {
@@ -1187,7 +2435,9 @@ foreach (user()->getRoles() as $key => $val) {
                 <div class="divider">
                     <div class="divider-text">${i} ${i == 'Subsidi' || i == 'Komersil' ? 'Dipasarkan' : ''}</div>
                 </div>`;
-                const sortedKeys = Object.keys(v).sort();
+                const sortedKeys = i === 'Legal' ?
+                    legalStatusOrder.filter(key => Object.prototype.hasOwnProperty.call(v, key)).concat(Object.keys(v).filter(key => !legalStatusOrder.includes(key)).sort()) :
+                    Object.keys(v).sort();
 
                 // Step 2: Create a new object with sorted keys
                 const sortedObj = {};
@@ -1216,6 +2466,7 @@ foreach (user()->getRoles() as $key => $val) {
             Status: null,
             Subsidi: null,
             Komersil: null,
+            Legal: null,
             Target: null,
             'Lain-lain': null
         };
@@ -1409,11 +2660,7 @@ foreach (user()->getRoles() as $key => $val) {
                             }
                         }
                     } else if (va == 5) { //legal
-                        if (r[p].id_legal)
-                            hit = set_fill2("Sudah Diisi")
-                        if (r[p].sertifikat_is_balik_nama == "Sudah") {
-                            hit = set_fill2("Sudah Balik Nama")
-                        }
+                        hit = getLegalStatus(r[p]);
 
                         // if (
                         //     r[p].sertifikat_tgl != null && r[p].sertifikat_tgl != "0000-00-00" &&
@@ -1582,7 +2829,7 @@ foreach (user()->getRoles() as $key => $val) {
                         return val !== null && val !== '';
                     });
 
-                    if (va != 11 && isComplete) {
+                    if (va != 11 && va != 5 && isComplete) {
                         hit = set_fill2("Selesai");
                     }
 
@@ -1663,9 +2910,6 @@ foreach (user()->getRoles() as $key => $val) {
                 }
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
-
-                if (roleid == 3)
-                    cek_jatuh_tempo(true)
             },
             error: function(xhr, st, err) {
                 $("#loading").addClass("hidden")
@@ -1906,9 +3150,45 @@ foreach (user()->getRoles() as $key => $val) {
         }
     })
 
+    function refresh_manual_selection_points() {
+        dtt = [];
+        var sj = stage.find("#seljal");
+
+        for (let u = 0; u < sj.length; u++) {
+            dtt.push(Math.trunc(sj[u].attrs.x), Math.trunc(sj[u].attrs.y))
+        }
+
+        line_ms.points(dtt)
+        masked.batchDraw()
+        return dtt;
+    }
+
+    function undo_manual_selection() {
+        var sj = stage.find("#seljal");
+
+        if (!sj.length) {
+            return swal('error', 'Terjadi kesalahan', 'Belum ada titik seleksi manual')
+        }
+
+        sj[sj.length - 1].destroy();
+        refresh_manual_selection_points();
+    }
+
+    $(document).on('keydown', function(e) {
+        var tagName = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
+
+        if (!isManualSelectionActive() || ['input', 'textarea', 'select'].includes(tagName)) {
+            return;
+        }
+
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+            e.preventDefault();
+            undo_manual_selection();
+        }
+    });
+
     stage.on('click tap', function(e) {
         if (isManualSelectionActive()) {
-            dtt = [];
             var pos = this.getRelativePointerPosition();
 
             var dot = new Konva.Circle({
@@ -1920,25 +3200,14 @@ foreach (user()->getRoles() as $key => $val) {
                 draggable: true
             })
             manual_selection.add(dot);
-
-            var sj = stage.find("#seljal");
-            for (let u = 0; u < sj.length; u++) {
-                dtt.push(Math.trunc(sj[u].attrs.x), Math.trunc(sj[u].attrs.y))
-            }
-            line_ms.points(dtt)
+            refresh_manual_selection_points();
         }
     })
     masked.add(line_ms)
     masked.add(manual_selection)
 
     manual_selection.on('dragend', function(e) {
-        dtt = []
-        var sj = stage.find("#seljal");
-        for (let u = 0; u < sj.length; u++) {
-            dtt.push(Math.trunc(sj[u].attrs.x), Math.trunc(sj[u].attrs.y))
-        }
-
-        line_ms.points(dtt)
+        refresh_manual_selection_points();
     })
 
     //even mouse move data kavling
@@ -2129,12 +3398,16 @@ foreach (user()->getRoles() as $key => $val) {
         // alert(sh.data.tipe)
         $("#f_detail_progres_jalan").val(0)
         $(".t_luas_planning, .t_keterangan_planning, .t_luas_legal, .t_keterangan_legal, .t_luas_produksi, .t_keterangan_produksi, .r_progres").html("-")
+        $("#detail_produksi_jalan_history_wrap").addClass("d-none")
+        resetProduksiJalanHistoryTimeline("#detail_produksi_jalan_history")
         $.ajax({
             url: base_url + 'siteplan/get_others',
             type: 'post',
             data: {
                 [csrfName]: csrfHash,
-                id_kavling: editdtt[0].id.substr(6)
+                id_kavling: editdtt[0].id.substr(6),
+                history_limit: PRODUKSI_JALAN_HISTORY_LIMIT,
+                history_offset: 0
             },
             dataType: 'json',
             success: function(r) {
@@ -2162,6 +3435,8 @@ foreach (user()->getRoles() as $key => $val) {
                     }
                     $("#f_detail_progres_jalan").val(progres)
                     $(".r_progres").html(progres)
+                    $("#detail_produksi_jalan_history_wrap").toggleClass("d-none", d.tipe !== "jalan")
+                    renderProduksiJalanHistoryTimeline("#detail_produksi_jalan_history", r.history || [], r, false)
 
                 }
 
@@ -2186,6 +3461,115 @@ foreach (user()->getRoles() as $key => $val) {
             keyboard: false
         });
     }
+
+    const PRODUKSI_JALAN_HISTORY_LIMIT = 5;
+
+    function escapeProduksiJalanHistoryValue(value) {
+        return $("<div>").text(value === null || value === undefined ? "" : value).html();
+    }
+
+    function resetProduksiJalanHistoryTimeline(targetSelector) {
+        const $target = $(targetSelector);
+        $target
+            .data("id-others", "")
+            .data("next-offset", 0)
+            .data("history-limit", PRODUKSI_JALAN_HISTORY_LIMIT)
+            .html('<div class="text-muted">Memuat history...</div>');
+    }
+
+    function renderProduksiJalanHistoryTimeline(targetSelector, history, meta, append) {
+        const $target = $(targetSelector);
+        const idOthers = meta && meta.data && meta.data[0] ? meta.data[0].id : $target.data("id-others");
+        const nextOffset = meta ? (meta.history_next_offset || 0) : 0;
+        const limit = meta ? (meta.history_limit || PRODUKSI_JALAN_HISTORY_LIMIT) : PRODUKSI_JALAN_HISTORY_LIMIT;
+        const hasMore = !!(meta && meta.history_has_more);
+
+        $target
+            .data("id-others", idOthers || "")
+            .data("next-offset", nextOffset)
+            .data("history-limit", limit);
+
+        if (!append) {
+            $target.html('<div class="produksi-jalan-timeline"></div><div class="produksi-jalan-history-action mt-1"></div>');
+        }
+
+        const $timeline = $target.find(".produksi-jalan-timeline");
+        if (!history.length && !append) {
+            $timeline.html('<div class="text-muted">Belum ada history progres.</div>');
+        }
+
+        $.each(history, function(index, item) {
+            let photos = "";
+            $.each(item.foto_urls || [], function(fotoIndex, url) {
+                photos +=
+                    '<a href="' + url + '" target="_blank" class="mr-1 mb-1 d-inline-block">' +
+                    '<img src="' + url + '" class="img-thumbnail produksi-jalan-timeline-photo" />' +
+                    '</a>';
+            });
+
+            $timeline.append(
+                '<div class="produksi-jalan-timeline-item">' +
+                    '<div class="d-flex justify-content-between align-items-start flex-wrap">' +
+                        '<div class="produksi-jalan-timeline-title">Progres ' +
+                            escapeProduksiJalanHistoryValue(item.progres) + '%</div>' +
+                        '<div class="produksi-jalan-timeline-meta">' + format_datetime(item.created_at) + '</div>' +
+                    '</div>' +
+                    '<div class="produksi-jalan-timeline-meta mb-1">Oleh: ' +
+                        escapeProduksiJalanHistoryValue(item.username || '-') + '</div>' +
+                    '<div>' + escapeProduksiJalanHistoryValue(item.keterangan || '-') + '</div>' +
+                    (photos ? '<div class="mt-1">' + photos + '</div>' : '') +
+                '</div>'
+            );
+        });
+
+        const $action = $target.find(".produksi-jalan-history-action");
+        if (hasMore) {
+            $action.html(
+                '<button type="button" class="btn btn-outline-primary btn-sm produksi-jalan-load-more" data-target="' +
+                    escapeProduksiJalanHistoryValue(targetSelector) + '">Muat lagi</button>'
+            );
+        } else {
+            $action.empty();
+        }
+    }
+
+    $(document).off("click", ".produksi-jalan-load-more").on("click", ".produksi-jalan-load-more", function() {
+        loadProduksiJalanHistoryMore($(this).data("target"));
+    });
+
+    function loadProduksiJalanHistoryMore(targetSelector) {
+        const $target = $(targetSelector);
+        const idOthers = $target.data("id-others");
+        if (!idOthers) return;
+
+        const $button = $target.find(".produksi-jalan-history-action .btn");
+        $button.prop("disabled", true).html('Memuat <i class="fa fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: base_url + 'siteplan/get_others',
+            type: 'post',
+            data: {
+                [csrfName]: csrfHash,
+                id_kavling: idOthers,
+                history_limit: $target.data("history-limit") || PRODUKSI_JALAN_HISTORY_LIMIT,
+                history_offset: $target.data("next-offset") || 0
+            },
+            dataType: 'json',
+            success: function(r) {
+                csrfHash = r.token;
+                renderProduksiJalanHistoryTimeline(targetSelector, r.history || [], r, true);
+            },
+            error: function() {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Terjadi kesalahan saat memuat history',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                $button.prop("disabled", false).html("Muat lagi");
+            }
+        });
+    }
     const isSubsidi = ['Non-Subsidi', 'Subsidi'],
         isKPR = ['Tunai/Cash Keras', 'KPR', 'Tunai/Bertahap']
 
@@ -2198,10 +3582,13 @@ foreach (user()->getRoles() as $key => $val) {
         dr;
 
     function detail_kavling(sh, id_kavling) {
+        prepareDetailModalRedesign();
         $(".id_sikumbang").html("Memuat data sikumbang...");
         let src = not_found
-        $("#fm-detail :input").prop("disabled", true)
+        $("#fm-detail input, #fm-detail select, #fm-detail textarea").prop("disabled", true)
         $('#dtt-summary-tab').tab('show');
+        $("#detailConsumerMore").collapse('hide');
+        $(".detail-consumer-toggle").attr('aria-expanded', 'false');
 
         $("#dt-promo").text('-')
         $("#dt-is_kpr").text('-')
@@ -2259,6 +3646,16 @@ foreach (user()->getRoles() as $key => $val) {
                 dr = r
 
                 loadSummary(dr)
+                loadPL(r.pricelist)
+                loadKavling(r)
+                loadMKDT(r.mkdt)
+                loadLegal(r.legal)
+                loadTagihan(r)
+                loadProduksi(r.produksi, r.files)
+                loadBuktiBayarPajak(r)
+                loadCashOut(r.cashout || [])
+                loadFinanceFlow(r.finance_flow || {})
+                loadBayarProduksi(r.bayar_produksi || [])
                 loaded['sm'] = true
 
                 /************************ load bayar produksi  ***************************/
@@ -2267,7 +3664,7 @@ foreach (user()->getRoles() as $key => $val) {
 
                 $(".label_alamat").html(lAlamat);
                 $("#label-hargajual").html(`
-                    Harga Jual: <h2 class="text-primary mb-0"><strong>Rp. ${sh.data2.harga_akhir}</strong></h5>
+                    <h5 class="text-primary mb-0"><strong>Rp. ${sh.data2.harga_akhir}</strong></h5>
                     <small class="text-muted">(${format_date(sh.data2.harga_akhir_tgl)} - ${sh.data2.harga_akhir_oleh})</small>`);
 
                 $("#modal_detail").modal('show');
@@ -2475,6 +3872,362 @@ foreach (user()->getRoles() as $key => $val) {
         $(id).html(`Terakhir diubah oleh: <b>${u}</b>, pada: <b>${t}</b> `);
     }
 
+    let detailModalRedesignPrepared = false;
+
+    function detailMoneyValue(value) {
+        if (value === null || value === undefined || value === '') return 0;
+        if (typeof value === 'number') return value;
+        return Number(String(value).replace(/[^0-9.-]/g, '')) || 0;
+    }
+
+    function detailRupiah(value) {
+        return 'Rp ' + new Intl.NumberFormat('id-ID').format(detailMoneyValue(value));
+    }
+
+    function detailEscapeHtml(value) {
+        return $('<div>').text(value === null || value === undefined || value === '' ? '-' : value).html();
+    }
+
+    function detailPercentValue(value) {
+        const n = Number(String(value || '0').replace('%', '')) || 0;
+        return Math.max(0, Math.min(100, n));
+    }
+
+    function detailAccordionItem(parentId, itemId, title, isOpen = false) {
+        return `
+            <div class="detail-accordion-card">
+                <button class="detail-accordion-toggle" type="button" data-toggle="collapse"
+                    data-target="#${itemId}" aria-expanded="${isOpen ? 'true' : 'false'}"
+                    aria-controls="${itemId}">
+                    <span>${title}</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div id="${itemId}" class="collapse ${isOpen ? 'show' : ''}" data-parent="#${parentId}">
+                    <div class="detail-accordion-body" id="${itemId}-body"></div>
+                </div>
+            </div>`;
+    }
+
+    function detailTagihanCard(key, title, icon, totalId, paidId, dueId, percentId) {
+        return `
+            <div class="detail-metric-card" data-tagihan-card="${key}">
+                <input type="hidden" id="${totalId}" name="${totalId}">
+                <input type="hidden" id="${paidId}" name="${paidId}">
+                <input type="hidden" id="${dueId}" name="${dueId}">
+                <input type="hidden" id="${percentId}" name="${percentId}">
+                <div class="detail-card-icon"><i class="${icon}"></i></div>
+                <div class="detail-percent" id="${percentId}_text">0%</div>
+                <div class="detail-metric-title">${title}</div>
+                <div class="detail-metric-total" id="${totalId}_text">Rp 0</div>
+                <div class="detail-metric-row">
+                    <span class="detail-metric-label">Sudah Bayar</span>
+                    <span class="detail-metric-value" id="${paidId}_text">Rp 0</span>
+                </div>
+                <div class="detail-metric-row">
+                    <span class="detail-metric-label">Sisa Tagihan</span>
+                    <span class="detail-metric-value" id="${dueId}_text">Rp 0</span>
+                </div>
+                <div class="detail-progress-track">
+                    <div class="detail-progress-fill is-empty" id="detail-tagihan-${key}-bar"></div>
+                </div>
+            </div>`;
+    }
+
+    function renderTagihanCard(key, total, paid, due, percent) {
+        const map = {
+            um: {
+                total: '#dt-total_biaya_um',
+                paid: '#dt-sudah_bayar_um',
+                due: '#dt-sisa_tagihan_um',
+                percent: '#dt-persentase_bayar_tagihan_um',
+                bar: '#detail-tagihan-um-bar'
+            },
+            um_ll: {
+                total: '#dt-total_biaya_um_ll',
+                paid: '#dt-sudah_bayar_um_ll',
+                due: '#dt-sisa_tagihan_um_ll',
+                percent: '#dt-persentase_bayar_tagihan_um_ll',
+                bar: '#detail-tagihan-um_ll-bar'
+            },
+            bb: {
+                total: '#dt-total_biaya_bb',
+                paid: '#dt-sudah_bayar_bb',
+                due: '#dt-sisa_tagihan_bb',
+                percent: '#dt-persentase_bayar_tagihan_bb',
+                bar: '#detail-tagihan-bb-bar'
+            }
+        }[key];
+
+        if (!map) return;
+
+        const paidValue = detailMoneyValue(paid);
+        const dueValue = detailMoneyValue(due);
+        const percentValue = detailPercentValue(percent);
+        const $paidText = $(map.paid + '_text');
+        const $dueText = $(map.due + '_text');
+        const $bar = $(map.bar);
+
+        $(map.total + '_text').text(detailRupiah(total));
+        $paidText.text(detailRupiah(paid)).toggleClass('is-paid', paidValue > 0);
+        $dueText.text(detailRupiah(due)).toggleClass('is-due', dueValue > 0);
+        $(map.percent + '_text').text(percent || '0%');
+        $bar
+            .css('width', `${percentValue}%`)
+            .toggleClass('is-empty', percentValue <= 0)
+            .toggleClass('is-partial', percentValue > 0 && percentValue < 100);
+    }
+
+    function prepareDetailModalRedesign() {
+        if (detailModalRedesignPrepared || !$('#modal_detail').length) return;
+        detailModalRedesignPrepared = true;
+
+        $('#dtt-hj-tab').text('Keuangan');
+        $('#dt-stdetail-tab').text('Status & Akad');
+        $('#dt-legal-tab').text('Legal & Pajak');
+        $('#dt-tagihan-tab, #dt-cashout-tab, #dt-pajak-tab').closest('.nav-item').addClass('detail-legacy-hidden');
+
+        const $summaryRow = $('#dtt-summary > .row');
+        $summaryRow.addClass('detail-dashboard-grid').removeClass('row');
+        $summaryRow.children('[class*="col-md-"]').each(function(i) {
+            $(this).removeClass('col-md-4').addClass('detail-summary-card');
+            if (!$(this).find('.detail-card-icon').length) {
+                const icons = ['fas fa-clipboard-check', 'fas fa-wallet', 'fas fa-hard-hat'];
+                $(this).prepend(`<div class="detail-card-icon mb-1"><i class="${icons[i] || 'fas fa-info'}"></i></div>`);
+            }
+        });
+
+        buildDetailFinancePanel();
+        buildDetailLegalPanel();
+        buildDetailProductionPanel();
+        bindDetailModalRedesignEvents();
+    }
+
+    function buildDetailFinancePanel() {
+        const $finance = $('#dtt-hj');
+        if ($('#detailFinanceAccordion').length) return;
+
+        const $hargaContent = $finance.children().detach();
+
+        $('#dt-tagihan').empty().append(`
+            <small id="last_update_keuangan" class="text-muted d-block mb-1"></small>
+            <div class="detail-card-grid" id="detail-tagihan-cards">
+                ${detailTagihanCard('um', 'Total Uang Muka', 'far fa-money-bill-alt', 'dt-total_biaya_um', 'dt-sudah_bayar_um', 'dt-sisa_tagihan_um', 'dt-persentase_bayar_tagihan_um')}
+                ${detailTagihanCard('um_ll', 'Total Biaya Adm + Turun KPR', 'fas fa-receipt', 'dt-total_biaya_um_ll', 'dt-sudah_bayar_um_ll', 'dt-sisa_tagihan_um_ll', 'dt-persentase_bayar_tagihan_um_ll')}
+                ${detailTagihanCard('bb', 'Total Biaya-biaya', 'fas fa-list-alt', 'dt-total_biaya_bb', 'dt-sudah_bayar_bb', 'dt-sisa_tagihan_bb', 'dt-persentase_bayar_tagihan_bb')}
+            </div>
+        `);
+
+        const $tagihanContent = $('#dt-tagihan').children().detach();
+        const $cashoutContent = $('#dt-cashout').children().detach();
+
+        $finance.append(`
+            <div class="detail-accordion" id="detailFinanceAccordion">
+                ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-tagihan', 'Tagihan', true)}
+                ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-flow', 'Income & Expense')}
+                ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-harga', 'Harga Jual')}
+                ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-cashout', 'Cashout')}
+            </div>
+        `);
+
+        $('#detail-finance-harga-body').addClass('detail-price-comparison').append($hargaContent);
+        $('#detail-finance-tagihan-body').append($tagihanContent);
+        $('#detail-finance-flow-body').append(`
+            <div class="detail-card-grid mb-1">
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Income</div>
+                    <div class="detail-mini-value detail-text-primary" id="dt-finance-income-total">Rp 0</div>
+                    <small class="text-muted" id="dt-finance-income-count">0 transaksi</small>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Expense</div>
+                    <div class="detail-mini-value detail-text-danger" id="dt-finance-expense-total">Rp 0</div>
+                    <small class="text-muted" id="dt-finance-expense-count">0 transaksi</small>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Saldo Bersih</div>
+                    <div class="detail-mini-value" id="dt-finance-balance-total">Rp 0</div>
+                    <small class="text-muted">Income - expense</small>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-1 mb-md-0">
+                    <div class="divider divider-left">
+                        <div class="divider-text">Income</div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-0" id="dt-finance-income-table">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Label</th>
+                                    <th class="text-right">Nominal</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="divider divider-left">
+                        <div class="divider-text">Expense</div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-0" id="dt-finance-expense-table">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Item</th>
+                                    <th class="text-right">Nominal</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `);
+        $('#detail-finance-cashout-body').append(`
+            <div class="detail-card-grid mb-1">
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Total Cashout</div>
+                    <div class="detail-mini-value" id="dt-cashout-summary-total">Rp 0</div>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Jumlah Item</div>
+                    <div class="detail-mini-value" id="dt-cashout-summary-count">0 item</div>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Status</div>
+                    <div class="detail-mini-value" id="dt-cashout-summary-status">Belum ada data</div>
+                </div>
+            </div>
+        `).append($cashoutContent);
+    }
+
+    function buildDetailLegalPanel() {
+        const $legal = $('#dt-legal');
+        if ($('#detailLegalAccordion').length) return;
+
+        const $lastUpdate = $('#last_update_legal').detach();
+        const groups = {
+            sertifikat: [
+                $('#dt-legal-sertifikat').children().detach(),
+                $('#dt-legal-pbb').children().detach()
+            ],
+            pajak: [
+                $('#dt-legal-bphtb').children().detach(),
+                $('#dt-legal-pph').children().detach(),
+                $('#dt-pajak').children().detach()
+            ],
+            akad: [
+                $('#dt-legal-pbg').children().detach(),
+                $('#dt-legal-ajb').children().detach()
+            ]
+        };
+
+        $legal.empty().append($lastUpdate).append(`
+            <div class="detail-accordion mt-1" id="detailLegalAccordion">
+                ${detailAccordionItem('detailLegalAccordion', 'detail-legal-sertifikat', 'Sertipikat & PBB', true)}
+                ${detailAccordionItem('detailLegalAccordion', 'detail-legal-pajak', 'BPHTB, PPH & Bukti Bayar')}
+                ${detailAccordionItem('detailLegalAccordion', 'detail-legal-akad', 'PBG & AJB/PPJB')}
+            </div>
+        `);
+
+        groups.sertifikat.forEach($content => $('#detail-legal-sertifikat-body').append($content));
+        groups.pajak.forEach($content => $('#detail-legal-pajak-body').append($content));
+        groups.akad.forEach($content => $('#detail-legal-akad-body').append($content));
+    }
+
+    function buildDetailProductionPanel() {
+        const $produksi = $('#dt-produksi');
+        if ($('#detailProductionAccordion').length) return;
+
+        const $lastUpdate = $('#last_update_produksi').detach();
+        const sections = {
+            progress: $('#dt-fm-prod-progress').children().detach(),
+            bayar: $('#dt-fm-prod-bayar_produksi').children().detach(),
+            dokumentasi: $('#dt-fm-prod-dokumentasi').children().detach(),
+            jalan: $('#dt-fm-prod-jalan').children().detach(),
+            listrik: $('#dt-fm-prod-listrik').children().detach(),
+            air: $('#dt-fm-prod-air').children().detach()
+        };
+
+        $produksi.empty().append($lastUpdate).append(`
+            <div class="detail-production-dashboard mt-1">
+                <div class="detail-progress-card">
+                    <div class="detail-mini-label">Progres Bangunan</div>
+                    <div class="detail-progress-number"><span id="dt-produksi-progress-summary">0</span>%</div>
+                    <div class="detail-progress-track mt-1">
+                        <div class="detail-progress-fill is-empty" id="dt-produksi-progress-bar"></div>
+                    </div>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Tanggal Bangun</div>
+                    <div class="detail-mini-value" id="dt-produksi-tanggal-bangun">-</div>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Tanggal Selesai</div>
+                    <div class="detail-mini-value" id="dt-produksi-tanggal-selesai">-</div>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Listrik</div>
+                    <div class="detail-mini-value" id="dt-produksi-listrik-summary">-</div>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Air</div>
+                    <div class="detail-mini-value" id="dt-produksi-air-summary">-</div>
+                </div>
+            </div>
+            <div class="detail-accordion" id="detailProductionAccordion">
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-progress', 'Progres & Jadwal', true)}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-bayar', 'Pembayaran Produksi')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-dokumentasi', 'Dokumentasi')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-jalan', 'Jalan')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-listrik', 'Listrik')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-air', 'Air')}
+            </div>
+        `);
+
+        $('#detail-produksi-progress-body').append(sections.progress);
+        $('#detail-produksi-bayar-body').append(sections.bayar);
+        $('#detail-produksi-dokumentasi-body').append(sections.dokumentasi);
+        $('#detail-produksi-jalan-body').append(sections.jalan);
+        $('#detail-produksi-listrik-body').append(sections.listrik);
+        $('#detail-produksi-air-body').append(sections.air);
+    }
+
+    function bindDetailModalRedesignEvents() {
+        $(document)
+            .off('change.detailRedesign', '#dt-listrik_jenis')
+            .on('change.detailRedesign', '#dt-listrik_jenis', function() {
+                if (this.value == "PLN") {
+                    $("#dt-listrik-pln-input-form").removeClass("hidden");
+                    $("#listrik_disediakan").addClass("hidden");
+                } else {
+                    $("#dt-listrik-pln-input-form").addClass("hidden");
+                    $("#listrik_disediakan").removeClass("hidden");
+                }
+            });
+
+        $(document)
+            .off('change.detailRedesign', '#dt-air_jenis')
+            .on('change.detailRedesign', '#dt-air_jenis', function() {
+                if (this.value == "Air Tanah") {
+                    $("#dt-air_tanah-input_form").removeClass("hidden");
+                    $("#dt-air_komunal-input_form").addClass("hidden");
+                    $("#dt-air_pdam-input_form").addClass("hidden");
+                } else if (this.value == "Komunal Warga") {
+                    $("#dt-air_tanah-input_form").addClass("hidden");
+                    $("#dt-air_komunal-input_form").removeClass("hidden");
+                    $("#dt-air_pdam-input_form").addClass("hidden");
+                } else {
+                    $("#dt-air_tanah-input_form").addClass("hidden");
+                    $("#dt-air_komunal-input_form").addClass("hidden");
+                    $("#dt-air_pdam-input_form").removeClass("hidden");
+                }
+            });
+    }
+
     function loadPL(pl) {
         //load harga pricelist
         if (pl) {
@@ -2506,6 +4259,24 @@ foreach (user()->getRoles() as $key => $val) {
 
         }
         $("#dt-st_list-upload_perintah_bangun_file").prop('href', resolveFileHref(src))
+    }
+
+    function updateSp3kStatusBadge(sp3k) {
+        const $badge = $('#dt-sp3k-status-badge');
+        if (sp3k && sp3k != "0") {
+            $badge.text('Disetujui').removeClass('badge-secondary badge-danger').addClass('badge-success');
+        } else {
+            $badge.text('Belum SP3K').removeClass('badge-success badge-danger').addClass('badge-secondary');
+        }
+    }
+
+    function updateSp3kExpiryStyle(expDate) {
+        const $el = $('#dt-st_sp3k_tgl_exp');
+        if (!expDate || expDate === '0000-00-00') {
+            $el.removeClass('detail-text-danger');
+            return;
+        }
+        $el.toggleClass('detail-text-danger', new Date(expDate) < new Date());
     }
 
     function loadMKDT(mkdt) {
@@ -2569,6 +4340,10 @@ foreach (user()->getRoles() as $key => $val) {
             changeVal('#dt-st_sp3k_no', mkdt.sp3k_no)
             setDatePicker(mkdt.sp3k_tgl, "#dt-st_sp3k_tgl")
             setDatePicker(mkdt.sp3k_tgl_exp, "#dt-st_sp3k_tgl_exp")
+
+            $("#dt-sp3k").prop('checked', mkdt.sp3k == "0" || !mkdt.sp3k ? 0 : 1)
+            updateSp3kStatusBadge(mkdt.sp3k)
+            updateSp3kExpiryStyle(mkdt.sp3k_tgl_exp)
 
             src = not_found
 
@@ -2673,31 +4448,45 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     function hitungTagihan(r) {
-        //um
-        let total_um = parseFloat(r.total_um)
-        let sb_um = parseFloat(r.sb_um)
-        let sisa_um = r.total_um - r.sb_um,
-            ldp = (sisa_um == 0) ? 100 : r.sb_um / r.total_um * 100;
-        ldp = (r.sb_um > 0) ? ~~ldp + "%" : "0%";
+        const hitungMetricTagihan = (total, bayar) => {
+            total = parseFloat(total) || 0;
+            bayar = parseFloat(bayar) || 0;
 
-        //um dan ll
-        let total_um_ll = parseFloat(r.total_um_ll),
-            sb_um_ll = parseFloat(r.sb_um_ll)
-        let sisa_um_ll = r.total_um_ll - r.sb_um_ll,
-            ldp_ll = (sisa_um_ll == 0) ? 100 : r.sb_um_ll / r.total_um_ll * 100;
-        ldp_ll = (r.sb_um_ll > 0) ? ~~ldp_ll + "%" : "0%";
+            const sisa = Math.max(total - bayar, 0);
+            const persen = total > 0 ? Math.min((bayar / total) * 100, 100) : (bayar > 0 ? 100 : 0);
 
-        let total_bb = parseFloat(r.total_bb)
-        let sb_bb = parseFloat(r.sb_bb)
-        let sisa_bb = r.total_bb - r.sb_bb,
-            ldp_bb = (sisa_bb == 0) ? 100 : r.sb_bb / r.total_bb * 100;
-        ldp_bb = (r.sb_bb > 0) ? ~~ldp_bb + "%" : "0%";
+            return {
+                total,
+                bayar,
+                sisa,
+                persen: bayar > 0 ? ~~persen + "%" : "0%"
+            };
+        };
+
+        let um = hitungMetricTagihan(r.total_um, r.sb_um);
+        let um_ll = hitungMetricTagihan(r.total_um_ll, r.sb_um_ll);
+        let bb = hitungMetricTagihan(r.total_bb, r.sb_bb);
+
+        let total_um = um.total
+        let sb_um = um.bayar
+        let sisa_um = um.sisa,
+            ldp = um.persen;
+
+        let total_um_ll = um_ll.total,
+            sb_um_ll = um_ll.bayar
+        let sisa_um_ll = um_ll.sisa,
+            ldp_ll = um_ll.persen;
+
+        let total_bb = bb.total
+        let sb_bb = bb.bayar
+        let sisa_bb = bb.sisa,
+            ldp_bb = bb.persen;
 
         let total_semua = total_um + total_bb + total_um_ll,
             sb_semua = sb_um + sb_um_ll + sb_bb,
-            sisa_semua = total_semua - sb_semua,
-            ldp_semua = (sisa_semua == 0) ? 100 : sb_semua / total_semua * 100;
-        ldp_semua = sb_semua > 0 ? ~~ldp_semua + "%" : "0%"
+            tagihan_semua = hitungMetricTagihan(total_semua, sb_semua),
+            sisa_semua = tagihan_semua.sisa,
+            ldp_semua = tagihan_semua.persen;
         // console.log(total_semua, sb_semua)
         return {
             sisa_um: sisa_um,
@@ -2706,8 +4495,8 @@ foreach (user()->getRoles() as $key => $val) {
             sb_um: sb_um,
             sisa_um_ll: sisa_um_ll,
             ldp_ll: ldp_ll,
-            sb_um_ll: r.sb_um_ll,
-            total_um_ll: r.total_um_ll,
+            sb_um_ll: sb_um_ll,
+            total_um_ll: total_um_ll,
             total_bb: total_bb,
             sb_bb: sb_bb,
             sisa_bb: sisa_bb,
@@ -2729,12 +4518,14 @@ foreach (user()->getRoles() as $key => $val) {
         changeVal("#dt-sudah_bayar_um", tagihan.sb_um)
         changeVal("#dt-sisa_tagihan_um", tagihan.sisa_um)
         changeVal("#dt-persentase_bayar_tagihan_um", tagihan.ldp)
+        renderTagihanCard('um', tagihan.total_um, tagihan.sb_um, tagihan.sisa_um, tagihan.ldp)
 
 
         changeVal("#dt-total_biaya_um_ll", tagihan.total_um_ll)
         changeVal("#dt-sudah_bayar_um_ll", tagihan.sb_um_ll)
         changeVal("#dt-sisa_tagihan_um_ll", tagihan.sisa_um_ll)
         changeVal("#dt-persentase_bayar_tagihan_um_ll", tagihan.ldp_ll)
+        renderTagihanCard('um_ll', tagihan.total_um_ll, tagihan.sb_um_ll, tagihan.sisa_um_ll, tagihan.ldp_ll)
 
 
 
@@ -2742,6 +4533,7 @@ foreach (user()->getRoles() as $key => $val) {
         changeVal("#dt-sudah_bayar_bb", tagihan.sb_bb)
         changeVal("#dt-sisa_tagihan_bb", tagihan.sisa_bb)
         changeVal("#dt-persentase_bayar_tagihan_bb", tagihan.ldp_bb)
+        renderTagihanCard('bb', tagihan.total_bb, tagihan.sb_bb, tagihan.sisa_bb, tagihan.ldp_bb)
 
         if (r.ku)
             $("#last_update_keuangan").html("Terakhir diupdate oleh: " + r.ku.username + " pada: " + format_datetime(r.ku.created_at));
@@ -2772,6 +4564,12 @@ foreach (user()->getRoles() as $key => $val) {
 
             $("#dt-progres_bangunan").val(pr.progres_bangunan)
             setText("#dt-t_progres_bangunan", pr.progres_bangunan)
+            const progress = detailPercentValue(pr.progres_bangunan)
+            $("#dt-produksi-progress-summary").text(progress)
+            $("#dt-produksi-progress-bar")
+                .css('width', `${progress}%`)
+                .toggleClass('is-empty', progress <= 0)
+                .toggleClass('is-partial', progress > 0 && progress < 100)
 
             $("#dt-produksi_keterangan").val(pr.keterangan)
 
@@ -2783,6 +4581,10 @@ foreach (user()->getRoles() as $key => $val) {
             changeVal("#dt-listrik_disediakan_tanggal", pr.listrik_disediakan_tanggal);
             changeVal("#dt-air_deskripsi_unit", pr.air_deskripsi_unit);
             changeVal("#dt-air_pdam_no", pr.air_pdam_no);
+            $("#dt-produksi-tanggal-bangun").text(pr.tanggal_pembangunan ? format_date(pr.tanggal_pembangunan) : '-')
+            $("#dt-produksi-tanggal-selesai").text(pr.tanggal_selesai_pembangunan ? format_date(pr.tanggal_selesai_pembangunan) : '-')
+            $("#dt-produksi-listrik-summary").text(isSudah(pr.st_jalan).replace(/<[^>]*>/g, ''))
+            $("#dt-produksi-air-summary").text(isSudah(pr.st_air).replace(/<[^>]*>/g, ''))
 
 
             changeVal("#dt-sumurbor_keterangan", pr.sumurbor_keterangan);
@@ -2814,6 +4616,8 @@ foreach (user()->getRoles() as $key => $val) {
 
             $("#dt-progres_bangunan").val(null)
             setText("#dt-t_progres_bangunan", null)
+            $("#dt-produksi-progress-summary").text('0')
+            $("#dt-produksi-progress-bar").css('width', '0%').addClass('is-empty').removeClass('is-partial')
 
             $("#dt-produksi_keterangan").val(null)
 
@@ -2825,6 +4629,10 @@ foreach (user()->getRoles() as $key => $val) {
             changeVal("#dt-listrik_disediakan_tanggal", null);
             changeVal("#dt-air_deskripsi_unit", null);
             changeVal("#dt-air_pdam_no", null);
+            $("#dt-produksi-tanggal-bangun").text('-')
+            $("#dt-produksi-tanggal-selesai").text('-')
+            $("#dt-produksi-listrik-summary").text('-')
+            $("#dt-produksi-air-summary").text('-')
 
             changeVal("#dt-sumurbor_keterangan", null);
             setDatePicker(null, '#dt-sumurbor_tanggal')
@@ -2842,34 +4650,46 @@ foreach (user()->getRoles() as $key => $val) {
 
         let dv = ''
         $.each(r.file_pph, function(i, v) {
+            const href = v.access_url || file_url('file_upload', v.id);
             dv += `
-                <a href="${v.access_url || file_url('file_upload', v.id)}" class="btn btn-outline-primary" target=_blank>
-                    <h5>Bukti pembayaran ${v.default_filename} </h5>
-                    ${v.keterangan}
-                    <br>
-                    <embed src="${v.access_url || file_url('file_upload', v.id)}" style="width: 90%;"
-                        class="files-here dt-cl-ktp_here">
-                        diunggah pada: ${format_datetime(v.upload_at)} (${v.uupload_by})
-                </a>
-                <br>
-                <br>
+                <div class="detail-file-tile">
+                    <a class="detail-file-preview" href="${href}" target="_blank">
+                        <embed src="${href}" class="files-here dt-cl-ktp_here">
+                    </a>
+                    <div class="detail-file-body">
+                        <div class="detail-file-title">Bukti pembayaran ${v.default_filename}</div>
+                        <div class="detail-file-meta">${v.keterangan || '-'}</div>
+                        <div class="detail-file-meta">Diunggah ${format_datetime(v.upload_at)} (${v.uupload_by || '-'})</div>
+                        <div class="detail-file-action">
+                            <a href="${href}" class="btn btn-outline-primary btn-sm" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Lihat
+                            </a>
+                        </div>
+                    </div>
+                </div>
                  `;
         });
         $("#dt-file_pph42-here").html(dv)
 
         dv = '';
         $.each(r.file_ppn, function(i, v) {
+            const href = v.access_url || file_url('file_upload', v.id);
             dv += `
-                <a href="${v.access_url || file_url('file_upload', v.id)}" class="btn btn-outline-primary" target=_blank>
-                    <h5>Bukti pembayaran ${v.default_filename} </h5>
-                    ${v.keterangan}
-                    <br>
-                    <embed src="${v.access_url || file_url('file_upload', v.id)}" style="width: 90%;"
-                        class="files-here dt-cl-ktp_here">
-                        diunggah pada: ${format_datetime(v.upload_at)} (${v.uupload_by})
-                </a>
-                <br>
-                <br>
+                <div class="detail-file-tile">
+                    <a class="detail-file-preview" href="${href}" target="_blank">
+                        <embed src="${href}" class="files-here dt-cl-ktp_here">
+                    </a>
+                    <div class="detail-file-body">
+                        <div class="detail-file-title">Bukti pembayaran ${v.default_filename}</div>
+                        <div class="detail-file-meta">${v.keterangan || '-'}</div>
+                        <div class="detail-file-meta">Diunggah ${format_datetime(v.upload_at)} (${v.uupload_by || '-'})</div>
+                        <div class="detail-file-action">
+                            <a href="${href}" class="btn btn-outline-primary btn-sm" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Lihat
+                            </a>
+                        </div>
+                    </div>
+                </div>
                  `;
         });
         $("#dt-file_ppn-here").html(dv)
@@ -2877,11 +4697,16 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     function loadCashOut(d) {
-        let dv = ''
-        if (d.lenght == 0) {
-            $("#dt-cashout-table tbody").html(`"<tr><td colspan='4' class='text-center'>Data tidak ditemukan</td></tr>"`)
+        let total = 0;
+        const rows = Array.isArray(d) ? d : [];
+        $("#dt-cashout-table tbody").html("");
+
+        if (rows.length == 0) {
+            $("#dt-cashout-table tbody").html(`<tr><td colspan='4' class='text-center'>Data tidak ditemukan</td></tr>`)
         }
-        $.each(d, function(i, val) {
+
+        $.each(rows, function(i, val) {
+            total += detailMoneyValue(val.nominal);
             let row = `
         <tr>
             <td>${val.item}</td>
@@ -2892,6 +4717,51 @@ foreach (user()->getRoles() as $key => $val) {
             $("#dt-cashout-table tbody").append(row);
         });
 
+        $("#dt-cashout-summary-total").text(detailRupiah(total));
+        $("#dt-cashout-summary-count").text(`${rows.length} item`);
+        $("#dt-cashout-summary-status").text(rows.length > 0 ? 'Ada pembayaran' : 'Belum ada data');
+    }
+
+    function loadFinanceFlow(data) {
+        const incomeRows = Array.isArray(data.income_rows) ? data.income_rows : [];
+        const expenseRows = Array.isArray(data.expense_rows) ? data.expense_rows : [];
+        const incomeTotal = detailMoneyValue(data.income_total);
+        const expenseTotal = detailMoneyValue(data.expense_total);
+        const balance = data.balance === undefined ? incomeTotal - expenseTotal : detailMoneyValue(data.balance);
+
+        $("#dt-finance-income-total").text(detailRupiah(incomeTotal));
+        $("#dt-finance-expense-total").text(detailRupiah(expenseTotal));
+        $("#dt-finance-balance-total")
+            .text(detailRupiah(balance))
+            .toggleClass('detail-text-primary', balance >= 0)
+            .toggleClass('detail-text-danger', balance < 0);
+        $("#dt-finance-income-count").text(`${incomeRows.length} transaksi`);
+        $("#dt-finance-expense-count").text(`${expenseRows.length} transaksi`);
+
+        renderFinanceFlowTable("#dt-finance-income-table tbody", incomeRows, 'income');
+        renderFinanceFlowTable("#dt-finance-expense-table tbody", expenseRows, 'expense');
+    }
+
+    function renderFinanceFlowTable(target, rows, type) {
+        const $tbody = $(target);
+        $tbody.empty();
+
+        if (!rows.length) {
+            $tbody.html(`<tr><td colspan="3" class="text-center">Data tidak ditemukan</td></tr>`);
+            return;
+        }
+
+        rows.slice(0, 10).forEach(function(row) {
+            const date = row.tanggal_transaksi || row.tanggal_bayar;
+            const label = row.label || row.item;
+            $tbody.append(`
+                <tr>
+                    <td>${date ? format_date(date) : '-'}</td>
+                    <td>${detailEscapeHtml(label)}</td>
+                    <td class="text-right">${detailRupiah(row.nominal)}</td>
+                </tr>
+            `);
+        });
     }
 
     function loadBayarProduksi(bprod) {
@@ -2948,10 +4818,6 @@ foreach (user()->getRoles() as $key => $val) {
 
     }
 
-    function loading(hiden = ture) {
-        if (hiden) return $("#loading").removeClass('hidden')
-        return $("#loading").addClass('hidden')
-    }
 
     function isi_data() {
         if (editdtt.length == 0)
@@ -3474,7 +5340,7 @@ foreach (user()->getRoles() as $key => $val) {
     })
 
     //remove bug arrow select2
-    $(".select2-selection__arrow").removeClass("select2-selection__arrow")
+    $(".select2-selection__arrow").css("pointer-events", "none")
 
     $("#br_siteplan").html(dt_proyek.nama_proyek)
 
@@ -3524,6 +5390,11 @@ foreach (user()->getRoles() as $key => $val) {
     $("#btn-simpan_batal_mkdt").click(function(e) {
         e.preventDefault()
     })
+
+    function setBatalPerluRefund(value) {
+        const normalized = String(value ?? "0") === "1" ? "1" : "0";
+        $(`#modal-batal input[name="batal-perlu_refund"][value="${normalized}"]`).prop("checked", true);
+    }
 
     function simpan_batal() {
         let btn = "#btn-simpan_batal_mkdt"
@@ -3616,6 +5487,7 @@ foreach (user()->getRoles() as $key => $val) {
             return;
         }
         $("#fm-batal_booking")[0].reset();
+        setBatalPerluRefund(0);
         $("#last_update-batal_mkdt").html("Dibatalkan oleh: -  Pada: -")
 
         $("#batal-id_kavling").val(id_kavling);
@@ -3643,6 +5515,7 @@ foreach (user()->getRoles() as $key => $val) {
                 $.each(mkdt, function(k, v) {
                     $("#batal-" + k).val(v).change().keyup()
                 })
+                setBatalPerluRefund(mkdt.perlu_refund);
 
                 let src = not_found
                 //load ktp npwp
@@ -3731,6 +5604,231 @@ foreach (user()->getRoles() as $key => $val) {
 
         // Jika sudah diawali +62 dan hanya simbol + yang dihapus
         return cleaned;
+    }
+
+    let siteplanUrgentItems = {};
+    const siteplanUrgentSectionOrder = [
+        'tagihan_overdue',
+        'tagihan_due',
+        'cashout_subkon',
+        'perubahan_kavling'
+    ];
+
+    function siteplanUrgentEscape(value) {
+        return $('<div>').text(value === null || value === undefined || value === '' ? '-' : value).html();
+    }
+
+    function toggleSiteplanUrgentPanel(force) {
+        const panel = $("#siteplan-urgent-panel");
+        if (force === true) {
+            panel.removeClass("hidden");
+            return;
+        }
+        if (force === false) {
+            panel.addClass("hidden");
+            return;
+        }
+        panel.toggleClass("hidden");
+    }
+
+    function loadSiteplanUrgentPanel(options = {}) {
+        if (!dt_proyek || !dt_proyek.id_proyek) {
+            return;
+        }
+
+        $.ajax({
+            type: "post",
+            url: base_url + "siteplan/urgent/summary",
+            data: {
+                [csrfName]: csrfHash,
+                id_proyek: dt_proyek.id_proyek
+            },
+            dataType: "json",
+            beforeSend: function() {
+                $("#siteplan-urgent-toggle").removeClass("hidden");
+                $("#siteplan-urgent-body").html('<div class="siteplan-urgent-empty">Memuat hal urgent...</div>');
+            },
+            success: function(r) {
+                if (r.token) {
+                    csrfHash = r.token;
+                    $('input[name="' + csrfName + '"]').val(csrfHash);
+                }
+
+                if (!r.success) {
+                    $("#siteplan-urgent-body").html('<div class="siteplan-urgent-empty">Gagal memuat hal urgent.</div>');
+                    return;
+                }
+
+                renderSiteplanUrgentPanel(r.summary || {}, options);
+            },
+            error: function() {
+                $("#siteplan-urgent-toggle").removeClass("hidden");
+                $("#siteplan-urgent-body").html('<div class="siteplan-urgent-empty">Gagal memuat hal urgent.</div>');
+            }
+        });
+    }
+
+    function renderSiteplanUrgentPanel(summary, options = {}) {
+        const sections = summary.sections || {};
+        const total = parseInt(summary.total || 0, 10);
+        let html = '';
+        siteplanUrgentItems = {};
+
+        $("#siteplan-urgent-badge").text(total);
+        $("#siteplan-urgent-toggle").removeClass("hidden");
+
+        if (total <= 0) {
+            $("#siteplan-urgent-body").html('<div class="siteplan-urgent-empty">Belum ada hal urgent untuk proyek ini.</div>');
+            if (options.force) {
+                toggleSiteplanUrgentPanel(true);
+            }
+            return;
+        }
+
+        $.each(siteplanUrgentSectionOrder, function(_, sectionKey) {
+            const section = sections[sectionKey] || {};
+            const items = section.items || [];
+            if (!items.length) {
+                return;
+            }
+
+            html += `
+                <div class="siteplan-urgent-section">
+                    <div class="siteplan-urgent-section-title">
+                        <span>${siteplanUrgentEscape(section.label || sectionKey)}</span>
+                        <span class="badge badge-light-primary">${items.length}</span>
+                    </div>
+            `;
+
+            $.each(items, function(i, item) {
+                const key = sectionKey + '-' + i;
+                const severity = ['danger', 'warning', 'info', 'primary'].includes(item.severity) ? item.severity : 'primary';
+                siteplanUrgentItems[key] = item;
+                html += `
+                    <div class="siteplan-urgent-item is-${severity}" onclick="openSiteplanUrgentItem('${key}')">
+                        <div class="siteplan-urgent-item-title">${siteplanUrgentEscape(item.title)}</div>
+                        <div class="siteplan-urgent-item-desc">${siteplanUrgentEscape(item.description)}</div>
+                        <div class="siteplan-urgent-item-meta">${siteplanUrgentEscape(item.meta)}</div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+        });
+
+        $("#siteplan-urgent-body").html(html);
+        if (options.autoOpen) {
+            toggleSiteplanUrgentPanel(true);
+        }
+    }
+
+    function findSiteplanKavlingAttrs(id_kavling) {
+        if (!id_kavling || typeof siteplan === 'undefined') {
+            return null;
+        }
+
+        try {
+            const node = typeof siteplan.findOne === 'function' ?
+                siteplan.findOne('#kav' + id_kavling) :
+                (siteplan.find('#kav' + id_kavling)[0] || null);
+            return node && node.attrs ? node.attrs : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function buildMinimalSiteplanShape(item) {
+        return {
+            id: 'kav' + item.id_kavling,
+            data: {
+                id_mkdt: item.id_mkdt || null,
+                nama_proyek: item.nama_proyek || dt_proyek.nama_proyek,
+                nama_jalan: item.nama_jalan || '-',
+                no_kavling: item.no_kavling || '-'
+            },
+            data2: {
+                id_tipe: item.id_tipe || '-',
+                no_tipe_rumah: item.id_tipe || '-',
+                tipe_rumah: item.id_tipe || '-'
+            }
+        };
+    }
+
+    function openSiteplanUrgentItem(key) {
+        const item = siteplanUrgentItems[key];
+        if (!item) {
+            return;
+        }
+
+        toggleSiteplanUrgentPanel(false);
+
+        if (item.type === 'tagihan') {
+            return openSiteplanKeuanganFromUrgent(item);
+        }
+
+        if (item.type === 'cashout_subkon') {
+            return openSiteplanCashoutSubkonFromUrgent(item);
+        }
+
+        if (item.id_notif && typeof handleNotificationClick === 'function') {
+            return handleNotificationClick(item.id_notif, item.id_kavling, item.type);
+        }
+
+        return openSiteplanKavlingFromNotification(item.id_kavling);
+    }
+
+    function openSiteplanKeuanganFromUrgent(item) {
+        const sh = findSiteplanKavlingAttrs(item.id_kavling) || buildMinimalSiteplanShape(item);
+        if (!sh.data || !sh.data.id_mkdt) {
+            return openSiteplanKavlingFromNotification(item.id_kavling);
+        }
+
+        if (typeof open_keuangan === 'function') {
+            return open_keuangan(sh, 3, item.id_kavling);
+        }
+
+        return openSiteplanKavlingFromNotification(item.id_kavling);
+    }
+
+    function openSiteplanCashoutSubkonFromUrgent(item) {
+        if (typeof openCOSubkon !== 'function') {
+            return openSiteplanKavlingFromNotification(item.id_kavling);
+        }
+
+        return openCOSubkon({
+            id_proyek: dt_proyek.id_proyek,
+            id_cashout_subkon: item.id_cashout_subkon,
+            id_kavlings: [String(item.id_kavling)],
+            selected_kavlings: [{
+                id_kavling: item.id_kavling,
+                nama_jalan: item.nama_jalan || '-',
+                no_kavling: item.no_kavling || '-'
+            }]
+        });
+    }
+
+    function openSiteplanKavlingFromNotification(id_kavling) {
+        const sh = findSiteplanKavlingAttrs(id_kavling);
+        if (sh && typeof detail_kavling === 'function') {
+            hapus_seleksi();
+            editdtt.push(sh);
+            drawBorderEdit(sh);
+            return detail_kavling(sh, id_kavling);
+        }
+
+        return swal('warning', 'Data kavling belum siap', 'Silakan buka detail kavling langsung dari siteplan.');
+    }
+
+    function openSiteplanKeuanganFromNotification(id_kavling) {
+        const sh = findSiteplanKavlingAttrs(id_kavling);
+        if (sh && sh.data && sh.data.id_mkdt && typeof open_keuangan === 'function') {
+            hapus_seleksi();
+            editdtt.push(sh);
+            drawBorderEdit(sh);
+            return open_keuangan(sh, 3, id_kavling);
+        }
+
+        return openSiteplanKavlingFromNotification(id_kavling);
     }
 
     function cek_jatuh_tempo(x = false) {
@@ -3985,6 +6083,7 @@ foreach (user()->getRoles() as $key => $val) {
         //     return;
         // }
         $("#fm-batal_booking")[0].reset();
+        setBatalPerluRefund(0);
         $("#last_update-batal_mkdt").html("Dibatalkan oleh: -  Pada: -")
 
         $("#batal-id_kavling").val(id_kavling);
@@ -4012,6 +6111,7 @@ foreach (user()->getRoles() as $key => $val) {
                 $.each(mkdt, function(k, v) {
                     $("#batal-" + k).val(v).change().keyup()
                 })
+                setBatalPerluRefund(mkdt.perlu_refund);
 
                 let src = not_found
                 //load ktp npwp
@@ -4153,40 +6253,41 @@ foreach (user()->getRoles() as $key => $val) {
             </div>
             <div class="modal-body flex-grow-1" style="background-color:#eee">
                 <form action=""></form>
-                <div class="row" id="fm-detail">
-                    <div class="col-md-12">
-                        <div class="card">
+                <div class="row detail-kavling-layout" id="fm-detail">
+                    <div class="col-md-3 detail-kavling-sidebar">
+                         <div class="card detail-hero-card">
                             <div class="card-body bg-primary text-light">
                                 <div class="row">
-                                    <div class="col-md-8">
+                                    <div class="col-12">
                                         <p class="card-text label_alamat" id="detail_kavling_header"></p>
                                         <p class="mb-0 text-light"><strong>ID SIKUMABANG:</strong></p>
                                         <p class="card-text id_sikumbang mb-1"></p>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="card">
+                                    <div class="col-12">
+                                        <div class="card detail-price-card">
                                             <div class="card-body">
                                                 <h5><i class="fas fa-money-bill"></i> Harga Jual</h5>
                                                 <span id="label-hargajual"></span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-12">
-                                        <div class="card mb-0">
+                                    <div class="col-12">
+                                        <div class="card detail-meta-card mb-0">
                                             <div class="card-body p-1">
                                                 <div class="row">
-                                                    <div class="col-md-4">
-                                                        <h6 class="mb-0"><strong>Tunai/KPR:</strong> <span
-                                                                id="dt-is_kpr">-</span></h6>
+                                                    <div class="col-md-6">
+                                                        <h6 class="mb-0"><span id="dt-is_kpr">-</span></h6>
                                                     </div>
-                                                    <div class="col-md-4">
-                                                        <h6 class="mb-0"><strong>Subsidi/Komersil: </strong> <span
-                                                                id="dt-is_subsidi">-</span>
+                                                    <div class="col-md-6">
+                                                        <h6 class="mb-0">
+                                                            <span id="dt-is_subsidi">-</span>
                                                         </h6>
                                                     </div>
-                                                    <div class="col-md-4">
-                                                        <h6 class="mb-0"><strong>Promo: </strong> <span
-                                                                id="dt-promo">-</span></h6>
+                                                    <div class="col-12">
+                                                        <h6 class="mb-0">
+                                                            <strong>Promo: </strong>
+                                                            <span id="dt-promo">-</span>
+                                                        </h6>
                                                     </div>
                                                 </div>
 
@@ -4198,11 +6299,7 @@ foreach (user()->getRoles() as $key => $val) {
                             </div>
                         </div>
 
-
-                    </div>
-                    <div class="col-md-3">
-
-                        <div class="card">
+                        <div class="card detail-consumer-card">
                             <div class="card-header">
                                 <div class="divider divider-left pb-0">
                                     <div class="divider-text font-weight-bold"><strong><i class="fas fa-user"></i> Detail Konsumen</strong></div>
@@ -4222,48 +6319,59 @@ foreach (user()->getRoles() as $key => $val) {
                                             <span id="dt-nama_konsumen">-</span>
                                         </div>
                                     </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <b class="mb-0 d-block">Alamat Konsumen</b>
-                                            <span id="dt-alamat_konsumen">-</span>
-                                        </div>
-                                    </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <b class="mb-0 d-block">NIK</b>
-                                            <span id="dt-nik_konsumen">-</span>
-                                        </div>
-                                    </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <b class="mb-0 d-block">NPWP</b>
-                                            <span id="dt-npwp_konsumen">-</span>
-                                        </div>
-                                    </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <b class="mb-0 d-block">Kontak Konsumen</b>
-                                            <span id="dt-hp_konsumen">-</span>
-                                        </div>
-                                    </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <b class="mb-0 d-block">Email Konsumen</b>
-                                            <span id="dt-email_konsumen">-</span>
-                                        </div>
-                                    </li>
-                                    <li class="mb-2">
-                                        <div class="me-2">
-                                            <b class="mb-0 d-block">Sales</b>
-                                            <span id="dt-sales">-</span>
-                                        </div>
-                                    </li>
                                 </ul>
+                                <button class="btn btn-outline-primary btn-block waves-effect detail-consumer-toggle"
+                                    type="button" data-toggle="collapse" data-target="#detailConsumerMore"
+                                    aria-expanded="false" aria-controls="detailConsumerMore">
+                                    <span class="show-label">Tampilkan info lainnya</span>
+                                    <span class="hide-label">Sembunyikan info lainnya</span>
+                                    <i class="fas fa-chevron-down ml-1"></i>
+                                </button>
+                                <div class="collapse" id="detailConsumerMore">
+                                    <ul class="list-unstyled mb-0 mt-1">
+                                        <li class="mb-2">
+                                            <div class="me-2">
+                                                <b class="mb-0 d-block">Alamat Konsumen</b>
+                                                <span id="dt-alamat_konsumen">-</span>
+                                            </div>
+                                        </li>
+                                        <li class="mb-2">
+                                            <div class="me-2">
+                                                <b class="mb-0 d-block">NIK</b>
+                                                <span id="dt-nik_konsumen">-</span>
+                                            </div>
+                                        </li>
+                                        <li class="mb-2">
+                                            <div class="me-2">
+                                                <b class="mb-0 d-block">NPWP</b>
+                                                <span id="dt-npwp_konsumen">-</span>
+                                            </div>
+                                        </li>
+                                        <li class="mb-2">
+                                            <div class="me-2">
+                                                <b class="mb-0 d-block">Kontak Konsumen</b>
+                                                <span id="dt-hp_konsumen">-</span>
+                                            </div>
+                                        </li>
+                                        <li class="mb-2">
+                                            <div class="me-2">
+                                                <b class="mb-0 d-block">Email Konsumen</b>
+                                                <span id="dt-email_konsumen">-</span>
+                                            </div>
+                                        </li>
+                                        <li class="mb-2">
+                                            <div class="me-2">
+                                                <b class="mb-0 d-block">Sales</b>
+                                                <span id="dt-sales">-</span>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-9">
-                        <div class="card">
+                    <div class="col-md-9 detail-kavling-content">
+                        <div class="card detail-tabs-card">
                             <div class="card-body pb-0 pt-0">
                                 <ul class="nav nav-pills flex-column flex-md-row mt-1 row-gap-2" role="tablist">
                                     <li class="nav-item">
@@ -4304,7 +6412,7 @@ foreach (user()->getRoles() as $key => $val) {
                             </div>
                         </div>
 
-                        <div class="card col-md-12">
+                        <div class="card detail-panel-card">
                             <div class="card-body">
                                 <div class="tab-content">
                                     <div class="tab-pane active" id="dtt-summary" aria-labelledby="dtt-summary-tab"
@@ -4760,214 +6868,231 @@ foreach (user()->getRoles() as $key => $val) {
                                     </div>
                                     <div class="tab-pane" id="dt-stdetail" aria-labelledby="dt-stdetail-tab"
                                         role="tabpanel">
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="divider">
-                                                    <div class="divider-text">Status Kavling</div>
+                                        <div class="detail-dashboard-grid">
+                                            <div class="detail-summary-card detail-status-card">
+                                                <div class="detail-status-card-header">
+                                                    <div class="detail-card-icon"><i class="far fa-calendar-check"></i>
+                                                    </div>
+                                                    <div class="detail-status-card-title">Booking &amp; Wawancara</div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="status_kavling">Status</label>
-                                                    <select required class="form-control" id="dt-status_mkdt"
-                                                        name="dt-status_mkdt" disabled>
-                                                        <option value="">-</option>
-                                                        <option value="Booking">Booking</option>
-                                                        <option value="Akad">Akad</option>
-                                                        <option value="Batal">Batal</option>
-                                                    </select>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Status</span>
+                                                        <select class="detail-info-value" id="dt-status_mkdt"
+                                                            name="dt-status_mkdt" disabled>
+                                                            <option value="">-</option>
+                                                            <option value="Booking">Booking</option>
+                                                            <option value="Akad">Akad</option>
+                                                            <option value="Batal">Batal</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Notaris</span>
+                                                        <input type="text" class="detail-info-value" id="dt-notaris"
+                                                            name="dt-notaris" placeholder="-" disabled />
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_booking_fee">Notaris</label>
-                                                    <input type="text" disabled class="form-control" id="dt-notaris"
-                                                        name="dt-notaris">
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">PPJB/AJB</span>
+                                                        <input type="text" class="detail-info-value" id="dt-is_ajb"
+                                                            name="dt-is_ajb" placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Booking Date</span>
+                                                        <input type="text" id="dt-st_booking_tgl"
+                                                            name="dt-st_booking_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_booking_fee">PPJB/AJB</label>
-                                                    <input type="text" disabled class="form-control" id="dt-is_ajb"
-                                                        name="dt-is_ajb">
+
+                                                <div class="detail-highlight-box">
+                                                    <span class="detail-highlight-label">Booking Fee</span>
+                                                    <input type="text" class="detail-highlight-value num"
+                                                        id="dt-st_booking_fee" name="dt-st_booking_fee" disabled />
                                                 </div>
-                                                <div class="divider">
-                                                    <div class="divider-text">Booking</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_booking_tgl">Tanggal Booking</label>
-                                                    <input type="text" id="dt-st_booking_tgl" name="dt-st_booking_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_booking_fee">Booking Fee</label>
-                                                    <input type="text" disabled class="form-control num"
-                                                        id="dt-st_booking_fee" name="dt-st_booking_fee">
-                                                </div>
-                                                <div class="divider">
-                                                    <div class="divider-text">Wawancara</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <div class="custom-control custom-switch custom-control-inline">
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title">Wawancara Section</span>
+                                                    <div class="custom-control custom-switch">
                                                         <input type="checkbox" class="custom-control-input"
                                                             id="dt-st_wawancara" name="dt-st_wawancara" value="1"
                                                             disabled />
-                                                        <label class="custom-control-label" for="dt-st_wawancara">Sudah
-                                                            Wawancara</label>
+                                                        <label class="custom-control-label"
+                                                            for="dt-st_wawancara">Sudah</label>
                                                     </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_bank">Bank</label>
-                                                    <input type="text" id="dt-st_bank" name="dt-st_bank"
-                                                        class="form-control" placeholder="-" disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_wawancara_tgl">Tanggal Wawancara</label>
-                                                    <input type="text" id="dt-st_wawancara_tgl"
-                                                        name="dt-st_wawancara_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
 
-
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Bank</span>
+                                                        <input type="text" id="dt-st_bank" name="dt-st_bank"
+                                                            class="detail-info-value" placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Wawancara Date</span>
+                                                        <input type="text" id="dt-st_wawancara_tgl"
+                                                            name="dt-st_wawancara_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <div class="col-md-4">
-                                                <div class="divider">
-                                                    <div class="divider-text">SP3K</div>
+                                            <div class="detail-summary-card detail-status-card">
+                                                <div class="detail-status-card-header">
+                                                    <div class="detail-card-icon"><i class="fas fa-file-alt"></i>
+                                                    </div>
+                                                    <div class="detail-status-card-title">SP3K</div>
+                                                    <div class="detail-status-card-toggle custom-control custom-switch">
+                                                        <input type="checkbox" class="custom-control-input"
+                                                            id="dt-sp3k" name="dt-sp3k" value="1" disabled />
+                                                        <label class="custom-control-label" for="dt-sp3k"></label>
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label>Status</label>
-                                                    <select class="form-control" id="dt-st_mkdt_keterangan"
-                                                        name="dt-st_mkdt_keterangan" disabled>
-                                                        <option value="">-</option>
-                                                        <option value="Disetujui">Disetujui</option>
-                                                        <option value="Ditolak">Ditolak</option>
-                                                    </select>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Status</span>
+                                                        <span class="detail-status-badge badge-secondary"
+                                                            id="dt-sp3k-status-badge">-</span>
+                                                        <select class="detail-info-value hidden"
+                                                            id="dt-st_mkdt_keterangan" name="dt-st_mkdt_keterangan"
+                                                            disabled>
+                                                            <option value="">-</option>
+                                                            <option value="Disetujui">Disetujui</option>
+                                                            <option value="Ditolak">Ditolak</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">No SP3K</span>
+                                                        <input type="text" id="dt-st_sp3k_no" name="dt-st_sp3k_no"
+                                                            class="detail-info-value" placeholder="-" disabled />
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_harga_kpr">Pengajuan</label>
-                                                    <input type="text" id="dt-st_harga_kpr" name="dt-st_harga_kpr"
-                                                        class="form-control num" placeholder="-" disabled />
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Pengajuan</span>
+                                                        <input type="text" id="dt-st_harga_kpr" name="dt-st_harga_kpr"
+                                                            class="detail-info-value num" placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label detail-text-primary">Disetujui</span>
+                                                        <input type="text" id="dt-st_acc_harga_kpr"
+                                                            name="dt-st_acc_harga_kpr"
+                                                            class="detail-info-value detail-text-primary num"
+                                                            placeholder="-" disabled />
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_acc_harga_kpr">Disetujui</label>
-                                                    <input type="text" id="dt-st_acc_harga_kpr"
-                                                        name="dt-st_acc_harga_kpr" class="form-control num"
-                                                        placeholder="-" disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_harga_turun_kpr">Turun KPR</label>
+
+                                                <div class="detail-highlight-box">
+                                                    <span class="detail-highlight-label">Turun KPR</span>
                                                     <input type="text" id="dt-st_harga_turun_kpr"
-                                                        name="dt-st_harga_turun_kpr" class="form-control num"
-                                                        placeholder="-" disabled />
+                                                        name="dt-st_harga_turun_kpr"
+                                                        class="detail-highlight-value num" placeholder="-" disabled />
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_sp3k_no">No SP3K</label>
-                                                    <input type="text" id="dt-st_sp3k_no" name="dt-st_sp3k_no"
-                                                        class="form-control" placeholder="-" disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <div class="custom-control custom-switch custom-control-inline">
-                                                        <input type="checkbox" class="custom-control-input" id="dt-sp3k"
-                                                            name="dt-sp3k" value="1" disabled />
-                                                        <label class="custom-control-label" for="dt-sp3k">SP3K</label>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Tanggal Terbit</span>
+                                                        <input type="text" id="dt-st_sp3k_tgl" name="dt-st_sp3k_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Tanggal Kadaluarsa</span>
+                                                        <input type="text" id="dt-st_sp3k_tgl_exp"
+                                                            name="dt-st_sp3k_tgl_exp"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
                                                     </div>
                                                 </div>
 
-
-                                                <div class="form-group">
-                                                    <label for="dt-st_sp3k_tgl">Tanggal Terbit</label>
-                                                    <input type="text" id="dt-st_sp3k_tgl" name="dt-st_sp3k_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_sp3k_tgl_exp">Tanggal Kadaluarsa</label>
-                                                    <input type="text" id="dt-st_sp3k_tgl_exp" name="dt-st_sp3k_tgl_exp"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>SP3K</label>
-                                                    <div class="custom-file">
-                                                        <a href="" class="btn btn-primary" target=_blank
-                                                            id="dt-st_list-upload_sp3k_file">Klik untuk lihat file
-                                                            <!-- <embed src="" id="dt-st_list-upload_sp3k_file-here" class="files-here" width="80%"> -->
-                                                        </a>
-                                                    </div>
-                                                </div>
+                                                <a href="" class="btn btn-outline-primary btn-block detail-file-btn"
+                                                    target="_blank" id="dt-st_list-upload_sp3k_file">
+                                                    <i class="fas fa-eye mr-1"></i> Klik untuk lihat file
+                                                </a>
                                             </div>
-                                            <div class="col-md-4">
-                                                <div class="divider">
-                                                    <div class="divider-text">Perintah Bangun</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_perintah_bangun_tgl">Tanggal Perintah
-                                                        Bangun</label>
-                                                    <input type="text" disabled="disabled"
-                                                        id="dt-st_perintah_bangun_tgl" name="dt-st_perintah_bangun_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_perintah_bangun_oleh">Oleh</label>
-                                                    <input type="text" disabled="disabled"
-                                                        id="dt-st_perintah_bangun_oleh"
-                                                        name="dt-st_perintah_bangun_oleh" class="form-control"
-                                                        placeholder="-" disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Perintah Bangun</label>
-                                                    <div class="custom-file">
-                                                        <a href="#" class="btn btn-primary" target=_blank
-                                                            id="dt-st_list-upload_perintah_bangun_file">Klik untuk lihat
-                                                            file
-                                                            <!-- <embed src="" style="width: 80%;" class="files-here" id="dt-st_list-upload_perintah_bangun_file-here"> -->
-                                                        </a>
+
+                                            <div class="detail-summary-card detail-status-card">
+                                                <div class="detail-status-card-header">
+                                                    <div class="detail-card-icon"><i class="fas fa-building"></i>
+                                                    </div>
+                                                    <div class="detail-status-card-title">Perintah Bangun &amp; Akad
                                                     </div>
                                                 </div>
 
-                                                <div class="divider">
-                                                    <div class="divider-text">Akad</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_rencana_akad_tgl">Rencana Akad</label>
-                                                    <input type="text" id="dt-st_rencana_akad_tgl"
-                                                        name="dt-st_rencana_akad_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
+                                                <div class="detail-section-title detail-section-title-dot mb-2">
+                                                    Perintah Bangun</div>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Tgl Perintah</span>
+                                                        <input type="text" id="dt-st_perintah_bangun_tgl"
+                                                            name="dt-st_perintah_bangun_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Oleh</span>
+                                                        <input type="text" id="dt-st_perintah_bangun_oleh"
+                                                            name="dt-st_perintah_bangun_oleh"
+                                                            class="detail-info-value" placeholder="-" disabled />
+                                                    </div>
                                                 </div>
 
-                                                <div class="form-group">
-                                                    <div class="custom-control custom-switch custom-control-inline">
+                                                <a href="#" class="btn btn-block detail-file-btn detail-file-btn-success"
+                                                    target="_blank" id="dt-st_list-upload_perintah_bangun_file">
+                                                    <i class="fas fa-file-alt mr-1"></i> Klik untuk lihat file
+                                                </a>
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title detail-section-title-dot">Akad</span>
+                                                    <div class="custom-control custom-switch">
                                                         <input type="checkbox" class="custom-control-input"
                                                             id="dt-st_akad" name="dt-st_akad" value="1" disabled />
-                                                        <label class="custom-control-label"
-                                                            for="dt-st_akad">Akad</label>
+                                                        <label class="custom-control-label" for="dt-st_akad"></label>
                                                     </div>
                                                 </div>
 
-                                                <div class="form-group">
-                                                    <label for="dt-st_akad_tgl">Tanggal Akad</label>
-                                                    <input type="text" id="dt-st_akad_tgl" name="dt-st_akad_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>No Debitur</label>
-                                                    <input type="text" id="dt-st_debitur_no" name="dt-st_debitur_no"
-                                                        class="form-control" placeholder="-" disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>No BAST</label>
-                                                    <input type="text" id="dt-st_bast_no" name="dt-st_bast_no"
-                                                        class="form-control" placeholder="-" disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>BAST</label>
-
-                                                    <a href="" class="btn btn-primary" target=_blank
-                                                        id="dt-st_list-upload_bast_file">Klik
-                                                        untuk
-                                                        lihat file</a>
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Rencana Akad</span>
+                                                        <input type="text" id="dt-st_rencana_akad_tgl"
+                                                            name="dt-st_rencana_akad_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Tanggal Akad</span>
+                                                        <input type="text" id="dt-st_akad_tgl" name="dt-st_akad_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
                                                 </div>
 
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">No Debitur</span>
+                                                        <input type="text" id="dt-st_debitur_no"
+                                                            name="dt-st_debitur_no" class="detail-info-value"
+                                                            placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">No BAST</span>
+                                                        <input type="text" id="dt-st_bast_no" name="dt-st_bast_no"
+                                                            class="detail-info-value" placeholder="-" disabled />
+                                                    </div>
+                                                </div>
+
+                                                <a href="" class="btn btn-primary btn-block detail-file-btn"
+                                                    target="_blank" id="dt-st_list-upload_bast_file">
+                                                    <i class="fas fa-shield-alt mr-1"></i> Lihat BAST
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
@@ -5005,7 +7130,7 @@ foreach (user()->getRoles() as $key => $val) {
                                             </div>
                                             <div class="col-md-4 col-sm-12 col-lg-4">
                                                 <div class="divider">
-                                                    <div class="divider-text">Total Biaya Adm + Turun KPR + Hook</div>
+                                                    <div class="divider-text">Total Biaya Adm + Turun KPR</div>
                                                 </div>
                                                 <div class="form-group">
                                                     <label for="dt-total_biaya_um">Total Tagihan</label>
@@ -6274,6 +8399,139 @@ foreach (user()->getRoles() as $key => $val) {
 </div>
 
 
+<style>
+    #modal-batal .modal-dialog {
+        max-width: min(1280px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modal-batal .modal-content {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        box-shadow: none;
+        overflow: hidden;
+    }
+
+    #modal-batal #fm-batal_booking {
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        overflow: visible;
+    }
+
+    #modal-batal .modal-header,
+    #modal-batal .modal-footer {
+        background: #fff;
+        border-color: #e5e7eb;
+        margin-bottom: 0 !important;
+        padding: .9rem 1rem;
+    }
+
+    #modal-batal .modal-title {
+        /* color: #111827; */
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    #modal-batal .modal-body {
+        background: #f3f5f7;
+        max-height: calc(100vh - 8rem);
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    #modal-batal .batal-summary {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        padding: .85rem 1rem;
+    }
+
+    #modal-batal .batal-panel {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        height: 100%;
+        padding: 1rem;
+    }
+
+    #modal-batal .divider {
+        margin: .2rem 0 .85rem;
+    }
+
+    #modal-batal .divider-left {
+        border-left-color: #2057a3;
+        padding-left: .75rem;
+    }
+
+    #modal-batal .divider .divider-text {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 700;
+    }
+
+    #modal-batal label,
+    #modal-batal .form-label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    #modal-batal .form-control,
+    #modal-batal .custom-file-label {
+        border-color: #d8dde3;
+        border-radius: 6px;
+    }
+
+    #modal-batal .btn-primary {
+        background-color: #2057a3 !important;
+        border-color: #2057a3 !important;
+    }
+
+    #modal-batal .refund-status-card {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: .85rem;
+    }
+
+    #modal-batal .refund-status-card .custom-control {
+        margin-bottom: .35rem;
+    }
+
+    #modal-batal .refund-status-card .custom-control:last-child {
+        margin-bottom: 0;
+    }
+
+    #modal-batal .refund-status-note {
+        color: #6b7280;
+        display: block;
+        font-size: .76rem;
+        line-height: 1.35;
+        margin-top: .45rem;
+    }
+
+    @media (max-width: 767.98px) {
+        #modal-batal .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
+        }
+
+        #modal-batal .modal-body {
+            max-height: calc(100vh - 7rem);
+            padding: .75rem;
+        }
+
+        #modal-batal .batal-panel {
+            height: auto;
+            margin-bottom: .75rem;
+            padding: .85rem;
+        }
+    }
+</style>
+
 <!-- END: Content-->
 <div class="modal fade text-left" id="modal-batal" tabindex="-1" role="dialog" aria-labelledby="modal-batal"
     aria-hidden="true">
@@ -6287,11 +8545,13 @@ foreach (user()->getRoles() as $key => $val) {
             </div>
             <form id="fm-batal_booking" enctype="multipart/form-data" class="add-new-record modal-content pt-0">
                 <div class="modal-body">
-                    <p class="modal-title label_alamat" id="label-batal_booking"></p>
-                    <hr>
+                    <div class="batal-summary">
+                        <p class="modal-title label_alamat mb-0" id="label-batal_booking"></p>
+                    </div>
                     <div class="row">
                         <div class="col-sm-12 col-md-3 col-lg-3">
-                            <div class="divider">
+                            <div class="batal-panel">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Data Konsumen</div>
                             </div>
                             <div class="form-group">
@@ -6342,14 +8602,16 @@ foreach (user()->getRoles() as $key => $val) {
                                 <input disabled type="text" class="form-control" id="batal-sales" required
                                     name="batal-sales">
                             </div>
+                            </div>
                         </div>
                         <div class="col-sm-12 col-md-3 col-lg-3">
+                            <div class="batal-panel">
                             <input readonly type="hidden" class="form-control" id="batal-id_konsumen"
                                 name="batal-id_konsumen">
                             <input readonly type="hidden" class="form-control" id="batal-id_mkdt" name="batal-id_mkdt">
                             <input readonly type="hidden" class="form-control" id="batal-id_kavling"
                                 name="batal-id_kavling">
-                            <div class="divider">
+                            <div class="divider divider-left">
                                 <div class="divider-text">TUNAI/KPR</div>
                             </div>
                             <div class="form-group">
@@ -6379,7 +8641,7 @@ foreach (user()->getRoles() as $key => $val) {
                                 <input readonly type="text" class="form-control num" id="batal-harga_penambahan_um"
                                     name="batal-harga_penambahan_um">
                             </div>
-                            <div class="divider">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Penambahan Biaya</div>
                             </div>
                             <div class="form-group">
@@ -6393,9 +8655,11 @@ foreach (user()->getRoles() as $key => $val) {
                                     id="batal-keterangan_penambahan_biaya" class="form-control batal-fm" cols="30"
                                     rows="2"></textarea>
                             </div>
+                            </div>
                         </div>
                         <div class="col-sm-12 col-md-3 col-lg-3">
-                            <div class="divider">
+                            <div class="batal-panel">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Total Uang Muka</div>
                             </div>
                             <div class="form-group">
@@ -6419,7 +8683,7 @@ foreach (user()->getRoles() as $key => $val) {
                                 <label for="batal-persentase_bayar_tagihan_um">Persentase</label>
                                 <input disabled type="text" class="form-control" style="text-align:right" readonly id="batal-persentase_bayar_tagihan_um" name="batal-persentase_bayar_tagihan_um">
                             </div> -->
-                            <div class="divider">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Total Biaya-biaya</div>
                             </div>
                             <div class="form-group">
@@ -6443,9 +8707,11 @@ foreach (user()->getRoles() as $key => $val) {
                                 <label for="batal-persentase_bayar_tagihan_bb">Persentase</label>
                                 <input disabled type="text" class="form-control" style="text-align:right" readonly id="batal-persentase_bayar_tagihan_bb" name="batal-persentase_bayar_tagihan_bb">
                             </div> -->
+                            </div>
                         </div>
                         <div class="col-sm-12 col-md-3 col-lg-3">
-                            <div class="divider">
+                            <div class="batal-panel">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Batal</div>
                             </div>
                             <div class="form-group">
@@ -6465,14 +8731,27 @@ foreach (user()->getRoles() as $key => $val) {
                                 </div>
                             </div>
                             <small id="last_update-batal_mkdt" class="text-muted"></small>
-                            <div class="divider">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Pengembalian Dana ke Konsumen</div>
                             </div>
                             <div class="form-group">
-                                <label for="batal-sertifikat_luas">Nominal</label>
-                                <input type="text" class="form-control num" id="batal-refund" name="batal-refund">
+                                <label>Status Refund</label>
+                                <div class="refund-status-card">
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input" id="batal-perlu_refund_0"
+                                            name="batal-perlu_refund" value="0" checked>
+                                        <label class="custom-control-label" for="batal-perlu_refund_0">Tidak Perlu Refund</label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input" id="batal-perlu_refund_1"
+                                            name="batal-perlu_refund" value="1">
+                                        <label class="custom-control-label" for="batal-perlu_refund_1">Perlu Refund</label>
+                                    </div>
+                                    <small class="refund-status-note">Status ini akan tampil di list konsumen batal.</small>
+                                </div>
                             </div>
                             <small id="last_update-batal_keuangan" class="text-muted"></small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -6581,7 +8860,7 @@ foreach (user()->getRoles() as $key => $val) {
 </div>
 <div class="fade modal text-left" id="modal_othersdetail" aria-labelledby="modal_othersdetail" role="dialog"
     aria-hidden="true" tabindex="-1">
-    <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Detail</h5><button class="close" type="button"
@@ -6597,12 +8876,18 @@ foreach (user()->getRoles() as $key => $val) {
                             class="t_luas_legal"></span></span><br><span><strong>Keterangan Legal :</strong><br><span
                             class="t_keterangan_legal"></span></span><br><br><span><strong>Luas di Lapangan
                             :</strong><br><span class="t_luas_produksi"></span></span><br><span><strong>Keterangan
-                            Produksi :</strong><br><span class="t_keterangan_keterangan"></span></span>
+                            Produksi :</strong><br><span class="t_keterangan_produksi"></span></span>
                     <hr>
                     <div class="form-group"><label for="f_progres_jalan">Progres</label> <input
                             name="f_detail_progres_jalan" class="form-control-range" id="f_detail_progres_jalan"
                             disabled type="range" max="100" min="0" oninput='$(".r_progres").html($(this).val())'
                             step="5"> <span class="r_progres"></span><span>%</span></div>
+                    <div id="detail_produksi_jalan_history_wrap" class="produksi-jalan-history-card mt-2 d-none">
+                        <div class="divider divider-left mb-1">
+                            <div class="divider-text font-weight-bold">History Progres</div>
+                        </div>
+                        <div id="detail_produksi_jalan_history"></div>
+                    </div>
                 </div>
                 <div class="modal-footer"><button class="btn btn-outline-secondary" type="reset"
                         data-dismiss="modal">Tutup</button></div>

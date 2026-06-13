@@ -505,11 +505,26 @@ class KeuanganService
     {
         return $this->pembayaranRepo->getRiwayatBayarById($id_mkdt);
     }
+    public function getTotalBayarById($id_mkdt): float
+    {
+        return $this->pembayaranRepo->getTotalBayarByIdMkdt($id_mkdt);
+    }
+    public function getPaidItemSummaryById($id_mkdt): array
+    {
+        return $this->pembayaranRepo->getPaidItemSummaryByIdMkdt($id_mkdt);
+    }
     function getRiwayatBayarWithDetailById($id_mkdt)
     {
         $log = $this->pembayaranRepo->getRiwayatBayarById($id_mkdt);
+        $detailRows = $this->pembayaranRepo->getDetailRiwayatBayarByIdMkdt($id_mkdt);
+        $detailByPayment = [];
+
+        foreach ($detailRows as $detail) {
+            $detailByPayment[$detail['id_pembayaran']][] = $detail;
+        }
+
         foreach ($log as $key => $value) {
-            $log[$key]->detail = $this->pembayaranRepo->getDetailRiwayatBayarById($value->id_pembayaran);
+            $log[$key]->detail = $detailByPayment[$value->id_pembayaran] ?? [];
         }
         return $log;
     }
@@ -791,7 +806,7 @@ class KeuanganService
                 $this->mkdtModel->update(['id_mkdt' => $id_mkdt], $data);
             }
 
-            $this->notif->tambah_notif("3;4;9", $pesanNotif, user_id(), $id_kavling, $id_konsumen);
+            $this->notif->tambah_notif("3;4;9", $pesanNotif, user_id(), $id_kavling, $id_konsumen, 'tagihan');
 
             $db->transComplete();
 

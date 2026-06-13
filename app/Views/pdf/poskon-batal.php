@@ -75,6 +75,7 @@ function format_tgl($tgl)
                 <th colspan="2" id="tb-KAVLING">KAVLING</th>
                 <th rowspan="2" id="tb-TYPE">TYPE</th>
                 <th rowspan="2" id="tb-KET_BATAL">Keterangan Batal</th>
+                <th rowspan="2" id="tb-STATUS_REFUND">Status Refund</th>
                 <th rowspan="2">Nama Konsumen</th>
                 <th rowspan="2">Tanggal Booking</th>
                 <th rowspan="2">TUNAI/KPR</th>
@@ -98,6 +99,7 @@ function format_tgl($tgl)
                 $tanggal_batal = format_tgl($row->mkdt_batal_tgl);
                 $keterangan_batal = $row->keterangan_batal;
                 $keterangan_batal . "<br> <span class='text-muted'>Dibatalkan pada: " . $tanggal_batal . "</span>";
+                $status_refund = ((int) ($row->perlu_refund ?? 0) === 1) ? 'Perlu Refund' : 'Tidak Perlu Refund';
 
                 $kpr = "KPR";
                 if ($row->is_kpr == 0) {
@@ -110,6 +112,7 @@ function format_tgl($tgl)
                     <td class="center"><?= $row->no_kavling; ?></td>
                     <td class="center"><?= $row->id_tipe; ?></td>
                     <td><?= $keterangan_batal; ?></td>
+                    <td class="center"><?= $status_refund; ?></td>
                     <td><?= $row->nama_konsumen; ?></td>
                     <td class="center"><?= ($row->booking_tgl == "0000-00-00" || !$row->booking_tgl) ? "" : $row->booking_tgl; ?></td>
                     <td class="center"><?= $kpr; ?></td>

@@ -146,6 +146,12 @@ class PosisiKonsumenService
                 $keterangan_batal = $value->keterangan_batal;
                 return $keterangan_batal . "<br> <span class='text-muted'>Dibatalkan pada: " . $tanggal_batal . "</span>";
             })
+            ->edit('perlu_refund', function ($value) {
+                if ((int) ($value->perlu_refund ?? 0) === 1) {
+                    return '<span class="badge badge-warning">Perlu Refund</span>';
+                }
+                return '<span class="badge badge-secondary">Tidak Perlu Refund</span>';
+            })
 
             ->edit('tunai', function ($v) {
                 if ($v->is_kpr == 1) {

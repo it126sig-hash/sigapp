@@ -12,6 +12,7 @@ use App\Services\StorageService;
 
 use App\Services\KonsumenService;
 use App\Services\KeuanganService;
+use App\Services\MkdtHistoryService;
 use App\Repositories\NotifRepository;
 
 use App\Models\MkdtModel;
@@ -34,6 +35,7 @@ class TransaksiService
     protected $spptbRepo;
     protected $storageService;
     protected $fileAccessService;
+    protected $mkdtHistoryService;
 
     // $kavlingRepo,
     //         $hargaRepo,
@@ -58,6 +60,7 @@ class TransaksiService
         $this->spptbRepo = new SpptbRepository($this->db);
         $this->storageService = new StorageService();
         $this->fileAccessService = new FileAccessService();
+        $this->mkdtHistoryService = new MkdtHistoryService();
 
         $this->mkdt = new MkdtModel();
         $this->kavling = new KavlingModel();
@@ -172,6 +175,7 @@ class TransaksiService
         $idKonsumenOld  = $opt['id_konsumen_old'] ?? null;
         $idKonsumen     = $opt['id_konsumen'] ?? null;
         $isDataBaru     = !empty($opt['is_data_baru']);
+        $allowDuplicateNik = !empty($opt['allow_duplicate_nik']);
 
         if ($isDataBaru) {
             $kons['id_mkdt'] = null;
@@ -197,6 +201,29 @@ class TransaksiService
                 'messages' => 'Nama konsumen wajib diisi',
             ];
         }
+
+        if (!$allowDuplicateNik && !empty($kons['nik'])) {
+            $nikUsage = $this->transaksiRepo->findNikUsage(
+                (string) $kons['nik'],
+                !empty($kons['id_mkdt']) ? (int) $kons['id_mkdt'] : null,
+                !empty($idKonsumen) ? (int) $idKonsumen : null
+            );
+
+            if (!empty($nikUsage)) {
+                return [
+                    'token' => csrf_hash(),
+                    'success' => false,
+                    'require_nik_confirmation' => true,
+                    'messages' => 'NIK tersebut sudah digunakan di kavling/blok/proyek lain.',
+                    'nik_usage' => $nikUsage,
+                ];
+            }
+        }
+
+        $oldMkdt = !empty($kons['id_mkdt'])
+            ? $this->transaksiRepo->getKonsumenTransaksi((int) $kons['id_mkdt'])
+            : null;
+        $isNewMkdt = empty($kons['id_mkdt']) || $isDataBaru;
 
         // --- 2) Transactional flow
         $db = \Config\Database::connect();
@@ -260,7 +287,18 @@ class TransaksiService
             $pesanNotif = $kons['id_mkdt']
                 ? ('Melakukan perubahan data konsumen : ' . $kons['nama_konsumen'])
                 : ('Booking kavling atas nama : ' . $kons['nama_konsumen']);
-            $this->notif->tambah_notif('3;4;9', $pesanNotif, user_id(), $idKavling, $idKonsumen);
+            $this->notif->tambah_notif('3;4;9', $pesanNotif, user_id(), $idKavling, $idKonsumen, 'mkdt_konsumen');
+
+            $summary = $this->mkdtHistoryService->buildKonsumenSummary($oldMkdt, $kons, $mk, $isNewMkdt);
+            $this->mkdtHistoryService->log(
+                (int) $idKavling,
+                $idMkdt,
+                MkdtHistoryService::ACTION_ISI_DATA_KONSUMEN,
+                $summary,
+                $oldMkdt ? (array) $oldMkdt : null,
+                array_merge($kons, $mk),
+                user_id()
+            );
 
             $db->transComplete();
 
@@ -349,6 +387,17 @@ class TransaksiService
 
             $this->mkdt->update($idMkdt, $data);
             $this->kavlingRepo->setPerintahBangun($idKavling, $perintahBangun);
+
+            $summary = $this->mkdtHistoryService->buildStatusSummary($oldData, $data, $perintahBangun);
+            $this->mkdtHistoryService->log(
+                (int) $idKavling,
+                (int) $idMkdt,
+                MkdtHistoryService::ACTION_UBAH_STATUS_KAVLING,
+                $summary,
+                $oldData ? (array) $oldData : null,
+                $data,
+                user_id()
+            );
 
             $db->transComplete();
 

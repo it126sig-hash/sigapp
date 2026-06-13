@@ -112,18 +112,49 @@ class LogPembayaranRepository extends Model
             ->get()
             ->getResultArray();
     }
+    public function getTotalBayarByIdMkdt(int $id_Mkdt): float
+    {
+        $row = $this->select('COALESCE(SUM(nominal), 0) AS total_bayar')
+            ->where('id_mkdt', $id_Mkdt)
+            ->where('is_deleted', 0)
+            ->where('payment_type !=', 'Booking')
+            ->first();
+
+        return (float) ($row->total_bayar ?? 0);
+    }
+    public function getPaidItemSummaryByIdMkdt(int $id_Mkdt): array
+    {
+        return $this->db->table('log_pembayaran_detail lpd')
+            ->select([
+                'lpd.id_keuangan_item_list',
+                'kl.item',
+                'kl.kategori',
+                'COALESCE(SUM(lpd.nominal), 0) AS total_nominal',
+            ])
+            ->join('keuangan_item_list kl', 'kl.id_keuangan_item_list = lpd.id_keuangan_item_list')
+            ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
+            ->where('lp.id_mkdt', $id_Mkdt)
+            ->where('lp.is_deleted', 0)
+            ->where('lp.payment_type !=', 'Booking')
+            ->groupBy(['lpd.id_keuangan_item_list', 'kl.item', 'kl.kategori'])
+            ->orderBy('kl.id_keuangan_item_list', 'ASC')
+            ->get()
+            ->getResultArray();
+    }
     public function getDetailRiwayatBayarByIdMkdt(int $id_Mkdt): array
     {
         return $this->db->table('log_pembayaran_detail lpd')
             ->select([
+                'lpd.id_pembayaran',
+                'lpd.id_keuangan_item_list',
                 'lpd.nominal',
+                'kl.item',
                 'kl.kategori',
             ])
             ->join('keuangan_item_list kl', 'kl.id_keuangan_item_list = lpd.id_keuangan_item_list')
             ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
             ->where('lp.id_mkdt', $id_Mkdt)
             ->where('lp.is_deleted', 0)
-            ->where('kl.kategori !=', 'BO')
             ->get()
             ->getResultArray();
     }

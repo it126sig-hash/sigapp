@@ -13,6 +13,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 use App\Controllers\Notif;
 use App\Services\FileAccessService;
+use App\Services\MkdtHistoryService;
 
 class Mkdt extends BaseController
 {
@@ -26,6 +27,7 @@ class Mkdt extends BaseController
     protected $notif;
     protected $username;
     protected $fileAccessService;
+    protected $mkdtHistoryService;
 
     public function __construct()
     {
@@ -39,6 +41,7 @@ class Mkdt extends BaseController
         $this->db = db_connect();
         $this->username = $this->db->table('users')->select('username')->get()->getRow();
         $this->fileAccessService = new FileAccessService();
+        $this->mkdtHistoryService = new MkdtHistoryService();
     }
     function get_data_by_id($st = null)
     {
@@ -176,9 +179,9 @@ class Mkdt extends BaseController
         }
 
         $f['keterangan_batal'] = $this->request->getPost('batal-keterangan_batal'); //keterangan batal dari mkdt
+        $f['perlu_refund'] = (int) (($this->request->getPost('batal-perlu_refund') ?? 0) == 1);
 
         $f['is_batal'] = 1; //status batal dari mkdt
-        $f['refund'] = $this->num($this->request->getPost('batal-refund'));
         $f['is_batal'] = 1; //status batal dari mkdt
 
         $f['status_mkdt'] = "Batal"; //status batal dari mkdt
@@ -201,6 +204,16 @@ class Mkdt extends BaseController
             //insert ke log
             $notif = 'Membatalkan booking';
             $this->notif->tambah_notif("3;4;9", $notif, user_id(), $id_kavling, $id_konsumen); //4 mkdt 9 direksi
+
+            $this->mkdtHistoryService->log(
+                (int) $id_kavling,
+                (int) $id_mkdt,
+                MkdtHistoryService::ACTION_BATAL_BOOKING,
+                $this->mkdtHistoryService->buildBatalSummary($f),
+                null,
+                $f,
+                user_id()
+            );
 
             $response['success'] = true;
             $response['messages'] = '';
@@ -1760,26 +1773,28 @@ class Mkdt extends BaseController
     {
         $response['token'] = csrf_hash();
         $id_si = $this->request->getVar('id-si');
-        $data['id_kavling'] = $this->request->getVar('id_kavling');
+        $id_kavling = $this->request->getVar('id_kavling');
+        $savedItems = [];
 
         foreach ($id_si as $i => $v) {
-            $data['tanggal_si'] = $v['tanggal_si'];
-            $data['keterangan'] = $v['keterangan'];
-            $data['file'] = null;
+            $data = [
+                'id_kavling' => $id_kavling,
+                'tanggal_si' => $v['tanggal_si'],
+                'keterangan' => $v['keterangan'],
+            ];
 
             if ($v['tanggal_si'] != "") {
+                $file = $this->request->getFile('id-si-file-' . $i);
+                if ($file && $file->isValid() && !$file->hasMoved() && $file->getSize() > 0) {
+                    $name = $file->getRandomName();
+                    $lok = 'uploads/si/' . date('Ymd') . '/';
+
+                    $this->fileAccessService->storeAs($file, $lok, $name);
+
+                    $data['file'] = $lok . $name;
+                }
+
                 if (strpos($i, 'n') === false) {
-                    if ($this->request->getFile('id-si-file-' . $i)->getSize() > 0) {
-                        $img = $this->request->getFile('id-si-file-' . $i);
-                        $name = $img->getRandomName();
-
-                        $lok = 'uploads/si/' . date('Ymd') . '/';
-
-                        $this->fileAccessService->storeAs($img, $lok, $name);
-
-                        $data['file'] = $lok . $name;
-                    }
-
                     $data['edit_by'] = user_id();
                     $data['updated_at'] = date("Y-m-d H:i:s");
 
@@ -1787,17 +1802,6 @@ class Mkdt extends BaseController
                         ->where(['id' => $i])
                         ->update($data);
                 } else {
-                    if ($this->request->getFile('id-si-file-' . $i)->getSize() > 0) {
-                        $img = $this->request->getFile('id-si-file-' . $i);
-                        $name = $img->getRandomName();
-
-                        $lok = 'uploads/si/' . date('Ymd') . '/';
-
-                        $this->fileAccessService->storeAs($img, $lok, $name);
-
-                        $data['file'] = $lok . $name;
-                    }
-
                     $data['id_list_si'] = substr($i, 1);
 
                     $data['add_by'] = user_id();
@@ -1806,7 +1810,33 @@ class Mkdt extends BaseController
                     $q = $this->db->table('si')
                         ->insert($data);
                 }
+
+                $listSiId = strpos($i, 'n') === false
+                    ? ($this->db->table('si')->select('id_list_si')->where('id', $i)->get()->getRow('id_list_si') ?? null)
+                    : substr($i, 1);
+                $listSi = $listSiId
+                    ? $this->db->table('list_si')->select('nama')->where('id', $listSiId)->get()->getRow()
+                    : null;
+
+                $savedItems[] = [
+                    'nama'       => $listSi->nama ?? 'SI',
+                    'tanggal_si' => $v['tanggal_si'],
+                    'keterangan' => $v['keterangan'] ?? '',
+                ];
             }
+        }
+
+        if (!empty($savedItems)) {
+            $kavling = $this->kavlingModel->select('id_mkdt')->find($id_kavling);
+            $this->mkdtHistoryService->log(
+                (int) $id_kavling,
+                $kavling ? (int) ($kavling->id_mkdt ?? 0) ?: null : null,
+                MkdtHistoryService::ACTION_STANDING_INSTRUCTION,
+                $this->mkdtHistoryService->buildStandingInstructionSummary($savedItems),
+                null,
+                $savedItems,
+                user_id()
+            );
         }
 
         $response['success'] = true;
