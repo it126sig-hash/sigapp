@@ -210,12 +210,12 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     .float .btn-primary {
-        background: linear-gradient(135deg, #5B4FCF, #7B6FE0) !important;
+        background: linear-gradient(135deg, #2057a3, #2f74c4) !important;
         color: #fff !important;
     }
 
     .float .btn-primary:hover {
-        background: linear-gradient(135deg, #4b3ebf, #6c5fd0) !important;
+        background: linear-gradient(135deg, #184272, #2057a3) !important;
     }
 
     .float .btn-success {
@@ -225,6 +225,24 @@ foreach (user()->getRoles() as $key => $val) {
 
     .float .btn-success:hover {
         background: linear-gradient(135deg, #0d9668, #047857) !important;
+    }
+
+    .float .btn-info {
+        background: linear-gradient(135deg, #0EA5E9, #0284C7) !important;
+        color: #fff !important;
+    }
+
+    .float .btn-info:hover {
+        background: linear-gradient(135deg, #0284C7, #0369A1) !important;
+    }
+
+    .float .btn-danger {
+        background: linear-gradient(135deg, #EF4444, #DC2626) !important;
+        color: #fff !important;
+    }
+
+    .float .btn-danger:hover {
+        background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
     }
 
     #produksi_menu.produksi-jalan-selecting {
@@ -262,6 +280,23 @@ foreach (user()->getRoles() as $key => $val) {
         background: rgba(245, 158, 11, 0.08) !important;
         color: #d97706 !important;
         border-color: #d97706 !important;
+    }
+
+    .float .btn-outline-danger {
+        border: 1.5px solid #EF4444 !important;
+        color: #EF4444 !important;
+        background: transparent !important;
+    }
+
+    .float .btn-outline-danger:hover {
+        background: rgba(239, 68, 68, 0.08) !important;
+        color: #DC2626 !important;
+        border-color: #DC2626 !important;
+    }
+
+    /* Group separator labels for the mobile expanded menu panel */
+    .float .menu-group-label {
+        display: none;
     }
 
     /* Styling manual selection switch */
@@ -328,6 +363,26 @@ foreach (user()->getRoles() as $key => $val) {
 
         .float.mobile-expanded > .d-none {
             display: none !important;
+        }
+
+        .float.mobile-expanded .menu-group-label {
+            display: block !important;
+            width: 100%;
+            text-align: right;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: #94a3b8;
+            margin: 8px 0 2px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .float.mobile-expanded .menu-group-label:first-of-type {
+            border-top: none;
+            margin-top: 0;
+            padding-top: 0;
         }
 
         .float.mobile-expanded .custom-switch {
@@ -488,6 +543,150 @@ foreach (user()->getRoles() as $key => $val) {
         height: auto;
     }
 
+    .siteplan-urgent-toggle {
+        align-items: center;
+        background: #2057a3;
+        border: 0;
+        border-radius: 8px;
+        bottom: 1.25rem;
+        box-shadow: 0 10px 26px rgba(32, 87, 163, .24);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        font-weight: 700;
+        gap: .45rem;
+        padding: .65rem .85rem;
+        position: fixed;
+        right: 1.25rem;
+        z-index: 1035;
+    }
+
+    .siteplan-urgent-toggle .badge {
+        background: #ea5455;
+        color: #fff;
+        margin-left: .15rem;
+    }
+
+    .siteplan-urgent-panel {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        bottom: 4.5rem;
+        box-shadow: 0 18px 42px rgba(15, 23, 42, .22);
+        max-height: calc(100vh - 8rem);
+        overflow: hidden;
+        position: fixed;
+        right: 1.25rem;
+        width: min(410px, calc(100vw - 2rem));
+        z-index: 1036;
+    }
+
+    .siteplan-urgent-header {
+        align-items: center;
+        border-bottom: 1px solid #edf0f2;
+        display: flex;
+        justify-content: space-between;
+        padding: .85rem 1rem;
+    }
+
+    .siteplan-urgent-title {
+        color: #111827;
+        font-size: .98rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .siteplan-urgent-body {
+        background: #f8fafc;
+        max-height: calc(100vh - 12rem);
+        overflow-y: auto;
+        padding: .85rem;
+    }
+
+    .siteplan-urgent-section {
+        margin-bottom: .85rem;
+    }
+
+    .siteplan-urgent-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .siteplan-urgent-section-title {
+        align-items: center;
+        color: #4b5563;
+        display: flex;
+        font-size: .78rem;
+        font-weight: 700;
+        justify-content: space-between;
+        margin-bottom: .45rem;
+        text-transform: uppercase;
+    }
+
+    .siteplan-urgent-item {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-left: 4px solid #2057a3;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: .5rem;
+        padding: .7rem .75rem;
+    }
+
+    .siteplan-urgent-item:hover {
+        border-color: #c8d7ee;
+    }
+
+    .siteplan-urgent-item.is-danger {
+        border-left-color: #ea5455;
+    }
+
+    .siteplan-urgent-item.is-warning {
+        border-left-color: #ff9f43;
+    }
+
+    .siteplan-urgent-item.is-info {
+        border-left-color: #00cfe8;
+    }
+
+    .siteplan-urgent-item-title {
+        color: #111827;
+        font-size: .88rem;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-bottom: .25rem;
+    }
+
+    .siteplan-urgent-item-desc,
+    .siteplan-urgent-item-meta,
+    .siteplan-urgent-empty {
+        color: #6b7280;
+        font-size: .78rem;
+        line-height: 1.35;
+    }
+
+    .siteplan-urgent-empty {
+        background: #fff;
+        border: 1px dashed #d8dde3;
+        border-radius: 8px;
+        padding: .85rem;
+        text-align: center;
+    }
+
+    @media (max-width: 767.98px) {
+        .siteplan-urgent-toggle {
+            bottom: .75rem;
+            left: .75rem;
+            right: auto;
+        }
+
+        .siteplan-urgent-panel {
+            bottom: 4rem;
+            left: .75rem;
+            right: auto;
+            width: min(410px, calc(100vw - 5.5rem));
+        }
+    }
+
     .input-foto-container {
         width: 350px;
         height: 150px;
@@ -525,7 +724,7 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     #modal_detail .modal-title {
-        color: #111827;
+        /* color: #111827; */
         font-size: 1.05rem;
         font-weight: 700;
     }
@@ -786,7 +985,6 @@ foreach (user()->getRoles() as $key => $val) {
     #modal_detail .detail-summary-card,
     #modal_detail .detail-metric-card,
     #modal_detail .detail-accordion-card,
-    #modal_detail .detail-status-step,
     #modal_detail .detail-progress-card,
     #modal_detail .detail-mini-card {
         background: #fff;
@@ -795,13 +993,11 @@ foreach (user()->getRoles() as $key => $val) {
         box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
     }
 
-    #modal_detail .detail-summary-card,
-    #modal_detail .detail-status-step {
+    #modal_detail .detail-summary-card {
         padding: 1rem;
     }
 
-    #modal_detail .detail-summary-card .divider,
-    #modal_detail .detail-status-step .divider {
+    #modal_detail .detail-summary-card .divider {
         margin-top: 0;
     }
 
@@ -938,22 +1134,194 @@ foreach (user()->getRoles() as $key => $val) {
         padding: 1rem;
     }
 
-    #modal_detail .detail-status-timeline {
-        display: grid;
-        gap: 1rem;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+    #modal_detail .detail-status-card-header {
+        align-items: center;
+        display: flex;
+        gap: .65rem;
+        margin-bottom: 1rem;
     }
 
-    #modal_detail .detail-status-step {
-        border-left: 4px solid #2056a4;
-        height: 100%;
-    }
-
-    #modal_detail .detail-status-step-title {
-        color: #003b78;
+    #modal_detail .detail-status-card-title {
+        color: #111827;
         font-size: 1rem;
         font-weight: 800;
-        margin-bottom: .75rem;
+    }
+
+    #modal_detail .detail-status-card-toggle {
+        margin-left: auto;
+    }
+
+    #modal_detail .detail-info-row {
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        margin-bottom: .9rem;
+    }
+
+    #modal_detail .detail-info-col {
+        display: flex;
+        flex: 1 1 0;
+        flex-direction: column;
+        gap: .3rem;
+        min-width: 0;
+    }
+
+    #modal_detail .detail-info-col.text-right {
+        align-items: flex-end;
+    }
+
+    #modal_detail .detail-info-label {
+        color: #6b7280;
+        font-size: .76rem;
+        font-weight: 700;
+    }
+
+    #modal_detail .detail-info-value {
+        background-color: transparent !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        color: #111827;
+        font-size: .92rem;
+        font-weight: 700;
+        height: auto !important;
+        min-height: 0 !important;
+        opacity: 1 !important;
+        overflow-wrap: anywhere;
+        padding: 0 !important;
+        width: 100%;
+    }
+
+    #modal_detail select.detail-info-value {
+        appearance: none;
+        -moz-appearance: none;
+        -webkit-appearance: none;
+    }
+
+    #modal_detail .detail-info-col.text-right .detail-info-value {
+        text-align: right;
+        text-align-last: right;
+    }
+
+    #modal_detail .detail-text-primary {
+        color: #2056a4 !important;
+    }
+
+    #modal_detail .detail-text-danger {
+        color: #dc2626 !important;
+    }
+
+    #modal_detail .detail-highlight-box {
+        background: #eaf2fd;
+        border-radius: 8px;
+        margin-bottom: .9rem;
+        padding: .65rem .9rem;
+    }
+
+    #modal_detail .detail-highlight-label {
+        color: #2056a4;
+        display: block;
+        font-size: .76rem;
+        font-weight: 700;
+        margin-bottom: .15rem;
+    }
+
+    #modal_detail .detail-highlight-value {
+        background-color: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        color: #2056a4 !important;
+        font-size: 1.2rem;
+        font-weight: 800;
+        height: auto !important;
+        min-height: 0 !important;
+        opacity: 1 !important;
+        padding: 0 !important;
+        width: 100%;
+    }
+
+    #modal_detail .detail-section-divider {
+        align-items: center;
+        border-top: 1px dashed #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        margin: 1rem 0 .9rem;
+        padding-top: .85rem;
+    }
+
+    #modal_detail .detail-section-title {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 800;
+    }
+
+    #modal_detail .detail-section-title-dot::before {
+        background: #2056a4;
+        border-radius: 50%;
+        content: "";
+        display: inline-block;
+        height: 7px;
+        margin-right: .45rem;
+        width: 7px;
+    }
+
+    #modal_detail .detail-status-badge {
+        border-radius: 999px;
+        display: inline-block;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .03em;
+        padding: .15rem .65rem;
+        text-transform: uppercase;
+    }
+
+    #modal_detail .detail-status-badge.badge-success {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    #modal_detail .detail-status-badge.badge-secondary {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    #modal_detail .detail-status-badge.badge-danger {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    #modal_detail .detail-file-btn {
+        align-items: center;
+        display: flex;
+        font-size: .86rem;
+        font-weight: 700;
+        justify-content: center;
+        margin-top: .25rem;
+    }
+
+    #modal_detail .detail-file-btn-success {
+        background: #eafaf0;
+        border-color: #34d399;
+        color: #0f9d58;
+    }
+
+    #modal_detail .detail-file-btn-success:hover {
+        background: #d6f5e3;
+        color: #0f9d58;
+    }
+
+    #modal_detail .detail-status-card .custom-switch .custom-control-input:disabled ~ .custom-control-label {
+        opacity: 1;
+    }
+
+    #modal_detail .detail-status-card .custom-switch .custom-control-input:disabled ~ .custom-control-label::before {
+        opacity: .65;
+    }
+
+    #modal_detail .detail-status-card .custom-switch .custom-control-input:disabled:checked ~ .custom-control-label::before {
+        background-color: #2057a3;
+        border-color: #2057a3;
+        opacity: 1;
     }
 
     #modal_detail .detail-price-comparison > .row > [class*="col-md-"] {
@@ -1107,7 +1475,6 @@ foreach (user()->getRoles() as $key => $val) {
     .dark-layout #modal_detail .detail-summary-card,
     .dark-layout #modal_detail .detail-metric-card,
     .dark-layout #modal_detail .detail-accordion-card,
-    .dark-layout #modal_detail .detail-status-step,
     .dark-layout #modal_detail .detail-progress-card,
     .dark-layout #modal_detail .detail-mini-card,
     .dark-layout #modal_detail .detail-accordion-toggle,
@@ -1125,8 +1492,19 @@ foreach (user()->getRoles() as $key => $val) {
     .dark-layout #modal_detail .detail-metric-value,
     .dark-layout #modal_detail .detail-accordion-toggle,
     .dark-layout #modal_detail .detail-mini-value,
-    .dark-layout #modal_detail .detail-file-title {
+    .dark-layout #modal_detail .detail-file-title,
+    .dark-layout #modal_detail .detail-info-value,
+    .dark-layout #modal_detail .detail-status-card-title,
+    .dark-layout #modal_detail .detail-section-title {
         color: #f8fafc;
+    }
+
+    .dark-layout #modal_detail .detail-highlight-box {
+        background: rgba(32, 86, 164, .25);
+    }
+
+    .dark-layout #modal_detail .detail-section-divider {
+        border-top-color: rgba(255, 255, 255, .08);
     }
 
     .dark-layout #modal_detail .modal-body,
@@ -1245,7 +1623,6 @@ foreach (user()->getRoles() as $key => $val) {
 
         #modal_detail .detail-dashboard-grid,
         #modal_detail .detail-card-grid,
-        #modal_detail .detail-status-timeline,
         #modal_detail .detail-production-dashboard {
             grid-template-columns: 1fr;
         }
@@ -1816,24 +2193,14 @@ foreach (user()->getRoles() as $key => $val) {
         if (roleid == 1) {
             let va = $("#pilih-divisi option:selected").val();
             $(".div_menu").addClass("hidden");
-            if (va == 6) {
-                $("#planning_menu").removeClass("hidden")
-            } else if (va == 4) {
-                $("#mkdt_menu").removeClass("hidden")
-            } else if (va == 7) {
-                $("#produksi_menu").removeClass("hidden")
-            } else if (va == 8) {
-                $("#sales_menu").removeClass("hidden")
-            } else if (va == 3) {
-                $("#keuangan_menu").removeClass("hidden")
-            } else if (va == 9) {
-                $("#direksi_menu").removeClass("hidden")
-            } else if (va == 11) {
-                $("#target_menu").removeClass("hidden")
-            } else if (va == 0) {
-                $("#others_menu").addClass("hidden")
-            } else {
-                $("#others_menu").removeClass("hidden")
+
+            if (va != 0) {
+                const $selectedMenu = $('.div_menu[data-siteplan-role="' + va + '"]');
+                if ($selectedMenu.length) {
+                    $selectedMenu.removeClass("hidden");
+                } else {
+                    $('.div_menu[data-siteplan-role="0"]').removeClass("hidden");
+                }
             }
         }
 
@@ -1920,7 +2287,42 @@ foreach (user()->getRoles() as $key => $val) {
         return e;
     }
 
+    const legalStatusOrder = [
+        'Belum Legal',
+        'Data Legal Masuk',
+        'Sertipikat Induk Ada',
+        'Split Sertipikat Diproses',
+        'Sertipikat Split Terbit',
+        'PBB Pecah / NOP Terbit',
+        'PBG/IMB Terbit',
+        'PPJB Dibuat',
+        'PPH Dibayar / Validasi',
+        'BPHTB Dibayar / Validasi',
+        'AJB Dibuat',
+        'Balik Nama Sertipikat',
+        'Balik Nama PBB',
+        'Selesai Legal'
+    ];
+
+    const legalStatusColors = {
+        'Belum Legal': '#f8fafc',
+        'Data Legal Masuk': '#94a3b8',
+        'Sertipikat Induk Ada': '#a78bfa',
+        'Split Sertipikat Diproses': '#c084fc',
+        'Sertipikat Split Terbit': '#7c3aed',
+        'PBB Pecah / NOP Terbit': '#38bdf8',
+        'PBG/IMB Terbit': '#2563eb',
+        'PPJB Dibuat': '#6366f1',
+        'PPH Dibayar / Validasi': '#f59e0b',
+        'BPHTB Dibayar / Validasi': '#d97706',
+        'AJB Dibuat': '#ec4899',
+        'Balik Nama Sertipikat': '#22c55e',
+        'Balik Nama PBB': '#16a34a',
+        'Selesai Legal': '#047857'
+    };
+
     function get_kategori_color(kategori) {
+        if (legalStatusColors[kategori]) return legalStatusColors[kategori];
         if (kategori == 'Belum Target') return '#f8fafc';
         if (String(kategori).indexOf('Target ') === 0) {
             const colors = ['#f59e0b', '#14b8a6', '#3b82f6', '#a855f7', '#ef4444', '#22c55e'];
@@ -1928,6 +2330,87 @@ foreach (user()->getRoles() as $key => $val) {
             return colors[Math.abs(year || 0) % colors.length];
         }
         return conf[kategori] ? conf[kategori].fill : '#d1d5db';
+    }
+
+    function legalHasValue(value) {
+        return value !== null &&
+            value !== undefined &&
+            value !== '' &&
+            value !== 'null' &&
+            value !== '0000-00-00';
+    }
+
+    function legalIsYes(value) {
+        return value === 1 || value === '1' || value === true || value === 'Ya' || value === 'Iya' || value === 'Sudah';
+    }
+
+    function getLegalStatus(row) {
+        if (!row.id_legal) {
+            return {
+                fill: 'Belum Legal',
+                tipe: 'Legal'
+            };
+        }
+
+        const sertifikatBalikNama = legalIsYes(row.sertifikat_is_balik_nama);
+        const pbbBalikNama = legalIsYes(row.pbb_is_balik_nama);
+        const sertifikatDikirim = legalHasValue(row.sertifikat_balik_nama_tgl_pengiriman) || legalHasValue(row.sertifikat_balik_nama_ke);
+        const pbbDikirim = legalHasValue(row.pbb_balik_nama_tgl_pengiriman) || legalHasValue(row.pbb_balik_nama_ke);
+
+        let status = 'Data Legal Masuk';
+
+        if (legalHasValue(row.sertifikat_split_no_hgb_induk)) {
+            status = 'Sertipikat Induk Ada';
+        }
+
+        if (legalIsYes(row.sertifikat_is_split) && !legalHasValue(row.sertifikat_split_no_hgb)) {
+            status = 'Split Sertipikat Diproses';
+        }
+
+        if (legalHasValue(row.sertifikat_split_no_hgb) || legalHasValue(row.sertifikat_split_nib) || legalHasValue(row.sertifikat_split_tanggal_terbit)) {
+            status = 'Sertipikat Split Terbit';
+        }
+
+        if (legalHasValue(row.pbb_pecah_nop)) {
+            status = 'PBB Pecah / NOP Terbit';
+        }
+
+        if (row.pbg_status === 'Selesai' || legalHasValue(row.pbg_no) || legalHasValue(row.pbg_tanggal_terbit)) {
+            status = 'PBG/IMB Terbit';
+        }
+
+        if (legalHasValue(row.ppjb_no) || legalHasValue(row.ppjb_tanggal)) {
+            status = 'PPJB Dibuat';
+        }
+
+        if (legalHasValue(row.pph_tgl_bayar) || legalHasValue(row.pph_ntpn) || legalHasValue(row.pph_tanggal_validasi) || legalHasValue(row.pph_tgl_selesai) || legalHasValue(row.pph_no_sket)) {
+            status = 'PPH Dibayar / Validasi';
+        }
+
+        if (legalHasValue(row.bphtb_tanggal_pembayaran) || legalHasValue(row.bphtb_tanggal_validasi)) {
+            status = 'BPHTB Dibayar / Validasi';
+        }
+
+        if (legalHasValue(row.ajb_no) || legalHasValue(row.ajb_tanggal)) {
+            status = 'AJB Dibuat';
+        }
+
+        if (sertifikatBalikNama) {
+            status = 'Balik Nama Sertipikat';
+        }
+
+        if (pbbBalikNama) {
+            status = 'Balik Nama PBB';
+        }
+
+        if (sertifikatBalikNama && pbbBalikNama && (sertifikatDikirim || pbbDikirim)) {
+            status = 'Selesai Legal';
+        }
+
+        return {
+            fill: status,
+            tipe: 'Legal'
+        };
     }
 
     function hitung_kavling(fill) {
@@ -1952,7 +2435,9 @@ foreach (user()->getRoles() as $key => $val) {
                 <div class="divider">
                     <div class="divider-text">${i} ${i == 'Subsidi' || i == 'Komersil' ? 'Dipasarkan' : ''}</div>
                 </div>`;
-                const sortedKeys = Object.keys(v).sort();
+                const sortedKeys = i === 'Legal' ?
+                    legalStatusOrder.filter(key => Object.prototype.hasOwnProperty.call(v, key)).concat(Object.keys(v).filter(key => !legalStatusOrder.includes(key)).sort()) :
+                    Object.keys(v).sort();
 
                 // Step 2: Create a new object with sorted keys
                 const sortedObj = {};
@@ -1981,6 +2466,7 @@ foreach (user()->getRoles() as $key => $val) {
             Status: null,
             Subsidi: null,
             Komersil: null,
+            Legal: null,
             Target: null,
             'Lain-lain': null
         };
@@ -2174,11 +2660,7 @@ foreach (user()->getRoles() as $key => $val) {
                             }
                         }
                     } else if (va == 5) { //legal
-                        if (r[p].id_legal)
-                            hit = set_fill2("Sudah Diisi")
-                        if (r[p].sertifikat_is_balik_nama == "Sudah") {
-                            hit = set_fill2("Sudah Balik Nama")
-                        }
+                        hit = getLegalStatus(r[p]);
 
                         // if (
                         //     r[p].sertifikat_tgl != null && r[p].sertifikat_tgl != "0000-00-00" &&
@@ -2347,7 +2829,7 @@ foreach (user()->getRoles() as $key => $val) {
                         return val !== null && val !== '';
                     });
 
-                    if (va != 11 && isComplete) {
+                    if (va != 11 && va != 5 && isComplete) {
                         hit = set_fill2("Selesai");
                     }
 
@@ -2428,9 +2910,6 @@ foreach (user()->getRoles() as $key => $val) {
                 }
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
-
-                if (roleid == 3)
-                    cek_jatuh_tempo(true)
             },
             error: function(xhr, st, err) {
                 $("#loading").addClass("hidden")
@@ -3175,6 +3654,7 @@ foreach (user()->getRoles() as $key => $val) {
                 loadProduksi(r.produksi, r.files)
                 loadBuktiBayarPajak(r)
                 loadCashOut(r.cashout || [])
+                loadFinanceFlow(r.finance_flow || {})
                 loadBayarProduksi(r.bayar_produksi || [])
                 loaded['sm'] = true
 
@@ -3404,6 +3884,10 @@ foreach (user()->getRoles() as $key => $val) {
         return 'Rp ' + new Intl.NumberFormat('id-ID').format(detailMoneyValue(value));
     }
 
+    function detailEscapeHtml(value) {
+        return $('<div>').text(value === null || value === undefined || value === '' ? '-' : value).html();
+    }
+
     function detailPercentValue(value) {
         const n = Number(String(value || '0').replace('%', '')) || 0;
         return Math.max(0, Math.min(100, n));
@@ -3512,16 +3996,6 @@ foreach (user()->getRoles() as $key => $val) {
             }
         });
 
-        const statusTitles = ['Booking & Wawancara', 'SP3K', 'Perintah Bangun & Akad'];
-        const $statusRow = $('#dt-stdetail > .row');
-        $statusRow.addClass('detail-status-timeline').removeClass('row');
-        $statusRow.children('[class*="col-md-"]').each(function(i) {
-            $(this).removeClass('col-md-4').addClass('detail-status-step');
-            if (!$(this).find('.detail-status-step-title').length) {
-                $(this).prepend(`<div class="detail-status-step-title">${statusTitles[i] || 'Status'}</div>`);
-            }
-        });
-
         buildDetailFinancePanel();
         buildDetailLegalPanel();
         buildDetailProductionPanel();
@@ -3538,7 +4012,7 @@ foreach (user()->getRoles() as $key => $val) {
             <small id="last_update_keuangan" class="text-muted d-block mb-1"></small>
             <div class="detail-card-grid" id="detail-tagihan-cards">
                 ${detailTagihanCard('um', 'Total Uang Muka', 'far fa-money-bill-alt', 'dt-total_biaya_um', 'dt-sudah_bayar_um', 'dt-sisa_tagihan_um', 'dt-persentase_bayar_tagihan_um')}
-                ${detailTagihanCard('um_ll', 'Total Biaya Adm + KPR', 'fas fa-receipt', 'dt-total_biaya_um_ll', 'dt-sudah_bayar_um_ll', 'dt-sisa_tagihan_um_ll', 'dt-persentase_bayar_tagihan_um_ll')}
+                ${detailTagihanCard('um_ll', 'Total Biaya Adm + Turun KPR', 'fas fa-receipt', 'dt-total_biaya_um_ll', 'dt-sudah_bayar_um_ll', 'dt-sisa_tagihan_um_ll', 'dt-persentase_bayar_tagihan_um_ll')}
                 ${detailTagihanCard('bb', 'Total Biaya-biaya', 'fas fa-list-alt', 'dt-total_biaya_bb', 'dt-sudah_bayar_bb', 'dt-sisa_tagihan_bb', 'dt-persentase_bayar_tagihan_bb')}
             </div>
         `);
@@ -3549,6 +4023,7 @@ foreach (user()->getRoles() as $key => $val) {
         $finance.append(`
             <div class="detail-accordion" id="detailFinanceAccordion">
                 ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-tagihan', 'Tagihan', true)}
+                ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-flow', 'Income & Expense')}
                 ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-harga', 'Harga Jual')}
                 ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-cashout', 'Cashout')}
             </div>
@@ -3556,6 +4031,61 @@ foreach (user()->getRoles() as $key => $val) {
 
         $('#detail-finance-harga-body').addClass('detail-price-comparison').append($hargaContent);
         $('#detail-finance-tagihan-body').append($tagihanContent);
+        $('#detail-finance-flow-body').append(`
+            <div class="detail-card-grid mb-1">
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Income</div>
+                    <div class="detail-mini-value detail-text-primary" id="dt-finance-income-total">Rp 0</div>
+                    <small class="text-muted" id="dt-finance-income-count">0 transaksi</small>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Expense</div>
+                    <div class="detail-mini-value detail-text-danger" id="dt-finance-expense-total">Rp 0</div>
+                    <small class="text-muted" id="dt-finance-expense-count">0 transaksi</small>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Saldo Bersih</div>
+                    <div class="detail-mini-value" id="dt-finance-balance-total">Rp 0</div>
+                    <small class="text-muted">Income - expense</small>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-1 mb-md-0">
+                    <div class="divider divider-left">
+                        <div class="divider-text">Income</div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-0" id="dt-finance-income-table">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Label</th>
+                                    <th class="text-right">Nominal</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="divider divider-left">
+                        <div class="divider-text">Expense</div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-0" id="dt-finance-expense-table">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Item</th>
+                                    <th class="text-right">Nominal</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `);
         $('#detail-finance-cashout-body').append(`
             <div class="detail-card-grid mb-1">
                 <div class="detail-mini-card">
@@ -3731,6 +4261,24 @@ foreach (user()->getRoles() as $key => $val) {
         $("#dt-st_list-upload_perintah_bangun_file").prop('href', resolveFileHref(src))
     }
 
+    function updateSp3kStatusBadge(sp3k) {
+        const $badge = $('#dt-sp3k-status-badge');
+        if (sp3k && sp3k != "0") {
+            $badge.text('Disetujui').removeClass('badge-secondary badge-danger').addClass('badge-success');
+        } else {
+            $badge.text('Belum SP3K').removeClass('badge-success badge-danger').addClass('badge-secondary');
+        }
+    }
+
+    function updateSp3kExpiryStyle(expDate) {
+        const $el = $('#dt-st_sp3k_tgl_exp');
+        if (!expDate || expDate === '0000-00-00') {
+            $el.removeClass('detail-text-danger');
+            return;
+        }
+        $el.toggleClass('detail-text-danger', new Date(expDate) < new Date());
+    }
+
     function loadMKDT(mkdt) {
         src = not_found
 
@@ -3792,6 +4340,10 @@ foreach (user()->getRoles() as $key => $val) {
             changeVal('#dt-st_sp3k_no', mkdt.sp3k_no)
             setDatePicker(mkdt.sp3k_tgl, "#dt-st_sp3k_tgl")
             setDatePicker(mkdt.sp3k_tgl_exp, "#dt-st_sp3k_tgl_exp")
+
+            $("#dt-sp3k").prop('checked', mkdt.sp3k == "0" || !mkdt.sp3k ? 0 : 1)
+            updateSp3kStatusBadge(mkdt.sp3k)
+            updateSp3kExpiryStyle(mkdt.sp3k_tgl_exp)
 
             src = not_found
 
@@ -3896,31 +4448,45 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     function hitungTagihan(r) {
-        //um
-        let total_um = parseFloat(r.total_um)
-        let sb_um = parseFloat(r.sb_um)
-        let sisa_um = r.total_um - r.sb_um,
-            ldp = (sisa_um == 0) ? 100 : r.sb_um / r.total_um * 100;
-        ldp = (r.sb_um > 0) ? ~~ldp + "%" : "0%";
+        const hitungMetricTagihan = (total, bayar) => {
+            total = parseFloat(total) || 0;
+            bayar = parseFloat(bayar) || 0;
 
-        //um dan ll
-        let total_um_ll = parseFloat(r.total_um_ll),
-            sb_um_ll = parseFloat(r.sb_um_ll)
-        let sisa_um_ll = r.total_um_ll - r.sb_um_ll,
-            ldp_ll = (sisa_um_ll == 0) ? 100 : r.sb_um_ll / r.total_um_ll * 100;
-        ldp_ll = (r.sb_um_ll > 0) ? ~~ldp_ll + "%" : "0%";
+            const sisa = Math.max(total - bayar, 0);
+            const persen = total > 0 ? Math.min((bayar / total) * 100, 100) : (bayar > 0 ? 100 : 0);
 
-        let total_bb = parseFloat(r.total_bb)
-        let sb_bb = parseFloat(r.sb_bb)
-        let sisa_bb = r.total_bb - r.sb_bb,
-            ldp_bb = (sisa_bb == 0) ? 100 : r.sb_bb / r.total_bb * 100;
-        ldp_bb = (r.sb_bb > 0) ? ~~ldp_bb + "%" : "0%";
+            return {
+                total,
+                bayar,
+                sisa,
+                persen: bayar > 0 ? ~~persen + "%" : "0%"
+            };
+        };
+
+        let um = hitungMetricTagihan(r.total_um, r.sb_um);
+        let um_ll = hitungMetricTagihan(r.total_um_ll, r.sb_um_ll);
+        let bb = hitungMetricTagihan(r.total_bb, r.sb_bb);
+
+        let total_um = um.total
+        let sb_um = um.bayar
+        let sisa_um = um.sisa,
+            ldp = um.persen;
+
+        let total_um_ll = um_ll.total,
+            sb_um_ll = um_ll.bayar
+        let sisa_um_ll = um_ll.sisa,
+            ldp_ll = um_ll.persen;
+
+        let total_bb = bb.total
+        let sb_bb = bb.bayar
+        let sisa_bb = bb.sisa,
+            ldp_bb = bb.persen;
 
         let total_semua = total_um + total_bb + total_um_ll,
             sb_semua = sb_um + sb_um_ll + sb_bb,
-            sisa_semua = total_semua - sb_semua,
-            ldp_semua = (sisa_semua == 0) ? 100 : sb_semua / total_semua * 100;
-        ldp_semua = sb_semua > 0 ? ~~ldp_semua + "%" : "0%"
+            tagihan_semua = hitungMetricTagihan(total_semua, sb_semua),
+            sisa_semua = tagihan_semua.sisa,
+            ldp_semua = tagihan_semua.persen;
         // console.log(total_semua, sb_semua)
         return {
             sisa_um: sisa_um,
@@ -3929,8 +4495,8 @@ foreach (user()->getRoles() as $key => $val) {
             sb_um: sb_um,
             sisa_um_ll: sisa_um_ll,
             ldp_ll: ldp_ll,
-            sb_um_ll: r.sb_um_ll,
-            total_um_ll: r.total_um_ll,
+            sb_um_ll: sb_um_ll,
+            total_um_ll: total_um_ll,
             total_bb: total_bb,
             sb_bb: sb_bb,
             sisa_bb: sisa_bb,
@@ -4154,6 +4720,48 @@ foreach (user()->getRoles() as $key => $val) {
         $("#dt-cashout-summary-total").text(detailRupiah(total));
         $("#dt-cashout-summary-count").text(`${rows.length} item`);
         $("#dt-cashout-summary-status").text(rows.length > 0 ? 'Ada pembayaran' : 'Belum ada data');
+    }
+
+    function loadFinanceFlow(data) {
+        const incomeRows = Array.isArray(data.income_rows) ? data.income_rows : [];
+        const expenseRows = Array.isArray(data.expense_rows) ? data.expense_rows : [];
+        const incomeTotal = detailMoneyValue(data.income_total);
+        const expenseTotal = detailMoneyValue(data.expense_total);
+        const balance = data.balance === undefined ? incomeTotal - expenseTotal : detailMoneyValue(data.balance);
+
+        $("#dt-finance-income-total").text(detailRupiah(incomeTotal));
+        $("#dt-finance-expense-total").text(detailRupiah(expenseTotal));
+        $("#dt-finance-balance-total")
+            .text(detailRupiah(balance))
+            .toggleClass('detail-text-primary', balance >= 0)
+            .toggleClass('detail-text-danger', balance < 0);
+        $("#dt-finance-income-count").text(`${incomeRows.length} transaksi`);
+        $("#dt-finance-expense-count").text(`${expenseRows.length} transaksi`);
+
+        renderFinanceFlowTable("#dt-finance-income-table tbody", incomeRows, 'income');
+        renderFinanceFlowTable("#dt-finance-expense-table tbody", expenseRows, 'expense');
+    }
+
+    function renderFinanceFlowTable(target, rows, type) {
+        const $tbody = $(target);
+        $tbody.empty();
+
+        if (!rows.length) {
+            $tbody.html(`<tr><td colspan="3" class="text-center">Data tidak ditemukan</td></tr>`);
+            return;
+        }
+
+        rows.slice(0, 10).forEach(function(row) {
+            const date = row.tanggal_transaksi || row.tanggal_bayar;
+            const label = row.label || row.item;
+            $tbody.append(`
+                <tr>
+                    <td>${date ? format_date(date) : '-'}</td>
+                    <td>${detailEscapeHtml(label)}</td>
+                    <td class="text-right">${detailRupiah(row.nominal)}</td>
+                </tr>
+            `);
+        });
     }
 
     function loadBayarProduksi(bprod) {
@@ -4732,7 +5340,7 @@ foreach (user()->getRoles() as $key => $val) {
     })
 
     //remove bug arrow select2
-    $(".select2-selection__arrow").removeClass("select2-selection__arrow")
+    $(".select2-selection__arrow").css("pointer-events", "none")
 
     $("#br_siteplan").html(dt_proyek.nama_proyek)
 
@@ -4782,6 +5390,11 @@ foreach (user()->getRoles() as $key => $val) {
     $("#btn-simpan_batal_mkdt").click(function(e) {
         e.preventDefault()
     })
+
+    function setBatalPerluRefund(value) {
+        const normalized = String(value ?? "0") === "1" ? "1" : "0";
+        $(`#modal-batal input[name="batal-perlu_refund"][value="${normalized}"]`).prop("checked", true);
+    }
 
     function simpan_batal() {
         let btn = "#btn-simpan_batal_mkdt"
@@ -4874,6 +5487,7 @@ foreach (user()->getRoles() as $key => $val) {
             return;
         }
         $("#fm-batal_booking")[0].reset();
+        setBatalPerluRefund(0);
         $("#last_update-batal_mkdt").html("Dibatalkan oleh: -  Pada: -")
 
         $("#batal-id_kavling").val(id_kavling);
@@ -4901,6 +5515,7 @@ foreach (user()->getRoles() as $key => $val) {
                 $.each(mkdt, function(k, v) {
                     $("#batal-" + k).val(v).change().keyup()
                 })
+                setBatalPerluRefund(mkdt.perlu_refund);
 
                 let src = not_found
                 //load ktp npwp
@@ -4989,6 +5604,231 @@ foreach (user()->getRoles() as $key => $val) {
 
         // Jika sudah diawali +62 dan hanya simbol + yang dihapus
         return cleaned;
+    }
+
+    let siteplanUrgentItems = {};
+    const siteplanUrgentSectionOrder = [
+        'tagihan_overdue',
+        'tagihan_due',
+        'cashout_subkon',
+        'perubahan_kavling'
+    ];
+
+    function siteplanUrgentEscape(value) {
+        return $('<div>').text(value === null || value === undefined || value === '' ? '-' : value).html();
+    }
+
+    function toggleSiteplanUrgentPanel(force) {
+        const panel = $("#siteplan-urgent-panel");
+        if (force === true) {
+            panel.removeClass("hidden");
+            return;
+        }
+        if (force === false) {
+            panel.addClass("hidden");
+            return;
+        }
+        panel.toggleClass("hidden");
+    }
+
+    function loadSiteplanUrgentPanel(options = {}) {
+        if (!dt_proyek || !dt_proyek.id_proyek) {
+            return;
+        }
+
+        $.ajax({
+            type: "post",
+            url: base_url + "siteplan/urgent/summary",
+            data: {
+                [csrfName]: csrfHash,
+                id_proyek: dt_proyek.id_proyek
+            },
+            dataType: "json",
+            beforeSend: function() {
+                $("#siteplan-urgent-toggle").removeClass("hidden");
+                $("#siteplan-urgent-body").html('<div class="siteplan-urgent-empty">Memuat hal urgent...</div>');
+            },
+            success: function(r) {
+                if (r.token) {
+                    csrfHash = r.token;
+                    $('input[name="' + csrfName + '"]').val(csrfHash);
+                }
+
+                if (!r.success) {
+                    $("#siteplan-urgent-body").html('<div class="siteplan-urgent-empty">Gagal memuat hal urgent.</div>');
+                    return;
+                }
+
+                renderSiteplanUrgentPanel(r.summary || {}, options);
+            },
+            error: function() {
+                $("#siteplan-urgent-toggle").removeClass("hidden");
+                $("#siteplan-urgent-body").html('<div class="siteplan-urgent-empty">Gagal memuat hal urgent.</div>');
+            }
+        });
+    }
+
+    function renderSiteplanUrgentPanel(summary, options = {}) {
+        const sections = summary.sections || {};
+        const total = parseInt(summary.total || 0, 10);
+        let html = '';
+        siteplanUrgentItems = {};
+
+        $("#siteplan-urgent-badge").text(total);
+        $("#siteplan-urgent-toggle").removeClass("hidden");
+
+        if (total <= 0) {
+            $("#siteplan-urgent-body").html('<div class="siteplan-urgent-empty">Belum ada hal urgent untuk proyek ini.</div>');
+            if (options.force) {
+                toggleSiteplanUrgentPanel(true);
+            }
+            return;
+        }
+
+        $.each(siteplanUrgentSectionOrder, function(_, sectionKey) {
+            const section = sections[sectionKey] || {};
+            const items = section.items || [];
+            if (!items.length) {
+                return;
+            }
+
+            html += `
+                <div class="siteplan-urgent-section">
+                    <div class="siteplan-urgent-section-title">
+                        <span>${siteplanUrgentEscape(section.label || sectionKey)}</span>
+                        <span class="badge badge-light-primary">${items.length}</span>
+                    </div>
+            `;
+
+            $.each(items, function(i, item) {
+                const key = sectionKey + '-' + i;
+                const severity = ['danger', 'warning', 'info', 'primary'].includes(item.severity) ? item.severity : 'primary';
+                siteplanUrgentItems[key] = item;
+                html += `
+                    <div class="siteplan-urgent-item is-${severity}" onclick="openSiteplanUrgentItem('${key}')">
+                        <div class="siteplan-urgent-item-title">${siteplanUrgentEscape(item.title)}</div>
+                        <div class="siteplan-urgent-item-desc">${siteplanUrgentEscape(item.description)}</div>
+                        <div class="siteplan-urgent-item-meta">${siteplanUrgentEscape(item.meta)}</div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+        });
+
+        $("#siteplan-urgent-body").html(html);
+        if (options.autoOpen) {
+            toggleSiteplanUrgentPanel(true);
+        }
+    }
+
+    function findSiteplanKavlingAttrs(id_kavling) {
+        if (!id_kavling || typeof siteplan === 'undefined') {
+            return null;
+        }
+
+        try {
+            const node = typeof siteplan.findOne === 'function' ?
+                siteplan.findOne('#kav' + id_kavling) :
+                (siteplan.find('#kav' + id_kavling)[0] || null);
+            return node && node.attrs ? node.attrs : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function buildMinimalSiteplanShape(item) {
+        return {
+            id: 'kav' + item.id_kavling,
+            data: {
+                id_mkdt: item.id_mkdt || null,
+                nama_proyek: item.nama_proyek || dt_proyek.nama_proyek,
+                nama_jalan: item.nama_jalan || '-',
+                no_kavling: item.no_kavling || '-'
+            },
+            data2: {
+                id_tipe: item.id_tipe || '-',
+                no_tipe_rumah: item.id_tipe || '-',
+                tipe_rumah: item.id_tipe || '-'
+            }
+        };
+    }
+
+    function openSiteplanUrgentItem(key) {
+        const item = siteplanUrgentItems[key];
+        if (!item) {
+            return;
+        }
+
+        toggleSiteplanUrgentPanel(false);
+
+        if (item.type === 'tagihan') {
+            return openSiteplanKeuanganFromUrgent(item);
+        }
+
+        if (item.type === 'cashout_subkon') {
+            return openSiteplanCashoutSubkonFromUrgent(item);
+        }
+
+        if (item.id_notif && typeof handleNotificationClick === 'function') {
+            return handleNotificationClick(item.id_notif, item.id_kavling, item.type);
+        }
+
+        return openSiteplanKavlingFromNotification(item.id_kavling);
+    }
+
+    function openSiteplanKeuanganFromUrgent(item) {
+        const sh = findSiteplanKavlingAttrs(item.id_kavling) || buildMinimalSiteplanShape(item);
+        if (!sh.data || !sh.data.id_mkdt) {
+            return openSiteplanKavlingFromNotification(item.id_kavling);
+        }
+
+        if (typeof open_keuangan === 'function') {
+            return open_keuangan(sh, 3, item.id_kavling);
+        }
+
+        return openSiteplanKavlingFromNotification(item.id_kavling);
+    }
+
+    function openSiteplanCashoutSubkonFromUrgent(item) {
+        if (typeof openCOSubkon !== 'function') {
+            return openSiteplanKavlingFromNotification(item.id_kavling);
+        }
+
+        return openCOSubkon({
+            id_proyek: dt_proyek.id_proyek,
+            id_cashout_subkon: item.id_cashout_subkon,
+            id_kavlings: [String(item.id_kavling)],
+            selected_kavlings: [{
+                id_kavling: item.id_kavling,
+                nama_jalan: item.nama_jalan || '-',
+                no_kavling: item.no_kavling || '-'
+            }]
+        });
+    }
+
+    function openSiteplanKavlingFromNotification(id_kavling) {
+        const sh = findSiteplanKavlingAttrs(id_kavling);
+        if (sh && typeof detail_kavling === 'function') {
+            hapus_seleksi();
+            editdtt.push(sh);
+            drawBorderEdit(sh);
+            return detail_kavling(sh, id_kavling);
+        }
+
+        return swal('warning', 'Data kavling belum siap', 'Silakan buka detail kavling langsung dari siteplan.');
+    }
+
+    function openSiteplanKeuanganFromNotification(id_kavling) {
+        const sh = findSiteplanKavlingAttrs(id_kavling);
+        if (sh && sh.data && sh.data.id_mkdt && typeof open_keuangan === 'function') {
+            hapus_seleksi();
+            editdtt.push(sh);
+            drawBorderEdit(sh);
+            return open_keuangan(sh, 3, id_kavling);
+        }
+
+        return openSiteplanKavlingFromNotification(id_kavling);
     }
 
     function cek_jatuh_tempo(x = false) {
@@ -5243,6 +6083,7 @@ foreach (user()->getRoles() as $key => $val) {
         //     return;
         // }
         $("#fm-batal_booking")[0].reset();
+        setBatalPerluRefund(0);
         $("#last_update-batal_mkdt").html("Dibatalkan oleh: -  Pada: -")
 
         $("#batal-id_kavling").val(id_kavling);
@@ -5270,6 +6111,7 @@ foreach (user()->getRoles() as $key => $val) {
                 $.each(mkdt, function(k, v) {
                     $("#batal-" + k).val(v).change().keyup()
                 })
+                setBatalPerluRefund(mkdt.perlu_refund);
 
                 let src = not_found
                 //load ktp npwp
@@ -6026,214 +6868,231 @@ foreach (user()->getRoles() as $key => $val) {
                                     </div>
                                     <div class="tab-pane" id="dt-stdetail" aria-labelledby="dt-stdetail-tab"
                                         role="tabpanel">
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="divider">
-                                                    <div class="divider-text">Status Kavling</div>
+                                        <div class="detail-dashboard-grid">
+                                            <div class="detail-summary-card detail-status-card">
+                                                <div class="detail-status-card-header">
+                                                    <div class="detail-card-icon"><i class="far fa-calendar-check"></i>
+                                                    </div>
+                                                    <div class="detail-status-card-title">Booking &amp; Wawancara</div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="status_kavling">Status</label>
-                                                    <select required class="form-control" id="dt-status_mkdt"
-                                                        name="dt-status_mkdt" disabled>
-                                                        <option value="">-</option>
-                                                        <option value="Booking">Booking</option>
-                                                        <option value="Akad">Akad</option>
-                                                        <option value="Batal">Batal</option>
-                                                    </select>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Status</span>
+                                                        <select class="detail-info-value" id="dt-status_mkdt"
+                                                            name="dt-status_mkdt" disabled>
+                                                            <option value="">-</option>
+                                                            <option value="Booking">Booking</option>
+                                                            <option value="Akad">Akad</option>
+                                                            <option value="Batal">Batal</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Notaris</span>
+                                                        <input type="text" class="detail-info-value" id="dt-notaris"
+                                                            name="dt-notaris" placeholder="-" disabled />
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_booking_fee">Notaris</label>
-                                                    <input type="text" disabled class="form-control" id="dt-notaris"
-                                                        name="dt-notaris">
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">PPJB/AJB</span>
+                                                        <input type="text" class="detail-info-value" id="dt-is_ajb"
+                                                            name="dt-is_ajb" placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Booking Date</span>
+                                                        <input type="text" id="dt-st_booking_tgl"
+                                                            name="dt-st_booking_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_booking_fee">PPJB/AJB</label>
-                                                    <input type="text" disabled class="form-control" id="dt-is_ajb"
-                                                        name="dt-is_ajb">
+
+                                                <div class="detail-highlight-box">
+                                                    <span class="detail-highlight-label">Booking Fee</span>
+                                                    <input type="text" class="detail-highlight-value num"
+                                                        id="dt-st_booking_fee" name="dt-st_booking_fee" disabled />
                                                 </div>
-                                                <div class="divider">
-                                                    <div class="divider-text">Booking</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_booking_tgl">Tanggal Booking</label>
-                                                    <input type="text" id="dt-st_booking_tgl" name="dt-st_booking_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_booking_fee">Booking Fee</label>
-                                                    <input type="text" disabled class="form-control num"
-                                                        id="dt-st_booking_fee" name="dt-st_booking_fee">
-                                                </div>
-                                                <div class="divider">
-                                                    <div class="divider-text">Wawancara</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <div class="custom-control custom-switch custom-control-inline">
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title">Wawancara Section</span>
+                                                    <div class="custom-control custom-switch">
                                                         <input type="checkbox" class="custom-control-input"
                                                             id="dt-st_wawancara" name="dt-st_wawancara" value="1"
                                                             disabled />
-                                                        <label class="custom-control-label" for="dt-st_wawancara">Sudah
-                                                            Wawancara</label>
+                                                        <label class="custom-control-label"
+                                                            for="dt-st_wawancara">Sudah</label>
                                                     </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_bank">Bank</label>
-                                                    <input type="text" id="dt-st_bank" name="dt-st_bank"
-                                                        class="form-control" placeholder="-" disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_wawancara_tgl">Tanggal Wawancara</label>
-                                                    <input type="text" id="dt-st_wawancara_tgl"
-                                                        name="dt-st_wawancara_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
 
-
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Bank</span>
+                                                        <input type="text" id="dt-st_bank" name="dt-st_bank"
+                                                            class="detail-info-value" placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Wawancara Date</span>
+                                                        <input type="text" id="dt-st_wawancara_tgl"
+                                                            name="dt-st_wawancara_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <div class="col-md-4">
-                                                <div class="divider">
-                                                    <div class="divider-text">SP3K</div>
+                                            <div class="detail-summary-card detail-status-card">
+                                                <div class="detail-status-card-header">
+                                                    <div class="detail-card-icon"><i class="fas fa-file-alt"></i>
+                                                    </div>
+                                                    <div class="detail-status-card-title">SP3K</div>
+                                                    <div class="detail-status-card-toggle custom-control custom-switch">
+                                                        <input type="checkbox" class="custom-control-input"
+                                                            id="dt-sp3k" name="dt-sp3k" value="1" disabled />
+                                                        <label class="custom-control-label" for="dt-sp3k"></label>
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label>Status</label>
-                                                    <select class="form-control" id="dt-st_mkdt_keterangan"
-                                                        name="dt-st_mkdt_keterangan" disabled>
-                                                        <option value="">-</option>
-                                                        <option value="Disetujui">Disetujui</option>
-                                                        <option value="Ditolak">Ditolak</option>
-                                                    </select>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Status</span>
+                                                        <span class="detail-status-badge badge-secondary"
+                                                            id="dt-sp3k-status-badge">-</span>
+                                                        <select class="detail-info-value hidden"
+                                                            id="dt-st_mkdt_keterangan" name="dt-st_mkdt_keterangan"
+                                                            disabled>
+                                                            <option value="">-</option>
+                                                            <option value="Disetujui">Disetujui</option>
+                                                            <option value="Ditolak">Ditolak</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">No SP3K</span>
+                                                        <input type="text" id="dt-st_sp3k_no" name="dt-st_sp3k_no"
+                                                            class="detail-info-value" placeholder="-" disabled />
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_harga_kpr">Pengajuan</label>
-                                                    <input type="text" id="dt-st_harga_kpr" name="dt-st_harga_kpr"
-                                                        class="form-control num" placeholder="-" disabled />
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Pengajuan</span>
+                                                        <input type="text" id="dt-st_harga_kpr" name="dt-st_harga_kpr"
+                                                            class="detail-info-value num" placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label detail-text-primary">Disetujui</span>
+                                                        <input type="text" id="dt-st_acc_harga_kpr"
+                                                            name="dt-st_acc_harga_kpr"
+                                                            class="detail-info-value detail-text-primary num"
+                                                            placeholder="-" disabled />
+                                                    </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_acc_harga_kpr">Disetujui</label>
-                                                    <input type="text" id="dt-st_acc_harga_kpr"
-                                                        name="dt-st_acc_harga_kpr" class="form-control num"
-                                                        placeholder="-" disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_harga_turun_kpr">Turun KPR</label>
+
+                                                <div class="detail-highlight-box">
+                                                    <span class="detail-highlight-label">Turun KPR</span>
                                                     <input type="text" id="dt-st_harga_turun_kpr"
-                                                        name="dt-st_harga_turun_kpr" class="form-control num"
-                                                        placeholder="-" disabled />
+                                                        name="dt-st_harga_turun_kpr"
+                                                        class="detail-highlight-value num" placeholder="-" disabled />
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_sp3k_no">No SP3K</label>
-                                                    <input type="text" id="dt-st_sp3k_no" name="dt-st_sp3k_no"
-                                                        class="form-control" placeholder="-" disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <div class="custom-control custom-switch custom-control-inline">
-                                                        <input type="checkbox" class="custom-control-input" id="dt-sp3k"
-                                                            name="dt-sp3k" value="1" disabled />
-                                                        <label class="custom-control-label" for="dt-sp3k">SP3K</label>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Tanggal Terbit</span>
+                                                        <input type="text" id="dt-st_sp3k_tgl" name="dt-st_sp3k_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Tanggal Kadaluarsa</span>
+                                                        <input type="text" id="dt-st_sp3k_tgl_exp"
+                                                            name="dt-st_sp3k_tgl_exp"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
                                                     </div>
                                                 </div>
 
-
-                                                <div class="form-group">
-                                                    <label for="dt-st_sp3k_tgl">Tanggal Terbit</label>
-                                                    <input type="text" id="dt-st_sp3k_tgl" name="dt-st_sp3k_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_sp3k_tgl_exp">Tanggal Kadaluarsa</label>
-                                                    <input type="text" id="dt-st_sp3k_tgl_exp" name="dt-st_sp3k_tgl_exp"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>SP3K</label>
-                                                    <div class="custom-file">
-                                                        <a href="" class="btn btn-primary" target=_blank
-                                                            id="dt-st_list-upload_sp3k_file">Klik untuk lihat file
-                                                            <!-- <embed src="" id="dt-st_list-upload_sp3k_file-here" class="files-here" width="80%"> -->
-                                                        </a>
-                                                    </div>
-                                                </div>
+                                                <a href="" class="btn btn-outline-primary btn-block detail-file-btn"
+                                                    target="_blank" id="dt-st_list-upload_sp3k_file">
+                                                    <i class="fas fa-eye mr-1"></i> Klik untuk lihat file
+                                                </a>
                                             </div>
-                                            <div class="col-md-4">
-                                                <div class="divider">
-                                                    <div class="divider-text">Perintah Bangun</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_perintah_bangun_tgl">Tanggal Perintah
-                                                        Bangun</label>
-                                                    <input type="text" disabled="disabled"
-                                                        id="dt-st_perintah_bangun_tgl" name="dt-st_perintah_bangun_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_perintah_bangun_oleh">Oleh</label>
-                                                    <input type="text" disabled="disabled"
-                                                        id="dt-st_perintah_bangun_oleh"
-                                                        name="dt-st_perintah_bangun_oleh" class="form-control"
-                                                        placeholder="-" disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Perintah Bangun</label>
-                                                    <div class="custom-file">
-                                                        <a href="#" class="btn btn-primary" target=_blank
-                                                            id="dt-st_list-upload_perintah_bangun_file">Klik untuk lihat
-                                                            file
-                                                            <!-- <embed src="" style="width: 80%;" class="files-here" id="dt-st_list-upload_perintah_bangun_file-here"> -->
-                                                        </a>
+
+                                            <div class="detail-summary-card detail-status-card">
+                                                <div class="detail-status-card-header">
+                                                    <div class="detail-card-icon"><i class="fas fa-building"></i>
+                                                    </div>
+                                                    <div class="detail-status-card-title">Perintah Bangun &amp; Akad
                                                     </div>
                                                 </div>
 
-                                                <div class="divider">
-                                                    <div class="divider-text">Akad</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="dt-st_rencana_akad_tgl">Rencana Akad</label>
-                                                    <input type="text" id="dt-st_rencana_akad_tgl"
-                                                        name="dt-st_rencana_akad_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
+                                                <div class="detail-section-title detail-section-title-dot mb-2">
+                                                    Perintah Bangun</div>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Tgl Perintah</span>
+                                                        <input type="text" id="dt-st_perintah_bangun_tgl"
+                                                            name="dt-st_perintah_bangun_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Oleh</span>
+                                                        <input type="text" id="dt-st_perintah_bangun_oleh"
+                                                            name="dt-st_perintah_bangun_oleh"
+                                                            class="detail-info-value" placeholder="-" disabled />
+                                                    </div>
                                                 </div>
 
-                                                <div class="form-group">
-                                                    <div class="custom-control custom-switch custom-control-inline">
+                                                <a href="#" class="btn btn-block detail-file-btn detail-file-btn-success"
+                                                    target="_blank" id="dt-st_list-upload_perintah_bangun_file">
+                                                    <i class="fas fa-file-alt mr-1"></i> Klik untuk lihat file
+                                                </a>
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title detail-section-title-dot">Akad</span>
+                                                    <div class="custom-control custom-switch">
                                                         <input type="checkbox" class="custom-control-input"
                                                             id="dt-st_akad" name="dt-st_akad" value="1" disabled />
-                                                        <label class="custom-control-label"
-                                                            for="dt-st_akad">Akad</label>
+                                                        <label class="custom-control-label" for="dt-st_akad"></label>
                                                     </div>
                                                 </div>
 
-                                                <div class="form-group">
-                                                    <label for="dt-st_akad_tgl">Tanggal Akad</label>
-                                                    <input type="text" id="dt-st_akad_tgl" name="dt-st_akad_tgl"
-                                                        class="form-control flatpickr-human-friendly" placeholder="-"
-                                                        disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>No Debitur</label>
-                                                    <input type="text" id="dt-st_debitur_no" name="dt-st_debitur_no"
-                                                        class="form-control" placeholder="-" disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>No BAST</label>
-                                                    <input type="text" id="dt-st_bast_no" name="dt-st_bast_no"
-                                                        class="form-control" placeholder="-" disabled />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>BAST</label>
-
-                                                    <a href="" class="btn btn-primary" target=_blank
-                                                        id="dt-st_list-upload_bast_file">Klik
-                                                        untuk
-                                                        lihat file</a>
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Rencana Akad</span>
+                                                        <input type="text" id="dt-st_rencana_akad_tgl"
+                                                            name="dt-st_rencana_akad_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Tanggal Akad</span>
+                                                        <input type="text" id="dt-st_akad_tgl" name="dt-st_akad_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
                                                 </div>
 
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">No Debitur</span>
+                                                        <input type="text" id="dt-st_debitur_no"
+                                                            name="dt-st_debitur_no" class="detail-info-value"
+                                                            placeholder="-" disabled />
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">No BAST</span>
+                                                        <input type="text" id="dt-st_bast_no" name="dt-st_bast_no"
+                                                            class="detail-info-value" placeholder="-" disabled />
+                                                    </div>
+                                                </div>
+
+                                                <a href="" class="btn btn-primary btn-block detail-file-btn"
+                                                    target="_blank" id="dt-st_list-upload_bast_file">
+                                                    <i class="fas fa-shield-alt mr-1"></i> Lihat BAST
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
@@ -6271,7 +7130,7 @@ foreach (user()->getRoles() as $key => $val) {
                                             </div>
                                             <div class="col-md-4 col-sm-12 col-lg-4">
                                                 <div class="divider">
-                                                    <div class="divider-text">Total Biaya Adm + Turun KPR + Hook</div>
+                                                    <div class="divider-text">Total Biaya Adm + Turun KPR</div>
                                                 </div>
                                                 <div class="form-group">
                                                     <label for="dt-total_biaya_um">Total Tagihan</label>
@@ -7540,6 +8399,139 @@ foreach (user()->getRoles() as $key => $val) {
 </div>
 
 
+<style>
+    #modal-batal .modal-dialog {
+        max-width: min(1280px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modal-batal .modal-content {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        box-shadow: none;
+        overflow: hidden;
+    }
+
+    #modal-batal #fm-batal_booking {
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        overflow: visible;
+    }
+
+    #modal-batal .modal-header,
+    #modal-batal .modal-footer {
+        background: #fff;
+        border-color: #e5e7eb;
+        margin-bottom: 0 !important;
+        padding: .9rem 1rem;
+    }
+
+    #modal-batal .modal-title {
+        /* color: #111827; */
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    #modal-batal .modal-body {
+        background: #f3f5f7;
+        max-height: calc(100vh - 8rem);
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    #modal-batal .batal-summary {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        padding: .85rem 1rem;
+    }
+
+    #modal-batal .batal-panel {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        height: 100%;
+        padding: 1rem;
+    }
+
+    #modal-batal .divider {
+        margin: .2rem 0 .85rem;
+    }
+
+    #modal-batal .divider-left {
+        border-left-color: #2057a3;
+        padding-left: .75rem;
+    }
+
+    #modal-batal .divider .divider-text {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 700;
+    }
+
+    #modal-batal label,
+    #modal-batal .form-label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    #modal-batal .form-control,
+    #modal-batal .custom-file-label {
+        border-color: #d8dde3;
+        border-radius: 6px;
+    }
+
+    #modal-batal .btn-primary {
+        background-color: #2057a3 !important;
+        border-color: #2057a3 !important;
+    }
+
+    #modal-batal .refund-status-card {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: .85rem;
+    }
+
+    #modal-batal .refund-status-card .custom-control {
+        margin-bottom: .35rem;
+    }
+
+    #modal-batal .refund-status-card .custom-control:last-child {
+        margin-bottom: 0;
+    }
+
+    #modal-batal .refund-status-note {
+        color: #6b7280;
+        display: block;
+        font-size: .76rem;
+        line-height: 1.35;
+        margin-top: .45rem;
+    }
+
+    @media (max-width: 767.98px) {
+        #modal-batal .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
+        }
+
+        #modal-batal .modal-body {
+            max-height: calc(100vh - 7rem);
+            padding: .75rem;
+        }
+
+        #modal-batal .batal-panel {
+            height: auto;
+            margin-bottom: .75rem;
+            padding: .85rem;
+        }
+    }
+</style>
+
 <!-- END: Content-->
 <div class="modal fade text-left" id="modal-batal" tabindex="-1" role="dialog" aria-labelledby="modal-batal"
     aria-hidden="true">
@@ -7553,11 +8545,13 @@ foreach (user()->getRoles() as $key => $val) {
             </div>
             <form id="fm-batal_booking" enctype="multipart/form-data" class="add-new-record modal-content pt-0">
                 <div class="modal-body">
-                    <p class="modal-title label_alamat" id="label-batal_booking"></p>
-                    <hr>
+                    <div class="batal-summary">
+                        <p class="modal-title label_alamat mb-0" id="label-batal_booking"></p>
+                    </div>
                     <div class="row">
                         <div class="col-sm-12 col-md-3 col-lg-3">
-                            <div class="divider">
+                            <div class="batal-panel">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Data Konsumen</div>
                             </div>
                             <div class="form-group">
@@ -7608,14 +8602,16 @@ foreach (user()->getRoles() as $key => $val) {
                                 <input disabled type="text" class="form-control" id="batal-sales" required
                                     name="batal-sales">
                             </div>
+                            </div>
                         </div>
                         <div class="col-sm-12 col-md-3 col-lg-3">
+                            <div class="batal-panel">
                             <input readonly type="hidden" class="form-control" id="batal-id_konsumen"
                                 name="batal-id_konsumen">
                             <input readonly type="hidden" class="form-control" id="batal-id_mkdt" name="batal-id_mkdt">
                             <input readonly type="hidden" class="form-control" id="batal-id_kavling"
                                 name="batal-id_kavling">
-                            <div class="divider">
+                            <div class="divider divider-left">
                                 <div class="divider-text">TUNAI/KPR</div>
                             </div>
                             <div class="form-group">
@@ -7645,7 +8641,7 @@ foreach (user()->getRoles() as $key => $val) {
                                 <input readonly type="text" class="form-control num" id="batal-harga_penambahan_um"
                                     name="batal-harga_penambahan_um">
                             </div>
-                            <div class="divider">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Penambahan Biaya</div>
                             </div>
                             <div class="form-group">
@@ -7659,9 +8655,11 @@ foreach (user()->getRoles() as $key => $val) {
                                     id="batal-keterangan_penambahan_biaya" class="form-control batal-fm" cols="30"
                                     rows="2"></textarea>
                             </div>
+                            </div>
                         </div>
                         <div class="col-sm-12 col-md-3 col-lg-3">
-                            <div class="divider">
+                            <div class="batal-panel">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Total Uang Muka</div>
                             </div>
                             <div class="form-group">
@@ -7685,7 +8683,7 @@ foreach (user()->getRoles() as $key => $val) {
                                 <label for="batal-persentase_bayar_tagihan_um">Persentase</label>
                                 <input disabled type="text" class="form-control" style="text-align:right" readonly id="batal-persentase_bayar_tagihan_um" name="batal-persentase_bayar_tagihan_um">
                             </div> -->
-                            <div class="divider">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Total Biaya-biaya</div>
                             </div>
                             <div class="form-group">
@@ -7709,9 +8707,11 @@ foreach (user()->getRoles() as $key => $val) {
                                 <label for="batal-persentase_bayar_tagihan_bb">Persentase</label>
                                 <input disabled type="text" class="form-control" style="text-align:right" readonly id="batal-persentase_bayar_tagihan_bb" name="batal-persentase_bayar_tagihan_bb">
                             </div> -->
+                            </div>
                         </div>
                         <div class="col-sm-12 col-md-3 col-lg-3">
-                            <div class="divider">
+                            <div class="batal-panel">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Batal</div>
                             </div>
                             <div class="form-group">
@@ -7731,14 +8731,27 @@ foreach (user()->getRoles() as $key => $val) {
                                 </div>
                             </div>
                             <small id="last_update-batal_mkdt" class="text-muted"></small>
-                            <div class="divider">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Pengembalian Dana ke Konsumen</div>
                             </div>
                             <div class="form-group">
-                                <label for="batal-sertifikat_luas">Nominal</label>
-                                <input type="text" class="form-control num" id="batal-refund" name="batal-refund">
+                                <label>Status Refund</label>
+                                <div class="refund-status-card">
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input" id="batal-perlu_refund_0"
+                                            name="batal-perlu_refund" value="0" checked>
+                                        <label class="custom-control-label" for="batal-perlu_refund_0">Tidak Perlu Refund</label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" class="custom-control-input" id="batal-perlu_refund_1"
+                                            name="batal-perlu_refund" value="1">
+                                        <label class="custom-control-label" for="batal-perlu_refund_1">Perlu Refund</label>
+                                    </div>
+                                    <small class="refund-status-note">Status ini akan tampil di list konsumen batal.</small>
+                                </div>
                             </div>
                             <small id="last_update-batal_keuangan" class="text-muted"></small>
+                            </div>
                         </div>
                     </div>
                 </div>

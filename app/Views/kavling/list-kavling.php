@@ -7,24 +7,112 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/fixed-columns/fixedColumns.bootstrap4.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/richtext.min.css">
 <style>
-  #poskon-filter .card-header.border-bottom {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    gap: .75rem;
+  #poskon-filter {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: none;
   }
 
-  #poskon-filter .card-header.border-bottom > .col-md-4,
-  #poskon-filter .card-header.border-bottom > .col-12 {
-    padding-left: 0;
-    padding-right: 0;
+  #poskon-filter .poskon-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem 1rem;
+    padding: .85rem 1rem .7rem;
+    border-bottom: 1px solid #edf0f4;
+    background: #fff;
+  }
+
+  #poskon-filter .poskon-toolbar-title h2 {
+    margin: 0;
+    color: #1f2937;
+    font-size: 1.12rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  #poskon-filter .poskon-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(170px, 1fr));
+    gap: .75rem;
+    padding: .85rem 1rem 1rem;
+    background: #f8fafc;
+  }
+
+  #poskon-filter .poskon-filter-field {
+    min-width: 0;
+    margin-bottom: 0 !important;
+  }
+
+  #poskon-filter .poskon-filter-field label {
+    display: block;
+    margin-bottom: .25rem;
+    color: #6b7280;
+    font-size: .72rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  #poskon-filter .form-control,
+  #poskon-filter .select2-container--default .select2-selection--single {
+    min-height: 34px;
+    border-color: #d8dee8;
+    border-radius: 6px;
+  }
+
+  #poskon-filter .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 32px;
+    font-size: .86rem;
+  }
+
+  #poskon-filter .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 32px;
   }
 
   .poskon-filter-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: .5rem;
+    gap: .4rem;
     align-items: center;
+    justify-content: flex-end;
+  }
+
+  .poskon-filter-actions .btn,
+  .poskon-filter-actions .btn-group .btn {
+    min-height: 32px;
+    padding: .32rem .65rem;
+    border-radius: 6px;
+    font-size: .82rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .poskon-filter-actions .btn i {
+    margin-right: .25rem;
+  }
+
+  #poskon-filter .btn-primary {
+    border-color: #2057a3;
+    background-color: #2057a3;
+  }
+
+  #poskon-filter .btn-primary:hover,
+  #poskon-filter .btn-primary:focus {
+    border-color: #184783;
+    background-color: #184783;
+  }
+
+  #poskon-filter .btn-outline-primary {
+    border-color: #2057a3;
+    color: #2057a3;
+  }
+
+  #poskon-filter .btn-outline-primary:hover,
+  #poskon-filter .btn-outline-primary:focus {
+    border-color: #2057a3;
+    background-color: #2057a3;
+    color: #fff;
   }
 
   .poskon-table-card .card-body {
@@ -40,6 +128,38 @@
     width: 100% !important;
   }
 
+  .project-select-option {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-width: 0;
+  }
+
+  .project-select-option img {
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    object-fit: contain;
+    background: #fff;
+  }
+
+  .project-select-option span {
+    min-width: 0;
+    overflow: hidden;
+    color: #1f2937;
+    font-size: .86rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #poskon-filter .select2-selection__rendered .project-select-option,
+  #modal-tambah-poskon .select2-selection__rendered .project-select-option {
+    height: 32px;
+  }
+
   .select2-dropdown {
     z-index: 1060;
   }
@@ -50,31 +170,42 @@
       padding-right: .75rem;
     }
 
-    #poskon-filter h2.card-header {
-      padding: 1rem 1rem .25rem;
-      font-size: 1.2rem;
-      line-height: 1.35;
+    #poskon-filter .poskon-toolbar {
+      align-items: flex-start;
+      padding: .85rem;
     }
 
-    #poskon-filter .card-header.border-bottom {
-      padding: 1rem;
-      display: block;
+    #poskon-filter .poskon-toolbar-title {
+      width: 100%;
     }
 
-    #poskon-filter .card-header.border-bottom > .col-md-4,
-    #poskon-filter .card-header.border-bottom > .col-12 {
+    #poskon-filter .poskon-toolbar-title h2 {
+      font-size: 1rem;
+    }
+
+    #poskon-filter .poskon-filter-grid {
+      grid-template-columns: 1fr;
+      gap: .65rem;
+      padding: .85rem;
+    }
+
+    #poskon-filter .poskon-filter-field {
       width: 100%;
       max-width: 100%;
-      flex: 0 0 100%;
-      padding-left: 0;
-      padding-right: 0;
     }
 
-    .poskon-filter-actions,
+    .poskon-filter-actions {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .5rem;
+    }
+
     .poskon-filter-actions .btn-group {
       width: 100%;
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-column: 1 / -1;
       gap: .5rem;
     }
 
@@ -84,14 +215,14 @@
       margin-left: 0 !important;
     }
 
-    .nav-tabs {
+    .poskon-tabs {
       flex-wrap: nowrap;
       overflow-x: auto;
       overflow-y: hidden;
       -webkit-overflow-scrolling: touch;
     }
 
-    .nav-tabs .nav-link {
+    .poskon-tabs .nav-link {
       white-space: nowrap;
     }
 
@@ -154,24 +285,33 @@
     <div class="row">
       <div class="col-12">
         <div class="card" id="poskon-filter">
-          <h2 class="card-header">
-            Posisi Konsumen Aktif
-          </h2>
-          <div class="card-header border-bottom">
-            <div class="col-md-4 mb-1">
+          <div class="poskon-toolbar">
+            <div class="poskon-toolbar-title">
+              <h2>Posisi Konsumen Aktif</h2>
+            </div>
+            <div class="poskon-filter-actions">
+              <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm" title="Filter Data"><i class="fa fa-filter"></i> Filter</button>
+              <button type="button" id="btn_open_add_modal" class="btn btn-primary waves-effect btn-sm" title="Tambah Data"><i class="fa fa-plus"></i> Tambah</button>
+              <div class="btn-group">
+                <button type="button" id="btn_export_excel" class="btn btn-success waves-effect btn-sm" title="Export Excel"><i class="fa fa-file-excel"></i> Excel</button>
+                <button type="button" id="btn_export_pdf" class="btn btn-danger waves-effect btn-sm" title="Export PDF"><i class="fa fa-file-pdf"></i> PDF</button>
+              </div>
+            </div>
+          </div>
+          <div class="poskon-filter-grid">
+            <div class="poskon-filter-field">
               <label>Proyek</label>
               <select id="id_proyek" name="id_proyek" class="select2 form-control"></select>
             </div>
-            <div class="col-md-4 mb-1">
+            <div class="poskon-filter-field">
               <label>Cluster</label>
               <select disabled id="id_cluster" name="id_cluster" class="select2  form-control"></select>
             </div>
-            <div class="col-md-4 mb-1">
+            <div class="poskon-filter-field">
               <label>Blok</label>
               <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
             </div>
-            <hr class="col-12" hidden />
-            <div class="col-md-4 mb-1" hidden>
+            <div class="poskon-filter-field" hidden>
               <label>Wawancara</label>
               <select id="wawancara" name="wawancara" class="select2 self form-control">
                 <option value=""> Tanpa Filter </option>
@@ -179,7 +319,7 @@
                 <option value="0"> Belum </option>
               </select>
             </div>
-            <div class="col-md-4 mb-1" hidden>
+            <div class="poskon-filter-field" hidden>
               <label>SP3K</label>
               <select id="sp3k" name="sp3k" class="select2 self form-control">
                 <option value=""> Tanpa Filter </option>
@@ -188,8 +328,7 @@
               </select>
             </div>
 
-            <div class="col-md-4 mb-1"></div>
-            <div class="col-md-4 mb-1 hidden">
+            <div class="poskon-filter-field hidden" hidden>
               <label>Akad</label>
               <select id="akad" name="akad" class="select2 self form-control">
                 <option value=""> Tanpa Filter </option>
@@ -197,21 +336,11 @@
                 <option value="0"> Belum </option>
               </select>
             </div>
-            <hr class="col-12" />
-            <div class="poskon-filter-actions col-12">
-              <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm">Filter Data</button>
-              <button type="button" id="btn_open_add_modal" class="btn btn-primary waves-effect btn-sm"><i class="fa fa-plus"></i> Tambah Data</button>
-              <div class="btn-group">
-                <button type="button" id="btn_export_excel" class="btn btn-success waves-effect btn-sm"><i class="fa fa-file-excel"></i> Export Excel</button>
-                <button type="button" id="btn_export_pdf" class="btn btn-danger waves-effect btn-sm"><i class="fa fa-file-pdf"></i> Export PDF</button>
-              </div>
-            </div>
-
           </div>
         </div>
         <div class="card poskon-table-card">
           <div class="card-body pb-0 pt-0">
-            <ul class="nav nav-tabs mb-1 mt-1" role="tablist">
+            <ul class="nav nav-tabs poskon-tabs mb-1 mt-1" role="tablist">
               <li class="nav-item">
                 <a class="nav-link active" id="list_poskon-tab"
                   data-toggle="tab" href="#list_poskon"
@@ -414,6 +543,45 @@ if (!empty($roles)) {
       id_proyek: item.id_proyek || item.id || item[0] || '',
       nama_proyek: item.nama_proyek || item.text || item[1] || ''
     };
+  }
+
+  function getProjectLogoUrl(item) {
+    if (!item) return '';
+    if (item.logo_url) return item.logo_url;
+
+    const rawLogo = item.logo_html || item[3] || (item.data && item.data[3]) || '';
+    if (!rawLogo) return '';
+
+    return $('<div>').html(rawLogo).find('img').attr('src') || '';
+  }
+
+  function createProjectSelectOption(item) {
+    return {
+      id: item.id_proyek || item.id || item[0] || '',
+      text: item.nama_proyek || item.text || item[1] || '',
+      id_proyek: item.id_proyek || item.id || item[0] || '',
+      nama_proyek: item.nama_proyek || item.text || item[1] || '',
+      logo_url: getProjectLogoUrl(item),
+      data: item
+    };
+  }
+
+  function renderProjectSelectOption(item) {
+    if (!item.id) return item.text;
+
+    const $option = $('<span class="project-select-option"></span>');
+    const logoUrl = getProjectLogoUrl(item);
+
+    if (logoUrl) {
+      $('<img>', {
+        src: logoUrl,
+        alt: ''
+      }).appendTo($option);
+    }
+
+    $('<span></span>').text(item.nama_proyek || item.text).appendTo($option);
+
+    return $option;
   }
 
   function setProjectContextFromSelect($select) {
@@ -631,8 +799,15 @@ if (!empty($roles)) {
 
     fillRoleOptions();
 
+    function initFilterSelect2($el, options) {
+      if ($el.hasClass('select2-hidden-accessible')) {
+        $el.select2('destroy');
+      }
+      $el.select2(options);
+    }
+
     //select2 proyek
-    $("#id_proyek").select2({
+    initFilterSelect2($("#id_proyek"), {
       placeholder: "Pilih Proyek",
       allowClear: true,
       ajax: {
@@ -651,11 +826,7 @@ if (!empty($roles)) {
 
           let results = [];
           $.each(r.data, function(index, item) {
-            results.push({
-              id: item['id_proyek'],
-              text: item[1] + ' (' + item[2] + ')',
-              data: item
-            });
+            results.push(createProjectSelectOption(item));
           });
 
           return {
@@ -664,7 +835,9 @@ if (!empty($roles)) {
         },
         cache: true
       },
-    })
+      templateResult: renderProjectSelectOption,
+      templateSelection: renderProjectSelectOption
+    });
 
     //on select proyek
     $("#id_proyek").on("select2:select", function(e) {
@@ -679,7 +852,7 @@ if (!empty($roles)) {
     });
 
     //select2 cluster
-    $("#id_cluster").select2({
+    initFilterSelect2($("#id_cluster"), {
       placeholder: "Pilih Cluster",
       allowClear: true,
       ajax: {
@@ -711,7 +884,7 @@ if (!empty($roles)) {
         },
         cache: true
       },
-    })
+    });
     // on select cluster
     $("#id_cluster").on("change", function(e) {
       $('#id_jalan').val(null).trigger('change');
@@ -722,7 +895,7 @@ if (!empty($roles)) {
     });
 
     //select jalan
-    $("#id_jalan").select2({
+    initFilterSelect2($("#id_jalan"), {
       placeholder: "Pilih Blok",
       allowClear: true,
       ajax: {
@@ -755,7 +928,7 @@ if (!empty($roles)) {
         },
         cache: true
       },
-    })
+    });
 
     $("#btn_open_add_modal").on("click", function() {
       $("#modal-tambah-poskon").modal({
@@ -785,13 +958,7 @@ if (!empty($roles)) {
 
           let results = [];
           $.each(r.data, function(index, item) {
-            results.push({
-              id: item['id_proyek'],
-              text: item[1] + ' (' + item[2] + ')',
-              id_proyek: item['id_proyek'],
-              nama_proyek: item[1],
-              data: item
-            });
+            results.push(createProjectSelectOption(item));
           });
 
           return {
@@ -800,6 +967,8 @@ if (!empty($roles)) {
         },
         cache: true
       },
+      templateResult: renderProjectSelectOption,
+      templateSelection: renderProjectSelectOption
     });
 
     $("#add_id_proyek").on("select2:select", function() {
@@ -1104,8 +1273,9 @@ if (!empty($roles)) {
         load_riwayat();
       }
     });
-    //remove bug arrow select2
-    $(".select2-selection__arrow").removeClass("select2-selection__arrow")
+    // Hindari arrow select2 menutupi area klik (regresi dari style.css global)
+    $("#poskon-filter .select2-selection__arrow, #modal-tambah-poskon .select2-selection__arrow")
+      .css("pointer-events", "none");
 
   });
 

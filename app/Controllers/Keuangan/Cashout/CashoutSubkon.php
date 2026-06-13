@@ -30,7 +30,12 @@ class CashoutSubkon extends BaseController
 
     public function get()
     {
-        return $this->json($this->cashoutSubkonService->getCashoutSubkon((array) $this->request->getVar('id_kavlings')));
+        return $this->json(
+            $this->cashoutSubkonService->getCashoutSubkon(
+                (array) $this->request->getVar('id_kavlings'),
+                (int) $this->request->getVar('id_cashout_subkon') ?: null
+            )
+        );
     }
 
     public function save()

@@ -509,6 +509,10 @@ class KeuanganService
     {
         return $this->pembayaranRepo->getTotalBayarByIdMkdt($id_mkdt);
     }
+    public function getPaidItemSummaryById($id_mkdt): array
+    {
+        return $this->pembayaranRepo->getPaidItemSummaryByIdMkdt($id_mkdt);
+    }
     function getRiwayatBayarWithDetailById($id_mkdt)
     {
         $log = $this->pembayaranRepo->getRiwayatBayarById($id_mkdt);
@@ -802,7 +806,7 @@ class KeuanganService
                 $this->mkdtModel->update(['id_mkdt' => $id_mkdt], $data);
             }
 
-            $this->notif->tambah_notif("3;4;9", $pesanNotif, user_id(), $id_kavling, $id_konsumen);
+            $this->notif->tambah_notif("3;4;9", $pesanNotif, user_id(), $id_kavling, $id_konsumen, 'tagihan');
 
             $db->transComplete();
 

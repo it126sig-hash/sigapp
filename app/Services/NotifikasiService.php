@@ -24,12 +24,14 @@ class NotifikasiService
         else
             $this->group_id = session()->group_id;
     }
-    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen)
+    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null)
     {
         
         $data = [
             'notif' => $notif,
             'group_target' => $target,
+            'type' => $type,
+            'is_read' => 0,
             'add_by' => $add_by,
             'id_kavling' => $id_kavling,
             'id_konsumen' => $id_konsumen,

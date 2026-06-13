@@ -6,6 +6,13 @@ use CodeIgniter\HTTP\Files\UploadedFile;
 
 class ProduksiFileService
 {
+    private const IMAGE_MIME_TYPES = [
+        'image/jpg',
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+    ];
+
     private const FOTO_CATEGORIES = [
         'prod_foto_konstruksi',
         'prod_foto_exterior',
@@ -20,10 +27,12 @@ class ProduksiFileService
     ];
 
     protected FileAccessService $fileAccessService;
+    protected array $fileProduksiFields = [];
 
     public function __construct()
     {
         $this->fileAccessService = new FileAccessService();
+        $this->fileProduksiFields = \Config\Database::connect()->getFieldNames('file_produksi');
     }
 
     /**
@@ -46,8 +55,14 @@ class ProduksiFileService
                 continue;
             }
 
-            $tgl = $requestVars['tgl_' . $category] ?? [];
-            $ket = $requestVars['ket_' . $category] ?? [];
+            $tgl               = $requestVars['tgl_' . $category] ?? [];
+            $ket               = $requestVars['ket_' . $category] ?? [];
+            $kategoriPekerjaan = $requestVars['kategoriPekerjaan_' . $category] ?? [];
+            $tugasPekerjaan    = $requestVars['tugasPekerjaan_' . $category] ?? [];
+            $fotoLat           = $requestVars['foto_lat_' . $category] ?? [];
+            $fotoLng           = $requestVars['foto_lng_' . $category] ?? [];
+            $fotoAccuracy      = $requestVars['foto_accuracy_' . $category] ?? [];
+            $coordinateSource  = $requestVars['foto_coordinate_source_' . $category] ?? [];
 
             foreach ($requestFiles[$category] as $i => $img) {
                 if (!($img instanceof UploadedFile) || $img->getSize() === 0) {
@@ -56,26 +71,96 @@ class ProduksiFileService
 
                 $name = $img->getRandomName();
                 $this->fileAccessService->storeAs($img, $lok, $name);
+                $this->compressImageIfPossible($lok . $name);
 
                 \Config\Services::image()
                     ->withFile($this->fileAccessService->privatePath($lok . $name))
                     ->resize(150, 150, true, 'height')
                     ->save($this->fileAccessService->privatePath($thumbLok . $name));
 
-                $rows[] = [
+                $fileKeterangan = $ket[$i] ?? null;
+                if ($category === 'prod_foto_konstruksi') {
+                    $parts = array_filter([
+                        $kategoriPekerjaan[$i] ?? null,
+                        $tugasPekerjaan[$i] ?? null,
+                    ], static fn ($value) => $value !== null && $value !== '');
+                    $fileKeterangan = !empty($parts) ? implode(' - ', $parts) : $fileKeterangan;
+                }
+
+                $row = [
                     'id_kavling'      => $idKavling,
                     'lokasi'          => $lok,
                     'file_name'       => $name,
                     'tgl_capture'     => $tgl[$i] ?? null,
-                    'file_keterangan' => $ket[$i] ?? null,
+                    'file_keterangan' => $fileKeterangan,
                     'kategori'        => $category,
                     'upload_at'       => date('Y-m-d H:i:s'),
                     'upload_by'       => user_id(),
                 ];
+
+                if ($this->hasFileProduksiField('foto_lat')) {
+                    $row['foto_lat'] = $this->nullableDecimal($fotoLat[$i] ?? null);
+                }
+                if ($this->hasFileProduksiField('foto_lng')) {
+                    $row['foto_lng'] = $this->nullableDecimal($fotoLng[$i] ?? null);
+                }
+                if ($this->hasFileProduksiField('foto_accuracy')) {
+                    $row['foto_accuracy'] = $this->nullableDecimal($fotoAccuracy[$i] ?? null);
+                }
+                if ($this->hasFileProduksiField('foto_coordinate_source')) {
+                    $row['foto_coordinate_source'] = $coordinateSource[$i] ?? null;
+                }
+
+                $rows[] = $row;
             }
         }
 
         return $rows;
+    }
+
+    private function compressImageIfPossible(string $relativePath): void
+    {
+        $absolutePath = $this->fileAccessService->privatePath($relativePath);
+        if (!is_file($absolutePath)) {
+            return;
+        }
+
+        $mime = mime_content_type($absolutePath);
+        if (!in_array($mime, self::IMAGE_MIME_TYPES, true)) {
+            return;
+        }
+
+        $size = @getimagesize($absolutePath);
+        if (!$size) {
+            return;
+        }
+
+        [$width, $height] = $size;
+        $maxDimension = 1920;
+
+        try {
+            $image = \Config\Services::image()->withFile($absolutePath);
+            if ($width > $maxDimension || $height > $maxDimension) {
+                $image->resize($maxDimension, $maxDimension, true, 'auto');
+            }
+            $image->save($absolutePath, 78);
+        } catch (\Throwable $e) {
+            log_message('warning', 'Gagal kompres foto produksi: ' . $e->getMessage());
+        }
+    }
+
+    private function hasFileProduksiField(string $field): bool
+    {
+        return in_array($field, $this->fileProduksiFields, true);
+    }
+
+    private function nullableDecimal($value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return is_numeric($value) ? (float) $value : null;
     }
 
     /**

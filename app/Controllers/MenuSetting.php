@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\MenuModel;
 use App\Services\MenuAccessService;
+use App\Services\SiteplanMenuService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class MenuSetting extends BaseController
@@ -11,6 +12,7 @@ class MenuSetting extends BaseController
     protected $db;
     protected $menuModel;
     protected $menuAccess;
+    protected $siteplanMenu;
     protected $validation;
 
     public function __construct()
@@ -18,6 +20,7 @@ class MenuSetting extends BaseController
         $this->db = db_connect();
         $this->menuModel = new MenuModel();
         $this->menuAccess = new MenuAccessService();
+        $this->siteplanMenu = new SiteplanMenuService();
         $this->validation = \Config\Services::validation();
     }
 
@@ -32,6 +35,7 @@ class MenuSetting extends BaseController
             'groups' => $this->getGroups(),
             'users' => $this->getUsers(),
             'parent_options' => $this->getParentOptions(),
+            'siteplan_groups' => $this->siteplanMenu->groupOptions(),
         ];
 
         return view('template', $data);
@@ -260,6 +264,140 @@ class MenuSetting extends BaseController
             'success' => true,
             'token' => csrf_hash(),
             'messages' => 'Akses user berhasil disimpan',
+        ]);
+    }
+
+    public function siteplanMenuList()
+    {
+        $this->guardAdmin(true);
+
+        $data = [
+            'token' => csrf_hash(),
+            'data' => [],
+        ];
+
+        foreach ($this->siteplanMenu->getFlatItems(false) as $key => $menu) {
+            $status = ((int) $menu->is_active === 1)
+                ? '<span class="badge badge-pill badge-success">Aktif</span>'
+                : '<span class="badge badge-pill badge-danger">Tidak Aktif</span>';
+            $toggleIcon = ((int) $menu->is_active === 1) ? 'fa-times' : 'fa-check';
+            $ops = '<div class="btn-group">';
+            $ops .= '<button type="button" class="btn btn-sm btn-info" onclick="editSiteplanMenu(' . (int) $menu->id . ')"><i class="fa fa-edit"></i></button>';
+            $ops .= '<button type="button" class="btn btn-sm btn-danger" onclick="toggleSiteplanMenu(' . (int) $menu->id . ')"><i class="fa ' . $toggleIcon . '"></i></button>';
+            $ops .= '</div>';
+
+            $data['data'][$key] = [
+                (int) $menu->id,
+                esc($this->siteplanMenu->groupLabel((int) $menu->id_group)),
+                esc($menu->group_label),
+                esc($menu->label),
+                esc($menu->icon),
+                esc($menu->btn_class),
+                esc($menu->onclick),
+                (int) $menu->sort_order,
+                $status,
+                $ops,
+            ];
+        }
+
+        return $this->response->setJSON($data);
+    }
+
+    public function siteplanMenuGet()
+    {
+        $this->guardAdmin(true);
+
+        $id = (int) $this->request->getPost('id');
+        $menu = $this->siteplanMenu->findItem($id);
+        if (!$menu) {
+            return $this->jsonError('Menu siteplan tidak ditemukan');
+        }
+
+        $menu->success = true;
+        $menu->token = csrf_hash();
+        $menu->role_ids = $this->siteplanMenu->getItemRoleIds($id);
+
+        return $this->response->setJSON($menu);
+    }
+
+    public function siteplanMenuSave()
+    {
+        $this->guardAdmin(true);
+
+        $id = (int) $this->request->getPost('id');
+        $itemKey = trim((string) $this->request->getPost('item_key'));
+        $label = trim((string) $this->request->getPost('label'));
+        if ($itemKey === '') {
+            $itemKey = $this->makeSlug($label);
+        }
+
+        $fields = [
+            'item_key'    => $itemKey,
+            'id_group'    => (int) $this->request->getPost('id_group'),
+            'label'       => $label,
+            'group_label' => trim((string) $this->request->getPost('group_label')),
+            'onclick'     => trim((string) $this->request->getPost('onclick')),
+            'icon'        => trim((string) $this->request->getPost('icon')),
+            'btn_class'   => trim((string) $this->request->getPost('btn_class')) ?: 'btn-primary',
+            'sort_order'  => (int) $this->request->getPost('sort_order'),
+            'is_active'   => (int) $this->request->getPost('is_active') === 1 ? 1 : 0,
+            'extra_id'    => trim((string) $this->request->getPost('extra_id')),
+            'extra_class' => trim((string) $this->request->getPost('extra_class')),
+        ];
+
+        $this->validation->setRules([
+            'item_key'   => ['label' => 'Key', 'rules' => 'required|alpha_dash|max_length[120]'],
+            'id_group'   => ['label' => 'Departemen tampilan', 'rules' => 'permit_empty|integer'],
+            'label'      => ['label' => 'Label', 'rules' => 'required|max_length[160]'],
+            'btn_class'  => ['label' => 'Class warna', 'rules' => 'required|max_length[120]'],
+            'sort_order' => ['label' => 'Urutan', 'rules' => 'permit_empty|integer'],
+            'is_active'  => ['label' => 'Status', 'rules' => 'required|in_list[0,1]'],
+        ]);
+
+        if (!$this->validation->run($fields)) {
+            return $this->jsonError($this->validation->listErrors());
+        }
+
+        $duplicate = $this->db->table('siteplan_menu_items')
+            ->select('id')
+            ->where('item_key', $fields['item_key'])
+            ->where('id !=', $id)
+            ->get()
+            ->getRow();
+        if ($duplicate) {
+            return $this->jsonError('Key menu siteplan sudah dipakai');
+        }
+
+        $roleIds = $this->request->getPost('role_ids') ?? [];
+        if (!is_array($roleIds) || !$roleIds) {
+            $roleIds = [$fields['id_group']];
+        }
+
+        $this->db->transStart();
+        $itemId = $this->siteplanMenu->saveItem($fields, $id);
+        $this->siteplanMenu->syncRoles($itemId, $roleIds);
+        $this->db->transComplete();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'token' => csrf_hash(),
+            'messages' => $id > 0 ? 'Menu siteplan berhasil diperbaharui' : 'Menu siteplan berhasil ditambahkan',
+        ]);
+    }
+
+    public function siteplanMenuToggle()
+    {
+        $this->guardAdmin(true);
+
+        $id = (int) $this->request->getPost('id');
+        if (!$this->siteplanMenu->toggleItem($id)) {
+            return $this->jsonError('Menu siteplan tidak ditemukan');
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'token' => csrf_hash(),
+            'messages' => 'Status menu siteplan berhasil diperbaharui',
         ]);
     }
 

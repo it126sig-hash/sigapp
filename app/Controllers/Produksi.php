@@ -83,28 +83,107 @@ class Produksi extends BaseController
         return $this->response->setJSON($r);
     }
 
+    function getBayarProduksiListItem()
+    {
+        $search = trim((string) $this->request->getVar('search'));
+
+        return $this->response->setJSON([
+            'token'     => csrf_hash(),
+            'list_item' => $this->repo->getBayarItemList($search),
+        ]);
+    }
+
     function getBayarProduksi()
     {
         $idKavling = (int) $this->request->getVar('id_kavling');
 
+        if ($idKavling <= 0) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'data tidak ditemukan',
+            ]);
+        }
+
+        $konsumenService = new \App\Services\KonsumenService();
+
         return $this->response->setJSON([
             'token'               => csrf_hash(),
             'id_kavling'          => $idKavling,
+            'konsumen'            => $konsumenService->getByIDKavling($idKavling),
+            'riwayat_bayar'       => $this->repo->getRiwayatBayarByKavling($idKavling),
             'list_bayar_produksi' => $this->repo->getBayarList($idKavling),
         ]);
     }
 
     function saveBayarProduksi()
     {
-        $items     = $this->request->getVar('id-bayar_produksi');
-        $idKavling = $this->request->getVar('id_kavling');
+        $idKavling      = (int) $this->request->getVar('id_kavling');
+        $idItemProduksi = (int) $this->request->getVar('bp-untuk_pembayaran');
+        $tanggalBayar   = trim((string) $this->request->getVar('bp-tanggal_bayar'));
+        $nominal        = str_replace(',', '', (string) $this->request->getVar('bp-nominal'));
+        $keterangan     = (string) $this->request->getVar('bp-keterangan');
 
-        $this->repo->upsertBayarItems($idKavling, $items, user_id());
+        if ($idKavling <= 0 || $idItemProduksi <= 0 || $tanggalBayar === '' || $nominal === '' || (float) $nominal <= 0) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'data tidak lengkap',
+            ]);
+        }
+
+        $saved = $this->repo->insertBayarSingle([
+            'id_kavling'       => $idKavling,
+            'id_item_produksi' => $idItemProduksi,
+            'nominal'          => $nominal,
+            'keterangan'       => $keterangan,
+            'tanggal_bayar'    => $tanggalBayar,
+            'add_by'           => user_id(),
+        ]);
+
+        if (!$saved) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'data gagal disimpan',
+            ]);
+        }
 
         return $this->response->setJSON([
-            'token'    => csrf_hash(),
-            'success'  => true,
-            'messages' => 'Data berhasil diperbaharui',
+            'token'      => csrf_hash(),
+            'id_kavling' => $idKavling,
+            'success'    => true,
+            'messages'   => 'data berhasil disimpan',
+        ]);
+    }
+
+    function deleteBayarProduksi()
+    {
+        $id = (int) $this->request->getVar('id');
+
+        if ($id <= 0) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'data tidak ditemukan',
+            ]);
+        }
+
+        $idKavling = $this->repo->deleteBayar($id);
+
+        if ($idKavling === null) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'data gagal dihapus',
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'token'      => csrf_hash(),
+            'id_kavling' => $idKavling,
+            'success'    => true,
+            'messages'   => 'data berhasil dihapus',
         ]);
     }
 
@@ -352,6 +431,23 @@ class Produksi extends BaseController
 
         if ($this->fileService->moveFotoToTrash($file)) {
             $deleted = $this->repo->deleteFileById($id);
+            if ($deleted && $this->repo->hasProduksiChangeHistoryTable()) {
+                $this->repo->insertProduksiChangeHistory([
+                    'id_kavling'  => (int) $file->id_kavling,
+                    'id_produksi' => null,
+                    'action'      => 'delete_file',
+                    'summary'     => 'File/foto produksi dihapus',
+                    'old_data'    => null,
+                    'new_data'    => null,
+                    'files'       => json_encode([[
+                        'kategori'        => $file->kategori ?? null,
+                        'file_name'       => $file->file_name ?? null,
+                        'file_keterangan' => $file->file_keterangan ?? null,
+                    ]]),
+                    'add_by'      => user_id(),
+                    'created_at'  => date('Y-m-d H:i:s'),
+                ]);
+            }
             return $this->response->setJSON([
                 'token'    => csrf_hash(),
                 'success'  => $deleted,

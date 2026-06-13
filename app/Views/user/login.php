@@ -1,18 +1,14 @@
 <!DOCTYPE html>
-<html class="loading" lang="en" data-textdirection="ltr">
+<html lang="en" data-textdirection="ltr">
 <!-- BEGIN: Head-->
 
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=0,minimal-ui">
-	<meta name="description" content="Vuexy admin is super flexible, powerful, clean &amp; modern responsive bootstrap 4 admin template with unlimited possibilities.">
-	<meta name="keywords" content="admin template, Vuexy admin template, dashboard template, flat admin template, responsive admin template, web app">
-	<meta name="author" content="PIXINVENT">
-	<title>Login Page - SIGAPP</title>
+	<title>Login - SIGAPP</title>
 	<link rel="apple-touch-icon" href="<?= base_url() ?>/app-assets/images/ico/apple-icon-120.png">
 	<link rel="shortcut icon" type="image/x-icon" href="<?= base_url() ?>/app-assets/images/ico/favicon.ico">
-	<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500;1,600" rel="stylesheet">
 
 	<!-- BEGIN: Vendor CSS-->
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/vendors.min.css">
@@ -23,162 +19,411 @@
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/bootstrap-extended.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/colors.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/components.css">
-	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/themes/dark-layout.css">
-	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/themes/bordered-layout.css">
-	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/themes/semi-dark-layout.css">
-
-	<!-- BEGIN: Page CSS-->
-	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/core/menu/menu-types/vertical-menu.css">
-	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/plugins/forms/form-validation.css">
-	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/css/pages/page-auth.css">
-	<!-- END: Page CSS-->
+	<!-- END: Theme CSS-->
 
 	<!-- BEGIN: Custom CSS-->
 	<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/assets/css/style.css">
 	<!-- END: Custom CSS-->
+
+	<style>
+		html, body {
+			height: 100%;
+		}
+
+		body.login-page {
+			font-family: 'Plus Jakarta Sans', sans-serif;
+			background: var(--sigapp-light);
+			color: var(--sigapp-gray-700);
+		}
+
+		.login-wrapper {
+			display: flex;
+			min-height: 100vh;
+		}
+
+		/* ── Brand side ───────────────────────────── */
+		.login-aside {
+			flex: 1 1 55%;
+			position: relative;
+			overflow: hidden;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			padding: 56px;
+			background: var(--sigapp-primary-gradient);
+			color: #fff;
+		}
+
+		.login-aside::before {
+			content: '';
+			position: absolute;
+			top: -120px;
+			right: -120px;
+			width: 360px;
+			height: 360px;
+			border-radius: 50%;
+			background: rgba(255, 255, 255, 0.08);
+		}
+
+		.login-aside::after {
+			content: '';
+			position: absolute;
+			bottom: -140px;
+			left: -100px;
+			width: 320px;
+			height: 320px;
+			border-radius: 50%;
+			background: rgba(255, 255, 255, 0.06);
+		}
+
+		.login-aside-brand {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			position: relative;
+			z-index: 1;
+		}
+
+		.login-aside-brand img {
+			width: 44px;
+			height: 44px;
+			border-radius: 12px;
+			background: rgba(255, 255, 255, 0.9);
+			padding: 4px;
+		}
+
+		.login-aside-brand span {
+			font-size: 1.35rem;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+		}
+
+		.login-aside-content {
+			position: relative;
+			z-index: 1;
+			max-width: 420px;
+		}
+
+		.login-aside-content h1 {
+			color: #fff;
+			font-size: 2rem;
+			font-weight: 700;
+			line-height: 1.3;
+			margin-bottom: 14px;
+		}
+
+		.login-aside-content p {
+			color: rgba(255, 255, 255, 0.78);
+			font-size: 0.95rem;
+			line-height: 1.6;
+			margin-bottom: 0;
+		}
+
+		.login-aside-features {
+			list-style: none;
+			padding: 0;
+			margin: 28px 0 0;
+			display: flex;
+			flex-direction: column;
+			gap: 14px;
+			position: relative;
+			z-index: 1;
+		}
+
+		.login-aside-features li {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			font-size: 0.88rem;
+			color: rgba(255, 255, 255, 0.92);
+		}
+
+		.login-aside-features li i {
+			width: 30px;
+			height: 30px;
+			flex-shrink: 0;
+			border-radius: 9px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: rgba(255, 255, 255, 0.12);
+		}
+
+		.login-aside-footer {
+			position: relative;
+			z-index: 1;
+			font-size: 0.78rem;
+			color: rgba(255, 255, 255, 0.6);
+		}
+
+		/* ── Form side ────────────────────────────── */
+		.login-main {
+			flex: 1 1 45%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 40px 24px;
+			background: #fff;
+		}
+
+		.login-card {
+			width: 100%;
+			max-width: 400px;
+		}
+
+		.login-mobile-brand {
+			display: none;
+			align-items: center;
+			gap: 10px;
+			margin-bottom: 32px;
+		}
+
+		.login-mobile-brand img {
+			width: 38px;
+			height: 38px;
+			border-radius: 10px;
+		}
+
+		.login-mobile-brand span {
+			font-size: 1.15rem;
+			font-weight: 700;
+			color: var(--sigapp-dark);
+		}
+
+		.login-card h2 {
+			font-size: 1.5rem;
+			font-weight: 700;
+			color: var(--sigapp-dark);
+			margin-bottom: 6px;
+		}
+
+		.login-card .login-subtitle {
+			color: var(--sigapp-secondary);
+			font-size: 0.88rem;
+			margin-bottom: 28px;
+		}
+
+		.login-form-group {
+			margin-bottom: 18px;
+		}
+
+		.login-form-group label {
+			font-size: 0.78rem;
+			font-weight: 600;
+			color: var(--sigapp-gray-700);
+			margin-bottom: 6px;
+			display: block;
+		}
+
+		.login-input-group {
+			position: relative;
+		}
+
+		.login-input-group i,
+		.login-input-group > svg {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			transform: translateY(-50%);
+			color: var(--sigapp-gray-500);
+			pointer-events: none;
+		}
+
+		.login-input-group .form-control {
+			height: 46px;
+			padding-left: 42px;
+			font-size: 0.9rem;
+			border: 1.5px solid var(--border);
+		}
+
+		.login-input-group .toggle-password {
+			position: absolute;
+			top: 50%;
+			right: 14px;
+			transform: translateY(-50%);
+			color: var(--sigapp-gray-500);
+			background: none;
+			border: none;
+			padding: 0;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+		}
+
+		.login-input-group .toggle-password:hover {
+			color: var(--sigapp-primary-solid);
+		}
+
+		.login-input-group.has-icon-right .form-control {
+			padding-right: 42px;
+		}
+
+		.login-remember {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 24px;
+		}
+
+		.login-remember .form-check-label {
+			font-size: 0.85rem;
+			color: var(--sigapp-gray-700);
+		}
+
+		.login-submit {
+			height: 46px;
+			font-weight: 700;
+			font-size: 0.92rem;
+			letter-spacing: 0.02em;
+		}
+
+		@media (max-width: 991.98px) {
+			.login-aside {
+				display: none;
+			}
+
+			.login-mobile-brand {
+				display: flex;
+			}
+
+			.login-main {
+				padding: 32px 20px;
+			}
+		}
+	</style>
 
 </head>
 <!-- END: Head-->
 
 <!-- BEGIN: Body-->
 
-<body class="vertical-layout vertical-menu-modern blank-page navbar-floating footer-static  " data-open="click" data-menu="vertical-menu-modern" data-col="blank-page">
-	<!-- BEGIN: Content-->
-	<div class="app-content content ">
-		<div class="content-overlay"></div>
-		<div class="header-navbar-shadow"></div>
-		<div class="content-wrapper">
-			<div class="content-header row">
+<body class="login-page">
+	<div class="login-wrapper">
+		<!-- Brand side -->
+		<div class="login-aside">
+			<div class="login-aside-brand">
+				<img src="<?= base_url('images/logo.png') ?>" alt="SIGAPP">
+				<span>SIGAPP</span>
 			</div>
-			<div class="content-body">
-				<div class="auth-wrapper auth-v2">
-					<div class="auth-inner row m-0">
-						<!-- Brand logo-->
-						<a class="brand-logo" href="javascript:void(0);">
-							<img src="<?=base_url("images/logo.png")?>" height="28"/>
-							<!-- <svg viewBox="0 0 139 95" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" height="28">
-								<defs>
-									<lineargradient id="linearGradient-1" x1="100%" y1="10.5120544%" x2="50%" y2="89.4879456%">
-										<stop stop-color="#000000" offset="0%"></stop>
-										<stop stop-color="#FFFFFF" offset="100%"></stop>
-									</lineargradient>
-									<lineargradient id="linearGradient-2" x1="64.0437835%" y1="46.3276743%" x2="37.373316%" y2="100%">
-										<stop stop-color="#EEEEEE" stop-opacity="0" offset="0%"></stop>
-										<stop stop-color="#FFFFFF" offset="100%"></stop>
-									</lineargradient>
-								</defs>
-								<g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-									<g id="Artboard" transform="translate(-400.000000, -178.000000)">
-										<g id="Group" transform="translate(400.000000, 178.000000)">
-											<path class="text-primary" id="Path" d="M-5.68434189e-14,2.84217094e-14 L39.1816085,2.84217094e-14 L69.3453773,32.2519224 L101.428699,2.84217094e-14 L138.784583,2.84217094e-14 L138.784199,29.8015838 C137.958931,37.3510206 135.784352,42.5567762 132.260463,45.4188507 C128.736573,48.2809251 112.33867,64.5239941 83.0667527,94.1480575 L56.2750821,94.1480575 L6.71554594,44.4188507 C2.46876683,39.9813776 0.345377275,35.1089553 0.345377275,29.8015838 C0.345377275,24.4942122 0.230251516,14.560351 -5.68434189e-14,2.84217094e-14 Z" style="fill: currentColor"></path>
-											<path id="Path1" d="M69.3453773,32.2519224 L101.428699,1.42108547e-14 L138.784583,1.42108547e-14 L138.784199,29.8015838 C137.958931,37.3510206 135.784352,42.5567762 132.260463,45.4188507 C128.736573,48.2809251 112.33867,64.5239941 83.0667527,94.1480575 L56.2750821,94.1480575 L32.8435758,70.5039241 L69.3453773,32.2519224 Z" fill="url(#linearGradient-1)" opacity="0.2"></path>
-											<polygon id="Path-2" fill="#000000" opacity="0.049999997" points="69.3922914 32.4202615 32.8435758 70.5039241 54.0490008 16.1851325"></polygon>
-											<polygon id="Path-21" fill="#000000" opacity="0.099999994" points="69.3922914 32.4202615 32.8435758 70.5039241 58.3683556 20.7402338"></polygon>
-											<polygon id="Path-3" fill="url(#linearGradient-2)" opacity="0.099999994" points="101.428699 0 83.0667527 94.1480575 130.378721 47.0740288"></polygon>
-										</g>
-									</g>
-								</g>
-							</svg> -->
-							<h2 class="brand-text text-primary ml-1">SIGAPP</h2>
-						</a>
-						<!-- /Brand logo-->
-						<!-- Left Text-->
-						<div class="d-none d-lg-flex col-lg-8 align-items-center p-5">
-							<div class="w-100 d-lg-flex align-items-center justify-content-center px-5"><img class="img-fluid" src="<?= base_url() ?>/app-assets/images/pages/login-v2.svg" alt="Login V2" /></div>
-						</div>
-						<!-- /Left Text-->
-						<!-- Login-->
-						<div class="d-flex col-lg-4 align-items-center auth-bg px-2 p-lg-5">
-							<div class="col-12 col-sm-8 col-md-6 col-lg-12 px-xl-2 mx-auto">
-								<h2 class="card-title font-weight-bold mb-1">Welcome to SIGAPP! 👋</h2>
-								<!-- <p class="card-text mb-2">Please sign-in to your account and start the adventure</p> -->
-								<form class="auth-login-form mt-2" action="<?= base_url('login') ?>" method="post">
-									<?= csrf_field() ?>
-									<?= view('Myth\Auth\Views\_message_block') ?>
-									<?php if ($config->validFields === ['email']) : ?>
-										<div class="form-group">
-											<label for="login"><?= lang('Auth.email') ?></label>
-											<input type="email" class="form-control <?php if (session('errors.login')) : ?>is-invalid<?php endif ?>" name="login" placeholder="<?= lang('Auth.email') ?>">
-											<div class="invalid-feedback">
-												<?= session('errors.login') ?>
-											</div>
-										</div>
-									<?php else : ?>
-										<div class="form-group">
-											<label for="login"><?= lang('Auth.emailOrUsername') ?></label>
-											<input type="text" class="form-control <?php if (session('errors.login')) : ?>is-invalid<?php endif ?>" name="login" placeholder="<?= lang('Auth.emailOrUsername') ?>">
-											<div class="invalid-feedback">
-												<?= session('errors.login') ?>
-											</div>
-										</div>
-									<?php endif; ?>
-
-									<div class="form-group">
-										<label for="password"><?= lang('Auth.password') ?></label>
-										<input type="password" name="password" class="form-control  <?php if (session('errors.password')) : ?>is-invalid<?php endif ?>" placeholder="<?= lang('Auth.password') ?>">
-										<div class="invalid-feedback">
-											<?= session('errors.password') ?>
-										</div>
-									</div>
-
-									<?php if ($config->allowRemembering) : ?>
-										<div class="form-check">
-											<label class="form-check-label">
-												<input type="checkbox" name="remember" class="form-check-input" <?php if (old('remember')) : ?> checked <?php endif ?>>
-												<?= lang('Auth.rememberMe') ?>
-											</label>
-										</div>
-									<?php endif; ?>
-
-									<br>
-
-									<button type="submit" class="btn btn-primary btn-block"><?= lang('Auth.loginAction') ?></button>
-									<!-- <?php if ($config->allowRegistration) : ?>
-										<p><a href="<?= route_to('register') ?>"><?= lang('Auth.needAnAccount') ?></a></p>
-									<?php endif; ?>
-									<?php if ($config->activeResetter) : ?>
-										<p><a href="<?= route_to('forgot') ?>"><?= lang('Auth.forgotYourPassword') ?></a></p>
-									<?php endif; ?> -->
-
-								</form>
-
-							</div>
-						</div>
-						<!-- /Login-->
-					</div>
-				</div>
+			<div class="login-aside-content">
+				<h1>Kelola proyek properti Anda lebih mudah</h1>
+				<p>Satu platform terintegrasi untuk mengelola kavling, transaksi, keuangan, dan dokumen proyek perumahan Anda.</p>
+				<ul class="login-aside-features">
+					<li><i data-feather="check-circle"></i> Pantau status kavling &amp; penjualan secara real-time</li>
+					<li><i data-feather="check-circle"></i> Kelola transaksi dan riwayat pembayaran konsumen</li>
+					<li><i data-feather="check-circle"></i> Akses laporan keuangan dan legalitas proyek</li>
+				</ul>
+			</div>
+			<div class="login-aside-footer">
+				&copy; <?= date('Y') ?> SIGAPP. All rights reserved.
 			</div>
 		</div>
-	</div>
-	<!-- END: Content-->
+		<!-- /Brand side -->
 
+		<!-- Form side -->
+		<div class="login-main">
+			<div class="login-card">
+				<div class="login-mobile-brand">
+					<img src="<?= base_url('images/logo.png') ?>" alt="SIGAPP">
+					<span>SIGAPP</span>
+				</div>
+
+				<h2>Selamat Datang 👋</h2>
+				<p class="login-subtitle">Masuk untuk melanjutkan ke akun Anda</p>
+
+				<?= view('Myth\Auth\Views\_message_block') ?>
+
+				<form class="auth-login-form" action="<?= base_url('login') ?>" method="post">
+					<?= csrf_field() ?>
+
+					<?php if ($config->validFields === ['email']) : ?>
+						<div class="login-form-group">
+							<label for="login"><?= lang('Auth.email') ?></label>
+							<div class="login-input-group">
+								<i data-feather="mail"></i>
+								<input type="email" id="login" class="form-control <?php if (session('errors.login')) : ?>is-invalid<?php endif ?>" name="login" placeholder="<?= lang('Auth.email') ?>">
+							</div>
+							<div class="invalid-feedback d-block">
+								<?= session('errors.login') ?>
+							</div>
+						</div>
+					<?php else : ?>
+						<div class="login-form-group">
+							<label for="login"><?= lang('Auth.emailOrUsername') ?></label>
+							<div class="login-input-group">
+								<i data-feather="user"></i>
+								<input type="text" id="login" class="form-control <?php if (session('errors.login')) : ?>is-invalid<?php endif ?>" name="login" placeholder="<?= lang('Auth.emailOrUsername') ?>">
+							</div>
+							<div class="invalid-feedback d-block">
+								<?= session('errors.login') ?>
+							</div>
+						</div>
+					<?php endif; ?>
+
+					<div class="login-form-group">
+						<label for="password"><?= lang('Auth.password') ?></label>
+						<div class="login-input-group has-icon-right">
+							<i data-feather="lock"></i>
+							<input type="password" id="password" name="password" class="form-control <?php if (session('errors.password')) : ?>is-invalid<?php endif ?>" placeholder="<?= lang('Auth.password') ?>">
+							<button type="button" class="toggle-password" data-target="password" aria-label="Show password">
+								<i data-feather="eye"></i>
+							</button>
+						</div>
+						<div class="invalid-feedback d-block">
+							<?= session('errors.password') ?>
+						</div>
+					</div>
+
+					<?php if ($config->allowRemembering) : ?>
+						<div class="login-remember">
+							<div class="form-check">
+								<label class="form-check-label">
+									<input type="checkbox" name="remember" class="form-check-input" <?php if (old('remember')) : ?> checked <?php endif ?>>
+									<?= lang('Auth.rememberMe') ?>
+								</label>
+							</div>
+						</div>
+					<?php endif; ?>
+
+					<button type="submit" class="btn btn-primary btn-block login-submit"><?= lang('Auth.loginAction') ?></button>
+				</form>
+
+			</div>
+		</div>
+		<!-- /Form side -->
+	</div>
 
 	<!-- BEGIN: Vendor JS-->
 	<script src="<?= base_url() ?>/app-assets/vendors/js/vendors.min.js"></script>
-	<!-- BEGIN Vendor JS-->
+	<!-- END: Vendor JS-->
 
 	<!-- BEGIN: Page Vendor JS-->
 	<script src="<?= base_url() ?>/app-assets/vendors/js/forms/validation/jquery.validate.min.js"></script>
 	<!-- END: Page Vendor JS-->
-
-	<!-- BEGIN: Theme JS-->
-	<script src="<?= base_url() ?>/app-assets/js/core/app-menu.js"></script>
-	<script src="<?= base_url() ?>/app-assets/js/core/app.js"></script>
-	<!-- END: Theme JS-->
 
 	<!-- BEGIN: Page JS-->
 	<script src="<?= base_url() ?>/app-assets/js/scripts/pages/page-auth-login.js"></script>
 	<!-- END: Page JS-->
 
 	<script>
-		$(window).on('load', function() {
+		$(function () {
 			if (feather) {
 				feather.replace({
-					width: 14,
-					height: 14
+					width: 16,
+					height: 16
 				});
 			}
-		})
+
+			$('.toggle-password').on('click', function () {
+				var input = $('#' + $(this).data('target'));
+				var icon = $(this).find('i');
+				var isPassword = input.attr('type') === 'password';
+
+				input.attr('type', isPassword ? 'text' : 'password');
+				icon.attr('data-feather', isPassword ? 'eye-off' : 'eye');
+				feather.replace({ width: 16, height: 16 });
+			});
+		});
 	</script>
 </body>
 <!-- END: Body-->

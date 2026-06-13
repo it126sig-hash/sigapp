@@ -10,7 +10,7 @@ class RiwayatPencairanJaminanModel extends Model
     protected $primaryKey    = 'id';
     protected $useTimestamps = true;
     protected $allowedFields = [
-        'id_kavling','tanggal_pengajuan','tanggal_cair','keterangan','status_cair','surat_path','created_by','updated_by'
+        'id_kavling','id_mkdt','tanggal_pengajuan','tanggal_cair','keterangan','status_cair','surat_path','created_by','updated_by'
     ];
 
     protected $returnType    = 'array';

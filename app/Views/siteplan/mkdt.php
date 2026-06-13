@@ -100,6 +100,33 @@
         padding: 1rem;
     }
 
+    #modal-isi_data_konsumen .refund-status-card,
+    #modal-batal .refund-status-card {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: .85rem;
+    }
+
+    #modal-isi_data_konsumen .refund-status-card .custom-control,
+    #modal-batal .refund-status-card .custom-control {
+        margin-bottom: .35rem;
+    }
+
+    #modal-isi_data_konsumen .refund-status-card .custom-control:last-child,
+    #modal-batal .refund-status-card .custom-control:last-child {
+        margin-bottom: 0;
+    }
+
+    #modal-isi_data_konsumen .refund-status-note,
+    #modal-batal .refund-status-note {
+        color: #6b7280;
+        display: block;
+        font-size: .76rem;
+        line-height: 1.35;
+        margin-top: .45rem;
+    }
+
     #modal-isi_data_konsumen .card-title {
         color: #111827;
         font-size: .95rem;
@@ -375,71 +402,1272 @@
         }
     }
 
-    /* Mobile Friendly Styles untuk Modal Mkdt Divisi 4 */
-    @media (max-width: 768px) {
-        #modal_divisi4 .modal-body-custom {
-            flex-direction: column !important;
-            overflow: hidden !important; /* Tetap hidden di body, biarkan main content yang scroll */
+    /* SIGAPP UI Acuan - Modal Set Harga */
+    #modals-set_harga .modal-dialog {
+        max-width: min(1120px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modals-set_harga .modal-content {
+        background: #fff;
+        border: 0;
+        border-radius: 10px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+        overflow: hidden;
+    }
+
+    #modals-set_harga .modal-header {
+        align-items: center;
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0 !important;
+        padding: 1rem 1.25rem;
+    }
+
+    #modals-set_harga .modal-title {
+        color: #111827;
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    #modals-set_harga .set-harga-project {
+        color: #6b7280;
+        display: block;
+        font-size: .78rem;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-top: .2rem;
+    }
+
+    #modals-set_harga .modal-body {
+        background: #f3f5f7 !important;
+        max-height: calc(100vh - 8rem);
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    #modals-set_harga .set-harga-layout {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+    }
+
+    #modals-set_harga .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    #modals-set_harga .card:last-child {
+        margin-bottom: 0;
+    }
+
+    #modals-set_harga .card-body {
+        padding: 1rem;
+    }
+
+    #modals-set_harga .divider {
+        margin: .2rem 0 .85rem;
+    }
+
+    #modals-set_harga .divider-left {
+        border-left-color: #2057a3;
+        margin-bottom: .85rem;
+        padding-left: .75rem;
+    }
+
+    #modals-set_harga .divider .divider-text {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 700;
+    }
+
+    #modals-set_harga .divider .divider-text i {
+        color: #2057a3;
+    }
+
+    #modals-set_harga label,
+    #modals-set_harga .form-label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    #modals-set_harga .form-group {
+        margin-bottom: .8rem;
+    }
+
+    #modals-set_harga .form-control,
+    #modals-set_harga .custom-select {
+        background-color: #fff;
+        border-color: #d8dde3;
+        border-radius: 6px;
+        color: #111827;
+        min-height: 36px;
+    }
+
+    #modals-set_harga .form-control:disabled,
+    #modals-set_harga .form-control[readonly] {
+        background-color: #f8fafc;
+        color: #111827;
+        opacity: 1;
+    }
+
+    #modals-set_harga textarea.form-control {
+        min-height: 92px;
+        resize: vertical;
+    }
+
+    #modals-set_harga .set-harga-note {
+        color: #6b7280;
+        display: block;
+        font-size: .76rem;
+        line-height: 1.35;
+        margin-top: .45rem;
+    }
+
+    #modals-set_harga .set-harga-detail-grid {
+        display: grid;
+        gap: .8rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #modals-set_harga .set-harga-detail-grid .form-group {
+        margin-bottom: 0;
+    }
+
+    #modals-set_harga .set-harga-highlight input {
+        color: #2057a3;
+        font-weight: 800;
+    }
+
+    #modals-set_harga .select2-container {
+        width: 100% !important;
+    }
+
+    #modals-set_harga .select2-container--default .select2-selection--single {
+        border-color: #d8dde3;
+        border-radius: 6px;
+        min-height: 36px;
+    }
+
+    #modals-set_harga .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #111827;
+        line-height: 34px;
+        padding-left: .75rem;
+    }
+
+    #modals-set_harga .select2-container--default .select2-selection--single .select2-selection__arrow {
+        min-height: 36px;
+    }
+
+    #modals-set_harga .modal-footer {
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+        padding: .85rem 1rem;
+    }
+
+    #modals-set_harga .btn {
+        border-radius: 6px;
+        font-weight: 700;
+    }
+
+    #modals-set_harga .btn-primary {
+        background-color: #2057a3 !important;
+        border-color: #2057a3 !important;
+    }
+
+    #modals-set_harga .btn-primary:hover,
+    #modals-set_harga .btn-primary:focus {
+        background-color: #174b8f !important;
+        border-color: #174b8f !important;
+    }
+
+    #modals-set_harga .btn-outline-primary {
+        border-color: #2057a3 !important;
+        color: #2057a3 !important;
+    }
+
+    #modals-set_harga .btn-outline-primary:hover,
+    #modals-set_harga .btn-outline-primary:focus {
+        background-color: #2057a3 !important;
+        color: #fff !important;
+    }
+
+    .dark-layout #modals-set_harga .modal-header,
+    .dark-layout #modals-set_harga .modal-footer,
+    .dark-layout #modals-set_harga .card {
+        background: #283046 !important;
+        border-color: rgba(255, 255, 255, .08) !important;
+    }
+
+    .dark-layout #modals-set_harga .modal-title,
+    .dark-layout #modals-set_harga .divider .divider-text {
+        color: #f8fafc;
+    }
+
+    .dark-layout #modals-set_harga .modal-body,
+    .dark-layout #modals-set_harga .form-control:disabled,
+    .dark-layout #modals-set_harga .form-control[readonly] {
+        background: #1f2937 !important;
+    }
+
+    @media (max-width: 991.98px) {
+        #modals-set_harga .set-harga-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        #modals-set_harga .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
         }
 
-        #modal_divisi4 .modal-sidebar {
-            width: 100% !important;
-            border-right: none !important;
-            border-bottom: 1px solid #ddd;
-            padding: 15px 15px 5px 15px !important;
-            flex: 0 0 auto !important; /* Jangan biarkan membesar/mengecil */
+        #modals-set_harga .modal-body {
+            max-height: calc(100vh - 7rem);
+            padding: .75rem;
         }
 
-        /* Ubah sidebar info box layout agar lebih hemat tempat */
-        #modal_divisi4 .sidebar-info-box {
-            display: flex;
+        #modals-set_harga .card-body {
+            padding: .85rem;
+        }
+
+        #modals-set_harga .set-harga-detail-grid {
+            grid-template-columns: 1fr;
+        }
+
+        #modals-set_harga .modal-footer {
+            align-items: stretch;
+            flex-direction: column-reverse;
+        }
+
+        #modals-set_harga .modal-footer .btn {
+            width: 100%;
+        }
+    }
+
+    /* SIGAPP UI Acuan - Modal Mkdt Divisi 4 (mengikuti #modal-isi_data_konsumen) */
+    #modal_divisi4 .modal-dialog {
+        max-width: min(1440px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modal_divisi4 .modal-content {
+        border: 0;
+        border-radius: 10px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+        overflow: hidden;
+    }
+
+    #modal_divisi4 .modal-header {
+        align-items: center;
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0 !important;
+        padding: 1rem 1.25rem;
+    }
+
+    #modal_divisi4 .modal-title {
+        color: #111827;
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    #modal_divisi4 .modal-body {
+        background: #f3f5f7 !important;
+        max-height: calc(100vh - 7rem);
+        overflow: hidden;
+        padding: 1rem;
+    }
+
+    #modal_divisi4 .modal-body > .row {
+        margin-left: -.5rem;
+        margin-right: -.5rem;
+    }
+
+    #modal_divisi4 .modal-body > .row > [class*="col-"] {
+        padding-left: .5rem;
+        padding-right: .5rem;
+    }
+
+    #modal_divisi4 .mkdt-layout {
+        align-items: flex-start;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        height: 100%;
+        margin: 0;
+    }
+
+    #modal_divisi4 .mkdt-layout > .mkdt-sidebar,
+    #modal_divisi4 .mkdt-layout > .mkdt-main-content {
+        padding: 0;
+    }
+
+    #modal_divisi4 .mkdt-sidebar {
+        align-self: flex-start;
+        flex: 0 0 320px;
+        max-height: calc(100vh - 8rem);
+        max-width: 320px;
+        overflow-y: auto;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    #modal_divisi4 .mkdt-main-content {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        max-height: calc(100vh - 8rem);
+        max-width: calc(100% - 336px);
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    #modal_divisi4 .mkdt-nav-sticky {
+        flex: 0 0 auto;
+        margin-bottom: 1rem;
+        position: sticky;
+        top: 0;
+        z-index: 3;
+    }
+
+    #modal_divisi4 .mkdt-scroll-content {
+        flex: 1 1 auto;
+        min-height: 0;
+        min-width: 0;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+    }
+
+    #modal_divisi4 .scroll-section {
+        scroll-margin-top: .5rem;
+    }
+
+    #modal_divisi4 .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    #modal_divisi4 .card-body {
+        padding: 1rem;
+    }
+
+    #modal_divisi4 .mkdt-hero-card {
+        border: 0;
+    }
+
+    #modal_divisi4 .mkdt-sidebar .card-body {
+        padding: .9rem 1rem;
+    }
+
+    #modal_divisi4 .bg-primary {
+        background: linear-gradient(145deg, #2057a3 0%, #1f7a8c 100%) !important;
+    }
+
+    #modal_divisi4 .label_alamat {
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-bottom: 0;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_divisi4 .info-row {
+        align-items: flex-start;
+        background: #f9fafb;
+        border: 1px solid #edf0f2;
+        border-radius: 6px;
+        margin: 0 0 .45rem;
+        padding: .45rem .55rem;
+    }
+
+    #modal_divisi4 .info-row:last-child {
+        margin-bottom: 0;
+    }
+
+    #modal_divisi4 .info-label {
+        color: #6b7280;
+        font-size: .76rem;
+        font-weight: 700;
+    }
+
+    #modal_divisi4 .info-value {
+        color: #111827;
+        display: block;
+        font-weight: 700;
+        min-height: 1.2em;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_divisi4 .mkdt-kpr-sidebar-card .card-body {
+        padding: 1rem;
+    }
+
+    #modal_divisi4 .mkdt-kpr-required-note {
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        border-left: 4px solid #f97316;
+        border-radius: 6px;
+        color: #9a3412;
+        font-size: .78rem;
+        font-weight: 700;
+        line-height: 1.45;
+        margin-bottom: .85rem;
+        padding: .65rem .75rem;
+    }
+
+    #modal_divisi4 .divider {
+        margin: .65rem 0 .85rem;
+    }
+
+    #modal_divisi4 .divider-left {
+        border-left-color: #2057a3;
+        margin-bottom: .85rem;
+        padding-left: .75rem;
+    }
+
+    #modal_divisi4 .divider .divider-text {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 700;
+    }
+
+    #modal_divisi4 .divider .divider-text i {
+        color: #2057a3;
+    }
+
+    #modal_divisi4 label,
+    #modal_divisi4 .form-label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    #modal_divisi4 .form-group {
+        margin-bottom: .8rem;
+    }
+
+    #modal_divisi4 .form-control,
+    #modal_divisi4 .custom-select,
+    #modal_divisi4 .select2-container--default .select2-selection--single {
+        background-color: #fff;
+        border-color: #d8dde3;
+        border-radius: 6px;
+        min-height: 36px;
+    }
+
+    #modal_divisi4 .form-control:focus,
+    #modal_divisi4 .custom-select:focus,
+    #modal_divisi4 .select2-container--focus .select2-selection--single {
+        border-color: #2057a3;
+        box-shadow: 0 0 0 .15rem rgba(32, 87, 163, .12);
+    }
+
+    #modal_divisi4 textarea.form-control {
+        min-height: 90px;
+        resize: vertical;
+    }
+
+    #modal_divisi4 .select2-container {
+        width: 100% !important;
+    }
+
+    #modal_divisi4 .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #111827;
+        line-height: 34px;
+        padding-left: .75rem;
+    }
+
+    #modal_divisi4 .select2-container--default .select2-selection--single .select2-selection__arrow {
+        min-height: 34px;
+    }
+
+    #modal_divisi4 .form-control:disabled,
+    #modal_divisi4 .form-control[readonly] {
+        background-color: #f8fafc;
+        color: #111827;
+        opacity: 1;
+    }
+
+    #modal_divisi4 .dropzone {
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        min-height: 118px;
+        padding: 0;
+        width: 100%;
+    }
+
+    #modal_divisi4 .dropzone .custom-file-input,
+    #modal_divisi4 .dropzone .dz-input {
+        cursor: pointer;
+        height: 100%;
+        inset: 0;
+        opacity: 0;
+        position: absolute;
+        width: 100%;
+        z-index: 2;
+    }
+
+    #modal_divisi4 .dz-inner {
+        align-items: center;
+        background: #f8fafc;
+        border: 1px dashed #b9c2d0;
+        border-radius: 8px;
+        color: #4b5563;
+        display: flex;
+        justify-content: center;
+        min-height: 118px;
+        padding: .85rem;
+        position: relative;
+        text-align: center;
+        transition: border-color .16s ease, background-color .16s ease;
+    }
+
+    #modal_divisi4 .dropzone:hover .dz-inner,
+    #modal_divisi4 .dropzone:focus-within .dz-inner {
+        background: #eef5ff;
+        border-color: #2057a3;
+    }
+
+    #modal_divisi4 .dz-placeholder .h5 {
+        color: #111827;
+        font-size: .9rem;
+        font-weight: 700;
+        margin-bottom: .2rem;
+    }
+
+    #modal_divisi4 .dz-preview {
+        width: 100%;
+    }
+
+    #modal_divisi4 .btn {
+        border-radius: 6px;
+        font-weight: 700;
+        white-space: normal;
+    }
+
+    #modal_divisi4 .btn-primary {
+        background-color: #2057a3 !important;
+        border-color: #2057a3 !important;
+    }
+
+    #modal_divisi4 .btn-primary:hover,
+    #modal_divisi4 .btn-primary:focus {
+        background-color: #174b8f !important;
+        border-color: #174b8f !important;
+    }
+
+    #modal_divisi4 .btn-outline-primary {
+        border-color: #2057a3 !important;
+        color: #2057a3 !important;
+    }
+
+    #modal_divisi4 .btn-outline-primary:hover,
+    #modal_divisi4 .btn-outline-primary:focus {
+        background-color: #2057a3 !important;
+        color: #fff !important;
+    }
+
+    #modal_divisi4 .mkdt-main-content > .card .card-body {
+        background: #fff;
+        border-bottom: 1px solid #edf0f2;
+        padding: .85rem 1rem;
+    }
+
+    #modal_divisi4 .nav-tabs {
+        border-bottom: 0;
+        gap: .4rem;
+        margin: 0 !important;
+    }
+
+    #modal_divisi4 .nav-tabs .nav-link {
+        border: 0;
+        border-radius: 6px;
+        color: #4b5563;
+        font-size: .82rem;
+        font-weight: 700;
+        padding: .55rem .8rem;
+        white-space: nowrap;
+    }
+
+    #modal_divisi4 .nav-tabs .nav-link.active {
+        background-color: #2057a3;
+        box-shadow: 0 6px 14px rgba(32, 87, 163, .2);
+        color: #fff;
+    }
+
+    #modal_divisi4 .sticky-button-wrapper {
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+        box-shadow: 0 -8px 18px rgba(15, 23, 42, .06);
+        flex: 0 0 auto;
+        margin: 1rem 0 0;
+        padding: .85rem 1rem;
+    }
+
+    #modal_divisi4 .mkdt-main-tabs {
+        border-bottom: 1px solid #e5e7eb;
+        flex: 0 0 auto;
+        margin-bottom: .75rem;
+    }
+
+    #modal_divisi4 .mkdt-main-tab-content {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    #modal_divisi4 .mkdt-main-tab-content > .tab-pane {
+        display: none;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    #modal_divisi4 .mkdt-main-tab-content > .tab-pane.active {
+        display: flex;
+    }
+
+    #modal_divisi4 .mkdt-history-wrap {
+        max-height: calc(100vh - 18rem);
+        overflow-y: auto;
+        padding-right: .25rem;
+    }
+
+    #modal_divisi4 .mkdt-history-item {
+        border-left: 3px solid #2057a3;
+        margin-bottom: .85rem;
+        padding: .75rem .85rem .75rem 1rem;
+        background: #f8fafc;
+        border-radius: 0 .5rem .5rem 0;
+    }
+
+    #modal_divisi4 .mkdt-history-item:last-child {
+        margin-bottom: 0;
+    }
+
+    #modal_divisi4 .mkdt-history-title {
+        color: #2057a3;
+        font-size: .92rem;
+        font-weight: 700;
+        margin-bottom: .25rem;
+    }
+
+    #modal_divisi4 .mkdt-history-meta {
+        color: #64748b;
+        font-size: .78rem;
+        margin-bottom: .35rem;
+    }
+
+    #modal_divisi4 .mkdt-history-summary {
+        color: #334155;
+        font-size: .86rem;
+        line-height: 1.45;
+        white-space: pre-wrap;
+    }
+
+    .dark-layout #modal_divisi4 .mkdt-history-item {
+        background: #1f2937;
+        border-left-color: #60a5fa;
+    }
+
+    .dark-layout #modal_divisi4 .mkdt-history-title {
+        color: #93c5fd;
+    }
+
+    .dark-layout #modal_divisi4 .mkdt-history-meta,
+    .dark-layout #modal_divisi4 .mkdt-history-summary {
+        color: #cbd5e1;
+    }
+
+    .dark-layout #modal_divisi4 .modal-header,
+    .dark-layout #modal_divisi4 .card,
+    .dark-layout #modal_divisi4 .mkdt-main-content > .card .card-body,
+    .dark-layout #modal_divisi4 .sticky-button-wrapper {
+        background: #283046 !important;
+        border-color: rgba(255, 255, 255, .08) !important;
+    }
+
+    .dark-layout #modal_divisi4 .modal-title,
+    .dark-layout #modal_divisi4 .divider .divider-text {
+        color: #f8fafc;
+    }
+
+    .dark-layout #modal_divisi4 .modal-body,
+    .dark-layout #modal_divisi4 .form-control:disabled,
+    .dark-layout #modal_divisi4 .form-control[readonly],
+    .dark-layout #modal_divisi4 .dz-inner {
+        background: #1f2937 !important;
+    }
+
+    @media (max-width: 1199.98px) {
+        #modal_divisi4 .mkdt-layout {
             flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        #modal_divisi4 .sidebar-info-box .sidebar-info-label {
-            margin-bottom: 2px;
-            font-size: 0.75rem;
-        }
-        #modal_divisi4 .sidebar-info-box > div {
-            width: 48%; /* Bagi 2 kolom */
-        }
-        #modal_divisi4 .sidebar-section-label {
-            display: none; /* Sembunyikan label "Informasi Utama" agar lebih rapi di HP */
         }
 
-        /* Navigasi menjadi mendatar dan bisa di-swipe */
-        #modal_divisi4 .modal-sidebar-nav {
-            display: flex;
+        #modal_divisi4 .mkdt-sidebar,
+        #modal_divisi4 .mkdt-main-content {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        #modal_divisi4 .mkdt-sidebar {
+            max-height: none;
+            overflow-y: visible;
+            position: static;
+        }
+
+        #modal_divisi4 .mkdt-main-content {
+            max-height: calc(100vh - 12rem);
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        #modal_divisi4 .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
+        }
+
+        #modal_divisi4 .modal-body {
+            max-height: calc(100vh - 5.5rem);
+            padding: .75rem;
+        }
+
+        #modal_divisi4 .card-body {
+            padding: .85rem;
+        }
+
+        #modal_divisi4 .mkdt-main-content {
+            max-height: calc(100vh - 14rem);
+        }
+
+        #modal_divisi4 .nav-tabs {
             flex-direction: row !important;
-            flex-wrap: nowrap !important;
+            flex-wrap: nowrap;
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 10px; /* Jarak untuk scrollbar */
-            margin-bottom: 0 !important;
-            scrollbar-width: thin;
+            padding-bottom: .25rem;
         }
 
-        #modal_divisi4 .sidebar-nav-item {
+        #modal_divisi4 .nav-tabs .nav-link {
             white-space: nowrap;
-            margin-right: 8px;
-            padding: 8px 12px;
-            border-radius: 20px;
-            background: #f8f9fa;
-            border: 1px solid #eee;
         }
 
-        #modal_divisi4 .sidebar-nav-item.active {
-            background: #007bff !important; /* Menggunakan standar primary Bootstrap */
-            color: #fff !important;
-            border-color: #007bff !important;
+        #modal_divisi4 .sticky-button-wrapper {
+            margin: .85rem 0 0;
+            padding: .75rem;
+        }
+    }
+
+    /* SIGAPP UI Acuan - Modal Turun Pembangunan */
+    #modals-turun_pembangunan .modal-dialog {
+        max-width: min(980px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modals-turun_pembangunan .modal-content {
+        background: #fff;
+        border: 0;
+        border-radius: 10px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+        overflow: hidden;
+    }
+
+    #modals-turun_pembangunan .modal-header {
+        align-items: center;
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0 !important;
+        padding: 1rem 1.25rem;
+    }
+
+    #modals-turun_pembangunan .modal-title {
+        color: #111827;
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    #modals-turun_pembangunan .tp-project {
+        color: #6b7280;
+        display: block;
+        font-size: .78rem;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-top: .2rem;
+    }
+
+    #modals-turun_pembangunan .modal-body {
+        background: #f3f5f7 !important;
+        max-height: calc(100vh - 8rem);
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    #modals-turun_pembangunan .turun-pembangunan-layout {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
+    }
+
+    #modals-turun_pembangunan .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    #modals-turun_pembangunan .card:last-child {
+        margin-bottom: 0;
+    }
+
+    #modals-turun_pembangunan .card-body {
+        padding: 1rem;
+    }
+
+    #modals-turun_pembangunan .divider {
+        margin: .2rem 0 .85rem;
+    }
+
+    #modals-turun_pembangunan .divider-left {
+        border-left-color: #2057a3;
+        margin-bottom: .85rem;
+        padding-left: .75rem;
+    }
+
+    #modals-turun_pembangunan .divider .divider-text {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 700;
+    }
+
+    #modals-turun_pembangunan .divider .divider-text i {
+        color: #2057a3;
+    }
+
+    #modals-turun_pembangunan label,
+    #modals-turun_pembangunan .form-label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    #modals-turun_pembangunan .form-group {
+        margin-bottom: .8rem;
+    }
+
+    #modals-turun_pembangunan .form-control,
+    #modals-turun_pembangunan .custom-file-label {
+        background-color: #fff;
+        border-color: #d8dde3;
+        border-radius: 6px;
+        color: #111827;
+        min-height: 36px;
+    }
+
+    #modals-turun_pembangunan .form-control:disabled,
+    #modals-turun_pembangunan .form-control[readonly] {
+        background-color: #f8fafc;
+        color: #111827;
+        opacity: 1;
+    }
+
+    #modals-turun_pembangunan textarea.form-control {
+        min-height: 142px;
+        resize: vertical;
+    }
+
+    #modals-turun_pembangunan .tp-note {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        color: #6b7280;
+        display: block;
+        font-size: .76rem;
+        line-height: 1.45;
+        margin-top: .6rem;
+        padding: .65rem .75rem;
+    }
+
+    #modals-turun_pembangunan .tp-meta-grid {
+        display: grid;
+        gap: .8rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #modals-turun_pembangunan .tp-meta-grid .form-group {
+        margin-bottom: 0;
+    }
+
+    #modals-turun_pembangunan .tp-file-action {
+        align-items: center;
+        display: flex;
+        gap: .65rem;
+        margin-top: .75rem;
+    }
+
+    #modals-turun_pembangunan .tp-file-action .btn {
+        flex: 1 1 auto;
+    }
+
+    #modals-turun_pembangunan .btn {
+        border-radius: 6px;
+        font-weight: 700;
+    }
+
+    #modals-turun_pembangunan .btn-primary {
+        background-color: #2057a3 !important;
+        border-color: #2057a3 !important;
+    }
+
+    #modals-turun_pembangunan .btn-primary:hover,
+    #modals-turun_pembangunan .btn-primary:focus {
+        background-color: #174b8f !important;
+        border-color: #174b8f !important;
+    }
+
+    #modals-turun_pembangunan .btn-outline-primary {
+        border-color: #2057a3 !important;
+        color: #2057a3 !important;
+    }
+
+    #modals-turun_pembangunan .btn-outline-primary:hover,
+    #modals-turun_pembangunan .btn-outline-primary:focus {
+        background-color: #2057a3 !important;
+        color: #fff !important;
+    }
+
+    #modals-turun_pembangunan .modal-footer {
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+        padding: .85rem 1rem;
+    }
+
+    .dark-layout #modals-turun_pembangunan .modal-header,
+    .dark-layout #modals-turun_pembangunan .modal-footer,
+    .dark-layout #modals-turun_pembangunan .card {
+        background: #283046 !important;
+        border-color: rgba(255, 255, 255, .08) !important;
+    }
+
+    .dark-layout #modals-turun_pembangunan .modal-title,
+    .dark-layout #modals-turun_pembangunan .divider .divider-text {
+        color: #f8fafc;
+    }
+
+    .dark-layout #modals-turun_pembangunan .modal-body,
+    .dark-layout #modals-turun_pembangunan .form-control:disabled,
+    .dark-layout #modals-turun_pembangunan .form-control[readonly],
+    .dark-layout #modals-turun_pembangunan .tp-note {
+        background: #1f2937 !important;
+    }
+
+    @media (max-width: 991.98px) {
+        #modals-turun_pembangunan .turun-pembangunan-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        #modals-turun_pembangunan .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
         }
 
-        #modal_divisi4 .modal-main {
-            padding: 15px !important;
-            flex: 1 1 auto !important;
-            overflow-y: auto !important;
+        #modals-turun_pembangunan .modal-body {
+            max-height: calc(100vh - 7rem);
+            padding: .75rem;
+        }
+
+        #modals-turun_pembangunan .card-body {
+            padding: .85rem;
+        }
+
+        #modals-turun_pembangunan .tp-meta-grid {
+            grid-template-columns: 1fr;
+        }
+
+        #modals-turun_pembangunan .tp-file-action {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        #modals-turun_pembangunan .modal-footer {
+            align-items: stretch;
+            flex-direction: column-reverse;
+        }
+
+        #modals-turun_pembangunan .modal-footer .btn {
+            width: 100%;
+        }
+    }
+
+    /* SIGAPP UI Acuan - Modal Standing Instruction */
+    #modals-si .modal-dialog {
+        max-width: min(1180px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modals-si .modal-content {
+        background: #fff;
+        border: 0;
+        border-radius: 10px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+        overflow: hidden;
+    }
+
+    #modals-si .modal-header {
+        align-items: center;
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0 !important;
+        padding: 1rem 1.25rem;
+    }
+
+    #modals-si .modal-title {
+        color: #111827;
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    #modals-si .modal-body {
+        background: #f3f5f7 !important;
+        max-height: calc(100vh - 8rem);
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    #modals-si .si-layout {
+        align-items: flex-start;
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    }
+
+    #modals-si .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    #modals-si .card:last-child {
+        margin-bottom: 0;
+    }
+
+    #modals-si .card-body {
+        padding: 1rem;
+    }
+
+    #modals-si .si-hero {
+        border: 0;
+    }
+
+    #modals-si .bg-primary {
+        background: linear-gradient(145deg, #2057a3 0%, #1f7a8c 100%) !important;
+    }
+
+    #modals-si .label_alamat {
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-bottom: 0;
+        overflow-wrap: anywhere;
+    }
+
+    #modals-si .si-meta-card {
+        background: #f8fafc;
+        border-color: #edf0f2;
+        margin-bottom: 0;
+    }
+
+    #modals-si .si-meta-card h6 {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        margin-bottom: .25rem;
+    }
+
+    #modals-si .si-meta-card h5 {
+        color: #111827;
+        font-size: .95rem;
+        font-weight: 700;
+        margin-bottom: .85rem;
+        overflow-wrap: anywhere;
+    }
+
+    #modals-si .si-meta-card h5:last-child {
+        margin-bottom: 0;
+    }
+
+    #modals-si .divider {
+        margin: .2rem 0 .85rem;
+    }
+
+    #modals-si .divider-left {
+        border-left-color: #2057a3;
+        margin-bottom: .85rem;
+        padding-left: .75rem;
+    }
+
+    #modals-si .divider .divider-text {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 700;
+    }
+
+    #modals-si label,
+    #modals-si .form-label {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    #modals-si .form-group {
+        margin-bottom: .8rem;
+    }
+
+    #modals-si .form-control,
+    #modals-si .custom-file-label {
+        background-color: #fff;
+        border-color: #d8dde3;
+        border-radius: 6px;
+        color: #111827;
+        min-height: 36px;
+    }
+
+    #modals-si textarea.form-control {
+        min-height: 122px;
+        resize: vertical;
+    }
+
+    #modals-si .si-file-action {
+        align-items: center;
+        display: flex;
+        gap: .65rem;
+    }
+
+    #modals-si .si-file-action .btn {
+        flex: 1 1 auto;
+    }
+
+    #modals-si #si-table {
+        font-size: .86rem;
+    }
+
+    #modals-si #si-table thead th {
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+        color: #6b7280;
+        font-size: .74rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        vertical-align: middle;
+    }
+
+    #modals-si #si-table tbody td {
+        border-color: #edf0f2;
+        vertical-align: middle;
+    }
+
+    #modals-si .btn {
+        border-radius: 6px;
+        font-weight: 700;
+        white-space: normal;
+    }
+
+    #modals-si .btn-primary {
+        background-color: #2057a3 !important;
+        border-color: #2057a3 !important;
+    }
+
+    #modals-si .btn-primary:hover,
+    #modals-si .btn-primary:focus {
+        background-color: #174b8f !important;
+        border-color: #174b8f !important;
+    }
+
+    #modals-si .btn-outline-primary {
+        border-color: #2057a3 !important;
+        color: #2057a3 !important;
+    }
+
+    #modals-si .btn-outline-primary:hover,
+    #modals-si .btn-outline-primary:focus {
+        background-color: #2057a3 !important;
+        color: #fff !important;
+    }
+
+    #modals-si .modal-footer {
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+        padding: .85rem 1rem;
+    }
+
+    .dark-layout #modals-si .modal-header,
+    .dark-layout #modals-si .modal-footer,
+    .dark-layout #modals-si .card,
+    .dark-layout #modals-si .si-meta-card {
+        background: #283046 !important;
+        border-color: rgba(255, 255, 255, .08) !important;
+    }
+
+    .dark-layout #modals-si .modal-title,
+    .dark-layout #modals-si .divider .divider-text,
+    .dark-layout #modals-si .si-meta-card h5 {
+        color: #f8fafc;
+    }
+
+    .dark-layout #modals-si .modal-body {
+        background: #1f2937 !important;
+    }
+
+    @media (max-width: 991.98px) {
+        #modals-si .si-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        #modals-si .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
+        }
+
+        #modals-si .modal-body {
+            max-height: calc(100vh - 7rem);
+            padding: .75rem;
+        }
+
+        #modals-si .card-body {
+            padding: .85rem;
+        }
+
+        #modals-si .si-file-action {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        #modals-si .modal-footer {
+            align-items: stretch;
+            flex-direction: column-reverse;
+        }
+
+        #modals-si .modal-footer .btn {
+            width: 100%;
         }
     }
 </style>
@@ -451,7 +1679,7 @@
         <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
             <form id="fm-idk_keu" class="add-new-record modal-content pt-0" enctype="multipart/form-data"
                 autocomplete="off">
-                <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button> -->
+                <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">Ã—</button> -->
                 <div class="modal-header mb-1">
                     <h5 class="modal-title" id="exampleModalLabel">Isi Data Konsumen</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -501,9 +1729,20 @@
                                                 name="dt-keterangan_batal" rows="3" placeholder="Keterangan"></textarea>
                                         </div>
                                         <div class="form-group">
-                                            <label for="harga_jual">Nominal Pengembalian Dana</label>
-                                            <input type="text" class="form-control num" id="idk-refund"
-                                                name="dt-refund">
+                                            <label>Status Refund</label>
+                                            <div class="refund-status-card">
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" class="custom-control-input"
+                                                        id="idk-perlu_refund_0" name="dt-perlu_refund" value="0" checked>
+                                                    <label class="custom-control-label" for="idk-perlu_refund_0">Tidak Perlu Refund</label>
+                                                </div>
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" class="custom-control-input"
+                                                        id="idk-perlu_refund_1" name="dt-perlu_refund" value="1">
+                                                    <label class="custom-control-label" for="idk-perlu_refund_1">Perlu Refund</label>
+                                                </div>
+                                                <small class="refund-status-note">Status ini akan tampil di list konsumen batal.</small>
+                                            </div>
                                         </div>
 
                                     </div>
@@ -1621,180 +2860,197 @@
 
 <!-- ################################### modal mkdt turun pembangunan ##################################### -->
 <div class="modal fade " id="modals-turun_pembangunan">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <form id="fm-turun_pembangunan" class="modal-content pt-0">
-            <div class="modal-header mb-1">
-                <h5 class="modal-title" id="exampleModalLabel">Turun Pembangunan</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <form id="fm-turun_pembangunan" class="modal-content pt-0" enctype="multipart/form-data">
+            <div class="modal-header">
+                <div class="min-w-0">
+                    <h5 class="modal-title mb-0">Turun Pembangunan</h5>
+                    <span class="tp-project"><i class="fas fa-home mr-1"></i>Proyek: <?= $data['proyek']->nama_proyek ?></span>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body flex-grow-1">
-                <div class="row">
-                    <div class="col-sm-12 col-md-6 col-lg-6">
-                        <div class="form-group">
-                            <label class="form-label" for="basic-icon-default-fullname">Proyek</label>
-                            <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
-                            <input type="text" class="form-control" id="tp-nama_proyek" readonly name="nama_proyek"
-                                value="<?= $data['proyek']->nama_proyek ?>" placeholder="ASI" />
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="basic-icon-default-post">Kavling</label>
-                            <textarea class="form-control" id="tp-kavling" name="tp-kavling" rows="6" readonly
-                                placeholder="Kavling"></textarea>
-                        </div>
-                    </div>
-                    <div class="col-sm-12 col-md-6 col-lg-6">
-                        <div class="form-group">
-                            <label for="perintah_bangun_tgl">Tanggal Perintah Bangun</label>
-                            <input type="text" readonly="readonly" id="tp-perintah_bangun_tgl"
-                                name="perintah_bangun_tgl" class="form-control flatpickr-human-friendly"
-                                placeholder="-" />
-                        </div>
-                        <div class="form-group">
-                            <label>Perintah Bangun</label>
-                            <div class="custom-file">
-                                <input type="file" class="custom-file-input" accept="application/pdf"
-                                    name="perintah_bangun_file" id="tp-perintah_bangun_file" />
-                                <label class="custom-file-label" id="label-perintah_bangun_file"
-                                    for="label-perintah_bangun_file">Upload File Perintah Bangun</label>
-                                <a href="#" target=_blank id="list-tp-upload_perintah_bangun_file"
-                                    class="btn btn-outline-primary col-12">Klik untuk lihat file</a>
+                <div class="turun-pembangunan-layout">
+                    <div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text"><i class="fas fa-map-marker-alt mr-1"></i>Kavling Terpilih</div>
+                                </div>
+                                <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
+                                <input type="hidden" class="form-control" id="tp-nama_proyek" readonly name="nama_proyek"
+                                    value="<?= $data['proyek']->nama_proyek ?>" />
+                                <div class="form-group mb-0">
+                                    <label class="form-label" for="tp-kavling">Kavling</label>
+                                    <textarea class="form-control" id="tp-kavling" name="tp-kavling" rows="6" readonly
+                                        placeholder="Kavling terpilih"></textarea>
+                                    <small class="tp-note">
+                                        Gunakan titik koma ";" untuk pemisah nomor rumah jika input lebih dari 1 kavling sekaligus.
+                                    </small>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="perintah_bangun_oleh">Oleh</label>
-                            <input type="text" readonly="readonly" id="tp-perintah_bangun_oleh"
-                                name="perintah_bangun_oleh" class="form-control" placeholder="-" />
+                    </div>
+
+                    <div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text"><i class="fas fa-file-signature mr-1"></i>Dokumen Perintah Bangun</div>
+                                </div>
+                                <div class="tp-meta-grid">
+                                    <div class="form-group">
+                                        <label for="tp-perintah_bangun_tgl">Tanggal Perintah Bangun</label>
+                                        <input type="text" readonly="readonly" id="tp-perintah_bangun_tgl"
+                                            name="perintah_bangun_tgl" class="form-control flatpickr-human-friendly"
+                                            placeholder="-" />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="tp-perintah_bangun_oleh">Oleh</label>
+                                        <input type="text" readonly="readonly" id="tp-perintah_bangun_oleh"
+                                            name="perintah_bangun_oleh" class="form-control" placeholder="-" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group mt-1 mb-0">
+                                    <label for="tp-perintah_bangun_file">File Perintah Bangun</label>
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" accept="application/pdf"
+                                            name="perintah_bangun_file" id="tp-perintah_bangun_file" />
+                                        <label class="custom-file-label" id="label-perintah_bangun_file"
+                                            for="tp-perintah_bangun_file">Upload File Perintah Bangun</label>
+                                    </div>
+                                    <div class="tp-file-action">
+                                        <a href="#" target="_blank" id="list-tp-upload_perintah_bangun_file"
+                                            class="btn btn-outline-primary">
+                                            <i class="fas fa-external-link-alt mr-1"></i>Lihat file tersimpan
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="basic-icon-default-fullname">*catatan: gunakan titik koma ";"
-                            untuk pemisah nomor rumah jika akan input rumah lebih dari 1 kavling sekaligus</label>
-                    </div>
                 </div>
-
-
             </div>
             <div class="modal-footer">
-                <a id="set-tp-btn" class="btn btn-primary mr-1" onclick="set_tp()" href="javascript:void(0)">Simpan</a>
-                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Tutup</button>
+                <a id="set-tp-btn" class="btn btn-primary" onclick="set_tp()" href="javascript:void(0)">
+                    <i class="fa fa-save mr-1" aria-hidden="true"></i>Simpan
+                </a>
             </div>
         </form>
     </div>
 </div>
 <!-- ################################### modal mkdt set harga ##################################### -->
 <div class="modal fade" id="modals-set_harga">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <form id="fm-set_harga" class="add-new-record modal-content modal-content-custom pt-0" style="background-color: transparent;">
-            <div class="modal-header-custom">
-                <div>
-                    <div class="modal-title-main">Manajemen Kavling</div>
-                    <div class="modal-title-kavling">Set Harga</div>
-                    <div class="header-meta">
-                        <span class="header-meta-item"><i class="fas fa-home"></i> Proyek: <?= $data['proyek']->nama_proyek ?></span>
-                    </div>
+    <div class="modal-dialog modal-dialog-scrollable" role="document">
+        <form id="fm-set_harga" class="add-new-record modal-content pt-0">
+            <div class="modal-header">
+                <div class="min-w-0">
+                    <h5 class="modal-title mb-0">Manajemen Kavling &mdash; Set Harga</h5>
+                    <span class="set-harga-project"><i class="fas fa-home mr-1"></i>Proyek: <?= $data['proyek']->nama_proyek ?></span>
                 </div>
-                <button type="button" class="btn-close-modal" data-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
 
-            <div class="modal-body-custom">
-                <div class="modal-main">
-
-
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="section-card">
-                                <div class="section-card-header">
-                                    <div class="section-card-icon icon-amber"><i class="fas fa-map-marker-alt"></i></div>
-                                    <h6 class="section-card-title">Kavling Terpilih</h6>
+            <div class="modal-body flex-grow-1">
+                <div class="set-harga-layout">
+                    <div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text"><i class="fas fa-map-marker-alt mr-1"></i> Kavling Terpilih</div>
                                 </div>
-                                <div class="section-card-body">
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="sh-kavling">Kavling</label>
-                                        <input type="hidden" class="form-control" id="points" readonly name="points" value="" />
-                                        <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
-                                        <input type="hidden" class="form-control" id="nama_proyek" readonly name="nama_proyek" value="<?= $data['proyek']->nama_proyek ?>" />
-
-                                        <textarea class="form-control-custom" id="sh-kavling" name="sh-kavling" rows="3" readonly placeholder="Kavling"></textarea>
-                                        <small style="display:block; margin-top:5px; color:var(--text-light); font-size:0.75rem;">*catatan: gunakan titik koma ";" untuk pemisah nomor rumah jika akan input rumah lebih dari 1 kavling sekaligus</small>
-                                    </div>
+                                <div class="form-group mb-0">
+                                    <label for="sh-kavling">Kavling</label>
+                                    <input type="hidden" class="form-control" id="points" readonly name="points" value="" />
+                                    <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
+                                    <input type="hidden" class="form-control" id="nama_proyek" readonly name="nama_proyek" value="<?= $data['proyek']->nama_proyek ?>" />
+                                    <textarea class="form-control" id="sh-kavling" name="sh-kavling" rows="4" readonly placeholder="Kavling"></textarea>
+                                    <small class="set-harga-note">Gunakan titik koma ";" untuk pemisah nomor rumah jika input lebih dari 1 kavling sekaligus.</small>
                                 </div>
                             </div>
-                            <div class="section-card">
-                                <div class="section-card-header">
-                                    <div class="section-card-icon icon-blue"><i class="fas fa-list"></i></div>
-                                    <h6 class="section-card-title">Pilih Pricelist</h6>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text"><i class="fas fa-list mr-1"></i> Pilih Pricelist</div>
                                 </div>
-                                <div class="section-card-body">
-                                    <div class="one-col">
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">Pricelist</label>
-                                            <select class="select2 custom-select sh-fm form-control-custom" id="sh-id" name="sh-id" value=""></select>
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">&nbsp;</label>
-                                            <a href="javascript:void(0)" target="_blank" id="sh-pricelist_file" rel="noopener noreferrer" class="btn-outline-custom w-100"><i class="fas fa-file mr-1"></i> Klik untuk melihat file</a>
-                                        </div>
+                                <div class="form-group">
+                                    <label for="sh-id">Pricelist</label>
+                                    <select class="select2 custom-select sh-fm form-control" id="sh-id" name="sh-id" value=""></select>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label>File Pricelist</label>
+                                    <div>
+                                        <a href="javascript:void(0)" target="_blank" id="sh-pricelist_file" rel="noopener noreferrer" class="btn btn-outline-primary btn-block">
+                                            <i class="fas fa-file mr-1"></i> Klik untuk melihat file
+                                        </a>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="section-card">
-                                <div class="section-card-header">
-                                    <div class="section-card-icon icon-green"><i class="fas fa-money-bill-wave"></i></div>
-                                    <h6 class="section-card-title">Detail Pricelist</h6>
+                    </div>
+
+                    <div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text"><i class="fas fa-money-bill-wave mr-1"></i> Detail Pricelist</div>
                                 </div>
-                                <div class="section-card-body">
-                                    <div class="one-col">
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">ROW</label>
-                                            <input type="text" class="form-control-custom num sh-fm" id="sh-row" name="sh-row" value="" readonly />
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">Tipe</label>
-                                            <input type="text" class="form-control-custom sh-fm text-right" id="sh-tipe" name="sh-tipe" value="" readonly />
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">Luas Bangunan</label>
-                                            <input type="text" class="form-control-custom num sh-fm" id="sh-lb" name="sh-lb" value="" readonly />
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">Luas Tanah</label>
-                                            <input type="text" class="form-control-custom num sh-fm" id="sh-lt" name="sh-lt" value="" readonly />
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">Harga Jual</label>
-                                            <input type="text" class="form-control-custom num sh-fm" id="sh-hargajual" name="sh-hargajual" value="" readonly />
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">Harga Jual Net</label>
-                                            <input type="text" class="form-control-custom num sh-fm" id="sh-hargajual_net" name="sh-hargajual_net" value="" readonly />
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">KPR</label>
-                                            <input type="text" class="form-control-custom num sh-fm" id="sh-kpr" name="sh-kpr" value="" readonly />
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">Uang Muka</label>
-                                            <input type="text" class="form-control-custom num sh-fm" id="sh-uang_muka" name="sh-uang_muka" value="" readonly />
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">Biaya Adm</label>
-                                            <input type="text" class="form-control-custom num sh-fm" id="sh-biaya_adm" name="sh-biaya_adm" value="" readonly />
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">BPHTB</label>
-                                            <input type="text" class="form-control-custom num sh-fm" id="sh-bphtb" name="sh-bphtb" value="" readonly />
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">PPN</label>
-                                            <input type="text" class="form-control-custom num sh-fm" id="sh-ppn" name="sh-ppn" value="" readonly />
-                                        </div>
-                                        <div class="form-group-custom">
-                                            <label class="form-label-custom">Biaya Proses</label>
-                                            <input type="text" class="form-control-custom num sh-fm" id="sh-biaya_proses" name="sh-biaya_proses" value="" readonly />
-                                        </div>
+                                <div class="set-harga-detail-grid">
+                                    <div class="form-group">
+                                        <label for="sh-row">ROW</label>
+                                        <input type="text" class="form-control num sh-fm" id="sh-row" name="sh-row" value="" readonly />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sh-tipe">Tipe</label>
+                                        <input type="text" class="form-control sh-fm text-right" id="sh-tipe" name="sh-tipe" value="" readonly />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sh-lb">Luas Bangunan</label>
+                                        <input type="text" class="form-control num sh-fm" id="sh-lb" name="sh-lb" value="" readonly />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sh-lt">Luas Tanah</label>
+                                        <input type="text" class="form-control num sh-fm" id="sh-lt" name="sh-lt" value="" readonly />
+                                    </div>
+                                    <div class="form-group set-harga-highlight">
+                                        <label for="sh-hargajual">Harga Jual</label>
+                                        <input type="text" class="form-control num sh-fm" id="sh-hargajual" name="sh-hargajual" value="" readonly />
+                                    </div>
+                                    <div class="form-group set-harga-highlight">
+                                        <label for="sh-hargajual_net">Harga Jual Net</label>
+                                        <input type="text" class="form-control num sh-fm" id="sh-hargajual_net" name="sh-hargajual_net" value="" readonly />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sh-kpr">KPR</label>
+                                        <input type="text" class="form-control num sh-fm" id="sh-kpr" name="sh-kpr" value="" readonly />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sh-uang_muka">Uang Muka</label>
+                                        <input type="text" class="form-control num sh-fm" id="sh-uang_muka" name="sh-uang_muka" value="" readonly />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sh-biaya_adm">Biaya Adm</label>
+                                        <input type="text" class="form-control num sh-fm" id="sh-biaya_adm" name="sh-biaya_adm" value="" readonly />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sh-bphtb">BPHTB</label>
+                                        <input type="text" class="form-control num sh-fm" id="sh-bphtb" name="sh-bphtb" value="" readonly />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sh-ppn">PPN</label>
+                                        <input type="text" class="form-control num sh-fm" id="sh-ppn" name="sh-ppn" value="" readonly />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="sh-biaya_proses">Biaya Proses</label>
+                                        <input type="text" class="form-control num sh-fm" id="sh-biaya_proses" name="sh-biaya_proses" value="" readonly />
                                     </div>
                                 </div>
                             </div>
@@ -1803,133 +3059,149 @@
                 </div>
             </div>
 
-            <div class="modal-footer-custom">
-                <button type="button" class="btn-cancel" data-dismiss="modal"><i class="fas fa-times mr-1"></i> Cancel</button>
-                <a id="set-harga-form-btn" class="btn-save" onclick="set_harga()" href="javascript:void(0)"><i class="fas fa-save mr-1"></i> Simpan Terpilih</a>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal"><i class="fas fa-times mr-1"></i> Cancel</button>
+                <a id="set-harga-form-btn" class="btn btn-primary" onclick="set_harga()" href="javascript:void(0)"><i class="fas fa-save mr-1"></i> Simpan Terpilih</a>
             </div>
         </form>
     </div>
 </div>
 <!--#################################### Modal Mkdt #########################################-->
 <div class="modal fade" id="modal_divisi4">
-    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
-        <form id="fm-mkdt" enctype="multipart/form-data" class="add-new-record modal-content modal-content-custom pt-0" autocomplete="off" style="background-color: transparent;">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
+        <form id="fm-mkdt" enctype="multipart/form-data" class="add-new-record modal-content pt-0" autocomplete="off">
 
-            <div class="modal-header-custom">
-                <div>
-                    <div class="modal-title-main">Marketing Data</div>
-                    <div class="modal-title-kavling">Perbaharui Status Kavling</div>
-                    <div class="header-meta">
-                        <span class="header-meta-item label_alamat"></span>
-                    </div>
-                </div>
-                <button type="button" class="btn-close-modal" data-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+            <div class="modal-header mb-1">
+                <h5 class="modal-title" id="exampleModalLabelMkdt">Marketing Data &mdash; Perbaharui Status Kavling</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
 
-            <div class="modal-body-custom" style="padding: 0; overflow: hidden; align-items: stretch;">
-                <!-- SIDEBAR NAVIGATION -->
-                <div class="modal-sidebar">
-                    <div class="sidebar-info-box">
-                        <div class="sidebar-info-label">No. SPPTB</div>
-                        <div class="sidebar-info-value">
-                            <div id="lb-st-no_spptb" class="font-weight-bold" style="min-height:24px;"></div>
+            <div class="modal-body flex-grow-1">
+                <div class="row mkdt-layout">
+                    <div class="col-md-3 mkdt-sidebar">
+                        <div class="card mkdt-hero-card">
+                            <div class="card-body bg-primary text-light">
+                                <p class="modal-title label_alamat mb-0"></p>
+                            </div>
                         </div>
-                        <div class="sidebar-info-label">Konsumen</div>
-                        <div class="sidebar-info-value" style="margin-bottom:8px">
-                            <div id="lb-st-nama_konsumen" class="font-weight-bold" style="min-height:24px;"></div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text font-weight-bold">Ringkasan Konsumen</div>
+                                </div>
+                                <div class="info-row row no-gutters">
+                                    <div class="col-5">
+                                        <label class="info-label mb-0">No. SPPTB</label>
+                                    </div>
+                                    <div class="col-7">
+                                        <span class="info-value" id="lb-st-no_spptb"></span>
+                                    </div>
+                                </div>
+                                <div class="info-row row no-gutters">
+                                    <div class="col-5">
+                                        <label class="info-label mb-0">Konsumen</label>
+                                    </div>
+                                    <div class="col-7">
+                                        <span class="info-value" id="lb-st-nama_konsumen"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mkdt-kpr-sidebar-card" id="sd-kpr">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text font-weight-bold"><i class="fas fa-money-check-alt mr-1"></i> Kredit Pemilikan Rumah (KPR)</div>
+                                </div>
+                                <div class="mkdt-kpr-required-note">
+                                    Jika nilai disetujui lebih kecil dari nilai pengajuan, Turun KPR wajib dibuat tagihan.
+                                </div>
+                                <div class="form-group">
+                                    <label for="harga_kpr">Nilai Pengajuan</label>
+                                    <input type="text" id="harga_kpr" name="harga_kpr" class="form-control num" placeholder="-" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="acc_harga_kpr">Nilai Disetujui</label>
+                                    <input type="text" id="acc_harga_kpr" name="acc_harga_kpr" class="form-control num" placeholder="-" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="harga_turun_kpr">Turun KPR (Selisih)</label>
+                                    <input type="text" id="harga_turun_kpr" name="harga_turun_kpr" class="form-control num" placeholder="-" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <button type="button" id="btn-add-tagihan-turunkpr" class="btn btn-primary w-100"><i class="fas fa-plus mr-1"></i> Buat Tagihan untuk Turun KPR</button>
+                                </div>
+                                <div id="mkdt-tagihan_kpr"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="sidebar-section-label">Informasi Utama</div>
 
-                    <ul class="nav nav-pills modal-sidebar-nav" id="sidebar-tabs-alur" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link sidebar-nav-item" id="tab-sd-status" href="#sd-status">
-                                <i class="fas fa-flag"></i> Status Kavling
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link sidebar-nav-item" id="tab-sd-wawancara" href="#sd-wawancara">
-                                <i class="fas fa-comments"></i> Wawancara
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link sidebar-nav-item" id="tab-sd-pb" href="#sd-pb">
-                                <i class="fas fa-hammer"></i> Perintah Bangun
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link sidebar-nav-item" id="tab-sd-sp3k" href="#sd-sp3k">
-                                <i class="fas fa-file-contract"></i> SP3K
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link sidebar-nav-item" id="tab-sd-kpr" href="#sd-kpr">
-                                <i class="fas fa-money-check-alt"></i> KPR
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link sidebar-nav-item" id="tab-sd-akad" href="#sd-akad">
-                                <i class="fas fa-handshake"></i> Akad
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- MAIN CONTENT AREA (SCROLLABLE) -->
-                <div class="modal-main" id="mkdt-main-scroll-area" style="flex-grow: 1; padding: 24px; overflow-y: auto; scroll-behavior: smooth;">
+                    <div class="col-md-9 mkdt-main-content">
                     <input type="hidden" class="form-control id_kavling" name="id_kavling" value="" />
                     <input type="hidden" class="form-control" id="id_mkdt" name="id_mkdt" value="" />
                     <input type="hidden" class="form-control" id="id_konsumen" name="id_konsumen" value="" />
                     <input type="hidden" class="form-control" id="mkdt_data_baru" name="mkdt_data_baru" value="" />
 
-                    <?php
-                    /*
-                    <!-- KONSUMEN BLOCK -->
-                    <div id="sd-konsumen" class="scroll-section" style="padding-bottom: 2rem;">
-                        <div class="section-card mb-2">
-                            <div class="section-card-header">
-                                <div class="section-card-icon icon-blue"><i class="fas fa-user"></i></div>
-                                <h6 class="section-card-title">Data Konsumen Utama</h6>
-                            </div>
-                            <div class="section-card-body">
-                                <div class="form-group-custom pl-1 pr-1">
-                                    <label class="form-label-custom">No SPPTB</label>
-                                    <div id="lb-st-no_spptb" class="font-weight-bold" style="min-height:24px;"></div>
-                                </div>
-                                <div class="form-group-custom pl-1 pr-1">
-                                    <label class="form-label-custom">Nama Konsumen</label>
-                                    <div id="lb-st-nama_konsumen" class="font-weight-bold" style="min-height:24px;"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Aksi Konsumen Tambahan -->
-                        <div class="section-card mb-2">
-                            <div class="section-card-header">
-                                <div class="section-card-icon icon-grey"><i class="fas fa-cog"></i></div>
-                                <h6 class="section-card-title">Aksi</h6>
-                            </div>
-                            <div class="section-card-body">
-                                <div id="refresh_fmmkdt_div" class="mb-1">
-                                    <button id="refresh_fmmkdt_btn" type="button" class="btn btn-outline-custom w-100">Tambah Konsumen Baru</button>
-                                </div>
-                                <div id="delete_kons_div">
-                                    <button id="delete_kons_btn" type="button" class="btn btn-outline-danger w-100" onclick="delete_kons(false)">Hapus Konsumen</button>
-                                 </div>
-                            </div>
-                        </div>
-                    </div>*/ ?>
+                    <ul class="nav nav-tabs mkdt-main-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="mkdt-tab-form-link" data-toggle="tab" href="#mkdt-tab-form" role="tab" aria-controls="mkdt-tab-form" aria-selected="true">
+                                <i class="fas fa-edit"></i> Form
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="mkdt-tab-history-link" data-toggle="tab" href="#mkdt-tab-history" role="tab" aria-controls="mkdt-tab-history" aria-selected="false">
+                                <i class="fas fa-history"></i> History
+                            </a>
+                        </li>
+                    </ul>
 
+                    <div class="tab-content mkdt-main-tab-content">
+                    <div class="tab-pane fade show active" id="mkdt-tab-form" role="tabpanel" aria-labelledby="mkdt-tab-form-link">
+
+                    <div class="card mkdt-nav-sticky">
+                        <div class="card-body pb-0 pt-0">
+                            <ul class="nav nav-tabs mb-1 mt-1" id="sidebar-tabs-alur" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link mkdt-scroll-nav active" id="tab-sd-status" href="#sd-status">
+                                        <i class="fas fa-flag"></i> Status Kavling
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mkdt-scroll-nav" id="tab-sd-wawancara" href="#sd-wawancara">
+                                        <i class="fas fa-comments"></i> Wawancara
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mkdt-scroll-nav" id="tab-sd-pb" href="#sd-pb">
+                                        <i class="fas fa-hammer"></i> Perintah Bangun
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mkdt-scroll-nav" id="tab-sd-sp3k" href="#sd-sp3k">
+                                        <i class="fas fa-file-contract"></i> SP3K
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link mkdt-scroll-nav" id="tab-sd-akad" href="#sd-akad">
+                                        <i class="fas fa-handshake"></i> Akad
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mkdt-scroll-content" id="mkdt-main-scroll-area">
                     <!-- STATUS KAVLING BLOCK -->
-                    <div id="sd-status" class="scroll-section" style="padding-bottom: 2rem;">
-                        <div class="section-card mb-2">
-                            <div class="section-card-header">
-                                <div class="section-card-icon icon-amber"><i class="fas fa-flag"></i></div>
-                                <h6 class="section-card-title">Status Booking Kavling</h6>
-                            </div>
-                            <div class="section-card-body">
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="status_mkdt">Status Booking</label>
-                                    <select required class="form-control-custom custom-select" id="status_mkdt" name="status_mkdt">
+                    <div id="sd-status" class="scroll-section">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text font-weight-bold"><i class="fas fa-flag mr-1"></i> Status Booking Kavling</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="status_mkdt">Status Booking</label>
+                                    <select required class="form-control" id="status_mkdt" name="status_mkdt">
                                         <option value="">-</option>
                                         <option value="Booking">Booking</option>
                                         <option value="Akad">Akad</option>
@@ -1937,297 +3209,502 @@
                                     </select>
                                 </div>
                                 <div id="show_keterangan_batal" class="hidden">
-                                    <div class="form-group-custom">
-                                        <label class="form-label-custom" for="keterangan_batal">Keterangan Batal</label>
-                                        <textarea class="form-control-custom" id="keterangan_batal" name="keterangan_batal" rows="3" placeholder="Keterangan"></textarea>
+                                    <div class="form-group">
+                                        <label for="keterangan_batal">Keterangan Batal</label>
+                                        <textarea class="form-control" id="keterangan_batal" name="keterangan_batal" rows="3" placeholder="Keterangan"></textarea>
                                     </div>
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="booking_tgl">Tanggal Booking</label>
-                                    <input type="text" id="booking_tgl" name="booking_tgl" class="form-control-custom flatpickr-human-friendly" placeholder="-" readonly />
+                                <div class="form-group">
+                                    <label for="booking_tgl">Tanggal Booking</label>
+                                    <input type="text" id="booking_tgl" name="booking_tgl" class="form-control flatpickr-human-friendly" placeholder="-" readonly />
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="booking_fee">Booking Fee</label>
-                                    <input type="text" readonly class="form-control-custom num" id="booking_fee" name="booking_fee">
+                                <div class="form-group">
+                                    <label for="booking_fee">Booking Fee</label>
+                                    <input type="text" readonly class="form-control num" id="booking_fee" name="booking_fee">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="section-card mb-2">
-                            <div class="section-card-header">
-                                <div class="section-card-icon icon-grey"><i class="fas fa-clipboard-list"></i></div>
-                                <h6 class="section-card-title">Status Keterangan</h6>
-                            </div>
-                            <div class="section-card-body">
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom">Keterangan Khusus</label>
-                                    <input type="text" id="mkdt_keterangan" name="mkdt_keterangan" class="form-control-custom" placeholder="ACC SP3K/REJECT/WAWANCARA/DLL" />
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text font-weight-bold"><i class="fas fa-clipboard-list mr-1"></i> Status Keterangan</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="mkdt_keterangan">Keterangan Khusus</label>
+                                    <input type="text" id="mkdt_keterangan" name="mkdt_keterangan" class="form-control" placeholder="ACC SP3K/REJECT/WAWANCARA/DLL" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- WAWANCARA BLOCK -->
-                    <div id="sd-wawancara" class="scroll-section" style="padding-bottom: 2rem;">
-                        <div class="section-card mb-2">
-                            <div class="section-card-header">
-                                <div class="section-card-icon icon-teal"><i class="fas fa-comments"></i></div>
-                                <h6 class="section-card-title">Detail Wawancara</h6>
-                            </div>
-                            <div class="section-card-body">
-                                <div class="form-group-custom">
+                    <div id="sd-wawancara" class="scroll-section">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text font-weight-bold"><i class="fas fa-comments mr-1"></i> Detail Wawancara</div>
+                                </div>
+                                <div class="form-group">
                                     <div class="custom-control custom-switch custom-control-inline">
                                         <input type="checkbox" class="custom-control-input" id="wawancara" name="wawancara" value="1" />
                                         <label class="custom-control-label" for="wawancara">Sudah Wawancara</label>
                                     </div>
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="id_bank">Bank</label>
-                                    <select type="text" id="id_bank" name="id_bank" class="form-control-custom select2"></select>
+                                <div class="form-group">
+                                    <label for="id_bank">Bank</label>
+                                    <select id="id_bank" name="id_bank" class="form-control select2"></select>
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="bank">Keterangan Bank</label>
-                                    <input type="text" id="bank" name="bank" class="form-control-custom" placeholder="-" />
+                                <div class="form-group">
+                                    <label for="bank">Keterangan Bank</label>
+                                    <input type="text" id="bank" name="bank" class="form-control" placeholder="-" />
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="wawancara_tgl">Tanggal Wawancara</label>
-                                    <input type="text" id="wawancara_tgl" name="wawancara_tgl" class="form-control-custom flatpickr-human-friendly" placeholder="-" />
+                                <div class="form-group">
+                                    <label for="wawancara_tgl">Tanggal Wawancara</label>
+                                    <input type="text" id="wawancara_tgl" name="wawancara_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- PERINTAH BANGUN BLOCK -->
-                    <div id="sd-pb" class="scroll-section" style="padding-bottom: 2rem;">
-                        <div class="section-card mb-2">
-                            <div class="section-card-header">
-                                <div class="section-card-icon icon-amber"><i class="fas fa-hammer"></i></div>
-                                <h6 class="section-card-title">Instruksi Pembangunan</h6>
-                            </div>
-                            <div class="section-card-body">
-                                <div class="form-group-custom">
+                    <div id="sd-pb" class="scroll-section">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text font-weight-bold"><i class="fas fa-hammer mr-1"></i> Instruksi Pembangunan</div>
+                                </div>
+                                <div class="form-group">
                                     <div class="custom-control custom-switch custom-control-inline">
                                         <input type="checkbox" class="custom-control-input" id="perintah_bangun" name="perintah_bangun" value="1" />
                                         <label class="custom-control-label" for="perintah_bangun">Perintah Bangun</label>
                                     </div>
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="perintah_bangun_tgl">Tanggal Perintah Bangun</label>
-                                    <input type="text" readonly="readonly" id="perintah_bangun_tgl" name="perintah_bangun_tgl" class="form-control-custom flatpickr-human-friendly" placeholder="-" />
+                                <div class="form-group">
+                                    <label for="perintah_bangun_tgl">Tanggal Perintah Bangun</label>
+                                    <input type="text" readonly="readonly" id="perintah_bangun_tgl" name="perintah_bangun_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="perintah_bangun_oleh">Oleh</label>
-                                    <input type="text" readonly="readonly" id="perintah_bangun_oleh" name="perintah_bangun_oleh" class="form-control-custom" placeholder="-" />
+                                <div class="form-group">
+                                    <label for="perintah_bangun_oleh">Oleh</label>
+                                    <input type="text" readonly="readonly" id="perintah_bangun_oleh" name="perintah_bangun_oleh" class="form-control" placeholder="-" />
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom">File Perintah Bangun (PDF)</label>
-                                    <div class="custom-file mb-1">
-                                        <input type="file" class="custom-file-input" accept="application/pdf" name="perintah_bangun_file" id="perintah_bangun_file" />
-                                        <label class="custom-file-label form-control-custom" id="label-perintah_bangun_file" for="label-perintah_bangun_file" style="line-height: inherit; color: var(--text-light);">Pilih File</label>
+                                <div class="form-group">
+                                    <label>File Perintah Bangun (PDF)</label>
+                                    <div class="dropzone dropzone-lg custom-file mb-1" id="dz-perintah_bangun_file">
+                                        <input type="file" class="custom-file-input dz-input" accept="application/pdf" name="perintah_bangun_file" id="perintah_bangun_file" />
+                                        <div class="dz-inner">
+                                            <div class="dz-preview" id="prev_perintah_bangun_file"></div>
+                                            <div class="dz-placeholder">
+                                                <div class="h5 mb-1">Tarik & letakkan PDF ke sini</div>
+                                                <div class="text-muted">atau klik untuk pilih file Perintah Bangun</div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <btn id="list-upload_perintah_bangun_file" class='btn-outline-custom w-100' style="display:block; text-align:center;"><i class="fas fa-file-pdf"></i> Lihat File</btn>
+                                    <a href="#" target="_blank" id="list-upload_perintah_bangun_file" class="btn btn-outline-primary btn-block"><i class="fas fa-file-pdf"></i> Lihat File</a>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- SP3K BLOCK -->
-                    <div id="sd-sp3k" class="scroll-section" style="padding-bottom: 2rem;">
-                        <div class="section-card mb-2">
-                            <div class="section-card-header">
-                                <div class="section-card-icon icon-green"><i class="fas fa-file-contract"></i></div>
-                                <h6 class="section-card-title">Surat Penegasan Persetujuan Penyediaan Kredit</h6>
-                            </div>
-                            <div class="section-card-body">
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="sp3k_no">No SP3K</label>
-                                    <input type="text" id="sp3k_no" name="sp3k_no" class="form-control-custom" placeholder="-" />
+                    <div id="sd-sp3k" class="scroll-section">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text font-weight-bold"><i class="fas fa-file-contract mr-1"></i> Surat Penegasan Persetujuan Penyediaan Kredit</div>
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom">File SP3K</label>
-                                    <div class="custom-file mb-1">
-                                        <input type="file" class="custom-file-input" accept="application/pdf" name="sp3k_file" id="sp3k_file" />
-                                        <label class="custom-file-label form-control-custom" id="label-sp3k_file" for="label-sp3k_file" style="line-height: inherit; color: var(--text-light);">Pilih File</label>
+                                <div class="form-group">
+                                    <label for="sp3k_no">No SP3K</label>
+                                    <input type="text" id="sp3k_no" name="sp3k_no" class="form-control" placeholder="-" />
+                                </div>
+                                <div class="form-group">
+                                    <label>File SP3K</label>
+                                    <div class="dropzone dropzone-lg custom-file mb-1" id="dz-sp3k_file">
+                                        <input type="file" class="custom-file-input dz-input" accept="application/pdf" name="sp3k_file" id="sp3k_file" />
+                                        <div class="dz-inner">
+                                            <div class="dz-preview" id="prev_sp3k_file"></div>
+                                            <div class="dz-placeholder">
+                                                <div class="h5 mb-1">Tarik & letakkan PDF ke sini</div>
+                                                <div class="text-muted">atau klik untuk pilih file SP3K</div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <btn id="list-upload_sp3k_file" class='btn-outline-custom w-100' style="display:block; text-align:center;"><i class="fas fa-file-pdf"></i> Lihat File</btn>
+                                    <a href="#" target="_blank" id="list-upload_sp3k_file" class="btn btn-outline-primary btn-block"><i class="fas fa-file-pdf"></i> Lihat File</a>
                                 </div>
-                                <div class="form-group-custom">
+                                <div class="form-group">
                                     <div class="custom-control custom-switch custom-control-inline">
                                         <input type="checkbox" class="custom-control-input" id="sp3k" name="sp3k" value="1" />
                                         <label class="custom-control-label" for="sp3k">Status Verifikasi SP3K</label>
                                     </div>
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="sp3k_tgl">Tanggal Terbit</label>
-                                    <input type="text" id="sp3k_tgl" name="sp3k_tgl" class="form-control-custom flatpickr-human-friendly" placeholder="-" />
+                                <div class="form-group">
+                                    <label for="sp3k_tgl">Tanggal Terbit</label>
+                                    <input type="text" id="sp3k_tgl" name="sp3k_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="sp3k_tgl_exp">Tanggal Kadaluarsa</label>
-                                    <input type="text" id="sp3k_tgl_exp" name="sp3k_tgl_exp" class="form-control-custom flatpickr-human-friendly" placeholder="-" />
+                                <div class="form-group">
+                                    <label for="sp3k_tgl_exp">Tanggal Kadaluarsa</label>
+                                    <input type="text" id="sp3k_tgl_exp" name="sp3k_tgl_exp" class="form-control flatpickr-human-friendly" placeholder="-" />
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- KPR BLOCK -->
-                    <div id="sd-kpr" class="scroll-section" style="padding-bottom: 2rem;">
-                        <div class="section-card mb-2">
-                            <div class="section-card-header">
-                                <div class="section-card-icon icon-blue"><i class="fas fa-money-check-alt"></i></div>
-                                <h6 class="section-card-title">Kredit Pemilikan Rumah (KPR)</h6>
-                            </div>
-                            <div class="section-card-body">
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="harga_kpr">Nilai Pengajuan</label>
-                                    <input type="text" id="harga_kpr" name="harga_kpr" class="form-control-custom num" placeholder="-" />
-                                </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="acc_harga_kpr">Nilai Disetujui</label>
-                                    <input type="text" id="acc_harga_kpr" name="acc_harga_kpr" class="form-control-custom num" placeholder="-" />
-                                </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="harga_turun_kpr">Turun KPR (Selisih)</label>
-                                    <input type="text" id="harga_turun_kpr" name="harga_turun_kpr" class="form-control-custom num" placeholder="-" />
-                                </div>
-                                <div class="form-group-custom">
-                                    <button type="button" id="btn-add-tagihan-turunkpr" class="btn-save w-100" style="padding: 10px; font-size: 0.85rem;"><i class="fas fa-plus mr-1"></i> Buat Tagihan untuk Turun KPR</button>
-                                </div>
-                                <div id="mkdt-tagihan_kpr"></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- AKAD BLOCK -->
-                    <div id="sd-akad" class="scroll-section" style="padding-bottom: 3rem;">
-                        <div class="section-card mb-2">
-                            <div class="section-card-header">
-                                <div class="section-card-icon icon-amber"><i class="fas fa-handshake"></i></div>
-                                <h6 class="section-card-title">Persiapan Akad</h6>
-                            </div>
-                            <div class="section-card-body">
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="rencana_akad_tgl">Tanggal Rencana Akad</label>
-                                    <input type="text" id="rencana_akad_tgl" name="rencana_akad_tgl" class="form-control-custom flatpickr-human-friendly" placeholder="-" />
+                    <div id="sd-akad" class="scroll-section">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text font-weight-bold"><i class="fas fa-handshake mr-1"></i> Persiapan Akad</div>
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom">Notaris</label>
-                                    <input type="text" id="notaris" name="notaris" class="form-control-custom" placeholder="-" />
+                                <div class="form-group">
+                                    <label for="rencana_akad_tgl">Tanggal Rencana Akad</label>
+                                    <input type="text" id="rencana_akad_tgl" name="rencana_akad_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom">PPJB/AJB</label>
-                                    <select class="form-control-custom custom-select" id="is_ajb" name="is_ajb">
+                                <div class="form-group">
+                                    <label for="notaris">Notaris</label>
+                                    <input type="text" id="notaris" name="notaris" class="form-control" placeholder="-" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="is_ajb">PPJB/AJB</label>
+                                    <select class="form-control" id="is_ajb" name="is_ajb">
                                         <option value=""></option>
                                         <option value="AJB">AJB</option>
                                         <option value="PPJB">PPJB</option>
                                     </select>
                                 </div>
-                                <div class="form-group-custom">
+                                <div class="form-group">
                                     <div class="custom-control custom-switch custom-control-inline">
                                         <input type="checkbox" class="custom-control-input" id="akad" name="akad" value="1" />
                                         <label class="custom-control-label" for="akad">Status Akad Rampung</label>
                                     </div>
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom" for="akad_tgl">Tanggal Akad</label>
-                                    <input type="text" id="akad_tgl" name="akad_tgl" class="form-control-custom flatpickr-human-friendly" placeholder="-" />
+                                <div class="form-group">
+                                    <label for="akad_tgl">Tanggal Akad</label>
+                                    <input type="text" id="akad_tgl" name="akad_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
                                 </div>
-                                <div class="form-group-custom">
-                                    <label class="form-label-custom">No Debitur</label>
-                                    <input type="text" id="debitur_no" name="debitur_no" class="form-control-custom" placeholder="-" />
+                                <div class="form-group">
+                                    <label for="debitur_no">No Debitur</label>
+                                    <input type="text" id="debitur_no" name="debitur_no" class="form-control" placeholder="-" />
                                 </div>
-                                <div class="form-group-custom hidden">
-                                    <label class="form-label-custom">No BAST</label>
-                                    <input type="text" id="bast_no" name="bast_no" class="form-control-custom" placeholder="-" />
+                                <div class="form-group hidden">
+                                    <label for="bast_no">No BAST</label>
+                                    <input type="text" id="bast_no" name="bast_no" class="form-control" placeholder="-" />
                                 </div>
-                                <div class="form-group-custom hidden">
-                                    <label class="form-label-custom">BAST File</label>
-                                    <div class="custom-file mb-1">
-                                        <input type="file" class="custom-file-input" accept="application/pdf" name="bast_file" id="bast_file" />
-                                        <label class="custom-file-label form-control-custom" id="label-bast_file" for="label-bast_file" style="line-height:inherit; color:var(--text-light);">Pilih File BAST</label>
+                                <div class="form-group hidden">
+                                    <label>BAST File</label>
+                                    <div class="dropzone dropzone-lg custom-file mb-1" id="dz-bast_file">
+                                        <input type="file" class="custom-file-input dz-input" accept="application/pdf" name="bast_file" id="bast_file" />
+                                        <div class="dz-inner">
+                                            <div class="dz-preview" id="prev_bast_file"></div>
+                                            <div class="dz-placeholder">
+                                                <div class="h5 mb-1">Tarik & letakkan PDF ke sini</div>
+                                                <div class="text-muted">atau klik untuk pilih file BAST</div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <a href="" target=_blank id="list-upload_bast_file" class="btn-outline-custom w-100" style="display:block; text-align:center;"><i class="fas fa-file-pdf"></i> Lihat File BAST</a>
+                                    <a href="#" target="_blank" id="list-upload_bast_file" class="btn btn-outline-primary btn-block"><i class="fas fa-file-pdf"></i> Lihat File BAST</a>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                    </div>
 
-            <div class="modal-footer-custom">
-                <button type="button" class="btn-cancel" data-dismiss="modal"><i class="fas fa-times mr-1"></i> Cancel</button>
-                <button type="button" id="add-form-btn-mkdt" class="btn-save" onclick="save_mkdt(this)"><i class="fas fa-save mr-1"></i> Simpan Data</button>
+                    <div class="sticky-button-wrapper">
+                        <div class="d-flex flex-wrap justify-content-end" style="gap: .5rem;">
+                            <button type="button" class="btn btn-outline-secondary" data-dismiss="modal"><i class="fas fa-times mr-1"></i> Cancel</button>
+                            <button type="button" id="add-form-btn-mkdt" class="btn btn-primary" onclick="save_mkdt(this)"><i class="fas fa-save mr-1"></i> Simpan Data</button>
+                        </div>
+                    </div>
+
+                    </div>
+
+                    <div class="tab-pane fade" id="mkdt-tab-history" role="tabpanel" aria-labelledby="mkdt-tab-history-link">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text font-weight-bold"><i class="fas fa-history mr-1"></i> Riwayat Perubahan Kavling</div>
+                                </div>
+                                <div id="mkdt-history-timeline" class="mkdt-history-wrap">
+                                    <div class="text-muted">Memuat history...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    </div>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
 </div>
 
 <script>
+    const MKDT_HISTORY_LIMIT = 10;
+
+    function escapeMkdtHistoryValue(value) {
+        return $("<div>").text(value === null || value === undefined ? "" : value).html();
+    }
+
+    function resetMkdtHistoryTimeline() {
+        $("#mkdt-history-timeline")
+            .data("id-kavling", "")
+            .data("next-offset", 0)
+            .data("history-limit", MKDT_HISTORY_LIMIT)
+            .html('<div class="text-muted">Memuat history...</div>');
+    }
+
+    function renderMkdtHistoryTimeline(history, meta, append) {
+        const $target = $("#mkdt-history-timeline");
+        const nextOffset = meta ? (meta.history_next_offset || 0) : 0;
+        const limit = meta ? (meta.history_limit || MKDT_HISTORY_LIMIT) : MKDT_HISTORY_LIMIT;
+        const hasMore = !!(meta && meta.history_has_more);
+
+        $target
+            .data("next-offset", nextOffset)
+            .data("history-limit", limit);
+
+        if (!append) {
+            $target.html('<div class="mkdt-history-list"></div><div class="mkdt-history-action mt-2"></div>');
+        }
+
+        const $list = $target.find(".mkdt-history-list");
+        if (!history.length && !append) {
+            $list.html('<div class="text-muted">Belum ada history perubahan.</div>');
+        }
+
+        $.each(history, function(index, item) {
+            $list.append(
+                '<div class="mkdt-history-item">' +
+                    '<div class="d-flex justify-content-between align-items-start flex-wrap">' +
+                        '<div class="mkdt-history-title">' + escapeMkdtHistoryValue(item.action_label || item.action) + '</div>' +
+                        '<div class="mkdt-history-meta">' + format_datetime(item.created_at) + '</div>' +
+                    '</div>' +
+                    '<div class="mkdt-history-meta mb-1">Oleh: ' + escapeMkdtHistoryValue(item.username || '-') + '</div>' +
+                    '<div class="mkdt-history-summary">' + escapeMkdtHistoryValue(item.summary || '-') + '</div>' +
+                '</div>'
+            );
+        });
+
+        const $action = $target.find(".mkdt-history-action");
+        if (hasMore) {
+            $action.html(
+                '<button type="button" class="btn btn-outline-primary btn-sm mkdt-history-load-more">Muat lagi</button>'
+            );
+        } else {
+            $action.empty();
+        }
+    }
+
+    function loadMkdtHistory(idKavling, append) {
+        if (!idKavling) {
+            resetMkdtHistoryTimeline();
+            return;
+        }
+
+        const $target = $("#mkdt-history-timeline");
+        const offset = append ? ($target.data("next-offset") || 0) : 0;
+        const limit = $target.data("history-limit") || MKDT_HISTORY_LIMIT;
+
+        if (!append) {
+            $target.data("id-kavling", idKavling).data("next-offset", 0);
+            $target.html('<div class="text-muted">Memuat history...</div>');
+        } else {
+            $target.find(".mkdt-history-action .btn").prop("disabled", true).html('Memuat <i class="fa fa-spinner fa-spin"></i>');
+        }
+
+        $.ajax({
+            url: base_url + "api/mkdt/history",
+            type: "post",
+            data: {
+                [csrfName]: csrfHash,
+                id_kavling: idKavling,
+                history_limit: limit,
+                history_offset: offset,
+            },
+            dataType: "json",
+            success: function(res) {
+                csrfHash = res.token;
+                renderMkdtHistoryTimeline(res.history || [], res, append);
+            },
+            error: function() {
+                if (!append) {
+                    $target.html('<div class="text-danger">Gagal memuat history.</div>');
+                } else {
+                    $target.find(".mkdt-history-action .btn").prop("disabled", false).text("Muat lagi");
+                }
+            },
+        });
+    }
+
+    $(document).off("click", ".mkdt-history-load-more").on("click", ".mkdt-history-load-more", function() {
+        const idKavling = $("#mkdt-history-timeline").data("id-kavling");
+        loadMkdtHistory(idKavling, true);
+    });
+
+    $(document).off("shown.bs.tab", "#mkdt-tab-history-link").on("shown.bs.tab", "#mkdt-tab-history-link", function() {
+        const idKavling = $(".id_kavling").val();
+        loadMkdtHistory(idKavling, false);
+    });
+
     document.addEventListener("DOMContentLoaded", function() {
         const mkdtModal = document.getElementById("modal_divisi4");
         if (!mkdtModal) return;
 
         const scrollArea = document.getElementById("mkdt-main-scroll-area");
         const sections = Array.from(mkdtModal.querySelectorAll(".scroll-section"));
-        const navItems = mkdtModal.querySelectorAll(".sidebar-nav-item");
+        const navItems = mkdtModal.querySelectorAll(".mkdt-scroll-nav");
 
-        if (scrollArea && sections.length > 0) {
-            // Handle Sidebar Clicks to scroll to section
+        if (!scrollArea || sections.length === 0) return;
+
+        navItems.forEach(item => {
+            item.addEventListener("click", function(e) {
+                e.preventDefault();
+                const targetEl = document.getElementById(this.getAttribute("href").substring(1));
+                if (!targetEl) return;
+                scrollArea.scrollTo({
+                    top: targetEl.offsetTop - scrollArea.offsetTop,
+                    behavior: "smooth"
+                });
+            });
+        });
+
+        scrollArea.addEventListener("scroll", function() {
+            let current = "";
+            const currentPosition = scrollArea.scrollTop;
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - scrollArea.offsetTop - 50;
+                if (currentPosition >= sectionTop) {
+                    current = section.getAttribute("id");
+                }
+            });
+
             navItems.forEach(item => {
-                item.addEventListener("click", function(e) {
-                    e.preventDefault();
-                    const targetId = this.getAttribute("href").substring(1);
-                    const targetEl = document.getElementById(targetId);
-                    if (targetEl && scrollArea) {
-                        scrollArea.scrollTo({
-                            top: targetEl.offsetTop - scrollArea.offsetTop,
-                            behavior: "smooth"
-                        });
-                    }
-                });
+                item.classList.toggle("active", item.getAttribute("href") === "#" + current);
             });
+        });
 
-            // Handle scroll syncing
-            scrollArea.addEventListener("scroll", function() {
-                let current = "";
-                const currentPosition = scrollArea.scrollTop;
-
-                sections.forEach(section => {
-                    const sectionTop = section.offsetTop - scrollArea.offsetTop - 50;
-                    if (currentPosition >= sectionTop) {
-                        current = section.getAttribute("id");
-                    }
-                });
-
-                navItems.forEach(item => {
-                    item.classList.remove("active");
-                    if (item.getAttribute("href") === "#" + current) {
-                        item.classList.add("active");
-                    }
-                });
-            });
-        }
+        $("#modal_divisi4").on("hidden.bs.modal", function() {
+            $("#mkdt-tab-form-link").tab("show");
+            resetMkdtHistoryTimeline();
+        });
     });
 </script>
 
-
-
 <!-- ################################### modal mkdt standing instruction ##################################### -->
-<div class="modal fade " id="modals-si">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+<div class="modal fade text-left" id="modals-si" tabindex="-1" role="dialog" aria-labelledby="modals-si-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
         <form id="fm-si" class="modal-content pt-0" enctype="multipart/form-data">
-            <div class="modal-header mb-1">
-                <h5 class="modal-title" id="exampleModalLabel">Standing Instruction</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
+            <div class="modal-header">
+                <h5 class="modal-title" id="modals-si-label">Standing Instruction</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body flex-grow-1">
-                <div class="row" style="display: flex; justify-content: center;">
-                    <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
-                    <div id="dv-si-here"></div>
+                <div class="si-layout">
+                    <aside class="si-sidebar">
+                        <div class="card si-hero">
+                            <div class="card-body bg-primary text-light">
+                                <p class="modal-title label_alamat mb-0"></p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Standing Instruction Dipilih</div>
+                                </div>
+                                <div class="card si-meta-card">
+                                    <div class="card-body">
+                                        <h6><i class="fas fa-file-signature mr-1"></i> Jenis SI</h6>
+                                        <h5 id="si-selected-label">-</h5>
+                                        <h6><i class="fas fa-calendar mr-1"></i> Tanggal SI</h6>
+                                        <h5 id="si-selected-date">-</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <section class="si-content">
+                        <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
+                        <input type="hidden" id="si-current-key" value="">
+
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Form Upload Standing Instruction</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="si-id_list_si">Pilih Standing Instruction</label>
+                                            <select id="si-id_list_si" class="form-control"></select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="si-tanggal_si">Tanggal SI</label>
+                                            <input type="text" class="form-control flatpickr-human-friendly" id="si-tanggal_si" placeholder="-">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="si-file">Soft File</label>
+                                            <div class="custom-file">
+                                                <input type="file" class="custom-file-input" accept="application/pdf" id="si-file">
+                                                <label class="custom-file-label" id="si-file-label" for="si-file">Upload Soft File</label>
+                                            </div>
+                                        </div>
+                                        <div class="si-file-action">
+                                            <a href="#" target="_blank" id="si-current-file" class="btn btn-outline-primary hidden">
+                                                <i class="fas fa-eye mr-1"></i> Lihat File Tersimpan
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-0">
+                                            <label for="si-keterangan">Keterangan</label>
+                                            <textarea class="form-control" id="si-keterangan" rows="4" placeholder="Keterangan"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-0">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Daftar Standing Instruction Tersimpan</div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table id="si-table" class="table table-sm compact mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th width="24%">Jenis SI</th>
+                                                <th width="16%">Tanggal SI</th>
+                                                <th width="20%">Soft File</th>
+                                                <th width="28%">Keterangan</th>
+                                                <th width="12%">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted">Data belum dimuat</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
             </div>
             <div class="modal-footer">
-                <a id="btn-si-simpan" class="btn btn-primary mr-1" onclick="save_si()"
-                    href="javascript:void(0)">Simpan</a>
+                <button id="btn-si-simpan" type="button" class="btn btn-primary mr-1" onclick="save_si(); return false;">
+                    Simpan
+                </button>
                 <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
             </div>
         </form>
@@ -2528,7 +4005,7 @@ function bindKavlingContext(sh) {
 
 function fillPriceSection(h, dk) {
   if (!h?.hargajual) return;
-  // masal: map kunci → #mk-*
+  // masal: map kunci â†’ #mk-*
   const mkMap = [
     "hargajual",
     "hargajual_net",
@@ -2922,6 +4399,14 @@ $("#idk-is_allin").change(function () {
   is_allin(this);
 });
 
+$("#modal-isi_data_konsumen")
+  .off("input.mkdtTotal change.mkdtTotal", ".mk-fm, #idk-is_subsidi")
+  .on("input.mkdtTotal change.mkdtTotal", ".mk-fm, #idk-is_subsidi", function () {
+    if (typeof sum_mktotal === "function") {
+      sum_mktotal();
+    }
+  });
+
 function is_allin(e) {
   if (e.value == "0") {
     harga_Total = $("#mk-tgt").val();
@@ -2931,6 +4416,23 @@ function is_allin(e) {
     $("#mk-harga_allin").show();
   }
   sum_mktotal();
+}
+
+function setIdkPerluRefund(value) {
+  const normalized = String(value ?? "0") === "1" ? "1" : "0";
+  $(`#modal-isi_data_konsumen input[name="dt-perlu_refund"][value="${normalized}"]`).prop(
+    "checked",
+    true,
+  );
+}
+
+function updateIdkBatalSection() {
+  const isBatal = $("#idk-status_mkdt").val() === "Batal";
+  $("#idk-show_keterangan_batal").toggleClass("hidden", !isBatal);
+  if (!isBatal) {
+    $("#idk-keterangan_batal").val("");
+    setIdkPerluRefund(0);
+  }
 }
 
 function fillMkdt(v) {
@@ -2955,6 +4457,7 @@ function fillMkdt(v) {
 
   setVal("#idk-status_mkdt", v.status_mkdt);
   setVal("#idk-keterangan_batal", v.keterangan_batal);
+  setIdkPerluRefund(v.perlu_refund);
   setDate(v.booking_tgl, "#idk-booking_tgl");
   setVal("#idk-booking_fee", v.booking_fee);
 
@@ -3024,6 +4527,8 @@ function fillMkdt(v) {
   $("#spptb_ttd_file").html(spptbLink);
 }
 
+$("#idk-status_mkdt").change(updateIdkBatalSection);
+
 function fillSpptbList(list) {
   const html =
     list && list.length
@@ -3090,6 +4595,7 @@ async function isi_data_konsumen() {
   disableForm(false);
   ui.btn.delKons.addClass("hidden");
   $("#idk-show_keterangan_batal, .refresh_fmmkdt_div").addClass("hidden");
+  setIdkPerluRefund(0);
 
   ui.form.kons.find("#idk-id_konsumen").val("");
   // Siapkan konteks UI & state
@@ -3184,7 +4690,38 @@ function appendCollectionToFormData(fd, collection) {
     i++;
   }
 }
-function simpan_dt_konsumen_keuangan(e) {
+
+function renderNikUsageWarning(rows) {
+  const items = (rows || [])
+    .map((item) => {
+      const kavling = [item.nama_jalan, item.no_kavling ? `No. ${item.no_kavling}` : ""]
+        .filter(Boolean)
+        .join(" ");
+      const lokasi = [
+        item.nama_proyek || "Proyek tidak diketahui",
+        item.nama_cluster || "",
+        kavling || "",
+      ]
+        .filter(Boolean)
+        .join(" - ");
+
+      return `<li class="mb-1">
+        <strong>${escapeHtml(item.nama_konsumen || "-")}</strong><br>
+        <small>${escapeHtml(lokasi)}</small>
+      </li>`;
+    })
+    .join("");
+
+  return `
+    <div class="text-left">
+      <p class="mb-1">NIK tersebut sudah digunakan pada kavling/blok/proyek lain:</p>
+      <ul class="pl-2 mb-1">${items}</ul>
+      <p class="mb-0">Tetap lanjutkan dan simpan konsumen ini?</p>
+    </div>
+  `;
+}
+
+function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
   const btnSave = "#add-form-btn-idk_keu";
   // updateButtons(btnSave, "#prev-form-btn-idk_keu");
 
@@ -3210,6 +4747,9 @@ function simpan_dt_konsumen_keuangan(e) {
   let form = ui.form.kons[0];
   let fd = new FormData(form);
   fd.append(csrfName, csrfHash);
+  if (allowDuplicateNik) {
+    fd.append("allow_duplicate_nik", "1");
+  }
   let is_ganti_nama = false;
 
   if (is_ganti_nama) {
@@ -3247,6 +4787,21 @@ function simpan_dt_konsumen_keuangan(e) {
           load_kavling();
           hapus_seleksi();
         });
+      } else if (r.require_nik_confirmation === true) {
+        simpanBtn(btnSave, false);
+        Swal.fire({
+          icon: "warning",
+          title: "NIK sudah digunakan",
+          html: renderNikUsageWarning(r.nik_usage),
+          showDenyButton: true,
+          confirmButtonText: "Ya, tetap simpan",
+          denyButtonText: "Batal",
+          allowOutsideClick: false,
+        }).then(function (result) {
+          if (result.isConfirmed) {
+            simpan_dt_konsumen_keuangan(true);
+          }
+        });
       } else {
         Swal.fire({
           //position: 'bottom-end',
@@ -3278,20 +4833,88 @@ $("#status_mkdt").change(function () {
     $("#show_keterangan_batal").removeClass("hidden");
   else $("#show_keterangan_batal").addClass("hidden");
 });
-//
-// hitung turun kpr
-$("#fm-mkdt #harga_kpr, #fm-mkdt #acc_harga_kpr").change(function () {
-  if ($("#fm-mkdt #acc_harga_kpr").val() != "0") {
-    $("#fm-mkdt #harga_turun_kpr")
-      .val(
-        parseFloat(removeComma($("#fm-mkdt #harga_kpr").val())) -
-          parseFloat(removeComma($("#fm-mkdt #acc_harga_kpr").val())),
-      )
-      .change();
-  } else {
-    $("#fm-mkdt #harga_turun_kpr").val(0);
+
+const mkdtKprState = {
+  isLoading: false,
+  isPromptOpen: false,
+  previousAccValue: "0",
+};
+
+function mkdtAmount(selector) {
+  return parseFloat(removeComma($(selector).val() || 0)) || 0;
+}
+
+function mkdtSetAmount(selector, value) {
+  $(selector)
+    .val(value || 0)
+    .keyup();
+}
+
+function mkdtCalculateTurunKpr() {
+  const hargaKpr = mkdtAmount("#fm-mkdt #harga_kpr");
+  const accHargaKpr = mkdtAmount("#fm-mkdt #acc_harga_kpr");
+  const turunKpr = accHargaKpr > 0 && accHargaKpr < hargaKpr ? hargaKpr - accHargaKpr : 0;
+
+  mkdtSetAmount("#fm-mkdt #harga_turun_kpr", turunKpr);
+
+  return { hargaKpr, accHargaKpr, turunKpr };
+}
+
+function mkdtRevertKprChange() {
+  mkdtKprState.isLoading = true;
+  mkdtSetAmount("#fm-mkdt #acc_harga_kpr", mkdtKprState.previousAccValue || 0);
+  mkdtSetAmount("#fm-mkdt #harga_turun_kpr", 0);
+  mkdtKprState.isLoading = false;
+}
+
+async function mkdtRequireTurunKprTagihan() {
+  if (mkdtKprState.isLoading || mkdtKprState.isPromptOpen) return;
+
+  const { turunKpr } = mkdtCalculateTurunKpr();
+  if (turunKpr <= 0) {
+    mkdtKprState.previousAccValue = $("#fm-mkdt #acc_harga_kpr").val() || "0";
+    return;
   }
+
+  mkdtKprState.isPromptOpen = true;
+  const { isConfirmed, isDismissed, value } = await loadFormTagihan(turunKpr);
+  mkdtKprState.isPromptOpen = false;
+
+  if (isConfirmed) {
+    Swal.fire({
+      icon: "success",
+      title: "Berhasil",
+      text: "Tagihan Turun KPR ditambahkan.",
+    }).then(() => {
+      load_tagihankpr(value.data);
+      mkdtKprState.previousAccValue = $("#fm-mkdt #acc_harga_kpr").val() || "0";
+    });
+    return;
+  }
+
+  if (isDismissed) {
+    mkdtRevertKprChange();
+    Swal.fire(
+      "Dibatalkan",
+      "Nilai disetujui dikembalikan ke nilai awal dan Turun KPR direset 0.",
+      "info",
+    );
+  }
+}
+
+$("#fm-mkdt #harga_kpr").change(function () {
+  mkdtCalculateTurunKpr();
 });
+
+$("#fm-mkdt #acc_harga_kpr")
+  .on("focusin", function () {
+    if (!mkdtKprState.isLoading && !mkdtKprState.isPromptOpen) {
+      mkdtKprState.previousAccValue = $(this).val() || "0";
+    }
+  })
+  .on("change", function () {
+    mkdtRequireTurunKprTagihan();
+  });
 //delete tanggal jika toogle di aktifkan
 $("#wawancara").change(function () {
   if (!$("#wawancara").prop("checked")) {
@@ -3310,6 +4933,9 @@ function refresh_fmmkdt($st = true) {
     "disabled",
     $st,
   );
+  mkdtKprState.isLoading = false;
+  mkdtKprState.isPromptOpen = false;
+  mkdtKprState.previousAccValue = "0";
   $("#id_konsumen").val("");
   ui.form.kons.find("#idk-id_konsumen").val("");
   $("#id_keuangan0").val("");
@@ -3379,6 +5005,7 @@ function open_mkdt(sh, role, id_kavling) {
       let r = x.data, //data mkdt
         pb = x.perintah_bangun,
         tkpr = x.tagihan;
+      mkdtKprState.isLoading = true;
 
       //load hargajual
       // if (h.hargajual) {
@@ -3472,6 +5099,8 @@ function open_mkdt(sh, role, id_kavling) {
       }
 
       load_tagihankpr(tkpr);
+      mkdtKprState.isLoading = false;
+      mkdtKprState.previousAccValue = $("#fm-mkdt #acc_harga_kpr").val() || "0";
 
       let label_alamat = setLabelAlamat(
         dt_proyek.nama_proyek,
@@ -3481,6 +5110,10 @@ function open_mkdt(sh, role, id_kavling) {
         sh.data2.tipe_rumah,
       );
       $(".label_alamat").html(label_alamat);
+
+      $("#mkdt-tab-form-link").tab("show");
+      resetMkdtHistoryTimeline();
+      $("#mkdt-history-timeline").data("id-kavling", id_kavling);
 
       $("#modal_divisi" + role).modal({
         backdrop: "static",
@@ -3768,7 +5401,7 @@ $("#sh-id").change(function () {
 
 function open_set_turun_pembangunan() {
   $("#list-tp-upload_perintah_bangun_file").prop("href", resolveFileHref(not_found));
-  $("#label-perintah_bangun_file").html("File Turun Perintah Bangun");
+  $("#label-perintah_bangun_file").html("Upload File Perintah Bangun");
   if (editdtt.length == 0) {
     return swal("error", "Tidak ada kavling terpilih");
   }
@@ -3849,7 +5482,7 @@ function set_tp() {
     data: fd,
     dataType: "json",
     beforeSend: function () {
-      $("#set-tp-btn").html('Menyimpan <i class="fa fa-spinner fa-spin"></i>');
+      $("#set-tp-btn").html('<i class="fa fa-spinner fa-spin mr-1"></i>Menyimpan');
       $("#set-tp-btn").addClass("disabled");
     },
     success: function (response) {
@@ -3863,7 +5496,7 @@ function set_tp() {
           timer: 1500,
         }).then(function () {
           $("#modals-turun_pembangunan").modal("hide");
-          $("#set-tp-btn").html("Simpan");
+          $("#set-tp-btn").html('<i class="fa fa-save mr-1" aria-hidden="true"></i>Simpan');
           $("#set-tp-btn").removeClass("disabled");
         });
       } else {
@@ -3874,7 +5507,7 @@ function set_tp() {
           showConfirmButton: false,
           timer: 1500,
         }).then(function () {
-          $("#set-tp-btn").html("Simpan");
+          $("#set-tp-btn").html('<i class="fa fa-save mr-1" aria-hidden="true"></i>Simpan');
           $("#set-tp-btn").removeClass("disabled");
         });
       }
@@ -3888,7 +5521,7 @@ function set_tp() {
         title: "terjadi kesalahan saat menginput data",
         showConfirmButton: false,
       }).then(function () {
-        $("#set-tp-btn").html("Simpan");
+        $("#set-tp-btn").html('<i class="fa fa-save mr-1" aria-hidden="true"></i>Simpan');
         $("#set-tp-btn").removeClass("disabled");
       });
     },
@@ -3999,21 +5632,130 @@ function open_set_harga() {
   });
 }
 
-function isi_si() {
-  let sh = editdtt;
+let siDataCache = [];
 
-  if (sh.length == 0)
-    return swal("error", "Tidak ada kavling terpilih", null, true);
+function getSiRecordKey(item) {
+  return item && item.id ? item.id : "n" + item.id_list_si_ori;
+}
 
-  sh = sh[0];
+function isSiSaved(item) {
+  return !!(
+    item &&
+    (item.id || item.tanggal_si || item.keterangan || item.file || item.access_url)
+  );
+}
 
-  let id_kavling = sh.id.substr(3);
+function getSelectedSiItem() {
+  const selectedId = $("#si-id_list_si").val();
+  return siDataCache.find((item) => String(item.id_list_si_ori) === String(selectedId));
+}
 
-  $(".id_kavling").val(id_kavling);
+function initSiDatePicker(value = "") {
+  const input = document.querySelector("#si-tanggal_si");
+  if (!input) return;
 
-  co = [];
+  if (input._flatpickr) {
+    input._flatpickr.setDate(value || null, false);
+    return;
+  }
 
-  $("#fm-si")[0].reset();
+  flatpickr(input, {
+    altInput: true,
+    altFormat: "F j, Y",
+    dateFormat: "Y-m-d",
+    defaultDate: value || null,
+  });
+}
+
+function setSiDynamicFields(item) {
+  const key = item ? getSiRecordKey(item) : "";
+  $("#si-current-key").val(key);
+  if (key) {
+    $("#si-tanggal_si").attr("name", `id-si[${key}][tanggal_si]`);
+    $("#si-keterangan").attr("name", `id-si[${key}][keterangan]`);
+    $("#si-file").attr("name", `id-si-file-${key}`);
+  } else {
+    $("#si-tanggal_si, #si-keterangan, #si-file").removeAttr("name");
+  }
+}
+
+function resetSiInput() {
+  $("#si-id_list_si").val("");
+  $("#si-keterangan").val("");
+  $("#si-file").val("");
+  $("#si-file-label").text("Upload Soft File");
+  $("#si-current-file").addClass("hidden").attr("href", "#");
+  $("#si-selected-label").text("-");
+  $("#si-selected-date").text("-");
+  setSiDynamicFields(null);
+  initSiDatePicker("");
+}
+
+function fillSiInput(item) {
+  if (!item) {
+    resetSiInput();
+    return;
+  }
+
+  setSiDynamicFields(item);
+  $("#si-id_list_si").val(item.id_list_si_ori);
+  $("#si-keterangan").val(item.keterangan || "");
+  $("#si-file").val("");
+  $("#si-file-label").text("Upload Soft File");
+  initSiDatePicker(item.tanggal_si || "");
+  $("#si-selected-label").text(item.nama || "-");
+  $("#si-selected-date").text(item.tanggal_si ? format_date(item.tanggal_si) : "-");
+
+  if (item.access_url) {
+    $("#si-current-file")
+      .removeClass("hidden")
+      .attr("href", item.access_url);
+  } else {
+    $("#si-current-file").addClass("hidden").attr("href", "#");
+  }
+}
+
+function renderSiOptions(data) {
+  let options = '<option value="">Pilih Standing Instruction</option>';
+  $.each(data, function (_, item) {
+    const savedLabel = isSiSaved(item) ? " (sudah tersimpan)" : "";
+    options += `<option value="${escapeAttribute(item.id_list_si_ori)}">${escapeHtml(item.nama || "-")}${savedLabel}</option>`;
+  });
+  $("#si-id_list_si").html(options);
+}
+
+function renderSiTable(data) {
+  const rows = data.filter(isSiSaved);
+  const tbody = $("#si-table tbody");
+  tbody.empty();
+
+  if (!rows.length) {
+    tbody.html("<tr><td colspan='5' class='text-center text-muted'>Data tidak ditemukan</td></tr>");
+    return;
+  }
+
+  $.each(rows, function (_, item) {
+    const fileButton = item.access_url
+      ? `<a href="${escapeAttribute(item.access_url)}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-eye mr-1"></i> Lihat</a>`
+      : '<span class="text-muted">-</span>';
+    const row = `
+      <tr>
+        <td>${escapeHtml(item.nama || "-")}</td>
+        <td>${item.tanggal_si ? format_date(item.tanggal_si) : "-"}</td>
+        <td>${fileButton}</td>
+        <td>${escapeHtml(item.keterangan || "-")}</td>
+        <td>
+          <button type="button" class="btn btn-sm btn-outline-primary si-edit-btn" data-id="${escapeAttribute(item.id_list_si_ori)}">
+            <i class="fas fa-edit mr-1"></i> Pilih
+          </button>
+        </td>
+      </tr>`;
+    tbody.append(row);
+  });
+}
+
+function load_si_data(id_kavling, keepSelection = false) {
+  const selectedId = keepSelection ? $("#si-id_list_si").val() : "";
 
   $.ajax({
     url: base_url + "mkdt/getsi",
@@ -4025,81 +5767,19 @@ function isi_si() {
     dataType: "json",
     success: function (res) {
       csrfHash = res.token;
-      let d = res.data,
-        id_si,
-        div = "";
+      siDataCache = res.data || [];
+      renderSiOptions(siDataCache);
+      renderSiTable(siDataCache);
+      if (selectedId) {
+        $("#si-id_list_si").val(selectedId);
+      }
 
-      $.each(d, function (i, v) {
-        co.push(v.id_list_si_ori);
-
-        id_si = !v.id ? "n" + v.id_list_si_ori : v.id;
-        div += `
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <strong>${v.nama}</strong>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <label>Tanggal SI</label>
-                                                <input type="text" class="form-control fp-si flatpickr-human-friendly tsi${
-                                                  v.id_list_si_ori
-                                                }"
-                                                    id="id-si[${id_si}][tanggal_si]" value="${
-                                                      v.tanggal_si
-                                                        ? v.tanggal_si
-                                                        : ""
-                                                    }" name="id-si[${id_si}][tanggal_si]">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <label>Soft File</label>
-                                                <div class="custom-file">
-                                                    <input type="file" class="custom-file-input " accept="application/pdf"
-                                                        name="id-si-file-${id_si}" id="id-si-file-${id_si}" />
-                                                    <label class="custom-file-label" id="label-si-file-${id_si}"
-                                                        for="id-si-file-${id_si}">Upload Soft File</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-12">
-
-                                         <a href="${v.access_url || "#"}" target=_blank id="list-si-file-${id_si}"
-                                                class="btn btn-outline-primary col-12">Klik untuk lihat file</a>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Keterangan</label>
-                                            <textarea class="form-control" id="id-si[${id_si}][keterangan]"
-                                                name="id-si[${id_si}][keterangan]" rows="4" placyeholder="Keterangan">${
-                                                  v.keterangan
-                                                    ? v.keterangan
-                                                    : ""
-                                                }</textarea>
-                                            <small id="last_update-si${id_si}" class=""></small>
-
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                 `;
-      });
-
-      $("#dv-si-here").html(div);
-
-      flatpickr(".fp-si", {
-        altInput: true,
-        altFormat: "F j, Y",
-        dateFormat: "Y-m-d",
-      });
-      $(".num").change();
+      const selected = keepSelection ? getSelectedSiItem() : null;
+      if (selected) {
+        fillSiInput(selected);
+      } else {
+        resetSiInput();
+      }
 
       $("#modals-si").modal({
         backdrop: "static",
@@ -4112,15 +5792,60 @@ function isi_si() {
   });
 }
 
-function save_si() {
-  // $.each(co, function(i, v) {
-  //     if ($(".tsi" + v)[0].value == "") {
-  //         $(".tsi" + v).addClass('is-invalid')
-  //         return swal('error', "Nominal pembayaran harus diisi")
-  //     } else
-  //         $(".tsi" + v).removeClass('is-invalid');
+function isi_si() {
+  let sh = editdtt;
 
-  // });
+  if (sh.length == 0)
+    return swal("error", "Tidak ada kavling terpilih", null, true);
+
+  sh = sh[0];
+
+  let id_kavling = sh.id.substr(3);
+  let nama_proyek = dt_proyek?.nama_proyek ?? sh.data.nama_proyek;
+  let label_alamat = setLabelAlamat(
+    nama_proyek,
+    sh.data.nama_jalan,
+    sh.data.no_kavling,
+    sh.data2.no_tipe_rumah,
+    sh.data2.tipe_rumah,
+  );
+
+  $(".id_kavling").val(id_kavling);
+  $("#modals-si .label_alamat").html(label_alamat);
+  $("#fm-si")[0].reset();
+  $("#si-table tbody").html("<tr><td colspan='5' class='text-center text-muted'>Memuat data...</td></tr>");
+  load_si_data(id_kavling);
+}
+
+$("#si-id_list_si").on("change", function () {
+  fillSiInput(getSelectedSiItem());
+});
+
+$("#si-file").on("change", function () {
+  const fileName = this.files && this.files[0] ? this.files[0].name : "Upload Soft File";
+  $("#si-file-label").text(fileName);
+});
+
+$(document).on("click", ".si-edit-btn", function () {
+  const itemId = $(this).data("id");
+  $("#si-id_list_si").val(itemId);
+  fillSiInput(getSelectedSiItem());
+});
+
+function save_si() {
+  const selected = getSelectedSiItem();
+
+  if (!selected) {
+    return swal("error", "Pilih Standing Instruction terlebih dahulu");
+  }
+
+  if ($("#si-tanggal_si").val() == "") {
+    return swal("error", "Tanggal SI harus diisi");
+  }
+
+  if (!selected.access_url && !selected.file && $("#si-file").val() == "") {
+    return swal("error", "Soft file Standing Instruction harus diupload");
+  }
 
   var form = $("#fm-si")[0];
   var fd = new FormData(form);
@@ -4140,16 +5865,14 @@ function save_si() {
     },
     success: function (r) {
       csrfHash = r.token;
+      simpanBtn(sbtn, false);
       if (r.success === true) {
         swal("success", r.messages);
-        $(".modal").modal("hide");
-        simpanBtn(sbtn, false);
+        load_si_data($("#fm-si .id_kavling").val(), true);
+        load_kavling();
       } else {
         swal("error", "Terjadi kesalahan", r.messages);
-        simpanBtn(sbtn, false);
       }
-      load_kavling();
-      hapus_seleksi();
     },
     error: function (r) {
       Swal.fire({
@@ -4184,6 +5907,7 @@ $("#refresh-btn-idk_keu").click(function () {
   ui.form.kons.find("#idk-id_konsumen").val("");
   $("#idk_data_baru").val(1);
   $("#idk-show_keterangan_batal").addClass("hidden");
+  setIdkPerluRefund(0);
 
   if (state.mkdt.harga_jual && state.mkdt.diskresi) {
     fillPriceSection(state.mkdt.harga_jual, state.mkdt.diskresi);
@@ -4198,6 +5922,9 @@ function mkdtUpload() {
     { id: "file_ktp" },
     { id: "file_npwp" },
     { id: "file_data_diri" },
+    { id: "perintah_bangun_file" },
+    { id: "sp3k_file" },
+    { id: "bast_file" },
   ];
 
   inputs.forEach((item) => {
@@ -4226,10 +5953,13 @@ function postTurunKPR(val) {
   });
 }
 async function loadFormTagihan(nominal_kpr) {
-  const { isConfirmed, isDenied, value } = await Swal.fire({
+  const { isConfirmed, isDismissed, value } = await Swal.fire({
     title: "Tambah Ke Tagihan",
     html: `
       <div class="swal2-content mt-1" style="text-align:left">
+        <div class="alert alert-warning py-1 px-2 mb-1" style="font-size:.82rem; line-height:1.4">
+          Turun KPR wajib dibuat tagihan sebelum perubahan nilai disetujui bisa disimpan.
+        </div>
         <div class="form-group floating-label">
           <input type="text" class="form-control" value="Turun KPR" readonly id="fkpr-berita_acara" placeholder=" " required>
           <label for="fkpr-berita_acara">Untuk Tagihan</label>
@@ -4245,10 +5975,11 @@ async function loadFormTagihan(nominal_kpr) {
       </div>
     `,
     focusConfirm: false,
-    showDenyButton: true,
-    confirmButtonText: "Ya",
-    denyButtonText: "Tidak",
+    showCancelButton: true,
+    confirmButtonText: "Simpan Tagihan",
+    cancelButtonText: "Batal",
     allowOutsideClick: false,
+    allowEscapeKey: false,
     showLoaderOnConfirm: true,
 
     didOpen: () => {
@@ -4336,7 +6067,7 @@ async function loadFormTagihan(nominal_kpr) {
     },
   });
 
-  return { isConfirmed, isDenied, value };
+  return { isConfirmed, isDismissed, value };
 }
 let btnTunruKpr = "#btn-add-tagihan-turunkpr";
 $(btnTunruKpr).click(async function (e) {
@@ -4350,7 +6081,7 @@ $(btnTunruKpr).click(async function (e) {
       "Tidak bisa menambahkan ke tagihan jika nominal Turun KPR 0!",
     );
   }
-  const { isConfirmed, isDenied, value } = await loadFormTagihan(nominal_kpr);
+  const { isConfirmed, isDismissed, value } = await loadFormTagihan(nominal_kpr);
 
   if (isConfirmed) {
     Swal.fire({
@@ -4359,8 +6090,9 @@ $(btnTunruKpr).click(async function (e) {
       text: "Tagihan ditambahkan.",
     }).then(() => {
       load_tagihankpr(value.data);
+      mkdtKprState.previousAccValue = $("#fm-mkdt #acc_harga_kpr").val() || "0";
     });
-  } else if (isDenied) {
+  } else if (isDismissed) {
     Swal.fire("Dibatalkan", "Aksi dibatalkan.", "info");
   }
 });

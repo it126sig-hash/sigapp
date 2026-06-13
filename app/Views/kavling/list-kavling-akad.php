@@ -283,7 +283,7 @@
           let results = [];
           $.each(r.data, function(index, item) {
             results.push({
-              id: item['id_proyek'],
+              id: item[0],
               text: item[1] + ' (' + item[2] + ')'
             });
           });
@@ -506,7 +506,7 @@
       }
     });
     //remove bug arrow select2
-    $(".select2-selection__arrow").removeClass("select2-selection__arrow")
+    $(".select2-selection__arrow").css("pointer-events", "none")
 
   });
 

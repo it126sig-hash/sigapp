@@ -94,6 +94,7 @@ class PosisiKonsumenRepository
             kavling.no_kavling,
             hargajual.id_tipe,
             mkdt.keterangan_batal,
+            mkdt.perlu_refund,
             konsumen.nama_konsumen,
             mkdt.booking_tgl,
             mkdt.is_kpr,

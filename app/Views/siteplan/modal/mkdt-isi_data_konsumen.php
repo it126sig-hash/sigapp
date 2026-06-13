@@ -54,8 +54,20 @@
                                 placeholder="Keterangan"></textarea>
                         </div>
                         <div class="form-group">
-                            <label for="harga_jual">Nominal Pengembalian Dana</label>
-                            <input type="text" class="form-control num" id="idk-refund" name="dt-refund">
+                            <label>Status Refund</label>
+                            <div class="refund-status-card">
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" class="custom-control-input" id="idk-perlu_refund_0"
+                                        name="dt-perlu_refund" value="0" checked>
+                                    <label class="custom-control-label" for="idk-perlu_refund_0">Tidak Perlu Refund</label>
+                                </div>
+                                <div class="custom-control custom-radio">
+                                    <input type="radio" class="custom-control-input" id="idk-perlu_refund_1"
+                                        name="dt-perlu_refund" value="1">
+                                    <label class="custom-control-label" for="idk-perlu_refund_1">Perlu Refund</label>
+                                </div>
+                                <small class="refund-status-note">Status ini akan tampil di list konsumen batal.</small>
+                            </div>
                         </div>
 
                     </div>

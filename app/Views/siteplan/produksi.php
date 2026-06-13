@@ -7,6 +7,595 @@
 	.select2-container--default .select2-selection--multiple {
 		height: auto;
 	}
+
+	#modal_divisi7 .modal-dialog {
+		max-width: min(1320px, calc(100vw - 32px));
+		margin: 1rem auto;
+	}
+
+	#modal_divisi7 .modal-content {
+		border: 0;
+		border-radius: 10px;
+		box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+		overflow: hidden;
+	}
+
+	#modal_divisi7 .modal-header,
+	#modal_divisi7 .modal-footer {
+		background: #fff;
+		border-color: #e5e7eb;
+		padding: 1rem 1.25rem;
+	}
+
+	#modal_divisi7 .modal-title {
+		color: #111827;
+		font-size: 1.05rem;
+		font-weight: 700;
+	}
+
+	#modal_divisi7 .modal-body {
+		background: #f3f5f7 !important;
+		max-height: calc(100vh - 8rem);
+		overflow-y: auto;
+		padding: 1rem;
+	}
+
+	#modal_divisi7 .nav-tabs {
+		background: #fff;
+		border: 1px solid #e5e7eb;
+		border-radius: 8px;
+		gap: .35rem;
+		margin-bottom: 1rem;
+		padding: .5rem;
+	}
+
+	#modal_divisi7 .nav-tabs .nav-link {
+		border: 0;
+		border-radius: 6px;
+		color: #4b5563;
+		font-size: .82rem;
+		font-weight: 700;
+		padding: .55rem .8rem;
+		white-space: nowrap;
+	}
+
+	#modal_divisi7 .nav-tabs .nav-link.active {
+		background: #2057a3;
+		box-shadow: 0 6px 14px rgba(32, 87, 163, .2);
+		color: #fff;
+	}
+
+	#modal_divisi7 .tab-pane {
+		background: #fff;
+		border: 1px solid #e5e7eb;
+		border-radius: 8px;
+		padding: 1rem;
+	}
+
+	#modal_divisi7 label,
+	#modal_divisi7 .info-label {
+		color: #6b7280;
+		font-size: .78rem;
+		font-weight: 700;
+		letter-spacing: 0;
+	}
+
+	#modal_divisi7 .form-control {
+		background-color: #fff;
+		border-color: #d8dde3;
+		border-radius: 6px;
+		min-height: 36px;
+	}
+
+	#modal_divisi7 .btn {
+		border-radius: 6px;
+	}
+
+	#modal_divisi7 .btn-primary {
+		background-color: #2057a3 !important;
+		border-color: #2057a3 !important;
+	}
+
+	#modal_divisi7 .divider {
+		margin: .65rem 0 .85rem;
+	}
+
+	#modal_divisi7 .divider-left {
+		border-left-color: #2057a3;
+		margin-bottom: .85rem;
+		padding-left: .75rem;
+	}
+
+	#modal_divisi7 .divider .divider-text {
+		color: #111827;
+		font-size: .86rem;
+		font-weight: 700;
+	}
+
+	#modal_divisi7 [id^="list_"],
+	#modal_divisi7 #produksi-history-timeline {
+		display: grid !important;
+		gap: .85rem;
+		grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+	}
+
+	#modal_divisi7 .input-foto-container,
+	#modal_divisi7 .detail-file-tile {
+		background: #fff;
+		border: 1px solid #d7deea;
+		border-radius: 8px;
+		box-shadow: 0 8px 18px rgba(15, 23, 42, .05);
+		display: flex;
+		flex-direction: column;
+		height: auto;
+		overflow: hidden;
+		position: relative;
+		width: 100%;
+	}
+
+	#modal_divisi7 .input-foto,
+	#modal_divisi7 .detail-file-preview {
+		background: #f3f6fb;
+		border-bottom: 1px solid #e5eaf2;
+		display: block;
+		min-height: 128px;
+		overflow: hidden;
+		position: relative;
+		width: 100%;
+	}
+
+	#modal_divisi7 .input-foto img,
+	#modal_divisi7 .detail-file-preview img {
+		display: block;
+		height: 128px;
+		object-fit: cover;
+		width: 100%;
+	}
+
+	#modal_divisi7 .input-foto > .btn {
+		align-items: center;
+		border: 0;
+		border-radius: 0;
+		display: flex;
+		height: 128px;
+		justify-content: center;
+		min-height: 128px;
+		width: 100%;
+	}
+
+	#modal_divisi7 .detail-file-body,
+	#modal_divisi7 .input-foto-meta {
+		padding: .75rem;
+	}
+
+	#modal_divisi7 .input-foto-meta strong {
+		color: #6b7280;
+		display: block;
+		font-size: .76rem;
+		margin-bottom: .25rem;
+	}
+
+	#modal_divisi7 .detail-file-meta,
+	#modal_divisi7 .foto-coordinate-status {
+		color: #667085;
+		font-size: .78rem;
+		line-height: 1.35;
+	}
+
+	#modal_divisi7 .input-foto > div {
+		bottom: .5rem !important;
+		left: .5rem !important;
+		max-width: calc(100% - 1rem);
+		z-index: 2;
+	}
+
+	#modal_divisi7 .input-foto > button {
+		border-radius: 6px;
+		font-size: .72rem;
+		line-height: 1;
+		padding: .35rem .45rem;
+		right: .5rem;
+		top: .5rem !important;
+		z-index: 3;
+	}
+
+	#modal_divisi7 .foto-container .custom-file {
+		background: #f8fafc;
+		border: 1px dashed #9db5d8;
+		border-radius: 8px;
+		height: auto;
+		margin-bottom: .85rem;
+		min-height: 44px;
+		padding: .35rem;
+	}
+
+	#modal_divisi7 .foto-container .custom-file-input {
+		cursor: pointer;
+		height: 44px;
+	}
+
+	#modal_divisi7 .foto-container .custom-file-label {
+		align-items: center;
+		background: transparent;
+		border: 0;
+		color: #2057a3;
+		display: flex;
+		font-size: .82rem;
+		font-weight: 700;
+		height: 100%;
+		margin: 0;
+		padding: .55rem .75rem;
+	}
+
+	#modal_divisi7 .foto-container .custom-file-label::after {
+		background: #2057a3;
+		border: 0;
+		border-radius: 6px;
+		color: #fff;
+		content: "Pilih";
+		height: auto;
+		margin: .25rem;
+		padding: .35rem .75rem;
+	}
+
+	#modal_divisi7 .produksi-upload-action {
+		align-items: center;
+		background: #f8fafc;
+		border: 1px dashed #9db5d8;
+		border-radius: 8px;
+		display: flex;
+		gap: .75rem;
+		justify-content: space-between;
+		margin-bottom: .85rem;
+		padding: .75rem;
+	}
+
+	#modal_divisi7 .produksi-upload-action .produksi-upload-hidden-file {
+		border: 0;
+		height: 1px;
+		margin: 0;
+		min-height: 0;
+		opacity: 0;
+		overflow: hidden;
+		padding: 0;
+		pointer-events: none;
+		position: absolute;
+		width: 1px;
+	}
+
+	#modal_divisi7 .produksi-upload-action .produksi-upload-hidden-file .custom-file-label,
+	#modal_divisi7 .produksi-upload-action .produksi-upload-hidden-file .custom-file-label::after {
+		content: none !important;
+		display: none !important;
+	}
+
+	#modal_divisi7 .produksi-history-list {
+		display: flex !important;
+		flex-direction: column;
+		min-width: 1080px;
+	}
+
+	#modal_divisi7 #fm-prod-history {
+		overflow-x: auto;
+	}
+
+	#modal_divisi7 #fm-prod-history .produksi-jalan-timeline-item {
+		min-width: 1040px;
+	}
+
+	#modal_divisi7 #fm-prod-history .produksi-jalan-timeline-title,
+	#modal_divisi7 #fm-prod-history .produksi-jalan-timeline-meta {
+		white-space: nowrap;
+	}
+
+	#modal_divisi7 .produksi-history-change-list {
+		background: #f8fafc;
+		border: 1px solid #e5eaf2;
+		border-radius: 8px;
+		display: flex;
+		flex-direction: column;
+		gap: .35rem;
+		margin-top: .75rem;
+		padding: .65rem;
+	}
+
+	#modal_divisi7 .produksi-history-change-row {
+		align-items: flex-start;
+		display: grid;
+		gap: .75rem;
+		grid-template-columns: minmax(260px, .35fr) minmax(720px, 1fr);
+	}
+
+	#modal_divisi7 .produksi-history-change-label {
+		color: #4b5563;
+		font-size: .78rem;
+		font-weight: 800;
+		white-space: nowrap;
+	}
+
+	#modal_divisi7 .produksi-history-change-value {
+		color: #111827;
+		font-size: .8rem;
+		overflow-x: auto;
+		white-space: nowrap;
+	}
+
+	#modal_divisi7 .produksi-history-file-list {
+		margin: .45rem 0 0;
+		padding-left: 1rem;
+	}
+
+	#modal_divisi7 .modal-footer {
+		position: sticky;
+		bottom: 0;
+		z-index: 3;
+	}
+
+	@media (max-width: 767.98px) {
+		#modal_divisi7 .modal-dialog {
+			max-width: calc(100vw - 12px);
+			margin: .5rem auto;
+		}
+
+		#modal_divisi7 .modal-body {
+			max-height: calc(100vh - 6rem);
+			padding: .75rem;
+		}
+
+		#modal_divisi7 .nav-tabs {
+			flex-direction: row !important;
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			padding-bottom: .5rem;
+		}
+
+		#modal_divisi7 .tab-pane {
+			padding: .85rem;
+		}
+
+		#modal_divisi7 .modal-footer {
+			align-items: stretch;
+			flex-direction: column;
+		}
+
+		#modal_divisi7 .modal-footer .btn {
+			margin: 0 0 .5rem 0 !important;
+			width: 100%;
+		}
+	}
+
+	/* SIGAPP UI Acuan - Modal Pembayaran Produksi (mengikuti #modal-cashout-keu) */
+	#modal-bayar_produksi-prod .modal-dialog {
+		max-width: min(1440px, calc(100vw - 32px));
+		margin: 1rem auto;
+	}
+
+	#modal-bayar_produksi-prod .modal-content {
+		border: 0;
+		border-radius: 10px;
+		box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+		overflow: hidden;
+	}
+
+	#modal-bayar_produksi-prod .modal-header {
+		align-items: center;
+		background: #fff;
+		border-bottom: 1px solid #e5e7eb;
+		margin-bottom: 0 !important;
+		padding: 1rem 1.25rem;
+	}
+
+	#modal-bayar_produksi-prod .modal-title {
+		color: #111827;
+		font-size: 1.05rem;
+		font-weight: 700;
+	}
+
+	#modal-bayar_produksi-prod .prod-bp-body {
+		background: #f3f5f7 !important;
+		max-height: calc(100vh - 7rem);
+		overflow-y: auto;
+		padding: 1rem;
+	}
+
+	#modal-bayar_produksi-prod .prod-bp-layout {
+		display: flex;
+		flex-wrap: nowrap;
+		gap: 1rem;
+		min-width: 0;
+	}
+
+	#modal-bayar_produksi-prod .prod-bp-sidebar {
+		align-self: flex-start;
+		flex: 0 0 320px;
+		max-height: calc(100vh - 8rem);
+		max-width: 320px;
+		overflow-y: auto;
+		position: sticky;
+		top: 0;
+		z-index: 2;
+	}
+
+	#modal-bayar_produksi-prod .prod-bp-content {
+		flex: 1 1 auto;
+		max-width: calc(100% - 336px);
+		min-width: 0;
+	}
+
+	#modal-bayar_produksi-prod .card {
+		border: 1px solid #e5e7eb;
+		border-radius: 8px;
+		box-shadow: none;
+		margin-bottom: 1rem;
+		overflow: hidden;
+	}
+
+	#modal-bayar_produksi-prod .card-body {
+		padding: 1rem;
+	}
+
+	#modal-bayar_produksi-prod .prod-bp-hero {
+		border: 0;
+	}
+
+	#modal-bayar_produksi-prod .bg-primary {
+		background: linear-gradient(145deg, #2057a3 0%, #1f7a8c 100%) !important;
+	}
+
+	#modal-bayar_produksi-prod .label_alamat {
+		font-size: 1rem;
+		font-weight: 700;
+		line-height: 1.35;
+		margin-bottom: 0;
+		overflow-wrap: anywhere;
+	}
+
+	#modal-bayar_produksi-prod .prod-bp-meta-card {
+		background: #fff;
+		border: 1px solid #cfd6e3;
+		border-radius: 8px;
+		box-shadow: 0 8px 18px rgba(15, 23, 42, .05);
+		margin-bottom: 0;
+	}
+
+	#modal-bayar_produksi-prod .prod-bp-meta-card h6,
+	#modal-bayar_produksi-prod .prod-bp-meta-card h5 {
+		color: #374151;
+		line-height: 1.35;
+		margin-bottom: .45rem;
+	}
+
+	#modal-bayar_produksi-prod .prod-bp-meta-card h5:last-child,
+	#modal-bayar_produksi-prod .prod-bp-meta-card h6:last-of-type {
+		margin-bottom: 0;
+	}
+
+	#modal-bayar_produksi-prod .divider {
+		margin: .65rem 0 .85rem;
+	}
+
+	#modal-bayar_produksi-prod .divider-left {
+		border-left-color: #2057a3;
+		margin-bottom: .85rem;
+		padding-left: .75rem;
+	}
+
+	#modal-bayar_produksi-prod .divider .divider-text {
+		color: #111827;
+		font-size: .86rem;
+		font-weight: 700;
+	}
+
+	#modal-bayar_produksi-prod label,
+	#modal-bayar_produksi-prod .form-label {
+		color: #6b7280;
+		font-size: .78rem;
+		font-weight: 700;
+		letter-spacing: 0;
+	}
+
+	#modal-bayar_produksi-prod .form-group {
+		margin-bottom: .8rem;
+	}
+
+	#modal-bayar_produksi-prod .form-control {
+		background-color: #fff;
+		border-color: #d8dde3;
+		border-radius: 6px;
+		min-height: 36px;
+	}
+
+	#modal-bayar_produksi-prod .btn {
+		border-radius: 6px;
+		font-weight: 700;
+		white-space: normal;
+	}
+
+	#modal-bayar_produksi-prod .btn-primary {
+		background-color: #2057a3 !important;
+		border-color: #2057a3 !important;
+	}
+
+	#modal-bayar_produksi-prod .btn-primary:hover,
+	#modal-bayar_produksi-prod .btn-primary:focus {
+		background-color: #174b8f !important;
+		border-color: #174b8f !important;
+	}
+
+	#modal-bayar_produksi-prod #bayar-produksi-table {
+		margin-bottom: 0;
+	}
+
+	#modal-bayar_produksi-prod #bayar-produksi-table thead th {
+		background: #f8fafc;
+		border-bottom: 1px solid #e5e7eb;
+		color: #374151;
+		font-size: .78rem;
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	#modal-bayar_produksi-prod #bayar-produksi-table tbody td {
+		font-size: .84rem;
+		vertical-align: middle;
+	}
+
+	#modal-bayar_produksi-prod .modal-footer {
+		background: #fff;
+		border-top: 1px solid #e5e7eb;
+		padding: .85rem 1.25rem;
+	}
+
+	.dark-layout #modal-bayar_produksi-prod .modal-header,
+	.dark-layout #modal-bayar_produksi-prod .card,
+	.dark-layout #modal-bayar_produksi-prod .prod-bp-meta-card,
+	.dark-layout #modal-bayar_produksi-prod .modal-footer {
+		background: #283046 !important;
+		border-color: rgba(255, 255, 255, .08) !important;
+	}
+
+	.dark-layout #modal-bayar_produksi-prod .modal-title,
+	.dark-layout #modal-bayar_produksi-prod .divider .divider-text {
+		color: #f8fafc;
+	}
+
+	.dark-layout #modal-bayar_produksi-prod .prod-bp-body {
+		background: #1f2937 !important;
+	}
+
+	@media (max-width: 1199.98px) {
+		#modal-bayar_produksi-prod .prod-bp-layout {
+			flex-wrap: wrap;
+		}
+
+		#modal-bayar_produksi-prod .prod-bp-sidebar,
+		#modal-bayar_produksi-prod .prod-bp-content {
+			flex: 0 0 100%;
+			max-width: 100%;
+		}
+
+		#modal-bayar_produksi-prod .prod-bp-sidebar {
+			max-height: none;
+			overflow-y: visible;
+			position: static;
+		}
+	}
+
+	@media (max-width: 767.98px) {
+		#modal-bayar_produksi-prod .modal-dialog {
+			max-width: calc(100vw - 12px);
+			margin: .5rem auto;
+		}
+
+		#modal-bayar_produksi-prod .prod-bp-body {
+			max-height: calc(100vh - 5.5rem);
+			padding: .75rem;
+		}
+
+		#modal-bayar_produksi-prod .card-body {
+			padding: .85rem;
+		}
+	}
 </style>
 <div class="modal fade text-left" id="modal_produksi_add_jalan" tabindex="-1" role="dialog"
 	aria-labelledby="modal_produksi_add_jalan" aria-hidden="true">
@@ -208,6 +797,10 @@
 							<a class="nav-link" id="fm-prod-air-tab" data-toggle="tab" href="#fm-prod-air" role="tab"
 								aria-selected="true">Air</a>
 						</li>
+						<li class="nav-item">
+							<a class="nav-link" id="fm-prod-history-tab" data-toggle="tab" href="#fm-prod-history"
+								role="tab" aria-selected="false">Riwayat</a>
+						</li>
 					</ul>
 					<div class="tab-content">
 						<div class="tab-pane active" id="fm-prod-progress" aria-labelledby="fm-prod-progress-tab"
@@ -294,7 +887,7 @@
 
 								</div>
 								<div class="col-md-3">
-									<div class="divider">
+									<div class="divider divider-left">
 										<div class="divider-text">LPA</div>
 									</div>
 									<div class="form-group">
@@ -309,7 +902,7 @@
 										<input type="text" class="form-control flatpickr-human-friendly"
 											id="lpa_tanggal" name="lpa_tanggal">
 									</div>
-									<div class="divider">
+									<div class="divider divider-left">
 										<div class="divider-text">Sumur Bor</div>
 									</div>
 									<div class="form-group">
@@ -348,7 +941,7 @@
 
 								</div>
 								<div class="col-md-3">
-									<div class="divider">
+									<div class="divider divider-left">
 										<div class="divider-text">Tanggal Pembangunan Rumah</div>
 									</div>
 									<div>
@@ -452,12 +1045,21 @@
 							<div class="form-group foto-container">
 								<label>Foto Konstruksi(Pembesian, Pondaasi Sloof & Kolom Ringbalok, Pekerjaan Dinding,
 									Pekerjaan Atap & Plafon)</label>
-								<div class="custom-file">
-									<input type="file" class="custom-file-input" accept="image/*"
-										name="prod_foto_konstruksi[]" id="prod_foto_konstruksi" multiple
-										onchange="displayUploadedFiles(this, 'list_prod_foto_konstruksi')" />
-									<label class="custom-file-label" id="label_prod_foto_konstruksi"
-										for="prod_foto_konstruksi">Bisa Lebih dari 1 foto</label>
+								<div class="produksi-upload-action">
+									<div>
+										<strong class="d-block">Dokumentasi konstruksi</strong>
+										<small class="text-muted">Tambah foto, pilih kategori pekerjaan, dan sistem akan menyimpan koordinat jika tersedia.</small>
+									</div>
+									<button type="button" class="btn btn-primary btn-sm" onclick="triggerProduksiUpload('prod_foto_konstruksi')">
+										<i class="fas fa-plus mr-50"></i>Tambah Foto
+									</button>
+									<div class="custom-file produksi-upload-hidden-file">
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+											name="prod_foto_konstruksi[]" id="prod_foto_konstruksi" multiple
+											onchange="displayUploadedFiles(this, 'list_prod_foto_konstruksi')" />
+										<label class="custom-file-label" id="label_prod_foto_konstruksi"
+											for="prod_foto_konstruksi">Bisa Lebih dari 1 foto</label>
+									</div>
 								</div>
 								<div id="list_prod_foto_konstruksi" style="display: flex; flex-wrap: wrap;"></div>
 							</div>
@@ -491,7 +1093,7 @@
 
 						</div>
 						<!-- <div class="tab-pane" id="fm-prod-slf" aria-labelledby="fm-prod-slf-tab" role="tabpanel">
-							<div class="divider">
+							<div class="divider divider-left">
 								<div class="divider-text">Surat Pernyataan Laik Fungsi/Sertifikat Laik Fungsi (SLF)</div>
 							</div>
 							<div class="form-group">
@@ -548,7 +1150,7 @@
 							</div>
 						</div> -->
 						<div class="tab-pane" id="fm-prod-jalan" aria-labelledby="fm-prod-jalan-tab" role="tabpanel">
-							<div class="divider">
+							<div class="divider divider-left">
 								<div class="divider-text">Foto Jalan</div>
 							</div>
 							<div>
@@ -580,7 +1182,7 @@
 						</div>
 						<div class="tab-pane" id="fm-prod-listrik" aria-labelledby="fm-prod-listrik-tab"
 							role="tabpanel">
-							<div class="divider">
+							<div class="divider divider-left">
 								<div class="divider-text">Ketersediaan Listrik</div>
 							</div>
 							<div class="form-group">
@@ -649,7 +1251,7 @@
 							</div>
 						</div>
 						<div class="tab-pane" id="fm-prod-air" aria-labelledby="fm-prod-air-tab" role="tabpanel">
-							<div class="divider">
+							<div class="divider divider-left">
 								<div class="divider-text">Ketersediaan Air</div>
 							</div>
 							<div class="form-group">
@@ -713,9 +1315,17 @@
 									name="air_deskripsi_unit">
 							</div>
 						</div>
+						<div class="tab-pane" id="fm-prod-history" aria-labelledby="fm-prod-history-tab" role="tabpanel">
+							<div class="divider divider-left">
+								<div class="divider-text">Riwayat Perubahan Produksi</div>
+							</div>
+							<div id="produksi-history-timeline" class="produksi-history-list">
+								<div class="text-muted">Memuat riwayat...</div>
+							</div>
+						</div>
 					</div>
 
-					<div class="divider hidden">
+					<div class="divider divider-left hidden">
 						<div class="divider-text">Checklist</div>
 					</div>
 					<p>
@@ -729,7 +1339,7 @@
 							$n = 1;
 							foreach ($list as $l) {
 								echo '
-                                    <div class="divider">
+                                    <div class="divider divider-left">
                                         <div class="divider-text">' . $n . '.) ' . $l->nama_group . ' - ' . $l->nama_item . '</div>
                                     </div>
                                     <dl class="row">
@@ -1245,33 +1855,108 @@
 	</div>
 </div>
 
-<div class="modal fade text-left" id="modal-bayar_produksi-prod" tabindex="-1" role="dialog" aria-labelledby="dana_akad_modal"
-	aria-hidden="true">
-	<div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
-		<form id="fm-bayar_produksi-prod" class="" autocomplete="off">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="exampleModalLabel">Pembayaran Produksi</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
-				</div>
-				<div class="modal-body flex-grow-1" style="background-color:#eee">
-					<div class="card">
-						<div class="card-body">
-							<p class="modal-title label_konsumen"></p>
-							<p class="modal-title label_alamat"></p>
+<div class="modal fade text-left" id="modal-bayar_produksi-prod" tabindex="-1" role="dialog"
+	aria-labelledby="modal-bayar_produksi-prod-label" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
+		<form id="fm-bayar_produksi-prod" class="add-new-record modal-content pt-0" autocomplete="off">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modal-bayar_produksi-prod-label">Pembayaran Produksi</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body flex-grow-1 prod-bp-body">
+				<div class="prod-bp-layout">
+					<aside class="prod-bp-sidebar">
+						<div class="card prod-bp-hero">
+							<div class="card-body bg-primary text-light">
+								<p class="modal-title label_alamat"></p>
+							</div>
 						</div>
-					</div>
-					<input type="hidden" class="form-control" id="bayar_produksi-id_kavling" name="id_kavling">
+						<div class="card">
+							<div class="card-body">
+								<div class="divider divider-left">
+									<div class="divider-text">Info Konsumen</div>
+								</div>
+								<div class="card prod-bp-meta-card">
+									<div class="card-body">
+										<h6><i class="fas fa-users"></i> Konsumen</h6>
+										<h5><strong><span id="fm-bp-label_konsumen">-</span></strong></h5>
+										<h6><i class="fas fa-calendar"></i> Tanggal Booking</h6>
+										<h5 class="mb-0"><strong><span id="fm-bp-label_tgl">-</span> (Rp. <span id="fm-bp-label_bookingfee">0</span>)</strong></h5>
+									</div>
+								</div>
+							</div>
+						</div>
+					</aside>
+					<section class="prod-bp-content">
+						<input type="hidden" class="form-control" id="bayar_produksi-id_kavling" name="id_kavling">
 
-					<div id="div-bayar_produksi-here" class="row"></div>
+						<div class="card">
+							<div class="card-body">
+								<div class="divider divider-left">
+									<div class="divider-text">Form Pembayaran Produksi</div>
+								</div>
+								<div class="row">
+									<div class="col-md-6 col-lg-3">
+										<div class="form-group">
+											<label for="bp-untuk_pembayaran">Untuk Pembayaran</label>
+											<select name="bp-untuk_pembayaran" id="bp-untuk_pembayaran"
+												class="form-control form-select"></select>
+										</div>
+									</div>
+									<div class="col-md-6 col-lg-3">
+										<div class="form-group">
+											<label for="bp-tanggal_bayar">Tanggal Pembayaran</label>
+											<input type="text" id="bp-tanggal_bayar" name="bp-tanggal_bayar"
+												class="form-control flatpickr-human-friendly" placeholder="-" />
+										</div>
+									</div>
+									<div class="col-md-6 col-lg-3">
+										<div class="form-group">
+											<label for="bp-nominal">Nominal Pembayaran</label>
+											<input type="text" class="form-control num" id="bp-nominal" name="bp-nominal">
+										</div>
+									</div>
+									<div class="col-md-6 col-lg-3">
+										<div class="form-group mb-0">
+											<label for="bp-keterangan">Keterangan Pembayaran</label>
+											<textarea class="form-control" id="bp-keterangan" name="bp-keterangan"
+												rows="3" placeholder="Keterangan"></textarea>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="card mb-0">
+							<div class="card-body">
+								<div class="divider divider-left">
+									<div class="divider-text">Riwayat Pembayaran Produksi</div>
+								</div>
+								<div class="table-responsive">
+									<table id="bayar-produksi-table" class="datatables-basic table table-sm compact mb-0">
+										<thead>
+											<tr>
+												<th width=""></th>
+												<th width="20%">Item</th>
+												<th width="20%">Tanggal Pembayaran</th>
+												<th width="25%">Nominal</th>
+												<th width="35%">Keterangan</th>
+											</tr>
+										</thead>
+										<tbody></tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</section>
 				</div>
-				<div class="modal-footer">
-					<button id="add-form-btn-bayar_produksi" class="btn btn-primary data-submit mr-1"
-						onclick="save_bayar_produksi(); return false;" href="javascript:void(0)">Simpan</button>
-					<button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
-				</div>
+			</div>
+			<div class="modal-footer">
+				<button id="add-form-btn-bayar_produksi" class="btn btn-primary data-submit mr-1"
+					onclick="save_bayar_produksi(); return false;" href="javascript:void(0)">Simpan</button>
+				<button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
 			</div>
 		</form>
 	</div>
@@ -1349,6 +2034,8 @@ updateState("#st_50", "st_50");
 updateState("#st_75", "st_75");
 updateState("#st_100", "st_100");
 updateState("#st_saluran", "st_saluran");
+updateState("#st_jalan", "st_jalan"); // Field legacy: status listrik.
+updateState("#st_air", "st_air");
 
 function isProduksiManualSelectionActive() {
   return $("#produksi_tambah_jalan").prop("checked");
@@ -1631,6 +2318,197 @@ function save_produksi() {
       return swal("error", err);
     },
   });
+}
+
+function resetProduksiHistoryTimeline() {
+  $("#produksi-history-timeline")
+    .data("id-kavling", "")
+    .data("next-offset", 0)
+    .data("history-limit", 10)
+    .html('<div class="text-muted">Memuat riwayat...</div>');
+}
+
+function escapeProduksiHistoryValue(value) {
+  return $("<div>").text(value === null || value === undefined ? "" : value).html();
+}
+
+const produksiHistoryFieldLabels = {
+  progres_bangunan: "Progres Bangunan",
+  st_0: "sd Sloof",
+  st_25: "Dinding sd Ringbalok",
+  st_50: "Dinding Full, Atap, Plester dan Aci",
+  st_75: "Plafon, Keramik, Dapur, Kamar Mandi dan Cat",
+  st_100: "Finishing",
+  slo: "SLO / NIDI",
+  bp: "BP",
+  lpa: "LPA",
+  lpa_tanggal: "Tanggal LPA",
+  st_jalan: "Listrik",
+  st_saluran: "Saluran Jalan",
+  st_air: "Air",
+  air_jenis: "Jenis Sumber Air",
+  listrik_jenis: "Jenis Sumber Listrik",
+  listrik_pln: "No Meteran Listrik PLN",
+  listrik_disediakan_no: "No Pengajuan Listrik",
+  listrik_disediakan_tanggal: "Tanggal Pengajuan Listrik",
+  air_deskripsi_unit: "Deskripsi Unit",
+  air_pdam_no: "No Meteran Air PDAM",
+  keterangan: "Keterangan Pembangunan",
+  tanggal_pembangunan: "Tanggal Pembangunan",
+  tanggal_rencana_selesai_pembangunan: "Tanggal Rencana Selesai",
+  tanggal_selesai_pembangunan: "Tanggal Selesai Pembangunan",
+};
+
+const produksiHistoryBooleanFields = [
+  "st_0",
+  "st_25",
+  "st_50",
+  "st_75",
+  "st_100",
+  "slo",
+  "bp",
+  "lpa",
+  "st_jalan",
+  "st_saluran",
+  "st_air",
+];
+
+function formatProduksiHistoryValue(field, value) {
+  if (value === null || value === undefined || value === "") return "-";
+  if (produksiHistoryBooleanFields.indexOf(field) >= 0) {
+    return String(value) === "1" ? "Sudah" : "Belum";
+  }
+  return value;
+}
+
+function renderProduksiHistoryChanges(item) {
+  const oldData = item.old_data || {};
+  const newData = item.new_data || {};
+  let html = "";
+
+  Object.keys(newData).forEach(function (field) {
+    if (field === "checklist") return;
+
+    const label = produksiHistoryFieldLabels[field] || field;
+    const oldValue = formatProduksiHistoryValue(field, oldData[field]);
+    const newValue = formatProduksiHistoryValue(field, newData[field]);
+
+    html +=
+      '<div class="produksi-history-change-row">' +
+        '<div class="produksi-history-change-label">' +
+          escapeProduksiHistoryValue(label) +
+        "</div>" +
+        '<div class="produksi-history-change-value">' +
+          escapeProduksiHistoryValue(oldValue) +
+          ' <i class="fas fa-arrow-right mx-50 text-muted"></i> ' +
+          escapeProduksiHistoryValue(newValue) +
+        "</div>" +
+      "</div>";
+  });
+
+  if (item.files && item.files.length) {
+    let files = "";
+    $.each(item.files, function (index, file) {
+      files +=
+        "<li>" +
+        escapeProduksiHistoryValue(file.kategori || "File") +
+        (file.file_keterangan ? ": " + escapeProduksiHistoryValue(file.file_keterangan) : "") +
+        "</li>";
+    });
+
+    html +=
+      '<div class="produksi-history-change-row">' +
+        '<div class="produksi-history-change-label">Upload</div>' +
+        '<div class="produksi-history-change-value"><ul class="produksi-history-file-list">' +
+          files +
+        "</ul></div>" +
+      "</div>";
+  }
+
+  return html ? '<div class="produksi-history-change-list">' + html + "</div>" : "";
+}
+
+function renderProduksiHistoryTimeline(history, meta, append) {
+  const $target = $("#produksi-history-timeline");
+  const nextOffset = meta ? (meta.history_next_offset || 0) : 0;
+  const limit = meta ? (meta.history_limit || 10) : 10;
+  const hasMore = !!(meta && meta.history_has_more);
+
+  $target
+    .data("next-offset", nextOffset)
+    .data("history-limit", limit);
+
+  if (!append) {
+    $target.html('<div class="produksi-jalan-timeline"></div><div class="produksi-history-action mt-1"></div>');
+  }
+
+  const $timeline = $target.find(".produksi-jalan-timeline");
+  if (!history.length && !append) {
+    $timeline.html('<div class="text-muted">Belum ada riwayat produksi.</div>');
+  }
+
+  $.each(history, function (index, item) {
+    let changeInfo = renderProduksiHistoryChanges(item);
+
+    $timeline.append(
+      '<div class="produksi-jalan-timeline-item">' +
+        '<div class="d-flex justify-content-between align-items-start flex-wrap">' +
+          '<div class="produksi-jalan-timeline-title">' +
+            escapeProduksiHistoryValue(item.summary || "Data produksi diperbarui") +
+          "</div>" +
+          '<div class="produksi-jalan-timeline-meta">' +
+            escapeProduksiHistoryValue(format_datetime(item.created_at) || "-") +
+          "</div>" +
+        "</div>" +
+        '<div class="produksi-jalan-timeline-meta mb-1">Oleh: ' +
+          escapeProduksiHistoryValue(item.username || "-") +
+        "</div>" +
+        changeInfo +
+      "</div>",
+    );
+  });
+
+  const $action = $target.find(".produksi-history-action");
+  if (hasMore) {
+    $action.html(
+      '<button type="button" class="btn btn-outline-primary btn-sm" onclick="loadProduksiHistoryMore()">Muat lagi</button>',
+    );
+  } else {
+    $action.empty();
+  }
+}
+
+function loadProduksiHistory(idKavling, append = false) {
+  const $target = $("#produksi-history-timeline");
+  if (!idKavling) return;
+
+  if (!append) {
+    resetProduksiHistoryTimeline();
+    $target.data("id-kavling", idKavling);
+  }
+
+  $.ajax({
+    url: base_url + "api/produksi/history",
+    type: "post",
+    data: {
+      [csrfName]: csrfHash,
+      id_kavling: idKavling,
+      history_limit: $target.data("history-limit") || 10,
+      history_offset: append ? ($target.data("next-offset") || 0) : 0,
+    },
+    dataType: "json",
+    success: function (r) {
+      csrfHash = r.token;
+      renderProduksiHistoryTimeline(r.history || [], r, append);
+    },
+    error: function () {
+      $("#produksi-history-timeline").html('<div class="text-danger">Gagal memuat riwayat produksi.</div>');
+    },
+  });
+}
+
+function loadProduksiHistoryMore() {
+  loadProduksiHistory($("#produksi-history-timeline").data("id-kavling"), true);
 }
 $("#terima_komplain").change(function () {
   if (this.checked) {
@@ -2114,6 +2992,7 @@ function open_fproduksi(sh, role, id_kavling) {
   $(".tgl_bangun").prop("disabled", !update_tanggal_pembangunan);
 
   $("#fm-prod-progress-tab").click();
+  resetProduksiHistoryTimeline();
   ((st_0 = 0),
     (st_25 = 0),
     (st_50 = 0),
@@ -2144,6 +3023,8 @@ function open_fproduksi(sh, role, id_kavling) {
     $("#list_" + cat).html("");
     $("#label_" + cat).html("Upload file/Foto");
   });
+  window.produksiUploadFileStore = {};
+  $(".produksi-photo-input").val("");
 
   $(".af .cbp").prop("disabled", true);
 
@@ -2153,6 +3034,7 @@ function open_fproduksi(sh, role, id_kavling) {
 
   $(".id_kavling").val(id_kavling);
   $("#id_produksi").val(sh.data.id_produksi);
+  loadProduksiHistory(id_kavling, false);
 
   $("#download_gambar_kerja").click(function () {
     simpanBtn(
@@ -2590,19 +3472,102 @@ function buat_slf() {
     keyboard: false,
   });
 }
-var bpItems = [];
+$("#bp-untuk_pembayaran").select2({
+  placeholder: "Pilih Item Pembayaran",
+  allowClear: true,
+  dropdownParent: $("#modal-bayar_produksi-prod"),
+  ajax: {
+    url: base_url + "api/produksi/getBayarProduksiListItem",
+    dataType: "json",
+    delay: 250,
+    method: "post",
+    data: function (params) {
+      return {
+        [csrfName]: csrfHash,
+        search: params.term,
+      };
+    },
+    processResults: function (r) {
+      csrfHash = r.token;
 
-function isi_pembayaran() {
-  if (editdtt.length == 0)
-    return swal("error", "Terjad Kesalahan", "Tidak ada kavling yang dipilih");
+      let results = [];
+      $.each(r.list_item, function (_k, v) {
+        results.push({
+          id: v.id,
+          text: v.item,
+        });
+      });
+
+      return {
+        results: results,
+      };
+    },
+    cache: false,
+  },
+});
+
+function hapus_bayar_produksi(id) {
+  Swal.fire({
+    title: "Hapus Data?",
+    text: "",
+    type: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Ya!",
+    confirmButtonClass: "btn btn-primary",
+    cancelButtonClass: "btn btn-danger ml-1",
+    buttonsStyling: !1,
+  }).then(function (t) {
+    if (t.value) {
+      let sbtn = ".bp-del-btn";
+      $.ajax({
+        url: base_url + "api/produksi/deleteBayarProduksi",
+        type: "post",
+        data: {
+          [csrfName]: csrfHash,
+          id: id,
+        },
+        dataType: "json",
+        beforeSend: function () {
+          simpanBtn(sbtn, true, '<i class="fa fa-spinner fa-spin"></i>');
+        },
+        success: function (r) {
+          csrfHash = r.token;
+          if (r.success === true) {
+            swal("success", r.messages);
+            simpanBtn(sbtn, false, "", '<i class="fa fa-trash"></i>');
+            load_kavling();
+            isi_pembayaran(r.id_kavling);
+          } else {
+            swal("error", "Terjadi kesalahan", r.messages);
+            simpanBtn(sbtn, false, "", '<i class="fa fa-trash"></i>');
+          }
+        },
+        error: function () {
+          Swal.fire({
+            icon: "error",
+            title: "terjadi kesalahan",
+            showConfirmButton: false,
+          });
+          simpanBtn(sbtn, false, "", '<i class="fa fa-trash"></i>');
+        },
+      });
+    }
+  });
+}
+
+function isi_pembayaran(id_kav = null) {
+  if (!editdtt[0] && !id_kav) {
+    return swal("error", "Tidak ada kavling yang dipilih");
+  }
 
   var sh = editdtt[0],
-    id_kavling = sh.id.substr(3);
-
-  bpItems = [];
+    id_kavling = id_kav ?? sh.id.substr(3);
 
   $("#fm-bayar_produksi-prod")[0].reset();
-  $("#div-bayar_produksi-here").html("");
+  $("#bp-untuk_pembayaran").val(null).trigger("change");
+  $("#bayar-produksi-table tbody").html("");
 
   $.ajax({
     url: base_url + "api/produksi/getBayarProduksi",
@@ -2618,154 +3583,122 @@ function isi_pembayaran() {
     success: function (r) {
       $("#loading").addClass("hidden");
       csrfHash = r.token;
-      let d = r.list_bayar_produksi;
-      let div = "",
-        id;
+      let d = r.riwayat_bayar || [];
 
-      $.each(d, function (i, v) {
-        bpItems.push(v.id_bayar_produksi);
-
-        id = !v.id ? "n" + v.id_bayar_produksi : v.id;
-        div += `
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <strong>${v.item}</strong>
-                            </div>
-                            <div class="card-body">
-                                    <div class="row">
-                                    <div class="col-md-6">
-
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label>Tanggal Pembayaran</label>
-                                            <input type="text" class="form-control fp-bayar_produksi flatpickr-human-friendly tbp${v.id_bayar_produksi}"
-                                                id="id-bayar_produksi[${id}][tanggal_bayar]" value="${v.tanggal_bayar ? v.tanggal_bayar : ""}" name="id-bayar_produksi[${id}][tanggal_bayar]">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label for="sumurbor_bayar_nominal">Nominal</label>
-                                            <input type="text" class="form-control num nbp${v.id_bayar_produksi}" id="id-bayar_produksi[${id}][nominal]"
-                                                name="id-bayar_produksi[${id}][nominal]" value="${v.nominal ? v.nominal : ""}">
-                                            <input type="hidden" class="form-control" id="id-bayar_produksi[${id}][id_item_produksi]"
-                                                name="id-bayar_produksi[${id}][id_item_produksi]" value="${id}">
-                                        </div>
-                                    </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Keterangan</label>
-                                            <textarea class="form-control" id="id-bayar_produksi[${id}][keterangan]"
-                                                name="id-bayar_produksi[${id}][keterangan]" rows="4" placeholder="Keterangan">${v.keterangan ? v.keterangan : ""}</textarea>
-                                            <small id="last_update-sumurbor_bayar" class=""></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                 `;
-      });
-
-      $("#div-bayar_produksi-here").html(div);
-
-      flatpickr(".fp-bayar_produksi", {
-        altInput: true,
-        altFormat: "F j, Y",
-        dateFormat: "Y-m-d",
-      });
-      $(".num").change();
+      if (d.length === 0) {
+        $("#bayar-produksi-table tbody").html(
+          "<tr><td colspan='5' class='text-center'>Data tidak ditemukan</td></tr>",
+        );
+      } else {
+        $.each(d, function (_index, val) {
+          let btn = `<button type="button" class="btn btn-danger btn-sm bp-del-btn" onclick="hapus_bayar_produksi(${val.id})"><i class="fa fa-trash"></i></button>`;
+          let row = `
+        <tr>
+            <td>${btn}</td>
+            <td>${val.item}</td>
+            <td>${format_date(val.tanggal_bayar) ?? "-"}</td>
+            <td>${num_format(val.nominal) ?? "0"}</td>
+            <td>${val.keterangan ?? "-"}</td>
+        </tr>`;
+          $("#bayar-produksi-table tbody").append(row);
+        });
+      }
 
       $("#bayar_produksi-id_kavling").val(id_kavling);
 
-      $(".label_alamat").html(
-        dt_proyek.nama_proyek +
-          "<br/>" +
-          sh.data.nama_jalan +
-          ", No." +
-          sh.data.no_kavling +
-          "<br/>" +
-          sh.data2.no_tipe_rumah +
-          " (" +
-          sh.data2.tipe_rumah +
-          ")<br/>",
+      let nama_proyek = dt_proyek?.nama_proyek ?? sh.data.nama_proyek;
+      let label_alamat = setLabelAlamat(
+        nama_proyek,
+        sh.data.nama_jalan,
+        sh.data.no_kavling,
+        sh.data2.no_tipe_rumah,
+        sh.data2.tipe_rumah,
       );
+      $("#modal-bayar_produksi-prod .label_alamat").html(label_alamat);
+
+      if (r.konsumen) {
+        $("#fm-bp-label_konsumen").html(r.konsumen.nama_konsumen ?? "-");
+        $("#fm-bp-label_tgl").html(format_date(r.konsumen.booking_tgl) ?? "-");
+        $("#fm-bp-label_bookingfee").html(num_format(r.konsumen.harga_jual) ?? "0");
+      }
+
+      initModalListener("#modal-bayar_produksi-prod");
       $("#modal-bayar_produksi-prod").modal({
         backdrop: "static",
         keyboard: false,
       });
     },
-    error: function (r) {
+    error: function () {
       $("#loading").addClass("hidden");
       Swal.fire({
-        //position: 'bottom-end',
         icon: "error",
         title: "terjadi kesalahan",
         showConfirmButton: false,
-        // timer: 1500
       });
     },
   });
 }
 
 function save_bayar_produksi() {
-  $.each(bpItems, function (_i, v) {
-    if ($(".tbp" + v)[0].value != "") {
-      if ($(".nbp" + v)[0].value == "") {
-        $(".nbp").addClass("is-invalid");
-        return swal("error", "Nominal pembayaran harus diisi");
-      } else {
-        $(".nbp").removeClass("is-invalid");
-      }
-    }
-    if ($(".nbp" + v)[0].value != "") {
-      if ($(".tbp" + v)[0].value == "") {
-        $(".tbp").addClass("is-invalid");
-        return swal("error", "Tanggal pembayaran harus diisi");
-      } else {
-        $(".tbp").removeClass("is-invalid");
-      }
-    }
-  });
+  if ($("#bp-untuk_pembayaran").val() == null) {
+    return swal("error", "Item pembayaran harus diisi");
+  }
+  if ($("#bp-tanggal_bayar").val() == "") {
+    return swal("error", "Tanggal pembayaran harus diisi");
+  }
+  if ($("#bp-nominal").val() == "" || $("#bp-nominal").val() <= 0) {
+    return swal("error", "Nominal pembayaran harus diisi");
+  }
 
-  let sbtn = "#add-form-btn-bayar_produksi";
-  $.ajax({
-    url: base_url + "api/produksi/saveBayarProduksi",
-    type: "post",
-    data:
-      $("#fm-bayar_produksi-prod").serialize() +
-      "&" +
-      csrfName +
-      "=" +
-      csrfHash,
-    dataType: "json",
-    beforeSend: function () {
-      simpanBtn(sbtn, true);
-    },
-    success: function (r) {
-      csrfHash = r.token;
-      if (r.success === true) {
-        swal("success", r.messages);
-        $(".modal").modal("hide");
-        simpanBtn(sbtn, false);
-      } else {
-        swal("error", "Terjadi kesalahan", r.messages);
-        simpanBtn(sbtn, false);
-      }
-      load_kavling();
-      hapus_seleksi();
-    },
-    error: function (r) {
-      Swal.fire({
-        //position: 'bottom-end',
-        icon: "error",
-        title: "terjadi kesalahan",
-        showConfirmButton: false,
-        // timer: 1500
+  Swal.fire({
+    title: "Simpan Data?",
+    text: "",
+    type: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Ya!",
+    confirmButtonClass: "btn btn-primary",
+    cancelButtonClass: "btn btn-danger ml-1",
+    buttonsStyling: !1,
+  }).then(function (t) {
+    if (t.value) {
+      let sbtn = "#add-form-btn-bayar_produksi";
+      $.ajax({
+        url: base_url + "api/produksi/saveBayarProduksi",
+        type: "post",
+        data:
+          $("#fm-bayar_produksi-prod").serialize() +
+          "&" +
+          csrfName +
+          "=" +
+          csrfHash,
+        dataType: "json",
+        beforeSend: function () {
+          simpanBtn(sbtn, true);
+        },
+        success: function (r) {
+          csrfHash = r.token;
+          if (r.success === true) {
+            swal("success", r.messages);
+            simpanBtn(sbtn, false);
+            load_kavling();
+            isi_pembayaran(r.id_kavling);
+          } else {
+            swal("error", "Terjadi kesalahan", r.messages);
+            simpanBtn(sbtn, false);
+          }
+        },
+        error: function () {
+          Swal.fire({
+            icon: "error",
+            title: "terjadi kesalahan",
+            showConfirmButton: false,
+          });
+          simpanBtn(sbtn, false);
+        },
       });
-      simpanBtn(sbtn, false);
-    },
+    }
   });
 }
 

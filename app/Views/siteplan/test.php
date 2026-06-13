@@ -3630,5 +3630,5 @@ foreach (user()->getRoles() as $key => $val) {
         }))
     })), $("#sh-id").change((function() {
         this.value || $(".sh-fm").val("")
-    })), stage.add(siteplan, masked, datal), stage.draw(), fitStageIntoParentContainer(), $(".select2-selection__arrow").removeClass("select2-selection__arrow");
+    })), stage.add(siteplan, masked, datal), stage.draw(), fitStageIntoParentContainer(), $(".select2-selection__arrow").css("pointer-events", "none");
 </script>

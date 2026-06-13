@@ -65,10 +65,10 @@
             left: 0;
             height: 3px;
             width: 100%;
-            background: linear-gradient(90deg, #5B4FCF 0%, #7B6FE0 30%, #F59E0B 70%, #5B4FCF 100%);
+            background: linear-gradient(90deg, var(--sigapp-primary-solid, #2057a3) 0%, var(--sigapp-info, #1f7a8c) 30%, var(--sigapp-warning, #e9c46a) 70%, var(--sigapp-primary-solid, #2057a3) 100%);
             background-size: 200% 100%;
             animation: loading-bar-progress 1.5s infinite linear;
-            box-shadow: 0 1px 10px rgba(91, 79, 207, 0.4);
+            box-shadow: 0 1px 10px rgba(32, 87, 163, 0.35);
         }
 
         @keyframes loading-bar-progress {

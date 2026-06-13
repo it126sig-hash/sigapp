@@ -73,6 +73,10 @@ class Tagihan extends BaseController
         $data['biaya_mkdt'] = $this->formatBiayaMkdt($data['mkdt']);
         $data['tagihan'] =  $this->keuanganService->getTagihanById($id_mkdt);
         $data['total_sudah_bayar'] = $this->keuanganService->getTotalBayarById($id_mkdt);
+        $data['item_sudah_bayar'] = $this->keuanganService->getPaidItemSummaryById($id_mkdt);
+        $data['total_item_sudah_bayar'] = array_sum(array_map(static function ($item) {
+            return (float) ($item['total_nominal'] ?? 0);
+        }, $data['item_sudah_bayar']));
         $data['log_pembayaran'] = $includeLog ? $this->keuanganService->getRiwayatBayarWithDetailById($id_mkdt) : [];
 
         return $this->response->setJSON($data);
@@ -225,6 +229,9 @@ class Tagihan extends BaseController
         if ($statusMkdt === 'Batal') {
             $kons['keterangan'] = trim((string) $this->request->getVar('dt-keterangan_batal'));
         }
+        $perluRefund = $statusMkdt === 'Batal'
+            ? (int) (($this->request->getPost('dt-perlu_refund') ?? $this->request->getPost('dt_perlu_refund') ?? 0) == 1)
+            : 0;
 
         $idKonsumen = $this->request->getPost('id_konsumen') ?: null;
 
@@ -253,6 +260,7 @@ class Tagihan extends BaseController
             'is_subsidi'                => $this->request->getPost('is_subsidi'),
             'booking_fee'               => $this->num($this->request->getPost('dt-booking_fee')),
             'booking_tgl'               => $this->request->getPost('dt-booking_tgl'),
+            'perlu_refund'              => $perluRefund,
             'keuangan_saved_by'         => user_id(),
             'id_kavling'                => $idKavling,
         ];
@@ -351,7 +359,7 @@ class Tagihan extends BaseController
             $pesanNotif = $kons['id_mkdt'] ?
                 ('Melakukan perubahan data konsumen : ' . $kons['nama_konsumen']) : ('Booking kavling atas nama : ' . $kons['nama_konsumen']);
 
-            $this->notif->tambah_notif("3;4;9", $pesanNotif, user_id(), $idKavling, $idKonsumen);
+            $this->notif->tambah_notif("3;4;9", $pesanNotif, user_id(), $idKavling, $idKonsumen, 'mkdt_konsumen');
 
             $db->transComplete();
 

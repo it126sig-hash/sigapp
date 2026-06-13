@@ -32,11 +32,14 @@ class ProduksiService
     public function save(array $var, array $uploadedFiles, int $userId): array
     {
         $idKavling = (int) ($var['id_kavling'] ?? 0);
+        $idProduksi = (int) ($var['id_produksi'] ?? 0);
+        $oldProduksi = $idProduksi > 0 ? (array) ($this->produksiModel->find($idProduksi) ?? []) : [];
 
         // Physical file upload happens before transaction — cannot be rolled back
         $fotoRows = $this->fileService->uploadFotoGroups($uploadedFiles, $var, $idKavling);
 
         $f = $this->buildProduksiData($var, $userId);
+        $historyPayload = $this->buildHistoryPayload($oldProduksi, $f, $var, $fotoRows);
 
         $notif    = 'Melakukan perubahan pada progres pembangunan = ' . ($var['progres_bangunan'] ?? '') . '%';
         $sumurbor = [
@@ -61,8 +64,9 @@ class ProduksiService
             $f['created_at'] = date('Y-m-d H:i:s');
 
             $this->produksiModel->insert($f);
+            $idProduksi = (int) $this->produksiModel->getInsertID();
             $this->kavlingModel->update($idKavling, array_merge($sumurbor, [
-                'id_produksi'      => $this->produksiModel->getInsertID(),
+                'id_produksi'      => $idProduksi,
                 'sumurbor_updated' => date('Y-m-d H:i:s'),
             ]));
         } else {
@@ -71,6 +75,20 @@ class ProduksiService
 
             $this->produksiModel->update($f['id_produksi'], $f);
             $this->kavlingModel->update($idKavling, $sumurbor);
+        }
+
+        if ($this->repo->hasProduksiChangeHistoryTable() && $this->shouldWriteHistory($historyPayload)) {
+            $this->repo->insertProduksiChangeHistory([
+                'id_kavling'  => $idKavling,
+                'id_produksi' => $idProduksi ?: null,
+                'action'      => empty($oldProduksi) ? 'create' : 'update',
+                'summary'     => $historyPayload['summary'],
+                'old_data'    => json_encode($historyPayload['old_data']),
+                'new_data'    => json_encode($historyPayload['new_data']),
+                'files'       => json_encode($historyPayload['files']),
+                'add_by'      => $userId,
+                'created_at'  => date('Y-m-d H:i:s'),
+            ]);
         }
 
         $db->transComplete();
@@ -169,4 +187,77 @@ class ProduksiService
             }
         }
     }
+
+    protected function buildHistoryPayload(array $oldProduksi, array $newProduksi, array $var, array $fotoRows): array
+    {
+        $watchedFields = [
+            'progres_bangunan',
+            'st_0',
+            'st_25',
+            'st_50',
+            'st_75',
+            'st_100',
+            'slo',
+            'bp',
+            'lpa',
+            'lpa_tanggal',
+            'st_jalan',
+            'st_saluran',
+            'st_air',
+            'air_jenis',
+            'listrik_jenis',
+            'listrik_pln',
+            'listrik_disediakan_no',
+            'listrik_disediakan_tanggal',
+            'air_deskripsi_unit',
+            'air_pdam_no',
+            'keterangan',
+            'tanggal_pembangunan',
+            'tanggal_rencana_selesai_pembangunan',
+            'tanggal_selesai_pembangunan',
+        ];
+
+        $oldData = [];
+        $newData = [];
+        foreach ($watchedFields as $field) {
+            $oldValue = $oldProduksi[$field] ?? null;
+            $newValue = $newProduksi[$field] ?? null;
+            if ((string) $oldValue !== (string) $newValue) {
+                $oldData[$field] = $oldValue;
+                $newData[$field] = $newValue;
+            }
+        }
+
+        $fileSummary = array_map(static function (array $row) {
+            return [
+                'kategori'        => $row['kategori'] ?? null,
+                'file_name'       => $row['file_name'] ?? null,
+                'tgl_capture'     => $row['tgl_capture'] ?? null,
+                'file_keterangan' => $row['file_keterangan'] ?? null,
+                'foto_lat'        => $row['foto_lat'] ?? null,
+                'foto_lng'        => $row['foto_lng'] ?? null,
+            ];
+        }, $fotoRows);
+
+        $summaryParts = [];
+        if (!empty($newData)) {
+            $summaryParts[] = count($newData) . ' field diperbarui';
+        }
+        if (!empty($fotoRows)) {
+            $summaryParts[] = count($fotoRows) . ' file/foto diunggah';
+        }
+
+        return [
+            'summary'  => !empty($summaryParts) ? implode(', ', $summaryParts) : 'Data produksi disimpan',
+            'old_data' => $oldData,
+            'new_data' => $newData,
+            'files'    => $fileSummary,
+        ];
+    }
+
+    protected function shouldWriteHistory(array $payload): bool
+    {
+        return !empty($payload['old_data']) || !empty($payload['new_data']) || !empty($payload['files']);
+    }
+
 }

@@ -11,6 +11,7 @@ use CodeIgniter\HTTP\Response;
 use App\Models\ProfilePerusahaanModel;
 use App\Models\RiwayatPencairanJaminanModel;
 use App\Services\FileAccessService;
+use App\Services\DanaJaminanService;
 use App\Services\KeuanganService;
 use Exception;
 
@@ -31,6 +32,7 @@ class Keuangan extends BaseController
     protected $rdajam;
     protected $fileAccessService;
     protected $keuanganService;
+    protected $danaJaminanService;
 
     public function __construct()
     {
@@ -47,33 +49,16 @@ class Keuangan extends BaseController
         $this->mpdf = new Mpdf_lib();
         $this->fileAccessService = new FileAccessService();
         $this->keuanganService = new KeuanganService();
+        $this->danaJaminanService = new DanaJaminanService();
     }
     function getDanaAkad()
     {
-        $r['token'] = csrf_hash();
-        $id_mkdt = $this->request->getVar('id_mkdt');
-        $id_kavling = $this->request->getVar('id_kavling');
-
-        $r['id_mkdt'] = $id_mkdt;
-        $r['id_kavling'] = $id_kavling;
-
-        $r['mkdt'] = $this->db->table('mkdt')
-            ->select('harga_kpr_acc, dajam_selesai')
-            ->where(['id_mkdt' => $id_mkdt])
-            ->get()->getResult()[0];
-
-        $r['list_dajam'] = $this->db->table('list_dajam')
-            ->select('list_dajam.nama_jaminan, list_dajam.id as id_list_dajam_ori, dana_akad.*')
-            ->join('dana_akad', 'dana_akad.id_list_dajam = list_dajam.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
-            ->where('list_dajam.deleted_at', null)
-            // ->where('id_kavling', $id_kavling)
-            ->get()->getResult();
-
-        $r['list_pengajuan'] = $this->fileAccessService->addAccessUrlsToRows(
-            $this->rdajam->where('id_kavling', $id_kavling)->get()->getResult(),
-            'pencairan_jaminan'
+        return $this->response->setJSON(
+            $this->danaJaminanService->getData(
+                (int) $this->request->getVar('id_mkdt'),
+                (int) $this->request->getVar('id_kavling')
+            )
         );
-        return $this->response->setJSON($r);
     }
     function getJatuhTempo()
     {
@@ -224,7 +209,7 @@ class Keuangan extends BaseController
     function saveDanaAkad()
     {
         return $this->response->setJSON(
-            $this->keuanganService->simpanDanaAkad($this->request, user_id())
+            $this->danaJaminanService->saveDanaAkad($this->request, user_id())
         );
     }
     function get_riwayat_gantinama()

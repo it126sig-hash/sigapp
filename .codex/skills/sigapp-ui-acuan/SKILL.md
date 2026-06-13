@@ -1,6 +1,6 @@
 ---
 name: sigapp-ui-acuan
-description: Use this skill when working on SIGAPP UI in CodeIgniter views, Bootstrap modals, tabs, dividers, upload/file previews, or siteplan/admin interfaces. It preserves the project UI baseline: Bootstrap primary blue #2057a3, modal detail as the modal styling reference, divider-left section headers, FileAccessService-backed file URLs, and one-line horizontally scrollable mobile tabs.
+description: "Use this skill when working on SIGAPP UI in CodeIgniter views, Bootstrap modals, tabs, dividers, upload/file previews, or siteplan/admin interfaces. It preserves the project UI baseline: Bootstrap primary blue #2057a3, modal detail as the modal styling reference, divider-left section headers, FileAccessService-backed file URLs, and one-line horizontally scrollable mobile tabs."
 ---
 
 # SIGAPP UI Acuan
