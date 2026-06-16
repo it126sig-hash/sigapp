@@ -32,11 +32,13 @@ class CashoutSubkonService
         $result = $this->repo->getDataTables($var);
         $rows = [];
         $no = (int) ($var['start'] ?? 0);
+        $details = $result['details'] ?? [];
 
         foreach ($result['rows'] as $row) {
             $no++;
             $idKavlings = $this->decodeCsv($row->id_kavlings);
             $selectedKavlings = $this->decodeKavlings($row->kavling_options);
+            $termin = $this->normalizeTerminRows($details[(int) $row->id_cashout_subkon] ?? []);
 
             $payload = htmlspecialchars(json_encode([
                 'id_cashout_subkon' => $row->id_cashout_subkon,
@@ -44,19 +46,20 @@ class CashoutSubkonService
                 'id_kavlings' => $idKavlings,
                 'selected_kavlings' => $selectedKavlings,
             ]), ENT_QUOTES, 'UTF-8');
+            $terminPayload = htmlspecialchars(json_encode($termin), ENT_QUOTES, 'UTF-8');
 
             $rows[] = [
-                '<button type="button" class="btn btn-outline-primary btn-sm btn-edit-cashout-subkon" data-payload="' . $payload . '"><i class="fa fa-edit"></i> Isi</button>',
+                '<div class="d-flex align-items-center" style="gap: 0.5rem;">'
+                    . '<button type="button" class="btn btn-sm btn-outline-secondary btn-cashout-subkon-detail" data-termin="' . $terminPayload . '"><i class="fa fa-chevron-down"></i></button>'
+                    . '<button type="button" class="btn btn-primary btn-sm text-uppercase text-nowrap btn-edit-cashout-subkon" data-payload="' . $payload . '"><i class="fa fa-edit mr-1"></i> Isi Data</button>'
+                    . '</div>',
                 $no,
-                $row->nomor_surat ?: '-',
-                $this->formatDate($row->tanggal_surat),
-                $row->nama_subkon ?: '-',
-                $row->nama_proyek ?: '-',
-                $row->kavling_list ?: '-',
+                '<strong>' . $this->escape($row->nomor_surat ?: '-') . '</strong><br><small class="text-muted">' . $this->formatDate($row->tanggal_surat) . '</small>',
+                $this->escape($row->nama_subkon ?: '-'),
+                $this->escape($row->kavling_list ?: '-'),
                 number_format((float) $row->total_nominal, 0, '.', ','),
+                number_format((float) ($row->total_sudah_cair ?? 0), 0, '.', ','),
                 $this->formatDateList($row->tanggal_jatuh_tempo_list),
-                $this->formatDateList($row->waktu_cair_list),
-                $this->statusBadge((int) ($row->max_detail_status ?? 0), (int) ($row->status ?? 0)),
                 $this->formatDateTime($row->created_at),
             ];
         }
@@ -711,6 +714,32 @@ class CashoutSubkonService
         }
 
         return date('d M Y H:i', strtotime($datetime));
+    }
+
+    private function normalizeTerminRows(array $rows): array
+    {
+        return array_map(function ($row) {
+            return [
+                'id_cashout_subkon_detail' => (int) ($row['id_cashout_subkon_detail'] ?? 0),
+                'berita_acara' => (string) ($row['berita_acara'] ?? ''),
+                'persentase' => (float) ($row['persentase'] ?? 0),
+                'nominal' => (float) ($row['nominal'] ?? 0),
+                'tanggal_jatuh_tempo' => $row['tanggal_jatuh_tempo'] ?? '',
+                'status' => (int) ($row['status'] ?? 0),
+                'spp_no' => (string) ($row['spp_no'] ?? ''),
+                'spp_tgl' => $row['spp_tgl'] ?? '',
+                'pengajuan_cair_tgl' => $row['pengajuan_cair_tgl'] ?? '',
+                'cek_no' => (string) ($row['cek_no'] ?? ''),
+                'cek_tgl' => $row['cek_tgl'] ?? '',
+                'is_paid' => (int) ($row['is_paid'] ?? 0),
+                'keterangan' => (string) ($row['keterangan'] ?? ''),
+            ];
+        }, $rows);
+    }
+
+    private function escape(?string $value): string
+    {
+        return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
     }
 
     private function statusBadge(int $detailStatus, int $mainStatus): string

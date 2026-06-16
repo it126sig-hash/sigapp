@@ -34,7 +34,7 @@ class Hargajual extends BaseController
 		$this->db = db_connect();
 		$this->fileAccessService = new FileAccessService();
 		$this->mkdtHistoryService = new MkdtHistoryService();
-		
+
 		$akses = $this->db->table('modul_akses')->where('user_id', user_id())->get();
 		$hasAccess = false;
 		foreach ($akses->getResult() as $row) {
@@ -48,7 +48,7 @@ class Hargajual extends BaseController
 			echo view('errors/html/unauthorized', $data);
 		die();
 		}
-		
+
 	}
 
 	public function index()
@@ -89,9 +89,9 @@ class Hargajual extends BaseController
 				hargajual.*,
 				proyek.nama_proyek,
 				file_hargajual.lokasi,
-				file_hargajual.file_name,			
-				users.username as uadd_by, 
-				c.username as uedit_by, 
+				file_hargajual.file_name,
+				users.username as uadd_by,
+				c.username as uedit_by,
 				')
 			->join('proyek', 'proyek.id_proyek = hargajual.id_proyek')
 			->join('file_hargajual', 'file_hargajual.id_filehj = hargajual.id_filehj', 'left')
@@ -135,43 +135,50 @@ class Hargajual extends BaseController
 		$no = $var['start'];
 		foreach ($x->getResult() as $key => $value) {
 			$ops = '<div class="btn-group">';
-			$ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id . ')"><i class="fa fa-edit"></i></button>';
+			$ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id . ')" title="Edit"><i class="fa fa-edit"></i></button>';
 			if ($value->is_active) {
-				$ops .= '	<button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="remove(' . $value->id . ', ' . $value->is_active . ')"><i class="fa fa-trash"></i></button>';
+				$ops .= '	<button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="remove(' . $value->id . ', ' . $value->is_active . ')" title="Nonaktifkan"><i class="fa fa-trash"></i></button>';
 			} else {
-				$ops .= '	<button type="button" class="btn btn-outline-success waves-effect btn-sm" onclick="remove(' . $value->id . ', ' . $value->is_active . ')"><i class="fa fa-check"></i></button>';
+				$ops .= '	<button type="button" class="btn btn-outline-success waves-effect btn-sm" onclick="remove(' . $value->id . ', ' . $value->is_active . ')" title="Aktifkan"><i class="fa fa-check"></i></button>';
+			}
+			if (!empty($value->id_filehj)) {
+				$ops .= '	<a target="_blank" href="'.$this->fileAccessService->accessUrl('file_hargajual', (int) $value->id_filehj).'" class="btn btn-outline-info waves-effect btn-sm" title="Lihat Softfile"><i class="fa fa-download"></i></a>';
 			}
 			$ops .= '</div>';
 			$no++;
 
-			$fu = ($value->id_filehj)? "<br><a target=_blank href='".$this->fileAccessService->accessUrl('file_hargajual', (int) $value->id_filehj)."'>klik untuk melihat softfile <a>":'';
+			$dt_tanggal = $this->format_tgl($value->tgl_harga) . "<br><div class='mt-1'>" . $this->is_active($value->is_subsidi, "Subsidi", "Non-Subsidi") . "</div>";
+			$dt_tipe = "<strong>" . $value->id_tipe . "</strong> (" . $value->lb . "/" . $value->lt . ")";
+
+			$dt_harga = "<div class='text-nowrap'>
+				<small class='text-dark font-weight-bold d-block'>Jual: Rp " . number_format((float)$value->hargajual) . "</small>
+				<small class='text-muted d-block'>Net: Rp " . number_format((float)$value->hargajual_net) . "</small>
+				<small class='text-muted d-block'>KPR: Rp " . number_format((float)$value->kpr) . "</small>
+				<small class='text-muted d-block'>UM: Rp " . number_format((float)$value->uang_muka) . "</small>
+			</div>";
+
+			$dt_biaya = "<div class='text-nowrap'>
+				<small class='text-muted d-block'>Admin: Rp " . number_format((float)$value->biaya_adm) . "</small>
+				<small class='text-muted d-block'>BPHTB: Rp " . number_format((float)$value->bphtb) . "</small>
+				<small class='text-muted d-block'>PPn: Rp " . number_format((float)$value->ppn) . "</small>
+				<small class='text-muted d-block'>Proses: Rp " . number_format((float)$value->biaya_proses) . "</small>
+			</div>";
+
+			$dt_ditambah = $value->uadd_by . "<br><small class='text-muted'>" . $this->format_tgl($value->created_at) . "</small>";
+			$dt_diubah = $value->uedit_by . "<br><small class='text-muted'>" . $this->format_tgl($value->updated_at) . "</small>";
 
 			$data['data'][$key] = array(
 				$no,
-				$value->nama_proyek . $fu,
-				$this->format_tgl($value->tgl_harga),
-				$value->row,
-				$value->id_tipe,
-				$value->lb,
-				$value->lt,
-				number_format($value->hargajual),
-				number_format($value->hargajual_net),
-				number_format($value->kpr),
-				number_format($value->uang_muka),
-				number_format($value->biaya_adm),
-				number_format($value->bphtb),
-				number_format($value->ppn),
-
-				number_format($value->biaya_proses),
-				// number_format($value->uang_muka + $value->bphtb + $value->biaya_adm + $value->biaya_proses),
-				$this->is_active($value->is_subsidi, "Subsidi", "Non-Subsidi"),
-				$value->keterangan,
-				$this->is_active($value->is_active, "Akktif", "Tidak Aktif"),
-				$value->uadd_by,
-				$this->format_tgl($value->created_at),
-				$value->uedit_by,
-				$this->format_tgl($value->updated_at),
 				$ops,
+				$dt_tanggal,
+				$value->row,
+				$dt_tipe,
+				$dt_harga,
+				$dt_biaya,
+				$value->keterangan,
+				$this->is_active($value->is_active, "Aktif", "Tidak Aktif"),
+				$dt_ditambah,
+				$dt_diubah,
 			);
 		}
 		return $this->response->setJSON($data);
@@ -272,8 +279,8 @@ class Hargajual extends BaseController
 			->select('
 				hargajual.*,
 				proyek.nama_proyek,
-				users.username as uadd_by, 
-				c.username as uedit_by, 
+				users.username as uadd_by,
+				c.username as uedit_by,
 				fhj.lokasi,
 				fhj.file_name
 			')

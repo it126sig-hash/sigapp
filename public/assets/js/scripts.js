@@ -813,6 +813,30 @@ function snoozeNotificationUrgent(event, key, minutes) {
   });
 }
 
+function goToNotificationUrgentAction(item) {
+  if (item && item.action_url) {
+    window.location.href = item.action_url;
+    return true;
+  }
+
+  if (item && item.id_proyek) {
+    const params = new URLSearchParams({
+      urgent_action: item.action_target || item.type || "detail",
+      id_kavling: item.id_kavling || "",
+    });
+    if (item.id_mkdt) params.set("id_mkdt", item.id_mkdt);
+    if (item.id_keuangan) params.set("id_keuangan", item.id_keuangan);
+    if (item.id_cashout_subkon) params.set("id_cashout_subkon", item.id_cashout_subkon);
+    if (item.id_cashout_subkon_detail) {
+      params.set("id_cashout_subkon_detail", item.id_cashout_subkon_detail);
+    }
+    window.location.href = base_url + "siteplan/view_siteplan/" + item.id_proyek + "?" + params.toString();
+    return true;
+  }
+
+  return false;
+}
+
 function openNotificationUrgentItem(key) {
   const item = notificationCenterUrgentItems[key];
   if (!item) {
@@ -823,6 +847,7 @@ function openNotificationUrgentItem(key) {
     return openCOSubkon({
       id_proyek: item.id_proyek || notificationProjectId(),
       id_cashout_subkon: item.id_cashout_subkon,
+      id_cashout_subkon_detail: item.id_cashout_subkon_detail,
       id_kavlings: [String(item.id_kavling)],
       selected_kavlings: [
         {
@@ -835,6 +860,9 @@ function openNotificationUrgentItem(key) {
   }
 
   if (item.type === "tagihan") {
+    if (typeof openSiteplanKeuanganFromUrgent === "function") {
+      return openSiteplanKeuanganFromUrgent(item);
+    }
     if (typeof openSiteplanKeuanganFromNotification === "function") {
       return openSiteplanKeuanganFromNotification(item.id_kavling);
     }
@@ -845,6 +873,10 @@ function openNotificationUrgentItem(key) {
 
   if (typeof openSiteplanKavlingFromNotification === "function") {
     return openSiteplanKavlingFromNotification(item.id_kavling);
+  }
+
+  if (goToNotificationUrgentAction(item)) {
+    return;
   }
 
   if (typeof view_detail === "function") {

@@ -15,6 +15,8 @@ use App\Models\ProyekModel;
 
 use App\Controllers\Notif;
 use App\Services\PosisiKonsumenService;
+use App\Repositories\KeuanganRepository;
+use App\Controllers\Home;
 
 class PosisiKonsumen extends BaseController
 {
@@ -30,6 +32,7 @@ class PosisiKonsumen extends BaseController
     protected $posisiKonsumenService;
     protected $printService;
     protected $proyekModel;
+    protected $hakAkses;
 
 
     protected $siModel;
@@ -47,6 +50,7 @@ class PosisiKonsumen extends BaseController
         $this->lpModel = new LogPembayaranModel();
         $this->proyekModel = new ProyekModel();
         $this->siModel = new ChecklistSubItemModel();
+        $this->hakAkses = new Home();
 
         $this->db = db_connect();
         $this->username = $this->db->table('users')->select('username')->get()->getRow();
@@ -95,9 +99,59 @@ class PosisiKonsumen extends BaseController
         }
         $data['data']['controller'] = 'PosisiKonsumen';
         $data['data']['title'] = 'Posisi Konsumen ' . $status;
-        //ambil data proyek 
         $data['data']['proyek'] = $this->proyekModel->first();
+        $data['data']['li_keu'] = json_encode((new KeuanganRepository())->getLIKeu());
+        $data['data']['conf'] = json_encode($this->getConfigShapeMap());
+
+        $hasAkses = [
+            'proyek' => false,
+            'legal'  => false,
+        ];
+        $proyek = $data['data']['proyek'];
+        if ($proyek && in_groups(['1', '7', '8'])) {
+            $userId = (int) user_id();
+            $hasAkses['proyek'] = $this->userHasProjectAccess($proyek, $userId);
+            $tanggalPembangunanAkses = $this->hakAkses->getHak($userId);
+            $hasUpdateAccess = array_values(array_filter($tanggalPembangunanAkses, static function ($item) {
+                return ($item->nama_akses ?? '') === 'update_tanggal_pembangunan';
+            }));
+            $hasAkses['update_tanggal_pembangunan'] = count($hasUpdateAccess) > 0;
+        } elseif ($proyek && in_groups(['5'])) {
+            $hasAkses['legal'] = $this->userHasProjectAccess($proyek, (int) user_id());
+        }
+        $data['data']['has_akses'] = $hasAkses;
+
         return view('template', $data);
+    }
+
+    private function getConfigShapeMap(): array
+    {
+        $map = [];
+        $rows = $this->db->table('config_shape')->get()->getResult();
+        foreach ($rows as $row) {
+            if (!isset($row->config_name)) {
+                continue;
+            }
+            $map[$row->config_name] = [
+                'fill'        => $row->fill ?? null,
+                'stroke'      => $row->stroke ?? null,
+                'strokeWidth' => $row->strokeWidth ?? null,
+                'dashed'      => $row->dashed ?? null,
+                'keterangan'  => $row->keterangan ?? null,
+            ];
+        }
+
+        return $map;
+    }
+
+    private function userHasProjectAccess($proyek, int $userId): bool
+    {
+        if (!$proyek || !isset($proyek->id_users) || $proyek->id_users === null || $proyek->id_users === '') {
+            return false;
+        }
+
+        $allowedUserIds = array_filter(array_map('trim', explode(',', (string) $proyek->id_users)));
+        return in_array((string) $userId, $allowedUserIds, true);
     }
     function getDataTables($status = null)
     {

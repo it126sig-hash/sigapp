@@ -35,18 +35,27 @@ class ProyekRepository
 
     public function getAccessibleForUser(int $userId, bool $isAdmin): array
     {
-        $builder = $this->db->table('proyek')
+        $rows = $this->db->table('proyek')
             ->select('id_proyek, nama_proyek, alamat_proyek, logo, id_users')
-            ->orderBy('order_by', 'asc');
+            ->orderBy('order_by', 'asc')
+            ->get()
+            ->getResult();
 
-        if (!$isAdmin) {
-            $builder
-                ->where('id_users IS NOT NULL')
-                ->where("id_users != ''")
-                ->where("FIND_IN_SET({$userId}, id_users) > 0", null, false);
+        if ($isAdmin) {
+            return $rows;
         }
 
-        return $builder->get()->getResult();
+        $userIdStr = (string) (int) $userId;
+
+        return array_values(array_filter($rows, static function ($row) use ($userIdStr) {
+            if (! isset($row->id_users) || $row->id_users === null || trim((string) $row->id_users) === '') {
+                return false;
+            }
+
+            $allowedUserIds = array_filter(array_map('trim', explode(',', (string) $row->id_users)));
+
+            return in_array($userIdStr, $allowedUserIds, true);
+        }));
     }
 
     public function getSiteplanUploads(int $idProyek): array

@@ -1939,10 +1939,19 @@
       "norm_label": ".getmenubtn()"
     },
     {
+      "label": ".getMenuItemsJson()",
+      "file_type": "code",
+      "source_file": "app/Controllers/Home.php",
+      "source_location": "L446",
+      "id": "controllers_home_home_getmenuitemsjson",
+      "community": 349,
+      "norm_label": ".getmenuitemsjson()"
+    },
+    {
       "label": ".getKop()",
       "file_type": "code",
       "source_file": "app/Controllers/Home.php",
-      "source_location": "L445",
+      "source_location": "L459",
       "id": "controllers_home_home_getkop",
       "community": 349,
       "norm_label": ".getkop()"
@@ -1951,7 +1960,7 @@
       "label": ".getHak()",
       "file_type": "code",
       "source_file": "app/Controllers/Home.php",
-      "source_location": "L460",
+      "source_location": "L474",
       "id": "controllers_home_home_gethak",
       "community": 349,
       "norm_label": ".gethak()"
@@ -3652,7 +3661,7 @@
       "label": "PosisiKonsumen",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L19",
+      "source_location": "L21",
       "id": "controllers_posisikonsumen_posisikonsumen",
       "community": 445,
       "norm_label": "posisikonsumen"
@@ -3661,7 +3670,7 @@
       "label": ".__construct()",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L37",
+      "source_location": "L40",
       "id": "controllers_posisikonsumen_posisikonsumen_construct",
       "community": 445,
       "norm_label": ".__construct()"
@@ -3670,16 +3679,34 @@
       "label": ".index()",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L54",
+      "source_location": "L58",
       "id": "controllers_posisikonsumen_posisikonsumen_index",
       "community": 445,
       "norm_label": ".index()"
     },
     {
+      "label": ".getConfigShapeMap()",
+      "file_type": "code",
+      "source_file": "app/Controllers/PosisiKonsumen.php",
+      "source_location": "L127",
+      "id": "controllers_posisikonsumen_posisikonsumen_getconfigshapemap",
+      "community": 445,
+      "norm_label": ".getconfigshapemap()"
+    },
+    {
+      "label": ".userHasProjectAccess()",
+      "file_type": "code",
+      "source_file": "app/Controllers/PosisiKonsumen.php",
+      "source_location": "L147",
+      "id": "controllers_posisikonsumen_posisikonsumen_userhasprojectaccess",
+      "community": 445,
+      "norm_label": ".userhasprojectaccess()"
+    },
+    {
       "label": ".getDataTables()",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L102",
+      "source_location": "L156",
       "id": "controllers_posisikonsumen_posisikonsumen_getdatatables",
       "community": 445,
       "norm_label": ".getdatatables()"
@@ -3688,7 +3715,7 @@
       "label": ".getDataTablesAkad()",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L109",
+      "source_location": "L163",
       "id": "controllers_posisikonsumen_posisikonsumen_getdatatablesakad",
       "community": 445,
       "norm_label": ".getdatatablesakad()"
@@ -3697,7 +3724,7 @@
       "label": ".getDataTablesBatal()",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L116",
+      "source_location": "L170",
       "id": "controllers_posisikonsumen_posisikonsumen_getdatatablesbatal",
       "community": 445,
       "norm_label": ".getdatatablesbatal()"
@@ -3706,7 +3733,7 @@
       "label": ".num()",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L124",
+      "source_location": "L178",
       "id": "controllers_posisikonsumen_posisikonsumen_num",
       "community": 445,
       "norm_label": ".num()"
@@ -3715,7 +3742,7 @@
       "label": ".format_tgl()",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L131",
+      "source_location": "L185",
       "id": "controllers_posisikonsumen_posisikonsumen_format_tgl",
       "community": 445,
       "norm_label": ".format_tgl()"
@@ -3724,7 +3751,7 @@
       "label": ".is_active()",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L138",
+      "source_location": "L192",
       "id": "controllers_posisikonsumen_posisikonsumen_is_active",
       "community": 445,
       "norm_label": ".is_active()"
@@ -3733,7 +3760,7 @@
       "label": ".exportPoskon()",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L149",
+      "source_location": "L203",
       "id": "controllers_posisikonsumen_posisikonsumen_exportposkon",
       "community": 445,
       "norm_label": ".exportposkon()"
@@ -3742,7 +3769,7 @@
       "label": ".exportPoskonPdf()",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L182",
+      "source_location": "L236",
       "id": "controllers_posisikonsumen_posisikonsumen_exportposkonpdf",
       "community": 445,
       "norm_label": ".exportposkonpdf()"
@@ -3751,7 +3778,7 @@
       "label": ".exportPoskonXlsx()",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L212",
+      "source_location": "L266",
       "id": "controllers_posisikonsumen_posisikonsumen_exportposkonxlsx",
       "community": 445,
       "norm_label": ".exportposkonxlsx()"
@@ -3760,7 +3787,7 @@
       "label": ".getRiwayatExport()",
       "file_type": "code",
       "source_file": "app/Controllers/PosisiKonsumen.php",
-      "source_location": "L242",
+      "source_location": "L296",
       "id": "controllers_posisikonsumen_posisikonsumen_getriwayatexport",
       "community": 445,
       "norm_label": ".getriwayatexport()"
@@ -4095,7 +4122,7 @@
       "source_file": "app/Controllers/Promo.php",
       "source_location": "L125",
       "id": "controllers_promo_promo_getall",
-      "community": 364,
+      "community": 873,
       "norm_label": ".getall()"
     },
     {
@@ -4972,10 +4999,19 @@
       "norm_label": ".getlisttagihangrouped()"
     },
     {
+      "label": ".getListTagihanDetail()",
+      "file_type": "code",
+      "source_file": "app/Controllers/Tagihan.php",
+      "source_location": "L411",
+      "id": "controllers_tagihan_tagihan_getlisttagihandetail",
+      "community": 379,
+      "norm_label": ".getlisttagihandetail()"
+    },
+    {
       "label": ".riwayatBayarIndex()",
       "file_type": "code",
       "source_file": "app/Controllers/Tagihan.php",
-      "source_location": "L413",
+      "source_location": "L433",
       "id": "controllers_tagihan_tagihan_riwayatbayarindex",
       "community": 379,
       "norm_label": ".riwayatbayarindex()"
@@ -4984,7 +5020,7 @@
       "label": ".getRiwayatBayar()",
       "file_type": "code",
       "source_file": "app/Controllers/Tagihan.php",
-      "source_location": "L421",
+      "source_location": "L441",
       "id": "controllers_tagihan_tagihan_getriwayatbayar",
       "community": 67,
       "norm_label": ".getriwayatbayar()"
@@ -4993,7 +5029,7 @@
       "label": ".getAllJatuhTempo()",
       "file_type": "code",
       "source_file": "app/Controllers/Tagihan.php",
-      "source_location": "L430",
+      "source_location": "L450",
       "id": "controllers_tagihan_tagihan_getalljatuhtempo",
       "community": 873,
       "norm_label": ".getalljatuhtempo()"
@@ -5002,7 +5038,7 @@
       "label": ".num()",
       "file_type": "code",
       "source_file": "app/Controllers/Tagihan.php",
-      "source_location": "L436",
+      "source_location": "L456",
       "id": "controllers_tagihan_tagihan_num",
       "community": 379,
       "norm_label": ".num()"
@@ -8325,7 +8361,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L1",
       "id": "app_libraries_refactor_execution_controllerrefactorer_php",
-      "community": 1048,
+      "community": 60,
       "norm_label": "controllerrefactorer.php"
     },
     {
@@ -8334,7 +8370,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L25",
       "id": "execution_controllerrefactorer_controllerrefactorer",
-      "community": 1048,
+      "community": 60,
       "norm_label": "controllerrefactorer"
     },
     {
@@ -8343,7 +8379,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L49",
       "id": "execution_controllerrefactorer_controllerrefactorer_construct",
-      "community": 1048,
+      "community": 60,
       "norm_label": ".__construct()"
     },
     {
@@ -8352,7 +8388,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L67",
       "id": "execution_controllerrefactorer_controllerrefactorer_refactor",
-      "community": 1048,
+      "community": 60,
       "norm_label": ".refactor()"
     },
     {
@@ -8361,7 +8397,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L150",
       "id": "execution_controllerrefactorer_controllerrefactorer_injectservice",
-      "community": 1048,
+      "community": 60,
       "norm_label": ".injectservice()"
     },
     {
@@ -8370,7 +8406,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L194",
       "id": "execution_controllerrefactorer_controllerrefactorer_injectserviceinconstructor",
-      "community": 1048,
+      "community": 60,
       "norm_label": ".injectserviceinconstructor()"
     },
     {
@@ -8379,7 +8415,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L262",
       "id": "execution_controllerrefactorer_controllerrefactorer_replacebusinesslogicwithservicecalls",
-      "community": 1048,
+      "community": 60,
       "norm_label": ".replacebusinesslogicwithservicecalls()"
     },
     {
@@ -8388,7 +8424,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L292",
       "id": "execution_controllerrefactorer_controllerrefactorer_addrefactoringtodos",
-      "community": 1048,
+      "community": 60,
       "norm_label": ".addrefactoringtodos()"
     },
     {
@@ -8397,7 +8433,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L350",
       "id": "execution_controllerrefactorer_controllerrefactorer_adderrorhandling",
-      "community": 1048,
+      "community": 60,
       "norm_label": ".adderrorhandling()"
     },
     {
@@ -8406,7 +8442,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L386",
       "id": "execution_controllerrefactorer_controllerrefactorer_splitwebandapi",
-      "community": 1048,
+      "community": 60,
       "norm_label": ".splitwebandapi()"
     },
     {
@@ -8415,7 +8451,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L398",
       "id": "execution_controllerrefactorer_controllerrefactorer_getwebcontrollerpath",
-      "community": 1048,
+      "community": 60,
       "norm_label": ".getwebcontrollerpath()"
     },
     {
@@ -8424,7 +8460,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L411",
       "id": "execution_controllerrefactorer_controllerrefactorer_getapicontrollerpath",
-      "community": 1048,
+      "community": 60,
       "norm_label": ".getapicontrollerpath()"
     },
     {
@@ -8433,7 +8469,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L426",
       "id": "execution_controllerrefactorer_controllerrefactorer_writecontroller",
-      "community": 1048,
+      "community": 60,
       "norm_label": ".writecontroller()"
     },
     {
@@ -8442,7 +8478,7 @@
       "source_file": "app/Libraries/Refactor/Execution/ControllerRefactorer.php",
       "source_location": "L446",
       "id": "execution_controllerrefactorer_controllerrefactorer_validatecontroller",
-      "community": 1048,
+      "community": 60,
       "norm_label": ".validatecontroller()"
     },
     {
@@ -8892,7 +8928,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L1",
       "id": "app_libraries_refactor_execution_securityfixer_php",
-      "community": 17,
+      "community": 1049,
       "norm_label": "securityfixer.php"
     },
     {
@@ -8901,7 +8937,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L23",
       "id": "execution_securityfixer_securityfixer",
-      "community": 17,
+      "community": 1049,
       "norm_label": "securityfixer"
     },
     {
@@ -8910,7 +8946,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L47",
       "id": "execution_securityfixer_securityfixer_construct",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".__construct()"
     },
     {
@@ -8919,7 +8955,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L67",
       "id": "execution_securityfixer_securityfixer_fix",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".fix()"
     },
     {
@@ -8928,7 +8964,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L144",
       "id": "execution_securityfixer_securityfixer_applyfix",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".applyfix()"
     },
     {
@@ -8937,7 +8973,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L166",
       "id": "execution_securityfixer_securityfixer_addcsrfprotection",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".addcsrfprotection()"
     },
     {
@@ -8946,7 +8982,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L204",
       "id": "execution_securityfixer_securityfixer_addinputvalidation",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".addinputvalidation()"
     },
     {
@@ -8955,7 +8991,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L244",
       "id": "execution_securityfixer_securityfixer_addoutputescaping",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".addoutputescaping()"
     },
     {
@@ -8964,7 +9000,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L307",
       "id": "execution_securityfixer_securityfixer_replacerawquerywithquerybuilder",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".replacerawquerywithquerybuilder()"
     },
     {
@@ -8973,7 +9009,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L390",
       "id": "execution_securityfixer_securityfixer_addauthenticationcheck",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".addauthenticationcheck()"
     },
     {
@@ -8982,7 +9018,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L453",
       "id": "execution_securityfixer_securityfixer_addauthorizationcheck",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".addauthorizationcheck()"
     },
     {
@@ -8991,7 +9027,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L490",
       "id": "execution_securityfixer_securityfixer_addfileuploadvalidation",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".addfileuploadvalidation()"
     },
     {
@@ -9000,7 +9036,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L538",
       "id": "execution_securityfixer_securityfixer_collectfilepaths",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".collectfilepaths()"
     },
     {
@@ -9009,7 +9045,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L555",
       "id": "execution_securityfixer_securityfixer_groupvulnerabilitiesbyfile",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".groupvulnerabilitiesbyfile()"
     },
     {
@@ -9018,7 +9054,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L577",
       "id": "execution_securityfixer_securityfixer_getfixedvulnerabilitytypes",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".getfixedvulnerabilitytypes()"
     },
     {
@@ -9027,7 +9063,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L594",
       "id": "execution_securityfixer_securityfixer_infervalidationrule",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".infervalidationrule()"
     },
     {
@@ -9036,7 +9072,7 @@
       "source_file": "app/Libraries/Refactor/Execution/SecurityFixer.php",
       "source_location": "L631",
       "id": "execution_securityfixer_securityfixer_generateauthcheckmethod",
-      "community": 17,
+      "community": 1049,
       "norm_label": ".generateauthcheckmethod()"
     },
     {
@@ -11016,7 +11052,7 @@
       "source_file": "app/Libraries/Refactor/Models/RefactorResult.php",
       "source_location": "L1",
       "id": "app_libraries_refactor_models_refactorresult_php",
-      "community": 1049,
+      "community": 175,
       "norm_label": "refactorresult.php"
     },
     {
@@ -11025,7 +11061,7 @@
       "source_file": "app/Libraries/Refactor/Models/RefactorResult.php",
       "source_location": "L14",
       "id": "models_refactorresult_refactorresult",
-      "community": 1049,
+      "community": 175,
       "norm_label": "refactorresult"
     },
     {
@@ -11034,7 +11070,7 @@
       "source_file": "app/Libraries/Refactor/Models/RefactorResult.php",
       "source_location": "L62",
       "id": "models_refactorresult_refactorresult_construct",
-      "community": 1049,
+      "community": 175,
       "norm_label": ".__construct()"
     },
     {
@@ -11043,7 +11079,7 @@
       "source_file": "app/Libraries/Refactor/Models/RefactorResult.php",
       "source_location": "L73",
       "id": "models_refactorresult_refactorresult_success",
-      "community": 1049,
+      "community": 175,
       "norm_label": ".success()"
     },
     {
@@ -11052,7 +11088,7 @@
       "source_file": "app/Libraries/Refactor/Models/RefactorResult.php",
       "source_location": "L84",
       "id": "models_refactorresult_refactorresult_failure",
-      "community": 1049,
+      "community": 175,
       "norm_label": ".failure()"
     },
     {
@@ -11061,7 +11097,7 @@
       "source_file": "app/Libraries/Refactor/Models/RefactorResult.php",
       "source_location": "L98",
       "id": "models_refactorresult_refactorresult_addcreatedfile",
-      "community": 1049,
+      "community": 175,
       "norm_label": ".addcreatedfile()"
     },
     {
@@ -11070,7 +11106,7 @@
       "source_file": "app/Libraries/Refactor/Models/RefactorResult.php",
       "source_location": "L109",
       "id": "models_refactorresult_refactorresult_addmodifiedfile",
-      "community": 1049,
+      "community": 175,
       "norm_label": ".addmodifiedfile()"
     },
     {
@@ -11079,7 +11115,7 @@
       "source_file": "app/Libraries/Refactor/Models/RefactorResult.php",
       "source_location": "L120",
       "id": "models_refactorresult_refactorresult_addcompletedstep",
-      "community": 1049,
+      "community": 175,
       "norm_label": ".addcompletedstep()"
     },
     {
@@ -11088,7 +11124,7 @@
       "source_file": "app/Libraries/Refactor/Models/RefactorResult.php",
       "source_location": "L130",
       "id": "models_refactorresult_refactorresult_gettotalfilesaffected",
-      "community": 1049,
+      "community": 175,
       "norm_label": ".gettotalfilesaffected()"
     },
     {
@@ -11097,7 +11133,7 @@
       "source_file": "app/Libraries/Refactor/Models/RefactorResult.php",
       "source_location": "L140",
       "id": "models_refactorresult_refactorresult_tomarkdown",
-      "community": 1049,
+      "community": 175,
       "norm_label": ".tomarkdown()"
     },
     {
@@ -11106,7 +11142,7 @@
       "source_file": "app/Libraries/Refactor/Models/RefactorResult.php",
       "source_location": "L198",
       "id": "models_refactorresult_refactorresult_toarray",
-      "community": 1049,
+      "community": 175,
       "norm_label": ".toarray()"
     },
     {
@@ -13405,10 +13441,19 @@
       "norm_label": ".getbelumlunasgroupedquery()"
     },
     {
+      "label": ".getListTagihanDetailById()",
+      "file_type": "code",
+      "source_file": "app/Repositories/KeuanganRepository.php",
+      "source_location": "L262",
+      "id": "repositories_keuanganrepository_keuanganrepository_getlisttagihandetailbyid",
+      "community": 441,
+      "norm_label": ".getlisttagihandetailbyid()"
+    },
+    {
       "label": ".getTagihanOnlyByID()",
       "file_type": "code",
       "source_file": "app/Repositories/KeuanganRepository.php",
-      "source_location": "L240",
+      "source_location": "L278",
       "id": "repositories_keuanganrepository_keuanganrepository_gettagihanonlybyid",
       "community": 441,
       "norm_label": ".gettagihanonlybyid()"
@@ -14524,7 +14569,7 @@
       "label": ".countDataTables()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L82",
+      "source_location": "L86",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_countdatatables",
       "community": 24,
       "norm_label": ".countdatatables()"
@@ -14533,16 +14578,25 @@
       "label": ".dataTablesBaseQuery()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L87",
+      "source_location": "L91",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_datatablesbasequery",
       "community": 24,
       "norm_label": ".datatablesbasequery()"
     },
     {
+      "label": ".getDetailsByCashoutSubkonIds()",
+      "file_type": "code",
+      "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
+      "source_location": "L154",
+      "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getdetailsbycashoutsubkonids",
+      "community": 24,
+      "norm_label": ".getdetailsbycashoutsubkonids()"
+    },
+    {
       "label": ".getListCashoutKavling()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L137",
+      "source_location": "L192",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getlistcashoutkavling",
       "community": 24,
       "norm_label": ".getlistcashoutkavling()"
@@ -14551,7 +14605,7 @@
       "label": ".getCashoutSubkonByID()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L145",
+      "source_location": "L200",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getcashoutsubkonbyid",
       "community": 24,
       "norm_label": ".getcashoutsubkonbyid()"
@@ -14560,7 +14614,7 @@
       "label": ".getKavlingSubkonByID()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L150",
+      "source_location": "L205",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getkavlingsubkonbyid",
       "community": 24,
       "norm_label": ".getkavlingsubkonbyid()"
@@ -14569,7 +14623,7 @@
       "label": ".getListItemDetailByIDCashoutsubkon()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L155",
+      "source_location": "L210",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getlistitemdetailbyidcashoutsubkon",
       "community": 24,
       "norm_label": ".getlistitemdetailbyidcashoutsubkon()"
@@ -14578,7 +14632,7 @@
       "label": ".upsertSubkon()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L162",
+      "source_location": "L217",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_upsertsubkon",
       "community": 24,
       "norm_label": ".upsertsubkon()"
@@ -14587,7 +14641,7 @@
       "label": ".saveCashoutSubkon()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L177",
+      "source_location": "L232",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_savecashoutsubkon",
       "community": 24,
       "norm_label": ".savecashoutsubkon()"
@@ -14596,7 +14650,7 @@
       "label": ".saveCashoutSubkonDetail()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L207",
+      "source_location": "L262",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_savecashoutsubkondetail",
       "community": 24,
       "norm_label": ".savecashoutsubkondetail()"
@@ -14605,7 +14659,7 @@
       "label": ".getKavlingBySubkonId()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L235",
+      "source_location": "L290",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getkavlingbysubkonid",
       "community": 24,
       "norm_label": ".getkavlingbysubkonid()"
@@ -14614,7 +14668,7 @@
       "label": ".getDetailByID()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L244",
+      "source_location": "L299",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getdetailbyid",
       "community": 24,
       "norm_label": ".getdetailbyid()"
@@ -14623,7 +14677,7 @@
       "label": ".updateDetail()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L249",
+      "source_location": "L304",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_updatedetail",
       "community": 24,
       "norm_label": ".updatedetail()"
@@ -14632,7 +14686,7 @@
       "label": ".saveHistory()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L254",
+      "source_location": "L309",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_savehistory",
       "community": 24,
       "norm_label": ".savehistory()"
@@ -14641,7 +14695,7 @@
       "label": ".getDetailByCashoutSubkonID()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L265",
+      "source_location": "L320",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getdetailbycashoutsubkonid",
       "community": 24,
       "norm_label": ".getdetailbycashoutsubkonid()"
@@ -14650,7 +14704,7 @@
       "label": ".syncAutomaticDetailAllocations()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L272",
+      "source_location": "L327",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_syncautomaticdetailallocations",
       "community": 24,
       "norm_label": ".syncautomaticdetailallocations()"
@@ -14659,7 +14713,7 @@
       "label": ".getAllocationsByDetailID()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L306",
+      "source_location": "L361",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getallocationsbydetailid",
       "community": 24,
       "norm_label": ".getallocationsbydetailid()"
@@ -14668,7 +14722,7 @@
       "label": ".updateCashoutSubkonStatus()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L318",
+      "source_location": "L373",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_updatecashoutsubkonstatus",
       "community": 24,
       "norm_label": ".updatecashoutsubkonstatus()"
@@ -14677,7 +14731,7 @@
       "label": ".saveCashoutSubkonKavling()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L323",
+      "source_location": "L378",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_savecashoutsubkonkavling",
       "community": 24,
       "norm_label": ".savecashoutsubkonkavling()"
@@ -14686,7 +14740,7 @@
       "label": ".getHistoryByIDCashoutSubkon()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L333",
+      "source_location": "L388",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_gethistorybyidcashoutsubkon",
       "community": 24,
       "norm_label": ".gethistorybyidcashoutsubkon()"
@@ -14695,7 +14749,7 @@
       "label": ".buildEqualAllocationRows()",
       "file_type": "code",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
-      "source_location": "L343",
+      "source_location": "L398",
       "id": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_buildequalallocationrows",
       "community": 24,
       "norm_label": ".buildequalallocationrows()"
@@ -15100,7 +15154,7 @@
       "label": ".__construct()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L41",
+      "source_location": "L42",
       "id": "services_fileaccessservice_fileaccessservice_construct",
       "community": 178,
       "norm_label": ".__construct()"
@@ -15109,7 +15163,7 @@
       "label": ".store()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L46",
+      "source_location": "L47",
       "id": "services_fileaccessservice_fileaccessservice_store",
       "community": 178,
       "norm_label": ".store()"
@@ -15118,7 +15172,7 @@
       "label": ".storeAs()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L61",
+      "source_location": "L62",
       "id": "services_fileaccessservice_fileaccessservice_storeas",
       "community": 178,
       "norm_label": ".storeas()"
@@ -15127,7 +15181,7 @@
       "label": ".privatePath()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L75",
+      "source_location": "L76",
       "id": "services_fileaccessservice_fileaccessservice_privatepath",
       "community": 178,
       "norm_label": ".privatepath()"
@@ -15136,7 +15190,7 @@
       "label": ".existingPath()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L81",
+      "source_location": "L82",
       "id": "services_fileaccessservice_fileaccessservice_existingpath",
       "community": 178,
       "norm_label": ".existingpath()"
@@ -15145,7 +15199,7 @@
       "label": ".accessUrl()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L90",
+      "source_location": "L91",
       "id": "services_fileaccessservice_fileaccessservice_accessurl",
       "community": 178,
       "norm_label": ".accessurl()"
@@ -15154,7 +15208,7 @@
       "label": ".thumbnailUrl()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L96",
+      "source_location": "L97",
       "id": "services_fileaccessservice_fileaccessservice_thumbnailurl",
       "community": 178,
       "norm_label": ".thumbnailurl()"
@@ -15163,7 +15217,7 @@
       "label": ".pathUrl()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L101",
+      "source_location": "L102",
       "id": "services_fileaccessservice_fileaccessservice_pathurl",
       "community": 178,
       "norm_label": ".pathurl()"
@@ -15172,7 +15226,7 @@
       "label": ".resolve()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L108",
+      "source_location": "L109",
       "id": "services_fileaccessservice_fileaccessservice_resolve",
       "community": 178,
       "norm_label": ".resolve()"
@@ -15181,7 +15235,7 @@
       "label": ".resolvePath()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L115",
+      "source_location": "L116",
       "id": "services_fileaccessservice_fileaccessservice_resolvepath",
       "community": 178,
       "norm_label": ".resolvepath()"
@@ -15190,7 +15244,7 @@
       "label": ".resolveFile()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L128",
+      "source_location": "L129",
       "id": "services_fileaccessservice_fileaccessservice_resolvefile",
       "community": 178,
       "norm_label": ".resolvefile()"
@@ -15199,7 +15253,7 @@
       "label": ".normalizeLogicalPath()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L145",
+      "source_location": "L146",
       "id": "services_fileaccessservice_fileaccessservice_normalizelogicalpath",
       "community": 178,
       "norm_label": ".normalizelogicalpath()"
@@ -15208,7 +15262,7 @@
       "label": ".migratePublicFile()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L160",
+      "source_location": "L161",
       "id": "services_fileaccessservice_fileaccessservice_migratepublicfile",
       "community": 178,
       "norm_label": ".migratepublicfile()"
@@ -15217,7 +15271,7 @@
       "label": ".addAccessUrlsToRows()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L178",
+      "source_location": "L179",
       "id": "services_fileaccessservice_fileaccessservice_addaccessurlstorows",
       "community": 178,
       "norm_label": ".addaccessurlstorows()"
@@ -15226,7 +15280,7 @@
       "label": ".pathUrlsFromDelimitedString()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L204",
+      "source_location": "L205",
       "id": "services_fileaccessservice_fileaccessservice_pathurlsfromdelimitedstring",
       "community": 178,
       "norm_label": ".pathurlsfromdelimitedstring()"
@@ -15235,7 +15289,7 @@
       "label": ".resolveMetadata()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L223",
+      "source_location": "L224",
       "id": "services_fileaccessservice_fileaccessservice_resolvemetadata",
       "community": 178,
       "norm_label": ".resolvemetadata()"
@@ -15244,7 +15298,7 @@
       "label": ".fileMeta()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L318",
+      "source_location": "L319",
       "id": "services_fileaccessservice_fileaccessservice_filemeta",
       "community": 178,
       "norm_label": ".filemeta()"
@@ -15253,7 +15307,7 @@
       "label": ".assertRow()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L328",
+      "source_location": "L329",
       "id": "services_fileaccessservice_fileaccessservice_assertrow",
       "community": 178,
       "norm_label": ".assertrow()"
@@ -15262,7 +15316,7 @@
       "label": ".findExistingPath()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L335",
+      "source_location": "L336",
       "id": "services_fileaccessservice_fileaccessservice_findexistingpath",
       "community": 178,
       "norm_label": ".findexistingpath()"
@@ -15271,7 +15325,7 @@
       "label": ".canAccess()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L353",
+      "source_location": "L354",
       "id": "services_fileaccessservice_fileaccessservice_canaccess",
       "community": 178,
       "norm_label": ".canaccess()"
@@ -15280,7 +15334,7 @@
       "label": ".detectMimeType()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L363",
+      "source_location": "L364",
       "id": "services_fileaccessservice_fileaccessservice_detectmimetype",
       "community": 178,
       "norm_label": ".detectmimetype()"
@@ -15289,7 +15343,7 @@
       "label": ".privateRoot()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L369",
+      "source_location": "L370",
       "id": "services_fileaccessservice_fileaccessservice_privateroot",
       "community": 178,
       "norm_label": ".privateroot()"
@@ -15298,7 +15352,7 @@
       "label": ".isInsideAllowedRoot()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L374",
+      "source_location": "L375",
       "id": "services_fileaccessservice_fileaccessservice_isinsideallowedroot",
       "community": 178,
       "norm_label": ".isinsideallowedroot()"
@@ -15307,7 +15361,7 @@
       "label": ".encodePathToken()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L392",
+      "source_location": "L393",
       "id": "services_fileaccessservice_fileaccessservice_encodepathtoken",
       "community": 178,
       "norm_label": ".encodepathtoken()"
@@ -15316,7 +15370,7 @@
       "label": ".decodePathToken()",
       "file_type": "code",
       "source_file": "app/Services/FileAccessService.php",
-      "source_location": "L397",
+      "source_location": "L398",
       "id": "services_fileaccessservice_fileaccessservice_decodepathtoken",
       "community": 178,
       "norm_label": ".decodepathtoken()"
@@ -15808,10 +15862,19 @@
       "norm_label": ".getlisttagihangrouped()"
     },
     {
+      "label": ".getListTagihanDetail()",
+      "file_type": "code",
+      "source_file": "app/Services/KeuanganService.php",
+      "source_location": "L500",
+      "id": "services_keuanganservice_keuanganservice_getlisttagihandetail",
+      "community": 338,
+      "norm_label": ".getlisttagihandetail()"
+    },
+    {
       "label": ".getTagihanById()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L502",
+      "source_location": "L513",
       "id": "services_keuanganservice_keuanganservice_gettagihanbyid",
       "community": 338,
       "norm_label": ".gettagihanbyid()"
@@ -15820,7 +15883,7 @@
       "label": ".getRiwayatBayarById()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L506",
+      "source_location": "L517",
       "id": "services_keuanganservice_keuanganservice_getriwayatbayarbyid",
       "community": 338,
       "norm_label": ".getriwayatbayarbyid()"
@@ -15829,7 +15892,7 @@
       "label": ".getTotalBayarById()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L510",
+      "source_location": "L521",
       "id": "services_keuanganservice_keuanganservice_gettotalbayarbyid",
       "community": 338,
       "norm_label": ".gettotalbayarbyid()"
@@ -15838,7 +15901,7 @@
       "label": ".getPaidItemSummaryById()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L514",
+      "source_location": "L525",
       "id": "services_keuanganservice_keuanganservice_getpaiditemsummarybyid",
       "community": 338,
       "norm_label": ".getpaiditemsummarybyid()"
@@ -15847,7 +15910,7 @@
       "label": ".getRiwayatBayarWithDetailById()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L518",
+      "source_location": "L529",
       "id": "services_keuanganservice_keuanganservice_getriwayatbayarwithdetailbyid",
       "community": 338,
       "norm_label": ".getriwayatbayarwithdetailbyid()"
@@ -15856,7 +15919,7 @@
       "label": ".getRiwayatBayar()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L533",
+      "source_location": "L544",
       "id": "services_keuanganservice_keuanganservice_getriwayatbayar",
       "community": 338,
       "norm_label": ".getriwayatbayar()"
@@ -15865,7 +15928,7 @@
       "label": ".getAllJatuhTempo()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L546",
+      "source_location": "L557",
       "id": "services_keuanganservice_keuanganservice_getalljatuhtempo",
       "community": 338,
       "norm_label": ".getalljatuhtempo()"
@@ -15874,7 +15937,7 @@
       "label": ".buildMkdtTagihanPayload()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L553",
+      "source_location": "L564",
       "id": "services_keuanganservice_keuanganservice_buildmkdttagihanpayload",
       "community": 338,
       "norm_label": ".buildmkdttagihanpayload()"
@@ -15883,7 +15946,7 @@
       "label": ".buildTagihanRows()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L574",
+      "source_location": "L585",
       "id": "services_keuanganservice_keuanganservice_buildtagihanrows",
       "community": 338,
       "norm_label": ".buildtagihanrows()"
@@ -15892,7 +15955,7 @@
       "label": ".syncTagihanStatus()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L606",
+      "source_location": "L617",
       "id": "services_keuanganservice_keuanganservice_synctagihanstatus",
       "community": 338,
       "norm_label": ".synctagihanstatus()"
@@ -15901,7 +15964,7 @@
       "label": ".hasPaidTagihan()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L657",
+      "source_location": "L668",
       "id": "services_keuanganservice_keuanganservice_haspaidtagihan",
       "community": 338,
       "norm_label": ".haspaidtagihan()"
@@ -15910,7 +15973,7 @@
       "label": ".hasRequestArray()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L686",
+      "source_location": "L697",
       "id": "services_keuanganservice_keuanganservice_hasrequestarray",
       "community": 338,
       "norm_label": ".hasrequestarray()"
@@ -15919,7 +15982,7 @@
       "label": ".requestArray()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L691",
+      "source_location": "L702",
       "id": "services_keuanganservice_keuanganservice_requestarray",
       "community": 338,
       "norm_label": ".requestarray()"
@@ -15928,7 +15991,7 @@
       "label": ".num()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L705",
+      "source_location": "L716",
       "id": "services_keuanganservice_keuanganservice_num",
       "community": 338,
       "norm_label": ".num()"
@@ -15937,7 +16000,7 @@
       "label": ".insert()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L719",
+      "source_location": "L730",
       "id": "services_keuanganservice_keuanganservice_insert",
       "community": 338,
       "norm_label": ".insert()"
@@ -15946,7 +16009,7 @@
       "label": ".delete()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L723",
+      "source_location": "L734",
       "id": "services_keuanganservice_keuanganservice_delete",
       "community": 338,
       "norm_label": ".delete()"
@@ -15955,7 +16018,7 @@
       "label": ".hapusTurunKPR()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L728",
+      "source_location": "L739",
       "id": "services_keuanganservice_keuanganservice_hapusturunkpr",
       "community": 338,
       "norm_label": ".hapusturunkpr()"
@@ -15964,7 +16027,7 @@
       "label": ".tambahTurunKPR()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L761",
+      "source_location": "L772",
       "id": "services_keuanganservice_keuanganservice_tambahturunkpr",
       "community": 338,
       "norm_label": ".tambahturunkpr()"
@@ -15973,7 +16036,7 @@
       "label": ".hasTurunKPR()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L836",
+      "source_location": "L847",
       "id": "services_keuanganservice_keuanganservice_hasturunkpr",
       "community": 338,
       "norm_label": ".hasturunkpr()"
@@ -15982,7 +16045,7 @@
       "label": ".format_tgl()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L843",
+      "source_location": "L854",
       "id": "services_keuanganservice_keuanganservice_format_tgl",
       "community": 338,
       "norm_label": ".format_tgl()"
@@ -15991,7 +16054,7 @@
       "label": ".is_active()",
       "file_type": "code",
       "source_file": "app/Services/KeuanganService.php",
-      "source_location": "L849",
+      "source_location": "L860",
       "id": "services_keuanganservice_keuanganservice_is_active",
       "community": 338,
       "norm_label": ".is_active()"
@@ -16657,7 +16720,7 @@
       "label": ".__construct()",
       "file_type": "code",
       "source_file": "app/Services/PosisiKonsumenService.php",
-      "source_location": "L14",
+      "source_location": "L15",
       "id": "services_posisikonsumenservice_posisikonsumenservice_construct",
       "community": 433,
       "norm_label": ".__construct()"
@@ -16666,7 +16729,7 @@
       "label": ".getDataTable()",
       "file_type": "code",
       "source_file": "app/Services/PosisiKonsumenService.php",
-      "source_location": "L20",
+      "source_location": "L22",
       "id": "services_posisikonsumenservice_posisikonsumenservice_getdatatable",
       "community": 433,
       "norm_label": ".getdatatable()"
@@ -16675,7 +16738,7 @@
       "label": ".getDataTablesBatal()",
       "file_type": "code",
       "source_file": "app/Services/PosisiKonsumenService.php",
-      "source_location": "L125",
+      "source_location": "L119",
       "id": "services_posisikonsumenservice_posisikonsumenservice_getdatatablesbatal",
       "community": 433,
       "norm_label": ".getdatatablesbatal()"
@@ -16684,7 +16747,7 @@
       "label": ".getRiwayatExport()",
       "file_type": "code",
       "source_file": "app/Services/PosisiKonsumenService.php",
-      "source_location": "L195",
+      "source_location": "L180",
       "id": "services_posisikonsumenservice_posisikonsumenservice_getriwayatexport",
       "community": 433,
       "norm_label": ".getriwayatexport()"
@@ -16693,7 +16756,7 @@
       "label": ".insertRiwayatExport()",
       "file_type": "code",
       "source_file": "app/Services/PosisiKonsumenService.php",
-      "source_location": "L199",
+      "source_location": "L203",
       "id": "services_posisikonsumenservice_posisikonsumenservice_insertriwayatexport",
       "community": 433,
       "norm_label": ".insertriwayatexport()"
@@ -16702,7 +16765,7 @@
       "label": ".num()",
       "file_type": "code",
       "source_file": "app/Services/PosisiKonsumenService.php",
-      "source_location": "L203",
+      "source_location": "L207",
       "id": "services_posisikonsumenservice_posisikonsumenservice_num",
       "community": 433,
       "norm_label": ".num()"
@@ -16711,7 +16774,7 @@
       "label": ".format_tgl()",
       "file_type": "code",
       "source_file": "app/Services/PosisiKonsumenService.php",
-      "source_location": "L208",
+      "source_location": "L212",
       "id": "services_posisikonsumenservice_posisikonsumenservice_format_tgl",
       "community": 433,
       "norm_label": ".format_tgl()"
@@ -16720,7 +16783,7 @@
       "label": ".is_active()",
       "file_type": "code",
       "source_file": "app/Services/PosisiKonsumenService.php",
-      "source_location": "L214",
+      "source_location": "L218",
       "id": "services_posisikonsumenservice_posisikonsumenservice_is_active",
       "community": 433,
       "norm_label": ".is_active()"
@@ -17221,10 +17284,19 @@
       "norm_label": ".grouplabel()"
     },
     {
+      "label": ".getActionItemsForList()",
+      "file_type": "code",
+      "source_file": "app/Services/SiteplanMenuService.php",
+      "source_location": "L219",
+      "id": "services_siteplanmenuservice_siteplanmenuservice_getactionitemsforlist",
+      "community": 958,
+      "norm_label": ".getactionitemsforlist()"
+    },
+    {
       "label": ".renderAllGroupMenus()",
       "file_type": "code",
       "source_file": "app/Services/SiteplanMenuService.php",
-      "source_location": "L188",
+      "source_location": "L265",
       "id": "services_siteplanmenuservice_siteplanmenuservice_renderallgroupmenus",
       "community": 958,
       "norm_label": ".renderallgroupmenus()"
@@ -17233,7 +17305,7 @@
       "label": ".getItemsForAccessGroup()",
       "file_type": "code",
       "source_file": "app/Services/SiteplanMenuService.php",
-      "source_location": "L204",
+      "source_location": "L281",
       "id": "services_siteplanmenuservice_siteplanmenuservice_getitemsforaccessgroup",
       "community": 958,
       "norm_label": ".getitemsforaccessgroup()"
@@ -17242,7 +17314,7 @@
       "label": ".renderGroupMenu()",
       "file_type": "code",
       "source_file": "app/Services/SiteplanMenuService.php",
-      "source_location": "L221",
+      "source_location": "L298",
       "id": "services_siteplanmenuservice_siteplanmenuservice_rendergroupmenu",
       "community": 958,
       "norm_label": ".rendergroupmenu()"
@@ -17251,7 +17323,7 @@
       "label": ".renderItem()",
       "file_type": "code",
       "source_file": "app/Services/SiteplanMenuService.php",
-      "source_location": "L243",
+      "source_location": "L320",
       "id": "services_siteplanmenuservice_siteplanmenuservice_renderitem",
       "community": 958,
       "norm_label": ".renderitem()"
@@ -17260,7 +17332,7 @@
       "label": ".tablesReady()",
       "file_type": "code",
       "source_file": "app/Services/SiteplanMenuService.php",
-      "source_location": "L280",
+      "source_location": "L357",
       "id": "services_siteplanmenuservice_siteplanmenuservice_tablesready",
       "community": 958,
       "norm_label": ".tablesready()"
@@ -17980,7 +18052,7 @@
       "label": ".getCashoutSubkon()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L73",
+      "source_location": "L76",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_getcashoutsubkon",
       "community": 425,
       "norm_label": ".getcashoutsubkon()"
@@ -17989,7 +18061,7 @@
       "label": ".cashoutSubkonResponse()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L104",
+      "source_location": "L107",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_cashoutsubkonresponse",
       "community": 425,
       "norm_label": ".cashoutsubkonresponse()"
@@ -17998,7 +18070,7 @@
       "label": ".saveCashoutSubkon()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L130",
+      "source_location": "L133",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_savecashoutsubkon",
       "community": 425,
       "norm_label": ".savecashoutsubkon()"
@@ -18007,7 +18079,7 @@
       "label": ".turunJatuhTempo()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L248",
+      "source_location": "L251",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_turunjatuhtempo",
       "community": 425,
       "norm_label": ".turunjatuhtempo()"
@@ -18016,7 +18088,7 @@
       "label": ".ajukanSPP()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L324",
+      "source_location": "L327",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_ajukanspp",
       "community": 425,
       "norm_label": ".ajukanspp()"
@@ -18025,7 +18097,7 @@
       "label": ".ajukanPencairan()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L390",
+      "source_location": "L393",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_ajukanpencairan",
       "community": 425,
       "norm_label": ".ajukanpencairan()"
@@ -18034,7 +18106,7 @@
       "label": ".pembayaran()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L454",
+      "source_location": "L457",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_pembayaran",
       "community": 425,
       "norm_label": ".pembayaran()"
@@ -18043,7 +18115,7 @@
       "label": ".getHistory()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L528",
+      "source_location": "L531",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_gethistory",
       "community": 425,
       "norm_label": ".gethistory()"
@@ -18052,7 +18124,7 @@
       "label": ".allTerminPaid()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L540",
+      "source_location": "L543",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_allterminpaid",
       "community": 425,
       "norm_label": ".allterminpaid()"
@@ -18061,7 +18133,7 @@
       "label": ".notifyCashoutSubkon()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L556",
+      "source_location": "L559",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_notifycashoutsubkon",
       "community": 425,
       "norm_label": ".notifycashoutsubkon()"
@@ -18070,7 +18142,7 @@
       "label": ".hasProgressedTermin()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L576",
+      "source_location": "L579",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_hasprogressedtermin",
       "community": 425,
       "norm_label": ".hasprogressedtermin()"
@@ -18079,7 +18151,7 @@
       "label": ".validateCashoutSubkonData()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L587",
+      "source_location": "L590",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_validatecashoutsubkondata",
       "community": 425,
       "norm_label": ".validatecashoutsubkondata()"
@@ -18088,7 +18160,7 @@
       "label": ".validateRequired()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L641",
+      "source_location": "L644",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_validaterequired",
       "community": 425,
       "norm_label": ".validaterequired()"
@@ -18097,7 +18169,7 @@
       "label": ".errorResponse()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L652",
+      "source_location": "L655",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_errorresponse",
       "community": 425,
       "norm_label": ".errorresponse()"
@@ -18106,7 +18178,7 @@
       "label": ".decodeCsv()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L660",
+      "source_location": "L663",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_decodecsv",
       "community": 425,
       "norm_label": ".decodecsv()"
@@ -18115,7 +18187,7 @@
       "label": ".decodeKavlings()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L669",
+      "source_location": "L672",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_decodekavlings",
       "community": 425,
       "norm_label": ".decodekavlings()"
@@ -18124,7 +18196,7 @@
       "label": ".formatDateList()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L688",
+      "source_location": "L691",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_formatdatelist",
       "community": 425,
       "norm_label": ".formatdatelist()"
@@ -18133,7 +18205,7 @@
       "label": ".formatDate()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L698",
+      "source_location": "L701",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_formatdate",
       "community": 425,
       "norm_label": ".formatdate()"
@@ -18142,16 +18214,34 @@
       "label": ".formatDateTime()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L707",
+      "source_location": "L710",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_formatdatetime",
       "community": 425,
       "norm_label": ".formatdatetime()"
     },
     {
+      "label": ".normalizeTerminRows()",
+      "file_type": "code",
+      "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
+      "source_location": "L719",
+      "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_normalizeterminrows",
+      "community": 425,
+      "norm_label": ".normalizeterminrows()"
+    },
+    {
+      "label": ".escape()",
+      "file_type": "code",
+      "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
+      "source_location": "L740",
+      "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_escape",
+      "community": 425,
+      "norm_label": ".escape()"
+    },
+    {
       "label": ".statusBadge()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L716",
+      "source_location": "L745",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_statusbadge",
       "community": 425,
       "norm_label": ".statusbadge()"
@@ -18160,7 +18250,7 @@
       "label": ".num()",
       "file_type": "code",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L733",
+      "source_location": "L762",
       "id": "cashout_cashoutsubkonservice_cashoutsubkonservice_num",
       "community": 425,
       "norm_label": ".num()"
@@ -18515,6 +18605,15 @@
       "id": "app_views_keuangan_riwayat_bayar_php",
       "community": 67,
       "norm_label": "riwayat-bayar.php"
+    },
+    {
+      "label": "modal_bayar_tagihan.php",
+      "file_type": "code",
+      "source_file": "app/Views/keuangan/partials/modal_bayar_tagihan.php",
+      "source_location": "L1",
+      "id": "app_views_keuangan_partials_modal_bayar_tagihan_php",
+      "community": 1053,
+      "norm_label": "modal_bayar_tagihan.php"
     },
     {
       "label": "list-legalitas.php",
@@ -19190,6 +19289,24 @@
       "id": "app_views_siteplan_modal_mkdt_isi_data_konsumen_php",
       "community": 706,
       "norm_label": "mkdt-isi_data_konsumen.php"
+    },
+    {
+      "label": "modal_detail.php",
+      "file_type": "code",
+      "source_file": "app/Views/siteplan/partials/modal_detail.php",
+      "source_location": "L1",
+      "id": "app_views_siteplan_partials_modal_detail_php",
+      "community": 1054,
+      "norm_label": "modal_detail.php"
+    },
+    {
+      "label": "modal_detail_styles.php",
+      "file_type": "code",
+      "source_file": "app/Views/siteplan/partials/modal_detail_styles.php",
+      "source_location": "L1",
+      "id": "app_views_siteplan_partials_modal_detail_styles_php",
+      "community": 1055,
+      "norm_label": "modal_detail_styles.php"
     },
     {
       "label": "content.php",
@@ -35091,7 +35208,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_e",
-      "community": 176,
+      "community": 369,
       "norm_label": "e()"
     },
     {
@@ -35190,7 +35307,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_i",
-      "community": 176,
+      "community": 380,
       "norm_label": "i()"
     },
     {
@@ -35253,7 +35370,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_q",
-      "community": 176,
+      "community": 369,
       "norm_label": "q()"
     },
     {
@@ -35712,7 +35829,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_rn",
-      "community": 21,
+      "community": 176,
       "norm_label": "rn()"
     },
     {
@@ -35739,7 +35856,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_sn",
-      "community": 176,
+      "community": 387,
       "norm_label": "sn()"
     },
     {
@@ -35928,7 +36045,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_or",
-      "community": 369,
+      "community": 176,
       "norm_label": "or()"
     },
     {
@@ -35955,7 +36072,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_sr",
-      "community": 380,
+      "community": 21,
       "norm_label": "sr()"
     },
     {
@@ -35982,7 +36099,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_cr",
-      "community": 176,
+      "community": 21,
       "norm_label": "cr()"
     },
     {
@@ -36027,7 +36144,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_dr",
-      "community": 380,
+      "community": 21,
       "norm_label": "dr()"
     },
     {
@@ -36036,7 +36153,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_br",
-      "community": 380,
+      "community": 21,
       "norm_label": "br()"
     },
     {
@@ -36045,7 +36162,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_wr",
-      "community": 176,
+      "community": 21,
       "norm_label": "wr()"
     },
     {
@@ -36054,7 +36171,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_rr",
-      "community": 176,
+      "community": 369,
       "norm_label": "rr()"
     },
     {
@@ -36072,7 +36189,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_yr",
-      "community": 176,
+      "community": 369,
       "norm_label": "yr()"
     },
     {
@@ -36108,7 +36225,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_jr",
-      "community": 176,
+      "community": 369,
       "norm_label": "jr()"
     },
     {
@@ -36162,7 +36279,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_ao",
-      "community": 176,
+      "community": 380,
       "norm_label": "ao()"
     },
     {
@@ -36351,7 +36468,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_ni",
-      "community": 369,
+      "community": 176,
       "norm_label": "ni()"
     },
     {
@@ -36369,7 +36486,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_si",
-      "community": 176,
+      "community": 387,
       "norm_label": "si()"
     },
     {
@@ -36567,7 +36684,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_ma",
-      "community": 176,
+      "community": 369,
       "norm_label": "ma()"
     },
     {
@@ -36576,7 +36693,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_ka",
-      "community": 21,
+      "community": 176,
       "norm_label": "ka()"
     },
     {
@@ -36603,7 +36720,7 @@
       "source_file": "public/app-assets/vendors/js/calendar/fullcalendar.min.js",
       "source_location": "L6",
       "id": "calendar_fullcalendar_min_ba",
-      "community": 176,
+      "community": 369,
       "norm_label": "ba()"
     },
     {
@@ -45342,7 +45459,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L7",
       "id": "extensions_shepherd_min_ia",
-      "community": 285,
+      "community": 45,
       "norm_label": "ia()"
     },
     {
@@ -45513,7 +45630,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L15",
       "id": "extensions_shepherd_min_xb",
-      "community": 357,
+      "community": 285,
       "norm_label": "xb()"
     },
     {
@@ -45585,7 +45702,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L22",
       "id": "extensions_shepherd_min_fb",
-      "community": 285,
+      "community": 45,
       "norm_label": "fb()"
     },
     {
@@ -45693,7 +45810,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L27",
       "id": "extensions_shepherd_min_za",
-      "community": 45,
+      "community": 384,
       "norm_label": "za()"
     },
     {
@@ -45702,7 +45819,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L28",
       "id": "extensions_shepherd_min_q",
-      "community": 45,
+      "community": 384,
       "norm_label": "q()"
     },
     {
@@ -45711,7 +45828,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L28",
       "id": "extensions_shepherd_min_a",
-      "community": 45,
+      "community": 384,
       "norm_label": "$a()"
     },
     {
@@ -45747,7 +45864,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L30",
       "id": "extensions_shepherd_min_l",
-      "community": 45,
+      "community": 384,
       "norm_label": "l()"
     },
     {
@@ -45756,7 +45873,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L30",
       "id": "extensions_shepherd_min_m",
-      "community": 45,
+      "community": 384,
       "norm_label": "m()"
     },
     {
@@ -46269,7 +46386,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L108",
       "id": "extensions_shepherd_min_ea_styletargetelementforstep",
-      "community": 170,
+      "community": 357,
       "norm_label": "._styletargetelementforstep()"
     },
     {
@@ -46287,7 +46404,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L109",
       "id": "extensions_shepherd_min_pc",
-      "community": 1053,
+      "community": 378,
       "norm_label": "pc"
     },
     {
@@ -46314,7 +46431,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L109",
       "id": "extensions_shepherd_min_pc_closemodalopening",
-      "community": 1053,
+      "community": 378,
       "norm_label": ".closemodalopening()"
     },
     {
@@ -46323,7 +46440,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L109",
       "id": "extensions_shepherd_min_pc_hide",
-      "community": 1053,
+      "community": 378,
       "norm_label": ".hide()"
     },
     {
@@ -46332,7 +46449,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L109",
       "id": "extensions_shepherd_min_pc_positionmodalopening",
-      "community": 1053,
+      "community": 378,
       "norm_label": ".positionmodalopening()"
     },
     {
@@ -46341,7 +46458,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L109",
       "id": "extensions_shepherd_min_pc_setupforstep",
-      "community": 1053,
+      "community": 378,
       "norm_label": ".setupforstep()"
     },
     {
@@ -46350,7 +46467,7 @@
       "source_file": "public/app-assets/vendors/js/extensions/shepherd.min.js",
       "source_location": "L109",
       "id": "extensions_shepherd_min_pc_show",
-      "community": 1053,
+      "community": 378,
       "norm_label": ".show()"
     },
     {
@@ -115227,7 +115344,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_k_on",
-      "community": 408,
+      "community": 77,
       "norm_label": ".on()"
     },
     {
@@ -115254,7 +115371,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_k_addeventlistener",
-      "community": 408,
+      "community": 77,
       "norm_label": ".addeventlistener()"
     },
     {
@@ -115353,7 +115470,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_k_isvisible",
-      "community": 367,
+      "community": 63,
       "norm_label": ".isvisible()"
     },
     {
@@ -115362,7 +115479,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_k_shoulddrawhit",
-      "community": 367,
+      "community": 63,
       "norm_label": ".shoulddrawhit()"
     },
     {
@@ -115641,7 +115758,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_k_getlayer",
-      "community": 367,
+      "community": 408,
       "norm_label": ".getlayer()"
     },
     {
@@ -115839,7 +115956,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_k_requestdraw",
-      "community": 22,
+      "community": 77,
       "norm_label": "._requestdraw()"
     },
     {
@@ -115974,7 +116091,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_k_create",
-      "community": 77,
+      "community": 23,
       "norm_label": ".create()"
     },
     {
@@ -115983,7 +116100,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_k_createnode",
-      "community": 77,
+      "community": 23,
       "norm_label": "._createnode()"
     },
     {
@@ -116640,7 +116757,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_et_batchdraw",
-      "community": 22,
+      "community": 77,
       "norm_label": ".batchdraw()"
     },
     {
@@ -117135,7 +117252,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_yt_batchdraw",
-      "community": 22,
+      "community": 77,
       "norm_label": ".batchdraw()"
     },
     {
@@ -118107,7 +118224,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_ve",
-      "community": 408,
+      "community": 77,
       "norm_label": "ve"
     },
     {
@@ -118116,7 +118233,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_ve_constructor",
-      "community": 408,
+      "community": 77,
       "norm_label": ".constructor()"
     },
     {
@@ -118125,7 +118242,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_ve_gettext",
-      "community": 408,
+      "community": 77,
       "norm_label": ".gettext()"
     },
     {
@@ -118134,7 +118251,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_ve_gettag",
-      "community": 408,
+      "community": 77,
       "norm_label": ".gettag()"
     },
     {
@@ -118143,7 +118260,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_ve_addlisteners",
-      "community": 408,
+      "community": 77,
       "norm_label": "._addlisteners()"
     },
     {
@@ -118152,7 +118269,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_ve_getwidth",
-      "community": 408,
+      "community": 77,
       "norm_label": ".getwidth()"
     },
     {
@@ -118161,7 +118278,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_ve_getheight",
-      "community": 408,
+      "community": 77,
       "norm_label": ".getheight()"
     },
     {
@@ -118170,7 +118287,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_ve_sync",
-      "community": 408,
+      "community": 77,
       "norm_label": "._sync()"
     },
     {
@@ -118485,7 +118602,7 @@
       "source_file": "public/assets/js/konva.min.js",
       "source_location": "L12",
       "id": "js_konva_min_oe_constructor",
-      "community": 408,
+      "community": 0,
       "norm_label": ".constructor()"
     },
     {
@@ -119187,7 +119304,7 @@
       "source_file": "public/assets/js/scripts.js",
       "source_location": "L248",
       "id": "js_scripts_applyloadingeffect",
-      "community": 167,
+      "community": 934,
       "norm_label": "applyloadingeffect()"
     },
     {
@@ -119421,7 +119538,7 @@
       "source_file": "public/assets/js/scripts.js",
       "source_location": "L912",
       "id": "js_scripts_setdatepicker",
-      "community": 48,
+      "community": 934,
       "norm_label": "setdatepicker()"
     },
     {
@@ -119520,7 +119637,7 @@
       "source_file": "public/assets/js/scripts.js",
       "source_location": "L1341",
       "id": "js_scripts_showfoto",
-      "community": 172,
+      "community": 934,
       "norm_label": "showfoto()"
     },
     {
@@ -119592,7 +119709,7 @@
       "source_file": "public/assets/js/scripts.js",
       "source_location": "L1682",
       "id": "js_scripts_hlbutton",
-      "community": 26,
+      "community": 167,
       "norm_label": "hlbutton()"
     },
     {
@@ -119603,6 +119720,654 @@
       "id": "js_scripts_list_pekerjaan",
       "community": 167,
       "norm_label": "list_pekerjaan"
+    },
+    {
+      "label": "siteplan-detail-modal.js",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1",
+      "id": "public_assets_js_siteplan_detail_modal_js",
+      "community": 934,
+      "norm_label": "siteplan-detail-modal.js"
+    },
+    {
+      "label": "siteplanActiveProyekName()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1",
+      "id": "js_siteplan_detail_modal_siteplanactiveproyekname",
+      "community": 934,
+      "norm_label": "siteplanactiveproyekname()"
+    },
+    {
+      "label": "lihat_detail()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L11",
+      "id": "js_siteplan_detail_modal_lihat_detail",
+      "community": 934,
+      "norm_label": "lihat_detail()"
+    },
+    {
+      "label": "detail_others()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L37",
+      "id": "js_siteplan_detail_modal_detail_others",
+      "community": 934,
+      "norm_label": "detail_others()"
+    },
+    {
+      "label": "escapeProduksiJalanHistoryValue()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L107",
+      "id": "js_siteplan_detail_modal_escapeproduksijalanhistoryvalue",
+      "community": 934,
+      "norm_label": "escapeproduksijalanhistoryvalue()"
+    },
+    {
+      "label": "resetProduksiJalanHistoryTimeline()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L111",
+      "id": "js_siteplan_detail_modal_resetproduksijalanhistorytimeline",
+      "community": 934,
+      "norm_label": "resetproduksijalanhistorytimeline()"
+    },
+    {
+      "label": "renderProduksiJalanHistoryTimeline()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L120",
+      "id": "js_siteplan_detail_modal_renderproduksijalanhistorytimeline",
+      "community": 934,
+      "norm_label": "renderproduksijalanhistorytimeline()"
+    },
+    {
+      "label": "loadProduksiJalanHistoryMore()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L180",
+      "id": "js_siteplan_detail_modal_loadproduksijalanhistorymore",
+      "community": 934,
+      "norm_label": "loadproduksijalanhistorymore()"
+    },
+    {
+      "label": "isSubsidi",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L213",
+      "id": "js_siteplan_detail_modal_issubsidi",
+      "community": 934,
+      "norm_label": "issubsidi"
+    },
+    {
+      "label": "isKPR",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L214",
+      "id": "js_siteplan_detail_modal_iskpr",
+      "community": 934,
+      "norm_label": "iskpr"
+    },
+    {
+      "label": "detail_kavling()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L224",
+      "id": "js_siteplan_detail_modal_detail_kavling",
+      "community": 934,
+      "norm_label": "detail_kavling()"
+    },
+    {
+      "label": "loadSummary()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L358",
+      "id": "js_siteplan_detail_modal_loadsummary",
+      "community": 934,
+      "norm_label": "loadsummary()"
+    },
+    {
+      "label": "isSudah()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L499",
+      "id": "js_siteplan_detail_modal_issudah",
+      "community": 934,
+      "norm_label": "issudah()"
+    },
+    {
+      "label": "last_update()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L505",
+      "id": "js_siteplan_detail_modal_last_update",
+      "community": 934,
+      "norm_label": "last_update()"
+    },
+    {
+      "label": "detailMoneyValue()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L517",
+      "id": "js_siteplan_detail_modal_detailmoneyvalue",
+      "community": 934,
+      "norm_label": "detailmoneyvalue()"
+    },
+    {
+      "label": "detailRupiah()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L523",
+      "id": "js_siteplan_detail_modal_detailrupiah",
+      "community": 934,
+      "norm_label": "detailrupiah()"
+    },
+    {
+      "label": "detailEscapeHtml()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L527",
+      "id": "js_siteplan_detail_modal_detailescapehtml",
+      "community": 934,
+      "norm_label": "detailescapehtml()"
+    },
+    {
+      "label": "detailPercentValue()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L531",
+      "id": "js_siteplan_detail_modal_detailpercentvalue",
+      "community": 934,
+      "norm_label": "detailpercentvalue()"
+    },
+    {
+      "label": "detailAccordionItem()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L536",
+      "id": "js_siteplan_detail_modal_detailaccordionitem",
+      "community": 934,
+      "norm_label": "detailaccordionitem()"
+    },
+    {
+      "label": "detailTagihanCard()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L551",
+      "id": "js_siteplan_detail_modal_detailtagihancard",
+      "community": 934,
+      "norm_label": "detailtagihancard()"
+    },
+    {
+      "label": "renderTagihanCard()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L576",
+      "id": "js_siteplan_detail_modal_rendertagihancard",
+      "community": 934,
+      "norm_label": "rendertagihancard()"
+    },
+    {
+      "label": "prepareDetailModalRedesign()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L620",
+      "id": "js_siteplan_detail_modal_preparedetailmodalredesign",
+      "community": 934,
+      "norm_label": "preparedetailmodalredesign()"
+    },
+    {
+      "label": "buildDetailFinancePanel()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L645",
+      "id": "js_siteplan_detail_modal_builddetailfinancepanel",
+      "community": 934,
+      "norm_label": "builddetailfinancepanel()"
+    },
+    {
+      "label": "buildDetailLegalPanel()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L747",
+      "id": "js_siteplan_detail_modal_builddetaillegalpanel",
+      "community": 934,
+      "norm_label": "builddetaillegalpanel()"
+    },
+    {
+      "label": "buildDetailProductionPanel()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L781",
+      "id": "js_siteplan_detail_modal_builddetailproductionpanel",
+      "community": 934,
+      "norm_label": "builddetailproductionpanel()"
+    },
+    {
+      "label": "bindDetailModalRedesignEvents()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L839",
+      "id": "js_siteplan_detail_modal_binddetailmodalredesignevents",
+      "community": 934,
+      "norm_label": "binddetailmodalredesignevents()"
+    },
+    {
+      "label": "loadPL()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L871",
+      "id": "js_siteplan_detail_modal_loadpl",
+      "community": 934,
+      "norm_label": "loadpl()"
+    },
+    {
+      "label": "loadKavling()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L887",
+      "id": "js_siteplan_detail_modal_loadkavling",
+      "community": 167,
+      "norm_label": "loadkavling()"
+    },
+    {
+      "label": "updateSp3kStatusBadge()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L904",
+      "id": "js_siteplan_detail_modal_updatesp3kstatusbadge",
+      "community": 934,
+      "norm_label": "updatesp3kstatusbadge()"
+    },
+    {
+      "label": "updateSp3kExpiryStyle()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L913",
+      "id": "js_siteplan_detail_modal_updatesp3kexpirystyle",
+      "community": 934,
+      "norm_label": "updatesp3kexpirystyle()"
+    },
+    {
+      "label": "loadMKDT()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L922",
+      "id": "js_siteplan_detail_modal_loadmkdt",
+      "community": 934,
+      "norm_label": "loadmkdt()"
+    },
+    {
+      "label": "loadLegal()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1041",
+      "id": "js_siteplan_detail_modal_loadlegal",
+      "community": 934,
+      "norm_label": "loadlegal()"
+    },
+    {
+      "label": "hitungTagihan()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1090",
+      "id": "js_siteplan_detail_modal_hitungtagihan",
+      "community": 934,
+      "norm_label": "hitungtagihan()"
+    },
+    {
+      "label": "loadTagihan()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1152",
+      "id": "js_siteplan_detail_modal_loadtagihan",
+      "community": 934,
+      "norm_label": "loadtagihan()"
+    },
+    {
+      "label": "loadProduksi()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1183",
+      "id": "js_siteplan_detail_modal_loadproduksi",
+      "community": 934,
+      "norm_label": "loadproduksi()"
+    },
+    {
+      "label": "loadBuktiBayarPajak()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1289",
+      "id": "js_siteplan_detail_modal_loadbuktibayarpajak",
+      "community": 934,
+      "norm_label": "loadbuktibayarpajak()"
+    },
+    {
+      "label": "loadCashOut()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1339",
+      "id": "js_siteplan_detail_modal_loadcashout",
+      "community": 934,
+      "norm_label": "loadcashout()"
+    },
+    {
+      "label": "loadFinanceFlow()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1365",
+      "id": "js_siteplan_detail_modal_loadfinanceflow",
+      "community": 934,
+      "norm_label": "loadfinanceflow()"
+    },
+    {
+      "label": "renderFinanceFlowTable()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1385",
+      "id": "js_siteplan_detail_modal_renderfinanceflowtable",
+      "community": 934,
+      "norm_label": "renderfinanceflowtable()"
+    },
+    {
+      "label": "loadBayarProduksi()",
+      "file_type": "code",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1407",
+      "id": "js_siteplan_detail_modal_loadbayarproduksi",
+      "community": 934,
+      "norm_label": "loadbayarproduksi()"
+    },
+    {
+      "label": "tagihan-bayar-modal.js",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L1",
+      "id": "public_assets_js_tagihan_bayar_modal_js",
+      "community": 1048,
+      "norm_label": "tagihan-bayar-modal.js"
+    },
+    {
+      "label": "nominal",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L5",
+      "id": "js_tagihan_bayar_modal_nominal",
+      "community": 1048,
+      "norm_label": "nominal"
+    },
+    {
+      "label": "tanggal",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L6",
+      "id": "js_tagihan_bayar_modal_tanggal",
+      "community": 1048,
+      "norm_label": "tanggal"
+    },
+    {
+      "label": "metode",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L7",
+      "id": "js_tagihan_bayar_modal_metode",
+      "community": 1048,
+      "norm_label": "metode"
+    },
+    {
+      "label": "options",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L45",
+      "id": "js_tagihan_bayar_modal_options",
+      "community": 1048,
+      "norm_label": "options"
+    },
+    {
+      "label": "selectedItem",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L58",
+      "id": "js_tagihan_bayar_modal_selecteditem",
+      "community": 1048,
+      "norm_label": "selecteditem"
+    },
+    {
+      "label": "autoNominal",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L63",
+      "id": "js_tagihan_bayar_modal_autonominal",
+      "community": 1048,
+      "norm_label": "autonominal"
+    },
+    {
+      "label": "renderTableAlokasi()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L81",
+      "id": "js_tagihan_bayar_modal_rendertablealokasi",
+      "community": 1048,
+      "norm_label": "rendertablealokasi()"
+    },
+    {
+      "label": "deleteItemAlokasi()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L118",
+      "id": "js_tagihan_bayar_modal_deleteitemalokasi",
+      "community": 1048,
+      "norm_label": "deleteitemalokasi()"
+    },
+    {
+      "label": "ubahMaksNominal()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L147",
+      "id": "js_tagihan_bayar_modal_ubahmaksnominal",
+      "community": 1048,
+      "norm_label": "ubahmaksnominal()"
+    },
+    {
+      "label": "setAlokasi()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L157",
+      "id": "js_tagihan_bayar_modal_setalokasi",
+      "community": 1048,
+      "norm_label": "setalokasi()"
+    },
+    {
+      "label": "save_sb()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L211",
+      "id": "js_tagihan_bayar_modal_save_sb",
+      "community": 1048,
+      "norm_label": "save_sb()"
+    },
+    {
+      "label": "keuToNumber()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L253",
+      "id": "js_tagihan_bayar_modal_keutonumber",
+      "community": 1048,
+      "norm_label": "keutonumber()"
+    },
+    {
+      "label": "keuEscapeHtml()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L258",
+      "id": "js_tagihan_bayar_modal_keuescapehtml",
+      "community": 1048,
+      "norm_label": "keuescapehtml()"
+    },
+    {
+      "label": "renderBiayaMkdt()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L262",
+      "id": "js_tagihan_bayar_modal_renderbiayamkdt",
+      "community": 1048,
+      "norm_label": "renderbiayamkdt()"
+    },
+    {
+      "label": "keuNormalizeText()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L270",
+      "id": "js_tagihan_bayar_modal_keunormalizetext",
+      "community": 1048,
+      "norm_label": "keunormalizetext()"
+    },
+    {
+      "label": "keuFindPaidItem()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L274",
+      "id": "js_tagihan_bayar_modal_keufindpaiditem",
+      "community": 1048,
+      "norm_label": "keufindpaiditem()"
+    },
+    {
+      "label": "keuPaidByItem()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L281",
+      "id": "js_tagihan_bayar_modal_keupaidbyitem",
+      "community": 1048,
+      "norm_label": "keupaidbyitem()"
+    },
+    {
+      "label": "keuItemLimit()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L286",
+      "id": "js_tagihan_bayar_modal_keuitemlimit",
+      "community": 1048,
+      "norm_label": "keuitemlimit()"
+    },
+    {
+      "label": "keuItemRemaining()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L305",
+      "id": "js_tagihan_bayar_modal_keuitemremaining",
+      "community": 1048,
+      "norm_label": "keuitemremaining()"
+    },
+    {
+      "label": "keuAllocatedTotal()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L311",
+      "id": "js_tagihan_bayar_modal_keuallocatedtotal",
+      "community": 1048,
+      "norm_label": "keuallocatedtotal()"
+    },
+    {
+      "label": "keuAllocationAutoNominal()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L320",
+      "id": "js_tagihan_bayar_modal_keuallocationautonominal",
+      "community": 1048,
+      "norm_label": "keuallocationautonominal()"
+    },
+    {
+      "label": "loadKeuanganRiwayatLazy()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L332",
+      "id": "js_tagihan_bayar_modal_loadkeuanganriwayatlazy",
+      "community": 1048,
+      "norm_label": "loadkeuanganriwayatlazy()"
+    },
+    {
+      "label": "open_keuangan()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L376",
+      "id": "js_tagihan_bayar_modal_open_keuangan",
+      "community": 1048,
+      "norm_label": "open_keuangan()"
+    },
+    {
+      "label": "loadKeuSB()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L602",
+      "id": "js_tagihan_bayar_modal_loadkeusb",
+      "community": 1048,
+      "norm_label": "loadkeusb()"
+    },
+    {
+      "label": "renderKeuSubItemSudahBayar()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L670",
+      "id": "js_tagihan_bayar_modal_renderkeusubitemsudahbayar",
+      "community": 1048,
+      "norm_label": "renderkeusubitemsudahbayar()"
+    },
+    {
+      "label": "renderKeuPaymentSummary()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L699",
+      "id": "js_tagihan_bayar_modal_renderkeupaymentsummary",
+      "community": 1048,
+      "norm_label": "renderkeupaymentsummary()"
+    },
+    {
+      "label": "loadTableTagihan()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L748",
+      "id": "js_tagihan_bayar_modal_loadtabletagihan",
+      "community": 1048,
+      "norm_label": "loadtabletagihan()"
+    },
+    {
+      "label": "loadLogPembayaran()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L814",
+      "id": "js_tagihan_bayar_modal_loadlogpembayaran",
+      "community": 1048,
+      "norm_label": "loadlogpembayaran()"
+    },
+    {
+      "label": "printRiwayatBayar()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L886",
+      "id": "js_tagihan_bayar_modal_printriwayatbayar",
+      "community": 1048,
+      "norm_label": "printriwayatbayar()"
+    },
+    {
+      "label": "removeRiwayatBayar()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L930",
+      "id": "js_tagihan_bayar_modal_removeriwayatbayar",
+      "community": 1048,
+      "norm_label": "removeriwayatbayar()"
+    },
+    {
+      "label": "save_keuangan()",
+      "file_type": "code",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L993",
+      "id": "js_tagihan_bayar_modal_save_keuangan",
+      "community": 26,
+      "norm_label": "save_keuangan()"
     },
     {
       "label": "ExampleDatabaseTest.php",
@@ -120636,7 +121401,7 @@
       "source_file": "tests/Libraries/Refactor/Execution/RefactorEngineTest.php",
       "source_location": "L253",
       "id": "execution_refactorenginetest_refactorenginetest_testexecutestepthrowsonfailure",
-      "community": 1049,
+      "community": 175,
       "norm_label": ".testexecutestepthrowsonfailure()"
     },
     {
@@ -142550,7 +143315,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/cashout_subkon.js",
       "source_location": "L96",
-      "community": 26,
+      "community": 24,
       "norm_label": "loadhistorystatuscashoutsubkon()",
       "id": "js_cashout_subkon_loadhistorystatuscashoutsubkon"
     },
@@ -143099,7 +143864,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/keuangan.js",
       "source_location": "L2489",
-      "community": 67,
+      "community": 26,
       "norm_label": "save_cashout()",
       "id": "js_keuangan_save_cashout"
     },
@@ -143531,7 +144296,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/mkdt.js",
       "source_location": "L1092",
-      "community": 26,
+      "community": 48,
       "norm_label": "set_harga()",
       "id": "js_mkdt_set_harga"
     },
@@ -143549,7 +144314,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/mkdt.js",
       "source_location": "L1205",
-      "community": 48,
+      "community": 934,
       "norm_label": "open_set_turun_pembangunan()",
       "id": "js_mkdt_open_set_turun_pembangunan"
     },
@@ -143585,7 +144350,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/mkdt.js",
       "source_location": "L1438",
-      "community": 26,
+      "community": 48,
       "norm_label": "isi_si()",
       "id": "js_mkdt_isi_si"
     },
@@ -143639,7 +144404,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/pajak.js",
       "source_location": "L1",
-      "community": 26,
+      "community": 172,
       "norm_label": "pajak.js",
       "id": "public_assets_js_pajak_js"
     },
@@ -143648,7 +144413,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/pajak.js",
       "source_location": "L4",
-      "community": 26,
+      "community": 172,
       "norm_label": "id_tarif",
       "id": "js_pajak_id_tarif"
     },
@@ -143657,7 +144422,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/pajak.js",
       "source_location": "L6",
-      "community": 26,
+      "community": 172,
       "norm_label": "hj_net",
       "id": "js_pajak_hj_net"
     },
@@ -143666,7 +144431,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/pajak.js",
       "source_location": "L7",
-      "community": 26,
+      "community": 172,
       "norm_label": "tarif",
       "id": "js_pajak_tarif"
     },
@@ -143675,7 +144440,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/pajak.js",
       "source_location": "L17",
-      "community": 26,
+      "community": 172,
       "norm_label": "open_pajak()",
       "id": "js_pajak_open_pajak"
     },
@@ -143963,7 +144728,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/sales.js",
       "source_location": "L1",
-      "community": 934,
+      "community": 172,
       "norm_label": "sales.js",
       "id": "public_assets_js_sales_js"
     },
@@ -143972,7 +144737,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/sales.js",
       "source_location": "L2",
-      "community": 934,
+      "community": 172,
       "norm_label": "open_checklist_sales()",
       "id": "js_sales_open_checklist_sales"
     },
@@ -143981,7 +144746,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/sales.js",
       "source_location": "L91",
-      "community": 934,
+      "community": 172,
       "norm_label": "save_checklist_sales()",
       "id": "js_sales_save_checklist_sales"
     },
@@ -143990,7 +144755,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/sales.js",
       "source_location": "L136",
-      "community": 934,
+      "community": 172,
       "norm_label": "fuks",
       "id": "js_sales_fuks"
     },
@@ -143999,7 +144764,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/sales.js",
       "source_location": "L137",
-      "community": 934,
+      "community": 172,
       "norm_label": "fluks",
       "id": "js_sales_fluks"
     },
@@ -144008,7 +144773,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/sales.js",
       "source_location": "L153",
-      "community": 934,
+      "community": 172,
       "norm_label": "open_komplain_sales()",
       "id": "js_sales_open_komplain_sales"
     },
@@ -144017,7 +144782,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/sales.js",
       "source_location": "L325",
-      "community": 934,
+      "community": 172,
       "norm_label": "save_komplain_sales()",
       "id": "js_sales_save_komplain_sales"
     },
@@ -144026,7 +144791,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/sales.js",
       "source_location": "L373",
-      "community": 934,
+      "community": 172,
       "norm_label": "batal_komplain()",
       "id": "js_sales_batal_komplain"
     },
@@ -144035,7 +144800,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/sales.js",
       "source_location": "L424",
-      "community": 934,
+      "community": 172,
       "norm_label": "open_serah_terima()",
       "id": "js_sales_open_serah_terima"
     },
@@ -144044,7 +144809,7 @@
       "file_type": "code",
       "source_file": "public/assets/js/sales.js",
       "source_location": "L490",
-      "community": 934,
+      "community": 172,
       "norm_label": "save_serah_terima()",
       "id": "js_sales_save_serah_terima"
     }
@@ -146726,6 +147491,16 @@
       "confidence_score": 1.0,
       "source": "controllers_home_home",
       "target": "controllers_home_home_getmenubtn"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Controllers/Home.php",
+      "source_location": "L446",
+      "weight": 1.0,
+      "source": "controllers_home_home",
+      "target": "controllers_home_home_getmenuitemsjson",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -149963,6 +150738,26 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "app/Controllers/PosisiKonsumen.php",
+      "source_location": "L127",
+      "weight": 1.0,
+      "source": "controllers_posisikonsumen_posisikonsumen",
+      "target": "controllers_posisikonsumen_posisikonsumen_getconfigshapemap",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Controllers/PosisiKonsumen.php",
+      "source_location": "L147",
+      "weight": 1.0,
+      "source": "controllers_posisikonsumen_posisikonsumen",
+      "target": "controllers_posisikonsumen_posisikonsumen_userhasprojectaccess",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Controllers/PosisiKonsumen.php",
       "source_location": "L102",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -150058,6 +150853,28 @@
       "confidence_score": 1.0,
       "source": "controllers_posisikonsumen_posisikonsumen",
       "target": "controllers_posisikonsumen_posisikonsumen_getriwayatexport"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Controllers/PosisiKonsumen.php",
+      "source_location": "L104",
+      "weight": 1.0,
+      "source": "controllers_posisikonsumen_posisikonsumen_index",
+      "target": "controllers_posisikonsumen_posisikonsumen_getconfigshapemap",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Controllers/PosisiKonsumen.php",
+      "source_location": "L113",
+      "weight": 1.0,
+      "source": "controllers_posisikonsumen_posisikonsumen_index",
+      "target": "controllers_posisikonsumen_posisikonsumen_userhasprojectaccess",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -152212,6 +153029,16 @@
       "confidence_score": 1.0,
       "source": "controllers_tagihan_tagihan",
       "target": "controllers_tagihan_tagihan_getlisttagihangrouped"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Controllers/Tagihan.php",
+      "source_location": "L411",
+      "weight": 1.0,
+      "source": "controllers_tagihan_tagihan",
+      "target": "controllers_tagihan_tagihan_getlisttagihandetail",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -169718,9 +170545,9 @@
       "source_file": "app/Repositories/KalendarRepository.php",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_repositories_kalendarrepository_php",
-      "target": "repositories_kalendarrepository_kalendarrepository",
-      "confidence_score": 1.0
+      "target": "repositories_kalendarrepository_kalendarrepository"
     },
     {
       "relation": "method",
@@ -169728,9 +170555,9 @@
       "source_file": "app/Repositories/KalendarRepository.php",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repositories_kalendarrepository_kalendarrepository",
-      "target": "repositories_kalendarrepository_kalendarrepository_construct",
-      "confidence_score": 1.0
+      "target": "repositories_kalendarrepository_kalendarrepository_construct"
     },
     {
       "relation": "method",
@@ -169738,9 +170565,9 @@
       "source_file": "app/Repositories/KalendarRepository.php",
       "source_location": "L16",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repositories_kalendarrepository_kalendarrepository",
-      "target": "repositories_kalendarrepository_kalendarrepository_getpembayaranevents",
-      "confidence_score": 1.0
+      "target": "repositories_kalendarrepository_kalendarrepository_getpembayaranevents"
     },
     {
       "relation": "method",
@@ -169748,9 +170575,9 @@
       "source_file": "app/Repositories/KalendarRepository.php",
       "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repositories_kalendarrepository_kalendarrepository",
-      "target": "repositories_kalendarrepository_kalendarrepository_getjatuhtempoevents",
-      "confidence_score": 1.0
+      "target": "repositories_kalendarrepository_kalendarrepository_getjatuhtempoevents"
     },
     {
       "relation": "method",
@@ -169758,9 +170585,9 @@
       "source_file": "app/Repositories/KalendarRepository.php",
       "source_location": "L50",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "repositories_kalendarrepository_kalendarrepository",
-      "target": "repositories_kalendarrepository_kalendarrepository_getmkdtevents",
-      "confidence_score": 1.0
+      "target": "repositories_kalendarrepository_kalendarrepository_getmkdtevents"
     },
     {
       "relation": "contains",
@@ -170375,6 +171202,16 @@
       "confidence_score": 1.0,
       "source": "repositories_keuanganrepository_keuanganrepository",
       "target": "repositories_keuanganrepository_keuanganrepository_getbelumlunasgroupedquery"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Repositories/KeuanganRepository.php",
+      "source_location": "L262",
+      "weight": 1.0,
+      "source": "repositories_keuanganrepository_keuanganrepository",
+      "target": "repositories_keuanganrepository_keuanganrepository_getlisttagihandetailbyid",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -171942,6 +172779,16 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
+      "source_location": "L154",
+      "weight": 1.0,
+      "source": "cashout_cashoutsubkonrepo_cashoutsubkonrepo",
+      "target": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getdetailsbycashoutsubkonids",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
       "source_location": "L134",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -172159,6 +173006,17 @@
       "confidence_score": 1.0,
       "source": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getdatatables",
       "target": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_datatablesbasequery"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php",
+      "source_location": "L82",
+      "weight": 1.0,
+      "source": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getdatatables",
+      "target": "cashout_cashoutsubkonrepo_cashoutsubkonrepo_getdetailsbycashoutsubkonids",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -174533,9 +175391,9 @@
       "source_file": "app/Services/KalendarService.php",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_services_kalendarservice_php",
-      "target": "services_kalendarservice_kalendarservice",
-      "confidence_score": 1.0
+      "target": "services_kalendarservice_kalendarservice"
     },
     {
       "relation": "method",
@@ -174543,9 +175401,9 @@
       "source_file": "app/Services/KalendarService.php",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_kalendarservice_kalendarservice",
-      "target": "services_kalendarservice_kalendarservice_construct",
-      "confidence_score": 1.0
+      "target": "services_kalendarservice_kalendarservice_construct"
     },
     {
       "relation": "method",
@@ -174553,9 +175411,9 @@
       "source_file": "app/Services/KalendarService.php",
       "source_location": "L30",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_kalendarservice_kalendarservice",
-      "target": "services_kalendarservice_kalendarservice_divisikeyfromname",
-      "confidence_score": 1.0
+      "target": "services_kalendarservice_kalendarservice_divisikeyfromname"
     },
     {
       "relation": "method",
@@ -174563,9 +175421,9 @@
       "source_file": "app/Services/KalendarService.php",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_kalendarservice_kalendarservice",
-      "target": "services_kalendarservice_kalendarservice_getdivisiforview",
-      "confidence_score": 1.0
+      "target": "services_kalendarservice_kalendarservice_getdivisiforview"
     },
     {
       "relation": "method",
@@ -174573,9 +175431,9 @@
       "source_file": "app/Services/KalendarService.php",
       "source_location": "L61",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_kalendarservice_kalendarservice",
-      "target": "services_kalendarservice_kalendarservice_geteventkeysfordivisikeys",
-      "confidence_score": 1.0
+      "target": "services_kalendarservice_kalendarservice_geteventkeysfordivisikeys"
     },
     {
       "relation": "method",
@@ -174583,9 +175441,9 @@
       "source_file": "app/Services/KalendarService.php",
       "source_location": "L75",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_kalendarservice_kalendarservice",
-      "target": "services_kalendarservice_kalendarservice_geteventsforcalendar",
-      "confidence_score": 1.0
+      "target": "services_kalendarservice_kalendarservice_geteventsforcalendar"
     },
     {
       "relation": "method",
@@ -174593,9 +175451,9 @@
       "source_file": "app/Services/KalendarService.php",
       "source_location": "L147",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_kalendarservice_kalendarservice",
-      "target": "services_kalendarservice_kalendarservice_formatevent",
-      "confidence_score": 1.0
+      "target": "services_kalendarservice_kalendarservice_formatevent"
     },
     {
       "relation": "method",
@@ -174603,9 +175461,9 @@
       "source_file": "app/Services/KalendarService.php",
       "source_location": "L169",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_kalendarservice_kalendarservice",
-      "target": "services_kalendarservice_kalendarservice_eventkeytodivisikey",
-      "confidence_score": 1.0
+      "target": "services_kalendarservice_kalendarservice_eventkeytodivisikey"
     },
     {
       "relation": "method",
@@ -174613,9 +175471,9 @@
       "source_file": "app/Services/KalendarService.php",
       "source_location": "L180",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_kalendarservice_kalendarservice",
-      "target": "services_kalendarservice_kalendarservice_dateinrange",
-      "confidence_score": 1.0
+      "target": "services_kalendarservice_kalendarservice_dateinrange"
     },
     {
       "relation": "calls",
@@ -174624,9 +175482,9 @@
       "source_file": "app/Services/KalendarService.php",
       "source_location": "L93",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_kalendarservice_kalendarservice_geteventsforcalendar",
-      "target": "services_kalendarservice_kalendarservice_formatevent",
-      "confidence_score": 1.0
+      "target": "services_kalendarservice_kalendarservice_formatevent"
     },
     {
       "relation": "calls",
@@ -174635,9 +175493,9 @@
       "source_file": "app/Services/KalendarService.php",
       "source_location": "L115",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_kalendarservice_kalendarservice_geteventsforcalendar",
-      "target": "services_kalendarservice_kalendarservice_dateinrange",
-      "confidence_score": 1.0
+      "target": "services_kalendarservice_kalendarservice_dateinrange"
     },
     {
       "relation": "calls",
@@ -174646,9 +175504,9 @@
       "source_file": "app/Services/KalendarService.php",
       "source_location": "L150",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "services_kalendarservice_kalendarservice_formatevent",
-      "target": "services_kalendarservice_kalendarservice_eventkeytodivisikey",
-      "confidence_score": 1.0
+      "target": "services_kalendarservice_kalendarservice_eventkeytodivisikey"
     },
     {
       "relation": "contains",
@@ -174909,6 +175767,16 @@
       "confidence_score": 1.0,
       "source": "services_keuanganservice_keuanganservice",
       "target": "services_keuanganservice_keuanganservice_getlisttagihangrouped"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Services/KeuanganService.php",
+      "source_location": "L500",
+      "weight": 1.0,
+      "source": "services_keuanganservice_keuanganservice",
+      "target": "services_keuanganservice_keuanganservice_getlisttagihandetail",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -177644,6 +178512,16 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "app/Services/SiteplanMenuService.php",
+      "source_location": "L219",
+      "weight": 1.0,
+      "source": "services_siteplanmenuservice_siteplanmenuservice",
+      "target": "services_siteplanmenuservice_siteplanmenuservice_getactionitemsforlist",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Services/SiteplanMenuService.php",
       "source_location": "L188",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -177750,6 +178628,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/Services/SiteplanMenuService.php",
+      "source_location": "L226",
+      "weight": 1.0,
+      "source": "services_siteplanmenuservice_siteplanmenuservice_getactionitemsforlist",
+      "target": "services_siteplanmenuservice_siteplanmenuservice_getflatitems",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Services/SiteplanMenuService.php",
       "source_location": "L190",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -177788,6 +178677,39 @@
       "confidence_score": 1.0,
       "source": "services_siteplanmenuservice_siteplanmenuservice_getitemroleids",
       "target": "services_siteplanmenuservice_siteplanmenuservice_tablesready"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Services/SiteplanMenuService.php",
+      "source_location": "L248",
+      "weight": 1.0,
+      "source": "services_siteplanmenuservice_siteplanmenuservice_getactionitemsforlist",
+      "target": "services_siteplanmenuservice_siteplanmenuservice_grouplabel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Services/SiteplanMenuService.php",
+      "source_location": "L221",
+      "weight": 1.0,
+      "source": "services_siteplanmenuservice_siteplanmenuservice_getactionitemsforlist",
+      "target": "services_siteplanmenuservice_siteplanmenuservice_tablesready",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Services/SiteplanMenuService.php",
+      "source_location": "L228",
+      "weight": 1.0,
+      "source": "services_siteplanmenuservice_siteplanmenuservice_getactionitemsforlist",
+      "target": "services_siteplanmenuservice_siteplanmenuservice_getitemsforaccessgroup",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
@@ -179408,6 +180330,26 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
+      "source_location": "L719",
+      "weight": 1.0,
+      "source": "cashout_cashoutsubkonservice_cashoutsubkonservice",
+      "target": "cashout_cashoutsubkonservice_cashoutsubkonservice_normalizeterminrows",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
+      "source_location": "L740",
+      "weight": 1.0,
+      "source": "cashout_cashoutsubkonservice_cashoutsubkonservice",
+      "target": "cashout_cashoutsubkonservice_cashoutsubkonservice_escape",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
       "source_location": "L645",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -179451,6 +180393,28 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "cashout_cashoutsubkonservice_cashoutsubkonservice_getdatatables",
+      "target": "cashout_cashoutsubkonservice_cashoutsubkonservice_normalizeterminrows",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "cashout_cashoutsubkonservice_cashoutsubkonservice_getdatatables",
+      "target": "cashout_cashoutsubkonservice_cashoutsubkonservice_escape",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
       "source_location": "L49",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -179473,22 +180437,22 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L56",
+      "source_location": "L57",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "cashout_cashoutsubkonservice_cashoutsubkonservice_getdatatables",
-      "target": "cashout_cashoutsubkonservice_cashoutsubkonservice_statusbadge"
+      "target": "cashout_cashoutsubkonservice_cashoutsubkonservice_formatdatetime"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
-      "source_location": "L57",
+      "source_location": "L56",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "cashout_cashoutsubkonservice_cashoutsubkonservice_getdatatables",
-      "target": "cashout_cashoutsubkonservice_cashoutsubkonservice_formatdatetime"
+      "target": "cashout_cashoutsubkonservice_cashoutsubkonservice_statusbadge"
     },
     {
       "relation": "calls",
@@ -555079,6 +556043,28 @@
     {
       "relation": "calls",
       "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L901",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadkavling",
+      "target": "js_scripts_resolvefilehref"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L925",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadmkdt",
+      "target": "js_scripts_resolvefilehref"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "public/assets/js/scripts.js",
       "source_location": "L81",
@@ -555130,6 +556116,61 @@
       "weight": 1.0,
       "source": "js_mkdt_isvalidkonsumen",
       "target": "js_scripts_showtoast"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L149",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_ubahmaksnominal",
+      "target": "js_scripts_removecomma"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L160",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_setalokasi",
+      "target": "js_scripts_removecomma"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L315",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_keuallocatedtotal",
+      "target": "js_scripts_removecomma"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L321",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_keuallocationautonominal",
+      "target": "js_scripts_removecomma"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L994",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_save_keuangan",
+      "target": "js_scripts_removecomma"
     },
     {
       "relation": "calls",
@@ -555246,6 +556287,28 @@
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L303",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_scripts_setlabelalamat"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L468",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_open_keuangan",
+      "target": "js_scripts_setlabelalamat"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
       "source_file": "public/assets/js/keuangan.js",
       "source_location": "L1244",
       "weight": 1.0,
@@ -555305,6 +556368,83 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "js_scripts_rendernotificationactivityitem",
+      "target": "js_scripts_format_datetime"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L63",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_others",
+      "target": "js_scripts_format_datetime"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L155",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_renderproduksijalanhistorytimeline",
+      "target": "js_scripts_format_datetime"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L510",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_last_update",
+      "target": "js_scripts_format_datetime"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1179",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadtagihan",
+      "target": "js_scripts_format_datetime"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1233",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadproduksi",
+      "target": "js_scripts_format_datetime"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1302",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadbuktibayarpajak",
+      "target": "js_scripts_format_datetime"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L846",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_loadlogpembayaran",
       "target": "js_scripts_format_datetime"
     },
     {
@@ -555455,6 +556595,17 @@
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L593",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_open_keuangan",
+      "target": "js_scripts_initmodallistener"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
       "source_file": "public/assets/js/cashout_subkon.js",
       "source_location": "L86",
       "weight": 1.0,
@@ -555499,6 +556650,17 @@
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L592",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_open_keuangan",
+      "target": "js_scripts_removemodallistener"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
       "source_file": "public/assets/js/keuangan.js",
       "source_location": "L2287",
       "weight": 1.0,
@@ -555526,6 +556688,28 @@
       "weight": 1.0,
       "source": "js_mkdt_save_mkdt",
       "target": "js_scripts_removemodallistener"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L452",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadsummary",
+      "target": "js_scripts_applyloadingeffect"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L875",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadpl",
+      "target": "js_scripts_applyloadingeffect"
     },
     {
       "relation": "calls",
@@ -555730,6 +556914,72 @@
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L882",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadpl",
+      "target": "js_scripts_setdatepicker"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L889",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadkavling",
+      "target": "js_scripts_setdatepicker"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L940",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadmkdt",
+      "target": "js_scripts_setdatepicker"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1054",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadlegal",
+      "target": "js_scripts_setdatepicker"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1199",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadproduksi",
+      "target": "js_scripts_setdatepicker"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L513",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_open_keuangan",
+      "target": "js_scripts_setdatepicker"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
       "source_file": "public/assets/js/cashout_subkon.js",
       "source_location": "L759",
       "weight": 1.0,
@@ -555823,6 +557073,50 @@
       "weight": 1.0,
       "source": "js_produksi_open_produksi",
       "target": "js_scripts_setdatepicker"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L314",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_scripts_swal"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L357",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_loadkeuanganriwayatlazy",
+      "target": "js_scripts_swal"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L597",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_open_keuangan",
+      "target": "js_scripts_swal"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L1110",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_save_keuangan",
+      "target": "js_scripts_swal"
     },
     {
       "relation": "calls",
@@ -556203,6 +557497,50 @@
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L890",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadkavling",
+      "target": "js_scripts_changeval"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L941",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadmkdt",
+      "target": "js_scripts_changeval"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1157",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadtagihan",
+      "target": "js_scripts_changeval"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1216",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadproduksi",
+      "target": "js_scripts_changeval"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
       "source_file": "public/assets/js/direksi.js",
       "source_location": "L60",
       "weight": 1.0,
@@ -556252,6 +557590,17 @@
       "weight": 1.0,
       "source": "js_produksi_open_produksi",
       "target": "js_scripts_changeval"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L1105",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_save_keuangan",
+      "target": "js_scripts_simpanbtn"
     },
     {
       "relation": "calls",
@@ -556445,6 +557794,17 @@
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1283",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadproduksi",
+      "target": "js_scripts_showfoto"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
       "source_file": "public/assets/js/produksi.js",
       "source_location": "L847",
       "weight": 1.0,
@@ -556516,6 +557876,1487 @@
       "weight": 1.0,
       "source": "js_mkdt_save_mkdt",
       "target": "js_scripts_hlbutton"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_siteplanactiveproyekname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_lihat_detail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_detail_others",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L107",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_escapeproduksijalanhistoryvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L111",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_resetproduksijalanhistorytimeline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L120",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_renderproduksijalanhistorytimeline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L180",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_loadproduksijalanhistorymore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L213",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_issubsidi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L214",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_iskpr",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L224",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_detail_kavling",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L358",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_loadsummary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L499",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_issudah",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L505",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_last_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L517",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_detailmoneyvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L523",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_detailrupiah",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L527",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_detailescapehtml",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L531",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_detailpercentvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L536",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_detailaccordionitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L551",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_detailtagihancard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L576",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_rendertagihancard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L620",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_preparedetailmodalredesign",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L645",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_builddetailfinancepanel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L747",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_builddetaillegalpanel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L781",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_builddetailproductionpanel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L839",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_binddetailmodalredesignevents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L871",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_loadpl",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L887",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_loadkavling",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L904",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_updatesp3kstatusbadge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L913",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_updatesp3kexpirystyle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L922",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_loadmkdt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1041",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_loadlegal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1090",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_hitungtagihan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1152",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_loadtagihan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1183",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_loadproduksi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1289",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_loadbuktibayarpajak",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1339",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_loadcashout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1365",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_loadfinanceflow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1385",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_renderfinanceflowtable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1407",
+      "weight": 1.0,
+      "source": "public_assets_js_siteplan_detail_modal_js",
+      "target": "js_siteplan_detail_modal_loadbayarproduksi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L303",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_siteplanactiveproyekname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_lihat_detail",
+      "target": "js_siteplan_detail_modal_last_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_lihat_detail",
+      "target": "js_siteplan_detail_modal_detail_kavling",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_lihat_detail",
+      "target": "js_siteplan_detail_modal_detail_others",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L42",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_others",
+      "target": "js_siteplan_detail_modal_resetproduksijalanhistorytimeline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L79",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_others",
+      "target": "js_siteplan_detail_modal_renderproduksijalanhistorytimeline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L154",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_renderproduksijalanhistorytimeline",
+      "target": "js_siteplan_detail_modal_escapeproduksijalanhistoryvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L200",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadproduksijalanhistorymore",
+      "target": "js_siteplan_detail_modal_renderproduksijalanhistorytimeline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L225",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_preparedetailmodalredesign",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L288",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_loadsummary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L289",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_loadpl",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L290",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_loadkavling",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L291",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_loadmkdt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L292",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_loadlegal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L293",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_loadtagihan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L294",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_loadproduksi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L295",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_loadbuktibayarpajak",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L296",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_loadcashout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L297",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_loadfinanceflow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L298",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detail_kavling",
+      "target": "js_siteplan_detail_modal_loadbayarproduksi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L410",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadsummary",
+      "target": "js_siteplan_detail_modal_hitungtagihan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L421",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadsummary",
+      "target": "js_siteplan_detail_modal_issudah",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1226",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadproduksi",
+      "target": "js_siteplan_detail_modal_issudah",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1080",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadlegal",
+      "target": "js_siteplan_detail_modal_last_update",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L524",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_detailrupiah",
+      "target": "js_siteplan_detail_modal_detailmoneyvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L603",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_rendertagihancard",
+      "target": "js_siteplan_detail_modal_detailmoneyvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1349",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadcashout",
+      "target": "js_siteplan_detail_modal_detailmoneyvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1368",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadfinanceflow",
+      "target": "js_siteplan_detail_modal_detailmoneyvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L610",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_rendertagihancard",
+      "target": "js_siteplan_detail_modal_detailrupiah",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1360",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadcashout",
+      "target": "js_siteplan_detail_modal_detailrupiah",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1372",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadfinanceflow",
+      "target": "js_siteplan_detail_modal_detailrupiah",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1401",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_renderfinanceflowtable",
+      "target": "js_siteplan_detail_modal_detailrupiah",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1400",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_renderfinanceflowtable",
+      "target": "js_siteplan_detail_modal_detailescapehtml",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L605",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_rendertagihancard",
+      "target": "js_siteplan_detail_modal_detailpercentvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1207",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadproduksi",
+      "target": "js_siteplan_detail_modal_detailpercentvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L665",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_builddetailfinancepanel",
+      "target": "js_siteplan_detail_modal_detailaccordionitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L770",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_builddetaillegalpanel",
+      "target": "js_siteplan_detail_modal_detailaccordionitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L822",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_builddetailproductionpanel",
+      "target": "js_siteplan_detail_modal_detailaccordionitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L654",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_builddetailfinancepanel",
+      "target": "js_siteplan_detail_modal_detailtagihancard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1161",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadtagihan",
+      "target": "js_siteplan_detail_modal_rendertagihancard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L639",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_preparedetailmodalredesign",
+      "target": "js_siteplan_detail_modal_builddetailfinancepanel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L640",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_preparedetailmodalredesign",
+      "target": "js_siteplan_detail_modal_builddetaillegalpanel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L641",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_preparedetailmodalredesign",
+      "target": "js_siteplan_detail_modal_builddetailproductionpanel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L642",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_preparedetailmodalredesign",
+      "target": "js_siteplan_detail_modal_binddetailmodalredesignevents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L985",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadmkdt",
+      "target": "js_siteplan_detail_modal_updatesp3kstatusbadge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L986",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadmkdt",
+      "target": "js_siteplan_detail_modal_updatesp3kexpirystyle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1155",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadtagihan",
+      "target": "js_siteplan_detail_modal_hitungtagihan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/siteplan-detail-modal.js",
+      "source_location": "L1381",
+      "weight": 1.0,
+      "source": "js_siteplan_detail_modal_loadfinanceflow",
+      "target": "js_siteplan_detail_modal_renderfinanceflowtable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_nominal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_tanggal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_metode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_options",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_selecteditem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L63",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_autonominal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L81",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_rendertablealokasi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L118",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_deleteitemalokasi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L147",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_ubahmaksnominal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L157",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_setalokasi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L211",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_save_sb",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L253",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_keutonumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L258",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_keuescapehtml",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L262",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_renderbiayamkdt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L270",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_keunormalizetext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L274",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_keufindpaiditem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L281",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_keupaidbyitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L286",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_keuitemlimit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L305",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_keuitemremaining",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L311",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_keuallocatedtotal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L320",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_keuallocationautonominal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L332",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_loadkeuanganriwayatlazy",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L376",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_open_keuangan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L602",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_loadkeusb",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L670",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_renderkeusubitemsudahbayar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L699",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_renderkeupaymentsummary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L748",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_loadtabletagihan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L814",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_loadlogpembayaran",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L886",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_printriwayatbayar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L930",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_removeriwayatbayar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L993",
+      "weight": 1.0,
+      "source": "public_assets_js_tagihan_bayar_modal_js",
+      "target": "js_tagihan_bayar_modal_save_keuangan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L83",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_rendertablealokasi",
+      "target": "js_tagihan_bayar_modal_keuitemremaining",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L115",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_rendertablealokasi",
+      "target": "js_tagihan_bayar_modal_setalokasi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L154",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_ubahmaksnominal",
+      "target": "js_tagihan_bayar_modal_setalokasi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L168",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_setalokasi",
+      "target": "js_tagihan_bayar_modal_keutonumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L169",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_setalokasi",
+      "target": "js_tagihan_bayar_modal_keuallocatedtotal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L266",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_renderbiayamkdt",
+      "target": "js_tagihan_bayar_modal_keutonumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L283",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_keupaidbyitem",
+      "target": "js_tagihan_bayar_modal_keutonumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L292",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_keuitemlimit",
+      "target": "js_tagihan_bayar_modal_keutonumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L448",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_open_keuangan",
+      "target": "js_tagihan_bayar_modal_keutonumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L781",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_loadtabletagihan",
+      "target": "js_tagihan_bayar_modal_keutonumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L390",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_open_keuangan",
+      "target": "js_tagihan_bayar_modal_renderbiayamkdt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L288",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_keuitemlimit",
+      "target": "js_tagihan_bayar_modal_keunormalizetext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L282",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_keupaidbyitem",
+      "target": "js_tagihan_bayar_modal_keufindpaiditem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L308",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_keuitemremaining",
+      "target": "js_tagihan_bayar_modal_keupaidbyitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L306",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_keuitemremaining",
+      "target": "js_tagihan_bayar_modal_keuitemlimit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L323",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_keuallocationautonominal",
+      "target": "js_tagihan_bayar_modal_keuitemremaining",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L322",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_keuallocationautonominal",
+      "target": "js_tagihan_bayar_modal_keuallocatedtotal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L334",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_loadkeuanganriwayatlazy",
+      "target": "js_tagihan_bayar_modal_loadlogpembayaran",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L589",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_open_keuangan",
+      "target": "js_tagihan_bayar_modal_loadtabletagihan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L749",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_loadtabletagihan",
+      "target": "js_tagihan_bayar_modal_loadkeusb",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L816",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_loadlogpembayaran",
+      "target": "js_tagihan_bayar_modal_loadkeusb",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L739",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_renderkeupaymentsummary",
+      "target": "js_tagihan_bayar_modal_renderkeusubitemsudahbayar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "public/assets/js/tagihan-bayar-modal.js",
+      "source_location": "L805",
+      "weight": 1.0,
+      "source": "js_tagihan_bayar_modal_loadtabletagihan",
+      "target": "js_tagihan_bayar_modal_renderkeupaymentsummary",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -584187,5 +587028,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "5ca4ec93462e5b25aff4d79ac4d61daea376a278"
+  "built_at_commit": "851190bc4d701c7216d86cc7a84a6fbdd1d77645"
 }

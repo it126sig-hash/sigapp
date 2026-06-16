@@ -21,6 +21,7 @@ class Menu
 
         $activeProyekService = new ActiveProyekService();
         $userId = (int) user_id();
+        $activeProyekService->bootstrapForRequest();
 
         $d['menu'] = $fullmenu;
         $d['notif'] = $this->getNotif();

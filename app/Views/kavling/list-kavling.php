@@ -249,6 +249,59 @@
     }
   }
 </style>
+<style>
+  <?= view('siteplan/partials/modal_detail_styles') ?>
+
+  @media (max-width: 1199.98px) {
+    #modal_detail .detail-kavling-layout {
+      flex-wrap: wrap;
+    }
+
+    #modal_detail .detail-kavling-sidebar,
+    #modal_detail .detail-kavling-content {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+
+    #modal_detail .detail-kavling-sidebar {
+      position: static;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    #modal_detail .modal-dialog {
+      max-width: calc(100vw - 12px);
+      margin: .5rem auto;
+    }
+
+    #modal_detail .modal-body {
+      max-height: calc(100vh - 5.5rem);
+      padding: .75rem;
+    }
+
+    #modal_detail .nav-pills {
+      flex-direction: row !important;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: .25rem;
+    }
+
+    #modal_detail .detail-dashboard-grid,
+    #modal_detail .detail-card-grid,
+    #modal_detail .detail-production-dashboard {
+      grid-template-columns: 1fr;
+    }
+
+    #modal_detail .card-body {
+      padding: .85rem;
+    }
+  }
+
+  .poskon-action-cell .dropdown-menu {
+    max-height: 280px;
+    overflow-y: auto;
+  }
+</style>
 <!--
 <link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.css">
 <link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.css"> -->
@@ -515,10 +568,13 @@ if (!empty($roles)) {
 <script>
   var roleid = "<?= $k; ?>";
   var rolename = "<?= $v; ?>";
-  var has_akses = true;
-  var pph = 0;
-  var ppn = 0;
-  var li_keu = [];
+  const has_akses = JSON.parse('<?= json_encode($data['data']['has_akses'] ?? ['proyek' => false, 'legal' => false]) ?>');
+  const pph = JSON.parse('<?= json_encode($data['data']['pph'] ?? []) ?>');
+  const ppn = JSON.parse('<?= json_encode($data['data']['ppn'] ?? []) ?>');
+  const li_keu = JSON.parse('<?= $data['data']['li_keu'] ?? '[]' ?>');
+  var conf = JSON.parse('<?= $data['data']['conf'] ?? '{}' ?>');
+  const proyekContext = <?= json_encode($data['data']['proyek'] ?? null) ?>;
+  window.siteplanMenuItems = [];
   const roleOptions = {
     4: 'MKDT',
     3: 'Keuangan',
@@ -611,10 +667,132 @@ if (!empty($roles)) {
         id_hargajual: row.id_hargajual || row.harga_akhir || "-",
         id_komplain: row.id_komplain || null,
         no_tipe_rumah: row.no_tipe_rumah || '',
-        tipe_rumah: row.tipe_rumah || ''
+        tipe_rumah: row.tipe_rumah || '',
+        harga_akhir_tgl: row.harga_akhir_tgl || '',
+        harga_akhir_oleh: row.harga_akhir_oleh || row.uadd_by || ''
       }
     };
   }
+
+  function syncProjectContextFromRow(row) {
+    dt_proyek = $.extend({}, proyekContext || {}, dt_proyek || {}, {
+      id_proyek: activeProyekId() || (proyekContext && proyekContext.id_proyek) || '',
+      nama_proyek: window.SIGAPP.activeProyekName || (proyekContext && proyekContext.nama_proyek) || '',
+      id_perumahan_sikumbang: (proyekContext && proyekContext.id_perumahan_sikumbang) || (dt_proyek && dt_proyek.id_perumahan_sikumbang) || ''
+    });
+    if (row && row.nama_proyek) {
+      dt_proyek.nama_proyek = row.nama_proyek;
+    }
+    return dt_proyek;
+  }
+
+  function encodePoskonRow(row) {
+    return encodeURIComponent(JSON.stringify(row || {}));
+  }
+
+  function decodePoskonRow(encoded) {
+    if (!encoded) return {};
+    try {
+      return JSON.parse(decodeURIComponent(encoded));
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function loadSiteplanMenuItems() {
+    return $.ajax({
+      url: base_url + 'home/getMenuItemsJson',
+      type: 'post',
+      data: {
+        [csrfName]: csrfHash
+      },
+      dataType: 'json'
+    }).done(function(response) {
+      csrfHash = response.token;
+      window.siteplanMenuItems = response.items || [];
+    }).fail(function() {
+      window.siteplanMenuItems = [];
+    });
+  }
+
+  function renderPoskonActionCell(row) {
+    const idKavling = row.id_kavling;
+    if (!idKavling) return '';
+
+    const rowEncoded = encodePoskonRow(row);
+    let menuHtml = '';
+    let lastGroup = null;
+
+    (window.siteplanMenuItems || []).forEach(function(item) {
+      if (parseInt(roleid, 10) === 1 && item.group_label && item.group_label !== lastGroup) {
+        lastGroup = item.group_label;
+        menuHtml += '<div class="dropdown-header">' + $('<div>').text(item.group_label).html() + '</div>';
+      }
+
+      const icon = item.icon ? '<i class="' + item.icon + '"></i> ' : '';
+      menuHtml += '<button type="button" class="dropdown-item poskon-menu-action" data-onclick="' +
+        encodeURIComponent(item.onclick || '') + '" data-row="' + rowEncoded + '" data-group="' + (item.id_group || '') + '">' +
+        icon + $('<div>').text(item.label || '').html() + '</button>';
+    });
+
+    const dropdown = menuHtml ?
+      '<div class="btn-group ml-50">' +
+      '<button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Aksi</button>' +
+      '<div class="dropdown-menu dropdown-menu-right">' + menuHtml + '</div>' +
+      '</div>' :
+      '';
+
+    return '<div class="btn-group poskon-action-cell" style="white-space:nowrap">' +
+      '<button type="button" class="btn btn-info btn-sm poskon-detail-btn" data-row="' + rowEncoded + '" title="Lihat Detail">' +
+      '<i class="fa fa-eye"></i></button>' + dropdown + '</div>';
+  }
+
+  function runSiteplanMenuAction(onclick, row, menuItem) {
+    if (!onclick) return;
+
+    syncProjectContextFromRow(row);
+    const sh = buildKavlingShape(row);
+    window.editdtt = [sh];
+    $('.id_kavling').val(row.id_kavling || '');
+
+    const adminGroup = menuItem && menuItem.id_group ? parseInt(menuItem.id_group, 10) : 0;
+    if (parseInt(roleid, 10) === 1 && adminGroup > 0 && String(onclick).trim() === 'isi_data()') {
+      return openDepartmentModal(adminGroup, sh, 'edit');
+    }
+
+    try {
+      const fn = new Function(onclick);
+      fn.call(window);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Aksi gagal dijalankan',
+        text: error.message || 'Fungsi aksi tidak tersedia pada halaman ini.'
+      });
+    }
+  }
+
+  window.openDetailModal = function(id_kavling, rowData) {
+    const row = rowData || {};
+    const idKav = id_kavling || row.id_kavling;
+    if (!idKav) return;
+
+    syncProjectContextFromRow(row);
+    const sh = buildKavlingShape($.extend({}, row, {
+      id_kavling: idKav
+    }));
+    window.editdtt = [sh];
+
+    if (typeof detail_kavling === 'function') {
+      return detail_kavling(sh, idKav);
+    }
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Modal detail tidak tersedia',
+      text: 'Komponen detail kavling belum dimuat pada halaman.'
+    });
+  };
 
   function openDepartmentModal(roleToOpen, sh, source = 'edit') {
     const targetRole = parseInt(roleToOpen, 10);
@@ -712,6 +890,9 @@ if (!empty($roles)) {
     var isMobileTable = window.matchMedia("(max-width: 767.98px)").matches;
     var table = null;
 
+    initPoskonTable(isMobileTable);
+
+    function initPoskonTable(isMobileTable) {
     try {
       table = $('#data_tables').DataTable({
         fnDrawCallback: function() {
@@ -729,9 +910,6 @@ if (!empty($roles)) {
         searching: true,
         ordering: false,
         paging: true,
-        // "info": true,
-        // "autoWidth": false,
-        // "responsive": true,
         ajax: {
           url: base_url + 'list-kavling/ambil',
           type: "POST",
@@ -758,6 +936,23 @@ if (!empty($roles)) {
     } catch (error) {
       console.error('Gagal memuat DataTables list kavling:', error);
     }
+    }
+
+    $(document).on('click', '.poskon-detail-btn', function() {
+      const row = decodePoskonRow($(this).attr('data-row'));
+      openDetailModal(row.id_kavling, row);
+    });
+
+    $(document).on('click', '.poskon-menu-action', function(e) {
+      e.preventDefault();
+      const $btn = $(this);
+      const row = decodePoskonRow($btn.attr('data-row'));
+      const onclick = decodeURIComponent($btn.attr('data-onclick') || '');
+      const menuItem = {
+        id_group: parseInt($btn.attr('data-group') || '0', 10)
+      };
+      runSiteplanMenuAction(onclick, row, menuItem);
+    });
 
     //on chnage search
     $(".dataTables_filter input")
@@ -1215,7 +1410,7 @@ if (!empty($roles)) {
             if (item.tipe_file == "xlsx") {
               icon = "Excel <i class='fa fa-file-excel text-success'></i>";
             }
-            $div.append("<tr><td>" + no++ + "</td><td>" + item.nama_proyek + "</td><td>" + format_datetime(item.export_tgl) + "</td><td>" + item.export_by + "</td><td>" + icon + "</td><td><a href='" + base_url + item.path + item.randomname + "' target='_blank'>Download</a></td></tr>")
+            $div.append("<tr><td>" + no++ + "</td><td>" + item.nama_proyek + "</td><td>" + format_datetime(item.export_tgl) + "</td><td>" + item.export_by + "</td><td>" + icon + "</td><td>" + (item.download_url ? "<a href='" + item.download_url + "' target='_blank' rel='noopener'>Download</a>" : "-") + "</td></tr>")
           })
         },
         error: function() {
@@ -1576,4 +1771,9 @@ if (in_array($role_id, [3, 1])) {
 if (in_array($role_id, [10, 1])) {
   echo view('siteplan/pajak');
 }
+if (in_array($role_id, [1, 7, 3])) {
+  echo view('siteplan/cashout_subkon');
+}
 ?>
+<?= view('siteplan/partials/modal_detail', ['data' => $data['data'] ?? []]) ?>
+<script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>

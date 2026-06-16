@@ -34,10 +34,10 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_access_url)
             <ul class="nav navbar-nav d-xl-none flex-shrink-0">
                 <li class="nav-item"><a class="nav-link menu-toggle" href="javascript:void(0);"><i class="ficon" data-feather="menu"></i></a></li>
             </ul>
-            <a class="navbar-brand d-xl-none d-flex align-items-center ml-1 flex-shrink-0" href="<?= base_url() ?>" style="gap: 8px;">
+            <!-- <a class="navbar-brand d-xl-none d-flex align-items-center ml-1 flex-shrink-0" href="<?= base_url() ?>" style="gap: 8px;">
                 <img src="<?= base_url("images/logo.png") ?>" height="24" />
                 <span class="brand-text font-weight-bold" style="color: #5B4FCF; font-size: 1.15rem; letter-spacing: 0.5px;">SIGAPP</span>
-            </a>
+            </a> -->
 
             <div class="navbar-project-switcher dropdown ml-50 ml-md-1 min-width-0">
                 <?php if (empty($accessibleProyek)) : ?>

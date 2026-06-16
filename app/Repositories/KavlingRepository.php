@@ -162,6 +162,7 @@ class KavlingRepository
             ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
             ->join('hargajual', 'hargajual.id = kavling.harga_akhir', "left")
             ->join('legal', 'legal.id_legal = kavling.id_legal', 'left')
+            ->join('pajak', 'pajak.id = kavling.id_pajak', 'left')
             ->join('produksi', 'produksi.id_produksi = kavling.id_produksi', 'left')
             ->join("users as u", "u.id = kavling.perintah_bangun_oleh", "left")
             ->join("users", "users.id = kavling.harga_akhir_oleh", "left");
@@ -204,7 +205,11 @@ class KavlingRepository
                   produksi.slo, produksi.bp, produksi.lpa, produksi.st_jalan, produksi.st_saluran,
                   produksi.st_air, mkdt.status_mkdt",
 
-            8 => "mkdt.status_mkdt, produksi.progres_bangunan"
+            8 => "mkdt.status_mkdt, produksi.progres_bangunan",
+
+            10 => "kavling.id_pajak, mkdt.status_mkdt, mkdt.is_batal,
+                   pajak.pph42_nilai, pajak.pph42_tgl_bayar, pajak.pph42_ntpn,
+                   pajak.ppn_nilai, pajak.ppn_tgl_bayar, pajak.ppn_ntpn, pajak.ppn_no_faktur"
         ];
 
         if (isset($divisiFields[$id_divisi])) {

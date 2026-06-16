@@ -1298,6 +1298,19 @@ select,
     word-break: break-word;
 }
 
+.project-select-card.is-default-active {
+    box-shadow: 0 0 0 2px rgba(32, 87, 163, 0.25);
+}
+
+.project-select-card-badge {
+    font-size: .72rem;
+    font-weight: 600;
+    color: #2057a3;
+    background: rgba(32, 87, 163, 0.1);
+    border-radius: 999px;
+    padding: .15rem .55rem;
+}
+
 .project-select-card-page {
     border: none;
     border-radius: 12px;

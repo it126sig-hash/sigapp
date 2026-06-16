@@ -407,6 +407,26 @@ class Tagihan extends BaseController
 
         return $datatbel;
     }
+
+    public function getListTagihanDetail(): ResponseInterface
+    {
+        $idMkdt = (int) $this->request->getPost('id_mkdt');
+
+        if ($idMkdt <= 0) {
+            return $this->response->setJSON([
+                'token'   => csrf_hash(),
+                'success' => false,
+                'message' => 'Data MKDT tidak valid',
+                'data'    => [],
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'token'   => csrf_hash(),
+            'success' => true,
+            'data'    => $this->keuanganService->getListTagihanDetail($idMkdt),
+        ]);
+    }
     ################################## end of untuk list tagihan ##########################
 
     ################################## untuk list riwayat bayar ##########################

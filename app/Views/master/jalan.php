@@ -59,25 +59,7 @@
             <div>
               <div class="form-group">
                 <label for="addIdCluster"> Cluster: </label>
-                <select id="addIdCluster" name="idCluster" class="custom-select select2">
-                  <?php
-                  $group = null;
-                  foreach ($cluster as $p) {
-                    if ($group !== $p->nama_proyek) {
-                      if ($group !== null) {
-                        echo "</optgroup>";
-                      }
-                      $group = $p->nama_proyek;
-                      echo "<optgroup label='" . esc($group) . "'>";
-                    }
-
-                    echo "<option value='" . esc($p->id_cluster) . "'>" . esc($p->nama_cluster) . "</option>";
-                  }
-                  if ($group !== null) {
-                    echo "</optgroup>";
-                  }
-                  ?>
-                </select>
+                <select id="addIdCluster" name="idCluster" class="custom-select select2"></select>
               </div>
             </div>
             <div>
@@ -107,25 +89,7 @@
             <div>
               <div class="form-group">
                 <label for="editIdCluster"> Cluster: </label>
-                <select id="editIdCluster" name="idCluster" class="custom-select select2">
-                  <?php
-                  $group = null;
-                  foreach ($cluster as $p) {
-                    if ($group !== $p->nama_proyek) {
-                      if ($group !== null) {
-                        echo "</optgroup>";
-                      }
-                      $group = $p->nama_proyek;
-                      echo "<optgroup label='" . esc($group) . "'>";
-                    }
-
-                    echo "<option value='" . esc($p->id_cluster) . "'>" . esc($p->nama_cluster) . "</option>";
-                  }
-                  if ($group !== null) {
-                    echo "</optgroup>";
-                  }
-                  ?>
-                </select>
+                <select id="editIdCluster" name="idCluster" class="custom-select select2"></select>
               </div>
             </div>
             <div>
@@ -186,8 +150,8 @@
             data: function(data) {
               data[csrfName] = csrfHash
               data.id_proyek = activeProyekId()
-              data.id_cluster = $("#id_cluster").val()  
-              
+              data.id_cluster = $("#id_cluster").val()
+
             },
             dataSrc: function(r) {
               csrfHash = r.token
@@ -247,13 +211,71 @@
         $("#addIdCluster").select2({
           placeholder: "Pilih cluster",
           allowClear: true,
-          dropdownParent: $('#add-modal')
+          dropdownParent: $('#add-modal'),
+          ajax: {
+            url: base_url + "/cluster/getAll",
+            dataType: 'json',
+            delay: 250,
+            method: 'post',
+            data: function(params) {
+              return {
+                [csrfName]: csrfHash,
+                search: params.term,
+                id_proyek: activeProyekId()
+              };
+            },
+            processResults: function(r) {
+              csrfHash = r.token;
+
+              let results = [];
+              $.each(r.data, function(index, item) {
+                results.push({
+                  id: item[0],
+                  text: item[3]
+                });
+              });
+
+              return {
+                results: results
+              };
+            },
+            cache: true
+          }
         });
 
         $("#editIdCluster").select2({
           placeholder: "Pilih cluster",
           allowClear: true,
-          dropdownParent: $('#edit-modal')
+          dropdownParent: $('#edit-modal'),
+          ajax: {
+            url: base_url + "/cluster/getAll",
+            dataType: 'json',
+            delay: 250,
+            method: 'post',
+            data: function(params) {
+              return {
+                [csrfName]: csrfHash,
+                search: params.term,
+                id_proyek: activeProyekId()
+              };
+            },
+            processResults: function(r) {
+              csrfHash = r.token;
+
+              let results = [];
+              $.each(r.data, function(index, item) {
+                results.push({
+                  id: item[0],
+                  text: item[3]
+                });
+              });
+
+              return {
+                results: results
+              };
+            },
+            cache: true
+          }
         });
 
         //on click btn filter
@@ -266,13 +288,13 @@
         });
 
       function add() {
-        // reset the form 
+        // reset the form
         $("#add-form")[0].reset();
         $(".form-control").removeClass('is-invalid').removeClass('is-valid');
         $('#add-modal').modal('show');
         $("#addIdCluster").val(null).trigger('change')
         $('#add-form-btn').html('Simpan').prop("disabled", false);
-        // submit the add from 
+        // submit the add from
         $.validator.setDefaults({
           highlight: function(element) {
             $(element).addClass('is-invalid').removeClass('is-valid');
@@ -386,16 +408,21 @@
           dataType: 'json',
           success: function(response) {
             csrfHash = response.token;
-            // reset the form 
+            // reset the form
             $("#edit-form")[0].reset();
             $(".form-control").removeClass('is-invalid').removeClass('is-valid');
             $('#edit-modal').modal('show');
 
             $("#edit-form #editIdJalan").val(response.id_jalan);
-            $("#edit-form #editIdCluster").val(response.id_cluster).trigger('change');
+            if ($("#edit-form #editIdCluster").find("option[value='" + response.id_cluster + "']").length) {
+              $("#edit-form #editIdCluster").val(response.id_cluster).trigger('change');
+            } else {
+              var newOption = new Option(response.nama_cluster, response.id_cluster, true, true);
+              $("#edit-form #editIdCluster").append(newOption).trigger('change');
+            }
             $("#edit-form #editNamaJalan").val(response.nama_jalan);
 
-            // submit the edit from 
+            // submit the edit from
             $.validator.setDefaults({
               highlight: function(element) {
                 $(element).addClass('is-invalid').removeClass('is-valid');

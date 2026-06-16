@@ -7,6 +7,7 @@ use Config\Database;
 class SiteplanUrgentService
 {
     protected $db;
+    protected string $siteplanBaseUrl;
 
     protected array $sectionLabels = [
         'tagihan_overdue' => 'Tagihan lewat jatuh tempo',
@@ -21,6 +22,7 @@ class SiteplanUrgentService
     public function __construct()
     {
         $this->db = Database::connect();
+        $this->siteplanBaseUrl = function_exists('base_url') ? rtrim(base_url('siteplan/view_siteplan'), '/') : '/siteplan/view_siteplan';
     }
 
     public function getSummary(int $idProyek, int $groupId, ?int $userId = null): array
@@ -298,9 +300,10 @@ class SiteplanUrgentService
                 csd.status,
                 cs.nomor_surat,
                 s.nama_subkon,
-                k.id_kavling,
-                k.no_kavling,
-                j.nama_jalan,
+                MIN(k.id_kavling) AS id_kavling,
+                MIN(k.no_kavling) AS no_kavling,
+                MIN(j.nama_jalan) AS nama_jalan,
+                GROUP_CONCAT(CONCAT(j.nama_jalan, ' No. ', k.no_kavling) ORDER BY j.nama_jalan, k.no_kavling SEPARATOR ', ') AS daftar_kavling,
                 cl.nama_cluster,
                 p.id_proyek,
                 p.nama_proyek
@@ -340,6 +343,19 @@ class SiteplanUrgentService
         }
 
         return $builder
+            ->groupBy([
+                'csd.id_cashout_subkon_detail',
+                'csd.id_cashout_subkon',
+                'csd.berita_acara',
+                'csd.nominal',
+                'csd.tanggal_jatuh_tempo',
+                'csd.status',
+                'cs.nomor_surat',
+                's.nama_subkon',
+                'cl.nama_cluster',
+                'p.id_proyek',
+                'p.nama_proyek',
+            ])
             ->orderBy('csd.tanggal_jatuh_tempo IS NULL', 'ASC', false)
             ->orderBy('csd.tanggal_jatuh_tempo', 'ASC')
             ->orderBy('csd.id_cashout_subkon_detail', 'DESC')
@@ -491,7 +507,7 @@ class SiteplanUrgentService
 
     protected function formatTagihanItem(object $row, bool $isOverdue): array
     {
-        return [
+        return $this->withAction([
             'item_key' => 'urgent:tagihan:' . (int) $row->id_keuangan,
             'type' => 'tagihan',
             'severity' => $isOverdue ? 'danger' : 'warning',
@@ -507,34 +523,35 @@ class SiteplanUrgentService
             'nama_proyek' => $row->nama_proyek,
             'id_tipe' => $row->id_tipe,
             'due_date' => $row->jatuh_tempo_tgl,
-        ];
+        ], 'tagihan');
     }
 
     protected function formatCashoutSubkonItem(object $row, bool $isOverdue): array
     {
-        return [
+        return $this->withAction([
             'item_key' => 'urgent:cashout_subkon:' . (int) $row->id_cashout_subkon_detail,
             'type' => 'cashout_subkon',
             'severity' => $isOverdue ? 'danger' : 'warning',
             'title' => ($row->nama_subkon ?: 'Subkon') . ' - ' . ($row->berita_acara ?: 'Termin'),
             'description' => $this->cashoutSubkonDescription($row),
-            'meta' => trim(($row->nama_jalan ?: '-') . ' No. ' . ($row->no_kavling ?: '-')),
+            'meta' => $row->daftar_kavling ?: trim(($row->nama_jalan ?: '-') . ' No. ' . ($row->no_kavling ?: '-')),
             'id_proyek' => (int) $row->id_proyek,
             'id_kavling' => (int) $row->id_kavling,
             'id_cashout_subkon' => (int) $row->id_cashout_subkon,
             'id_cashout_subkon_detail' => (int) $row->id_cashout_subkon_detail,
             'nama_jalan' => $row->nama_jalan,
             'no_kavling' => $row->no_kavling,
+            'daftar_kavling' => $row->daftar_kavling,
             'nama_proyek' => $row->nama_proyek,
             'due_date' => $row->tanggal_jatuh_tempo,
-        ];
+        ], 'cashout_subkon');
     }
 
     protected function formatMkdtDateItem(object $row, string $type, string $label, bool $isOverdue): array
     {
         $date = $type === 'sp3k_expire' ? $row->sp3k_tgl_exp : $row->rencana_akad_tgl;
 
-        return [
+        return $this->withAction([
             'item_key' => 'urgent:' . $type . ':' . (int) $row->id_mkdt,
             'type' => $type,
             'severity' => $isOverdue ? 'danger' : 'warning',
@@ -550,14 +567,14 @@ class SiteplanUrgentService
             'no_kavling' => $row->no_kavling,
             'nama_proyek' => $row->nama_proyek,
             'due_date' => $date,
-        ];
+        ], 'detail');
     }
 
     protected function formatPembangunanTelatItem(object $row, string $today): array
     {
         $daysLate = max(1, (int) floor((strtotime($today) - strtotime($row->tanggal_rencana_selesai_pembangunan)) / 86400));
 
-        return [
+        return $this->withAction([
             'item_key' => 'urgent:pembangunan_telat:' . (int) $row->id_produksi,
             'type' => 'pembangunan_telat',
             'severity' => 'danger',
@@ -574,7 +591,7 @@ class SiteplanUrgentService
             'no_kavling' => $row->no_kavling,
             'nama_proyek' => $row->nama_proyek,
             'due_date' => $row->tanggal_rencana_selesai_pembangunan,
-        ];
+        ], 'detail');
     }
 
     protected function cashoutSubkonDescription(object $row): string
@@ -596,7 +613,7 @@ class SiteplanUrgentService
     {
         $type = $row->type ?: 'kavling';
 
-        return [
+        return $this->withAction([
             'type' => $type,
             'severity' => $type === 'mkdt_konsumen' ? 'info' : 'primary',
             'title' => $type === 'mkdt_konsumen' ? 'Perubahan data konsumen' : 'Perubahan kavling',
@@ -610,7 +627,36 @@ class SiteplanUrgentService
             'no_kavling' => $row->no_kavling,
             'nama_proyek' => $row->nama_proyek,
             'created_at' => $row->created_at,
+        ], $type === 'tagihan' ? 'tagihan' : 'detail');
+    }
+
+    protected function withAction(array $item, string $target): array
+    {
+        $idProyek = (int) ($item['id_proyek'] ?? 0);
+        $params = [
+            'urgent_action' => $target,
+            'id_kavling' => (int) ($item['id_kavling'] ?? 0),
         ];
+
+        if (!empty($item['id_mkdt'])) {
+            $params['id_mkdt'] = (int) $item['id_mkdt'];
+        }
+        if (!empty($item['id_keuangan'])) {
+            $params['id_keuangan'] = (int) $item['id_keuangan'];
+        }
+        if (!empty($item['id_cashout_subkon'])) {
+            $params['id_cashout_subkon'] = (int) $item['id_cashout_subkon'];
+        }
+        if (!empty($item['id_cashout_subkon_detail'])) {
+            $params['id_cashout_subkon_detail'] = (int) $item['id_cashout_subkon_detail'];
+        }
+
+        $item['action_target'] = $target;
+        $item['action_url'] = $idProyek > 0
+            ? $this->siteplanBaseUrl . '/' . $idProyek . '?' . http_build_query($params)
+            : '';
+
+        return $item;
     }
 
     protected function formatDate(?string $date): string

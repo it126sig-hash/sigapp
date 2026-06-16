@@ -8,6 +8,8 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/forms/select/select2.min.css">
 <link rel="stylesheet" type="text/css"
 	href="<?= base_url() ?>app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
+<!-- Quill CSS -->
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/editors/quill/quill.snow.css">
 
 <script>
 	// var csrfName = '<?= csrf_token() ?>';
@@ -31,26 +33,17 @@
 		<div class="row">
 			<div class="col-12">
 				<div class="card">
-					<div class="card-header border-bottom">
-						<div class="col-md-4 mb-1 ">
-							<select id="filter-is_active" name="filter-is_active" class="select2 form-control">
-								<option value=1>Aktif</option>
-								<option value=0>Tidak Aktif</option>
-							</select>
-						</div>
-						<div class="col-md-4 mb-1">
-							<button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect ">Filter
-								Data</button>
-						</div>
-
-						<hr class="col-12" />
-
-						<div class="col-md-3 mb-1">
-						</div>
-						<div class="col-md-6 mb-1">
-							<button type="button"
-								class="float-right btn btn-primary data-submit  btn-sm mr-1 col-sm-12 col-md-3 col-lg-3"
-								onclick="add()" title="Add"> <i class="fa fa-plus"></i> Tambah Data</button>
+					<div class="card-header border-bottom d-flex flex-wrap justify-content-between align-items-center">
+						<h4 class="card-title mb-1 mb-md-0">Halaman Pricelist</h4>
+						<div class="d-flex align-items-center" style="gap: 10px;">
+							<div style="min-width: 150px;">
+								<select id="filter-is_active" name="filter-is_active" class="select2 form-control">
+									<option value=1>Aktif</option>
+									<option value=0>Tidak Aktif</option>
+								</select>
+							</div>
+							<button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect">Filter</button>
+							<button type="button" class="btn btn-primary btn-sm text-nowrap" onclick="add()" title="Add"> <i class="fa fa-plus"></i> Tambah Data</button>
 						</div>
 					</div>
 					<div class="col-12">
@@ -59,29 +52,16 @@
 								<thead>
 									<tr>
 										<th>No</th>
-										<th>Proyek</th>
-										<th>Tanggal</th>
+										<th>Aksi</th>
+										<th>Tanggal (Subsidi)</th>
 										<th>Row</th>
-										<th>Tipe</th>
-										<th>LB</th>
-										<th>LT</th>
-										<th>Harga Jual</th>
-										<th>Harga Jual Net</th>
-										<th>KPR</th>
-										<th>UM</th>
-										<th>Biaya Admin</th>
-										<th>BPHTB</th>
-										<th>PPn</th>
-										<th>Biaya Proses</th>
-										<!-- <th>Total</th> -->
-										<th>Subsidi</th>
+										<th>Tipe (LB/LT)</th>
+										<th>Harga (Jual/Net/KPR/UM)</th>
+										<th>Biaya (Admin/BPHTB/PPn/Proses)</th>
 										<th>Keterangan</th>
 										<th>Status</th>
 										<th>Ditambah</th>
-										<th>Pada</th>
 										<th>Diubah</th>
-										<th>Pada</th>
-										<th></th>
 									</tr>
 								</thead>
 							</table>
@@ -98,14 +78,17 @@
 						<h5 class="modal-title" id="exampleModalLabel">Harga Jual</h5>
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
 					</div>
-					<div class="modal-body flex-grow-1" style="background-color:#eee">
+					<div class="modal-body flex-grow-1" style="background-color:#f8f9fa;">
 						<div class="row">
 							<input type="hidden" id="id" name="id" class="form-control">
 						</div>
-						<div class="card">
-							<div class="card-header section-title mb-0">Pilih Proyek</div>
-							<div class="card-body">
-								<div class="form-group">
+
+						<div class="divider divider-left">
+							<div class="divider-text">Pilih Proyek</div>
+						</div>
+						<div class="card border mb-2 shadow-none" style="border-radius: 8px;">
+							<div class="card-body p-2">
+								<div class="form-group mb-1">
 									<label for="idProyek"> Proyek: </label>
 									<select required id="idProyek" name="idProyek" class="custom-select select2">
 										<?php
@@ -115,51 +98,54 @@
 										?>
 									</select>
 								</div>
-								<div class="form-group">
+								<div class="form-group mb-0">
 									<label>File Pricelist</label>
 									<div class="custom-file">
 										<input type="file" class="custom-file-input" accept="application/pdf"
 											name="id_filehj" id="id_filehj" />
 										<label class="custom-file-label" id="label-id_filehj"
 											for="label-id_filehj">Upload Pricelist</label>
-										<a href="" target=_blank id="list-id_filehj">Klik untuk lihat file</a>
+										<a href="" target=_blank id="list-id_filehj" class="d-block mt-1">Klik untuk lihat file</a>
 									</div>
 								</div>
 							</div>
 						</div>
-						<div class="card">
-							<div class="card-header section-title mb-0">Tipe</div>
-							<div class="card-body">
+
+						<div class="divider divider-left mt-2">
+							<div class="divider-text">Tipe</div>
+						</div>
+						<div class="card border mb-2 shadow-none" style="border-radius: 8px;">
+							<div class="card-body p-2">
 								<div class="row">
 									<div class="col-md-6">
-										<div class="form-group">
+										<div class="form-group mb-1">
 											<label for="tgl_harga">Tanggal Pricelist</label>
 											<input required type="text" id="tgl_harga" name="tgl_harga"
 												class="form-control flatpickr-human-friendly" placeholder="Tanggal Pricelist" />
 										</div>
-										<div class="form-group">
-											<label for="namaCluster"> Row </label>
+										<div class="form-group mb-1">
+											<label for="row"> Row </label>
 											<input required type="text" id="row" name="row" class="form-control"
 												placeholder="ROW" maxlength="255">
 										</div>
-										<div class="form-group">
-											<label for="diskon"> Tipe </label>
+										<div class="form-group mb-0">
+											<label for="id_tipe"> Tipe </label>
 											<input required type="text" id="id_tipe" name="id_tipe" class="form-control"
 												placeholder="Isi dengan tipe, misal :22/60" maxlength="255">
 										</div>
 									</div>
 									<div class="col-md-6">
-										<div class="form-group">
-											<label for="insentif">Luas Bangunan</label>
+										<div class="form-group mb-1">
+											<label for="lb">Luas Bangunan</label>
 											<input required type="text" id="lb" name="lb" class="form-control"
-												placeholder="Luas Bangungan" maxlength="255">
+												placeholder="Luas Bangunan" maxlength="255">
 										</div>
-										<div class="form-group">
-											<label for="insentif">Luas Tanah</label>
+										<div class="form-group mb-1">
+											<label for="lt">Luas Tanah</label>
 											<input required type="text" id="lt" name="lt" class="form-control"
 												placeholder="Luas Tanah" maxlength="255">
 										</div>
-										<div class="form-group">
+										<div class="form-group mb-0">
 											<label for="is_subsidi"> Subsidi/Non Subsidi </label>
 											<select required id="is_subsidi" name="is_subsidi"
 												class="custom-select form-control">
@@ -171,54 +157,54 @@
 								</div>
 							</div>
 						</div>
-						<div class="card">
-						<div class="card-header section-title mb-0">Detail Harga Jual</div>
-							<div class="card-body">
+
+						<div class="divider divider-left mt-2">
+							<div class="divider-text">Detail Harga Jual</div>
+						</div>
+						<div class="card border mb-2 shadow-none" style="border-radius: 8px;">
+							<div class="card-body p-2">
 								<div class="row">
 									<div class="col-md-6">
-										<div class="form-group">
-											<label for="insentif">Harga Jual</label>
+										<div class="form-group mb-1">
+											<label for="hargajual">Harga Jual</label>
 											<input required type="text" id="hargajual" name="hargajual"
 												class="form-control num" placeholder="Harga Jual" maxlength="255">
 										</div>
-										<div class="form-group">
-											<label for="insentif">Harga Jual Net</label>
+										<div class="form-group mb-1">
+											<label for="hargajual_net">Harga Jual Net</label>
 											<input required type="text" id="hargajual_net" name="hargajual_net"
 												class="form-control num" placeholder="Harga Jual Net" maxlength="255">
 										</div>
-										<div class="form-group">
-											<label for="insentif">KPR</label>
+										<div class="form-group mb-1">
+											<label for="kpr">KPR</label>
 											<input required type="text" id="kpr" name="kpr" class="form-control num"
 												placeholder="KPR" maxlength="255">
 										</div>
-										<div class="form-group">
-											<label for="insentif">Uang Muka</label>
+										<div class="form-group mb-0">
+											<label for="uang_muka">Uang Muka</label>
 											<input required type="text" id="uang_muka" name="uang_muka"
 												class="form-control num" placeholder="Uang Muka" maxlength="255">
 										</div>
-
-
 									</div>
 									<div class="col-md-6">
-										<div class="form-group">
-											<label for="insentif">Biaya Admin</label>
+										<div class="form-group mb-1">
+											<label for="biaya_adm">Biaya Admin</label>
 											<input required type="text" id="biaya_adm" name="biaya_adm"
 												class="form-control num" placeholder="Biaya Administrasi"
 												maxlength="255">
 										</div>
-										<div class="form-group">
-											<label for="insentif">BPHTB</label>
+										<div class="form-group mb-1">
+											<label for="bphtb">BPHTB</label>
 											<input required type="text" id="bphtb" name="bphtb" class="form-control num"
 												placeholder="BPHTB" maxlength="255">
 										</div>
-										<div class="form-group">
-											<label for="insentif">PPn</label>
+										<div class="form-group mb-1">
+											<label for="ppn">PPn</label>
 											<input required type="text" id="ppn" name="ppn" class="form-control num"
-												placeholder="ppn" maxlength="255">
+												placeholder="PPn" maxlength="255">
 										</div>
-
-										<div class="form-group">
-											<label for="insentif">Biaya Proses</label>
+										<div class="form-group mb-0">
+											<label for="biaya_proses">Biaya Proses</label>
 											<input required type="text" id="biaya_proses" name="biaya_proses"
 												class="form-control num" placeholder="Biaya Proses" maxlength="255">
 										</div>
@@ -227,27 +213,27 @@
 							</div>
 						</div>
 
-						<div class="card">
-							<div class="card-body">
+						<div class="divider divider-left mt-2">
+							<div class="divider-text">Tambahan</div>
+						</div>
+						<div class="card border mb-0 shadow-none" style="border-radius: 8px;">
+							<div class="card-body p-2">
 								<div class="row">
 									<div class="col-md-12">
 										<div class="form-group hidden">
-											<label for="insentif">Total</label>
+											<label for="total">Total</label>
 											<input required type="text" id="total" name="total" readonly
 												class="form-control num" placeholder="Total" maxlength="255">
 										</div>
-										<div class="form-group">
-											<label for="keterangan">Keterangan</label>
-											<textarea id="keterangan" name="keterangan" class="form-control"
-												placeholder="Keterangan" rows="3"></textarea>
+										<div class="form-group mb-0">
+											<label for="keterangan_label">Keterangan</label>
+											<input type="hidden" name="keterangan" id="keterangan">
+											<div id="keterangan-editor" style="height: 150px; background-color: #fff;"></div>
 										</div>
 									</div>
 								</div>
 							</div>
 						</div>
-
-
-
 
 					</div>
 					<div class="modal-footer">
@@ -276,6 +262,8 @@
 <script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/extensions/polyfill.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/forms/select/select2.full.min.js"></script>
+<!-- Quill JS -->
+<script src="<?= base_url() ?>app-assets/vendors/js/editors/quill/quill.min.js"></script>
 <!-- <script src="https://adminlte.io/themes/v3/plugins/jquery-validation/additional-methods.min.js"></script> -->
 <!-- END: Page Vendor JS-->
 <script>
@@ -284,7 +272,9 @@
 			scrollY: "50vh",
 			scrollX: true,
 			scrollCollapse: true,
-			fixedColumns: true,
+			fixedColumns: {
+				leftColumns: 5
+			},
 			paging: true,
 			// columnDefs: [{
 			// targets: [1],
@@ -396,6 +386,23 @@
 		})
 		//remove bug arrow select2
 		$(".select2-selection__arrow").css("pointer-events", "none")
+
+		// Initialize Quill Editor
+		quill = new Quill('#keterangan-editor', {
+			theme: 'snow',
+			modules: {
+				toolbar: [
+					['bold', 'italic', 'underline', 'strike'],
+					[{ 'list': 'ordered'}, { 'list': 'bullet' }],
+					['clean']
+				]
+			}
+		});
+
+		// Update hidden input before submit
+		quill.on('text-change', function() {
+			$('#keterangan').val(quill.root.innerHTML);
+		});
 	});
 
 
@@ -427,10 +434,14 @@
 		url = base_url + '/hargajual/add'
 		// $(".form-submit").attr("id","add-form")
 		$('#add-form-btn').prop('disabled', false);
-		// reset the form 
+		// reset the form
 		$("#add-form")[0].reset();
 		$("#id").val('')
 		$("#label-id_filehj").html('Upload Pricelist');
+		if(typeof quill !== 'undefined') {
+			quill.root.innerHTML = '';
+			$('#keterangan').val('');
+		}
 
 		$(".form-control").removeClass('is-invalid').removeClass('is-valid');
 		$('#add-modal').modal('show');
@@ -440,7 +451,7 @@
 			$("#idProyek, #id_tipe").append($("<option selected></option>")).trigger('change');
 		}
 
-		// submit the add from 
+		// submit the add from
 		$.validator.setDefaults({
 			highlight: function (element) {
 				$(element).addClass('is-invalid').removeClass('is-valid');
@@ -552,7 +563,7 @@
 			dataType: 'json',
 			success: function (r) {
 				csrfHash = r.token;
-				// reset the form 
+				// reset the form
 
 				$(".form-control").removeClass('is-invalid').removeClass('is-valid');
 				$('#add-modal').modal('show');
@@ -570,6 +581,9 @@
 				$("#biaya_adm").val(r.biaya_adm).keyup();
 				$("#biaya_proses").val(r.biaya_proses).keyup();
 				$("#keterangan").val(r.keterangan);
+				if(typeof quill !== 'undefined') {
+					quill.root.innerHTML = r.keterangan || '';
+				}
 				$("#is_subsidi").val(r.is_subsidi);
 
 				$("#list-id_filehj").prop('href', r.lokasi + r.file_name);
@@ -583,7 +597,7 @@
 				if (r.tgl_harga != "0000-00-00")
 					document.querySelector("#tgl_harga")._flatpickr.setDate(r.tgl_harga);
 
-				// submit the edit from 
+				// submit the edit from
 				$.validator.setDefaults({
 					highlight: function (element) {
 						$(element).addClass('is-invalid').removeClass('is-valid');
@@ -751,76 +765,14 @@
 	}
 
 
-	$('thead > tr> th:nth-child(1)').css({
-		'min-width': '50px',
-		'max-width': '50px'
-	});
-	$('thead > tr> th:nth-child(2)').css({
-		'min-width': '200px',
-		'max-width': '200px'
-	});
-	$('thead > tr> th:nth-child(3)').css({
-		'min-width': '150px',
-		'max-width': '150px'
-	});
-	$('thead > tr> th:nth-child(4)').css({
-		'min-width': '50px',
-		'max-width': '50px'
-	});
-	$('thead > tr> th:nth-child(5)').css({
-		'min-width': '50px',
-		'max-width': '50px'
-	});
-	$('thead > tr> th:nth-child(6)').css({
-		'min-width': '50px',
-		'max-width': '50px'
-	});
-	$('thead > tr> th:nth-child(7)').css({
-		'min-width': '50px',
-		'max-width': '50px'
-	});
-	$('thead > tr> th:nth-child(8)').css({
-		'min-width': '100px',
-		'max-width': '100px'
-	});
-	$('thead > tr> th:nth-child(9)').css({
-		'min-width': '100px',
-		'max-width': '100px'
-	});
-	$('thead > tr> th:nth-child(10)').css({
-		'min-width': '100px',
-		'max-width': '100px'
-	});
-	$('thead > tr> th:nth-child(11)').css({
-		'min-width': '100px',
-		'max-width': '100px'
-	});
-	$('thead > tr> th:nth-child(12)').css({
-		'min-width': '100px',
-		'max-width': '100px'
-	});
-	$('thead > tr> th:nth-child(13)').css({
-		'min-width': '100px',
-		'max-width': '100px'
-	});
-	$('thead > tr> th:nth-child(14)').css({
-		'min-width': '100px',
-		'max-width': '100px'
-	});
-	// $('thead > tr> th:nth-child(15)').css({
-	// 'min-width': '100px',
-	// 'max-width': '80px'
-	// });
-	$('thead > tr> th:nth-child(16)').css({
-		'min-width': '100px',
-		'max-width': '100px'
-	});
-	$('thead > tr> th:nth-child(17)').css({
-		'min-width': '300px',
-		'max-width': '300px'
-	});
-	$('thead > tr> th:nth-child(18), thead > tr> th:nth-child(20)').css({
-		'min-width': '180px',
-		'max-width': '180px'
-	});
+	$('thead > tr> th:nth-child(1)').css({ 'min-width': '30px', 'max-width': '30px' });
+	$('thead > tr> th:nth-child(2)').css({ 'min-width': '100px', 'max-width': '100px' });
+	$('thead > tr> th:nth-child(3)').css({ 'min-width': '130px', 'max-width': '130px' });
+	$('thead > tr> th:nth-child(4)').css({ 'min-width': '50px', 'max-width': '50px' });
+	$('thead > tr> th:nth-child(5)').css({ 'min-width': '120px', 'max-width': '120px' });
+	$('thead > tr> th:nth-child(6)').css({ 'min-width': '180px', 'max-width': '180px' });
+	$('thead > tr> th:nth-child(7)').css({ 'min-width': '180px', 'max-width': '180px' });
+	$('thead > tr> th:nth-child(8)').css({ 'min-width': '250px', 'max-width': '250px' });
+	$('thead > tr> th:nth-child(9)').css({ 'min-width': '100px', 'max-width': '100px' });
+	$('thead > tr> th:nth-child(10), thead > tr> th:nth-child(11)').css({ 'min-width': '150px', 'max-width': '150px' });
 </script>

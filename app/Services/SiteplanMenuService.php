@@ -185,6 +185,83 @@ class SiteplanMenuService
         return self::GROUP_LABELS[$groupId] ?? 'Departemen ' . $groupId;
     }
 
+    private const LIST_EXCLUDED_ITEM_KEYS = [
+        'planning_manual_selection',
+        'planning_selection_done',
+        'planning_selection_cancel',
+        'planning_toggle_legend',
+        'planning_add_kavling',
+        'planning_edit_kavling_batch',
+        'planning_undo_manual_selection',
+        'produksi_tambah_jalan_state',
+        'produksi_tambah_jalan',
+        'produksi_tambah_jalan_ok',
+        'produksi_tambah_jalan_undo',
+        'produksi_tambah_jalan_batal',
+        'produksi_tambah_jalan_hint',
+        'keuangan_hapus_seleksi',
+        'mkdt_hapus_seleksi',
+        'produksi_hapus_seleksi',
+        'sales_hapus_seleksi',
+        'direksi_hapus_seleksi',
+        'target_hapus_seleksi',
+        'others_hapus_seleksi',
+        'planning_hapus_seleksi',
+        'keuangan_lihat_detail',
+        'mkdt_lihat_detail',
+        'produksi_lihat_detail',
+        'sales_lihat_detail',
+        'direksi_lihat_detail',
+        'target_lihat_detail',
+        'others_lihat_detail',
+    ];
+
+    public function getActionItemsForList(int $roleId): array
+    {
+        if (!$this->tablesReady()) {
+            return [];
+        }
+
+        if ($roleId === 1) {
+            $items = $this->getFlatItems(true);
+        } else {
+            $items = $this->getItemsForAccessGroup($roleId);
+            if (!$items && $roleId !== 0) {
+                $items = $this->getItemsForAccessGroup(0);
+            }
+        }
+
+        $result = [];
+        foreach ($items as $item) {
+            $key = (string) ($item->item_key ?? '');
+            if ($key === '' || in_array($key, self::LIST_EXCLUDED_ITEM_KEYS, true)) {
+                continue;
+            }
+
+            $onclick = trim((string) ($item->onclick ?? ''));
+            if ($onclick === '') {
+                continue;
+            }
+
+            $groupLabel = trim((string) ($item->group_label ?? ''));
+            if ($groupLabel === '' && $roleId === 1) {
+                $groupLabel = $this->groupLabel((int) ($item->id_group ?? 0));
+            }
+
+            $result[] = [
+                'item_key'    => $key,
+                'label'       => (string) ($item->label ?? ''),
+                'group_label' => $groupLabel,
+                'onclick'     => $onclick,
+                'icon'        => (string) ($item->icon ?? ''),
+                'btn_class'   => (string) ($item->btn_class ?? 'btn-primary'),
+                'id_group'    => (int) ($item->id_group ?? 0),
+            ];
+        }
+
+        return $result;
+    }
+
     private function renderAllGroupMenus(): string
     {
         $items = $this->getFlatItems(true);

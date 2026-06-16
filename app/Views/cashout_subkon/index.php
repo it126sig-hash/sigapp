@@ -23,6 +23,35 @@ foreach (user()->getRoles() as $key => $val) {
     .cashout-subkon-filter {
         gap: 1rem;
     }
+
+    .cashout-subkon-child-wrap {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin: .5rem 0;
+        padding: .75rem;
+    }
+
+    .cashout-subkon-child-table {
+        background: #fff;
+        margin-bottom: 0;
+    }
+
+    .cashout-subkon-child-table th {
+        white-space: nowrap;
+    }
+
+    .cashout-subkon-child-empty {
+        color: #6b7280;
+        font-size: .86rem;
+        padding: .35rem;
+    }
+
+    .btn-edit-cashout-subkon,
+    .btn-delete-cashout-subkon {
+        border-radius: 6px;
+        font-weight: 800;
+    }
 </style>
 
 <script>
@@ -37,7 +66,10 @@ foreach (user()->getRoles() as $key => $val) {
     const roleid = <?= (int) $roleId ?>;
     const rolename = '<?= esc($roleName) ?>';
     const not_found = 'images/not_found.png';
-    let dt_proyek = {};
+    let dt_proyek = {
+        id_proyek: window.SIGAPP && window.SIGAPP.activeProyekId ? window.SIGAPP.activeProyekId : '',
+        nama_proyek: window.SIGAPP && window.SIGAPP.activeProyekName ? window.SIGAPP.activeProyekName : ''
+    };
     window.editdtt = [];
 </script>
 
@@ -54,10 +86,6 @@ foreach (user()->getRoles() as $key => $val) {
                             <small class="text-muted">List SPK dan termin cashout subkon</small>
                         </div>
                         <div class="ml-auto d-flex flex-wrap align-items-end cashout-subkon-filter">
-                            <div style="min-width: 260px;">
-                                <label>Proyek</label>
-                                <select id="filter-id-proyek" class="form-control select2"></select>
-                            </div>
                             <div style="min-width: 180px;">
                                 <label>Status</label>
                                 <select id="filter-status" class="form-control select2">
@@ -80,15 +108,12 @@ foreach (user()->getRoles() as $key => $val) {
                                 <tr>
                                     <th>Aksi</th>
                                     <th>No</th>
-                                    <th>No SPK</th>
-                                    <th>Tgl SPK</th>
+                                    <th>No / Tgl SPK</th>
                                     <th>Subkon</th>
-                                    <th>Proyek</th>
                                     <th>Kavling</th>
                                     <th>Total Kontrak</th>
+                                    <th>Total Sudah Cair</th>
                                     <th>Tenggat Waktu</th>
-                                    <th>Waktu Cair</th>
-                                    <th>Status</th>
                                     <th>Dibuat</th>
                                 </tr>
                             </thead>
@@ -115,6 +140,133 @@ foreach (user()->getRoles() as $key => $val) {
 
 <script>
     $(function() {
+        function resolveActiveProyekId() {
+            if (typeof activeProyekId === 'function') {
+                return activeProyekId();
+            }
+
+            return window.SIGAPP && window.SIGAPP.activeProyekId ? window.SIGAPP.activeProyekId : null;
+        }
+
+        function syncActiveProyekContext() {
+            dt_proyek = {
+                id_proyek: resolveActiveProyekId() || '',
+                nama_proyek: window.SIGAPP && window.SIGAPP.activeProyekName ? window.SIGAPP.activeProyekName : ''
+            };
+        }
+
+        function cashoutSubkonEscapeHtml(value) {
+            return $('<div>').text(value === null || value === undefined ? '' : value).html();
+        }
+
+        function cashoutSubkonFormatDate(value) {
+            if (!value || value === '0000-00-00') {
+                return '-';
+            }
+
+            if (typeof format_date === 'function') {
+                return format_date(value) || '-';
+            }
+
+            return cashoutSubkonEscapeHtml(value);
+        }
+
+        function cashoutSubkonFormatMoney(value) {
+            const amount = parseFloat(value || 0);
+            const safeAmount = Number.isFinite(amount) ? amount : 0;
+
+            if (typeof num_format === 'function') {
+                return 'Rp ' + num_format(safeAmount);
+            }
+
+            return 'Rp ' + safeAmount.toLocaleString('id-ID');
+        }
+
+        function cashoutSubkonStatusBadge(status, isPaid) {
+            if (parseInt(status || 0) === 4 || parseInt(isPaid || 0) === 1) {
+                return '<span class="badge badge-success">Dibayar Oleh Keuangan</span>';
+            }
+
+            const labels = {
+                0: ['badge-primary', 'Terbit SPK'],
+                1: ['badge-secondary', 'Turun Jatuh Tempo'],
+                2: ['badge-info', 'Pengajuan SPP'],
+                3: ['badge-warning', 'Pengajuan Pencairan']
+            };
+            const item = labels[parseInt(status || 0)] || ['badge-light', '-'];
+
+            return '<span class="badge ' + item[0] + '">' + item[1] + '</span>';
+        }
+
+        function cashoutSubkonReadTermin($button) {
+            const data = $button.data('termin');
+            if (Array.isArray(data)) {
+                return data;
+            }
+
+            if (typeof data === 'string' && data.length > 0) {
+                try {
+                    return JSON.parse(data);
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            return [];
+        }
+
+        function cashoutSubkonFormatTerminChild(data) {
+            if (!Array.isArray(data) || data.length === 0) {
+                return '<div class="cashout-subkon-child-wrap"><div class="cashout-subkon-child-empty">Tidak ada termin pembayaran.</div></div>';
+            }
+
+            const rows = data.map(function(item, index) {
+                const spp = item.spp_no
+                    ? cashoutSubkonEscapeHtml(item.spp_no) + '<br><small class="text-muted">' + cashoutSubkonFormatDate(item.spp_tgl) + '</small>'
+                    : '-';
+                const pembayaran = item.cek_no
+                    ? cashoutSubkonEscapeHtml(item.cek_no) + '<br><small class="text-muted">' + cashoutSubkonFormatDate(item.cek_tgl) + '</small>'
+                    : '-';
+
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${cashoutSubkonEscapeHtml(item.berita_acara || '-')}</td>
+                        <td class="text-right">${cashoutSubkonEscapeHtml(item.persentase || 0)}%</td>
+                        <td class="text-right">${cashoutSubkonFormatMoney(item.nominal)}</td>
+                        <td>${cashoutSubkonFormatDate(item.tanggal_jatuh_tempo)}</td>
+                        <td>${spp}</td>
+                        <td>${cashoutSubkonFormatDate(item.pengajuan_cair_tgl)}</td>
+                        <td>${pembayaran}</td>
+                        <td>${cashoutSubkonStatusBadge(item.status, item.is_paid)}</td>
+                    </tr>`;
+            }).join('');
+
+            return `
+                <div class="cashout-subkon-child-wrap">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered cashout-subkon-child-table">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Termin / Berita Acara</th>
+                                    <th class="text-right">Persentase</th>
+                                    <th class="text-right">Nominal</th>
+                                    <th>Jatuh Tempo</th>
+                                    <th>SPP</th>
+                                    <th>Pengajuan Cair</th>
+                                    <th>Pembayaran / Cek</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+        }
+
+        syncActiveProyekContext();
+
         const table = $('#cashout-subkon-table').DataTable({
             scrollX: true,
             processing: true,
@@ -129,7 +281,7 @@ foreach (user()->getRoles() as $key => $val) {
                 dataType: 'json',
                 data: function(data) {
                     data[csrfName] = csrfHash;
-                    data.id_proyek = $('#filter-id-proyek').val();
+                    data.id_proyek = resolveActiveProyekId();
                     data.status = $('#filter-status').val();
                 },
                 dataSrc: function(r) {
@@ -149,48 +301,13 @@ foreach (user()->getRoles() as $key => $val) {
             minimumResultsForSearch: Infinity
         });
 
-        $('#filter-id-proyek').select2({
-            placeholder: 'Pilih Proyek',
-            allowClear: true,
-            ajax: {
-                url: base_url + 'proyek/get/all',
-                dataType: 'json',
-                delay: 250,
-                method: 'post',
-                data: function(params) {
-                    return {
-                        [csrfName]: csrfHash,
-                        search: params.term
-                    };
-                },
-                processResults: function(r) {
-                    csrfHash = r.token;
-                    return {
-                        results: (r.data || []).map(function(item) {
-                            return {
-                                id: item.id_proyek,
-                                text: item[1] + ' (' + item[2] + ')',
-                                nama_proyek: item[1]
-                            };
-                        })
-                    };
-                },
-                cache: true
-            }
-        }).on('change', function() {
-            const selected = $(this).select2('data')[0] || {};
-            dt_proyek = {
-                id_proyek: selected.id || '',
-                nama_proyek: selected.nama_proyek || selected.text || ''
-            };
-        });
-
         $('#btn-filter-cashout-subkon').on('click', function() {
             table.draw();
         });
 
         $('#btn-add-cashout-subkon').on('click', function() {
-            if (!$('#filter-id-proyek').val()) {
+            syncActiveProyekContext();
+            if (!dt_proyek.id_proyek) {
                 return swal('error', 'Pilih proyek terlebih dahulu');
             }
 
@@ -199,8 +316,26 @@ foreach (user()->getRoles() as $key => $val) {
 
         $(document).on('click', '.btn-edit-cashout-subkon', function() {
             const payload = $(this).data('payload');
-            dt_proyek.id_proyek = payload.id_proyek || $('#filter-id-proyek').val() || '';
+            syncActiveProyekContext();
+            dt_proyek.id_proyek = payload.id_proyek || dt_proyek.id_proyek || '';
             openCOSubkon(payload);
+        });
+
+        $('#cashout-subkon-table tbody').on('click', '.btn-cashout-subkon-detail', function() {
+            const button = $(this);
+            const tr = button.closest('tr');
+            const row = table.row(tr);
+
+            if (row.child.isShown()) {
+                row.child.hide();
+                tr.removeClass('shown');
+                button.find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+                return;
+            }
+
+            tr.addClass('shown');
+            button.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            row.child(cashoutSubkonFormatTerminChild(cashoutSubkonReadTermin(button))).show();
         });
 
         $(document).ajaxSuccess(function(event, xhr, settings) {

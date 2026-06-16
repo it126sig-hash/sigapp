@@ -7,6 +7,8 @@ use App\Repositories\ProyekRepository;
 class ActiveProyekService
 {
     private const SESSION_KEY = 'id_proyek';
+    private const PICKER_PENDING_KEY = 'proyek_picker_pending';
+    private const SESSION_INITIALIZED_KEY = 'proyek_session_initialized';
 
     private ProyekRepository $proyekRepository;
     private FileAccessService $fileAccessService;
@@ -36,27 +38,39 @@ class ActiveProyekService
 
     public function resolveOnRequest(): ?int
     {
-        $activeId = $this->getActiveId();
+        $this->bootstrapForRequest();
+
+        return $this->getActiveId();
+    }
+
+    public function bootstrapForRequest(): void
+    {
+        if (! function_exists('logged_in') || ! logged_in()) {
+            return;
+        }
+
         $userId = (int) user_id();
 
-        if ($activeId && $this->userCanAccess($activeId, $userId)) {
-            return $activeId;
+        if (! session()->has(self::SESSION_INITIALIZED_KEY)) {
+            session()->set(self::SESSION_INITIALIZED_KEY, true);
+            session()->set(self::PICKER_PENDING_KEY, true);
         }
 
-        if ($activeId) {
-            session()->remove(self::SESSION_KEY);
-        }
-
-        return null;
+        $this->ensureDefaultActive($userId);
     }
 
     public function needsSelection(): bool
     {
-        if ($this->getActiveId()) {
+        if (! session(self::PICKER_PENDING_KEY)) {
             return false;
         }
 
         return ! empty($this->getAccessibleList((int) user_id()));
+    }
+
+    public function dismissSelectionPicker(): void
+    {
+        session()->set(self::PICKER_PENDING_KEY, false);
     }
 
     public function resolveAndGet(): ?object
@@ -67,6 +81,26 @@ class ActiveProyekService
         }
 
         return $this->enrichProyek($this->proyekRepository->getById($id));
+    }
+
+    private function ensureDefaultActive(int $userId): void
+    {
+        $activeId = $this->getActiveId();
+
+        if ($activeId && $this->userCanAccess($activeId, $userId)) {
+            return;
+        }
+
+        if ($activeId) {
+            session()->remove(self::SESSION_KEY);
+        }
+
+        $accessible = $this->getAccessibleList($userId);
+        if (empty($accessible)) {
+            return;
+        }
+
+        session()->set(self::SESSION_KEY, (int) $accessible[0]->id_proyek);
     }
 
     public function getAccessibleList(int $userId): array
@@ -99,6 +133,7 @@ class ActiveProyekService
         }
 
         session()->set(self::SESSION_KEY, $idProyek);
+        $this->dismissSelectionPicker();
 
         return [
             'success' => true,

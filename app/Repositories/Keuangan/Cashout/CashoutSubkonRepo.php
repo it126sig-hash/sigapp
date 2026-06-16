@@ -72,10 +72,14 @@ class CashoutSubkonRepo extends Model
             $builder->limit((int) $var['length'], (int) $var['start']);
         }
 
+        $rows = $builder->get()->getResult();
+        $ids = array_map(static fn ($row) => (int) $row->id_cashout_subkon, $rows);
+
         return [
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'rows' => $builder->get()->getResult(),
+            'rows' => $rows,
+            'details' => $this->getDetailsByCashoutSubkonIds($ids),
         ];
     }
 
@@ -100,9 +104,9 @@ class CashoutSubkonRepo extends Model
                 GROUP_CONCAT(DISTINCT CONCAT(j.nama_jalan, ' No ', k.no_kavling) ORDER BY j.nama_jalan, ABS(k.no_kavling), k.no_kavling SEPARATOR ', ') AS kavling_list,
                 GROUP_CONCAT(DISTINCT k.id_kavling ORDER BY j.nama_jalan, ABS(k.no_kavling), k.no_kavling SEPARATOR ',') AS id_kavlings,
                 GROUP_CONCAT(DISTINCT CONCAT(k.id_kavling, '|', j.nama_jalan, '|', k.no_kavling) ORDER BY j.nama_jalan, ABS(k.no_kavling), k.no_kavling SEPARATOR ',') AS kavling_options,
-                GROUP_CONCAT(DISTINCT csd.tanggal_jatuh_tempo ORDER BY csd.tanggal_jatuh_tempo SEPARATOR ',') AS tanggal_jatuh_tempo_list,
-                GROUP_CONCAT(DISTINCT COALESCE(csd.cek_tgl, csd.pengajuan_cair_tgl) ORDER BY COALESCE(csd.cek_tgl, csd.pengajuan_cair_tgl) SEPARATOR ',') AS waktu_cair_list,
-                MAX(csd.status) AS max_detail_status
+                csds.tanggal_jatuh_tempo_list,
+                COALESCE(csds.total_sudah_cair, 0) AS total_sudah_cair,
+                csds.max_detail_status
             ", false)
             ->join('subkon s', 's.id = cs.id_subkon', 'left')
             ->join('cashout_subkon_kavling csk', 'csk.id_cashout_subkon = cs.id_cashout_subkon', 'left')
@@ -110,7 +114,20 @@ class CashoutSubkonRepo extends Model
             ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
             ->join('cluster cl', 'cl.id_cluster = j.id_cluster', 'left')
             ->join('proyek p', 'p.id_proyek = cl.id_proyek', 'left')
-            ->join('cashout_subkon_detail csd', 'csd.id_cashout_subkon = cs.id_cashout_subkon', 'left')
+            ->join(
+                "(
+                    SELECT
+                        id_cashout_subkon,
+                        GROUP_CONCAT(DISTINCT tanggal_jatuh_tempo ORDER BY tanggal_jatuh_tempo SEPARATOR ',') AS tanggal_jatuh_tempo_list,
+                        COALESCE(SUM(CASE WHEN status = 4 OR is_paid = 1 THEN nominal ELSE 0 END), 0) AS total_sudah_cair,
+                        MAX(status) AS max_detail_status
+                    FROM cashout_subkon_detail
+                    GROUP BY id_cashout_subkon
+                ) csds",
+                'csds.id_cashout_subkon = cs.id_cashout_subkon',
+                'left',
+                false
+            )
             ->groupBy('cs.id_cashout_subkon');
 
         if (!empty($idProyek)) {
@@ -132,6 +149,44 @@ class CashoutSubkonRepo extends Model
         }
 
         return $builder;
+    }
+
+    public function getDetailsByCashoutSubkonIds(array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        if (empty($ids)) {
+            return [];
+        }
+
+        $rows = $this->db->table('cashout_subkon_detail csd')
+            ->select('
+                csd.id_cashout_subkon,
+                csd.id_cashout_subkon_detail,
+                csd.berita_acara,
+                csd.persentase,
+                csd.nominal,
+                csd.tanggal_jatuh_tempo,
+                csd.status,
+                csd.spp_no,
+                csd.spp_tgl,
+                csd.pengajuan_cair_tgl,
+                csd.cek_no,
+                csd.cek_tgl,
+                csd.is_paid,
+                csd.keterangan
+            ')
+            ->whereIn('csd.id_cashout_subkon', $ids)
+            ->orderBy('csd.id_cashout_subkon', 'ASC')
+            ->orderBy('csd.id_cashout_subkon_detail', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $grouped = [];
+        foreach ($rows as $row) {
+            $grouped[(int) $row['id_cashout_subkon']][] = $row;
+        }
+
+        return $grouped;
     }
 
     public  function getListCashoutKavling(array $id_kavlings)

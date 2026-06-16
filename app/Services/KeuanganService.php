@@ -459,7 +459,7 @@ class KeuanganService
             $builder->where('j.id_jalan', $request->getVar('id_jalan'));
 
         return DataTable::of($builder)
-            ->addSearchableColumns('nama_konsumen', 'no_kavling')
+            ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
             ->add('Aksi', function ($value) {
                 $sh = json_encode([
                     'data' => [
@@ -470,10 +470,10 @@ class KeuanganService
                     ],
                     'data2' => [
                         'no_tipe_rumah' => $value->no_tipe_rumah,
-                        'tipe_rumah'    => $value->id_tipe,
+                        'tipe_rumah'    => $value->tipe_pricelist,
                     ]
                 ]);
-                return '<button class="btn btn-outline-primary btn-sm" onclick="open_keuangan(' . htmlspecialchars($sh, ENT_QUOTES, 'UTF-8') . ', 3, 0)"><i class="fas fa-receipt"></i> Bayar</button>';
+                return '<button type="button" class="btn btn-primary btn-sm tagihan-pay-btn text-uppercase" onclick="open_keuangan(' . htmlspecialchars($sh, ENT_QUOTES, 'UTF-8') . ', 3, 0)"><i class="fas fa-receipt mr-25"></i> Bayar</button>';
             }, 'first')
             ->addNumbering('no')
             ->edit('booking_tgl', function ($value) {
@@ -486,17 +486,28 @@ class KeuanganService
                 return $this->is_active($value->is_kpr, 'KPR', 'TUNAI');
             })
             ->edit('total_tagihan', function ($v) {
-                return number_format($v->um + $v->adm + $v->bb);
+                return number_format((float) $v->total_tagihan);
             })
             ->edit('sudah_bayar', function ($v) {
-                return number_format($v->total_um + $v->total_adm + $v->total_bb);
+                return number_format((float) $v->sudah_bayar);
             })
             ->edit('sisa_tagihan', function ($v) {
-                $tot = $v->um + $v->adm + $v->bb;
-                $sb  = $v->total_um + $v->total_adm + $v->total_bb;
-                return number_format($tot - $sb);
+                return number_format((float) $v->sisa_tagihan);
             })
-            ->toJson();
+            ->toJson(true);
+    }
+
+    public function getListTagihanDetail(int $idMkdt): array
+    {
+        return array_map(static function ($row) {
+            return [
+                'berita_acara'  => $row->berita_acara ?? '',
+                'jatuh_tempo_tgl' => $row->jatuh_tempo_tgl ?? null,
+                'nominal'       => (float) ($row->nominal ?? 0),
+                'sudah_dibayar' => (int) ($row->sudah_dibayar ?? 0),
+                'status'        => $row->status ?? '',
+            ];
+        }, $this->keuRepo->getListTagihanDetailById($idMkdt));
     }
 
     public function getTagihanById($id_mkdt, $isTurunKPR = false)

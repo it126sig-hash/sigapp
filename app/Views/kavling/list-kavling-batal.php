@@ -411,7 +411,7 @@
             if (item.tipe_file == "xlsx") {
               icon = "Excel <i class='fa fa-file-excel text-success'></i>";
             }
-            $div.append("<tr><td>" + no++ + "</td><td>" + item.nama_proyek + "</td><td>" + format_datetime(item.export_tgl) + "</td><td>" + item.export_by + "</td><td>" + icon + "</td><td><a href='" + base_url + item.path + item.randomname + "' target='_blank'>Download</a></td></tr>")
+            $div.append("<tr><td>" + no++ + "</td><td>" + item.nama_proyek + "</td><td>" + format_datetime(item.export_tgl) + "</td><td>" + item.export_by + "</td><td>" + icon + "</td><td>" + (item.download_url ? "<a href='" + item.download_url + "' target='_blank' rel='noopener'>Download</a>" : "-") + "</td></tr>")
           })
         },
         error: function() {

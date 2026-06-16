@@ -180,6 +180,7 @@ if ($displayName === '') {
         </div>
     </div>
 </div>
+<script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
 
 <script>
     (function () {

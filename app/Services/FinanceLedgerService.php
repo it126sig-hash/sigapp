@@ -12,6 +12,8 @@ class FinanceLedgerService
     public const SOURCE_DANA_JAMINAN = 'dana_jaminan';
     public const SOURCE_CASHOUT_SUBKON_ALLOCATION = 'cashout_subkon_allocation';
     public const SOURCE_BAYAR_PRODUKSI = 'bayar_produksi';
+    public const SOURCE_PAJAK_PPH42 = 'pajak_pph42';
+    public const SOURCE_PAJAK_PPN = 'pajak_ppn';
 
     protected FinanceLedgerRepository $ledgerRepo;
     protected $db;
@@ -217,6 +219,19 @@ class FinanceLedgerService
         return $this->ledgerRepo->voidBySource(self::SOURCE_BAYAR_PRODUKSI, $idBayarProduksi, $actorId);
     }
 
+    public function syncExpensesFromPajak(int $idPajak, ?int $actorId = null): array
+    {
+        $row = $this->getPajak($idPajak);
+        if (!$row) {
+            throw new \RuntimeException('Data pajak tidak ditemukan');
+        }
+
+        return [
+            'pph42' => $this->syncPajakExpense($row, self::SOURCE_PAJAK_PPH42, $actorId),
+            'ppn' => $this->syncPajakExpense($row, self::SOURCE_PAJAK_PPN, $actorId),
+        ];
+    }
+
     public function getTotalIncome(array $filters = []): float
     {
         return $this->ledgerRepo->sumIncome($filters);
@@ -300,6 +315,53 @@ class FinanceLedgerService
             ->getRow();
     }
 
+    protected function getPajak(int $idPajak): ?object
+    {
+        return $this->db->table('pajak p')
+            ->select('p.*, kavling.id_kavling')
+            ->join('kavling', 'kavling.id_pajak = p.id', 'left')
+            ->where('p.id', $idPajak)
+            ->get()
+            ->getRow();
+    }
+
+    protected function syncPajakExpense(object $row, string $sourceType, ?int $actorId = null): int
+    {
+        $isPph42 = $sourceType === self::SOURCE_PAJAK_PPH42;
+        $nominal = $this->num($isPph42 ? ($row->pph42_nilai ?? 0) : ($row->ppn_nilai ?? 0));
+
+        if ($nominal <= 0) {
+            $this->ledgerRepo->voidBySource($sourceType, (int) $row->id, $actorId);
+            return 0;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $createdAt = $row->created_at ?: $now;
+        $addBy = $row->add_by ?: $actorId;
+        $editBy = $actorId ?: ($row->edit_by ?: $addBy);
+
+        return $this->ledgerRepo->upsertBySource([
+            'direction' => self::DIRECTION_EXPENSE,
+            'source_type' => $sourceType,
+            'source_id' => (int) $row->id,
+            'source_detail_id' => null,
+            'id_mkdt' => $row->id_mkdt ? (int) $row->id_mkdt : null,
+            'id_kavling' => $row->id_kavling ? (int) $row->id_kavling : null,
+            'nominal' => $nominal,
+            'tanggal_transaksi' => $this->validLedgerDate($isPph42 ? ($row->pph42_tgl_bayar ?? null) : ($row->ppn_tgl_bayar ?? null)),
+            'label' => $isPph42 ? 'Pajak PPh4(2)' : 'Pajak PPN',
+            'keterangan' => $this->pajakExpenseDescription($row, $isPph42),
+            'status' => 'active',
+            'is_deleted' => 0,
+            'deleted_at' => null,
+            'deleted_by' => null,
+            'add_by' => $addBy,
+            'created_at' => $createdAt,
+            'edit_by' => $editBy,
+            'updated_at' => $row->updated_at ?: $now,
+        ]);
+    }
+
     protected function cashoutSubkonExpenseDescription(object $detail): string
     {
         $parts = [];
@@ -314,6 +376,53 @@ class FinanceLedgerService
         }
 
         return implode(' | ', $parts);
+    }
+
+    protected function pajakExpenseDescription(object $row, bool $isPph42): string
+    {
+        $parts = [];
+
+        if ($isPph42) {
+            if (!empty($row->pph42_id_billing)) {
+                $parts[] = 'ID Billing: ' . $row->pph42_id_billing;
+            }
+            if (!empty($row->pph42_ntpn)) {
+                $parts[] = 'NTPN: ' . $row->pph42_ntpn;
+            }
+            if (!empty($row->pph42_keterangan)) {
+                $parts[] = $row->pph42_keterangan;
+            }
+        } else {
+            if (!empty($row->ppn_id_billing)) {
+                $parts[] = 'ID Billing: ' . $row->ppn_id_billing;
+            }
+            if (!empty($row->ppn_ntpn)) {
+                $parts[] = 'NTPN: ' . $row->ppn_ntpn;
+            }
+            if (!empty($row->ppn_no_faktur)) {
+                $parts[] = 'No Faktur: ' . $row->ppn_no_faktur;
+            }
+            if (!empty($row->ppn_keterangan)) {
+                $parts[] = $row->ppn_keterangan;
+            }
+        }
+
+        return implode(' | ', $parts);
+    }
+
+    protected function validLedgerDate($value): ?string
+    {
+        $value = trim((string) $value);
+        if ($value === '' || $value === '0000-00-00') {
+            return null;
+        }
+
+        $date = \DateTime::createFromFormat('Y-m-d', $value);
+        if (!$date || $date->format('Y-m-d') !== $value) {
+            return null;
+        }
+
+        return $value;
     }
 
     protected function num($value): float

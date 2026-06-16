@@ -181,11 +181,12 @@
 	}
 
 	.dashboard-filter-card,
+	.dashboard-filter-card .card-body,
 	.dashboard-filter-card .dropdown,
 	.dashboard-filter-card .dropdown-menu,
 	.card-header .chart-dropdown,
 	.card-header .chart-dropdown .dropdown-menu {
-		overflow: visible;
+		overflow: visible !important;
 	}
 
 	.content-body > .row,
@@ -238,12 +239,8 @@
 				<div class="col-lg-3 col-md-5 col-12">
 					<div class="card dashboard-filter-card">
 						<div class="card-body">
-							<h4 class="card-title mb-1">Dashboard Proyek</h4>
-							<p class="card-text font-small-3 text-muted mb-1" id="dashboard-active-proyek"></p>
-							<button id="btn-filter_data" type="button" class="btn btn-primary btn-block">Tampilkan Data</button>
-							<p class="card-text font-small-2 text-muted mt-1 mb-0" id="filter-statistik">Per <?= date("F") ?></p>
 							<div class="dropdown chart-dropdown mt-50">
-								<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" data-boundary="viewport">
+								<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" data-boundary="window">
 									Ubah Periode
 								</button>
 								<div class="dropdown-menu">
@@ -328,7 +325,7 @@
 									<span>Pilih proyek</span>
 									<span class="dashboard-alert-value">-</span>
 								</div>
-								<div class="dashboard-alert-desc">Klik Tampilkan Data untuk melihat alert</div>
+								<div class="dashboard-alert-desc">Data alert akan dimuat otomatis</div>
 							</div>
 						</div>
 					</div>
@@ -383,7 +380,7 @@
 						<div class="card-body" style="overflow-y:scroll" id="aktivitas-body">
 							<ul class="timeline ml-50" id="aktivitas-here">
 								<li class="timeline-item">
-									<h6>Pilih proyek dan klik Tampilkan Data untuk melihat aktivitas terbaru</h6>
+									<h6>Pilih proyek untuk melihat aktivitas terbaru</h6>
 								</li>
 							</ul>
 						</div>
@@ -517,17 +514,18 @@
 		$("#dashboard-active-proyek").text("Proyek: " + window.SIGAPP.activeProyekName);
 	}
 
-	$("#btn-filter_data").click(function() {
-		// $("#filter-statistik").html($("#filter-bulan").html())
-		load_dashboard(true, true, true)
-	})
+	$(document).ready(function() {
+		if (activeProyekId()) {
+			load_dashboard(true, true, true);
+		}
+	});
 
-	
+
 	$("#filter-bulan, #filter-pembangunan-bulan").click(function() {
 		$("#filter-statistik").html($(this).html())
 		$("#filter-statistik-pembangunan").html($(this).html())
 
-		
+
 
 		sdate = getFirstDate(0)
 		edate = getLastDate()
@@ -588,7 +586,7 @@
 				positionClass: 'toast-bottom-right',
 			});
 		}
-		
+
 		$.ajax({
 			type: "post",
 			url: base_url + "get-dashboard",
@@ -671,7 +669,7 @@
 					$("#aktivitas-here").html(aktivitas)
 					start = ac.length
 				}
-				
+
 				if (chart) {
 					// Update the chart data
 					let booking = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];

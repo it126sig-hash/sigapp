@@ -160,10 +160,14 @@
 
     $.each(projects, function (_, project) {
       var logoUrl = project.logo_access_url || defaultProjectLogo;
+      var isActive =
+        window.SIGAPP.activeProyekId &&
+        String(window.SIGAPP.activeProyekId) === String(project.id_proyek);
       html += `
-        <button type="button" class="project-select-card" data-id-proyek="${project.id_proyek}">
+        <button type="button" class="project-select-card${isActive ? " is-default-active" : ""}" data-id-proyek="${project.id_proyek}">
           <img src="${logoUrl}" alt="" class="project-select-card-logo">
           <span class="project-select-card-name">${$("<div>").text(project.nama_proyek || "-").html()}</span>
+          ${isActive ? '<span class="project-select-card-badge">Saat ini</span>' : ""}
         </button>
       `;
     });

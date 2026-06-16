@@ -219,6 +219,21 @@
 		text-align: right;
 	}
 
+	#modal-cashout-subkon .cashout-subkon-urgent-focus {
+		animation: cashoutSubkonUrgentFocus 2.8s ease-out;
+		background: #fff7e6;
+	}
+
+	@keyframes cashoutSubkonUrgentFocus {
+		0% {
+			box-shadow: inset 4px 0 0 #ff9f43;
+		}
+
+		100% {
+			box-shadow: inset 4px 0 0 transparent;
+		}
+	}
+
 	#modal-cashout-subkon .cos-sk-timeline {
 		position: relative;
 		padding-left: 50px;
@@ -697,6 +712,7 @@ function openCOSubkon(options = {}) {
 
       initModalListener(modal);
       $(modal).modal("show");
+      focusCashoutSubkonDetail(options.id_cashout_subkon_detail);
     },
     error: function (r) {
       $("#loading").addClass("hidden");
@@ -945,7 +961,10 @@ function load_cashout_subkon_detail(data) {
           "No Cek: " + item.cek_no + "(" + format_date(item.cek_tgl) + ")";
       }
 
-      const tr = $("<tr>");
+      const tr = $("<tr>").attr(
+        "data-id-cashout-subkon-detail",
+        item.id_cashout_subkon_detail ?? ""
+      );
       tr.append(`<td style="min-width:100px; nowrap">
       <input type="hidden" id="fm-cashout-subkon-berita_acara-${i}" name="berita_acara[]" value="${
         item.berita_acara ?? ""
@@ -1359,6 +1378,32 @@ function load_subkon(data) {
     $("#fm-cashout-subkon-hp1_subkon").val(data.hp1_subkon);
     $("#fm-cashout-subkon-alamat_subkon").val(data.alamat_subkon);
   }
+}
+
+function focusCashoutSubkonDetail(id) {
+  if (!id) {
+    return;
+  }
+
+  setTimeout(function () {
+    const row = $(
+      `#fm-cashout-subkon-termin tr[data-id-cashout-subkon-detail="${id}"]`
+    );
+    if (!row.length) {
+      return;
+    }
+
+    row.addClass("cashout-subkon-urgent-focus");
+    const body = $("#modal-cashout-subkon .modal-body");
+    if (body.length) {
+      body.animate(
+        {
+          scrollTop: body.scrollTop() + row.position().top - 120,
+        },
+        250,
+      );
+    }
+  }, 250);
 }
 
 $("#fm-cashout-subkon-total_nominal").change(function () {

@@ -2,6 +2,7 @@
 
 <?php
 $__activeProyekService = new \App\Services\ActiveProyekService();
+$__activeProyekService->bootstrapForRequest();
 $__activeProyek = $__activeProyekService->getActive();
 $__accessibleProyek = $__activeProyekService->getAccessibleList((int) user_id());
 $__needsProjectSelection = $__activeProyekService->needsSelection();
