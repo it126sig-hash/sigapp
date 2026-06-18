@@ -187,7 +187,7 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_access_url)
 <div class="main-menu menu-fixed menu-accordion menu-shadow menu-dark" data-scroll-to-active="true">
     <div class="navbar-header">
         <ul class="nav navbar-nav flex-row">
-            <li class="nav-item mr-auto"><a class="navbar-brand" href="<?= base_url() ?>/starter-kit/ltr/vertical-menu-template/"><span class="brand-logo">
+            <li class="nav-item mr-auto"><a class="navbar-brand" href="<?= base_url() ?>"><span class="brand-logo">
                         <img src="<?= base_url("images/logo.png") ?>" height="28" />
                     </span>
                     <h2 class="brand-text">SIGAPP</h2>
