@@ -689,6 +689,23 @@ function lihat_detail() {
                     <small class="text-muted">Income - expense</small>
                 </div>
             </div>
+            <div class="detail-card-grid mb-1">
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Margin Cash</div>
+                    <div class="detail-mini-value" id="dt-finance-margin-cash">Rp 0</div>
+                    <small class="text-muted">Income real - expense real</small>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Margin Estimasi</div>
+                    <div class="detail-mini-value" id="dt-finance-margin-estimasi">Rp 0</div>
+                    <small class="text-muted" id="dt-finance-nilai-akad">Nilai akad Rp 0</small>
+                </div>
+                <div class="detail-mini-card">
+                    <div class="detail-mini-label">Retensi Belum Cair</div>
+                    <div class="detail-mini-value detail-text-warning" id="dt-finance-retensi-total">Rp 0</div>
+                    <small class="text-muted" id="dt-finance-retensi-note">Piutang tertahan</small>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-md-6 mb-1 mb-md-0">
                     <div class="divider divider-left">
@@ -1368,6 +1385,12 @@ function lihat_detail() {
         const incomeTotal = detailMoneyValue(data.income_total);
         const expenseTotal = detailMoneyValue(data.expense_total);
         const balance = data.balance === undefined ? incomeTotal - expenseTotal : detailMoneyValue(data.balance);
+        const marginCash = data.margin_cash === undefined ? balance : detailMoneyValue(data.margin_cash);
+        const marginEstimasi = detailMoneyValue(data.margin_estimasi);
+        const nilaiAkad = detailMoneyValue(data.nilai_akad_estimasi);
+        const retensiPending = detailMoneyValue(data.retensi_pending_total);
+        const retensiDajam = detailMoneyValue(data.retensi_dana_jaminan_pending);
+        const retensiBank = detailMoneyValue(data.retensi_bank_pending);
 
         $("#dt-finance-income-total").text(detailRupiah(incomeTotal));
         $("#dt-finance-expense-total").text(detailRupiah(expenseTotal));
@@ -1375,6 +1398,17 @@ function lihat_detail() {
             .text(detailRupiah(balance))
             .toggleClass('detail-text-primary', balance >= 0)
             .toggleClass('detail-text-danger', balance < 0);
+        $("#dt-finance-margin-cash")
+            .text(detailRupiah(marginCash))
+            .toggleClass('detail-text-primary', marginCash >= 0)
+            .toggleClass('detail-text-danger', marginCash < 0);
+        $("#dt-finance-margin-estimasi")
+            .text(detailRupiah(marginEstimasi))
+            .toggleClass('detail-text-primary', marginEstimasi >= 0)
+            .toggleClass('detail-text-danger', marginEstimasi < 0);
+        $("#dt-finance-retensi-total").text(detailRupiah(retensiPending));
+        $("#dt-finance-nilai-akad").text(`Nilai akad ${detailRupiah(nilaiAkad)}`);
+        $("#dt-finance-retensi-note").text(`DJ ${detailRupiah(retensiDajam)} | Bank ${detailRupiah(retensiBank)}`);
         $("#dt-finance-income-count").text(`${incomeRows.length} transaksi`);
         $("#dt-finance-expense-count").text(`${expenseRows.length} transaksi`);
 

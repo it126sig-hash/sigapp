@@ -16,6 +16,7 @@ class FileAccessService
         'siteplan_upload'   => [1, 6, 9],
         'file_spptb'        => [1, 3, 4, 9],
         'pencairan_jaminan' => [1, 3, 9],
+        'bank_kpr_disbursement' => [1, 3, 9],
         'file_hargajual'    => [1, 3, 4, 9],
         'cashout_subkon'    => [1, 3, 7, 9],
         'kavling_perintah_bangun' => [1, 4, 7, 9],
@@ -263,6 +264,15 @@ class FileAccessService
                 $this->assertRow($row);
                 $path = $row->surat_path ?? ($row->file_path ?? null);
                 return $this->fileMeta($path, basename((string) $path), $this->sourceRoles[$source], $row);
+
+            case 'bank_kpr_disbursement':
+                $row = $this->db->table('bank_kpr_disbursement')
+                    ->where('id', $id)
+                    ->where('deleted_at', null)
+                    ->get()
+                    ->getRow();
+                $this->assertRow($row);
+                return $this->fileMeta($row->file_bukti, basename((string) $row->file_bukti), $this->sourceRoles[$source], $row);
 
             case 'file_hargajual':
                 $row = $this->db->table('file_hargajual')->where('id_filehj', $id)->get()->getRow();

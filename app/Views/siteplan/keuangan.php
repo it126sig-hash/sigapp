@@ -265,6 +265,219 @@
         }
     }
 
+    /* SIGAPP UI Acuan - Modal Pencairan Bank KPR */
+    #bank_kpr_modal .modal-dialog {
+        max-width: min(1440px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #bank_kpr_modal .modal-content {
+        border: 0;
+        border-radius: 10px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+        overflow: hidden;
+    }
+
+    #bank_kpr_modal .modal-header,
+    #bank_kpr_modal .modal-footer {
+        background: #fff;
+        border-color: #e5e7eb;
+        margin-bottom: 0 !important;
+        padding: 1rem 1.25rem;
+    }
+
+    #bank_kpr_modal .modal-title {
+        color: #111827;
+        font-size: 1.05rem;
+        font-weight: 700;
+    }
+
+    #bank_kpr_modal .keu-bank-body {
+        background: #f3f5f7 !important;
+        max-height: calc(100vh - 7rem);
+        overflow-y: auto;
+        padding: 1rem;
+    }
+
+    #bank_kpr_modal .keu-bank-layout {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        min-width: 0;
+    }
+
+    #bank_kpr_modal .keu-bank-sidebar {
+        align-self: flex-start;
+        flex: 0 0 320px;
+        max-height: calc(100vh - 8rem);
+        max-width: 320px;
+        overflow-y: auto;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    #bank_kpr_modal .keu-bank-content {
+        flex: 1 1 auto;
+        max-width: calc(100% - 336px);
+        min-width: 0;
+    }
+
+    #bank_kpr_modal .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    #bank_kpr_modal .card-body {
+        padding: 1rem;
+    }
+
+    #bank_kpr_modal .bg-primary {
+        background: linear-gradient(145deg, #2057a3 0%, #1f7a8c 100%) !important;
+    }
+
+    #bank_kpr_modal .keu-bank-summary-row {
+        align-items: center;
+        border-bottom: 1px solid #eef2f7;
+        display: flex;
+        gap: .75rem;
+        justify-content: space-between;
+        padding: .45rem 0;
+    }
+
+    #bank_kpr_modal .keu-bank-summary-row:last-child {
+        border-bottom: 0;
+    }
+
+    #bank_kpr_modal .keu-bank-summary-row span {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+
+    #bank_kpr_modal .keu-bank-summary-row strong {
+        color: #111827;
+        font-size: .9rem;
+        text-align: right;
+    }
+
+    #bank_kpr_modal .divider-left {
+        border-left-color: #2057a3;
+        margin-bottom: .85rem;
+        padding-left: .75rem;
+    }
+
+    #bank_kpr_modal .divider .divider-text,
+    #bank_kpr_modal label,
+    #bank_kpr_modal .form-label {
+        color: #111827;
+        font-size: .82rem;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    #bank_kpr_modal label,
+    #bank_kpr_modal .form-label {
+        color: #6b7280;
+        font-size: .78rem;
+    }
+
+    #bank_kpr_modal .form-control {
+        background-color: #fff;
+        border-color: #d8dde3;
+        border-radius: 6px;
+        min-height: 36px;
+    }
+
+    #bank_kpr_modal .btn {
+        border-radius: 6px;
+        font-weight: 700;
+        white-space: normal;
+    }
+
+    #bank_kpr_modal .btn-primary {
+        background-color: #2057a3 !important;
+        border-color: #2057a3 !important;
+    }
+
+    #bank_kpr_modal .nav-tabs {
+        border-bottom: 1px solid #d8dde3;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+
+    #bank_kpr_modal .nav-tabs .nav-link {
+        border-radius: 6px 6px 0 0;
+        color: #4b5563;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    #bank_kpr_modal .nav-tabs .nav-link.active {
+        color: #2057a3;
+    }
+
+    #bank_kpr_modal .table thead th {
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+        color: #374151;
+        font-size: .78rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    #bank_kpr_modal .table tbody td {
+        font-size: .84rem;
+        vertical-align: middle;
+    }
+
+    #bank_kpr_modal .keu-bank-empty {
+        background: #fff;
+        border: 1px dashed #cfd6e3;
+        border-radius: 8px;
+        color: #6b7280;
+        font-weight: 700;
+        padding: .9rem;
+        text-align: center;
+    }
+
+    @media (max-width: 1199.98px) {
+        #bank_kpr_modal .keu-bank-layout {
+            flex-wrap: wrap;
+        }
+
+        #bank_kpr_modal .keu-bank-sidebar,
+        #bank_kpr_modal .keu-bank-content {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        #bank_kpr_modal .keu-bank-sidebar {
+            max-height: none;
+            overflow-y: visible;
+            position: static;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        #bank_kpr_modal .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
+        }
+
+        #bank_kpr_modal .keu-bank-body {
+            max-height: calc(100vh - 5.5rem);
+            padding: .75rem;
+        }
+
+        #bank_kpr_modal .card-body {
+            padding: .85rem;
+        }
+    }
+
     /* SIGAPP UI Acuan - Modal Cash Out (mengikuti #modal-isi_data_konsumen) */
     #modal-cashout-keu .modal-dialog {
         max-width: min(1440px, calc(100vw - 32px));
@@ -892,6 +1105,206 @@
                                             <div class="divider-text">History Dana Jaminan</div>
                                         </div>
                                         <div id="da-history_here"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ################################## Pencairan Bank KPR ##########################################-->
+<div class="modal fade text-left" id="bank_kpr_modal" tabindex="-1" role="dialog"
+    aria-labelledby="bank_kpr_modal_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bank_kpr_modal_label">Pencairan Bank KPR</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body keu-bank-body">
+                <div class="keu-bank-layout">
+                    <aside class="keu-bank-sidebar">
+                        <div class="card">
+                            <div class="card-body bg-primary text-light">
+                                <p class="modal-title label_alamat" id="bank-kpr-label-alamat"></p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Info Akad</div>
+                                </div>
+                                <h6><i class="fas fa-users"></i> Konsumen</h6>
+                                <h5><strong><span id="bank-kpr-label-konsumen">-</span></strong></h5>
+                                <h6><i class="fas fa-check-circle"></i> Status</h6>
+                                <h5><strong><span id="bank-kpr-status-mkdt">-</span></strong></h5>
+                                <h6><i class="fas fa-university"></i> Bank Akad</h6>
+                                <h5 class="mb-0"><strong><span id="bank-kpr-bank-akad">-</span></strong></h5>
+                            </div>
+                        </div>
+                        <div class="card mb-0">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Ringkasan</div>
+                                </div>
+                                <div class="keu-bank-summary-row">
+                                    <span>KPR Acc</span>
+                                    <strong id="bank-kpr-plafon-label">0</strong>
+                                </div>
+                                <div class="keu-bank-summary-row">
+                                    <span>Total Cair</span>
+                                    <strong id="bank-kpr-total-cair-label">0</strong>
+                                </div>
+                                <div class="keu-bank-summary-row">
+                                    <span>Retensi Tercatat</span>
+                                    <strong id="bank-kpr-retensi-label">0</strong>
+                                </div>
+                                <div class="keu-bank-summary-row">
+                                    <span>Sisa Plafon</span>
+                                    <strong id="bank-kpr-sisa-label">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                    <section class="keu-bank-content">
+                        <div class="card">
+                            <div class="card-body pb-0">
+                                <ul class="nav nav-tabs mb-1" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" id="bank-kpr-form-tab" data-toggle="tab"
+                                            href="#bank-kpr-form-pane" aria-controls="bank-kpr-form-pane" role="tab"
+                                            aria-selected="true">Form Pencairan</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="bank-kpr-history-tab" data-toggle="tab"
+                                            href="#bank-kpr-history-pane" aria-controls="bank-kpr-history-pane" role="tab"
+                                            aria-selected="false">Riwayat Pencairan</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="tab-content">
+                            <div class="tab-pane show active" id="bank-kpr-form-pane" aria-labelledby="bank-kpr-form-tab" role="tabpanel">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="divider divider-left">
+                                            <div class="divider-text">Realisasi Uang dari Bank</div>
+                                        </div>
+                                        <form id="form-bank-kpr" enctype="multipart/form-data" autocomplete="off">
+                                            <input type="hidden" id="bank-kpr-id" name="id" value="">
+                                            <input type="hidden" id="bank-kpr-id-mkdt" name="id_mkdt" value="">
+                                            <input type="hidden" id="bank-kpr-id-kavling" name="id_kavling" value="">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Bank Pencair</label>
+                                                        <select class="form-control" id="bank-kpr-id-bank" name="id_bank"></select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Nominal Plafon/ACC</label>
+                                                        <input type="text" class="form-control num" id="bank-kpr-nominal-plafon" name="nominal_plafon" value="0">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Status</label>
+                                                        <select class="form-control" id="bank-kpr-status" name="status">
+                                                            <option value="draft">Draft</option>
+                                                            <option value="cair">Cair</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Nominal Cair</label>
+                                                        <input type="text" class="form-control num" id="bank-kpr-nominal-cair" name="nominal_cair" value="0">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Nominal Retensi</label>
+                                                        <input type="text" class="form-control num" id="bank-kpr-nominal-retensi" name="nominal_retensi" value="0">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Tanggal Cair</label>
+                                                        <input type="date" class="form-control" id="bank-kpr-tanggal-cair" name="tanggal_cair">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Rekening Tujuan</label>
+                                                        <input type="text" class="form-control" id="bank-kpr-rekening" name="rekening_tujuan" placeholder="Nama bank / nomor rekening tujuan">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>No Referensi</label>
+                                                        <input type="text" class="form-control" id="bank-kpr-referensi" name="no_referensi" placeholder="No referensi transfer">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group mb-md-0">
+                                                        <label>Bukti Transfer</label>
+                                                        <input type="file" class="form-control-file" id="bank-kpr-file" name="file_bukti" accept="application/pdf,image/jpeg,image/png">
+                                                        <small class="form-text text-muted">PDF/JPG/PNG, maksimum 4 MB.</small>
+                                                        <div id="bank-kpr-current-file" class="mt-50"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group mb-0">
+                                                        <label>Keterangan</label>
+                                                        <textarea class="form-control" id="bank-kpr-keterangan" name="keterangan" rows="3" placeholder="Catatan pencairan"></textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-1">
+                                                <button id="btn-save-bank-kpr" type="submit" class="btn btn-primary">
+                                                    Simpan Pencairan
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary ml-50" onclick="resetBankKprForm()">
+                                                    Reset Form
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="bank-kpr-history-pane" aria-labelledby="bank-kpr-history-tab" role="tabpanel">
+                                <div class="card mb-0">
+                                    <div class="card-body">
+                                        <div class="divider divider-left">
+                                            <div class="divider-text">Riwayat Pencairan Bank</div>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered mb-0" id="tbl-bank-kpr">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Status</th>
+                                                        <th>Bank</th>
+                                                        <th>Tanggal</th>
+                                                        <th class="text-right">Cair</th>
+                                                        <th class="text-right">Retensi</th>
+                                                        <th>Bukti</th>
+                                                        <th>Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2673,6 +3086,332 @@ function loadDajamHistory(force = false) {
   });
 }
 
+/* ************************ pencairan bank kpr ************************ */
+let bankKprState = {
+  idKavling: null,
+  idMkdt: null,
+  sh: null,
+  rows: [],
+  banks: [],
+  summary: {},
+  mkdt: {},
+};
+
+function bankKprMoney(value) {
+  return num_format(parseFloat(value || 0));
+}
+
+function bankKprEscape(value) {
+  return dajamEscape(value);
+}
+
+function bankKprBadge(status) {
+  if (status === "cair") {
+    return '<span class="badge badge-success">Cair</span>';
+  }
+  if (status === "void") {
+    return '<span class="badge badge-light-danger">Void</span>';
+  }
+  return '<span class="badge badge-secondary">Draft</span>';
+}
+
+function pencairan_bank() {
+  if (!editdtt[0]) {
+    return swal("error", "Tidak ada kavling yang dipilih");
+  }
+
+  const sh = editdtt[0];
+  const idKavling = sh.id.substr(3);
+
+  if (!sh.data.id_mkdt) {
+    return swal(
+      "error",
+      "Terjadi kesalahan",
+      "Belum ada data konsumen di kavling" + sh.data.nama_jalan + ", No." + sh.data.no_kavling,
+    );
+  }
+
+  if (sh.data2.status_mkdt != "Akad") {
+    return swal(
+      "error",
+      "Terjadi kesalahan",
+      "Kavling" + sh.data.nama_jalan + ", No." + sh.data.no_kavling + "Belum Akad!",
+    );
+  }
+
+  bankKprState = {
+    idKavling: idKavling,
+    idMkdt: sh.data.id_mkdt,
+    sh: sh,
+    rows: [],
+    banks: [],
+    summary: {},
+    mkdt: {},
+  };
+
+  loadBankKprData({
+    openModal: true,
+    warnMissingDajam: true,
+  });
+}
+
+function loadBankKprData(options = {}) {
+  if (!bankKprState.idKavling || !bankKprState.idMkdt) return;
+
+  $("#form-bank-kpr")[0].reset();
+  $("#tbl-bank-kpr tbody").html("");
+  $("#bank-kpr-current-file").html("");
+
+  $.ajax({
+    url: base_url + "keuangan/pencairan-bank/get",
+    type: "post",
+    data: {
+      [csrfName]: csrfHash,
+      id_kavling: bankKprState.idKavling,
+      id_mkdt: bankKprState.idMkdt,
+    },
+    dataType: "json",
+    beforeSend: function () {
+      $("#loading").removeClass("hidden");
+    },
+    success: function (r) {
+      $("#loading").addClass("hidden");
+      syncDanaJaminanToken(r);
+      if (r.success === false) {
+        return swal("error", "Terjadi kesalahan", r.messages || r.message || "Data tidak ditemukan");
+      }
+
+      bankKprState.rows = r.rows || [];
+      bankKprState.banks = r.banks || [];
+      bankKprState.summary = r.summary || {};
+      bankKprState.mkdt = r.mkdt || {};
+
+      if (options.warnMissingDajam && !bankKprState.summary.has_dana_jaminan_nominal) {
+        return swal(
+          "warning",
+          "Dana Jaminan belum diisi",
+          "Isi nominal Dana Jaminan dulu sebelum mencatat pencairan bank KPR.",
+        );
+      }
+
+      if (options.openModal) {
+        $("#bank_kpr_modal").modal({
+          backdrop: "static",
+          keyboard: false,
+        });
+      }
+
+      renderBankKprHeader();
+      renderBankKprOptions();
+      renderBankKprSummary();
+      renderBankKprRows();
+      resetBankKprForm();
+    },
+    error: function (a, b, c) {
+      $("#loading").addClass("hidden");
+      return swal("error", "Terjadi kesalahan", c);
+    },
+  });
+}
+
+function renderBankKprHeader() {
+  const sh = bankKprState.sh;
+  $("#bank-kpr-id-mkdt").val(bankKprState.idMkdt);
+  $("#bank-kpr-id-kavling").val(bankKprState.idKavling);
+  $("#bank-kpr-label-alamat").html(
+    dt_proyek.nama_proyek +
+      "<br/>" +
+      sh.data.nama_jalan +
+      ", No." +
+      sh.data.no_kavling +
+      "<br/>" +
+      sh.data2.no_tipe_rumah +
+      " (" +
+      sh.data2.tipe_rumah +
+      ")<br/>",
+  );
+  $("#bank-kpr-label-konsumen").text(sh.data2.nama_konsumen || sh.data.nama_konsumen || "-");
+  $("#bank-kpr-status-mkdt").text(bankKprState.mkdt.status_mkdt || "-");
+  $("#bank-kpr-bank-akad").text(bankKprState.mkdt.bank || bankKprState.sh.data2.bank || "-");
+}
+
+function renderBankKprOptions() {
+  let options = '<option value="">Pilih Bank</option>';
+  bankKprState.banks.forEach(function (bank) {
+    options += `<option value="${bank.id}">${bankKprEscape(bank.bank)}${bank.keterangan ? " (" + bankKprEscape(bank.keterangan) + ")" : ""}</option>`;
+  });
+  $("#bank-kpr-id-bank").html(options);
+}
+
+function renderBankKprSummary() {
+  const s = bankKprState.summary || {};
+  $("#bank-kpr-plafon-label").text(bankKprMoney(s.nominal_plafon));
+  $("#bank-kpr-total-cair-label").text(bankKprMoney(s.total_cair));
+  $("#bank-kpr-retensi-label").text(bankKprMoney(s.total_retensi));
+  $("#bank-kpr-sisa-label").text(bankKprMoney(s.sisa_plafon));
+}
+
+function renderBankKprRows() {
+  const tb = document.querySelector("#tbl-bank-kpr tbody");
+  tb.innerHTML = "";
+
+  if (!bankKprState.rows.length) {
+    tb.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Belum ada pencairan bank.</td></tr>';
+    return;
+  }
+
+  bankKprState.rows.forEach(function (row, i) {
+    const lampiran = row.access_url
+      ? `<a href="${row.access_url}" target="_blank" class="btn btn-link btn-sm">Lihat</a>`
+      : "-";
+    const isVoid = row.status === "void";
+    const action = isVoid
+      ? '<span class="text-muted">Void</span>'
+      : `
+        <button type="button" class="btn btn-outline-primary btn-sm" title="Edit pencairan" onclick="editBankKprDisbursement(${row.id})">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button type="button" class="btn btn-outline-danger btn-sm ml-25" title="Void pencairan" onclick="voidBankKprDisbursement(${row.id})">
+          <i class="fas fa-ban"></i>
+        </button>
+      `;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${bankKprBadge(row.status)}</td>
+      <td>${bankKprEscape(row.bank || "-")}</td>
+      <td>${row.tanggal_cair ? format_date(row.tanggal_cair) : "-"}</td>
+      <td class="text-right">Rp ${bankKprMoney(row.nominal_cair)}</td>
+      <td class="text-right">Rp ${bankKprMoney(row.nominal_retensi)}</td>
+      <td>${lampiran}</td>
+      <td>${action}</td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+function resetBankKprForm() {
+  $("#form-bank-kpr")[0].reset();
+  $("#bank-kpr-id").val("");
+  $("#bank-kpr-id-mkdt").val(bankKprState.idMkdt);
+  $("#bank-kpr-id-kavling").val(bankKprState.idKavling);
+  $("#bank-kpr-status").val("draft");
+  $("#bank-kpr-id-bank").val(bankKprState.mkdt.id_bank || "");
+  $("#bank-kpr-nominal-plafon").val(bankKprState.summary.nominal_plafon || bankKprState.mkdt.harga_kpr_acc || 0);
+  $("#bank-kpr-nominal-cair").val(0);
+  $("#bank-kpr-nominal-retensi").val(bankKprState.summary.total_dana_jaminan || 0);
+  $("#bank-kpr-current-file").html("");
+  $("#bank_kpr_modal .num").keyup();
+}
+
+function findBankKprRow(id) {
+  return bankKprState.rows.find(function (row) {
+    return parseInt(row.id) === parseInt(id);
+  });
+}
+
+function editBankKprDisbursement(id) {
+  const row = findBankKprRow(id);
+  if (!row) return;
+
+  $("#bank-kpr-id").val(row.id);
+  $("#bank-kpr-id-mkdt").val(row.id_mkdt);
+  $("#bank-kpr-id-kavling").val(row.id_kavling);
+  $("#bank-kpr-id-bank").val(row.id_bank || "");
+  $("#bank-kpr-nominal-plafon").val(row.nominal_plafon || 0);
+  $("#bank-kpr-nominal-cair").val(row.nominal_cair || 0);
+  $("#bank-kpr-nominal-retensi").val(row.nominal_retensi || 0);
+  $("#bank-kpr-tanggal-cair").val(row.tanggal_cair || "");
+  $("#bank-kpr-rekening").val(row.rekening_tujuan || "");
+  $("#bank-kpr-referensi").val(row.no_referensi || "");
+  $("#bank-kpr-keterangan").val(row.keterangan || "");
+  $("#bank-kpr-status").val(row.status === "cair" ? "cair" : "draft");
+  $("#bank-kpr-current-file").html(
+    row.access_url
+      ? `<a href="${row.access_url}" target="_blank" class="btn btn-outline-primary btn-sm">Lihat bukti tersimpan</a>`
+      : "",
+  );
+  $("#bank_kpr_modal .num").keyup();
+  $("#bank-kpr-form-tab").tab("show");
+}
+
+function saveBankKprDisbursement() {
+  const fd = new FormData($("#form-bank-kpr")[0]);
+  fd.append(csrfName, csrfHash);
+
+  $.ajax({
+    url: base_url + "keuangan/pencairan-bank/save",
+    type: "post",
+    contentType: false,
+    processData: false,
+    data: fd,
+    dataType: "json",
+    beforeSend: function () {
+      simpanBtn("#btn-save-bank-kpr", true);
+    },
+    success: function (r) {
+      syncDanaJaminanToken(r);
+      simpanBtn("#btn-save-bank-kpr", false);
+      if (r.success === true) {
+        swal("success", r.messages || r.message || "Pencairan bank berhasil disimpan");
+        loadBankKprData();
+        load_kavling();
+        $("#bank-kpr-history-tab").tab("show");
+      } else {
+        swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");
+      }
+    },
+    error: function () {
+      simpanBtn("#btn-save-bank-kpr", false);
+      swal("error", "Terjadi kesalahan", "Pencairan bank gagal disimpan");
+    },
+  });
+}
+
+function voidBankKprDisbursement(id) {
+  Swal.fire({
+    title: "Void pencairan bank?",
+    text: "Ledger income terkait akan ikut di-void.",
+    type: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Ya, void",
+    cancelButtonText: "Batal",
+    confirmButtonClass: "btn btn-danger",
+    cancelButtonClass: "btn btn-outline-secondary ml-1",
+    buttonsStyling: false,
+  }).then(function (result) {
+    if (!result.value) return;
+
+    $.ajax({
+      url: base_url + "keuangan/pencairan-bank/void/" + id,
+      type: "post",
+      data: {
+        [csrfName]: csrfHash,
+      },
+      dataType: "json",
+      beforeSend: function () {
+        $("#loading").removeClass("hidden");
+      },
+      success: function (r) {
+        $("#loading").addClass("hidden");
+        syncDanaJaminanToken(r);
+        if (r.success === true) {
+          swal("success", r.messages || r.message || "Pencairan bank berhasil di-void");
+          loadBankKprData();
+          load_kavling();
+        } else {
+          swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");
+        }
+      },
+      error: function () {
+        $("#loading").addClass("hidden");
+        swal("error", "Terjadi kesalahan", "Void pencairan bank gagal");
+      },
+    });
+  });
+}
+
 function getRiwayatGantinama() {
   if (!editdtt[0]) {
     return swal("error", "Tidak ada kavling yang dipilih");
@@ -2754,6 +3493,11 @@ $("#idk_riwayat-tab").click(function () {
 $("#form-pencairan").on("submit", function (e) {
   e.preventDefault();
   savePengajuanDajam();
+});
+
+$("#form-bank-kpr").on("submit", function (e) {
+  e.preventDefault();
+  saveBankKprDisbursement();
 });
 
 $("#keu-history-dajam-tab").on("shown.bs.tab", function () {

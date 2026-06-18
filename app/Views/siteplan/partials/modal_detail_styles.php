@@ -505,6 +505,10 @@
         color: #dc2626 !important;
     }
 
+    #modal_detail .detail-text-warning {
+        color: #b7791f !important;
+    }
+
     #modal_detail .detail-highlight-box {
         background: #eaf2fd;
         border-radius: 8px;

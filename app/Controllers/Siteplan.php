@@ -1312,6 +1312,49 @@ class Siteplan extends BaseController
             $expenseTotal += (float) ($row->nominal ?? 0);
         }
 
+        $bankRetensiPending = 0;
+        if ($this->db->tableExists('bank_kpr_disbursement')) {
+            $bankRetensiRow = $this->db->table('bank_kpr_disbursement')
+                ->select('COALESCE(SUM(nominal_retensi), 0) as total', false)
+                ->where('id_kavling', $id_kavling)
+                ->where('deleted_at', null)
+                ->where('status !=', 'void')
+                ->get()
+                ->getRow();
+            $bankRetensiPending = (float) ($bankRetensiRow->total ?? 0);
+        }
+
+        $danaJaminanPending = 0;
+        $danaJaminanConfigured = 0;
+        if ($this->db->tableExists('dana_akad')) {
+            $danaJaminanRow = $this->db->table('dana_akad')
+                ->select('
+                    COALESCE(SUM(nominal), 0) as total_nominal,
+                    COALESCE(SUM(CASE WHEN COALESCE(sudah_cair, 0) = 1 THEN 0 ELSE GREATEST(COALESCE(nominal, 0) - COALESCE(nominal_cair, 0), 0) END), 0) as total_pending
+                ', false)
+                ->where('id_kavling', $id_kavling)
+                ->get()
+                ->getRow();
+            $danaJaminanConfigured = (float) ($danaJaminanRow->total_nominal ?? 0);
+            $danaJaminanPending = (float) ($danaJaminanRow->total_pending ?? 0);
+        }
+
+        $bankRetensiCounted = $danaJaminanConfigured > 0 ? 0 : $bankRetensiPending;
+        $retensiPendingTotal = $danaJaminanPending + $bankRetensiCounted;
+        $nilaiAkadEstimasi = 0;
+        if ($d['mkdt']) {
+            $nilaiAkadEstimasi = (float) ($d['mkdt']->harga_jual_net ?? 0);
+            if ($nilaiAkadEstimasi <= 0) {
+                $nilaiAkadEstimasi = (float) ($d['mkdt']->harga_jual ?? 0);
+            }
+            if ($nilaiAkadEstimasi <= 0) {
+                $nilaiAkadEstimasi = (float) ($d['mkdt']->harga_kpr_acc ?? 0);
+            }
+            if ($nilaiAkadEstimasi <= 0) {
+                $nilaiAkadEstimasi = (float) ($d['mkdt']->harga_kpr ?? 0);
+            }
+        }
+
         $d['finance_flow'] = [
             'income_total' => $incomeTotal,
             'income_count' => count($incomeRows),
@@ -1320,6 +1363,13 @@ class Siteplan extends BaseController
             'expense_count' => count($expenseRows),
             'expense_rows' => $expenseRows,
             'balance' => $incomeTotal - $expenseTotal,
+            'margin_cash' => $incomeTotal - $expenseTotal,
+            'margin_estimasi' => $nilaiAkadEstimasi - $expenseTotal,
+            'nilai_akad_estimasi' => $nilaiAkadEstimasi,
+            'retensi_pending_total' => $retensiPendingTotal,
+            'retensi_dana_jaminan_pending' => $danaJaminanPending,
+            'retensi_bank_pending' => $bankRetensiPending,
+            'retensi_bank_counted' => $bankRetensiCounted,
         ];
 
         $d['bayar_produksi'] = $this->db->table('list_bayar_produksi lc')
