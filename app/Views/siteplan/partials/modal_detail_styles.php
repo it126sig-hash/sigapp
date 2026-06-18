@@ -669,6 +669,40 @@
         overflow-wrap: anywhere;
     }
 
+    #modal_detail .detail-spec-file-tile {
+        background: #fff;
+        border: 1px solid #cfd6e3;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    #modal_detail .detail-spec-file-preview {
+        align-items: center;
+        background: #f8fafc;
+        display: flex;
+        justify-content: center;
+        min-height: 220px;
+    }
+
+    #modal_detail .detail-spec-file-preview img {
+        display: block;
+        height: 220px;
+        object-fit: contain;
+        width: 100%;
+    }
+
+    #modal_detail .detail-spec-file-empty {
+        color: #6b7280;
+        font-weight: 700;
+        padding: 2rem 1rem;
+        text-align: center;
+    }
+
+    #modal_detail .detail-spec-file-body {
+        border-top: 1px solid #edf0f2;
+        padding: .85rem 1rem 1rem;
+    }
+
     #modal_detail .foto-container {
         min-height: 0;
     }

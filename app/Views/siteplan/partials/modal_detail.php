@@ -143,6 +143,11 @@
                                             aria-controls="dt-stdetail-dt" role="tab" aria-selected="false">Status</a>
                                     </li>
                                     <li class="nav-item">
+                                        <a class="nav-link" id="dt-spesifikasi-tab" data-toggle="tab"
+                                            href="#dt-spesifikasi" aria-controls="dt-spesifikasi" role="tab"
+                                            aria-selected="false">Spesifikasi Teknis</a>
+                                    </li>
+                                    <li class="nav-item">
                                         <a class="nav-link" id="dt-tagihan-tab" data-toggle="tab" href="#dt-tagihan"
                                             aria-controls="tgt" role="tab" aria-selected="false">Tagihan</a>
                                     </li>
@@ -1620,6 +1625,59 @@
                                                 </div>
 
                                             </div>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane" id="dt-spesifikasi" aria-labelledby="dt-spesifikasi-tab"
+                                        role="tabpanel">
+                                        <div class="detail-card-grid mb-1" id="dt-spesifikasi-summary">
+                                            <div class="detail-mini-card">
+                                                <div class="detail-mini-label">Tipe</div>
+                                                <div class="detail-mini-value" id="dt-spesifikasi-tipe">-</div>
+                                            </div>
+                                            <div class="detail-mini-card">
+                                                <div class="detail-mini-label">Luas Bangunan</div>
+                                                <div class="detail-mini-value" id="dt-spesifikasi-lb">-</div>
+                                            </div>
+                                            <div class="detail-mini-card">
+                                                <div class="detail-mini-label">Luas Tanah</div>
+                                                <div class="detail-mini-value" id="dt-spesifikasi-lt">-</div>
+                                            </div>
+                                            <div class="detail-mini-card">
+                                                <div class="detail-mini-label">Kamar Tidur</div>
+                                                <div class="detail-mini-value" id="dt-spesifikasi-kamar-tidur">-</div>
+                                            </div>
+                                            <div class="detail-mini-card">
+                                                <div class="detail-mini-label">Kamar Mandi</div>
+                                                <div class="detail-mini-value" id="dt-spesifikasi-kamar-mandi">-</div>
+                                            </div>
+                                        </div>
+                                        <div class="divider divider-left">
+                                            <div class="divider-text">Spesifikasi Teknis</div>
+                                        </div>
+                                        <div class="detail-card-grid mb-1" id="dt-spesifikasi-teknis">
+                                            <div class="detail-mini-card">
+                                                <div class="detail-mini-label">Atap</div>
+                                                <div class="detail-mini-value" id="dt-spesifikasi-atap">-</div>
+                                            </div>
+                                            <div class="detail-mini-card">
+                                                <div class="detail-mini-label">Dinding</div>
+                                                <div class="detail-mini-value" id="dt-spesifikasi-dinding">-</div>
+                                            </div>
+                                            <div class="detail-mini-card">
+                                                <div class="detail-mini-label">Lantai</div>
+                                                <div class="detail-mini-value" id="dt-spesifikasi-lantai">-</div>
+                                            </div>
+                                            <div class="detail-mini-card">
+                                                <div class="detail-mini-label">Pondasi</div>
+                                                <div class="detail-mini-value" id="dt-spesifikasi-pondasi">-</div>
+                                            </div>
+                                        </div>
+                                        <div class="divider divider-left">
+                                            <div class="divider-text">Gambar Tipe</div>
+                                        </div>
+                                        <div class="detail-card-grid" id="dt-spesifikasi-files">
+                                            <div class="detail-spec-file-tile" id="dt-spesifikasi-gambar-tipe"></div>
+                                            <div class="detail-spec-file-tile" id="dt-spesifikasi-gambar-denah"></div>
                                         </div>
                                     </div>
                                     <div class="tab-pane" id="dt-produksi" aria-labelledby="dt-produksi-tab"
