@@ -5,6 +5,49 @@
    <div class="sidenav-overlay"></div>
    <div class="drag-target"></div>
    <div id="loading" role="status" class="hidden" style="z-index:9999"></div>
+   <div class="sigapp-mobile-sheet-backdrop" data-sigapp-mobile-close></div>
+   <div id="sigapp-mobile-filter-sheet" class="sigapp-mobile-sheet" aria-hidden="true">
+       <div class="sigapp-mobile-sheet-panel">
+           <div class="sigapp-mobile-sheet-handle"></div>
+           <div class="sigapp-mobile-sheet-header">
+               <h5 class="sigapp-mobile-sheet-title">Filter</h5>
+               <button type="button" class="sigapp-mobile-sheet-close" data-sigapp-mobile-close aria-label="Tutup">
+                   <i data-feather="x"></i>
+               </button>
+           </div>
+           <div class="sigapp-mobile-sheet-body" data-sigapp-mobile-filter-body></div>
+       </div>
+   </div>
+   <div id="sigapp-mobile-action-sheet" class="sigapp-mobile-sheet" aria-hidden="true">
+       <div class="sigapp-mobile-sheet-panel">
+           <div class="sigapp-mobile-sheet-handle"></div>
+           <div class="sigapp-mobile-sheet-header">
+               <h5 class="sigapp-mobile-sheet-title">Aksi</h5>
+               <button type="button" class="sigapp-mobile-sheet-close" data-sigapp-mobile-close aria-label="Tutup">
+                   <i data-feather="x"></i>
+               </button>
+           </div>
+           <div class="sigapp-mobile-sheet-body" data-sigapp-mobile-action-body></div>
+       </div>
+   </div>
+   <nav id="sigapp-mobile-bottom-nav" aria-label="Navigasi mobile">
+       <button type="button" class="sigapp-mobile-bottom-nav-item" data-sigapp-mobile-nav="back">
+           <i data-feather="arrow-left"></i>
+           <span>Back</span>
+       </button>
+       <button type="button" class="sigapp-mobile-bottom-nav-item" data-sigapp-mobile-nav="filter">
+           <i data-feather="sliders"></i>
+           <span>Filter</span>
+       </button>
+       <button type="button" class="sigapp-mobile-bottom-nav-item" data-sigapp-mobile-nav="actions">
+           <i data-feather="grid"></i>
+           <span>Aksi</span>
+       </button>
+       <button type="button" class="sigapp-mobile-bottom-nav-item" data-sigapp-mobile-nav="menu">
+           <i data-feather="menu"></i>
+           <span>Menu</span>
+       </button>
+   </nav>
    <!-- BEGIN: Footer-->
    <!-- <footer class="footer footer-static footer-light">
        <p class="clearfix mb-0"><span class="float-md-left d-block d-md-inline-block mt-25">COPYRIGHT &copy; 2021<a class="ml-25" href="https://1.envato.market/pixinvent_portfolio" target="_blank">Pixinvent</a><span class="d-none d-sm-inline-block">, All rights Reserved</span></span><span class="float-md-right d-none d-md-block">Hand-crafted & Made with<i data-feather="heart"></i></span></p>
@@ -21,6 +64,13 @@
    <script src="<?= base_url() ?>/app-assets/vendors/js/forms/cleave/cleave.min.js"></script>
    <script src="<?= base_url() ?>/assets/js/active-proyek.js?<?= filemtime(FCPATH . 'assets/js/active-proyek.js') ?>"></script>
    <script src="<?= base_url() ?>/assets/js/scripts.js?<?= filemtime(FCPATH . 'assets/js/scripts.js') ?>"></script>
+   <script>
+       window.SIGAPP_PWA = {
+           serviceWorkerUrl: "<?= base_url('sw.js') ?>",
+           serviceWorkerScope: "<?= base_url() ?>"
+       };
+   </script>
+   <script src="<?= base_url('assets/js/pwa-install.js') ?>?<?= filemtime(FCPATH . 'assets/js/pwa-install.js') ?>"></script>
    <!-- END: Theme JS-->
 
    <!-- BEGIN: Page JS-->

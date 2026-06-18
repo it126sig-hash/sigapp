@@ -120,6 +120,200 @@ foreach (user()->getRoles() as $key => $val) {
         background-color: #eee;
     }
 
+    #modal-list-rumah-belum-selesai .modal-dialog {
+        max-width: min(1040px, calc(100vw - 32px));
+        margin: 1rem auto;
+    }
+
+    #modal-list-rumah-belum-selesai .modal-content {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 18px 42px rgba(15, 23, 42, .16);
+        overflow: hidden;
+    }
+
+    #modal-list-rumah-belum-selesai .modal-header {
+        align-items: center;
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 0 !important;
+        padding: .9rem 1rem;
+    }
+
+    #modal-list-rumah-belum-selesai .modal-title {
+        color: #111827;
+        font-size: 1rem;
+        font-weight: 800;
+        letter-spacing: 0;
+        margin: 0;
+    }
+
+    #modal-list-rumah-belum-selesai .modal-body {
+        background: #f3f5f7;
+        padding: .85rem;
+    }
+
+    #modal-list-rumah-belum-selesai .table-responsive {
+        background: #fff;
+        border: 1px solid #d8dde3;
+        border-radius: 8px;
+    }
+
+    #modal-list-rumah-belum-selesai .table {
+        color: #111827;
+        margin-bottom: 0;
+        min-width: 920px;
+    }
+
+    #modal-list-rumah-belum-selesai thead th {
+        background: #f3f4f6;
+        border-bottom: 1px solid #d8dde3;
+        border-top: 0;
+        color: #1f2937;
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .02em;
+        padding: .8rem .9rem;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    #modal-list-rumah-belum-selesai tbody td {
+        border-top: 1px solid #d8dde3;
+        font-size: .86rem;
+        padding: .85rem .9rem;
+        vertical-align: middle;
+    }
+
+    #modal-list-rumah-belum-selesai tbody tr:first-child td {
+        border-top: 0;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-no {
+        color: #111827;
+        font-weight: 700;
+        width: 42px;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-kavling {
+        min-width: 190px;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-kavling-title {
+        color: #111827;
+        font-size: .78rem;
+        font-weight: 800;
+        line-height: 1.25;
+        text-transform: uppercase;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-kavling-meta {
+        color: #111827;
+        font-size: .76rem;
+        font-weight: 600;
+        line-height: 1.25;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-progress-cell {
+        min-width: 210px;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-progress-wrap {
+        align-items: center;
+        display: flex;
+        gap: .75rem;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-progress-track {
+        background: #dfe5ec;
+        border-radius: 999px;
+        flex: 1 1 auto;
+        height: 7px;
+        min-width: 120px;
+        overflow: hidden;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-progress-fill {
+        background: #f6a76a;
+        border-radius: inherit;
+        height: 100%;
+        transition: width .2s ease;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-progress-fill.is-high {
+        background: #2057a3;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-progress-value {
+        color: #111827;
+        font-size: .86rem;
+        font-weight: 800;
+        min-width: 44px;
+        text-align: right;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-date {
+        color: #111827;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-days {
+        color: #2057a3;
+        display: block;
+        font-size: .76rem;
+        font-weight: 800;
+        line-height: 1.25;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-days.is-overdue {
+        color: #dc2626;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-badge {
+        background: #e5e7eb;
+        border-radius: 5px;
+        color: #1f2937;
+        display: inline-block;
+        font-size: .66rem;
+        font-weight: 800;
+        line-height: 1;
+        max-width: 170px;
+        padding: .38rem .5rem;
+        text-transform: uppercase;
+        white-space: normal;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-badge.is-blue {
+        background: #dbeafe;
+        color: #164c8b;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-empty {
+        color: #6b7280;
+        font-weight: 700;
+        padding: 1.4rem !important;
+        text-align: center;
+    }
+
+    #modal-list-rumah-belum-selesai .rumah-belum-action {
+        border-radius: 6px;
+        height: 32px;
+        padding: 0;
+        width: 34px;
+    }
+
+    @media (max-width: 767.98px) {
+        #modal-list-rumah-belum-selesai .modal-dialog {
+            max-width: calc(100vw - 18px);
+            margin: .6rem auto;
+        }
+
+        #modal-list-rumah-belum-selesai .modal-body {
+            padding: .65rem;
+        }
+    }
+
     .float {
         position: fixed;
         background: rgba(255, 255, 255, 0.85) !important;
@@ -1057,7 +1251,7 @@ foreach (user()->getRoles() as $key => $val) {
                                 </button>
                             </div>
 
-                            <div class="divider">
+                            <div class="divider divider-left">
                                 <div class="divider-text">Filter</div>
                             </div>
 
@@ -1097,10 +1291,6 @@ foreach (user()->getRoles() as $key => $val) {
         <!--/ Kick start -->
     </div>
 </div>
-<div id="btn-filter" class="btn hidden btn-primary center-right p-1" onclick="open_setting()">
-    <div class="spinner feather feather-settings"><i data-feather="settings"></i></div>
-</div>
-
 <!-- BEGIN: Vendor JS-->
 <script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
@@ -1367,11 +1557,6 @@ foreach (user()->getRoles() as $key => $val) {
 
         stage.height(syncSiteplanMainHeight(konva_h));
 
-        if ($(window).width() < 768) {
-            $('#filter-side').children().appendTo('#modal-filter');
-            $('#filter-side').remove();
-            $("#btn-filter").removeClass("hidden")
-        }
     }
 
     var line_ms = new Konva.Line({
@@ -1454,32 +1639,29 @@ foreach (user()->getRoles() as $key => $val) {
         })
     }
 
-    // Automatically inject mobile menu toggle trigger on mobile devices
-    if (!window.menuObserverInitialized) {
-        window.menuObserverInitialized = true;
-        const observer = new MutationObserver(function(mutations) {
-            $("#menu_here .float").each(function() {
-                if ($(this).find(".mobile-menu-trigger").length === 0) {
-                    $(this).prepend('<button type="button" class="btn btn-primary d-md-none mobile-menu-trigger"><i class="fas fa-ellipsis-h"></i> Aksi</button>');
-                }
-            });
-        });
-        const menuTarget = document.getElementById('menu_here');
-        if (menuTarget) {
-            observer.observe(menuTarget, { childList: true, subtree: true });
+    function registerMobileBottomNav(config) {
+        window.SIGAPPMobileBottomNavQueue = window.SIGAPPMobileBottomNavQueue || [];
+        if (window.SIGAPPMobileBottomNav && typeof window.SIGAPPMobileBottomNav.register === 'function') {
+            window.SIGAPPMobileBottomNav.register(config);
+        } else {
+            window.SIGAPPMobileBottomNavQueue.push(config);
         }
+    }
 
-        $(document).on('click', '.mobile-menu-trigger', function(e) {
-            e.preventDefault();
-            const parentFloat = $(this).closest('.float');
-            parentFloat.toggleClass('mobile-expanded');
-            if (parentFloat.hasClass('mobile-expanded')) {
-                $(this).html('<i class="fas fa-times"></i> Tutup');
-            } else {
-                $(this).html('<i class="fas fa-ellipsis-h"></i> Aksi');
-            }
+    function registerSiteplanMobileBottomNav() {
+        registerMobileBottomNav({
+            filter: {
+                sourceSelector: '#filter-side'
+            },
+            actions: [{
+                sourceSelector: '#menu_here'
+            }],
+            showBack: true,
+            showMenu: true
         });
     }
+
+    registerSiteplanMobileBottomNav();
 
     function buat_nominatif() {
 
@@ -1813,9 +1995,16 @@ foreach (user()->getRoles() as $key => $val) {
                         if (r[p].tanggal_selesai_pembangunan == null) {
                             if (daysBetween(today_date, r[p].tanggal_rencana_selesai_pembangunan) < 3) {
                                 wr_pembangunan.push({
+                                    id_kavling: r[p].id_kavling,
+                                    id_produksi: r[p].id_produksi,
+                                    id_mkdt: r[p].id_mkdt,
+                                    id_keuangan: r[p].id_keuangan,
+                                    id_tipe: r[p].id_tipe,
+                                    id_gambar_kerja: r[p].id_gambar_kerja,
                                     progres: r[p].progres_bangunan ? r[p].progres_bangunan : 0,
                                     nama_jalan: r[p].nama_jalan,
                                     no_kavling: r[p].no_kavling,
+                                    no_tipe_rumah: r[p].no_tipe_rumah,
                                     tipe: r[p].tipe_rumah,
                                     keterangan: r[p].keterangan_produksi,
                                     tanggal_pembangunan: r[p].tanggal_pembangunan,
@@ -3395,20 +3584,122 @@ foreach (user()->getRoles() as $key => $val) {
         });
     }
 
+    function rumahBelumSelesaiEscape(value) {
+        return String(value ?? '-')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function rumahBelumSelesaiDate(value) {
+        if (!value || value === '0000-00-00') {
+            return '-';
+        }
+
+        return format_date(value) || '-';
+    }
+
+    function rumahBelumSelesaiProgress(value) {
+        const progress = parseFloat(value);
+        if (!Number.isFinite(progress)) {
+            return 0;
+        }
+
+        return Math.max(0, Math.min(100, Math.round(progress)));
+    }
+
+    function rumahBelumSelesaiShape(item) {
+        return {
+            id: 'kav' + item.id_kavling,
+            data: {
+                id_produksi: item.id_produksi || null,
+                id_mkdt: item.id_mkdt || null,
+                id_keuangan: item.id_keuangan || null,
+                nama_proyek: dt_proyek.nama_proyek,
+                nama_jalan: item.nama_jalan || '-',
+                no_kavling: item.no_kavling || '-',
+                tipe: 'kavling'
+            },
+            data2: {
+                id_tipe: item.id_tipe || '-',
+                no_tipe_rumah: item.no_tipe_rumah || '-',
+                tipe_rumah: item.tipe || '-',
+                id_gambar_kerja: item.id_gambar_kerja || null
+            }
+        };
+    }
+
+    function openRumahBelumSelesaiProgress(idKavling) {
+        const item = wr_pembangunan.find((row) => String(row.id_kavling) === String(idKavling));
+        const sh = findSiteplanKavlingAttrs(idKavling) || (item ? rumahBelumSelesaiShape(item) : null);
+
+        if (!sh || typeof open_fproduksi !== 'function') {
+            return swal('error', 'Terjadi Kesalahan', 'Data kavling produksi tidak ditemukan');
+        }
+
+        if (typeof editdtt !== 'undefined') {
+            editdtt = [sh];
+        }
+
+        const openProgressModal = function() {
+            open_fproduksi(sh, 7, idKavling);
+            if (typeof focusProduksiProgressForm === 'function') {
+                setTimeout(focusProduksiProgressForm, 250);
+            }
+        };
+
+        const $modal = $("#modal-list-rumah-belum-selesai");
+        if ($modal.hasClass('show')) {
+            $modal.one('hidden.bs.modal', openProgressModal);
+            $modal.modal('hide');
+        } else {
+            openProgressModal();
+        }
+    }
+
     function cek_tanggal_pembangunan(x = false) {
-        let arr = `<tr><td colspan='6'> Tidak ada Data</td></tr>`;
+        let arr = `<tr><td colspan="7" class="rumah-belum-empty">Tidak ada Data</td></tr>`;
         if (wr_pembangunan.length > 0) {
             let n = 1;
             arr = ''
             wr_pembangunan.forEach(i => {
+                const progress = rumahBelumSelesaiProgress(i.progres);
+                const daysLeft = Math.round(daysBetween(today_date, i.tanggal_rencana_selesai_pembangunan));
+                const isOverdue = daysLeft < 0;
+                const kavlingTitle = `${i.nama_jalan || '-'} No. ${i.no_kavling || '-'}`;
+                const tipeLabel = `${i.no_tipe_rumah || '-'} / ${i.tipe || '-'}`;
+                const keterangan = i.keterangan || '-';
+                const progressClass = progress >= 75 ? 'is-high' : '';
+                const badgeClass = progress >= 75 ? 'is-blue' : '';
+
                 arr += `
                     <tr>
-                        <td>${n++}</td>
-                        <td>${i.nama_jalan} No. ${i.no_kavling} <br> (${i.tipe})</td>
-                        <td>${i.progres} %</td>
-                        <td>${format_date(i.tanggal_pembangunan)}</td>
-                        <td>${format_date(i.tanggal_rencana_selesai_pembangunan)} (${daysBetween(today_date, i.tanggal_rencana_selesai_pembangunan)} hari)</td>
-                        <td>${i.keterangan}</td>
+                        <td class="rumah-belum-no">${n++}</td>
+                        <td class="rumah-belum-kavling">
+                            <div class="rumah-belum-kavling-title">${rumahBelumSelesaiEscape(kavlingTitle)}</div>
+                            <div class="rumah-belum-kavling-meta">Area: ${rumahBelumSelesaiEscape(tipeLabel)}</div>
+                        </td>
+                        <td class="rumah-belum-progress-cell">
+                            <div class="rumah-belum-progress-wrap">
+                                <div class="rumah-belum-progress-track">
+                                    <div class="rumah-belum-progress-fill ${progressClass}" style="width:${progress}%"></div>
+                                </div>
+                                <span class="rumah-belum-progress-value">${progress}%</span>
+                            </div>
+                        </td>
+                        <td><span class="rumah-belum-date">${rumahBelumSelesaiEscape(rumahBelumSelesaiDate(i.tanggal_pembangunan))}</span></td>
+                        <td>
+                            <span class="rumah-belum-date">${rumahBelumSelesaiEscape(rumahBelumSelesaiDate(i.tanggal_rencana_selesai_pembangunan))}</span>
+                            <span class="rumah-belum-days ${isOverdue ? 'is-overdue' : ''}">${daysLeft} hari</span>
+                        </td>
+                        <td><span class="rumah-belum-badge ${badgeClass}">${rumahBelumSelesaiEscape(keterangan)}</span></td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-primary rumah-belum-action" onclick="openRumahBelumSelesaiProgress('${rumahBelumSelesaiEscape(i.id_kavling)}')" title="Ubah data progress">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                        </td>
                     </tr>
                 `
             });
@@ -4512,11 +4803,11 @@ foreach (user()->getRoles() as $key => $val) {
     </div>
 </div>
 
-<div class="modal fade" id="modal-list-rumah-belum-selesai">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="modal-list-rumah-belum-selesai" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
         <div class="add-new-record modal-content pt-0">
             <div class="modal-header mb-1">
-                <h1 class="modal-title" id="exampleModalLabel">Kavling Belum Selesai di Bangun</h1>
+                <h5 class="modal-title">Kavling Belum Selesai di Bangun</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -4526,15 +4817,13 @@ foreach (user()->getRoles() as $key => $val) {
                     <table class="table" id="table-selesai">
                         <thead>
                             <tr>
-                                <th rowspan=2>No</th>
-                                <th rowspan=2>Kavling</th>
-                                <th rowspan="2">Progress</th>
-                                <th colspan="2">Tanggal</th>
-                                <th rowspan="2">Keterangan</th>
-                            </tr>
-                            <tr>
+                                <th>No</th>
+                                <th>Kavling</th>
+                                <th>Progress</th>
                                 <th>Pembangunan</th>
                                 <th>Rencana Selesai</th>
+                                <th>Keterangan</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="list-rumah-belum-selesai-here"></tbody>

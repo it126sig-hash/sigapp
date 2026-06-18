@@ -201,6 +201,44 @@ class Siteplan extends BaseController
         return view('template', $data);
     }
 
+    public function produksi_mobile()
+    {
+        $idProyek = $this->activeProyekService->getActiveId();
+
+        if ($idProyek === null) {
+            return redirect()->to(base_url('dashboard'))->with('error', 'Silahkan pilih proyek terlebih dahulu');
+        }
+
+        $setResult = $this->activeProyekService->setActive($idProyek);
+        if (!$setResult['success']) {
+            return redirect()->to(base_url('siteplan'))->with('error', $setResult['message']);
+        }
+
+        $proyek = $this->getProyekOr404($idProyek);
+        $userId = (int) user_id();
+        $hasAkses = [
+            'proyek' => $this->userHasProjectAccess($proyek, $userId),
+            'update_tanggal_pembangunan' => false,
+        ];
+
+        if (in_groups(['1', '7', '8'])) {
+            $tanggalPembangunanAkses = $this->hak_akses->getHak($userId);
+            $hasUpdateAccess = array_values(array_filter($tanggalPembangunanAkses, function ($item) {
+                return $item->nama_akses == 'update_tanggal_pembangunan';
+            }));
+            $hasAkses['update_tanggal_pembangunan'] = count($hasUpdateAccess) > 0;
+        }
+
+        return view('template', [
+            'content' => 'siteplan/produksi_mobile',
+            'data' => [
+                'proyek' => $proyek,
+                'has_akses' => $hasAkses,
+                'initial_id_kavling' => (int) ($this->request->getGet('id_kavling') ?? 0),
+            ],
+        ]);
+    }
+
     public function urgentSummary()
     {
         $idProyek = (int) $this->request->getVar('id_proyek');

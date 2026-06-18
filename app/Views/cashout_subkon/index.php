@@ -113,6 +113,7 @@ foreach (user()->getRoles() as $key => $val) {
                                     <th>Kavling</th>
                                     <th>Total Kontrak</th>
                                     <th>Total Sudah Cair</th>
+                                    <th>Hutang</th>
                                     <th>Tenggat Waktu</th>
                                     <th>Dibuat</th>
                                 </tr>
@@ -154,6 +155,8 @@ foreach (user()->getRoles() as $key => $val) {
                 nama_proyek: window.SIGAPP && window.SIGAPP.activeProyekName ? window.SIGAPP.activeProyekName : ''
             };
         }
+
+        const cashoutSubkonTerminCache = {};
 
         function cashoutSubkonEscapeHtml(value) {
             return $('<div>').text(value === null || value === undefined ? '' : value).html();
@@ -198,21 +201,16 @@ foreach (user()->getRoles() as $key => $val) {
             return '<span class="badge ' + item[0] + '">' + item[1] + '</span>';
         }
 
-        function cashoutSubkonReadTermin($button) {
-            const data = $button.data('termin');
-            if (Array.isArray(data)) {
-                return data;
-            }
+        function cashoutSubkonClearTerminCache() {
+            Object.keys(cashoutSubkonTerminCache).forEach(function(key) {
+                delete cashoutSubkonTerminCache[key];
+            });
+        }
 
-            if (typeof data === 'string' && data.length > 0) {
-                try {
-                    return JSON.parse(data);
-                } catch (e) {
-                    return [];
-                }
-            }
+        function cashoutSubkonChildMessage(message, isError) {
+            const textClass = isError ? 'text-danger' : 'text-muted';
 
-            return [];
+            return '<div class="cashout-subkon-child-wrap"><div class="cashout-subkon-child-empty ' + textClass + '">' + cashoutSubkonEscapeHtml(message) + '</div></div>';
         }
 
         function cashoutSubkonFormatTerminChild(data) {
@@ -285,7 +283,10 @@ foreach (user()->getRoles() as $key => $val) {
                     data.status = $('#filter-status').val();
                 },
                 dataSrc: function(r) {
-                    csrfHash = r.token;
+                    if (r.token) {
+                        csrfHash = r.token;
+                        $('input[name="' + csrfName + '"]').val(csrfHash);
+                    }
                     return r.data;
                 }
             }
@@ -325,6 +326,7 @@ foreach (user()->getRoles() as $key => $val) {
             const button = $(this);
             const tr = button.closest('tr');
             const row = table.row(tr);
+            const idCashoutSubkon = parseInt(button.data('id-cashout-subkon') || 0, 10);
 
             if (row.child.isShown()) {
                 row.child.hide();
@@ -333,9 +335,57 @@ foreach (user()->getRoles() as $key => $val) {
                 return;
             }
 
+            if (!idCashoutSubkon) {
+                row.child(cashoutSubkonChildMessage('ID cashout subkon tidak valid.', true)).show();
+                return;
+            }
+
             tr.addClass('shown');
             button.find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-            row.child(cashoutSubkonFormatTerminChild(cashoutSubkonReadTermin(button))).show();
+
+            if (cashoutSubkonTerminCache[idCashoutSubkon]) {
+                row.child(cashoutSubkonFormatTerminChild(cashoutSubkonTerminCache[idCashoutSubkon])).show();
+                return;
+            }
+
+            row.child(cashoutSubkonChildMessage('Memuat termin pembayaran...', false)).show();
+            button.prop('disabled', true);
+
+            $.ajax({
+                url: base_url + 'cashout/subkon/detail-list',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    [csrfName]: csrfHash,
+                    id_cashout_subkon: idCashoutSubkon
+                },
+                success: function(r) {
+                    if (r.token) {
+                        csrfHash = r.token;
+                        $('input[name="' + csrfName + '"]').val(csrfHash);
+                    }
+
+                    if (r.status !== 'success') {
+                        if (tr.hasClass('shown')) {
+                            row.child(cashoutSubkonChildMessage(r.message || 'Gagal memuat termin pembayaran.', true)).show();
+                        }
+                        return;
+                    }
+
+                    cashoutSubkonTerminCache[idCashoutSubkon] = Array.isArray(r.data) ? r.data : [];
+                    if (tr.hasClass('shown')) {
+                        row.child(cashoutSubkonFormatTerminChild(cashoutSubkonTerminCache[idCashoutSubkon])).show();
+                    }
+                },
+                error: function() {
+                    if (tr.hasClass('shown')) {
+                        row.child(cashoutSubkonChildMessage('Gagal memuat termin pembayaran.', true)).show();
+                    }
+                },
+                complete: function() {
+                    button.prop('disabled', false);
+                }
+            });
         });
 
         $(document).ajaxSuccess(function(event, xhr, settings) {
@@ -346,11 +396,13 @@ foreach (user()->getRoles() as $key => $val) {
             if (
                 settings.url.includes('/list') ||
                 settings.url.includes('/ambil') ||
-                settings.url.includes('/history')
+                settings.url.includes('/history') ||
+                settings.url.includes('/detail-list')
             ) {
                 return;
             }
 
+            cashoutSubkonClearTerminCache();
             table.ajax.reload(null, false);
         });
     });

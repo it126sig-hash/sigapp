@@ -2,13 +2,17 @@
 
 namespace App\Repositories;
 
+use App\Services\HistoryService;
+
 class TargetSiteplanRepository
 {
     protected $db;
+    protected HistoryService $historyService;
 
     public function __construct()
     {
         $this->db = \Config\Database::connect();
+        $this->historyService = new HistoryService();
     }
 
     public function getByProject(int $idProyek): array
@@ -66,13 +70,27 @@ class TargetSiteplanRepository
 
     public function getHistory(int $idTarget): array
     {
-        return $this->db->table('target_siteplan_history h')
-            ->select('h.*, users.username as add_by_username')
-            ->join('users', 'users.id = h.add_by', 'left')
-            ->where('h.id_target', $idTarget)
-            ->orderBy('h.created_at', 'desc')
-            ->get()
-            ->getResult();
+        $result = $this->historyService->getList([
+            'module' => 'target_siteplan',
+            'reference_type' => 'target_siteplan',
+            'reference_id' => $idTarget,
+        ], 1000, 0);
+
+        $rows = [];
+        foreach ($result['data'] as $row) {
+            $rows[] = (object) [
+                'id_target_history' => $row['id'],
+                'id_target' => $row['reference_id'],
+                'aksi' => $row['action'],
+                'deskripsi' => $row['summary'],
+                'snapshot' => json_encode($row['new_data'] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                'add_by' => $row['add_by'],
+                'created_at' => $row['created_at'],
+                'add_by_username' => $row['add_by_username'] ?? null,
+            ];
+        }
+
+        return $rows;
     }
 
     public function getKavlingTargetMap(int $idProyek): array

@@ -7,12 +7,14 @@ class DanaJaminanService
     protected $db;
     protected FileAccessService $fileAccessService;
     protected FinanceLedgerService $ledgerService;
+    protected HistoryService $historyService;
 
     public function __construct()
     {
         $this->db = \Config\Database::connect();
         $this->fileAccessService = new FileAccessService();
         $this->ledgerService = new FinanceLedgerService();
+        $this->historyService = new HistoryService();
     }
 
     public function getData(int $idMkdt, int $idKavling): array
@@ -430,14 +432,28 @@ class DanaJaminanService
 
     public function getHistory(int $idKavling): array
     {
-        $rows = $this->db->table('dana_jaminan_history h')
-            ->select('h.*, u.username')
-            ->join('users u', 'u.id = h.add_by', 'left')
-            ->where('h.id_kavling', $idKavling)
-            ->orderBy('h.created_at', 'DESC')
-            ->orderBy('h.id', 'DESC')
-            ->get()
-            ->getResultArray();
+        $result = $this->historyService->getList([
+            'module' => 'dana_jaminan',
+            'id_kavling' => $idKavling,
+        ], 1000, 0);
+
+        $rows = [];
+        foreach ($result['data'] as $row) {
+            $metadata = $row['metadata'] ?? [];
+            $rows[] = [
+                'id' => $row['id'],
+                'id_kavling' => $row['id_kavling'],
+                'id_mkdt' => $metadata['id_mkdt'] ?? null,
+                'id_dana_akad' => $metadata['id_dana_akad'] ?? null,
+                'id_pengajuan' => $metadata['id_pengajuan'] ?? null,
+                'aksi' => $row['action'],
+                'deskripsi' => $row['summary'],
+                'snapshot' => json_encode($row['new_data'] ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                'add_by' => $row['add_by'],
+                'created_at' => $row['created_at'],
+                'username' => $row['username'] ?? null,
+            ];
+        }
 
         return [
             'token' => csrf_hash(),
@@ -575,14 +591,21 @@ class DanaJaminanService
 
     protected function saveHistory(int $idKavling, int $idMkdt, ?int $idDanaAkad, ?int $idPengajuan, string $aksi, string $deskripsi, $snapshot, int $actorId): void
     {
-        $this->db->table('dana_jaminan_history')->insert([
+        $referenceType = $idPengajuan ? 'pengajuan_jaminan' : 'dana_akad';
+        $referenceId = $idPengajuan ?: $idDanaAkad;
+
+        $this->historyService->log('dana_jaminan', [
+            'reference_type' => $referenceType,
+            'reference_id' => $referenceId,
             'id_kavling' => $idKavling,
-            'id_mkdt' => $idMkdt,
-            'id_dana_akad' => $idDanaAkad,
-            'id_pengajuan' => $idPengajuan,
-            'aksi' => $aksi,
-            'deskripsi' => $deskripsi,
-            'snapshot' => json_encode($snapshot, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+            'action' => $aksi,
+            'summary' => $deskripsi,
+            'new_data' => $snapshot,
+            'metadata' => [
+                'id_mkdt' => $idMkdt,
+                'id_dana_akad' => $idDanaAkad,
+                'id_pengajuan' => $idPengajuan,
+            ],
             'add_by' => $actorId,
             'created_at' => date('Y-m-d H:i:s'),
         ]);

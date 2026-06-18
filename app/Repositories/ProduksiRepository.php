@@ -2,13 +2,17 @@
 
 namespace App\Repositories;
 
+use App\Services\HistoryService;
+
 class ProduksiRepository
 {
     protected $db;
+    protected HistoryService $historyService;
 
     public function __construct()
     {
         $this->db = \Config\Database::connect();
+        $this->historyService = new HistoryService();
     }
 
     public function getFilesByKavling(int $idKavling): array
@@ -27,12 +31,25 @@ class ProduksiRepository
 
     public function hasProduksiChangeHistoryTable(): bool
     {
-        return $this->db->tableExists('produksi_change_history');
+        return $this->historyService->hasTable();
     }
 
     public function insertProduksiChangeHistory(array $fields): bool
     {
-        return (bool) $this->db->table('produksi_change_history')->insert($fields);
+        $files = $this->decodeJson($fields['files'] ?? null);
+
+        return $this->historyService->log('produksi', [
+            'reference_type' => 'produksi',
+            'reference_id'   => $fields['id_produksi'] ?? null,
+            'id_kavling'     => $fields['id_kavling'] ?? null,
+            'action'         => $fields['action'] ?? 'update',
+            'summary'        => $fields['summary'] ?? null,
+            'old_data'       => $fields['old_data'] ?? null,
+            'new_data'       => $fields['new_data'] ?? null,
+            'metadata'       => ['files' => $files],
+            'add_by'         => $fields['add_by'] ?? (function_exists('user_id') ? user_id() : null),
+            'created_at'     => $fields['created_at'] ?? date('Y-m-d H:i:s'),
+        ]);
     }
 
     public function countProduksiChangeHistory(int $idKavling): int
@@ -41,9 +58,7 @@ class ProduksiRepository
             return 0;
         }
 
-        return $this->db->table('produksi_change_history')
-            ->where('id_kavling', $idKavling)
-            ->countAllResults();
+        return $this->historyService->getByKavling($idKavling, ['produksi'], 1, 0)['history_total'];
     }
 
     public function getProduksiChangeHistory(int $idKavling, int $limit, int $offset): array
@@ -52,13 +67,39 @@ class ProduksiRepository
             return [];
         }
 
-        return $this->db->table('produksi_change_history h')
-            ->select('h.*, users.username')
-            ->join('users', 'users.id = h.add_by', 'left')
-            ->where('h.id_kavling', $idKavling)
-            ->orderBy('h.created_at', 'DESC')
-            ->limit($limit, $offset)
-            ->get()->getResult();
+        $result = $this->historyService->getByKavling($idKavling, ['produksi'], $limit, $offset);
+        $rows = [];
+
+        foreach ($result['history'] as $row) {
+            $metadata = is_array($row->metadata ?? null) ? $row->metadata : [];
+            $files = $metadata['files'] ?? [];
+            if (is_string($files)) {
+                $decodedFiles = json_decode($files, true);
+                $files = is_array($decodedFiles) ? $decodedFiles : [];
+            }
+
+            $row->id_produksi = $row->reference_id;
+            $row->old_data = json_encode($row->old_data ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $row->new_data = json_encode($row->new_data ?? [], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $row->files = json_encode($files, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $rows[] = $row;
+        }
+
+        return $rows;
+    }
+
+    private function decodeJson($value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (! is_string($value) || $value === '') {
+            return [];
+        }
+
+        $decoded = json_decode($value, true);
+        return is_array($decoded) ? $decoded : [];
     }
 
     public function getFileById(int $id): ?object
@@ -266,23 +307,48 @@ class ProduksiRepository
         return (bool) $this->db->table('list_slf')->delete(['id' => $id]);
     }
 
-    public function getKavlingByProyek(int $idProyek, string $search): array
+    public function getKavlingByProyek(int $idProyek, string $search, ?int $idKavling = null): array
     {
-        return $this->db->table('kavling')
-            ->select('kavling.id_kavling, kavling.id_mkdt, nama_jalan, no_kavling, nama_konsumen')
+        $builder = $this->db->table('kavling')
+            ->select('
+                kavling.id_kavling,
+                kavling.id_mkdt,
+                kavling.id_produksi,
+                nama_jalan,
+                no_kavling,
+                nama_konsumen,
+                tipe.no_tipe_rumah,
+                tipe.tipe_rumah
+            ')
             ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
             ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
             ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
             ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
             ->join('mkdt', 'mkdt.id_kavling = kavling.id_kavling', 'left')
             ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_mkdt', 'left')
-            ->where('proyek.id_proyek', $idProyek)
-            ->groupStart()
-            ->like('nama_jalan', $search)
-            ->orLike('nama_konsumen', $search)
-            ->orLike('no_kavling', $search)
-            ->groupEnd()
-            ->get()->getResult();
+            ->where('proyek.id_proyek', $idProyek);
+
+        if ($idKavling && $idKavling > 0) {
+            $builder->where('kavling.id_kavling', $idKavling);
+        } else {
+            $builder
+                ->groupStart()
+                ->like('nama_jalan', $search)
+                ->orLike('nama_konsumen', $search)
+                ->orLike('no_kavling', $search)
+                ->groupEnd();
+        }
+
+        return $builder->get()->getResult();
+    }
+
+    public function getKavlingProduksiById(int $idKavling): ?object
+    {
+        return $this->db->table('kavling')
+            ->select('kavling.id_kavling, kavling.id_produksi')
+            ->where('kavling.id_kavling', $idKavling)
+            ->get()
+            ->getRow() ?: null;
     }
 
     public function createOther(array $fields): bool

@@ -382,6 +382,88 @@ class ProduksiController extends BaseApiController
         return $this->response->setJSON($result);
     }
 
+    public function uploadMobile(): ResponseInterface
+    {
+        $idKavling = (int) $this->request->getVar('id_kavling');
+        $idProduksi = (int) ($this->request->getVar('id_produksi') ?? 0);
+
+        if ($idKavling <= 0) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Kavling wajib dipilih',
+            ]);
+        }
+
+        if ($idProduksi <= 0) {
+            $kavling = $this->repo->getKavlingProduksiById($idKavling);
+            $idProduksi = (int) ($kavling->id_produksi ?? 0);
+        }
+
+        try {
+            $fotoRows = $this->fileService->uploadFotoGroups(
+                (array) $this->request->getFiles(),
+                (array) $this->request->getVar(),
+                $idKavling
+            );
+        } catch (\Throwable $e) {
+            log_message('error', 'Gagal upload foto produksi mobile: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Gagal menyiapkan file upload',
+            ]);
+        }
+
+        if (empty($fotoRows)) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Pilih minimal 1 foto untuk diunggah',
+            ]);
+        }
+
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        $this->repo->insertFiles($fotoRows);
+
+        if ($this->repo->hasProduksiChangeHistoryTable()) {
+            $this->repo->insertProduksiChangeHistory([
+                'id_kavling'  => $idKavling,
+                'id_produksi' => $idProduksi ?: null,
+                'action'      => 'upload_mobile',
+                'summary'     => count($fotoRows) . ' file/foto diunggah dari mode mobile',
+                'old_data'    => json_encode([]),
+                'new_data'    => json_encode([]),
+                'files'       => json_encode(array_map(static function (array $row) {
+                    return [
+                        'kategori'        => $row['kategori'] ?? null,
+                        'file_name'       => $row['file_name'] ?? null,
+                        'tgl_capture'     => $row['tgl_capture'] ?? null,
+                        'file_keterangan' => $row['file_keterangan'] ?? null,
+                        'foto_lat'        => $row['foto_lat'] ?? null,
+                        'foto_lng'        => $row['foto_lng'] ?? null,
+                    ];
+                }, $fotoRows)),
+                'add_by'      => user_id(),
+                'created_at'  => date('Y-m-d H:i:s'),
+            ]);
+        }
+
+        $db->transComplete();
+        $success = $db->transStatus() !== false;
+        $files = $success ? $this->repo->getFilesByKavling($idKavling) : [];
+        $files = $this->fileAccessService->addAccessUrlsToRows($files, 'file_produksi');
+
+        return $this->response->setJSON([
+            'token'    => csrf_hash(),
+            'success'  => $success,
+            'messages' => $success ? 'Foto berhasil diunggah' : 'Gagal menyimpan foto',
+            'files'    => $files,
+        ]);
+    }
+
     public function saveSLf(): ResponseInterface
     {
         $idKavling = implode(',', $this->request->getVar('id_kavling'));
@@ -466,10 +548,11 @@ class ProduksiController extends BaseApiController
     {
         $idProyek = (int) $this->request->getVar('id_proyek');
         $search   = (string) ($this->request->getVar('search') ?? '');
+        $idKavling = (int) ($this->request->getVar('id_kavling') ?? 0);
 
         return $this->response->setJSON([
             'token' => csrf_hash(),
-            'data'  => $this->repo->getKavlingByProyek($idProyek, $search),
+            'data'  => $this->repo->getKavlingByProyek($idProyek, $search, $idKavling > 0 ? $idKavling : null),
         ]);
     }
 

@@ -32,25 +32,23 @@ class CashoutSubkonService
         $result = $this->repo->getDataTables($var);
         $rows = [];
         $no = (int) ($var['start'] ?? 0);
-        $details = $result['details'] ?? [];
 
         foreach ($result['rows'] as $row) {
             $no++;
             $idKavlings = $this->decodeCsv($row->id_kavlings);
             $selectedKavlings = $this->decodeKavlings($row->kavling_options);
-            $termin = $this->normalizeTerminRows($details[(int) $row->id_cashout_subkon] ?? []);
+            $idCashoutSubkon = (int) $row->id_cashout_subkon;
 
             $payload = htmlspecialchars(json_encode([
-                'id_cashout_subkon' => $row->id_cashout_subkon,
+                'id_cashout_subkon' => $idCashoutSubkon,
                 'id_proyek' => $row->id_proyek,
                 'id_kavlings' => $idKavlings,
                 'selected_kavlings' => $selectedKavlings,
             ]), ENT_QUOTES, 'UTF-8');
-            $terminPayload = htmlspecialchars(json_encode($termin), ENT_QUOTES, 'UTF-8');
 
             $rows[] = [
                 '<div class="d-flex align-items-center" style="gap: 0.5rem;">'
-                    . '<button type="button" class="btn btn-sm btn-outline-secondary btn-cashout-subkon-detail" data-termin="' . $terminPayload . '"><i class="fa fa-chevron-down"></i></button>'
+                    . '<button type="button" class="btn btn-sm btn-outline-secondary btn-cashout-subkon-detail" data-id-cashout-subkon="' . $idCashoutSubkon . '"><i class="fa fa-chevron-down"></i></button>'
                     . '<button type="button" class="btn btn-primary btn-sm text-uppercase text-nowrap btn-edit-cashout-subkon" data-payload="' . $payload . '"><i class="fa fa-edit mr-1"></i> Isi Data</button>'
                     . '</div>',
                 $no,
@@ -59,6 +57,7 @@ class CashoutSubkonService
                 $this->escape($row->kavling_list ?: '-'),
                 number_format((float) $row->total_nominal, 0, '.', ','),
                 number_format((float) ($row->total_sudah_cair ?? 0), 0, '.', ','),
+                $this->formatHutang((float) ($row->total_hutang ?? 0), $row->tanggal_hutang_list ?? ''),
                 $this->formatDateList($row->tanggal_jatuh_tempo_list),
                 $this->formatDateTime($row->created_at),
             ];
@@ -70,6 +69,20 @@ class CashoutSubkonService
             'recordsTotal' => $result['recordsTotal'],
             'recordsFiltered' => $result['recordsFiltered'],
             'data' => $rows,
+        ];
+    }
+
+    public function getDetailList(int $id_cashout_subkon): array
+    {
+        if ($id_cashout_subkon <= 0) {
+            return $this->errorResponse('ID cashout subkon tidak valid');
+        }
+
+        $details = $this->repo->getDetailsByCashoutSubkonIds([$id_cashout_subkon]);
+
+        return [
+            'status' => 'success',
+            'data' => $this->normalizeTerminRows($details[$id_cashout_subkon] ?? []),
         ];
     }
 
@@ -215,6 +228,11 @@ class CashoutSubkonService
                 ];
             }
             $this->repo->saveCashoutSubkonKavling($data_cashout_subkon_kavling);
+            $this->repo->saveHistory(
+                (int) $id_cashout_subkon,
+                $isNew ? 'Terbit SPK' : 'Melakukan Perubahan pada SPK',
+                0
+            );
             $this->repo->syncAutomaticDetailAllocations((int) $id_cashout_subkon, $data['id_kavling']);
 
             $this->db->transComplete();
@@ -390,10 +408,12 @@ class CashoutSubkonService
         }
     }
 
-    public function ajukanPencairan($id_detail, $pencairan_tgl)
+    public function ajukanPencairan($id_detail, $spp_no, $spp_tgl, $pencairan_tgl)
     {
         $validation = $this->validateRequired([
             'ID Detail tidak ditemukan' => $id_detail,
+            'No SPP harus diisi' => $spp_no,
+            'Tanggal SPP harus diisi' => $spp_tgl,
             'Tanggal Pengajuan Cair harus diisi' => $pencairan_tgl,
         ]);
         if ($validation['status'] === 'error') {
@@ -414,6 +434,10 @@ class CashoutSubkonService
             }
 
             $this->repo->updateDetail((int) $id_detail, [
+                'spp_no' => $spp_no,
+                'spp_tgl' => $spp_tgl,
+                'spp_add_by' => $detail['spp_add_by'] ?? user_id(),
+                'spp_created_at' => $detail['spp_created_at'] ?? date('Y-m-d H:i:s'),
                 'pengajuan_cair_tgl' => $pencairan_tgl,
                 'pengajuan_cari_add_by' => user_id(),
                 'pengajuan_cair_created_at' => date('Y-m-d H:i:s'),
@@ -714,6 +738,21 @@ class CashoutSubkonService
         }
 
         return date('d M Y H:i', strtotime($datetime));
+    }
+
+    private function formatHutang(float $total, ?string $dates): string
+    {
+        if ($total <= 0) {
+            return '-';
+        }
+
+        $html = number_format($total, 0, '.', ',');
+        $dateList = $this->formatDateList($dates);
+        if ($dateList !== '-') {
+            $html .= '<br><small class="text-muted">Tenggat: ' . $dateList . '</small>';
+        }
+
+        return $html;
     }
 
     private function normalizeTerminRows(array $rows): array

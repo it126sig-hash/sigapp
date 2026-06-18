@@ -8,6 +8,7 @@ use App\Models\CashoutSubkonKavlingModel;
 use App\Models\CashoutSubkonModel;
 use App\Models\SubkonModel;
 use App\Models\CashoutSubkonHistoryModel;
+use App\Services\HistoryService;
 
 use CodeIgniter\Model;
 
@@ -39,6 +40,7 @@ class CashoutSubkonRepo extends Model
     protected $cashoutSubkonDetailModel;
     protected $cashoutSubkonDetailAllocationModel;
     protected $cashoutSubkonHistoryModel;
+    protected HistoryService $historyService;
 
     public function __construct()
     {
@@ -49,6 +51,7 @@ class CashoutSubkonRepo extends Model
         $this->cashoutSubkonDetailModel = new CashoutSubkonDetailModel();
         $this->cashoutSubkonDetailAllocationModel = new CashoutSubkonDetailAllocationModel();
         $this->cashoutSubkonHistoryModel = new CashoutSubkonHistoryModel();
+        $this->historyService = new HistoryService();
     }
 
     public function getSubkonByID(int $id_subkon)
@@ -73,13 +76,11 @@ class CashoutSubkonRepo extends Model
         }
 
         $rows = $builder->get()->getResult();
-        $ids = array_map(static fn ($row) => (int) $row->id_cashout_subkon, $rows);
 
         return [
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
             'rows' => $rows,
-            'details' => $this->getDetailsByCashoutSubkonIds($ids),
         ];
     }
 
@@ -105,7 +106,9 @@ class CashoutSubkonRepo extends Model
                 GROUP_CONCAT(DISTINCT k.id_kavling ORDER BY j.nama_jalan, ABS(k.no_kavling), k.no_kavling SEPARATOR ',') AS id_kavlings,
                 GROUP_CONCAT(DISTINCT CONCAT(k.id_kavling, '|', j.nama_jalan, '|', k.no_kavling) ORDER BY j.nama_jalan, ABS(k.no_kavling), k.no_kavling SEPARATOR ',') AS kavling_options,
                 csds.tanggal_jatuh_tempo_list,
+                csds.tanggal_hutang_list,
                 COALESCE(csds.total_sudah_cair, 0) AS total_sudah_cair,
+                COALESCE(csds.total_hutang, 0) AS total_hutang,
                 csds.max_detail_status
             ", false)
             ->join('subkon s', 's.id = cs.id_subkon', 'left')
@@ -119,7 +122,9 @@ class CashoutSubkonRepo extends Model
                     SELECT
                         id_cashout_subkon,
                         GROUP_CONCAT(DISTINCT tanggal_jatuh_tempo ORDER BY tanggal_jatuh_tempo SEPARATOR ',') AS tanggal_jatuh_tempo_list,
+                        GROUP_CONCAT(DISTINCT CASE WHEN status >= 2 AND (is_paid IS NULL OR is_paid = 0) THEN tanggal_jatuh_tempo END ORDER BY tanggal_jatuh_tempo SEPARATOR ',') AS tanggal_hutang_list,
                         COALESCE(SUM(CASE WHEN status = 4 OR is_paid = 1 THEN nominal ELSE 0 END), 0) AS total_sudah_cair,
+                        COALESCE(SUM(CASE WHEN status >= 2 AND (is_paid IS NULL OR is_paid = 0) THEN nominal ELSE 0 END), 0) AS total_hutang,
                         MAX(status) AS max_detail_status
                     FROM cashout_subkon_detail
                     GROUP BY id_cashout_subkon
@@ -236,22 +241,8 @@ class CashoutSubkonRepo extends Model
             $data['add_by'] = user_id();
             $this->cashoutSubkonModel->insert($data);
             $id_cashout_subkon = $this->cashoutSubkonModel->getInsertID();
-            $this->cashoutSubkonHistoryModel->save([
-                'id_cashout_subkon' => $id_cashout_subkon,
-                'keterangan' => "Terbit SPK",
-                'status' => 0,
-                'add_by' => user_id(),
-                'created_at' => date('Y-m-d H:i:s'),
-            ]);
             return $id_cashout_subkon;
         } else {
-            $this->cashoutSubkonHistoryModel->save([
-                'id_cashout_subkon' => $data['id_cashout_subkon'],
-                'keterangan' => "Melakukan Perubahan pada SPK",
-                'status' => 0,
-                'add_by' => user_id(),
-                'created_at' => date('Y-m-d H:i:s'),
-            ]);
             $data['updated_at'] = date('Y-m-d H:i:s');
             $data['edit_by'] = user_id();
             $this->cashoutSubkonModel->update($data['id_cashout_subkon'], $data);
@@ -308,10 +299,14 @@ class CashoutSubkonRepo extends Model
 
     public function saveHistory(int $id_cashout_subkon, string $keterangan, int $status): bool
     {
-        return (bool) $this->cashoutSubkonHistoryModel->save([
-            'id_cashout_subkon' => $id_cashout_subkon,
-            'keterangan' => $keterangan,
-            'status' => $status,
+        return $this->historyService->log('cashout_subkon', [
+            'reference_type' => 'cashout_subkon',
+            'reference_id' => $id_cashout_subkon,
+            'action' => $this->cashoutActionFromStatus($status),
+            'summary' => $keterangan,
+            'metadata' => [
+                'status' => $status,
+            ],
             'add_by' => user_id(),
             'created_at' => date('Y-m-d H:i:s'),
         ]);
@@ -387,12 +382,43 @@ class CashoutSubkonRepo extends Model
 
     public function getHistoryByIDCashoutSubkon($id_cashout_subkon)
     {
-        return $this->db->table('cashout_subkon_history csh')
-            ->select('csh.*, u.username')
-            ->join('users u', 'u.id = csh.add_by', 'left')
-            ->where('csh.id_cashout_subkon', $id_cashout_subkon)
-            ->orderBy('csh.created_at', 'DESC')
-            ->get()->getResult();
+        $result = $this->historyService->getList([
+            'module' => 'cashout_subkon',
+            'reference_type' => 'cashout_subkon',
+            'reference_id' => $id_cashout_subkon,
+        ], 1000, 0);
+
+        $rows = [];
+        foreach ($result['data'] as $row) {
+            $metadata = $row['metadata'] ?? [];
+            $rows[] = (object) [
+                'id_cashout_subkon_history' => $row['id'],
+                'id_cashout_subkon' => $row['reference_id'],
+                'status' => (int) ($metadata['status'] ?? 0),
+                'keterangan' => $row['summary'],
+                'created_at' => $row['created_at'],
+                'add_by' => $row['add_by'],
+                'updated_at' => null,
+                'edit_by' => null,
+                'deleted_at' => null,
+                'deleted_by' => null,
+                'username' => $row['username'] ?? null,
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function cashoutActionFromStatus(int $status): string
+    {
+        return match ($status) {
+            0 => 'update_spk',
+            1 => 'turun_jatuh_tempo',
+            2 => 'pengajuan_spp',
+            3 => 'pengajuan_pencairan',
+            4 => 'pembayaran',
+            default => 'status_update',
+        };
     }
 
     private function buildEqualAllocationRows(array $detail, array $id_kavlings, string $now): array

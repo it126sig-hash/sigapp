@@ -28,6 +28,15 @@ class CashoutSubkon extends BaseController
         return $this->json($this->cashoutSubkonService->getDataTables($this->request->getVar()));
     }
 
+    public function getDetailList()
+    {
+        return $this->json(
+            $this->cashoutSubkonService->getDetailList(
+                (int) $this->request->getPost('id_cashout_subkon')
+            )
+        );
+    }
+
     public function get()
     {
         return $this->json(
@@ -70,6 +79,8 @@ class CashoutSubkon extends BaseController
         return $this->json(
             $this->cashoutSubkonService->ajukanPencairan(
                 $this->request->getPost('id_cashout_subkon_detail'),
+                $this->request->getPost('spp_no'),
+                $this->request->getPost('spp_tgl'),
                 $this->request->getPost('pencairan_tgl')
             )
         );

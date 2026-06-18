@@ -6,7 +6,7 @@ $__activeProyekService->bootstrapForRequest();
 $__activeProyek = $__activeProyekService->getActive();
 $__accessibleProyek = $__activeProyekService->getAccessibleList((int) user_id());
 $__needsProjectSelection = $__activeProyekService->needsSelection();
-$__defaultProjectLogo = base_url('app-assets/images/ico/apple-icon-120.png');
+$__defaultProjectLogo = base_url('assets/images/pwa/icon-192.png');
 ?>
 
 <body class="vertical-layout vertical-menu-modern  navbar-floating footer-static   menu-collapsed" data-open="click" data-menu="vertical-menu-modern" data-col="">

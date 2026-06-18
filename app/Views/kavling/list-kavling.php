@@ -194,25 +194,9 @@
       max-width: 100%;
     }
 
-    .poskon-filter-actions {
-      width: 100%;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: .5rem;
-    }
-
-    .poskon-filter-actions .btn-group {
-      width: 100%;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-column: 1 / -1;
-      gap: .5rem;
-    }
-
-    .poskon-filter-actions .btn,
-    .poskon-filter-actions .btn-group .btn {
-      width: 100%;
-      margin-left: 0 !important;
+    .poskon-filter-actions,
+    #poskon-filter .poskon-filter-grid {
+      display: none;
     }
 
     .poskon-tabs {
@@ -1348,6 +1332,8 @@ if (!empty($roles)) {
       export_file("pdf", $btn)
     })
 
+    registerPoskonMobileBottomNav();
+
     function export_file(type, $btn) {
       $.ajax({
         type: "post",
@@ -1380,6 +1366,50 @@ if (!empty($roles)) {
           $btn.html($btn.data("old-text"))
           $btn.prop("disabled", false)
         }
+      });
+    }
+
+    function registerMobileBottomNav(config) {
+      window.SIGAPPMobileBottomNavQueue = window.SIGAPPMobileBottomNavQueue || [];
+      if (window.SIGAPPMobileBottomNav && typeof window.SIGAPPMobileBottomNav.register === 'function') {
+        window.SIGAPPMobileBottomNav.register(config);
+      } else {
+        window.SIGAPPMobileBottomNavQueue.push(config);
+      }
+    }
+
+    function registerPoskonMobileBottomNav() {
+      registerMobileBottomNav({
+        filter: {
+          sourceSelector: '#poskon-filter .poskon-filter-grid'
+        },
+        actions: [{
+            label: 'Filter',
+            icon: 'fa fa-filter',
+            className: 'btn btn-outline-primary',
+            sourceSelector: '#btn_draw'
+          },
+          {
+            label: 'Tambah',
+            icon: 'fa fa-plus',
+            className: 'btn btn-primary',
+            sourceSelector: '#btn_open_add_modal'
+          },
+          {
+            label: 'Excel',
+            icon: 'fa fa-file-excel',
+            className: 'btn btn-success',
+            sourceSelector: '#btn_export_excel'
+          },
+          {
+            label: 'PDF',
+            icon: 'fa fa-file-pdf',
+            className: 'btn btn-danger',
+            sourceSelector: '#btn_export_pdf'
+          }
+        ],
+        showBack: true,
+        showMenu: true
       });
     }
 

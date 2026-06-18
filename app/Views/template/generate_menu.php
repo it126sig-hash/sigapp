@@ -20,7 +20,7 @@ if (! empty($currentUser->profile_photo)) {
 
 $activeProyek = $activeProyek ?? null;
 $accessibleProyek = $accessibleProyek ?? [];
-$defaultProjectLogo = base_url('app-assets/images/ico/apple-icon-120.png');
+$defaultProjectLogo = base_url('assets/images/pwa/icon-192.png');
 $activeProyekId = $activeProyek ? (int) $activeProyek->id_proyek : null;
 $activeProyekName = $activeProyek->nama_proyek ?? 'Pilih proyek';
 $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_access_url))
@@ -170,6 +170,7 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_access_url)
                     </div><span class="avatar"><img class="round" src="<?= esc($profilePhotoUrl) ?>" alt="avatar" height="40" width="40"><span class="avatar-status-online"></span></span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-user">
+                    <a class="dropdown-item d-none" href="javascript:void(0);" id="sigapp-pwa-install-action"><i class="mr-50" data-feather="download"></i> Install SIGAPP</a>
                     <a class="dropdown-item" href="<?= base_url('profil') ?>"><i class="mr-50" data-feather="user"></i> Ubah Profil</a>
                     <!-- <div class="dropdown-divider"></div><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="settings"></i> Settings</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="credit-card"></i> Pricing</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="help-circle"></i> FAQ</a> -->
                     <div class="dropdown-divider"></div>

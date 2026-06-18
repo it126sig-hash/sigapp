@@ -82,6 +82,20 @@ class Notif extends BaseController
         return $this->response->setJSON($r);
     }
 
+    function getSummary()
+    {
+        $idProyek = (int) ($this->request->getGet('id_proyek') ?: session()->get('id_proyek'));
+        $activityUnreadCount = $this->getUnreadActivityCount($idProyek > 0 ? $idProyek : null);
+
+        return $this->response->setJSON([
+            'token' => csrf_hash(),
+            'urgent_total' => 0,
+            'activity_unread_count' => $activityUnreadCount,
+            'badge_total' => $activityUnreadCount,
+            'summary_only' => true,
+        ]);
+    }
+
     function getCenter()
     {
         $idProyek = (int) ($this->request->getGet('id_proyek') ?: session()->get('id_proyek'));

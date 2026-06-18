@@ -7,8 +7,13 @@
     <meta name="description" content="">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Hugo 0.79.0">
-    <title>Sticky Footer Template · Bootstrap v5.0</title>
+    <title>Register - SIGAPP</title>
  
+    <meta name="theme-color" content="#2057a3">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="SIGAPP">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="canonical" href="https://getbootstrap.com/docs/5.0/examples/sticky-footer/">
  
  
@@ -17,13 +22,9 @@
     <link href="https://getbootstrap.com/docs/5.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
  
     <!-- Favicons -->
-    <link rel="apple-touch-icon" href="/docs/5.0/assets/img/favicons/apple-touch-icon.png" sizes="180x180">
-    <link rel="icon" href="/docs/5.0/assets/img/favicons/favicon-32x32.png" sizes="32x32" type="image/png">
-    <link rel="icon" href="/docs/5.0/assets/img/favicons/favicon-16x16.png" sizes="16x16" type="image/png">
-    <link rel="manifest" href="/docs/5.0/assets/img/favicons/manifest.json">
-    <link rel="mask-icon" href="/docs/5.0/assets/img/favicons/safari-pinned-tab.svg" color="#7952b3">
-    <link rel="icon" href="/docs/5.0/assets/img/favicons/favicon.ico">
-    <meta name="theme-color" content="#7952b3">
+    <link rel="manifest" href="<?= base_url('manifest.webmanifest') ?>">
+    <link rel="apple-touch-icon" href="<?= base_url('assets/images/pwa/apple-touch-icon.png') ?>" sizes="180x180">
+    <link rel="icon" href="<?= base_url('favicon.ico') ?>">
  
  
     <style>
@@ -95,8 +96,13 @@
         </div>
     </footer>
  
- 
- 
+    <script>
+        window.SIGAPP_PWA = {
+            serviceWorkerUrl: "<?= base_url('sw.js') ?>",
+            serviceWorkerScope: "<?= base_url() ?>"
+        };
+    </script>
+    <script src="<?= base_url('assets/js/pwa-install.js') ?>?<?= filemtime(FCPATH . 'assets/js/pwa-install.js') ?>"></script>
 </body>
  
 </html>
