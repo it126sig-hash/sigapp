@@ -26,7 +26,7 @@ class JalanService
     {
         return [
             'proyek' => $this->proyekModel->select('id_proyek, nama_proyek')->findAll(),
-            'cluster' => $this->jalanRepository->getClusters(),
+            'cluster' => [],
             'controller' => 'jalan',
             'title' => 'Jalan',
         ];
@@ -40,7 +40,7 @@ class JalanService
             $rows[$key] = [
                 $value->id_jalan,
                 $value->id_cluster,
-                '(' . $value->nama_proyek . ')' . $value->nama_cluster,
+                $value->nama_cluster,
                 $value->nama_jalan,
                 $this->actionButtons((int) $value->id_jalan),
             ];
@@ -61,7 +61,7 @@ class JalanService
             $rows[$key] = [
                 $no,
                 $value->id_jalan,
-                '(' . $value->nama_proyek . ')' . $value->nama_cluster,
+                $value->nama_cluster,
                 $value->nama_jalan,
                 $this->actionButtons((int) $value->id_jalan),
             ];
@@ -77,7 +77,11 @@ class JalanService
 
     public function getOne(int $idJalan): ?object
     {
-        return $this->jalanModel->where('id_jalan', $idJalan)->first();
+        return $this->jalanModel
+            ->select('jalan.*, cluster.nama_cluster')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster', 'left')
+            ->where('id_jalan', $idJalan)
+            ->first();
     }
 
     public function add(IncomingRequest $request): array

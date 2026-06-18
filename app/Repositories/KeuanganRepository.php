@@ -184,10 +184,29 @@ class KeuanganRepository extends Model
 
     public function getBelumLunasGroupedQuery()
     {
-        // Subquery: agregat tagihan belum lunas per id_mkdt
-        $subQuery = $this->db->table('keuangan')
+        $unpaidSubQuery = $this->db->table('keuangan')
             ->select('id_mkdt, MIN(jatuh_tempo_tgl) AS jatuh_tempo_tgl, COUNT(*) AS jumlah_tagihan')
             ->where('sudah_dibayar', 0)
+            ->groupBy('id_mkdt')
+            ->getCompiledSelect();
+
+        $totalTagihanSubQuery = $this->db->table('keuangan')
+            ->select('id_mkdt, COALESCE(SUM(nominal), 0) AS total_tagihan')
+            ->groupBy('id_mkdt')
+            ->getCompiledSelect();
+
+        $paidDetailSubQuery = $this->db->table('log_pembayaran_detail lpd')
+            ->select('lp.id_mkdt, COALESCE(SUM(lpd.nominal), 0) AS total_sudah_bayar_detail')
+            ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
+            ->where('lp.is_deleted', 0)
+            ->where('lp.payment_type !=', 'Booking')
+            ->groupBy('lp.id_mkdt')
+            ->getCompiledSelect();
+
+        $paidLogSubQuery = $this->db->table('log_pembayaran')
+            ->select('id_mkdt, COALESCE(SUM(nominal), 0) AS total_sudah_bayar_log')
+            ->where('is_deleted', 0)
+            ->where('payment_type !=', 'Booking')
             ->groupBy('id_mkdt')
             ->getCompiledSelect();
 
@@ -195,26 +214,31 @@ class KeuanganRepository extends Model
             ->select('
                 j.nama_jalan,
                 k.no_kavling,
-                hj.id_tipe,
+                hj.id_tipe AS tipe_pricelist,
                 c.nama_konsumen,
                 m.booking_tgl,
                 m.is_kpr,
                 keu_agg.jatuh_tempo_tgl,
                 keu_agg.jumlah_tagihan,
-                "" as total_tagihan,
-                "" as sudah_bayar,
-                "" as sisa_tagihan,
+                COALESCE(tagihan_agg.total_tagihan, 0) AS total_tagihan,
+                COALESCE(NULLIF(paid_detail_agg.total_sudah_bayar_detail, 0), paid_log_agg.total_sudah_bayar_log, 0) AS sudah_bayar,
+                GREATEST(
+                    COALESCE(tagihan_agg.total_tagihan, 0) -
+                    COALESCE(NULLIF(paid_detail_agg.total_sudah_bayar_detail, 0), paid_log_agg.total_sudah_bayar_log, 0),
+                    0
+                ) AS sisa_tagihan,
                 (m.harga_uang_muka - m.harga_diskon_uang_muka - m.harga_sbum) as um,
                 (m.harga_administrasi) as adm,
                 (m.harga_bphtb + m.harga_biaya_proses + m.harga_ppn + m.harga_penambahan_um + m.harga_penambahan + m.harga_penambahan_tanah) as bb,
-                mps.total_um,
-                mps.total_adm,
-                mps.total_bb,
                 tipe.no_tipe_rumah,
+                tipe.tipe_rumah,
                 m.id_mkdt,
                 p.nama_proyek
             ')
-            ->join("({$subQuery}) keu_agg", 'keu_agg.id_mkdt = m.id_mkdt', 'inner')
+            ->join("({$unpaidSubQuery}) keu_agg", 'keu_agg.id_mkdt = m.id_mkdt', 'inner')
+            ->join("({$totalTagihanSubQuery}) tagihan_agg", 'tagihan_agg.id_mkdt = m.id_mkdt', 'left')
+            ->join("({$paidDetailSubQuery}) paid_detail_agg", 'paid_detail_agg.id_mkdt = m.id_mkdt', 'left')
+            ->join("({$paidLogSubQuery}) paid_log_agg", 'paid_log_agg.id_mkdt = m.id_mkdt', 'left')
             ->join('kavling k', 'k.id_mkdt = m.id_mkdt')
             ->join('jalan j', 'j.id_jalan = k.id_jalan')
             ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
@@ -224,7 +248,6 @@ class KeuanganRepository extends Model
             ->join('tipe', 'tipe.id_tipe = k.id_tipe', 'left')
             ->join('users a', 'a.id = m.add_by', 'left')
             ->join('users b', 'b.id = m.edit_by', 'left')
-            ->join('mkdt_payment_summary mps', 'mps.id_mkdt = m.id_mkdt', 'left')
             ->where('m.status_mkdt !=', 'Batal')
             ->where('m.is_lunas', '0')
             ->where('
@@ -234,6 +257,21 @@ class KeuanganRepository extends Model
                 >
             ', 0)
             ->orderBy('keu_agg.jatuh_tempo_tgl', 'ASC');
+    }
+
+    public function getListTagihanDetailById(int $idMkdt): array
+    {
+        return $this->select([
+                'keuangan.berita_acara',
+                'keuangan.jatuh_tempo_tgl',
+                'keuangan.nominal',
+                'keuangan.sudah_dibayar',
+                'keuangan.status',
+            ])
+            ->where('keuangan.id_mkdt', $idMkdt)
+            ->orderBy('keuangan.jatuh_tempo_tgl', 'ASC')
+            ->orderBy('keuangan.id_keuangan', 'ASC')
+            ->findAll();
     }
 
     //tanpa tagihan turun kpr

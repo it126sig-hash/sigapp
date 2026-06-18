@@ -110,21 +110,7 @@ foreach (user()->getRoles() as $key => $val) {
     <div class="content-overlay"></div>
     <div class="header-navbar-shadow"></div>
     <div class="content-wrapper">
-        <div class="row content-header">
-            <div class="col-12 col-md-9 content-header-left mb-2">
-                <div class="row breadcrumbs-top">
-                    <div class="col-12">
-                        <h2 class="mb-0 content-header-title float-left">Siteplan</h2>
-                        <div class="breadcrumb-wrapper">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="<?= base_url() ?>proyek">Siteplan</a></li>
-                                <li class="active breadcrumb-item">Index</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div class="content-header row"></div>
         <div class="content-body">
             <div class="card">
                 <div class="card-body">

@@ -8,6 +8,7 @@ use App\Controllers\BaseController;
 use App\Models\ClusterModel;
 use App\Models\ProyekModel;
 use App\Services\FileAccessService;
+use App\Services\FinanceLedgerService;
 
 class Pajak extends BaseController
 {
@@ -18,6 +19,7 @@ class Pajak extends BaseController
 	protected $db;
 	protected $notif;
 	protected $fileAccessService;
+	protected $financeLedgerService;
 
 	public function __construct()
 	{
@@ -27,6 +29,7 @@ class Pajak extends BaseController
 		$this->validation =  \Config\Services::validation();
 		$this->db = db_connect();
 		$this->fileAccessService = new FileAccessService();
+		$this->financeLedgerService = new FinanceLedgerService();
 	}
 
 	// public function index()
@@ -349,15 +352,13 @@ class Pajak extends BaseController
 
 		$response = array();
 		$response['token'] = csrf_hash();
-		$id_kavling = $this->request->getPost('id_kavling');
+		$id_kavling = (int) $this->request->getPost('id_kavling');
+		$actorId = (int) user_id();
 
 		$pph42_nilai = $this->num($this->request->getPost('pph42_nilai'));
 
-		// echo $pph42_nilai; die();
-
 		$fields['id'] = $this->request->getPost('id');
 		$fields['id_mkdt'] = $this->request->getPost('id_mkdt');
-		// $fields['id_kavling'] = $id_kavling;
 
 		$fields['pph42_tarif'] = $this->request->getPost('pph42_tarif');
 		$fields['pph42_nilai'] = $pph42_nilai;
@@ -378,198 +379,105 @@ class Pajak extends BaseController
 		$fields['ppn_keterangan'] = $this->request->getPost('ppn_keterangan');
 		$fields['ppn_no_faktur'] = $this->request->getPost('ppn_no_faktur');
 
-		// var_dump($this->request->getPost('pph42_nilai')); die();
-
-		/************************ upload BPN *****************************/
-		if ($this->request->getFile('pph42_file-bpn')->getSize() > 0) {
-			$img = $this->request->getFile('pph42_file-bpn');
-
-			$name = $img->getRandomName();
-
-			$lok = 'uploads/l/' . date('Ymd') . '/';
-
-			$this->fileAccessService->storeAs($img, $lok, $name);
-
-			$f = [
-				'id_kavling' => $id_kavling,
-				'id_group' => 10,  //id untuk pajak
-				'lokasi' => $lok . $name,
-				'file_name' => $img->getClientName(),
-				'kategori' => 10,
-				'default_filename' => $this->request->getPost('pph42_kategori-bpn'),
-				'keterangan' => $this->request->getPost('pph42_file_keterangan-bpn'),
-				'upload_at' => date('Y-m-d H:i:s'),
-				'upload_by' => user_id(),
-			];
-
-			$this->db->table('file_upload')
-				->insert($f);
-		}
-		/************************ upload E-billing *****************************/
-		if ($this->request->getFile('pph42_file-ebilling')->getSize() > 0) {
-			$img = $this->request->getFile('pph42_file-ebilling');
-
-			$name = $img->getRandomName();
-
-			$lok = 'uploads/l/' . date('Ymd') . '/';
-
-			$this->fileAccessService->storeAs($img, $lok, $name);
-
-			$f = [
-				'id_kavling' => $id_kavling,
-				'id_group' => 10,  //id untuk pajak
-				'lokasi' => $lok . $name,
-				'file_name' => $img->getClientName(),
-				'kategori' => 9,
-				'default_filename' => $this->request->getPost('pph42_kategori-ebilling'),
-				'keterangan' => $this->request->getPost('pph42_file_keterangan-ebilling'),
-				'upload_at' => date('Y-m-d H:i:s'),
-				'upload_by' => user_id(),
-			];
-			$this->db->table('file_upload')
-				->insert($f);
-		}
-
-		/************************ upload BPN *****************************/
-		if ($this->request->getFile('ppn_file-bpn')->getSize() > 0) {
-			$img = $this->request->getFile('ppn_file-bpn');
-
-			$name = $img->getRandomName();
-
-			$lok = 'uploads/l/' . date('Ymd') . '/';
-
-			$this->fileAccessService->storeAs($img, $lok, $name);
-
-			$f = [
-				'id_kavling' => $id_kavling,
-				'id_group' => 10,  //id untuk pajak
-				'lokasi' => $lok . $name,
-				'file_name' => $img->getClientName(),
-				'kategori' => 12,
-				'default_filename' => $this->request->getPost('ppn_kategori-bpn'),
-				'keterangan' => $this->request->getPost('ppn_file_keterangan-bpn'),
-				'upload_at' => date('Y-m-d H:i:s'),
-				'upload_by' => user_id(),
-			];
-
-			$this->db->table('file_upload')
-				->insert($f);
-		}
-		/************************ upload E-billing *****************************/
-		if ($this->request->getFile('ppn_file-faktur')->getSize() > 0) {
-			$img = $this->request->getFile('ppn_file-faktur');
-
-			$name = $img->getRandomName();
-
-			$lok = 'uploads/l/' . date('Ymd') . '/';
-
-			$this->fileAccessService->storeAs($img, $lok, $name);
-
-			$f = [
-				'id_kavling' => $id_kavling,
-				'id_group' => 10,  //id untuk pajak
-				'lokasi' => $lok . $name,
-				'file_name' => $img->getClientName(),
-				'kategori' => 13,
-				'default_filename' => $this->request->getPost('ppn_kategori-ebilling'),
-				'keterangan' => $this->request->getPost('ppn_file_keterangan-ebilling'),
-				'upload_at' => date('Y-m-d H:i:s'),
-				'upload_by' => user_id(),
-			];
-			$this->db->table('file_upload')
-				->insert($f);
-		}
-		/************************ upload E-billing *****************************/
-		if ($this->request->getFile('ppn_file-ebilling')->getSize() > 0) {
-			$img = $this->request->getFile('ppn_file-ebilling');
-
-			$name = $img->getRandomName();
-
-			$lok = 'uploads/l/' . date('Ymd') . '/';
-
-			$this->fileAccessService->storeAs($img, $lok, $name);
-
-			$f = [
-				'id_kavling' => $id_kavling,
-				'id_group' => 10,  //id untuk pajak
-				'lokasi' => $lok . $name,
-				'file_name' => $img->getClientName(),
-				'kategori' => 11,
-				'default_filename' => $this->request->getPost('ppn_kategori-ebilling'),
-				'keterangan' => $this->request->getPost('ppn_file_keterangan-ebilling'),
-				'upload_at' => date('Y-m-d H:i:s'),
-				'upload_by' => user_id(),
-			];
-			$this->db->table('file_upload')
-				->insert($f);
-		}
-
-		// var_dump($fields);die();
-
 		$this->validation->setRules([
 			'id_mkdt' => ['label' => 'Tidak ada data konsumen', 'rules' => 'permit_empty|max_length[255]']
 		]);
 
-		if (!$fields['id']) {
-			if ($this->validation->run($fields) == FALSE) {
-				$response['success'] = false;
-				$response['messages'] = $this->validation->listErrors();
-			} else {
-
-				$fields['add_by'] = user_id();
-				$fields['created_at'] = date("Y-m-d H:i:s");
-				$q = $this->db->table("pajak")->insert($fields);
-				if ($q) {
-					$this->db->table('kavling')->update(
-						['id_pajak' => $this->db->insertID()],
-						['id_kavling' => $this->request->getPost('id_kavling')]
-					);
-					//insert ke log
-					if ($pph42_nilai > 0) {
-						$notif = 'Melakukan pembayaran PPH42';
-						$this->notif->tambah_notif("3;5", $notif, user_id(), $id_kavling, 0); //keuangan legal
-					}
-
-					if($ppn_tgl_bayar){
-						$notif = 'Melakukan pembayaran PPN';
-						$this->notif->tambah_notif("3;5", $notif, user_id(), $id_kavling, 0); //keuangan legal		
-					}
-
-					$response['success'] = true;
-					$response['messages'] = 'Data berhasil diinput';
-				} else {
-					$response['success'] = false;
-					$response['messages'] = 'Kesalahan saat mengisi data!';
-				}
-			}
-		} else {
-			$fields['edit_by'] = user_id();
-			$fields['updated_at'] = date("Y-m-d H:i:s");
-
-			if ($q = $this->db->table("pajak")->where('id', $fields['id'])->update($fields)) {
-				if ($fields['pph42_nilai'] > 0) {
-					$notif = 'Melakukan perubahan pembayaran/detail pada PPH42';
-					$this->notif->tambah_notif("3;5", $notif, user_id(), $id_kavling, 0); //keuangan legal
-				}
-
-				if($ppn_tgl_bayar){
-					$notif = 'Melakukan perubahan pembayaran/detail pada PPH42';
-					$this->notif->tambah_notif("3;5", $notif, user_id(), $id_kavling, 0); //keuangan legal		
-				}
-
-				$response['success'] = true;
-				$response['messages'] = 'Data berhasil diubah';
-			} else {
-				$response['success'] = false;
-				$response['messages'] = 'Kesalahan saat merubah data!';
-			}
+		if ($this->validation->run($fields) == FALSE) {
+			$response['success'] = false;
+			$response['messages'] = $this->validation->listErrors();
+			return $this->response->setJSON($response);
 		}
 
+		$isNew = empty($fields['id']);
+		$idPajak = (int) $fields['id'];
+		$now = date("Y-m-d H:i:s");
 
+		$this->db->transBegin();
 
+		try {
+			$this->storePajakFile('pph42_file-bpn', $id_kavling, 10, 'pph42_kategori-bpn', 'pph42_file_keterangan-bpn');
+			$this->storePajakFile('pph42_file-ebilling', $id_kavling, 9, 'pph42_kategori-ebilling', 'pph42_file_keterangan-ebilling');
+			$this->storePajakFile('ppn_file-bpn', $id_kavling, 12, 'ppn_kategori-bpn', 'ppn_file_keterangan-bpn');
+			$this->storePajakFile('ppn_file-faktur', $id_kavling, 13, 'ppn_kategori-faktur', 'ppn_file_keterangan-faktur');
+			$this->storePajakFile('ppn_file-ebilling', $id_kavling, 11, 'ppn_kategori-ebilling', 'ppn_file_keterangan-ebilling');
 
+			if ($isNew) {
+				$fields['add_by'] = $actorId;
+				$fields['created_at'] = $now;
+				unset($fields['id']);
+
+				if (!$this->db->table("pajak")->insert($fields)) {
+					throw new \RuntimeException('Kesalahan saat mengisi data!');
+				}
+
+				$idPajak = (int) $this->db->insertID();
+				if (!$this->db->table('kavling')->update(['id_pajak' => $idPajak], ['id_kavling' => $id_kavling])) {
+					throw new \RuntimeException('Kesalahan saat menghubungkan data pajak ke kavling!');
+				}
+			} else {
+				$fields['edit_by'] = $actorId;
+				$fields['updated_at'] = $now;
+				$updateFields = $fields;
+				unset($updateFields['id']);
+
+				if (!$this->db->table("pajak")->where('id', $idPajak)->update($updateFields)) {
+					throw new \RuntimeException('Kesalahan saat merubah data!');
+				}
+			}
+
+			$this->financeLedgerService->syncExpensesFromPajak($idPajak, $actorId);
+
+			if ($pph42_nilai > 0) {
+				$notif = $isNew ? 'Melakukan pembayaran PPH42' : 'Melakukan perubahan pembayaran/detail pada PPH42';
+				$this->notif->tambah_notif("3;5", $notif, $actorId, $id_kavling, 0); //keuangan legal
+			}
+
+			if ($ppn_tgl_bayar) {
+				$notif = $isNew ? 'Melakukan pembayaran PPN' : 'Melakukan perubahan pembayaran/detail pada PPN';
+				$this->notif->tambah_notif("3;5", $notif, $actorId, $id_kavling, 0); //keuangan legal
+			}
+
+			if ($this->db->transStatus() === false) {
+				throw new \RuntimeException('Transaksi pajak gagal disimpan!');
+			}
+
+			$this->db->transCommit();
+			$response['success'] = true;
+			$response['messages'] = $isNew ? 'Data berhasil diinput' : 'Data berhasil diubah';
+		} catch (\Throwable $e) {
+			$this->db->transRollback();
+			log_message('error', 'Gagal menyimpan pajak: ' . $e->getMessage());
+			$response['success'] = false;
+			$response['messages'] = $e->getMessage();
+		}
 
 		return $this->response->setJSON($response);
+	}
+
+	protected function storePajakFile(string $inputName, int $idKavling, int $kategori, string $defaultFilenamePost, string $keteranganPost): void
+	{
+		$file = $this->request->getFile($inputName);
+		if (!$file || !$file->isValid() || $file->getSize() <= 0) {
+			return;
+		}
+
+		$name = $file->getRandomName();
+		$lok = 'uploads/l/' . date('Ymd') . '/';
+
+		$this->fileAccessService->storeAs($file, $lok, $name);
+
+		$this->db->table('file_upload')->insert([
+			'id_kavling' => $idKavling,
+			'id_group' => 10,
+			'lokasi' => $lok . $name,
+			'file_name' => $file->getClientName(),
+			'kategori' => $kategori,
+			'default_filename' => $this->request->getPost($defaultFilenamePost),
+			'keterangan' => $this->request->getPost($keteranganPost),
+			'upload_at' => date('Y-m-d H:i:s'),
+			'upload_by' => user_id(),
+		]);
 	}
 
 	// public function edit()

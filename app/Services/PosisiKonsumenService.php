@@ -10,11 +10,101 @@ class PosisiKonsumenService
 {
     protected $db;
     protected $posisiKonsumenRepo;
+    protected FileAccessService $fileAccessService;
+    protected SiteplanMenuService $siteplanMenuService;
+    protected ?array $actionMenuItems = null;
+    protected int $actionMenuRoleId = 0;
 
     public function __construct()
     {
         $this->db = \Config\Database::connect();
         $this->posisiKonsumenRepo = new PosisiKonsumenRepository();
+        $this->fileAccessService = new FileAccessService();
+        $this->siteplanMenuService = new SiteplanMenuService();
+    }
+
+    private function resolveCurrentRoleId(): int
+    {
+        if (!function_exists('user') || !user()) {
+            return 0;
+        }
+
+        foreach (user()->getRoles() as $roleId => $roleName) {
+            return (int) $roleId;
+        }
+
+        return 0;
+    }
+
+    private function getActionMenuItems(): array
+    {
+        if ($this->actionMenuItems === null) {
+            $this->actionMenuRoleId = $this->resolveCurrentRoleId();
+            $this->actionMenuItems = $this->siteplanMenuService->getActionItemsForList($this->actionMenuRoleId);
+        }
+
+        return $this->actionMenuItems;
+    }
+
+    private function buildPoskonRowPayload(object $row): array
+    {
+        return [
+            'id_kavling'   => $row->id_kavling ?? null,
+            'id_mkdt'      => $row->id_mkdt ?? null,
+            'id_keuangan'  => $row->id_keuangan ?? null,
+            'id_legal'     => $row->id_legal ?? null,
+            'id_produksi'  => $row->id_produksi ?? null,
+            'id_hargajual' => $row->id_hargajual ?? null,
+            'id_komplain'  => $row->id_komplain ?? null,
+            'nama_jalan'   => $row->nama_jalan ?? '',
+            'no_kavling'   => $row->no_kavling ?? '',
+            'no_tipe_rumah'=> $row->no_tipe_rumah ?? '',
+            'tipe_rumah'   => $row->tipe_rumah ?? '',
+            'harga_akhir'  => $row->harga_akhir ?? null,
+            'nama_proyek'  => $row->nama_proyek ?? '',
+            'uadd_by'      => $row->uadd_by ?? '',
+        ];
+    }
+
+    private function renderPoskonActionHtml(object $row): string
+    {
+        $idKavling = (int) ($row->id_kavling ?? 0);
+        if ($idKavling <= 0) {
+            return '';
+        }
+
+        $rowEncoded = rawurlencode(json_encode($this->buildPoskonRowPayload($row), JSON_UNESCAPED_UNICODE));
+        $menuItems = $this->getActionMenuItems();
+        $menuHtml = '';
+        $lastGroup = null;
+
+        foreach ($menuItems as $item) {
+            if ($this->actionMenuRoleId === 1 && !empty($item['group_label']) && $item['group_label'] !== $lastGroup) {
+                $lastGroup = $item['group_label'];
+                $menuHtml .= '<div class="dropdown-header">' . esc($lastGroup) . '</div>';
+            }
+
+            $icon = !empty($item['icon'])
+                ? '<i class="' . esc($item['icon']) . '"></i> '
+                : '';
+            $onclick = rawurlencode((string) ($item['onclick'] ?? ''));
+            $menuHtml .= '<button type="button" class="dropdown-item poskon-menu-action" data-onclick="' . esc($onclick) . '" data-row="' . esc($rowEncoded) . '" data-group="' . esc((string) ($item['id_group'] ?? '')) . '">'
+                . $icon . esc($item['label'] ?? '')
+                . '</button>';
+        }
+
+        $dropdown = $menuHtml !== ''
+            ? '<div class="btn-group ml-50">'
+                . '<button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Aksi</button>'
+                . '<div class="dropdown-menu dropdown-menu-right">' . $menuHtml . '</div>'
+                . '</div>'
+            : '';
+
+        return '<div class="btn-group poskon-action-cell" style="white-space:nowrap">'
+            . '<button type="button" class="btn btn-info btn-sm poskon-detail-btn" data-row="' . esc($rowEncoded) . '" title="Lihat Detail">'
+            . '<i class="fa fa-eye"></i></button>'
+            . $dropdown
+            . '</div>';
     }
 
     public function getDataTable($request, $status = null)
@@ -113,12 +203,7 @@ class PosisiKonsumenService
                 return round($persen) . '%'; // tanpa desimal
             })
             ->edit('action', function ($value) {
-                $jsonData = htmlspecialchars(json_encode($value), ENT_QUOTES, 'UTF-8');
-                return '
-                <div class="btn-group">
-                <button class="btn btn-primary btn-sm" onclick="openDetail(' . $value->id_mkdt . ')"><i class="fa fa-eye"></i></button>
-                <button class="btn btn-warning btn-sm" data-kavling="' . $jsonData . '" onclick="openEdit(this)"><i class="fa fa-edit"></i></button>
-                </div>';
+                return $this->renderPoskonActionHtml($value);
             })
             ->toJson();
     }
@@ -180,21 +265,34 @@ class PosisiKonsumenService
                 $sb = $v->total_um + $v->total_adm + $v->total_bb;
                 return number_format($tot - $sb);
             })
-
             ->edit('action', function ($value) {
-                $jsonData = htmlspecialchars(json_encode($value), ENT_QUOTES, 'UTF-8');
-                return '
-                <div class="btn-group">
-                <button class="btn btn-primary btn-sm" onclick="openDetail(' . $value->id_mkdt . ')"><i class="fa fa-eye"></i></button>
-                <button class="btn btn-warning btn-sm" data-kavling="' . $jsonData . '" onclick="openEdit(this)"><i class="fa fa-edit"></i></button>
-                </div>';
+                return $this->renderPoskonActionHtml($value);
             })
             ->toJson();
     }
 
     function getRiwayatExport($id_proyek, $status)
     {
-        return $this->posisiKonsumenRepo->getRiwayatExport($id_proyek, $status);
+        $rows = $this->posisiKonsumenRepo->getRiwayatExport($id_proyek, $status);
+
+        foreach ($rows as $row) {
+            $randomName = $row->randomName ?? $row->randomname ?? '';
+            if ($randomName === '' || empty($row->path)) {
+                continue;
+            }
+
+            $logicalPath = rtrim((string) $row->path, '/') . '/' . $randomName;
+
+            try {
+                $row->download_url = $this->fileAccessService->pathUrl('poskon_export', $logicalPath, true);
+                $row->access_url = $this->fileAccessService->pathUrl('poskon_export', $logicalPath, false);
+            } catch (\Throwable $e) {
+                $row->download_url = '';
+                $row->access_url = '';
+            }
+        }
+
+        return $rows;
     }
     function insertRiwayatExport($data)
     {

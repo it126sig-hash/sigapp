@@ -50,6 +50,7 @@ class Promo extends BaseController
 		$data['test2'] = $var;		
 		
 		$var = $this->request->getVar();
+		$id_proyek = resolve_active_proyek_id($var['id_proyek'] ?? null);
 		
 		$data['test'] = $var;
 		// if(!$var['search'])
@@ -68,8 +69,8 @@ class Promo extends BaseController
 			->join('users', 'users.id = promo.add_by', 'left')
 			->join('users as c', 'c.id = promo.edit_by', 'left');
 
-		if ($var['id_proyek'])
-			$condition = array_merge($condition, ["promo.id_proyek" => $var['id_proyek']]);
+		if ($id_proyek)
+			$condition = array_merge($condition, ["promo.id_proyek" => $id_proyek]);
 
 		$result = $this->if_where($var, $colum, $condition, $query);
 
@@ -127,7 +128,7 @@ class Promo extends BaseController
 		$data['token'] = csrf_hash();
 		$data['data'] = array();
 
-		$id_proyek = $this->request->getVar('id_proyek');
+		$id_proyek = resolve_active_proyek_id($this->request->getVar('id_proyek'));
 		$search = $this->request->getVar('search');
 		if(!$search)
 			$search = "";

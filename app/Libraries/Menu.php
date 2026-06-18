@@ -2,6 +2,7 @@
 
 namespace App\Libraries;
 
+use App\Services\ActiveProyekService;
 use App\Services\MenuAccessService;
 
 class Menu
@@ -18,9 +19,15 @@ class Menu
 
         $fullmenu .= "</ul>";
 
-        $d['menu'] = $fullmenu;
+        $activeProyekService = new ActiveProyekService();
+        $userId = (int) user_id();
+        $activeProyekService->bootstrapForRequest();
 
+        $d['menu'] = $fullmenu;
         $d['notif'] = $this->getNotif();
+        $d['activeProyek'] = $activeProyekService->getActive();
+        $d['accessibleProyek'] = $activeProyekService->getAccessibleList($userId);
+        $d['needsProjectSelection'] = $activeProyekService->needsSelection();
 
         return view('template/generate_menu', $d);
     }

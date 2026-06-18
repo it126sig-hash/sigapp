@@ -3716,7 +3716,7 @@
   placeholder: "Pilih Bank",
   allowClear: true,
   ajax: {
-    url: base_url + "api/bank",
+    url: base_url + "api/bank/ambil",
     dataType: "json",
     delay: 250,
     method: "get",
@@ -3730,10 +3730,10 @@
       // csrfHash = r.token;
 
       let results = [];
-      $.each(r, function (i, v) {
+      $.each(r.data, function (i, v) {
         results.push({
           id: v.id,
-          text: `${v.bank}${v.keterangan ? ": (" + v.keterangan + ")" : ""}`,
+          text: `${v.bank} ${v.keterangan ? "(" + v.keterangan + ")" : ""}`,
         });
       });
 
@@ -3745,68 +3745,9 @@
   },
 });
 
-// $('a[data-toggle="tab"]').on("show.bs.tab", function (e) {
-//   const targetId = $(e.target).attr("href"); // ex: #profile
-//   if (
-//     targetId === "#idk_data_konsumen" ||
-//     targetId === "#idk_biaya" ||
-//     targetId === "#idk_tagihan"
-//   ) {
-//     if (!state.status.tab.isClosed) {
-//       let isValid = isValidKonsumen(getActiveIndex());
-
-//       if (isValid != undefined && !isValid[getActiveIndex()]) {
-//         e.preventDefault(); // mencegah tab berpindah
-//         return;
-//       }
-//     }
-//   }
-// });
-
-// tab button
 
 const containerIsiKonsumen = $("#tab-isi-konsumen");
 let latestIsiDataKonsumenRequestId = 0;
-
-// Array urutan tab
-// const tabOrder = ["#idk_data_konsumen", "#idk_biaya", "#idk_tagihan"];
-
-// Ambil index tab aktif
-// function getActiveIndex() {
-//   const activeId = containerIsiKonsumen.find(".tab-pane.active").attr("id");
-//   return tabOrder.findIndex((sel) => sel === "#" + activeId);
-// }
-
-// Pindah ke tab ke-i
-// function goTo(i) {
-//   if (i < 0 || i >= tabOrder.length) return;
-//   containerIsiKonsumen.find('a[href="' + tabOrder[i] + '"]').tab("show");
-// }
-
-// Update tombol
-// function updateButtons(next, prev) {
-//   const i = getActiveIndex();
-//   const bPrev = $(prev);
-//   const bNext = $(next);
-
-//   bPrev.prop("disabled", i === 0);
-
-//   if (i === tabOrder.length - 1) {
-//     bNext
-//       .html('Simpan <i class="fa fa-save" aria-hidden="true"></i>')
-//       .data("action", "save")
-//       .removeClass("btn-primary")
-//       .addClass("btn-success");
-//     return true;
-//   } else {
-//     bNext
-//       .html('Selanjutnya <i class="fa fa-arrow-right" aria-hidden="true"></i>')
-//       .data("action", "next")
-//       .removeClass("btn-success")
-//       .addClass("btn-primary");
-//     return false;
-//   }
-// }
 
 function isValidKonsumen(i) {
   let isValid = true;
@@ -3938,11 +3879,6 @@ function setRichText(html) {
   ui.fields.rincian.html(html ?? "");
 }
 
-// function updateButtons() {
-//   // ganti logika lamamu jika perlu
-//   ui.btn.add.prop("disabled", false);
-//   ui.btn.prev.prop("disabled", false);
-// }
 
 function formatDateSafe(d) {
   return d ? format_date(d) : "-";
@@ -4869,6 +4805,7 @@ function mkdtRevertKprChange() {
 
 async function mkdtRequireTurunKprTagihan() {
   if (mkdtKprState.isLoading || mkdtKprState.isPromptOpen) return;
+  if (!$("#modal_divisi4").hasClass("show")) return;
 
   const { turunKpr } = mkdtCalculateTurunKpr();
   if (turunKpr <= 0) {

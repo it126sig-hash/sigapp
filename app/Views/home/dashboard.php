@@ -181,11 +181,12 @@
 	}
 
 	.dashboard-filter-card,
+	.dashboard-filter-card .card-body,
 	.dashboard-filter-card .dropdown,
 	.dashboard-filter-card .dropdown-menu,
 	.card-header .chart-dropdown,
 	.card-header .chart-dropdown .dropdown-menu {
-		overflow: visible;
+		overflow: visible !important;
 	}
 
 	.content-body > .row,
@@ -238,15 +239,8 @@
 				<div class="col-lg-3 col-md-5 col-12">
 					<div class="card dashboard-filter-card">
 						<div class="card-body">
-							<h4 class="card-title mb-1">Dashboard Proyek</h4>
-							<div class="form-group">
-								<label for="id_proyek">Pilih Proyek</label>
-								<select id="id_proyek" name="id_proyek" class="select2 form-control"></select>
-							</div>
-							<button id="btn-filter_data" type="button" class="btn btn-primary btn-block">Tampilkan Data</button>
-							<p class="card-text font-small-2 text-muted mt-1 mb-0" id="filter-statistik">Per <?= date("F") ?></p>
 							<div class="dropdown chart-dropdown mt-50">
-								<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" data-boundary="viewport">
+								<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" data-boundary="window">
 									Ubah Periode
 								</button>
 								<div class="dropdown-menu">
@@ -331,7 +325,7 @@
 									<span>Pilih proyek</span>
 									<span class="dashboard-alert-value">-</span>
 								</div>
-								<div class="dashboard-alert-desc">Klik Tampilkan Data untuk melihat alert</div>
+								<div class="dashboard-alert-desc">Data alert akan dimuat otomatis</div>
 							</div>
 						</div>
 					</div>
@@ -386,7 +380,7 @@
 						<div class="card-body" style="overflow-y:scroll" id="aktivitas-body">
 							<ul class="timeline ml-50" id="aktivitas-here">
 								<li class="timeline-item">
-									<h6>Pilih proyek dan klik Tampilkan Data untuk melihat aktivitas terbaru</h6>
+									<h6>Pilih proyek untuk melihat aktivitas terbaru</h6>
 								</li>
 							</ul>
 						</div>
@@ -516,51 +510,22 @@
 		offset = 10,
 		isLoading = false;
 
+	if (window.SIGAPP && window.SIGAPP.activeProyekName) {
+		$("#dashboard-active-proyek").text("Proyek: " + window.SIGAPP.activeProyekName);
+	}
 
-	$("#id_proyek").select2({
-		placeholder: "Pilih Proyek",
-		allowClear: true,
-		ajax: {
-			url: base_url + "/proyek/getAll",
-			dataType: 'json',
-			delay: 250,
-			method: 'post',
-			data: function(params) {
-				return {
-					[csrfName]: csrfHash,
-					search: params.term
-				};
-			},
-			processResults: function(r) {
-				csrfHash = r.token
+	$(document).ready(function() {
+		if (activeProyekId()) {
+			load_dashboard(true, true, true);
+		}
+	});
 
-				let results = [];
-				$.each(r.data, function(index, item) {
-					results.push({
-						id: item[0],
-						text: item[1] + ' (' + item[2] + ')'
-					});
-				});
 
-				return {
-					results: results
-				};
-			},
-			cache: true
-		},
-	})
-
-	$("#btn-filter_data").click(function() {
-		// $("#filter-statistik").html($("#filter-bulan").html())
-		load_dashboard(true, true, true)
-	})
-
-	
 	$("#filter-bulan, #filter-pembangunan-bulan").click(function() {
 		$("#filter-statistik").html($(this).html())
 		$("#filter-statistik-pembangunan").html($(this).html())
 
-		
+
 
 		sdate = getFirstDate(0)
 		edate = getLastDate()
@@ -612,8 +577,8 @@
 	})
 
 	function load_dashboard(statistik = false, aktivitas = false, chart = false) {
-		if (!$("#id_proyek").val()) {
-			return toastr['error']('Pilih proyek terlebih dahulu.', 'Terjadi Kesalahan!', {
+		if (!activeProyekId()) {
+			return toastr['error']('Belum ada proyek aktif. Pilih proyek dari navbar.', 'Terjadi Kesalahan!', {
 				timeOut: 3000,
 				closeButton: true,
 				tapToDismiss: true,
@@ -621,13 +586,13 @@
 				positionClass: 'toast-bottom-right',
 			});
 		}
-		
+
 		$.ajax({
 			type: "post",
 			url: base_url + "get-dashboard",
 			data: {
 				[csrfName]: csrfHash,
-				id_proyek: $("#id_proyek").val(),
+				id_proyek: activeProyekId(),
 				statistik: statistik,
 				aktivitas: aktivitas,
 				chart: chart,
@@ -704,7 +669,7 @@
 					$("#aktivitas-here").html(aktivitas)
 					start = ac.length
 				}
-				
+
 				if (chart) {
 					// Update the chart data
 					let booking = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -743,7 +708,7 @@
 			data: {
 				[csrfName]: csrfHash,
 				offset: start,
-				id_proyek: $("#id_proyek").val()
+				id_proyek: activeProyekId()
 			},
 			success: function(r) {
 				let ac = r.aktivitas
@@ -833,5 +798,9 @@
 		data: data,
 		options: options
 	});
+
+	if (activeProyekId()) {
+		load_dashboard(true, true, true);
+	}
 
 </script>

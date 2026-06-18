@@ -15,6 +15,7 @@ class TargetSiteplanService
     protected $targetKavlingModel;
     protected $historyModel;
     protected $repository;
+    protected HistoryService $historyService;
 
     public function __construct()
     {
@@ -23,6 +24,7 @@ class TargetSiteplanService
         $this->targetKavlingModel = new TargetSiteplanKavlingModel();
         $this->historyModel = new TargetSiteplanHistoryModel();
         $this->repository = new TargetSiteplanRepository();
+        $this->historyService = new HistoryService();
     }
 
     public function listByProject(int $idProyek): array
@@ -118,14 +120,16 @@ class TargetSiteplanService
             $this->targetKavlingModel->insertBatch($rows);
 
             $after = $this->makeSnapshot($idTarget);
-            $this->historyModel->insert([
-                'id_target' => $idTarget,
-                'aksi' => $action,
-                'deskripsi' => $action === 'create' ? 'Target dibuat' : 'Target diperbaharui',
-                'snapshot' => json_encode([
+            $this->historyService->log('target_siteplan', [
+                'reference_type' => 'target_siteplan',
+                'reference_id' => $idTarget,
+                'id_proyek' => $idProyek,
+                'action' => $action,
+                'summary' => $action === 'create' ? 'Target dibuat' : 'Target diperbaharui',
+                'new_data' => [
                     'before' => $before,
                     'after' => $after,
-                ]),
+                ],
                 'add_by' => $userId,
                 'created_at' => $now,
             ]);

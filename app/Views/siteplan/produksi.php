@@ -40,13 +40,49 @@
 		padding: 1rem;
 	}
 
+	#modal_divisi7 .produksi-modal-summary {
+		align-items: flex-start;
+		background: #fff;
+		border: 1px solid #e5e7eb;
+		border-radius: 8px;
+		display: flex;
+		gap: 1rem;
+		justify-content: space-between;
+		margin-bottom: .85rem;
+		padding: .85rem;
+	}
+
+	#modal_divisi7 .produksi-modal-title {
+		color: #111827;
+		font-size: .92rem;
+		font-weight: 800;
+		line-height: 1.4;
+		margin: 0;
+	}
+
+	#modal_divisi7 .produksi-modal-actions {
+		display: grid;
+		flex: 0 0 210px;
+		gap: .45rem;
+	}
+
+	#modal_divisi7 .produksi-modal-actions .btn {
+		font-size: .78rem;
+		font-weight: 700;
+		padding: .52rem .75rem;
+	}
+
+	#modal_divisi7 .produksi-modal-actions .btn-block {
+		margin-top: 0 !important;
+	}
+
 	#modal_divisi7 .nav-tabs {
 		background: #fff;
 		border: 1px solid #e5e7eb;
 		border-radius: 8px;
 		gap: .35rem;
-		margin-bottom: 1rem;
-		padding: .5rem;
+		margin-bottom: .85rem;
+		padding: .4rem;
 	}
 
 	#modal_divisi7 .nav-tabs .nav-link {
@@ -69,7 +105,7 @@
 		background: #fff;
 		border: 1px solid #e5e7eb;
 		border-radius: 8px;
-		padding: 1rem;
+		padding: .85rem;
 	}
 
 	#modal_divisi7 label,
@@ -85,6 +121,10 @@
 		border-color: #d8dde3;
 		border-radius: 6px;
 		min-height: 36px;
+	}
+
+	#modal_divisi7 textarea.form-control {
+		min-height: 82px;
 	}
 
 	#modal_divisi7 .btn {
@@ -110,6 +150,92 @@
 		color: #111827;
 		font-size: .86rem;
 		font-weight: 700;
+	}
+
+	#modal_divisi7 .produksi-progress-grid {
+		display: grid;
+		gap: .75rem;
+		grid-template-columns: minmax(260px, 1.1fr) minmax(240px, .9fr) minmax(240px, .9fr) minmax(280px, 1fr);
+	}
+
+	#modal_divisi7 .produksi-compact-card {
+		background: #fff;
+		border: 1px solid #e5e7eb;
+		border-radius: 8px;
+		min-width: 0;
+		padding: .8rem;
+	}
+
+	#modal_divisi7 .produksi-compact-card .form-group {
+		margin-bottom: .65rem;
+	}
+
+	#modal_divisi7 .produksi-compact-card .form-group:last-child,
+	#modal_divisi7 .produksi-compact-card .divider:last-child {
+		margin-bottom: 0;
+	}
+
+	#modal_divisi7 .produksi-checklist-grid {
+		display: grid;
+		gap: .45rem;
+	}
+
+	#modal_divisi7 .produksi-checklist-grid .form-group {
+		background: #f8fafc;
+		border: 1px solid #edf0f2;
+		border-radius: 6px;
+		margin: 0;
+		padding: .48rem .55rem;
+	}
+
+	#modal_divisi7 .custom-control-label {
+		color: #374151;
+		font-size: .78rem;
+		font-weight: 700;
+		line-height: 1.3;
+	}
+
+	#modal_divisi7 .produksi-range-box {
+		align-items: center;
+		background: #f8fafc;
+		border: 1px solid #edf0f2;
+		border-radius: 8px;
+		display: flex;
+		gap: .75rem;
+		padding: .7rem;
+	}
+
+	#modal_divisi7 .produksi-range-box .form-control-range {
+		flex: 1 1 auto;
+	}
+
+	#modal_divisi7 .produksi-range-value {
+		color: #2057a3;
+		font-size: 1rem;
+		font-weight: 800;
+		min-width: 48px;
+		text-align: right;
+	}
+
+	#modal_divisi7 .produksi-date-meta {
+		display: block;
+		font-size: .72rem;
+		line-height: 1.35;
+		margin: -.25rem 0 .55rem;
+	}
+
+	#modal_divisi7 .produksi-edit-highlight {
+		animation: produksiEditPulse 1.4s ease-in-out 1;
+		box-shadow: 0 0 0 3px rgba(32, 87, 163, .14);
+	}
+
+	@keyframes produksiEditPulse {
+		0% {
+			box-shadow: 0 0 0 0 rgba(32, 87, 163, .28);
+		}
+		100% {
+			box-shadow: 0 0 0 3px rgba(32, 87, 163, .14);
+		}
 	}
 
 	#modal_divisi7 [id^="list_"],
@@ -250,7 +376,21 @@
 		padding: .75rem;
 	}
 
-	#modal_divisi7 .produksi-upload-action .produksi-upload-hidden-file {
+	#modal_divisi7 .produksi-upload-buttons {
+		display: flex;
+		flex: 0 0 auto;
+		flex-wrap: wrap;
+		gap: .5rem;
+		justify-content: flex-end;
+	}
+
+	#modal_divisi7 .produksi-camera-action {
+		display: flex;
+		justify-content: flex-end;
+		margin: -.35rem 0 .85rem;
+	}
+
+	#modal_divisi7 .produksi-upload-hidden-file {
 		border: 0;
 		height: 1px;
 		margin: 0;
@@ -263,8 +403,8 @@
 		width: 1px;
 	}
 
-	#modal_divisi7 .produksi-upload-action .produksi-upload-hidden-file .custom-file-label,
-	#modal_divisi7 .produksi-upload-action .produksi-upload-hidden-file .custom-file-label::after {
+	#modal_divisi7 .produksi-upload-hidden-file .custom-file-label,
+	#modal_divisi7 .produksi-upload-hidden-file .custom-file-label::after {
 		content: none !important;
 		display: none !important;
 	}
@@ -331,6 +471,12 @@
 		z-index: 3;
 	}
 
+	@media (max-width: 1199.98px) {
+		#modal_divisi7 .produksi-progress-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
 	@media (max-width: 767.98px) {
 		#modal_divisi7 .modal-dialog {
 			max-width: calc(100vw - 12px);
@@ -347,6 +493,41 @@
 			flex-wrap: nowrap;
 			overflow-x: auto;
 			padding-bottom: .5rem;
+		}
+
+		#modal_divisi7 .produksi-modal-summary {
+			flex-direction: column;
+			gap: .75rem;
+		}
+
+		#modal_divisi7 .produksi-modal-actions {
+			flex: 0 0 auto;
+			width: 100%;
+		}
+
+		#modal_divisi7 .produksi-progress-grid {
+			grid-template-columns: 1fr;
+		}
+
+		#modal_divisi7 .produksi-upload-action {
+			align-items: stretch;
+			flex-direction: column;
+		}
+
+		#modal_divisi7 .produksi-upload-buttons {
+			justify-content: stretch;
+		}
+
+		#modal_divisi7 .produksi-upload-buttons .btn {
+			flex: 1 1 150px;
+		}
+
+		#modal_divisi7 .produksi-camera-action {
+			justify-content: stretch;
+		}
+
+		#modal_divisi7 .produksi-camera-action .btn {
+			width: 100%;
 		}
 
 		#modal_divisi7 .tab-pane {
@@ -366,13 +547,17 @@
 
 	/* SIGAPP UI Acuan - Modal Pembayaran Produksi (mengikuti #modal-cashout-keu) */
 	#modal-bayar_produksi-prod .modal-dialog {
-		max-width: min(1440px, calc(100vw - 32px));
-		margin: 1rem auto;
+		height: 100vh;
+		margin: 0;
+		max-width: 100vw;
+		width: 100vw;
 	}
 
 	#modal-bayar_produksi-prod .modal-content {
 		border: 0;
-		border-radius: 10px;
+		border-radius: 0;
+		height: 100vh;
+		max-height: 100vh;
 		box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
 		overflow: hidden;
 	}
@@ -393,7 +578,9 @@
 
 	#modal-bayar_produksi-prod .prod-bp-body {
 		background: #f3f5f7 !important;
-		max-height: calc(100vh - 7rem);
+		flex: 1 1 auto;
+		max-height: none;
+		min-height: 0;
 		overflow-y: auto;
 		padding: 1rem;
 	}
@@ -583,12 +770,13 @@
 
 	@media (max-width: 767.98px) {
 		#modal-bayar_produksi-prod .modal-dialog {
-			max-width: calc(100vw - 12px);
-			margin: .5rem auto;
+			height: 100vh;
+			margin: 0;
+			max-width: 100vw;
+			width: 100vw;
 		}
 
 		#modal-bayar_produksi-prod .prod-bp-body {
-			max-height: calc(100vh - 5.5rem);
 			padding: .75rem;
 		}
 
@@ -759,18 +947,27 @@
 			<div class="modal-body">
 				<form id="fm-produksi" enctype="multipart/form-data" class="add-new-record">
 
-					<div class="row">
-						<div class="col-md-9">
-							<p class="modal-title label_alamat" id="label_alamat7"></p>
+					<div class="produksi-modal-summary">
+						<div>
+							<p class="produksi-modal-title label_alamat" id="label_alamat7"></p>
 						</div>
-						<div class="col-md-3">
+						<div class="produksi-modal-actions">
+							<button id="produksi-edit-focus-btn" type="button"
+								class="btn btn-outline-primary btn-block waves-effect"
+								onclick="focusProduksiProgressForm()">
+								<i class="fas fa-edit mr-50"></i>Ubah Data Produksi
+							</button>
 							<button id="download_gambar_kerja" type="button"
-								class="btn btn-primary btn-block waves-effect">Unduh Gambar Kerja</button>
+								class="btn btn-primary btn-block waves-effect">
+								<i class="fas fa-download mr-50"></i>Unduh Gambar Kerja
+							</button>
+							<a id="produksi-mobile-link" class="btn btn-outline-primary btn-block waves-effect mt-50"
+								href="<?= base_url('siteplan/produksi-mobile') ?>">
+								<i class="fas fa-mobile-alt mr-50"></i>Mode Mobile
+							</a>
 						</div>
-
 					</div>
 
-					<hr>
 					<input type="hidden" class="form-control id_kavling" name="id_kavling" value="" />
 					<input type="hidden" class="form-control" id="id_produksi" name="id_produksi" value="" />
 					<ul class="nav nav-tabs" role="tablist">
@@ -805,8 +1002,12 @@
 					<div class="tab-content">
 						<div class="tab-pane active" id="fm-prod-progress" aria-labelledby="fm-prod-progress-tab"
 							role="tabpanel">
-							<div class="row">
-								<div class="col-md-3">
+							<div id="produksi-progress-edit-area" class="produksi-progress-grid">
+								<div class="produksi-compact-card">
+									<div class="divider divider-left">
+										<div class="divider-text">Progress Fisik</div>
+									</div>
+									<div class="produksi-checklist-grid">
 									<div class="form-group">
 										<div class="custom-control custom-switch custom-control-inline">
 											<input type="checkbox" value="1" class="custom-control-input cbp" id="st_0"
@@ -884,9 +1085,10 @@
 										</div> -->
 
 									</div>
+									</div>
 
 								</div>
-								<div class="col-md-3">
+								<div class="produksi-compact-card">
 									<div class="divider divider-left">
 										<div class="divider-text">LPA</div>
 									</div>
@@ -926,12 +1128,17 @@
 									</div>
 								</div>
 
-								<div class="col-md-3">
+								<div class="produksi-compact-card">
+									<div class="divider divider-left">
+										<div class="divider-text">Catatan Progres</div>
+									</div>
 									<div class="form-group">
 										<label for="progres_bangunan">Progres Bangunan</label>
-										<input type="range" class="form-control-range" value="0" id="progres_bangunan"
-											name="progres_bangunan" step="1">
-										<span id="t_progres_bangunan"></span>%
+										<div class="produksi-range-box">
+											<input type="range" class="form-control-range" value="0" id="progres_bangunan"
+												name="progres_bangunan" step="1">
+											<span class="produksi-range-value"><span id="t_progres_bangunan"></span>%</span>
+										</div>
 									</div>
 									<div class="form-group">
 										<label for="produksi_keterangan">Keterangan Pembangunan</label>
@@ -940,11 +1147,10 @@
 									</div>
 
 								</div>
-								<div class="col-md-3">
+								<div class="produksi-compact-card">
 									<div class="divider divider-left">
 										<div class="divider-text">Tanggal Pembangunan Rumah</div>
 									</div>
-									<div>
 
 										<div class="form-group">
 											<label>Tanggal Pembangunan</label>
@@ -953,7 +1159,7 @@
 											<input type="text" class="hidden" id="tanggal_pembangunan_old"
 												name="tanggal_pembangunan_old">
 										</div>
-										<span class="text-muted" id="lu-tanggal_pembangunan"></span>
+										<span class="text-muted produksi-date-meta" id="lu-tanggal_pembangunan"></span>
 
 										<div class="form-group">
 											<label>Tanggal Rencana Selesai Pembangunan</label>
@@ -963,7 +1169,7 @@
 											<input type="text" class="hidden" id="tanggal_rencana_selesai_pembangunan_old"
 												name="tanggal_rencana_selesai_pembangunan_old">
 										</div>
-										<span class="text-muted" id="lu-tanggal_rencana_selesai_pembangunan"></span>
+										<span class="text-muted produksi-date-meta" id="lu-tanggal_rencana_selesai_pembangunan"></span>
 
 
 										<div class="form-group">
@@ -973,7 +1179,7 @@
 											<input type="text" class="hidden" id="tanggal_selesai_pembangunan_old"
 												name="tanggal_selesai_pembangunan_old">
 										</div>
-										<span class="text-muted" id="lu-tanggal_selesai_pembangunan"></span>
+										<span class="text-muted produksi-date-meta" id="lu-tanggal_selesai_pembangunan"></span>
 
 
 										<div class="hidden">
@@ -1022,7 +1228,6 @@
 													name="tanggal_selesai_pembangunan_diubah_pada">
 											</div>
 										</div>
-									</div>
 								</div>
 							</div>
 
@@ -1050,15 +1255,28 @@
 										<strong class="d-block">Dokumentasi konstruksi</strong>
 										<small class="text-muted">Tambah foto, pilih kategori pekerjaan, dan sistem akan menyimpan koordinat jika tersedia.</small>
 									</div>
-									<button type="button" class="btn btn-primary btn-sm" onclick="triggerProduksiUpload('prod_foto_konstruksi')">
-										<i class="fas fa-plus mr-50"></i>Tambah Foto
-									</button>
+									<div class="produksi-upload-buttons">
+										<button type="button" class="btn btn-primary btn-sm" onclick="triggerProduksiUpload('prod_foto_konstruksi')">
+											<i class="fas fa-images mr-50"></i>Pilih Foto
+										</button>
+										<button type="button" class="btn btn-outline-primary btn-sm" onclick="triggerProduksiUpload('prod_foto_konstruksi_camera')">
+											<i class="fas fa-camera mr-50"></i>Ambil Kamera
+										</button>
+									</div>
 									<div class="custom-file produksi-upload-hidden-file">
 										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
 											name="prod_foto_konstruksi[]" id="prod_foto_konstruksi" multiple
 											onchange="displayUploadedFiles(this, 'list_prod_foto_konstruksi')" />
 										<label class="custom-file-label" id="label_prod_foto_konstruksi"
 											for="prod_foto_konstruksi">Bisa Lebih dari 1 foto</label>
+									</div>
+									<div class="custom-file produksi-upload-hidden-file">
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+											id="prod_foto_konstruksi_camera" capture="environment"
+											data-produksi-upload-target="prod_foto_konstruksi"
+											onchange="displayUploadedFiles(this, 'list_prod_foto_konstruksi')" />
+										<label class="custom-file-label" id="label_prod_foto_konstruksi_camera"
+											for="prod_foto_konstruksi_camera">Ambil foto dari kamera</label>
 									</div>
 								</div>
 								<div id="list_prod_foto_konstruksi" style="display: flex; flex-wrap: wrap;"></div>
@@ -1068,11 +1286,23 @@
 								<label for="upload_komplain_produksi">Foto Exterior(Depan dan Belakang, foto memiliki
 									titik koordinat)</label>
 								<div class="custom-file">
-									<input type="file" class="custom-file-input" accept="image/*"
+									<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
 										name="prod_foto_exterior[]" id="prod_foto_exterior" multiple
 										onchange="displayUploadedFiles(this, 'list_prod_foto_exterior')" />
 									<label class="custom-file-label" id="label_prod_foto_exterior"
 										for="prod_foto_exterior">Bisa Lebih dari 1 foto</label>
+								</div>
+								<div class="produksi-camera-action">
+									<button type="button" class="btn btn-outline-primary btn-sm" onclick="triggerProduksiUpload('prod_foto_exterior_camera')">
+										<i class="fas fa-camera mr-50"></i>Ambil Kamera
+									</button>
+								</div>
+								<div class="custom-file produksi-upload-hidden-file">
+									<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+										id="prod_foto_exterior_camera" capture="environment"
+										data-produksi-upload-target="prod_foto_exterior"
+										onchange="displayUploadedFiles(this, 'list_prod_foto_exterior')" />
+									<label class="custom-file-label" for="prod_foto_exterior_camera">Ambil foto dari kamera</label>
 								</div>
 								<div id="list_prod_foto_exterior" style="display: flex; flex-wrap: wrap;"></div>
 							</div>
@@ -1081,12 +1311,24 @@
 								<label for="upload_komplain_produksi">Foto Interior(kamar, dapur, toilet, ruang tengah,
 									finishing cat kusen & pintu. Foto memiliki titik koordinat)</label>
 								<div class="custom-file">
-									<input type="file" class="custom-file-input" accept="image/*"
+									<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
 										name="prod_foto_interior[]" id="prod_foto_interior" multiple
 										onchange="displayUploadedFiles(this, 'list_prod_foto_interior')" />
 									<label class="custom-file-label" id="label_prod_foto_interior"
 										for="prod_foto_interior">Bisa Lebih dari 1 foto</label>
 
+								</div>
+								<div class="produksi-camera-action">
+									<button type="button" class="btn btn-outline-primary btn-sm" onclick="triggerProduksiUpload('prod_foto_interior_camera')">
+										<i class="fas fa-camera mr-50"></i>Ambil Kamera
+									</button>
+								</div>
+								<div class="custom-file produksi-upload-hidden-file">
+									<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+										id="prod_foto_interior_camera" capture="environment"
+										data-produksi-upload-target="prod_foto_interior"
+										onchange="displayUploadedFiles(this, 'list_prod_foto_interior')" />
+									<label class="custom-file-label" for="prod_foto_interior_camera">Ambil foto dari kamera</label>
 								</div>
 								<div id="list_prod_foto_interior" style="display: flex; flex-wrap: wrap;"></div>
 							</div>
@@ -1157,10 +1399,22 @@
 								<div class="form-group foto-container">
 									<label for="jalan_foto">Foto Jalan</label>
 									<div class="custom-file">
-										<input type="file" class="custom-file-input" accept="image/*"
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
 											name="jalan_foto[]" id="jalan_foto"
 											onchange="displayUploadedFiles(this, 'list_jalan_foto')" />
 										<label class="custom-file-label" id="label_jalan_foto" for="jalan_foto"></label>
+									</div>
+									<div class="produksi-camera-action">
+										<button type="button" class="btn btn-outline-primary btn-sm" onclick="triggerProduksiUpload('jalan_foto_camera')">
+											<i class="fas fa-camera mr-50"></i>Ambil Kamera
+										</button>
+									</div>
+									<div class="custom-file produksi-upload-hidden-file">
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+											id="jalan_foto_camera" capture="environment"
+											data-produksi-upload-target="jalan_foto"
+											onchange="displayUploadedFiles(this, 'list_jalan_foto')" />
+										<label class="custom-file-label" for="jalan_foto_camera">Ambil foto dari kamera</label>
 									</div>
 									<div id="list_jalan_foto" style="display: flex; flex-wrap: wrap;"></div>
 								</div>
@@ -1169,11 +1423,23 @@
 								<div class="form-group foto-container">
 									<label for="jalan_foto_update">Foto Jalan Update/Setelah Akad(Paving)</label>
 									<div class="custom-file">
-										<input type="file" class="custom-file-input" accept="image/*"
-											name="jalan_foto_update[]" id="jalan_foto"
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+											name="jalan_foto_update[]" id="jalan_foto_update"
 											onchange="displayUploadedFiles(this, 'list_jalan_foto_update')" />
 										<label class="custom-file-label" id="label_jalan_foto_update"
 											for="jalan_foto_update"></label>
+									</div>
+									<div class="produksi-camera-action">
+										<button type="button" class="btn btn-outline-primary btn-sm" onclick="triggerProduksiUpload('jalan_foto_update_camera')">
+											<i class="fas fa-camera mr-50"></i>Ambil Kamera
+										</button>
+									</div>
+									<div class="custom-file produksi-upload-hidden-file">
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+											id="jalan_foto_update_camera" capture="environment"
+											data-produksi-upload-target="jalan_foto_update"
+											onchange="displayUploadedFiles(this, 'list_jalan_foto_update')" />
+										<label class="custom-file-label" for="jalan_foto_update_camera">Ambil foto dari kamera</label>
 									</div>
 									<div id="list_jalan_foto_update" style="display: flex; flex-wrap: wrap;"></div>
 								</div>
@@ -1201,12 +1467,24 @@
 								<div class="form-group foto-container">
 									<label for="label_slf_dokumen">Foto Ketersediaan Lampu Menyala</label>
 									<div class="custom-file">
-										<input type="file" class="custom-file-input" accept="image/*"
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
 											name="listrik_pln_foto[]" id="listrik_pln_foto"
 											onchange="displayUploadedFiles(this, 'list_listrik_pln_foto')" />
 										<label class="custom-file-label" id="label_slf_dokumen"
 											for="slf_dokumen"></label>
 
+									</div>
+									<div class="produksi-camera-action">
+										<button type="button" class="btn btn-outline-primary btn-sm" onclick="triggerProduksiUpload('listrik_pln_foto_camera')">
+											<i class="fas fa-camera mr-50"></i>Ambil Kamera
+										</button>
+									</div>
+									<div class="custom-file produksi-upload-hidden-file">
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+											id="listrik_pln_foto_camera" capture="environment"
+											data-produksi-upload-target="listrik_pln_foto"
+											onchange="displayUploadedFiles(this, 'list_listrik_pln_foto')" />
+										<label class="custom-file-label" for="listrik_pln_foto_camera">Ambil foto dari kamera</label>
 									</div>
 									<div id="list_listrik_pln_foto" style="display: flex; flex-wrap: wrap;"></div>
 								</div>
@@ -1238,12 +1516,24 @@
 								<div class="form-group foto-container">
 									<label for="listrik_disediakan_foto">Foto Ketersediaan Lampu Menyala</label>
 									<div class="custom-file">
-										<input type="file" class="custom-file-input" accept="image/*"
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
 											name="listrik_disediakan_foto" id="listrik_disediakan_foto"
 											onchange="displayUploadedFiles(this, 'list_listrik_disediakan_foto')" />
 										<label class="custom-file-label" id="labe_listrik_disediakan_foto"
 											for="listrik_disediakan_foto"></label>
 
+									</div>
+									<div class="produksi-camera-action">
+										<button type="button" class="btn btn-outline-primary btn-sm" onclick="triggerProduksiUpload('listrik_disediakan_foto_camera')">
+											<i class="fas fa-camera mr-50"></i>Ambil Kamera
+										</button>
+									</div>
+									<div class="custom-file produksi-upload-hidden-file">
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+											id="listrik_disediakan_foto_camera" capture="environment"
+											data-produksi-upload-target="listrik_disediakan_foto"
+											onchange="displayUploadedFiles(this, 'list_listrik_disediakan_foto')" />
+										<label class="custom-file-label" for="listrik_disediakan_foto_camera">Ambil foto dari kamera</label>
 									</div>
 									<div id="list_listrik_disediakan_foto" style="display: flex; flex-wrap: wrap;">
 									</div>
@@ -1267,11 +1557,23 @@
 									<label for="air_tanah">Foto ketersediaan air bersih dengan air mengalir & sumber air
 										(min. 1 foto)</label>
 									<div class="custom-file">
-										<input type="file" class="custom-file-input" accept="image/*" name="air_tanah[]"
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*" name="air_tanah[]"
 											id="air_tanah" multiple
 											onchange="displayUploadedFiles(this, 'list_air_tanah')" />
 										<label class="custom-file-label" id="label_air_tanah" for="air_tanah"></label>
 
+									</div>
+									<div class="produksi-camera-action">
+										<button type="button" class="btn btn-outline-primary btn-sm" onclick="triggerProduksiUpload('air_tanah_camera')">
+											<i class="fas fa-camera mr-50"></i>Ambil Kamera
+										</button>
+									</div>
+									<div class="custom-file produksi-upload-hidden-file">
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+											id="air_tanah_camera" capture="environment"
+											data-produksi-upload-target="air_tanah"
+											onchange="displayUploadedFiles(this, 'list_air_tanah')" />
+										<label class="custom-file-label" for="air_tanah_camera">Ambil foto dari kamera</label>
 									</div>
 									<div id="list_air_tanah" style="display: flex; flex-wrap: wrap;"></div>
 								</div>
@@ -1281,12 +1583,24 @@
 									<label for="air_komunal">Foto ketersediaan air bersih dengan air mengalir & sumber
 										air komunal bersama (min. 1 foto)</label>
 									<div class="custom-file">
-										<input type="file" class="custom-file-input" accept="image/*"
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
 											name="air_komunal[]" id="air_komunal" multiple
 											onchange="displayUploadedFiles(this, 'list_air_komunal')" />
 										<label class="custom-file-label" id="label_air_komunal"
 											for="air_komunal"></label>
 
+									</div>
+									<div class="produksi-camera-action">
+										<button type="button" class="btn btn-outline-primary btn-sm" onclick="triggerProduksiUpload('air_komunal_camera')">
+											<i class="fas fa-camera mr-50"></i>Ambil Kamera
+										</button>
+									</div>
+									<div class="custom-file produksi-upload-hidden-file">
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+											id="air_komunal_camera" capture="environment"
+											data-produksi-upload-target="air_komunal"
+											onchange="displayUploadedFiles(this, 'list_air_komunal')" />
+										<label class="custom-file-label" for="air_komunal_camera">Ambil foto dari kamera</label>
 									</div>
 									<div id="list_air_komunal" style="display: flex; flex-wrap: wrap;"></div>
 								</div>
@@ -1300,11 +1614,23 @@
 									<label for="air_pdam">Foto ketersediaan air bersih dengan air mengalir & meteran air
 										PDAM (min. 1 foto)</label>
 									<div class="custom-file">
-										<input type="file" class="custom-file-input" accept="image/*" name="air_pdam[]"
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*" name="air_pdam[]"
 											id="air_pdam" multiple
 											onchange="displayUploadedFiles(this, 'list_air_pdam')" />
 										<label class="custom-file-label" id="label_air_pdam" for="air_pdam"></label>
 
+									</div>
+									<div class="produksi-camera-action">
+										<button type="button" class="btn btn-outline-primary btn-sm" onclick="triggerProduksiUpload('air_pdam_camera')">
+											<i class="fas fa-camera mr-50"></i>Ambil Kamera
+										</button>
+									</div>
+									<div class="custom-file produksi-upload-hidden-file">
+										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+											id="air_pdam_camera" capture="environment"
+											data-produksi-upload-target="air_pdam"
+											onchange="displayUploadedFiles(this, 'list_air_pdam')" />
+										<label class="custom-file-label" for="air_pdam_camera">Ambil foto dari kamera</label>
 									</div>
 									<div id="list_air_pdam" style="display: flex; flex-wrap: wrap;"></div>
 								</div>
@@ -1517,13 +1843,26 @@
 									<div id="div_upload_komplain_produksi">
 										<label for="upload_komplain_produksi">Foto Perbaikan</label>
 										<div class="custom-file">
-											<input type="file" class="custom-file-input" accept="image/*"
+											<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
 												name="upload_komplain_produksi[]" id="upload_komplain_produksi"
-												multiple />
+												multiple
+												onchange="displayUploadedFiles(this, 'list_upload_komplain_produksi')" />
 											<label class="custom-file-label" id="label_upload_komplain_produksi"
 												for="upload_komplain_produksi">Bisa Lebih dari 1 foto</label>
-											<div id="list_upload_komplain_produksi"></div>
 										</div>
+										<div class="produksi-camera-action">
+											<button type="button" class="btn btn-outline-primary btn-sm" onclick="triggerProduksiUpload('upload_komplain_produksi_camera')">
+												<i class="fas fa-camera mr-50"></i>Ambil Kamera
+											</button>
+										</div>
+										<div class="custom-file produksi-upload-hidden-file">
+											<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
+												id="upload_komplain_produksi_camera" capture="environment"
+												data-produksi-upload-target="upload_komplain_produksi"
+												onchange="displayUploadedFiles(this, 'list_upload_komplain_produksi')" />
+											<label class="custom-file-label" for="upload_komplain_produksi_camera">Ambil foto dari kamera</label>
+										</div>
+										<div id="list_upload_komplain_produksi"></div>
 									</div>
 									<div class="form-group">
 										<label for="selesai_keterangan_produksi">Keterangan </label>
@@ -2256,6 +2595,29 @@ $("#progres_bangunan").on("input", function () {
   $("#t_progres_bangunan").html($(this).val());
 });
 
+function focusProduksiProgressForm() {
+  const $progressTab = $("#fm-prod-progress-tab");
+  if (typeof $progressTab.tab === "function") {
+    $progressTab.tab("show");
+  } else {
+    $progressTab.click();
+  }
+
+  const $target = $("#produksi-progress-edit-area");
+  const $body = $("#modal_divisi7 .modal-body");
+
+  if ($target.length && $body.length) {
+    const targetTop = $target.position().top + $body.scrollTop() - 12;
+    $body.animate({ scrollTop: targetTop }, 220);
+    $target.addClass("produksi-edit-highlight");
+    window.setTimeout(function () {
+      $target.removeClass("produksi-edit-highlight");
+    }, 1600);
+  }
+
+  const $firstInput = $("#progres_bangunan");
+  if ($firstInput.length) $firstInput.trigger("focus");
+}
 
 function save_produksi() {
   if ($("#tanggal_pembangunan").val() == "") {
@@ -3034,9 +3396,13 @@ function open_fproduksi(sh, role, id_kavling) {
 
   $(".id_kavling").val(id_kavling);
   $("#id_produksi").val(sh.data.id_produksi);
+  $("#produksi-mobile-link").attr(
+    "href",
+    base_url + "siteplan/produksi-mobile?id_kavling=" + encodeURIComponent(id_kavling),
+  );
   loadProduksiHistory(id_kavling, false);
 
-  $("#download_gambar_kerja").click(function () {
+  $("#download_gambar_kerja").off("click").on("click", function () {
     simpanBtn(
       "#download_gambar_kerja",
       true,

@@ -35,7 +35,7 @@
                 <tr>
                   <th>No</th>
                   <th>Bank</th>
-                  <th>Keternagan</th>
+                  <th>Keterangan</th>
                   <th>Waktu Exp SP3K</th>
                   <th></th>
                 </tr>
@@ -61,8 +61,8 @@
               <div class="row">
                 <div class="col-12">
                   <div class="form-group">
-                    <label for="Keternagn"> Bank <span class="text-danger">*</span> </label>
-                    <input type="text" id="bank" name="bank" class="form-control" placeholder="Bank" maxlength="20" required>
+                    <label for="bank"> Bank <span class="text-danger">*</span> </label>
+                    <input type="text" id="bank" name="bank" class="form-control" placeholder="Bank" maxlength="255" required>
                   </div>
                 </div>
                
@@ -70,6 +70,13 @@
                   <div class="form-group">
                     <label for="keterangan"> Keterangan: </label>
                     <input type="text" id="keterangan" name="keterangan" class="form-control" placeholder="Keterangan" maxlength="255">
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <div class="form-group">
+                    <label for="exp_days"> Lama Expire SP3K (Hari): </label>
+                    <input type="number" id="exp_days" name="exp_days" class="form-control" placeholder="0" min="0">
                   </div>
                 </div>
               </div>
@@ -97,20 +104,11 @@
           <div class="modal-body flex-grow-1">
             <form id="edit-form" class="">
 
-              <div class="form-group">
-                <label for="fill"> Item <span class="text-danger">*</span> </label>
-                <input type="text" readonly id="configName" name="configName" class="form-control" placeholder="Item" maxlength="255" required>
-              </div>
-              <div class="form-group">
-                <label for="fill"> Fill: <span class="text-danger">*</span> </label> <Br>
-                <input type="text" id="fill" name="fill" class="form-control" placeholder="Fill" maxlength="20" required data-coloris>
-              </div>
+              <input type="hidden" id="id" name="id" class="form-control">
 
-              <div class="col-12 hidden">
-                <div class="form-group">
-                  <label for="dashed"> Dashed: </label>
-                  <input type="" id="dashed" name="dashed" class="form-control" placeholder="Dashed" maxlength="255">
-                </div>
+              <div class="form-group">
+                <label for="bank"> Bank <span class="text-danger">*</span> </label>
+                <input type="text" id="bank" name="bank" class="form-control" placeholder="Bank" maxlength="255" required>
               </div>
 
               <div class="form-group">
@@ -118,34 +116,10 @@
                 <input type="text" id="keterangan" name="keterangan" class="form-control" placeholder="Keterangan" maxlength="255">
               </div>
 
-              <!-- <div class="row">
-                <div class="col-12">
-                  <div class="form-group">
-                    <label for="addBy"> Add by: </label>
-                    <input type="text" id="addBy" name="addBy" class="form-control" placeholder="Add by" maxlength="255">
-                  </div>
-                </div>
-                <div class="col-12">
-                  <div class="form-group">
-                    <label for="dateAdd"> Date add: </label>
-                    <input type="date" id="dateAdd" name="dateAdd" class="form-control" dateISO="true">
-                  </div>
-                </div>
-                <div class="col-12">
-                  <div class="form-group">
-                    <label for="editBy"> Edit by: </label>
-                    <input type="text" id="editBy" name="editBy" class="form-control" placeholder="Edit by" maxlength="255">
-                  </div>
-                </div>
-              </div> 
-              <div class="row">
-                <div class="col-12">
-                  <div class="form-group">
-                    <label for="dateEdit"> Date edit: </label>
-                    <input type="date" id="dateEdit" name="dateEdit" class="form-control" dateISO="true">
-                  </div>
-                </div>
-              </div>-->
+              <div class="form-group">
+                <label for="exp_days"> Lama Expire SP3K (Hari): </label>
+                <input type="number" id="exp_days" name="exp_days" class="form-control" placeholder="0" min="0">
+              </div>
 
               <div class="form-group text-center">
                 <div class="btn-group">
@@ -196,7 +170,7 @@
       "autoWidth": false,
       "responsive": true,
       "ajax": {
-        "url": base_url + 'bank/list',
+        "url": base_url + 'api/bank/list',
         "type": "get",
         "dataType": "json",
         data: {
@@ -252,7 +226,7 @@
         $(".text-danger").remove();
 
         $.ajax({
-          url: '',
+          url: base_url + 'api/bank/simpan',
           type: 'post',
           data: form.serialize(), // /converting the form data into array and sending it to server
           dataType: 'json',
@@ -309,13 +283,13 @@
     $('#add-form').validate();
   }
 
-  function edit(config_name) {
+  function edit(id) {
     $.ajax({
-      url: '',
+      url: base_url + 'api/bank/ambilsatu',
       type: 'post',
       data: {
         [csrfName]: csrfHash,
-        config_name: config_name
+        id: id
       },
       dataType: 'json',
       success: function(response) {
@@ -325,14 +299,10 @@
         $(".form-control").removeClass('is-invalid').removeClass('is-valid');
         $('#edit-modal').modal('show');
 
-        $("#edit-form #configName").val(response.config_name);
-        $("#edit-form #fill").val(response.fill);
-        $("#edit-form #dashed").val(response.dashed);
+        $("#edit-form #id").val(response.id);
+        $("#edit-form #bank").val(response.bank);
         $("#edit-form #keterangan").val(response.keterangan);
-        $("#edit-form #addBy").val(response.add_by);
-        $("#edit-form #dateAdd").val(response.date_add);
-        $("#edit-form #editBy").val(response.edit_by);
-        $("#edit-form #dateEdit").val(response.date_edit);
+        $("#edit-form #exp_days").val(response.exp_days);
 
         // submit the edit from 
         $.validator.setDefaults({
@@ -363,7 +333,7 @@
             var form = $('#edit-form');
             $(".text-danger").remove();
             $.ajax({
-              url: '',
+              url: base_url + 'api/bank/simpan',
               type: 'post',
               data: form.serialize()  + "&" + csrfName + "=" + csrfHash ,
               dataType: 'json',
@@ -423,7 +393,7 @@
     });
   }
 
-  function remove(config_name) {
+  function remove(id) {
     Swal.fire({
       title: 'Are you sure of the deleting process?',
       text: "You cannot back after confirmation",
@@ -437,10 +407,10 @@
 
       if (result.value) {
         $.ajax({
-          url: '',
+          url: base_url + 'api/bank/hapus',
           type: 'post',
           data: {
-            config_name: config_name,
+            id: id,
             [csrfName]: csrfHash
           },
           data: function(data) {

@@ -1093,3 +1093,604 @@ select,
         padding-bottom: .25rem;
     }
 }
+
+/* Navbar project switcher */
+.navbar-project-switcher {
+    flex: 1 1 auto;
+    max-width: 50%;
+    min-width: 0;
+}
+
+.navbar-project-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    width: 100%;
+    max-width: 100%;
+    padding: .25rem .5rem .25rem .25rem;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #1f2937;
+    font-size: .95rem;
+    font-weight: 600;
+    line-height: 1.25;
+    transition: background-color .2s ease;
+}
+
+.navbar-project-pill:hover,
+.navbar-project-pill:focus,
+.navbar-project-pill.show,
+.navbar-project-pill[aria-expanded="true"] {
+    background: rgba(32, 87, 163, 0.08);
+    box-shadow: none;
+    color: #1f2937;
+    outline: none;
+}
+
+.navbar-project-pill--empty {
+    cursor: default;
+    opacity: .85;
+}
+
+.navbar-project-logo-wrap,
+.navbar-project-item-logo-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f3f4f6;
+    flex-shrink: 0;
+}
+
+.navbar-project-logo,
+.navbar-project-item-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.navbar-project-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.navbar-project-chevron {
+    width: 16px;
+    height: 16px;
+    color: #2057a3;
+    flex-shrink: 0;
+    opacity: .85;
+}
+
+.navbar-project-pill.dropdown-toggle::after {
+    display: none;
+}
+
+.navbar-project-dropdown {
+    min-width: 280px;
+    max-width: min(420px, 50vw);
+    padding: .5rem;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
+    margin-top: .35rem;
+}
+
+.navbar-project-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .6rem .75rem;
+    border-radius: 8px;
+    border: none;
+}
+
+.navbar-project-item:hover,
+.navbar-project-item:focus {
+    background: rgba(32, 87, 163, 0.08);
+    color: #1f2937;
+}
+
+.navbar-project-item.active {
+    background: rgba(32, 87, 163, 0.1);
+    color: #2057a3;
+}
+
+.navbar-project-item-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.navbar-project-item-check {
+    width: 16px;
+    height: 16px;
+    color: #2057a3;
+    flex-shrink: 0;
+}
+
+.dark-layout .navbar-project-pill {
+    background: transparent;
+    color: #e5e7eb;
+}
+
+.dark-layout .navbar-project-pill:hover,
+.dark-layout .navbar-project-pill:focus,
+.dark-layout .navbar-project-pill.show,
+.dark-layout .navbar-project-pill[aria-expanded="true"] {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.dark-layout .navbar-project-dropdown {
+    background: #283046;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+/* Modal pilih proyek pertama kali login */
+.project-select-modal .modal-content {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.project-select-modal .modal-header {
+    border-bottom: 1px solid #edf0f4;
+    padding: 1.25rem 1.5rem 1rem;
+}
+
+.project-select-modal .modal-body {
+    padding: 1rem 1.5rem 1.5rem;
+    background: #f8fafc;
+}
+
+.project-select-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.project-select-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .75rem;
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+    text-align: center;
+    width: 100%;
+}
+
+.project-select-card:hover,
+.project-select-card:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(32, 87, 163, 0.14);
+    outline: none;
+}
+
+.project-select-card-logo {
+    width: 72px;
+    height: 72px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #f3f4f6;
+}
+
+.project-select-card-name {
+    font-size: .92rem;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+.project-select-card.is-default-active {
+    box-shadow: 0 0 0 2px rgba(32, 87, 163, 0.25);
+}
+
+.project-select-card-badge {
+    font-size: .72rem;
+    font-weight: 600;
+    color: #2057a3;
+    background: rgba(32, 87, 163, 0.1);
+    border-radius: 999px;
+    padding: .15rem .55rem;
+}
+
+.project-select-card-page {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.project-select-card-page:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(32, 87, 163, 0.14);
+}
+
+@media (max-width: 767.98px) {
+    .navbar-project-switcher {
+        max-width: calc(100% - 3rem);
+    }
+
+    .navbar-project-pill {
+        max-width: 100%;
+    }
+}
+
+
+.nav-link.active {
+    border-radius: 10px !important;
+}
+
+#sigapp-mobile-bottom-nav,
+.sigapp-mobile-sheet,
+.sigapp-mobile-sheet-backdrop {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    body.sigapp-mobile-bottom-nav-ready {
+        padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    }
+
+    body.sigapp-mobile-bottom-nav-ready .app-content {
+        padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    body.sigapp-mobile-bottom-nav-ready .header-navbar .menu-toggle {
+        display: none !important;
+    }
+
+    body.sigapp-mobile-bottom-nav-ready #filter-side {
+        display: none !important;
+    }
+
+    body.sigapp-mobile-bottom-nav-ready .app-content > #menu_here {
+        display: none !important;
+    }
+
+    #sigapp-mobile-bottom-nav {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+        z-index: 1038;
+        display: none;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: .35rem;
+        min-height: 62px;
+        padding: .45rem;
+        border: 1px solid rgba(226, 232, 240, .92);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, .96);
+        box-shadow: 0 10px 32px rgba(15, 23, 42, .18);
+    }
+
+    body.sigapp-mobile-bottom-nav-ready #sigapp-mobile-bottom-nav {
+        display: grid;
+    }
+
+    .sigapp-mobile-bottom-nav-item {
+        display: flex;
+        min-width: 0;
+        height: 50px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: .2rem;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #334155;
+        font-size: .72rem;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+    }
+
+    .sigapp-mobile-bottom-nav-item svg {
+        width: 18px;
+        height: 18px;
+        stroke-width: 2.4;
+    }
+
+    .sigapp-mobile-bottom-nav-item:focus,
+    .sigapp-mobile-bottom-nav-item:hover,
+    .sigapp-mobile-bottom-nav-item.is-active {
+        color: #2057a3;
+        background: rgba(32, 87, 163, .1);
+        outline: none;
+    }
+
+    .sigapp-mobile-bottom-nav-item[hidden] {
+        display: none !important;
+    }
+
+    .sigapp-mobile-sheet-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1040;
+        background: rgba(15, 23, 42, .34);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .18s ease;
+    }
+
+    .sigapp-mobile-sheet-backdrop.is-active {
+        display: block;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .sigapp-mobile-sheet {
+        position: fixed;
+        inset: auto 0 0 0;
+        z-index: 1041;
+        pointer-events: none;
+    }
+
+    .sigapp-mobile-sheet.is-active {
+        display: block;
+    }
+
+    .sigapp-mobile-sheet-panel {
+        max-height: min(76vh, 640px);
+        overflow: hidden;
+        border-radius: 8px 8px 0 0;
+        background: #fff;
+        box-shadow: 0 -12px 32px rgba(15, 23, 42, .2);
+        transform: translateY(100%);
+        transition: transform .2s ease;
+        pointer-events: auto;
+    }
+
+    .sigapp-mobile-sheet.is-active .sigapp-mobile-sheet-panel {
+        transform: translateY(0);
+    }
+
+    .sigapp-mobile-sheet-handle {
+        width: 42px;
+        height: 4px;
+        margin: .55rem auto .35rem;
+        border-radius: 999px;
+        background: #cbd5e1;
+    }
+
+    .sigapp-mobile-sheet-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: .35rem 1rem .7rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .sigapp-mobile-sheet-title {
+        margin: 0;
+        color: #111827;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+
+    .sigapp-mobile-sheet-close {
+        display: inline-flex;
+        width: 34px;
+        height: 34px;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 8px;
+        background: #f1f5f9;
+        color: #334155;
+    }
+
+    .sigapp-mobile-sheet-close svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .sigapp-mobile-sheet-body {
+        max-height: calc(min(76vh, 640px) - 72px);
+        overflow-y: auto;
+        padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom, 0px));
+        background: #f8fafc;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sigapp-mobile-sheet-body .divider {
+        margin-top: .35rem;
+    }
+
+    .sigapp-mobile-sheet-body .form-group:last-child {
+        margin-bottom: 0;
+    }
+
+    body.sigapp-mobile-bottom-nav-ready .sigapp-mobile-sheet-body #filter-side {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        padding: 0;
+    }
+
+    .sigapp-mobile-sheet-body .poskon-filter-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: .65rem;
+        width: 100%;
+    }
+
+    .sigapp-mobile-sheet-body .poskon-filter-field {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .sigapp-mobile-action-list {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: .55rem;
+    }
+
+    .sigapp-mobile-action-btn {
+        display: flex;
+        width: 100%;
+        min-height: 44px;
+        align-items: center;
+        gap: .65rem;
+        justify-content: flex-start;
+        border-radius: 8px;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .sigapp-mobile-action-btn i,
+    .sigapp-mobile-action-btn svg {
+        width: 16px;
+        min-width: 16px;
+    }
+
+    #sigapp-mobile-action-sheet #menu_here {
+        position: static !important;
+        display: grid;
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: .55rem;
+        overflow: visible !important;
+    }
+
+    #sigapp-mobile-action-sheet #menu_here .float,
+    #sigapp-mobile-action-sheet #menu_here .div_menu {
+        position: static !important;
+        inset: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        top: auto !important;
+        display: grid !important;
+        grid-template-columns: 1fr;
+        width: 100% !important;
+        min-width: 0 !important;
+        gap: .55rem;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        transform: none !important;
+        animation: none !important;
+        overflow: visible !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        justify-content: stretch !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    #sigapp-mobile-action-sheet #menu_here .float.hidden,
+    #sigapp-mobile-action-sheet #menu_here .div_menu.hidden {
+        display: none !important;
+    }
+
+    #sigapp-mobile-action-sheet #menu_here .btn,
+    #sigapp-mobile-action-sheet #menu_here button,
+    #sigapp-mobile-action-sheet #menu_here a {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: flex-start;
+        position: static !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-height: 44px;
+        margin: 0 !important;
+        padding: .6rem .75rem !important;
+        border-radius: 8px !important;
+        text-align: left;
+        white-space: normal !important;
+        transform: none !important;
+    }
+
+    #sigapp-mobile-action-sheet #menu_here .float > * {
+        position: static !important;
+        display: inline-flex !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        justify-content: flex-start !important;
+        align-self: stretch !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        transform: none !important;
+    }
+
+    #sigapp-mobile-action-sheet #menu_here .float > .hidden,
+    #sigapp-mobile-action-sheet #menu_here .float > .d-none,
+    #sigapp-mobile-action-sheet #menu_here .float [style*="display: none"] {
+        display: none !important;
+    }
+
+    #sigapp-mobile-action-sheet #menu_here .menu-group-label {
+        display: block !important;
+        width: 100%;
+        padding-top: .35rem;
+        color: #64748b;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .sigapp-mobile-sheet-empty {
+        padding: .75rem;
+        border: 1px dashed #cbd5e1;
+        border-radius: 8px;
+        color: #64748b;
+        text-align: center;
+        font-weight: 600;
+        background: #fff;
+    }
+
+    .dark-layout #sigapp-mobile-bottom-nav {
+        border-color: rgba(255, 255, 255, .08);
+        background: rgba(40, 48, 70, .96);
+    }
+
+    .dark-layout .sigapp-mobile-bottom-nav-item {
+        color: #e5e7eb;
+    }
+
+    .dark-layout .sigapp-mobile-bottom-nav-item:hover,
+    .dark-layout .sigapp-mobile-bottom-nav-item:focus,
+    .dark-layout .sigapp-mobile-bottom-nav-item.is-active {
+        color: #fff;
+        background: rgba(32, 87, 163, .36);
+    }
+
+    .dark-layout .sigapp-mobile-sheet-panel,
+    .dark-layout .sigapp-mobile-sheet-header {
+        background: #283046;
+        border-color: rgba(255, 255, 255, .08);
+    }
+
+    .dark-layout .sigapp-mobile-sheet-body {
+        background: #1f2937;
+    }
+
+    .dark-layout .sigapp-mobile-sheet-title {
+        color: #f8fafc;
+    }
+}

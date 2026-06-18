@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\ProyekModel;
 use App\Services\FileAccessService;
+use App\Services\SiteplanUrgentService;
 use App\Services\SiteplanMenuService;
 
 
@@ -13,6 +14,7 @@ class Home extends BaseController
     protected $proyekModel;
     protected $notif;
     protected $fileAccessService;
+    protected $siteplanUrgentService;
     protected $siteplanMenuService;
     public function __construct()
     {
@@ -20,6 +22,7 @@ class Home extends BaseController
         $this->notif = new Notif();
         $this->db = db_connect();
         $this->fileAccessService = new FileAccessService();
+        $this->siteplanUrgentService = new SiteplanUrgentService();
         $this->siteplanMenuService = new SiteplanMenuService();
     }
     public function index()
@@ -28,17 +31,7 @@ class Home extends BaseController
     }
     public function dashboard()
     {
-        // var_dump(session('token'));die();
         $data['content'] = 'home/dashboard';
-
-        //ambil data proyek
-        $data['data']['proyek'] = $this->proyekModel
-            ->select("id_proyek, alamat_proyek, nama_proyek, siteplan, logo")
-            ->findAll();
-        foreach ($data['data']['proyek'] as $proyek) {
-            $proyek->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', (int) $proyek->id_proyek);
-            $proyek->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', (int) $proyek->id_proyek);
-        }
 
         return view('template', $data);
     }
@@ -78,7 +71,7 @@ class Home extends BaseController
         $edate = $this->request->getVar('edate') ?: date('Y-m-t');
         $tahun = $this->request->getVar('tahun') ?: date('Y');
 
-        $id_proyek = (int) $this->request->getVar('id_proyek');
+        $id_proyek = resolve_active_proyek_id($this->request->getVar('id_proyek'));
         $withStatistik = $this->requestBool('statistik');
         $withAktivitas = $this->requestBool('aktivitas');
         $withChart = $this->requestBool('chart');
@@ -139,7 +132,9 @@ class Home extends BaseController
             $r['finance'] = $this->getDashboardFinanceSummary($id_proyek, $sdate, $edate);
             $r['production'] = $this->getDashboardProductionSummary($id_proyek, $sdate, $edate);
             $r['target'] = $this->getDashboardTargetSummary($id_proyek, (int) $tahun);
-            $r['alerts'] = $this->buildDashboardAlerts($r['finance'], $r['production']);
+            $urgent = $this->siteplanUrgentService->getUrgentSummary($id_proyek, $this->getCurrentGroupId(), (int) user_id());
+            $r['urgent'] = $urgent;
+            $r['alerts'] = $this->buildDashboardAlerts($urgent, $r['production']);
         }
 
         // get aktivitas dashboard
@@ -351,30 +346,55 @@ class Home extends BaseController
         ];
     }
 
-    private function buildDashboardAlerts(array $finance, array $production): array
+    private function getCurrentGroupId(): int
     {
+        $groupId = (int) (session()->group_id ?? 0);
+        if ($groupId > 0) {
+            return $groupId;
+        }
+
+        $group = $this->db->table('auth_groups_users')
+            ->select('group_id')
+            ->where('user_id', user_id())
+            ->get()
+            ->getRow();
+        $groupId = (int) ($group->group_id ?? 0);
+        if ($groupId > 0) {
+            session()->set('group_id', $groupId);
+        }
+
+        return $groupId;
+    }
+
+    private function buildDashboardAlerts(array $urgent, array $production): array
+    {
+        $sections = $urgent['sections'] ?? [];
+        $sectionCount = static function (string $key) use ($sections): int {
+            return (int) ($sections[$key]['count'] ?? 0);
+        };
+
         return [
             [
                 'label' => 'Tagihan lewat jatuh tempo',
-                'value' => (int) ($finance['tagihan_lewat_tempo'] ?? 0),
+                'value' => $sectionCount('tagihan_overdue'),
                 'type' => 'danger',
                 'description' => 'Perlu ditagih atau diverifikasi pembayarannya',
             ],
             [
                 'label' => 'Tagihan jatuh tempo 7 hari',
-                'value' => (int) ($finance['tagihan_jatuh_tempo'] ?? 0),
+                'value' => $sectionCount('tagihan_due'),
                 'type' => 'warning',
                 'description' => 'Perlu follow up sebelum lewat tempo',
             ],
             [
                 'label' => 'Cashout subkon jatuh tempo',
-                'value' => (int) ($finance['cashout_subkon_jatuh_tempo'] ?? 0),
+                'value' => $sectionCount('cashout_subkon'),
                 'type' => 'warning',
                 'description' => 'Termin subkon belum dibayar',
             ],
             [
                 'label' => 'Bangunan telat',
-                'value' => (int) ($production['bangunan_telat'] ?? 0),
+                'value' => $sectionCount('pembangunan_telat'),
                 'type' => 'danger',
                 'description' => 'Progres belum selesai melewati rencana selesai',
             ],
@@ -431,7 +451,7 @@ class Home extends BaseController
     {
         $r['token'] = csrf_hash();
         $offset = $this->request->getVar('offset');
-        $id_proyek = $this->request->getVar('id_proyek');
+        $id_proyek = resolve_active_proyek_id($this->request->getVar('id_proyek'));
 
         $r['aktivitas'] = $this->notif->getActivity(true, $offset, $id_proyek);
 
@@ -452,6 +472,20 @@ class Home extends BaseController
         $r['menu'] = $this->siteplanMenuService->renderForRole((int) $k);
         return $this->response->setJSON($r);
     }
+
+    public function getMenuItemsJson()
+    {
+        $k = 0;
+        foreach (user()->getRoles() as $key => $val) {
+            $k = (int) $key;
+        }
+
+        return $this->response->setJSON([
+            'token' => csrf_hash(),
+            'items' => $this->siteplanMenuService->getActionItemsForList($k),
+        ]);
+    }
+
     function getKop()
     {
         $data['token'] = csrf_hash();

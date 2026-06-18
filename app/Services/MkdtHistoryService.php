@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use App\Repositories\MkdtHistoryRepository;
-
 class MkdtHistoryService
 {
     public const ACTION_SET_HARGA_JUAL        = 'set_harga_jual';
@@ -23,7 +21,7 @@ class MkdtHistoryService
     ];
 
     public function __construct(
-        private readonly MkdtHistoryRepository $repo = new MkdtHistoryRepository()
+        private readonly HistoryService $historyService = new HistoryService()
     ) {}
 
     public function actionLabel(string $action): string
@@ -40,19 +38,21 @@ class MkdtHistoryService
         ?array $newData = null,
         ?int $actorId = null
     ): bool {
-        if (!$this->repo->hasTable() || $summary === '') {
+        if (!$this->historyService->hasTable() || $summary === '') {
             return false;
         }
 
-        return $this->repo->insert([
-            'id_kavling' => $idKavling,
-            'id_mkdt'    => $idMkdt,
-            'action'     => $action,
-            'summary'    => $summary,
-            'old_data'   => $oldData !== null ? json_encode($oldData, JSON_UNESCAPED_UNICODE) : null,
-            'new_data'   => $newData !== null ? json_encode($newData, JSON_UNESCAPED_UNICODE) : null,
-            'add_by'     => $actorId ?? (function_exists('user_id') ? user_id() : null),
-            'created_at' => date('Y-m-d H:i:s'),
+        return $this->historyService->log('mkdt', [
+            'reference_type' => 'mkdt',
+            'reference_id'   => $idMkdt,
+            'id_kavling'     => $idKavling,
+            'action'         => $action,
+            'summary'        => $summary,
+            'old_data'       => $oldData,
+            'new_data'       => $newData,
+            'metadata'       => ['id_mkdt' => $idMkdt],
+            'add_by'         => $actorId ?? (function_exists('user_id') ? user_id() : null),
+            'created_at'     => date('Y-m-d H:i:s'),
         ]);
     }
 
@@ -61,22 +61,21 @@ class MkdtHistoryService
         $limit = max(1, min(50, $limit));
         $offset = max(0, $offset);
 
-        $total = $this->repo->countByKavling($idKavling);
-        $rows = $this->repo->getByKavling($idKavling, $limit, $offset);
+        $result = $this->historyService->getByKavling($idKavling, ['mkdt'], $limit, $offset);
+        $rows = $result['history'];
 
         foreach ($rows as $row) {
             $row->action_label = $this->actionLabel((string) $row->action);
-            $row->old_data = json_decode($row->old_data ?? '{}', true) ?: [];
-            $row->new_data = json_decode($row->new_data ?? '{}', true) ?: [];
+            $row->id_mkdt = $row->reference_id ?? ($row->metadata['id_mkdt'] ?? null);
         }
 
         return [
             'history'             => $rows,
-            'history_total'       => $total,
-            'history_limit'       => $limit,
-            'history_offset'      => $offset,
-            'history_next_offset' => $offset + count($rows),
-            'history_has_more'    => ($offset + count($rows)) < $total,
+            'history_total'       => $result['history_total'],
+            'history_limit'       => $result['history_limit'],
+            'history_offset'      => $result['history_offset'],
+            'history_next_offset' => $result['history_next_offset'],
+            'history_has_more'    => $result['history_has_more'],
         ];
     }
 

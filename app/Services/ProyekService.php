@@ -118,7 +118,7 @@ class ProyekService
 
         $rules = [];
         if ($this->shouldUpload($request, 'file', 'no_up')) {
-            $rules['file'] = $this->siteplanRules('file', 6000);
+            $rules['file'] = $this->siteplanRules('file', 10000);
         }
 
         if ($this->shouldUpload($request, 'logon', 'no_up_logo')) {
@@ -263,13 +263,16 @@ class ProyekService
             throw new RuntimeException('File upload tidak valid');
         }
 
+        $originalName = $file->getClientName();
+        $mimeType = $file->getMimeType();
+
         $name = $file->getRandomName();
         $logicalPath = $this->fileAccessService->storeAs($file, $logicalDir, $name);
 
         return [
             'location' => $logicalPath,
-            'original_name' => $file->getClientName(),
-            'mime_type' => $file->getMimeType(),
+            'original_name' => $originalName,
+            'mime_type' => $mimeType,
         ];
     }
 

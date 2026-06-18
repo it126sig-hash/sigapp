@@ -8,9 +8,15 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=0,minimal-ui">
     <meta name="description" content="SIGAPP adalah SIGGAPP.">
     <meta name="author" content="kamukapan_">
+    <meta name="theme-color" content="#2057a3">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="SIGAPP">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>SIGAPP</title>
-    <link rel="apple-touch-icon" href="<?= base_url() ?>/app-assets/images/ico/apple-icon-120.png">
-    <link rel="shortcut icon" type="image/x-icon" href="<?= base_url() ?>/app-assets/images/ico/favicon.ico">
+    <link rel="manifest" href="<?= base_url('manifest.webmanifest') ?>">
+    <link rel="apple-touch-icon" href="<?= base_url('assets/images/pwa/apple-touch-icon.png') ?>">
+    <link rel="shortcut icon" type="image/x-icon" href="<?= base_url() ?>app-assets/images/ico/favicon.ico">
     <!-- <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500;1,600" rel="stylesheet"> -->
 
     <!-- BEGIN: Vendor CSS-->
@@ -33,7 +39,7 @@
     <!-- END: Page CSS-->
 
     <!-- BEGIN: Custom CSS-->
-    <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/assets/css/style.css">
+    <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/assets/css/style.css?v=<?= filemtime(FCPATH . 'assets/css/style.css') ?>">
     <!-- END: Custom CSS-->
     <style>
         #loading {

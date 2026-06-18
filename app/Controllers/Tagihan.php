@@ -407,6 +407,26 @@ class Tagihan extends BaseController
 
         return $datatbel;
     }
+
+    public function getListTagihanDetail(): ResponseInterface
+    {
+        $idMkdt = (int) $this->request->getPost('id_mkdt');
+
+        if ($idMkdt <= 0) {
+            return $this->response->setJSON([
+                'token'   => csrf_hash(),
+                'success' => false,
+                'message' => 'Data MKDT tidak valid',
+                'data'    => [],
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'token'   => csrf_hash(),
+            'success' => true,
+            'data'    => $this->keuanganService->getListTagihanDetail($idMkdt),
+        ]);
+    }
     ################################## end of untuk list tagihan ##########################
 
     ################################## untuk list riwayat bayar ##########################
@@ -429,7 +449,7 @@ class Tagihan extends BaseController
     ################################## untuk jatuh tempo ##########################
     function getAllJatuhTempo()
     {
-        $id_proyek = $this->request->getVar('id_proyek');
+        $id_proyek = resolve_active_proyek_id($this->request->getVar('id_proyek'));
         $datatbel = $this->keuanganService->getAllJatuhTempo($id_proyek);
         return $this->response->setJSON($datatbel);;
     }

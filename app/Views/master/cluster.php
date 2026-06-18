@@ -17,10 +17,6 @@
       <div class="col-12">
         <div class="card">
           <div class="card-header border-bottom">
-            <div class="col-md-4 mb-1">
-              <label>Proyek</label>
-              <select id="id_proyek" name="id_proyek" class="select2 form-control"></select>
-            </div>
             <hr class="col-12" />
             <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm">Filter Data</button>
             <button type="button" class="btn btn-primary data-submit  btn-sm mr-1 col-sm-12 col-md-3 col-lg-3" onclick="add()" title="Add"> <i class="fa fa-plus"></i> Tambah Data</button>
@@ -177,7 +173,7 @@
         },
         data: function(data) {
           data[csrfName] = csrfHash
-          data.id_proyek = $("#id_proyek").val()
+          data.id_proyek = activeProyekId()
         },
         dataSrc: function(r) {
           csrfHash = r.token
@@ -197,39 +193,9 @@
         table.search(this.value).draw();
       });
 
-    //select2 proyek
-    $("#id_proyek").select2({
-      placeholder: "Pilih Proyek",
-      allowClear: true,
-      ajax: {
-        url: base_url + "/proyek/getAll",
-        dataType: 'json',
-        delay: 250,
-        method: 'post',
-        data: function(params) {
-          return {
-            [csrfName]: csrfHash,
-            search: params.term
-          };
-        },
-        processResults: function(r) {
-          csrfHash = r.token
-
-          let results = [];
-          $.each(r.data, function(index, item) {
-            results.push({
-              id: item[0],
-              text: item[1] + ' (' + item[2] + ')'
-            });
-          });
-
-          return {
-            results: results
-          };
-        },
-        cache: true
-      },
-    })
+    if (activeProyekId()) {
+      table.draw();
+    }
 
     //on click btn filter
     $("#btn_draw").on("click", function(e) {
@@ -247,7 +213,11 @@
     $("#add-form")[0].reset();
     $(".form-control").removeClass('is-invalid').removeClass('is-valid');
     $('#add-modal').modal('show');
-    $("#idProyek").val('').trigger('change')
+    if (activeProyekId()) {
+      $("#add-form #idProyek").val(activeProyekId()).trigger('change');
+    } else {
+      $("#add-form #idProyek").val('').trigger('change');
+    }
     // submit the add from 
     $.validator.setDefaults({
       highlight: function(element) {

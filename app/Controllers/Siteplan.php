@@ -19,6 +19,7 @@ use CodeIgniter\HTTP\Response;
 use App\Controllers\Notif;
 use App\Controllers\Home;
 use App\Repositories\KeuanganRepository;
+use App\Services\ActiveProyekService;
 use App\Services\FileAccessService;
 use App\Services\MkdtHistoryService;
 use App\Services\SiteplanUrgentService;
@@ -52,6 +53,7 @@ class Siteplan extends BaseController
     protected $mkdtHistoryService;
     protected $siteplanUrgentService;
     protected $targetSiteplanService;
+    protected $activeProyekService;
 
     public function __construct()
     {
@@ -76,6 +78,7 @@ class Siteplan extends BaseController
         $this->mkdtHistoryService = new MkdtHistoryService();
         $this->siteplanUrgentService = new SiteplanUrgentService();
         $this->targetSiteplanService = new TargetSiteplanService();
+        $this->activeProyekService = new ActiveProyekService();
 
         $this->kavlingRepo = new KavlingRepository();
 
@@ -83,30 +86,28 @@ class Siteplan extends BaseController
     }
     public function index()
     {
-        // var_dump(session('token'));die();
-        $data['content'] = 'siteplan/pilih_proyek';
-
-
-        //ambil data proyek
-        $data['data']['proyek'] = $this->proyekModel
-            ->select("id_proyek, alamat_proyek, nama_proyek, siteplan, logo")
-            ->orderBy('order_by', 'asc')
-            ->findAll();
-        foreach ($data['data']['proyek'] as $proyek) {
-            $proyek->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', (int) $proyek->id_proyek);
-            $proyek->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', (int) $proyek->id_proyek);
+        $activeId = $this->activeProyekService->getActiveId();
+        if ($activeId && $this->activeProyekService->userCanAccess($activeId, (int) user_id())) {
+            return redirect()->to(base_url('siteplan/view'));
         }
+
+        $data['content'] = 'siteplan/pilih_proyek';
+        $data['data']['proyek'] = $this->activeProyekService->getAccessibleList((int) user_id());
 
         return view('template', $data);
     }
-    public function view_siteplan($a = null)
+    public function view_siteplan()
     {
-        $idProyek = $this->normalizeIdProyek($a);
+        $idProyek = $this->activeProyekService->getActiveId();
+
         if ($idProyek === null) {
-            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+            return redirect()->to(base_url('dashboard'))->with('error', 'Silahkan pilih proyek terlebih dahulu');
         }
 
-        session()->set(['id_proyek' => $idProyek]);
+        $setResult = $this->activeProyekService->setActive($idProyek);
+        if (!$setResult['success']) {
+            return redirect()->to(base_url('siteplan'))->with('error', $setResult['message']);
+        }
 
         $data = [
             'content' => 'siteplan/master',
@@ -200,6 +201,44 @@ class Siteplan extends BaseController
         return view('template', $data);
     }
 
+    public function produksi_mobile()
+    {
+        $idProyek = $this->activeProyekService->getActiveId();
+
+        if ($idProyek === null) {
+            return redirect()->to(base_url('dashboard'))->with('error', 'Silahkan pilih proyek terlebih dahulu');
+        }
+
+        $setResult = $this->activeProyekService->setActive($idProyek);
+        if (!$setResult['success']) {
+            return redirect()->to(base_url('siteplan'))->with('error', $setResult['message']);
+        }
+
+        $proyek = $this->getProyekOr404($idProyek);
+        $userId = (int) user_id();
+        $hasAkses = [
+            'proyek' => $this->userHasProjectAccess($proyek, $userId),
+            'update_tanggal_pembangunan' => false,
+        ];
+
+        if (in_groups(['1', '7', '8'])) {
+            $tanggalPembangunanAkses = $this->hak_akses->getHak($userId);
+            $hasUpdateAccess = array_values(array_filter($tanggalPembangunanAkses, function ($item) {
+                return $item->nama_akses == 'update_tanggal_pembangunan';
+            }));
+            $hasAkses['update_tanggal_pembangunan'] = count($hasUpdateAccess) > 0;
+        }
+
+        return view('template', [
+            'content' => 'siteplan/produksi_mobile',
+            'data' => [
+                'proyek' => $proyek,
+                'has_akses' => $hasAkses,
+                'initial_id_kavling' => (int) ($this->request->getGet('id_kavling') ?? 0),
+            ],
+        ]);
+    }
+
     public function urgentSummary()
     {
         $idProyek = (int) $this->request->getVar('id_proyek');
@@ -231,7 +270,7 @@ class Siteplan extends BaseController
         return $this->response->setJSON([
             'token' => csrf_hash(),
             'success' => true,
-            'summary' => $this->siteplanUrgentService->getSummary($idProyek, $groupId, (int) user_id()),
+            'summary' => $this->siteplanUrgentService->getUrgentSummary($idProyek, $groupId, (int) user_id()),
         ]);
     }
 
@@ -970,7 +1009,9 @@ class Siteplan extends BaseController
                         $tg_um_ll += $v->nominal;
                     break;
                 case 'BB':
-                    $tg_bb += $v->nominal;
+                    if ($v->berita_acara != 'Turun KPR') {
+                        $tg_bb += $v->nominal;
+                    }
                     break;
             }
         }
@@ -995,38 +1036,71 @@ class Siteplan extends BaseController
 
         //get sudah bayar
         $sb = $this->db->table('log_pembayaran')
-            ->select('log_pembayaran.nominal,  log_pembayaran.payment_type')
+            ->select('log_pembayaran.id_pembayaran, log_pembayaran.nominal, log_pembayaran.payment_type')
             ->where('log_pembayaran.id_mkdt', $id_mkdt)
+            ->where('log_pembayaran.is_deleted', 0)
             ->get()->getResult();
 
         $sb_um = 0;
         $sb_um_ll = 0;
         $sb_bb = 0;
         $sb_detail = $this->db->table('log_pembayaran_detail lpd')
-            ->select('kl.kategori, COALESCE(SUM(lpd.nominal), 0) AS nominal')
+            ->select('lpd.id_pembayaran, lpd.id_keuangan_item_list, kl.item, kl.kategori, COALESCE(SUM(lpd.nominal), 0) AS nominal')
             ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
             ->join('keuangan_item_list kl', 'kl.id_keuangan_item_list = lpd.id_keuangan_item_list')
             ->where('lp.id_mkdt', $id_mkdt)
             ->where('lp.is_deleted', 0)
-            ->groupBy('kl.kategori')
+            ->groupBy(['lpd.id_pembayaran', 'lpd.id_keuangan_item_list', 'kl.item', 'kl.kategori'])
             ->get()
             ->getResult();
 
+        $detailPaymentIds = [];
         if (count($sb_detail) > 0) {
             foreach ($sb_detail as $v) {
-                switch ($v->kategori) {
-                    case 'UM':
-                        $sb_um += (float) $v->nominal;
-                        break;
-                    case 'ADM':
-                        $sb_um_ll += (float) $v->nominal;
-                        break;
-                    case 'BB':
-                        $sb_bb += (float) $v->nominal;
-                        break;
+                $detailPaymentIds[(int) $v->id_pembayaran] = true;
+                $itemId = (int) ($v->id_keuangan_item_list ?? 0);
+                $item = strtolower(trim((string) ($v->item ?? '')));
+                $kategori = strtoupper(trim((string) ($v->kategori ?? '')));
+                $nominal = (float) $v->nominal;
+
+                if ($kategori === 'BO' || $itemId === 1 || str_contains($item, 'booking')) {
+                    continue;
+                }
+
+                if ($itemId === 2 || $kategori === 'UM' || str_contains($item, 'uang muka')) {
+                    $sb_um += $nominal;
+                    continue;
+                }
+
+                if ($itemId === 3 || $kategori === 'ADM' || str_contains($item, 'administrasi') || $itemId === 9 || str_contains($item, 'turun kpr')) {
+                    $sb_um_ll += $nominal;
+                    continue;
+                }
+
+                if ($kategori === 'BB') {
+                    $sb_bb += $nominal;
                 }
             }
-        } else {
+        }
+
+        foreach ($sb as $v) {
+            if (isset($detailPaymentIds[(int) $v->id_pembayaran]) || $v->payment_type == 'Booking') {
+                continue;
+            }
+
+            $pt = array_map('trim', explode(';', (string) $v->payment_type));
+            if (in_array('Uang Muka', $pt, true)) {
+                $sb_um += (float) $v->nominal;
+            } elseif (in_array('Biaya Administrasi', $pt, true) || in_array('Turun KPR', $pt, true)) {
+                $sb_um_ll += (float) $v->nominal;
+            } elseif (in_array('BPHTB', $pt, true) || in_array('PPN', $pt, true) || in_array('Biaya Proses', $pt, true) || in_array('Biaya Kavling Strategis', $pt, true) || in_array('Biaya Kelebihan Tanah', $pt, true)) {
+                $sb_bb += (float) $v->nominal;
+            } else {
+                $sb_um_ll += (float) $v->nominal;
+            }
+        }
+
+        if ($sb_um + $sb_um_ll + $sb_bb <= 0) {
             $summary = $this->db->table('mkdt_payment_summary')
                 ->where('id_mkdt', $id_mkdt)
                 ->get()
@@ -1036,23 +1110,13 @@ class Siteplan extends BaseController
                 $sb_um = (float) $summary->total_um;
                 $sb_um_ll = (float) $summary->total_adm;
                 $sb_bb = (float) $summary->total_bb;
-            } else {
-                foreach ($sb as $v) {
-                    if ($v->payment_type != 'Booking') {
-                        $pt = explode(';', $v->payment_type);
-                        if (in_array('Uang Muka', $pt))
-                            $sb_um += $v->nominal;
-                        elseif (in_array('BPHTB', $pt) || in_array('PPN', $pt) || in_array('Biaya Proses', $pt))
-                            $sb_bb += $v->nominal;
-                        else
-                            $sb_um_ll += $v->nominal;
-                    }
-                }
             }
         }
-        $sisa = $sb_um > $tg_um ? $sb_um - $tg_um : 0;
-        $sb_um_ll = $sisa > 0 ? $sb_um_ll + $sisa : $sb_um_ll;
-        $sb_um = $sisa > 0 ? $tg_um : $sb_um;
+        if (count($sb_detail) === 0) {
+            $sisa = $sb_um > $tg_um ? $sb_um - $tg_um : 0;
+            $sb_um_ll = $sisa > 0 ? $sb_um_ll + $sisa : $sb_um_ll;
+            $sb_um = $sisa > 0 ? $tg_um : $sb_um;
+        }
 
         $d['sb_um'] = $sb_um;
         $d['sb_um_ll'] = $sb_um_ll;

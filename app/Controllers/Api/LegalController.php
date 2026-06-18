@@ -149,6 +149,7 @@ class LegalController extends BaseApiController
     public function getListLegalitas()
     {
         $var = $this->request->getVar();
+        $var['id_proyek'] = resolve_active_proyek_id($var['id_proyek'] ?? null);
         
         $results = $this->legalRepository->getDatatableLegalitasData($var);
         $recordsFiltered = $this->legalRepository->getDatatableLegalitasFilteredCount($var);

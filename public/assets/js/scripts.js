@@ -58,7 +58,7 @@ var isLoading = false;
     false,
   );
 
-  getNotif();
+  window.setTimeout(loadNotificationBadge, 0);
 })(window);
 
 function resolveFileHref(src, placeholder = null) {
@@ -538,10 +538,17 @@ function paint(t, a, e, d = null) {
 /******************************** getNotif *********************************/
 
 let notificationCenterUrgentItems = {};
+let notificationCenterRequest = null;
+let notificationBadgeRequest = null;
+let notificationCenterLoaded = false;
 
 function notificationProjectId() {
   if (typeof dt_proyek !== "undefined" && dt_proyek && dt_proyek.id_proyek) {
     return dt_proyek.id_proyek;
+  }
+
+  if (window.SIGAPP && window.SIGAPP.activeProyekId) {
+    return window.SIGAPP.activeProyekId;
   }
 
   return "";
@@ -564,9 +571,59 @@ function updateNotificationBadge(total) {
   }
 }
 
-function getNotif() {
+function updateNotificationToken(token) {
+  if (!token) {
+    return;
+  }
+
+  csrfHash = token;
+  $('input[name="' + csrfName + '"]').val(csrfHash);
+}
+
+function renderNotificationSummary(response) {
+  const urgentTotal = parseInt(response.urgent_total || 0, 10);
+  const activityUnread = parseInt(response.activity_unread_count || 0, 10);
+  const badgeTotal = parseInt(response.badge_total || urgentTotal + activityUnread, 10);
+
+  updateNotificationBadge(badgeTotal);
+  $("#notif-urgent-count").text(urgentTotal);
+  $("#notif-activity-count").text(activityUnread);
+}
+
+function loadNotificationBadge() {
+  if (notificationBadgeRequest && notificationBadgeRequest.readyState !== 4) {
+    notificationBadgeRequest.abort();
+  }
+
+  notificationBadgeRequest = $.ajax({
+    type: "get",
+    url: base_url + "/notif/summary",
+    data: {
+      [csrfName]: csrfHash,
+      id_proyek: notificationProjectId(),
+    },
+    dataType: "json",
+    success: function (r) {
+      updateNotificationToken(r.token);
+      renderNotificationSummary(r);
+    },
+    complete: function () {
+      notificationBadgeRequest = null;
+    },
+  });
+}
+
+function getNotif(forceReload = true) {
+  if (notificationCenterRequest && notificationCenterRequest.readyState !== 4) {
+    if (!forceReload) {
+      return;
+    }
+
+    notificationCenterRequest.abort();
+  }
+
   start = 0;
-  $.ajax({
+  notificationCenterRequest = $.ajax({
     type: "get",
     url: base_url + "/notif/center",
     data: {
@@ -582,17 +639,19 @@ function getNotif() {
       $("#notification-center-body").addClass("blur");
     },
     success: function (r) {
-      if (r.token) {
-        csrfHash = r.token;
-        $('input[name="' + csrfName + '"]').val(csrfHash);
-      }
+      updateNotificationToken(r.token);
 
       $("#refresh-notif-center, #load-more-notif").prop("disabled", false);
       $("#refresh-notif-center").html("Perbarui");
       $("#notification-center-body").removeClass("blur");
+      notificationCenterLoaded = true;
       renderNotificationCenter(r);
     },
-    error: function () {
+    error: function (xhr, status) {
+      if (status === "abort") {
+        return;
+      }
+
       $("#refresh-notif-center, #load-more-notif").prop("disabled", false);
       $("#refresh-notif-center").html("Perbarui");
       $("#notification-center-body").removeClass("blur");
@@ -600,7 +659,16 @@ function getNotif() {
         '<div class="notification-center-empty">Gagal memuat jatuh tempo.</div>',
       );
     },
+    complete: function () {
+      notificationCenterRequest = null;
+    },
   });
+}
+
+function ensureNotificationCenterLoaded() {
+  if (!notificationCenterLoaded) {
+    getNotif(false);
+  }
 }
 
 function renderNotificationCenter(response) {
@@ -714,11 +782,24 @@ function renderNotificationActivityItem(v) {
   `;
 }
 
+$("#list-notif").closest(".dropdown-notification").on("shown.bs.dropdown", function () {
+  ensureNotificationCenterLoaded();
+});
+
+$("#header-notif").on("click", function () {
+  window.setTimeout(ensureNotificationCenterLoaded, 0);
+});
+
 $("#refresh-notif-center").click(function () {
   getNotif();
 });
 
 $("#load-more-notif").click(function () {
+  if (!notificationCenterLoaded) {
+    getNotif();
+    return;
+  }
+
   loadData();
 });
 
@@ -809,6 +890,30 @@ function snoozeNotificationUrgent(event, key, minutes) {
   });
 }
 
+function goToNotificationUrgentAction(item) {
+  if (item && item.action_url) {
+    window.location.href = item.action_url;
+    return true;
+  }
+
+  if (item && item.id_proyek) {
+    const params = new URLSearchParams({
+      urgent_action: item.action_target || item.type || "detail",
+      id_kavling: item.id_kavling || "",
+    });
+    if (item.id_mkdt) params.set("id_mkdt", item.id_mkdt);
+    if (item.id_keuangan) params.set("id_keuangan", item.id_keuangan);
+    if (item.id_cashout_subkon) params.set("id_cashout_subkon", item.id_cashout_subkon);
+    if (item.id_cashout_subkon_detail) {
+      params.set("id_cashout_subkon_detail", item.id_cashout_subkon_detail);
+    }
+    window.location.href = base_url + "siteplan/view_siteplan/" + item.id_proyek + "?" + params.toString();
+    return true;
+  }
+
+  return false;
+}
+
 function openNotificationUrgentItem(key) {
   const item = notificationCenterUrgentItems[key];
   if (!item) {
@@ -819,6 +924,7 @@ function openNotificationUrgentItem(key) {
     return openCOSubkon({
       id_proyek: item.id_proyek || notificationProjectId(),
       id_cashout_subkon: item.id_cashout_subkon,
+      id_cashout_subkon_detail: item.id_cashout_subkon_detail,
       id_kavlings: [String(item.id_kavling)],
       selected_kavlings: [
         {
@@ -831,6 +937,9 @@ function openNotificationUrgentItem(key) {
   }
 
   if (item.type === "tagihan") {
+    if (typeof openSiteplanKeuanganFromUrgent === "function") {
+      return openSiteplanKeuanganFromUrgent(item);
+    }
     if (typeof openSiteplanKeuanganFromNotification === "function") {
       return openSiteplanKeuanganFromNotification(item.id_kavling);
     }
@@ -841,6 +950,10 @@ function openNotificationUrgentItem(key) {
 
   if (typeof openSiteplanKavlingFromNotification === "function") {
     return openSiteplanKavlingFromNotification(item.id_kavling);
+  }
+
+  if (goToNotificationUrgentAction(item)) {
+    return;
   }
 
   if (typeof view_detail === "function") {
@@ -1058,22 +1171,33 @@ function createInputForm(
 
 function displayUploadedFiles(input, listId) {
   const listElement = document.getElementById(listId);
-  const inputKey = input.id || input.name;
-  const inputBaseName = String(input.name || "").replace(/\[\]$/, "");
+  if (!listElement) return;
+  let renderInput = input;
+  let filesToRender = Array.from(input.files || []);
 
   if (input.classList.contains("produksi-photo-input")) {
     window.produksiUploadFileStore = window.produksiUploadFileStore || {};
+    const primaryInput = getProduksiUploadPrimaryInput(input);
+    const inputKey = primaryInput.id || primaryInput.name || input.id || input.name;
     const existingFiles = window.produksiUploadFileStore[inputKey] || [];
-    window.produksiUploadFileStore[inputKey] = existingFiles.concat(
-      Array.from(input.files),
-    );
+    const isRerendering = input.dataset.produksiUploadRendering === "1";
+    const incomingFiles = isRerendering ? [] : filesToRender;
+    filesToRender = isRerendering
+      ? existingFiles
+      : primaryInput.multiple
+        ? existingFiles.concat(incomingFiles)
+        : incomingFiles.slice(-1);
+    window.produksiUploadFileStore[inputKey] = filesToRender;
 
     const dataTransfer = new DataTransfer();
-    window.produksiUploadFileStore[inputKey].forEach((file) =>
-      dataTransfer.items.add(file),
-    );
-    input.files = dataTransfer.files;
+    filesToRender.forEach((file) => dataTransfer.items.add(file));
+    primaryInput.files = dataTransfer.files;
+    renderInput = primaryInput;
+
+    if (primaryInput !== input) input.value = "";
   }
+
+  const inputBaseName = String(renderInput.name || renderInput.id || "").replace(/\[\]$/, "");
 
   // Hanya menghapus elemen yang belum terupload
   Array.from(listElement.children).forEach((child) => {
@@ -1082,7 +1206,7 @@ function displayUploadedFiles(input, listId) {
     }
   });
 
-  Array.from(input.files).forEach((file, index) => {
+  filesToRender.forEach((file, index) => {
     const imgDiv = document.createElement("div");
     imgDiv.id = `uploaded_foto_${index}`;
     imgDiv.style.position = "relative";
@@ -1154,7 +1278,7 @@ function displayUploadedFiles(input, listId) {
 
     //input tanggal foto
     const tanggalInput = createInputForm(
-      "tgl_" + input.name,
+      "tgl_" + renderInput.name,
       "input",
       "date",
       ["form-control", "flatpickr-human-friendly", "mb-50"],
@@ -1218,7 +1342,7 @@ function displayUploadedFiles(input, listId) {
     // console.log(input, listId)
     if (listId == "list_prod_foto_konstruksi") {
       const keteranganInput = createInputForm(
-        "kategoriPekerjaan_" + input.name,
+        "kategoriPekerjaan_" + renderInput.name,
         "select",
         "select",
         ["form-control", "mb-50", "kategoriPekerjaan"],
@@ -1228,7 +1352,7 @@ function displayUploadedFiles(input, listId) {
       metaContainer.appendChild(keteranganInput);
 
       const keteranganInput2 = createInputForm(
-        "tugasPekerjaan_" + input.name,
+        "tugasPekerjaan_" + renderInput.name,
         "select",
         "select",
         ["form-control"],
@@ -1249,7 +1373,7 @@ function displayUploadedFiles(input, listId) {
       });
     } else {
       const keteranganInput = createInputForm(
-        "ket_" + input.name,
+        "ket_" + renderInput.name,
         "input",
         "text",
         ["form-control"],
@@ -1270,16 +1394,26 @@ function triggerProduksiUpload(inputId) {
   if (input) input.click();
 }
 
+function getProduksiUploadPrimaryInput(input) {
+  const targetId = input.getAttribute("data-produksi-upload-target");
+  if (!targetId) return input;
+  return document.getElementById(targetId) || input;
+}
+
 function removeSelectedUploadFile(input, listId, removeIndex) {
-  const inputKey = input.id || input.name;
+  const primaryInput = getProduksiUploadPrimaryInput(input);
+  const inputKey = primaryInput.id || primaryInput.name || input.id || input.name;
   window.produksiUploadFileStore = window.produksiUploadFileStore || {};
-  const files = Array.from(input.files).filter((file, index) => index !== removeIndex);
+  const sourceFiles = window.produksiUploadFileStore[inputKey] || Array.from(primaryInput.files);
+  const files = sourceFiles.filter((file, index) => index !== removeIndex);
   window.produksiUploadFileStore[inputKey] = files;
 
   const dataTransfer = new DataTransfer();
   files.forEach((file) => dataTransfer.items.add(file));
-  input.files = dataTransfer.files;
-  displayUploadedFiles(input, listId);
+  primaryInput.files = dataTransfer.files;
+  primaryInput.dataset.produksiUploadRendering = "1";
+  displayUploadedFiles(primaryInput, listId);
+  delete primaryInput.dataset.produksiUploadRendering;
 }
 
 function readSelectedPhotoCoordinate(file, callback) {
@@ -1683,6 +1817,342 @@ function hlButton(selector) {
     btn.removeClass("btn-highlight");
   }, 3000); // durasi harus sama dengan animasi CSS
 }
+
+window.SIGAPPMobileBottomNavQueue = window.SIGAPPMobileBottomNavQueue || [];
+
+(function (window, $) {
+  if (!$) return;
+
+  const mobileQuery = window.matchMedia
+    ? window.matchMedia("(max-width: 767.98px)")
+    : null;
+  const queuedConfigs = window.SIGAPPMobileBottomNavQueue || [];
+  const state = {
+    config: null,
+    activeSheet: null,
+    movedSource: null,
+  };
+
+  const defaults = {
+    filter: null,
+    actions: [],
+    showBack: true,
+    showMenu: true,
+  };
+
+  function isMobile() {
+    return mobileQuery ? mobileQuery.matches : $(window).width() <= 767;
+  }
+
+  function navButton(name) {
+    return $('#sigapp-mobile-bottom-nav [data-sigapp-mobile-nav="' + name + '"]');
+  }
+
+  function hasFilter() {
+    return !!(state.config && state.config.filter && state.config.filter.sourceSelector);
+  }
+
+  function hasActions() {
+    return !!(state.config && Array.isArray(state.config.actions) && state.config.actions.length);
+  }
+
+  function escapeHtml(text) {
+    return $("<div>").text(text || "").html();
+  }
+
+  function iconHtml(icon) {
+    if (!icon) return "";
+    return '<i class="' + escapeHtml(icon) + '"></i>';
+  }
+
+  function sourceLabel($source, fallback) {
+    const title = ($source.attr("title") || "").trim();
+    const text = ($source.text() || "").replace(/\s+/g, " ").trim();
+    return title || text || fallback || "Aksi";
+  }
+
+  function restoreMovedSource() {
+    if (!state.movedSource) return;
+
+    const moved = state.movedSource;
+    if (moved.placeholder && moved.placeholder.parentNode) {
+      $(moved.placeholder).replaceWith(moved.$source);
+    }
+
+    state.movedSource = null;
+  }
+
+  function moveSourceToSheet(selector, $target) {
+    restoreMovedSource();
+
+    const $source = $(selector).first();
+    if (!$source.length) return false;
+
+    const placeholder = document.createComment("sigapp-mobile-bottom-nav-source");
+    $source.before(placeholder);
+    $target.empty().append($source);
+    state.movedSource = {
+      $source: $source,
+      placeholder: placeholder,
+    };
+
+    return true;
+  }
+
+  function closeSheet() {
+    restoreMovedSource();
+    state.activeSheet = null;
+    $(".sigapp-mobile-sheet, .sigapp-mobile-sheet-backdrop").removeClass("is-active");
+    $(".sigapp-mobile-sheet").attr("aria-hidden", "true");
+    $("#sigapp-mobile-filter-sheet .sigapp-mobile-sheet-body").empty();
+    $("#sigapp-mobile-action-sheet .sigapp-mobile-sheet-body").empty();
+    navButton("filter").removeClass("is-active");
+    navButton("actions").removeClass("is-active");
+  }
+
+  function emptyMessage(message) {
+    return '<div class="sigapp-mobile-sheet-empty">' + escapeHtml(message) + "</div>";
+  }
+
+  function openSheet(sheetName) {
+    if (!isMobile()) return;
+
+    closeSheet();
+
+    let $sheet = null;
+    if (sheetName === "filter") {
+      $sheet = $("#sigapp-mobile-filter-sheet");
+      renderFilterSheet();
+      navButton("filter").addClass("is-active");
+    } else if (sheetName === "actions") {
+      $sheet = $("#sigapp-mobile-action-sheet");
+      renderActionSheet();
+      navButton("actions").addClass("is-active");
+    }
+
+    if (!$sheet || !$sheet.length) return;
+
+    state.activeSheet = sheetName;
+    $(".sigapp-mobile-sheet-backdrop").addClass("is-active");
+    $sheet.addClass("is-active").attr("aria-hidden", "false");
+  }
+
+  function renderFilterSheet() {
+    const $body = $('#sigapp-mobile-filter-sheet [data-sigapp-mobile-filter-body]');
+    $body.empty();
+
+    if (!hasFilter() || !moveSourceToSheet(state.config.filter.sourceSelector, $body)) {
+      $body.html('<div class="text-muted text-center py-1">Filter belum tersedia.</div>');
+    }
+  }
+
+  function renderActionSheet() {
+    const $body = $('#sigapp-mobile-action-sheet [data-sigapp-mobile-action-body]');
+    const actions = state.config && Array.isArray(state.config.actions) ? state.config.actions : [];
+
+    $body.empty();
+
+    if (actions.length === 1 && actions[0].sourceSelector && !actions[0].label && !actions[0].onClick) {
+      if (!moveSourceToSheet(actions[0].sourceSelector, $body)) {
+        $body.html(emptyMessage("Aksi belum tersedia."));
+        return;
+      }
+
+      const $availableActions = $body
+        .find("button, a, .custom-switch")
+        .filter(function () {
+          const $item = $(this);
+          return (
+            !$item.hasClass("mobile-menu-trigger") &&
+            !$item.closest(".hidden, .d-none, [hidden]").length
+          );
+        });
+
+      if (!$availableActions.length) {
+        $body.append(emptyMessage("Aksi belum tersedia."));
+      }
+      return;
+    }
+
+    const $list = $('<div class="sigapp-mobile-action-list"></div>');
+
+    actions.forEach(function (action) {
+      const $source = action.sourceSelector ? $(action.sourceSelector).first() : $();
+      const label = action.label || sourceLabel($source, "Aksi");
+      const sourceIcon = $source.find("i").first().attr("class");
+      const btnClass = action.className || "btn btn-outline-primary";
+      const $btn = $(
+        '<button type="button" class="sigapp-mobile-action-btn ' +
+          escapeHtml(btnClass) +
+          '">' +
+          iconHtml(action.icon || sourceIcon) +
+          "<span>" +
+          escapeHtml(label) +
+          "</span></button>",
+      );
+
+      if ($source.length && ($source.prop("disabled") || $source.hasClass("disabled"))) {
+        $btn.prop("disabled", true);
+      }
+
+      $btn.on("click", function (event) {
+        event.preventDefault();
+        closeSheet();
+
+        window.setTimeout(function () {
+          if (typeof action.onClick === "function") {
+            action.onClick();
+            return;
+          }
+
+          if (typeof action.onClick === "string" && action.onClick.trim() !== "") {
+            new Function(action.onClick).call(window);
+            return;
+          }
+
+          if ($source.length) {
+            $source.trigger("click");
+          }
+        }, 80);
+      });
+
+      $list.append($btn);
+    });
+
+    if ($list.children().length) {
+      $body.append($list);
+    } else {
+      $body.html(emptyMessage("Aksi belum tersedia."));
+    }
+  }
+
+  function runBack() {
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+
+    window.location.href = window.base_url || "/";
+  }
+
+  function openMobileMenu() {
+    $("body").addClass("menu-open");
+    $(".sidenav-overlay").addClass("show");
+  }
+
+  function closeMobileMenu() {
+    $("body").removeClass("menu-open");
+    $(".sidenav-overlay").removeClass("show");
+  }
+
+  function runMenu() {
+    if (isMobile() && $("body").hasClass("sigapp-mobile-bottom-nav-ready")) {
+      closeSheet();
+      if ($("body").hasClass("menu-open")) {
+        closeMobileMenu();
+      } else {
+        openMobileMenu();
+      }
+      return;
+    }
+
+    const $menuToggle = $(".header-navbar .menu-toggle").first();
+    if ($menuToggle.length) {
+      $menuToggle.trigger("click");
+      return;
+    }
+
+    $("body").toggleClass("menu-open");
+  }
+
+  function refresh() {
+    const ready = !!(state.config && isMobile());
+    $("body").toggleClass("sigapp-mobile-bottom-nav-ready", ready);
+
+    if (!ready) {
+      closeSheet();
+      return;
+    }
+
+    navButton("back").prop("hidden", !(state.config.showBack !== false));
+    navButton("menu").prop("hidden", !(state.config.showMenu !== false));
+    navButton("filter").prop("hidden", !hasFilter());
+    navButton("actions").prop("hidden", !hasActions());
+  }
+
+  function register(config) {
+    const incoming = config || {};
+    const nextConfig = $.extend(true, {}, defaults, state.config || {});
+
+    if (Object.prototype.hasOwnProperty.call(incoming, "filter")) {
+      nextConfig.filter = incoming.filter;
+    }
+    if (Object.prototype.hasOwnProperty.call(incoming, "actions")) {
+      nextConfig.actions = incoming.actions;
+    }
+    if (Object.prototype.hasOwnProperty.call(incoming, "showBack")) {
+      nextConfig.showBack = incoming.showBack;
+    }
+    if (Object.prototype.hasOwnProperty.call(incoming, "showMenu")) {
+      nextConfig.showMenu = incoming.showMenu;
+    }
+
+    state.config = nextConfig;
+
+    $(function () {
+      refresh();
+    });
+  }
+
+  window.SIGAPPMobileBottomNav = {
+    register: register,
+    close: closeSheet,
+    refresh: refresh,
+  };
+
+  $("#sigapp-mobile-bottom-nav").on("click", "[data-sigapp-mobile-nav]", function () {
+    const target = $(this).data("sigapp-mobile-nav");
+
+    if (target === "back") return runBack();
+    if (target === "menu") return runMenu();
+    if (target === "filter") return openSheet("filter");
+    if (target === "actions") return openSheet("actions");
+  });
+
+  $(document).on("click", "[data-sigapp-mobile-close]", closeSheet);
+  $(document).on("keyup", function (event) {
+    if (event.key === "Escape") closeSheet();
+  });
+  $(window).on("resize orientationchange", refresh);
+
+  document.addEventListener(
+    "click",
+    function (event) {
+      if (
+        !isMobile() ||
+        !$("body").hasClass("sigapp-mobile-bottom-nav-ready") ||
+        !$("body").hasClass("menu-open")
+      ) {
+        return;
+      }
+
+      if (event.target && event.target.closest && event.target.closest(".sidenav-overlay")) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        closeMobileMenu();
+      }
+    },
+    true,
+  );
+
+  queuedConfigs.forEach(register);
+  queuedConfigs.length = 0;
+  queuedConfigs.push = function (config) {
+    register(config);
+    return 1;
+  };
+})(window, window.jQuery);
 
 // buatOpsiSelect('kategoriPekerjaan', data);
 

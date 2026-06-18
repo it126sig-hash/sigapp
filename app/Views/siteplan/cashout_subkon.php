@@ -219,6 +219,21 @@
 		text-align: right;
 	}
 
+	#modal-cashout-subkon .cashout-subkon-urgent-focus {
+		animation: cashoutSubkonUrgentFocus 2.8s ease-out;
+		background: #fff7e6;
+	}
+
+	@keyframes cashoutSubkonUrgentFocus {
+		0% {
+			box-shadow: inset 4px 0 0 #ff9f43;
+		}
+
+		100% {
+			box-shadow: inset 4px 0 0 transparent;
+		}
+	}
+
 	#modal-cashout-subkon .cos-sk-timeline {
 		position: relative;
 		padding-left: 50px;
@@ -526,6 +541,15 @@ const status_cashout_subkon = {
   4: ["bg-success", "fa fa-check"],
 };
 
+function cashoutSubkonFixModalFocus() {
+  if (!$.fn.modal || !$.fn.modal.Constructor) {
+    return;
+  }
+
+  $.fn.modal.Constructor.prototype.enforceFocus = function () {};
+  $.fn.modal.Constructor.prototype._enforceFocus = function () {};
+}
+
 function syncCashoutSubkonToken(response) {
   if (response && response.token) {
     csrfHash = response.token;
@@ -535,6 +559,14 @@ function syncCashoutSubkonToken(response) {
 
 function cashoutSubkonPostData(data = {}) {
   return Object.assign({ [csrfName]: csrfHash }, data);
+}
+
+function cashoutSubkonEscapeHtml(value) {
+  return $("<div>").text(value === null || value === undefined ? "" : value).html();
+}
+
+function cashoutSubkonEscapeAttr(value) {
+  return cashoutSubkonEscapeHtml(value).replace(/`/g, "&#96;");
 }
 
 function updateCashoutSubkonHeroLabel(data) {
@@ -697,6 +729,7 @@ function openCOSubkon(options = {}) {
 
       initModalListener(modal);
       $(modal).modal("show");
+      focusCashoutSubkonDetail(options.id_cashout_subkon_detail);
     },
     error: function (r) {
       $("#loading").addClass("hidden");
@@ -921,31 +954,40 @@ function load_cashout_subkon_detail(data) {
     data.forEach((item) => {
       let btn = "";
       let status = "";
+      const detailIdAttr = cashoutSubkonEscapeAttr(item.id_cashout_subkon_detail ?? "");
+      const detailStatusAttr = cashoutSubkonEscapeAttr(item.status ?? "");
+      const sppNo = item.spp_no || "";
+      const sppTgl = item.spp_tgl || "";
+      const pencairanTgl = item.pengajuan_cair_tgl || "";
+      const actionAttrs = `data-i="${i}" data-id="${detailIdAttr}" data-status="${detailStatusAttr}" data-spp-no="${cashoutSubkonEscapeAttr(sppNo)}" data-spp-tgl="${cashoutSubkonEscapeAttr(sppTgl)}" data-pencairan-tgl="${cashoutSubkonEscapeAttr(pencairanTgl)}"`;
       if (roleid == 3 && item.status == 0) {
-        btn = `<button type="button" class="btn btn-sm btn-secondary turun-jatuh-tempo w-100" data-i="${i}" data-id="${item.id_cashout_subkon_detail}" data-status="${item.status}"><i class="fa fa-plus"></i> Terbit Jatuh Tempo</button>`;
+        btn = `<button type="button" class="btn btn-sm btn-secondary turun-jatuh-tempo w-100" ${actionAttrs}><i class="fa fa-plus"></i> Terbit Jatuh Tempo</button>`;
       } else if (roleid == 3 && item.status == 1) {
-        btn = `<button type="button" class="btn btn-sm btn-secondary turun-jatuh-tempo w-100" data-i="${i}" data-id="${item.id_cashout_subkon_detail}" data-status="${item.status}"><i class="fa fa-edit"></i> Ubah Jatuh Tempo</button>`;
+        btn = `<button type="button" class="btn btn-sm btn-secondary turun-jatuh-tempo w-100" ${actionAttrs}><i class="fa fa-edit"></i> Ubah Jatuh Tempo</button>`;
       } else if (roleid == 7 && item.status == 1) {
-        btn = `<button type="button" class="btn btn-sm btn-info ajukan-spp w-100" data-i="${i}" data-id="${item.id_cashout_subkon_detail}" data-status="${item.status}"><i class="fa fa-plus"></i> Ajukan SPP</button>`;
+        btn = `<button type="button" class="btn btn-sm btn-info ajukan-spp w-100" ${actionAttrs}><i class="fa fa-plus"></i> Ajukan SPP</button>`;
       } else if (roleid == 7 && item.status == 2) {
         status =
-          "No SPP: " + item.spp_no + "(" + format_date(item.spp_tgl) + ")";
-        btn = `<button type="button" class="btn btn-sm btn-info ajukan-spp w-100" data-i="${i}" data-id="${item.id_cashout_subkon_detail}" data-status="${item.status}"><i class="fa fa-edit"></i> Ubah SPP</button>`;
+          "No SPP: " + cashoutSubkonEscapeHtml(sppNo) + "(" + format_date(sppTgl) + ")";
+        btn = `<button type="button" class="btn btn-sm btn-info ajukan-spp w-100" ${actionAttrs}><i class="fa fa-edit"></i> Ubah SPP</button>`;
       } else if (roleid == 3 && item.status == 2) {
         status =
-          "No SPP: " + item.spp_no + "(" + format_date(item.spp_tgl) + ")";
-        btn = `<button type="button" class="btn btn-sm btn-warning ajukan-pencairan w-100" data-i="${i}" data-id="${item.id_cashout_subkon_detail}" data-status="${item.status}"><i class="fa fa-plus"></i> Ajukan Pencairan</button>`;
+          "No SPP: " + cashoutSubkonEscapeHtml(sppNo) + "(" + format_date(sppTgl) + ")";
+        btn = `<button type="button" class="btn btn-sm btn-warning ajukan-pencairan w-100" ${actionAttrs}><i class="fa fa-plus"></i> Ajukan Pencairan</button>`;
       } else if (roleid == 3 && item.status == 3) {
         status =
-          "Tgl Pengajuan Cair: " + format_date(item.pengajuan_cair_tgl);
-        btn = `<button type="button" class="btn btn-sm btn-warning ajukan-pencairan w-100" data-i="${i}" data-id="${item.id_cashout_subkon_detail}" data-status="${item.status}"><i class="fa fa-edit"></i> Ubah Tanggal</button>`;
-        btn += `<button type="button" class="btn btn-sm btn-success pembayaran-pencairan w-100" data-i="${i}" data-id="${item.id_cashout_subkon_detail}" data-status="${item.status}"><i class="fa fa-plus"></i> Pembayaran</button>`;
+          "Tgl Pengajuan Cair: " + format_date(pencairanTgl);
+        btn = `<button type="button" class="btn btn-sm btn-warning ajukan-pencairan w-100" ${actionAttrs}><i class="fa fa-edit"></i> Ubah Tanggal</button>`;
+        btn += `<button type="button" class="btn btn-sm btn-success pembayaran-pencairan w-100" ${actionAttrs}><i class="fa fa-plus"></i> Pembayaran</button>`;
       } else if (item.status == 4) {
         status =
-          "No Cek: " + item.cek_no + "(" + format_date(item.cek_tgl) + ")";
+          "No Cek: " + cashoutSubkonEscapeHtml(item.cek_no || "") + "(" + format_date(item.cek_tgl) + ")";
       }
 
-      const tr = $("<tr>");
+      const tr = $("<tr>").attr(
+        "data-id-cashout-subkon-detail",
+        item.id_cashout_subkon_detail ?? ""
+      );
       tr.append(`<td style="min-width:100px; nowrap">
       <input type="hidden" id="fm-cashout-subkon-berita_acara-${i}" name="berita_acara[]" value="${
         item.berita_acara ?? ""
@@ -1095,18 +1137,22 @@ $(document).on("click", ".ajukan-spp", function () {
   const btn = $(this);
   const idx = btn.data("i");
   const id = btn.data("id");
+  const sppNo = btn.attr("data-spp-no") || "";
+  const sppTgl = btn.attr("data-spp-tgl") || "";
+
+  cashoutSubkonFixModalFocus();
 
   Swal.fire({
-    title: "Ajukan SPP",
+    title: sppNo ? "Ubah SPP" : "Ajukan SPP",
     html: `
       <div class="text-left">
         <div class="form-group">
           <label for="swal-spp_no">No. SPP</label>
-          <input type="text" id="swal-spp_no" class="form-control" placeholder="Masukkan No. SPP">
+          <input type="text" id="swal-spp_no" class="form-control" placeholder="Masukkan No. SPP" value="${cashoutSubkonEscapeAttr(sppNo)}">
         </div>
         <div class="form-group">
           <label for="swal-spp_tgl">Tanggal SPP</label>
-          <input type="text" id="swal-spp_tgl" class="form-control flatpickr-basic" placeholder="Pilih Tanggal SPP">
+          <input type="text" id="swal-spp_tgl" class="form-control flatpickr-basic" placeholder="Pilih Tanggal SPP" value="${cashoutSubkonEscapeAttr(sppTgl)}">
         </div>
       </div>
     `,
@@ -1119,11 +1165,12 @@ $(document).on("click", ".ajukan-spp", function () {
         altInput: true,
         altFormat: "j F Y",
         dateFormat: "Y-m-d",
-        defaultDate: new Date(),
+        defaultDate: sppTgl || new Date(),
       });
+      $("#swal-spp_no").trigger("focus");
     },
     preConfirm: () => {
-      const spp_no = Swal.getPopup().querySelector("#swal-spp_no").value;
+      const spp_no = Swal.getPopup().querySelector("#swal-spp_no").value.trim();
       const spp_tgl = Swal.getPopup().querySelector("#swal-spp_tgl").value;
       if (!spp_no || !spp_tgl) {
         Swal.showValidationMessage(`No SPP dan Tanggal SPP harus diisi`);
@@ -1171,14 +1218,27 @@ $(document).on("click", ".ajukan-pencairan", function () {
   const btn = $(this);
   const idx = btn.data("i");
   const id = btn.data("id");
+  const sppNo = btn.attr("data-spp-no") || "";
+  const sppTgl = btn.attr("data-spp-tgl") || "";
+  const pencairanTgl = btn.attr("data-pencairan-tgl") || "";
+
+  cashoutSubkonFixModalFocus();
 
   Swal.fire({
     title: "Ajukan Pencairan",
     html: `
       <div class="text-left">
         <div class="form-group">
+          <label for="swal-pencairan_spp_no">No. SPP</label>
+          <input type="text" id="swal-pencairan_spp_no" class="form-control" placeholder="Masukkan No. SPP" value="${cashoutSubkonEscapeAttr(sppNo)}">
+        </div>
+        <div class="form-group">
+          <label for="swal-pencairan_spp_tgl">Tanggal SPP</label>
+          <input type="text" id="swal-pencairan_spp_tgl" class="form-control flatpickr-basic" placeholder="Pilih Tanggal SPP" value="${cashoutSubkonEscapeAttr(sppTgl)}">
+        </div>
+        <div class="form-group">
           <label for="swal-pencairan_tgl">Tanggal Pengajuan Cair</label>
-          <input type="text" id="swal-pencairan_tgl" class="form-control flatpickr-basic" placeholder="Pilih Tanggal Pengajuan">
+          <input type="text" id="swal-pencairan_tgl" class="form-control flatpickr-basic" placeholder="Pilih Tanggal Pengajuan" value="${cashoutSubkonEscapeAttr(pencairanTgl)}">
         </div>
       </div>
     `,
@@ -1187,21 +1247,30 @@ $(document).on("click", ".ajukan-pencairan", function () {
     cancelButtonText: "Batal",
     focusConfirm: false,
     didOpen: () => {
+      $("#swal-pencairan_spp_tgl").flatpickr({
+        altInput: true,
+        altFormat: "j F Y",
+        dateFormat: "Y-m-d",
+        defaultDate: sppTgl || new Date(),
+      });
       $("#swal-pencairan_tgl").flatpickr({
         altInput: true,
         altFormat: "j F Y",
         dateFormat: "Y-m-d",
-        defaultDate: new Date(),
+        defaultDate: pencairanTgl || new Date(),
       });
+      $("#swal-pencairan_spp_no").trigger("focus");
     },
     preConfirm: () => {
+      const spp_no = Swal.getPopup().querySelector("#swal-pencairan_spp_no").value.trim();
+      const spp_tgl = Swal.getPopup().querySelector("#swal-pencairan_spp_tgl").value;
       const pencairan_tgl = Swal.getPopup().querySelector(
         "#swal-pencairan_tgl",
       ).value;
-      if (!pencairan_tgl) {
-        Swal.showValidationMessage(`Tanggal Pengajuan Cair harus diisi`);
+      if (!spp_no || !spp_tgl || !pencairan_tgl) {
+        Swal.showValidationMessage(`No SPP, Tanggal SPP, dan Tanggal Pengajuan Cair harus diisi`);
       }
-      return { pencairan_tgl: pencairan_tgl };
+      return { spp_no: spp_no, spp_tgl: spp_tgl, pencairan_tgl: pencairan_tgl };
     },
   }).then((result) => {
     if (result.isConfirmed) {
@@ -1210,6 +1279,8 @@ $(document).on("click", ".ajukan-pencairan", function () {
         type: "POST",
         data: cashoutSubkonPostData({
           id_cashout_subkon_detail: id,
+          spp_no: result.value.spp_no,
+          spp_tgl: result.value.spp_tgl,
           pencairan_tgl: result.value.pencairan_tgl,
         }),
         dataType: "json",
@@ -1359,6 +1430,32 @@ function load_subkon(data) {
     $("#fm-cashout-subkon-hp1_subkon").val(data.hp1_subkon);
     $("#fm-cashout-subkon-alamat_subkon").val(data.alamat_subkon);
   }
+}
+
+function focusCashoutSubkonDetail(id) {
+  if (!id) {
+    return;
+  }
+
+  setTimeout(function () {
+    const row = $(
+      `#fm-cashout-subkon-termin tr[data-id-cashout-subkon-detail="${id}"]`
+    );
+    if (!row.length) {
+      return;
+    }
+
+    row.addClass("cashout-subkon-urgent-focus");
+    const body = $("#modal-cashout-subkon .modal-body");
+    if (body.length) {
+      body.animate(
+        {
+          scrollTop: body.scrollTop() + row.position().top - 120,
+        },
+        250,
+      );
+    }
+  }, 250);
 }
 
 $("#fm-cashout-subkon-total_nominal").change(function () {

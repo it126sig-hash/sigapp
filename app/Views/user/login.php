@@ -6,8 +6,14 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=0,minimal-ui">
+	<meta name="theme-color" content="#2057a3">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-title" content="SIGAPP">
+	<meta name="apple-mobile-web-app-status-bar-style" content="default">
 	<title>Login - SIGAPP</title>
-	<link rel="apple-touch-icon" href="<?= base_url() ?>/app-assets/images/ico/apple-icon-120.png">
+	<link rel="manifest" href="<?= base_url('manifest.webmanifest') ?>">
+	<link rel="apple-touch-icon" href="<?= base_url('assets/images/pwa/apple-touch-icon.png') ?>">
 	<link rel="shortcut icon" type="image/x-icon" href="<?= base_url() ?>/app-assets/images/ico/favicon.ico">
 
 	<!-- BEGIN: Vendor CSS-->
@@ -404,6 +410,14 @@
 	<!-- BEGIN: Page JS-->
 	<script src="<?= base_url() ?>/app-assets/js/scripts/pages/page-auth-login.js"></script>
 	<!-- END: Page JS-->
+
+	<script>
+		window.SIGAPP_PWA = {
+			serviceWorkerUrl: "<?= base_url('sw.js') ?>",
+			serviceWorkerScope: "<?= base_url() ?>"
+		};
+	</script>
+	<script src="<?= base_url('assets/js/pwa-install.js') ?>?<?= filemtime(FCPATH . 'assets/js/pwa-install.js') ?>"></script>
 
 	<script>
 		$(function () {
