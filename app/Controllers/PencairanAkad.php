@@ -69,4 +69,25 @@ class PencairanAkad extends BaseController
             $this->service->getHistory((int) $id_kavling)
         );
     }
+
+    public function listHasilAkad()
+    {
+        $data['content'] = 'keuangan/list-hasil-akad';
+        $data['data']['controller'] = 'Keuangan';
+        $data['data']['title'] = 'List Hasil Akad';
+
+        return view('template', $data);
+    }
+
+    public function getListGrouped()
+    {
+        return $this->service->getListGrouped($this->request);
+    }
+
+    public function getListDetail()
+    {
+        $idMkdt = (int) $this->request->getPost('id_mkdt');
+
+        return $this->response->setJSON($this->service->getListDetail($idMkdt));
+    }
 }

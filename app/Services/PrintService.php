@@ -61,6 +61,7 @@ class PrintService
             ->orderBy('jatuh_tempo_tgl')
             ->find();
 
+        dd($data);
         $html[] = view('pdf/spptb-new',       $data);
         $html[] = view('pdf/spptb-new-page2', $data);
         $html[] = view('pdf/spptb-new-page3', $data);

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Hermawan\DataTables\DataTable;
+
 class PencairanAkadService
 {
     protected $db;
@@ -528,6 +530,106 @@ class PencairanAkadService
         }
 
         return $this->response(true, 'Pengajuan berhasil dibatalkan');
+    }
+
+    public function getListGrouped($request)
+    {
+        $pengajuanAgg = $this->db->table('pencairan_akad_pengajuan')
+            ->select("id_plan,
+                      SUM(CASE WHEN status IN ('active','partial') THEN total_pengajuan - total_cair ELSE 0 END) AS outstanding,
+                      SUM(CASE WHEN status != 'void' THEN total_cair ELSE 0 END) AS total_cair")
+            ->groupBy('id_plan')
+            ->getCompiledSelect();
+
+        $builder = $this->db->table('mkdt m')
+            ->select('
+                m.id_mkdt, m.id_kavling, m.akad_tgl, m.harga_kpr_acc, m.is_kpr,
+                c.nama_konsumen, j.nama_jalan, k.no_kavling, tipe.tipe_rumah,
+                hj.hargajual, p.nama_proyek,
+                pap.id AS id_plan,
+                COALESCE(pap.total_hasil_akad, m.harga_kpr_acc) AS total_hasil_akad,
+                COALESCE(pg.outstanding, 0) AS pengajuan_outstanding,
+                COALESCE(pg.total_cair, 0) AS sudah_cair
+            ')
+            ->join('kavling k', 'k.id_mkdt = m.id_mkdt')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+            ->join('proyek p', 'p.id_proyek = cl.id_proyek')
+            ->join('konsumen c', 'c.id_konsumen = m.id_konsumen')
+            ->join('hargajual hj', 'hj.id = k.harga_akhir', 'left')
+            ->join('tipe', 'tipe.id_tipe = k.id_tipe', 'left')
+            ->join('pencairan_akad_plan pap', 'pap.id_mkdt = m.id_mkdt', 'left')
+            ->join("({$pengajuanAgg}) pg", 'pg.id_plan = pap.id', 'left')
+            ->where('m.status_mkdt', 'Akad')
+            ->where('m.is_kpr', 1);
+
+        $idProyek = resolve_active_proyek_id($request->getVar('id_proyek'));
+        if ($idProyek) {
+            $builder->where('p.id_proyek', $idProyek);
+        }
+        if ($request->getVar('id_cluster')) {
+            $builder->where('cl.id_cluster', $request->getVar('id_cluster'));
+        }
+        if ($request->getVar('id_jalan')) {
+            $builder->where('j.id_jalan', $request->getVar('id_jalan'));
+        }
+
+        $statusCair = $request->getVar('status_cair');
+        if ($statusCair === 'belum_cair') {
+            $builder->where("m.harga_kpr_acc - COALESCE(pg.total_cair, 0) > 0.01", null, false);
+        } elseif ($statusCair === 'sudah_cair') {
+            $builder->where("m.harga_kpr_acc - COALESCE(pg.total_cair, 0) <= 0.01", null, false);
+        }
+
+        return DataTable::of($builder)
+            ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
+            ->add('Aksi', function ($v) {
+                $sh = htmlspecialchars(json_encode([
+                    'id_kavling' => $v->id_kavling,
+                    'id_mkdt' => $v->id_mkdt,
+                    'nama_proyek' => $v->nama_proyek,
+                    'nama_jalan' => $v->nama_jalan,
+                    'no_kavling' => $v->no_kavling,
+                ]), ENT_QUOTES, 'UTF-8');
+
+                return '<button type="button" class="btn btn-primary btn-sm" onclick="openPencairanAkadModal(' . $sh . ')"><i class="fas fa-hand-holding-usd mr-25"></i> Kelola</button>';
+            }, 'first')
+            ->addNumbering('no')
+            ->edit('akad_tgl', fn ($v) => $this->format_tgl($v->akad_tgl))
+            ->edit('hargajual', fn ($v) => number_format((float) $v->hargajual))
+            ->edit('harga_kpr_acc', fn ($v) => (float) $v->harga_kpr_acc > 0
+                ? 'Rp ' . number_format((float) $v->harga_kpr_acc)
+                : '<span class="badge badge-warning">ACC KPR Belum Diisi</span>')
+            ->edit('pengajuan_outstanding', fn ($v) => '<span class="text-warning font-weight-bold">Rp ' . number_format((float) $v->pengajuan_outstanding) . '</span>')
+            ->edit('sudah_cair', fn ($v) => '<span class="text-success font-weight-bold">Rp ' . number_format((float) $v->sudah_cair) . '</span>')
+            ->add('sisa', fn ($v) => '<span class="text-danger font-weight-bold">Rp ' . number_format((float) $v->harga_kpr_acc - (float) $v->sudah_cair) . '</span>')
+            ->toJson(true);
+    }
+
+    public function getListDetail(int $idMkdt): array
+    {
+        $plan = $this->getPlanByMkdt($idMkdt);
+        if (! $plan) {
+            return ['token' => csrf_hash(), 'success' => true, 'items' => [], 'pengajuan' => []];
+        }
+
+        $lockedIds = $this->getLockedItemIds((int) $plan->id);
+
+        return [
+            'token' => csrf_hash(),
+            'success' => true,
+            'items' => $this->getItems((int) $plan->id, $lockedIds),
+            'pengajuan' => $this->listPengajuan((int) $plan->id),
+        ];
+    }
+
+    protected function format_tgl($tgl)
+    {
+        if ($tgl == '' || $tgl == '0000-00-00' || $tgl == null) {
+            return '-';
+        }
+
+        return date_format(date_create($tgl), 'd-M-Y');
     }
 
     public function getHistory(int $idKavling): array

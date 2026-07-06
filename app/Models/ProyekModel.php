@@ -10,7 +10,7 @@ class ProyekModel extends Model {
 	protected $primaryKey = 'id_proyek';
 	protected $returnType = 'object';
 	protected $useSoftDeletes = false;
-	protected $allowedFields = ['nama_proyek', 'alamat_proyek','kelurahan', 'kecamatan', 'kota', 'provinsi', 'siteplan','logo'];
+	protected $allowedFields = ['nama_proyek', 'alamat_proyek','kelurahan', 'kecamatan', 'kota', 'provinsi', 'siteplan','logo', 'logo_pt', 'nama_pt', 'no_rek', 'bank', 'atas_nama'];
 	protected $useTimestamps = false;
 	protected $createdField  = 'created_at';
 	protected $updatedField  = 'updated_at';

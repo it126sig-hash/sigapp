@@ -250,7 +250,8 @@ class FileAccessService
 
             case 'proyek_siteplan':
             case 'proyek_logo':
-                $field = $source === 'proyek_siteplan' ? 'siteplan' : 'logo';
+            case 'proyek_logo_pt':
+                $field = ['proyek_siteplan' => 'siteplan', 'proyek_logo' => 'logo', 'proyek_logo_pt' => 'logo_pt'][$source];
                 $row = $this->db->table('proyek')->select("id_proyek, {$field}")->where('id_proyek', $id)->get()->getRow();
                 $this->assertRow($row);
                 return $this->fileMeta($row->{$field}, basename((string) $row->{$field}), $this->projectAssetRoles, $row);

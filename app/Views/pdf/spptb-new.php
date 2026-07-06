@@ -125,6 +125,17 @@ function title_case($s)
 {
     return $s ? ucwords(strtolower($s)) : $s;
 }
+
+// Logo dirender sebagai background-image (bukan <img>): beberapa file logo punya
+// metadata dimensi tidak konsisten (mis. EXIF vs data JPEG beda), yang bikin mPDF
+// salah hitung lebar float:right di sebelahnya walau <img> sudah diberi width/height
+// eksplisit. background-image tidak dibaca dimensi aslinya oleh mPDF, jadi float aman.
+$logoSrc = (new \App\Services\FileAccessService())->existingPath($proyek->logo) ?: base_url($proyek->logo);
+$logoHeight = 150;
+$logoWidth = $logoHeight;
+if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
+    $logoWidth = (int) round($logoHeight * $logoDims[0] / $logoDims[1]);
+}
 ?>
 
 <htmlpageheader name="header_pages">
@@ -135,22 +146,20 @@ function title_case($s)
 <sethtmlpageheader name="header_pages" value="on" />
 
 <div style="overflow: hidden;">
-    <div style="float: left;">
-        <img height="150" src="<?= (new \App\Services\FileAccessService())->existingPath($proyek->logo) ?: base_url($proyek->logo) ?>" />
-    </div>
-    <div style="float: right; border: 1px solid #111; padding: 4px 8px; font-size: 8pt; width: 42mm; margin-top: 4px;">
-        Asli : Keuangan Pusat<br>
-        Copy 1 : Konsumen<br>
-        Copy 2 : Keuangan Proyek<br>
-        Copy 3 : Marketing
-    </div>
-</div>
-<div style="overflow: hidden; margin-top: 15px;">
-    <div style="float: left;">
-        Proyek: <?= title_case($proyek->nama_proyek) ?>
-    </div>
-    <div style="float: right; font-size: 16pt;">
-        <strong>No. SPPTB : <?= strtoupper($data->no_spptb) ?></strong>
+    <div style="float: left; width: <?= $logoWidth ?>px; height: <?= $logoHeight ?>px; background-image: url('<?= $logoSrc ?>'); background-size: contain; background-repeat: no-repeat; background-position: left top;"></div>
+    <div style="float: right; width: 55mm;">
+        <div style="border: 1px solid #111; padding: 4px 8px; font-size: 8pt;">
+            Asli : Keuangan Pusat<br>
+            Copy 1 : Konsumen<br>
+            Copy 2 : Keuangan Proyek<br>
+            Copy 3 : Marketing
+        </div>
+        <div style="margin-top: 8px;">
+            Proyek: <?= title_case($proyek->nama_proyek) ?>
+        </div>
+        <div style="font-size: 16pt;">
+            <strong>No. SPPTB : <?= strtoupper($data->no_spptb) ?></strong>
+        </div>
     </div>
 </div>
 <div style="padding-bottom: -30px;">
@@ -220,7 +229,7 @@ function title_case($s)
             </td>
             <td valign="top">
 
-                : <?= strtoupper($data->email_konsumen) ?>
+                : <?= strtolower($data->email_konsumen) ?>
 
             </td>
         </tr>
@@ -232,7 +241,7 @@ function title_case($s)
             </td>
             <td valign="top">
 
-                : <?= title_case($data->nama_instansi) ?>
+                : <?= $data->nama_instansi ?>
 
             </td>
         </tr>
@@ -242,7 +251,7 @@ function title_case($s)
             </td>
             <td valign="top">
 
-                : <?= title_case($data->alamat_instansi) ?>
+                : <?= $data->alamat_instansi ?>
 
             </td>
         </tr>
@@ -259,7 +268,7 @@ function title_case($s)
                 Email
             </td>
             <td valign="top">
-                : <?= strtoupper($data->email_instansi) ?>
+                : <?= strtolower($data->email_instansi) ?>
             </td>
         </tr>
         <tr>
@@ -350,7 +359,7 @@ function title_case($s)
         </tr>
         <tr>
             <td></td>
-            <td>Instansi: <b><?= title_case($data->instansi_pasangan) ?></b></td>
+            <td>Instansi: <b><?= $data->instansi_pasangan ?></b></td>
         </tr>
     </tbody>
 </table>
@@ -372,7 +381,7 @@ function title_case($s)
             </td>
             <td width="189" valign="top">
                 <p>
-                    : <?= strtoupper($data->tipe_rumah) ?>
+                    : <?= ($data->tipe_pricelist) ?>
                 </p>
             </td>
             <td width="123" valign="top">

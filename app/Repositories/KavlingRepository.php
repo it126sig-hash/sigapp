@@ -225,6 +225,33 @@ class KavlingRepository
     }
 
     /**
+     * Select tambahan untuk status pencairan hasil akad (divisi Keuangan / id_divisi 3 saja).
+     * Join tunggal ke derived table teragregasi per id_plan, bukan subquery per baris.
+     */
+    private function addPencairanAkadSelect(BaseBuilder $builder): void
+    {
+        $builder->join('pencairan_akad_plan pap', 'pap.id_mkdt = mkdt.id_mkdt', 'left');
+
+        $builder->join(
+            "(SELECT id_plan,
+                     SUM(CASE WHEN status <> 'void' THEN 1 ELSE 0 END) AS pa_pengajuan_count,
+                     SUM(CASE WHEN status <> 'void' THEN total_cair ELSE 0 END) AS pa_total_cair_sum
+              FROM pencairan_akad_pengajuan
+              GROUP BY id_plan) papg",
+            'papg.id_plan = pap.id',
+            'left',
+            false
+        );
+
+        $builder->select('
+            pap.id AS pa_plan_id,
+            pap.total_hasil_akad AS pa_total_hasil_akad,
+            papg.pa_pengajuan_count,
+            papg.pa_total_cair_sum
+        ', true);
+    }
+
+    /**
      * Main: ambil data kavling dengan seluruh filter.
      */
     public function getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null)
@@ -232,6 +259,10 @@ class KavlingRepository
         $builder = $this->baseQuery();
 
         $this->addDivisiSelect($builder, $id_divisi);
+
+        if ((int) $id_divisi === 3) {
+            $this->addPencairanAkadSelect($builder);
+        }
 
         // filter proyek
         $builder->where('cluster.id_proyek', $id_proyek);
