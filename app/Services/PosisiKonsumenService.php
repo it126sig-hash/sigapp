@@ -205,6 +205,9 @@ class PosisiKonsumenService
             ->edit('action', function ($value) {
                 return $this->renderPoskonActionHtml($value);
             })
+            ->edit('keterangan_status', function ($v) {
+                return $v->keterangan_status ?: '-';
+            })
             ->toJson();
     }
     function getDataTablesBatal($request)

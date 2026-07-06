@@ -191,6 +191,7 @@ class TransaksiController extends BaseApiController
             'akad_tgl'          => $p['akad_tgl'] ?? null,
             'debitur_no'        => $p['debitur_no'] ?? null,
             'keterangan'        => $p['mkdt_keterangan'] ?? null,
+            'keterangan_status' => $p['status_keterangan'] ?? null,
             'wawancara_tgl'     => $p['wawancara_tgl'] ?? null,
             'wawancara'         => $p['wawancara'] ?? null,
             'id_bank'           => $p['id_bank'] ?? null,

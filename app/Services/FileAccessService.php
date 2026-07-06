@@ -17,6 +17,7 @@ class FileAccessService
         'file_spptb'        => [1, 3, 4, 9],
         'pencairan_jaminan' => [1, 3, 9],
         'bank_kpr_disbursement' => [1, 3, 9],
+        'pencairan_akad'    => [1, 3, 9],
         'file_hargajual'    => [1, 3, 4, 9],
         'cashout_subkon'    => [1, 3, 7, 9],
         'kavling_perintah_bangun' => [1, 4, 7, 9],
@@ -273,6 +274,11 @@ class FileAccessService
                     ->getRow();
                 $this->assertRow($row);
                 return $this->fileMeta($row->file_bukti, basename((string) $row->file_bukti), $this->sourceRoles[$source], $row);
+
+            case 'pencairan_akad':
+                $row = $this->db->table('pencairan_akad_pengajuan')->where('id', $id)->get()->getRow();
+                $this->assertRow($row);
+                return $this->fileMeta($row->lampiran_surat, basename((string) $row->lampiran_surat), $this->sourceRoles[$source], $row);
 
             case 'file_hargajual':
                 $row = $this->db->table('file_hargajual')->where('id_filehj', $id)->get()->getRow();

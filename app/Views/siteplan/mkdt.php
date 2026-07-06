@@ -3234,6 +3234,10 @@
                                     <label for="mkdt_keterangan">Keterangan Khusus</label>
                                     <input type="text" id="mkdt_keterangan" name="mkdt_keterangan" class="form-control" placeholder="ACC SP3K/REJECT/WAWANCARA/DLL" />
                                 </div>
+                                <div class="form-group">
+                                    <label for="status_keterangan">Keterangan Status</label>
+                                    <textarea class="form-control" id="status_keterangan" name="status_keterangan" rows="3" placeholder="Keterangan detail status kavling"></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -4866,6 +4870,7 @@ $("#refresh_fmmkdt_btn").click(function () {
 
 function refresh_fmmkdt($st = true) {
   $("#fm-mkdt")[0].reset();
+  $("#status_keterangan").prev(".richText-editor").trigger("setContent", "");
   $("#fm-mkdt input:text, #fm-mkdt select, #fm-mkdt textarea").prop(
     "disabled",
     $st,
@@ -4991,6 +4996,8 @@ function open_mkdt(sh, role, id_kavling) {
         $("#lb-st-nama_konsumen").html(r.nama_konsumen);
 
         $("#fm-mkdt #mkdt_keterangan").val(r.keterangan);
+        $("#status_keterangan").prev(".richText-editor").trigger("setContent", r.keterangan_status ?? "");
+        $("#status_keterangan").html(r.keterangan_status ?? "");
         $("#fm-mkdt #acc_harga_kpr").val(r.harga_kpr_acc).change();
         $("#fm-mkdt #harga_turun_kpr").val(r.harga_penambahan_um).change();
 

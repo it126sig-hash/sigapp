@@ -78,6 +78,7 @@ class MkdtModel extends Model
 		'sp3k',
 		'wawancara',
 		'keterangan', //mkdt_keterangan
+		'keterangan_status',
 		'id_kavling',
 		'is_lunas',
 		'add_by',

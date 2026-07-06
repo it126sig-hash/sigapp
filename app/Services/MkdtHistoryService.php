@@ -136,6 +136,7 @@ class MkdtHistoryService
             'harga_kpr_acc' => 'KPR disetujui',
             'harga_penambahan_um' => 'Turun KPR',
             'keterangan'    => 'Keterangan',
+            'keterangan_status' => 'Keterangan Status',
             'bank'          => 'Bank',
         ];
 

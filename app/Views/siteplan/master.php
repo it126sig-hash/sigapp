@@ -1405,6 +1405,9 @@ foreach (user()->getRoles() as $key => $val) {
     var siteplanImageReady = false,
         siteplanStageReady = false,
         siteplanCanvasInitialized = false;
+    var siteplanKavlingRequest = null,
+        siteplanOthersRequest = null,
+        siteplanLoadSequence = 0;
 
     function syncSiteplanMainHeight(konva_h) {
         const $card = $('.siteplan-main-card');
@@ -1491,7 +1494,7 @@ foreach (user()->getRoles() as $key => $val) {
         addMode = false;
         currentThreshold = colorThreshold;
 
-        showThreshold();
+        // showThreshold();
 
         //imginfo
         var img = imageObj;
@@ -1517,9 +1520,6 @@ foreach (user()->getRoles() as $key => $val) {
 
         //load kavling dari database
         load_kavling(roleid == 1 || roleid == 7);
-        loadSiteplanUrgentPanel({
-            force: false
-        });
 
         // $("#pilih-divisi").select2("val", roleid)
         // change_div();
@@ -1914,6 +1914,15 @@ foreach (user()->getRoles() as $key => $val) {
     }
     //load shape kavling
     function load_kavling(refresh = false) {
+        const loadSequence = ++siteplanLoadSequence;
+
+        if (siteplanKavlingRequest && siteplanKavlingRequest.readyState !== 4) {
+            siteplanKavlingRequest.abort();
+        }
+        if (siteplanOthersRequest && siteplanOthersRequest.readyState !== 4) {
+            siteplanOthersRequest.abort();
+        }
+
         hapus_seleksi();
         filterwarna = {
             Status: null,
@@ -1951,7 +1960,7 @@ foreach (user()->getRoles() as $key => $val) {
         let va = $("#pilih-divisi option:selected").val();
         wr_pembangunan = [];
         list_jatuhtempo = [];
-        $.ajax({
+        siteplanKavlingRequest = $.ajax({
             url: base_url + 'siteplan/get/all',
             type: 'post',
             data: {
@@ -1964,6 +1973,10 @@ foreach (user()->getRoles() as $key => $val) {
             dataType: 'json',
             beforeSend: () => $("#loading").removeClass("hidden"),
             success: function(result) {
+                if (loadSequence !== siteplanLoadSequence) {
+                    return;
+                }
+
                 $("#loading").addClass("hidden");
                 csrfHash = result.token;
                 stroke = fill = strokeWidth = dashed = "";
@@ -2374,15 +2387,25 @@ foreach (user()->getRoles() as $key => $val) {
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
                 handlePendingSiteplanUrgentAction()
+                scheduleSiteplanUrgentPanelLoad();
             },
             error: function(xhr, st, err) {
+                if (st === 'abort' || loadSequence !== siteplanLoadSequence) {
+                    return;
+                }
+
                 $("#loading").addClass("hidden")
                 return swal("error", err);
             },
+            complete: function() {
+                if (loadSequence === siteplanLoadSequence) {
+                    siteplanKavlingRequest = null;
+                }
+            }
         });
 
         //load jalan fasos rth
-        $.ajax({
+        siteplanOthersRequest = $.ajax({
             url: base_url + 'siteplan/get_others',
             type: 'post',
             data: {
@@ -2395,6 +2418,10 @@ foreach (user()->getRoles() as $key => $val) {
                 $("#loading").removeClass("hidden");
             },
             success: function(result) {
+                if (loadSequence !== siteplanLoadSequence) {
+                    return;
+                }
+
                 stroke = ""
                 fill = ""
                 strokeWidth = ""
@@ -2426,7 +2453,11 @@ foreach (user()->getRoles() as $key => $val) {
                     siteplan.add(kav);
                 }
             },
-            error: function() {
+            error: function(xhr, st) {
+                if (st === 'abort' || loadSequence !== siteplanLoadSequence) {
+                    return;
+                }
+
                 Swal.fire({
 
                     icon: 'error',
@@ -2435,6 +2466,11 @@ foreach (user()->getRoles() as $key => $val) {
                     //timer: 1500
                 })
                 return;
+            },
+            complete: function() {
+                if (loadSequence === siteplanLoadSequence) {
+                    siteplanOthersRequest = null;
+                }
             }
         });
         group.hide();
@@ -3733,6 +3769,9 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     let siteplanUrgentItems = {};
+    let siteplanUrgentLoaded = false;
+    let siteplanUrgentLoadQueued = false;
+    let siteplanUrgentRequest = null;
     let pendingSiteplanUrgentActionConsumed = false;
     const siteplanUrgentSectionOrder = [
         'tagihan_overdue',
@@ -3750,6 +3789,12 @@ foreach (user()->getRoles() as $key => $val) {
 
     function toggleSiteplanUrgentPanel(force) {
         const panel = $("#siteplan-urgent-panel");
+        if (force !== false && !siteplanUrgentLoaded && !siteplanUrgentRequest) {
+            loadSiteplanUrgentPanel({
+                autoOpen: true
+            });
+        }
+
         if (force === true) {
             panel.removeClass("hidden");
             return;
@@ -3761,12 +3806,38 @@ foreach (user()->getRoles() as $key => $val) {
         panel.toggleClass("hidden");
     }
 
+    function scheduleSiteplanUrgentPanelLoad(options = {}) {
+        if (siteplanUrgentLoaded || siteplanUrgentLoadQueued || siteplanUrgentRequest) {
+            return;
+        }
+
+        siteplanUrgentLoadQueued = true;
+        const run = function() {
+            siteplanUrgentLoadQueued = false;
+            if (!siteplanUrgentLoaded && !siteplanUrgentRequest) {
+                loadSiteplanUrgentPanel(options);
+            }
+        };
+
+        if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(run, {
+                timeout: 2000
+            });
+        } else {
+            window.setTimeout(run, 700);
+        }
+    }
+
     function loadSiteplanUrgentPanel(options = {}) {
         if (!dt_proyek || !dt_proyek.id_proyek) {
             return;
         }
 
-        $.ajax({
+        if (siteplanUrgentRequest && siteplanUrgentRequest.readyState !== 4) {
+            return;
+        }
+
+        siteplanUrgentRequest = $.ajax({
             type: "post",
             url: base_url + "siteplan/urgent/summary",
             data: {
@@ -3789,11 +3860,19 @@ foreach (user()->getRoles() as $key => $val) {
                     return;
                 }
 
+                siteplanUrgentLoaded = true;
                 renderSiteplanUrgentPanel(r.summary || {}, options);
             },
-            error: function() {
+            error: function(xhr, st) {
+                if (st === 'abort') {
+                    return;
+                }
+
                 $("#siteplan-urgent-toggle").removeClass("hidden");
                 $("#siteplan-urgent-body").html('<div class="siteplan-urgent-empty">Gagal memuat hal urgent.</div>');
+            },
+            complete: function() {
+                siteplanUrgentRequest = null;
             }
         });
     }

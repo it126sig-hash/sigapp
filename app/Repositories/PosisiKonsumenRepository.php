@@ -29,7 +29,7 @@ class PosisiKonsumenRepository
             mkdt.booking_tgl,
             mkdt.wawancara_tgl,
             mkdt.is_kpr,
-            mkdt.bank,
+            list_bank.bank as bank,
             mkdt.keterangan,
             mkdt.sp3k_tgl,
             mkdt.sp3k_tgl_exp,
@@ -46,6 +46,7 @@ class PosisiKonsumenRepository
             legal.pbg_no,
             legal.pbb_pecah_nop,
             "" as sikumbang,
+            mkdt.keterangan_status,
             mps.total_um,
             mps.total_adm,
             mps.total_bb,
@@ -72,6 +73,7 @@ class PosisiKonsumenRepository
             ')
             ->join('kavling', "kavling.id_mkdt = mkdt.id_mkdt")
             ->join('hargajual', "mkdt.id_hargajual = hargajual.id")
+            ->join('list_bank', 'list_bank.id = mkdt.id_bank', 'left')
             ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
             ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
             ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left')

@@ -478,6 +478,173 @@
         }
     }
 
+    #pencairan_akad_modal .keu-pa-layout {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        min-width: 0;
+    }
+
+    #pencairan_akad_modal .keu-pa-sidebar {
+        align-self: flex-start;
+        flex: 0 0 320px;
+        max-height: calc(100vh - 8rem);
+        max-width: 320px;
+        overflow-y: auto;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    #pencairan_akad_modal .keu-pa-content {
+        flex: 1 1 auto;
+        max-width: calc(100% - 336px);
+        min-width: 0;
+    }
+
+    #pencairan_akad_modal .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: none;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    #pencairan_akad_modal .card-body {
+        padding: 1rem;
+    }
+
+    #pencairan_akad_modal .bg-primary {
+        background: linear-gradient(145deg, #2057a3 0%, #1f7a8c 100%) !important;
+    }
+
+    #pencairan_akad_modal .keu-pa-summary-row {
+        align-items: center;
+        border-bottom: 1px solid #eef2f7;
+        display: flex;
+        gap: .75rem;
+        justify-content: space-between;
+        padding: .45rem 0;
+    }
+
+    #pencairan_akad_modal .keu-pa-summary-row:last-child {
+        border-bottom: 0;
+    }
+
+    #pencairan_akad_modal .keu-pa-summary-row span {
+        color: #6b7280;
+        font-size: .78rem;
+        font-weight: 700;
+    }
+
+    #pencairan_akad_modal .keu-pa-summary-row strong {
+        color: #111827;
+        font-size: .9rem;
+        text-align: right;
+    }
+
+    #pencairan_akad_modal .nav-tabs {
+        border-bottom: 1px solid #d8dde3;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+
+    #pencairan_akad_modal .nav-tabs .nav-link {
+        border-radius: 6px 6px 0 0;
+        color: #4b5563;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    #pencairan_akad_modal .nav-tabs .nav-link.active {
+        color: #2057a3;
+    }
+
+    #pencairan_akad_modal .table thead th {
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+        color: #374151;
+        font-size: .78rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    #pencairan_akad_modal .table tbody td {
+        font-size: .84rem;
+        vertical-align: middle;
+    }
+
+    #pencairan_akad_modal .pa-history-timeline {
+        position: relative;
+        padding-left: 50px;
+    }
+
+    #pencairan_akad_modal .pa-history-timeline .timeline-item {
+        position: relative;
+    }
+
+    #pencairan_akad_modal .pa-history-timeline .timeline-item::before {
+        background: #e5e7eb;
+        content: "";
+        height: calc(100% - 30px);
+        left: -32px;
+        position: absolute;
+        top: 40px;
+        width: 2px;
+    }
+
+    #pencairan_akad_modal .pa-history-timeline .timeline-item:last-child::before {
+        display: none;
+    }
+
+    #pencairan_akad_modal .pa-history-timeline .timeline-icon {
+        align-items: center;
+        border-radius: 50%;
+        box-shadow: 0 4px 6px rgba(15, 23, 42, .12);
+        color: #fff;
+        display: flex;
+        height: 40px;
+        justify-content: center;
+        left: -50px;
+        position: absolute;
+        width: 40px;
+        z-index: 1;
+    }
+
+    @media (max-width: 1199.98px) {
+        #pencairan_akad_modal .keu-pa-layout {
+            flex-wrap: wrap;
+        }
+
+        #pencairan_akad_modal .keu-pa-sidebar,
+        #pencairan_akad_modal .keu-pa-content {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        #pencairan_akad_modal .keu-pa-sidebar {
+            max-height: none;
+            overflow-y: visible;
+            position: static;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        #pencairan_akad_modal .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
+        }
+
+        #pencairan_akad_modal .keu-pa-body {
+            max-height: calc(100vh - 5.5rem);
+            padding: .75rem;
+        }
+
+        #pencairan_akad_modal .card-body {
+            padding: .85rem;
+        }
+    }
+
     /* SIGAPP UI Acuan - Modal Cash Out (mengikuti #modal-isi_data_konsumen) */
     #modal-cashout-keu .modal-dialog {
         max-width: min(1440px, calc(100vw - 32px));
@@ -1319,6 +1486,259 @@
     </div>
 </div>
 
+<!-- ################################## Pencairan Akad ##########################################-->
+<div class="modal fade text-left" id="pencairan_akad_modal" tabindex="-1" role="dialog"
+    aria-labelledby="pencairan_akad_modal_label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pencairan_akad_modal_label">Pencairan Akad</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body keu-pa-body">
+                <div class="keu-pa-layout">
+                    <aside class="keu-pa-sidebar">
+                        <div class="card">
+                            <div class="card-body bg-primary text-light">
+                                <p class="modal-title label_alamat" id="pa-label-alamat"></p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Info Akad</div>
+                                </div>
+                                <h6><i class="fas fa-users"></i> Konsumen</h6>
+                                <h5><strong><span id="pa-label-konsumen">-</span></strong></h5>
+                                <h6><i class="fas fa-check-circle"></i> Status</h6>
+                                <h5 class="mb-0"><strong><span id="pa-status-mkdt">-</span></strong></h5>
+                            </div>
+                        </div>
+                        <div class="card mb-0">
+                            <div class="card-body">
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Ringkasan</div>
+                                </div>
+                                <div class="keu-pa-summary-row">
+                                    <span>ACC KPR</span>
+                                    <strong id="pa-acc-kpr-label">0</strong>
+                                </div>
+                                <div class="keu-pa-summary-row">
+                                    <span>Total Retensi</span>
+                                    <strong id="pa-total-retensi-label" class="text-primary">0</strong>
+                                </div>
+                                <div class="keu-pa-summary-row">
+                                    <span>Hasil Akad</span>
+                                    <strong id="pa-hasil-akad-label" class="text-info">0</strong>
+                                </div>
+                                <div class="keu-pa-summary-row">
+                                    <span>Pengajuan</span>
+                                    <strong id="pa-total-pengajuan-label" class="text-warning">0</strong>
+                                </div>
+                                <div class="keu-pa-summary-row">
+                                    <span>Sudah Cair</span>
+                                    <strong id="pa-total-cair-label" class="text-success">0</strong>
+                                </div>
+                                <div class="keu-pa-summary-row">
+                                    <span>Sisa Hasil Akad</span>
+                                    <strong id="pa-sisa-hasil-akad-label" class="text-danger">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                    <section class="keu-pa-content">
+                        <div class="card">
+                            <div class="card-body pb-0">
+                                <ul class="nav nav-tabs mb-1" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" id="pa-retensi-tab" data-toggle="tab"
+                                            href="#pa-retensi-pane" role="tab">Retensi</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="pa-tenor-tab" data-toggle="tab"
+                                            href="#pa-tenor-pane" role="tab">Tenor Hasil Akad</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="pa-pengajuan-tab" data-toggle="tab"
+                                            href="#pa-pengajuan-pane" role="tab">Pengajuan</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="pa-pencairan-tab" data-toggle="tab"
+                                            href="#pa-pencairan-pane" role="tab">Pencairan</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="pa-history-tab" data-toggle="tab"
+                                            href="#pa-history-pane" role="tab" onclick="loadPencairanAkadHistory()">History</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="tab-content">
+                            <div class="tab-pane show active" id="pa-retensi-pane" role="tabpanel">
+                                <div class="card mb-0">
+                                    <div class="card-body">
+                                        <div class="divider divider-left">
+                                            <div class="divider-text">Item Retensi (Dana Jaminan Bank)</div>
+                                        </div>
+                                        <div class="form-row align-items-end mb-1">
+                                            <div class="col-md-8">
+                                                <label class="mb-25">Pilih Item Retensi</label>
+                                                <select class="form-control form-control-sm" id="pa-retensi-picker"></select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <button type="button" class="btn btn-outline-primary btn-sm btn-block" onclick="addPencairanAkadRetensiRow()">
+                                                    <i class="fas fa-plus"></i> Tambah
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div id="pa-retensi_here"></div>
+                                        <button type="button" class="btn btn-primary mt-1" onclick="savePencairanAkadRetensi(); return false;">
+                                            Simpan Retensi
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="pa-tenor-pane" role="tabpanel">
+                                <div class="card mb-0">
+                                    <div class="card-body">
+                                        <div class="divider divider-left">
+                                            <div class="divider-text">Tenor Pencairan Hasil Akad (manual, total tidak boleh melebihi Hasil Akad)</div>
+                                        </div>
+                                        <div class="alert alert-light-primary py-1 mb-1" id="pa-tenor-sisa-box">
+                                            Sisa Hasil Akad: <strong id="pa-tenor-sisa-label">Rp 0</strong>
+                                        </div>
+                                        <div id="pa-tenor_here"></div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="addPencairanAkadTenorRow()">
+                                            <i class="fas fa-plus"></i> Tambah Tenor
+                                        </button>
+                                        <button type="button" class="btn btn-primary btn-sm mt-1" onclick="savePencairanAkadTenor(); return false;">
+                                            Simpan Tenor
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="pa-pengajuan-pane" role="tabpanel">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="divider divider-left">
+                                            <div class="divider-text">Buat Pengajuan ke Bank</div>
+                                        </div>
+                                        <form id="form-pencairan-akad-pengajuan" enctype="multipart/form-data" autocomplete="off">
+                                            <input type="hidden" id="pa-pengajuan-id_plan" name="id_plan" value="">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Tanggal Pengajuan</label>
+                                                        <input type="date" class="form-control" name="tanggal_pengajuan" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Tanggal Rencana Cair</label>
+                                                        <input type="date" class="form-control" name="tanggal_rencana_cair">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Lampiran Surat (PDF, wajib)</label>
+                                                        <input type="file" class="form-control-file" name="lampiran_surat" accept="application/pdf" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Catatan Pengajuan</label>
+                                                <textarea class="form-control" name="catatan" rows="2"></textarea>
+                                            </div>
+                                            <div class="divider divider-left">
+                                                <div class="divider-text">Pilih Item (Retensi / Tenor)</div>
+                                            </div>
+                                            <div id="pa-pengajuan-item_here"></div>
+                                            <button type="submit" class="btn btn-primary mt-1">Simpan Pengajuan</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="card mb-0">
+                                    <div class="card-body">
+                                        <div class="divider divider-left">
+                                            <div class="divider-text">Daftar Pengajuan</div>
+                                        </div>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered mb-0" id="tbl-pencairan-akad-pengajuan">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Tgl Pengajuan</th>
+                                                        <th>Rencana Cair</th>
+                                                        <th>Item Diajukan</th>
+                                                        <th class="text-right">Total</th>
+                                                        <th class="text-right">Cair</th>
+                                                        <th>Status</th>
+                                                        <th>PIC</th>
+                                                        <th>Lampiran</th>
+                                                        <th>Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="pa-pencairan-pane" role="tabpanel">
+                                <div class="card mb-0">
+                                    <div class="card-body">
+                                        <div class="divider divider-left">
+                                            <div class="divider-text">Catat Pencairan (Partial Manual per Item)</div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Pilih Pengajuan</label>
+                                            <select class="form-control" id="pa-cair-select_pengajuan" onchange="renderPencairanAkadCairForm()"></select>
+                                        </div>
+                                        <form id="form-pencairan-akad-cair" autocomplete="off">
+                                            <input type="hidden" id="pa-cair-id_pengajuan" name="id_pengajuan" value="">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Tanggal Cair</label>
+                                                        <input type="date" class="form-control" name="tanggal_cair" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <div class="form-group">
+                                                        <label>Catatan</label>
+                                                        <input type="text" class="form-control" name="catatan">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div id="pa-cair-detail_here"></div>
+                                            <button type="submit" class="btn btn-primary mt-1">Simpan Pencairan</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="pa-history-pane" role="tabpanel">
+                                <div class="card mb-0">
+                                    <div class="card-body">
+                                        <div class="divider divider-left">
+                                            <div class="divider-text">History Pencairan Akad</div>
+                                        </div>
+                                        <div class="pa-history-timeline" id="pa-history_here"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ################################## isi_cashout ##########################################-->
 <div class="modal fade text-left" id="modal-cashout-keu" tabindex="-1" role="dialog"
     aria-labelledby="modal-cashout-keu-label" aria-hidden="true">
@@ -1610,6 +2030,18 @@ $("#snk").richText({
 
   // title
   heading: true,
+});
+$("#status_keterangan").richText({
+  fonts: false,
+  // uploads
+  imageUpload: false,
+  fileUpload: false,
+
+  // media
+  videoEmbed: false,
+
+  // link
+  urls: false,
 });
 $("#kopsurat").select2({
   placeholder: "Pilih Kop Surat",
@@ -3412,6 +3844,657 @@ function voidBankKprDisbursement(id) {
   });
 }
 
+// ################################## Pencairan Akad ##################################
+let pencairanAkadState = {
+  idKavling: null,
+  idMkdt: null,
+  sh: null,
+  mkdt: {},
+  plan: null,
+  items: [],
+  listDajam: [],
+  pengajuan: [],
+};
+
+function paMoney(value) {
+  return num_format(parseFloat(value || 0));
+}
+
+function paEscape(value) {
+  return dajamEscape(value);
+}
+
+function paStatusBadge(status) {
+  const map = {
+    active: '<span class="badge badge-secondary">Aktif</span>',
+    partial: '<span class="badge badge-warning">Partial</span>',
+    paid: '<span class="badge badge-success">Paid</span>',
+    void: '<span class="badge badge-light-danger">Void</span>',
+  };
+  return map[status] || status;
+}
+
+function pencairan_akad() {
+  if (!editdtt[0]) {
+    return swal("error", "Tidak ada kavling yang dipilih");
+  }
+
+  const sh = editdtt[0];
+  const idKavling = sh.id.substr(3);
+
+  if (!sh.data.id_mkdt) {
+    return swal(
+      "error",
+      "Terjadi kesalahan",
+      "Belum ada data konsumen di kavling" + sh.data.nama_jalan + ", No." + sh.data.no_kavling,
+    );
+  }
+
+  if (sh.data2.status_mkdt != "Akad") {
+    return swal(
+      "error",
+      "Terjadi kesalahan",
+      "Kavling" + sh.data.nama_jalan + ", No." + sh.data.no_kavling + "Belum Akad!",
+    );
+  }
+
+  pencairanAkadState = {
+    idKavling: idKavling,
+    idMkdt: sh.data.id_mkdt,
+    sh: sh,
+    mkdt: {},
+    plan: null,
+    items: [],
+    listDajam: [],
+    pengajuan: [],
+  };
+
+  loadPencairanAkadData(true);
+}
+
+function loadPencairanAkadData(openModal) {
+  const st = pencairanAkadState;
+  if (!st.idKavling || !st.idMkdt) return;
+
+  $.ajax({
+    url: base_url + "keuangan/pencairan-akad/get",
+    type: "post",
+    data: {
+      [csrfName]: csrfHash,
+      id_kavling: st.idKavling,
+      id_mkdt: st.idMkdt,
+    },
+    dataType: "json",
+    beforeSend: function () {
+      $("#loading").removeClass("hidden");
+    },
+    success: function (r) {
+      $("#loading").addClass("hidden");
+      syncDanaJaminanToken(r);
+      if (r.success === false) {
+        return swal("error", "Terjadi kesalahan", r.messages || r.message || "Data tidak ditemukan");
+      }
+
+      st.mkdt = r.mkdt || {};
+      st.plan = r.plan || null;
+      st.items = r.items || [];
+      st.listDajam = r.list_dajam || [];
+      st.pengajuan = r.list_pengajuan || [];
+
+      if (parseInt(st.mkdt.is_kpr) === 1 && parseFloat(st.mkdt.harga_kpr_acc || 0) <= 0) {
+        swal("warning", "Nominal ACC KPR 0", "Hubungi MKDT untuk memastikan nominal ACC KPR sebelum membuat plan pencairan.");
+      }
+
+      if (openModal) {
+        $("#pencairan_akad_modal").modal({ backdrop: "static", keyboard: false });
+      }
+
+      renderPencairanAkadHeader();
+      renderPencairanAkadSummary();
+      renderPencairanAkadRetensi();
+      renderPencairanAkadTenor();
+      renderPencairanAkadPengajuanItemPicker();
+      renderPencairanAkadPengajuanTable();
+      renderPencairanAkadCairSelect();
+    },
+    error: function (a, b, c) {
+      $("#loading").addClass("hidden");
+      return swal("error", "Terjadi kesalahan", c);
+    },
+  });
+}
+
+function renderPencairanAkadHeader() {
+  const sh = pencairanAkadState.sh;
+  $("#pa-pengajuan-id_plan").val(pencairanAkadState.plan ? pencairanAkadState.plan.id : "");
+  $("#pa-label-alamat").html(
+    dt_proyek.nama_proyek + "<br/>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling,
+  );
+  $("#pa-label-konsumen").text(sh.data2.nama_konsumen || sh.data.nama_konsumen || "-");
+  $("#pa-status-mkdt").text(pencairanAkadState.mkdt.status_mkdt || "-");
+}
+
+function renderPencairanAkadSummary() {
+  const m = pencairanAkadState.mkdt || {};
+  const plan = pencairanAkadState.plan;
+  const accKpr = parseFloat(m.harga_kpr_acc || 0);
+  const totalRetensi = plan ? parseFloat(plan.total_retensi || 0) : 0;
+  const hasilAkad = plan ? parseFloat(plan.total_hasil_akad || 0) : accKpr;
+
+  const nonVoid = pencairanAkadState.pengajuan.filter(function (row) { return row.status !== "void"; });
+  const totalCair = nonVoid.reduce(function (sum, row) { return sum + parseFloat(row.total_cair || 0); }, 0);
+  const totalPengajuanOutstanding = nonVoid.reduce(function (sum, row) {
+    return sum + (parseFloat(row.total_pengajuan || 0) - parseFloat(row.total_cair || 0));
+  }, 0);
+
+  $("#pa-acc-kpr-label").text(paMoney(accKpr));
+  $("#pa-total-retensi-label").text(paMoney(totalRetensi));
+  $("#pa-hasil-akad-label").text(paMoney(hasilAkad));
+  $("#pa-total-pengajuan-label").text(paMoney(totalPengajuanOutstanding));
+  $("#pa-total-cair-label").text(paMoney(totalCair));
+  $("#pa-sisa-hasil-akad-label").text(paMoney(hasilAkad - totalCair));
+}
+
+function paItemsByJenis(jenis) {
+  return pencairanAkadState.items.filter(function (item) {
+    return item.jenis === jenis;
+  });
+}
+
+function paRetensiUsedListDajamIds() {
+  const ids = [];
+  $("#pa-retensi_here .pa-retensi-row").each(function () {
+    ids.push(parseInt($(this).data("id-list-dajam")));
+  });
+  return ids;
+}
+
+function renderPencairanAkadRetensiPicker() {
+  const used = paRetensiUsedListDajamIds();
+  let options = '<option value="">Pilih item...</option>';
+  pencairanAkadState.listDajam.forEach(function (d) {
+    if (used.includes(parseInt(d.id))) return;
+    options += `<option value="${d.id}">${paEscape(d.nama_jaminan)}</option>`;
+  });
+  $("#pa-retensi-picker").html(options);
+}
+
+function paRetensiRowHtml(idItem, idListDajam, namaJaminan, nominal, catatan, isLocked) {
+  const disabled = isLocked ? "disabled" : "";
+  const removeBtn = isLocked
+    ? '<span class="badge badge-light-secondary">Terpakai di pengajuan</span>'
+    : `<button type="button" class="btn btn-outline-danger btn-sm" onclick="removePencairanAkadRetensiRow(this)"><i class="fas fa-trash"></i></button>`;
+
+  return `
+    <div class="form-row align-items-end pa-retensi-row mb-1" data-id="${idItem || ""}" data-id-list-dajam="${idListDajam}">
+      <div class="col-md-3">${paEscape(namaJaminan)}</div>
+      <div class="col-md-3">
+        <input type="text" class="form-control form-control-sm num pa-retensi-nominal" value="${nominal || 0}" placeholder="Nominal retensi" ${disabled}>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control form-control-sm pa-retensi-catatan" value="${paEscape(catatan || "")}" placeholder="Catatan" ${disabled}>
+      </div>
+      <div class="col-md-2">${removeBtn}</div>
+    </div>`;
+}
+
+function addPencairanAkadRetensiRow() {
+  const idListDajam = parseInt($("#pa-retensi-picker").val());
+  if (!idListDajam) return;
+
+  const d = pencairanAkadState.listDajam.find(function (x) { return parseInt(x.id) === idListDajam; });
+  if (!d) return;
+
+  $("#pa-retensi_here").append(paRetensiRowHtml(null, idListDajam, d.nama_jaminan, 0, "", false));
+  $("#pa-retensi_here .num").keyup();
+  renderPencairanAkadRetensiPicker();
+}
+
+function removePencairanAkadRetensiRow(btn) {
+  $(btn).closest(".pa-retensi-row").remove();
+  renderPencairanAkadRetensiPicker();
+}
+
+function renderPencairanAkadRetensi() {
+  const retensi = paItemsByJenis("retensi");
+  let html = "";
+  retensi.forEach(function (item) {
+    html += paRetensiRowHtml(item.id, item.id_list_dajam, item.nama_jaminan, item.nominal, item.catatan, !!item.is_locked);
+  });
+  $("#pa-retensi_here").html(html || '<p class="text-muted">Belum ada item retensi. Pilih item dari dropdown lalu klik Tambah.</p>');
+  $("#pa-retensi_here .num").keyup();
+  renderPencairanAkadRetensiPicker();
+}
+
+function savePencairanAkadRetensi() {
+  const retensi = [];
+  $("#pa-retensi_here .pa-retensi-row").each(function () {
+    retensi.push({
+      id: $(this).data("id") || "",
+      id_list_dajam: $(this).data("id-list-dajam"),
+      nominal: parseFloat(String($(this).find(".pa-retensi-nominal").val() || "0").replace(/,/g, "")),
+      catatan: $(this).find(".pa-retensi-catatan").val(),
+    });
+  });
+
+  $.ajax({
+    url: base_url + "keuangan/pencairan-akad/plan/save-retensi",
+    type: "post",
+    data: {
+      [csrfName]: csrfHash,
+      id_mkdt: pencairanAkadState.idMkdt,
+      id_kavling: pencairanAkadState.idKavling,
+      retensi: retensi,
+    },
+    dataType: "json",
+    beforeSend: function () {
+      $("#loading").removeClass("hidden");
+    },
+    success: function (r) {
+      $("#loading").addClass("hidden");
+      syncDanaJaminanToken(r);
+      if (r.success === true) {
+        swal("success", r.messages || r.message || "Retensi berhasil disimpan");
+        loadPencairanAkadData(false);
+      } else {
+        swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");
+      }
+    },
+    error: function () {
+      $("#loading").addClass("hidden");
+      swal("error", "Terjadi kesalahan", "Retensi gagal disimpan");
+    },
+  });
+}
+
+function paTenorRowHtml(idItem, nominal, catatan, isLocked) {
+  const disabled = isLocked ? "disabled" : "";
+  const removeBtn = isLocked
+    ? '<span class="badge badge-light-secondary">Terpakai di pengajuan</span>'
+    : `<button type="button" class="btn btn-outline-danger btn-sm" onclick="removePencairanAkadTenorRow(this)"><i class="fas fa-trash"></i></button>`;
+
+  return `
+    <div class="form-row align-items-end pa-tenor-row mb-1" data-id="${idItem || ""}">
+      <div class="col-md-4">
+        <input type="text" class="form-control form-control-sm num pa-tenor-nominal" value="${nominal || 0}" placeholder="Nominal tenor" ${disabled}>
+      </div>
+      <div class="col-md-5">
+        <input type="text" class="form-control form-control-sm pa-tenor-catatan" value="${paEscape(catatan || "")}" placeholder="Catatan tenor" ${disabled}>
+      </div>
+      <div class="col-md-3">${removeBtn}</div>
+    </div>`;
+}
+
+function addPencairanAkadTenorRow() {
+  $("#pa-tenor_here").append(paTenorRowHtml(null, 0, "", false));
+  $("#pa-tenor_here .num").keyup();
+  updatePencairanAkadTenorSisa();
+}
+
+function removePencairanAkadTenorRow(btn) {
+  $(btn).closest(".pa-tenor-row").remove();
+  updatePencairanAkadTenorSisa();
+}
+
+function renderPencairanAkadTenor() {
+  const tenor = paItemsByJenis("tenor");
+  let html = "";
+  tenor.forEach(function (item) {
+    html += paTenorRowHtml(item.id, item.nominal, item.catatan, !!item.is_locked);
+  });
+  $("#pa-tenor_here").html(html || '<p class="text-muted">Belum ada tenor. Klik Tambah Tenor.</p>');
+  $("#pa-tenor_here .num").keyup();
+  updatePencairanAkadTenorSisa();
+}
+
+function paTenorTotalInForm() {
+  let total = 0;
+  $("#pa-tenor_here .pa-tenor-row .pa-tenor-nominal").each(function () {
+    total += parseFloat(String($(this).val() || "0").replace(/,/g, "")) || 0;
+  });
+  return total;
+}
+
+function updatePencairanAkadTenorSisa() {
+  const hasilAkad = pencairanAkadState.plan ? parseFloat(pencairanAkadState.plan.total_hasil_akad || 0) : 0;
+  const sisa = hasilAkad - paTenorTotalInForm();
+  $("#pa-tenor-sisa-label").text("Rp " + paMoney(sisa));
+  $("#pa-tenor-sisa-box").toggleClass("alert-light-danger", sisa < 0).toggleClass("alert-light-primary", sisa >= 0);
+}
+
+function paParsePercentInput(rawValue, hasilAkad) {
+  const match = String(rawValue || "").trim().match(/^(\d+(?:\.\d+)?)\s*%$/);
+  if (!match) return null;
+  const pct = parseFloat(match[1]);
+  if (isNaN(pct) || pct < 0) return null;
+  return Math.round((hasilAkad * pct) / 100);
+}
+
+function paClampTenorInput(el) {
+  const $input = $(el);
+  const hasilAkad = pencairanAkadState.plan ? parseFloat(pencairanAkadState.plan.total_hasil_akad || 0) : 0;
+  let othersTotal = 0;
+  $("#pa-tenor_here .pa-tenor-row .pa-tenor-nominal").not($input).each(function () {
+    othersTotal += parseFloat(String($(this).val() || "0").replace(/,/g, "")) || 0;
+  });
+  const maxAllowed = Math.max(0, hasilAkad - othersTotal);
+  const current = parseFloat(String($input.val() || "0").replace(/,/g, "")) || 0;
+  if (current > maxAllowed + 0.01) {
+    $input.val(maxAllowed);
+    $input.keyup();
+  }
+}
+
+$(document).on("keydown", "#pa-tenor_here .pa-tenor-nominal", function (e) {
+  if (e.key !== "%") return;
+  e.preventDefault();
+  const hasilAkad = pencairanAkadState.plan ? parseFloat(pencairanAkadState.plan.total_hasil_akad || 0) : 0;
+  const rawDigits = String($(this).val() || "0").replace(/,/g, "");
+  const amount = paParsePercentInput(rawDigits + "%", hasilAkad);
+  if (amount === null) return;
+  $(this).val(amount);
+  $(this).keyup();
+});
+
+$(document).on("keyup change", "#pa-tenor_here .pa-tenor-nominal", function () {
+  paClampTenorInput(this);
+  updatePencairanAkadTenorSisa();
+});
+
+function savePencairanAkadTenor() {
+  if (paTenorTotalInForm() > parseFloat(pencairanAkadState.plan ? pencairanAkadState.plan.total_hasil_akad || 0 : 0) + 0.01) {
+    return swal("error", "Terjadi kesalahan", "Total tenor tidak boleh melebihi hasil akad");
+  }
+
+  const tenor = [];
+  $("#pa-tenor_here .pa-tenor-row").each(function () {
+    tenor.push({
+      id: $(this).data("id") || "",
+      nominal: parseFloat(String($(this).find(".pa-tenor-nominal").val() || "0").replace(/,/g, "")),
+      catatan: $(this).find(".pa-tenor-catatan").val(),
+    });
+  });
+
+  $.ajax({
+    url: base_url + "keuangan/pencairan-akad/plan/save-tenor",
+    type: "post",
+    data: {
+      [csrfName]: csrfHash,
+      id_mkdt: pencairanAkadState.idMkdt,
+      id_kavling: pencairanAkadState.idKavling,
+      tenor: tenor,
+    },
+    dataType: "json",
+    beforeSend: function () {
+      $("#loading").removeClass("hidden");
+    },
+    success: function (r) {
+      $("#loading").addClass("hidden");
+      syncDanaJaminanToken(r);
+      if (r.success === true) {
+        swal("success", r.messages || r.message || "Tenor berhasil disimpan");
+        loadPencairanAkadData(false);
+      } else {
+        swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");
+      }
+    },
+    error: function () {
+      $("#loading").addClass("hidden");
+      swal("error", "Terjadi kesalahan", "Tenor gagal disimpan");
+    },
+  });
+}
+
+function renderPencairanAkadPengajuanItemPicker() {
+  const visibleItems = pencairanAkadState.items.filter(function (item) {
+    return parseFloat(item.sisa) > 0.01;
+  });
+  let cols = "";
+  visibleItems.forEach(function (item) {
+    const label = item.jenis === "retensi"
+      ? "Retensi - " + paEscape(item.nama_jaminan || "")
+      : "Tenor #" + item.urutan_tenor;
+    cols += `
+      <div class="col-md-6">
+        <div class="custom-control custom-checkbox mb-50">
+          <input type="checkbox" class="custom-control-input" id="pa-pengajuan-item-${item.id}" name="items[]" value="${item.id}">
+          <label class="custom-control-label" for="pa-pengajuan-item-${item.id}">
+            ${label} - Rp ${paMoney(item.sisa)} ${item.catatan ? "(" + paEscape(item.catatan) + ")" : ""}
+          </label>
+        </div>
+      </div>`;
+  });
+  const html = cols ? `<div class="row">${cols}</div>` : "";
+  $("#pa-pengajuan-item_here").html(html || '<p class="text-muted">Belum ada item yang bisa diajukan. Simpan plan retensi/tenor dulu.</p>');
+}
+
+$(document).on("submit", "#form-pencairan-akad-pengajuan", function (e) {
+  e.preventDefault();
+  const fd = new FormData(this);
+  fd.append(csrfName, csrfHash);
+
+  $.ajax({
+    url: base_url + "keuangan/pencairan-akad/pengajuan/store",
+    type: "post",
+    contentType: false,
+    processData: false,
+    data: fd,
+    dataType: "json",
+    beforeSend: function () {
+      $("#loading").removeClass("hidden");
+    },
+    success: function (r) {
+      $("#loading").addClass("hidden");
+      syncDanaJaminanToken(r);
+      if (r.success === true) {
+        swal("success", r.messages || r.message || "Pengajuan berhasil disimpan");
+        $("#form-pencairan-akad-pengajuan")[0].reset();
+        loadPencairanAkadData(false);
+      } else {
+        swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");
+      }
+    },
+    error: function () {
+      $("#loading").addClass("hidden");
+      swal("error", "Terjadi kesalahan", "Pengajuan gagal disimpan");
+    },
+  });
+});
+
+function renderPencairanAkadPengajuanTable() {
+  const tb = document.querySelector("#tbl-pencairan-akad-pengajuan tbody");
+  tb.innerHTML = "";
+
+  if (!pencairanAkadState.pengajuan.length) {
+    tb.innerHTML = '<tr><td colspan="10" class="text-center text-muted">Belum ada pengajuan.</td></tr>';
+    return;
+  }
+
+  pencairanAkadState.pengajuan.forEach(function (row, i) {
+    const lampiran = row.access_url
+      ? `<a href="${row.access_url}" target="_blank" class="btn btn-link btn-sm">Lihat</a>`
+      : "-";
+    const action = row.status === "void"
+      ? '<span class="text-muted">-</span>'
+      : `<button type="button" class="btn btn-outline-danger btn-sm" onclick="voidPencairanAkad(${row.id})" ${parseFloat(row.total_cair) > 0 ? "disabled" : ""}><i class="fas fa-ban"></i></button>`;
+    const itemList = (row.details || [])
+      .map(function (d) {
+        const label = d.jenis === "retensi" ? "Retensi - " + paEscape(d.nama_jaminan || "") : "Tenor #" + d.urutan_tenor;
+        const catatan = d.item_catatan ? " (" + paEscape(d.item_catatan) + ")" : "";
+        return `${label}: Rp ${paMoney(d.nominal_pengajuan)}${catatan}`;
+      })
+      .join("<br>") || "-";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${row.tanggal_pengajuan ? format_date(row.tanggal_pengajuan) : "-"}</td>
+      <td>${row.tanggal_rencana_cair ? format_date(row.tanggal_rencana_cair) : "-"}</td>
+      <td>${itemList}</td>
+      <td class="text-right">Rp ${paMoney(row.total_pengajuan)}</td>
+      <td class="text-right">Rp ${paMoney(row.total_cair)}</td>
+      <td>${paStatusBadge(row.status)}</td>
+      <td>${paEscape(row.add_by_name || "-")}</td>
+      <td>${lampiran}</td>
+      <td>${action}</td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+function voidPencairanAkad(id) {
+  Swal.fire({
+    title: "Void pengajuan ini?",
+    type: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Ya, void",
+    cancelButtonText: "Batal",
+    confirmButtonClass: "btn btn-danger",
+    cancelButtonClass: "btn btn-outline-secondary ml-1",
+    buttonsStyling: false,
+  }).then(function (result) {
+    if (!result.value) return;
+
+    $.ajax({
+      url: base_url + "keuangan/pencairan-akad/void",
+      type: "post",
+      data: {
+        [csrfName]: csrfHash,
+        id_pengajuan: id,
+        reason: "Dibatalkan oleh user",
+      },
+      dataType: "json",
+      success: function (r) {
+        syncDanaJaminanToken(r);
+        if (r.success === true) {
+          swal("success", r.messages || r.message || "Pengajuan berhasil di-void");
+          loadPencairanAkadData(false);
+        } else {
+          swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");
+        }
+      },
+    });
+  });
+}
+
+function renderPencairanAkadCairSelect() {
+  let options = '<option value="">Pilih pengajuan</option>';
+  pencairanAkadState.pengajuan
+    .filter(function (row) { return row.status === "active" || row.status === "partial"; })
+    .forEach(function (row) {
+      options += `<option value="${row.id}">#${row.id} - ${row.tanggal_pengajuan} - Rp ${paMoney(row.total_pengajuan)} (${row.status})</option>`;
+    });
+  $("#pa-cair-select_pengajuan").html(options);
+  $("#pa-cair-detail_here").html("");
+}
+
+function renderPencairanAkadCairForm() {
+  const id = $("#pa-cair-select_pengajuan").val();
+  $("#pa-cair-id_pengajuan").val(id || "");
+  if (!id) {
+    $("#pa-cair-detail_here").html("");
+    return;
+  }
+
+  const row = pencairanAkadState.pengajuan.find(function (r) { return parseInt(r.id) === parseInt(id); });
+  if (!row) return;
+
+  let html = "";
+  (row.details || []).forEach(function (d) {
+    const sisa = parseFloat(d.nominal_pengajuan) - parseFloat(d.nominal_cair || 0);
+    if (sisa <= 0) return;
+    const label = d.jenis === "retensi" ? "Retensi - " + paEscape(d.nama_jaminan || "") : "Tenor #" + d.urutan_tenor;
+    html += `
+      <div class="form-row align-items-end mb-1">
+        <div class="col-md-6">${label} (sisa Rp ${paMoney(sisa)})</div>
+        <div class="col-md-6">
+          <input type="text" class="form-control form-control-sm num" name="details[${d.id}][nominal_cair]" value="${sisa}" placeholder="Nominal cair">
+        </div>
+      </div>`;
+  });
+  $("#pa-cair-detail_here").html(html || '<p class="text-muted">Tidak ada sisa item untuk dicairkan.</p>');
+  $("#pa-cair-detail_here .num").keyup();
+}
+
+$(document).on("submit", "#form-pencairan-akad-cair", function (e) {
+  e.preventDefault();
+
+  $.ajax({
+    url: base_url + "keuangan/pencairan-akad/pencairan/store",
+    type: "post",
+    data: $(this).serialize() + "&" + csrfName + "=" + csrfHash,
+    dataType: "json",
+    beforeSend: function () {
+      $("#loading").removeClass("hidden");
+    },
+    success: function (r) {
+      $("#loading").addClass("hidden");
+      syncDanaJaminanToken(r);
+      if (r.success === true) {
+        swal("success", r.messages || r.message || "Pencairan berhasil disimpan");
+        $("#form-pencairan-akad-cair")[0].reset();
+        loadPencairanAkadData(false);
+      } else {
+        swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");
+      }
+    },
+    error: function () {
+      $("#loading").addClass("hidden");
+      swal("error", "Terjadi kesalahan", "Pencairan gagal disimpan");
+    },
+  });
+});
+
+const paHistoryActionMap = {
+  simpan_retensi: ["bg-primary", "fa fa-list"],
+  simpan_tenor: ["bg-primary", "fa fa-list"],
+  pengajuan: ["bg-warning", "fa fa-paper-plane"],
+  pencairan: ["bg-success", "fa fa-money-bill"],
+  void: ["bg-danger", "fa fa-ban"],
+};
+
+function loadPencairanAkadHistory() {
+  $.ajax({
+    url: base_url + "keuangan/pencairan-akad/history/" + pencairanAkadState.idKavling,
+    type: "get",
+    dataType: "json",
+    beforeSend: function () {
+      $("#pa-history_here").html(
+        "<div class='text-center text-muted py-3'><i class='fas fa-spinner fa-spin mr-1'></i> Memuat riwayat...</div>",
+      );
+    },
+    success: function (r) {
+      const rows = r.data || [];
+      $("#pa-history_here").html("");
+      if (!rows.length) {
+        $("#pa-history_here").html('<p class="text-center text-muted">Belum ada history.</p>');
+        return;
+      }
+      rows.forEach(function (row) {
+        const conf = paHistoryActionMap[row.action] || ["bg-secondary", "fa fa-info"];
+        $("#pa-history_here").append(`
+          <div class="timeline-item pb-4">
+            <div class="timeline-icon ${conf[0]}">
+              <i class="${conf[1]}"></i>
+            </div>
+            <div class="timeline-content">
+              <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 font-weight-bold">${paEscape(row.summary || row.action)}</h6>
+                <span class="badge badge-light-secondary text-secondary px-2"><i class="far fa-calendar-alt mr-1"></i> ${format_datetime(row.created_at)}</span>
+              </div>
+              <div class="text-muted small mt-1">
+                <i class="far fa-user ml-3 mr-1"></i> ${paEscape(row.username || "-")}
+              </div>
+            </div>
+          </div>`);
+      });
+    },
+    error: function () {
+      $("#pa-history_here").html('<p class="text-center text-muted">Terjadi kesalahan saat memuat data.</p>');
+    },
+  });
+}
+
 function getRiwayatGantinama() {
   if (!editdtt[0]) {
     return swal("error", "Tidak ada kavling yang dipilih");
@@ -3633,7 +4716,13 @@ function isi_cashout(id_kav = null) {
       csrfHash = r.token;
       let d = Array.isArray(r.riwayat_bayar) ? r.riwayat_bayar : [];
       let konsumen = r.konsumen || {};
+      let hasKonsumen = Object.keys(konsumen).length > 0;
       renderCashoutBiayaMkdt(r.biaya_mkdt || {});
+
+      $("#co-untuk_pembayaran, #co-tanggal_bayar, #co-nominal, #co-keterangan, #add-form-btn-cashout").prop(
+        "disabled",
+        !hasKonsumen,
+      );
 
       if (d.length == 0) {
         $("#cashout-table tbody").html(

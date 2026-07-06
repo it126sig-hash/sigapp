@@ -123,6 +123,15 @@
     width: 100% !important;
   }
 
+  #data_tables tbody td {
+    text-transform: uppercase;
+  }
+
+  #data_tables tbody td .poskon-action-cell,
+  #data_tables tbody td .poskon-action-cell * {
+    text-transform: none;
+  }
+
   #poskon-filter .select2-container,
   #modal-tambah-poskon .select2-container {
     width: 100% !important;
@@ -361,12 +370,11 @@
               </select>
             </div>
 
-            <div class="poskon-filter-field hidden" hidden>
-              <label>Akad</label>
-              <select id="akad" name="akad" class="select2 self form-control">
-                <option value=""> Tanpa Filter </option>
-                <option value="1"> Sudah </option>
-                <option value="0"> Belum </option>
+            <div class="poskon-filter-field">
+              <label>Status Kavling</label>
+              <select id="filter_status_kavling" class="select2 self form-control">
+                <option value="booking" selected>Belum Akad (Booking)</option>
+                <option value="akad">Sudah Akad</option>
               </select>
             </div>
           </div>
@@ -408,6 +416,7 @@
                       <th colspan="4" id="tb-PRODUKSI">PRODUKSI</th>
                       <th colspan="3" id="tb-LEGAL">LEGAL</th>
                       <th id="tb-GA">GA</th>
+                      <th rowspan="3" id="tb-KETERANGAN_STATUS">KETERANGAN STATUS</th>
                     </tr>
 
                     <tr>
@@ -437,7 +446,7 @@
 
                     <tr>
                       <th id="tb-TUNAI_KPR">TUNAI/KPR</th>
-                      <th id="tb-TERBIT">BANK</th>
+                      <th id="tb-BANK">BANK</th>
                       <th id="tb-TERBIT">TERBIT</th>
                       <th id="tb-EXPIRED">EXPIRED</th>
 
@@ -908,7 +917,6 @@ if (!empty($roles)) {
             data.id_jalan = $("#id_jalan").val()
             data.sp3k = $("#sp3k").val()
             data.wawancara = $("#wawancara").val()
-            data.akad = $("#akad").val()
           },
           dataSrc: function(r) {
             csrfHash = r.token
@@ -1293,7 +1301,12 @@ if (!empty($roles)) {
 
     //on click btn filter
     $("#btn_draw").on("click", function(e) {
-      if (table) table.draw();
+      if (table) {
+        var url = $("#filter_status_kavling").val() === 'akad' ?
+          base_url + 'list-kavling/akad/ambil' :
+          base_url + 'list-kavling/ambil';
+        table.ajax.url(url).load();
+      }
       load_riwayat();
     })
 
