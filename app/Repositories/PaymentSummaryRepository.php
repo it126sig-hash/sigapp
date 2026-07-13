@@ -8,7 +8,7 @@ class PaymentSummaryRepository extends Model
 {
     protected $table = 'mkdt_payment_summary';
     protected $primaryKey = 'id_mkdt';
-    protected $allowedFields = ['id_mkdt', 'total_um', 'total_bb', 'total_adm', 'updated_at'];
+    protected $allowedFields = ['id_mkdt', 'total_um', 'total_bb', 'total_adm', 'total_booking', 'updated_at'];
     protected $returnType = 'array';
 
     /**
@@ -21,6 +21,7 @@ class PaymentSummaryRepository extends Model
             'UM' => 'total_um',
             'BB' => 'total_bb',
             'ADM' => 'total_adm',
+            'BO' => 'total_booking',
             default => throw new \Exception("Kategori tidak valid: $kategori"),
         };
 
@@ -29,7 +30,7 @@ class PaymentSummaryRepository extends Model
         if (!$existing) {
             return $this->insert([
                 'id_mkdt' => $idMkdt,
-                $field => $amount
+                $field => $amount,
             ]);
         }
 
@@ -47,10 +48,11 @@ class PaymentSummaryRepository extends Model
                 'id_mkdt' => $id_mkdt,
                 'total_um' => 0,
                 'total_bb' => 0,
-                'total_adm' => 0
+                'total_adm' => 0,
+                'total_booking' => 0,
             ]);
         }
-        return $this->update($id_mkdt, ['total_um' => 0, 'total_bb' => 0, 'total_adm' => 0]);
+        return $this->update($id_mkdt, ['total_um' => 0, 'total_bb' => 0, 'total_adm' => 0, 'total_booking' => 0]);
     }
 
     /**
@@ -62,6 +64,7 @@ class PaymentSummaryRepository extends Model
             'UM' => 'total_um',
             'BB' => 'total_bb',
             'ADM' => 'total_adm',
+            'BO' => 'total_booking',
             default => throw new \Exception("Kategori tidak valid!"),
         };
 

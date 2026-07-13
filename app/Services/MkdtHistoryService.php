@@ -132,6 +132,7 @@ class MkdtHistoryService
             'sp3k_tgl'      => 'Tgl SP3K',
             'sp3k_tgl_exp'  => 'Exp SP3K',
             'akad'          => 'Akad',
+            'akad_indent'   => 'Akad Indent',
             'akad_tgl'      => 'Tgl akad',
             'harga_kpr_acc' => 'KPR disetujui',
             'harga_penambahan_um' => 'Turun KPR',

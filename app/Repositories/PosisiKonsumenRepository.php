@@ -28,6 +28,7 @@ class PosisiKonsumenRepository
             konsumen.sales,
             mkdt.booking_tgl,
             mkdt.wawancara_tgl,
+            mkdt.akad_tgl,
             mkdt.is_kpr,
             list_bank.bank as bank,
             mkdt.keterangan,
@@ -47,6 +48,7 @@ class PosisiKonsumenRepository
             legal.pbb_pecah_nop,
             "" as sikumbang,
             mkdt.keterangan_status,
+            mkdt.akad_indent,
             mps.total_um,
             mps.total_adm,
             mps.total_bb,
@@ -90,11 +92,9 @@ class PosisiKonsumenRepository
     {
         return $this->db->table('mkdt')
             ->select('
-            "" as action,
-            kavling.id_kavling,
             jalan.nama_jalan,
             kavling.no_kavling,
-            hargajual.id_tipe,
+            tipe.tipe_rumah,
             mkdt.keterangan_batal,
             mkdt.perlu_refund,
             konsumen.nama_konsumen,
@@ -103,6 +103,9 @@ class PosisiKonsumenRepository
             "" as total_tagihan,
             "" as sudah_bayar,
             "" as sisa_tagihan,
+
+            "" as action,
+            kavling.id_kavling,
 
             (mkdt.harga_uang_muka - mkdt.harga_diskon_uang_muka - mkdt.harga_sbum) as um,
             (mkdt.harga_administrasi) as adm,
@@ -130,7 +133,7 @@ class PosisiKonsumenRepository
             produksi.lpa_tanggal,
             proyek.nama_proyek
             ')
-            ->join('kavling', "kavling.id_mkdt = mkdt.id_mkdt")
+            ->join('kavling', "kavling.id_kavling = mkdt.id_kavling")
             ->join('hargajual', "mkdt.id_hargajual = hargajual.id", 'left')
             ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
             ->join('tipe', "tipe.id_tipe = kavling.id_tipe")

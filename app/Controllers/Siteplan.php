@@ -1033,6 +1033,7 @@ class Siteplan extends BaseController
         $d['total_um'] = $tg_um;
         $d['total_um_ll'] = $tg_um_ll;
         $d['total_bb'] = $tg_bb;
+        $d['total_tagihan_semua'] = array_sum(array_column($tg, 'nominal'));
 
         //get sudah bayar
         $sb = $this->db->table('log_pembayaran')
@@ -1121,6 +1122,14 @@ class Siteplan extends BaseController
         $d['sb_um'] = $sb_um;
         $d['sb_um_ll'] = $sb_um_ll;
         $d['sb_bb'] = $sb_bb;
+
+        $sudahBayarSemua = 0;
+        foreach ($sb as $v) {
+            if ($v->payment_type !== 'Booking') {
+                $sudahBayarSemua += (float) $v->nominal;
+            }
+        }
+        $d['sudah_bayar_semua'] = $sudahBayarSemua;
 
         $ku = $this->db->table('log_pembayaran')
             ->select('users.username, log_pembayaran.created_at')

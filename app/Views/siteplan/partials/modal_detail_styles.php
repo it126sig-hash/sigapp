@@ -387,6 +387,76 @@
         background: transparent;
     }
 
+    #modal_detail .detail-tagihan-card {
+        background: #fff;
+        border: 1px solid #cfd6e3;
+        border-radius: 10px;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
+        padding: 1.25rem 1.5rem;
+    }
+
+    #modal_detail .detail-tagihan-grid {
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    #modal_detail .detail-tagihan-col-total {
+        align-items: center;
+        display: flex;
+        gap: 1rem;
+    }
+
+    #modal_detail .detail-tagihan-col-status {
+        border-left: 1px solid #edf0f2;
+        padding-left: 1.5rem;
+    }
+
+    #modal_detail .detail-tagihan-label {
+        color: #2056a4;
+        font-size: .78rem;
+        font-weight: 800;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+    }
+
+    #modal_detail .detail-tagihan-total {
+        color: #020617;
+        font-size: 1.65rem;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    #modal_detail .detail-tagihan-side {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: .85rem;
+    }
+
+    #modal_detail .detail-tagihan-side-label {
+        color: #6b7280;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .02em;
+        margin-bottom: .2rem;
+        text-transform: uppercase;
+    }
+
+    #modal_detail .detail-tagihan-side-value {
+        color: #006b35;
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+
+    #modal_detail .detail-tagihan-progress-labels {
+        color: #6b7280;
+        display: flex;
+        font-size: .74rem;
+        font-weight: 700;
+        justify-content: space-between;
+        margin-top: .4rem;
+    }
+
     #modal_detail .detail-legacy-hidden {
         display: none !important;
     }
@@ -772,6 +842,7 @@
     .dark-layout #modal_detail .card,
     .dark-layout #modal_detail .detail-summary-card,
     .dark-layout #modal_detail .detail-metric-card,
+    .dark-layout #modal_detail .detail-tagihan-card,
     .dark-layout #modal_detail .detail-accordion-card,
     .dark-layout #modal_detail .detail-progress-card,
     .dark-layout #modal_detail .detail-mini-card,
@@ -788,6 +859,7 @@
     .dark-layout #modal_detail .divider .divider-text,
     .dark-layout #modal_detail .detail-metric-total,
     .dark-layout #modal_detail .detail-metric-value,
+    .dark-layout #modal_detail .detail-tagihan-total,
     .dark-layout #modal_detail .detail-accordion-toggle,
     .dark-layout #modal_detail .detail-mini-value,
     .dark-layout #modal_detail .detail-file-title,

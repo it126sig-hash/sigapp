@@ -111,6 +111,7 @@ class PosisiKonsumenService
     {
         $status = $status ?? "Booking";
         $builder = $this->posisiKonsumenRepo->getBaseQuery($status);
+        $rowNumber = (int) $request->getVar('start');
         if ($request->getVar('id_proyek'))
             $builder->where('proyek.id_proyek', $request->getVar('id_proyek'));
         if ($request->getVar('id_cluster'))
@@ -124,13 +125,28 @@ class PosisiKonsumenService
             $builder->where('mkdt.wawancara', $request->getVar('wawancara'));
         if ($request->getVar('akad') != "")
             $builder->where('mkdt.akad', $request->getVar('akad'));
+        if ($request->getVar('akad_indent') != "")
+            $builder->where('mkdt.akad_indent', $request->getVar('akad_indent'));
 
         return DataTable::of($builder)
+            ->edit('id_kavling', function ($v) use (&$rowNumber) {
+                return ++$rowNumber;
+            })
+            ->edit('nama_jalan', function ($v) {
+                $html = esc($v->nama_jalan);
+                if ((int) ($v->akad_indent ?? 0) === 1) {
+                    $html .= ' <span class="badge badge-info">Akad Indent</span>';
+                }
+                return $html;
+            })
             ->edit('booking_tgl', function ($value) {
                 return $this->format_tgl($value->booking_tgl);
             })
             ->edit('wawancara_tgl', function ($value) {
                 return $this->format_tgl($value->wawancara_tgl);
+            })
+            ->edit('akad_tgl', function ($value) {
+                return $this->format_tgl($value->akad_tgl);
             })
             ->edit('sp3k_tgl', function ($value) {
                 return $this->format_tgl($value->sp3k_tgl);
@@ -239,23 +255,6 @@ class PosisiKonsumenService
                     return '<span class="badge badge-warning">Perlu Refund</span>';
                 }
                 return '<span class="badge badge-secondary">Tidak Perlu Refund</span>';
-            })
-
-            ->edit('tunai', function ($v) {
-                if ($v->is_kpr == 1) {
-                    return '-';
-                }
-
-                $total = $v->um + $v->adm + $v->bb;
-                $bayar = $v->total_um + $v->total_adm + $v->total_bb;
-
-                if ($bayar <= 0) {
-                    return '0%';
-                }
-
-                $persen = ($bayar / $total) * 100;
-
-                return round($persen) . '%'; // tanpa desimal
             })
             ->edit('total_tagihan', function ($v) {
                 return number_format($v->um + $v->adm + $v->bb);

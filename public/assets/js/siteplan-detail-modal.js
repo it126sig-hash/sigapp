@@ -548,73 +548,59 @@ function lihat_detail() {
             </div>`;
     }
 
-    function detailTagihanCard(key, title, icon, totalId, paidId, dueId, percentId) {
+    function detailTagihanSummaryCard() {
         return `
-            <div class="detail-metric-card" data-tagihan-card="${key}">
-                <input type="hidden" id="${totalId}" name="${totalId}">
-                <input type="hidden" id="${paidId}" name="${paidId}">
-                <input type="hidden" id="${dueId}" name="${dueId}">
-                <input type="hidden" id="${percentId}" name="${percentId}">
-                <div class="detail-card-icon"><i class="${icon}"></i></div>
-                <div class="detail-percent" id="${percentId}_text">0%</div>
-                <div class="detail-metric-title">${title}</div>
-                <div class="detail-metric-total" id="${totalId}_text">Rp 0</div>
-                <div class="detail-metric-row">
-                    <span class="detail-metric-label">Sudah Bayar</span>
-                    <span class="detail-metric-value" id="${paidId}_text">Rp 0</span>
-                </div>
-                <div class="detail-metric-row">
-                    <span class="detail-metric-label">Sisa Tagihan</span>
-                    <span class="detail-metric-value" id="${dueId}_text">Rp 0</span>
-                </div>
-                <div class="detail-progress-track">
-                    <div class="detail-progress-fill is-empty" id="detail-tagihan-${key}-bar"></div>
+            <div class="detail-tagihan-card" data-tagihan-card="semua">
+                <input type="hidden" id="dt-total_tagihan_semua" name="dt-total_tagihan_semua">
+                <input type="hidden" id="dt-sudah_bayar_semua" name="dt-sudah_bayar_semua">
+                <div class="detail-tagihan-grid">
+                    <div class="detail-tagihan-col-total">
+                        <div class="detail-card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                        <div>
+                            <div class="detail-tagihan-label">Total Tagihan</div>
+                            <div class="detail-tagihan-total" id="dt-total_tagihan_semua_text">Rp 0</div>
+                        </div>
+                    </div>
+                    <div class="detail-tagihan-col-status">
+                        <div class="detail-tagihan-side">
+                            <div class="detail-tagihan-side-block">
+                                <div class="detail-tagihan-side-label">Sudah Dibayar</div>
+                                <div class="detail-tagihan-side-value" id="dt-sudah_bayar_semua_text">Rp 0</div>
+                            </div>
+                            <div class="detail-tagihan-side-block">
+                                <div class="detail-tagihan-side-label">Status</div>
+                                <span class="detail-status-badge badge-secondary" id="dt-tagihan-status-badge">Belum Lunas</span>
+                            </div>
+                        </div>
+                        <div class="detail-tagihan-progress-wrap">
+                            <div class="detail-progress-track">
+                                <div class="detail-progress-fill is-empty" id="detail-tagihan-semua-bar"></div>
+                            </div>
+                            <div class="detail-tagihan-progress-labels">
+                                <span>0%</span>
+                                <span id="dt-tagihan-percent-text">0% Paid</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>`;
     }
 
-    function renderTagihanCard(key, total, paid, due, percent) {
-        const map = {
-            um: {
-                total: '#dt-total_biaya_um',
-                paid: '#dt-sudah_bayar_um',
-                due: '#dt-sisa_tagihan_um',
-                percent: '#dt-persentase_bayar_tagihan_um',
-                bar: '#detail-tagihan-um-bar'
-            },
-            um_ll: {
-                total: '#dt-total_biaya_um_ll',
-                paid: '#dt-sudah_bayar_um_ll',
-                due: '#dt-sisa_tagihan_um_ll',
-                percent: '#dt-persentase_bayar_tagihan_um_ll',
-                bar: '#detail-tagihan-um_ll-bar'
-            },
-            bb: {
-                total: '#dt-total_biaya_bb',
-                paid: '#dt-sudah_bayar_bb',
-                due: '#dt-sisa_tagihan_bb',
-                percent: '#dt-persentase_bayar_tagihan_bb',
-                bar: '#detail-tagihan-bb-bar'
-            }
-        }[key];
+    function renderTagihanSummaryCard(total, paid) {
+        const percent = total > 0 ? Math.max(0, Math.min(100, (paid / total) * 100)) : 0;
+        const isLunas = total > 0 && paid >= total;
 
-        if (!map) return;
-
-        const paidValue = detailMoneyValue(paid);
-        const dueValue = detailMoneyValue(due);
-        const percentValue = detailPercentValue(percent);
-        const $paidText = $(map.paid + '_text');
-        const $dueText = $(map.due + '_text');
-        const $bar = $(map.bar);
-
-        $(map.total + '_text').text(detailRupiah(total));
-        $paidText.text(detailRupiah(paid)).toggleClass('is-paid', paidValue > 0);
-        $dueText.text(detailRupiah(due)).toggleClass('is-due', dueValue > 0);
-        $(map.percent + '_text').text(percent || '0%');
-        $bar
-            .css('width', `${percentValue}%`)
-            .toggleClass('is-empty', percentValue <= 0)
-            .toggleClass('is-partial', percentValue > 0 && percentValue < 100);
+        $('#dt-total_tagihan_semua_text').text(detailRupiah(total));
+        $('#dt-sudah_bayar_semua_text').text(detailRupiah(paid));
+        $('#dt-tagihan-percent-text').text(`${Math.round(percent)}% Paid`);
+        $('#detail-tagihan-semua-bar')
+            .css('width', `${percent}%`)
+            .toggleClass('is-empty', percent <= 0)
+            .toggleClass('is-partial', percent > 0 && percent < 100);
+        $('#dt-tagihan-status-badge')
+            .text(isLunas ? 'Lunas' : 'Belum Lunas')
+            .toggleClass('badge-success', isLunas)
+            .toggleClass('badge-secondary', !isLunas);
     }
 
     function prepareDetailModalRedesign() {
@@ -650,15 +636,14 @@ function lihat_detail() {
 
         $('#dt-tagihan').empty().append(`
             <small id="last_update_keuangan" class="text-muted d-block mb-1"></small>
-            <div class="detail-card-grid" id="detail-tagihan-cards">
-                ${detailTagihanCard('um', 'Total Uang Muka', 'far fa-money-bill-alt', 'dt-total_biaya_um', 'dt-sudah_bayar_um', 'dt-sisa_tagihan_um', 'dt-persentase_bayar_tagihan_um')}
-                ${detailTagihanCard('um_ll', 'Total Biaya Adm + Turun KPR', 'fas fa-receipt', 'dt-total_biaya_um_ll', 'dt-sudah_bayar_um_ll', 'dt-sisa_tagihan_um_ll', 'dt-persentase_bayar_tagihan_um_ll')}
-                ${detailTagihanCard('bb', 'Total Biaya-biaya', 'fas fa-list-alt', 'dt-total_biaya_bb', 'dt-sudah_bayar_bb', 'dt-sisa_tagihan_bb', 'dt-persentase_bayar_tagihan_bb')}
+            <div id="detail-tagihan-cards">
+                ${detailTagihanSummaryCard()}
             </div>
         `);
 
         const $tagihanContent = $('#dt-tagihan').children().detach();
         const $cashoutContent = $('#dt-cashout').children().detach();
+        $('#dt-fm-prod-bayar_produksi').empty();
 
         $finance.append(`
             <div class="detail-accordion" id="detailFinanceAccordion">
@@ -758,7 +743,26 @@ function lihat_detail() {
                     <div class="detail-mini-value" id="dt-cashout-summary-status">Belum ada data</div>
                 </div>
             </div>
-        `).append($cashoutContent);
+        `).append($cashoutContent).append(`
+            <div class="d-none" id="detail-cashout-produksi-wrap">
+                <div class="divider divider-left mt-2">
+                    <div class="divider-text">Pembayaran Produksi</div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0" id="dt-cashout-produksi-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Tanggal Bayar</th>
+                                <th class="text-right">Nominal</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dt-div-bayar_produksi-here"></tbody>
+                    </table>
+                </div>
+            </div>
+        `);
     }
 
     function buildDetailLegalPanel() {
@@ -802,7 +806,6 @@ function lihat_detail() {
         const $lastUpdate = $('#last_update_produksi').detach();
         const sections = {
             progress: $('#dt-fm-prod-progress').children().detach(),
-            bayar: $('#dt-fm-prod-bayar_produksi').children().detach(),
             dokumentasi: $('#dt-fm-prod-dokumentasi').children().detach(),
             jalan: $('#dt-fm-prod-jalan').children().detach(),
             listrik: $('#dt-fm-prod-listrik').children().detach(),
@@ -837,7 +840,6 @@ function lihat_detail() {
             </div>
             <div class="detail-accordion" id="detailProductionAccordion">
                 ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-progress', 'Progres & Jadwal', true)}
-                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-bayar', 'Pembayaran Produksi')}
                 ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-dokumentasi', 'Dokumentasi')}
                 ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-jalan', 'Jalan')}
                 ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-listrik', 'Listrik')}
@@ -846,7 +848,6 @@ function lihat_detail() {
         `);
 
         $('#detail-produksi-progress-body').append(sections.progress);
-        $('#detail-produksi-bayar-body').append(sections.bayar);
         $('#detail-produksi-dokumentasi-body').append(sections.dokumentasi);
         $('#detail-produksi-jalan-body').append(sections.jalan);
         $('#detail-produksi-listrik-body').append(sections.listrik);
@@ -1139,8 +1140,8 @@ function lihat_detail() {
         let sisa_bb = bb.sisa,
             ldp_bb = bb.persen;
 
-        let total_semua = total_um + total_bb + total_um_ll,
-            sb_semua = sb_um + sb_um_ll + sb_bb,
+        let total_semua = parseFloat(r.total_tagihan_semua) || 0,
+            sb_semua = parseFloat(r.sudah_bayar_semua) || 0,
             tagihan_semua = hitungMetricTagihan(total_semua, sb_semua),
             sisa_semua = tagihan_semua.sisa,
             ldp_semua = tagihan_semua.persen;
@@ -1171,26 +1172,9 @@ function lihat_detail() {
 
         let tagihan = hitungTagihan(r);
 
-        changeVal("#dt-total_biaya_um", tagihan.total_um)
-        changeVal("#dt-sudah_bayar_um", tagihan.sb_um)
-        changeVal("#dt-sisa_tagihan_um", tagihan.sisa_um)
-        changeVal("#dt-persentase_bayar_tagihan_um", tagihan.ldp)
-        renderTagihanCard('um', tagihan.total_um, tagihan.sb_um, tagihan.sisa_um, tagihan.ldp)
-
-
-        changeVal("#dt-total_biaya_um_ll", tagihan.total_um_ll)
-        changeVal("#dt-sudah_bayar_um_ll", tagihan.sb_um_ll)
-        changeVal("#dt-sisa_tagihan_um_ll", tagihan.sisa_um_ll)
-        changeVal("#dt-persentase_bayar_tagihan_um_ll", tagihan.ldp_ll)
-        renderTagihanCard('um_ll', tagihan.total_um_ll, tagihan.sb_um_ll, tagihan.sisa_um_ll, tagihan.ldp_ll)
-
-
-
-        changeVal("#dt-total_biaya_bb", tagihan.total_bb)
-        changeVal("#dt-sudah_bayar_bb", tagihan.sb_bb)
-        changeVal("#dt-sisa_tagihan_bb", tagihan.sisa_bb)
-        changeVal("#dt-persentase_bayar_tagihan_bb", tagihan.ldp_bb)
-        renderTagihanCard('bb', tagihan.total_bb, tagihan.sb_bb, tagihan.sisa_bb, tagihan.ldp_bb)
+        changeVal("#dt-total_tagihan_semua", tagihan.total_semua)
+        changeVal("#dt-sudah_bayar_semua", tagihan.sb_semua)
+        renderTagihanSummaryCard(tagihan.total_semua, tagihan.sb_semua)
 
         if (r.ku)
             $("#last_update_keuangan").html("Terakhir diupdate oleh: " + r.ku.username + " pada: " + format_datetime(r.ku.created_at));
@@ -1439,55 +1423,21 @@ function lihat_detail() {
     }
 
     function loadBayarProduksi(bprod) {
-        let dv = ''
-        $("#dt-div-bayar_produksi-here").html("")
-        $.each(bprod, function(i, v) {
-            // console.log(bprod)
+        const hasData = Array.isArray(bprod) && bprod.length > 0;
+        $('#detail-cashout-produksi-wrap').toggleClass('d-none', !hasData);
 
-            let id = !v.id ? "n" + v.id_bayar_produksi : v.id
-            dv += `
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <strong>${v.item}</strong>
-                            </div>
-                            <div class="card-body">
-                                    <div class="row">
-                                    <div class="col-md-6">
+        const $tbody = $('#dt-div-bayar_produksi-here');
+        $tbody.empty();
+        if (!hasData) return;
 
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label>Tanggal Pembayaran</label>
-                                            <input disabled type="text" class="form-control fp-bayar_produksi flatpickr-human-friendly tbp${v.id_bayar_produksi}"
-                                                id="dt-id-bayar_produksi[${id}][tanggal_bayar]" value="${v.tanggal_bayar ? v.tanggal_bayar : ''}" name="dt-id-bayar_produksi[${id}][tanggal_bayar]">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label for="sumurbor_bayar_nominal">Nominal</label>
-                                            <input type="text" disabled class="form-control num nbp${v.id_bayar_produksi}" id="dt-id-bayar_produksi[${id}][nominal]"
-                                                name="dt-id-bayar_produksi[${id}][nominal]" value="${v.nominal ? v.nominal : ''}">
-                                            <input type="hidden" class="form-control" id="id-bayar_produksi[${id}][id_item_produksi]"
-                                                name="id-bayar_produksi[${id}][id_item_produksi]" value="${id}">
-                                        </div>
-                                    </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Keterangan</label>
-                                            <textarea disabled class="form-control" id="dt-id-bayar_produksi[${id}][keterangan]"
-                                                name="dt-id-bayar_produksi[${id}][keterangan]" rows="4" placeholder="Keterangan">${v.keterangan ? v.keterangan : ''}</textarea>
-                                            <small id="last_update-sumurbor_bayar" class=""></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `
+        bprod.forEach(function(v) {
+            $tbody.append(`
+                <tr>
+                    <td>${detailEscapeHtml(v.item)}</td>
+                    <td>${v.tanggal_bayar ? format_date(v.tanggal_bayar) : '-'}</td>
+                    <td class="text-right">${detailRupiah(v.nominal)}</td>
+                    <td>${detailEscapeHtml(v.keterangan)}</td>
+                </tr>
+            `);
         });
-
-        $("#dt-div-bayar_produksi-here").html(dv)
-        $("#dt-div-bayar_produksi-here .num").change()
-
     }

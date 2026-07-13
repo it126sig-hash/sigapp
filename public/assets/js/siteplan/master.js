@@ -36,22 +36,7 @@ function daysBetween(startDate, endDate) {
     let millisecondsPerDay = 24 * 60 * 60 * 1000;
     return (treatAsUTC(endDate) - treatAsUTC(startDate)) / millisecondsPerDay;
 }
-// palidasi manual
-function palid(id, val, msg) {
 
-    if ($("#" + id).val() == val) {
-        Swal.fire({
-            //
-            icon: 'error',
-            title: msg,
-            showConfirmButton: false,
-            //timer: 1500
-        });
-        return false;
-    }
-    return true;
-
-}
 Date.prototype.toDateInputValue = (function() {
     var local = new Date(this);
     local.setMinutes(this.getMinutes() - this.getTimezoneOffset());

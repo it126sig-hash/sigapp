@@ -869,8 +869,16 @@ foreach (user()->getRoles() as $key => $val) {
 
         #modal_detail .detail-dashboard-grid,
         #modal_detail .detail-card-grid,
-        #modal_detail .detail-production-dashboard {
+        #modal_detail .detail-production-dashboard,
+        #modal_detail .detail-tagihan-grid {
             grid-template-columns: 1fr;
+        }
+
+        #modal_detail .detail-tagihan-col-status {
+            border-left: 0;
+            border-top: 1px solid #edf0f2;
+            padding-left: 0;
+            padding-top: 1rem;
         }
 
         #modal_detail .card-body {

@@ -82,12 +82,17 @@ class PembayaranService
 
         $is_lunas = $data->getVar('is_lunas') ? 1 : 0;
 
+        if ($this->lpModel->hasRecentDuplicate($form['id_mkdt'], $form['id_keuangan'], $form['nominal'], $form['tanggal_bayar'], $form['payment_type'])) {
+            return [
+                'status' => false,
+                'message' => 'Pembayaran dengan nominal dan tanggal yang sama baru saja disimpan. Silakan cek Riwayat Pembayaran sebelum mengulang.'
+            ];
+        }
+
         #############################
         $db = $this->db;
         try {
             $db->transStart();
-            //bayar booking fee
-            $this->bayarBookingFee($form['id_mkdt']);
 
             //insert log pembayaran
             $id_pembayaran = $this->lpModel->insert($form);
@@ -148,50 +153,6 @@ class PembayaranService
             return $response;
         }
     }
-    function bayarBookingFee($id_mkdt)
-    {
-        $booking_fee = $this->mkdtModel->select('booking_paid,booking_fee,booking_tgl')->where('id_mkdt', $id_mkdt)->first();
-        $is_paid = $this->lpModel->isBookingPaid($id_mkdt);
-
-        if (!$is_paid) {
-            try {
-                $db = $this->db;
-                $db->transStart();
-                $data = array(
-                    "id_mkdt" => $id_mkdt,
-                    "nominal" => $booking_fee->booking_fee,
-                    "tanggal_bayar" => $booking_fee->booking_tgl,
-                    "payment_type" => "Booking",
-                    "keterangan" => "",
-                    "add_by" => user_id(),
-                    "created_at" => date('Y-m-d H:i:s'),
-                    "updated_at" => date('Y-m-d H:i:s'),
-                    "edit_by" => user_id()
-                );
-
-                $this->mkdtModel->update($id_mkdt, ['booking_paid' => 1]);
-                $id_pembyaaran = $this->lpModel->insert($data);
-
-                $form_pembayaran = [
-                    "id_pembayaran" => $id_pembyaaran,
-                    "id_keuangan_item_list" => 1,
-                    "nominal" => $booking_fee->booking_fee,
-                    "created_at" => date('Y-m-d H:i:s'),
-                    "updated_at" => date('Y-m-d H:i:s'),
-                    "add_by" => user_id(),
-                    "edit_by" => user_id()
-                ];
-                $this->lpModel->insertDetail($form_pembayaran);
-                $this->ledgerService->recordIncomeFromLogPembayaran((int) $id_pembyaaran, user_id());
-
-                $db->transCommit();
-            } catch (\Throwable $th) {
-                $db->transRollback();
-                throw $th;
-            }
-        }
-    }
-
     function recalculateSummary($id_mkdt)
     {
         $this->summaryRepo->setToZero($id_mkdt);

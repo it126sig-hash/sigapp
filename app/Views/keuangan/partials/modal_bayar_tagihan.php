@@ -851,7 +851,7 @@
             </div>
             <div class="modal-footer">
                 <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
-                <button class="add-form-btn-keuangan btn btn-primary data-submit mr-1"
+                <button type="button" class="add-form-btn-keuangan btn btn-primary data-submit mr-1"
                     onclick="save_keuangan(); return false;" href="javascript:void(0)">Simpan</button>
             </div>
         </form>

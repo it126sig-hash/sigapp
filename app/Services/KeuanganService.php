@@ -448,7 +448,9 @@ class KeuanganService
     }
     public function getListTagihanGrouped($request)
     {
-        $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+        $builder = $request->getVar('status_lunas') === '1'
+            ? $this->keuRepo->getLunasGroupedQuery()
+            : $this->keuRepo->getBelumLunasGroupedQuery();
 
         $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
         if ($id_proyek)

@@ -174,6 +174,7 @@ class TransaksiController extends BaseApiController
         $perintah_bangun = ($p['perintah_bangun'] ?? null) !== null ? 1 : 0;
         $sp3k = ($p['sp3k'] ?? null) !== null ? 1 : 0;
         $akad = ($p['akad'] ?? null) !== null ? 1 : 0;
+        $akad_indent = ($p['akad_indent'] ?? null) !== null ? 1 : 0;
 
         $data = [
             'id_mkdt'           => (int) ($p['id_mkdt'] ?? 0),
@@ -188,6 +189,7 @@ class TransaksiController extends BaseApiController
             'notaris'           => $p['notaris'] ?? null,
             'is_ajb'            => $p['is_ajb'] ?? null,
             'akad'              => $akad,
+            'akad_indent'       => $akad_indent,
             'akad_tgl'          => $p['akad_tgl'] ?? null,
             'debitur_no'        => $p['debitur_no'] ?? null,
             'keterangan'        => $p['mkdt_keterangan'] ?? null,

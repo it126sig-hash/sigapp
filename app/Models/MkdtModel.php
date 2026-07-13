@@ -71,6 +71,7 @@ class MkdtModel extends Model
 		'akad_tgl',
 		'rincian',
 		'akad',
+		'akad_indent',
 		'is_ajb',
 		'bast_no',
 		'bast_no',
