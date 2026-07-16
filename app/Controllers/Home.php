@@ -253,6 +253,20 @@ class Home extends BaseController
             ->get()
             ->getRow();
 
+        $pencairanAkad = $this->db->table('pencairan_akad_pengajuan pg')
+            ->select("
+                COALESCE(SUM(pg.total_pengajuan - pg.total_cair), 0) AS piutang_pencairan_akad,
+                COUNT(CASE WHEN pg.tanggal_rencana_cair < CURDATE() THEN 1 END) AS pencairan_akad_reminder
+            ", false)
+            ->join('pencairan_akad_plan pp', 'pp.id = pg.id_plan')
+            ->join('kavling', 'kavling.id_kavling = pp.id_kavling')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->where('cluster.id_proyek', $id_proyek)
+            ->whereIn('pg.status', ['active', 'partial'])
+            ->get()
+            ->getRow();
+
         return [
             'tagihan_belum_bayar' => (int) ($bill->tagihan_belum_bayar ?? 0),
             'nominal_belum_bayar' => (float) ($bill->nominal_belum_bayar ?? 0),
@@ -264,6 +278,8 @@ class Home extends BaseController
             'cashout_total' => (float) ($cashout->cashout_total ?? 0),
             'cashout_subkon_jatuh_tempo' => (int) ($cashoutSubkon->cashout_subkon_jatuh_tempo ?? 0),
             'cashout_subkon_nominal' => (float) ($cashoutSubkon->cashout_subkon_nominal ?? 0),
+            'piutang_pencairan_akad' => (float) ($pencairanAkad->piutang_pencairan_akad ?? 0),
+            'pencairan_akad_reminder' => (int) ($pencairanAkad->pencairan_akad_reminder ?? 0),
         ];
     }
 

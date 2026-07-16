@@ -1,4 +1,4 @@
-﻿<!-- modal detail kavling -->
+<!-- modal detail kavling -->
 <div class="modal fade" id="modal_detail">
     <div class="modal-dialog modal-dialog-scrollable modal-xl">
         <div class="add-new-record modal-content pt-0">
@@ -177,65 +177,79 @@
                                 <div class="tab-content">
                                     <div class="tab-pane active" id="dtt-summary" aria-labelledby="dtt-summary-tab"
                                         role="tabpanel">
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="divider divider-left">
-                                                    <div class="divider-text font-weight-bold">Status</div>
+                                        <div class="detail-dashboard-grid">
+                                            <div class="detail-summary-card detail-status-card">
+                                                <div class="detail-status-card-header">
+                                                    <div class="detail-card-icon"><i class="fas fa-user"></i></div>
+                                                    <div class="detail-status-card-title">Status &amp; Akad</div>
                                                 </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label mb-0">Status Kavling</label>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-status_mkdt"></span>
-                                                    </div>
-                                                </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Bank</label>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-st_bank"></span>
-                                                    </div>
 
-                                                </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Notaris</label>
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Status Kavling</span>
+                                                        <span class="detail-status-badge badge-secondary" id="s-status_mkdt">-</span>
                                                     </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-notaris"></span>
-                                                    </div>
-                                                </div>
-                                                <div class="divider divider-left">
-                                                    <div class="divider-text font-weight-bold">SP3K</div>
-                                                </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Tanggal terbit SP3K</label>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-st_sp3k_tgl"></span>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Tanggal Akad</span>
+                                                        <span class="detail-info-value" id="s-akad_tgl">-</span>
                                                     </div>
                                                 </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Tanggal kadaluarsa SP3K</label>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Bank Pelaksana</span>
+                                                        <span class="detail-info-value" id="s-st_bank">-</span>
                                                     </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-st_sp3k_tgl_exp"></span>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Notaris</span>
+                                                        <span class="detail-info-value" id="s-notaris">-</span>
                                                     </div>
                                                 </div>
-                                                <div class="divider divider-left">
-                                                    <div class="divider-text font-weight-bold">Standing Instruction
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title detail-section-title-dot">SP3K</span>
+                                                </div>
+                                                <div class="detail-info-pair">
+                                                    <div class="detail-mini-card">
+                                                        <div class="detail-mini-label">Terbit</div>
+                                                        <div class="detail-mini-value" id="s-st_sp3k_tgl">-</div>
                                                     </div>
+                                                    <div class="detail-mini-card">
+                                                        <div class="detail-mini-label">Kadaluarsa</div>
+                                                        <div class="detail-mini-value" id="s-st_sp3k_tgl_exp">-</div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title detail-section-title-dot">Standing Instruction</span>
                                                 </div>
                                                 <div id="s-si"></div>
                                             </div>
-                                            <div class="col-md-4">
-                                                <div class="divider divider-left">
-                                                    <div class="divider-text font-weight-bold">Keuangan</div>
+
+                                            <div class="detail-summary-card detail-status-card">
+                                                <div class="detail-status-card-header">
+                                                    <div class="detail-card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                                                    <div class="detail-status-card-title">Keuangan</div>
                                                 </div>
+
+                                                <div class="d-flex justify-content-center mb-1" style="position: relative; height:160px; width:100%">
+                                                    <canvas id="keuanganChart"></canvas>
+                                                    <div id="keuanganChart-empty" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); display:none; text-align:center; color:#999; font-size:0.75rem;">
+                                                        Belum ada<br>pembayaran
+                                                    </div>
+                                                </div>
+
+                                                <div class="detail-info-row mt-1">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Telah Dibayar</span>
+                                                        <span class="detail-info-value detail-text-success" id="s-total_dibayar">Rp 0</span>
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label"><span class="detail-dot detail-dot-danger"></span>Sisa Tagihan</span>
+                                                        <span class="detail-info-value detail-text-danger" id="s-sisa_tagihan">Rp 0</span>
+                                                    </div>
+                                                </div>
+
                                                 <div class="info-row row no-gutters hidden">
                                                     <div class="col-6">
                                                         <label class="info-label">Uang Muka</label>
@@ -245,7 +259,7 @@
                                                             id="s-persentase_bayar_tagihan_um"></span>
                                                     </div>
                                                 </div>
-                                                <div class="info-row row no-gutters">
+                                                <div class="info-row row no-gutters hidden">
                                                     <div class="col-6">
                                                         <label class="info-label">Tagihan</label>
                                                     </div>
@@ -263,86 +277,73 @@
                                                             id="s-persentase_bayar_tagihan_bb"></span>
                                                     </div>
                                                 </div>
-                                                <div class="divider divider-left">
-                                                    <div class="divider-text font-weight-bold">Cashout</div>
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title detail-section-title-dot">Cashout Status</span>
                                                 </div>
                                                 <div id="s-co"></div>
                                             </div>
-                                            <div class="col-md-4">
-                                                <div class="divider divider-left">
-                                                    <div class="divider-text font-weight-bold">Bangunan</div>
+
+                                            <div class="detail-summary-card detail-status-card">
+                                                <div class="detail-status-card-header">
+                                                    <div class="detail-card-icon"><i class="fas fa-tools"></i></div>
+                                                    <div class="detail-status-card-title">Bangunan</div>
                                                 </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Progres Bangunan</label>
+
+                                                <div class="mb-2">
+                                                    <div class="d-flex justify-content-between mb-50">
+                                                        <span class="detail-info-label">Progres Fisik</span>
+                                                        <span class="detail-info-value" id="s-progress_bangunan_text">0%</span>
                                                     </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-progress_bangunan"></span>
-                                                    </div>
-                                                </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Tanggal Turun Pembangunan</label>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-perintah_bangun_tgl"></span>
+                                                    <div class="detail-progress-track">
+                                                        <div id="s-progress_bangunan_bar" class="detail-progress-fill is-empty" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                                     </div>
                                                 </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Tanggal Pembangunan</label>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label"><i class="fas fa-check-circle detail-text-primary"></i> Selesai Pembangunan</span>
+                                                        <span class="detail-info-value" id="s-tanggal_selesai_pembangunan">-</span>
                                                     </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-tanggal_pembangunan"></span>
-                                                    </div>
-                                                </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Tanggal Selesai Pembangunan</label>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value"
-                                                            id="s-tanggal_selesai_pembangunan"></span>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Mulai Bangun</span>
+                                                        <span class="detail-info-value" id="s-tanggal_pembangunan">-</span>
                                                     </div>
                                                 </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Saluran Jalan</label>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-st_saluran"></span>
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Tgl Turun Perintah Bangun</span>
+                                                        <span class="detail-info-value" id="s-perintah_bangun_tgl">-</span>
                                                     </div>
                                                 </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Air</label>
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title detail-section-title-dot">Site Amenities</span>
+                                                </div>
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Saluran</span>
+                                                        <span class="detail-status-badge badge-secondary" id="s-st_saluran">-</span>
                                                     </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-st_air"></span>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Air</span>
+                                                        <span class="detail-status-badge badge-secondary" id="s-st_air">-</span>
                                                     </div>
                                                 </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Listrik</label>
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Listrik</span>
+                                                        <span class="detail-status-badge badge-secondary" id="s-st_jalan">-</span>
                                                     </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-st_jalan"></span>
-                                                    </div>
-                                                </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">SLO/NIDI</label>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-slo"></span>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">SLO/NIDI</span>
+                                                        <span class="detail-status-badge badge-secondary" id="s-slo">-</span>
                                                     </div>
                                                 </div>
-                                                <div class="info-row row no-gutters">
-                                                    <div class="col-6">
-                                                        <label class="info-label">LPA</label>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value" id="s-lpa"></span>
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">LPA</span>
+                                                        <span class="detail-status-badge badge-secondary" id="s-lpa">-</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -354,255 +355,230 @@
                                         <small class="text-muted">Terakhir diperbaharui oleh</small>
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <div class="divider">
+                                                <div class="divider divider-left">
                                                     <div class="divider-text">Pricelist</div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Tanggal
-                                                        PriceList</label>
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">Tanggal PriceList</span>
                                                     <input type="text"
-                                                        class="form-control text-right dt-pl_fm flatpickr-human-friendly"
+                                                        class="detail-price-value flatpickr-human-friendly"
                                                         id="dt-pl_tgl_harga" disabled name="dt-pl_tgl_harga" value=""
                                                         readonly />
                                                 </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Harga
-                                                        Jual</label>
-                                                    <input type="text" class="form-control num dt-pl_fm"
-                                                        id="dt-pl_hargajual" name="dt-pl_hargajual" value="" readonly />
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">Harga Jual</span>
+                                                    <input type="text" class="detail-price-value num"
+                                                        id="dt-pl_hargajual" name="dt-pl_hargajual" value="" disabled
+                                                        readonly />
                                                 </div>
-                                                <div class="form-group" id="hjdis">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Diskon
-                                                        Harga
-                                                        Jual</label>
-                                                    <input type="text" class="form-control num dt-pl_fm"
+                                                <div class="detail-price-item" id="hjdis-pl">
+                                                    <span class="detail-price-label">Diskon Harga Jual</span>
+                                                    <input type="text" class="detail-price-value num"
                                                         id="dt-pl_harga_diskon_hargajual"
-                                                        name="dt-pl_harga_diskon_hargajual" value="" readonly />
+                                                        name="dt-pl_harga_diskon_hargajual" value="" disabled
+                                                        readonly />
                                                 </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Harga
-                                                        Jual Net</label>
-                                                    <input type="text" class="form-control num dt-pl_fm"
+                                                <div class="detail-price-item is-highlight">
+                                                    <span class="detail-price-label">Harga Jual Net</span>
+                                                    <input type="text" class="detail-price-value num"
                                                         id="dt-pl_hargajual_net" name="dt-pl_hargajual_net" value=""
+                                                        disabled readonly />
+                                                </div>
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">KPR</span>
+                                                    <input type="text" class="detail-price-value num" id="dt-pl_kpr"
+                                                        name="dt-pl_kpr" value="" disabled readonly />
+                                                </div>
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">Uang Muka</span>
+                                                    <input type="text" class="detail-price-value num"
+                                                        id="dt-pl_uang_muka" name="dt-pl_uang_muka" value="" disabled
                                                         readonly />
                                                 </div>
-                                                <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">KPR</label>
-                                                    <input type="text" class="form-control num dt-pl_fm" id="dt-pl_kpr"
-                                                        name="dt-pl_kpr" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Uang
-                                                        Muka</label>
-                                                    <input type="text" class="form-control num dt-pl_fm"
-                                                        id="dt-pl_uang_muka" name="dt-pl_uang_muka" value="" readonly />
-                                                </div>
-                                                <div class="form-group" id="umdis">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Diskon
-                                                        Uang Muka</label>
-                                                    <input type="text" class="form-control num dt-pl_fm"
+                                                <div class="detail-price-item" id="umdis-pl">
+                                                    <span class="detail-price-label">Diskon Uang Muka</span>
+                                                    <input type="text" class="detail-price-value num"
                                                         id="dt-pl_harga_diskon_uang_muka"
-                                                        name="dt-pl_harga_diskon_uang_muka" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Biaya
-                                                        Adm</label>
-                                                    <input type="text" class="form-control num dt-pl_fm"
-                                                        id="dt-pl_biaya_adm" name="dt-pl_biaya_adm" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="total_biaya2">PPN</label>
-                                                    <input type="text" class="form-control num dt-pl_fm totalbb"
-                                                        id="dt-pl_ppn" name="dt-pl_ppn" readonly>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">BPHTB</label>
-                                                    <input type="text" class="form-control num dt-pl_fm totalbb"
-                                                        id="dt-pl_bphtb" name="dt-pl_bphtb" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Biaya
-                                                        Proses</label>
-                                                    <input type="text" class="form-control num dt-pl_fm totalbb"
-                                                        id="dt-pl_biaya_proses" name="dt-pl_biaya_proses" value=""
+                                                        name="dt-pl_harga_diskon_uang_muka" value="" disabled
                                                         readonly />
                                                 </div>
-
-
-
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">Biaya Adm</span>
+                                                    <input type="text" class="detail-price-value num"
+                                                        id="dt-pl_biaya_adm" name="dt-pl_biaya_adm" value="" disabled
+                                                        readonly />
+                                                </div>
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">PPN</span>
+                                                    <input type="text" class="detail-price-value num totalbb"
+                                                        id="dt-pl_ppn" name="dt-pl_ppn" disabled readonly>
+                                                </div>
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">BPHTB</span>
+                                                    <input type="text" class="detail-price-value num totalbb"
+                                                        id="dt-pl_bphtb" name="dt-pl_bphtb" value="" disabled
+                                                        readonly />
+                                                </div>
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">Biaya Proses</span>
+                                                    <input type="text" class="detail-price-value num totalbb"
+                                                        id="dt-pl_biaya_proses" name="dt-pl_biaya_proses" value=""
+                                                        disabled readonly />
+                                                </div>
                                             </div>
                                             <div class="col-md-4">
-                                                <div class="divider">
+                                                <div class="divider divider-left">
                                                     <div class="divider-text">Harga Jual (SPPTB)</div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Tanggal
-                                                        PriceList</label>
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">Tanggal PriceList</span>
                                                     <input type="text"
-                                                        class="form-control text-right dt-fm flatpickr-human-friendly"
+                                                        class="detail-price-value flatpickr-human-friendly"
                                                         id="dt-tgl_harga" disabled name="dt-tgl_harga" value=""
                                                         readonly />
                                                 </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Harga
-                                                        Jual</label>
-                                                    <input type="text" class="form-control num dt-fm" id="dt-hargajual"
-                                                        name="dt-hargajual" value="" readonly />
-                                                </div>
-                                                <div class="form-group" id="hjdis">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Diskon
-                                                        Harga
-                                                        Jual</label>
-                                                    <input type="text" class="form-control num dt-fm"
-                                                        id="dt-harga_diskon_hargajual" name="dt-harga_diskon_hargajual"
-                                                        value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Harga
-                                                        Jual Net</label>
-                                                    <input type="text" class="form-control num dt-fm"
-                                                        id="dt-hargajual_net" name="dt-hargajual_net" value=""
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">Harga Jual</span>
+                                                    <input type="text" class="detail-price-value num"
+                                                        id="dt-hargajual" name="dt-hargajual" value="" disabled
                                                         readonly />
                                                 </div>
-                                                <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">KPR</label>
-                                                    <input type="text" class="form-control num dt-fm" id="dt-kpr"
-                                                        name="dt-kpr" value="" readonly />
+                                                <div class="detail-price-item" id="hjdis">
+                                                    <span class="detail-price-label">Diskon Harga Jual</span>
+                                                    <input type="text" class="detail-price-value num"
+                                                        id="dt-harga_diskon_hargajual" name="dt-harga_diskon_hargajual"
+                                                        value="" disabled readonly />
                                                 </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Uang
-                                                        Muka</label>
-                                                    <input type="text" class="form-control num dt-fm" id="dt-uang_muka"
-                                                        name="dt-uang_muka" value="" readonly />
+                                                <div class="detail-price-item is-highlight">
+                                                    <span class="detail-price-label">Harga Jual Net</span>
+                                                    <input type="text" class="detail-price-value num"
+                                                        id="dt-hargajual_net" name="dt-hargajual_net" value=""
+                                                        disabled readonly />
                                                 </div>
-                                                <div class="form-group" id="umdis">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Diskon
-                                                        Uang Muka</label>
-                                                    <input type="text" class="form-control num dt-fm"
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">KPR</span>
+                                                    <input type="text" class="detail-price-value num" id="dt-kpr"
+                                                        name="dt-kpr" value="" disabled readonly />
+                                                </div>
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">Uang Muka</span>
+                                                    <input type="text" class="detail-price-value num"
+                                                        id="dt-uang_muka" name="dt-uang_muka" value="" disabled
+                                                        readonly />
+                                                </div>
+                                                <div class="detail-price-item" id="umdis">
+                                                    <span class="detail-price-label">Diskon Uang Muka</span>
+                                                    <input type="text" class="detail-price-value num"
                                                         id="dt-harga_diskon_uang_muka" name="dt-harga_diskon_uang_muka"
-                                                        value="" readonly />
+                                                        value="" disabled readonly />
                                                 </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Biaya
-                                                        Adm</label>
-                                                    <input type="text" class="form-control num dt-fm" id="dt-biaya_adm"
-                                                        name="dt-biaya_adm" value="" readonly />
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">Biaya Adm</span>
+                                                    <input type="text" class="detail-price-value num"
+                                                        id="dt-biaya_adm" name="dt-biaya_adm" value="" disabled
+                                                        readonly />
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="total_biaya2">PPN</label>
-                                                    <input type="text" class="form-control num dt-fm totalbb"
-                                                        id="dt-ppn" name="dt-ppn" readonly>
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">PPN</span>
+                                                    <input type="text" class="detail-price-value num totalbb"
+                                                        id="dt-ppn" name="dt-ppn" disabled readonly>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">BPHTB</label>
-                                                    <input type="text" class="form-control num dt-fm totalbb"
-                                                        id="dt-bphtb" name="dt-bphtb" value="" readonly />
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">BPHTB</span>
+                                                    <input type="text" class="detail-price-value num totalbb"
+                                                        id="dt-bphtb" name="dt-bphtb" value="" disabled readonly />
                                                 </div>
-                                                <div class="form-group">
-                                                    <label class="form-label" for="basic-icon-default-fullname">Biaya
-                                                        Proses</label>
-                                                    <input type="text" class="form-control num dt-fm totalbb"
-                                                        id="dt-biaya_proses" name="dt-biaya_proses" value="" readonly />
+                                                <div class="detail-price-item">
+                                                    <span class="detail-price-label">Biaya Proses</span>
+                                                    <input type="text" class="detail-price-value num totalbb"
+                                                        id="dt-biaya_proses" name="dt-biaya_proses" value="" disabled
+                                                        readonly />
                                                 </div>
-                                                <!-- <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">ROW</label>
-                                                    <input type="text" class="form-control num dt-fm" id="dt-row"
-                                                        name="dt-row" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">Tipe</label>
-                                                    <input type="text" class="form-control dt-fm text-right"
-                                                        id="dt-tipe" name="dt-tipe" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">LB</label>
-                                                    <input type="text" class="form-control num dt-fm" id="dt-lb"
-                                                        name="dt-lb" value="" readonly />
-                                                </div>
-                                                <div class="form-group">
-                                                    <label class="form-label"
-                                                        for="basic-icon-default-fullname">LT</label>
-                                                    <input type="text" class="form-control num dt-fm" id="dt-lt"
-                                                        name="dt-lt" value="" readonly />
-                                                </div> -->
-
-
                                             </div>
 
                                             <div class="col-md-4">
-                                                <div class="divider">
-                                                    <div class="divider-text">KPR</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="total_biaya2">KPR Disetujui</label>
-                                                    <input readonly type="text" class="form-control num"
-                                                        id="dt-st_harga_kpr_acc" name="dt-st_harga_kpr_acc">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="total_biaya2">Turun KPR</label>
-                                                    <input readonly type="text" class="form-control num "
-                                                        id="dt-st_harga_penambahan_um" name="dt-st_harga_penambahan_um">
-                                                </div>
-                                                <div class="divider">
-                                                    <div class="divider-text">Penambahan Biaya</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="total_biaya2">Biaya Kavling Strategis</label>
-                                                    <input type="text" readonly class="form-control num "
-                                                        id="dt-st_harga_penambahan" name="dt-st_harga_penambahan">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="total_biaya2">Biaya Kelebihan Tanah</label>
-                                                    <input type="text" readonly class="form-control num "
-                                                        id="dt-st_harga_penambahan_tanah"
-                                                        name="dt-st_harga_penambahan_tanah">
-                                                </div>
-                                                <div class="form-group hidden">
-                                                    <label for="total_biaya2">Keterangan Penambahan Biaya</label>
-                                                    <textarea readonly name="dt-st_keterangan_harga_penambahan"
-                                                        id="dt-st_keterangan_harga_penambahan" class="form-control "
-                                                        cols="30" rows="2"></textarea>
-                                                </div>
-                                                <div class="divider">
-                                                    <div class="divider-text">Dokumen</div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>KTP</label>
-                                                    <div>
-                                                        <a href="#" class="btn btn-primary" id="dt-btn-ktp_here"
-                                                            class="files-here dt-cl-ktp_here" target=_blank>
-                                                            Klik untuk lihat file
-                                                            <embed src="" style="width: 90%;"
-                                                                class="files-here dt-cl-ktp_here">
-                                                        </a>
+                                                <div class="card detail-summary-card">
+                                                    <div class="detail-status-card-header">
+                                                        <div class="detail-card-icon"><i class="fas fa-home"></i>
+                                                        </div>
+                                                        <div class="detail-status-card-title">Simulasi KPR</div>
+                                                    </div>
+
+                                                    <span class="detail-highlight-label">KPR Disetujui</span>
+                                                    <input type="text" class="detail-highlight-value num mb-1"
+                                                        id="dt-st_harga_kpr_acc" name="dt-st_harga_kpr_acc" disabled
+                                                        readonly>
+
+                                                    <div class="detail-highlight-box">
+                                                        <span class="detail-highlight-label">Turun KPR</span>
+                                                        <input type="text" class="detail-highlight-value num"
+                                                            id="dt-st_harga_penambahan_um"
+                                                            name="dt-st_harga_penambahan_um" disabled readonly>
+                                                    </div>
+
+                                                    <div class="detail-section-divider">
+                                                        <span class="detail-section-title">Penambahan Biaya</span>
+                                                    </div>
+                                                    <div class="detail-metric-row">
+                                                        <span class="detail-metric-label">Kavling Strategis</span>
+                                                        <input type="text" class="detail-metric-value num"
+                                                            id="dt-st_harga_penambahan" name="dt-st_harga_penambahan"
+                                                            disabled readonly>
+                                                    </div>
+                                                    <div class="detail-metric-row">
+                                                        <span class="detail-metric-label">Kelebihan Tanah</span>
+                                                        <input type="text" class="detail-metric-value num"
+                                                            id="dt-st_harga_penambahan_tanah"
+                                                            name="dt-st_harga_penambahan_tanah" disabled readonly>
+                                                    </div>
+                                                    <div class="form-group hidden">
+                                                        <label for="total_biaya2">Keterangan Penambahan Biaya</label>
+                                                        <textarea readonly name="dt-st_keterangan_harga_penambahan"
+                                                            id="dt-st_keterangan_harga_penambahan" class="form-control "
+                                                            cols="30" rows="2"></textarea>
                                                     </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label>NPWP</label>
-                                                    <div>
-                                                        <a href="#" class="btn btn-primary" id="dt-btn-npwp_here"
-                                                            class="files-here dt-cl-npwp_here" target=_blank>
-                                                            Klik untuk lihat file
-                                                            <embed src="" style="width: 90%;"
-                                                                class="files-here dt-cl-npwp_here">
-                                                        </a>
+
+                                                <div class="card detail-summary-card">
+                                                    <div class="detail-status-card-header">
+                                                        <div class="detail-card-icon"><i
+                                                                class="fas fa-folder-open"></i></div>
+                                                        <div class="detail-status-card-title">Dokumen</div>
                                                     </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Berkas Lainnya</label>
-                                                    <div>
-                                                        <a href="#" class="btn btn-primary" id="dt-btn-bl_here"
-                                                            class="files-here dt-cl-bl_here" target=_blank>
-                                                            Klik untuk lihat file
-                                                            <embed src="" style="width: 90%;"
-                                                                class="files-here dt-cl-bl_here">
+                                                    <div class="detail-document-list">
+                                                        <a href="#" class="detail-document-item" id="dt-btn-ktp_here"
+                                                            target="_blank">
+                                                            <div class="detail-card-icon detail-document-icon"><i
+                                                                    class="fas fa-id-card"></i></div>
+                                                            <div class="detail-document-body">
+                                                                <div class="detail-file-title">Kartu Tanda Penduduk
+                                                                </div>
+                                                                <div class="detail-file-meta" id="dt-doc-ktp_name">-
+                                                                </div>
+                                                            </div>
+                                                            <i class="fas fa-download detail-document-arrow"></i>
+                                                        </a>
+                                                        <a href="#" class="detail-document-item" id="dt-btn-npwp_here"
+                                                            target="_blank">
+                                                            <div class="detail-card-icon detail-document-icon"><i
+                                                                    class="fas fa-file-invoice"></i></div>
+                                                            <div class="detail-document-body">
+                                                                <div class="detail-file-title">NPWP</div>
+                                                                <div class="detail-file-meta" id="dt-doc-npwp_name">-
+                                                                </div>
+                                                            </div>
+                                                            <i class="fas fa-download detail-document-arrow"></i>
+                                                        </a>
+                                                        <a href="#" class="detail-document-item" id="dt-btn-bl_here"
+                                                            target="_blank">
+                                                            <div class="detail-card-icon detail-document-icon"><i
+                                                                    class="fas fa-file-archive"></i></div>
+                                                            <div class="detail-document-body">
+                                                                <div class="detail-file-title">Berkas Lainnya</div>
+                                                                <div class="detail-file-meta" id="dt-doc-bl_name">-
+                                                                </div>
+                                                            </div>
+                                                            <i class="fas fa-download detail-document-arrow"></i>
                                                         </a>
                                                     </div>
                                                 </div>
@@ -994,126 +970,100 @@
                                                     aria-labelledby="dt-legal-pbb-tab" role="tabpanel">
                                                     <div class="row">
                                                         <div class="col-md-6">
-                                                            <div class="card">
-                                                                <div class="card-header">
-                                                                    <h5>Mutasi Pecah PBB</h5>
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-map-marked-alt"></i></div>
+                                                                    <div class="detail-status-card-title">Mutasi Pecah PBB</div>
                                                                 </div>
-                                                                <div class="card-body">
-
-                                                                    <div class="form-group">
-                                                                        <label>NOP PBB</label>
-                                                                        <input type="text" class="form-control"
-                                                                            id="dt-pbb_pecah_nop"
-                                                                            name="dt-pbb_pecah_nop" disabled>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">NOP PBB</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-pbb_pecah_nop" name="dt-pbb_pecah_nop" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Luas Bumi</label>
-                                                                        <input type="text" class="form-control"
-                                                                            id="dt-pbb_pecah_luas_bumi"
-                                                                            name="dt-pbb_pecah_luas_bumi" disabled>
+                                                                </div>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Luas Bumi</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-pbb_pecah_luas_bumi" name="dt-pbb_pecah_luas_bumi" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>NJOP Bumi</label>
-                                                                        <input type="text" class="form-control num"
-                                                                            id="dt-pbb_pecah_njop_bumi"
-                                                                            name="dt-pbb_pecah_njop_bumi" disabled>
+                                                                    <div class="detail-info-col text-right">
+                                                                        <span class="detail-info-label">NJOP Bumi</span>
+                                                                        <input type="text" class="detail-info-value num" id="dt-pbb_pecah_njop_bumi" name="dt-pbb_pecah_njop_bumi" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Luas Bangunan</label>
-                                                                        <input type="text" class="form-control"
-                                                                            id="dt-pbb_pecah_luas_bangunan"
-                                                                            name="dt-pbb_pecah_luas_bangunan" disabled>
+                                                                </div>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Luas Bangunan</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-pbb_pecah_luas_bangunan" name="dt-pbb_pecah_luas_bangunan" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>NJOP Bangunan</label>
-                                                                        <input type="text" class="form-control num"
-                                                                            id="dt-pbb_pecah_njop_bangunan"
-                                                                            name="dt-pbb_pecah_njop_bangunan" disabled>
+                                                                    <div class="detail-info-col text-right">
+                                                                        <span class="detail-info-label">NJOP Bangunan</span>
+                                                                        <input type="text" class="detail-info-value num" id="dt-pbb_pecah_njop_bangunan" name="dt-pbb_pecah_njop_bangunan" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Tanggal bayar</label>
-                                                                        <input type="text"
-                                                                            id="dt-pbb_pecah_tanggal_bayar"
-                                                                            name="dt-pbb_pecah_tanggal_bayar"
-                                                                            class="form-control flatpickr-human-friendly"
-                                                                            placeholder="-" disabled />
+                                                                </div>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Tanggal Bayar</span>
+                                                                        <input type="text" id="dt-pbb_pecah_tanggal_bayar" name="dt-pbb_pecah_tanggal_bayar" class="detail-info-value flatpickr-human-friendly" placeholder="-" readonly />
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Jumlah Tagihan</label>
-                                                                        <input type="text" class="form-control num"
-                                                                            id="dt-pbb_pecah_jumlah_tagihan"
-                                                                            name="dt-pbb_pecah_jumlah_tagihan" disabled>
-                                                                    </div>
+                                                                </div>
+                                                                <div class="detail-highlight-box mb-0">
+                                                                    <span class="detail-highlight-label">Jumlah Tagihan</span>
+                                                                    <input type="text" class="detail-highlight-value num" id="dt-pbb_pecah_jumlah_tagihan" name="dt-pbb_pecah_jumlah_tagihan" readonly>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <div class="card">
-                                                                <div class="card-header">
-                                                                    <h5>Pembetulan</h5>
-                                                                </div>
-                                                                <div class="card-body">
-                                                                    <div class="form-group">
-                                                                        <label>Pembetulan PBB</label>
-                                                                        <select name="dt-pbb_is_pembetulan"
-                                                                            id="dt-pbb_is_pembetulan"
-                                                                            class="form-control" disabled>
-                                                                            <option value="Tidak">Tidak</option>
-                                                                            <option value="Iya">Iya</option>
-                                                                        </select>
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-edit"></i></div>
+                                                                    <div class="detail-status-card-title">Pembetulan PBB</div>
+                                                                    <div class="detail-status-card-toggle">
+                                                                        <span class="detail-status-badge badge-secondary" id="dt-pbb_is_pembetulan-badge">-</span>
                                                                     </div>
-                                                                    <div id="select-pbb_is_pembetulan">
-                                                                        <div class="form-group">
-                                                                            <label>Tanggal Pembetulan</label>
-                                                                            <input type="text"
-                                                                                id="dt-pbb_tgl_pembetulan"
-                                                                                name="dt-pbb_tgl_pembetulan"
-                                                                                class="form-control flatpickr-human-friendly"
-                                                                                placeholder="-" disabled />
+                                                                </div>
+                                                                <select name="dt-pbb_is_pembetulan" id="dt-pbb_is_pembetulan" class="hidden" disabled>
+                                                                    <option value="Tidak">Tidak</option>
+                                                                    <option value="Iya">Iya</option>
+                                                                </select>
+                                                                <div id="select-pbb_is_pembetulan">
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">Tanggal Pembetulan</span>
+                                                                            <input type="text" id="dt-pbb_tgl_pembetulan" name="dt-pbb_tgl_pembetulan" class="detail-info-value flatpickr-human-friendly" placeholder="-" readonly />
                                                                         </div>
                                                                     </div>
-
                                                                 </div>
                                                             </div>
-                                                            <div class="card">
-                                                                <div class="card-header">
-                                                                    <h5>Balik Nama PBB</h5>
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-exchange-alt"></i></div>
+                                                                    <div class="detail-status-card-title">Balik Nama PBB</div>
+                                                                    <div class="detail-status-card-toggle">
+                                                                        <span class="detail-status-badge badge-secondary" id="dt-pbb_is_balik_nama-badge">-</span>
+                                                                    </div>
                                                                 </div>
-                                                                <div class="card-body">
-                                                                    <div class="form-group">
-                                                                        <label>Balik Nama PBB</label>
-                                                                        <select name="dt-pbb_is_balik_nama"
-                                                                            id="dt-pbb_is_balik_nama"
-                                                                            class="form-control" disabled>
-                                                                            <option value="Belum">Belum</option>
-                                                                            <option value="Sudah">Sudah</option>
-                                                                        </select>
-                                                                    </div>
-                                                                    <div class="select-pbb_is_balik_nama">
-                                                                        <div class="form-group">
-                                                                            <label>Nama Konsumen</label>
-                                                                            <input type="text" readonly
-                                                                                id="dt-pbb_balik_nama"
-                                                                                class="form-control"
-                                                                                name="dt-pbb_balik_nama" disabled>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label>Tanggal Pengiriman</label>
-                                                                            <input type="text"
-                                                                                id="dt-pbb_balik_nama_tgl_pengiriman"
-                                                                                name="dt-pbb_balik_nama_tgl_pengiriman"
-                                                                                class="form-control flatpickr-human-friendly"
-                                                                                placeholder="-" disabled />
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label>Dikirim Ke
-                                                                                Bank/Konsumen/Notaris</label>
-                                                                            <input type="text" class="form-control"
-                                                                                id="dt-pbb_balik_nama_ke"
-                                                                                name="dt-pbb_balik_nama_ke" disabled>
+                                                                <select name="dt-pbb_is_balik_nama" id="dt-pbb_is_balik_nama" class="hidden" disabled>
+                                                                    <option value="Belum">Belum</option>
+                                                                    <option value="Sudah">Sudah</option>
+                                                                </select>
+                                                                <div class="select-pbb_is_balik_nama">
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">Nama Konsumen</span>
+                                                                            <input type="text" readonly id="dt-pbb_balik_nama" class="detail-info-value" name="dt-pbb_balik_nama">
                                                                         </div>
                                                                     </div>
-
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">Tanggal Pengiriman</span>
+                                                                            <input type="text" id="dt-pbb_balik_nama_tgl_pengiriman" name="dt-pbb_balik_nama_tgl_pengiriman" class="detail-info-value flatpickr-human-friendly" placeholder="-" readonly />
+                                                                        </div>
+                                                                        <div class="detail-info-col text-right">
+                                                                            <span class="detail-info-label">Dikirim Ke Bank/Konsumen/Notaris</span>
+                                                                            <input type="text" class="detail-info-value" id="dt-pbb_balik_nama_ke" name="dt-pbb_balik_nama_ke" readonly>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1124,257 +1074,203 @@
                                                     aria-labelledby="dt-legal-sertifikat-tab" role="tabpanel">
                                                     <div class="row">
                                                         <div class="col-md-6">
-                                                            <div class="card">
-                                                                <div class="card-header">
-                                                                    <h5>Sertipikat</h5>
-                                                                </div>
-                                                                <div class="card-body">
-                                                                    <div class="form-group">
-                                                                        <label>No HGB Induk/Nibel</label>
-                                                                        <input type="text" class="form-control "
-                                                                            id="dt-sertifikat_split_no_hgb_induk"
-                                                                            name="dt-sertifikat_split_no_hgb_induk"
-                                                                            disabled>
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-file-contract"></i></div>
+                                                                    <div class="detail-status-card-title">Sertipikat</div>
+                                                                    <div class="detail-status-card-toggle">
+                                                                        <span class="detail-status-badge badge-secondary" id="dt-sertifikat_is_split-badge">-</span>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Split Sertifikat</label>
-                                                                        <select name="dt-sertifikat_is_split"
-                                                                            id="dt-sertifikat_is_split"
-                                                                            class="form-control" disabled>
-                                                                            <option value="0">Tidak</option>
-                                                                            <option value="1">Ya</option>
-                                                                        </select>
+                                                                </div>
+                                                                <select name="dt-sertifikat_is_split" id="dt-sertifikat_is_split" class="hidden" disabled>
+                                                                    <option value="0">Tidak</option>
+                                                                    <option value="1">Ya</option>
+                                                                </select>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">No HGB Induk/Nibel</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-sertifikat_split_no_hgb_induk" name="dt-sertifikat_split_no_hgb_induk" readonly>
                                                                     </div>
                                                                 </div>
                                                             </div>
 
-                                                            <div class="card">
-                                                                <div class="card-header">
-                                                                    <h5>Sertipikat Split</h5>
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-clone"></i></div>
+                                                                    <div class="detail-status-card-title">Sertipikat Split</div>
                                                                 </div>
-                                                                <div class="card-body">
-                                                                    <div class="select-sertifikat_is_split">
-                                                                        <div class="form-group">
-                                                                            <label>No HGB</label>
-                                                                            <input type="text" class="form-control"
-                                                                                id="dt-sertifikat_split_no_hgb"
-                                                                                name="dt-sertifikat_split_no_hgb"
-                                                                                disabled>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label>Tanggal Terbit Sertipikat</label>
-                                                                            <input type="text"
-                                                                                id="dt-sertifikat_split_tanggal_terbit"
-                                                                                name="dt-sertifikat_split_tanggal_terbit"
-                                                                                class="form-control flatpickr-human-friendly"
-                                                                                placeholder="-" disabled />
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label>Tanggal Terbit Berakhir</label>
-                                                                            <input type="text"
-                                                                                id="dt-sertifikat_split_tanggal_berakhir"
-                                                                                name="dt-sertifikat_split_tanggal_berakhir"
-                                                                                class="form-control flatpickr-human-friendly"
-                                                                                placeholder="-" disabled />
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label>NIB</label>
-                                                                            <input type="text" class="form-control "
-                                                                                id="dt-sertifikat_split_nib"
-                                                                                name="dt-sertifikat_split_nib" disabled>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label>Tanggal Surat Ukur</label>
-                                                                            <input type="text"
-                                                                                id="dt-sertifikat_split_tanggal_surat_ukur"
-                                                                                name="dt-sertifikat_split_tanggal_surat_ukur"
-                                                                                class="form-control flatpickr-human-friendly"
-                                                                                placeholder="-" disabled />
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label>No Surat Ukur</label>
-                                                                            <input type="text"
-                                                                                id="dt-sertifikat_split_no_surat_ukur"
-                                                                                name="dt-sertifikat_split_no_surat_ukur"
-                                                                                class="form-control" placeholder="-"
-                                                                                disabled />
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label>Luas Tanah (m2)</label>
-                                                                            <input type="text" class="form-control "
-                                                                                id="dt-sertifikat_split_luas_tanah"
-                                                                                name="dt-sertifikat_split_luas_tanah"
-                                                                                disabled>
+                                                                <div class="select-sertifikat_is_split">
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">No HGB</span>
+                                                                            <input type="text" class="detail-info-value" id="dt-sertifikat_split_no_hgb" name="dt-sertifikat_split_no_hgb" readonly>
                                                                         </div>
                                                                     </div>
-
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">Terbit</span>
+                                                                            <input type="text" id="dt-sertifikat_split_tanggal_terbit" name="dt-sertifikat_split_tanggal_terbit" class="detail-info-value flatpickr-human-friendly" placeholder="-" readonly />
+                                                                        </div>
+                                                                        <div class="detail-info-col text-right">
+                                                                            <span class="detail-info-label">Berakhir</span>
+                                                                            <input type="text" id="dt-sertifikat_split_tanggal_berakhir" name="dt-sertifikat_split_tanggal_berakhir" class="detail-info-value detail-text-danger flatpickr-human-friendly" placeholder="-" readonly />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">NIB</span>
+                                                                            <input type="text" class="detail-info-value" id="dt-sertifikat_split_nib" name="dt-sertifikat_split_nib" readonly>
+                                                                        </div>
+                                                                        <div class="detail-info-col text-right">
+                                                                            <span class="detail-info-label">Luas Tanah (m2)</span>
+                                                                            <input type="text" class="detail-info-value" id="dt-sertifikat_split_luas_tanah" name="dt-sertifikat_split_luas_tanah" readonly>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">Tanggal Surat Ukur</span>
+                                                                            <input type="text" id="dt-sertifikat_split_tanggal_surat_ukur" name="dt-sertifikat_split_tanggal_surat_ukur" class="detail-info-value flatpickr-human-friendly" placeholder="-" readonly />
+                                                                        </div>
+                                                                        <div class="detail-info-col text-right">
+                                                                            <span class="detail-info-label">No Surat Ukur</span>
+                                                                            <input type="text" id="dt-sertifikat_split_no_surat_ukur" name="dt-sertifikat_split_no_surat_ukur" class="detail-info-value" placeholder="-" readonly />
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <div class="card">
-                                                                <div class="card-header">
-                                                                    <h5>Sertipikat Balik Nama</h5>
-                                                                </div>
-                                                                <div class="card-body">
-                                                                    <div class="form-group">
-                                                                        <label>Balik Nama Sertifikat</label>
-                                                                        <select name="dt-sertifikat_is_balik_nama"
-                                                                            class="form-control "
-                                                                            id="dt-sertifikat_is_balik_nama" disabled>
-                                                                            <option value="Belum">Belum</option>
-                                                                            <option value="Sudah">Sudah</option>
-                                                                        </select>
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-exchange-alt"></i></div>
+                                                                    <div class="detail-status-card-title">Sertipikat Balik Nama</div>
+                                                                    <div class="detail-status-card-toggle">
+                                                                        <span class="detail-status-badge badge-secondary" id="dt-sertifikat_is_balik_nama-badge">-</span>
                                                                     </div>
-                                                                    <div class="select-sertifikat_is_balik_nama">
-                                                                        <div class="form-group">
-                                                                            <label>Nama Konsumen</label>
-                                                                            <input type="text" readonly
-                                                                                class="form-control "
-                                                                                id="dt-sertifikat_balik_nama"
-                                                                                name="dt-sertifikat_balik_nama"
-                                                                                disabled>
+                                                                </div>
+                                                                <select name="dt-sertifikat_is_balik_nama" class="hidden" id="dt-sertifikat_is_balik_nama" disabled>
+                                                                    <option value="Belum">Belum</option>
+                                                                    <option value="Sudah">Sudah</option>
+                                                                </select>
+                                                                <div class="select-sertifikat_is_balik_nama">
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">Nama Konsumen</span>
+                                                                            <input type="text" readonly class="detail-info-value" id="dt-sertifikat_balik_nama" name="dt-sertifikat_balik_nama">
                                                                         </div>
-                                                                        <div class="form-group">
-                                                                            <label>NIB Elektronik</label>
-                                                                            <input type="text" class="form-control "
-                                                                                id="dt-sertifikat_nib_elektronik"
-                                                                                name="dt-sertifikat_nib_elektronik"
-                                                                                disabled>
+                                                                    </div>
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">NIB Elektronik</span>
+                                                                            <input type="text" class="detail-info-value" id="dt-sertifikat_nib_elektronik" name="dt-sertifikat_nib_elektronik" readonly>
                                                                         </div>
-                                                                        <div class="form-group">
-                                                                            <label>Tanggal Pengiriman</label>
-                                                                            <input type="text"
-                                                                                id="dt-sertifikat_balik_nama_tgl_pengiriman"
-                                                                                name="dt-sertifikat_balik_nama_tgl_pengiriman"
-                                                                                class="form-control flatpickr-human-friendly"
-                                                                                placeholder="-" disabled />
+                                                                        <div class="detail-info-col text-right">
+                                                                            <span class="detail-info-label">Tanggal Pengiriman</span>
+                                                                            <input type="text" id="dt-sertifikat_balik_nama_tgl_pengiriman" name="dt-sertifikat_balik_nama_tgl_pengiriman" class="detail-info-value flatpickr-human-friendly" placeholder="-" readonly />
                                                                         </div>
-                                                                        <div class="form-group">
-                                                                            <label>Dikirim Ke
-                                                                                Bank/Konsumen/Notaris</label>
-                                                                            <input type="text" class="form-control "
-                                                                                id="dt-sertifikat_balik_nama_ke"
-                                                                                name="dt-sertifikat_balik_nama_ke"
-                                                                                disabled>
+                                                                    </div>
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">Dikirim Ke Bank/Konsumen/Notaris</span>
+                                                                            <input type="text" class="detail-info-value" id="dt-sertifikat_balik_nama_ke" name="dt-sertifikat_balik_nama_ke" readonly>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
-
                                                 </div>
                                                 <div class="tab-pane " id="dt-legal-pbg"
                                                     aria-labelledby="dt-legal-pbg-tab" role="tabpanel">
                                                     <div class="row">
                                                         <div class="col-md-6">
-                                                            <div class="card">
-                                                                <div class="card-header">
-                                                                    <h5>IMB/PBG</h5>
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-drafting-compass"></i></div>
+                                                                    <div class="detail-status-card-title">IMB/PBG</div>
+                                                                    <div class="detail-status-card-toggle">
+                                                                        <span class="detail-status-badge badge-secondary" id="dt-pbg_status-badge">-</span>
+                                                                    </div>
                                                                 </div>
-                                                                <div class="card-body">
-
-                                                                    <div class="form-group">
-                                                                        <label>No IMB/PBG</label>
-                                                                        <input type="text" class="form-control"
-                                                                            id="dt-pbg_no" name="dt-pbg_no" disabled>
+                                                                <select id="dt-pbg_status" name="dt-pbg_status" class="hidden" disabled>
+                                                                    <option value="">-</option>
+                                                                    <option value="Proses">Proses</option>
+                                                                    <option value="Selesai">Selesai</option>
+                                                                    <option value="Terjadi Masalah">Terjadi Masalah</option>
+                                                                </select>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">No IMB/PBG</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-pbg_no" name="dt-pbg_no" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Tanggal terbit</label>
-                                                                        <input type="text" id="dt-pbg_tanggal_terbit"
-                                                                            name="dt-pbg_tanggal_terbit"
-                                                                            class="form-control flatpickr-human-friendly"
-                                                                            placeholder="-" disabled />
+                                                                    <div class="detail-info-col text-right">
+                                                                        <span class="detail-info-label">Tanggal Terbit</span>
+                                                                        <input type="text" id="dt-pbg_tanggal_terbit" name="dt-pbg_tanggal_terbit" class="detail-info-value flatpickr-human-friendly" placeholder="-" readonly />
                                                                     </div>
-
-                                                                    <div class="form-group">
-                                                                        <label>Tipe</label>
-                                                                        <input type="text" id="dt-pbg_tipe"
-                                                                            name="dt-pbg_tipe" class="form-control"
-                                                                            placeholder="-" disabled />
+                                                                </div>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Tipe</span>
+                                                                        <input type="text" id="dt-pbg_tipe" name="dt-pbg_tipe" class="detail-info-value" placeholder="-" readonly />
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Status</label>
-                                                                        <select id="dt-pbg_status" name="dt-pbg_status"
-                                                                            class="form-control" disabled>
-                                                                            <option value="">-</option>
-                                                                            <option value="Proses">Proses</option>
-                                                                            <option value="Selesai">Selesai</option>
-                                                                            <option value="Terjadi Masalah">Terjadi
-                                                                                Masalah</option>
-                                                                        </select>
-                                                                    </div>
-                                                                    <div class="divider">
-                                                                        <div class="divider-text">Pengiriman</div>
-                                                                    </div>
-                                                                    <div class="form-group">
-                                                                        <label>Dikirim Ke Bank/Konsumen</label>
-                                                                        <select name="dt-pbg_dikirim_ke"
-                                                                            class="form-control" id="dt-pbg_dikirim_ke"
-                                                                            disabled>
+                                                                </div>
+                                                                <div class="detail-section-divider">
+                                                                    <span class="detail-section-title detail-section-title-dot">Pengiriman</span>
+                                                                </div>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Dikirim Ke Bank/Konsumen</span>
+                                                                        <select name="dt-pbg_dikirim_ke" class="detail-info-value" id="dt-pbg_dikirim_ke" disabled>
                                                                             <option value="null"></option>
                                                                             <option value="Bank BTN">Bank BTN</option>
                                                                             <option value="Konsumen">Konsumen</option>
                                                                         </select>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Tanggal Kirim Ke Bank/Konsumen</label>
-                                                                        <input type="text" id="dt-pbg_tanggal_kirim"
-                                                                            name="dt-pbg_tanggal_kirim"
-                                                                            class="form-control flatpickr-human-friendly"
-                                                                            placeholder="-" disabled />
+                                                                    <div class="detail-info-col text-right">
+                                                                        <span class="detail-info-label">Tanggal Kirim</span>
+                                                                        <input type="text" id="dt-pbg_tanggal_kirim" name="dt-pbg_tanggal_kirim" class="detail-info-value flatpickr-human-friendly" placeholder="-" readonly />
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <div class="card">
-                                                                <div class="card-header">
-                                                                    <h5>Revisi IMB/PBG</h5>
-                                                                </div>
-                                                                <div class="card-body">
-                                                                    <div class="form-group">
-                                                                        <label>Revisi IMB/PBG</label>
-                                                                        <select name="dt-pbg_is_revisi"
-                                                                            class="form-control" id="dt-pbg_is_revisi"
-                                                                            disabled>
-                                                                            <option value="Tidak">Tidak</option>
-                                                                            <option value="Ya">Ya</option>
-                                                                        </select>
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-history"></i></div>
+                                                                    <div class="detail-status-card-title">Revisi IMB/PBG</div>
+                                                                    <div class="detail-status-card-toggle">
+                                                                        <span class="detail-status-badge badge-secondary" id="dt-pbg_is_revisi-badge">-</span>
                                                                     </div>
-                                                                    <div class="select-pbg_is_revisi">
-                                                                        <div class="form-group">
-                                                                            <label>No IMB/PBG</label>
-                                                                            <input type="text" class="form-control"
-                                                                                id="dt-pbg_no_revisi"
-                                                                                name="dt-pbg_no_revisi" disabled>
+                                                                </div>
+                                                                <select name="dt-pbg_is_revisi" class="hidden" id="dt-pbg_is_revisi" disabled>
+                                                                    <option value="Tidak">Tidak</option>
+                                                                    <option value="Ya">Ya</option>
+                                                                </select>
+                                                                <div class="select-pbg_is_revisi">
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">No IMB/PBG</span>
+                                                                            <input type="text" class="detail-info-value" id="dt-pbg_no_revisi" name="dt-pbg_no_revisi" readonly>
                                                                         </div>
-                                                                        <div class="form-group">
-                                                                            <label>Tanggal terbit</label>
-                                                                            <input type="text"
-                                                                                id="dt-pbg_tanggal_terbit_revisi"
-                                                                                name="dt-pbg_tanggal_terbit_revisi"
-                                                                                class="form-control flatpickr-human-friendly"
-                                                                                placeholder="-" disabled />
+                                                                    </div>
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">Tanggal Terbit</span>
+                                                                            <input type="text" id="dt-pbg_tanggal_terbit_revisi" name="dt-pbg_tanggal_terbit_revisi" class="detail-info-value flatpickr-human-friendly" placeholder="-" readonly />
                                                                         </div>
-                                                                        <div class="form-group">
-                                                                            <label>Tipe</label>
-                                                                            <input type="text" id="dt-pbg_tipe_revisi"
-                                                                                name="dt-pbg_tipe_revisi"
-                                                                                class="form-control" placeholder="-"
-                                                                                disabled />
+                                                                        <div class="detail-info-col text-right">
+                                                                            <span class="detail-info-label">Tipe</span>
+                                                                            <input type="text" id="dt-pbg_tipe_revisi" name="dt-pbg_tipe_revisi" class="detail-info-value" placeholder="-" readonly />
                                                                         </div>
-                                                                        <div class="form-group">
-                                                                            <label>Status</label>
-                                                                            <select id="dt-pbg_status_revisi"
-                                                                                name="dt-pbg_status_revisi"
-                                                                                class="form-control" disabled>
+                                                                    </div>
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">Status</span>
+                                                                            <select id="dt-pbg_status_revisi" name="dt-pbg_status_revisi" class="detail-info-value" disabled>
                                                                                 <option value="">-</option>
                                                                                 <option value="Proses">Proses</option>
                                                                                 <option value="Selesai">Selesai</option>
-                                                                                <option value="Terjadi Masalah">Terjadi
-                                                                                    Masalah</option>
+                                                                                <option value="Terjadi Masalah">Terjadi Masalah</option>
                                                                             </select>
                                                                         </div>
                                                                     </div>
@@ -1382,78 +1278,56 @@
                                                             </div>
                                                         </div>
                                                     </div>
-
                                                 </div>
                                                 <div class="tab-pane " id="dt-legal-bphtb"
                                                     aria-labelledby="dt-legal-bphtb-tab" role="tabpanel">
                                                     <div class="row">
                                                         <div class="col-md-6">
-                                                            <div class="card">
-                                                                <div class="card-header">
-                                                                    <h5>Verifikasi BPHTB</h5>
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-check-circle"></i></div>
+                                                                    <div class="detail-status-card-title">Verifikasi BPHTB</div>
                                                                 </div>
-                                                                <div class="card-body">
-                                                                    <div class="form-group">
-                                                                        <label>Tanggal Verifikasi</label>
-                                                                        <input type="text"
-                                                                            class="form-control flatpickr-human-friendly"
-                                                                            id="dt-bphtb_tanggal_verifikasi"
-                                                                            name="dt-bphtb_tanggal_verifikasi" disabled>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Tanggal Verifikasi</span>
+                                                                        <input type="text" class="detail-info-value flatpickr-human-friendly" id="dt-bphtb_tanggal_verifikasi" name="dt-bphtb_tanggal_verifikasi" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Jatuh Tempo</label>
-                                                                        <input type="text"
-                                                                            class="form-control flatpickr-human-friendly"
-                                                                            id="dt-bphtb_jatuh_tempo"
-                                                                            name="dt-bphtb_jatuh_tempo" disabled>
+                                                                    <div class="detail-info-col text-right">
+                                                                        <span class="detail-info-label">Jatuh Tempo</span>
+                                                                        <input type="text" class="detail-info-value flatpickr-human-friendly" id="dt-bphtb_jatuh_tempo" name="dt-bphtb_jatuh_tempo" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Tanggal Perpanjangan Jatuh Tempo</label>
-                                                                        <input type="text"
-                                                                            class="form-control flatpickr-human-friendly"
-                                                                            id="dt-bphtb_perpanjang_jatuh_tempo"
-                                                                            name="dt-bphtb_perpanjang_jatuh_tempo"
-                                                                            disabled>
+                                                                </div>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Tanggal Perpanjangan Jatuh Tempo</span>
+                                                                        <input type="text" class="detail-info-value flatpickr-human-friendly" id="dt-bphtb_perpanjang_jatuh_tempo" name="dt-bphtb_perpanjang_jatuh_tempo" readonly>
                                                                     </div>
-
-                                                                    <div class="form-group">
-                                                                        <label>Tanggal Pembayaran</label>
-                                                                        <input type="text"
-                                                                            class="form-control flatpickr-human-friendly"
-                                                                            id="dt-bphtb_tanggal_pembayaran"
-                                                                            name="dt-bphtb_tanggal_pembayaran" disabled>
+                                                                    <div class="detail-info-col text-right">
+                                                                        <span class="detail-info-label">Tanggal Pembayaran</span>
+                                                                        <input type="text" class="detail-info-value flatpickr-human-friendly" id="dt-bphtb_tanggal_pembayaran" name="dt-bphtb_tanggal_pembayaran" readonly>
                                                                     </div>
-
-                                                                    <div class="form-group">
-                                                                        <label>Nominal Yang Disetujui</label>
-                                                                        <input type="text" readonly
-                                                                            class="form-control num"
-                                                                            id="dt-bphtb_nominal_disetujui"
-                                                                            name="dt-bphtb_nominal_disetujui" disabled>
-                                                                    </div>
-
+                                                                </div>
+                                                                <div class="detail-highlight-box mb-0">
+                                                                    <span class="detail-highlight-label">Nominal Yang Disetujui</span>
+                                                                    <input type="text" readonly class="detail-highlight-value num" id="dt-bphtb_nominal_disetujui" name="dt-bphtb_nominal_disetujui">
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <div class="card">
-                                                                <div class="card-header">
-                                                                    <h5>Validasi BPHTB</h5>
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-stamp"></i></div>
+                                                                    <div class="detail-status-card-title">Validasi BPHTB</div>
                                                                 </div>
-                                                                <div class="card-body">
-                                                                    <div class="form-group">
-                                                                        <label>Tanggal Validasi</label>
-                                                                        <input type="text"
-                                                                            class="form-control flatpickr-human-friendly"
-                                                                            id="dt-bphtb_tanggal_validasi"
-                                                                            name="dt-bphtb_tanggal_validasi" disabled>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Tanggal Validasi</span>
+                                                                        <input type="text" class="detail-info-value flatpickr-human-friendly" id="dt-bphtb_tanggal_validasi" name="dt-bphtb_tanggal_validasi" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>No NTPD</label>
-                                                                        <input type="text" class="form-control"
-                                                                            id="dt-bphtb_nominal_tervalidasi"
-                                                                            name="dt-bphtb_nominal_tervalidasi"
-                                                                            disabled>
+                                                                    <div class="detail-info-col text-right">
+                                                                        <span class="detail-info-label">No NTPD</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-bphtb_nominal_tervalidasi" name="dt-bphtb_nominal_tervalidasi" readonly>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -1464,163 +1338,134 @@
                                                     aria-labelledby="dt-legal-pph-tab" role="tabpanel">
                                                     <div class="row">
                                                         <div class="col-md-6">
-                                                            <div class="card">
-                                                                <div class="card-header">
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-money-check-alt"></i></div>
+                                                                    <div class="detail-status-card-title">PPH</div>
                                                                 </div>
-                                                                <div class="card-body">
-
-                                                                    <div class="form-group">
-                                                                        <label>Nominal Dibayar</label>
-                                                                        <input type="text" class="form-control num"
-                                                                            id="dt-pph_nominal_bayar"
-                                                                            name="dt-pph_nominal_bayar" disabled>
-                                                                    </div>
-                                                                    <div class="form-group">
-                                                                        <label>Tanggal Bayar</label>
-                                                                        <input type="text"
-                                                                            class="form-control flatpickr-human-friendly"
-                                                                            id="dt-pph_tgl_bayar"
-                                                                            name="dt-pph_tgl_bayar" disabled>
+                                                                <div class="detail-highlight-box">
+                                                                    <span class="detail-highlight-label">Nominal Dibayar</span>
+                                                                    <input type="text" class="detail-highlight-value num" id="dt-pph_nominal_bayar" name="dt-pph_nominal_bayar" readonly>
+                                                                </div>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Tanggal Bayar</span>
+                                                                        <input type="text" class="detail-info-value flatpickr-human-friendly" id="dt-pph_tgl_bayar" name="dt-pph_tgl_bayar" readonly>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <div class="card">
-                                                                <div class="card-header">
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-clipboard-check"></i></div>
+                                                                    <div class="detail-status-card-title">Validasi PPH</div>
                                                                 </div>
-                                                                <div class="card-body">
-                                                                    <div class="form-group">
-                                                                        <label>Jenis Validasi</label>
-                                                                        <select class="form-control"
-                                                                            id="dt-pph_jenis_validasi"
-                                                                            name="dt-pph_jenis_validasi" disabled>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Jenis Validasi</span>
+                                                                        <select class="detail-info-value" id="dt-pph_jenis_validasi" name="dt-pph_jenis_validasi" disabled>
                                                                             <option value=""></option>
                                                                             <option value="Offline">Offline</option>
                                                                             <option value="Online">Online</option>
                                                                         </select>
                                                                     </div>
-                                                                    <div class="select-pph-validasi-offline"
-                                                                        class="hide">
-                                                                        <div class="form-group">
-                                                                            <label>Tanggal Validasi</label>
-                                                                            <input type="text"
-                                                                                class="form-control flatpickr-human-friendly"
-                                                                                id="dt-pph_tanggal_validasi"
-                                                                                name="dt-pph_tanggal_validasi" disabled>
+                                                                </div>
+                                                                <div class="select-pph-validasi-offline" class="hide">
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">Tanggal Validasi</span>
+                                                                            <input type="text" class="detail-info-value flatpickr-human-friendly" id="dt-pph_tanggal_validasi" name="dt-pph_tanggal_validasi" readonly>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="select-pph-validasi-online"
-                                                                        class="hide">
-                                                                        <div class="form-group">
-                                                                            <label>Tanggal Permohonan</label>
-                                                                            <input type="text"
-                                                                                class="form-control flatpickr-human-friendly"
-                                                                                id="dt-pph_tgl_permohonan"
-                                                                                name="dt-pph_tgl_permohonan" disabled>
+                                                                </div>
+                                                                <div class="select-pph-validasi-online" class="hide">
+                                                                    <div class="detail-info-row">
+                                                                        <div class="detail-info-col">
+                                                                            <span class="detail-info-label">Tanggal Permohonan</span>
+                                                                            <input type="text" class="detail-info-value flatpickr-human-friendly" id="dt-pph_tgl_permohonan" name="dt-pph_tgl_permohonan" readonly>
                                                                         </div>
-                                                                        <div class="form-group">
-                                                                            <label>Tanggal Selesai</label>
-                                                                            <input type="text"
-                                                                                class="form-control flatpickr-human-friendly"
-                                                                                id="dt-pph_tgl_selesai"
-                                                                                name="dt-pph_tgl_selesai" disabled>
+                                                                        <div class="detail-info-col text-right">
+                                                                            <span class="detail-info-label">Tanggal Selesai</span>
+                                                                            <input type="text" class="detail-info-value flatpickr-human-friendly" id="dt-pph_tgl_selesai" name="dt-pph_tgl_selesai" readonly>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>NTPN</label>
-                                                                        <input type="text" class="form-control"
-                                                                            id="dt-pph_ntpn" name="dt-pph_ntpn"
-                                                                            disabled>
+                                                                </div>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">NTPN</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-pph_ntpn" name="dt-pph_ntpn" readonly>
                                                                     </div>
-
-                                                                    <div class="form-group">
-                                                                        <label>No SKET</label>
-                                                                        <input type="text" class="form-control"
-                                                                            id="dt-pph_no_sket" name="dt-pph_no_sket"
-                                                                            disabled>
+                                                                    <div class="detail-info-col text-right">
+                                                                        <span class="detail-info-label">No SKET</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-pph_no_sket" name="dt-pph_no_sket" readonly>
                                                                     </div>
-
                                                                 </div>
                                                             </div>
                                                         </div>
-
                                                     </div>
-
                                                 </div>
                                                 <div class="tab-pane " id="dt-legal-ajb"
                                                     aria-labelledby="dt-legal-ajb-tab" role="tabpanel">
                                                     <div class="row">
                                                         <div class="col-md-6">
-                                                            <div class="card">
-                                                                <div class="card-header">
-                                                                    <h5>AJB</h5>
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-file-signature"></i></div>
+                                                                    <div class="detail-status-card-title">AJB</div>
                                                                 </div>
-                                                                <div class="card-body">
-
-                                                                    <div class="form-group">
-                                                                        <label>No AJB</label>
-                                                                        <input type="text" class="form-control "
-                                                                            id="dt-ajb_no" name="dt-ajb_no" disabled>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">No AJB</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-ajb_no" name="dt-ajb_no" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Tanggal AJB</label>
-                                                                        <input type="text"
-                                                                            class="form-control flatpickr-human-friendly"
-                                                                            id="dt-ajb_tanggal" name="dt-ajb_tanggal"
-                                                                            disabled>
+                                                                    <div class="detail-info-col text-right">
+                                                                        <span class="detail-info-label">Tanggal AJB</span>
+                                                                        <input type="text" class="detail-info-value flatpickr-human-friendly" id="dt-ajb_tanggal" name="dt-ajb_tanggal" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Notaris</label>
-                                                                        <input type="text" class="form-control "
-                                                                            id="dt-ajb_notaris" name="dt-ajb_notaris"
-                                                                            disabled>
+                                                                </div>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Notaris</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-ajb_notaris" name="dt-ajb_notaris" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Dikirim Ke Bank/Konsumen</label>
-                                                                        <input type="text" class="form-control "
-                                                                            id="dt-ajb_dikirim_ke"
-                                                                            name="dt-ajb_dikirim_ke" disabled>
+                                                                    <div class="detail-info-col text-right">
+                                                                        <span class="detail-info-label">Dikirim Ke Bank/Konsumen</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-ajb_dikirim_ke" name="dt-ajb_dikirim_ke" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Tanggal Dikirim Ke Bank/Konsumen</label>
-                                                                        <input type="text"
-                                                                            class="form-control flatpickr-human-friendly"
-                                                                            id="dt-ajb_tanggal_dikirim"
-                                                                            name="dt-ajb_tanggal_dikirim" disabled>
+                                                                </div>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Tanggal Dikirim Ke Bank/Konsumen</span>
+                                                                        <input type="text" class="detail-info-value flatpickr-human-friendly" id="dt-ajb_tanggal_dikirim" name="dt-ajb_tanggal_dikirim" readonly>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <div class="card">
-                                                                <div class="card-header">
-                                                                    <h5>PPJB</h5>
+                                                            <div class="detail-summary-card mb-1">
+                                                                <div class="detail-status-card-header">
+                                                                    <div class="detail-card-icon"><i class="fas fa-file-alt"></i></div>
+                                                                    <div class="detail-status-card-title">PPJB</div>
                                                                 </div>
-                                                                <div class="card-body">
-                                                                    <div class="form-group">
-                                                                        <label>No PPJB</label>
-                                                                        <input type="text" class="form-control "
-                                                                            id="dt-ppjb_no" name="dt-ppjb_no" disabled>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">No PPJB</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-ppjb_no" name="dt-ppjb_no" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Tanggal PPJB</label>
-                                                                        <input type="text"
-                                                                            class="form-control flatpickr-human-friendly"
-                                                                            id="dt-ppjb_tanggal" name="dt-ppjb_tanggal"
-                                                                            disabled>
+                                                                    <div class="detail-info-col text-right">
+                                                                        <span class="detail-info-label">Tanggal PPJB</span>
+                                                                        <input type="text" class="detail-info-value flatpickr-human-friendly" id="dt-ppjb_tanggal" name="dt-ppjb_tanggal" readonly>
                                                                     </div>
-                                                                    <div class="form-group">
-                                                                        <label>Notaris</label>
-                                                                        <input type="text" class="form-control "
-                                                                            id="dt-ppjb_notaris" name="dt-ppjb_notaris"
-                                                                            disabled>
+                                                                </div>
+                                                                <div class="detail-info-row">
+                                                                    <div class="detail-info-col">
+                                                                        <span class="detail-info-label">Notaris</span>
+                                                                        <input type="text" class="detail-info-value" id="dt-ppjb_notaris" name="dt-ppjb_notaris" readonly>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                    <div class="col-12">
                                                     </div>
                                                 </div>
 

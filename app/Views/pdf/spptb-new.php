@@ -120,6 +120,22 @@ function mark($cond)
 {
     return $cond ? '&#10003;' : '&nbsp;';
 } // ✓ atau kosong // checkbox ala mPDF (unicode)
+
+function title_case($s)
+{
+    return $s ? ucwords(strtolower($s)) : $s;
+}
+
+// Logo dirender sebagai background-image (bukan <img>): beberapa file logo punya
+// metadata dimensi tidak konsisten (mis. EXIF vs data JPEG beda), yang bikin mPDF
+// salah hitung lebar float:right di sebelahnya walau <img> sudah diberi width/height
+// eksplisit. background-image tidak dibaca dimensi aslinya oleh mPDF, jadi float aman.
+$logoSrc = (new \App\Services\FileAccessService())->existingPath($proyek->logo) ?: base_url($proyek->logo);
+$logoHeight = 150;
+$logoWidth = $logoHeight;
+if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
+    $logoWidth = (int) round($logoHeight * $logoDims[0] / $logoDims[1]);
+}
 ?>
 
 <htmlpageheader name="header_pages">
@@ -129,47 +145,23 @@ function mark($cond)
 </htmlpageheader>
 <sethtmlpageheader name="header_pages" value="on" />
 
-<table border="0">
-    <tbody>
-        <tr>
-            <td width="50%" valign="top">
-                <img height="150" src="<?= (new \App\Services\FileAccessService())->existingPath($proyek->logo) ?: base_url($proyek->logo) ?>" />
-            </td>
-            <td width="30%" style="border: 1px solid #111; padding-left: 100px">
-                <div style="text-align: left;">
-                    <p>
-                        Asli : Keuangan Pusat
-                    </p>
-                    <p>
-                        Copy 1 : Konsumen
-                    </p>
-                    <p>
-                        Copy 2 : Keuangan Proyek
-                    </p>
-                    <p>
-                        Copy 3 : Marketing
-                    </p>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td width="359" valign="top">
-            </td>
-            <td width="265">
-            </td>
-        </tr>
-        <tr>
-            <td width="359" valign="top">
-                <p>
-                    Proyek: <?= strtoupper($proyek->nama_proyek) ?>
-                </p>
-            </td>
-            <td width="265" align="right">
-                <strong>No. SPPTB : <?= strtoupper($data->no_spptb) ?></strong>
-            </td>
-        </tr>
-    </tbody>
-</table>
+<div style="overflow: hidden;">
+    <div style="float: left; width: <?= $logoWidth ?>px; height: <?= $logoHeight ?>px; background-image: url('<?= $logoSrc ?>'); background-size: contain; background-repeat: no-repeat; background-position: left top;"></div>
+    <div style="float: right; width: 55mm;">
+        <div style="border: 1px solid #111; padding: 4px 8px; font-size: 8pt;">
+            Asli : Keuangan Pusat<br>
+            Copy 1 : Konsumen<br>
+            Copy 2 : Keuangan Proyek<br>
+            Copy 3 : Marketing
+        </div>
+        <div style="margin-top: 8px;">
+            Proyek: <?= title_case($proyek->nama_proyek) ?>
+        </div>
+        <div style="font-size: 16pt;">
+            <strong>No. SPPTB : <?= strtoupper($data->no_spptb) ?></strong>
+        </div>
+    </div>
+</div>
 <div style="padding-bottom: -30px;">
     <p align="center">
         <strong>SURAT PERNYATAAN <br />
@@ -191,7 +183,7 @@ function mark($cond)
             </td>
             <td valign="top">
 
-                : <?= strtoupper($data->nama_konsumen) ?>
+                : <?= title_case($data->nama_konsumen) ?>
 
             </td>
         </tr>
@@ -213,7 +205,7 @@ function mark($cond)
             </td>
             <td>
 
-                : <?= strtoupper($data->alamat_konsumen) ?>
+                : <?= title_case($data->alamat_konsumen) ?>
 
             </td>
         </tr>
@@ -237,7 +229,7 @@ function mark($cond)
             </td>
             <td valign="top">
 
-                : <?= strtoupper($data->email_konsumen) ?>
+                : <?= strtolower($data->email_konsumen) ?>
 
             </td>
         </tr>
@@ -249,7 +241,7 @@ function mark($cond)
             </td>
             <td valign="top">
 
-                : <?= strtoupper($data->nama_instansi) ?>
+                : <?= $data->nama_instansi ?>
 
             </td>
         </tr>
@@ -259,7 +251,7 @@ function mark($cond)
             </td>
             <td valign="top">
 
-                : <?= strtoupper($data->alamat_instansi) ?>
+                : <?= $data->alamat_instansi ?>
 
             </td>
         </tr>
@@ -276,7 +268,7 @@ function mark($cond)
                 Email
             </td>
             <td valign="top">
-                : <?= strtoupper($data->email_instansi) ?>
+                : <?= strtolower($data->email_instansi) ?>
             </td>
         </tr>
         <tr>
@@ -284,7 +276,7 @@ function mark($cond)
                 Alamat Surat
             </td>
             <td valign="top">
-                : <?= strtoupper($data->alamat_surat) ?>
+                : <?= title_case($data->alamat_surat) ?>
             </td>
         </tr>
         <tr>
@@ -323,7 +315,7 @@ function mark($cond)
                 Nama
             </td>
             <td valign="top">
-                : <?= strtoupper($data->nama_pasangan) ?>
+                : <?= title_case($data->nama_pasangan) ?>
             </td>
         </tr>
         <tr>
@@ -367,7 +359,7 @@ function mark($cond)
         </tr>
         <tr>
             <td></td>
-            <td>Instansi: <b><?= strtoupper($data->instansi_pasangan) ?></b></td>
+            <td>Instansi: <b><?= $data->instansi_pasangan ?></b></td>
         </tr>
     </tbody>
 </table>
@@ -377,7 +369,7 @@ function mark($cond)
 <p class="mb-0">Dengan ini <b>"menyatakan"</b></p>
 <p class="mb-0">
     1. Setuju untuk membeli tanah &amp; bangunan rumah di lokasi Perumahan <span
-        class="firstletter"><?= strtoupper(htmlspecialchars($proyek->nama_proyek)) ?></span>.
+        class="firstletter"><?= title_case(htmlspecialchars($proyek->nama_proyek)) ?></span>.
 </p>
 <table class="ml-17" border="0" cellspacing="0" cellpadding="0">
     <tbody>
@@ -389,7 +381,7 @@ function mark($cond)
             </td>
             <td width="189" valign="top">
                 <p>
-                    : <?= strtoupper($data->tipe_rumah) ?>
+                    : <?= ($data->tipe_pricelist) ?>
                 </p>
             </td>
             <td width="123" valign="top">
@@ -411,7 +403,7 @@ function mark($cond)
             </td>
             <td width="189" valign="top">
                 <p>
-                    : <span class="firstletter"><?= strtoupper($data->nama_jalan) ?> No. <?= strtoupper($data->no_kavling) ?></span>
+                    : <span class="firstletter"><?= title_case($data->nama_jalan) ?> No. <?= strtoupper($data->no_kavling) ?></span>
                 </p>
             </td>
             <td width="123" valign="top">
@@ -433,7 +425,7 @@ function mark($cond)
             </td>
             <td width="189" valign="top">
                 <p>
-                    : <span class="firstletter"><?= strtoupper($data->sales) ?></span>
+                    : <span class="firstletter"><?= title_case($data->sales) ?></span>
                 </p>
             </td>
         </tr>

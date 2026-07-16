@@ -1058,6 +1058,7 @@ class Siteplan extends BaseController
         $tg = $this->db->table('keuangan')
             ->select('*')
             ->where('id_mkdt', $id_mkdt)
+            ->where('is_void', 0)
             ->get()->getResult();
         $tg_um = 0;
         $tg_um_ll = 0;
@@ -1095,6 +1096,7 @@ class Siteplan extends BaseController
         $d['total_um'] = $tg_um;
         $d['total_um_ll'] = $tg_um_ll;
         $d['total_bb'] = $tg_bb;
+        $d['total_tagihan_semua'] = array_sum(array_column($tg, 'nominal'));
 
         //get sudah bayar
         $sb = $this->db->table('log_pembayaran')
@@ -1183,6 +1185,14 @@ class Siteplan extends BaseController
         $d['sb_um'] = $sb_um;
         $d['sb_um_ll'] = $sb_um_ll;
         $d['sb_bb'] = $sb_bb;
+
+        $sudahBayarSemua = 0;
+        foreach ($sb as $v) {
+            if ($v->payment_type !== 'Booking') {
+                $sudahBayarSemua += (float) $v->nominal;
+            }
+        }
+        $d['sudah_bayar_semua'] = $sudahBayarSemua;
 
         $ku = $this->db->table('log_pembayaran')
             ->select('users.username, log_pembayaran.created_at')
@@ -1374,6 +1384,49 @@ class Siteplan extends BaseController
             $expenseTotal += (float) ($row->nominal ?? 0);
         }
 
+        $bankRetensiPending = 0;
+        if ($this->db->tableExists('bank_kpr_disbursement')) {
+            $bankRetensiRow = $this->db->table('bank_kpr_disbursement')
+                ->select('COALESCE(SUM(nominal_retensi), 0) as total', false)
+                ->where('id_kavling', $id_kavling)
+                ->where('deleted_at', null)
+                ->where('status !=', 'void')
+                ->get()
+                ->getRow();
+            $bankRetensiPending = (float) ($bankRetensiRow->total ?? 0);
+        }
+
+        $danaJaminanPending = 0;
+        $danaJaminanConfigured = 0;
+        if ($this->db->tableExists('dana_akad')) {
+            $danaJaminanRow = $this->db->table('dana_akad')
+                ->select('
+                    COALESCE(SUM(nominal), 0) as total_nominal,
+                    COALESCE(SUM(CASE WHEN COALESCE(sudah_cair, 0) = 1 THEN 0 ELSE GREATEST(COALESCE(nominal, 0) - COALESCE(nominal_cair, 0), 0) END), 0) as total_pending
+                ', false)
+                ->where('id_kavling', $id_kavling)
+                ->get()
+                ->getRow();
+            $danaJaminanConfigured = (float) ($danaJaminanRow->total_nominal ?? 0);
+            $danaJaminanPending = (float) ($danaJaminanRow->total_pending ?? 0);
+        }
+
+        $bankRetensiCounted = $danaJaminanConfigured > 0 ? 0 : $bankRetensiPending;
+        $retensiPendingTotal = $danaJaminanPending + $bankRetensiCounted;
+        $nilaiAkadEstimasi = 0;
+        if ($d['mkdt']) {
+            $nilaiAkadEstimasi = (float) ($d['mkdt']->harga_jual_net ?? 0);
+            if ($nilaiAkadEstimasi <= 0) {
+                $nilaiAkadEstimasi = (float) ($d['mkdt']->harga_jual ?? 0);
+            }
+            if ($nilaiAkadEstimasi <= 0) {
+                $nilaiAkadEstimasi = (float) ($d['mkdt']->harga_kpr_acc ?? 0);
+            }
+            if ($nilaiAkadEstimasi <= 0) {
+                $nilaiAkadEstimasi = (float) ($d['mkdt']->harga_kpr ?? 0);
+            }
+        }
+
         $d['finance_flow'] = [
             'income_total' => $incomeTotal,
             'income_count' => count($incomeRows),
@@ -1382,6 +1435,13 @@ class Siteplan extends BaseController
             'expense_count' => count($expenseRows),
             'expense_rows' => $expenseRows,
             'balance' => $incomeTotal - $expenseTotal,
+            'margin_cash' => $incomeTotal - $expenseTotal,
+            'margin_estimasi' => $nilaiAkadEstimasi - $expenseTotal,
+            'nilai_akad_estimasi' => $nilaiAkadEstimasi,
+            'retensi_pending_total' => $retensiPendingTotal,
+            'retensi_dana_jaminan_pending' => $danaJaminanPending,
+            'retensi_bank_pending' => $bankRetensiPending,
+            'retensi_bank_counted' => $bankRetensiCounted,
         ];
 
         $d['bayar_produksi'] = $this->db->table('list_bayar_produksi lc')

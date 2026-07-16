@@ -3,6 +3,40 @@ let loadmore = 0;
 var offset = 5; // Halaman awal
 var start = 0;
 var isLoading = false;
+// palidasi manual
+function palid(id, val, msg) {
+    const $el = $("#" + id);
+
+    // 1. Keamanan: Cek apakah elemen benar-benar ada di DOM
+    if ($el.length === 0) {
+        console.warn("[palid] Warning: Elemen tidak ditemukan (#" + id + ")");
+        return true;
+    }
+
+    let elValue = $el.val();
+
+    // 2. Mencegah bypass validasi yang hanya berisi spasi kosong (misal: "   ")
+    if (typeof elValue === 'string') {
+        elValue = elValue.trim();
+    }
+
+    // 3. Loose equality (==) tetap dipertahankan karena kompatibilitas dengan legacy code (null, "", 0)
+    if (elValue == val) {
+        Swal.fire({
+            icon: 'error',
+            title: msg,
+            showConfirmButton: false,
+            // timer: 1500
+        });
+
+        // 4. UX: Otomatis memfokuskan kursor ke input yang gagal divalidasi
+        $el.focus();
+
+        return false;
+    }
+
+    return true;
+}
 
 (function (window, undefined) {
   "use strict";
@@ -252,6 +286,7 @@ function applyLoadingEffect(selector) {
 function removeLoadingEffect(selector) {
   $(selector).removeClass("input-loading");
 }
+
 let loaded = [];
 let tabId;
 $('a[data-toggle="tab"]').on("shown.bs.tab", function (e) {
@@ -1740,8 +1775,8 @@ function load_dropzone(id) {
         const reader = new FileReader();
         reader.onload = function (e) {
           preview.innerHTML = `
-                        <img src="${e.target.result}" 
-                             class="preview-thumb" 
+                        <img src="${e.target.result}"
+                             class="preview-thumb"
                              style="height:100%;"/>
                         <div class="text-truncate mb-1">${file.name}</div>
                     `;

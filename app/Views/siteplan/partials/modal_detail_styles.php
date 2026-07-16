@@ -387,6 +387,76 @@
         background: transparent;
     }
 
+    #modal_detail .detail-tagihan-card {
+        background: #fff;
+        border: 1px solid #cfd6e3;
+        border-radius: 10px;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .06);
+        padding: 1.25rem 1.5rem;
+    }
+
+    #modal_detail .detail-tagihan-grid {
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    #modal_detail .detail-tagihan-col-total {
+        align-items: center;
+        display: flex;
+        gap: 1rem;
+    }
+
+    #modal_detail .detail-tagihan-col-status {
+        border-left: 1px solid #edf0f2;
+        padding-left: 1.5rem;
+    }
+
+    #modal_detail .detail-tagihan-label {
+        color: #2056a4;
+        font-size: .78rem;
+        font-weight: 800;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+    }
+
+    #modal_detail .detail-tagihan-total {
+        color: #020617;
+        font-size: 1.65rem;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    #modal_detail .detail-tagihan-side {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: .85rem;
+    }
+
+    #modal_detail .detail-tagihan-side-label {
+        color: #6b7280;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .02em;
+        margin-bottom: .2rem;
+        text-transform: uppercase;
+    }
+
+    #modal_detail .detail-tagihan-side-value {
+        color: #006b35;
+        font-size: 1.1rem;
+        font-weight: 800;
+    }
+
+    #modal_detail .detail-tagihan-progress-labels {
+        color: #6b7280;
+        display: flex;
+        font-size: .74rem;
+        font-weight: 700;
+        justify-content: space-between;
+        margin-top: .4rem;
+    }
+
     #modal_detail .detail-legacy-hidden {
         display: none !important;
     }
@@ -503,6 +573,37 @@
 
     #modal_detail .detail-text-danger {
         color: #dc2626 !important;
+    }
+
+    #modal_detail .detail-text-warning {
+        color: #b7791f !important;
+    }
+
+    #modal_detail .detail-text-success {
+        color: #147a3a !important;
+    }
+
+    #modal_detail .detail-info-pair {
+        display: grid;
+        gap: .6rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-bottom: .9rem;
+    }
+
+    #modal_detail .detail-dot {
+        border-radius: 50%;
+        display: inline-block;
+        height: 8px;
+        margin-right: 4px;
+        width: 8px;
+    }
+
+    #modal_detail .detail-dot-success {
+        background: #28c76f;
+    }
+
+    #modal_detail .detail-dot-danger {
+        background: #ea5455;
     }
 
     #modal_detail .detail-highlight-box {
@@ -796,12 +897,89 @@
         padding: .35rem .65rem;
     }
 
+    #modal_detail .detail-price-item {
+        border-bottom: 1px solid #edf0f2;
+        padding: .5rem 0;
+    }
+
+    #modal_detail .detail-price-item:last-child {
+        border-bottom: 0;
+    }
+
+    #modal_detail .detail-price-item.is-highlight {
+        background: #eef4fb;
+        border-radius: 6px;
+        margin: 0 -.6rem;
+        padding: .5rem .6rem;
+    }
+
+    #modal_detail .detail-price-label {
+        color: #6b7280;
+        display: block;
+        font-size: .76rem;
+        font-weight: 700;
+    }
+
+    #modal_detail .detail-price-value {
+        background-color: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        color: #111827;
+        display: block;
+        font-size: .95rem;
+        font-weight: 700;
+        height: auto !important;
+        min-height: 0 !important;
+        opacity: 1 !important;
+        padding: 0 !important;
+        text-align: right;
+        width: 100%;
+    }
+
+    #modal_detail .detail-document-list {
+        display: flex;
+        flex-direction: column;
+        gap: .6rem;
+    }
+
+    #modal_detail .detail-document-item {
+        align-items: center;
+        background: #f9fafb;
+        border: 1px solid #edf0f2;
+        border-radius: 8px;
+        display: flex;
+        gap: .75rem;
+        padding: .6rem .75rem;
+        text-decoration: none;
+    }
+
+    #modal_detail .detail-document-item:hover {
+        background: #eef2f7;
+    }
+
+    #modal_detail .detail-document-icon.detail-card-icon {
+        flex-shrink: 0;
+        font-size: 1.05rem;
+        height: 40px;
+        width: 40px;
+    }
+
+    #modal_detail .detail-document-body {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    #modal_detail .detail-document-arrow {
+        color: #9aa5b1;
+    }
+
     .dark-layout #modal_detail .modal-header,
     .dark-layout #modal_detail .detail-consumer-card .card-header,
     .dark-layout #modal_detail .detail-tabs-card .card-body,
     .dark-layout #modal_detail .card,
     .dark-layout #modal_detail .detail-summary-card,
     .dark-layout #modal_detail .detail-metric-card,
+    .dark-layout #modal_detail .detail-tagihan-card,
     .dark-layout #modal_detail .detail-accordion-card,
     .dark-layout #modal_detail .detail-progress-card,
     .dark-layout #modal_detail .detail-mini-card,
@@ -818,17 +996,36 @@
     .dark-layout #modal_detail .divider .divider-text,
     .dark-layout #modal_detail .detail-metric-total,
     .dark-layout #modal_detail .detail-metric-value,
+    .dark-layout #modal_detail .detail-tagihan-total,
     .dark-layout #modal_detail .detail-accordion-toggle,
     .dark-layout #modal_detail .detail-mini-value,
     .dark-layout #modal_detail .detail-file-title,
     .dark-layout #modal_detail .detail-info-value,
     .dark-layout #modal_detail .detail-status-card-title,
-    .dark-layout #modal_detail .detail-section-title {
+    .dark-layout #modal_detail .detail-section-title,
+    .dark-layout #modal_detail .detail-price-value {
         color: #f8fafc;
     }
 
     .dark-layout #modal_detail .detail-highlight-box {
         background: rgba(32, 86, 164, .25);
+    }
+
+    .dark-layout #modal_detail .detail-price-item {
+        border-bottom-color: rgba(255, 255, 255, .08);
+    }
+
+    .dark-layout #modal_detail .detail-price-item.is-highlight {
+        background: rgba(32, 86, 164, .2);
+    }
+
+    .dark-layout #modal_detail .detail-document-item {
+        background: #1f2937;
+        border-color: rgba(255, 255, 255, .08);
+    }
+
+    .dark-layout #modal_detail .detail-document-item:hover {
+        background: #283046;
     }
 
     .dark-layout #modal_detail .detail-section-divider {

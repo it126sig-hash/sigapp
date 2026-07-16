@@ -12,6 +12,7 @@ use App\Models\ProfilePerusahaanModel;
 use App\Models\RiwayatPencairanJaminanModel;
 use App\Services\FileAccessService;
 use App\Services\DanaJaminanService;
+use App\Services\BankKprDisbursementService;
 use App\Services\KeuanganService;
 use Exception;
 
@@ -33,6 +34,7 @@ class Keuangan extends BaseController
     protected $fileAccessService;
     protected $keuanganService;
     protected $danaJaminanService;
+    protected $bankKprDisbursementService;
 
     public function __construct()
     {
@@ -50,7 +52,9 @@ class Keuangan extends BaseController
         $this->fileAccessService = new FileAccessService();
         $this->keuanganService = new KeuanganService();
         $this->danaJaminanService = new DanaJaminanService();
+        $this->bankKprDisbursementService = new BankKprDisbursementService();
     }
+
     function getDanaAkad()
     {
         return $this->response->setJSON(
@@ -60,6 +64,31 @@ class Keuangan extends BaseController
             )
         );
     }
+
+    function getBankKprDisbursement()
+    {
+        return $this->response->setJSON(
+            $this->bankKprDisbursementService->getData(
+                (int) $this->request->getVar('id_mkdt'),
+                (int) $this->request->getVar('id_kavling')
+            )
+        );
+    }
+
+    function saveBankKprDisbursement()
+    {
+        return $this->response->setJSON(
+            $this->bankKprDisbursementService->save($this->request, (int) user_id())
+        );
+    }
+
+    function voidBankKprDisbursement($id = null)
+    {
+        return $this->response->setJSON(
+            $this->bankKprDisbursementService->void((int) $id, $this->request, (int) user_id())
+        );
+    }
+
     function getJatuhTempo()
     {
         $id_kavling = $this->request->getVar('list_jatuhtempo');

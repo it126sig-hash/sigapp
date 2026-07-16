@@ -71,6 +71,7 @@ class MkdtModel extends Model
 		'akad_tgl',
 		'rincian',
 		'akad',
+		'akad_indent',
 		'is_ajb',
 		'bast_no',
 		'bast_no',
@@ -78,6 +79,7 @@ class MkdtModel extends Model
 		'sp3k',
 		'wawancara',
 		'keterangan', //mkdt_keterangan
+		'keterangan_status',
 		'id_kavling',
 		'is_lunas',
 		'add_by',

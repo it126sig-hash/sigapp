@@ -1,4 +1,4 @@
-const CACHE_VERSION = "sigapp-pwa-v1";
+const CACHE_VERSION = "sigapp-pwa-v2";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PRECACHE_URLS = [
   "offline.html",

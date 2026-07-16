@@ -58,6 +58,7 @@ class ProyekService
 
         $data->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', $idProyek);
         $data->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', $idProyek);
+        $data->logo_pt_access_url = $this->fileAccessService->accessUrl('proyek_logo_pt', $idProyek);
         $data->list_siteplan = $this->getSiteplanList($idProyek);
 
         return $data;
@@ -68,11 +69,18 @@ class ProyekService
         $fields = $this->requestFields($request);
         $fields['siteplan'] = '';
         $fields['logo'] = '';
+        $fields['logo_pt'] = '';
 
-        $validation = $this->validate($fields, [
+        $rules = [
             'file' => $this->siteplanRules('file', 15000),
             'logo' => $this->logoRules('logo'),
-        ]);
+        ];
+
+        if ($this->hasUploadedFile($request, 'logo_pt')) {
+            $rules['logo_pt'] = $this->logoRules('logo_pt');
+        }
+
+        $validation = $this->validate($fields, $rules);
 
         if ($validation !== true) {
             return ['success' => false, 'messages' => $validation];
@@ -86,6 +94,11 @@ class ProyekService
 
             $logo = $this->storeImage($request, 'logo', 'uploads/logo/');
             $fields['logo'] = $logo['location'];
+
+            if (isset($rules['logo_pt'])) {
+                $logoPt = $this->storeImage($request, 'logo_pt', 'uploads/logo_pt/');
+                $fields['logo_pt'] = $logoPt['location'];
+            }
 
             if (!$this->proyekModel->insert($fields)) {
                 throw new RuntimeException('Insertion error!');
@@ -125,6 +138,10 @@ class ProyekService
             $rules['logon'] = $this->logoRules('logon');
         }
 
+        if ($this->shouldUpload($request, 'logo_pt', 'no_up_logo_pt')) {
+            $rules['logo_pt'] = $this->logoRules('logo_pt');
+        }
+
         $validation = $this->validate($fields, $rules);
         if ($validation !== true) {
             return ['success' => false, 'messages' => $validation];
@@ -143,6 +160,11 @@ class ProyekService
             if (isset($rules['logon'])) {
                 $logo = $this->storeImage($request, 'logon', 'uploads/logo/');
                 $fields['logo'] = $logo['location'];
+            }
+
+            if (isset($rules['logo_pt'])) {
+                $logoPt = $this->storeImage($request, 'logo_pt', 'uploads/logo_pt/');
+                $fields['logo_pt'] = $logoPt['location'];
             }
 
             if (!$this->proyekModel->update($idProyek, $fields)) {
@@ -193,6 +215,10 @@ class ProyekService
             'kecamatan' => $request->getPost('kecamatanProyek'),
             'kota' => $request->getPost('kotaProyek'),
             'provinsi' => $request->getPost('provinsiProyek'),
+            'nama_pt' => $request->getPost('namaPt'),
+            'no_rek' => $request->getPost('noRek'),
+            'bank' => $request->getPost('bank'),
+            'atas_nama' => $request->getPost('atasNama'),
         ];
     }
 
@@ -201,6 +227,10 @@ class ProyekService
         $rules = [
             'nama_proyek' => ['label' => 'Nama proyek', 'rules' => 'permit_empty|max_length[255]'],
             'alamat_proyek' => ['label' => 'Alamat proyek', 'rules' => 'permit_empty|max_length[255]'],
+            'nama_pt' => ['label' => 'Nama PT', 'rules' => 'permit_empty|max_length[255]'],
+            'no_rek' => ['label' => 'No rekening', 'rules' => 'permit_empty|max_length[255]'],
+            'bank' => ['label' => 'Bank', 'rules' => 'permit_empty|max_length[255]'],
+            'atas_nama' => ['label' => 'Atas nama', 'rules' => 'permit_empty|max_length[255]'],
         ];
 
         $this->validation->reset();

@@ -10,6 +10,7 @@ class HistoryService
         'mkdt' => 'MKDT / Kavling',
         'produksi' => 'Produksi',
         'dana_jaminan' => 'Dana Jaminan',
+        'pencairan_akad' => 'Pencairan Akad',
         'target_siteplan' => 'Target Siteplan',
         'cashout_subkon' => 'Cashout Subkon',
     ];

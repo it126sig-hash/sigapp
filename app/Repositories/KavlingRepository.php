@@ -35,6 +35,17 @@ class KavlingRepository
             ->where('kavling.id_mkdt', $id_mkdt)
             ->get()->getResult();
     }
+    public function getIdProyekByIdMkdt(int $id_mkdt): ?int
+    {
+        $row = $this->db->table('kavling')
+            ->select('cluster.id_proyek')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->where('kavling.id_mkdt', $id_mkdt)
+            ->get()->getRow();
+
+        return $row ? (int) $row->id_proyek : null;
+    }
     public function getKavlingById(int $idKavling): ?object
     {
         return $this->model->select('
@@ -134,7 +145,7 @@ class KavlingRepository
     }
     private function baseQuery(): BaseBuilder
     {
-        return $this->db->table('kavling')
+        return $this->db->table('cluster')
             ->select('
                 kavling.*,
                 hargajual.hargajual,
@@ -155,9 +166,9 @@ class KavlingRepository
                 users.username as harga_akhir_oleh_username,
                 u.username as perintah_bangun_username
             ')
+            ->join('jalan', 'jalan.id_cluster = cluster.id_cluster')
+            ->join('kavling FORCE INDEX (idx_kavling_id_jalan)', 'kavling.id_jalan = jalan.id_jalan', '', false)
             ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
             ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
             ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
             ->join('hargajual', 'hargajual.id = kavling.harga_akhir', "left")
@@ -225,17 +236,54 @@ class KavlingRepository
     }
 
     /**
+     * Select tambahan untuk status pencairan hasil akad (divisi Keuangan / id_divisi 3 saja).
+     * Join tunggal ke derived table teragregasi per id_plan, bukan subquery per baris.
+     */
+    private function addPencairanAkadSelect(BaseBuilder $builder): void
+    {
+        $builder->join('pencairan_akad_plan pap', 'pap.id_mkdt = mkdt.id_mkdt', 'left');
+
+        $builder->join(
+            "(SELECT id_plan,
+                     SUM(CASE WHEN status <> 'void' THEN 1 ELSE 0 END) AS pa_pengajuan_count,
+                     SUM(CASE WHEN status <> 'void' THEN total_cair ELSE 0 END) AS pa_total_cair_sum
+              FROM pencairan_akad_pengajuan
+              GROUP BY id_plan) papg",
+            'papg.id_plan = pap.id',
+            'left',
+            false
+        );
+
+        $builder->select('
+            pap.id AS pa_plan_id,
+            pap.total_hasil_akad AS pa_total_hasil_akad,
+            papg.pa_pengajuan_count,
+            papg.pa_total_cair_sum
+        ', true);
+    }
+
+    /**
      * Main: ambil data kavling dengan seluruh filter.
      */
     public function getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null)
     {
         $builder = $this->baseQuery();
 
-
         $this->addDivisiSelect($builder, $id_divisi);
+
+        if ((int) $id_divisi === 3) {
+            $this->addPencairanAkadSelect($builder);
+        }
 
         // filter proyek
         $builder->where('cluster.id_proyek', $id_proyek);
+
+        $projectJalanIds = $this->getProjectJalanIds($id_proyek, $id_cluster);
+        if ($projectJalanIds === []) {
+            return [];
+        }
+
+        $builder->whereIn('kavling.id_jalan', $projectJalanIds);
 
         // filter cluster
         if ($id_cluster) {
@@ -248,6 +296,28 @@ class KavlingRepository
         }
 
         return $builder->get()->getResult();
+    }
+
+    private function getProjectJalanIds($id_proyek, $id_cluster = null): array
+    {
+        if (empty($id_proyek)) {
+            return [];
+        }
+
+        $builder = $this->db->table('jalan')
+            ->select('jalan.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->where('cluster.id_proyek', $id_proyek);
+
+        if ($id_cluster) {
+            $builder->where('cluster.id_cluster', $id_cluster);
+        }
+
+        $rows = $builder->get()->getResult();
+
+        return array_values(array_map(static function ($row) {
+            return (string) $row->id_jalan;
+        }, $rows));
     }
 
     public function getPerintahBangun($id_kavling)

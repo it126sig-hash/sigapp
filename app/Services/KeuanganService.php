@@ -314,8 +314,8 @@ class KeuanganService
      */
     public function syncTagihan(int $idMkdt, array $um, int $actorId): void
     {
-        // Ambil existing ids di DB
-        $existing = $this->db->table('keuangan')->select('id_keuangan')->where('id_mkdt', $idMkdt)->get()->getResultArray();
+        // Ambil existing ids di DB (kecualikan yang sudah di-void supaya tidak ikut ter-hard-delete karena tidak dikirim ulang)
+        $existing = $this->db->table('keuangan')->select('id_keuangan')->where('id_mkdt', $idMkdt)->where('is_void', 0)->get()->getResultArray();
         $existingIds = array_map(fn($r) => (int) $r['id_keuangan'], $existing);
 
         $incomingIds = [];
@@ -448,7 +448,9 @@ class KeuanganService
     }
     public function getListTagihanGrouped($request)
     {
-        $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+        $builder = $request->getVar('status_lunas') === '1'
+            ? $this->keuRepo->getLunasGroupedQuery()
+            : $this->keuRepo->getBelumLunasGroupedQuery();
 
         $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
         if ($id_proyek)
@@ -692,6 +694,77 @@ class KeuanganService
         }
 
         return false;
+    }
+
+    /**
+     * Hapus permanen satu tagihan. Hanya boleh jika belum pernah ada pembayaran
+     * yang tercatat untuk tagihan ini (lihat hasPaidTagihan()). Kalau sudah ada
+     * pembayaran, arahkan pengguna ke voidTagihan().
+     */
+    public function deleteTagihan(int $idKeuangan, int $actorId): array
+    {
+        $row = $this->model->find($idKeuangan);
+        if (! $row) {
+            return ['success' => false, 'message' => 'Tagihan tidak ditemukan'];
+        }
+        if ((int) $row->is_void === 1) {
+            return ['success' => false, 'message' => 'Tagihan sudah di-void'];
+        }
+        if ($this->hasPaidTagihan((int) $row->id_mkdt, [$row])) {
+            return ['success' => false, 'message' => 'Tagihan sudah ada pembayaran, tidak bisa dihapus. Gunakan tombol Void.'];
+        }
+
+        $this->model->delete($idKeuangan);
+
+        return ['success' => true, 'message' => 'Tagihan berhasil dihapus'];
+    }
+
+    /**
+     * Void satu tagihan: data tetap ada untuk riwayat/audit, tapi ditandai
+     * is_void sehingga dikecualikan dari semua perhitungan total tagihan.
+     */
+    public function voidTagihan(int $idKeuangan, string $reason, int $actorId): array
+    {
+        $row = $this->model->find($idKeuangan);
+        if (! $row) {
+            return ['success' => false, 'message' => 'Tagihan tidak ditemukan'];
+        }
+        if ((int) $row->is_void === 1) {
+            return ['success' => false, 'message' => 'Tagihan sudah di-void'];
+        }
+        if (trim($reason) === '') {
+            return ['success' => false, 'message' => 'Alasan void wajib diisi'];
+        }
+
+        $this->model->update($idKeuangan, [
+            'is_void'     => 1,
+            'void_reason' => $reason,
+            'edit_by'     => $actorId,
+        ]);
+
+        return ['success' => true, 'message' => 'Tagihan berhasil di-void'];
+    }
+
+    /**
+     * Batalkan void: tagihan aktif kembali dan dihitung lagi di total.
+     */
+    public function unvoidTagihan(int $idKeuangan, int $actorId): array
+    {
+        $row = $this->model->find($idKeuangan);
+        if (! $row) {
+            return ['success' => false, 'message' => 'Tagihan tidak ditemukan'];
+        }
+        if ((int) $row->is_void !== 1) {
+            return ['success' => false, 'message' => 'Tagihan tidak dalam status void'];
+        }
+
+        $this->model->update($idKeuangan, [
+            'is_void'     => 0,
+            'void_reason' => null,
+            'edit_by'     => $actorId,
+        ]);
+
+        return ['success' => true, 'message' => 'Void tagihan berhasil dibatalkan'];
     }
 
     private function hasRequestArray($request, string $name): bool
