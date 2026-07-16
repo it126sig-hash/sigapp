@@ -192,6 +192,7 @@ class SiteplanMenuService
         'planning_toggle_legend',
         'planning_add_kavling',
         'planning_edit_kavling_batch',
+        'planning_lihat_detail',
         'planning_undo_manual_selection',
         'produksi_tambah_jalan_state',
         'produksi_tambah_jalan',

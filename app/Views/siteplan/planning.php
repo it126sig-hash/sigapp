@@ -255,10 +255,49 @@ if (typeof siteplan !== "undefined") {
 //open modal untuk tambah kavling
 
 // $("#add_kavling").click(function() {});
+function planning_split_semicolon(value) {
+  return String(value || "")
+    .split(";")
+    .map((item) => item.trim())
+    .filter((item) => item !== "");
+}
+
+function planning_normalize_points(value) {
+  if (Array.isArray(value)) return value.join(",");
+  return String(value || "").trim();
+}
+
+function planning_join_semicolon(values) {
+  const filtered = values.map(planning_normalize_points).filter((item) => item !== "");
+  return filtered.length ? filtered.join(";") + ";" : "";
+}
+
+function planning_collect_selection_points() {
+  const points = [];
+
+  for (let z = 0; z < batchdtt.length; z++) {
+    const point = planning_normalize_points(batchdtt[z]);
+    if (point !== "") points.push(point);
+  }
+
+  const singlePoint = planning_normalize_points(dtt);
+  if (!points.length && singlePoint !== "") points.push(singlePoint);
+
+  return points;
+}
+
+function planning_is_kavling_selection() {
+  if (!editdtt.length) return false;
+
+  return editdtt.every(function (item) {
+    return item && item.data && item.data.tipe == "kavling";
+  });
+}
+
 function edit_kavling_batch() {
   if (editdtt.length == 0) return;
   $("#pindah_lokasi_btn").hide();
-  if (editdtt.length == 1) $("#pindah_lokasi_btn").show();
+  if (planning_is_kavling_selection()) $("#pindah_lokasi_btn").show();
 
   $(".t_luas_legal, .t_luas_produksi, .r_progres").html("-");
 
@@ -449,13 +488,14 @@ function edit_kavling() {
   let no_kav = $("#fm-add_kavling #no_kavling").val().split(";"),
     no_kavlen =
       no_kav[no_kav.length - 1] == "" ? no_kav.length - 1 : no_kav.length,
+    points_len = planning_split_semicolon($("#points").val()).length,
     tipe = editdtt[0].data.tipe,
     url = base_url + "/siteplan/edit_others";
 
   //jika no kavling dan selection tidak sesuai
   if (tipe == "kavling") {
     if (editdtt.length > 0) {
-      if (editdtt.length != no_kavlen) {
+      if (editdtt.length != no_kavlen || editdtt.length != points_len) {
         Swal.fire({
           //position: 'bottom-end',
           icon: "error",
@@ -465,7 +505,10 @@ function edit_kavling() {
             editdtt.length +
             "\n" +
             "Jumlah No Kavling yang diisi: " +
-            no_kavlen,
+            no_kavlen +
+            "\n" +
+            "Jumlah Lokasi yang dipilih: " +
+            points_len,
           showConfirmButton: false,
         });
         return;
@@ -651,10 +694,30 @@ function add_kavling() {
   });
 }
 
-var editdtt_tmp;
+var editdtt_tmp = [];
+var planningMoveState = {
+  active: false,
+  selected: [],
+  previousPoints: "",
+};
 
 function pindah_kavling() {
-  editdtt_tmp = editdtt;
+  if (!planning_is_kavling_selection()) {
+    return Swal.fire({
+      icon: "error",
+      title: "Pilih kavling terlebih dahulu",
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  }
+
+  editdtt_tmp = editdtt.slice();
+  planningMoveState = {
+    active: true,
+    selected: editdtt.slice(),
+    previousPoints: $("#points").val(),
+  };
+
   $("#modals-slide-in").modal("hide");
   $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn, #planning_undo_manual_selection").hide();
   $("#selesai_pindah_btn, #batal_pindah_btn").show();
@@ -663,7 +726,10 @@ function pindah_kavling() {
 
 function selesai_selection(e) {
   if (e == 1) {
-    if (dtt == "") {
+    const destinationPoints = planning_collect_selection_points();
+    const expectedCount = planningMoveState.active ? planningMoveState.selected.length : 1;
+
+    if (!destinationPoints.length) {
       Swal.fire({
         //position: 'bottom-end',
         icon: "error",
@@ -674,9 +740,31 @@ function selesai_selection(e) {
       return;
     }
 
-    $("#points").val(dtt);
+    if (destinationPoints.length != expectedCount) {
+      Swal.fire({
+        icon: "error",
+        title: "Jumlah lokasi tidak sesuai",
+        text:
+          "Jumlah Kavling yang dipindah: " +
+          expectedCount +
+          "\n" +
+          "Jumlah Lokasi yang dipilih: " +
+          destinationPoints.length,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    $("#points").val(planning_join_semicolon(destinationPoints));
+  } else if (planningMoveState.active) {
+    $("#points").val(planningMoveState.previousPoints);
   }
-  editdtt = editdtt_tmp;
+  editdtt = planningMoveState.active ? planningMoveState.selected.slice() : editdtt_tmp.slice();
+  planningMoveState = {
+    active: false,
+    selected: [],
+    previousPoints: "",
+  };
 
   $("#modals-slide-in").modal("show");
   $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn, #planning_undo_manual_selection").show();

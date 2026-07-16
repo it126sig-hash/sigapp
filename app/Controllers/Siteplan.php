@@ -495,28 +495,28 @@ class Siteplan extends BaseController
         $response = array();
         $response['token'] = csrf_hash();
 
-        $fields['id_kavling'] = $this->request->getPost('id_kavling');
+        $splitList = static function ($value) {
+            return array_values(array_filter(array_map('trim', explode(';', (string) $value)), static function ($item) {
+                return $item !== '';
+            }));
+        };
+
         $fields['id_jalan'] = $this->request->getPost('id_jalan');
         $fields['id_tipe'] = $this->request->getPost('id_tipe');
-        $fields['no_kavling'] = $this->request->getPost('no_kavling');
         $fields['status_tanah'] = $this->request->getPost('status_tanah');
         $fields['luas_tanah'] = $this->request->getPost('f_luas');
 
-        $id = explode(";", $this->request->getPost('id_kavling'));
-        $id_last = $id[count($id) - 1];
-        $id_len = ($id_last == "") ? count($id) - 1 : count($id);
+        $id = $splitList($this->request->getPost('id_kavling'));
+        $no = $splitList($this->request->getPost('no_kavling'));
+        $points = $splitList($this->request->getPost('points'));
 
-        $no = explode(";", $this->request->getPost('no_kavling'));
-        $no_last = $no[count($no) - 1];
-        $no_len = ($no_last == "") ? count($no) - 1 : count($no);
+        $id_len = count($id);
+        $no_len = count($no);
+        $points_len = count($points);
 
-        $points = explode(";", $this->request->getPost('points'));
-        $points_last = $points[count($points) - 1];
-        $points_len = ($points_last == "") ? count($points) - 1 : count($points);
-
-        if ($no_len != $id_len) {
+        if ($id_len == 0 || $no_len != $id_len || $points_len != $id_len) {
             $response['success'] = false;
-            $response['messages'] = 'Update error!';
+            $response['messages'] = 'Jumlah kavling, nomor, dan lokasi tidak sesuai';
             return $this->response->setJSON($response);
         }
 
@@ -524,44 +524,67 @@ class Siteplan extends BaseController
             'no_kavling' => ['label' => 'No Rumah', 'rules' => 'permit_empty|max_length[255]']
         ]);
 
-        if ($no_len > 0 || $id_len > 0) {
-            for ($x = 0; $x < $no_len; $x++) {
+        $seenNo = [];
 
-                $fields['id_kavling'] = $id[$x];
-                $fields['no_kavling'] = $no[$x];
-                $fields['points'] = $points[$x];
-
-                if ($this->validation->run($fields) == FALSE) {
-                    $response['success'] = false;
-                    $response['messages'] = $this->validation->listErrors();
-                } else {
-                    if ($this->kavlingModel->update($fields['id_kavling'], $fields)) {
-                        $response['success'] = true;
-                        $response['messages'] = 'Successfully updated';
-                    } else {
-                        $response['success'] = false;
-                        $response['messages'] = 'Update error!';
-                    }
-                }
+        foreach ($no as $noKavling) {
+            $key = strtolower($noKavling);
+            if (isset($seenNo[$key])) {
+                $response['success'] = false;
+                $response['messages'] = 'No ' . $noKavling . ' duplikat di input';
+                return $this->response->setJSON($response);
             }
-        } else {
-            if ($this->validation->run($fields) == FALSE) {
+            $seenNo[$key] = true;
+        }
 
+        $this->db->transBegin();
+
+        for ($x = 0; $x < $id_len; $x++) {
+            $fields['id_kavling'] = $id[$x];
+            $fields['no_kavling'] = $no[$x];
+            $fields['points'] = $points[$x];
+
+            if ($this->validation->run($fields) == FALSE) {
+                $this->db->transRollback();
                 $response['success'] = false;
                 $response['messages'] = $this->validation->listErrors();
-            } else {
+                return $this->response->setJSON($response);
+            }
 
-                if ($this->kavlingModel->update($fields['id_kavling'], $fields)) {
+            if ($fields['id_jalan'] && $fields['no_kavling'] !== '') {
+                $duplicate = $this->db->table('kavling')
+                    ->where('id_jalan', $fields['id_jalan'])
+                    ->where('no_kavling', $fields['no_kavling'])
+                    ->where('id_kavling !=', $fields['id_kavling'])
+                    ->get()
+                    ->getRow();
 
-                    $response['success'] = true;
-                    $response['messages'] = 'Successfully updated';
-                } else {
-
+                if ($duplicate) {
+                    $this->db->transRollback();
                     $response['success'] = false;
-                    $response['messages'] = 'Update error!';
+                    $response['messages'] = 'No ' . $fields['no_kavling'] . ' Sudah digunakan';
+                    return $this->response->setJSON($response);
                 }
             }
+
+            if (!$this->kavlingModel->update($fields['id_kavling'], $fields)) {
+                $this->db->transRollback();
+                $response['success'] = false;
+                $response['messages'] = 'Update error!';
+                return $this->response->setJSON($response);
+            }
         }
+
+        if ($this->db->transStatus() === FALSE) {
+            $this->db->transRollback();
+            $response['success'] = false;
+            $response['messages'] = 'Update error!';
+            return $this->response->setJSON($response);
+        }
+
+        $this->db->transCommit();
+        $response['success'] = true;
+        $response['messages'] = 'Successfully updated';
+
         return $this->response->setJSON($response);
     }
     function edit_others()
@@ -982,6 +1005,45 @@ class Siteplan extends BaseController
             ->first();
         if ($d['kavling'] && !empty($d['kavling']->perintah_bangun_file)) {
             $d['kavling']->perintah_bangun_access_url = $this->fileAccessService->accessUrl('kavling_perintah_bangun', (int) $d['kavling']->id_kavling);
+        }
+
+        $d['tipe_detail'] = null;
+        if ($d['kavling'] && !empty($d['kavling']->id_tipe)) {
+            $d['tipe_detail'] = $this->db->table('tipe')
+                ->select('
+                    no_tipe_rumah,
+                    tipe_rumah,
+                    lb,
+                    lt,
+                    jumlah_kamar_tidur,
+                    jumlah_kamar_mandi,
+                    spesifikasi_teknis_atap,
+                    spesifikasi_teknis_dinding,
+                    spesifikasi_teknis_lantai,
+                    spesifikasi_teknis_pondasi,
+                    id_gambar_tipe,
+                    id_gambar_denah
+                ')
+                ->where('id_tipe', $d['kavling']->id_tipe)
+                ->get()
+                ->getRow();
+
+            if ($d['tipe_detail']) {
+                $d['tipe_detail']->gambar_tipe_access_url = null;
+                $d['tipe_detail']->gambar_tipe_download_url = null;
+                $d['tipe_detail']->gambar_denah_access_url = null;
+                $d['tipe_detail']->gambar_denah_download_url = null;
+
+                if (!empty($d['tipe_detail']->id_gambar_tipe)) {
+                    $d['tipe_detail']->gambar_tipe_access_url = $this->fileAccessService->accessUrl('gambar_kerja', (int) $d['tipe_detail']->id_gambar_tipe);
+                    $d['tipe_detail']->gambar_tipe_download_url = $this->fileAccessService->accessUrl('gambar_kerja', (int) $d['tipe_detail']->id_gambar_tipe, true);
+                }
+
+                if (!empty($d['tipe_detail']->id_gambar_denah)) {
+                    $d['tipe_detail']->gambar_denah_access_url = $this->fileAccessService->accessUrl('gambar_kerja', (int) $d['tipe_detail']->id_gambar_denah);
+                    $d['tipe_detail']->gambar_denah_download_url = $this->fileAccessService->accessUrl('gambar_kerja', (int) $d['tipe_detail']->id_gambar_denah, true);
+                }
+            }
         }
 
         $id_hargajual = $this->request->getVar('id_hargajual');

@@ -241,6 +241,7 @@ function lihat_detail() {
         $("#dt-hp_konsumen").text('-')
         $("#dt-email_konsumen").text('-')
         $("#dt-sales").text('-')
+        loadTipeDetail(null)
 
         let categories = [
             "rab_dokumen",
@@ -288,6 +289,7 @@ function lihat_detail() {
                 loadSummary(dr)
                 loadPL(r.pricelist)
                 loadKavling(r)
+                loadTipeDetail(r.tipe_detail)
                 loadMKDT(r.mkdt)
                 loadLegal(r.legal)
                 loadTagihan(r)
@@ -528,9 +530,75 @@ function lihat_detail() {
         return $('<div>').text(value === null || value === undefined || value === '' ? '-' : value).html();
     }
 
+    function detailTextValue(value) {
+        return value === null || value === undefined || value === '' ? '-' : value;
+    }
+
     function detailPercentValue(value) {
         const n = Number(String(value || '0').replace('%', '')) || 0;
         return Math.max(0, Math.min(100, n));
+    }
+
+    function renderTipeDetailFile(selector, label, accessUrl, downloadUrl) {
+        const safeLabel = detailEscapeHtml(label);
+
+        if (!accessUrl) {
+            $(selector).html(`
+                <div class="detail-spec-file-preview">
+                    <div class="detail-spec-file-empty">Belum ada file</div>
+                </div>
+                <div class="detail-spec-file-body">
+                    <div class="detail-mini-label">${safeLabel}</div>
+                    <div class="detail-mini-value">-</div>
+                </div>
+            `);
+            return;
+        }
+
+        const previewUrl = detailEscapeHtml(accessUrl);
+        const actionUrl = detailEscapeHtml(downloadUrl || accessUrl);
+        $(selector).html(`
+            <a class="detail-spec-file-preview" href="${actionUrl}" target="_blank" rel="noopener">
+                <img src="${previewUrl}" alt="${safeLabel}">
+            </a>
+            <div class="detail-spec-file-body">
+                <div class="detail-mini-label">${safeLabel}</div>
+                <a class="btn btn-outline-primary btn-sm detail-file-btn" href="${actionUrl}" target="_blank" rel="noopener">
+                    <i class="fas fa-external-link-alt mr-50"></i> Lihat / Unduh
+                </a>
+            </div>
+        `);
+    }
+
+    function loadTipeDetail(tipe) {
+        const data = tipe || {};
+        const tipeLabel = [
+            detailTextValue(data.no_tipe_rumah),
+            detailTextValue(data.tipe_rumah)
+        ].filter((item) => item !== '-').join(' / ') || '-';
+
+        $("#dt-spesifikasi-tipe").text(tipeLabel);
+        $("#dt-spesifikasi-lb").text(data.lb ? `${data.lb} m2` : '-');
+        $("#dt-spesifikasi-lt").text(data.lt ? `${data.lt} m2` : '-');
+        $("#dt-spesifikasi-kamar-tidur").text(detailTextValue(data.jumlah_kamar_tidur));
+        $("#dt-spesifikasi-kamar-mandi").text(detailTextValue(data.jumlah_kamar_mandi));
+        $("#dt-spesifikasi-atap").text(detailTextValue(data.spesifikasi_teknis_atap));
+        $("#dt-spesifikasi-dinding").text(detailTextValue(data.spesifikasi_teknis_dinding));
+        $("#dt-spesifikasi-lantai").text(detailTextValue(data.spesifikasi_teknis_lantai));
+        $("#dt-spesifikasi-pondasi").text(detailTextValue(data.spesifikasi_teknis_pondasi));
+
+        renderTipeDetailFile(
+            "#dt-spesifikasi-gambar-tipe",
+            "Gambar Ilustrasi",
+            data.gambar_tipe_access_url,
+            data.gambar_tipe_download_url
+        );
+        renderTipeDetailFile(
+            "#dt-spesifikasi-gambar-denah",
+            "Denah Arsitektural",
+            data.gambar_denah_access_url,
+            data.gambar_denah_download_url
+        );
     }
 
     function detailAccordionItem(parentId, itemId, title, isOpen = false) {
