@@ -120,6 +120,7 @@ class TransaksiRepository extends Model
             tipe.lb,
             `kavling`.`no_kavling`,
             kavling.luas_tanah,
+            hargajual.id_tipe AS tipe_pricelist,
             mkdt.*,
             `konsumen`.`no_spptb`,
             `konsumen`.`nama_konsumen`,
@@ -153,6 +154,7 @@ class TransaksiRepository extends Model
             ->join('tipe', 'tipe.id_tipe = kavling.id_tipe')
             ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt')
             ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
+            ->join('hargajual', 'hargajual.id = kavling.harga_akhir', 'left')
             ->where('kavling.id_kavling', $idKavling)
             ->get()->getRow();
     }

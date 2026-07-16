@@ -176,6 +176,31 @@ class Tagihan extends BaseController
         $q =  $this->keuanganService->tambahTurunKPR($data);
         return $this->response->setJSON($q, true);
     }
+    public function hapus()
+    {
+        $id = (int) $this->request->getPost('id_keuangan');
+        if ($id <= 0) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID Keuangan tidak ditemukan']);
+        }
+        return $this->response->setJSON($this->keuanganService->deleteTagihan($id, user_id()));
+    }
+    public function voidTagihan()
+    {
+        $id     = (int) $this->request->getPost('id_keuangan');
+        $reason = (string) $this->request->getPost('reason');
+        if ($id <= 0) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID Keuangan tidak ditemukan']);
+        }
+        return $this->response->setJSON($this->keuanganService->voidTagihan($id, $reason, user_id()));
+    }
+    public function unvoidTagihan()
+    {
+        $id = (int) $this->request->getPost('id_keuangan');
+        if ($id <= 0) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID Keuangan tidak ditemukan']);
+        }
+        return $this->response->setJSON($this->keuanganService->unvoidTagihan($id, user_id()));
+    }
     public function save(): ResponseInterface
     {
         $resp = ['token' => csrf_hash()];

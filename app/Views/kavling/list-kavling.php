@@ -17,57 +17,55 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: .75rem 1rem;
-    padding: .85rem 1rem .7rem;
+    gap: .5rem .65rem;
+    padding: .6rem .85rem;
     border-bottom: 1px solid #edf0f4;
     background: #fff;
   }
 
   #poskon-filter .poskon-toolbar-title h2 {
     margin: 0;
-    color: #1f2937;
-    font-size: 1.12rem;
-    font-weight: 600;
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 800;
     line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  #poskon-filter .poskon-toolbar-divider {
+    align-self: stretch;
+    background: #e5e7eb;
+    flex: 0 0 1px;
+    width: 1px;
   }
 
   #poskon-filter .poskon-filter-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(170px, 1fr));
-    gap: .75rem;
-    padding: .85rem 1rem 1rem;
-    background: #f8fafc;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
   }
 
   #poskon-filter .poskon-filter-field {
+    flex: 0 0 170px;
     min-width: 0;
     margin-bottom: 0 !important;
   }
 
-  #poskon-filter .poskon-filter-field label {
-    display: block;
-    margin-bottom: .25rem;
-    color: #6b7280;
-    font-size: .72rem;
-    font-weight: 600;
-    line-height: 1.2;
-  }
-
   #poskon-filter .form-control,
   #poskon-filter .select2-container--default .select2-selection--single {
-    min-height: 34px;
+    min-height: 30px;
     border-color: #d8dee8;
     border-radius: 6px;
   }
 
   #poskon-filter .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 32px;
-    font-size: .86rem;
+    line-height: 28px;
+    font-size: .78rem;
   }
 
   #poskon-filter .select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 32px;
+    height: 28px;
   }
 
   .poskon-filter-actions {
@@ -76,14 +74,15 @@
     gap: .4rem;
     align-items: center;
     justify-content: flex-end;
+    margin-left: auto;
   }
 
   .poskon-filter-actions .btn,
   .poskon-filter-actions .btn-group .btn {
-    min-height: 32px;
-    padding: .32rem .65rem;
+    min-height: 30px;
+    padding: .3rem .6rem;
     border-radius: 6px;
-    font-size: .82rem;
+    font-size: .78rem;
     font-weight: 600;
     line-height: 1.2;
   }
@@ -123,41 +122,18 @@
     width: 100% !important;
   }
 
+  #data_tables tbody td {
+    text-transform: uppercase;
+  }
+
+  #data_tables tbody td .poskon-action-cell,
+  #data_tables tbody td .poskon-action-cell * {
+    text-transform: none;
+  }
+
   #poskon-filter .select2-container,
   #modal-tambah-poskon .select2-container {
     width: 100% !important;
-  }
-
-  .project-select-option {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    min-width: 0;
-  }
-
-  .project-select-option img {
-    width: 26px;
-    height: 26px;
-    flex: 0 0 26px;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
-    object-fit: contain;
-    background: #fff;
-  }
-
-  .project-select-option span {
-    min-width: 0;
-    overflow: hidden;
-    color: #1f2937;
-    font-size: .86rem;
-    line-height: 1.25;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  #poskon-filter .select2-selection__rendered .project-select-option,
-  #modal-tambah-poskon .select2-selection__rendered .project-select-option {
-    height: 32px;
   }
 
   .select2-dropdown {
@@ -195,7 +171,8 @@
     }
 
     .poskon-filter-actions,
-    #poskon-filter .poskon-filter-grid {
+    #poskon-filter .poskon-filter-grid,
+    #poskon-filter .poskon-toolbar-divider {
       display: none;
     }
 
@@ -326,48 +303,47 @@
             <div class="poskon-toolbar-title">
               <h2>Posisi Konsumen Aktif</h2>
             </div>
+            <div class="poskon-toolbar-divider"></div>
+            <div class="poskon-filter-grid">
+              <div class="poskon-filter-field">
+                <select disabled id="id_cluster" name="id_cluster" class="select2  form-control"></select>
+              </div>
+              <div class="poskon-filter-field">
+                <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
+              </div>
+              <div class="poskon-filter-field" hidden>
+                <select id="wawancara" name="wawancara" class="select2 self form-control">
+                  <option value=""> Tanpa Filter </option>
+                  <option value="1"> Sudah </option>
+                  <option value="0"> Belum </option>
+                </select>
+              </div>
+              <div class="poskon-filter-field" hidden>
+                <select id="sp3k" name="sp3k" class="select2 self form-control">
+                  <option value=""> Tanpa Filter </option>
+                  <option value="1"> Sudah </option>
+                  <option value="0"> Belum </option>
+                </select>
+              </div>
+
+              <div class="poskon-filter-field">
+                <select id="filter_status_kavling" class="select2 self form-control">
+                  <option value="booking" selected>Belum Akad (Booking)</option>
+                  <option value="akad">Sudah Akad</option>
+                  <option value="indent">Akad Indent</option>
+                </select>
+              </div>
+            </div>
             <div class="poskon-filter-actions">
               <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm" title="Filter Data"><i class="fa fa-filter"></i> Filter</button>
               <button type="button" id="btn_open_add_modal" class="btn btn-primary waves-effect btn-sm" title="Tambah Data"><i class="fa fa-plus"></i> Tambah</button>
               <div class="btn-group">
-                <button type="button" id="btn_export_excel" class="btn btn-success waves-effect btn-sm" title="Export Excel"><i class="fa fa-file-excel"></i> Excel</button>
-                <button type="button" id="btn_export_pdf" class="btn btn-danger waves-effect btn-sm" title="Export PDF"><i class="fa fa-file-pdf"></i> PDF</button>
+                <button type="button" id="btn_export_toggle" class="btn btn-outline-primary waves-effect btn-sm dropdown-toggle" data-toggle="dropdown" title="Export Data"><i class="fa fa-file-export"></i> Export</button>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <button type="button" id="btn_export_excel" class="dropdown-item"><i class="fa fa-file-excel text-success mr-50"></i> Export Excel</button>
+                  <button type="button" id="btn_export_pdf" class="dropdown-item"><i class="fa fa-file-pdf text-danger mr-50"></i> Export PDF</button>
+                </div>
               </div>
-            </div>
-          </div>
-          <div class="poskon-filter-grid">
-            <div class="poskon-filter-field">
-              <label>Cluster</label>
-              <select disabled id="id_cluster" name="id_cluster" class="select2  form-control"></select>
-            </div>
-            <div class="poskon-filter-field">
-              <label>Blok</label>
-              <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
-            </div>
-            <div class="poskon-filter-field" hidden>
-              <label>Wawancara</label>
-              <select id="wawancara" name="wawancara" class="select2 self form-control">
-                <option value=""> Tanpa Filter </option>
-                <option value="1"> Sudah </option>
-                <option value="0"> Belum </option>
-              </select>
-            </div>
-            <div class="poskon-filter-field" hidden>
-              <label>SP3K</label>
-              <select id="sp3k" name="sp3k" class="select2 self form-control">
-                <option value=""> Tanpa Filter </option>
-                <option value="1"> Sudah </option>
-                <option value="0"> Belum </option>
-              </select>
-            </div>
-
-            <div class="poskon-filter-field hidden" hidden>
-              <label>Akad</label>
-              <select id="akad" name="akad" class="select2 self form-control">
-                <option value=""> Tanpa Filter </option>
-                <option value="1"> Sudah </option>
-                <option value="0"> Belum </option>
-              </select>
             </div>
           </div>
         </div>
@@ -403,11 +379,13 @@
                       <th rowspan="3" id="tb-SALES">SALES</th>
                       <th rowspan="3" id="tb-TGL_BOOKING">TGL BOOKING</th>
                       <th rowspan="3" id="tb-TGL_WAWANCARA">TGL WAWANCARA</th>
+                      <th rowspan="3" id="tb-TGL_AKAD">TGL AKAD</th>
                       <th colspan="6" id="tb-MARKETING_DATA">MARKETING DATA</th>
                       <th colspan="4" id="tb-KEUANGAN">KEUANGAN</th>
                       <th colspan="4" id="tb-PRODUKSI">PRODUKSI</th>
                       <th colspan="3" id="tb-LEGAL">LEGAL</th>
                       <th id="tb-GA">GA</th>
+                      <th rowspan="3" id="tb-KETERANGAN_STATUS">KETERANGAN STATUS</th>
                     </tr>
 
                     <tr>
@@ -437,7 +415,7 @@
 
                     <tr>
                       <th id="tb-TUNAI_KPR">TUNAI/KPR</th>
-                      <th id="tb-TERBIT">BANK</th>
+                      <th id="tb-BANK">BANK</th>
                       <th id="tb-TERBIT">TERBIT</th>
                       <th id="tb-EXPIRED">EXPIRED</th>
 
@@ -486,30 +464,17 @@
       </div>
       <div class="modal-body">
         <div class="row">
-          <div class="col-md-6 mb-1">
-            <label>Proyek</label>
-            <select id="add_id_proyek" class="select2 form-control"></select>
-          </div>
-          <div class="col-md-6 mb-1">
-            <label>Cluster</label>
-            <select disabled id="add_id_cluster" class="select2 form-control"></select>
-          </div>
-          <div class="col-md-6 mb-1">
-            <label>Blok</label>
-            <select disabled id="add_id_jalan" class="select2 form-control"></select>
-          </div>
-          <div class="col-md-6 mb-1">
+          <div class="col-12 mb-1">
             <label>Kavling</label>
-            <select disabled id="add_id_kavling" class="select2 form-control"></select>
+            <select id="add_id_kavling" class="select2 form-control"></select>
           </div>
-          <div class="col-md-6 mb-1">
-            <label>Departemen</label>
-            <select id="add_id_role" class="form-control"></select>
+          <div class="col-12" id="add_menu_wrapper" hidden>
+            <label>Pilih Aksi</label>
+            <div id="add_menu_items" class="list-group"></div>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" id="btn_add_open_department" class="btn btn-primary"><i class="fa fa-plus"></i> Lanjut Tambah Data</button>
         <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
       </div>
     </div>
@@ -532,10 +497,6 @@
 <script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/fixed-columns/dataTables.fixedColumns.js"></script>
 
 <script src="<?= base_url() ?>assets/js/jquery.richtext.min.js"></script>
-<!-- <script src="https://adminlte.io/themes/v3/plugins/jquery-validation/additional-methods.min.js"></script> -->
-
-<!-- <script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.js"></script>
-<script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.js"></script> -->
 
 <?php
 $k = null;
@@ -559,72 +520,8 @@ if (!empty($roles)) {
   var conf = JSON.parse('<?= $data['data']['conf'] ?? '{}' ?>');
   const proyekContext = <?= json_encode($data['data']['proyek'] ?? null) ?>;
   window.siteplanMenuItems = [];
-  const roleOptions = {
-    4: 'MKDT',
-    3: 'Keuangan',
-    6: 'Planning',
-    7: 'Produksi',
-    8: 'Sales',
-    5: 'Legal',
-    9: 'Direksi',
-    10: 'Pajak'
-  };
 
   window.editdtt = [];
-
-  function normalizeProjectContext(item) {
-    if (!item) return {};
-
-    return {
-      id_proyek: item.id_proyek || item.id || item[0] || '',
-      nama_proyek: item.nama_proyek || item.text || item[1] || ''
-    };
-  }
-
-  function getProjectLogoUrl(item) {
-    if (!item) return '';
-    if (item.logo_url) return item.logo_url;
-
-    const rawLogo = item.logo_html || item[3] || (item.data && item.data[3]) || '';
-    if (!rawLogo) return '';
-
-    return $('<div>').html(rawLogo).find('img').attr('src') || '';
-  }
-
-  function createProjectSelectOption(item) {
-    return {
-      id: item.id_proyek || item.id || item[0] || '',
-      text: item.nama_proyek || item.text || item[1] || '',
-      id_proyek: item.id_proyek || item.id || item[0] || '',
-      nama_proyek: item.nama_proyek || item.text || item[1] || '',
-      logo_url: getProjectLogoUrl(item),
-      data: item
-    };
-  }
-
-  function renderProjectSelectOption(item) {
-    if (!item.id) return item.text;
-
-    const $option = $('<span class="project-select-option"></span>');
-    const logoUrl = getProjectLogoUrl(item);
-
-    if (logoUrl) {
-      $('<img>', {
-        src: logoUrl,
-        alt: ''
-      }).appendTo($option);
-    }
-
-    $('<span></span>').text(item.nama_proyek || item.text).appendTo($option);
-
-    return $option;
-  }
-
-  function setProjectContextFromSelect($select) {
-    const selected = $select.select2('data')[0] || {};
-    dt_proyek = normalizeProjectContext(selected);
-    return dt_proyek;
-  }
 
   function getKavlingIdFromShape(sh, fallbackId) {
     if (!sh) return fallbackId || '';
@@ -699,10 +596,7 @@ if (!empty($roles)) {
     });
   }
 
-  function renderPoskonActionCell(row) {
-    const idKavling = row.id_kavling;
-    if (!idKavling) return '';
-
+  function buildSiteplanMenuItemsHtml(row, itemClass) {
     const rowEncoded = encodePoskonRow(row);
     let menuHtml = '';
     let lastGroup = null;
@@ -714,10 +608,20 @@ if (!empty($roles)) {
       }
 
       const icon = item.icon ? '<i class="' + item.icon + '"></i> ' : '';
-      menuHtml += '<button type="button" class="dropdown-item poskon-menu-action" data-onclick="' +
+      menuHtml += '<button type="button" class="' + itemClass + ' poskon-menu-action" data-onclick="' +
         encodeURIComponent(item.onclick || '') + '" data-row="' + rowEncoded + '" data-group="' + (item.id_group || '') + '">' +
         icon + $('<div>').text(item.label || '').html() + '</button>';
     });
+
+    return menuHtml;
+  }
+
+  function renderPoskonActionCell(row) {
+    const idKavling = row.id_kavling;
+    if (!idKavling) return '';
+
+    const rowEncoded = encodePoskonRow(row);
+    const menuHtml = buildSiteplanMenuItemsHtml(row, 'dropdown-item');
 
     const dropdown = menuHtml ?
       '<div class="btn-group ml-50">' +
@@ -734,14 +638,19 @@ if (!empty($roles)) {
   function runSiteplanMenuAction(onclick, row, menuItem) {
     if (!onclick) return;
 
+    if ($('#modal-tambah-poskon').hasClass('show')) {
+      $('#modal-tambah-poskon').modal('hide');
+    }
+
     syncProjectContextFromRow(row);
     const sh = buildKavlingShape(row);
     window.editdtt = [sh];
     $('.id_kavling').val(row.id_kavling || '');
 
-    const adminGroup = menuItem && menuItem.id_group ? parseInt(menuItem.id_group, 10) : 0;
-    if (parseInt(roleid, 10) === 1 && adminGroup > 0 && String(onclick).trim() === 'isi_data()') {
-      return openDepartmentModal(adminGroup, sh, 'edit');
+    if (String(onclick).trim() === 'isi_data()') {
+      const itemGroup = menuItem && menuItem.id_group ? parseInt(menuItem.id_group, 10) : 0;
+      const targetRole = itemGroup > 0 ? itemGroup : parseInt(roleid, 10);
+      return openDepartmentModal(targetRole, sh, 'edit');
     }
 
     try {
@@ -811,6 +720,7 @@ if (!empty($roles)) {
     }
     if (targetRole === 5 && typeof open_legal === 'function') return open_legal(sh, targetRole, idKavling);
     if (targetRole === 4) {
+      if (sh.data.id_mkdt && typeof open_mkdt === 'function') return open_mkdt(sh, targetRole, idKavling);
       if (typeof isi_data_konsumen === 'function') return isi_data_konsumen();
       if (typeof open_mkdt === 'function') return open_mkdt(sh, targetRole, idKavling);
     }
@@ -892,7 +802,20 @@ if (!empty($roles)) {
         serverSide: true,
         lengthChange: true,
         searching: true,
-        ordering: false,
+        ordering: true,
+        order: [
+          [2, 'asc'],
+          [3, 'asc']
+        ],
+        columnDefs: [{
+            targets: '_all',
+            orderable: false
+          },
+          {
+            targets: [7, 9],
+            orderable: true
+          }
+        ],
         paging: true,
         ajax: {
           url: base_url + 'list-kavling/ambil',
@@ -908,7 +831,7 @@ if (!empty($roles)) {
             data.id_jalan = $("#id_jalan").val()
             data.sp3k = $("#sp3k").val()
             data.wawancara = $("#wawancara").val()
-            data.akad = $("#akad").val()
+            data.akad_indent = ($("#filter_status_kavling").val() === 'indent') ? 1 : ''
           },
           dataSrc: function(r) {
             csrfHash = r.token
@@ -949,30 +872,7 @@ if (!empty($roles)) {
     //select filter for sp3k, wawancara, akad
     $(".self").select2();
 
-    function fillRoleOptions() {
-      const $role = $("#add_id_role");
-      $role.empty();
-
-      if (roleid == 1) {
-        $.each(roleOptions, function(id, label) {
-          $role.append(new Option(label, id));
-        });
-      } else {
-        $role.append(new Option(roleOptions[roleid] || rolename || 'Departemen aktif', roleid));
-      }
-
-      $role.select2({
-        dropdownParent: $("#modal-tambah-poskon"),
-        width: '100%'
-      });
-    }
-
-    function resetAddSelect($select, disabled = true) {
-      $select.prop('disabled', disabled);
-      $select.val(null).trigger('change.select2');
-    }
-
-    fillRoleOptions();
+    loadSiteplanMenuItems();
 
     if (activeProyekId()) {
       $("#id_cluster").prop("disabled", false);
@@ -1069,154 +969,18 @@ if (!empty($roles)) {
     });
 
     $("#btn_open_add_modal").on("click", function() {
+      $("#add_id_kavling").val(null).trigger('change');
+      $("#add_menu_wrapper").prop('hidden', true);
+      $("#add_menu_items").empty();
       $("#modal-tambah-poskon").modal({
         backdrop: "static",
         keyboard: false
       });
     });
 
-    $("#add_id_proyek").select2({
-      dropdownParent: $("#modal-tambah-poskon"),
-      placeholder: "Pilih Proyek",
-      allowClear: true,
-      width: '100%',
-      ajax: {
-        url: base_url + "proyek/getAll",
-        dataType: 'json',
-        delay: 250,
-        method: 'post',
-        data: function(params) {
-          return {
-            [csrfName]: csrfHash,
-            search: params.term
-          };
-        },
-        processResults: function(r) {
-          csrfHash = r.token
-
-          let results = [];
-          $.each(r.data, function(index, item) {
-            results.push(createProjectSelectOption(item));
-          });
-
-          return {
-            results: results
-          };
-        },
-        cache: true
-      },
-      templateResult: renderProjectSelectOption,
-      templateSelection: renderProjectSelectOption
-    });
-
-    $("#add_id_proyek").on("select2:select", function() {
-      setProjectContextFromSelect($(this));
-      resetAddSelect($("#add_id_cluster"), false);
-      resetAddSelect($("#add_id_jalan"));
-      resetAddSelect($("#add_id_kavling"));
-    });
-
-    $("#add_id_proyek").on("select2:clear", function() {
-      dt_proyek = {};
-      resetAddSelect($("#add_id_cluster"));
-      resetAddSelect($("#add_id_jalan"));
-      resetAddSelect($("#add_id_kavling"));
-    });
-
-    $("#add_id_cluster").select2({
-      dropdownParent: $("#modal-tambah-poskon"),
-      placeholder: "Pilih Cluster",
-      allowClear: true,
-      width: '100%',
-      ajax: {
-        url: base_url + "/cluster/getAll",
-        dataType: 'json',
-        delay: 250,
-        method: 'post',
-        data: function(params) {
-          return {
-            [csrfName]: csrfHash,
-            search: params.term,
-            id_proyek: $("#add_id_proyek").val()
-          };
-        },
-        processResults: function(r) {
-          csrfHash = r.token
-
-          let results = [];
-          $.each(r.data, function(index, item) {
-            results.push({
-              id: item[0],
-              text: item[3]
-            });
-          });
-
-          return {
-            results: results
-          };
-        },
-        cache: true
-      },
-    });
-
-    $("#add_id_cluster").on("select2:select", function() {
-      resetAddSelect($("#add_id_jalan"), false);
-      resetAddSelect($("#add_id_kavling"));
-    });
-
-    $("#add_id_cluster").on("select2:clear", function() {
-      resetAddSelect($("#add_id_jalan"), !this.value);
-      resetAddSelect($("#add_id_kavling"));
-    });
-
-    $("#add_id_jalan").select2({
-      dropdownParent: $("#modal-tambah-poskon"),
-      placeholder: "Pilih Blok",
-      allowClear: true,
-      width: '100%',
-      ajax: {
-        url: base_url + "/jalan/getAll",
-        dataType: 'json',
-        delay: 250,
-        method: 'post',
-        data: function(params) {
-          return {
-            [csrfName]: csrfHash,
-            search: params.term,
-            id_cluster: $("#add_id_cluster").val(),
-            id_proyek: $("#add_id_proyek").val()
-          };
-        },
-        processResults: function(r) {
-          csrfHash = r.token
-
-          let results = [];
-          $.each(r.data, function(index, item) {
-            results.push({
-              id: item[0],
-              text: item[3]
-            });
-          });
-
-          return {
-            results: results
-          };
-        },
-        cache: true
-      },
-    });
-
-    $("#add_id_jalan").on("select2:select", function() {
-      resetAddSelect($("#add_id_kavling"), false);
-    });
-
-    $("#add_id_jalan").on("select2:clear", function() {
-      resetAddSelect($("#add_id_kavling"), !this.value);
-    });
-
     $("#add_id_kavling").select2({
       dropdownParent: $("#modal-tambah-poskon"),
-      placeholder: "Pilih Kavling",
+      placeholder: "Cari Blok / No. Kavling",
       allowClear: true,
       width: '100%',
       ajax: {
@@ -1228,9 +992,7 @@ if (!empty($roles)) {
           return {
             [csrfName]: csrfHash,
             search: params.term,
-            id_proyek: $("#add_id_proyek").val(),
-            id_cluster: $("#add_id_cluster").val(),
-            id_jalan: $("#add_id_jalan").val(),
+            id_proyek: activeProyekId(),
             limit: 25
           };
         },
@@ -1254,15 +1016,19 @@ if (!empty($roles)) {
       },
     });
 
-    $("#btn_add_open_department").on("click", function() {
-      if (!$("#add_id_proyek").val()) return swal('error', 'Pilih proyek terlebih dahulu');
-      if (!$("#add_id_cluster").val()) return swal('error', 'Pilih cluster terlebih dahulu');
-      if (!$("#add_id_jalan").val()) return swal('error', 'Pilih blok terlebih dahulu');
-      if (!$("#add_id_kavling").val()) return swal('error', 'Pilih kavling terlebih dahulu');
+    $("#add_id_kavling").on("select2:select", function() {
+      const selectedKavling = $(this).select2('data')[0] || {};
+      loadAddKavlingMenu(selectedKavling);
+    });
 
-      const selectedRole = $("#add_id_role").val();
-      const selectedKavling = $("#add_id_kavling").select2('data')[0] || {};
-      setProjectContextFromSelect($("#add_id_proyek"));
+    $("#add_id_kavling").on("select2:clear", function() {
+      $("#add_menu_wrapper").prop('hidden', true);
+      $("#add_menu_items").empty();
+    });
+
+    function loadAddKavlingMenu(selectedKavling) {
+      $("#add_menu_wrapper").prop('hidden', false);
+      $("#add_menu_items").html("<div class='text-center p-2'><i class='fa fa-spinner fa-spin'></i></div>");
 
       $.ajax({
         url: base_url + "siteplan/get_kavling_by_id",
@@ -1270,30 +1036,29 @@ if (!empty($roles)) {
         dataType: "json",
         data: {
           [csrfName]: csrfHash,
-          id_kavling: $("#add_id_kavling").val()
-        },
-        beforeSend: function() {
-          $("#btn_add_open_department").prop("disabled", true).html("<i class='fa fa-spinner fa-spin'></i> Memuat");
+          id_kavling: selectedKavling.id_kavling
         },
         success: function(res) {
           csrfHash = res.token;
           const row = $.extend({}, selectedKavling, res.data || {});
-          const sh = buildKavlingShape(row);
-          $("#modal-tambah-poskon").modal("hide");
-          openDepartmentModal(selectedRole, sh, 'add');
+          const menuHtml = buildSiteplanMenuItemsHtml(row, 'list-group-item list-group-item-action');
+          $("#add_menu_items").html(menuHtml || "<div class='text-muted p-2'>Tidak ada aksi tersedia</div>");
         },
         error: function() {
-          swal('error', 'Terjadi kesalahan saat memuat kavling');
-        },
-        complete: function() {
-          $("#btn_add_open_department").prop("disabled", false).html("<i class='fa fa-plus'></i> Lanjut Tambah Data");
+          $("#add_menu_items").html("<div class='text-danger p-2'>Gagal memuat menu aksi</div>");
         }
       });
-    });
+    }
 
     //on click btn filter
     $("#btn_draw").on("click", function(e) {
-      if (table) table.draw();
+      if (table) {
+        var filterVal = $("#filter_status_kavling").val();
+        var url = (filterVal === 'akad' || filterVal === 'indent') ?
+          base_url + 'list-kavling/akad/ambil' :
+          base_url + 'list-kavling/ambil';
+        table.ajax.url(url).load();
+      }
       load_riwayat();
     })
 

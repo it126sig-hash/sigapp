@@ -259,6 +259,83 @@ class KeuanganRepository extends Model
             ->orderBy('keu_agg.jatuh_tempo_tgl', 'ASC');
     }
 
+    public function getLunasGroupedQuery()
+    {
+        $tagihanAggSubQuery = $this->db->table('keuangan')
+            ->select('id_mkdt, MAX(jatuh_tempo_tgl) AS jatuh_tempo_tgl, COUNT(*) AS jumlah_tagihan')
+            ->groupBy('id_mkdt')
+            ->getCompiledSelect();
+
+        $totalTagihanSubQuery = $this->db->table('keuangan')
+            ->select('id_mkdt, COALESCE(SUM(nominal), 0) AS total_tagihan')
+            ->groupBy('id_mkdt')
+            ->getCompiledSelect();
+
+        $paidDetailSubQuery = $this->db->table('log_pembayaran_detail lpd')
+            ->select('lp.id_mkdt, COALESCE(SUM(lpd.nominal), 0) AS total_sudah_bayar_detail')
+            ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
+            ->where('lp.is_deleted', 0)
+            ->where('lp.payment_type !=', 'Booking')
+            ->groupBy('lp.id_mkdt')
+            ->getCompiledSelect();
+
+        $paidLogSubQuery = $this->db->table('log_pembayaran')
+            ->select('id_mkdt, COALESCE(SUM(nominal), 0) AS total_sudah_bayar_log')
+            ->where('is_deleted', 0)
+            ->where('payment_type !=', 'Booking')
+            ->groupBy('id_mkdt')
+            ->getCompiledSelect();
+
+        return $this->db->table("mkdt m")
+            ->select('
+                j.nama_jalan,
+                k.no_kavling,
+                hj.id_tipe AS tipe_pricelist,
+                c.nama_konsumen,
+                m.booking_tgl,
+                m.is_kpr,
+                keu_agg.jatuh_tempo_tgl,
+                keu_agg.jumlah_tagihan,
+                COALESCE(tagihan_agg.total_tagihan, 0) AS total_tagihan,
+                COALESCE(NULLIF(paid_detail_agg.total_sudah_bayar_detail, 0), paid_log_agg.total_sudah_bayar_log, 0) AS sudah_bayar,
+                GREATEST(
+                    COALESCE(tagihan_agg.total_tagihan, 0) -
+                    COALESCE(NULLIF(paid_detail_agg.total_sudah_bayar_detail, 0), paid_log_agg.total_sudah_bayar_log, 0),
+                    0
+                ) AS sisa_tagihan,
+                (m.harga_uang_muka - m.harga_diskon_uang_muka - m.harga_sbum) as um,
+                (m.harga_administrasi) as adm,
+                (m.harga_bphtb + m.harga_biaya_proses + m.harga_ppn + m.harga_penambahan_um + m.harga_penambahan + m.harga_penambahan_tanah) as bb,
+                tipe.no_tipe_rumah,
+                tipe.tipe_rumah,
+                m.id_mkdt,
+                p.nama_proyek
+            ')
+            ->join("({$tagihanAggSubQuery}) keu_agg", 'keu_agg.id_mkdt = m.id_mkdt', 'left')
+            ->join("({$totalTagihanSubQuery}) tagihan_agg", 'tagihan_agg.id_mkdt = m.id_mkdt', 'left')
+            ->join("({$paidDetailSubQuery}) paid_detail_agg", 'paid_detail_agg.id_mkdt = m.id_mkdt', 'left')
+            ->join("({$paidLogSubQuery}) paid_log_agg", 'paid_log_agg.id_mkdt = m.id_mkdt', 'left')
+            ->join('kavling k', 'k.id_mkdt = m.id_mkdt')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+            ->join('proyek p', 'p.id_proyek = cl.id_proyek')
+            ->join('konsumen c', 'c.id_konsumen = m.id_konsumen')
+            ->join('hargajual hj', 'hj.id = k.harga_akhir')
+            ->join('tipe', 'tipe.id_tipe = k.id_tipe', 'left')
+            ->join('users a', 'a.id = m.add_by', 'left')
+            ->join('users b', 'b.id = m.edit_by', 'left')
+            ->where('m.status_mkdt !=', 'Batal')
+            ->groupStart()
+                ->where('m.is_lunas', '1')
+                ->orWhere(
+                    'COALESCE(tagihan_agg.total_tagihan, 0) > 0 AND COALESCE(tagihan_agg.total_tagihan, 0) <= COALESCE(NULLIF(paid_detail_agg.total_sudah_bayar_detail, 0), paid_log_agg.total_sudah_bayar_log, 0)',
+                    null,
+                    false
+                )
+            ->groupEnd()
+            ->orderBy('keu_agg.jatuh_tempo_tgl', 'ASC');
+    }
+
     public function getListTagihanDetailById(int $idMkdt): array
     {
         return $this->select([

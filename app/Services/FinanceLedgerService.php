@@ -10,10 +10,12 @@ class FinanceLedgerService
     public const DIRECTION_EXPENSE = 'expense';
     public const SOURCE_LOG_PEMBAYARAN = 'log_pembayaran';
     public const SOURCE_DANA_JAMINAN = 'dana_jaminan';
+    public const SOURCE_BANK_KPR_DISBURSEMENT = 'bank_kpr_disbursement';
     public const SOURCE_CASHOUT_SUBKON_ALLOCATION = 'cashout_subkon_allocation';
     public const SOURCE_BAYAR_PRODUKSI = 'bayar_produksi';
     public const SOURCE_PAJAK_PPH42 = 'pajak_pph42';
     public const SOURCE_PAJAK_PPN = 'pajak_ppn';
+    public const SOURCE_PENCAIRAN_AKAD_PAYMENT_DETAIL = 'pencairan_akad_payment_detail';
 
     protected FinanceLedgerRepository $ledgerRepo;
     protected $db;
@@ -114,6 +116,119 @@ class FinanceLedgerService
     public function voidByDanaJaminan(int $idDanaAkad, ?int $actorId = null): bool
     {
         return $this->ledgerRepo->voidBySource(self::SOURCE_DANA_JAMINAN, $idDanaAkad, $actorId);
+    }
+
+    public function recordIncomeFromBankKprDisbursement(int $idDisbursement, ?int $actorId = null): int
+    {
+        $row = $this->getBankKprDisbursement($idDisbursement);
+        if (! $row) {
+            throw new \RuntimeException('Data pencairan bank KPR tidak ditemukan');
+        }
+
+        if (($row->status ?? '') !== 'cair') {
+            $this->voidByBankKprDisbursement($idDisbursement, $actorId);
+            return 0;
+        }
+
+        $nominal = $this->num($row->nominal_cair ?? 0);
+        if ($nominal <= 0) {
+            $this->voidByBankKprDisbursement($idDisbursement, $actorId);
+            return 0;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $createdAt = $row->created_at ?: $now;
+        $addBy = $row->add_by ?: $actorId;
+        $editBy = $actorId ?: ($row->edit_by ?: $addBy);
+        $label = 'Pencairan Bank KPR';
+        if (! empty($row->bank)) {
+            $label .= ' - ' . $row->bank;
+        }
+
+        $description = [];
+        if (! empty($row->no_referensi)) {
+            $description[] = 'Ref: ' . $row->no_referensi;
+        }
+        if (! empty($row->rekening_tujuan)) {
+            $description[] = 'Rek: ' . $row->rekening_tujuan;
+        }
+        if (! empty($row->keterangan)) {
+            $description[] = $row->keterangan;
+        }
+
+        return $this->ledgerRepo->upsertBySource([
+            'direction' => self::DIRECTION_INCOME,
+            'source_type' => self::SOURCE_BANK_KPR_DISBURSEMENT,
+            'source_id' => (int) $row->id,
+            'source_detail_id' => null,
+            'id_mkdt' => $row->id_mkdt ? (int) $row->id_mkdt : null,
+            'id_kavling' => $row->id_kavling ? (int) $row->id_kavling : null,
+            'nominal' => $nominal,
+            'tanggal_transaksi' => $this->validLedgerDate($row->tanggal_cair ?? null),
+            'label' => $label,
+            'keterangan' => implode(' | ', $description),
+            'status' => 'active',
+            'is_deleted' => 0,
+            'deleted_at' => null,
+            'deleted_by' => null,
+            'add_by' => $addBy,
+            'created_at' => $createdAt,
+            'edit_by' => $editBy,
+            'updated_at' => $row->updated_at ?: $now,
+        ]);
+    }
+
+    public function voidByBankKprDisbursement(int $idDisbursement, ?int $actorId = null): bool
+    {
+        return $this->ledgerRepo->voidBySource(self::SOURCE_BANK_KPR_DISBURSEMENT, $idDisbursement, $actorId);
+    }
+
+    public function recordIncomeFromPencairanAkadPaymentDetail(int $idPaymentDetail, ?int $actorId = null): int
+    {
+        $row = $this->getPencairanAkadPaymentDetail($idPaymentDetail);
+        if (! $row) {
+            throw new \RuntimeException('Detail pembayaran pencairan akad tidak ditemukan');
+        }
+
+        $nominal = $this->num($row->nominal_cair ?? 0);
+        if ($nominal <= 0) {
+            $this->voidByPencairanAkadPaymentDetail($idPaymentDetail, $actorId);
+            return 0;
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $addBy = $row->payment_add_by ?: $actorId;
+        $editBy = $actorId ?: $addBy;
+        $label = 'Pencairan Akad';
+        if (! empty($row->jenis)) {
+            $label .= ' - ' . ucfirst($row->jenis);
+        }
+
+        return $this->ledgerRepo->upsertBySource([
+            'direction' => self::DIRECTION_INCOME,
+            'source_type' => self::SOURCE_PENCAIRAN_AKAD_PAYMENT_DETAIL,
+            'source_id' => (int) $row->id,
+            'source_detail_id' => null,
+            'id_mkdt' => $row->id_mkdt ? (int) $row->id_mkdt : null,
+            'id_kavling' => $row->id_kavling ? (int) $row->id_kavling : null,
+            'nominal' => $nominal,
+            'tanggal_transaksi' => $this->validLedgerDate($row->tanggal_cair ?? null),
+            'label' => $label,
+            'keterangan' => $row->catatan ?? null,
+            'status' => 'active',
+            'is_deleted' => 0,
+            'deleted_at' => null,
+            'deleted_by' => null,
+            'add_by' => $addBy,
+            'created_at' => $row->payment_created_at ?: $now,
+            'edit_by' => $editBy,
+            'updated_at' => $now,
+        ]);
+    }
+
+    public function voidByPencairanAkadPaymentDetail(int $idPaymentDetail, ?int $actorId = null): bool
+    {
+        return $this->ledgerRepo->voidBySource(self::SOURCE_PENCAIRAN_AKAD_PAYMENT_DETAIL, $idPaymentDetail, $actorId);
     }
 
     public function recordExpenseFromCashoutSubkonDetail(int $idCashoutSubkonDetail, ?int $actorId = null): array
@@ -271,6 +386,44 @@ class FinanceLedgerService
             ->select('da.*, ld.nama_jaminan')
             ->join('list_dajam ld', 'ld.id = da.id_list_dajam', 'left')
             ->where('da.id', $idDanaAkad)
+            ->get()
+            ->getRow();
+    }
+
+    protected function getBankKprDisbursement(int $idDisbursement): ?object
+    {
+        if (! $this->db->tableExists('bank_kpr_disbursement')) {
+            return null;
+        }
+
+        return $this->db->table('bank_kpr_disbursement bkd')
+            ->select('bkd.*, lb.bank')
+            ->join('list_bank lb', 'lb.id = bkd.id_bank', 'left')
+            ->where('bkd.id', $idDisbursement)
+            ->where('bkd.deleted_at', null)
+            ->get()
+            ->getRow();
+    }
+
+    protected function getPencairanAkadPaymentDetail(int $idPaymentDetail): ?object
+    {
+        return $this->db->table('pencairan_akad_payment_detail pd')
+            ->select('
+                pd.*,
+                pi.jenis,
+                pi.id_plan,
+                pp.id_mkdt,
+                pp.id_kavling,
+                pay.tanggal_cair,
+                pay.catatan,
+                pay.add_by as payment_add_by,
+                pay.created_at as payment_created_at
+            ')
+            ->join('pencairan_akad_pengajuan_detail pgd', 'pgd.id = pd.id_pengajuan_detail', 'left')
+            ->join('pencairan_akad_item pi', 'pi.id = pgd.id_item', 'left')
+            ->join('pencairan_akad_plan pp', 'pp.id = pi.id_plan', 'left')
+            ->join('pencairan_akad_payment pay', 'pay.id = pd.id_payment', 'left')
+            ->where('pd.id', $idPaymentDetail)
             ->get()
             ->getRow();
     }

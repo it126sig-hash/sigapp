@@ -35,12 +35,12 @@
     text-transform: uppercase;
   }
 
-  .list-tagihan-page .list-tagihan-filter {
-    align-items: end;
+  .list-tagihan-page .card-header {
+    align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: .75rem;
-    padding: 1rem 1.25rem;
+    gap: .65rem;
+    padding: .6rem .85rem;
   }
 
   .list-tagihan-page .list-tagihan-title {
@@ -48,30 +48,53 @@
     font-size: 1rem;
     font-weight: 800;
     margin: 0;
-    min-width: 160px;
+    white-space: nowrap;
+  }
+
+  .list-tagihan-page .list-tagihan-divider {
+    align-self: stretch;
+    background: #e5e7eb;
+    flex: 0 0 1px;
+    width: 1px;
+  }
+
+  .list-tagihan-page .list-tagihan-filter {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
   }
 
   .list-tagihan-page .filter-field {
-    flex: 1 1 220px;
-    min-width: 180px;
+    flex: 0 0 150px;
+  }
+
+  .list-tagihan-page .filter-field-sm {
+    flex: 0 0 120px;
   }
 
   .list-tagihan-page .filter-action {
     flex: 0 0 auto;
   }
 
-  .list-tagihan-page label {
-    color: #6b7280;
-    font-size: .72rem;
-    font-weight: 700;
-    margin-bottom: .25rem;
-  }
-
   .list-tagihan-page .form-control,
   .list-tagihan-page .select2-selection {
     border-color: #d8dde3 !important;
     border-radius: 6px !important;
-    min-height: 34px;
+    font-size: .78rem;
+    min-height: 30px;
+  }
+
+  .list-tagihan-page select.form-control {
+    padding: .25rem .5rem;
+  }
+
+  .list-tagihan-page .select2-selection__rendered {
+    line-height: 28px !important;
+  }
+
+  .list-tagihan-page .select2-selection__arrow {
+    height: 28px !important;
   }
 
   .list-tagihan-page .card {
@@ -188,20 +211,25 @@
         <div class="card">
           <div class="card-header">
             <h5 class="list-tagihan-title"><?= $data['title'] ?></h5>
-          </div>
-          <div class="list-tagihan-filter border-bottom">
-            <div class="filter-field">
-              <label>Cluster</label>
-              <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
-            </div>
-            <div class="filter-field">
-              <label>Blok</label>
-              <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
-            </div>
-            <div class="filter-action">
-              <button type="button" id="btn_draw" class="btn btn-primary waves-effect btn-sm text-uppercase">
-                <i class="fas fa-filter mr-25"></i> Filter Data
-              </button>
+            <div class="list-tagihan-divider"></div>
+            <div class="list-tagihan-filter">
+              <div class="filter-field">
+                <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
+              </div>
+              <div class="filter-field">
+                <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
+              </div>
+              <div class="filter-field filter-field-sm">
+                <select id="status_lunas" name="status_lunas" class="form-control">
+                  <option value="0">Belum Lunas</option>
+                  <option value="1">Sudah Lunas</option>
+                </select>
+              </div>
+              <div class="filter-action">
+                <button type="button" id="btn_draw" class="btn btn-primary waves-effect btn-sm text-uppercase">
+                  <i class="fas fa-filter mr-25"></i> Filter Data
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -210,22 +238,19 @@
             <table id="data_table" class="datatables-basic table compact">
               <thead>
                 <tr>
-                  <th rowspan="2"></th>
-                  <th rowspan="2" id="tb-NO">No</th>
-                  <th rowspan="2" id="tb-AKSI">Aksi</th>
-                  <th colspan="2" id="tb-KAVLING">KAVLING</th>
-                  <th rowspan="2" id="tb-TYPE">TYPE</th>
-                  <th rowspan="2">NAMA KONSUMEN</th>
-                  <th rowspan="2">TANGGAL BOOKING</th>
-                  <th rowspan="2">TUNAI/KPR</th>
-                  <th rowspan="2" id="tb-JATUH_TEMPO">JATUH TEMPO TERDEKAT</th>
-                  <th rowspan="2" id="tb-TOTAL_TAGIHAN">TOTAL TAGIHAN</th>
-                  <th rowspan="2" id="tb-SUDAH_BAYAR">SUDAH BAYAR</th>
-                  <th rowspan="2" id="tb-SISA_TAGIHAN">SISA TAGIHAN</th>
-                </tr>
-                <tr>
+                  <th></th>
+                  <th id="tb-AKSI">Aksi</th>
+                  <th id="tb-NO">No</th>
                   <th id="tb-BLOK">BLOK</th>
-                  <th id="tb-NO_KAVLING">NO</th>
+                  <th id="tb-NO_KAVLING">NO KAVLING</th>
+                  <th id="tb-TYPE">TYPE</th>
+                  <th>NAMA KONSUMEN</th>
+                  <th>TANGGAL BOOKING</th>
+                  <th>TUNAI/KPR</th>
+                  <th id="tb-JATUH_TEMPO">JATUH TEMPO TERDEKAT</th>
+                  <th id="tb-TOTAL_TAGIHAN">TOTAL TAGIHAN</th>
+                  <th id="tb-SUDAH_BAYAR">SUDAH BAYAR</th>
+                  <th id="tb-SISA_TAGIHAN">SISA TAGIHAN</th>
                 </tr>
               </thead>
             </table>
@@ -257,7 +282,7 @@
 <script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/fixed-columns/dataTables.fixedColumns.js"></script>
 
 <script src="<?= base_url() ?>assets/js/jquery.richtext.min.js"></script>
-<script src="<?= base_url() ?>assets/js/tagihan-bayar-modal.js"></script>
+<script src="<?= base_url() ?>assets/js/tagihan-bayar-modal.js?v=<?= filemtime(FCPATH.'assets/js/tagihan-bayar-modal.js') ?>"></script>
 <script>
   let fp = flatpickr(".flatpickr-human-friendly", {
     altInput: true,
@@ -268,8 +293,10 @@
   let listTagihanTable = null;
   let tagihanDetailCache = {};
 
-  function isi_data() {
-    $("#modal_divisi3").modal("hide");
+  function isi_data(keepModalOpen = false) {
+    if (!keepModalOpen) {
+      $("#modal_divisi3").modal("hide");
+    }
     tagihanDetailCache = {};
     if (listTagihanTable) listTagihanTable.ajax.reload(null, false);
   }
@@ -356,6 +383,16 @@
     });
   }
 
+  function fitTagihanTableHeight() {
+    var $scrollBody = $('#data_table_wrapper .dataTables_scrollBody');
+    if (!$scrollBody.length) return;
+    var height = $(window).height() - $scrollBody.offset().top - 16;
+    $scrollBody.css({
+      'max-height': Math.max(200, height) + 'px',
+      height: Math.max(200, height) + 'px'
+    });
+  }
+
   $(function() {
     listTagihanTable = $('#data_table').DataTable({
       fnDrawCallback: function() {
@@ -363,9 +400,10 @@
         var api = this.api();
         setTimeout(function() {
           api.columns().adjust();
+          fitTagihanTableHeight();
         }, 10);
       },
-      scrollY: "50vh",
+      scrollY: "60vh",
       scrollX: true,
       scrollCollapse: true,
       autoWidth: false,
@@ -386,13 +424,13 @@
           defaultContent: '<button type="button" class="btn btn-outline-primary btn-sm tagihan-detail-toggle"><i class="fas fa-chevron-down"></i></button>'
         },
         {
-          data: "no",
+          data: "Aksi",
           orderable: false,
           searchable: false,
           className: "text-center"
         },
         {
-          data: "Aksi",
+          data: "no",
           orderable: false,
           searchable: false,
           className: "text-center"
@@ -458,6 +496,7 @@
           data.id_proyek = activeProyekId()
           data.id_cluster = $("#id_cluster").val()
           data.id_jalan = $("#id_jalan").val()
+          data.status_lunas = $("#status_lunas").val()
         },
         dataSrc: function(r) {
           if (r.token) csrfHash = r.token
@@ -466,6 +505,13 @@
         async: "true"
       }
     });
+
+    var resizeTimer;
+    $(window).on('resize', function() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(fitTagihanTableHeight, 150);
+    });
+    $(window).on('load', fitTagihanTableHeight);
 
     $('#data_table tbody').on('click', '.tagihan-detail-toggle', function() {
       const tr = $(this).closest('tr');

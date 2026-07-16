@@ -225,6 +225,16 @@ class TransaksiService
             : null;
         $isNewMkdt = empty($kons['id_mkdt']) || $isDataBaru;
 
+        // Transisi ke Akad hanya boleh lewat saveStatus() (modal status), bukan form data konsumen.
+        $oldStatusMkdt = $oldMkdt->status_mkdt ?? null;
+        if (($mk['status_mkdt'] ?? null) === 'Akad' && $oldStatusMkdt !== 'Akad') {
+            return [
+                'token' => csrf_hash(),
+                'success' => false,
+                'messages' => 'Status Akad tidak bisa diubah dari form data konsumen. Gunakan menu Ubah Status.',
+            ];
+        }
+
         // --- 2) Transactional flow
         $db = \Config\Database::connect();
         $db->transException(true);
@@ -366,6 +376,24 @@ class TransaksiService
         $data['harga_kpr_acc']       = $accKpr;
         $data['harga_penambahan_um'] = max(0, $hargaKprDb - $accKpr);
 
+        // Sinkronisasi dua arah status_mkdt <-> akad
+        if ($data['status_mkdt'] === 'Akad' || (int) ($data['akad'] ?? 0) === 1) {
+            $data['status_mkdt'] = 'Akad';
+            $data['akad'] = 1;
+        }
+
+        $wasAkad = ($oldData->akad ?? 0) == 1 || ($oldData->status_mkdt ?? null) === 'Akad';
+        if ($data['status_mkdt'] === 'Akad' && !$wasAkad) {
+            $isKpr = (int) ($oldData->is_kpr ?? 0) === 1;
+            if ($isKpr && $accKpr <= 0) {
+                return [
+                    'token'    => csrf_hash(),
+                    'success'  => false,
+                    'messages' => 'Nominal ACC KPR masih 0. Tidak bisa ubah status jadi Akad sebelum nominal diisi.',
+                ];
+            }
+        }
+
         // --- Transactional flow
         $db = $this->db;
         $db->transException(true);
@@ -387,6 +415,16 @@ class TransaksiService
 
             $this->mkdt->update($idMkdt, $data);
             $this->kavlingRepo->setPerintahBangun($idKavling, $perintahBangun);
+
+            if ($data['status_mkdt'] === 'Akad' && !$wasAkad) {
+                $this->notif->tambah_notif(
+                    '3;5;8;4;9',
+                    'Telah melakukan akad pada kavling ini',
+                    user_id(),
+                    $idKavling,
+                    $oldData->id_konsumen ?? null
+                );
+            }
 
             $summary = $this->mkdtHistoryService->buildStatusSummary($oldData, $data, $perintahBangun);
             $this->mkdtHistoryService->log(

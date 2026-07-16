@@ -10,7 +10,7 @@ class KeuanganModel extends Model {
 	protected $primaryKey = 'id_keuangan';
 	protected $returnType = 'object';
 	protected $useSoftDeletes = false;
-	protected $allowedFields = ['jatuh_tempo_tgl', 'berita_acara', 'nominal', 'keterangan', 'sudah_dibayar','st', 'status', 'add_by', 'edit_by', 'id_mkdt'];
+	protected $allowedFields = ['jatuh_tempo_tgl', 'berita_acara', 'nominal', 'keterangan', 'sudah_dibayar','st', 'status', 'add_by', 'edit_by', 'id_mkdt', 'is_void', 'void_reason'];
 	protected $useTimestamps = true;
 	protected $createdField  = 'created_at';
 	protected $updatedField  = 'updated_at';

@@ -92,13 +92,6 @@ class LogPembayaranRepository extends Model
             ->orderBy('log_pembayaran.tanggal_bayar', 'ASC')
             ->first();
     }
-    function isBookingPaid($id_mkdt)
-    {
-        return $this->select('id_keuangan')
-            ->where('id_mkdt', $id_mkdt)
-            ->where('payment_type', 'Booking')
-            ->first();
-    }
     public function getDetailRiwayatBayarById(int $id_Pembayaran): array
     {
         return $this->db->table('log_pembayaran_detail')
@@ -164,5 +157,23 @@ class LogPembayaranRepository extends Model
         $insertID = $this->db->insertID();
 
         return $insertID;
+    }
+
+    public function hasRecentDuplicate(
+        int $idMkdt,
+        string $idKeuangan,
+        $nominal,
+        string $tanggalBayar,
+        string $paymentType,
+        int $seconds = 30
+    ): bool {
+        return (bool) $this->where('id_mkdt', $idMkdt)
+            ->where('id_keuangan', $idKeuangan)
+            ->where('nominal', $nominal)
+            ->where('tanggal_bayar', $tanggalBayar)
+            ->where('payment_type', $paymentType)
+            ->where('is_deleted', 0)
+            ->where('created_at >=', date('Y-m-d H:i:s', time() - $seconds))
+            ->first();
     }
 }

@@ -99,6 +99,21 @@ class CashOut extends BaseController
         return $this->response->setJSON($data);
     }
 
+    protected function konsumenExistsForKavling(string $id_kavling): bool
+    {
+        $kavling = $this->db->table('kavling')
+            ->select('id_mkdt')
+            ->where('id_kavling', $id_kavling)
+            ->get()
+            ->getRow();
+
+        if ($kavling && !empty($kavling->id_mkdt) && $this->konsumenService->getKonsumenTransaksi((int) $kavling->id_mkdt)) {
+            return true;
+        }
+
+        return (bool) $this->konsumenService->getByIDKavling($id_kavling);
+    }
+
     protected function formatBiayaMkdt($mkdt): array
     {
         $num = static function ($value): float {
@@ -160,6 +175,13 @@ class CashOut extends BaseController
             ]);
         }
 
+        if (!$this->konsumenExistsForKavling($data['id_kavling'])) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Kavling belum memiliki data konsumen',
+            ]);
+        }
 
         $result = $this->cashoutService->insert($data);
 

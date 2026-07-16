@@ -1,5 +1,6 @@
 /* Shared bayar tagihan modal. Keep this in sync by editing this file only. */
 var alokasi_items = [];
+var keuSubmitInProgress = false;
 
 $("#btn-add-item-alokasi").click(function () {
   let nominal = removeComma($("#bt-bayar_tagihan_um").val());
@@ -64,10 +65,11 @@ $("#btn-add-item-alokasi").click(function () {
         if (autoNominal <= 0) {
           Swal.fire({
             icon: "warning",
-            title: "Tidak ada nominal yang bisa dialokasikan",
-            text: "Item ini sudah terbayar penuh atau nominal pembayaran sudah habis dialokasikan",
-            showConfirmButton: false,
-            timer: 1800,
+            title: "Item pembyaran yang kamu pilih tidak memiliki nominal",
+            text: "Item ini sudah lunas/nominal yang ditagihkan sudah terbayar.",
+            confirmButtonText: "OK",
+          }).then(() => {
+            renderTableAlokasi(selectedItem, 0);
           });
           return;
         }
@@ -155,9 +157,33 @@ function ubahMaksNominal(id) {
 }
 
 function setAlokasi(e = null) {
-  const alokasi = $("#fm-keu-total_dialokasi");
-  const sisa_alokasi = $("#fm-keu-sisa_belum_dialokasi");
-  const nominal = removeComma($("#bt-bayar_tagihan_um").val());
+  function recomputeAlokasiTotals() {
+    const alokasi = $("#fm-keu-total_dialokasi");
+    const sisa_alokasi = $("#fm-keu-sisa_belum_dialokasi");
+    const nominal = removeComma($("#bt-bayar_tagihan_um").val());
+
+    let total = 0;
+    $(".item-alokasi").each(function () {
+      total += removeComma($(this).val());
+    });
+
+    let sisa = nominal - total;
+
+    if (total > nominal) {
+      Swal.fire({
+        icon: "warning",
+        title: "Total alokasi melebihi nominal",
+        text: "Nominal akan disesuaikan dengan total alokasi",
+        showConfirmButton: false,
+      });
+      sisa = 0;
+      if (e) {
+        e.value = 0;
+      }
+    }
+    alokasi.html(num_format(nominal));
+    sisa_alokasi.html(num_format(sisa));
+  }
 
   if (e) {
     const input = $(e);
@@ -166,45 +192,45 @@ function setAlokasi(e = null) {
     const itemMax = rawItemMax === "" || rawItemMax === undefined
       ? null
       : keuToNumber(rawItemMax);
-    let maxAllowed = Math.max(0, nominal - keuAllocatedTotal(e));
+    const nominal = removeComma($("#bt-bayar_tagihan_um").val());
+    // Hard cap: total alokasi tidak boleh melebihi nominal pembayaran (yang sendiri
+    // sudah dibatasi oleh sisa tagihan lewat ubahMaksNominal).
+    const paymentRemaining = Math.max(0, nominal - keuAllocatedTotal(e));
 
-    if (itemMax !== null) {
-      maxAllowed = Math.min(maxAllowed, itemMax);
-    }
-
-    if (currentValue > maxAllowed) {
-      input.val(maxAllowed).keyup();
+    if (currentValue > paymentRemaining) {
+      input.val(paymentRemaining).keyup();
       Swal.fire({
         icon: "warning",
         title: "Nominal alokasi melebihi batas",
-        text: "Nominal disesuaikan dengan sisa pembayaran atau sisa item yang bisa dibayar",
+        text: "Nominal disesuaikan dengan sisa nominal pembayaran",
         showConfirmButton: false,
         timer: 1800,
       });
+      recomputeAlokasiTotals();
+      return;
+    }
+
+    // Soft cap: item boleh dibayar lebih dari nominal yang ditagihkan untuk
+    // kategori ini, asal dikonfirmasi (mis. booking fee 0 tapi ingin bayar 1jt).
+    if (itemMax !== null && currentValue > itemMax) {
+      Swal.fire({
+        icon: "warning",
+        title: "Nominal melebihi tagihan kategori ini",
+        text: "Nominal alokasi lebih besar dari nominal yang ditagihkan untuk item ini. Tetap gunakan nominal ini?",
+        showCancelButton: true,
+        confirmButtonText: "Ya, tetap gunakan",
+        cancelButtonText: "Tidak, sesuaikan",
+      }).then((result) => {
+        if (!result.isConfirmed) {
+          input.val(itemMax).keyup();
+        }
+        recomputeAlokasiTotals();
+      });
+      return;
     }
   }
 
-  let total = 0;
-  $(".item-alokasi").each(function () {
-    total += removeComma($(this).val());
-  });
-
-  let sisa = nominal - total;
-
-  if (total > nominal) {
-    Swal.fire({
-      icon: "warning",
-      title: "Total alokasi melebihi nominal",
-      text: "Nominal akan disesuaikan dengan total alokasi",
-      showConfirmButton: false,
-    });
-    sisa = 0;
-    if (e) {
-      e.value = 0;
-    }
-  }
-  alokasi.html(num_format(nominal));
-  sisa_alokasi.html(num_format(sisa));
+  recomputeAlokasiTotals();
 }
 
 
@@ -599,6 +625,105 @@ function open_keuangan(sh, role, id_kavling) {
   });
 }
 
+// Refresh modal content in place after a successful save/delete, without
+// closing the modal (unlike open_keuangan, which also opens it from scratch).
+function refreshKeuanganModal(clearEntryForm = false) {
+  if (!keu_current_id_mkdt) return;
+
+  $.ajax({
+    url: base_url + "tagihan/ambilsatu",
+    type: "post",
+    data: {
+      [csrfName]: csrfHash,
+      id_mkdt: keu_current_id_mkdt,
+      include_log: 0,
+    },
+    dataType: "json",
+    success: function (r) {
+      csrfHash = r.token;
+
+      let mkdt = r.mkdt;
+      let tg = r.tagihan;
+      let sb = Array.isArray(r.log_pembayaran) ? r.log_pembayaran : [];
+
+      if (!Array.isArray(tg) || tg.length === 0) {
+        swal("error", "Belum ada konsumen dan tagihannya");
+        return;
+      }
+
+      keu_total_sudah_bayar = keuToNumber(r.total_sudah_bayar);
+      keu_item_sudah_bayar = Array.isArray(r.item_sudah_bayar)
+        ? r.item_sudah_bayar
+        : [];
+      keu_total_item_sudah_bayar = keuToNumber(r.total_item_sudah_bayar);
+      renderBiayaMkdt(Object.assign({}, mkdt || {}, r.biaya_mkdt || {}));
+
+      if (mkdt) {
+        $("#fm-keuangan #status_mkdt").val(mkdt.status_mkdt);
+
+        $("#hide_lunas").removeClass("hidden");
+        $("#hide_refund").addClass("hidden");
+        if (mkdt.status_mkdt == "Batal") {
+          $("#hide_lunas").addClass("hidden");
+          $("#hide_refund").removeClass("hidden");
+        }
+
+        if (mkdt.refund_paid == 1) {
+          $("#add-form-btn-keuangan").prop("disabled", true);
+          $("#hide_lunas").addClass("hidden");
+          $(
+            "#keterangan_refund, #nominal_refund, #tanggal_refund, #refund_paid",
+          ).prop("disabled", 1);
+          $("#fm-keuangan #refund_paid").prop("checked", 1);
+          $("#keterangan_refund").val(mkdt.refund_keterangan).change();
+          $("#nominal_refund").val(mkdt.refund).change();
+          setDatePicker(mkdt.refund_tgl, "#tanggal_refund");
+          document.querySelector("#tanggal_refund")._flatpickr._input.disabled =
+            true;
+        } else {
+          $("#add-form-btn-keuangan").prop("disabled", false);
+        }
+
+        $("#is_lunas").prop("checked", mkdt.is_lunas == 1);
+        $("#fm-bayar-label_tgl").html(format_date(mkdt.booking_tgl));
+        $("#fm-bayar-label_bookingfee").html(num_format(mkdt.booking_fee));
+      }
+
+      keu_sb = sb;
+      keu_lp = sb;
+      keu_tg = tg;
+      state.total_cicilan = tg.reduce(
+        (sum, item) => sum + parseInt(item.nominal, 10),
+        0,
+      );
+
+      loadTableTagihan(tg);
+
+      // Paksa tab Riwayat Pembayaran mengambil data terbaru, apapun tab yang aktif.
+      keu_riwayat_loaded = false;
+      loadKeuanganRiwayatLazy();
+
+      if (clearEntryForm) {
+        $("#bt-for").val(null).trigger("change");
+        // Kosongkan tabel alokasi dulu sebelum reset nominal, supaya .change()
+        // di bawah ini tidak menghitung ulang total alokasi lama vs nominal 0
+        // (yang selalu memicu warning "Total alokasi melebihi nominal" palsu).
+        alokasi_items = [];
+        $("#tb-alokasi-dana").html("");
+        $("#bt-bayar_tagihan_um").val("").keyup().change();
+        $("#bt-berita_acara_um").val("");
+        if (document.querySelector("#bt-tanggal_bayar_um")._flatpickr) {
+          document.querySelector("#bt-tanggal_bayar_um")._flatpickr.clear();
+        }
+        setAlokasi();
+      }
+    },
+    error: function (xhr, st, err) {
+      swal("error", "Terjadi kesalahan saat memuat data terbaru", err);
+    },
+  });
+}
+
 function loadKeuSB(sb) {
   let nom = 0,
     tot = state.total_cicilan,
@@ -821,11 +946,6 @@ function loadLogPembayaran(lp) {
     no = 1;
 
   $.each(lp, function (k, v) {
-    //set tgl & booking fee yang diinput oleh keuangan
-    // if (v.payment_type == "Booking") {
-    //   $("#keu_booking_fee").val(v.nominal).keyup();
-    //   setDatePicker(v.tanggal_bayar, "#keu_booking_tgl");
-    // }
     let detail = v.detail;
     let item = "";
     $.each(detail, function (k2, v2) {
@@ -963,7 +1083,10 @@ function removeRiwayatBayar(e) {
               showConfirmButton: false,
               timer: 1500,
             }).then(function () {
-              isi_data();
+              refreshKeuanganModal(false);
+              if (typeof isi_data === "function") {
+                isi_data(true); // refresh list di background, modal tetap terbuka
+              }
             });
           } else {
             Swal.fire({
@@ -991,6 +1114,8 @@ function removeRiwayatBayar(e) {
 }
 
 function save_keuangan(e = "") {
+  if (keuSubmitInProgress) return;
+
   let nominal = removeComma($("#bt-bayar_tagihan_um").val());
   let tanggal = $("#bt-tanggal_bayar_um").val();
   let metode = $("#bt-for").val();
@@ -1049,6 +1174,9 @@ function save_keuangan(e = "") {
     return;
   }
 
+  keuSubmitInProgress = true;
+  simpanBtn(".add-form-btn-keuangan", true);
+
   Swal.fire({
     title: "Simpan Data?",
     text: "",
@@ -1101,33 +1229,37 @@ function save_keuangan(e = "") {
           "&cis_lunas=" +
           $("#is_lunas").prop("checked"),
         dataType: "json",
-        beforeSend: function () {
-          simpanBtn(".add-form-btn-keuangan", true);
-        },
         success: function (r) {
           csrfHash = r.token;
           if (r.status === true) {
             swal("success", r.message);
 
+            // Berhasil disimpan: refresh konten modal di tempat, jangan tutup modal.
+            refreshKeuanganModal(true);
+
             if (typeof isi_data === "function") {
-              isi_data(); // Panggil jika ada
-            } else {
-              $(".modal").modal("hide");
+              isi_data(true); // refresh list di background, modal tetap terbuka
             }
           } else {
             swal("error", r.message || r.messages || "Terjadi kesalahan");
           }
+          keuSubmitInProgress = false;
           simpanBtn(".add-form-btn-keuangan", false);
 
           // load_kavling();
           // hapus_seleksi();
         },
         error: function (e, f, g) {
+          keuSubmitInProgress = false;
           simpanBtn(".add-form-btn-keuangan", false);
           swal("error", g);
         },
       });
-    } else return false;
+    } else {
+      keuSubmitInProgress = false;
+      simpanBtn(".add-form-btn-keuangan", false);
+      return false;
+    }
   });
 }
 

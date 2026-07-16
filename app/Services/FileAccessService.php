@@ -16,6 +16,8 @@ class FileAccessService
         'siteplan_upload'   => [1, 6, 9],
         'file_spptb'        => [1, 3, 4, 9],
         'pencairan_jaminan' => [1, 3, 9],
+        'bank_kpr_disbursement' => [1, 3, 9],
+        'pencairan_akad'    => [1, 3, 9],
         'file_hargajual'    => [1, 3, 4, 9],
         'cashout_subkon'    => [1, 3, 7, 9],
         'kavling_perintah_bangun' => [1, 4, 7, 9],
@@ -248,7 +250,8 @@ class FileAccessService
 
             case 'proyek_siteplan':
             case 'proyek_logo':
-                $field = $source === 'proyek_siteplan' ? 'siteplan' : 'logo';
+            case 'proyek_logo_pt':
+                $field = ['proyek_siteplan' => 'siteplan', 'proyek_logo' => 'logo', 'proyek_logo_pt' => 'logo_pt'][$source];
                 $row = $this->db->table('proyek')->select("id_proyek, {$field}")->where('id_proyek', $id)->get()->getRow();
                 $this->assertRow($row);
                 return $this->fileMeta($row->{$field}, basename((string) $row->{$field}), $this->projectAssetRoles, $row);
@@ -263,6 +266,20 @@ class FileAccessService
                 $this->assertRow($row);
                 $path = $row->surat_path ?? ($row->file_path ?? null);
                 return $this->fileMeta($path, basename((string) $path), $this->sourceRoles[$source], $row);
+
+            case 'bank_kpr_disbursement':
+                $row = $this->db->table('bank_kpr_disbursement')
+                    ->where('id', $id)
+                    ->where('deleted_at', null)
+                    ->get()
+                    ->getRow();
+                $this->assertRow($row);
+                return $this->fileMeta($row->file_bukti, basename((string) $row->file_bukti), $this->sourceRoles[$source], $row);
+
+            case 'pencairan_akad':
+                $row = $this->db->table('pencairan_akad_pengajuan')->where('id', $id)->get()->getRow();
+                $this->assertRow($row);
+                return $this->fileMeta($row->lampiran_surat, basename((string) $row->lampiran_surat), $this->sourceRoles[$source], $row);
 
             case 'file_hargajual':
                 $row = $this->db->table('file_hargajual')->where('id_filehj', $id)->get()->getRow();

@@ -88,7 +88,7 @@ class PrintService
     {
         $id = trim((string) $var->getVar('e'));
         $id_mkdt = trim((string) $var->getVar('e2'));
-        $id_poryek = trim((string) $var->getVar('e3'));
+        $id_poryek = $this->kavling->getIdProyekByIdMkdt((int) $id_mkdt);
 
         $data['pembayaran'] = $this->lpModel->getRiwayatBayarByIdPembayran($id);
         $data['detail'] = $this->lpModel->getDetailRiwayatBayarById($id);
@@ -113,7 +113,7 @@ class PrintService
     {
         $id = trim((string) $var->getVar('e'));
         $id_mkdt = trim((string) $var->getVar('e2'));
-        $id_poryek = trim((string) $var->getVar('e3'));
+        $id_poryek = $this->kavling->getIdProyekByIdMkdt((int) $id_mkdt);
 
         $data['pembayaran'] = $this->lpModel->getRiwayatBayarByIdPembayran($id);
         $data['list'] = $this->keuRepo->getLIKeu();
