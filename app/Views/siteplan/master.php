@@ -1242,6 +1242,7 @@ foreach (user()->getRoles() as $key => $val) {
 <script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/forms/select/select2.full.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/html2canvas/html2canvas.min.js"></script>
+<script src="<?= base_url() ?>app-assets/js/scripts/charts/chart.js"></script>
 <!-- <script src="<?= base_url() ?>assets/js/scripts.js"></script> -->
 <!-- END: Page Vendor JS-->
 <script src="<?= base_url() ?>assets/js/siteplan/master.js?v=<?= filemtime(FCPATH.'assets/js/siteplan/master.js') ?>"></script>

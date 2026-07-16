@@ -933,6 +933,8 @@ function fillTagihan(tg) {
       berita_acara: v.berita_acara,
       nominal: num_format(v.nominal),
       jatuh_tempo_tgl: v.jatuh_tempo_tgl,
+      is_void: Number(v.is_void) === 1,
+      void_reason: v.void_reason,
     };
     // } else if (v.status === "BB") {
     //   state.data_bb[id] = {

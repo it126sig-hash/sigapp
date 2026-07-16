@@ -86,9 +86,9 @@ $(document).ready(function () {
           return;
         }
 
-        let html = '<div class="ck-detail-wrap"><table class="table table-sm ck-detail-table"><thead><tr><th>Tanggal</th><th>Departemen</th><th class="text-right">Nominal</th><th>Keterangan</th></tr></thead><tbody>';
+        let html = '<div class="ck-detail-wrap"><table class="table table-sm ck-detail-table"><thead><tr><th>Tanggal</th><th>Departemen</th><th>Item</th><th class="text-right">Nominal</th><th>Keterangan</th></tr></thead><tbody>';
         items.forEach(function (item) {
-          html += "<tr><td>" + (item.tanggal || "-") + "</td><td><span class='badge badge-light-primary'>" + item.departemen + "</span></td><td class='text-right'>" + Number(item.nominal || 0).toLocaleString("id-ID") + "</td><td>" + (item.keterangan || "-") + "</td></tr>";
+          html += "<tr><td>" + (item.tanggal || "-") + "</td><td><span class='badge badge-light-primary'>" + item.departemen + "</span></td><td>" + (item.item || "-") + "</td><td class='text-right'>" + Number(item.nominal || 0).toLocaleString("id-ID") + "</td><td>" + (item.keterangan || "-") + "</td></tr>";
         });
         html += "</tbody></table></div>";
         row.child(html).show();

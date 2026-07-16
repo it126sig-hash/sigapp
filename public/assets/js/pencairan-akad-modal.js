@@ -39,6 +39,7 @@ function openPencairanAkadModal(row) {
     listDajam: [],
     pengajuan: [],
   };
+  $("#pa-pengajuan-form-wrap, #pa-pencairan-form-wrap").hide();
   loadPencairanAkadData(true);
 }
 
@@ -123,6 +124,12 @@ function renderPencairanAkadSummary() {
   $("#pa-total-pengajuan-label").text(paMoney(totalPengajuanOutstanding));
   $("#pa-total-cair-label").text(paMoney(totalCair));
   $("#pa-sisa-hasil-akad-label").text(paMoney(accKpr - totalCair));
+}
+
+function paHasilAkadValue() {
+  const plan = pencairanAkadState.plan;
+  if (plan) return parseFloat(plan.total_hasil_akad || 0);
+  return parseFloat((pencairanAkadState.mkdt || {}).harga_kpr_acc || 0);
 }
 
 function paItemsByJenis(jenis) {
@@ -286,7 +293,7 @@ function paTenorTotalInForm() {
 }
 
 function updatePencairanAkadTenorSisa() {
-  const hasilAkad = pencairanAkadState.plan ? parseFloat(pencairanAkadState.plan.total_hasil_akad || 0) : 0;
+  const hasilAkad = paHasilAkadValue();
   const sisa = hasilAkad - paTenorTotalInForm();
   $("#pa-tenor-sisa-label").text("Rp " + paMoney(sisa));
   $("#pa-tenor-sisa-box").toggleClass("alert-light-danger", sisa < 0).toggleClass("alert-light-primary", sisa >= 0);
@@ -302,7 +309,7 @@ function paParsePercentInput(rawValue, hasilAkad) {
 
 function paClampTenorInput(el) {
   const $input = $(el);
-  const hasilAkad = pencairanAkadState.plan ? parseFloat(pencairanAkadState.plan.total_hasil_akad || 0) : 0;
+  const hasilAkad = paHasilAkadValue();
   let othersTotal = 0;
   $("#pa-tenor_here .pa-tenor-row .pa-tenor-nominal").not($input).each(function () {
     othersTotal += parseFloat(String($(this).val() || "0").replace(/,/g, "")) || 0;
@@ -318,7 +325,7 @@ function paClampTenorInput(el) {
 $(document).on("keydown", "#pa-tenor_here .pa-tenor-nominal", function (e) {
   if (e.key !== "%") return;
   e.preventDefault();
-  const hasilAkad = pencairanAkadState.plan ? parseFloat(pencairanAkadState.plan.total_hasil_akad || 0) : 0;
+  const hasilAkad = paHasilAkadValue();
   const rawDigits = String($(this).val() || "0").replace(/,/g, "");
   const amount = paParsePercentInput(rawDigits + "%", hasilAkad);
   if (amount === null) return;
@@ -332,7 +339,7 @@ $(document).on("keyup change", "#pa-tenor_here .pa-tenor-nominal", function () {
 });
 
 function savePencairanAkadTenor() {
-  if (paTenorTotalInForm() > parseFloat(pencairanAkadState.plan ? pencairanAkadState.plan.total_hasil_akad || 0 : 0) + 0.01) {
+  if (paTenorTotalInForm() > paHasilAkadValue() + 0.01) {
     return swal("error", "Terjadi kesalahan", "Total tenor tidak boleh melebihi hasil akad");
   }
 
@@ -398,6 +405,65 @@ function renderPencairanAkadPengajuanItemPicker() {
   $("#pa-pengajuan-item_here").html(html || '<p class="text-muted">Belum ada item yang bisa diajukan. Simpan plan retensi/tenor dulu.</p>');
 }
 
+$("#pa-btn-show-pengajuan").on("click", function () {
+  $("#pa-pencairan-form-wrap").hide();
+  $("#pa-pengajuan-form-wrap").show();
+});
+
+$("#pa-btn-show-pencairan").on("click", function () {
+  $("#pa-pengajuan-form-wrap").hide();
+  $("#pa-pencairan-form-wrap").show();
+});
+
+$(document).on("click", ".pa-form-close", function () {
+  $($(this).data("target")).hide();
+});
+
+$(document).on("change", "#form-pencairan-akad-pengajuan [name=tanggal_pengajuan]", function () {
+  const val = $(this).val();
+  if (!val) return;
+  const d = new Date(val + "T00:00:00");
+  d.setDate(d.getDate() + 7);
+  $("#form-pencairan-akad-pengajuan [name=tanggal_rencana_cair]").val(d.toISOString().slice(0, 10));
+});
+
+function paLampiranPreview(file) {
+  const $preview = $("#pa-lampiran-preview");
+  const $placeholder = $("#pa-dz-lampiran .dz-placeholder");
+  if (!file) {
+    $preview.html("").hide();
+    $placeholder.show();
+    return;
+  }
+  $preview.html(`
+    <div class="p-2 border rounded bg-light text-center">
+      <i class="fas fa-file-${file.type.startsWith("image/") ? "image" : "pdf"} fa-2x text-primary"></i>
+      <div class="text-truncate small">${paEscape(file.name)}</div>
+    </div>`).show();
+  $placeholder.hide();
+}
+
+$(document).on("change", "#pa-lampiran-input", function () {
+  paLampiranPreview(this.files && this.files[0]);
+});
+
+document.addEventListener("paste", function (e) {
+  if (!$("#pencairan_akad_modal").hasClass("show")) return;
+
+  const clipboard = e.clipboardData || (e.originalEvent && e.originalEvent.clipboardData);
+  const item = clipboard && clipboard.items
+    && Array.from(clipboard.items).find(function (i) { return i.kind === "file" && i.type.startsWith("image/"); });
+  if (!item) return;
+
+  e.preventDefault();
+  const file = item.getAsFile();
+  const input = document.getElementById("pa-lampiran-input");
+  const dt = new DataTransfer();
+  dt.items.add(new File([file], `lampiran-${Date.now()}.png`, { type: file.type }));
+  input.files = dt.files;
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+});
+
 $(document).on("submit", "#form-pencairan-akad-pengajuan", function (e) {
   e.preventDefault();
   const fd = new FormData(this);
@@ -419,6 +485,7 @@ $(document).on("submit", "#form-pencairan-akad-pengajuan", function (e) {
       if (r.success === true) {
         swal("success", r.messages || r.message || "Pengajuan berhasil disimpan");
         $("#form-pencairan-akad-pengajuan")[0].reset();
+        paLampiranPreview(null);
         loadPencairanAkadData(false);
       } else {
         swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");

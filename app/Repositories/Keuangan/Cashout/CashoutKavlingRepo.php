@@ -106,16 +106,18 @@ class CashoutKavlingRepo
     public function getDetailList(int $idKavling): array
     {
         $sql = "
-            SELECT tanggal_bayar AS tanggal, nominal, keterangan COLLATE utf8mb4_general_ci AS keterangan, 'Keuangan' AS departemen
-                FROM cashout WHERE id_kavling = ? AND is_deleted = 0
+            SELECT tanggal_bayar AS tanggal, cashout.nominal, cashout.keterangan COLLATE utf8mb4_general_ci AS keterangan, 'Keuangan' AS departemen, lc.item COLLATE utf8mb4_general_ci AS item
+                FROM cashout
+                LEFT JOIN list_cashout lc ON lc.id = cashout.id_item_cashout
+                WHERE cashout.id_kavling = ? AND cashout.is_deleted = 0
             UNION ALL
-            SELECT tanggal_transaksi, nominal, keterangan COLLATE utf8mb4_general_ci, 'Produksi'
+            SELECT tanggal_transaksi, nominal, keterangan COLLATE utf8mb4_general_ci, 'Produksi', label COLLATE utf8mb4_general_ci
                 FROM finance_ledger WHERE id_kavling = ? AND direction = 'expense' AND source_type = 'bayar_produksi' AND status = 'active' AND is_deleted = 0
             UNION ALL
-            SELECT tanggal_transaksi, nominal, keterangan COLLATE utf8mb4_general_ci, 'Subkon'
+            SELECT tanggal_transaksi, nominal, keterangan COLLATE utf8mb4_general_ci, 'Subkon', label COLLATE utf8mb4_general_ci
                 FROM finance_ledger WHERE id_kavling = ? AND direction = 'expense' AND source_type = 'cashout_subkon_allocation' AND status = 'active' AND is_deleted = 0
             UNION ALL
-            SELECT tanggal_transaksi, nominal, keterangan COLLATE utf8mb4_general_ci, 'Pajak'
+            SELECT tanggal_transaksi, nominal, keterangan COLLATE utf8mb4_general_ci, 'Pajak', label COLLATE utf8mb4_general_ci
                 FROM finance_ledger WHERE id_kavling = ? AND direction = 'expense' AND source_type IN ('pajak_pph42', 'pajak_ppn') AND status = 'active' AND is_deleted = 0
             ORDER BY tanggal DESC
         ";

@@ -1,4 +1,4 @@
-﻿function siteplanActiveProyekName() {
+function siteplanActiveProyekName() {
     if (typeof dt_proyek === 'object' && dt_proyek && dt_proyek.nama_proyek) {
         return dt_proyek.nama_proyek;
     }
@@ -355,6 +355,8 @@ function lihat_detail() {
     });
 
 
+    let modalKeuanganChart = null;
+
     function loadSummary(r) {
         //load data konsumen
         if (r.mkdt) {
@@ -373,11 +375,12 @@ function lihat_detail() {
 
             // console.log()
 
-            setText("#s-status_mkdt", mkdt.status_mkdt)
+            setStatusMkdtBadge(mkdt.status_mkdt)
             setText("#s-st_bank", mkdt.st_bank)
             setText("#s-notaris", mkdt.notaris)
             setText("#s-st_sp3k_tgl", format_date(mkdt.sp3k_tgl))
             setText("#s-st_sp3k_tgl_exp", format_date(mkdt.sp3k_tgl_exp))
+            setText("#s-akad_tgl", format_date(mkdt.akad_tgl))
         } else {
             setText("#dt-promo", '-')
             setText("#dt-is_kpr", '-')
@@ -393,11 +396,12 @@ function lihat_detail() {
 
             // console.log()
 
-            setText("#s-status_mkdt", '-')
+            setStatusMkdtBadge('-')
             setText("#s-st_bank", '-')
             setText("#s-notaris", '-')
             setText("#s-st_sp3k_tgl", '-')
             setText("#s-st_sp3k_tgl_exp", '-')
+            setText("#s-akad_tgl", '-')
         }
 
         if (r.kavling) {
@@ -414,38 +418,44 @@ function lihat_detail() {
 
         if (r.produksi) {
             let pr = r.produksi
-            setText("#s-progress_bangunan", pr.progres_bangunan + '%')
+            let p_bangunan = parseInt(pr.progres_bangunan) || 0;
+            setText("#s-progress_bangunan_text", p_bangunan + '%')
+            $("#s-progress_bangunan_bar").css("width", p_bangunan + "%").attr("aria-valuenow", p_bangunan)
+                .toggleClass("is-empty", p_bangunan <= 0)
+                .toggleClass("is-partial", p_bangunan > 0 && p_bangunan < 100);
+
             setText("#s-tanggal_pembangunan", format_date(pr.tanggal_pembangunan))
             setText("#s-tanggal_selesai_pembangunan", format_date(pr.tanggal_selesai_pembangunan))
 
-            setText("#s-st_saluran", isSudah(pr.st_saluran))
-            setText("#s-st_air", isSudah(pr.st_air))
-            setText("#s-st_jalan", isSudah(pr.st_jalan))
-            setText("#s-slo", isSudah(pr.slo))
-            setText("#s-lpa", isSudah(pr.lpa))
+            setAmenityChip("#s-st_saluran", pr.st_saluran)
+            setAmenityChip("#s-st_air", pr.st_air)
+            setAmenityChip("#s-st_jalan", pr.st_jalan)
+            setAmenityChip("#s-slo", pr.slo)
+            setAmenityChip("#s-lpa", pr.lpa)
         } else {
-            setText("#s-progress_bangunan", "-")
+            setText("#s-progress_bangunan_text", "-")
+            $("#s-progress_bangunan_bar").css("width", "0%").attr("aria-valuenow", 0)
+                .addClass("is-empty").removeClass("is-partial");
+
             setText("#s-tanggal_pembangunan", "-")
             setText("#s-tanggal_selesai_pembangunan", "-")
 
-            setText("#s-st_saluran", "-")
-            setText("#s-st_air", "-")
-            setText("#s-st_jalan", "-")
-            setText("#s-slo", "-")
-            setText("#s-lpa", "-")
+            setAmenityChip("#s-st_saluran", false)
+            setAmenityChip("#s-st_air", false)
+            setAmenityChip("#s-st_jalan", false)
+            setAmenityChip("#s-slo", false)
+            setAmenityChip("#s-lpa", false)
         }
 
         if (r.si) {
             let si = ''
             $.each(r.si, function(i, v) {
                 si += `
-                <div class="info-row row no-gutters">
-                    <div class="col-6">
-                        <label class="info-label mb-0">${v.nama}</label>
-                    </div>
-                    <div class="col-6">
-                        : <span class="info-value">${isSudah(v.id_kavling)} ${v.tanggal_si ? format_date(v.tanggal_si) : '-'}</span>
-                    </div>
+                <div class="custom-control custom-checkbox mb-1">
+                    <input type="checkbox" class="custom-control-input" id="s-si-${i}" disabled ${v.id_kavling ? 'checked' : ''}>
+                    <label class="custom-control-label" for="s-si-${i}">${v.nama}
+                        <small class="text-muted d-block">${v.tanggal_si ? format_date(v.tanggal_si) : '-'}</small>
+                    </label>
                 </div>
                 `
             });
@@ -458,31 +468,24 @@ function lihat_detail() {
 
         if (r.cashout) {
             let cashout = ''
+            const rows = r.cashout
 
-            // FILTER UNIK DI SINI
-            const uniqueCashout = r.cashout.filter((v, index, self) =>
-                index === self.findIndex((t) => t.id_item_cashout === v.id_item_cashout)
-            );
-            if (uniqueCashout.length == 0) {
-                cashout += `<div class="info-row row no-gutters">
-                    <div class="col-12">
-                        <label class="info-label mb-0">Belum ada pembayaran</label>
-                    </div>
+            if (rows.length == 0) {
+                cashout += `<div class="detail-mini-card text-center text-muted" style="font-size:.82rem;">
+                    Belum ada riwayat pembayaran yang tercatat
                 </div>`
 
             } else {
-                // let nom
-                $.each(uniqueCashout, function(i, v) {
-                    // nom = v.nominal ? num_format(v.nominal):''
+                // list ini mengikuti data & urutan yang sama dengan tabel Cashout di tab Keuangan, tanpa kolom nominal
+                $.each(rows, function(i, v) {
                     cashout += `
-                <div class="info-row row no-gutters">
-                    <div class="col-6">
-                        <label class="info-label mb-0">${v.item}</label>
+                <div class="detail-info-row">
+                    <div class="detail-info-col">
+                        <span class="detail-info-label">${v.item}</span>
+                        <span class="detail-info-value">${v.tanggal_bayar ? format_date(v.tanggal_bayar) : '-'}</span>
                     </div>
-                    <div class="col-6">
-                        : <span class="info-value">${isSudah(v.id)} ${v.tanggal_bayar ? format_date(v.tanggal_bayar) : '-'}</span>
-                    </div>
-                </div>`
+                </div>
+                ${v.keterangan ? `<div class="text-muted" style="font-size:.76rem; margin-top:-.35rem; margin-bottom:.5rem;">${v.keterangan}</div>` : ''}`
                 });
             }
 
@@ -493,6 +496,86 @@ function lihat_detail() {
                 removeLoadingEffect("#s-co");
             }, 500);
         }
+
+        // --- Render Keuangan Chart ---
+        if (modalKeuanganChart) {
+            modalKeuanganChart.destroy();
+        }
+
+        let ctx = document.getElementById('keuanganChart');
+        if (ctx) {
+            ctx = ctx.getContext('2d');
+            
+            let totalBayar = parseFloat(tg.sb_semua) || 0;
+            let sisaTagihan = parseFloat(tg.sisa_semua) || 0;
+            
+            setText("#s-total_dibayar", "Rp " + num_format(totalBayar));
+            setText("#s-sisa_tagihan", "Rp " + num_format(sisaTagihan));
+
+            if (totalBayar === 0 && sisaTagihan === 0) {
+                $("#keuanganChart-empty").show();
+                $("#keuanganChart").hide();
+            } else {
+                $("#keuanganChart-empty").hide();
+                $("#keuanganChart").show();
+
+                let isLunas = sisaTagihan <= 0 && totalBayar > 0;
+                let percentLabel = tg.ldp_semua || '0%';
+
+                modalKeuanganChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Telah Dibayar', 'Sisa Tagihan'],
+                        datasets: [{
+                            data: [totalBayar, sisaTagihan],
+                            backgroundColor: ['#28c76f', '#ea5455'], // Success green and Danger red
+                            borderWidth: 0
+                        }]
+                    },
+                    plugins: [{
+                        id: 'detailCenterText',
+                        afterDraw(chart) {
+                            const { ctx, chartArea: { top, bottom, left, right } } = chart;
+                            const cx = (left + right) / 2, cy = (top + bottom) / 2;
+                            ctx.save();
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.font = '700 20px sans-serif';
+                            ctx.fillStyle = '#020617';
+                            ctx.fillText(percentLabel, cx, cy - 9);
+                            ctx.font = '700 11px sans-serif';
+                            ctx.fillStyle = isLunas ? '#28c76f' : '#ea5455';
+                            ctx.fillText(isLunas ? 'LUNAS' : 'BELUM LUNAS', cx, cy + 11);
+                            ctx.restore();
+                        }
+                    }],
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.raw !== null) {
+                                            label += 'Rp ' + num_format(context.raw);
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
     }
 
 
@@ -500,6 +583,19 @@ function lihat_detail() {
         if (e)
             return `<i class="fa fa-solid fa-check"></i> Sudah`
         return `-`
+    }
+
+    function setStatusMkdtBadge(status) {
+        $("#s-status_mkdt").text(status || '-')
+            .removeClass('badge-success badge-secondary badge-danger')
+            .addClass(status === 'Akad' ? 'badge-success' : (status === 'Batal' ? 'badge-danger' : 'badge-secondary'));
+    }
+
+    function setAmenityChip(id, val) {
+        const ok = !!val;
+        $(id).text(ok ? 'Sudah' : 'Belum')
+            .removeClass('badge-success badge-secondary')
+            .addClass(ok ? 'badge-success' : 'badge-secondary');
     }
 
     function last_update(id, username = null, date = null) {
@@ -522,6 +618,13 @@ function lihat_detail() {
 
     function detailRupiah(value) {
         return 'Rp ' + new Intl.NumberFormat('id-ID').format(detailMoneyValue(value));
+    }
+
+    function detailDocFilename(url) {
+        if (!url) return 'Belum diunggah';
+        const clean = String(url).split('?')[0];
+        const name = decodeURIComponent(clean.split('/').pop() || '');
+        return name || 'Belum diunggah';
     }
 
     function detailEscapeHtml(value) {
@@ -642,15 +745,13 @@ function lihat_detail() {
         `);
 
         const $tagihanContent = $('#dt-tagihan').children().detach();
-        const $cashoutContent = $('#dt-cashout').children().detach();
         $('#dt-fm-prod-bayar_produksi').empty();
 
         $finance.append(`
             <div class="detail-accordion" id="detailFinanceAccordion">
                 ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-tagihan', 'Tagihan', true)}
-                ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-flow', 'Income & Expense')}
+                ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-flow', 'Cash In & Cash Out')}
                 ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-harga', 'Harga Jual')}
-                ${detailAccordionItem('detailFinanceAccordion', 'detail-finance-cashout', 'Cashout')}
             </div>
         `);
 
@@ -659,42 +760,20 @@ function lihat_detail() {
         $('#detail-finance-flow-body').append(`
             <div class="detail-card-grid mb-1">
                 <div class="detail-mini-card">
-                    <div class="detail-mini-label">Income</div>
+                    <div class="detail-mini-label">Cash In</div>
                     <div class="detail-mini-value detail-text-primary" id="dt-finance-income-total">Rp 0</div>
                     <small class="text-muted" id="dt-finance-income-count">0 transaksi</small>
                 </div>
                 <div class="detail-mini-card">
-                    <div class="detail-mini-label">Expense</div>
+                    <div class="detail-mini-label">Cash Out</div>
                     <div class="detail-mini-value detail-text-danger" id="dt-finance-expense-total">Rp 0</div>
                     <small class="text-muted" id="dt-finance-expense-count">0 transaksi</small>
-                </div>
-                <div class="detail-mini-card">
-                    <div class="detail-mini-label">Saldo Bersih</div>
-                    <div class="detail-mini-value" id="dt-finance-balance-total">Rp 0</div>
-                    <small class="text-muted">Income - expense</small>
-                </div>
-            </div>
-            <div class="detail-card-grid mb-1">
-                <div class="detail-mini-card">
-                    <div class="detail-mini-label">Margin Cash</div>
-                    <div class="detail-mini-value" id="dt-finance-margin-cash">Rp 0</div>
-                    <small class="text-muted">Income real - expense real</small>
-                </div>
-                <div class="detail-mini-card">
-                    <div class="detail-mini-label">Margin Estimasi</div>
-                    <div class="detail-mini-value" id="dt-finance-margin-estimasi">Rp 0</div>
-                    <small class="text-muted" id="dt-finance-nilai-akad">Nilai akad Rp 0</small>
-                </div>
-                <div class="detail-mini-card">
-                    <div class="detail-mini-label">Retensi Belum Cair</div>
-                    <div class="detail-mini-value detail-text-warning" id="dt-finance-retensi-total">Rp 0</div>
-                    <small class="text-muted" id="dt-finance-retensi-note">Piutang tertahan</small>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-1 mb-md-0">
                     <div class="divider divider-left">
-                        <div class="divider-text">Income</div>
+                        <div class="divider-text">Cash In</div>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-sm table-bordered mb-0" id="dt-finance-income-table">
@@ -711,7 +790,7 @@ function lihat_detail() {
                 </div>
                 <div class="col-md-6">
                     <div class="divider divider-left">
-                        <div class="divider-text">Expense</div>
+                        <div class="divider-text">Cash Out</div>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-sm table-bordered mb-0" id="dt-finance-expense-table">
@@ -725,41 +804,6 @@ function lihat_detail() {
                             <tbody></tbody>
                         </table>
                     </div>
-                </div>
-            </div>
-        `);
-        $('#detail-finance-cashout-body').append(`
-            <div class="detail-card-grid mb-1">
-                <div class="detail-mini-card">
-                    <div class="detail-mini-label">Total Cashout</div>
-                    <div class="detail-mini-value" id="dt-cashout-summary-total">Rp 0</div>
-                </div>
-                <div class="detail-mini-card">
-                    <div class="detail-mini-label">Jumlah Item</div>
-                    <div class="detail-mini-value" id="dt-cashout-summary-count">0 item</div>
-                </div>
-                <div class="detail-mini-card">
-                    <div class="detail-mini-label">Status</div>
-                    <div class="detail-mini-value" id="dt-cashout-summary-status">Belum ada data</div>
-                </div>
-            </div>
-        `).append($cashoutContent).append(`
-            <div class="d-none" id="detail-cashout-produksi-wrap">
-                <div class="divider divider-left mt-2">
-                    <div class="divider-text">Pembayaran Produksi</div>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-sm table-bordered mb-0" id="dt-cashout-produksi-table">
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Tanggal Bayar</th>
-                                <th class="text-right">Nominal</th>
-                                <th>Keterangan</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dt-div-bayar_produksi-here"></tbody>
-                    </table>
                 </div>
             </div>
         `);
@@ -919,6 +963,15 @@ function lihat_detail() {
         $("#dt-st_list-upload_perintah_bangun_file").prop('href', resolveFileHref(src))
     }
 
+    function updateLegalBadge(id, value, positiveValues, positiveLabel, negativeLabel) {
+        const $badge = $(id);
+        if (positiveValues.includes(String(value))) {
+            $badge.text(positiveLabel).removeClass('badge-secondary badge-danger').addClass('badge-success');
+        } else {
+            $badge.text(negativeLabel).removeClass('badge-success badge-danger').addClass('badge-secondary');
+        }
+    }
+
     function updateSp3kStatusBadge(sp3k) {
         const $badge = $('#dt-sp3k-status-badge');
         if (sp3k && sp3k != "0") {
@@ -1016,6 +1069,7 @@ function lihat_detail() {
             }
             $("#dt-btn-ktp_here").prop('href', resolveFileHref(src))
             $(".dt-cl-ktp_here").prop('src', resolveFileHref(src))
+            setText('#dt-doc-ktp_name', detailDocFilename(mkdt.ktp_access_url))
 
             src = not_found
             if (mkdt.npwp_access_url) {
@@ -1023,6 +1077,7 @@ function lihat_detail() {
             }
             $("#dt-btn-npwp_here").prop('href', resolveFileHref(src))
             $(".dt-cl-npwp_here").prop('src', resolveFileHref(src))
+            setText('#dt-doc-npwp_name', detailDocFilename(mkdt.npwp_access_url))
 
             src = not_found
             if (mkdt.data_diri_access_url) {
@@ -1030,6 +1085,7 @@ function lihat_detail() {
             }
             $("#dt-btn-bl_here").prop('href', resolveFileHref(src))
             $(".dt-cl-bl_here").prop('src', resolveFileHref(src))
+            setText('#dt-doc-bl_name', detailDocFilename(mkdt.data_diri_access_url))
 
 
 
@@ -1094,6 +1150,18 @@ function lihat_detail() {
             setDatePicker(lg.pph_tgl_selesai, "#dt-pph_tgl_selesai")
 
             $("#dt-legal_keterangan").val(lg.keterangan);
+
+            updateLegalBadge('#dt-sertifikat_is_split-badge', lg.sertifikat_is_split, ['1'], 'Split', 'Tidak Split');
+            updateLegalBadge('#dt-sertifikat_is_balik_nama-badge', lg.sertifikat_is_balik_nama, ['Sudah'], 'Sudah', 'Belum');
+            updateLegalBadge('#dt-pbb_is_balik_nama-badge', lg.pbb_is_balik_nama, ['Sudah'], 'Sudah', 'Belum');
+            updateLegalBadge('#dt-pbb_is_pembetulan-badge', lg.pbb_is_pembetulan, ['Iya'], 'Ada', 'Tidak Ada');
+            updateLegalBadge('#dt-pbg_is_revisi-badge', lg.pbg_is_revisi, ['Ya'], 'Revisi', 'Tidak Revisi');
+
+            const $pbgBadge = $('#dt-pbg_status-badge');
+            const pbgStatus = lg.pbg_status || '';
+            $pbgBadge.text(pbgStatus || '-')
+                .removeClass('badge-success badge-secondary badge-danger')
+                .addClass(pbgStatus === 'Selesai' ? 'badge-success' : pbgStatus === 'Terjadi Masalah' ? 'badge-danger' : 'badge-secondary');
 
             last_update("#last_update_legal", lg.uadd_by, lg.created_at)
             if (lg.uedit_by) {
@@ -1368,31 +1436,9 @@ function lihat_detail() {
         const expenseRows = Array.isArray(data.expense_rows) ? data.expense_rows : [];
         const incomeTotal = detailMoneyValue(data.income_total);
         const expenseTotal = detailMoneyValue(data.expense_total);
-        const balance = data.balance === undefined ? incomeTotal - expenseTotal : detailMoneyValue(data.balance);
-        const marginCash = data.margin_cash === undefined ? balance : detailMoneyValue(data.margin_cash);
-        const marginEstimasi = detailMoneyValue(data.margin_estimasi);
-        const nilaiAkad = detailMoneyValue(data.nilai_akad_estimasi);
-        const retensiPending = detailMoneyValue(data.retensi_pending_total);
-        const retensiDajam = detailMoneyValue(data.retensi_dana_jaminan_pending);
-        const retensiBank = detailMoneyValue(data.retensi_bank_pending);
 
         $("#dt-finance-income-total").text(detailRupiah(incomeTotal));
         $("#dt-finance-expense-total").text(detailRupiah(expenseTotal));
-        $("#dt-finance-balance-total")
-            .text(detailRupiah(balance))
-            .toggleClass('detail-text-primary', balance >= 0)
-            .toggleClass('detail-text-danger', balance < 0);
-        $("#dt-finance-margin-cash")
-            .text(detailRupiah(marginCash))
-            .toggleClass('detail-text-primary', marginCash >= 0)
-            .toggleClass('detail-text-danger', marginCash < 0);
-        $("#dt-finance-margin-estimasi")
-            .text(detailRupiah(marginEstimasi))
-            .toggleClass('detail-text-primary', marginEstimasi >= 0)
-            .toggleClass('detail-text-danger', marginEstimasi < 0);
-        $("#dt-finance-retensi-total").text(detailRupiah(retensiPending));
-        $("#dt-finance-nilai-akad").text(`Nilai akad ${detailRupiah(nilaiAkad)}`);
-        $("#dt-finance-retensi-note").text(`DJ ${detailRupiah(retensiDajam)} | Bank ${detailRupiah(retensiBank)}`);
         $("#dt-finance-income-count").text(`${incomeRows.length} transaksi`);
         $("#dt-finance-expense-count").text(`${expenseRows.length} transaksi`);
 

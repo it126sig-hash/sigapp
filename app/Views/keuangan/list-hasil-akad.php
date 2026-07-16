@@ -186,6 +186,11 @@
                 <i class="fas fa-filter mr-25"></i> Filter Data
               </button>
             </div>
+            <div class="filter-action">
+              <a href="<?= base_url('keuangan/hasil-akad/import') ?>" class="btn btn-outline-primary waves-effect btn-sm text-uppercase">
+                <i class="fas fa-upload mr-25"></i> Import Tanggal Cair
+              </a>
+            </div>
           </div>
         </div>
         <div class="card">
@@ -254,20 +259,20 @@
 
   function formatHasilAkadItems(items) {
     if (!Array.isArray(items) || items.length === 0) {
-      return '<div class="hasil-akad-child-empty">Belum ada item retensi/tenor.</div>';
+      return '<div class="hasil-akad-child-empty">Belum ada item retensi/hasil akad.</div>';
     }
 
     const rows = items.map(function(item) {
       const label = item.jenis === "retensi"
         ? "Retensi - " + paChildEscape(item.nama_jaminan || "-")
-        : "Tenor #" + item.urutan_tenor;
+        : "Termin #" + item.urutan_tenor;
       const locked = item.is_locked
-        ? '<span class="badge badge-light-secondary">Terpakai di pengajuan</span>'
+        ? '<span class="badge badge-light-secondary">Sudah diajukan pencairan</span>'
         : '<span class="badge badge-light-primary">Belum Diajukan</span>';
 
       return `
         <tr>
-          <td>${item.jenis === "retensi" ? "Retensi" : "Tenor"}</td>
+          <td>${item.jenis === "retensi" ? "Retensi" : "Termin"}</td>
           <td>${label}</td>
           <td class="text-right">Rp ${num_format(parseFloat(item.nominal || 0))}</td>
           <td class="text-right">Rp ${num_format(parseFloat(item.sisa || 0))}</td>
@@ -330,7 +335,7 @@
   function formatHasilAkadChild(data) {
     return `
       <div class="hasil-akad-child-wrap">
-        <div class="font-weight-bold mb-50">Item Retensi &amp; Tenor</div>
+        <div class="font-weight-bold mb-50">Item Retensi &amp; Termin</div>
         ${formatHasilAkadItems(data.items)}
         <div class="font-weight-bold mt-1 mb-50">Daftar Pengajuan</div>
         ${formatHasilAkadPengajuan(data.pengajuan)}

@@ -65,8 +65,8 @@ $("#btn-add-item-alokasi").click(function () {
         if (autoNominal <= 0) {
           Swal.fire({
             icon: "warning",
-            title: "Tidak ada nominal yang otomatis bisa dialokasikan",
-            text: "Item ini tidak/sudah tidak ditagihkan, atau nominal pembayaran sudah habis dialokasikan. Anda tetap bisa menambahkan item ini dan mengisi nominalnya secara manual.",
+            title: "Item pembyaran yang kamu pilih tidak memiliki nominal",
+            text: "Item ini sudah lunas/nominal yang ditagihkan sudah terbayar.",
             confirmButtonText: "OK",
           }).then(() => {
             renderTableAlokasi(selectedItem, 0);
@@ -705,13 +705,16 @@ function refreshKeuanganModal(clearEntryForm = false) {
 
       if (clearEntryForm) {
         $("#bt-for").val(null).trigger("change");
+        // Kosongkan tabel alokasi dulu sebelum reset nominal, supaya .change()
+        // di bawah ini tidak menghitung ulang total alokasi lama vs nominal 0
+        // (yang selalu memicu warning "Total alokasi melebihi nominal" palsu).
+        alokasi_items = [];
+        $("#tb-alokasi-dana").html("");
         $("#bt-bayar_tagihan_um").val("").keyup().change();
         $("#bt-berita_acara_um").val("");
         if (document.querySelector("#bt-tanggal_bayar_um")._flatpickr) {
           document.querySelector("#bt-tanggal_bayar_um")._flatpickr.clear();
         }
-        alokasi_items = [];
-        $("#tb-alokasi-dana").html("");
         setAlokasi();
       }
     },

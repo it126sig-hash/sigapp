@@ -15,6 +15,11 @@ class CashoutKavlingService
 
     public function getDataTables(array $var): array
     {
+        helper('auth');
+        $canKeuangan = in_groups(['1', '3']);
+        $canProduksi = in_groups(['1', '7']);
+        $canPajak = in_groups(['1', '10']);
+
         $result = $this->repo->getDataTables($var);
         $rows = [];
         $no = (int) ($var['start'] ?? 0);
@@ -38,8 +43,19 @@ class CashoutKavlingService
             $totalPajak = (float) $row->total_pajak;
             $grandTotal = $totalCashout + $totalProduksi + $totalSubkon + $totalPajak;
 
+            $detailCell = '<button type="button" class="btn btn-sm btn-outline-secondary btn-ck-detail" data-id-kavling="' . (int) $row->id_kavling . '"><i class="fa fa-chevron-down"></i></button>';
+            if ($canKeuangan) {
+                $detailCell .= $this->actionButton('ck-open-cashout', $payload, 'fa-money-bill-wave', 'primary', 'Bayar Keuangan');
+            }
+            if ($canProduksi && !empty($row->id_mkdt)) {
+                $detailCell .= $this->actionButton('ck-open-produksi', $payload, 'fa-industry', 'warning', 'Bayar Produksi');
+            }
+            if ($canPajak && !empty($row->id_mkdt)) {
+                $detailCell .= $this->actionButton('ck-open-pajak', $payload, 'fa-file-invoice-dollar', 'info', 'Bayar Pajak');
+            }
+
             $rows[] = [
-                '<button type="button" class="btn btn-sm btn-outline-secondary btn-ck-detail" data-id-kavling="' . (int) $row->id_kavling . '"><i class="fa fa-chevron-down"></i></button>',
+                $detailCell,
                 $no,
                 '<strong>' . $this->escape($row->nama_jalan) . ' No ' . $this->escape($row->no_kavling) . '</strong>',
                 $this->escape($row->nama_konsumen ?: '-'),
@@ -79,6 +95,7 @@ class CashoutKavlingService
                     'nominal' => (float) $row->nominal,
                     'keterangan' => (string) ($row->keterangan ?? ''),
                     'departemen' => $row->departemen,
+                    'item' => (string) ($row->item ?? ''),
                 ];
             }, $rows),
         ];
@@ -93,6 +110,11 @@ class CashoutKavlingService
         return '<button type="button" class="btn btn-link p-0 ' . $class . '" data-payload="' . $payload . '">'
             . $this->formatNumber($value)
             . '</button>';
+    }
+
+    private function actionButton(string $class, string $payload, string $icon, string $color, string $title): string
+    {
+        return '<button type="button" class="btn btn-sm btn-outline-' . $color . ' ' . $class . ' ml-1" data-payload="' . $payload . '" title="' . $title . '"><i class="fa ' . $icon . '"></i></button>';
     }
 
     private function formatNumber(float $value): string

@@ -3388,7 +3388,7 @@
                                 <div class="form-group">
                                     <div class="custom-control custom-switch custom-control-inline">
                                         <input type="checkbox" class="custom-control-input" id="akad_indent" name="akad_indent" value="1" />
-                                        <label class="custom-control-label" for="akad_indent">Akad Indent (Bangunan Belum Terbangun)</label>
+                                        <label class="custom-control-label" for="akad_indent">Akad Indent</label>
                                     </div>
                                 </div>
                                 <div class="form-group">

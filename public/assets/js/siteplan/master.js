@@ -1786,6 +1786,10 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     function removeFromTable(x, y = null) {
+        const bucket = y == '_bb' ? 'data_bb' : 'data_um';
+        const row = state[bucket] && state[bucket][x];
+        const idKeuangan = row && row.id_keuangan;
+
         Swal.fire({
             title: 'Hapus Data?',
             text: "Data tidak bisa dipulihkan!",
@@ -1798,30 +1802,137 @@ Date.prototype.toDateInputValue = (function() {
             cancelButtonClass: 'btn btn-danger ml-1',
             buttonsStyling: !1
         }).then(function(t) {
-            if (t.value) {
-                $.ajax({
-                    url: base_url + 'Keuangan/isSudahBayar/' + editdtt[0].data.id_mkdt,
-                    type: 'get',
-                    dataType: 'json',
-                    success: function(r) {
-                        csrfHash = r.token;
+            if (!t.value) return;
 
-                        if (r.success === false) {
-                            return swal('error', r.messages)
-                        }
-
-                        if (y == '_bb') delete state.data_bb[x];
-                        else delete state.data_um[x];
-                        tambah_ketagihan();
-                    },
-                    error: function() {
-                        return swal('error', 'Terjadi kesalahan')
-                    }
-                });
-
+            // Baris baru yang belum tersimpan (belum ada id_keuangan) cukup dihapus dari state.
+            if (!idKeuangan) {
+                delete state[bucket][x];
+                tambah_ketagihan();
+                return;
             }
+
+            $.ajax({
+                url: base_url + 'tagihan/hapus',
+                type: 'post',
+                dataType: 'json',
+                data: {
+                    id_keuangan: idKeuangan,
+                    [csrfName]: csrfHash
+                },
+                success: function(r) {
+                    if (r.token) csrfHash = r.token;
+
+                    if (!r.success) {
+                        return swal('error', r.message);
+                    }
+
+                    delete state[bucket][x];
+                    tambah_ketagihan();
+                },
+                error: function() {
+                    return swal('error', 'Terjadi kesalahan')
+                }
+            });
         })
 
+    }
+
+    function voidFromTable(x, y = null) {
+        const bucket = y == '_bb' ? 'data_bb' : 'data_um';
+        const row = state[bucket] && state[bucket][x];
+        const idKeuangan = row && row.id_keuangan;
+        if (!idKeuangan) return;
+
+        Swal.fire({
+            title: 'Void Tagihan?',
+            text: "Tagihan tidak akan dihapus, tapi tidak akan dihitung lagi di total.",
+            input: 'textarea',
+            inputPlaceholder: 'Alasan void...',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Void',
+            confirmButtonClass: 'btn btn-warning',
+            cancelButtonClass: 'btn btn-danger ml-1',
+            buttonsStyling: !1,
+            inputValidator: function(value) {
+                if (!value) return 'Alasan void wajib diisi';
+            }
+        }).then(function(t) {
+            if (!t.value) return;
+
+            $.ajax({
+                url: base_url + 'tagihan/void',
+                type: 'post',
+                dataType: 'json',
+                data: {
+                    id_keuangan: idKeuangan,
+                    reason: t.value,
+                    [csrfName]: csrfHash
+                },
+                success: function(r) {
+                    if (r.token) csrfHash = r.token;
+
+                    if (!r.success) {
+                        return swal('error', r.message);
+                    }
+
+                    state[bucket][x].is_void = 1;
+                    state[bucket][x].void_reason = t.value;
+                    tambah_ketagihan();
+                },
+                error: function() {
+                    return swal('error', 'Terjadi kesalahan')
+                }
+            });
+        })
+    }
+
+    function unvoidFromTable(x, y = null) {
+        const bucket = y == '_bb' ? 'data_bb' : 'data_um';
+        const row = state[bucket] && state[bucket][x];
+        const idKeuangan = row && row.id_keuangan;
+        if (!idKeuangan) return;
+
+        Swal.fire({
+            title: 'Un-void Tagihan?',
+            text: "Tagihan akan aktif kembali & dihitung lagi di total.",
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, aktifkan',
+            confirmButtonClass: 'btn btn-primary',
+            cancelButtonClass: 'btn btn-danger ml-1',
+            buttonsStyling: !1
+        }).then(function(t) {
+            if (!t.value) return;
+
+            $.ajax({
+                url: base_url + 'tagihan/unvoid',
+                type: 'post',
+                dataType: 'json',
+                data: {
+                    id_keuangan: idKeuangan,
+                    [csrfName]: csrfHash
+                },
+                success: function(r) {
+                    if (r.token) csrfHash = r.token;
+
+                    if (!r.success) {
+                        return swal('error', r.message);
+                    }
+
+                    state[bucket][x].is_void = 0;
+                    state[bucket][x].void_reason = null;
+                    tambah_ketagihan();
+                },
+                error: function() {
+                    return swal('error', 'Terjadi kesalahan')
+                }
+            });
+        })
     }
 
     function editFromTable(x) {
@@ -1840,8 +1951,31 @@ Date.prototype.toDateInputValue = (function() {
         date,
         amount,
         key,
-        suffix = ''
+        suffix = '',
+        id_keuangan = null,
+        is_void = 0,
+        void_reason = ''
     }) {
+        if (is_void) {
+            return `
+    <tr data-key="${key}" data-suffix="${suffix}" class="text-muted">
+      <td>${title} <span class="badge badge-secondary" title="${escapeAttribute(void_reason || '')}">Void</span></td>
+      <td>${format_date(date)}</td>
+      <td>${num_format(amount)}</td>
+      <td>
+        <div class="btn-group">
+          <button type="button" class="btn btn-outline-secondary waves-effect btn-sm js-unvoid" title="Un-void tagihan">
+            <i class="fa fa-undo"></i>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+        }
+
+        const voidBtn = id_keuangan ? `
+          <button type="button" class="btn btn-outline-warning waves-effect btn-sm js-void" title="Void tagihan">
+            <i class="fa fa-ban"></i>
+          </button>` : '';
         return `
     <tr data-key="${key}" data-suffix="${suffix}">
       <td>${title}</td>
@@ -1849,9 +1983,9 @@ Date.prototype.toDateInputValue = (function() {
       <td>${num_format(amount)}</td>
       <td>
         <div class="btn-group">
-          <button type="button" class="btn btn-outline-danger waves-effect btn-sm js-remove">
+          <button type="button" class="btn btn-outline-danger waves-effect btn-sm js-remove" title="Hapus tagihan">
             <i class="fa fa-trash"></i>
-          </button>
+          </button>${voidBtn}
         </div>
       </td>
     </tr>`;
@@ -1864,7 +1998,7 @@ Date.prototype.toDateInputValue = (function() {
     }) {
         let total = 0;
         const body = rows.map(r => {
-            total += Number(removeComma(r.amount));
+            if (!r.is_void) total += Number(removeComma(r.amount));
             return rowHTML({
                 ...r,
                 suffix
@@ -1887,7 +2021,10 @@ Date.prototype.toDateInputValue = (function() {
             key: k,
             title: state.data_um[k].berita_acara,
             date: state.data_um[k].jatuh_tempo_tgl,
-            amount: state.data_um[k].nominal
+            amount: state.data_um[k].nominal,
+            id_keuangan: state.data_um[k].id_keuangan,
+            is_void: state.data_um[k].is_void,
+            void_reason: state.data_um[k].void_reason
         }));
 
         // const bbRows = Object.keys(state.data_bb || {}).map(k => ({
@@ -1921,6 +2058,22 @@ Date.prototype.toDateInputValue = (function() {
         // $("#tambah_list").text("+ Cicilan UM");
         // $("#tambah_list_bb").text("+ Cicilan BB");
     }
+
+    // Event delegation untuk void
+    $(document).on('click', '#list_cicilan_here .js-void', function() {
+        const $tr = $(this).closest('tr');
+        const key = $tr.data('key');
+        const suffix = $tr.data('suffix');
+        voidFromTable(String(key), String(suffix || ''));
+    });
+
+    // Event delegation untuk un-void
+    $(document).on('click', '#list_cicilan_here .js-unvoid', function() {
+        const $tr = $(this).closest('tr');
+        const key = $tr.data('key');
+        const suffix = $tr.data('suffix');
+        unvoidFromTable(String(key), String(suffix || ''));
+    });
 
     // Event delegation untuk remove
     $(document).on('click', '#list_cicilan_here .js-remove', function() {

@@ -511,6 +511,7 @@
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(fitTagihanTableHeight, 150);
     });
+    $(window).on('load', fitTagihanTableHeight);
 
     $('#data_table tbody').on('click', '.tagihan-detail-toggle', function() {
       const tr = $(this).closest('tr');

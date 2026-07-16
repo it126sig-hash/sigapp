@@ -150,6 +150,45 @@
         }
     }
 
+    #pencairan_akad_modal .dropzone {
+        position: relative;
+        border: 2px dashed #ced4da;
+        border-radius: .75rem;
+        background: #fff;
+        transition: .15s border-color, .15s background;
+    }
+
+    #pencairan_akad_modal .dropzone-lg {
+        min-height: 90px;
+    }
+
+    #pencairan_akad_modal .dz-input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    #pencairan_akad_modal .dz-inner {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 1rem;
+    }
+
+    #pencairan_akad_modal .dz-placeholder {
+        pointer-events: none;
+    }
+
+    #pencairan_akad_modal .dz-preview {
+        display: none;
+        width: 100%;
+    }
+
     @media (max-width: 767.98px) {
         #pencairan_akad_modal .modal-dialog {
             max-width: calc(100vw - 12px);
@@ -239,15 +278,11 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" id="pa-tenor-tab" data-toggle="tab"
-                                            href="#pa-tenor-pane" role="tab">Tenor Hasil Akad</a>
+                                            href="#pa-tenor-pane" role="tab">Hasil Akad</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link" id="pa-pengajuan-tab" data-toggle="tab"
-                                            href="#pa-pengajuan-pane" role="tab">Pengajuan</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" id="pa-pencairan-tab" data-toggle="tab"
-                                            href="#pa-pencairan-pane" role="tab">Pencairan</a>
+                                        <a class="nav-link" id="pa-pengajuan-pencairan-tab" data-toggle="tab"
+                                            href="#pa-pengajuan-pencairan-pane" role="tab">Pengajuan &amp; Pencairan</a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" id="pa-history-tab" data-toggle="tab"
@@ -292,52 +327,110 @@
                                         </div>
                                         <div id="pa-tenor_here"></div>
                                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="addPencairanAkadTenorRow()">
-                                            <i class="fas fa-plus"></i> Tambah Tenor
+                                            <i class="fas fa-plus"></i> Tambah Termin
                                         </button>
-                                        <button type="button" class="btn btn-primary btn-sm mt-1" onclick="savePencairanAkadTenor(); return false;">
-                                            Simpan Tenor
+                                        <button type="button" class="btn btn-primary btn-sm" onclick="savePencairanAkadTenor(); return false;">
+                                            Simpan
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                            <div class="tab-pane" id="pa-pengajuan-pane" role="tabpanel">
-                                <div class="card">
+                            <div class="tab-pane" id="pa-pengajuan-pencairan-pane" role="tabpanel">
+                                <div class="card mb-0">
                                     <div class="card-body">
-                                        <div class="divider divider-left">
-                                            <div class="divider-text">Buat Pengajuan ke Bank</div>
+                                        <div class="d-flex flex-wrap" style="gap: .5rem;">
+                                            <button type="button" class="btn btn-primary btn-sm" id="pa-btn-show-pengajuan">
+                                                <i class="fas fa-paper-plane"></i> Buat Pengajuan Pencairan
+                                            </button>
+                                            <button type="button" class="btn btn-success btn-sm" id="pa-btn-show-pencairan">
+                                                <i class="fas fa-money-bill"></i> Pencairan Dana
+                                            </button>
                                         </div>
-                                        <form id="form-pencairan-akad-pengajuan" enctype="multipart/form-data" autocomplete="off">
-                                            <input type="hidden" id="pa-pengajuan-id_plan" name="id_plan" value="">
-                                            <div class="row">
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label>Tanggal Pengajuan</label>
-                                                        <input type="date" class="form-control" name="tanggal_pengajuan" required>
+
+                                        <div class="position-relative mt-1" id="pa-pengajuan-form-wrap" style="display: none;">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary pa-form-close"
+                                                data-target="#pa-pengajuan-form-wrap" style="position: absolute; top: 0; right: 0;">
+                                                <i class="fas fa-times"></i> Tutup
+                                            </button>
+                                            <div class="divider divider-left">
+                                                <div class="divider-text">Buat Pengajuan ke Bank</div>
+                                            </div>
+                                            <form id="form-pencairan-akad-pengajuan" enctype="multipart/form-data" autocomplete="off">
+                                                <input type="hidden" id="pa-pengajuan-id_plan" name="id_plan" value="">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
+                                                            <label>Tanggal Pengajuan</label>
+                                                            <input type="date" class="form-control" name="tanggal_pengajuan" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
+                                                            <label>Tanggal Rencana Cair</label>
+                                                            <input type="date" class="form-control" name="tanggal_rencana_cair">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
+                                                            <label>Lampiran Surat (PDF/Gambar, opsional)</label>
+                                                            <div class="dropzone dropzone-lg custom-file" id="pa-dz-lampiran">
+                                                                <input type="file" class="custom-file-input dz-input" id="pa-lampiran-input"
+                                                                    name="lampiran_surat" accept="application/pdf,image/*">
+                                                                <div class="dz-inner">
+                                                                    <div class="dz-preview" id="pa-lampiran-preview"></div>
+                                                                    <div class="dz-placeholder">
+                                                                        <div class="h6 mb-1">Tarik &amp; letakkan file ke sini</div>
+                                                                        <div class="text-muted small">atau klik / paste (Ctrl+V) — PDF/PNG/JPG</div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label>Tanggal Rencana Cair</label>
-                                                        <input type="date" class="form-control" name="tanggal_rencana_cair">
-                                                    </div>
+                                                <div class="form-group">
+                                                    <label>Catatan Pengajuan</label>
+                                                    <textarea class="form-control" name="catatan" rows="2"></textarea>
                                                 </div>
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label>Lampiran Surat (PDF, wajib)</label>
-                                                        <input type="file" class="form-control-file" name="lampiran_surat" accept="application/pdf" required>
-                                                    </div>
+                                                <div class="divider divider-left">
+                                                    <div class="divider-text">Pilih Item (Retensi / Hasil akad)</div>
                                                 </div>
+                                                <div id="pa-pengajuan-item_here"></div>
+                                                <button type="submit" class="btn btn-primary mt-1">Simpan Pengajuan</button>
+                                            </form>
+                                        </div>
+
+                                        <div class="position-relative mt-1" id="pa-pencairan-form-wrap" style="display: none;">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary pa-form-close"
+                                                data-target="#pa-pencairan-form-wrap" style="position: absolute; top: 0; right: 0;">
+                                                <i class="fas fa-times"></i> Tutup
+                                            </button>
+                                            <div class="divider divider-left">
+                                                <div class="divider-text">Catat Pencairan (Partial Manual per Item)</div>
                                             </div>
                                             <div class="form-group">
-                                                <label>Catatan Pengajuan</label>
-                                                <textarea class="form-control" name="catatan" rows="2"></textarea>
+                                                <label>Pilih Pengajuan</label>
+                                                <select class="form-control" id="pa-cair-select_pengajuan" onchange="renderPencairanAkadCairForm()"></select>
                                             </div>
-                                            <div class="divider divider-left">
-                                                <div class="divider-text">Pilih Item (Retensi / Tenor)</div>
-                                            </div>
-                                            <div id="pa-pengajuan-item_here"></div>
-                                            <button type="submit" class="btn btn-primary mt-1">Simpan Pengajuan</button>
-                                        </form>
+                                            <form id="form-pencairan-akad-cair" autocomplete="off">
+                                                <input type="hidden" id="pa-cair-id_pengajuan" name="id_pengajuan" value="">
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
+                                                            <label>Tanggal Cair</label>
+                                                            <input type="date" class="form-control" name="tanggal_cair" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <div class="form-group">
+                                                            <label>Catatan</label>
+                                                            <input type="text" class="form-control" name="catatan">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div id="pa-cair-detail_here"></div>
+                                                <button type="submit" class="btn btn-primary mt-1">Simpan Pencairan</button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="card mb-0">
@@ -364,38 +457,6 @@
                                                 <tbody></tbody>
                                             </table>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="tab-pane" id="pa-pencairan-pane" role="tabpanel">
-                                <div class="card mb-0">
-                                    <div class="card-body">
-                                        <div class="divider divider-left">
-                                            <div class="divider-text">Catat Pencairan (Partial Manual per Item)</div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Pilih Pengajuan</label>
-                                            <select class="form-control" id="pa-cair-select_pengajuan" onchange="renderPencairanAkadCairForm()"></select>
-                                        </div>
-                                        <form id="form-pencairan-akad-cair" autocomplete="off">
-                                            <input type="hidden" id="pa-cair-id_pengajuan" name="id_pengajuan" value="">
-                                            <div class="row">
-                                                <div class="col-md-4">
-                                                    <div class="form-group">
-                                                        <label>Tanggal Cair</label>
-                                                        <input type="date" class="form-control" name="tanggal_cair" required>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-8">
-                                                    <div class="form-group">
-                                                        <label>Catatan</label>
-                                                        <input type="text" class="form-control" name="catatan">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div id="pa-cair-detail_here"></div>
-                                            <button type="submit" class="btn btn-primary mt-1">Simpan Pencairan</button>
-                                        </form>
                                     </div>
                                 </div>
                             </div>

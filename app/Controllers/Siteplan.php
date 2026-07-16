@@ -996,6 +996,7 @@ class Siteplan extends BaseController
         $tg = $this->db->table('keuangan')
             ->select('*')
             ->where('id_mkdt', $id_mkdt)
+            ->where('is_void', 0)
             ->get()->getResult();
         $tg_um = 0;
         $tg_um_ll = 0;

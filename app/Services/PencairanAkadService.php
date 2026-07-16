@@ -288,16 +288,36 @@ class PencairanAkadService
 
     public function storePengajuan($request, int $actorId): array
     {
-        $idPlan = (int) $request->getPost('id_plan');
-        $items = $request->getPost('items');
-        $tanggalPengajuan = trim((string) $request->getPost('tanggal_pengajuan'));
-        $tanggalRencanaCair = trim((string) $request->getPost('tanggal_rencana_cair'));
+        $file = $request->getFile('lampiran_surat');
+        if ($file && $file->getError() !== UPLOAD_ERR_NO_FILE && ! $file->isValid()) {
+            return $this->response(false, 'Lampiran surat tidak valid');
+        }
+        $lampiranSurat = $this->resolveLampiranSurat($file);
+
+        return $this->storePengajuanCore([
+            'id_plan' => (int) $request->getPost('id_plan'),
+            'items' => $request->getPost('items'),
+            'tanggal_pengajuan' => trim((string) $request->getPost('tanggal_pengajuan')),
+            'tanggal_rencana_cair' => trim((string) $request->getPost('tanggal_rencana_cair')) ?: null,
+            'catatan' => $request->getPost('catatan'),
+        ], $lampiranSurat, $actorId, false);
+    }
+
+    protected function storePengajuanCore(array $data, ?string $lampiranSurat, int $actorId, bool $requireLampiran): array
+    {
+        $idPlan = (int) ($data['id_plan'] ?? 0);
+        $items = $data['items'] ?? [];
+        $tanggalPengajuan = trim((string) ($data['tanggal_pengajuan'] ?? ''));
+        $tanggalRencanaCair = $data['tanggal_rencana_cair'] ?? null;
 
         if ($idPlan <= 0 || ! is_array($items) || empty($items)) {
             return $this->response(false, 'Pilih minimal satu item untuk diajukan');
         }
         if ($tanggalPengajuan === '') {
             return $this->response(false, 'Tanggal pengajuan harus diisi');
+        }
+        if ($requireLampiran && ! $lampiranSurat) {
+            return $this->response(false, 'Lampiran surat wajib diisi untuk pengajuan');
         }
 
         $plan = $this->getPlanById($idPlan);
@@ -310,20 +330,6 @@ class PencairanAkadService
 
         try {
             $db->transStart();
-
-            $lampiranSurat = null;
-            $file = $request->getFile('lampiran_surat');
-            if ($file && $file->getError() !== UPLOAD_ERR_NO_FILE) {
-                if (! $file->isValid()) {
-                    throw new \RuntimeException('Lampiran surat tidak valid');
-                }
-                if (! $file->hasMoved()) {
-                    $lampiranSurat = $this->fileAccessService->store($file, 'uploads/pencairan_akad/' . date('Ymd'));
-                }
-            }
-            if (! $lampiranSurat) {
-                throw new \RuntimeException('Lampiran surat wajib diisi untuk pengajuan');
-            }
 
             $total = 0;
             $rows = [];
@@ -346,7 +352,7 @@ class PencairanAkadService
                 'id_plan' => $idPlan,
                 'tanggal_pengajuan' => $tanggalPengajuan,
                 'tanggal_rencana_cair' => $tanggalRencanaCair ?: null,
-                'catatan' => $request->getPost('catatan'),
+                'catatan' => $data['catatan'] ?? null,
                 'lampiran_surat' => $lampiranSurat,
                 'total_pengajuan' => $total,
                 'status' => 'active',
@@ -391,11 +397,18 @@ class PencairanAkadService
 
     public function cairkan($request, int $actorId): array
     {
-        $idPengajuan = (int) $request->getPost('id_pengajuan');
-        $tanggalCair = trim((string) $request->getPost('tanggal_cair'));
-        $details = $request->getPost('details');
+        return $this->cairkanCore(
+            (int) $request->getPost('id_pengajuan'),
+            trim((string) $request->getPost('tanggal_cair')),
+            $request->getPost('details') ?: [],
+            $request->getPost('catatan'),
+            $actorId
+        );
+    }
 
-        if ($idPengajuan <= 0 || ! is_array($details) || empty($details)) {
+    protected function cairkanCore(int $idPengajuan, string $tanggalCair, array $details, ?string $catatan, int $actorId): array
+    {
+        if ($idPengajuan <= 0 || empty($details)) {
             return $this->response(false, 'Data pencairan tidak lengkap');
         }
         if ($tanggalCair === '') {
@@ -420,7 +433,7 @@ class PencairanAkadService
             $db->table('pencairan_akad_payment')->insert([
                 'id_pengajuan' => $idPengajuan,
                 'tanggal_cair' => $tanggalCair,
-                'catatan' => $request->getPost('catatan'),
+                'catatan' => $catatan,
                 'total_cair' => 0,
                 'add_by' => $actorId,
                 'created_at' => date('Y-m-d H:i:s'),
@@ -530,6 +543,247 @@ class PencairanAkadService
         }
 
         return $this->response(true, 'Pengajuan berhasil dibatalkan');
+    }
+
+    /**
+     * Baris item retensi/tenor yang masih ada sisa (belum diajukan penuh),
+     * lengkap dengan kolom identitas terkunci, untuk diexport lalu diisi tanggal cair.
+     */
+    public function exportTemplate(array $filter): array
+    {
+        $builder = $this->db->table('pencairan_akad_item pi')
+            ->select('
+                pi.id AS id_item, pi.jenis, pi.urutan_tenor, pi.nominal,
+                ld.nama_jaminan,
+                pap.id_kavling, pap.harga_kpr_acc AS acc_kpr,
+                pap.total_retensi, pap.total_hasil_akad AS rencana_hasil_akad,
+                j.nama_jalan AS proyek, k.no_kavling, c.nama_konsumen
+            ')
+            ->join('pencairan_akad_plan pap', 'pap.id = pi.id_plan')
+            ->join('kavling k', 'k.id_kavling = pap.id_kavling')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan')
+            ->join('mkdt m', 'm.id_mkdt = pap.id_mkdt')
+            ->join('konsumen c', 'c.id_konsumen = m.id_konsumen');
+
+        if (! empty($filter['id_kavling'])) {
+            $builder->where('pap.id_kavling', (int) $filter['id_kavling']);
+        }
+        if (! empty($filter['id_proyek'])) {
+            $builder->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+                ->where('cl.id_proyek', (int) $filter['id_proyek']);
+        }
+        $builder->join('list_dajam ld', 'ld.id = pi.id_list_dajam', 'left');
+
+        $rows = $builder->orderBy('pap.id_kavling')->orderBy('pi.jenis')->orderBy('pi.urutan_tenor')->get()->getResult();
+
+        $out = [];
+        foreach ($rows as $row) {
+            if ($this->getSisaItem((int) $row->id_item, (float) $row->nominal) <= 0.01) {
+                continue;
+            }
+
+            $out[] = [
+                'id_item' => (int) $row->id_item,
+                'id_kavling' => (int) $row->id_kavling,
+                'proyek' => $row->proyek,
+                'no_kavling' => $row->no_kavling,
+                'nama_konsumen' => $row->nama_konsumen,
+                'acc_kpr' => (float) $row->acc_kpr,
+                'total_retensi' => (float) $row->total_retensi,
+                'rencana_hasil_akad' => (float) $row->rencana_hasil_akad,
+                'jenis' => $row->jenis,
+                'nama_item' => $row->jenis === 'tenor' ? ('Termin ' . $row->urutan_tenor) : (string) $row->nama_jaminan,
+                'nominal' => (float) $row->nominal,
+                'no_pengajuan' => '',
+                'tanggal_pengajuan' => '',
+                'tanggal_cair' => '',
+                'nominal_cair' => '',
+                'keterangan' => '',
+            ];
+        }
+
+        return $out;
+    }
+
+    public static function templateColumns(): array
+    {
+        return [
+            'id_item', 'id_kavling', 'proyek', 'no_kavling', 'nama_konsumen',
+            'acc_kpr', 'total_retensi', 'rencana_hasil_akad', 'jenis', 'nama_item', 'nominal',
+            'no_pengajuan', 'tanggal_pengajuan', 'tanggal_cair', 'nominal_cair', 'keterangan',
+        ];
+    }
+
+    /**
+     * Import massal tanggal cair dari CSV hasil exportTemplate().
+     * Baris dengan tanggal_cair kosong dilewati. Baris dengan id_item tak dikenal atau
+     * kolom terkunci tidak cocok dengan data sistem ditolak (dilaporkan, bukan diproses).
+     * Baris valid dikelompokkan per (id_kavling, no_pengajuan) menjadi satu pengajuan+payment,
+     * dieksekusi lewat storePengajuanCore()+cairkanCore() yang sama dengan alur UI manual.
+     */
+    public function importTanggalCair(string $csvPath, $lampiranFile, int $actorId): array
+    {
+        if (! is_file($csvPath)) {
+            return $this->response(false, 'File CSV tidak ditemukan');
+        }
+
+        $handle = fopen($csvPath, 'r');
+        if (! $handle) {
+            return $this->response(false, 'File CSV tidak bisa dibaca');
+        }
+
+        $header = fgetcsv($handle);
+        if (! $header) {
+            fclose($handle);
+
+            return $this->response(false, 'File CSV kosong');
+        }
+        $header = array_map(fn ($h) => trim((string) $h), $header);
+
+        foreach (['id_item', 'id_kavling', 'jenis', 'nominal', 'acc_kpr', 'total_retensi', 'rencana_hasil_akad'] as $col) {
+            if (! in_array($col, $header, true)) {
+                fclose($handle);
+
+                return $this->response(false, "Kolom wajib '{$col}' tidak ditemukan di CSV");
+            }
+        }
+
+        $rows = [];
+        $line = 1;
+        while (($cols = fgetcsv($handle)) !== false) {
+            $line++;
+            if (count($cols) === 1 && trim((string) $cols[0]) === '') {
+                continue;
+            }
+            $assoc = ['_line' => $line];
+            foreach ($header as $i => $key) {
+                $assoc[$key] = trim((string) ($cols[$i] ?? ''));
+            }
+            $rows[] = $assoc;
+        }
+        fclose($handle);
+
+        $idItems = array_unique(array_map(fn ($r) => (int) $r['id_item'], $rows));
+        $dbItems = $this->getItemsWithPlanByIds($idItems);
+
+        $errors = [];
+        $groups = [];
+
+        foreach ($rows as $row) {
+            $tanggalCair = $row['tanggal_cair'] ?? '';
+            if ($tanggalCair === '') {
+                continue;
+            }
+
+            $idItem = (int) $row['id_item'];
+            $item = $dbItems[$idItem] ?? null;
+            if (! $item) {
+                $errors[] = ['baris' => $row['_line'], 'id_item' => $idItem, 'alasan' => 'id_item tidak ditemukan'];
+                continue;
+            }
+
+            $mismatch = self::findLockedMismatch($row, $item);
+            if ($mismatch) {
+                $errors[] = ['baris' => $row['_line'], 'id_item' => $idItem, 'alasan' => $mismatch];
+                continue;
+            }
+
+            if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $tanggalCair)) {
+                $errors[] = ['baris' => $row['_line'], 'id_item' => $idItem, 'alasan' => 'Format tanggal_cair harus YYYY-MM-DD'];
+                continue;
+            }
+
+            $noPengajuan = trim((string) ($row['no_pengajuan'] ?? ''));
+            if ($noPengajuan === '') {
+                $errors[] = ['baris' => $row['_line'], 'id_item' => $idItem, 'alasan' => 'no_pengajuan wajib diisi kalau tanggal_cair diisi'];
+                continue;
+            }
+
+            $tanggalPengajuan = trim((string) ($row['tanggal_pengajuan'] ?? '')) ?: $tanggalCair;
+            $nominalCair = self::num($row['nominal_cair'] ?? '') ?: (float) $item->nominal;
+
+            $groupKey = $item->id_kavling . '|' . $noPengajuan;
+            if (isset($groups[$groupKey])) {
+                if ($groups[$groupKey]['tanggal_cair'] !== $tanggalCair) {
+                    $errors[] = ['baris' => $row['_line'], 'id_item' => $idItem, 'alasan' => 'tanggal_cair berbeda dari baris lain dengan no_pengajuan yang sama'];
+                    continue;
+                }
+                if ($groups[$groupKey]['tanggal_pengajuan'] !== $tanggalPengajuan) {
+                    $errors[] = ['baris' => $row['_line'], 'id_item' => $idItem, 'alasan' => 'tanggal_pengajuan berbeda dari baris lain dengan no_pengajuan yang sama'];
+                    continue;
+                }
+            } else {
+                $groups[$groupKey] = [
+                    'id_plan' => (int) $item->id_plan,
+                    'tanggal_cair' => $tanggalCair,
+                    'tanggal_pengajuan' => $tanggalPengajuan,
+                    'catatan' => 'Import CSV (no_pengajuan: ' . $noPengajuan . ')',
+                    'items' => [],
+                ];
+            }
+            $groups[$groupKey]['items'][] = ['id_item' => $idItem, 'nominal_cair' => $nominalCair, 'baris' => $row['_line']];
+        }
+
+        $lampiranSurat = $this->resolveLampiranSurat($lampiranFile);
+
+        $imported = 0;
+        $results = [];
+
+        foreach ($groups as $groupKey => $group) {
+            $pengajuanResult = $this->storePengajuanCore([
+                'id_plan' => $group['id_plan'],
+                'items' => array_column($group['items'], 'id_item'),
+                'tanggal_pengajuan' => $group['tanggal_pengajuan'],
+                'tanggal_rencana_cair' => null,
+                'catatan' => $group['catatan'],
+            ], $lampiranSurat, $actorId, false);
+
+            if (! $pengajuanResult['success']) {
+                foreach ($group['items'] as $it) {
+                    $errors[] = ['baris' => $it['baris'], 'id_item' => $it['id_item'], 'alasan' => $pengajuanResult['message']];
+                }
+                continue;
+            }
+
+            $idPengajuan = (int) $pengajuanResult['id_pengajuan'];
+            $detailMap = array_column(
+                $this->db->table('pencairan_akad_pengajuan_detail')
+                    ->select('id, id_item')
+                    ->where('id_pengajuan', $idPengajuan)
+                    ->get()
+                    ->getResultArray(),
+                'id',
+                'id_item'
+            );
+
+            $details = [];
+            foreach ($group['items'] as $it) {
+                if (isset($detailMap[$it['id_item']])) {
+                    $details[$detailMap[$it['id_item']]] = ['nominal_cair' => $it['nominal_cair']];
+                }
+            }
+
+            $cairResult = $this->cairkanCore($idPengajuan, $group['tanggal_cair'], $details, $group['catatan'], $actorId);
+            if (! $cairResult['success']) {
+                foreach ($group['items'] as $it) {
+                    $errors[] = ['baris' => $it['baris'], 'id_item' => $it['id_item'], 'alasan' => $cairResult['message']];
+                }
+                continue;
+            }
+
+            $imported++;
+            $results[] = [
+                'no_pengajuan' => explode('|', $groupKey)[1],
+                'id_pengajuan' => $idPengajuan,
+                'jumlah_item' => count($group['items']),
+            ];
+        }
+
+        return $this->response(
+            true,
+            "Import selesai: {$imported} pengajuan berhasil dibuat, " . count($errors) . ' baris ditolak',
+            ['imported' => $imported, 'results' => $results, 'errors' => $errors]
+        );
     }
 
     public function getListGrouped($request)
@@ -762,6 +1016,69 @@ class PencairanAkadService
             ->getRow();
     }
 
+    /** @return array<int, object> id_item => item beserta data plan (id_plan, id_kavling, harga_kpr_acc, total_retensi, total_hasil_akad) */
+    protected function getItemsWithPlanByIds(array $ids): array
+    {
+        $ids = array_values(array_filter($ids, fn ($id) => $id > 0));
+        if (empty($ids)) {
+            return [];
+        }
+
+        $rows = $this->db->table('pencairan_akad_item pi')
+            ->select('pi.id, pi.id_plan, pi.jenis, pi.nominal, pap.id_kavling, pap.harga_kpr_acc, pap.total_retensi, pap.total_hasil_akad')
+            ->join('pencairan_akad_plan pap', 'pap.id = pi.id_plan')
+            ->whereIn('pi.id', $ids)
+            ->get()
+            ->getResult();
+
+        $out = [];
+        foreach ($rows as $row) {
+            $out[(int) $row->id] = $row;
+        }
+
+        return $out;
+    }
+
+    /**
+     * Bandingkan kolom "terkunci" di baris CSV terhadap data pencairan_akad_item/plan sebenarnya.
+     * Return null kalau cocok, atau alasan penolakan kalau ada kolom yang berubah.
+     */
+    public static function findLockedMismatch(array $row, object $item): ?string
+    {
+        if ((int) ($row['id_kavling'] ?? 0) !== (int) $item->id_kavling) {
+            return 'id_kavling tidak cocok dengan data sistem';
+        }
+        if (trim((string) ($row['jenis'] ?? '')) !== $item->jenis) {
+            return 'jenis tidak cocok dengan data sistem';
+        }
+        if (abs(self::num($row['nominal'] ?? '') - (float) $item->nominal) > 0.01) {
+            return 'nominal tidak cocok dengan data sistem';
+        }
+        if (abs(self::num($row['acc_kpr'] ?? '') - (float) $item->harga_kpr_acc) > 0.01) {
+            return 'acc_kpr tidak cocok dengan data sistem';
+        }
+        if (abs(self::num($row['total_retensi'] ?? '') - (float) $item->total_retensi) > 0.01) {
+            return 'total_retensi tidak cocok dengan data sistem';
+        }
+        if (abs(self::num($row['rencana_hasil_akad'] ?? '') - (float) $item->total_hasil_akad) > 0.01) {
+            return 'rencana_hasil_akad tidak cocok dengan data sistem';
+        }
+
+        return null;
+    }
+
+    protected function resolveLampiranSurat($file): ?string
+    {
+        if (! $file || $file->getError() === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+        if (! $file->isValid() || $file->hasMoved()) {
+            return null;
+        }
+
+        return $this->fileAccessService->store($file, 'uploads/pencairan_akad/' . date('Ymd'));
+    }
+
     protected function getSisaItem(int $idItem, float $nominalItem): float
     {
         $sudahDiajukan = (float) $this->db->table('pencairan_akad_pengajuan_detail pgd')
@@ -841,7 +1158,7 @@ class PencairanAkadService
         ], $extra);
     }
 
-    protected function num($value): float
+    protected static function num($value): float
     {
         if ($value === null || $value === '') {
             return 0;

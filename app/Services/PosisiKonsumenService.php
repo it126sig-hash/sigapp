@@ -129,6 +129,29 @@ class PosisiKonsumenService
             $builder->where('mkdt.akad_indent', $request->getVar('akad_indent'));
 
         return DataTable::of($builder)
+            ->setSearchableColumns([
+                'kavling.id_kavling',
+                'jalan.nama_jalan',
+                'kavling.no_kavling',
+                'hargajual.id_tipe',
+                'konsumen.nama_konsumen',
+                'konsumen.sales',
+                'mkdt.booking_tgl',
+                'mkdt.wawancara_tgl',
+                'mkdt.akad_tgl',
+                'mkdt.is_kpr',
+                'list_bank.bank',
+                'mkdt.keterangan',
+                'mkdt.sp3k_tgl',
+                'mkdt.sp3k_tgl_exp',
+                'produksi.progres_bangunan',
+                'produksi.lpa',
+                'produksi.st_jalan',
+                'legal.sertifikat_split_no_hgb',
+                'legal.pbg_no',
+                'legal.pbb_pecah_nop',
+                'mkdt.keterangan_status',
+            ])
             ->edit('id_kavling', function ($v) use (&$rowNumber) {
                 return ++$rowNumber;
             })
@@ -238,6 +261,15 @@ class PosisiKonsumenService
             $builder->where('jalan.id_jalan', $request->getVar('id_jalan'));
 
         return DataTable::of($builder)
+            ->setSearchableColumns([
+                'jalan.nama_jalan',
+                'kavling.no_kavling',
+                'tipe.tipe_rumah',
+                'mkdt.keterangan_batal',
+                'konsumen.nama_konsumen',
+                'mkdt.booking_tgl',
+                'mkdt.is_kpr',
+            ])
             ->addNumbering('no')
             ->edit('booking_tgl', function ($value) {
                 return $this->format_tgl($value->booking_tgl);
