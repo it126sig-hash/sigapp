@@ -1694,3 +1694,94 @@ select,
         color: #f8fafc;
     }
 }
+
+/* Aktivitas Terakhir (dashboard) & dropdown notifikasi navbar - item + badge departemen */
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    padding: .85rem 1.25rem;
+    border-bottom: 1px solid #ebe9f1;
+    cursor: pointer;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-item.is-unread {
+    background: #f8f8fb;
+}
+
+.activity-avatar {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: .95rem;
+}
+
+.activity-body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.activity-text {
+    margin: 0;
+    font-size: .9rem;
+    color: #6e6b7b;
+}
+
+.activity-text strong {
+    color: #5e5873;
+}
+
+.activity-meta {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-top: .25rem;
+    flex-wrap: wrap;
+}
+
+.activity-time {
+    font-size: .75rem;
+    color: #b9b9c3;
+}
+
+.activity-item.is-unread .activity-time::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff9f43;
+    margin-right: .35rem;
+}
+
+.activity-empty {
+    padding: 1.25rem;
+    color: #b9b9c3;
+    text-align: center;
+}
+
+.dark-layout .activity-item {
+    border-bottom-color: rgba(255, 255, 255, .08);
+}
+
+.dark-layout .activity-item.is-unread {
+    background: rgba(255, 255, 255, .04);
+}
+
+.dark-layout .activity-text {
+    color: #b4b7bd;
+}
+
+.dark-layout .activity-text strong {
+    color: #f8fafc;
+}

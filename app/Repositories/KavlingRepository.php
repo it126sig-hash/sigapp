@@ -84,7 +84,7 @@ class KavlingRepository
             ->get()
             ->getResult();
     }
-    public function getKavlingList($id_proyek = null, $search = "", $limit = null, $is_cashout_subkon = 0, $id_cluster = null, $id_jalan = null)
+    public function getKavlingList($id_proyek = null, $search = "", $limit = null, $is_cashout_subkon = 0, $id_cluster = null, $id_jalan = null, $only_available = 0)
     {
         $builder = $this->db->table('kavling');
         $builder->select('kavling.id_kavling, jalan.nama_jalan, kavling.no_kavling');
@@ -97,6 +97,14 @@ class KavlingRepository
 
         if ($is_cashout_subkon == 1) {
             $builder->join('cashout_subkon_kavling', 'cashout_subkon_kavling.id_kavling = kavling.id_kavling', 'left');
+        }
+
+        if ($only_available) {
+            $builder->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left');
+            $builder->groupStart()
+                ->where('mkdt.id_mkdt', null)
+                ->orWhere('mkdt.status_mkdt', 'Batal')
+                ->groupEnd();
         }
 
         $builder->where('proyek.id_proyek', $id_proyek);

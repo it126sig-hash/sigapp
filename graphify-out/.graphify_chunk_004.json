@@ -1,0 +1,39 @@
+{
+  "nodes": [
+    {"id": "ci4ref_financial_validation", "label": "CI4 Financial Validation Pattern", "file_type": "rationale", "source_file": ".kiro/skills/codeigniter4/references/financial-validation.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "ci4ref_pagination_filter", "label": "CI4 Repository Pagination & Filter Pattern", "file_type": "rationale", "source_file": ".kiro/skills/codeigniter4/references/pagination-filter.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "ci4ref_response_format", "label": "CI4 BaseApiController JSON Response Standard", "file_type": "rationale", "source_file": ".kiro/skills/codeigniter4/references/response-format.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "ci4ref_db_transaction", "label": "CI4 Database Transaction Pattern (Service)", "file_type": "rationale", "source_file": ".kiro/skills/codeigniter4/references/transaction.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "img_logo", "label": "SIGAPP Logo (logo.png)", "file_type": "image", "source_file": "images/logo.png", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "img_sig_logo", "label": "SIG Logo (sig-logo.png)", "file_type": "image", "source_file": "images/sig-logo.png", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "pdf_aplikasi_sigapp", "label": "SIGAPP Application Document (PDF)", "file_type": "paper", "source_file": "doc/aplikasi SIGAPP.pdf", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "pdf_mom_sig", "label": "Meeting Minutes SIG 26 June 2024 (PDF)", "file_type": "paper", "source_file": "doc/MoM_02_26062024_SIG..pdf", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "pdf_sigap_keu", "label": "SIGAP Finance Document (PDF)", "file_type": "paper", "source_file": "doc/sigap keu.pdf", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "doc_offline_html", "label": "PWA Offline Page", "file_type": "document", "source_file": "public/offline.html", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "doc_modal_open_harga", "label": "Modal Open Set Harga (HTML doc)", "file_type": "document", "source_file": "doc/modal-open-set-harga.html", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null}
+  ],
+  "edges": [
+    {"source": "ci4ref_financial_validation", "target": "refplan_service_layer", "relation": "rationale_for", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": ".kiro/skills/codeigniter4/references/financial-validation.md", "source_location": null, "weight": 1.0},
+    {"source": "ci4ref_financial_validation", "target": "gemini_module_keuangan", "relation": "conceptually_related_to", "confidence": "INFERRED", "confidence_score": 0.9, "source_file": ".kiro/skills/codeigniter4/references/financial-validation.md", "source_location": null, "weight": 0.9},
+    {"source": "ci4ref_financial_validation", "target": "pencairan_akad_guard", "relation": "semantically_similar_to", "confidence": "INFERRED", "confidence_score": 0.8, "source_file": ".kiro/skills/codeigniter4/references/financial-validation.md", "source_location": null, "weight": 0.8},
+    {"source": "ci4ref_pagination_filter", "target": "gemini_repository_pattern", "relation": "implements", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": ".kiro/skills/codeigniter4/references/pagination-filter.md", "source_location": null, "weight": 1.0},
+    {"source": "ci4ref_response_format", "target": "refplan_service_layer", "relation": "conceptually_related_to", "confidence": "INFERRED", "confidence_score": 0.8, "source_file": ".kiro/skills/codeigniter4/references/response-format.md", "source_location": null, "weight": 0.8},
+    {"source": "ci4ref_db_transaction", "target": "refplan_service_layer", "relation": "implements", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": ".kiro/skills/codeigniter4/references/transaction.md", "source_location": null, "weight": 1.0},
+    {"source": "skill_ci4_architecture", "target": "ci4ref_financial_validation", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": ".kiro/skills/codeigniter4/SKILL.md", "source_location": null, "weight": 1.0},
+    {"source": "skill_ci4_architecture", "target": "ci4ref_pagination_filter", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": ".kiro/skills/codeigniter4/SKILL.md", "source_location": null, "weight": 1.0},
+    {"source": "skill_ci4_architecture", "target": "ci4ref_response_format", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": ".kiro/skills/codeigniter4/SKILL.md", "source_location": null, "weight": 1.0},
+    {"source": "skill_ci4_architecture", "target": "ci4ref_db_transaction", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": ".kiro/skills/codeigniter4/SKILL.md", "source_location": null, "weight": 1.0},
+    {"source": "pdf_aplikasi_sigapp", "target": "gemini_sigapp_system", "relation": "references", "confidence": "INFERRED", "confidence_score": 0.9, "source_file": "doc/aplikasi SIGAPP.pdf", "source_location": null, "weight": 0.9},
+    {"source": "pdf_sigap_keu", "target": "gemini_module_keuangan", "relation": "references", "confidence": "INFERRED", "confidence_score": 0.85, "source_file": "doc/sigap keu.pdf", "source_location": null, "weight": 0.85},
+    {"source": "pdf_mom_sig", "target": "gemini_sigapp_system", "relation": "references", "confidence": "INFERRED", "confidence_score": 0.75, "source_file": "doc/MoM_02_26062024_SIG..pdf", "source_location": null, "weight": 0.75},
+    {"source": "img_logo", "target": "gemini_sigapp_system", "relation": "references", "confidence": "INFERRED", "confidence_score": 0.7, "source_file": "images/logo.png", "source_location": null, "weight": 0.7},
+    {"source": "doc_offline_html", "target": "gemini_sigapp_system", "relation": "references", "confidence": "INFERRED", "confidence_score": 0.7, "source_file": "public/offline.html", "source_location": null, "weight": 0.7},
+    {"source": "doc_modal_open_harga", "target": "gemini_module_mkdt", "relation": "references", "confidence": "INFERRED", "confidence_score": 0.8, "source_file": "doc/modal-open-set-harga.html", "source_location": null, "weight": 0.8}
+  ],
+  "hyperedges": [
+    {"id": "ci4_reference_patterns", "label": "CI4 Coding Reference Patterns", "nodes": ["ci4ref_financial_validation", "ci4ref_db_transaction", "ci4ref_response_format"], "relation": "implement", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": ".kiro/skills/codeigniter4/SKILL.md"},
+    {"id": "sigapp_source_documents", "label": "SIGAPP Source Documentation (PDFs)", "nodes": ["pdf_aplikasi_sigapp", "pdf_mom_sig", "pdf_sigap_keu"], "relation": "participate_in", "confidence": "INFERRED", "confidence_score": 0.8, "source_file": "doc/aplikasi SIGAPP.pdf"}
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}

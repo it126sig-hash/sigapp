@@ -74,6 +74,7 @@ class TransaksiService
      *   tagihan: array,
      *   log_pembayaran: array,
      *   list_spptb: array,
+     *   total_sudah_bayar: float,
      *   token: string
      * }
      */
@@ -86,6 +87,7 @@ class TransaksiService
             'tagihan' => [],
             'log_pembayaran' => [],
             'list_spptb' => [],
+            'total_sudah_bayar' => 0.0,
             'token' => csrf_hash(), // optional
         ];
 
@@ -133,6 +135,7 @@ class TransaksiService
                 $resp['tagihan'] = $this->keuRepo->getTagihanOnlyByID($idMkdt);
                 $resp['log_pembayaran'] = $this->logRepo->getRiwayatBayarById($idMkdt);
                 $resp['list_spptb'] = $this->fileAccessService->addAccessUrlsToRows($this->spptbRepo->getLatestByMkdtId($idMkdt, 3), 'file_spptb');
+                $resp['total_sudah_bayar'] = $this->logRepo->getTotalBayarByIdMkdt($idMkdt);
             }
         }
 

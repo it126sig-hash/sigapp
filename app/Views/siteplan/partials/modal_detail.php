@@ -22,7 +22,65 @@
                                         <div class="card detail-price-card">
                                             <div class="card-body">
                                                 <h5><i class="fas fa-money-bill"></i> Harga Jual</h5>
-                                                <span id="label-hargajual"></span>
+                                                <div class="detail-price-toggle" data-toggle="collapse"
+                                                    data-target="#detailHargaJualPricelist" aria-expanded="false"
+                                                    aria-controls="detailHargaJualPricelist" role="button">
+                                                    <span id="label-hargajual"></span>
+                                                    <i class="fas fa-chevron-down detail-price-toggle-icon"></i>
+                                                </div>
+                                                <div class="collapse" id="detailHargaJualPricelist">
+                                                    <div class="detail-price-list mt-2">
+                                                        <div class="detail-price-item">
+                                                            <span class="detail-price-label">Tanggal PriceList</span>
+                                                            <input type="text"
+                                                                class="detail-price-value flatpickr-human-friendly"
+                                                                id="dt-pl_tgl_harga" disabled name="dt-pl_tgl_harga"
+                                                                value="" readonly />
+                                                        </div>
+                                                        <div class="detail-price-item">
+                                                            <span class="detail-price-label">Harga Jual</span>
+                                                            <span class="detail-price-value" id="dt-pl_hargajual">-</span>
+                                                        </div>
+                                                        <div class="detail-price-item" id="hjdis-pl">
+                                                            <span class="detail-price-label">Diskon Harga Jual</span>
+                                                            <span class="detail-price-value"
+                                                                id="dt-pl_harga_diskon_hargajual">-</span>
+                                                        </div>
+                                                        <div class="detail-price-item is-highlight">
+                                                            <span class="detail-price-label">Harga Jual Net</span>
+                                                            <span class="detail-price-value" id="dt-pl_hargajual_net">-</span>
+                                                        </div>
+                                                        <div class="detail-price-item">
+                                                            <span class="detail-price-label">KPR</span>
+                                                            <span class="detail-price-value" id="dt-pl_kpr">-</span>
+                                                        </div>
+                                                        <div class="detail-price-item">
+                                                            <span class="detail-price-label">Uang Muka</span>
+                                                            <span class="detail-price-value" id="dt-pl_uang_muka">-</span>
+                                                        </div>
+                                                        <div class="detail-price-item" id="umdis-pl">
+                                                            <span class="detail-price-label">Diskon Uang Muka</span>
+                                                            <span class="detail-price-value"
+                                                                id="dt-pl_harga_diskon_uang_muka">-</span>
+                                                        </div>
+                                                        <div class="detail-price-item">
+                                                            <span class="detail-price-label">Biaya Adm</span>
+                                                            <span class="detail-price-value" id="dt-pl_biaya_adm">-</span>
+                                                        </div>
+                                                        <div class="detail-price-item">
+                                                            <span class="detail-price-label">PPN</span>
+                                                            <span class="detail-price-value" id="dt-pl_ppn">-</span>
+                                                        </div>
+                                                        <div class="detail-price-item">
+                                                            <span class="detail-price-label">BPHTB</span>
+                                                            <span class="detail-price-value" id="dt-pl_bphtb">-</span>
+                                                        </div>
+                                                        <div class="detail-price-item">
+                                                            <span class="detail-price-label">Biaya Proses</span>
+                                                            <span class="detail-price-value" id="dt-pl_biaya_proses">-</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -282,6 +340,41 @@
                                                     <span class="detail-section-title detail-section-title-dot">Cashout Status</span>
                                                 </div>
                                                 <div id="s-co"></div>
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title detail-section-title-dot">Hutang Subkon</span>
+                                                </div>
+                                                <div id="s-hutang-subkon"></div>
+                                            </div>
+
+                                            <div class="detail-summary-card detail-status-card">
+                                                <div class="detail-status-card-header">
+                                                    <div class="detail-card-icon"><i class="fas fa-hand-holding-usd"></i></div>
+                                                    <div class="detail-status-card-title">Retensi &amp; Hasil Akad</div>
+                                                </div>
+
+                                                <div class="d-flex justify-content-center mb-1" style="position: relative; height:160px; width:100%">
+                                                    <canvas id="hasilAkadChart"></canvas>
+                                                    <div id="hasilAkadChart-empty" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); display:none; text-align:center; color:#999; font-size:0.75rem;">
+                                                        Belum ada<br>data pencairan
+                                                    </div>
+                                                </div>
+
+                                                <div class="detail-info-row mt-1">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Total Hasil Akad</span>
+                                                        <span class="detail-info-value" id="s-pa_total_hasil_akad">-</span>
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Sudah Cair</span>
+                                                        <span class="detail-info-value detail-text-success" id="s-pa_total_cair">-</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title detail-section-title-dot">Item Retensi</span>
+                                                </div>
+                                                <div id="s-pa-retensi"></div>
                                             </div>
 
                                             <div class="detail-summary-card detail-status-card">
@@ -354,81 +447,9 @@
                                         <h5>Harga Jual</h5>
                                         <small class="text-muted">Terakhir diperbaharui oleh</small>
                                         <div class="row">
-                                            <div class="col-md-4">
+                                            <div class="col-md-6">
                                                 <div class="divider divider-left">
-                                                    <div class="divider-text">Pricelist</div>
-                                                </div>
-                                                <div class="detail-price-item">
-                                                    <span class="detail-price-label">Tanggal PriceList</span>
-                                                    <input type="text"
-                                                        class="detail-price-value flatpickr-human-friendly"
-                                                        id="dt-pl_tgl_harga" disabled name="dt-pl_tgl_harga" value=""
-                                                        readonly />
-                                                </div>
-                                                <div class="detail-price-item">
-                                                    <span class="detail-price-label">Harga Jual</span>
-                                                    <input type="text" class="detail-price-value num"
-                                                        id="dt-pl_hargajual" name="dt-pl_hargajual" value="" disabled
-                                                        readonly />
-                                                </div>
-                                                <div class="detail-price-item" id="hjdis-pl">
-                                                    <span class="detail-price-label">Diskon Harga Jual</span>
-                                                    <input type="text" class="detail-price-value num"
-                                                        id="dt-pl_harga_diskon_hargajual"
-                                                        name="dt-pl_harga_diskon_hargajual" value="" disabled
-                                                        readonly />
-                                                </div>
-                                                <div class="detail-price-item is-highlight">
-                                                    <span class="detail-price-label">Harga Jual Net</span>
-                                                    <input type="text" class="detail-price-value num"
-                                                        id="dt-pl_hargajual_net" name="dt-pl_hargajual_net" value=""
-                                                        disabled readonly />
-                                                </div>
-                                                <div class="detail-price-item">
-                                                    <span class="detail-price-label">KPR</span>
-                                                    <input type="text" class="detail-price-value num" id="dt-pl_kpr"
-                                                        name="dt-pl_kpr" value="" disabled readonly />
-                                                </div>
-                                                <div class="detail-price-item">
-                                                    <span class="detail-price-label">Uang Muka</span>
-                                                    <input type="text" class="detail-price-value num"
-                                                        id="dt-pl_uang_muka" name="dt-pl_uang_muka" value="" disabled
-                                                        readonly />
-                                                </div>
-                                                <div class="detail-price-item" id="umdis-pl">
-                                                    <span class="detail-price-label">Diskon Uang Muka</span>
-                                                    <input type="text" class="detail-price-value num"
-                                                        id="dt-pl_harga_diskon_uang_muka"
-                                                        name="dt-pl_harga_diskon_uang_muka" value="" disabled
-                                                        readonly />
-                                                </div>
-                                                <div class="detail-price-item">
-                                                    <span class="detail-price-label">Biaya Adm</span>
-                                                    <input type="text" class="detail-price-value num"
-                                                        id="dt-pl_biaya_adm" name="dt-pl_biaya_adm" value="" disabled
-                                                        readonly />
-                                                </div>
-                                                <div class="detail-price-item">
-                                                    <span class="detail-price-label">PPN</span>
-                                                    <input type="text" class="detail-price-value num totalbb"
-                                                        id="dt-pl_ppn" name="dt-pl_ppn" disabled readonly>
-                                                </div>
-                                                <div class="detail-price-item">
-                                                    <span class="detail-price-label">BPHTB</span>
-                                                    <input type="text" class="detail-price-value num totalbb"
-                                                        id="dt-pl_bphtb" name="dt-pl_bphtb" value="" disabled
-                                                        readonly />
-                                                </div>
-                                                <div class="detail-price-item">
-                                                    <span class="detail-price-label">Biaya Proses</span>
-                                                    <input type="text" class="detail-price-value num totalbb"
-                                                        id="dt-pl_biaya_proses" name="dt-pl_biaya_proses" value=""
-                                                        disabled readonly />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="divider divider-left">
-                                                    <div class="divider-text">Harga Jual (SPPTB)</div>
+                                                    <div class="divider-text">Harga Jual</div>
                                                 </div>
                                                 <div class="detail-price-item">
                                                     <span class="detail-price-label">Tanggal PriceList</span>
@@ -439,81 +460,62 @@
                                                 </div>
                                                 <div class="detail-price-item">
                                                     <span class="detail-price-label">Harga Jual</span>
-                                                    <input type="text" class="detail-price-value num"
-                                                        id="dt-hargajual" name="dt-hargajual" value="" disabled
-                                                        readonly />
+                                                    <span class="detail-price-value" id="dt-hargajual">-</span>
                                                 </div>
                                                 <div class="detail-price-item" id="hjdis">
                                                     <span class="detail-price-label">Diskon Harga Jual</span>
-                                                    <input type="text" class="detail-price-value num"
-                                                        id="dt-harga_diskon_hargajual" name="dt-harga_diskon_hargajual"
-                                                        value="" disabled readonly />
+                                                    <span class="detail-price-value" id="dt-harga_diskon_hargajual">-</span>
                                                 </div>
                                                 <div class="detail-price-item is-highlight">
                                                     <span class="detail-price-label">Harga Jual Net</span>
-                                                    <input type="text" class="detail-price-value num"
-                                                        id="dt-hargajual_net" name="dt-hargajual_net" value=""
-                                                        disabled readonly />
+                                                    <span class="detail-price-value" id="dt-hargajual_net">-</span>
                                                 </div>
                                                 <div class="detail-price-item">
                                                     <span class="detail-price-label">KPR</span>
-                                                    <input type="text" class="detail-price-value num" id="dt-kpr"
-                                                        name="dt-kpr" value="" disabled readonly />
+                                                    <span class="detail-price-value" id="dt-kpr">-</span>
                                                 </div>
                                                 <div class="detail-price-item">
                                                     <span class="detail-price-label">Uang Muka</span>
-                                                    <input type="text" class="detail-price-value num"
-                                                        id="dt-uang_muka" name="dt-uang_muka" value="" disabled
-                                                        readonly />
+                                                    <span class="detail-price-value" id="dt-uang_muka">-</span>
                                                 </div>
                                                 <div class="detail-price-item" id="umdis">
                                                     <span class="detail-price-label">Diskon Uang Muka</span>
-                                                    <input type="text" class="detail-price-value num"
-                                                        id="dt-harga_diskon_uang_muka" name="dt-harga_diskon_uang_muka"
-                                                        value="" disabled readonly />
+                                                    <span class="detail-price-value" id="dt-harga_diskon_uang_muka">-</span>
                                                 </div>
                                                 <div class="detail-price-item">
                                                     <span class="detail-price-label">Biaya Adm</span>
-                                                    <input type="text" class="detail-price-value num"
-                                                        id="dt-biaya_adm" name="dt-biaya_adm" value="" disabled
-                                                        readonly />
+                                                    <span class="detail-price-value" id="dt-biaya_adm">-</span>
                                                 </div>
                                                 <div class="detail-price-item">
                                                     <span class="detail-price-label">PPN</span>
-                                                    <input type="text" class="detail-price-value num totalbb"
-                                                        id="dt-ppn" name="dt-ppn" disabled readonly>
+                                                    <span class="detail-price-value" id="dt-ppn">-</span>
                                                 </div>
                                                 <div class="detail-price-item">
                                                     <span class="detail-price-label">BPHTB</span>
-                                                    <input type="text" class="detail-price-value num totalbb"
-                                                        id="dt-bphtb" name="dt-bphtb" value="" disabled readonly />
+                                                    <span class="detail-price-value" id="dt-bphtb">-</span>
                                                 </div>
                                                 <div class="detail-price-item">
                                                     <span class="detail-price-label">Biaya Proses</span>
-                                                    <input type="text" class="detail-price-value num totalbb"
-                                                        id="dt-biaya_proses" name="dt-biaya_proses" value="" disabled
-                                                        readonly />
+                                                    <span class="detail-price-value" id="dt-biaya_proses">-</span>
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-4">
+                                            <div class="col-md-6">
                                                 <div class="card detail-summary-card">
                                                     <div class="detail-status-card-header">
                                                         <div class="detail-card-icon"><i class="fas fa-home"></i>
                                                         </div>
-                                                        <div class="detail-status-card-title">Simulasi KPR</div>
+                                                        <div class="detail-status-card-title">KPR</div>
                                                     </div>
 
                                                     <span class="detail-highlight-label">KPR Disetujui</span>
-                                                    <input type="text" class="detail-highlight-value num mb-1"
-                                                        id="dt-st_harga_kpr_acc" name="dt-st_harga_kpr_acc" disabled
-                                                        readonly>
+                                                    <span class="detail-highlight-value mb-1"
+                                                        id="dt-st_harga_kpr_acc">-</span>
 
                                                     <div class="detail-highlight-box">
                                                         <span class="detail-highlight-label">Turun KPR</span>
-                                                        <input type="text" class="detail-highlight-value num"
-                                                            id="dt-st_harga_penambahan_um"
-                                                            name="dt-st_harga_penambahan_um" disabled readonly>
+                                                        <span class="detail-highlight-value"
+                                                            id="dt-st_harga_penambahan_um">-</span>
                                                     </div>
 
                                                     <div class="detail-section-divider">
@@ -521,15 +523,13 @@
                                                     </div>
                                                     <div class="detail-metric-row">
                                                         <span class="detail-metric-label">Kavling Strategis</span>
-                                                        <input type="text" class="detail-metric-value num"
-                                                            id="dt-st_harga_penambahan" name="dt-st_harga_penambahan"
-                                                            disabled readonly>
+                                                        <span class="detail-metric-value"
+                                                            id="dt-st_harga_penambahan">-</span>
                                                     </div>
                                                     <div class="detail-metric-row">
                                                         <span class="detail-metric-label">Kelebihan Tanah</span>
-                                                        <input type="text" class="detail-metric-value num"
-                                                            id="dt-st_harga_penambahan_tanah"
-                                                            name="dt-st_harga_penambahan_tanah" disabled readonly>
+                                                        <span class="detail-metric-value"
+                                                            id="dt-st_harga_penambahan_tanah">-</span>
                                                     </div>
                                                     <div class="form-group hidden">
                                                         <label for="total_biaya2">Keterangan Penambahan Biaya</label>
@@ -537,6 +537,15 @@
                                                             id="dt-st_keterangan_harga_penambahan" class="form-control "
                                                             cols="30" rows="2"></textarea>
                                                     </div>
+                                                </div>
+
+                                                <div class="card detail-summary-card">
+                                                    <div class="detail-status-card-header">
+                                                        <div class="detail-card-icon"><i
+                                                                class="fas fa-sticky-note"></i></div>
+                                                        <div class="detail-status-card-title">Catatan Pricelist</div>
+                                                    </div>
+                                                    <div class="detail-note-content" id="dt-pl_keterangan">-</div>
                                                 </div>
 
                                                 <div class="card detail-summary-card">

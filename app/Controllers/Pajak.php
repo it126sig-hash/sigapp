@@ -9,6 +9,7 @@ use App\Models\ClusterModel;
 use App\Models\ProyekModel;
 use App\Services\FileAccessService;
 use App\Services\FinanceLedgerService;
+use App\Services\PajakService;
 
 class Pajak extends BaseController
 {
@@ -20,6 +21,7 @@ class Pajak extends BaseController
 	protected $notif;
 	protected $fileAccessService;
 	protected $financeLedgerService;
+	protected $pajakService;
 
 	public function __construct()
 	{
@@ -30,6 +32,7 @@ class Pajak extends BaseController
 		$this->db = db_connect();
 		$this->fileAccessService = new FileAccessService();
 		$this->financeLedgerService = new FinanceLedgerService();
+		$this->pajakService = new PajakService();
 	}
 
 	// public function index()
@@ -391,7 +394,6 @@ class Pajak extends BaseController
 
 		$isNew = empty($fields['id']);
 		$idPajak = (int) $fields['id'];
-		$now = date("Y-m-d H:i:s");
 
 		$this->db->transBegin();
 
@@ -402,28 +404,12 @@ class Pajak extends BaseController
 			$this->storePajakFile('ppn_file-faktur', $id_kavling, 13, 'ppn_kategori-faktur', 'ppn_file_keterangan-faktur');
 			$this->storePajakFile('ppn_file-ebilling', $id_kavling, 11, 'ppn_kategori-ebilling', 'ppn_file_keterangan-ebilling');
 
+			unset($fields['id']);
+
 			if ($isNew) {
-				$fields['add_by'] = $actorId;
-				$fields['created_at'] = $now;
-				unset($fields['id']);
-
-				if (!$this->db->table("pajak")->insert($fields)) {
-					throw new \RuntimeException('Kesalahan saat mengisi data!');
-				}
-
-				$idPajak = (int) $this->db->insertID();
-				if (!$this->db->table('kavling')->update(['id_pajak' => $idPajak], ['id_kavling' => $id_kavling])) {
-					throw new \RuntimeException('Kesalahan saat menghubungkan data pajak ke kavling!');
-				}
+				$idPajak = $this->pajakService->insertPajak($fields, $id_kavling, $actorId);
 			} else {
-				$fields['edit_by'] = $actorId;
-				$fields['updated_at'] = $now;
-				$updateFields = $fields;
-				unset($updateFields['id']);
-
-				if (!$this->db->table("pajak")->where('id', $idPajak)->update($updateFields)) {
-					throw new \RuntimeException('Kesalahan saat merubah data!');
-				}
+				$this->pajakService->updatePajak($idPajak, $fields, $actorId);
 			}
 
 			$this->financeLedgerService->syncExpensesFromPajak($idPajak, $actorId);

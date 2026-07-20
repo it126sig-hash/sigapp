@@ -86,7 +86,9 @@ class PosisiKonsumenRepository
             ->join('users a', "a.id = mkdt.add_by", 'left')
             ->join('users b', "b.id = mkdt.edit_by", 'left')
             ->join('mkdt_payment_summary mps', "mps.id_mkdt = mkdt.id_mkdt", 'left')
-            ->where('mkdt.status_mkdt', $status);
+            ->where('mkdt.status_mkdt', $status)
+            ->orderBy('jalan.nama_jalan', 'ASC')
+            ->orderBy('ABS(kavling.no_kavling)', 'ASC');
     }
     public function getQueryBatal()
     {

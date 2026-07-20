@@ -1002,6 +1002,7 @@ class PencairanAkadService
         foreach ($items as $item) {
             $item->is_locked = in_array((int) $item->id, $lockedIds, true);
             $item->sisa = $this->getSisaItem((int) $item->id, $this->num($item->nominal));
+            $item->sudah_cair = $this->getCairItem((int) $item->id);
         }
 
         return $items;
@@ -1090,6 +1091,17 @@ class PencairanAkadService
             ->getRow()->nominal_pengajuan;
 
         return $nominalItem - $sudahDiajukan;
+    }
+
+    protected function getCairItem(int $idItem): float
+    {
+        return (float) $this->db->table('pencairan_akad_pengajuan_detail pgd')
+            ->selectSum('pgd.nominal_cair')
+            ->join('pencairan_akad_pengajuan pg', 'pg.id = pgd.id_pengajuan', 'left')
+            ->where('pgd.id_item', $idItem)
+            ->where('pg.status !=', 'void')
+            ->get()
+            ->getRow()->nominal_cair;
     }
 
     protected function getListDajam(): array

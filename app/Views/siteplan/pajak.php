@@ -407,6 +407,7 @@
                                                 <div class="form-group">
                                                     <label>Nominal PPH 4(2)</label>
                                                     <input type="text" id="pajak-pph42_nilai" name="pph42_nilai" class="form-control num" placeholder="Nilai Bayar PPH" />
+                                                    <small id="pajak-pph42_ledger_badge" class="d-block mt-1"></small>
                                                 </div>
                                                 <div class="form-group">
                                                     <label>ID Billing</label>
@@ -494,6 +495,7 @@
                                                 <div class="form-group">
                                                     <label>Nominal PPN</label>
                                                     <input type="text" id="pajak-ppn_nilai" name="ppn_nilai" class="form-control num" />
+                                                    <small id="pajak-ppn_ledger_badge" class="d-block mt-1"></small>
                                                 </div>
                                                 <div class="form-group">
                                                     <label>ID Billing</label>

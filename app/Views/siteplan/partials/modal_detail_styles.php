@@ -172,6 +172,36 @@
         transform: rotate(180deg);
     }
 
+    #modal_detail .detail-price-toggle {
+        align-items: center;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    #modal_detail .detail-price-toggle-icon {
+        color: #6b7280;
+        flex-shrink: 0;
+        margin-left: .5rem;
+        transition: transform .2s ease;
+    }
+
+    #modal_detail .detail-price-toggle[aria-expanded="true"] .detail-price-toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    #modal_detail .detail-price-list {
+        border-top: 1px solid #edf0f2;
+        padding-top: .35rem;
+    }
+
+    #modal_detail .detail-note-content {
+        color: #111827;
+        font-size: .85rem;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+
     #modal_detail .detail-tabs-card {
         margin-bottom: .75rem;
     }
@@ -274,6 +304,10 @@
         display: grid;
         gap: 1rem;
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    #modal_detail .detail-dashboard-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     #modal_detail .detail-summary-card,
@@ -534,6 +568,43 @@
         align-items: flex-end;
     }
 
+    #modal_detail #s-co,
+    #modal_detail #s-si,
+    #modal_detail #s-pa-retensi {
+        max-height: 220px;
+        overflow-y: auto;
+        padding-right: .4rem;
+    }
+
+    #modal_detail .detail-cashout-timeline {
+        display: flex;
+        flex-direction: column;
+        gap: .9rem;
+    }
+
+    #modal_detail .detail-cashout-timeline-item {
+        border-left: 3px solid #2056a4;
+        padding-left: .9rem;
+        position: relative;
+    }
+
+    #modal_detail .detail-cashout-timeline-item::before {
+        background: #2056a4;
+        border: 3px solid #fff;
+        border-radius: 999px;
+        box-shadow: 0 0 0 2px rgba(32, 86, 164, .18);
+        content: "";
+        height: 13px;
+        left: -8px;
+        position: absolute;
+        top: .2rem;
+        width: 13px;
+    }
+
+    #modal_detail .detail-cashout-timeline-item .detail-info-row {
+        margin-bottom: 0;
+    }
+
     #modal_detail .detail-info-label {
         color: #6b7280;
         font-size: .76rem;
@@ -626,6 +697,7 @@
         border: 0 !important;
         box-shadow: none !important;
         color: #2056a4 !important;
+        display: block;
         font-size: 1.2rem;
         font-weight: 800;
         height: auto !important;
@@ -683,6 +755,11 @@
     #modal_detail .detail-status-badge.badge-danger {
         background: #fee2e2;
         color: #b91c1c;
+    }
+
+    #modal_detail .detail-status-badge.badge-warning {
+        background: #fef3c7;
+        color: #b45309;
     }
 
     #modal_detail .detail-file-btn {
@@ -1003,7 +1080,8 @@
     .dark-layout #modal_detail .detail-info-value,
     .dark-layout #modal_detail .detail-status-card-title,
     .dark-layout #modal_detail .detail-section-title,
-    .dark-layout #modal_detail .detail-price-value {
+    .dark-layout #modal_detail .detail-price-value,
+    .dark-layout #modal_detail .detail-note-content {
         color: #f8fafc;
     }
 
@@ -1030,6 +1108,10 @@
 
     .dark-layout #modal_detail .detail-section-divider {
         border-top-color: rgba(255, 255, 255, .08);
+    }
+
+    .dark-layout #modal_detail .detail-cashout-timeline-item::before {
+        border-color: #283046;
     }
 
     .dark-layout #modal_detail .modal-body,
@@ -1110,4 +1192,26 @@
 
     .dark-layout .produksi-jalan-timeline-title {
         color: #f8fafc;
+    }
+
+    @media (max-width: 767.98px) {
+        #modal_detail .detail-kavling-layout {
+            flex-direction: column;
+        }
+
+        #modal_detail .detail-kavling-sidebar {
+            flex: 1 1 auto;
+            width: 100%;
+            max-width: 100%;
+            position: static;
+        }
+
+        #modal_detail .detail-kavling-content {
+            max-width: 100%;
+        }
+
+        #modal_detail .detail-dashboard-grid,
+        #modal_detail .detail-card-grid {
+            grid-template-columns: 1fr;
+        }
     }

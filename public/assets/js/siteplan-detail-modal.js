@@ -229,6 +229,19 @@ function lihat_detail() {
         $('#dtt-summary-tab').tab('show');
         $("#detailConsumerMore").collapse('hide');
         $(".detail-consumer-toggle").attr('aria-expanded', 'false');
+        $("#detailHargaJualPricelist").collapse('hide');
+        $(".detail-price-toggle").attr('aria-expanded', 'false');
+
+        $([
+            "#dt-pl_hargajual", "#dt-pl_harga_diskon_hargajual", "#dt-pl_hargajual_net", "#dt-pl_kpr",
+            "#dt-pl_uang_muka", "#dt-pl_harga_diskon_uang_muka", "#dt-pl_biaya_adm", "#dt-pl_ppn",
+            "#dt-pl_bphtb", "#dt-pl_biaya_proses",
+            "#dt-hargajual", "#dt-harga_diskon_hargajual", "#dt-hargajual_net", "#dt-kpr", "#dt-uang_muka",
+            "#dt-harga_diskon_uang_muka", "#dt-biaya_adm", "#dt-ppn", "#dt-bphtb", "#dt-biaya_proses",
+            "#dt-st_harga_kpr_acc", "#dt-st_harga_penambahan_um", "#dt-st_harga_penambahan",
+            "#dt-st_harga_penambahan_tanah",
+        ].join(",")).text('-')
+        $("#dt-pl_keterangan").html('-')
 
         $("#dt-promo").text('-')
         $("#dt-is_kpr").text('-')
@@ -358,6 +371,7 @@ function lihat_detail() {
 
 
     let modalKeuanganChart = null;
+    let modalHasilAkadChart = null;
 
     function loadSummary(r) {
         //load data konsumen
@@ -468,9 +482,9 @@ function lihat_detail() {
             }, 500);
         }
 
-        if (r.cashout) {
+        if (r.finance_flow) {
             let cashout = ''
-            const rows = r.cashout
+            const rows = Array.isArray(r.finance_flow.expense_rows) ? r.finance_flow.expense_rows : []
 
             if (rows.length == 0) {
                 cashout += `<div class="detail-mini-card text-center text-muted" style="font-size:.82rem;">
@@ -479,16 +493,22 @@ function lihat_detail() {
 
             } else {
                 // list ini mengikuti data & urutan yang sama dengan tabel Cashout di tab Keuangan, tanpa kolom nominal
+                let items = ''
                 $.each(rows, function(i, v) {
-                    cashout += `
-                <div class="detail-info-row">
-                    <div class="detail-info-col">
-                        <span class="detail-info-label">${v.item}</span>
-                        <span class="detail-info-value">${v.tanggal_bayar ? format_date(v.tanggal_bayar) : '-'}</span>
+                    const tanggal = v.tanggal_transaksi || v.tanggal_bayar
+                    const label = v.label || v.item
+                    items += `
+                <div class="detail-cashout-timeline-item">
+                    <div class="detail-info-row">
+                        <div class="detail-info-col">
+                            <span class="detail-info-label">${label}</span>
+                            <span class="detail-info-value">${tanggal ? format_date(tanggal) : '-'}</span>
+                        </div>
                     </div>
-                </div>
-                ${v.keterangan ? `<div class="text-muted" style="font-size:.76rem; margin-top:-.35rem; margin-bottom:.5rem;">${v.keterangan}</div>` : ''}`
+                    ${v.keterangan ? `<div class="text-muted" style="font-size:.76rem; margin-top:-.35rem; margin-bottom:.5rem;">${v.keterangan}</div>` : ''}
+                </div>`
                 });
+                cashout = `<div class="detail-cashout-timeline">${items}</div>`
             }
 
 
@@ -496,6 +516,37 @@ function lihat_detail() {
             setTimeout(() => {
                 setText("#s-co", cashout)
                 removeLoadingEffect("#s-co");
+            }, 500);
+        }
+
+        if (r.hutang_subkon) {
+            let hutang = ''
+            const rows = r.hutang_subkon
+
+            if (rows.length == 0) {
+                hutang += `<div class="detail-mini-card text-center text-muted" style="font-size:.82rem;">
+                    Tidak ada hutang subkon
+                </div>`
+            } else {
+                $.each(rows, function(i, v) {
+                    hutang += `
+                <div class="detail-info-row">
+                    <div class="detail-info-col">
+                        <span class="detail-info-label">${v.nomor_surat ?? '-'}</span>
+                        <span class="detail-info-value">${v.tanggal_jatuh_tempo ? format_date(v.tanggal_jatuh_tempo) : '-'}</span>
+                    </div>
+                    <div class="detail-info-col text-right">
+                        <span class="detail-info-value">${detailRupiah(v.nominal)}</span>
+                    </div>
+                </div>
+                ${v.keterangan ? `<div class="text-muted" style="font-size:.76rem; margin-top:-.35rem; margin-bottom:.5rem;">${v.keterangan}</div>` : ''}`
+                });
+            }
+
+            applyLoadingEffect("#s-hutang-subkon")
+            setTimeout(() => {
+                setText("#s-hutang-subkon", hutang)
+                removeLoadingEffect("#s-hutang-subkon");
             }, 500);
         }
 
@@ -578,6 +629,148 @@ function lihat_detail() {
                 });
             }
         }
+
+        // --- Render Retensi & Hasil Akad ---
+        renderRetensiHasilAkad(r.pencairan_akad);
+    }
+
+    function renderRetensiHasilAkadItems(items) {
+        const retensiItems = (Array.isArray(items) ? items : []).filter(v => v.jenis === 'retensi' && parseFloat(v.nominal || 0) > 0);
+
+        if (retensiItems.length === 0) {
+            return `<div class="detail-mini-card text-center text-muted" style="font-size:.82rem;">
+                Belum ada rencana retensi
+            </div>`;
+        }
+
+        const rows = retensiItems.map(function(v) {
+            const nominal = parseFloat(v.nominal || 0);
+            const sudahCair = parseFloat(v.sudah_cair || 0);
+            let status = '-';
+            let badgeClass = 'badge-secondary';
+            if (v.is_locked) {
+                if (sudahCair >= nominal - 0.01) {
+                    status = 'Sudah cair';
+                    badgeClass = 'badge-success';
+                } else {
+                    status = 'Diajukan pencairan';
+                    badgeClass = 'badge-warning';
+                }
+            }
+
+            return `
+                <div class="detail-cashout-timeline-item">
+                    <div class="detail-info-row">
+                        <div class="detail-info-col">
+                            <span class="detail-info-label">${detailEscapeHtml(v.nama_jaminan || 'Retensi')}</span>
+                            <span class="detail-info-value">${detailRupiah(nominal)}</span>
+                        </div>
+                        <div class="detail-info-col text-right">
+                            <span class="detail-status-badge ${badgeClass}">${status}</span>
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+
+        return `<div class="detail-cashout-timeline">${rows}</div>`;
+    }
+
+    function renderRetensiHasilAkad(pa) {
+        if (modalHasilAkadChart) {
+            modalHasilAkadChart.destroy();
+            modalHasilAkadChart = null;
+        }
+
+        const items = pa && Array.isArray(pa.items) ? pa.items : [];
+        const plan = pa && pa.plan ? pa.plan : null;
+        const totalHasilAkad = plan ? parseFloat(plan.total_hasil_akad || 0) : 0;
+
+        applyLoadingEffect("#s-pa-retensi")
+        setTimeout(() => {
+            setText("#s-pa-retensi", renderRetensiHasilAkadItems(items))
+            removeLoadingEffect("#s-pa-retensi");
+        }, 500);
+
+        let ctx = document.getElementById('hasilAkadChart');
+        if (!ctx) {
+            return;
+        }
+        ctx = ctx.getContext('2d');
+
+        if (!plan || totalHasilAkad <= 0) {
+            setText("#s-pa_total_hasil_akad", '-');
+            setText("#s-pa_total_cair", '-');
+            $("#hasilAkadChart-empty").show();
+            $("#hasilAkadChart").hide();
+            return;
+        }
+
+        const totalCair = items
+            .filter(v => v.jenis === 'tenor')
+            .reduce((sum, v) => sum + (parseFloat(v.sudah_cair || 0)), 0);
+        const sisa = Math.max(0, totalHasilAkad - totalCair);
+
+        setText("#s-pa_total_hasil_akad", detailRupiah(totalHasilAkad));
+        setText("#s-pa_total_cair", detailRupiah(totalCair));
+
+        $("#hasilAkadChart-empty").hide();
+        $("#hasilAkadChart").show();
+
+        const percentLabel = Math.round((totalCair / totalHasilAkad) * 100) + '%';
+        const isLunas = sisa <= 0.01 && totalCair > 0;
+
+        modalHasilAkadChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sudah Cair', 'Belum Cair'],
+                datasets: [{
+                    data: [totalCair, sisa],
+                    backgroundColor: ['#28c76f', '#e2e8f0'],
+                    borderWidth: 0
+                }]
+            },
+            plugins: [{
+                id: 'hasilAkadCenterText',
+                afterDraw(chart) {
+                    const { ctx, chartArea: { top, bottom, left, right } } = chart;
+                    const cx = (left + right) / 2, cy = (top + bottom) / 2;
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = '700 20px sans-serif';
+                    ctx.fillStyle = '#020617';
+                    ctx.fillText(percentLabel, cx, cy - 9);
+                    ctx.font = '700 11px sans-serif';
+                    ctx.fillStyle = isLunas ? '#28c76f' : '#b45309';
+                    ctx.fillText(isLunas ? 'CAIR' : 'BELUM CAIR', cx, cy + 11);
+                    ctx.restore();
+                }
+            }],
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.raw !== null) {
+                                    label += 'Rp ' + num_format(context.raw);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 
 
@@ -1002,14 +1195,16 @@ function lihat_detail() {
         //load harga pricelist
         if (pl) {
             $.each(pl, function(i, v) {
+                if (i === 'tgl_harga' || i === 'keterangan') return;
                 applyLoadingEffect("#dt-pl_" + i, v)
                 setTimeout(() => {
-                    changeVal("#dt-pl_" + i, v)
+                    $("#dt-pl_" + i).text(num_format(v))
                     removeLoadingEffect("#dt-pl_" + i, v);
                 }, 500);
 
             });
             setDatePicker(pl.tgl_harga, "#dt-pl_tgl_harga")
+            $("#dt-pl_keterangan").html(pl.keterangan || '-')
         }
 
     }
@@ -1077,16 +1272,16 @@ function lihat_detail() {
         if (mkdt) {
             //load price list dari keuangan
             setDatePicker(mkdt.tgl_harga, "#dt-tgl_harga")
-            changeVal("#dt-hargajual", mkdt.harga_jual)
-            changeVal("#dt-harga_diskon_hargajual", mkdt.harga_diskon_hargajual)
-            changeVal("#dt-hargajual_net", mkdt.harga_jual_net)
-            changeVal("#dt-kpr", mkdt.harga_kpr)
-            changeVal("#dt-uang_muka", mkdt.harga_uang_muka)
-            changeVal("#dt-harga_diskon_uang_muka", mkdt.harga_diskon_uang_muka)
-            changeVal("#dt-biaya_adm", mkdt.harga_administrasi)
-            changeVal("#dt-bphtb", mkdt.harga_bphtb)
-            changeVal("#dt-ppn", mkdt.harga_ppn)
-            changeVal("#dt-biaya_proses", mkdt.harga_biaya_proses)
+            $("#dt-hargajual").text(num_format(mkdt.harga_jual))
+            $("#dt-harga_diskon_hargajual").text(num_format(mkdt.harga_diskon_hargajual))
+            $("#dt-hargajual_net").text(num_format(mkdt.harga_jual_net))
+            $("#dt-kpr").text(num_format(mkdt.harga_kpr))
+            $("#dt-uang_muka").text(num_format(mkdt.harga_uang_muka))
+            $("#dt-harga_diskon_uang_muka").text(num_format(mkdt.harga_diskon_uang_muka))
+            $("#dt-biaya_adm").text(num_format(mkdt.harga_administrasi))
+            $("#dt-bphtb").text(num_format(mkdt.harga_bphtb))
+            $("#dt-ppn").text(num_format(mkdt.harga_ppn))
+            $("#dt-biaya_proses").text(num_format(mkdt.harga_biaya_proses))
             changeVal("#dt-row", mkdt.row)
             changeVal("#dt-tipe", mkdt.tipe)
             changeVal("#dt-lt", mkdt.lb)
@@ -1097,10 +1292,10 @@ function lihat_detail() {
 
 
             //kpr disetujui
-            changeVal("#dt-st_harga_kpr_acc", mkdt.harga_kpr_acc)
-            changeVal("#dt-st_harga_penambahan_um", mkdt.harga_penambahan_um)
-            changeVal("#dt-st_harga_penambahan", mkdt.harga_penambahan)
-            changeVal("#dt-st_harga_penambahan_tanah", mkdt.harga_penambahan_tanah)
+            $("#dt-st_harga_kpr_acc").text(num_format(mkdt.harga_kpr_acc))
+            $("#dt-st_harga_penambahan_um").text(num_format(mkdt.harga_penambahan_um))
+            $("#dt-st_harga_penambahan").text(num_format(mkdt.harga_penambahan))
+            $("#dt-st_harga_penambahan_tanah").text(num_format(mkdt.harga_penambahan_tanah))
             changeVal("#dt-st_keterangan_harga_penambahan", mkdt.keterangan_harga_penambahan)
 
             //status

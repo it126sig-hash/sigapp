@@ -161,12 +161,14 @@ class Notif extends BaseController
         if($all)
             $this->group_id = '';
         $builder = $this->db->table('notification')
-            ->select('notification.*, users.username, nama_jalan, no_kavling, proyek.id_proyek')
+            ->select('notification.*, users.username, nama_jalan, no_kavling, proyek.id_proyek, auth_groups.id as divisi_id, auth_groups.name as divisi')
             ->join('users', 'users.id = notification.add_by')
             ->join('kavling', 'kavling.id_kavling = notification.id_kavling')
             ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
             ->join('cluster', 'jalan.id_cluster = cluster.id_cluster')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek');
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+            ->join('auth_groups_users', 'auth_groups_users.user_id = notification.add_by', 'left')
+            ->join('auth_groups', 'auth_groups.id = auth_groups_users.group_id', 'left');
 
         if ($id_proyek) {
             $builder->where('proyek.id_proyek', (int) $id_proyek);
@@ -174,8 +176,11 @@ class Notif extends BaseController
 
         $this->applyGroupTargetFilter($builder);
 
+        if (!$all) {
+            $builder->orderBy('is_read', 'asc'); // Urutkan yang belum dibaca terlebih dahulu
+        }
+
         $q = $builder
-            ->orderBy('is_read', 'asc') // Urutkan yang belum dibaca terlebih dahulu
             ->orderBy('created_at', 'desc')
             ->limit($limit, $offset) // Menampilkan 10 agar history lebih banyak
             ->get()->getResult();

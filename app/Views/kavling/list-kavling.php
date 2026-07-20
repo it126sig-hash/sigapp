@@ -118,6 +118,10 @@
     padding: 1rem;
   }
 
+  .poskon-datatable-card .card-body {
+    padding: .5rem;
+  }
+
   #data_tables {
     width: 100% !important;
   }
@@ -312,14 +316,14 @@
                 <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
               </div>
               <div class="poskon-filter-field" hidden>
-                <select id="wawancara" name="wawancara" class="select2 self form-control">
+                <select id="poskon_filter_wawancara" name="wawancara" class="select2 self form-control">
                   <option value=""> Tanpa Filter </option>
                   <option value="1"> Sudah </option>
                   <option value="0"> Belum </option>
                 </select>
               </div>
               <div class="poskon-filter-field" hidden>
-                <select id="sp3k" name="sp3k" class="select2 self form-control">
+                <select id="poskon_filter_sp3k" name="sp3k" class="select2 self form-control">
                   <option value=""> Tanpa Filter </option>
                   <option value="1"> Sudah </option>
                   <option value="0"> Belum </option>
@@ -363,7 +367,7 @@
             </ul>
           </div>
         </div>
-        <div class="card">
+        <div class="card poskon-datatable-card">
           <div class="card-body">
             <div class="tab-content">
               <div class="tab-pane show active" id="list_poskon"
@@ -786,11 +790,50 @@ if (!empty($roles)) {
 
     initPoskonTable(isMobileTable);
 
+    function applyPoskonTableHeight() {
+      if (isMobileTable) return;
+      var $wrapper = $('#data_tables_wrapper');
+      var $scrollBody = $wrapper.find('.dataTables_scrollBody').first();
+      if (!$scrollBody.length) return;
+
+      // ponytail: pakai tinggi baris info/pagination langsung (bukan "semua children minus scroll"),
+      // karena fixedColumns membungkus .dataTables_scroll di dalam .DTFC_ScrollWrapper sehingga
+      // pendekatan "children().not(...)" ikut menghitung tabel itu sendiri sebagai "sisa di bawah".
+      var $bottomBar = $wrapper.find('.dataTables_info, .dataTables_paginate').first().closest('.row');
+      var bottomHeight = $bottomBar.length ? $bottomBar.outerHeight(true) : 50;
+
+      var top = $scrollBody.offset().top;
+      var $card = $scrollBody.closest('.card');
+      var $cardBody = $card.find('.card-body').first();
+      var cardBottomOverhead = (parseFloat($cardBody.css('padding-bottom')) || 0) +
+        (parseFloat($card.css('margin-bottom')) || 0) + 8; // 8px jarak aman
+      var available = Math.max(200, $(window).height() - top - bottomHeight - cardBottomOverhead);
+
+      $scrollBody.css({
+        height: available + 'px',
+        maxHeight: available + 'px'
+      });
+      if ($.fn.dataTable.isDataTable('#data_tables')) {
+        var api = $('#data_tables').DataTable();
+        if (api.fixedColumns) api.fixedColumns().relayout();
+      }
+    }
+
+    $(window).on('resize', function() {
+      clearTimeout(window._poskonResizeTimer);
+      window._poskonResizeTimer = setTimeout(applyPoskonTableHeight, 150);
+    });
+    $(window).on('load', applyPoskonTableHeight);
+
     function initPoskonTable(isMobileTable) {
     try {
       table = $('#data_tables').DataTable({
         fnDrawCallback: function() {
           $('[data-toggle="popover"]').popover();
+          setTimeout(applyPoskonTableHeight, 10);
+        },
+        initComplete: function() {
+          applyPoskonTableHeight();
         },
         scrollY: isMobileTable ? "60vh" : "50vh",
         scrollX: true,
@@ -801,6 +844,7 @@ if (!empty($roles)) {
         processing: true,
         serverSide: true,
         lengthChange: true,
+        pageLength: 25,
         searching: true,
         ordering: true,
         order: [
@@ -814,6 +858,10 @@ if (!empty($roles)) {
           {
             targets: [7, 9],
             orderable: true
+          },
+          {
+            targets: [9, 15],
+            visible: false
           }
         ],
         paging: true,
@@ -829,8 +877,8 @@ if (!empty($roles)) {
             data.id_proyek = activeProyekId()
             data.id_cluster = $("#id_cluster").val()
             data.id_jalan = $("#id_jalan").val()
-            data.sp3k = $("#sp3k").val()
-            data.wawancara = $("#wawancara").val()
+            data.sp3k = $("#poskon_filter_sp3k").val()
+            data.wawancara = $("#poskon_filter_wawancara").val()
             data.akad_indent = ($("#filter_status_kavling").val() === 'indent') ? 1 : ''
           },
           dataSrc: function(r) {
@@ -993,6 +1041,7 @@ if (!empty($roles)) {
             [csrfName]: csrfHash,
             search: params.term,
             id_proyek: activeProyekId(),
+            only_available: 1,
             limit: 25
           };
         },
@@ -1054,6 +1103,7 @@ if (!empty($roles)) {
     $("#btn_draw").on("click", function(e) {
       if (table) {
         var filterVal = $("#filter_status_kavling").val();
+        table.columns([9, 15]).visible(filterVal !== 'booking');
         var url = (filterVal === 'akad' || filterVal === 'indent') ?
           base_url + 'list-kavling/akad/ambil' :
           base_url + 'list-kavling/ambil';
@@ -1227,301 +1277,6 @@ if (!empty($roles)) {
       .css("pointer-events", "none");
 
   });
-
-  function sum_mktotal() {
-    let hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0)
-    let tot = hitung_total()
-
-    $("#mk-hargajual_net").val(hj_net).keyup()
-
-    $("#mk-tgt").val(tot.total_keseluruhan).keyup(); //grand total keseluruhan
-    $("#mk-total_tot").val(tot.harus_dibayar).keyup(); //total yang harus dibayar konsumen
-
-  }
-
-  function hitung_total(isForm = false, mkdt = []) {
-    let totalum = 0,
-      totalbb = 0,
-      pengurangan = 0,
-      hj = parseFloat(removeComma($("#mk-hargajual").val()) || 0), // 
-      diskon_hj = parseFloat(removeComma($("#mk-diskon_harga_jual").val()) || 0),
-      hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0),
-      kpr = parseFloat(removeComma($("#mk-kpr").val()) || 0),
-      um = parseFloat(removeComma($("#mk-uang_muka").val()) || 0),
-      diskon_um = parseFloat(removeComma($("#mk-diskon_uang_muka").val()) || 0),
-      badm = parseFloat(removeComma($("#mk-biaya_adm").val()) || 0),
-      ppn = parseFloat(removeComma($("#mk-ppn").val()) || 0),
-      bphtb = parseFloat(removeComma($("#mk-bphtb").val()) || 0),
-      bproses = parseFloat(removeComma($("#mk-biaya_proses").val()) || 0),
-      sbum = parseFloat(removeComma($("#mk-harga_sbum").val()) || 0),
-
-      hj_real = 0,
-      persentase_kpr = ($("#idk-is_subsidi").val() == 1) ? 0.05 : 0.1, //persentase kpr
-      penambahan_biaya = parseFloat(removeComma($("#mk-harga_penambahan").val()) || 0),
-      penambahan_biaya_tanah = parseFloat(removeComma($("#mk-harga_penambahan_tanah").val()) || 0),
-      is_allin = $("#idk-is_allin").val(),
-      harga_allin = parseFloat(removeComma($("#mk-harga_allin").val() || 0))
-    if (isForm) {
-      if (mkdt.length == 0)
-        return showToast('tidak ada data tersedia', 'warning')
-
-      um = parseFloat(mkdt.harga_uang_muka || 0)
-      diskon_um = parseFloat(mkdt.harga_diskon_uang_muka || 0)
-      badm = parseFloat(mkdt.harga_administrasi || 0)
-      ppn = parseFloat(mkdt.harga_ppn || 0)
-      bphtb = parseFloat(mkdt.harga_bphtb || 0)
-      bproses = parseFloat(mkdt.harga_biaya_proses || 0)
-      sbum = parseFloat(mkdt.harga_sbum || 0)
-      penambahan_biaya = parseFloat(mkdt.harga_penambahan || 0)
-      penambahan_biaya_tanah = parseFloat(mkdt.harga_penambahan_tanah || 0)
-      is_allin = parseFloat(mkdt.is_allin || 0)
-      harga_allin = parseFloat(mkdt.harga_allin || 0)
-    }
-
-    pengurangan = diskon_um + sbum
-
-    totalum = um + badm + penambahan_biaya + penambahan_biaya_tanah
-    totalbb = ppn + bphtb + bproses
-
-    let tottot = totalum + totalbb - pengurangan;
-
-    let grandtotal = tottot;
-    if (is_allin == "1")
-      grandtotal = harga_allin
-
-    return {
-      'total_keseluruhan': tottot,
-      'harus_dibayar': grandtotal
-    }
-  }
-
-  function lihat_total() {
-    var harga_jual = removeComma(($("#detail_harga_jual").val() == '') ? 0 : $("#detail_harga_jual").val()),
-      harga_diskon = removeComma(($("#detail_harga_diskon").val() == '') ? 0 : $("#detail_harga_diskon").val()),
-      harga_penambahan = removeComma(($("#detail_harga_penambahan").val() == '') ? 0 : $("#detail_harga_penambahan").val()),
-      harga_administrasi = removeComma(($("#detail_harga_administrasi").val() == '') ? 0 : $("#detail_harga_administrasi").val()),
-      harga_ppn = removeComma(($("#detail_harga_ppn").val() == '') ? 0 : $("#detail_harga_ppn").val()),
-      harga_bphtb = removeComma(($("#detail_harga_bphtb").val() == '') ? 0 : $("#detail_harga_bphtb").val()),
-      harga_biaya_proses = removeComma(($("#detail_harga_biaya_proses").val() == '') ? 0 : $("#detail_harga_biaya_proses").val()),
-      harga_kpr = removeComma(($("#detail_harga_kpr").val() == '') ? 0 : $("#detail_harga_kpr").val()),
-      total_biaya = 0;
-
-    total_biaya = (harga_jual - harga_kpr) - harga_diskon + harga_penambahan + harga_ppn + harga_bphtb + harga_biaya_proses;
-
-    $("#detail_total_biaya").val(total_biaya).keyup();
-
-  }
-  //sum tagihan
-
-  function sum_tg(e = 0, bb = '') {
-    e = parseFloat(removeComma(e))
-
-    let total_keu = parseFloat(removeComma($("#mk-total_tot").val()) || 0)
-    let cicilan_keu = parseFloat(removeComma($("#mk-total_cicilan_um").val()) || 0)
-
-    if (cicilan_keu + e > total_keu)
-      $("#nominal").val(total_keu - cicilan_keu).keyup()
-  }
-  var it = 0;
-  /***************** list tagihan ****************/
-  function tambah_(e = '') {
-    let a = (e == '_bb') ? e : '_um'
-    if ($("#mk-total_cicilan_um").val() == $("#mk-total_tot").val()) {
-      swal('error', "Tidak bisa menambahkan tagihan", "Total tagihan tidak bisa melebeihi total harus dibayar", false);
-      return false;
-    } else {
-      if (!$("#berita_acara" + e).val() || !$("#nominal" + e).val() || !$("#jatuh_tempo_tgl" + e).val()) {
-        swal('error', "Nominal dan jatuh tempo tidak boleh kosong", null, false);
-        return false;
-      }
-      Swal.fire({
-        title: 'Simpan data?',
-        text: "Pastikan data sudah terisi dengan benar!",
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Ya!',
-        confirmButtonClass: 'btn btn-primary',
-        cancelButtonClass: 'btn btn-danger ml-1',
-        buttonsStyling: !1
-      }).then(function(t) {
-        if (t.value) {
-          tambah(e)
-        }
-      })
-    }
-  }
-
-  function tambah(e = '') {
-    let i = 'lk' + it
-
-    if (state.data_um[$("#id_list_keu" + e).val()])
-      i = $("#id_list_keu" + e).val()
-
-    state.data_um[i] = ({
-      id_list_keu: i,
-      id_keuangan: $("#id_keuangan").val(),
-      berita_acara: $("#berita_acara").val(),
-      nominal: $("#nominal").val(),
-      jatuh_tempo_tgl: $("#jatuh_tempo_tgl").val(),
-    })
-
-    tambah_ketagihan(e)
-
-    fp = flatpickr("#jatuh_tempo_tgl", {
-      altInput: true,
-      altFormat: 'F j, Y',
-      dateFormat: 'Y-m-d'
-    })
-
-    var d = new Date(
-      $("#jatuh_tempo_tgl").val()
-    ).fp_incr(30);
-
-    fp.setDate(d);
-
-    it += 1;
-  }
-
-  function removeFromTable(x, y = null) {
-    Swal.fire({
-      title: 'Hapus Data?',
-      text: "Data tidak bisa dipulihkan!",
-      type: 'danger',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Ya!',
-      confirmButtonClass: 'btn btn-primary',
-      cancelButtonClass: 'btn btn-danger ml-1',
-      buttonsStyling: !1
-    }).then(function(t) {
-      if (t.value) {
-        $.ajax({
-          url: base_url + 'Keuangan/isSudahBayar/' + editdtt[0].data.id_mkdt,
-          type: 'get',
-          dataType: 'json',
-          success: function(r) {
-            csrfHash = r.token;
-
-            if (r.success === false) {
-              return swal('error', r.messages)
-            }
-
-            if (y == '_bb') delete state.data_bb[x];
-            else delete state.data_um[x];
-            tambah_ketagihan();
-          },
-          error: function() {
-            return swal('error', 'Terjadi kesalahan')
-          }
-        });
-
-      }
-    })
-
-  }
-
-  function editFromTable(x) {
-    var d = state.data_um[x]
-
-    $("#id_list_keu").val(x);
-    $("#berita_acara").val(d.berita_acara);
-    $("#nominal").val(d.nominal).keyup();
-    $("#jatuh_tempo_tgl").val(d.jatuh_tempo_tgl);
-    $("#tambah_list").html("Simpan Perubahan")
-  }
-
-
-  function rowHTML({
-    title,
-    date,
-    amount,
-    key,
-    suffix = ''
-  }) {
-    return `
-            <tr data-key="${key}" data-suffix="${suffix}">
-            <td>${title}</td>
-            <td>${format_date(date)}</td>
-            <td>${num_format(amount)}</td>
-            <td>
-                <div class="btn-group">
-                <button type="button" class="btn btn-outline-danger waves-effect btn-sm js-remove">
-                    <i class="fa fa-trash"></i>
-                </button>
-                </div>
-            </td>
-            </tr>`;
-  }
-
-  function sectionHTML({
-    rows,
-    label,
-    suffix = ''
-  }) {
-    let total = 0;
-    const body = rows.map(r => {
-      total += Number(removeComma(r.amount));
-      return rowHTML({
-        ...r,
-        suffix
-      });
-    }).join('');
-    const foot = `
-                    <tr class="table-secondary">
-                        <td colspan="2">Total Tagihan </td>
-                        <td>${num_format(total)}</td>
-                        <td></td>
-                    </tr>`;
-    return {
-      html: body + foot,
-      total
-    };
-  }
-
-  function tambah_ketagihan() {
-    const umRows = Object.keys(state.data_um || {}).map(k => ({
-      key: k,
-      title: state.data_um[k].berita_acara,
-      date: state.data_um[k].jatuh_tempo_tgl,
-      amount: state.data_um[k].nominal
-    }));
-
-    // const bbRows = Object.keys(state.data_bb || {}).map(k => ({
-    //     key: k,
-    //     title: state.data_bb[k].berita_acara_bb,
-    //     date: state.data_bb[k].jatuh_tempo_tgl_bb,
-    //     amount: state.data_bb[k].nominal_bb
-    // }));
-
-    const um = sectionHTML({
-      rows: umRows,
-      label: 'Tagihan Uang Muka',
-      suffix: ''
-    });
-
-    // const bb = sectionHTML({
-    //     rows: bbRows,
-    //     label: 'Tagihan Biaya Biaya',
-    //     suffix: '_bb'
-    // });
-
-    // 1x write ke DOM
-    $("#list_cicilan_here").html(um.html);
-
-    // update total & UI state
-    $("#mk-total_cicilan_um").val(um.total).trigger('change');
-    // $("#total_cicilan_bb").val(bb.total).trigger('change');
-    $("#id_list_keu").val('');
-    $("#id_list_keu_bb").val('');
-    $("#nominal, #nominal_bb").trigger('change');
-    // $("#tambah_list").text("+ Cicilan UM");
-    // $("#tambah_list_bb").text("+ Cicilan BB");
-  }
-
-
 
   $('#tb-BLOK').css({
     'min-width': '150px',

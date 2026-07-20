@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(graphify query *)",
-      "Bash(npx add-mcp *)"
+      "Bash(npx add-mcp *)",
+      "Bash(powershell -NoProfile -Command \"Get-ChildItem -Path 'c:\\\\Users\\\\Salivs\\\\Data\\\\laragon\\\\www\\\\sigapp.dev\\\\app\\\\Database\\\\Migrations' -Filter '*legal*.php' -Recurse | Select-Object -ExpandProperty Name\")",
+      "Bash(powershell -NoProfile -Command \"Select-String -Path 'c:\\\\Users\\\\Salivs\\\\Data\\\\laragon\\\\www\\\\sigapp.dev\\\\.env' -Pattern 'database' \")",
+      "Bash(mysql -h localhost -u root sigapp -e \"SHOW COLUMNS FROM legal WHERE Field IN \\('pbg_dikirim_ke','ajb_dikirim_ke','sertifikat_balik_nama_ke','pbb_balik_nama_ke'\\);\")",
+      "Bash(mysql -h localhost -u root sigapp -e \"SHOW COLUMNS FROM list_bank;\")",
+      "Bash(mysql -h localhost -u root sigapp -e \"SELECT pbg_dikirim_ke, COUNT\\(*\\) c FROM legal WHERE pbg_dikirim_ke IS NOT NULL AND pbg_dikirim_ke <> '' GROUP BY pbg_dikirim_ke; SELECT ajb_dikirim_ke, COUNT\\(*\\) c FROM legal WHERE ajb_dikirim_ke IS NOT NULL AND ajb_dikirim_ke <> '' GROUP BY ajb_dikirim_ke; SELECT sertifikat_balik_nama_ke, COUNT\\(*\\) c FROM legal WHERE sertifikat_balik_nama_ke IS NOT NULL AND sertifikat_balik_nama_ke <> '' GROUP BY sertifikat_balik_nama_ke; SELECT pbb_balik_nama_ke, COUNT\\(*\\) c FROM legal WHERE pbb_balik_nama_ke IS NOT NULL AND pbb_balik_nama_ke <> '' GROUP BY pbb_balik_nama_ke; SELECT id, bank FROM list_bank;\")",
+      "Bash(mysql -h localhost -u root sigapp -e \"DESCRIBE notification;\")",
+      "Bash(mysql -h localhost -u root sigapp -e \"DESCRIBE auth_groups_users;\")",
+      "Bash(mysql -h localhost -u root sigapp -e \"DESCRIBE karyawan;\")"
     ]
   },
   "enabledMcpjsonServers": [

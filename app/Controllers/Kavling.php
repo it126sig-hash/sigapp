@@ -25,8 +25,9 @@ class Kavling extends BaseController
         $is_cashout_subkon = $this->request->getPost('is_cashout_subkon') ?? 0;
         $id_cluster = $this->request->getPost('id_cluster') ?? null;
         $id_jalan = $this->request->getPost('id_jalan') ?? null;
+        $only_available = $this->request->getPost('only_available') ?? 0;
 
-        $kavling = $this->kavlingRepo->getKavlingList($id_proyek, $search, $limit, $is_cashout_subkon, $id_cluster, $id_jalan);
+        $kavling = $this->kavlingRepo->getKavlingList($id_proyek, $search, $limit, $is_cashout_subkon, $id_cluster, $id_jalan, $only_available);
         return $this->response->setJSON($kavling);
     }
 }

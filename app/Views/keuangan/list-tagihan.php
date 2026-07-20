@@ -309,14 +309,20 @@
     let total = 0;
     const rows = data.map((item, index) => {
       const nominal = keuToNumber(item.nominal);
-      total += nominal;
+      const isVoid = parseInt(item.is_void || 0) === 1;
+      if (!isVoid) total += nominal;
       const isPaid = parseInt(item.sudah_dibayar || 0) === 1;
-      const badge = isPaid ? '<span class="badge badge-success">LUNAS</span>' : '<span class="badge badge-warning">BELUM LUNAS</span>';
+      const badge = isVoid
+        ? `<span class="badge badge-secondary" title="${keuEscapeAttribute(item.void_reason || "")}">VOID</span>`
+        : (isPaid ? '<span class="badge badge-success">LUNAS</span>' : '<span class="badge badge-warning">BELUM LUNAS</span>');
+      const voidReason = isVoid && item.void_reason
+        ? `<br><small class="text-danger">Alasan void: ${keuEscapeHtml(item.void_reason)}</small>`
+        : "";
 
       return `
-        <tr>
+        <tr${isVoid ? ' class="text-muted"' : ""}>
           <td>${index + 1}</td>
-          <td>${keuEscapeHtml(item.berita_acara || "-")}</td>
+          <td>${keuEscapeHtml(item.berita_acara || "-")}${voidReason}</td>
           <td>${format_date(item.jatuh_tempo_tgl) || "-"}</td>
           <td>${keuEscapeHtml(item.status || "-")}</td>
           <td class="text-right">Rp ${num_format(nominal)}</td>
@@ -410,6 +416,7 @@
       processing: true,
       serverSide: true,
       lengthChange: true,
+      pageLength: 25,
       searching: true,
       ordering: true,
       paging: true,

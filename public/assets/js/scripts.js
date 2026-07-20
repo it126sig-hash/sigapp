@@ -803,17 +803,56 @@ function renderNotificationActivity(items, replace = false) {
 }
 
 function renderNotificationActivityItem(v) {
-  const unreadClass = v.is_read == 0 ? "bg-light-warning" : "";
+  return renderActivityItem(v);
+}
+
+// id departemen (auth_groups.id) -> class badge & warna avatar. Cakupan: dropdown lonceng navbar + widget "Aktivitas Terakhir" dashboard.
+const DIVISI_BADGE_CLASS = {
+  1: "badge-light-dark", // Admin
+  2: "badge-light-secondary", // Umum
+  3: "badge-light-success", // Keuangan
+  4: "badge-light-info", // MKDT
+  5: "badge-light-warning", // Legal
+  6: "badge-light-primary", // Planning
+  7: "badge-light-danger", // Produksi
+  8: "badge-light-primary", // Sales
+  9: "badge-light-dark", // Direksi
+  10: "badge-light-secondary", // Pajak
+};
+
+const DIVISI_AVATAR_COLOR = {
+  1: "#5e5873",
+  2: "#82868b",
+  3: "#28c76f",
+  4: "#00cfe8",
+  5: "#ff9f43",
+  6: "#7367f0",
+  7: "#ea5455",
+  8: "#7367f0",
+  9: "#5e5873",
+  10: "#82868b",
+};
+
+function renderActivityItem(v) {
+  const unread = v.is_read == 0;
+  const initial = (v.username || "?").trim().charAt(0).toUpperCase() || "?";
+  const badgeClass = DIVISI_BADGE_CLASS[v.divisi_id] || "badge-light-secondary";
+  const avatarColor = DIVISI_AVATAR_COLOR[v.divisi_id] || "#82868b";
+  const divisiBadge = v.divisi
+    ? `<span class="badge badge-pill ${badgeClass}">${notificationEscape(v.divisi)}</span>`
+    : "";
+
   return `
-    <a class="d-flex ${unreadClass}" href="javascript:void(0)" onclick="handleNotificationClick(${v.id}, '${v.id_kavling}', '${v.type || ""}')">
-      <div class="media d-flex align-items-start">
-        <div class="media-body">
-          <p class="media-heading"><span class="font-weight-bolder">${notificationEscape(v.nama_jalan)} No. ${notificationEscape(v.no_kavling)}</span></p>
-          <p class="media-heading"><b>${notificationEscape(v.username)}</b>: ${notificationEscape(v.notif)}</p>
-          <small class="media-heading"><b>${notificationEscape(format_datetime(v.created_at))}</b></small>
+    <div class="activity-item${unread ? " is-unread" : ""}" onclick="handleNotificationClick(${v.id}, '${v.id_kavling}', '${v.type || ""}', this)">
+      <div class="activity-avatar" style="background:${avatarColor}">${initial}</div>
+      <div class="activity-body">
+        <p class="activity-text"><strong>${notificationEscape(v.username)}</strong> ${notificationEscape(v.notif)} <span class="text-muted">(${notificationEscape(v.nama_jalan)} No. ${notificationEscape(v.no_kavling)})</span></p>
+        <div class="activity-meta">
+          ${divisiBadge}
+          <span class="activity-time">${notificationEscape(format_datetime(v.created_at))}</span>
         </div>
       </div>
-    </a>
+    </div>
   `;
 }
 
@@ -996,7 +1035,7 @@ function openNotificationUrgentItem(key) {
   }
 }
 
-function handleNotificationClick(id_notif, id_kavling, type) {
+function handleNotificationClick(id_notif, id_kavling, type, el) {
   // Tandai notifikasi sebagai dibaca
   $.ajax({
     url: base_url + "/notif/mark-as-read/" + id_notif,
@@ -1010,6 +1049,11 @@ function handleNotificationClick(id_notif, id_kavling, type) {
       if (response.token) {
         csrfHash = response.token;
         $('input[name="' + csrfName + '"]').val(csrfHash);
+      }
+
+      // Tandai item yang diklik sebagai sudah dibaca tanpa menghapusnya dari list
+      if (el) {
+        $(el).removeClass("is-unread");
       }
 
       // Refresh list notifikasi (agar badge & warna bg terupdate)

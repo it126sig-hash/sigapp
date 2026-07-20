@@ -238,6 +238,8 @@ function open_flegal(sh, role, id_kavling) {
                 setDatePicker(r.pbb_balik_nama_tgl_pengiriman, "#pbb_balik_nama_tgl_pengiriman")
                 setDatePicker(r.pbb_tgl_pembetulan, "#pbb_tgl_pembetulan")
                 setDatePicker(r.pbg_tanggal_kirim, "#pbg_tanggal_kirim")
+                setDatePicker(r.pbg_tanggal_terbit, "#pbg_tanggal_terbit")
+                setDatePicker(r.pbg_tanggal_terbit_revisi, "#pbg_tanggal_terbit_revisi")
                 setDatePicker(r.pph_tgl_selesai, "#pph_tgl_selesai")
 
                 $("#legal_keterangan").val(r.keterangan);
@@ -259,6 +261,7 @@ function open_flegal(sh, role, id_kavling) {
             $(".label_alamat").html(`
                     ${dt_proyek.nama_proyek}
                     <br/> <span class='capitalize'> ${sh.data.tipe}<span> ${sh.data.nama_jalan} No ${sh.data.no_kavling} `);
+            initModalListener('#modal_flegal');
             $('#modal_flegal').modal({
                 backdrop: 'static',
                 keyboard: false
@@ -325,6 +328,7 @@ function open_fotherlegal(sh) {
     });
 
     $(".label_alamat").html(dt_proyek.nama_proyek + "<br/> <span class='capitalize'>" + sh.data.tipe + "<span>: " + sh.data.nama_jalan + "");
+    initModalListener('#modal_fotherlegal');
     $('#modal_fotherlegal').modal({
         backdrop: 'static',
         keyboard: false
@@ -385,6 +389,7 @@ function save_fotherlegal() {
                     timer: 1500
                 })
 
+                removeModalListener('#modal_fotherlegal');
                 $('.modal').modal('hide');
                 hapus_seleksi();
                 load_kavling();

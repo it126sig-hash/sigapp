@@ -285,6 +285,13 @@ function keuEscapeHtml(value) {
   return $("<div>").text(value === null || value === undefined ? "" : value).html();
 }
 
+function keuEscapeAttribute(value) {
+  return keuEscapeHtml(value)
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+    .replace(/`/g, "&#096;");
+}
+
 function renderBiayaMkdt(biaya = {}) {
   keu_biaya_mkdt = biaya || {};
   $("#fm-keu-biaya-mkdt [data-biaya-mkdt]").each(function () {
@@ -601,10 +608,9 @@ function open_keuangan(sh, role, id_kavling) {
 
       //load_table tagihan
       keu_tg = tg;
-      state.total_cicilan = tg.reduce(
-        (sum, item) => sum + parseInt(item.nominal, 10),
-        0,
-      );
+      state.total_cicilan = tg
+        .filter((item) => Number(item.is_void) !== 1)
+        .reduce((sum, item) => sum + parseInt(item.nominal, 10), 0);
 
       // /************************ load table log pembayaran ***************************/
       //   load table riwayat bayar
@@ -692,10 +698,9 @@ function refreshKeuanganModal(clearEntryForm = false) {
       keu_sb = sb;
       keu_lp = sb;
       keu_tg = tg;
-      state.total_cicilan = tg.reduce(
-        (sum, item) => sum + parseInt(item.nominal, 10),
-        0,
-      );
+      state.total_cicilan = tg
+        .filter((item) => Number(item.is_void) !== 1)
+        .reduce((sum, item) => sum + parseInt(item.nominal, 10), 0);
 
       loadTableTagihan(tg);
 
@@ -890,6 +895,25 @@ function loadTableTagihan(tg) {
   $.each(tg, function (i, v) {
     chkd = "";
     dsb = "";
+
+    if (Number(v.is_void) === 1) {
+      tr_tg += `
+        <div class="p-1 mb-1 rounded border text-muted">
+          <div class="row">
+            <div class="col-12">
+                <h5><strong>${keuEscapeHtml(v.berita_acara)}</strong> <span class="badge badge-secondary" title="${keuEscapeAttribute(v.void_reason || "")}">Void</span></h5>
+                <h5><strong>Rp. ${num_format(v.nominal)}</strong></h5>
+                <small class="muted">Jatuh Tempo: ${format_date(
+                  v.jatuh_tempo_tgl,
+                )}</small>
+                ${v.void_reason ? `<small class="text-danger d-block">Alasan void: ${keuEscapeHtml(v.void_reason)}</small>` : ""}
+            </div>
+          </div>
+        </div>
+    `;
+      no++;
+      return; // is_void: excluded from tot_tg / #bt-for, still shown for visibility
+    }
 
     if (v.sudah_dibayar == 1) {
       chkd = "checked";

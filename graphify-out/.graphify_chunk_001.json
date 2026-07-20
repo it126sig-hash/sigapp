@@ -1,0 +1,51 @@
+{
+  "nodes": [
+    {"id": "gemini_sigapp_system", "label": "SIGAPP System Overview", "file_type": "document", "source_file": "GEMINI.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "gemini_ci4_framework", "label": "CodeIgniter 4 Framework", "file_type": "document", "source_file": "GEMINI.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "gemini_repository_pattern", "label": "Repository Pattern Layer", "file_type": "rationale", "source_file": "GEMINI.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "gemini_module_proyek", "label": "Project Management Module (Proyek/Cluster)", "file_type": "document", "source_file": "GEMINI.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "gemini_module_kavling", "label": "Plot Management Module (Kavling)", "file_type": "document", "source_file": "GEMINI.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "gemini_module_mkdt", "label": "MKDT - Customer Transaction Management", "file_type": "document", "source_file": "GEMINI.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "gemini_module_keuangan", "label": "Finance Module (Keuangan)", "file_type": "document", "source_file": "GEMINI.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "gemini_module_legal", "label": "Legal Documentation Module", "file_type": "document", "source_file": "GEMINI.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "gemini_module_produksi", "label": "Production Progress Module", "file_type": "document", "source_file": "GEMINI.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "gemini_rbac", "label": "Role-Based Access Control (RBAC)", "file_type": "rationale", "source_file": "GEMINI.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "gemini_kiro_specs", "label": "Kiro Specs Directory (.kiro/specs)", "file_type": "document", "source_file": "GEMINI.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "preprod_laravel_migration", "label": "Pre-Production: Laravel 11 Migration Plan", "file_type": "document", "source_file": "PREPRODUCTION_DOCUMENT.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "preprod_vuejs_frontend", "label": "Vue.js 3 + Capacitor Frontend Plan", "file_type": "document", "source_file": "PREPRODUCTION_DOCUMENT.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "preprod_konva_siteplan", "label": "Konva.js Interactive Siteplan", "file_type": "rationale", "source_file": "PREPRODUCTION_DOCUMENT.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "preprod_secure_docs", "label": "Secure Document Storage Strategy", "file_type": "rationale", "source_file": "PREPRODUCTION_DOCUMENT.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "refplan_thin_controller", "label": "Thin Controller Architecture Pattern", "file_type": "rationale", "source_file": "REFACTORING_PLAN.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "refplan_service_layer", "label": "Service Layer (Business Logic)", "file_type": "rationale", "source_file": "REFACTORING_PLAN.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "refplan_fat_controllers", "label": "Fat Controller Problem (Mkdt 73KB, Keuangan 70KB)", "file_type": "rationale", "source_file": "REFACTORING_PLAN.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "refplan_mkdt_priority", "label": "MKDT Module Refactor Priority", "file_type": "document", "source_file": "REFACTORING_PLAN.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null},
+    {"id": "refplan_keuangan_priority", "label": "Keuangan Module Refactor Priority", "file_type": "document", "source_file": "REFACTORING_PLAN.md", "source_location": null, "source_url": null, "captured_at": null, "author": null, "contributor": null}
+  ],
+  "edges": [
+    {"source": "gemini_sigapp_system", "target": "gemini_ci4_framework", "relation": "implements", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "GEMINI.md", "source_location": null, "weight": 1.0},
+    {"source": "gemini_sigapp_system", "target": "gemini_repository_pattern", "relation": "implements", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "GEMINI.md", "source_location": null, "weight": 1.0},
+    {"source": "gemini_sigapp_system", "target": "gemini_module_proyek", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "GEMINI.md", "source_location": null, "weight": 1.0},
+    {"source": "gemini_sigapp_system", "target": "gemini_module_kavling", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "GEMINI.md", "source_location": null, "weight": 1.0},
+    {"source": "gemini_sigapp_system", "target": "gemini_module_mkdt", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "GEMINI.md", "source_location": null, "weight": 1.0},
+    {"source": "gemini_sigapp_system", "target": "gemini_module_keuangan", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "GEMINI.md", "source_location": null, "weight": 1.0},
+    {"source": "gemini_sigapp_system", "target": "gemini_module_legal", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "GEMINI.md", "source_location": null, "weight": 1.0},
+    {"source": "gemini_sigapp_system", "target": "gemini_module_produksi", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "GEMINI.md", "source_location": null, "weight": 1.0},
+    {"source": "gemini_sigapp_system", "target": "gemini_rbac", "relation": "implements", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "GEMINI.md", "source_location": null, "weight": 1.0},
+    {"source": "gemini_sigapp_system", "target": "gemini_kiro_specs", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "GEMINI.md", "source_location": null, "weight": 1.0},
+    {"source": "preprod_laravel_migration", "target": "gemini_sigapp_system", "relation": "rationale_for", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "PREPRODUCTION_DOCUMENT.md", "source_location": null, "weight": 1.0},
+    {"source": "preprod_vuejs_frontend", "target": "preprod_konva_siteplan", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "PREPRODUCTION_DOCUMENT.md", "source_location": null, "weight": 1.0},
+    {"source": "preprod_laravel_migration", "target": "preprod_secure_docs", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "PREPRODUCTION_DOCUMENT.md", "source_location": null, "weight": 1.0},
+    {"source": "refplan_thin_controller", "target": "refplan_service_layer", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "REFACTORING_PLAN.md", "source_location": null, "weight": 1.0},
+    {"source": "refplan_thin_controller", "target": "gemini_repository_pattern", "relation": "conceptually_related_to", "confidence": "INFERRED", "confidence_score": 0.95, "source_file": "REFACTORING_PLAN.md", "source_location": null, "weight": 0.95},
+    {"source": "refplan_fat_controllers", "target": "refplan_thin_controller", "relation": "rationale_for", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "REFACTORING_PLAN.md", "source_location": null, "weight": 1.0},
+    {"source": "refplan_mkdt_priority", "target": "gemini_module_mkdt", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "REFACTORING_PLAN.md", "source_location": null, "weight": 1.0},
+    {"source": "refplan_keuangan_priority", "target": "gemini_module_keuangan", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "REFACTORING_PLAN.md", "source_location": null, "weight": 1.0},
+    {"source": "preprod_laravel_migration", "target": "refplan_thin_controller", "relation": "semantically_similar_to", "confidence": "INFERRED", "confidence_score": 0.75, "source_file": "PREPRODUCTION_DOCUMENT.md", "source_location": null, "weight": 0.75}
+  ],
+  "hyperedges": [
+    {"id": "sigapp_core_modules", "label": "SIGAPP Core Business Modules", "nodes": ["gemini_module_mkdt", "gemini_module_keuangan", "gemini_module_produksi", "gemini_module_legal", "gemini_module_kavling"], "relation": "implement", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "GEMINI.md"},
+    {"id": "refactor_architecture_trio", "label": "Refactor Architecture Pattern", "nodes": ["refplan_thin_controller", "refplan_service_layer", "gemini_repository_pattern"], "relation": "form", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "REFACTORING_PLAN.md"}
+  ],
+  "input_tokens": 0,
+  "output_tokens": 0
+}
