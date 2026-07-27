@@ -2549,6 +2549,7 @@
                                                                     <option value="PPN">PPN</option>
                                                                     <option value="BPHTB">BPHTB</option>
                                                                     <option value="Biaya Proses">Biaya Proses</option>
+                                                                    <option value="Diskon">Diskon</option>
                                                                 </select>
                                                                 <label>Untuk Tagihan</label>
                                                                 <!-- <input required name="berita_acara" id="berita_acara"

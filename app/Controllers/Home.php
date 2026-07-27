@@ -437,11 +437,12 @@ class Home extends BaseController
                 ->groupBy("YEAR($field), MONTH($field), day(booking_tgl)")
                 ->get()->getResult();
         }
-        return $this->db->table('mkdt')
+        $rows = $this->db->table('mkdt')
             ->select("
-                YEAR($field) AS tahun, 
+                YEAR($field) AS tahun,
                 MONTH($field) AS bulan,
-                COUNT($field) AS jumlah
+                COUNT($field) AS jumlah,
+                GROUP_CONCAT(CONCAT(jalan.nama_jalan, ' No. ', kavling.no_kavling) ORDER BY kavling.no_kavling SEPARATOR '||') AS kavling_list
             ")
             ->join('kavling', 'kavling.id_kavling = mkdt.id_kavling')
             ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
@@ -453,6 +454,13 @@ class Home extends BaseController
             ->where("YEAR($field)", $thn)
             ->groupBy("YEAR($field), MONTH($field)")
             ->get()->getResult();
+
+        foreach ($rows as $row) {
+            $row->kavling = $row->kavling_list ? explode('||', $row->kavling_list) : [];
+            unset($row->kavling_list);
+        }
+
+        return $rows;
     }
     function loadAktivitas()
     {

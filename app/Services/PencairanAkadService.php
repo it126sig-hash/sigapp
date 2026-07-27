@@ -38,6 +38,7 @@ class PencairanAkadService
                 'harga_kpr_acc' => (float) ($mkdt->harga_kpr_acc ?? 0),
                 'status_mkdt' => $mkdt->status_mkdt,
                 'is_kpr' => (int) ($mkdt->is_kpr ?? 0),
+                'bank' => $mkdt->bank ?? null,
             ],
             'plan' => $plan,
             'list_dajam' => $this->getListDajam(),
@@ -971,9 +972,10 @@ class PencairanAkadService
 
     protected function getMkdtContext(int $idMkdt, int $idKavling): ?object
     {
-        return $this->db->table('mkdt')
-            ->select('id_mkdt, id_konsumen, status_mkdt, harga_kpr_acc, is_kpr')
-            ->where('id_mkdt', $idMkdt)
+        return $this->db->table('mkdt m')
+            ->select('m.id_mkdt, m.id_konsumen, m.status_mkdt, m.harga_kpr_acc, m.is_kpr, lb.bank')
+            ->join('list_bank lb', 'lb.id = m.id_bank', 'left')
+            ->where('m.id_mkdt', $idMkdt)
             ->get()
             ->getRow();
     }

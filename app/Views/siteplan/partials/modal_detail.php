@@ -286,6 +286,70 @@
 
                                             <div class="detail-summary-card detail-status-card">
                                                 <div class="detail-status-card-header">
+                                                    <div class="detail-card-icon"><i class="fas fa-tools"></i></div>
+                                                    <div class="detail-status-card-title">Bangunan</div>
+                                                </div>
+
+                                                <div class="mb-2">
+                                                    <div class="d-flex justify-content-between mb-50">
+                                                        <span class="detail-info-label">Progres Fisik</span>
+                                                        <span class="detail-info-value" id="s-progress_bangunan_text">0%</span>
+                                                    </div>
+                                                    <div class="detail-progress-track">
+                                                        <div id="s-progress_bangunan_bar" class="detail-progress-fill is-empty" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label"><i class="fas fa-check-circle detail-text-primary"></i> Selesai Pembangunan</span>
+                                                        <span class="detail-info-value" id="s-tanggal_selesai_pembangunan">-</span>
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Mulai Bangun</span>
+                                                        <span class="detail-info-value" id="s-tanggal_pembangunan">-</span>
+                                                    </div>
+                                                </div>
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Tgl Turun Perintah Bangun</span>
+                                                        <span class="detail-info-value" id="s-perintah_bangun_tgl">-</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title detail-section-title-dot">Site Amenities</span>
+                                                </div>
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Saluran</span>
+                                                        <span class="detail-status-badge badge-secondary" id="s-st_saluran">-</span>
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Air</span>
+                                                        <span class="detail-status-badge badge-secondary" id="s-st_air">-</span>
+                                                    </div>
+                                                </div>
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Listrik</span>
+                                                        <span class="detail-status-badge badge-secondary" id="s-st_jalan">-</span>
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">SLO/NIDI</span>
+                                                        <span class="detail-status-badge badge-secondary" id="s-slo">-</span>
+                                                    </div>
+                                                </div>
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">LPA</span>
+                                                        <span class="detail-status-badge badge-secondary" id="s-lpa">-</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="detail-summary-card detail-status-card">
+                                                <div class="detail-status-card-header">
                                                     <div class="detail-card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
                                                     <div class="detail-status-card-title">Keuangan</div>
                                                 </div>
@@ -377,69 +441,6 @@
                                                 <div id="s-pa-retensi"></div>
                                             </div>
 
-                                            <div class="detail-summary-card detail-status-card">
-                                                <div class="detail-status-card-header">
-                                                    <div class="detail-card-icon"><i class="fas fa-tools"></i></div>
-                                                    <div class="detail-status-card-title">Bangunan</div>
-                                                </div>
-
-                                                <div class="mb-2">
-                                                    <div class="d-flex justify-content-between mb-50">
-                                                        <span class="detail-info-label">Progres Fisik</span>
-                                                        <span class="detail-info-value" id="s-progress_bangunan_text">0%</span>
-                                                    </div>
-                                                    <div class="detail-progress-track">
-                                                        <div id="s-progress_bangunan_bar" class="detail-progress-fill is-empty" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label"><i class="fas fa-check-circle detail-text-primary"></i> Selesai Pembangunan</span>
-                                                        <span class="detail-info-value" id="s-tanggal_selesai_pembangunan">-</span>
-                                                    </div>
-                                                    <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label">Mulai Bangun</span>
-                                                        <span class="detail-info-value" id="s-tanggal_pembangunan">-</span>
-                                                    </div>
-                                                </div>
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">Tgl Turun Perintah Bangun</span>
-                                                        <span class="detail-info-value" id="s-perintah_bangun_tgl">-</span>
-                                                    </div>
-                                                </div>
-
-                                                <div class="detail-section-divider">
-                                                    <span class="detail-section-title detail-section-title-dot">Site Amenities</span>
-                                                </div>
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">Saluran</span>
-                                                        <span class="detail-status-badge badge-secondary" id="s-st_saluran">-</span>
-                                                    </div>
-                                                    <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label">Air</span>
-                                                        <span class="detail-status-badge badge-secondary" id="s-st_air">-</span>
-                                                    </div>
-                                                </div>
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">Listrik</span>
-                                                        <span class="detail-status-badge badge-secondary" id="s-st_jalan">-</span>
-                                                    </div>
-                                                    <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label">SLO/NIDI</span>
-                                                        <span class="detail-status-badge badge-secondary" id="s-slo">-</span>
-                                                    </div>
-                                                </div>
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">LPA</span>
-                                                        <span class="detail-status-badge badge-secondary" id="s-lpa">-</span>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
 
@@ -2061,6 +2062,17 @@
             </div>
             <div class="modal-footer">
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- lightbox untuk gambar embed di catatan pricelist -->
+<div class="modal fade" id="modal_image_lightbox" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-transparent border-0">
+            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"
+                style="position:absolute; top:-2rem; right:0;">×</button>
+            <img id="modal_image_lightbox_img" src="" class="img-fluid mx-auto d-block" alt="">
         </div>
     </div>
 </div>

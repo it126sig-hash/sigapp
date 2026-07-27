@@ -202,6 +202,11 @@
         overflow-wrap: anywhere;
     }
 
+    #modal_detail .detail-note-content img {
+        max-width: 100%;
+        cursor: zoom-in;
+    }
+
     #modal_detail .detail-tabs-card {
         margin-bottom: .75rem;
     }

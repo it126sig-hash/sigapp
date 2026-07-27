@@ -441,17 +441,17 @@ function load_cashout_subkon_detail(data) {
         btn = `<button type="button" class="btn btn-sm btn-info ajukan-spp w-100" ${actionAttrs}><i class="fa fa-plus"></i> Ajukan SPP</button>`;
       } else if (roleid == 7 && item.status == 2) {
         status =
-          "No SPP: " + cashoutSubkonEscapeHtml(sppNo) + "(" + format_date(sppTgl) + ")";
+          "Pengajuan Produksi: " + cashoutSubkonEscapeHtml(sppNo) + "(" + format_date(sppTgl) + ")";
         btn = `<button type="button" class="btn btn-sm btn-info ajukan-spp w-100" ${actionAttrs}><i class="fa fa-edit"></i> Ubah SPP</button>`;
       } else if (roleid == 3 && item.status == 2) {
         status =
-          "No SPP: " + cashoutSubkonEscapeHtml(sppNo) + "(" + format_date(sppTgl) + ")";
+          "Pengajuan Pencairan Keuangan: " + cashoutSubkonEscapeHtml(sppNo) + "(" + format_date(sppTgl) + ")";
         btn = `<button type="button" class="btn btn-sm btn-warning ajukan-pencairan w-100" ${actionAttrs}><i class="fa fa-plus"></i> Ajukan Pencairan</button>`;
       } else if (roleid == 3 && item.status == 3) {
         status =
           "Tgl Pengajuan Cair: " + format_date(pencairanTgl);
         btn = `<button type="button" class="btn btn-sm btn-warning ajukan-pencairan w-100" ${actionAttrs}><i class="fa fa-edit"></i> Ubah Tanggal</button>`;
-        btn += `<button type="button" class="btn btn-sm btn-success pembayaran-pencairan w-100" ${actionAttrs}><i class="fa fa-plus"></i> Pembayaran</button>`;
+        btn += `<button type="button" class="btn btn-sm btn-success pembayaran-pencairan w-100" ${actionAttrs}><i class="fa fa-plus"></i> Sudah Cair</button>`;
       } else if (item.status == 4) {
         status =
           "No Cek: " + cashoutSubkonEscapeHtml(item.cek_no || "") + "(" + format_date(item.cek_tgl) + ")";
@@ -519,90 +519,89 @@ function load_cashout_subkon_detail(data) {
   }
 }
 
-// === Turun Jatuh Tempo: inline edit flow ===
+// === Turun Jatuh Tempo: SweetAlert popup with form ===
 $(document).on("click", ".turun-jatuh-tempo", function () {
   const btn = $(this);
   const idx = btn.data("i");
   const id = btn.data("id");
-  const dateInput = $(`#fm-cashout-subkon-tanggal_jatuh_tempo-${idx}`);
-  const fp = dateInput[0]._flatpickr;
+  const isUbah = btn.data("status") == 1;
+  const beritaAcara = $(`#fm-cashout-subkon-berita_acara-${idx}`).val() || "-";
+  const nominal = $(`#fm-cashout-subkon-nominal-${idx}`).val() || "0";
+  const currentTanggal = $(`#fm-cashout-subkon-tanggal_jatuh_tempo-${idx}`).val() || "";
 
-  // Enable the date input (both original + flatpickr alt input)
-  dateInput.prop("disabled", false);
-  if (fp && fp.altInput) {
-    fp.altInput.disabled = false;
-  }
+  cashoutSubkonFixModalFocus();
 
-  // Replace button with confirm (✓) and cancel (✗) buttons
-  const td = btn.closest("td");
-  td.html(
-    `<div class="btn-group w-100">
-      <button type="button" class="btn btn-sm btn-success confirm-jatuh-tempo w-50" data-i="${idx}" data-id="${id}"><i class="fa fa-check"></i></button>
-      <button type="button" class="btn btn-sm btn-danger cancel-jatuh-tempo w-50" data-i="${idx}" data-id="${id}"><i class="fa fa-times"></i></button>
-    </div>`,
-  );
-});
-
-// Confirm: validate & send to server
-$(document).on("click", ".confirm-jatuh-tempo", function () {
-  const btn = $(this);
-  const idx = btn.data("i");
-  const id = btn.data("id");
-  const dateInput = $(`#fm-cashout-subkon-tanggal_jatuh_tempo-${idx}`);
-  const tanggal = dateInput.val();
-
-  if (!tanggal) {
-    return swal("error", "Tanggal Jatuh Tempo harus diisi");
-  }
-
-  const berita_acara = $(`#fm-cashout-subkon-berita_acara-${idx}`).val();
-
-  $.ajax({
-    url: base_url + "cashout/subkon/turun-jatuh-tempo",
-    type: "POST",
-    data: cashoutSubkonPostData({
-      id_cashout_subkon_detail: id,
-      tanggal_jatuh_tempo: tanggal,
-      berita_acara: berita_acara,
-    }),
-    dataType: "json",
-    beforeSend: function () {
-      btn.prop("disabled", true);
+  Swal.fire({
+    title: isUbah ? "Ubah Jatuh Tempo" : "Terbit Jatuh Tempo",
+    html: `
+      <div class="text-left">
+        <div class="form-group">
+          <label>Termin</label>
+          <div class="font-weight-bold">${cashoutSubkonEscapeHtml(beritaAcara)}</div>
+        </div>
+        <div class="form-group">
+          <label>Nominal</label>
+          <div class="font-weight-bold">Rp ${cashoutSubkonEscapeHtml(nominal)}</div>
+        </div>
+        <div class="form-group">
+          <label for="swal-jatuh_tempo">Tanggal Jatuh Tempo</label>
+          <input type="text" id="swal-jatuh_tempo" class="form-control flatpickr-basic" placeholder="Pilih Tanggal Jatuh Tempo" value="${cashoutSubkonEscapeAttr(currentTanggal)}">
+        </div>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: "Simpan",
+    cancelButtonText: "Batal",
+    focusConfirm: false,
+    didOpen: () => {
+      $("#swal-jatuh_tempo").flatpickr({
+        altInput: true,
+        altFormat: "j F Y",
+        dateFormat: "Y-m-d",
+        defaultDate: currentTanggal || new Date(),
+      });
     },
-    success: function (r) {
-      syncCashoutSubkonToken(r);
-      btn.prop("disabled", false);
-      if (r.status == "error") {
-        return swal("error", r.message);
+    preConfirm: () => {
+      const tanggal_jatuh_tempo = Swal.getPopup().querySelector("#swal-jatuh_tempo").value;
+      if (!tanggal_jatuh_tempo) {
+        Swal.showValidationMessage(`Tanggal Jatuh Tempo harus diisi`);
       }
-      swal("success", r.message);
-      reloadCurrentCashoutSubkon();
+      return { tanggal_jatuh_tempo: tanggal_jatuh_tempo };
     },
-    error: function () {
-      btn.prop("disabled", false);
-      return swal("error", "Terjadi kesalahan saat menyimpan data");
-    },
+  }).then((result) => {
+    if (result.isConfirmed) {
+      $.ajax({
+        url: base_url + "cashout/subkon/turun-jatuh-tempo",
+        type: "POST",
+        data: cashoutSubkonPostData({
+          id_cashout_subkon_detail: id,
+          tanggal_jatuh_tempo: result.value.tanggal_jatuh_tempo,
+          berita_acara: beritaAcara,
+        }),
+        dataType: "json",
+        beforeSend: function () {
+          Swal.fire({
+            title: "Mohon Tunggu",
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            },
+          });
+        },
+        success: function (r) {
+          syncCashoutSubkonToken(r);
+          if (r.status == "error") {
+            return swal("error", r.message);
+          }
+          swal("success", r.message);
+          reloadCurrentCashoutSubkon();
+        },
+        error: function () {
+          return swal("error", "Terjadi kesalahan saat menyimpan data");
+        },
+      });
+    }
   });
-});
-
-// Cancel: revert to original button
-$(document).on("click", ".cancel-jatuh-tempo", function () {
-  const btn = $(this);
-  const idx = btn.data("i");
-  const id = btn.data("id");
-  const dateInput = $(`#fm-cashout-subkon-tanggal_jatuh_tempo-${idx}`);
-
-  // Disable input again (both original + flatpickr alt input)
-  dateInput.prop("disabled", true);
-  if (dateInput[0]._flatpickr && dateInput[0]._flatpickr.altInput) {
-    dateInput[0]._flatpickr.altInput.disabled = true;
-  }
-
-  // Restore original button
-  const td = btn.closest("td");
-  td.html(
-    `<button type="button" class="btn btn-sm btn-secondary turun-jatuh-tempo" data-i="${idx}" data-id="${id}" data-status="0"><i class="fa fa-edit"></i> Terbit Jatuh Tempo</button>`,
-  );
 });
 
 // === Ajukan SPP: SweetAlert popup with form ===
@@ -620,8 +619,8 @@ $(document).on("click", ".ajukan-spp", function () {
     html: `
       <div class="text-left">
         <div class="form-group">
-          <label for="swal-spp_no">No. SPP</label>
-          <input type="text" id="swal-spp_no" class="form-control" placeholder="Masukkan No. SPP" value="${cashoutSubkonEscapeAttr(sppNo)}">
+          <label for="swal-spp_no">No. Pengajuan Produksi</label>
+          <input type="text" id="swal-spp_no" class="form-control" placeholder="Masukkan No. Pengajuan Produksi" value="${cashoutSubkonEscapeAttr(sppNo)}">
         </div>
         <div class="form-group">
           <label for="swal-spp_tgl">Tanggal SPP</label>
@@ -646,7 +645,7 @@ $(document).on("click", ".ajukan-spp", function () {
       const spp_no = Swal.getPopup().querySelector("#swal-spp_no").value.trim();
       const spp_tgl = Swal.getPopup().querySelector("#swal-spp_tgl").value;
       if (!spp_no || !spp_tgl) {
-        Swal.showValidationMessage(`No SPP dan Tanggal SPP harus diisi`);
+        Swal.showValidationMessage(`Pengajuan Produksi dan Tanggal SPP harus diisi`);
       }
       return { spp_no: spp_no, spp_tgl: spp_tgl };
     },
@@ -702,8 +701,8 @@ $(document).on("click", ".ajukan-pencairan", function () {
     html: `
       <div class="text-left">
         <div class="form-group">
-          <label for="swal-pencairan_spp_no">No. SPP</label>
-          <input type="text" id="swal-pencairan_spp_no" class="form-control" placeholder="Masukkan No. SPP" value="${cashoutSubkonEscapeAttr(sppNo)}">
+          <label for="swal-pencairan_spp_no">No. Pengajuan Pencairan Keuangan</label>
+          <input type="text" id="swal-pencairan_spp_no" class="form-control" placeholder="Masukkan No. Pengajuan Pencairan Keuangan" value="${cashoutSubkonEscapeAttr(sppNo)}">
         </div>
         <div class="form-group">
           <label for="swal-pencairan_spp_tgl">Tanggal SPP</label>
@@ -741,7 +740,7 @@ $(document).on("click", ".ajukan-pencairan", function () {
         "#swal-pencairan_tgl",
       ).value;
       if (!spp_no || !spp_tgl || !pencairan_tgl) {
-        Swal.showValidationMessage(`No SPP, Tanggal SPP, dan Tanggal Pengajuan Cair harus diisi`);
+        Swal.showValidationMessage(`Pengajuan Pencairan Keuangan, Tanggal SPP, dan Tanggal Pengajuan Cair harus diisi`);
       }
       return { spp_no: spp_no, spp_tgl: spp_tgl, pencairan_tgl: pencairan_tgl };
     },

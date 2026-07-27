@@ -189,6 +189,77 @@
         width: 100%;
     }
 
+    #pencairan_akad_modal .pa-kpi-icon {
+        align-items: center;
+        border-radius: 10px;
+        display: flex;
+        flex: 0 0 40px;
+        height: 40px;
+        justify-content: center;
+        width: 40px;
+    }
+
+    #pencairan_akad_modal .pa-kpi-icon-sm {
+        flex: 0 0 30px;
+        height: 30px;
+        width: 30px;
+    }
+
+    #pencairan_akad_modal .pa-kpi-icon i {
+        font-size: 1rem;
+    }
+
+    #pencairan_akad_modal .pa-kpi-icon-sm i {
+        font-size: .8rem;
+    }
+
+    #pencairan_akad_modal .pa-kpi-bank-box {
+        align-items: center;
+        background: #eef2ff;
+        border-radius: 8px;
+        display: flex;
+        gap: .5rem;
+        padding: .5rem .75rem;
+    }
+
+    #pencairan_akad_modal .pa-kpi-item {
+        margin-bottom: 1rem;
+    }
+
+    #pencairan_akad_modal .pa-kpi-progress {
+        background: #f1f5f9;
+        border-radius: 999px;
+        height: 6px;
+        overflow: hidden;
+    }
+
+    #pencairan_akad_modal .pa-kpi-progress-bar {
+        border-radius: 999px;
+        height: 100%;
+        transition: width .4s ease;
+        width: 0%;
+    }
+
+    #pencairan_akad_modal .pa-kpi-footer {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: .85rem;
+    }
+
+    #pencairan_akad_modal .pa-kpi-footer-col {
+        padding: 0 .5rem;
+    }
+
+    #pencairan_akad_modal .pa-kpi-footer-col-border {
+        border-left: 1px solid #e5e7eb;
+    }
+
+    #pencairan_akad_modal .pa-kpi-note {
+        color: #6b7280;
+        font-size: .72rem;
+        margin-top: .85rem;
+    }
+
     @media (max-width: 767.98px) {
         #pencairan_akad_modal .modal-dialog {
             max-width: calc(100vw - 12px);
@@ -219,7 +290,7 @@
             </div>
             <div class="modal-body keu-pa-body">
                 <div class="keu-pa-layout">
-                    <aside class="keu-pa-sidebar">
+                    <aside class="col-md-4">
                         <div class="card">
                             <div class="card-body bg-primary text-light">
                                 <p class="modal-title label_alamat" id="pa-label-alamat"></p>
@@ -237,38 +308,107 @@
                             </div>
                         </div>
                         <div class="card mb-0">
-                            <div class="card-body">
-                                <div class="divider divider-left">
-                                    <div class="divider-text">Ringkasan</div>
+                            <div class="card-body pa-kpi-card">
+                                <div class="d-flex align-items-start justify-content-between flex-wrap mb-1" style="gap:.6rem;">
+                                    <div>
+                                        <div class="d-flex align-items-center mb-50" style="gap:.6rem;">
+                                            <div class="pa-kpi-icon bg-light-primary text-primary"><i class="fas fa-home"></i></div>
+                                            <h6 class="mb-0 font-weight-bold">Ringkasan KPR</h6>
+                                        </div>
+                                        <span class="text-muted d-block" style="font-size:.76rem;">Plafon KPR Disetujui</span>
+                                        <h3 class="text-primary font-weight-bolder mb-0" id="pa-acc-kpr-label">Rp 0</h3>
+                                    </div>
+                                    <div class="pa-kpi-bank-box" id="pa-bank-box" style="display:none;">
+                                        <i class="fas fa-university text-primary"></i>
+                                        <div>
+                                            <span class="text-muted d-block" style="font-size:.66rem;">Bank Pemberi KPR</span>
+                                            <strong id="pa-bank-label">-</strong>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="keu-pa-summary-row">
-                                    <span>ACC KPR</span>
-                                    <strong id="pa-acc-kpr-label">0</strong>
+
+                                <div class="pa-kpi-item">
+                                    <div class="d-flex align-items-center" style="gap:.65rem;">
+                                        <div class="flex-grow-1 min-width-0">
+                                            <div class="d-flex align-items-start justify-content-between" style="gap:.5rem;">
+                                                <div>
+                                                    <strong class="text-success d-block">Dana Sudah Cair</strong>
+                                                    <span class="text-muted" style="font-size:.7rem;">Dana yang sudah dicairkan bank</span>
+                                                </div>
+                                                <div class="text-right">
+                                                    <strong id="pa-total-cair-label">Rp 0</strong>
+                                                    <span class="badge badge-pill badge-success ml-25" id="pa-total-cair-pct">0%</span>
+                                                </div>
+                                            </div>
+                                            <div class="pa-kpi-progress mt-50"><div class="pa-kpi-progress-bar bg-success" id="pa-total-cair-bar"></div></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="keu-pa-summary-row">
-                                    <span>Total Retensi</span>
-                                    <strong id="pa-total-retensi-label" class="text-primary">0</strong>
+
+                                <div class="pa-kpi-item">
+                                    <div class="d-flex align-items-center" style="gap:.65rem;">
+                                        <div class="flex-grow-1 min-width-0">
+                                            <div class="d-flex align-items-start justify-content-between" style="gap:.5rem;">
+                                                <div>
+                                                    <strong class="text-warning d-block">Pengajuan Pencairan</strong>
+                                                    <span class="text-muted" style="font-size:.7rem;">Dana yang sedang diajukan</span>
+                                                </div>
+                                                <div class="text-right">
+                                                    <strong id="pa-total-pengajuan-label">Rp 0</strong>
+                                                    <span class="badge badge-pill badge-warning ml-25" id="pa-total-pengajuan-pct">0%</span>
+                                                </div>
+                                            </div>
+                                            <div class="pa-kpi-progress mt-50"><div class="pa-kpi-progress-bar bg-warning" id="pa-total-pengajuan-bar"></div></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="keu-pa-summary-row">
-                                    <span>Hasil Akad</span>
-                                    <strong id="pa-hasil-akad-label" class="text-info">0</strong>
+
+                                <div class="pa-kpi-item mb-0">
+                                    <div class="d-flex align-items-center" style="gap:.65rem;">
+                                        <div class="flex-grow-1 min-width-0">
+                                            <div class="d-flex align-items-start justify-content-between" style="gap:.5rem;">
+                                                <div>
+                                                    <strong class="text-danger d-block">Sisa Dana Belum Cair</strong>
+                                                    <span class="text-muted" style="font-size:.7rem;">Sisa dana yang belum dicairkan</span>
+                                                </div>
+                                                <div class="text-right">
+                                                    <strong id="pa-sisa-hasil-akad-label">Rp 0</strong>
+                                                    <span class="badge badge-pill badge-danger ml-25" id="pa-sisa-hasil-akad-pct">0%</span>
+                                                </div>
+                                            </div>
+                                            <div class="pa-kpi-progress mt-50"><div class="pa-kpi-progress-bar bg-danger" id="pa-sisa-hasil-akad-bar"></div></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="keu-pa-summary-row">
-                                    <span>Pengajuan</span>
-                                    <strong id="pa-total-pengajuan-label" class="text-warning">0</strong>
+
+                                <div class="pa-kpi-footer">
+                                    <div class="row no-gutters">
+                                        <div class="col-6 pa-kpi-footer-col">
+                                            <div class="d-flex align-items-center" style="gap:.5rem;">
+                                                <div class="pa-kpi-icon pa-kpi-icon-sm bg-light-info text-info"><i class="fas fa-file-invoice"></i></div>
+                                                <strong>Dana Akad Bersih</strong>
+                                            </div>
+                                            <span class="text-muted d-block mt-50" style="font-size:.68rem;">Dana yang dapat dicairkan setelah dikurangi retensi</span>
+                                            <strong class="text-info d-block mt-50" id="pa-hasil-akad-label" style="font-size:1.05rem;">Rp 0</strong>
+                                        </div>
+                                        <div class="col-6 pa-kpi-footer-col pa-kpi-footer-col-border">
+                                            <div class="d-flex align-items-center" style="gap:.5rem;">
+                                                <div class="pa-kpi-icon pa-kpi-icon-sm bg-light-primary text-primary"><i class="fas fa-lock"></i></div>
+                                                <strong>Dana Retensi</strong>
+                                            </div>
+                                            <span class="text-muted d-block mt-50" style="font-size:.68rem;">Dana yang ditahan oleh bank dengan kondisi tertentu</span>
+                                            <strong class="text-primary d-block mt-50" id="pa-total-retensi-label" style="font-size:1.05rem;">Rp 0</strong>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="keu-pa-summary-row">
-                                    <span>Sudah Cair</span>
-                                    <strong id="pa-total-cair-label" class="text-success">0</strong>
-                                </div>
-                                <div class="keu-pa-summary-row">
-                                    <span>Sisa Hasil Akad</span>
-                                    <strong id="pa-sisa-hasil-akad-label" class="text-danger">0</strong>
+
+                                <div class="pa-kpi-note">
+                                    <i class="fas fa-info-circle mr-25"></i> Persentase dihitung berdasarkan Plafon KPR Disetujui.
                                 </div>
                             </div>
                         </div>
                     </aside>
-                    <section class="keu-pa-content">
+                    <section class="col-md-8">
                         <div class="card">
                             <div class="card-body pb-0">
                                 <ul class="nav nav-tabs mb-1" role="tablist">
@@ -278,7 +418,7 @@
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" id="pa-tenor-tab" data-toggle="tab"
-                                            href="#pa-tenor-pane" role="tab">Hasil Akad</a>
+                                            href="#pa-tenor-pane" role="tab">Dana Akad Bersih</a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" id="pa-pengajuan-pencairan-tab" data-toggle="tab"
@@ -320,10 +460,10 @@
                                 <div class="card mb-0">
                                     <div class="card-body">
                                         <div class="divider divider-left">
-                                            <div class="divider-text">Tenor Pencairan Hasil Akad (manual, total tidak boleh melebihi Hasil Akad)</div>
+                                            <div class="divider-text">Termin Pencairan Dana Akad Bersih (manual, total tidak boleh melebihi Dana Akad Bersih)</div>
                                         </div>
                                         <div class="alert alert-light-primary py-1 mb-1" id="pa-tenor-sisa-box">
-                                            Sisa Hasil Akad: <strong id="pa-tenor-sisa-label">Rp 0</strong>
+                                            Sisa Dana Akad Bersih: <strong id="pa-tenor-sisa-label">Rp 0</strong>
                                         </div>
                                         <div id="pa-tenor_here"></div>
                                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="addPencairanAkadTenorRow()">
@@ -358,19 +498,21 @@
                                             <form id="form-pencairan-akad-pengajuan" enctype="multipart/form-data" autocomplete="off">
                                                 <input type="hidden" id="pa-pengajuan-id_plan" name="id_plan" value="">
                                                 <div class="row">
-                                                    <div class="col-md-4">
+                                                    <div class="col-md-6">
+                                                        <div class="divider divider-left">
+                                                            <div class="divider-text">Pilih Item Pencairan</div>
+                                                        </div>
+                                                        <div id="pa-pengajuan-item_here"></div>
+                                                    </div>
+                                                    <div class="col-md-6">
                                                         <div class="form-group">
                                                             <label>Tanggal Pengajuan</label>
                                                             <input type="date" class="form-control" name="tanggal_pengajuan" required>
                                                         </div>
-                                                    </div>
-                                                    <div class="col-md-4">
                                                         <div class="form-group">
                                                             <label>Tanggal Rencana Cair</label>
                                                             <input type="date" class="form-control" name="tanggal_rencana_cair">
                                                         </div>
-                                                    </div>
-                                                    <div class="col-md-4">
                                                         <div class="form-group">
                                                             <label>Lampiran Surat (PDF/Gambar, opsional)</label>
                                                             <div class="dropzone dropzone-lg custom-file" id="pa-dz-lampiran">
@@ -385,17 +527,13 @@
                                                                 </div>
                                                             </div>
                                                         </div>
+                                                        <div class="form-group">
+                                                            <label>Catatan Pengajuan</label>
+                                                            <textarea class="form-control" name="catatan" rows="2"></textarea>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-primary mt-1">Simpan Pengajuan</button>
                                                     </div>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label>Catatan Pengajuan</label>
-                                                    <textarea class="form-control" name="catatan" rows="2"></textarea>
-                                                </div>
-                                                <div class="divider divider-left">
-                                                    <div class="divider-text">Pilih Item (Retensi / Hasil akad)</div>
-                                                </div>
-                                                <div id="pa-pengajuan-item_here"></div>
-                                                <button type="submit" class="btn btn-primary mt-1">Simpan Pengajuan</button>
                                             </form>
                                         </div>
 

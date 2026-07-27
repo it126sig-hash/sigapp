@@ -571,6 +571,20 @@
 </div>
 <!-- END: Content-->
 
+<div class="modal fade" id="modal-chart-kavling">
+	<div class="modal-dialog modal-dialog-scrollable">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modal-chart-kavling-title"></h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
+			</div>
+			<div class="modal-body">
+				<ul class="list-unstyled mb-0" id="modal-chart-kavling-list"></ul>
+			</div>
+		</div>
+	</div>
+</div>
+
 <!-- BEGIN: Vendor JS-->
 <script src="<?= base_url() ?>/app-assets/vendors/js/vendors.min.js"></script>
 <script src="<?= base_url() ?>/app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
@@ -702,6 +716,19 @@
 		thn = "<?=date("Y")?>";
 	let aktStart = 0,
 		aktIsLoading = false;
+
+	let bookingKavlingByMonth = Array.from({length: 12}, () => []);
+	let akadKavlingByMonth = Array.from({length: 12}, () => []);
+
+	function showChartKavlingModal(seriesLabel, monthLabel, list) {
+		$("#modal-chart-kavling-title").text(seriesLabel + ' — ' + monthLabel);
+		$("#modal-chart-kavling-list").html(
+			list.length
+				? list.map(k => `<li>${escapeHtml(k)}</li>`).join('')
+				: '<li class="text-muted">Tidak ada kavling</li>'
+		);
+		$("#modal-chart-kavling").modal('show');
+	}
 
 	if (window.SIGAPP && window.SIGAPP.activeProyekName) {
 		$("#dashboard-active-proyek").text("Proyek: " + window.SIGAPP.activeProyekName);
@@ -852,11 +879,15 @@
 					// Update the chart data
 					let booking = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 					let akad = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+					bookingKavlingByMonth = Array.from({length: 12}, () => []);
+					akadKavlingByMonth = Array.from({length: 12}, () => []);
 					$.each(r.cbooking || [], function(i, v) {
 						booking[parseInt(v.bulan) - 1] = v.jumlah;
+						bookingKavlingByMonth[parseInt(v.bulan) - 1] = v.kavling || [];
 					});
 					$.each(r.cakad || [], function(i, v) {
 						akad[parseInt(v.bulan) - 1] = v.jumlah;
+						akadKavlingByMonth[parseInt(v.bulan) - 1] = v.kavling || [];
 					});
 					myLineChart.data.datasets[0].data = booking;
 					myLineChart.data.datasets[1].data = akad;
@@ -939,6 +970,29 @@
 	var options = {
 		responsive: true,
 		maintainAspectRatio: false,
+		onClick: function(evt, elements) {
+			if (!elements.length) return;
+			const el = elements[0];
+			const label = el.datasetIndex === 0 ? 'Booking' : 'Akad';
+			const list = (el.datasetIndex === 0 ? bookingKavlingByMonth : akadKavlingByMonth)[el.index] || [];
+			showChartKavlingModal(label, data.labels[el.index], list);
+		},
+		plugins: {
+			tooltip: {
+				callbacks: {
+					afterBody: function(items) {
+						if (!items.length) return [];
+						const it = items[0];
+						const list = (it.datasetIndex === 0 ? bookingKavlingByMonth : akadKavlingByMonth)[it.dataIndex] || [];
+						if (!list.length) return [];
+						const preview = list.slice(0, 8);
+						const lines = preview.map(k => '• ' + k);
+						if (list.length > preview.length) lines.push(`+${list.length - preview.length} lainnya`);
+						return lines;
+					}
+				}
+			}
+		},
 		scales: {
 			x: {
 				type: 'category', // category scale for X-axis

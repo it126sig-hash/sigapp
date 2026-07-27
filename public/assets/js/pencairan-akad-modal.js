@@ -73,7 +73,7 @@ function loadPencairanAkadData(openModal) {
       st.pengajuan = r.list_pengajuan || [];
 
       if (parseInt(st.mkdt.is_kpr) === 1 && parseFloat(st.mkdt.harga_kpr_acc || 0) <= 0) {
-        swal("warning", "Nominal ACC KPR 0", "Hubungi MKDT untuk memastikan nominal ACC KPR sebelum membuat plan pencairan.");
+        swal("warning", "Nominal Plafon KPR Disetujui 0", "Hubungi MKDT untuk memastikan nominal Plafon KPR Disetujui sebelum membuat plan pencairan.");
       }
 
       if (openModal) {
@@ -105,6 +105,22 @@ function renderPencairanAkadHeader() {
   $("#pa-status-mkdt").text(pencairanAkadState.mkdt.status_mkdt || "-");
 }
 
+function paRp(value) {
+  return "Rp " + paMoney(value);
+}
+
+function paKpiPercentText(value, base) {
+  const pct = base > 0 ? Math.max(0, Math.min(100, (value / base) * 100)) : 0;
+  const rounded = Math.round(pct * 100) / 100;
+  return { pct: rounded, text: (Number.isInteger(rounded) ? rounded : rounded.toFixed(2)) + "%" };
+}
+
+function paSetKpiProgress(prefix, value, base) {
+  const info = paKpiPercentText(value, base);
+  $("#" + prefix + "-pct").text(info.text);
+  $("#" + prefix + "-bar").css("width", info.pct + "%");
+}
+
 function renderPencairanAkadSummary() {
   const m = pencairanAkadState.mkdt || {};
   const plan = pencairanAkadState.plan;
@@ -117,13 +133,21 @@ function renderPencairanAkadSummary() {
   const totalPengajuanOutstanding = nonVoid.reduce(function (sum, row) {
     return sum + (parseFloat(row.total_pengajuan || 0) - parseFloat(row.total_cair || 0));
   }, 0);
+  const sisa = accKpr - totalCair;
 
-  $("#pa-acc-kpr-label").text(paMoney(accKpr));
-  $("#pa-total-retensi-label").text(paMoney(totalRetensi));
-  $("#pa-hasil-akad-label").text(paMoney(hasilAkad));
-  $("#pa-total-pengajuan-label").text(paMoney(totalPengajuanOutstanding));
-  $("#pa-total-cair-label").text(paMoney(totalCair));
-  $("#pa-sisa-hasil-akad-label").text(paMoney(accKpr - totalCair));
+  $("#pa-acc-kpr-label").text(paRp(accKpr));
+  $("#pa-total-retensi-label").text(paRp(totalRetensi));
+  $("#pa-hasil-akad-label").text(paRp(hasilAkad));
+  $("#pa-total-pengajuan-label").text(paRp(totalPengajuanOutstanding));
+  $("#pa-total-cair-label").text(paRp(totalCair));
+  $("#pa-sisa-hasil-akad-label").text(paRp(sisa));
+
+  paSetKpiProgress("pa-total-cair", totalCair, accKpr);
+  paSetKpiProgress("pa-total-pengajuan", totalPengajuanOutstanding, accKpr);
+  paSetKpiProgress("pa-sisa-hasil-akad", sisa, accKpr);
+
+  $("#pa-bank-box").toggle(!!m.bank);
+  $("#pa-bank-label").text(m.bank || "-");
 }
 
 function paHasilAkadValue() {
@@ -253,10 +277,10 @@ function paTenorRowHtml(idItem, nominal, catatan, isLocked) {
   return `
     <div class="form-row align-items-end pa-tenor-row mb-1" data-id="${idItem || ""}">
       <div class="col-md-4">
-        <input type="text" class="form-control form-control-sm num pa-tenor-nominal" value="${nominal || 0}" placeholder="Nominal tenor" ${disabled}>
+        <input type="text" class="form-control form-control-sm num pa-tenor-nominal" value="${nominal || 0}" placeholder="Nominal termin" ${disabled}>
       </div>
       <div class="col-md-5">
-        <input type="text" class="form-control form-control-sm pa-tenor-catatan" value="${paEscape(catatan || "")}" placeholder="Catatan tenor" ${disabled}>
+        <input type="text" class="form-control form-control-sm pa-tenor-catatan" value="${paEscape(catatan || "")}" placeholder="Catatan termin" ${disabled}>
       </div>
       <div class="col-md-3">${removeBtn}</div>
     </div>`;
@@ -279,7 +303,7 @@ function renderPencairanAkadTenor() {
   tenor.forEach(function (item) {
     html += paTenorRowHtml(item.id, item.nominal, item.catatan, !!item.is_locked);
   });
-  $("#pa-tenor_here").html(html || '<p class="text-muted">Belum ada tenor. Klik Tambah Tenor.</p>');
+  $("#pa-tenor_here").html(html || '<p class="text-muted">Belum ada termin. Klik Tambah Termin.</p>');
   $("#pa-tenor_here .num").keyup();
   updatePencairanAkadTenorSisa();
 }
@@ -340,7 +364,7 @@ $(document).on("keyup change", "#pa-tenor_here .pa-tenor-nominal", function () {
 
 function savePencairanAkadTenor() {
   if (paTenorTotalInForm() > paHasilAkadValue() + 0.01) {
-    return swal("error", "Terjadi kesalahan", "Total tenor tidak boleh melebihi hasil akad");
+    return swal("error", "Terjadi kesalahan", "Total termin tidak boleh melebihi dana akad bersih");
   }
 
   const tenor = [];
@@ -369,7 +393,7 @@ function savePencairanAkadTenor() {
       $("#loading").addClass("hidden");
       if (r.token) csrfHash = r.token;
       if (r.success === true) {
-        swal("success", r.messages || r.message || "Tenor berhasil disimpan");
+        swal("success", r.messages || r.message || "Termin berhasil disimpan");
         loadPencairanAkadData(false);
       } else {
         swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");
@@ -377,32 +401,52 @@ function savePencairanAkadTenor() {
     },
     error: function () {
       $("#loading").addClass("hidden");
-      swal("error", "Terjadi kesalahan", "Tenor gagal disimpan");
+      swal("error", "Terjadi kesalahan", "Termin gagal disimpan");
     },
   });
+}
+
+function paPengajuanItemCheckboxHtml(item, label) {
+  return `
+    <div class="custom-control custom-checkbox mb-50">
+      <input type="checkbox" class="custom-control-input" id="pa-pengajuan-item-${item.id}" name="items[]" value="${item.id}">
+      <label class="custom-control-label" for="pa-pengajuan-item-${item.id}">
+        ${label} - Rp ${paMoney(item.sisa)} ${item.catatan ? "(" + paEscape(item.catatan) + ")" : ""}
+      </label>
+    </div>`;
 }
 
 function renderPencairanAkadPengajuanItemPicker() {
   const visibleItems = pencairanAkadState.items.filter(function (item) {
     return parseFloat(item.sisa) > 0.01;
   });
-  let cols = "";
-  visibleItems.forEach(function (item) {
-    const label = item.jenis === "retensi"
-      ? "Retensi - " + paEscape(item.nama_jaminan || "")
-      : "Tenor #" + item.urutan_tenor;
-    cols += `
-      <div class="col-md-6">
-        <div class="custom-control custom-checkbox mb-50">
-          <input type="checkbox" class="custom-control-input" id="pa-pengajuan-item-${item.id}" name="items[]" value="${item.id}">
-          <label class="custom-control-label" for="pa-pengajuan-item-${item.id}">
-            ${label} - Rp ${paMoney(item.sisa)} ${item.catatan ? "(" + paEscape(item.catatan) + ")" : ""}
-          </label>
-        </div>
-      </div>`;
-  });
-  const html = cols ? `<div class="row">${cols}</div>` : "";
-  $("#pa-pengajuan-item_here").html(html || '<p class="text-muted">Belum ada item yang bisa diajukan. Simpan plan retensi/tenor dulu.</p>');
+
+  if (!visibleItems.length) {
+    $("#pa-pengajuan-item_here").html('<p class="text-muted">Belum ada item yang bisa diajukan. Simpan plan retensi/termin dulu.</p>');
+    return;
+  }
+
+  const retensiItems = visibleItems.filter(function (item) { return item.jenis === "retensi"; });
+  const terminItems = visibleItems.filter(function (item) { return item.jenis !== "retensi"; });
+
+  const retensiHtml = retensiItems
+    .map(function (item) { return paPengajuanItemCheckboxHtml(item, "Retensi - " + paEscape(item.nama_jaminan || "")); })
+    .join("") || '<p class="text-muted small mb-0">Tidak ada item retensi.</p>';
+
+  const terminHtml = terminItems
+    .map(function (item) { return paPengajuanItemCheckboxHtml(item, "Termin #" + item.urutan_tenor); })
+    .join("") || '<p class="text-muted small mb-0">Tidak ada item termin.</p>';
+
+  $("#pa-pengajuan-item_here").html(`
+    <div class="divider divider-left mb-50">
+      <div class="divider-text">Retensi</div>
+    </div>
+    ${retensiHtml}
+    <div class="divider divider-left mb-50 mt-1">
+      <div class="divider-text">Termin Pembayaran</div>
+    </div>
+    ${terminHtml}
+  `);
 }
 
 $("#pa-btn-show-pengajuan").on("click", function () {
@@ -516,7 +560,7 @@ function renderPencairanAkadPengajuanTable() {
       : `<button type="button" class="btn btn-outline-danger btn-sm" onclick="voidPencairanAkad(${row.id})" ${parseFloat(row.total_cair) > 0 ? "disabled" : ""}><i class="fas fa-ban"></i></button>`;
     const itemList = (row.details || [])
       .map(function (d) {
-        const label = d.jenis === "retensi" ? "Retensi - " + paEscape(d.nama_jaminan || "") : "Tenor #" + d.urutan_tenor;
+        const label = d.jenis === "retensi" ? "Retensi - " + paEscape(d.nama_jaminan || "") : "Termin #" + d.urutan_tenor;
         const catatan = d.item_catatan ? " (" + paEscape(d.item_catatan) + ")" : "";
         return `${label}: Rp ${paMoney(d.nominal_pengajuan)}${catatan}`;
       })
@@ -574,12 +618,22 @@ function voidPencairanAkad(id) {
   });
 }
 
+function paPengajuanItemSummaryText(row) {
+  return (row.details || [])
+    .map(function (d) {
+      return d.jenis === "retensi" ? "Retensi - " + (d.nama_jaminan || "") : "Termin #" + d.urutan_tenor;
+    })
+    .join(", ");
+}
+
 function renderPencairanAkadCairSelect() {
   let options = '<option value="">Pilih pengajuan</option>';
   pencairanAkadState.pengajuan
     .filter(function (row) { return row.status === "active" || row.status === "partial"; })
     .forEach(function (row) {
-      options += `<option value="${row.id}">#${row.id} - ${row.tanggal_pengajuan} - Rp ${paMoney(row.total_pengajuan)} (${row.status})</option>`;
+      const itemSummary = paPengajuanItemSummaryText(row);
+      const itemText = itemSummary ? " — " + itemSummary : "";
+      options += `<option value="${row.id}">#${row.id} - ${row.tanggal_pengajuan} - Rp ${paMoney(row.total_pengajuan)} (${row.status})${itemText}</option>`;
     });
   $("#pa-cair-select_pengajuan").html(options);
   $("#pa-cair-detail_here").html("");
@@ -600,7 +654,7 @@ function renderPencairanAkadCairForm() {
   (row.details || []).forEach(function (d) {
     const sisa = parseFloat(d.nominal_pengajuan) - parseFloat(d.nominal_cair || 0);
     if (sisa <= 0) return;
-    const label = d.jenis === "retensi" ? "Retensi - " + paEscape(d.nama_jaminan || "") : "Tenor #" + d.urutan_tenor;
+    const label = d.jenis === "retensi" ? "Retensi - " + paEscape(d.nama_jaminan || "") : "Termin #" + d.urutan_tenor;
     html += `
       <div class="form-row align-items-end mb-1">
         <div class="col-md-6">${label} (sisa Rp ${paMoney(sisa)})</div>

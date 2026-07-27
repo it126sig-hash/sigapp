@@ -1059,9 +1059,9 @@ Date.prototype.toDateInputValue = (function() {
                         return val !== null && val !== '';
                     });
 
-                    if (va != 11 && va != 5 && va != 10 && isComplete) {
-                        hit = set_fill2("Selesai");
-                    }
+                    // if (va != 11 && va != 5 && va != 10 && isComplete) {
+                    //     hit = set_fill2("Selesai");
+                    // }
 
 
                     //harga jual

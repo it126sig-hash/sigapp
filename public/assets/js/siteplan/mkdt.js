@@ -1556,7 +1556,7 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
   // updateButtons(btnSave, "#prev-form-btn-idk_keu");
 
   if (parseFloat(removeComma($("#mk-total_cicilan_um").val() || 0)) > 0) {
-    if ($("#mk-total_tot").val() != $("#mk-total_cicilan_um").val()) {
+    if (parseFloat(removeComma($("#mk-total_tot").val())) != parseFloat(removeComma($("#mk-total_cicilan_um").val()))) {
       return swal(
         "error",
         "Gagal Menyimpan Data",

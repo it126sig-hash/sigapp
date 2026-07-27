@@ -54,7 +54,7 @@ class CashoutSubkonService
                 $no,
                 '<strong>' . $this->escape($row->nomor_surat ?: '-') . '</strong><br><small class="text-muted">' . $this->formatDate($row->tanggal_surat) . '</small>',
                 $this->escape($row->nama_subkon ?: '-'),
-                $this->escape($row->kavling_list ?: '-'),
+                $this->formatKavlingList($selectedKavlings),
                 number_format((float) $row->total_nominal, 0, '.', ','),
                 number_format((float) ($row->total_sudah_cair ?? 0), 0, '.', ','),
                 $this->formatHutang((float) ($row->total_hutang ?? 0), $row->tanggal_hutang_list ?? ''),
@@ -710,6 +710,18 @@ class CashoutSubkonService
         }
 
         return $items;
+    }
+
+    private function formatKavlingList(array $kavlings): string
+    {
+        if (empty($kavlings)) {
+            return '-';
+        }
+
+        return implode('<br>', array_map(
+            fn ($item) => $this->escape($item['nama_jalan']) . ' No ' . $this->escape($item['no_kavling']),
+            $kavlings
+        ));
     }
 
     private function formatDateList(?string $csv): string

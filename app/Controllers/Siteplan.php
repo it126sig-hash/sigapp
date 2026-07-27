@@ -1333,13 +1333,14 @@ class Siteplan extends BaseController
         //get cashout riwayat bayar
         $d['cashout'] = $this->cashoutRepo->getRiwayatBayarCashOutByIDKavling($id_kavling);
 
-        //get hutang cashout subkon (status pengajuan SPP, belum cair)
+        //get hutang cashout subkon outstanding (jatuh tempo turun s.d. pengajuan pencairan, belum dibayar)
         $d['hutang_subkon'] = $this->db->table('cashout_subkon_detail_allocation csda')
             ->select('csda.nominal, csd.tanggal_jatuh_tempo, csd.berita_acara, csd.keterangan, cs.nomor_surat')
             ->join('cashout_subkon_detail csd', 'csd.id_cashout_subkon_detail = csda.id_cashout_subkon_detail')
             ->join('cashout_subkon cs', 'cs.id_cashout_subkon = csda.id_cashout_subkon')
             ->where('csda.id_kavling', $id_kavling)
-            ->where('csd.status', 2)
+            ->where('csd.status >=', 1)
+            ->where('csd.status <=', 3)
             ->orderBy('csd.tanggal_jatuh_tempo', 'asc')
             ->get()
             ->getResult();
@@ -1394,6 +1395,11 @@ class Siteplan extends BaseController
         }
 
         $expenseRows = array_merge($d['cashout'], $ledgerExpenseRows);
+        usort($expenseRows, function ($a, $b) {
+            $dateA = $a->tanggal_transaksi ?? $a->tanggal_bayar ?? null;
+            $dateB = $b->tanggal_transaksi ?? $b->tanggal_bayar ?? null;
+            return strcmp((string) $dateB, (string) $dateA);
+        });
         $expenseTotal = 0;
         foreach ($expenseRows as $row) {
             $expenseTotal += (float) ($row->nominal ?? 0);

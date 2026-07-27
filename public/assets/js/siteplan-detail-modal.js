@@ -392,7 +392,7 @@ function lihat_detail() {
             // console.log()
 
             setStatusMkdtBadge(mkdt.status_mkdt)
-            setText("#s-st_bank", mkdt.st_bank)
+            setText("#s-st_bank", mkdt.bank)
             setText("#s-notaris", mkdt.notaris)
             setText("#s-st_sp3k_tgl", format_date(mkdt.sp3k_tgl))
             setText("#s-st_sp3k_tgl_exp", format_date(mkdt.sp3k_tgl_exp))
@@ -482,6 +482,16 @@ function lihat_detail() {
             }, 500);
         }
 
+        const financeFlowTypeTag = {
+            'cashout_subkon_allocation': { label: 'Subkon', cls: 'badge-warning' },
+            'bayar_produksi': { label: 'Produksi', cls: 'badge-secondary' },
+            'pajak_pph42': { label: 'PPh', cls: 'badge-danger' },
+            'pajak_ppn': { label: 'PPN', cls: 'badge-danger' },
+            'pencairan_akad_payment_detail': { label: 'Retensi Akad', cls: 'badge-success' },
+            'dana_jaminan': { label: 'Dana Jaminan', cls: 'badge-success' },
+            'bank_kpr_disbursement': { label: 'Retensi Bank', cls: 'badge-success' },
+        };
+
         if (r.finance_flow) {
             let cashout = ''
             const rows = Array.isArray(r.finance_flow.expense_rows) ? r.finance_flow.expense_rows : []
@@ -497,11 +507,12 @@ function lihat_detail() {
                 $.each(rows, function(i, v) {
                     const tanggal = v.tanggal_transaksi || v.tanggal_bayar
                     const label = v.label || v.item
+                    const tag = financeFlowTypeTag[v.source_type]
                     items += `
                 <div class="detail-cashout-timeline-item">
                     <div class="detail-info-row">
                         <div class="detail-info-col">
-                            <span class="detail-info-label">${label}</span>
+                            <span class="detail-info-label">${label} ${tag ? `<span class="detail-status-badge ${tag.cls}">${tag.label}</span>` : ''}</span>
                             <span class="detail-info-value">${tanggal ? format_date(tanggal) : '-'}</span>
                         </div>
                     </div>
@@ -1208,6 +1219,12 @@ function lihat_detail() {
         }
 
     }
+
+    // buka gambar embed di catatan pricelist dalam lightbox
+    $(document).on('click', '#dt-pl_keterangan img', function() {
+        $('#modal_image_lightbox_img').attr('src', $(this).attr('src'));
+        $('#modal_image_lightbox').modal('show');
+    });
 
     function loadKavling(r) {
         if (r.kavling) {

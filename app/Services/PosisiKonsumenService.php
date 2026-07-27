@@ -128,6 +128,16 @@ class PosisiKonsumenService
         if ($request->getVar('akad_indent') != "")
             $builder->where('mkdt.akad_indent', $request->getVar('akad_indent'));
 
+        $bulan = $request->getVar('bulan');
+        $tahun = $request->getVar('tahun');
+        if ($bulan != "" || $tahun != "") {
+            $col = $request->getVar('bulan_field') === 'akad' ? 'mkdt.akad_tgl' : 'mkdt.booking_tgl';
+            if ($bulan != "")
+                $builder->where("MONTH($col)", $bulan);
+            if ($tahun != "")
+                $builder->where("YEAR($col)", $tahun);
+        }
+
         return DataTable::of($builder)
             ->setSearchableColumns([
                 'kavling.id_kavling',
