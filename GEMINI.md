@@ -1,4 +1,4 @@
-apaka# GEMINI.md - SIGAPP Project Context
+# GEMINI.md - SIGAPP Project Context
 
 ## Project Overview
 **SIGAPP** is a comprehensive real estate and property management system built with **CodeIgniter 4**. It manages the entire lifecycle of property development, from project planning and plot (kavling) management to sales, legal documentation, financial tracking, and construction progress.

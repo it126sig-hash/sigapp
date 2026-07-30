@@ -16,12 +16,12 @@
     text-transform: uppercase;
   }
 
-  .list-hasil-akad-page .list-hasil-akad-filter {
-    align-items: end;
+  .list-hasil-akad-page .card-header {
+    align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: .75rem;
-    padding: 1rem 1.25rem;
+    gap: .65rem;
+    padding: .6rem .85rem;
   }
 
   .list-hasil-akad-page .list-hasil-akad-title {
@@ -29,30 +29,53 @@
     font-size: 1rem;
     font-weight: 800;
     margin: 0;
-    min-width: 160px;
+    white-space: nowrap;
+  }
+
+  .list-hasil-akad-page .list-hasil-akad-divider {
+    align-self: stretch;
+    background: #e5e7eb;
+    flex: 0 0 1px;
+    width: 1px;
+  }
+
+  .list-hasil-akad-page .list-hasil-akad-filter {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
   }
 
   .list-hasil-akad-page .filter-field {
-    flex: 1 1 220px;
-    min-width: 180px;
+    flex: 0 0 150px;
+  }
+
+  .list-hasil-akad-page .filter-field-sm {
+    flex: 0 0 120px;
   }
 
   .list-hasil-akad-page .filter-action {
     flex: 0 0 auto;
   }
 
-  .list-hasil-akad-page label {
-    color: #6b7280;
-    font-size: .72rem;
-    font-weight: 700;
-    margin-bottom: .25rem;
-  }
-
   .list-hasil-akad-page .form-control,
   .list-hasil-akad-page .select2-selection {
     border-color: #d8dde3 !important;
     border-radius: 6px !important;
-    min-height: 34px;
+    font-size: .78rem;
+    min-height: 30px;
+  }
+
+  .list-hasil-akad-page select.form-control {
+    padding: .25rem .5rem;
+  }
+
+  .list-hasil-akad-page .select2-selection__rendered {
+    line-height: 28px !important;
+  }
+
+  .list-hasil-akad-page .select2-selection__arrow {
+    height: 28px !important;
   }
 
   .list-hasil-akad-page .card {
@@ -163,33 +186,31 @@
         <div class="card">
           <div class="card-header">
             <h5 class="list-hasil-akad-title"><?= $data['title'] ?></h5>
-          </div>
-          <div class="list-hasil-akad-filter border-bottom">
-            <div class="filter-field">
-              <label>Cluster</label>
-              <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
-            </div>
-            <div class="filter-field">
-              <label>Blok</label>
-              <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
-            </div>
-            <div class="filter-field">
-              <label>Status Pencairan</label>
-              <select id="status_cair" name="status_cair" class="form-control">
-                <option value="">Semua</option>
-                <option value="belum_cair">Belum Cair</option>
-                <option value="sudah_cair">Sudah Cair</option>
-              </select>
-            </div>
-            <div class="filter-action">
-              <button type="button" id="btn_draw" class="btn btn-primary waves-effect btn-sm text-uppercase">
-                <i class="fas fa-filter mr-25"></i> Filter Data
-              </button>
-            </div>
-            <div class="filter-action">
-              <a href="<?= base_url('keuangan/hasil-akad/import') ?>" class="btn btn-outline-primary waves-effect btn-sm text-uppercase">
-                <i class="fas fa-upload mr-25"></i> Import Tanggal Cair
-              </a>
+            <div class="list-hasil-akad-divider"></div>
+            <div class="list-hasil-akad-filter">
+              <div class="filter-field">
+                <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
+              </div>
+              <div class="filter-field">
+                <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
+              </div>
+              <div class="filter-field filter-field-sm">
+                <select id="status_cair" name="status_cair" class="form-control">
+                  <option value="">Semua</option>
+                  <option value="belum_cair">Belum Cair</option>
+                  <option value="sudah_cair">Sudah Cair</option>
+                </select>
+              </div>
+              <div class="filter-action">
+                <button type="button" id="btn_draw" class="btn btn-primary waves-effect btn-sm text-uppercase">
+                  <i class="fas fa-filter mr-25"></i> Filter Data
+                </button>
+              </div>
+              <div class="filter-action">
+                <a href="<?= base_url('keuangan/hasil-akad/import') ?>" class="btn btn-outline-primary waves-effect btn-sm text-uppercase">
+                  <i class="fas fa-upload mr-25"></i> Import Tanggal Cair
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -389,6 +410,7 @@
       processing: true,
       serverSide: true,
       lengthChange: true,
+      pageLength: 25,
       searching: true,
       ordering: true,
       paging: true,

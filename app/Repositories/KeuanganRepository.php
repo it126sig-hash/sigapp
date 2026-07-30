@@ -53,6 +53,7 @@ class KeuanganRepository extends Model
             ->join('konsumen c', 'c.id_konsumen = m.id_konsumen')
             ->join('hargajual hj', 'hj.id = k.harga_akhir')
             ->where('keuangan.sudah_dibayar', 0)
+            ->where('keuangan.is_void', 0)
             ->where('keuangan.jatuh_tempo_tgl <=', date('Y-m-d', strtotime('+7 days')))
             ->where('p.id_proyek', $id_proyek)
             ->orderBy('keuangan.jatuh_tempo_tgl', 'ASC')
@@ -117,6 +118,7 @@ class KeuanganRepository extends Model
             ->join('konsumen c', 'c.id_konsumen = m.id_konsumen')
             ->join('hargajual hj', 'hj.id = k.harga_akhir')
             ->where('keuangan.sudah_dibayar', 0)
+            ->where('keuangan.is_void', 0)
             ->join('tipe', "tipe.id_tipe = k.id_tipe", 'left')
             ->join('users a', "a.id = m.add_by", 'left')
             ->join('users b', "b.id = m.edit_by", 'left')
@@ -187,11 +189,13 @@ class KeuanganRepository extends Model
         $unpaidSubQuery = $this->db->table('keuangan')
             ->select('id_mkdt, MIN(jatuh_tempo_tgl) AS jatuh_tempo_tgl, COUNT(*) AS jumlah_tagihan')
             ->where('sudah_dibayar', 0)
+            ->where('is_void', 0)
             ->groupBy('id_mkdt')
             ->getCompiledSelect();
 
         $totalTagihanSubQuery = $this->db->table('keuangan')
             ->select('id_mkdt, COALESCE(SUM(nominal), 0) AS total_tagihan')
+            ->where('is_void', 0)
             ->groupBy('id_mkdt')
             ->getCompiledSelect();
 
@@ -255,19 +259,20 @@ class KeuanganRepository extends Model
                 (m.harga_administrasi) +
                 (m.harga_bphtb + m.harga_biaya_proses + m.harga_ppn + m.harga_penambahan_um + m.harga_penambahan + m.harga_penambahan_tanah)
                 >
-            ', 0)
-            ->orderBy('keu_agg.jatuh_tempo_tgl', 'ASC');
+            ', 0);
     }
 
     public function getLunasGroupedQuery()
     {
         $tagihanAggSubQuery = $this->db->table('keuangan')
             ->select('id_mkdt, MAX(jatuh_tempo_tgl) AS jatuh_tempo_tgl, COUNT(*) AS jumlah_tagihan')
+            ->where('is_void', 0)
             ->groupBy('id_mkdt')
             ->getCompiledSelect();
 
         $totalTagihanSubQuery = $this->db->table('keuangan')
             ->select('id_mkdt, COALESCE(SUM(nominal), 0) AS total_tagihan')
+            ->where('is_void', 0)
             ->groupBy('id_mkdt')
             ->getCompiledSelect();
 
@@ -332,8 +337,7 @@ class KeuanganRepository extends Model
                     null,
                     false
                 )
-            ->groupEnd()
-            ->orderBy('keu_agg.jatuh_tempo_tgl', 'ASC');
+            ->groupEnd();
     }
 
     public function getListTagihanDetailById(int $idMkdt): array
@@ -344,6 +348,8 @@ class KeuanganRepository extends Model
                 'keuangan.nominal',
                 'keuangan.sudah_dibayar',
                 'keuangan.status',
+                'keuangan.is_void',
+                'keuangan.void_reason',
             ])
             ->where('keuangan.id_mkdt', $idMkdt)
             ->orderBy('keuangan.jatuh_tempo_tgl', 'ASC')

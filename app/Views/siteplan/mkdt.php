@@ -2505,6 +2505,14 @@
                                                                 <input readonly type="text" class="form-control num tgt"
                                                                     id="mk-total_tot" name="mk-total_tot">
                                                             </div>
+                                                            <div class="divider divider-left">
+                                                                <div class="divider-text font-weight-bold">Total
+                                                                    Sudah Dibayar (Keuangan)</div>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <input readonly type="text" class="form-control num"
+                                                                    id="idk-total_sudah_dibayar" name="idk-total_sudah_dibayar">
+                                                            </div>
                                                             <div class="form-group" hidden>
                                                                 <label for="mk-total_um">Total Uang Muka</label>
                                                                 <input readonly type="text" class="form-control num tum"
@@ -2541,6 +2549,7 @@
                                                                     <option value="PPN">PPN</option>
                                                                     <option value="BPHTB">BPHTB</option>
                                                                     <option value="Biaya Proses">Biaya Proses</option>
+                                                                    <option value="Diskon">Diskon</option>
                                                                 </select>
                                                                 <label>Untuk Tagihan</label>
                                                                 <!-- <input required name="berita_acara" id="berita_acara"

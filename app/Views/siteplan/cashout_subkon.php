@@ -149,6 +149,18 @@
 		min-height: 36px;
 	}
 
+	#modal-cashout-subkon .form-control:disabled,
+	#modal-cashout-subkon .form-control[readonly] {
+		background-color: #eef1f4;
+		color: #6b7280;
+		cursor: not-allowed;
+	}
+
+	#modal-cashout-subkon .select2-container--disabled .select2-selection {
+		background-color: #eef1f4;
+		cursor: not-allowed;
+	}
+
 	#modal-cashout-subkon .btn {
 		border-radius: 6px;
 		font-weight: 700;
@@ -300,6 +312,16 @@
 	}
 
 	.dark-layout #modal-cashout-subkon .cos-sk-body {
+		background: #1f2937 !important;
+	}
+
+	.dark-layout #modal-cashout-subkon .form-control:disabled,
+	.dark-layout #modal-cashout-subkon .form-control[readonly] {
+		background: #1f2937 !important;
+		color: #9ca3af;
+	}
+
+	.dark-layout #modal-cashout-subkon .select2-container--disabled .select2-selection {
 		background: #1f2937 !important;
 	}
 

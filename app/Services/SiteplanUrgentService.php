@@ -44,6 +44,50 @@ class SiteplanUrgentService
         return $this->finalizeSections($this->buildUrgentSections($idProyek, $groupId, $userId));
     }
 
+    /**
+     * Unlimited, ungated counts for the dashboard alert card - every role sees the same
+     * accurate numbers here, unlike the role-gated/50-capped urgent panel sections.
+     */
+    public function getDashboardAlertCounts(int $idProyek): array
+    {
+        $counts = [
+            'tagihan_overdue' => 0,
+            'tagihan_due' => 0,
+            'cashout_subkon' => 0,
+            'pembangunan_telat' => 0,
+        ];
+
+        if ($idProyek <= 0) {
+            return $counts;
+        }
+
+        $today = date('Y-m-d');
+        $limitDate = date('Y-m-d', strtotime('+7 days'));
+
+        $counts['tagihan_overdue'] = $this->tagihanBaseBuilder($idProyek)
+            ->where('keuangan.jatuh_tempo_tgl <', $today)
+            ->countAllResults();
+
+        $counts['tagihan_due'] = $this->tagihanBaseBuilder($idProyek)
+            ->where('keuangan.jatuh_tempo_tgl >=', $today)
+            ->where('keuangan.jatuh_tempo_tgl <=', $limitDate)
+            ->countAllResults();
+
+        $counts['cashout_subkon'] = (int) ($this->cashoutSubkonBaseBuilder($idProyek, $limitDate)
+            ->select('COUNT(DISTINCT csd.id_cashout_subkon_detail) AS cnt', false)
+            ->get()
+            ->getRow()
+            ->cnt ?? 0);
+
+        $counts['pembangunan_telat'] = (int) ($this->pembangunanTelatBaseBuilder($idProyek, $today)
+            ->select('COUNT(DISTINCT pr.id_produksi) AS cnt', false)
+            ->get()
+            ->getRow()
+            ->cnt ?? 0);
+
+        return $counts;
+    }
+
     public function emptySummary(): array
     {
         return [
@@ -246,9 +290,28 @@ class SiteplanUrgentService
         return $parts[1] ?? 'urgent';
     }
 
-    protected function getTagihanUrgent(int $idProyek, string $limitDate): array
+    protected function tagihanBaseBuilder(int $idProyek)
     {
         return $this->db->table('keuangan')
+            ->join('mkdt m', 'm.id_mkdt = keuangan.id_mkdt')
+            ->join('kavling k', 'k.id_kavling = m.id_kavling')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+            ->join('proyek p', 'p.id_proyek = cl.id_proyek')
+            ->where('p.id_proyek', $idProyek)
+            ->where('keuangan.sudah_dibayar', 0)
+            ->where('keuangan.is_void', 0)
+            ->where('keuangan.jatuh_tempo_tgl IS NOT NULL', null, false)
+            ->where('keuangan.jatuh_tempo_tgl >', '1000-01-01')
+            ->groupStart()
+            ->where('m.is_batal', 0)
+            ->orWhere('m.is_batal IS NULL', null, false)
+            ->groupEnd();
+    }
+
+    protected function getTagihanUrgent(int $idProyek, string $limitDate): array
+    {
+        return $this->tagihanBaseBuilder($idProyek)
             ->select("
                 keuangan.id_keuangan,
                 keuangan.berita_acara,
@@ -266,50 +329,19 @@ class SiteplanUrgentService
                 p.nama_proyek,
                 hj.id_tipe
             ", false)
-            ->join('mkdt m', 'm.id_mkdt = keuangan.id_mkdt')
             ->join('konsumen c', 'c.id_konsumen = m.id_konsumen', 'left')
-            ->join('kavling k', 'k.id_kavling = m.id_kavling')
-            ->join('jalan j', 'j.id_jalan = k.id_jalan')
-            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
-            ->join('proyek p', 'p.id_proyek = cl.id_proyek')
             ->join('hargajual hj', 'hj.id = k.harga_akhir', 'left')
-            ->where('p.id_proyek', $idProyek)
-            ->where('keuangan.sudah_dibayar', 0)
-            ->where('keuangan.jatuh_tempo_tgl IS NOT NULL', null, false)
-            ->where('keuangan.jatuh_tempo_tgl >', '1000-01-01')
             ->where('keuangan.jatuh_tempo_tgl <=', $limitDate)
-            ->groupStart()
-            ->where('m.is_batal', 0)
-            ->orWhere('m.is_batal IS NULL', null, false)
-            ->groupEnd()
             ->orderBy('keuangan.jatuh_tempo_tgl', 'ASC')
             ->limit(50)
             ->get()
             ->getResult();
     }
 
-    protected function getCashoutSubkonUrgent(int $idProyek, string $limitDate, int $groupId): array
+    protected function cashoutSubkonBaseBuilder(int $idProyek, string $limitDate)
     {
-        $builder = $this->db->table('cashout_subkon_detail csd')
-            ->select("
-                csd.id_cashout_subkon_detail,
-                csd.id_cashout_subkon,
-                csd.berita_acara,
-                csd.nominal,
-                csd.tanggal_jatuh_tempo,
-                csd.status,
-                cs.nomor_surat,
-                s.nama_subkon,
-                MIN(k.id_kavling) AS id_kavling,
-                MIN(k.no_kavling) AS no_kavling,
-                MIN(j.nama_jalan) AS nama_jalan,
-                GROUP_CONCAT(CONCAT(j.nama_jalan, ' No. ', k.no_kavling) ORDER BY j.nama_jalan, k.no_kavling SEPARATOR ', ') AS daftar_kavling,
-                cl.nama_cluster,
-                p.id_proyek,
-                p.nama_proyek
-            ", false)
+        return $this->db->table('cashout_subkon_detail csd')
             ->join('cashout_subkon cs', 'cs.id_cashout_subkon = csd.id_cashout_subkon')
-            ->join('subkon s', 's.id = cs.id_subkon', 'left')
             ->join('cashout_subkon_kavling csk', 'csk.id_cashout_subkon = cs.id_cashout_subkon')
             ->join('kavling k', 'k.id_kavling = csk.id_kavling')
             ->join('jalan j', 'j.id_jalan = k.id_jalan')
@@ -329,6 +361,29 @@ class SiteplanUrgentService
             ->where('csd.tanggal_jatuh_tempo <=', $limitDate)
             ->groupEnd()
             ->groupEnd();
+    }
+
+    protected function getCashoutSubkonUrgent(int $idProyek, string $limitDate, int $groupId): array
+    {
+        $builder = $this->cashoutSubkonBaseBuilder($idProyek, $limitDate)
+            ->select("
+                csd.id_cashout_subkon_detail,
+                csd.id_cashout_subkon,
+                csd.berita_acara,
+                csd.nominal,
+                csd.tanggal_jatuh_tempo,
+                csd.status,
+                cs.nomor_surat,
+                s.nama_subkon,
+                MIN(k.id_kavling) AS id_kavling,
+                MIN(k.no_kavling) AS no_kavling,
+                MIN(j.nama_jalan) AS nama_jalan,
+                GROUP_CONCAT(CONCAT(j.nama_jalan, ' No. ', k.no_kavling) ORDER BY j.nama_jalan, k.no_kavling SEPARATOR ', ') AS daftar_kavling,
+                cl.nama_cluster,
+                p.id_proyek,
+                p.nama_proyek
+            ", false)
+            ->join('subkon s', 's.id = cs.id_subkon', 'left');
 
         if ($groupId === 3) {
             $builder->groupStart()
@@ -412,9 +467,32 @@ class SiteplanUrgentService
             ->getResult();
     }
 
-    protected function getPembangunanTelat(int $idProyek, string $today): array
+    protected function pembangunanTelatBaseBuilder(int $idProyek, string $today)
     {
         return $this->db->table('produksi pr')
+            ->join('kavling k', 'k.id_produksi = pr.id_produksi')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+            ->join('proyek p', 'p.id_proyek = cl.id_proyek')
+            ->join('mkdt m', 'm.id_kavling = k.id_kavling', 'left')
+            ->where('p.id_proyek', $idProyek)
+            ->where('pr.tanggal_rencana_selesai_pembangunan IS NOT NULL', null, false)
+            ->where('pr.tanggal_rencana_selesai_pembangunan >', '1000-01-01')
+            ->where('pr.tanggal_rencana_selesai_pembangunan <', $today)
+            ->groupStart()
+            ->where('pr.tanggal_selesai_pembangunan IS NULL', null, false)
+            ->orWhere('pr.tanggal_selesai_pembangunan <=', '1000-01-01')
+            ->groupEnd()
+            ->where('COALESCE(pr.progres_bangunan, 0) <', 100, false)
+            ->groupStart()
+            ->where('m.is_batal', 0)
+            ->orWhere('m.is_batal IS NULL', null, false)
+            ->groupEnd();
+    }
+
+    protected function getPembangunanTelat(int $idProyek, string $today): array
+    {
+        return $this->pembangunanTelatBaseBuilder($idProyek, $today)
             ->select("
                 pr.id_produksi,
                 k.id_kavling,
@@ -433,26 +511,8 @@ class SiteplanUrgentService
                 t.no_tipe_rumah,
                 t.tipe_rumah
             ", false)
-            ->join('kavling k', 'k.id_produksi = pr.id_produksi')
-            ->join('jalan j', 'j.id_jalan = k.id_jalan')
-            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
-            ->join('proyek p', 'p.id_proyek = cl.id_proyek')
-            ->join('mkdt m', 'm.id_kavling = k.id_kavling', 'left')
             ->join('konsumen c', 'c.id_konsumen = m.id_konsumen', 'left')
             ->join('tipe t', 't.id_tipe = k.id_tipe', 'left')
-            ->where('p.id_proyek', $idProyek)
-            ->where('pr.tanggal_rencana_selesai_pembangunan IS NOT NULL', null, false)
-            ->where('pr.tanggal_rencana_selesai_pembangunan >', '1000-01-01')
-            ->where('pr.tanggal_rencana_selesai_pembangunan <', $today)
-            ->groupStart()
-            ->where('pr.tanggal_selesai_pembangunan IS NULL', null, false)
-            ->orWhere('pr.tanggal_selesai_pembangunan <=', '1000-01-01')
-            ->groupEnd()
-            ->where('COALESCE(pr.progres_bangunan, 0) <', 100, false)
-            ->groupStart()
-            ->where('m.is_batal', 0)
-            ->orWhere('m.is_batal IS NULL', null, false)
-            ->groupEnd()
             ->orderBy('pr.tanggal_rencana_selesai_pembangunan', 'ASC')
             ->limit(50)
             ->get()

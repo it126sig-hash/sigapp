@@ -723,6 +723,8 @@
                                                     </option>
                                                     <option value="Biaya Kelebihan Tanah">Biaya Kelebihan Tanah
                                                     </option>
+                                                    <option value="Diskon">Biaya Kelebihan Tanah
+                                                    </option>
                                                 </select>
                                                 <label>Untuk Tagihan</label>
                                                 <!-- <input required name="berita_acara" id="berita_acara"

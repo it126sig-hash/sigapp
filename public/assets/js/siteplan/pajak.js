@@ -14,6 +14,20 @@ $("#add-form-btn-pajak").click(function (e) {
     e.preventDefault();
 });
 
+function pajakLedgerBadgeHtml(nilai) {
+    if (removeComma(nilai) > 0) {
+        return '<span class="text-success"><i class="fas fa-check-circle"></i> Tercatat sebagai Cash Out di Finance Ledger</span>';
+    }
+    return '<span class="text-muted">Belum tercatat di Finance Ledger</span>';
+}
+
+function updatePajakLedgerBadges() {
+    $("#pajak-pph42_ledger_badge").html(pajakLedgerBadgeHtml($("#pajak-pph42_nilai").val()));
+    $("#pajak-ppn_ledger_badge").html(pajakLedgerBadgeHtml($("#pajak-ppn_nilai").val()));
+}
+
+$("#pajak-pph42_nilai, #pajak-ppn_nilai").on('keyup change', updatePajakLedgerBadges);
+
 function pajakEmptyFile() {
     return '<div class="pajak-empty-file">Belum ada berkas</div>';
 }
@@ -141,6 +155,9 @@ function open_pajak(sh, role, id_kavling) {
             $("#file_ajb-here").html(dv || pajakEmptyFile())
 
             $("#modal_divisi10 .label_alamat").html(dt_proyek.nama_proyek + "<br/>" + sh.data.nama_jalan + ", No." + sh.data.no_kavling + "<br/>" + sh.data2.no_tipe_rumah + " (" + sh.data2.tipe_rumah + ")<br/>");
+            updatePajakLedgerBadges()
+
+            initModalListener("#modal_divisi10")
             $('#modal_divisi' + role).modal({
                 backdrop: 'static',
                 keyboard: false

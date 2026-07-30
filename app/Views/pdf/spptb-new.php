@@ -140,7 +140,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
 
 <htmlpageheader name="header_pages">
     <div style="text-align:right; font-size:10pt; padding-right:10mm;">
-        Halaman {PAGENO} dari {nbpg}
+        Halaman {PAGENO}
     </div>
 </htmlpageheader>
 <sethtmlpageheader name="header_pages" value="on" />
@@ -157,7 +157,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
         <div style="margin-top: 8px;">
             Proyek: <?= title_case($proyek->nama_proyek) ?>
         </div>
-        <div style="font-size: 16pt;">
+        <div style="font-size: 12pt;">
             <strong>No. SPPTB : <?= strtoupper($data->no_spptb) ?></strong>
         </div>
     </div>

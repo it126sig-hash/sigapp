@@ -38,6 +38,7 @@ class PencairanAkadService
                 'harga_kpr_acc' => (float) ($mkdt->harga_kpr_acc ?? 0),
                 'status_mkdt' => $mkdt->status_mkdt,
                 'is_kpr' => (int) ($mkdt->is_kpr ?? 0),
+                'bank' => $mkdt->bank ?? null,
             ],
             'plan' => $plan,
             'list_dajam' => $this->getListDajam(),
@@ -971,9 +972,10 @@ class PencairanAkadService
 
     protected function getMkdtContext(int $idMkdt, int $idKavling): ?object
     {
-        return $this->db->table('mkdt')
-            ->select('id_mkdt, id_konsumen, status_mkdt, harga_kpr_acc, is_kpr')
-            ->where('id_mkdt', $idMkdt)
+        return $this->db->table('mkdt m')
+            ->select('m.id_mkdt, m.id_konsumen, m.status_mkdt, m.harga_kpr_acc, m.is_kpr, lb.bank')
+            ->join('list_bank lb', 'lb.id = m.id_bank', 'left')
+            ->where('m.id_mkdt', $idMkdt)
             ->get()
             ->getRow();
     }
@@ -1002,6 +1004,7 @@ class PencairanAkadService
         foreach ($items as $item) {
             $item->is_locked = in_array((int) $item->id, $lockedIds, true);
             $item->sisa = $this->getSisaItem((int) $item->id, $this->num($item->nominal));
+            $item->sudah_cair = $this->getCairItem((int) $item->id);
         }
 
         return $items;
@@ -1090,6 +1093,17 @@ class PencairanAkadService
             ->getRow()->nominal_pengajuan;
 
         return $nominalItem - $sudahDiajukan;
+    }
+
+    protected function getCairItem(int $idItem): float
+    {
+        return (float) $this->db->table('pencairan_akad_pengajuan_detail pgd')
+            ->selectSum('pgd.nominal_cair')
+            ->join('pencairan_akad_pengajuan pg', 'pg.id = pgd.id_pengajuan', 'left')
+            ->where('pgd.id_item', $idItem)
+            ->where('pg.status !=', 'void')
+            ->get()
+            ->getRow()->nominal_cair;
     }
 
     protected function getListDajam(): array

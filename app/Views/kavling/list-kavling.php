@@ -32,40 +32,57 @@
     white-space: nowrap;
   }
 
-  #poskon-filter .poskon-toolbar-divider {
-    align-self: stretch;
-    background: #e5e7eb;
-    flex: 0 0 1px;
-    width: 1px;
-  }
-
-  #poskon-filter .poskon-filter-grid {
+  #modal-filter-lanjutan .poskon-filter-grid {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: .5rem;
+    flex-direction: column;
+    gap: .85rem;
   }
 
-  #poskon-filter .poskon-filter-field {
-    flex: 0 0 170px;
-    min-width: 0;
+  #modal-filter-lanjutan .poskon-filter-field {
+    width: 100%;
     margin-bottom: 0 !important;
   }
 
+  #modal-filter-lanjutan .poskon-filter-field label {
+    display: block;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: .3rem;
+  }
+
   #poskon-filter .form-control,
-  #poskon-filter .select2-container--default .select2-selection--single {
+  #modal-filter-lanjutan .form-control,
+  #poskon-filter .select2-container--default .select2-selection--single,
+  #modal-filter-lanjutan .select2-container--default .select2-selection--single {
     min-height: 30px;
     border-color: #d8dee8;
     border-radius: 6px;
   }
 
-  #poskon-filter .select2-container--default .select2-selection--single .select2-selection__rendered {
+  #poskon-filter .select2-container--default .select2-selection--single .select2-selection__rendered,
+  #modal-filter-lanjutan .select2-container--default .select2-selection--single .select2-selection__rendered {
     line-height: 28px;
     font-size: .78rem;
   }
 
-  #poskon-filter .select2-container--default .select2-selection--single .select2-selection__arrow {
+  #poskon-filter .select2-container--default .select2-selection--single .select2-selection__arrow,
+  #modal-filter-lanjutan .select2-container--default .select2-selection--single .select2-selection__arrow {
     height: 28px;
+  }
+
+  .poskon-tabs-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+
+  .poskon-tabs-bar .poskon-tabs {
+    margin-bottom: 0;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .poskon-filter-actions {
@@ -91,13 +108,16 @@
     margin-right: .25rem;
   }
 
-  #poskon-filter .btn-primary {
+  #poskon-filter .btn-primary,
+  #modal-filter-lanjutan .btn-primary {
     border-color: #2057a3;
     background-color: #2057a3;
   }
 
   #poskon-filter .btn-primary:hover,
-  #poskon-filter .btn-primary:focus {
+  #poskon-filter .btn-primary:focus,
+  #modal-filter-lanjutan .btn-primary:hover,
+  #modal-filter-lanjutan .btn-primary:focus {
     border-color: #184783;
     background-color: #184783;
   }
@@ -114,8 +134,63 @@
     color: #fff;
   }
 
+  .poskon-active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    padding: .6rem .85rem;
+    margin-bottom: 1rem;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+  }
+
+  .poskon-active-filters-label {
+    font-size: .78rem;
+    font-weight: 700;
+    color: #4b5563;
+    white-space: nowrap;
+  }
+
+  .poskon-active-filters-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+  }
+
+  .poskon-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .3rem .6rem;
+    border-radius: 999px;
+    background: #eaf1fb;
+    color: #2057a3;
+    font-size: .75rem;
+    font-weight: 600;
+  }
+
+  .poskon-filter-chip i {
+    cursor: pointer;
+    font-size: .7rem;
+  }
+
+  .poskon-active-filters-clear {
+    margin-left: auto;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #2057a3;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
   .poskon-table-card .card-body {
     padding: 1rem;
+  }
+
+  .poskon-datatable-card .card-body {
+    padding: .5rem;
   }
 
   #data_tables {
@@ -132,7 +207,8 @@
   }
 
   #poskon-filter .select2-container,
-  #modal-tambah-poskon .select2-container {
+  #modal-tambah-poskon .select2-container,
+  #modal-filter-lanjutan .select2-container {
     width: 100% !important;
   }
 
@@ -159,20 +235,7 @@
       font-size: 1rem;
     }
 
-    #poskon-filter .poskon-filter-grid {
-      grid-template-columns: 1fr;
-      gap: .65rem;
-      padding: .85rem;
-    }
-
-    #poskon-filter .poskon-filter-field {
-      width: 100%;
-      max-width: 100%;
-    }
-
-    .poskon-filter-actions,
-    #poskon-filter .poskon-filter-grid,
-    #poskon-filter .poskon-toolbar-divider {
+    .poskon-filter-actions {
       display: none;
     }
 
@@ -185,6 +248,12 @@
 
     .poskon-tabs .nav-link {
       white-space: nowrap;
+    }
+
+    .poskon-active-filters-clear {
+      margin-left: 0;
+      width: 100%;
+      text-align: right;
     }
 
     .dataTables_wrapper .dataTables_length,
@@ -298,72 +367,48 @@
   <section id="basic-datatable">
     <div class="row">
       <div class="col-12">
-        <div class="card" id="poskon-filter">
+        <div class="card hidden" id="poskon-filter">
           <div class="poskon-toolbar">
             <div class="poskon-toolbar-title">
               <h2>Posisi Konsumen Aktif</h2>
-            </div>
-            <div class="poskon-toolbar-divider"></div>
-            <div class="poskon-filter-grid">
-              <div class="poskon-filter-field">
-                <select disabled id="id_cluster" name="id_cluster" class="select2  form-control"></select>
-              </div>
-              <div class="poskon-filter-field">
-                <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
-              </div>
-              <div class="poskon-filter-field" hidden>
-                <select id="wawancara" name="wawancara" class="select2 self form-control">
-                  <option value=""> Tanpa Filter </option>
-                  <option value="1"> Sudah </option>
-                  <option value="0"> Belum </option>
-                </select>
-              </div>
-              <div class="poskon-filter-field" hidden>
-                <select id="sp3k" name="sp3k" class="select2 self form-control">
-                  <option value=""> Tanpa Filter </option>
-                  <option value="1"> Sudah </option>
-                  <option value="0"> Belum </option>
-                </select>
-              </div>
-
-              <div class="poskon-filter-field">
-                <select id="filter_status_kavling" class="select2 self form-control">
-                  <option value="booking" selected>Belum Akad (Booking)</option>
-                  <option value="akad">Sudah Akad</option>
-                  <option value="indent">Akad Indent</option>
-                </select>
-              </div>
-            </div>
-            <div class="poskon-filter-actions">
-              <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm" title="Filter Data"><i class="fa fa-filter"></i> Filter</button>
-              <button type="button" id="btn_open_add_modal" class="btn btn-primary waves-effect btn-sm" title="Tambah Data"><i class="fa fa-plus"></i> Tambah</button>
-              <div class="btn-group">
-                <button type="button" id="btn_export_toggle" class="btn btn-outline-primary waves-effect btn-sm dropdown-toggle" data-toggle="dropdown" title="Export Data"><i class="fa fa-file-export"></i> Export</button>
-                <div class="dropdown-menu dropdown-menu-right">
-                  <button type="button" id="btn_export_excel" class="dropdown-item"><i class="fa fa-file-excel text-success mr-50"></i> Export Excel</button>
-                  <button type="button" id="btn_export_pdf" class="dropdown-item"><i class="fa fa-file-pdf text-danger mr-50"></i> Export PDF</button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
         <div class="card poskon-table-card">
           <div class="card-body pb-0 pt-0">
-            <ul class="nav nav-tabs poskon-tabs mb-1 mt-1" role="tablist">
-              <li class="nav-item">
-                <a class="nav-link active" id="list_poskon-tab"
-                  data-toggle="tab" href="#list_poskon"
-                  aria-controls="list_poskon" role="tab" aria-selected="true">List Posisi Konsumen Aktif</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" id="riwayat_eksport-tab" data-toggle="tab"
-                  href="#riwayat_eksport" aria-controls="riwayat_eksport" role="tab"
-                  aria-selected="true">Riwayat Eksport</a>
-              </li>
-            </ul>
+            <div class="poskon-tabs-bar">
+              <ul class="nav nav-tabs poskon-tabs mb-1 mt-1" role="tablist">
+                <li class="nav-item">
+                  <a class="nav-link active" id="list_poskon-tab"
+                    data-toggle="tab" href="#list_poskon"
+                    aria-controls="list_poskon" role="tab" aria-selected="true">List Posisi Konsumen Aktif</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="riwayat_eksport-tab" data-toggle="tab"
+                    href="#riwayat_eksport" aria-controls="riwayat_eksport" role="tab"
+                    aria-selected="true">Riwayat Eksport</a>
+                </li>
+              </ul>
+              <div class="poskon-filter-actions">
+                <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm" title="Filter Data"><i class="fa fa-filter"></i> Filter</button>
+                <button type="button" id="btn_open_add_modal" class="btn btn-primary waves-effect btn-sm" title="Tambah Data"><i class="fa fa-plus"></i> Tambah</button>
+                <div class="btn-group">
+                  <button type="button" id="btn_export_toggle" class="btn btn-outline-primary waves-effect btn-sm dropdown-toggle" data-toggle="dropdown" title="Export Data"><i class="fa fa-file-export"></i> Export</button>
+                  <div class="dropdown-menu dropdown-menu-right">
+                    <button type="button" id="btn_export_excel" class="dropdown-item"><i class="fa fa-file-excel text-success mr-50"></i> Export Excel</button>
+                    <button type="button" id="btn_export_pdf" class="dropdown-item"><i class="fa fa-file-pdf text-danger mr-50"></i> Export PDF</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="card">
+        <div class="poskon-active-filters" id="poskon-active-filters" hidden>
+          <span class="poskon-active-filters-label">Filter Aktif:</span>
+          <div class="poskon-active-filters-chips" id="poskon-active-filters-chips"></div>
+          <a href="javascript:void(0)" id="btn_filter_clear_all" class="poskon-active-filters-clear">Bersihkan</a>
+        </div>
+        <div class="card poskon-datatable-card">
           <div class="card-body">
             <div class="tab-content">
               <div class="tab-pane show active" id="list_poskon"
@@ -451,6 +496,91 @@
     </div>
 
   </section>
+</div>
+
+<div class="modal modal-slide-in fade" id="modal-filter-lanjutan">
+  <div class="modal-dialog sidebar-sm">
+    <div class="add-new-record modal-content pt-0">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
+      <div class="modal-header mb-1">
+        <h5 class="modal-title">Filter Lanjutan</h5>
+      </div>
+      <div class="modal-body flex-grow-1">
+        <div class="poskon-filter-grid">
+          <div class="poskon-filter-field">
+            <label>Cluster</label>
+            <select disabled id="id_cluster" name="id_cluster" class="select2  form-control"></select>
+          </div>
+          <div class="poskon-filter-field">
+            <label>Blok / Jalan</label>
+            <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
+          </div>
+          <div class="poskon-filter-field" hidden>
+            <select id="poskon_filter_wawancara" name="wawancara" class="select2 self form-control">
+              <option value=""> Tanpa Filter </option>
+              <option value="1"> Sudah </option>
+              <option value="0"> Belum </option>
+            </select>
+          </div>
+          <div class="poskon-filter-field" hidden>
+            <select id="poskon_filter_sp3k" name="sp3k" class="select2 self form-control">
+              <option value=""> Tanpa Filter </option>
+              <option value="1"> Sudah </option>
+              <option value="0"> Belum </option>
+            </select>
+          </div>
+
+          <div class="poskon-filter-field">
+            <label>Status</label>
+            <select id="filter_status_kavling" class="select2 self form-control">
+              <option value="booking" selected>Belum Akad (Booking)</option>
+              <option value="akad">Sudah Akad</option>
+              <option value="indent">Akad Indent</option>
+            </select>
+          </div>
+
+          <div class="poskon-filter-field">
+            <label>Tanggal Acuan Bulan/Tahun</label>
+            <select id="filter_bulan_field" class="select2 self form-control">
+              <option value="booking" selected>Tgl. Booking</option>
+              <option value="akad">Tgl. Akad</option>
+            </select>
+          </div>
+          <div class="poskon-filter-field">
+            <label>Bulan</label>
+            <select id="filter_bulan" class="select2 self form-control">
+              <option value="">Semua Bulan</option>
+              <option value="1">Januari</option>
+              <option value="2">Februari</option>
+              <option value="3">Maret</option>
+              <option value="4">April</option>
+              <option value="5">Mei</option>
+              <option value="6">Juni</option>
+              <option value="7">Juli</option>
+              <option value="8">Agustus</option>
+              <option value="9">September</option>
+              <option value="10">Oktober</option>
+              <option value="11">November</option>
+              <option value="12">Desember</option>
+            </select>
+          </div>
+          <div class="poskon-filter-field">
+            <label>Tahun</label>
+            <select id="filter_tahun" class="select2 self form-control">
+              <option value="">Semua Tahun</option>
+              <?php for ($y = (int) date('Y'); $y >= (int) date('Y') - 5; $y--): ?>
+                <option value="<?= $y ?>"><?= $y ?></option>
+              <?php endfor; ?>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="btn_filter_reset" class="btn btn-outline-secondary">Reset</button>
+        <button type="button" id="btn_filter_apply" class="btn btn-primary">Terapkan</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="modal fade" id="modal-tambah-poskon" tabindex="-1" role="dialog" aria-labelledby="modalTambahPoskonLabel" aria-hidden="true">
@@ -786,11 +916,50 @@ if (!empty($roles)) {
 
     initPoskonTable(isMobileTable);
 
+    function applyPoskonTableHeight() {
+      if (isMobileTable) return;
+      var $wrapper = $('#data_tables_wrapper');
+      var $scrollBody = $wrapper.find('.dataTables_scrollBody').first();
+      if (!$scrollBody.length) return;
+
+      // ponytail: pakai tinggi baris info/pagination langsung (bukan "semua children minus scroll"),
+      // karena fixedColumns membungkus .dataTables_scroll di dalam .DTFC_ScrollWrapper sehingga
+      // pendekatan "children().not(...)" ikut menghitung tabel itu sendiri sebagai "sisa di bawah".
+      var $bottomBar = $wrapper.find('.dataTables_info, .dataTables_paginate').first().closest('.row');
+      var bottomHeight = $bottomBar.length ? $bottomBar.outerHeight(true) : 50;
+
+      var top = $scrollBody.offset().top;
+      var $card = $scrollBody.closest('.card');
+      var $cardBody = $card.find('.card-body').first();
+      var cardBottomOverhead = (parseFloat($cardBody.css('padding-bottom')) || 0) +
+        (parseFloat($card.css('margin-bottom')) || 0) + 8; // 8px jarak aman
+      var available = Math.max(200, $(window).height() - top - bottomHeight - cardBottomOverhead);
+
+      $scrollBody.css({
+        height: available + 'px',
+        maxHeight: available + 'px'
+      });
+      if ($.fn.dataTable.isDataTable('#data_tables')) {
+        var api = $('#data_tables').DataTable();
+        if (api.fixedColumns) api.fixedColumns().relayout();
+      }
+    }
+
+    $(window).on('resize', function() {
+      clearTimeout(window._poskonResizeTimer);
+      window._poskonResizeTimer = setTimeout(applyPoskonTableHeight, 150);
+    });
+    $(window).on('load', applyPoskonTableHeight);
+
     function initPoskonTable(isMobileTable) {
     try {
       table = $('#data_tables').DataTable({
         fnDrawCallback: function() {
           $('[data-toggle="popover"]').popover();
+          setTimeout(applyPoskonTableHeight, 10);
+        },
+        initComplete: function() {
+          applyPoskonTableHeight();
         },
         scrollY: isMobileTable ? "60vh" : "50vh",
         scrollX: true,
@@ -801,6 +970,7 @@ if (!empty($roles)) {
         processing: true,
         serverSide: true,
         lengthChange: true,
+        pageLength: 25,
         searching: true,
         ordering: true,
         order: [
@@ -814,6 +984,10 @@ if (!empty($roles)) {
           {
             targets: [7, 9],
             orderable: true
+          },
+          {
+            targets: [9, 15],
+            visible: false
           }
         ],
         paging: true,
@@ -829,9 +1003,12 @@ if (!empty($roles)) {
             data.id_proyek = activeProyekId()
             data.id_cluster = $("#id_cluster").val()
             data.id_jalan = $("#id_jalan").val()
-            data.sp3k = $("#sp3k").val()
-            data.wawancara = $("#wawancara").val()
+            data.sp3k = $("#poskon_filter_sp3k").val()
+            data.wawancara = $("#poskon_filter_wawancara").val()
             data.akad_indent = ($("#filter_status_kavling").val() === 'indent') ? 1 : ''
+            data.bulan_field = $("#filter_bulan_field").val()
+            data.bulan = $("#filter_bulan").val()
+            data.tahun = $("#filter_tahun").val()
           },
           dataSrc: function(r) {
             csrfHash = r.token
@@ -993,6 +1170,7 @@ if (!empty($roles)) {
             [csrfName]: csrfHash,
             search: params.term,
             id_proyek: activeProyekId(),
+            only_available: 1,
             limit: 25
           };
         },
@@ -1050,17 +1228,93 @@ if (!empty($roles)) {
       });
     }
 
-    //on click btn filter
+    //buka panel filter
     $("#btn_draw").on("click", function(e) {
+      $("#modal-filter-lanjutan").modal("show");
+    })
+
+    function applyPoskonFilters() {
       if (table) {
         var filterVal = $("#filter_status_kavling").val();
+        table.columns([9, 15]).visible(filterVal !== 'booking');
         var url = (filterVal === 'akad' || filterVal === 'indent') ?
           base_url + 'list-kavling/akad/ambil' :
           base_url + 'list-kavling/ambil';
         table.ajax.url(url).load();
       }
       load_riwayat();
-    })
+      renderActiveFilterChips();
+    }
+
+    function resetPoskonFilterFields() {
+      $("#id_cluster").val(null).trigger('change');
+      $("#filter_status_kavling").val('booking').trigger('change');
+      $("#filter_bulan_field").val('booking').trigger('change');
+      $("#filter_bulan").val('').trigger('change');
+      $("#filter_tahun").val('').trigger('change');
+    }
+
+    function removeFilterByKey(key) {
+      if (key === 'id_cluster') {
+        $("#id_cluster").val(null).trigger('change');
+      } else if (key === 'id_jalan') {
+        $("#id_jalan").val(null).trigger('change');
+      } else if (key === 'filter_status_kavling') {
+        $("#filter_status_kavling").val('booking').trigger('change');
+      } else if (key === 'bulan_tahun') {
+        $("#filter_bulan").val('').trigger('change');
+        $("#filter_tahun").val('').trigger('change');
+      }
+      applyPoskonFilters();
+    }
+
+    function renderActiveFilterChips() {
+      var chips = [];
+
+      function addChip(key, label) {
+        chips.push('<span class="poskon-filter-chip" data-filter-key="' + key + '">' + label +
+          ' <i class="fa fa-times" data-remove-filter="' + key + '"></i></span>');
+      }
+
+      var clusterData = $("#id_cluster").select2('data')[0];
+      if (clusterData && clusterData.id) addChip('id_cluster', 'Cluster: ' + $('<div>').text(clusterData.text).html());
+
+      var jalanData = $("#id_jalan").select2('data')[0];
+      if (jalanData && jalanData.id) addChip('id_jalan', 'Blok: ' + $('<div>').text(jalanData.text).html());
+
+      var status = $("#filter_status_kavling").val();
+      if (status !== 'booking') addChip('filter_status_kavling', 'Status: ' + $("#filter_status_kavling option:selected").text());
+
+      var bulan = $("#filter_bulan").val();
+      var tahun = $("#filter_tahun").val();
+      if (bulan || tahun) {
+        var fieldLabel = $("#filter_bulan_field option:selected").text();
+        var bulanLabel = bulan ? $("#filter_bulan option:selected").text() : '';
+        var parts = [bulanLabel, tahun].filter(Boolean).join(' ');
+        addChip('bulan_tahun', fieldLabel + ': ' + parts);
+      }
+
+      $("#poskon-active-filters-chips").html(chips.join(''));
+      $("#poskon-active-filters").prop('hidden', chips.length === 0);
+    }
+
+    $("#btn_filter_apply").on("click", function() {
+      applyPoskonFilters();
+      $("#modal-filter-lanjutan").modal("hide");
+    });
+
+    $("#btn_filter_reset").on("click", function() {
+      resetPoskonFilterFields();
+    });
+
+    $(document).on('click', '[data-remove-filter]', function() {
+      removeFilterByKey($(this).data('remove-filter'));
+    });
+
+    $("#btn_filter_clear_all").on('click', function() {
+      resetPoskonFilterFields();
+      applyPoskonFilters();
+    });
 
     $("#btn_export_excel").on('click', function(e) {
       if (!activeProyekId()) {
@@ -1145,9 +1399,9 @@ if (!empty($roles)) {
 
     function registerPoskonMobileBottomNav() {
       registerMobileBottomNav({
-        filter: {
-          sourceSelector: '#poskon-filter .poskon-filter-grid'
-        },
+        // ponytail: filter sekarang pakai modal slide-in bersama (#modal-filter-lanjutan),
+        // jadi tombol "Filter" di bawah cukup buka modal itu (lewat #btn_draw), tidak perlu
+        // sheet filter terpisah yang memindahkan node grid keluar dari modal.
         actions: [{
             label: 'Filter',
             icon: 'fa fa-filter',
@@ -1223,305 +1477,10 @@ if (!empty($roles)) {
       }
     });
     // Hindari arrow select2 menutupi area klik (regresi dari style.css global)
-    $("#poskon-filter .select2-selection__arrow, #modal-tambah-poskon .select2-selection__arrow")
+    $("#poskon-filter .select2-selection__arrow, #modal-tambah-poskon .select2-selection__arrow, #modal-filter-lanjutan .select2-selection__arrow")
       .css("pointer-events", "none");
 
   });
-
-  function sum_mktotal() {
-    let hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0)
-    let tot = hitung_total()
-
-    $("#mk-hargajual_net").val(hj_net).keyup()
-
-    $("#mk-tgt").val(tot.total_keseluruhan).keyup(); //grand total keseluruhan
-    $("#mk-total_tot").val(tot.harus_dibayar).keyup(); //total yang harus dibayar konsumen
-
-  }
-
-  function hitung_total(isForm = false, mkdt = []) {
-    let totalum = 0,
-      totalbb = 0,
-      pengurangan = 0,
-      hj = parseFloat(removeComma($("#mk-hargajual").val()) || 0), // 
-      diskon_hj = parseFloat(removeComma($("#mk-diskon_harga_jual").val()) || 0),
-      hj_net = parseFloat(removeComma($("#mk-hargajual_net").val()) || 0),
-      kpr = parseFloat(removeComma($("#mk-kpr").val()) || 0),
-      um = parseFloat(removeComma($("#mk-uang_muka").val()) || 0),
-      diskon_um = parseFloat(removeComma($("#mk-diskon_uang_muka").val()) || 0),
-      badm = parseFloat(removeComma($("#mk-biaya_adm").val()) || 0),
-      ppn = parseFloat(removeComma($("#mk-ppn").val()) || 0),
-      bphtb = parseFloat(removeComma($("#mk-bphtb").val()) || 0),
-      bproses = parseFloat(removeComma($("#mk-biaya_proses").val()) || 0),
-      sbum = parseFloat(removeComma($("#mk-harga_sbum").val()) || 0),
-
-      hj_real = 0,
-      persentase_kpr = ($("#idk-is_subsidi").val() == 1) ? 0.05 : 0.1, //persentase kpr
-      penambahan_biaya = parseFloat(removeComma($("#mk-harga_penambahan").val()) || 0),
-      penambahan_biaya_tanah = parseFloat(removeComma($("#mk-harga_penambahan_tanah").val()) || 0),
-      is_allin = $("#idk-is_allin").val(),
-      harga_allin = parseFloat(removeComma($("#mk-harga_allin").val() || 0))
-    if (isForm) {
-      if (mkdt.length == 0)
-        return showToast('tidak ada data tersedia', 'warning')
-
-      um = parseFloat(mkdt.harga_uang_muka || 0)
-      diskon_um = parseFloat(mkdt.harga_diskon_uang_muka || 0)
-      badm = parseFloat(mkdt.harga_administrasi || 0)
-      ppn = parseFloat(mkdt.harga_ppn || 0)
-      bphtb = parseFloat(mkdt.harga_bphtb || 0)
-      bproses = parseFloat(mkdt.harga_biaya_proses || 0)
-      sbum = parseFloat(mkdt.harga_sbum || 0)
-      penambahan_biaya = parseFloat(mkdt.harga_penambahan || 0)
-      penambahan_biaya_tanah = parseFloat(mkdt.harga_penambahan_tanah || 0)
-      is_allin = parseFloat(mkdt.is_allin || 0)
-      harga_allin = parseFloat(mkdt.harga_allin || 0)
-    }
-
-    pengurangan = diskon_um + sbum
-
-    totalum = um + badm + penambahan_biaya + penambahan_biaya_tanah
-    totalbb = ppn + bphtb + bproses
-
-    let tottot = totalum + totalbb - pengurangan;
-
-    let grandtotal = tottot;
-    if (is_allin == "1")
-      grandtotal = harga_allin
-
-    return {
-      'total_keseluruhan': tottot,
-      'harus_dibayar': grandtotal
-    }
-  }
-
-  function lihat_total() {
-    var harga_jual = removeComma(($("#detail_harga_jual").val() == '') ? 0 : $("#detail_harga_jual").val()),
-      harga_diskon = removeComma(($("#detail_harga_diskon").val() == '') ? 0 : $("#detail_harga_diskon").val()),
-      harga_penambahan = removeComma(($("#detail_harga_penambahan").val() == '') ? 0 : $("#detail_harga_penambahan").val()),
-      harga_administrasi = removeComma(($("#detail_harga_administrasi").val() == '') ? 0 : $("#detail_harga_administrasi").val()),
-      harga_ppn = removeComma(($("#detail_harga_ppn").val() == '') ? 0 : $("#detail_harga_ppn").val()),
-      harga_bphtb = removeComma(($("#detail_harga_bphtb").val() == '') ? 0 : $("#detail_harga_bphtb").val()),
-      harga_biaya_proses = removeComma(($("#detail_harga_biaya_proses").val() == '') ? 0 : $("#detail_harga_biaya_proses").val()),
-      harga_kpr = removeComma(($("#detail_harga_kpr").val() == '') ? 0 : $("#detail_harga_kpr").val()),
-      total_biaya = 0;
-
-    total_biaya = (harga_jual - harga_kpr) - harga_diskon + harga_penambahan + harga_ppn + harga_bphtb + harga_biaya_proses;
-
-    $("#detail_total_biaya").val(total_biaya).keyup();
-
-  }
-  //sum tagihan
-
-  function sum_tg(e = 0, bb = '') {
-    e = parseFloat(removeComma(e))
-
-    let total_keu = parseFloat(removeComma($("#mk-total_tot").val()) || 0)
-    let cicilan_keu = parseFloat(removeComma($("#mk-total_cicilan_um").val()) || 0)
-
-    if (cicilan_keu + e > total_keu)
-      $("#nominal").val(total_keu - cicilan_keu).keyup()
-  }
-  var it = 0;
-  /***************** list tagihan ****************/
-  function tambah_(e = '') {
-    let a = (e == '_bb') ? e : '_um'
-    if ($("#mk-total_cicilan_um").val() == $("#mk-total_tot").val()) {
-      swal('error', "Tidak bisa menambahkan tagihan", "Total tagihan tidak bisa melebeihi total harus dibayar", false);
-      return false;
-    } else {
-      if (!$("#berita_acara" + e).val() || !$("#nominal" + e).val() || !$("#jatuh_tempo_tgl" + e).val()) {
-        swal('error', "Nominal dan jatuh tempo tidak boleh kosong", null, false);
-        return false;
-      }
-      Swal.fire({
-        title: 'Simpan data?',
-        text: "Pastikan data sudah terisi dengan benar!",
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Ya!',
-        confirmButtonClass: 'btn btn-primary',
-        cancelButtonClass: 'btn btn-danger ml-1',
-        buttonsStyling: !1
-      }).then(function(t) {
-        if (t.value) {
-          tambah(e)
-        }
-      })
-    }
-  }
-
-  function tambah(e = '') {
-    let i = 'lk' + it
-
-    if (state.data_um[$("#id_list_keu" + e).val()])
-      i = $("#id_list_keu" + e).val()
-
-    state.data_um[i] = ({
-      id_list_keu: i,
-      id_keuangan: $("#id_keuangan").val(),
-      berita_acara: $("#berita_acara").val(),
-      nominal: $("#nominal").val(),
-      jatuh_tempo_tgl: $("#jatuh_tempo_tgl").val(),
-    })
-
-    tambah_ketagihan(e)
-
-    fp = flatpickr("#jatuh_tempo_tgl", {
-      altInput: true,
-      altFormat: 'F j, Y',
-      dateFormat: 'Y-m-d'
-    })
-
-    var d = new Date(
-      $("#jatuh_tempo_tgl").val()
-    ).fp_incr(30);
-
-    fp.setDate(d);
-
-    it += 1;
-  }
-
-  function removeFromTable(x, y = null) {
-    Swal.fire({
-      title: 'Hapus Data?',
-      text: "Data tidak bisa dipulihkan!",
-      type: 'danger',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Ya!',
-      confirmButtonClass: 'btn btn-primary',
-      cancelButtonClass: 'btn btn-danger ml-1',
-      buttonsStyling: !1
-    }).then(function(t) {
-      if (t.value) {
-        $.ajax({
-          url: base_url + 'Keuangan/isSudahBayar/' + editdtt[0].data.id_mkdt,
-          type: 'get',
-          dataType: 'json',
-          success: function(r) {
-            csrfHash = r.token;
-
-            if (r.success === false) {
-              return swal('error', r.messages)
-            }
-
-            if (y == '_bb') delete state.data_bb[x];
-            else delete state.data_um[x];
-            tambah_ketagihan();
-          },
-          error: function() {
-            return swal('error', 'Terjadi kesalahan')
-          }
-        });
-
-      }
-    })
-
-  }
-
-  function editFromTable(x) {
-    var d = state.data_um[x]
-
-    $("#id_list_keu").val(x);
-    $("#berita_acara").val(d.berita_acara);
-    $("#nominal").val(d.nominal).keyup();
-    $("#jatuh_tempo_tgl").val(d.jatuh_tempo_tgl);
-    $("#tambah_list").html("Simpan Perubahan")
-  }
-
-
-  function rowHTML({
-    title,
-    date,
-    amount,
-    key,
-    suffix = ''
-  }) {
-    return `
-            <tr data-key="${key}" data-suffix="${suffix}">
-            <td>${title}</td>
-            <td>${format_date(date)}</td>
-            <td>${num_format(amount)}</td>
-            <td>
-                <div class="btn-group">
-                <button type="button" class="btn btn-outline-danger waves-effect btn-sm js-remove">
-                    <i class="fa fa-trash"></i>
-                </button>
-                </div>
-            </td>
-            </tr>`;
-  }
-
-  function sectionHTML({
-    rows,
-    label,
-    suffix = ''
-  }) {
-    let total = 0;
-    const body = rows.map(r => {
-      total += Number(removeComma(r.amount));
-      return rowHTML({
-        ...r,
-        suffix
-      });
-    }).join('');
-    const foot = `
-                    <tr class="table-secondary">
-                        <td colspan="2">Total Tagihan </td>
-                        <td>${num_format(total)}</td>
-                        <td></td>
-                    </tr>`;
-    return {
-      html: body + foot,
-      total
-    };
-  }
-
-  function tambah_ketagihan() {
-    const umRows = Object.keys(state.data_um || {}).map(k => ({
-      key: k,
-      title: state.data_um[k].berita_acara,
-      date: state.data_um[k].jatuh_tempo_tgl,
-      amount: state.data_um[k].nominal
-    }));
-
-    // const bbRows = Object.keys(state.data_bb || {}).map(k => ({
-    //     key: k,
-    //     title: state.data_bb[k].berita_acara_bb,
-    //     date: state.data_bb[k].jatuh_tempo_tgl_bb,
-    //     amount: state.data_bb[k].nominal_bb
-    // }));
-
-    const um = sectionHTML({
-      rows: umRows,
-      label: 'Tagihan Uang Muka',
-      suffix: ''
-    });
-
-    // const bb = sectionHTML({
-    //     rows: bbRows,
-    //     label: 'Tagihan Biaya Biaya',
-    //     suffix: '_bb'
-    // });
-
-    // 1x write ke DOM
-    $("#list_cicilan_here").html(um.html);
-
-    // update total & UI state
-    $("#mk-total_cicilan_um").val(um.total).trigger('change');
-    // $("#total_cicilan_bb").val(bb.total).trigger('change');
-    $("#id_list_keu").val('');
-    $("#id_list_keu_bb").val('');
-    $("#nominal, #nominal_bb").trigger('change');
-    // $("#tambah_list").text("+ Cicilan UM");
-    // $("#tambah_list_bb").text("+ Cicilan BB");
-  }
-
-
 
   $('#tb-BLOK').css({
     'min-width': '150px',

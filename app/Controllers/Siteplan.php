@@ -24,6 +24,7 @@ use App\Services\FileAccessService;
 use App\Services\MkdtHistoryService;
 use App\Services\SiteplanUrgentService;
 use App\Services\TargetSiteplanService;
+use App\Services\PencairanAkadService;
 
 use App\Repositories\CashOutRepository;
 
@@ -54,6 +55,7 @@ class Siteplan extends BaseController
     protected $siteplanUrgentService;
     protected $targetSiteplanService;
     protected $activeProyekService;
+    protected $pencairanAkadService;
 
     public function __construct()
     {
@@ -79,6 +81,7 @@ class Siteplan extends BaseController
         $this->siteplanUrgentService = new SiteplanUrgentService();
         $this->targetSiteplanService = new TargetSiteplanService();
         $this->activeProyekService = new ActiveProyekService();
+        $this->pencairanAkadService = new PencairanAkadService();
 
         $this->kavlingRepo = new KavlingRepository();
 
@@ -1329,6 +1332,19 @@ class Siteplan extends BaseController
 
         //get cashout riwayat bayar
         $d['cashout'] = $this->cashoutRepo->getRiwayatBayarCashOutByIDKavling($id_kavling);
+
+        //get hutang cashout subkon outstanding (jatuh tempo turun s.d. pengajuan pencairan, belum dibayar)
+        $d['hutang_subkon'] = $this->db->table('cashout_subkon_detail_allocation csda')
+            ->select('csda.nominal, csd.tanggal_jatuh_tempo, csd.berita_acara, csd.keterangan, cs.nomor_surat')
+            ->join('cashout_subkon_detail csd', 'csd.id_cashout_subkon_detail = csda.id_cashout_subkon_detail')
+            ->join('cashout_subkon cs', 'cs.id_cashout_subkon = csda.id_cashout_subkon')
+            ->where('csda.id_kavling', $id_kavling)
+            ->where('csd.status >=', 1)
+            ->where('csd.status <=', 3)
+            ->orderBy('csd.tanggal_jatuh_tempo', 'asc')
+            ->get()
+            ->getResult();
+
         $incomeRows = [];
         $ledgerExpenseRows = [];
         if ($this->db->tableExists('finance_ledger')) {
@@ -1379,6 +1395,11 @@ class Siteplan extends BaseController
         }
 
         $expenseRows = array_merge($d['cashout'], $ledgerExpenseRows);
+        usort($expenseRows, function ($a, $b) {
+            $dateA = $a->tanggal_transaksi ?? $a->tanggal_bayar ?? null;
+            $dateB = $b->tanggal_transaksi ?? $b->tanggal_bayar ?? null;
+            return strcmp((string) $dateB, (string) $dateA);
+        });
         $expenseTotal = 0;
         foreach ($expenseRows as $row) {
             $expenseTotal += (float) ($row->nominal ?? 0);
@@ -1426,6 +1447,8 @@ class Siteplan extends BaseController
                 $nilaiAkadEstimasi = (float) ($d['mkdt']->harga_kpr ?? 0);
             }
         }
+
+        $d['pencairan_akad'] = $this->pencairanAkadService->getData((int) $id_mkdt, (int) $id_kavling);
 
         $d['finance_flow'] = [
             'income_total' => $incomeTotal,

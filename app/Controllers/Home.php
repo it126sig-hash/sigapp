@@ -49,7 +49,10 @@ class Home extends BaseController
             COUNT(CASE WHEN mkdt.mkdt_batal_tgl BETWEEN $sdate AND $edate THEN 1 END) AS jumlah_batal,
             COUNT(CASE WHEN produksi.tanggal_pembangunan BETWEEN $sdate AND $edate THEN 1 END) AS jumlah_pembangunan,
             COUNT(CASE WHEN produksi.tanggal_selesai_pembangunan BETWEEN $sdate AND $edate AND produksi.progres_bangunan = 100 THEN 1 END) AS jumlah_bangunan_selesai,
-            COUNT(CASE WHEN produksi.tanggal_rencana_selesai_pembangunan < CURDATE() AND produksi.tanggal_selesai_pembangunan IS NULL AND COALESCE(produksi.progres_bangunan, 0) < 100 THEN 1 END) AS jumlah_bangunan_telat
+            COUNT(CASE WHEN produksi.tanggal_rencana_selesai_pembangunan < CURDATE() AND produksi.tanggal_selesai_pembangunan IS NULL AND COALESCE(produksi.progres_bangunan, 0) < 100 THEN 1 END) AS jumlah_bangunan_telat,
+            COUNT(CASE WHEN mkdt.booking_tgl BETWEEN $sdate AND $edate AND mkdt.status_mkdt = 'Akad' THEN 1 END) AS jumlah_booking_akad,
+            COUNT(CASE WHEN mkdt.booking_tgl BETWEEN $sdate AND $edate AND (mkdt.status_mkdt = 'Batal' OR mkdt.is_batal = 1) THEN 1 END) AS jumlah_booking_batal,
+            COUNT(CASE WHEN mkdt.booking_tgl BETWEEN $sdate AND $edate AND mkdt.status_mkdt = 'Booking' AND COALESCE(mkdt.is_batal, 0) = 0 THEN 1 END) AS jumlah_booking_aktif
         ", false);
 
         $builder->join('kavling', 'kavling.id_kavling = mkdt.id_kavling')
@@ -83,6 +86,9 @@ class Home extends BaseController
             'pembangunan' => 0,
             'pembangunan_selesai' => 0,
             'pembangunan_telat' => 0,
+            'booking_akad' => 0,
+            'booking_batal' => 0,
+            'booking_aktif' => 0,
             'summary' => [],
             'finance' => [],
             'production' => [],
@@ -116,9 +122,6 @@ class Home extends BaseController
             //     if ($a->sp3k_tgl >= $sdate && $a->sp3k_tgl <= $edate)
             //         $sp3k++;
             // }
-            //get statistik pembangunan dashboard
-            $q = $this->getData($id_proyek, $sdate, $edate);
-
             //get statistik dashboard
             $q = $this->getData($id_proyek, $sdate, $edate);
             $r['booking'] = (int) ($q->jumlah_booking ?? 0);
@@ -128,13 +131,15 @@ class Home extends BaseController
             $r['pembangunan'] = (int) ($q->jumlah_pembangunan ?? 0);
             $r['pembangunan_selesai'] = (int) ($q->jumlah_bangunan_selesai ?? 0);
             $r['pembangunan_telat'] = (int) ($q->jumlah_bangunan_telat ?? 0);
+            $r['booking_akad'] = (int) ($q->jumlah_booking_akad ?? 0);
+            $r['booking_batal'] = (int) ($q->jumlah_booking_batal ?? 0);
+            $r['booking_aktif'] = (int) ($q->jumlah_booking_aktif ?? 0);
             $r['summary'] = $this->getDashboardProjectSummary($id_proyek, $sdate, $edate);
             $r['finance'] = $this->getDashboardFinanceSummary($id_proyek, $sdate, $edate);
             $r['production'] = $this->getDashboardProductionSummary($id_proyek, $sdate, $edate);
             $r['target'] = $this->getDashboardTargetSummary($id_proyek, (int) $tahun);
-            $urgent = $this->siteplanUrgentService->getUrgentSummary($id_proyek, $this->getCurrentGroupId(), (int) user_id());
-            $r['urgent'] = $urgent;
-            $r['alerts'] = $this->buildDashboardAlerts($urgent, $r['production']);
+            $alertCounts = $this->siteplanUrgentService->getDashboardAlertCounts($id_proyek);
+            $r['alerts'] = $this->buildDashboardAlerts($alertCounts, $r['production']);
         }
 
         // get aktivitas dashboard
@@ -204,6 +209,13 @@ class Home extends BaseController
             ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
             ->where('cluster.id_proyek', $id_proyek)
             ->where('keuangan.sudah_dibayar', 0)
+            ->where('keuangan.is_void', 0)
+            ->where('keuangan.jatuh_tempo_tgl IS NOT NULL', null, false)
+            ->where('keuangan.jatuh_tempo_tgl >', '1000-01-01')
+            ->groupStart()
+            ->where('mkdt.is_batal', 0)
+            ->orWhere('mkdt.is_batal IS NULL', null, false)
+            ->groupEnd()
             ->get()
             ->getRow();
 
@@ -362,55 +374,34 @@ class Home extends BaseController
         ];
     }
 
-    private function getCurrentGroupId(): int
+    private function buildDashboardAlerts(array $alertCounts, array $production): array
     {
-        $groupId = (int) (session()->group_id ?? 0);
-        if ($groupId > 0) {
-            return $groupId;
-        }
-
-        $group = $this->db->table('auth_groups_users')
-            ->select('group_id')
-            ->where('user_id', user_id())
-            ->get()
-            ->getRow();
-        $groupId = (int) ($group->group_id ?? 0);
-        if ($groupId > 0) {
-            session()->set('group_id', $groupId);
-        }
-
-        return $groupId;
-    }
-
-    private function buildDashboardAlerts(array $urgent, array $production): array
-    {
-        $sections = $urgent['sections'] ?? [];
-        $sectionCount = static function (string $key) use ($sections): int {
-            return (int) ($sections[$key]['count'] ?? 0);
+        $count = static function (string $key) use ($alertCounts): int {
+            return (int) ($alertCounts[$key] ?? 0);
         };
 
         return [
             [
                 'label' => 'Tagihan lewat jatuh tempo',
-                'value' => $sectionCount('tagihan_overdue'),
+                'value' => $count('tagihan_overdue'),
                 'type' => 'danger',
                 'description' => 'Perlu ditagih atau diverifikasi pembayarannya',
             ],
             [
                 'label' => 'Tagihan jatuh tempo 7 hari',
-                'value' => $sectionCount('tagihan_due'),
+                'value' => $count('tagihan_due'),
                 'type' => 'warning',
                 'description' => 'Perlu follow up sebelum lewat tempo',
             ],
             [
                 'label' => 'Cashout subkon jatuh tempo',
-                'value' => $sectionCount('cashout_subkon'),
+                'value' => $count('cashout_subkon'),
                 'type' => 'warning',
                 'description' => 'Termin subkon belum dibayar',
             ],
             [
                 'label' => 'Bangunan telat',
-                'value' => $sectionCount('pembangunan_telat'),
+                'value' => $count('pembangunan_telat'),
                 'type' => 'danger',
                 'description' => 'Progres belum selesai melewati rencana selesai',
             ],
@@ -446,11 +437,12 @@ class Home extends BaseController
                 ->groupBy("YEAR($field), MONTH($field), day(booking_tgl)")
                 ->get()->getResult();
         }
-        return $this->db->table('mkdt')
+        $rows = $this->db->table('mkdt')
             ->select("
-                YEAR($field) AS tahun, 
+                YEAR($field) AS tahun,
                 MONTH($field) AS bulan,
-                COUNT($field) AS jumlah
+                COUNT($field) AS jumlah,
+                GROUP_CONCAT(CONCAT(jalan.nama_jalan, ' No. ', kavling.no_kavling) ORDER BY kavling.no_kavling SEPARATOR '||') AS kavling_list
             ")
             ->join('kavling', 'kavling.id_kavling = mkdt.id_kavling')
             ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
@@ -462,11 +454,18 @@ class Home extends BaseController
             ->where("YEAR($field)", $thn)
             ->groupBy("YEAR($field), MONTH($field)")
             ->get()->getResult();
+
+        foreach ($rows as $row) {
+            $row->kavling = $row->kavling_list ? explode('||', $row->kavling_list) : [];
+            unset($row->kavling_list);
+        }
+
+        return $rows;
     }
     function loadAktivitas()
     {
         $r['token'] = csrf_hash();
-        $offset = $this->request->getVar('offset');
+        $offset = (int) $this->request->getVar('offset');
         $id_proyek = resolve_active_proyek_id($this->request->getVar('id_proyek'));
 
         $r['aktivitas'] = $this->notif->getActivity(true, $offset, $id_proyek);

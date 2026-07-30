@@ -508,6 +508,8 @@ class KeuanganService
                 'nominal'       => (float) ($row->nominal ?? 0),
                 'sudah_dibayar' => (int) ($row->sudah_dibayar ?? 0),
                 'status'        => $row->status ?? '',
+                'is_void'       => (int) ($row->is_void ?? 0),
+                'void_reason'   => $row->void_reason ?? '',
             ];
         }, $this->keuRepo->getListTagihanDetailById($idMkdt));
     }
@@ -697,9 +699,7 @@ class KeuanganService
     }
 
     /**
-     * Hapus permanen satu tagihan. Hanya boleh jika belum pernah ada pembayaran
-     * yang tercatat untuk tagihan ini (lihat hasPaidTagihan()). Kalau sudah ada
-     * pembayaran, arahkan pengguna ke voidTagihan().
+     * Hapus permanen satu tagihan.
      */
     public function deleteTagihan(int $idKeuangan, int $actorId): array
     {
@@ -709,9 +709,6 @@ class KeuanganService
         }
         if ((int) $row->is_void === 1) {
             return ['success' => false, 'message' => 'Tagihan sudah di-void'];
-        }
-        if ($this->hasPaidTagihan((int) $row->id_mkdt, [$row])) {
-            return ['success' => false, 'message' => 'Tagihan sudah ada pembayaran, tidak bisa dihapus. Gunakan tombol Void.'];
         }
 
         $this->model->delete($idKeuangan);

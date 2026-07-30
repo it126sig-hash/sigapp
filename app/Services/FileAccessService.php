@@ -11,7 +11,7 @@ class FileAccessService
     private const PRIVATE_DIR = 'protected_uploads';
 
     private array $sourceRoles = [
-        'file_produksi'     => [1, 7, 9],
+        'file_produksi'     => [1, 3, 4, 5, 6, 7, 8, 9, 10],
         'gambar_kerja'      => [1, 6, 7, 9],
         'siteplan_upload'   => [1, 6, 9],
         'file_spptb'        => [1, 3, 4, 9],
@@ -236,7 +236,7 @@ class FileAccessService
                 $row = $this->db->table('file_produksi')->where('id', $id)->get()->getRow();
                 $this->assertRow($row);
                 $path = rtrim((string) $row->lokasi, '/') . '/' . ($thumbnail ? 'thumbnails/' : '') . $row->file_name;
-                return $this->fileMeta($path, $row->file_name, $this->sourceRoles[$source], $row);
+                return $this->fileMeta($path, $this->buildProduksiFileName($row), $this->sourceRoles[$source], $row);
 
             case 'gambar_kerja':
                 $row = $this->db->table('gambar_kerja')->where('id_gambar_kerja', $id)->get()->getRow();
@@ -331,6 +331,30 @@ class FileAccessService
         }
 
         throw new RuntimeException('NOT_FOUND');
+    }
+
+    private function buildProduksiFileName(object $row): string
+    {
+        $ext = pathinfo((string) $row->file_name, PATHINFO_EXTENSION);
+
+        $kavling = $row->id_kavling
+            ? $this->db->table('kavling')
+                ->select('jalan.nama_jalan, kavling.no_kavling')
+                ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+                ->where('kavling.id_kavling', $row->id_kavling)
+                ->get()->getRow()
+            : null;
+
+        if (!$kavling) {
+            return $row->file_name;
+        }
+
+        $label = trim($kavling->nama_jalan . ' No ' . $kavling->no_kavling
+            . (($row->file_keterangan ?? '') !== '' ? ' - ' . $row->file_keterangan : ''));
+
+        $label = preg_replace('/[\\/:*?"<>|]/', '-', $label);
+
+        return $label . ($ext !== '' ? '.' . $ext : '');
     }
 
     private function fileMeta(?string $logicalPath, ?string $fileName, array $roles, object $record): array

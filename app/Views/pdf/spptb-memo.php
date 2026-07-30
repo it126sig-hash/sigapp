@@ -286,3 +286,31 @@ if (!function_exists('terbilang')) {
 
     </tbody>
 </table>
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<?php
+$hargajual = $data->harga_jual; 
+$hj_nett = $hargajual / 1.11;
+$ppn = $hargajual - $hj_nett;
+$bphtb = ($hj_nett - 80000000)* 0.05;
+?>
+<b><u>HARGA JUAL KE BCA:</u></b>
+<table>
+    <tr>
+        <td>HJ BRUTO</td><td>: RP. <?= num_format($hargajual)  ?></td>
+    </tr>
+    <tr>
+        <td>HJ NETT</td><td>: RP. <?= num_format($hj_nett)  ?></td>
+    </tr>
+    <tr>
+        <td>PPN</td><td>: RP. <?= num_format($ppn)  ?></td>
+    </tr>
+    <tr>
+        <td>BPHTB</td><td>: RP. <?= num_format($bphtb)  ?></td>
+    </tr>
+</table>
+<b>*Selisih dibebankan ke PT</b>

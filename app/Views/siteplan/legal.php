@@ -850,11 +850,7 @@
                                                     </div>
                                                     <div class="form-group">
                                                         <label>Dikirim Ke Bank/Konsumen</label>
-                                                        <select name="pbg_dikirim_ke" class="form-control" id="pbg_dikirim_ke">
-                                                            <option value="null"></option>
-                                                            <option value="Bank BTN">Bank BTN</option>
-                                                            <option value="Konsumen">Konsumen</option>
-                                                        </select>
+                                                        <input type="text" class="form-control" id="pbg_dikirim_ke" name="pbg_dikirim_ke" placeholder="Dikirim Ke Bank/Konsumen">
                                                     </div>
                                                     <div class="form-group">
                                                         <label>Tanggal Kirim Ke Bank/Konsumen</label>
@@ -975,6 +971,27 @@
                                         <div class="col-md-6">
                                             <div class="card mb-2">
                                                 <div class="card-header">
+                                                    <h5>PPJB</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="form-group">
+                                                        <label>No PPJB</label>
+                                                        <input type="text" class="form-control" id="ppjb_no" name="ppjb_no">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Tanggal PPJB</label>
+                                                        <input type="text" class="form-control flatpickr-human-friendly" id="ppjb_tanggal" name="ppjb_tanggal">
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label>Notaris</label>
+                                                        <input type="text" class="form-control" id="ppjb_notaris" name="ppjb_notaris">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card mb-2">
+                                                <div class="card-header">
                                                     <h5>AJB</h5>
                                                 </div>
                                                 <div class="card-body">
@@ -997,27 +1014,6 @@
                                                     <div class="form-group">
                                                         <label>Tanggal Dikirim Ke Bank/Konsumen</label>
                                                         <input type="text" class="form-control flatpickr-human-friendly" id="ajb_tanggal_dikirim" name="ajb_tanggal_dikirim">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="card mb-2">
-                                                <div class="card-header">
-                                                    <h5>PPJB</h5>
-                                                </div>
-                                                <div class="card-body">
-                                                    <div class="form-group">
-                                                        <label>No PPJB</label>
-                                                        <input type="text" class="form-control" id="ppjb_no" name="ppjb_no">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label>Tanggal PPJB</label>
-                                                        <input type="text" class="form-control flatpickr-human-friendly" id="ppjb_tanggal" name="ppjb_tanggal">
-                                                    </div>
-                                                    <div class="form-group">
-                                                        <label>Notaris</label>
-                                                        <input type="text" class="form-control" id="ppjb_notaris" name="ppjb_notaris">
                                                     </div>
                                                 </div>
                                             </div>
