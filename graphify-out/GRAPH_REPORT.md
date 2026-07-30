@@ -1,16 +1,16 @@
-# Graph Report - sigapp.dev  (2026-06-13)
+# Graph Report - sigapp.dev  (2026-07-30)
 
 ## Corpus Check
-- 974 files · ~2,132,538 words
+- 1041 files · ~1,945,598 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 16090 nodes · 42054 edges · 1056 communities (783 shown, 273 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 265 edges (avg confidence: 0.8)
+- 17063 nodes · 43847 edges · 1121 communities (814 shown, 307 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 518 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `851190bc`
+- Built from commit: `8d8d0f9b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -669,6 +669,7 @@
 - [[_COMMUNITY_Community 881|Community 881]]
 - [[_COMMUNITY_Community 882|Community 882]]
 - [[_COMMUNITY_Community 883|Community 883]]
+- [[_COMMUNITY_Community 884|Community 884]]
 - [[_COMMUNITY_Community 885|Community 885]]
 - [[_COMMUNITY_Community 886|Community 886]]
 - [[_COMMUNITY_Community 887|Community 887]]
@@ -796,36 +797,94 @@
 - [[_COMMUNITY_Community 1050|Community 1050]]
 - [[_COMMUNITY_Community 1051|Community 1051]]
 - [[_COMMUNITY_Community 1052|Community 1052]]
+- [[_COMMUNITY_Community 1056|Community 1056]]
+- [[_COMMUNITY_Community 1057|Community 1057]]
+- [[_COMMUNITY_Community 1058|Community 1058]]
+- [[_COMMUNITY_Community 1059|Community 1059]]
+- [[_COMMUNITY_Community 1060|Community 1060]]
+- [[_COMMUNITY_Community 1061|Community 1061]]
+- [[_COMMUNITY_Community 1062|Community 1062]]
+- [[_COMMUNITY_Community 1063|Community 1063]]
+- [[_COMMUNITY_Community 1064|Community 1064]]
+- [[_COMMUNITY_Community 1065|Community 1065]]
+- [[_COMMUNITY_Community 1066|Community 1066]]
+- [[_COMMUNITY_Community 1067|Community 1067]]
+- [[_COMMUNITY_Community 1068|Community 1068]]
+- [[_COMMUNITY_Community 1069|Community 1069]]
+- [[_COMMUNITY_Community 1070|Community 1070]]
+- [[_COMMUNITY_Community 1071|Community 1071]]
+- [[_COMMUNITY_Community 1072|Community 1072]]
+- [[_COMMUNITY_Community 1073|Community 1073]]
+- [[_COMMUNITY_Community 1074|Community 1074]]
+- [[_COMMUNITY_Community 1075|Community 1075]]
+- [[_COMMUNITY_Community 1076|Community 1076]]
+- [[_COMMUNITY_Community 1077|Community 1077]]
+- [[_COMMUNITY_Community 1078|Community 1078]]
+- [[_COMMUNITY_Community 1079|Community 1079]]
+- [[_COMMUNITY_Community 1080|Community 1080]]
+- [[_COMMUNITY_Community 1081|Community 1081]]
+- [[_COMMUNITY_Community 1082|Community 1082]]
+- [[_COMMUNITY_Community 1083|Community 1083]]
+- [[_COMMUNITY_Community 1084|Community 1084]]
+- [[_COMMUNITY_Community 1085|Community 1085]]
+- [[_COMMUNITY_Community 1086|Community 1086]]
+- [[_COMMUNITY_Community 1087|Community 1087]]
+- [[_COMMUNITY_Community 1088|Community 1088]]
+- [[_COMMUNITY_Community 1089|Community 1089]]
+- [[_COMMUNITY_Community 1090|Community 1090]]
+- [[_COMMUNITY_Community 1091|Community 1091]]
+- [[_COMMUNITY_Community 1092|Community 1092]]
+- [[_COMMUNITY_Community 1093|Community 1093]]
+- [[_COMMUNITY_Community 1094|Community 1094]]
+- [[_COMMUNITY_Community 1095|Community 1095]]
+- [[_COMMUNITY_Community 1096|Community 1096]]
+- [[_COMMUNITY_Community 1097|Community 1097]]
+- [[_COMMUNITY_Community 1098|Community 1098]]
+- [[_COMMUNITY_Community 1099|Community 1099]]
+- [[_COMMUNITY_Community 1100|Community 1100]]
+- [[_COMMUNITY_Community 1101|Community 1101]]
+- [[_COMMUNITY_Community 1102|Community 1102]]
+- [[_COMMUNITY_Community 1103|Community 1103]]
+- [[_COMMUNITY_Community 1104|Community 1104]]
+- [[_COMMUNITY_Community 1105|Community 1105]]
+- [[_COMMUNITY_Community 1106|Community 1106]]
+- [[_COMMUNITY_Community 1107|Community 1107]]
+- [[_COMMUNITY_Community 1108|Community 1108]]
+- [[_COMMUNITY_Community 1109|Community 1109]]
+- [[_COMMUNITY_Community 1110|Community 1110]]
+- [[_COMMUNITY_Community 1111|Community 1111]]
+- [[_COMMUNITY_Community 1112|Community 1112]]
+- [[_COMMUNITY_Community 1113|Community 1113]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `ApexCharts()` - 115 edges
 2. `update()` - 111 edges
 3. `K` - 108 edges
-4. `js()` - 90 edges
-5. `CodeGenerator` - 84 edges
-6. `ns()` - 73 edges
-7. `an()` - 73 edges
-8. `QueryAnalyzer` - 68 edges
-9. `SecurityFixer` - 65 edges
-10. `p()` - 59 edges
+4. `swal()` - 99 edges
+5. `js()` - 90 edges
+6. `CodeGenerator` - 84 edges
+7. `ns()` - 73 edges
+8. `an()` - 73 edges
+9. `QueryAnalyzer` - 68 edges
+10. `SecurityFixer` - 65 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `jt()` --calls--> `_t()`  [INFERRED]
   public/app-assets/vendors/js/editors/quill/katex.min.js → public/app-assets/js/scripts/charts/chart.js
-- `loadHistoryStatusCashoutSubkon()` --calls--> `swal()`  [INFERRED]
-  public/assets/js/cashout_subkon.js → public/assets/js/scripts.js
-- `set_harga()` --calls--> `swal()`  [INFERRED]
-  public/assets/js/mkdt.js → public/assets/js/scripts.js
-- `isi_si()` --calls--> `swal()`  [INFERRED]
-  public/assets/js/mkdt.js → public/assets/js/scripts.js
-- `save_komplain_produksi()` --calls--> `swal()`  [INFERRED]
-  public/assets/js/produksi.js → public/assets/js/scripts.js
+- `open_komplain_sales()` --calls--> `format_datetime()`  [INFERRED]
+  public/assets/js/siteplan/sales.js → public/assets/js/scripts.js
+- `paint()` --calls--> `hapus_seleksi()`  [INFERRED]
+  public/assets/js/scripts.js → public/assets/js/siteplan/master.js
+- `ganti_kavling()` --calls--> `swal()`  [INFERRED]
+  public/assets/js/siteplan/keuangan.js → public/assets/js/scripts.js
+- `ganti_nama()` --calls--> `swal()`  [INFERRED]
+  public/assets/js/siteplan/keuangan.js → public/assets/js/scripts.js
 
-## Communities (1056 total, 273 thin omitted)
+## Communities (1121 total, 307 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.10
-Nodes (9): _(), be, Ce(), L, m(), ne, oe, u() (+1 more)
+Cohesion: 0.04
+Nodes (25): ae, be, Bt, Ce(), De(), ee, g, Gt (+17 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.01
@@ -897,11 +956,11 @@ Nodes (42): Ah(), Ao(), Au(), bo(), Bu(), Co(), Cu(), e() (+34 more)
 
 ### Community 21 - "Community 21"
 Cohesion: 0.04
-Nodes (35): br(), bs(), Ci(), cr(), de(), Dr(), F(), go() (+27 more)
+Nodes (32): bs(), Ci(), de(), F(), go(), gr(), Hs(), Ii() (+24 more)
 
 ### Community 23 - "Community 23"
-Cohesion: 0.06
-Nodes (6): a, get(), K, set(), x(), y()
+Cohesion: 0.05
+Nodes (3): J, K, r()
 
 ### Community 24 - "Community 24"
 Cohesion: 0.04
@@ -912,8 +971,8 @@ Cohesion: 0.05
 Nodes (36): afterDraw(), ai(), beforeDraw(), da(), draw(), ea(), ee, eo() (+28 more)
 
 ### Community 26 - "Community 26"
-Cohesion: 0.07
-Nodes (47): open_diskresi(), save_diskresi(), alokasi_items, badgeStatus(), bindToggle(), dana_akad(), ganti_nama(), getRiwayatGantinama() (+39 more)
+Cohesion: 0.04
+Nodes (75): save_diskresi(), alokasi_items, badgeStatus(), bindToggle(), dana_akad(), ganti_nama(), getRiwayatGantinama(), hapus_cashout() (+67 more)
 
 ### Community 27 - "Community 27"
 Cohesion: 0.07
@@ -956,12 +1015,12 @@ Cohesion: 0.06
 Nodes (3): ASTParserTest, DependencyAnalyzer, DependencyAnalyzerTest
 
 ### Community 38 - "Community 38"
-Cohesion: 0.07
-Nodes (57): ApexCharts(), arcToBeziere(), array_clone(), arrayToMatrix(), arrayToString(), _arrayWithoutHoles(), assignNewId(), AxesUtils() (+49 more)
+Cohesion: 0.06
+Nodes (84): Annotations(), ApexCharts(), array_clone(), arrayToMatrix(), arrayToString(), _arrayWithoutHoles(), assignNewId(), AxesTooltip() (+76 more)
 
 ### Community 39 - "Community 39"
-Cohesion: 0.05
-Nodes (37): Annotations(), AxesTooltip(), Bar(), _classCallCheck(), Config(), Core(), CoreUtils(), DataLabels() (+29 more)
+Cohesion: 0.04
+Nodes (87): drawBorderEdit(), goToNotificationUrgentAction(), handleNotificationClick(), openNotificationUrgentItem(), palid(), set_fill(), save_diskresi(), save_isi_tagihan() (+79 more)
 
 ### Community 40 - "Community 40"
 Cohesion: 0.09
@@ -973,19 +1032,19 @@ Nodes (20): a(), b(), c(), e(), f, g(), h, i (+12 more)
 
 ### Community 44 - "Community 44"
 Cohesion: 0.09
-Nodes (40): addListener(), attachVirtualInstance(), bindFields(), closePicker(), colorAreaDims, Coloris(), configure(), ctx (+32 more)
+Nodes (39): attachVirtualInstance(), bindFields(), closePicker(), colorAreaDims, Coloris(), configure(), ctx, currentColor (+31 more)
 
 ### Community 45 - "Community 45"
 Cohesion: 0.08
-Nodes (33): Bb(), C(), Cb(), cc(), db(), E(), Eb(), ec() (+25 more)
+Nodes (36): $a(), Bb(), C(), Cb(), cc(), db(), E(), Eb() (+28 more)
 
 ### Community 46 - "Community 46"
 Cohesion: 0.11
 Nodes (29): A(), B(), C(), D(), e(), f(), g(), h() (+21 more)
 
 ### Community 48 - "Community 48"
-Cohesion: 0.09
-Nodes (25): bindKavlingContext(), btnNext(), containerIsiKonsumen, disableForm(), fillDiskresi(), fillMkdt(), fillPriceSection(), formatDateSafe() (+17 more)
+Cohesion: 0.07
+Nodes (33): ensureProjectSelectionModal(), isProjectSelectionExempt(), renderProjectSelectionModal(), setSwitchingState(), switchActiveProyek(), bindKavlingContext(), btnNext(), containerIsiKonsumen (+25 more)
 
 ### Community 49 - "Community 49"
 Cohesion: 0.11
@@ -1000,7 +1059,7 @@ Cohesion: 0.11
 Nodes (14): at(), Bi(), gt(), jt(), kt(), mt(), qt(), _t() (+6 more)
 
 ### Community 53 - "Community 53"
-Cohesion: 0.10
+Cohesion: 0.11
 Nodes (4): E, it(), jt, zt
 
 ### Community 55 - "Community 55"
@@ -1012,8 +1071,8 @@ Cohesion: 0.06
 Nodes (36): autoload, autoload-dev, psr-4, exclude-from-classmap, psr-4, config, optimize-autoloader, preferred-install (+28 more)
 
 ### Community 63 - "Community 63"
-Cohesion: 0.06
-Nodes (14): at(), Bt, et(), Fe(), Gt, i, Mt(), Pt (+6 more)
+Cohesion: 0.11
+Nodes (7): at(), et(), get(), rt(), set(), tt(), Context Menu
 
 ### Community 68 - "Community 68"
 Cohesion: 0.10
@@ -1028,12 +1087,12 @@ Cohesion: 0.12
 Nodes (12): ColorPicker(), IconPicker(), ALIGNS, COLORS, fileInput, FONTS, HEADERS, range (+4 more)
 
 ### Community 75 - "Community 75"
-Cohesion: 0.10
-Nodes (8): Siteplan, a, add_kavling(), edit_kavling(), l, results, va, xy
+Cohesion: 0.15
+Nodes (3): Siteplan, add_kavling(), edit_kavling()
 
 ### Community 77 - "Community 77"
-Cohesion: 0.08
-Nodes (3): J, Ke, ve
+Cohesion: 0.07
+Nodes (7): MigratePrivateFiles, _(), a, Ke, u(), x(), y()
 
 ### Community 78 - "Community 78"
 Cohesion: 0.26
@@ -1392,15 +1451,15 @@ Cohesion: 0.25
 Nodes (21): _(), a(), b(), c(), d(), e(), f(), g() (+13 more)
 
 ### Community 167 - "Community 167"
-Cohesion: 0.06
-Nodes (33): fillFiles(), displayUploadedFiles(), drawBorderAct(), drawMask(), format_date(), getNotif(), handleNotificationClick(), hlButton() (+25 more)
+Cohesion: 0.04
+Nodes (60): open_komplain_produksi(), fluks, fuks, open_komplain_sales(), closeMobileMenu(), closeSheet(), defaults, displayUploadedFiles() (+52 more)
 
 ### Community 168 - "Community 168"
 Cohesion: 0.26
 Nodes (16): a(), b(), c(), d(), e(), f(), g(), h() (+8 more)
 
 ### Community 170 - "Community 170"
-Cohesion: 0.23
+Cohesion: 0.21
 Nodes (3): hc(), qc, T()
 
 ### Community 171 - "Community 171"
@@ -1408,16 +1467,16 @@ Cohesion: 0.27
 Nodes (24): $(), a(), b(), c(), d(), ee(), f(), g() (+16 more)
 
 ### Community 172 - "Community 172"
-Cohesion: 0.08
-Nodes (19): hj_net, id_tarif, open_pajak(), tarif, buat_slf(), download(), form_slf_reset(), getlistSLF() (+11 more)
+Cohesion: 0.04
+Nodes (83): assignFileToInput(), bindKavlingContext(), bindKtpOcr(), bindMkdtClipboardUpload(), btnNext(), cleanKtpValue(), confirmApplyKtpOcr(), containerIsiKonsumen (+75 more)
 
 ### Community 175 - "Community 175"
 Cohesion: 0.08
 Nodes (3): RefactorEngineTest, RefactorOptions, RefactorResult
 
 ### Community 176 - "Community 176"
-Cohesion: 0.16
-Nodes (15): ar(), bn(), dn(), k(), ka(), li(), ni(), or() (+7 more)
+Cohesion: 0.12
+Nodes (24): ao(), ar(), Ba(), bn(), cr(), dn(), E(), I() (+16 more)
 
 ### Community 177 - "Community 177"
 Cohesion: 0.11
@@ -1844,8 +1903,8 @@ Cohesion: 0.21
 Nodes (15): a(), b(), c(), e(), i(), l(), m(), n() (+7 more)
 
 ### Community 285 - "Community 285"
-Cohesion: 0.30
-Nodes (18): aa(), Ab(), B(), ba(), ca(), da(), F(), G() (+10 more)
+Cohesion: 0.27
+Nodes (19): aa(), Ab(), B(), ba(), ca(), da(), F(), Fb() (+11 more)
 
 ### Community 286 - "Community 286"
 Cohesion: 0.21
@@ -2020,8 +2079,8 @@ Cohesion: 0.26
 Nodes (25): _(), a(), b(), c(), d(), e(), f(), g() (+17 more)
 
 ### Community 330 - "Community 330"
-Cohesion: 0.08
-Nodes (4): C(), me, p(), ye
+Cohesion: 0.10
+Nodes (3): C(), Fe(), p()
 
 ### Community 331 - "Community 331"
 Cohesion: 0.23
@@ -2097,23 +2156,23 @@ Nodes (24): _(), a(), b(), c(), d(), e(), f(), g() (+16 more)
 
 ### Community 357 - "Community 357"
 Cohesion: 0.16
-Nodes (6): ea(), Ib(), La(), va(), xa(), ya()
+Nodes (7): ea(), Ib(), La(), va(), xa(), xb(), ya()
 
 ### Community 361 - "Community 361"
 Cohesion: 0.15
 Nodes (10): ct(), ds(), fs(), ge(), ms(), pe(), rs, we() (+2 more)
 
-### Community 366 - "Community 366"
-Cohesion: 0.20
-Nodes (12): fl_upload(), legalModal, load_file_upload(), navItems, open_flegal(), open_fotherlegal(), open_legal(), removeDoc() (+4 more)
+### Community 363 - "Community 363"
+Cohesion: 0.07
+Nodes (3): PencairanAkad, PencairanAkadService, PencairanAkadImportValidationTest
 
-### Community 367 - "Community 367"
-Cohesion: 0.08
-Nodes (6): De(), ee, g, he, qe(), we
+### Community 366 - "Community 366"
+Cohesion: 0.18
+Nodes (13): fl_upload(), legalModal, load_file_upload(), navItems, open_flegal(), open_fotherlegal(), open_legal(), removeDoc() (+5 more)
 
 ### Community 369 - "Community 369"
-Cohesion: 0.18
-Nodes (19): Ba(), E(), ie(), it(), Jr(), ma(), mn(), Pt() (+11 more)
+Cohesion: 0.22
+Nodes (14): ie(), it(), mn(), ni(), or(), Pt(), qt(), ti() (+6 more)
 
 ### Community 370 - "Community 370"
 Cohesion: 0.16
@@ -2132,28 +2191,28 @@ Cohesion: 0.27
 Nodes (10): A(), B(), C(), D(), E(), n(), r(), v() (+2 more)
 
 ### Community 378 - "Community 378"
-Cohesion: 0.09
-Nodes (12): ac, bc, fc, Ha(), I(), n(), Nb, oc (+4 more)
+Cohesion: 0.12
+Nodes (11): ac, bc, fc, Ha(), I(), n(), Nb, oc (+3 more)
 
 ### Community 380 - "Community 380"
-Cohesion: 0.17
-Nodes (12): ao(), b(), D(), er(), gt(), I(), j(), mt() (+4 more)
+Cohesion: 0.15
+Nodes (13): b(), br(), D(), Dr(), er(), gt(), j(), mt() (+5 more)
 
 ### Community 383 - "Community 383"
 Cohesion: 0.27
 Nodes (9): b(), c(), e(), f(), g(), h(), i(), j() (+1 more)
 
 ### Community 384 - "Community 384"
-Cohesion: 0.18
-Nodes (8): $a(), K, L(), M(), q(), rb(), sb(), Za()
+Cohesion: 0.29
+Nodes (3): K, rb(), sb()
 
 ### Community 385 - "Community 385"
 Cohesion: 0.14
 Nodes (6): cs, fe(), nn(), os(), pi(), sn
 
 ### Community 387 - "Community 387"
-Cohesion: 0.14
-Nodes (14): aa(), fi(), Gi(), hr(), Is(), ji(), ps(), sa() (+6 more)
+Cohesion: 0.17
+Nodes (12): aa(), fi(), Gi(), hr(), Is(), ji(), ps(), sa() (+4 more)
 
 ### Community 388 - "Community 388"
 Cohesion: 0.21
@@ -2170,6 +2229,10 @@ Nodes (9): $, ROLE_MODAL_MAP, roleId, $, buildDOM(), buildOpenEditModal(), ID_KA
 ### Community 392 - "Community 392"
 Cohesion: 0.55
 Nodes (11): a(), b(), c(), d(), e(), f(), g(), h() (+3 more)
+
+### Community 395 - "Community 395"
+Cohesion: 0.11
+Nodes (4): Jalan, Kalendar, active_proyek_id(), resolve_active_proyek_id()
 
 ### Community 397 - "Community 397"
 Cohesion: 0.27
@@ -2192,8 +2255,8 @@ Cohesion: 0.33
 Nodes (10): bind(), doResolve(), finale(), finallyConstructor(), handle(), Legend(), Promise$1(), reject() (+2 more)
 
 ### Community 408 - "Community 408"
-Cohesion: 0.10
-Nodes (5): le, qt, r(), se, Xt
+Cohesion: 0.07
+Nodes (7): addListener(), le, Mt(), qt, se, ve, Xt
 
 ### Community 409 - "Community 409"
 Cohesion: 0.22
@@ -2308,8 +2371,8 @@ Cohesion: 0.06
 Nodes (35): 1. Validation Rule Extraction, 2. Validation Rule Class Generation, 3. Error Message Generation, 4. Language File Generation, 5. Custom Validation Rules, 6. Batch Processing, Architecture, Code Quality (+27 more)
 
 ### Community 471 - "Community 471"
-Cohesion: 0.40
-Nodes (3): Handler(), _bindAnimationEndEvent(), _unbindAnimationEndEvent()
+Cohesion: 0.22
+Nodes (5): Handler(), _bindAnimationEndEvent(), _unbindAnimationEndEvent(), refreshFeather(), showAction()
 
 ### Community 472 - "Community 472"
 Cohesion: 0.47
@@ -2523,6 +2586,10 @@ Nodes (17): 10. count(array $criteria = []): int, 11. exists(int|string $id): bo
 Cohesion: 0.12
 Nodes (16): code:console (> composer install), code:console (> ln -s ./vendor/bin/phpunit ./phpunit), code:console (> ./phpunit), code:console (> vendor\bin\phpunit), code:console (> ./phpunit app/Models), code:console (> ./phpunit --colors --coverage-text=tests/coverage.txt --co), Creating Tests, Database Tests (+8 more)
 
+### Community 865 - "Community 865"
+Cohesion: 0.09
+Nodes (41): fillFiles(), isNotEmpty(), resolveFileHref(), setImgOrPlaceholder(), btn, cashoutSubkonEscapeAttr(), cashoutSubkonEscapeHtml(), cashoutSubkonPostData() (+33 more)
+
 ### Community 867 - "Community 867"
 Cohesion: 0.13
 Nodes (15): code:bash (php spark refactor:discover), code:bash (php spark refactor:analyze), code:bash (php spark refactor:prioritize), code:bash (php spark refactor:scan), code:bash (php spark refactor:audit NamaModul), code:bash (php spark refactor:execute NamaModul), Langkah 1: Discovery, Langkah 2: Analyze (+7 more)
@@ -2548,8 +2615,8 @@ Cohesion: 0.14
 Nodes (13): code:php (use App\Libraries\Refactor\Discovery\FileScanner;), code:php (use App\Libraries\Refactor\Discovery\CodeParser;), code:php (use App\Libraries\Refactor\Discovery\FileScanner;), code:bash (vendor/bin/phpunit tests/unit/Refactor/Discovery/), CodeParser, Components, Discovery Utilities, FileScanner (+5 more)
 
 ### Community 873 - "Community 873"
-Cohesion: 0.18
-Nodes (3): Kalendar, active_proyek_id(), resolve_active_proyek_id()
+Cohesion: 0.10
+Nodes (37): bankKprBadge(), bankKprEscape(), bankKprMoney(), bankKprState, dajamBadgeStatus(), dajamEscape(), dajamMoney(), dajamState (+29 more)
 
 ### Community 874 - "Community 874"
 Cohesion: 0.14
@@ -2564,8 +2631,8 @@ Cohesion: 0.15
 Nodes (12): code:php (// ❌ SALAH — percaya angka dari frontend), code:php (// KeuanganModel.php), code:php (public function validasiDiskon(int $id_mkdt, float $diskon):), code:php (public function validasiTurunKpr(int $id_mkdt, float $nomina), code:php (// app/Helpers/numeric_helper.php), code:php ($nominal = cleanNumeric($data['nominal']); // "1,500,000" → ), Helper Methods di Model, Pembersihan Input Numerik (+4 more)
 
 ### Community 879 - "Community 879"
-Cohesion: 0.14
-Nodes (14): 1. `php spark refactor:discover`, 2. `php spark refactor:analyze`, 3. `php spark refactor:prioritize`, 6. `php spark refactor:execute [module] [options]`, code:bash (# Refactoring lengkap), code:block13 (=== Refactor Execution ===), code:block14 (Refactoring Failed!), code:bash (php spark refactor:discover) (+6 more)
+Cohesion: 0.15
+Nodes (13): 1. `php spark refactor:discover`, 2. `php spark refactor:analyze`, 3. `php spark refactor:prioritize`, 8. `php spark refactor:backup`, code:bash (# List semua backup), code:block18 (=== Backup Management ===), code:bash (php spark refactor:discover), code:block3 (=== Module Discovery ===) (+5 more)
 
 ### Community 880 - "Community 880"
 Cohesion: 0.15
@@ -2578,6 +2645,10 @@ Nodes (13): 1. Discovery Errors, 2. Analysis Errors, 3. Security Scanning Errors
 ### Community 882 - "Community 882"
 Cohesion: 0.15
 Nodes (13): 1. SQL Injection (SQL_INJECTION), 2. Cross-Site Scripting (XSS), 5. Hardcoded Credentials (HARDCODED_CREDENTIALS), 7. Insecure File Upload (INSECURE_FILE_UPLOAD), code:php (// CRITICAL: Raw query with variable), code:php (// Use .env file and env() helper), code:php (// HIGH: File upload without validation), code:php (// Validate file before moving) (+5 more)
+
+### Community 884 - "Community 884"
+Cohesion: 0.13
+Nodes (24): buat_slf(), cancel_tambah_jalan_produksi(), download(), escapeProduksiHistoryValue(), form_slf_reset(), formatProduksiHistoryValue(), getlistSLF(), isProduksiManualSelectionActive() (+16 more)
 
 ### Community 885 - "Community 885"
 Cohesion: 0.17
@@ -2600,8 +2671,8 @@ Cohesion: 0.18
 Nodes (11): Backup Metadata (`writable/refactor/backups/{backupId}/metadata.json`), code:json ({), code:json ({), code:json ({), code:json ({), code:json ({), Dependency Graph (`writable/refactor/dependency_graph.json`), Module Inventory (`writable/refactor/module_inventory.json`) (+3 more)
 
 ### Community 892 - "Community 892"
-Cohesion: 0.18
-Nodes (10): Architecture & Directory Structure, Building and Running, code:bash (composer install), code:bash (php spark serve), code:bash (vendor/bin/phpunit), Core Modules, Development Conventions, Documentation & Specs (+2 more)
+Cohesion: 0.26
+Nodes (11): Architecture & Directory Structure, Building and Running, code:bash (composer install), code:bash (php spark serve), code:bash (vendor/bin/phpunit), Core Modules, Development Conventions, Documentation & Specs (+3 more)
 
 ### Community 893 - "Community 893"
 Cohesion: 0.20
@@ -2736,8 +2807,8 @@ Cohesion: 0.33
 Nodes (6): Analysis Errors (2xxx), Daftar Error Codes, Discovery Errors (1xxx), Refactoring Errors (4xxx), Security Errors (3xxx), Validation Errors (5xxx)
 
 ### Community 934 - "Community 934"
-Cohesion: 0.10
-Nodes (42): open_set_turun_pembangunan(), applyLoadingEffect(), setDatePicker(), showFoto(), bindDetailModalRedesignEvents(), buildDetailFinancePanel(), buildDetailLegalPanel(), buildDetailProductionPanel() (+34 more)
+Cohesion: 0.08
+Nodes (58): open_diskresi(), applyLoadingEffect(), changeVal(), setDatePicker(), bindDetailModalRedesignEvents(), buildDetailFinancePanel(), buildDetailLegalPanel(), buildDetailProductionPanel() (+50 more)
 
 ### Community 935 - "Community 935"
 Cohesion: 0.33
@@ -2836,44 +2907,132 @@ Cohesion: 0.67
 Nodes (3): 4. `php spark refactor:scan [module]`, code:bash (# Scan satu modul), code:block9 (=== Security Scanner ===)
 
 ### Community 1040 - "Community 1040"
-Cohesion: 0.67
-Nodes (3): 8. `php spark refactor:backup`, code:bash (# List semua backup), code:block18 (=== Backup Management ===)
+Cohesion: 0.12
+Nodes (22): initModalListener(), fl_upload(), legalModal, load_file_upload(), navItems, open_flegal(), open_fotherlegal(), open_legal() (+14 more)
 
 ### Community 1045 - "Community 1045"
-Cohesion: 0.43
-Nodes (5): ensureProjectSelectionModal(), isProjectSelectionExempt(), renderProjectSelectionModal(), setSwitchingState(), switchActiveProyek()
+Cohesion: 0.10
+Nodes (22): a, edit_kavling_batch(), idProyek, l, namaProyek, pindah_kavling(), planning_collect_selection_points(), planning_is_kavling_selection() (+14 more)
 
 ### Community 1046 - "Community 1046"
 Cohesion: 0.33
 Nodes (5): Next Steps for Task 10, Next Steps for Task 9, Summary, Task 10: Implement Repository Generator Component, Task 9: Implement Backup and Rollback System
 
+### Community 1047 - "Community 1047"
+Cohesion: 0.09
+Nodes (21): 1. BaseWebController, 2. BaseApiController, 3. Web Controller, 4. API Controller (Tipis), 5. Service — Validasi Finansial WAJIB di Sini, 6. Repository (Query Kompleks Saja), 7. Tabel Validasi Finansial (Aturan Tetap), 8. Checklist Best Practice (+13 more)
+
 ### Community 1048 - "Community 1048"
 Cohesion: 0.11
-Nodes (25): autoNominal, keuAllocatedTotal(), keuAllocationAutoNominal(), keuFindPaidItem(), keuItemLimit(), keuItemRemaining(), keuNormalizeText(), keuPaidByItem() (+17 more)
+Nodes (32): autoNominal, keuAllocatedTotal(), keuAllocationAutoNominal(), keuEscapeAttribute(), keuEscapeHtml(), keuFindPaidItem(), keuItemLimit(), keuItemRemaining() (+24 more)
 
 ### Community 1050 - "Community 1050"
-Cohesion: 0.27
-Nodes (3): ae, ie(), re()
+Cohesion: 0.10
+Nodes (20): Aturan yang Tidak Boleh Dilanggar, CI4 Refactor Execute, code:php (// app/Services/KeuanganService.php), code:block10 (# Refactor Selesai: Modul [Nama]), code:php (function cleanNumeric(mixed $value): float), code:php ($db = \Config\Database::connect();), code:php (<?php), code:php (<?php) (+12 more)
+
+### Community 1056 - "Community 1056"
+Cohesion: 0.11
+Nodes (17): 1. Identifikasi File dalam Modul, 2. Analisa Setiap File, 3. Cek File JS (Jika Ada), 4. Format Laporan Audit, 5. Tunggu Persetujuan, A. 🔴 Security — Validasi Finansial Backend, B. 🔴 Transaction — Multi-DB Operations, C. 🔴 Controller Separation — Web vs API (+9 more)
+
+### Community 1058 - "Community 1058"
+Cohesion: 0.15
+Nodes (15): amount, d, dt, fd, hasilAkad, input, paHistoryActionMap, paKpiPercentText() (+7 more)
+
+### Community 1060 - "Community 1060"
+Cohesion: 0.30
+Nodes (14): pmEscape(), pmFormatDate(), pmKavlingText(), pmLoadHistory(), pmLoadProduksi(), pmPopulateProgress(), pmRenderFiles(), pmRenderHistory() (+6 more)
+
+### Community 1061 - "Community 1061"
+Cohesion: 0.15
+Nodes (12): code:php (// ❌ SALAH — percaya angka dari frontend), code:php (// KeuanganModel.php), code:php (public function validasiDiskon(int $id_mkdt, float $diskon):), code:php (public function validasiTurunKpr(int $id_mkdt, float $nomina), code:php (// app/Helpers/numeric_helper.php), code:php ($nominal = cleanNumeric($data['nominal']); // "1,500,000" → ), Helper Methods di Model, Pembersihan Input Numerik (+4 more)
+
+### Community 1064 - "Community 1064"
+Cohesion: 0.15
+Nodes (12): 1. Tabel baru: `history_log`, 2. Model, 3. Repository: `app/Repositories/HistoryRepository.php`, 4. Service: `app/Services/HistoryService.php`, 5. Backfill migration (data lama → history_log), 6. Update writer & reader per modul (cutover), 7. Halaman baru: "Riwayat Perubahan", Centralized History Log (history_log) (+4 more)
+
+### Community 1065 - "Community 1065"
+Cohesion: 0.38
+Nodes (11): edit_target_siteplan(), get_selected_target_kavling_ids(), load_target_siteplan_list(), open_target_history(), open_target_siteplan(), render_target_history(), reset_target_form(), save_target_siteplan() (+3 more)
+
+### Community 1066 - "Community 1066"
+Cohesion: 0.18
+Nodes (10): code:html (<div class="divider divider-left">), code:php (base_url('uploads/...') // avoid for dynamic uploaded files), code:css (@media (max-width: 767.98px) {), Core Rules, Dividers, File Access, Implementation Checklist, Mobile Tabs (+2 more)
+
+### Community 1068 - "Community 1068"
+Cohesion: 0.29
+Nodes (10): loadPencairanAkadData(), openPencairanAkadModal(), paClampTenorInput(), paHasilAkadValue(), paTenorTotalInForm(), renderPencairanAkadHeader(), savePencairanAkadRetensi(), savePencairanAkadTenor() (+2 more)
+
+### Community 1071 - "Community 1071"
+Cohesion: 0.22
+Nodes (6): idKavling, payload, row, sh, table, tr
+
+### Community 1072 - "Community 1072"
+Cohesion: 0.31
+Nodes (9): loadPencairanAkadHistory(), paEscape(), paLampiranPreview(), paMoney(), paPengajuanItemCheckboxHtml(), paStatusBadge(), renderPencairanAkadCairForm(), renderPencairanAkadPengajuanItemPicker() (+1 more)
+
+### Community 1073 - "Community 1073"
+Cohesion: 0.22
+Nodes (5): a, l, results, va, xy
+
+### Community 1074 - "Community 1074"
+Cohesion: 0.25
+Nodes (4): navigationFallback(), PRECACHE_URLS, scopedUrl(), url
+
+### Community 1075 - "Community 1075"
+Cohesion: 0.25
+Nodes (7): code:php (<?php), code:php (public function listUsers(array $filters = []): array), code:php (public function index(): ResponseInterface), Controller, Pagination + Filter di Repository, Repository dengan Pagination, Service
+
+### Community 1076 - "Community 1076"
+Cohesion: 0.25
+Nodes (7): BaseController untuk API, code:php (<?php), code:json (// GET /api/users), code:php (public function handler(int $statusCode, Throwable $exceptio), Contoh Response, Global Exception Handler, Standar Format JSON Response API
+
+### Community 1078 - "Community 1078"
+Cohesion: 0.29
+Nodes (7): a, daysBetween(), e, n, s, t, treatAsUTC()
+
+### Community 1083 - "Community 1083"
+Cohesion: 0.33
+Nodes (7): addPencairanAkadRetensiRow(), paItemsByJenis(), paRetensiRowHtml(), paRetensiUsedListDajamIds(), removePencairanAkadRetensiRow(), renderPencairanAkadRetensi(), renderPencairanAkadRetensiPicker()
+
+### Community 1086 - "Community 1086"
+Cohesion: 0.33
+Nodes (6): checkTriggers(), _defineProperty(), foreach(), _objectSpread(), resetTriggers(), scrollListener()
+
+### Community 1087 - "Community 1087"
+Cohesion: 0.33
+Nodes (5): alur pembuatan list pencairan dana retensi dan dana hasil akad, alur pengajuan & pencairan dana retensi dan dana hasil akad, Modul Gabungan Pencairan Retensi Dan Hasil Akad, Pertanyaan & Perminatan, yang harus kamu tahu:
+
+### Community 1089 - "Community 1089"
+Cohesion: 0.40
+Nodes (4): code:php (<?php), Database Transaction di Service, Pattern Dasar, Tips Transaction
+
+### Community 1094 - "Community 1094"
+Cohesion: 0.50
+Nodes (5): addPencairanAkadTenorRow(), paTenorRowHtml(), removePencairanAkadTenorRow(), renderPencairanAkadTenor(), updatePencairanAkadTenorSisa()
+
+### Community 1106 - "Community 1106"
+Cohesion: 0.50
+Nodes (4): 6. `php spark refactor:execute [module] [options]`, code:bash (# Refactoring lengkap), code:block13 (=== Refactor Execution ===), code:block14 (Refactoring Failed!)
 
 ## Knowledge Gaps
-- **1850 isolated node(s):** `command`, `args`, `name`, `description`, `license` (+1845 more)
+- **2019 isolated node(s):** `command`, `args`, `name`, `description`, `license` (+2014 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **273 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **307 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `drawBorder()` connect `Community 33` to `Community 25`, `Community 167`?**
-  _High betweenness centrality (0.028) - this node is a cross-community bridge._
+  _High betweenness centrality (0.025) - this node is a cross-community bridge._
+- **Why does `swal()` connect `Community 26` to `Community 865`, `Community 934`, `Community 167`, `Community 39`, `Community 873`, `Community 1068`, `Community 172`, `Community 366`, `Community 1040`, `Community 48`, `Community 884`, `Community 1045`, `Community 341`, `Community 1048`, `Community 24`?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **Why does `eo()` connect `Community 25` to `Community 33`, `Community 35`, `Community 5`, `Community 7`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
-- **Why does `Keuangan` connect `Community 67` to `Community 26`, `Community 379`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+- **Are the 98 inferred relationships involving `swal()` (e.g. with `loadPencairanAkadData()` and `savePencairanAkadRetensi()`) actually correct?**
+  _`swal()` has 98 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `command`, `args`, `name` to the rest of the system?**
-  _1850 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _2019 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.09634146341463415 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.04294699011680144 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.012578616352201259 - nodes in this community are weakly interconnected._
-- **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.012578616352201259 - nodes in this community are weakly interconnected._
