@@ -1,28 +1,53 @@
 <style>
-/* Hero Card Header */
+/* Sidebar Sticky Layout & Detail Hero Card (SIGAPP Standard) */
+#modal_tiket_masalah .detail-kavling-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
 #modal_tiket_masalah .detail-hero-card {
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(32, 87, 163, 0.15);
+    box-shadow: 0 4px 12px rgba(32, 87, 163, 0.18);
     background: #2057a3;
     color: #ffffff;
     border: none;
 }
-#modal_tiket_masalah .detail-hero-card .hero-title {
+
+#modal_tiket_masalah .detail-hero-card .hero-project-title {
     font-size: 1.15rem;
-    font-weight: 700;
-    line-height: 1.3;
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #ffffff;
 }
-#modal_tiket_masalah .detail-hero-card .hero-sub {
+
+#modal_tiket_masalah .detail-hero-card .hero-meta-item {
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    color: #e2e8f0;
+}
+
+#modal_tiket_masalah .detail-hero-card .hero-meta-item i {
     font-size: 0.85rem;
-    opacity: 0.9;
+    margin-top: 3px;
+    color: #93c5fd;
+    min-width: 14px;
 }
+
 #modal_tiket_masalah .detail-hero-card .progress-track {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.2);
     height: 8px;
     border-radius: 4px;
     overflow: hidden;
 }
+
 #modal_tiket_masalah .detail-hero-card .progress-fill {
     background: #28c76f;
     height: 100%;
@@ -233,5 +258,56 @@
     align-items: center;
     gap: 6px;
     margin-top: 8px;
+}
+
+/* Drag & Drop Zone & Photo Preview Styling */
+.drag-drop-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.drag-drop-zone:hover, .drag-drop-zone.dragover {
+    border-color: #2057a3;
+    background: #f0f7ff;
+}
+.upload-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+.upload-preview-item {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.upload-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.upload-preview-item .remove-preview-btn {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
 }
 </style>

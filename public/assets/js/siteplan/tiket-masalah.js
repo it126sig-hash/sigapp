@@ -4,6 +4,8 @@ $(document).ready(function() {
     let currentRefType = '';
     let currentRefId = 0;
     let currentRefData = null;
+    let selectedFiles = []; // Antrean file gambar untuk form buat tiket
+    let progressSelectedFiles = []; // Antrean file gambar untuk form add progress
     
     // --- BUKA MODAL ---
     window.openTiketMasalahAction = function() {
@@ -21,11 +23,18 @@ $(document).ready(function() {
     window.openTiketMasalah = function(refType, refId) {
         currentRefType = refType;
         currentRefId = refId;
+        selectedFiles = [];
+        progressSelectedFiles = [];
         
         // Reset view
         $('#list_tiket_masalah').html('<div class="text-center p-4"><span class="spinner-border text-primary"></span></div>');
         $('#view_list_tiket').removeClass('d-none');
         $('#view_detail_tiket, #form_buat_tiket').addClass('d-none');
+        
+        // Modal listener untuk konfirmasi tutup jika sedang mengisi form
+        if (typeof removeModalListener === 'function') {
+            removeModalListener('#modal_tiket_masalah');
+        }
         
         // Tampilkan modal
         modalMasalah.modal('show');
@@ -39,16 +48,28 @@ $(document).ready(function() {
                 if(res.success) {
                     currentRefData = res.data;
                     let info = res.data;
-                    let title = `${info.nama_proyek} > ${info.nama_cluster} > ${info.nama_jalan}`;
-                    if(refType === 'kavling') {
-                        title += ` > Kavling ${info.no_kavling}`;
-                    } else {
-                        title += ` > ${info.no_kavling}`;
+                    
+                    // Render Hero Card Header (Matching Reference Image)
+                    $('#tm_hero_project_title').text(info.nama_proyek || 'PROYEK');
+                    
+                    let locText = `${info.nama_jalan || ''}, No. ${info.no_kavling || ''}`;
+                    if (refType !== 'kavling') {
+                        locText = `${info.nama_jalan || ''}, ${info.no_kavling || ''}`;
                     }
+                    $('#tm_hero_location_text').text(locText);
+
+                    let tipeText = '';
+                    if (refType === 'kavling') {
+                        let tRumah = info.tipe_rumah ? `Tipe ${info.tipe_rumah}` : '';
+                        let dim = (info.lb || info.lt) ? `(${info.lb || 0}/${info.lt || 0})` : '';
+                        let ket = info.tipe_keterangan ? ` ${info.tipe_keterangan}` : '';
+                        tipeText = `${tRumah} ${dim} ${ket}`.trim() || 'Kavling Standar';
+                    } else {
+                        tipeText = `Fasilitas: ${info.tipe.toUpperCase()}`;
+                    }
+                    $('#tm_hero_tipe_text').text(tipeText);
                     
                     let progress = parseInt(info.progres_bangunan) || 0;
-                    $('#tm_ref_tag_text').text(refType === 'kavling' ? 'KAVLING' : info.tipe.toUpperCase());
-                    $('#tm_ref_title').text(title);
                     $('#tm_hero_progress_text').text(progress + '%');
                     $('#tm_hero_progress_bar').css('width', progress + '%');
                 }
@@ -149,33 +170,178 @@ $(document).ready(function() {
         $('#view_list_tiket').addClass('d-none');
         $('#form_buat_tiket').removeClass('d-none');
         
-        // Reset form
+        // Reset form & file queue
         $('#form_buat_tiket_form')[0].reset();
-        $('#tm_assigned_users').val(null).trigger('change');
+        selectedFiles = [];
+        renderFilePreviews();
         
-        // Load users for select2 if empty
-        if($('#tm_assigned_users option').length === 0) {
-            $.ajax({
-                url: base_url + 'api/tiket-masalah/users',
-                type: 'GET',
-                success: function(res) {
-                    if(res.success) {
-                        let opts = '';
-                        res.data.forEach(function(u) {
-                            opts += `<option value="${u.id}">${u.name} (${u.username})</option>`;
-                        });
-                        $('#tm_assigned_users').html(opts);
-                    }
-                }
-            });
+        // Aktifkan initModalListener saat mengedit/mengisi form
+        if (typeof initModalListener === 'function') {
+            initModalListener('#modal_tiket_masalah');
         }
+
+        // Initialize flatpickr on date input if available
+        if (typeof $.fn.flatpickr === 'function') {
+            $('.flatpickr').flatpickr({ dateFormat: 'Y-m-d' });
+        }
+        
+        // Load & Initialize Select2 for assigned users
+        initAssignedUsersSelect2();
     });
 
     $('#btn_batal_buat_tiket').click(function() {
+        if (typeof removeModalListener === 'function') {
+            removeModalListener('#modal_tiket_masalah');
+        }
         $('#form_buat_tiket').addClass('d-none');
         $('#view_list_tiket').removeClass('d-none');
     });
 
+    function initAssignedUsersSelect2() {
+        if ($('#tm_assigned_users').hasClass('select2-hidden-accessible')) {
+            return;
+        }
+        $.ajax({
+            url: base_url + 'api/tiket-masalah/users',
+            type: 'GET',
+            success: function(res) {
+                if(res.success) {
+                    let opts = '';
+                    res.data.forEach(function(u) {
+                        opts += `<option value="${u.id}">${u.name} (${u.username})</option>`;
+                    });
+                    $('#tm_assigned_users').html(opts).select2({
+                        placeholder: "Pilih atau cari user...",
+                        allowClear: true,
+                        dropdownParent: $('#modal_tiket_masalah')
+                    });
+                }
+            }
+        });
+    }
+
+    // --- ADVANCED FILE UPLOAD HANDLERS (Drag & Drop, Paste, Camera) ---
+    function handleAddedFiles(files, containerType = 'main') {
+        for (let i = 0; i < files.length; i++) {
+            let file = files[i];
+            if (file.type.startsWith('image/')) {
+                if (containerType === 'main') {
+                    selectedFiles.push(file);
+                } else {
+                    progressSelectedFiles.push(file);
+                }
+            }
+        }
+        if (containerType === 'main') {
+            renderFilePreviews();
+        } else {
+            renderProgressFilePreviews();
+        }
+    }
+
+    function renderFilePreviews() {
+        let container = $('#tm_preview_container');
+        container.empty();
+        selectedFiles.forEach((file, index) => {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let html = `
+                    <div class="upload-preview-item">
+                        <img src="${e.target.result}">
+                        <button type="button" class="remove-preview-btn" onclick="removeSelectedFile(${index})">&times;</button>
+                    </div>
+                `;
+                container.append(html);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    window.removeSelectedFile = function(index) {
+        selectedFiles.splice(index, 1);
+        renderFilePreviews();
+    };
+
+    function renderProgressFilePreviews() {
+        let container = $('#tm_progress_preview_container');
+        container.empty();
+        progressSelectedFiles.forEach((file, index) => {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let html = `
+                    <div class="upload-preview-item">
+                        <img src="${e.target.result}">
+                        <button type="button" class="remove-preview-btn" onclick="removeProgressSelectedFile(${index})">&times;</button>
+                    </div>
+                `;
+                container.append(html);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    window.removeProgressSelectedFile = function(index) {
+        progressSelectedFiles.splice(index, 1);
+        renderProgressFilePreviews();
+    };
+
+    // File input change handlers
+    $('#tm_foto, #tm_foto_camera').on('change', function() {
+        if (this.files.length > 0) {
+            handleAddedFiles(this.files, 'main');
+            $(this).val(''); // Reset input value
+        }
+    });
+
+    // Drag & Drop handlers
+    let dropzone = $('#tm_dropzone');
+    dropzone.on('dragover dragenter', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.addClass('dragover');
+    });
+    dropzone.on('dragleave dragend drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.removeClass('dragover');
+    });
+    dropzone.on('drop', function(e) {
+        let files = e.originalEvent.dataTransfer.files;
+        if (files.length > 0) {
+            handleAddedFiles(files, 'main');
+        }
+    });
+
+    // Global Clipboard Paste Handler (Ctrl + V)
+    $(document).on('paste', function(e) {
+        if (!$('#form_buat_tiket').hasClass('d-none') || !$('#tm_form_progress_container').hasClass('d-none')) {
+            let items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            let pastedFiles = [];
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    let file = items[i].getAsFile();
+                    if (file) pastedFiles.push(file);
+                }
+            }
+            if (pastedFiles.length > 0) {
+                if (!$('#form_buat_tiket').hasClass('d-none')) {
+                    handleAddedFiles(pastedFiles, 'main');
+                } else if (!$('#tm_form_progress_container').hasClass('d-none')) {
+                    handleAddedFiles(pastedFiles, 'progress');
+                }
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Gambar dari clipboard berhasil ditambahkan',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            }
+        }
+    });
+
+    // Submit Form Buat Tiket
     $('#form_buat_tiket_form').submit(async function(e) {
         e.preventDefault();
         
@@ -188,12 +354,10 @@ $(document).ready(function() {
             formData.append('ref_id', currentRefId);
             formData.append('id_proyek', getSelectedProyekId());
             
-            // Handle file compression
-            let fileInput = document.getElementById('tm_foto');
-            formData.delete('foto[]');
-            if(fileInput.files.length > 0) {
-                for (let i = 0; i < fileInput.files.length; i++) {
-                    let file = fileInput.files[i];
+            // Append files from selectedFiles array
+            if (selectedFiles.length > 0) {
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    let file = selectedFiles[i];
                     try {
                         let compressedFile = await compressImage(file);
                         formData.append('foto[]', compressedFile, compressedFile.name);
@@ -210,6 +374,9 @@ $(document).ready(function() {
                 processData: false,
                 contentType: false,
                 success: function(res) {
+                    if (typeof removeModalListener === 'function') {
+                        removeModalListener('#modal_tiket_masalah');
+                    }
                     Swal.fire('Berhasil', res.message, 'success');
                     $('#form_buat_tiket').addClass('d-none');
                     $('#view_list_tiket').removeClass('d-none');
@@ -288,7 +455,7 @@ $(document).ready(function() {
 
         let html = `
             <div class="row">
-                <!-- SIDEBAR KIRI (Gambar 2 Layout) -->
+                <!-- SIDEBAR DETAIL TIKET -->
                 <div class="col-md-4 mb-3 mb-md-0">
                     <div class="tm-sidebar-card shadow-sm">
                         <div class="d-flex gap-2 mb-3">
@@ -330,7 +497,7 @@ $(document).ready(function() {
                     </div>
                 </div>
 
-                <!-- HISTORY TIMELINE KANAN (Gambar 2 Layout) -->
+                <!-- HISTORY TIMELINE KANAN -->
                 <div class="col-md-8">
                     <div class="bg-white p-3 rounded-12 border shadow-sm h-100">
                         <div class="d-flex align-items-center mb-4">
@@ -357,11 +524,6 @@ $(document).ready(function() {
             setupProgressForm(data);
             $('#btn_toggle_add_progress').click(function() {
                 $('#tm_form_progress_container').toggleClass('d-none');
-                if(!$('#tm_form_progress_container').hasClass('d-none')) {
-                    $('html, body, #modal_tiket_masalah .modal-body').animate({
-                        scrollTop: $('#tm_form_progress_container').offset().top - 100
-                    }, 300);
-                }
             });
         }
     }
@@ -369,6 +531,7 @@ $(document).ready(function() {
     function setupProgressForm(tiket) {
         let activeUserId = (typeof current_user_id !== 'undefined') ? current_user_id : (window.current_user_id || 0);
         let isPic = tiket.pic_user_id == activeUserId;
+        progressSelectedFiles = [];
         
         let statusOptions = '';
         if(isPic) {
@@ -399,7 +562,18 @@ $(document).ready(function() {
                         </div>
                         <div class="form-group mb-2">
                             <label class="tm-detail-label">Foto Progress (Opsional)</label>
-                            <input type="file" name="foto_progress[]" id="foto_progress" class="form-control-file" multiple accept="image/*">
+                            
+                            <div class="drag-drop-zone p-2 mb-1" id="tm_progress_dropzone">
+                                <p class="mb-0 text-xs font-weight-bold text-muted">Tarik & Lepas Foto di sini, atau Paste (Ctrl + V)</p>
+                                <div class="mt-1">
+                                    <button type="button" class="btn btn-xs btn-outline-primary mr-1" onclick="$('#foto_progress').click()">Pilih File</button>
+                                    <button type="button" class="btn btn-xs btn-outline-info" onclick="$('#foto_progress_camera').click()">Kamera</button>
+                                </div>
+                            </div>
+
+                            <input type="file" id="foto_progress" class="d-none" multiple accept="image/*">
+                            <input type="file" id="foto_progress_camera" class="d-none" accept="image/*" capture="environment">
+                            <div id="tm_progress_preview_container" class="upload-preview-container"></div>
                         </div>
                         ${statusOptions}
                         <div class="text-right mt-3">
@@ -413,6 +587,33 @@ $(document).ready(function() {
 
         $('#tm_form_progress_container').html(formHtml);
 
+        // Progress file input handlers
+        $('#foto_progress, #foto_progress_camera').on('change', function() {
+            if (this.files.length > 0) {
+                handleAddedFiles(this.files, 'progress');
+                $(this).val('');
+            }
+        });
+
+        // Progress Dropzone
+        let pDropzone = $('#tm_progress_dropzone');
+        pDropzone.on('dragover dragenter', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            pDropzone.addClass('dragover');
+        });
+        pDropzone.on('dragleave dragend drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            pDropzone.removeClass('dragover');
+        });
+        pDropzone.on('drop', function(e) {
+            let files = e.originalEvent.dataTransfer.files;
+            if (files.length > 0) {
+                handleAddedFiles(files, 'progress');
+            }
+        });
+
         $('#form_add_progress').submit(async function(e) {
             e.preventDefault();
             let submitBtn = $(this).find('button[type="submit"]');
@@ -421,12 +622,10 @@ $(document).ready(function() {
             try {
                 let formData = new FormData(this);
                 
-                // Handle compression
-                let fileInput = document.getElementById('foto_progress');
-                formData.delete('foto_progress[]');
-                if(fileInput.files.length > 0) {
-                    for (let i = 0; i < fileInput.files.length; i++) {
-                        let file = fileInput.files[i];
+                // Append files from progressSelectedFiles
+                if (progressSelectedFiles.length > 0) {
+                    for (let i = 0; i < progressSelectedFiles.length; i++) {
+                        let file = progressSelectedFiles[i];
                         try {
                             let compressedFile = await compressImage(file);
                             formData.append('foto[]', compressedFile, compressedFile.name);
