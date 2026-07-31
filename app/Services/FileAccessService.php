@@ -35,6 +35,7 @@ class FileAccessService
         'produksi_jalan_progress' => [1, 7, 9],
         'profile_photo'     => [1, 3, 4, 5, 6, 7, 8, 9, 10],
         'poskon_export'     => [1, 3, 4, 5, 6, 7, 8, 9, 10],
+        'tiket_masalah'     => [1, 3, 4, 5, 6, 7, 8, 9, 10],
     ];
 
     private array $projectAssetRoles = [1, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -328,6 +329,11 @@ class FileAccessService
                 $row = $this->db->table('si')->select('id, file')->where('id', $id)->get()->getRow();
                 $this->assertRow($row);
                 return $this->fileMeta($row->file, basename((string) $row->file), $this->sourceRoles[$source], $row);
+
+            case 'tiket_masalah':
+                $row = $this->db->table('tiket_masalah_foto')->where('id', $id)->get()->getRow();
+                $this->assertRow($row);
+                return $this->fileMeta($row->file_path, basename((string) $row->file_name), $this->sourceRoles[$source], $row);
         }
 
         throw new RuntimeException('NOT_FOUND');

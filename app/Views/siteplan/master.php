@@ -28,6 +28,7 @@ foreach (user()->getRoles() as $key => $val) {
 
     const li_keu = JSON.parse('<?= $li_keu ?>')
 </script>
+<?php echo view('siteplan/partials/modal_tiket_masalah_styles'); ?>
 <style>
     @media screen and (max-width: 1366px) {
         html {
@@ -1788,3 +1789,7 @@ foreach (user()->getRoles() as $key => $val) {
         </div>
     </div>
 </div>
+
+<?php echo view('siteplan/partials/modal_tiket_masalah'); ?>
+<script src="<?= base_url() ?>assets/js/vendor/browser-image-compression.js"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/tiket-masalah.js"></script>

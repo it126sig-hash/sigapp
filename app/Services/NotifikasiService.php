@@ -40,6 +40,23 @@ class NotifikasiService
         return $this->db->table('notification')
             ->insert($data);
     }
+
+    function tambah_notif_user($user_id, $notif, $add_by, $id_kavling, $id_konsumen, $type = null)
+    {
+        $data = [
+            'notif' => $notif,
+            'user_id' => $user_id,
+            'group_target' => null,
+            'type' => $type,
+            'is_read' => 0,
+            'add_by' => $add_by,
+            'id_kavling' => $id_kavling,
+            'id_konsumen' => $id_konsumen,
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+        return $this->db->table('notification')
+            ->insert($data);
+    }
     function getNotif($all = false){
         $r['token'] = csrf_hash();
 
@@ -69,19 +86,28 @@ class NotifikasiService
     function getActivity($all = false, $offset = null, $id_proyek = null){
         if($all)
             $this->group_id = '';
-        $q = $this->db->table('notification')
-        ->select('notification.*, users.username, nama_jalan, no_kavling,   ')
-        ->join('users', 'users.id = notification.add_by')
-        ->join('kavling', 'kavling.id_kavling = notification.id_kavling')
-        ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-        ->join('cluster', 'jalan.id_cluster = cluster.id_cluster')
-        ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
-        ->like("proyek.id_proyek", ''.$id_proyek.'')
-        ->like('group_target', $this->group_id)
-            ->orderBy('created_at', 'desc')
-            ->limit(5,$offset)
-            ->get()->getResult();
+        
+        $builder = $this->db->table('notification')
+            ->select('notification.*, users.username, nama_jalan, no_kavling,   ')
+            ->join('users', 'users.id = notification.add_by')
+            ->join('kavling', 'kavling.id_kavling = notification.id_kavling', 'left')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
+            ->join('cluster', 'jalan.id_cluster = cluster.id_cluster', 'left')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left');
 
-        return $q;
+        if ($id_proyek) {
+            $builder->groupStart()
+                ->like('proyek.id_proyek', ''.$id_proyek.'')
+                ->orWhere('notification.id_kavling IS NULL')
+            ->groupEnd();
+        }
+
+        return $builder->groupStart()
+                ->like('group_target', $this->group_id)
+                ->orWhere('user_id', user_id())
+            ->groupEnd()
+            ->orderBy('created_at', 'desc')
+            ->limit(5, $offset)
+            ->get()->getResult();
     }
 }
