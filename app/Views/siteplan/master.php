@@ -841,7 +841,9 @@ foreach (user()->getRoles() as $key => $val) {
         background-color: #fff !important;
     }
 
-    <?= view('siteplan/partials/modal_detail_styles') ?>@media (max-width: 1199.98px) {
+    <?= view('siteplan/partials/modal_detail_styles') ?>
+
+    @media (max-width: 1199.98px) {
         #modal_detail .detail-kavling-layout {
             flex-wrap: wrap;
         }
@@ -1204,6 +1206,21 @@ foreach (user()->getRoles() as $key => $val) {
                             <div class="divider divider-left">
                                 <div class="divider-text">Filter</div>
                             </div>
+
+                            <div class="form-group">
+                                <select id="filter-id_cluster" name="id_cluster"
+                                    class="select2 select-sm form-control-sm"></select>
+                            </div>
+                            <div class="form-group">
+                                <select disabled id="filter-id_jalan" name="id_jalan"
+                                    class="select-sm form-control-sm select2 "></select>
+                            </div>
+                            <div class="form-group row">
+                                <button class="btn btn-primary col-5 ml-1 mt-1 mb-1 btn-sm "
+                                    onclick="filter_option()">Filter Data</button>
+                                <button class="btn btn-outline-warning col-5 m-1 btn-sm "
+                                    onclick="hapus_filter_option()">Hapus Filter</button>
+                            </div>
                             <div id="keterangan-warna-here"></div>
                             <hr>
                             <div class="form-group">
@@ -1225,29 +1242,50 @@ foreach (user()->getRoles() as $key => $val) {
         <div class="add-new-record modal-content pt-0">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
             <div class="modal-header mb-1">
-                <h5 class="modal-title" id="exampleModalLabel">Filter</h5>
+                <h5 class="modal-title" id="exampleModalLabel">Pengaturan Filter Kategori</h5>
             </div>
-            <div class="modal-body flex-grow-1">
-                <div class="form-group">
-                    <select id="filter-kategori" name="filter-kategori"
-                        class="select2 select-sm form-control-sm">
-                        <option value="">Semua</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <select id="filter-id_cluster" name="id_cluster"
-                        class="select2 select-sm form-control-sm"></select>
-                </div>
-                <div class="form-group">
-                    <select disabled id="filter-id_jalan" name="id_jalan"
-                        class="select-sm form-control-sm select2 "></select>
-                </div>
-                <div class="form-group row">
-                    <button class="btn btn-primary col-5 ml-1 mt-1 mb-1 btn-sm "
-                        onclick="filter_option()">Filter Data</button>
-                    <button class="btn btn-outline-warning col-5 m-1 btn-sm "
-                        onclick="hapus_filter_option()">Hapus Filter</button>
-                </div>
+            <div class="modal-body flex-grow-1" style="overflow-y: auto;">
+                <form id="form-filter-kategori">
+                    <div class="form-group" id="filter-kategori-checkboxes">
+                        <!-- Checkboxes will be rendered here by JS -->
+                    </div>
+
+                    <div class="divider divider-left mt-2">
+                        <div class="divider-text">Periode Tanggal</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Mulai</label>
+                        <input type="date" class="form-control form-control-sm" name="periode_mulai" id="filter-periode-mulai">
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Selesai</label>
+                        <input type="date" class="form-control form-control-sm" name="periode_selesai" id="filter-periode-selesai">
+                    </div>
+
+                    <div class="divider divider-left mt-2 filter-masalah-options" style="display:none;">
+                        <div class="divider-text">Opsi Masalah</div>
+                    </div>
+                    <div class="form-group filter-masalah-options" id="filter-status-masalah-container" style="display:none;">
+                        <label>Status Masalah</label>
+                        <select name="status_masalah" id="filter-status-masalah" class="form-control form-control-sm">
+                            <option value="">Semua Status (yang belum selesai)</option>
+                            <option value="progress">Progress</option>
+                            <option value="selesai">Selesai</option>
+                            <option value="batal">Batal</option>
+                            <option value="hold">Hold</option>
+                        </select>
+                    </div>
+                    <div class="form-group filter-masalah-options" id="filter-periode-masalah-jenis-container" style="display:none;">
+                        <label>Berdasarkan Tanggal</label>
+                        <select name="periode_masalah_jenis" id="filter-periode-masalah-jenis" class="form-control form-control-sm">
+                            <option value="tgl_buat">Tanggal Buat Tiket</option>
+                            <option value="tgl_selesai">Tanggal Selesai Tiket</option>
+                        </select>
+                    </div>
+
+                    <button type="button" class="btn btn-primary col-12 mt-2" onclick="apply_server_filter()">Terapkan Filter</button>
+                    <button type="button" class="btn btn-outline-warning col-12 mt-1" onclick="reset_server_filter()">Reset Filter</button>
+                </form>
             </div>
         </div>
     </div>
@@ -1681,8 +1719,6 @@ foreach (user()->getRoles() as $key => $val) {
         </div>
     </div>
 </div>
-
-
 
 
 <div class="modal fade" id="modal-list-rumah-belum-selesai" tabindex="-1" role="dialog">
