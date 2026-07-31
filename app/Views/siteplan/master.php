@@ -1792,4 +1792,4 @@ foreach (user()->getRoles() as $key => $val) {
 
 <?php echo view('siteplan/partials/modal_tiket_masalah'); ?>
 <script src="<?= base_url() ?>assets/js/vendor/browser-image-compression.js"></script>
-<script src="<?= base_url() ?>assets/js/siteplan/tiket-masalah.js"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/tiket-masalah.js?v=<?= time() ?>"></script>

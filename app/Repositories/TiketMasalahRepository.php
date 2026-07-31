@@ -19,7 +19,10 @@ class TiketMasalahRepository
             ->select('
                 tm.*,
                 u.username as pic_username,
-                (SELECT COUNT(*) FROM tiket_masalah_foto tmf WHERE tmf.id_tiket_masalah = tm.id) as foto_count
+                (SELECT COUNT(*) FROM tiket_masalah_foto tmf WHERE tmf.id_tiket_masalah = tm.id) as foto_count,
+                (SELECT file_path FROM tiket_masalah_foto tmf WHERE tmf.id_tiket_masalah = tm.id ORDER BY tmf.id ASC LIMIT 1) as foto_path_1,
+                (SELECT keterangan FROM tiket_masalah_progress tmp WHERE tmp.id_tiket_masalah = tm.id ORDER BY tmp.created_at DESC LIMIT 1) as last_progress_keterangan,
+                (SELECT created_at FROM tiket_masalah_progress tmp WHERE tmp.id_tiket_masalah = tm.id ORDER BY tmp.created_at DESC LIMIT 1) as last_progress_date
             ')
             ->join('users u', 'u.id = tm.pic_user_id', 'left')
             ->where('tm.ref_type', $refType)

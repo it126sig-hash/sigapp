@@ -33,7 +33,11 @@ class TiketMasalahService
 
     public function getListByRef(string $refType, int $refId): array
     {
-        return $this->repository->getListWithSummary($refType, $refId);
+        $list = $this->repository->getListWithSummary($refType, $refId);
+        foreach ($list as $item) {
+            $item->foto_url_1 = !empty($item->foto_path_1) ? $this->fileAccessService->pathUrl('tiket_masalah', $item->foto_path_1) : null;
+        }
+        return $list;
     }
 
     public function getDetail(int $idTiket): ?object
@@ -229,11 +233,13 @@ class TiketMasalahService
                     j.nama_jalan, 
                     cl.nama_cluster, 
                     p.nama_proyek,
-                    p.id_proyek
+                    p.id_proyek,
+                    COALESCE(pr.progres_bangunan, 0) as progres_bangunan
                 ")
                 ->join('jalan j', 'j.id_jalan = k.id_jalan')
                 ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
                 ->join('proyek p', 'p.id_proyek = cl.id_proyek')
+                ->join('produksi pr', 'pr.id_produksi = k.id_produksi', 'left')
                 ->where('k.id_kavling', $refId)
                 ->get()
                 ->getRow();
@@ -246,7 +252,8 @@ class TiketMasalahService
                     j.nama_jalan, 
                     cl.nama_cluster, 
                     p.nama_proyek,
-                    p.id_proyek
+                    p.id_proyek,
+                    COALESCE(o.progres, 0) as progres_bangunan
                 ")
                 ->join('jalan j', 'j.id_jalan = o.id_jalan')
                 ->join('cluster cl', 'cl.id_cluster = j.id_cluster')

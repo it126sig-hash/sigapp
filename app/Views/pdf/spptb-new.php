@@ -260,7 +260,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
                 No HP/telp
             </td>
             <td valign="top">
-                : <?= strtoupper($data->tel_instansi) ?>
+                : <?= strtoupper($data->hp_konsumen) ?>
             </td>
         </tr>
         <tr>
