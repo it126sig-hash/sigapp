@@ -707,13 +707,13 @@ Date.prototype.toDateInputValue = (function() {
         siteplanKavlingRequest = $.ajax({
             url: base_url + 'siteplan/get/all',
             type: 'post',
-            data: {
+            data: Object.assign({
                 [csrfName]: csrfHash,
                 id_proyek: dt_proyek.id_proyek,
                 id_cluster: filter.id_cluster,
                 id_jalan: filter.id_jalan,
                 id_role: va
-            },
+            }, getServerFilterData()),
             dataType: 'json',
             beforeSend: () => $("#loading").removeClass("hidden"),
             success: function(result) {
@@ -1704,22 +1704,92 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     $("#pilih-divisi").select2()
-    $("#filter-kategori").select2()
-    $("#filter-kategori").change(function() {
-        filterKategori(this.value)
-    })
+    function fetch_kategori_options() {
+        if (!dt_proyek || !dt_proyek.id_proyek) return;
+        $.ajax({
+            url: base_url + 'siteplan/getKategoriOptions',
+            type: 'POST',
+            data: {
+                [csrfName]: csrfHash,
+                id_proyek: dt_proyek.id_proyek
+            },
+            dataType: 'json',
+            success: function(res) {
+                if (res.token) csrfHash = res.token;
+                if (res.success && res.data) {
+                    let html = '';
+                    res.data.forEach(opt => {
+                        let countText = opt.count !== undefined ? ` (${opt.count})` : '';
+                        html += `
+                        <div class="custom-control custom-checkbox mb-1">
+                            <input type="checkbox" class="custom-control-input filter-kategori-cb" name="kategori[]" value="${opt.key}" id="cb-kat-${opt.key.replace(/\s+/g, '-')}" data-has-periode="${opt.has_periode}">
+                            <label class="custom-control-label" for="cb-kat-${opt.key.replace(/\s+/g, '-')}">${opt.label}${countText}</label>
+                        </div>`;
+                    });
+                    $('#filter-kategori-checkboxes').html(html);
 
-    function filterKategori(kat) {
-        siteplan.find('Line').forEach(function(i, v) {
-            if (kat == "") {
-                return i.visible(true)
+                    $('.filter-kategori-cb').on('change', function() {
+                        checkMasalahOptions();
+                    });
+
+                    // Re-check form state in case it was pre-filled
+                    let currentFilter = getServerFilterData();
+                    currentFilter.kategori.forEach(k => {
+                        $(`.filter-kategori-cb[value="${k}"]`).prop('checked', true);
+                    });
+                }
             }
-            if (i.attrs.kategori == kat) {
-                i.visible(true)
-            } else {
-                i.visible(false)
+        });
+    }
+
+    function checkMasalahOptions() {
+        let hasMasalah = false;
+        $('.filter-kategori-cb:checked').each(function() {
+            if ($(this).val() === 'Status Masalah' || $(this).val() === 'Periode Masalah') {
+                hasMasalah = true;
             }
-        })
+        });
+        if (hasMasalah) {
+            $('.filter-masalah-options').show();
+        } else {
+            $('.filter-masalah-options').hide();
+        }
+    }
+
+    window.apply_server_filter = function() {
+        $('#modal-setting-filter').modal('hide');
+        load_kavling();
+    }
+
+    window.reset_server_filter = function() {
+        $('#form-filter-kategori')[0].reset();
+        checkMasalahOptions();
+        $('#modal-setting-filter').modal('hide');
+        load_kavling();
+    }
+
+    $('#modal-setting-filter').on('show.bs.modal shown.bs.modal', function () {
+        if ($('#filter-kategori-checkboxes').is(':empty')) {
+            fetch_kategori_options();
+        }
+    });
+
+    $(document).ready(function() {
+        fetch_kategori_options();
+    });
+
+    function getServerFilterData() {
+        let data = {
+            kategori: [],
+            periode_mulai: $('#filter-periode-mulai').val() || '',
+            periode_selesai: $('#filter-periode-selesai').val() || '',
+            status_masalah: $('#filter-status-masalah').val() || '',
+            periode_masalah_jenis: $('#filter-periode-masalah-jenis').val() || ''
+        };
+        $('.filter-kategori-cb:checked').each(function() {
+            data.kategori.push($(this).val());
+        });
+        return data;
     }
     // stage.add(siteplan, masked, datal);
     stage.add(siteplan, masked);

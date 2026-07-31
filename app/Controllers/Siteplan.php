@@ -645,11 +645,20 @@ class Siteplan extends BaseController
         $result['token'] = csrf_hash();
         $result['config'] = [];
 
+        $kategoriFilters = [
+            'kategori' => $this->request->getVar('kategori') ?? [],
+            'periode_mulai' => $this->request->getVar('periode_mulai'),
+            'periode_selesai' => $this->request->getVar('periode_selesai'),
+            'status_masalah' => $this->request->getVar('status_masalah'),
+            'periode_masalah_jenis' => $this->request->getVar('periode_masalah_jenis')
+        ];
+
         $data = $this->kavlingRepo->getAll(
             $this->request->getVar('id_proyek'),
             $this->request->getVar('id_cluster'),
             $this->request->getVar('id_jalan'),
-            $this->request->getVar('id_role')
+            $this->request->getVar('id_role'),
+            $kategoriFilters
         );
 
         $result['data'] = $data;
@@ -657,6 +666,20 @@ class Siteplan extends BaseController
             $result['target_kavling'] = $this->targetSiteplanService->getKavlingTargetMap((int) $this->request->getVar('id_proyek'));
         }
         return $this->response->setJSON($result);
+    }
+
+    public function getKategoriOptions()
+    {
+        $idProyek = (int) $this->request->getVar('id_proyek');
+        if ($idProyek <= 0) {
+            return $this->response->setJSON(['token' => csrf_hash(), 'success' => false, 'message' => 'Invalid ID Proyek']);
+        }
+        $options = $this->kavlingRepo->getKategoriOptions($idProyek);
+        return $this->response->setJSON([
+            'token' => csrf_hash(),
+            'success' => true,
+            'data' => $options
+        ]);
     }
     function get_others()
     {
