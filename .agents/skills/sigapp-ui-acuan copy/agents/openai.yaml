@@ -1,0 +1,4 @@
+interface:
+  display_name: "SIGAPP UI Acuan"
+  short_description: "Standar UI modal, tab, dan file SIGAPP"
+  default_prompt: "Use $sigapp-ui-acuan to update SIGAPP UI while following the modal detail, divider, mobile tab, and FileAccessService rules."

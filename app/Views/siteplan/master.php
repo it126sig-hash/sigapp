@@ -28,6 +28,7 @@ foreach (user()->getRoles() as $key => $val) {
 
     const li_keu = JSON.parse('<?= $li_keu ?>')
 </script>
+<?php echo view('siteplan/partials/modal_tiket_masalah_styles'); ?>
 <style>
     @media screen and (max-width: 1366px) {
         html {
@@ -264,7 +265,8 @@ foreach (user()->getRoles() as $key => $val) {
         gap: 6px;
         flex-wrap: nowrap !important;
         overflow-x: auto;
-        scrollbar-width: none; /* Hide scrollbar Firefox */
+        scrollbar-width: none;
+        /* Hide scrollbar Firefox */
         transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         animation: floatDockEntrance 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) both;
     }
@@ -277,6 +279,7 @@ foreach (user()->getRoles() as $key => $val) {
             right: auto !important;
             transform: none !important;
         }
+
         body.menu-collapsed .float {
             left: calc(110px + 24px) !important;
         }
@@ -293,7 +296,8 @@ foreach (user()->getRoles() as $key => $val) {
     }
 
     .float::-webkit-scrollbar {
-        display: none; /* Hide scrollbar Chrome/Safari */
+        display: none;
+        /* Hide scrollbar Chrome/Safari */
     }
 
     .dark-layout .float {
@@ -307,6 +311,7 @@ foreach (user()->getRoles() as $key => $val) {
             opacity: 0;
             transform: translateY(15px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -328,7 +333,8 @@ foreach (user()->getRoles() as $key => $val) {
         box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.04) !important;
         border: 1px solid transparent !important;
         white-space: nowrap !important;
-        width: auto !important; /* Button width is auto, fits content */
+        width: auto !important;
+        /* Button width is auto, fits content */
     }
 
     .float .btn:hover {
@@ -379,8 +385,8 @@ foreach (user()->getRoles() as $key => $val) {
         justify-content: flex-start !important;
     }
 
-    #produksi_menu > .hidden,
-    #produksi_menu > .d-none {
+    #produksi_menu>.hidden,
+    #produksi_menu>.d-none {
         display: none !important;
     }
 
@@ -463,7 +469,7 @@ foreach (user()->getRoles() as $key => $val) {
         }
 
         /* Hide all buttons except the mobile-menu-trigger by default on mobile */
-        .float > *:not(.mobile-menu-trigger) {
+        .float>*:not(.mobile-menu-trigger) {
             display: none !important;
         }
 
@@ -472,23 +478,27 @@ foreach (user()->getRoles() as $key => $val) {
             border-radius: 16px !important;
             padding: 10px !important;
             display: flex !important;
-            flex-direction: column !important; /* Stack vertically */
-            align-items: flex-end !important; /* Align button list items to the right */
+            flex-direction: column !important;
+            /* Stack vertically */
+            align-items: flex-end !important;
+            /* Align button list items to the right */
             width: auto !important;
             max-height: 60vh;
             overflow-y: auto;
             flex-wrap: wrap !important;
         }
 
-        .float.mobile-expanded > * {
+        .float.mobile-expanded>* {
             display: inline-flex !important;
-            width: auto !important; /* Buttons not full width */
+            width: auto !important;
+            /* Buttons not full width */
             justify-content: flex-end !important;
-            align-self: flex-end !important; /* Force right alignment of button */
+            align-self: flex-end !important;
+            /* Force right alignment of button */
             margin: 3px 0 !important;
         }
 
-        .float.mobile-expanded > .d-none {
+        .float.mobile-expanded>.d-none {
             display: none !important;
         }
 
@@ -831,9 +841,7 @@ foreach (user()->getRoles() as $key => $val) {
         background-color: #fff !important;
     }
 
-    <?= view('siteplan/partials/modal_detail_styles') ?>
-
-    @media (max-width: 1199.98px) {
+    <?= view('siteplan/partials/modal_detail_styles') ?>@media (max-width: 1199.98px) {
         #modal_detail .detail-kavling-layout {
             flex-wrap: wrap;
         }
@@ -912,7 +920,7 @@ foreach (user()->getRoles() as $key => $val) {
             min-height: var(--siteplan-main-card-height);
         }
 
-        .siteplan-main-card > .card-body {
+        .siteplan-main-card>.card-body {
             display: flex;
             flex-direction: column;
             min-height: 0;
@@ -1172,7 +1180,7 @@ foreach (user()->getRoles() as $key => $val) {
                             </div>
                         </div>
                         <div class="col-md-3 d-md-block" style="overflow-y:auto" id="filter-side">
-                            <div class="form-group">
+                            <div class="form-group row">
                                 <select id="pilih-divisi" class="form-control-sm select2">
                                     <option value="0">Pilih Divisi</option>
                                     <!-- <option value="8" class="dropdown-item">Sales & Promotion</option> -->
@@ -1185,35 +1193,16 @@ foreach (user()->getRoles() as $key => $val) {
                                     <option value="11" class="dropdown-item">Target</option>
                                     <!-- <option value="9" class="dropdown-item">Management</option> -->
                                 </select>
-                                <button onclick="load_kavling()" class="btn btn-sm btn-primary col-12 mt-1">
-                                    Muat Ulang Kavling
+                                <button onclick="load_kavling()" class="btn btn-sm btn-primary col-6 mt-1">
+                                    <i class="fa fa-refresh"></i> Muat Ulang Data
                                 </button>
+                                <button id="filter-btn-modal" class="btn btn-sm btn-outline-primary col-6 mt-1" data-toggle="modal"
+                                    data-target="#modal-setting-filter"><i class="fa fa-filter"></i> Filter</button>
+
                             </div>
 
                             <div class="divider divider-left">
                                 <div class="divider-text">Filter</div>
-                            </div>
-
-                            <div class="form-group">
-                                <select id="filter-kategori" name="filter-kategori"
-                                    class="select2 select-sm form-control-sm">
-                                    <option value="">Semua</option>
-
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <select id="filter-id_cluster" name="id_cluster"
-                                    class="select2 select-sm form-control-sm"></select>
-                            </div>
-                            <div class="form-group">
-                                <select disabled id="filter-id_jalan" name="id_jalan"
-                                    class="select-sm form-control-sm select2 "></select>
-                            </div>
-                            <div class="form-group row">
-                                <button class="btn btn-primary col-5 ml-1 mt-1 mb-1 btn-sm "
-                                    onclick="filter_option()">Filter Data</button>
-                                <button class="btn btn-outline-warning col-5 m-1 btn-sm "
-                                    onclick="hapus_filter_option()">Hapus Filter</button>
                             </div>
                             <div id="keterangan-warna-here"></div>
                             <hr>
@@ -1230,6 +1219,40 @@ foreach (user()->getRoles() as $key => $val) {
         <!--/ Kick start -->
     </div>
 </div>
+<!--#################################### Modal Filter/Setting #########################################-->
+<div class="modal modal-slide-in fade" id="modal-setting-filter">
+    <div class="modal-dialog sidebar-sm">
+        <div class="add-new-record modal-content pt-0">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
+            <div class="modal-header mb-1">
+                <h5 class="modal-title" id="exampleModalLabel">Filter</h5>
+            </div>
+            <div class="modal-body flex-grow-1">
+                <div class="form-group">
+                    <select id="filter-kategori" name="filter-kategori"
+                        class="select2 select-sm form-control-sm">
+                        <option value="">Semua</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select id="filter-id_cluster" name="id_cluster"
+                        class="select2 select-sm form-control-sm"></select>
+                </div>
+                <div class="form-group">
+                    <select disabled id="filter-id_jalan" name="id_jalan"
+                        class="select-sm form-control-sm select2 "></select>
+                </div>
+                <div class="form-group row">
+                    <button class="btn btn-primary col-5 ml-1 mt-1 mb-1 btn-sm "
+                        onclick="filter_option()">Filter Data</button>
+                    <button class="btn btn-outline-warning col-5 m-1 btn-sm "
+                        onclick="hapus_filter_option()">Hapus Filter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- BEGIN: Vendor JS-->
 <script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
@@ -1245,7 +1268,7 @@ foreach (user()->getRoles() as $key => $val) {
 <script src="<?= base_url() ?>app-assets/js/scripts/charts/chart.js"></script>
 <!-- <script src="<?= base_url() ?>assets/js/scripts.js"></script> -->
 <!-- END: Page Vendor JS-->
-<script src="<?= base_url() ?>assets/js/siteplan/master.js?v=<?= filemtime(FCPATH.'assets/js/siteplan/master.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/master.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/master.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
 
 
@@ -1446,159 +1469,159 @@ foreach (user()->getRoles() as $key => $val) {
                     <div class="row">
                         <div class="col-sm-12 col-md-3 col-lg-3">
                             <div class="batal-panel">
-                            <div class="divider divider-left">
-                                <div class="divider-text">Data Konsumen</div>
-                            </div>
-                            <div class="form-group">
-                                <label>No SPPTB</label>
-                                <input disabled type="text" class="form-control" id="batal-no_spptb"
-                                    name="batal-no_spptb">
-                            </div>
-                            <div class="form-group">
-                                <label>Nama Konsumen</label>
-                                <input disabled type="text" class="form-control" id="batal-nama_konsumen" required
-                                    name="batal-nama_konsumen">
-                            </div>
-                            <div class="form-group">
-                                <label>Alamat Konsumen</label>
-                                <input disabled type="text" class="form-control" id="batal-alamat_konsumen"
-                                    name="batal-alamat_konsumen">
-                            </div>
-                            <div class="form-group">
-                                <label>NIK</label>
-                                <input disabled type="text" class="form-control" id="batal-nik_konsumen"
-                                    name="batal-nik_konsumen">
-                            </div>
-                            <div class="form-group">
-                                <label>NPWP</label>
-                                <input disabled type="text" class="form-control" id="batal-npwp_konsumen"
-                                    name="batal-npwp_konsumen">
-                            </div>
-                            <div class="form-group">
-                                <label>Kontak Konsumen</label>
-                                <input disabled type="text" class="form-control" id="batal-hp_konsumen"
-                                    name="batal-hp_konsumen">
-                            </div>
-                            <div class="form-group">
-                                <label>Email Konsumen</label>
-                                <input disabled type="text" class="form-control" id="batal-email_konsumen"
-                                    name="batal-email_konsumen">
-                            </div>
-                            <div class="form-group hidden">
-                                <label>Status Konsumen</label>
-                                <select class="form-control" id="batal-status_konsumen" name="batal-status_konsumen">
-                                    <option value="">-</option>
-                                    <option value="Umum">Umum</option>
-                                    <option value="TWP">TWP</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Sales</label>
-                                <input disabled type="text" class="form-control" id="batal-sales" required
-                                    name="batal-sales">
-                            </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-12 col-md-3 col-lg-3">
-                            <div class="batal-panel">
-                            <input readonly type="hidden" class="form-control" id="batal-id_konsumen"
-                                name="batal-id_konsumen">
-                            <input readonly type="hidden" class="form-control" id="batal-id_mkdt" name="batal-id_mkdt">
-                            <input readonly type="hidden" class="form-control" id="batal-id_kavling"
-                                name="batal-id_kavling">
-                            <div class="divider divider-left">
-                                <div class="divider-text">TUNAI/KPR</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Tunai/KPR</label>
-                                <select disabled class="form-control" id="batal-is_kpr" name="batal-is_kpr">
-                                    <option value="">-</option>
-                                    <option value="0">TUNAI/CASH KERAS</option>
-                                    <option value="2">TUNAI/CASH BERTAHAP</option>
-                                    <option value="1">KPR</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Subsidi/Non-Subsidi</label>
-                                <select disabled class="form-control" id="batal-is_subsidi" name="batal-is_subsidi">
-                                    <option value="">-</option>
-                                    <option value="0">Non-Subsidi</option>
-                                    <option value="1">Subsidi</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="total_biaya2">ACC KPR</label>
-                                <input readonly type="text" class="form-control num" id="batal-harga_kpr_acc"
-                                    name="batal-harga_kpr_acc">
-                            </div>
-                            <div class="form-group">
-                                <label for="total_biaya2">Turun KPR</label>
-                                <input readonly type="text" class="form-control num" id="batal-harga_penambahan_um"
-                                    name="batal-harga_penambahan_um">
-                            </div>
-                            <div class="divider divider-left">
-                                <div class="divider-text">Penambahan Biaya</div>
-                            </div>
-                            <div class="form-group">
-                                <label for="total_biaya2">Penambahan Biaya</label>
-                                <input disabled type="text" class="form-control num totalbb" id="batal-harga_penambahan"
-                                    name="batal-harga_penambahan">
-                            </div>
-                            <div class="form-group">
-                                <label for="total_biaya2">Keterangan Penambahan Biaya</label>
-                                <textarea disabled name="batal-keterangan_penambahan_biaya"
-                                    id="batal-keterangan_penambahan_biaya" class="form-control batal-fm" cols="30"
-                                    rows="2"></textarea>
-                            </div>
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Data Konsumen</div>
+                                </div>
+                                <div class="form-group">
+                                    <label>No SPPTB</label>
+                                    <input disabled type="text" class="form-control" id="batal-no_spptb"
+                                        name="batal-no_spptb">
+                                </div>
+                                <div class="form-group">
+                                    <label>Nama Konsumen</label>
+                                    <input disabled type="text" class="form-control" id="batal-nama_konsumen" required
+                                        name="batal-nama_konsumen">
+                                </div>
+                                <div class="form-group">
+                                    <label>Alamat Konsumen</label>
+                                    <input disabled type="text" class="form-control" id="batal-alamat_konsumen"
+                                        name="batal-alamat_konsumen">
+                                </div>
+                                <div class="form-group">
+                                    <label>NIK</label>
+                                    <input disabled type="text" class="form-control" id="batal-nik_konsumen"
+                                        name="batal-nik_konsumen">
+                                </div>
+                                <div class="form-group">
+                                    <label>NPWP</label>
+                                    <input disabled type="text" class="form-control" id="batal-npwp_konsumen"
+                                        name="batal-npwp_konsumen">
+                                </div>
+                                <div class="form-group">
+                                    <label>Kontak Konsumen</label>
+                                    <input disabled type="text" class="form-control" id="batal-hp_konsumen"
+                                        name="batal-hp_konsumen">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email Konsumen</label>
+                                    <input disabled type="text" class="form-control" id="batal-email_konsumen"
+                                        name="batal-email_konsumen">
+                                </div>
+                                <div class="form-group hidden">
+                                    <label>Status Konsumen</label>
+                                    <select class="form-control" id="batal-status_konsumen" name="batal-status_konsumen">
+                                        <option value="">-</option>
+                                        <option value="Umum">Umum</option>
+                                        <option value="TWP">TWP</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Sales</label>
+                                    <input disabled type="text" class="form-control" id="batal-sales" required
+                                        name="batal-sales">
+                                </div>
                             </div>
                         </div>
                         <div class="col-sm-12 col-md-3 col-lg-3">
                             <div class="batal-panel">
-                            <div class="divider divider-left">
-                                <div class="divider-text">Total Uang Muka</div>
+                                <input readonly type="hidden" class="form-control" id="batal-id_konsumen"
+                                    name="batal-id_konsumen">
+                                <input readonly type="hidden" class="form-control" id="batal-id_mkdt" name="batal-id_mkdt">
+                                <input readonly type="hidden" class="form-control" id="batal-id_kavling"
+                                    name="batal-id_kavling">
+                                <div class="divider divider-left">
+                                    <div class="divider-text">TUNAI/KPR</div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tunai/KPR</label>
+                                    <select disabled class="form-control" id="batal-is_kpr" name="batal-is_kpr">
+                                        <option value="">-</option>
+                                        <option value="0">TUNAI/CASH KERAS</option>
+                                        <option value="2">TUNAI/CASH BERTAHAP</option>
+                                        <option value="1">KPR</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Subsidi/Non-Subsidi</label>
+                                    <select disabled class="form-control" id="batal-is_subsidi" name="batal-is_subsidi">
+                                        <option value="">-</option>
+                                        <option value="0">Non-Subsidi</option>
+                                        <option value="1">Subsidi</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="total_biaya2">ACC KPR</label>
+                                    <input readonly type="text" class="form-control num" id="batal-harga_kpr_acc"
+                                        name="batal-harga_kpr_acc">
+                                </div>
+                                <div class="form-group">
+                                    <label for="total_biaya2">Turun KPR</label>
+                                    <input readonly type="text" class="form-control num" id="batal-harga_penambahan_um"
+                                        name="batal-harga_penambahan_um">
+                                </div>
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Penambahan Biaya</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="total_biaya2">Penambahan Biaya</label>
+                                    <input disabled type="text" class="form-control num totalbb" id="batal-harga_penambahan"
+                                        name="batal-harga_penambahan">
+                                </div>
+                                <div class="form-group">
+                                    <label for="total_biaya2">Keterangan Penambahan Biaya</label>
+                                    <textarea disabled name="batal-keterangan_penambahan_biaya"
+                                        id="batal-keterangan_penambahan_biaya" class="form-control batal-fm" cols="30"
+                                        rows="2"></textarea>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="batal-total_biaya_um">Total Uang Muka</label>
-                                <input readonly type="text" class="form-control num" id="batal-total_biaya_um"
-                                    name="batal-total_biaya_um">
-                            </div>
+                        </div>
+                        <div class="col-sm-12 col-md-3 col-lg-3">
+                            <div class="batal-panel">
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Total Uang Muka</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="batal-total_biaya_um">Total Uang Muka</label>
+                                    <input readonly type="text" class="form-control num" id="batal-total_biaya_um"
+                                        name="batal-total_biaya_um">
+                                </div>
 
-                            <hr>
-                            <div class="form-group">
-                                <label for="batal-sudah_bayar_um">Sudah Bayar Uang Muka</label>
-                                <input disabled type="text" class="form-control num" readonly id="batal-sudah_bayar_um"
-                                    name="batal-sudah_bayar_um">
-                            </div>
-                            <div class="form-group">
-                                <label for="batal-sisa_tagihan_um">Sisa Tagihan Uang Muka</label>
-                                <input disabled type="text" class="form-control num" readonly id="batal-sisa_tagihan_um"
-                                    name="batal-sisa_tagihan_um">
-                            </div>
-                            <!-- <div class="form-group">
+                                <hr>
+                                <div class="form-group">
+                                    <label for="batal-sudah_bayar_um">Sudah Bayar Uang Muka</label>
+                                    <input disabled type="text" class="form-control num" readonly id="batal-sudah_bayar_um"
+                                        name="batal-sudah_bayar_um">
+                                </div>
+                                <div class="form-group">
+                                    <label for="batal-sisa_tagihan_um">Sisa Tagihan Uang Muka</label>
+                                    <input disabled type="text" class="form-control num" readonly id="batal-sisa_tagihan_um"
+                                        name="batal-sisa_tagihan_um">
+                                </div>
+                                <!-- <div class="form-group">
                                 <label for="batal-persentase_bayar_tagihan_um">Persentase</label>
                                 <input disabled type="text" class="form-control" style="text-align:right" readonly id="batal-persentase_bayar_tagihan_um" name="batal-persentase_bayar_tagihan_um">
                             </div> -->
-                            <div class="divider divider-left">
-                                <div class="divider-text">Total Biaya-biaya</div>
-                            </div>
-                            <div class="form-group">
-                                <label for="batal-total_biaya_bb">Total Biaya-biaya</label>
-                                <input readonly type="text" class="form-control num" id="batal-total_biaya_bb"
-                                    name="batal-total_biaya_bb">
-                            </div>
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Total Biaya-biaya</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="batal-total_biaya_bb">Total Biaya-biaya</label>
+                                    <input readonly type="text" class="form-control num" id="batal-total_biaya_bb"
+                                        name="batal-total_biaya_bb">
+                                </div>
 
-                            <hr>
-                            <div class="form-group">
-                                <label for="batal-sudah_bayar_bb">Sudah Bayar Biaya-biaya</label>
-                                <input disabled type="text" class="form-control num" readonly id="batal-sudah_bayar_bb"
-                                    name="batal-sudah_bayar_bb">
-                            </div>
-                            <div class="form-group">
-                                <label for="batal-sisa_tagihan_um">Sisa Tagihan Biaya-biaya</label>
-                                <input disabled type="text" class="form-control num" readonly id="batal-sisa_tagihan_bb"
-                                    name="batal-sisa_tagihan_bb">
-                            </div>
-                            <!-- <div class="form-group">
+                                <hr>
+                                <div class="form-group">
+                                    <label for="batal-sudah_bayar_bb">Sudah Bayar Biaya-biaya</label>
+                                    <input disabled type="text" class="form-control num" readonly id="batal-sudah_bayar_bb"
+                                        name="batal-sudah_bayar_bb">
+                                </div>
+                                <div class="form-group">
+                                    <label for="batal-sisa_tagihan_um">Sisa Tagihan Biaya-biaya</label>
+                                    <input disabled type="text" class="form-control num" readonly id="batal-sisa_tagihan_bb"
+                                        name="batal-sisa_tagihan_bb">
+                                </div>
+                                <!-- <div class="form-group">
                                 <label for="batal-persentase_bayar_tagihan_bb">Persentase</label>
                                 <input disabled type="text" class="form-control" style="text-align:right" readonly id="batal-persentase_bayar_tagihan_bb" name="batal-persentase_bayar_tagihan_bb">
                             </div> -->
@@ -1606,46 +1629,46 @@ foreach (user()->getRoles() as $key => $val) {
                         </div>
                         <div class="col-sm-12 col-md-3 col-lg-3">
                             <div class="batal-panel">
-                            <div class="divider divider-left">
-                                <div class="divider-text">Batal</div>
-                            </div>
-                            <div class="form-group">
-                                <label for="keterangan_batal">Keterangan Batal</label>
-                                <textarea class="form-control" id="batal-keterangan_batal" name="batal-keterangan_batal"
-                                    rows="3" placeholder="Keterangan"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label>Surat Batal</label>
-                                <div class="custom-file">
-                                    <input type="file" class="custom-file-input" accept="application/pdf"
-                                        name="file_surat_batal" id="file_surat_batal" />
-                                    <label class="custom-file-label" id="label-file_surat_batal"
-                                        for="label-file_surat_batal">Upload Surat Batal</label>
-                                    <a href="" target=_blank id="list-file_surat_batal">klik untuk melihat surat
-                                        batal</a>
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Batal</div>
                                 </div>
-                            </div>
-                            <small id="last_update-batal_mkdt" class="text-muted"></small>
-                            <div class="divider divider-left">
-                                <div class="divider-text">Pengembalian Dana ke Konsumen</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Status Refund</label>
-                                <div class="refund-status-card">
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" class="custom-control-input" id="batal-perlu_refund_0"
-                                            name="batal-perlu_refund" value="0" checked>
-                                        <label class="custom-control-label" for="batal-perlu_refund_0">Tidak Perlu Refund</label>
-                                    </div>
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" class="custom-control-input" id="batal-perlu_refund_1"
-                                            name="batal-perlu_refund" value="1">
-                                        <label class="custom-control-label" for="batal-perlu_refund_1">Perlu Refund</label>
-                                    </div>
-                                    <small class="refund-status-note">Status ini akan tampil di list konsumen batal.</small>
+                                <div class="form-group">
+                                    <label for="keterangan_batal">Keterangan Batal</label>
+                                    <textarea class="form-control" id="batal-keterangan_batal" name="batal-keterangan_batal"
+                                        rows="3" placeholder="Keterangan"></textarea>
                                 </div>
-                            </div>
-                            <small id="last_update-batal_keuangan" class="text-muted"></small>
+                                <div class="form-group">
+                                    <label>Surat Batal</label>
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" accept="application/pdf"
+                                            name="file_surat_batal" id="file_surat_batal" />
+                                        <label class="custom-file-label" id="label-file_surat_batal"
+                                            for="label-file_surat_batal">Upload Surat Batal</label>
+                                        <a href="" target=_blank id="list-file_surat_batal">klik untuk melihat surat
+                                            batal</a>
+                                    </div>
+                                </div>
+                                <small id="last_update-batal_mkdt" class="text-muted"></small>
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Pengembalian Dana ke Konsumen</div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Status Refund</label>
+                                    <div class="refund-status-card">
+                                        <div class="custom-control custom-radio">
+                                            <input type="radio" class="custom-control-input" id="batal-perlu_refund_0"
+                                                name="batal-perlu_refund" value="0" checked>
+                                            <label class="custom-control-label" for="batal-perlu_refund_0">Tidak Perlu Refund</label>
+                                        </div>
+                                        <div class="custom-control custom-radio">
+                                            <input type="radio" class="custom-control-input" id="batal-perlu_refund_1"
+                                                name="batal-perlu_refund" value="1">
+                                            <label class="custom-control-label" for="batal-perlu_refund_1">Perlu Refund</label>
+                                        </div>
+                                        <small class="refund-status-note">Status ini akan tampil di list konsumen batal.</small>
+                                    </div>
+                                </div>
+                                <small id="last_update-batal_keuangan" class="text-muted"></small>
                             </div>
                         </div>
                     </div>
@@ -1660,20 +1683,7 @@ foreach (user()->getRoles() as $key => $val) {
 </div>
 
 
-<!--#################################### Modal Filter/Setting #########################################-->
-<div class="modal modal-slide-in fade" id="modal-setting-filter">
-    <div class="modal-dialog sidebar-sm">
-        <div class="add-new-record modal-content pt-0">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
-            <div class="modal-header mb-1">
-                <h5 class="modal-title" id="exampleModalLabel">Filter</h5>
-            </div>
-            <div class="modal-body flex-grow-1">
-                <!-- <div id="modal-filter"></div> -->
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <div class="modal fade" id="modal-list-rumah-belum-selesai" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
@@ -1788,3 +1798,7 @@ foreach (user()->getRoles() as $key => $val) {
         </div>
     </div>
 </div>
+
+<?php echo view('siteplan/partials/modal_tiket_masalah'); ?>
+<script src="<?= base_url() ?>assets/js/vendor/browser-image-compression.js"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/tiket-masalah.js?v=<?= time() ?>"></script>
