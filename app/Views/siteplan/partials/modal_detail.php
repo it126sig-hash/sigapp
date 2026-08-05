@@ -1862,7 +1862,7 @@
 
                                                 <div class="form-group" style="min-height:100px; height: auto;">
                                                     <label>RAB</label>
-                                                    <div id="list_rab_dokumen" style="display: flex; flex-wrap: wrap;">
+                                                    <div id="dt-list_rab_dokumen" style="display: flex; flex-wrap: wrap;">
                                                     </div>
                                                 </div>
                                             </div>

@@ -265,6 +265,7 @@ function lihat_detail() {
             "jalan_foto_update",
             "listrik_pln_foto",
             "listrik_disediakan_dokumen",
+            "listrik_disediakan_foto",
             "air_komunal",
             "air_tanah",
             "air_pdam",

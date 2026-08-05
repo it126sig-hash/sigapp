@@ -841,9 +841,7 @@ foreach (user()->getRoles() as $key => $val) {
         background-color: #fff !important;
     }
 
-    <?= view('siteplan/partials/modal_detail_styles') ?>
-
-    @media (max-width: 1199.98px) {
+    <?= view('siteplan/partials/modal_detail_styles') ?>@media (max-width: 1199.98px) {
         #modal_detail .detail-kavling-layout {
             flex-wrap: wrap;
         }
@@ -1182,7 +1180,7 @@ foreach (user()->getRoles() as $key => $val) {
                             </div>
                         </div>
                         <div class="col-md-3 d-md-block" style="overflow-y:auto" id="filter-side">
-                            <div class="form-group row">
+                            <div class="form-group">
                                 <select id="pilih-divisi" class="form-control-sm select2">
                                     <option value="0">Pilih Divisi</option>
                                     <!-- <option value="8" class="dropdown-item">Sales & Promotion</option> -->
@@ -1195,11 +1193,16 @@ foreach (user()->getRoles() as $key => $val) {
                                     <option value="11" class="dropdown-item">Target</option>
                                     <!-- <option value="9" class="dropdown-item">Management</option> -->
                                 </select>
-                                <button onclick="load_kavling()" class="btn btn-sm btn-primary col-6 mt-1">
-                                    <i class="fa fa-refresh"></i> Muat Ulang Data
-                                </button>
-                                <button id="filter-btn-modal" class="btn btn-sm btn-outline-primary col-6 mt-1" data-toggle="modal"
-                                    data-target="#modal-setting-filter"><i class="fa fa-filter"></i> Filter</button>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <button onclick="load_kavling()" class="btn btn-sm w-100 btn-primary mt-1">
+                                            <i class="fa fa-refresh"></i> Muat Ulang</button>
+                                    </div>
+                                    <div class="col-6 pl-0">
+                                        <button id="filter-btn-modal" class="btn btn-sm w-100 btn-outline-primary mt-1" data-toggle="modal"
+                                            data-target="#modal-setting-filter"><i class="fa fa-filter"></i> Filter</button>
+                                    </div>
+                                </div>
 
                             </div>
 
@@ -1207,20 +1210,7 @@ foreach (user()->getRoles() as $key => $val) {
                                 <div class="divider-text">Filter</div>
                             </div>
 
-                            <div class="form-group">
-                                <select id="filter-id_cluster" name="id_cluster"
-                                    class="select2 select-sm form-control-sm"></select>
-                            </div>
-                            <div class="form-group">
-                                <select disabled id="filter-id_jalan" name="id_jalan"
-                                    class="select-sm form-control-sm select2 "></select>
-                            </div>
-                            <div class="form-group row">
-                                <button class="btn btn-primary col-5 ml-1 mt-1 mb-1 btn-sm "
-                                    onclick="filter_option()">Filter Data</button>
-                                <button class="btn btn-outline-warning col-5 m-1 btn-sm "
-                                    onclick="hapus_filter_option()">Hapus Filter</button>
-                            </div>
+
                             <div id="keterangan-warna-here"></div>
                             <hr>
                             <div class="form-group">
@@ -1248,6 +1238,20 @@ foreach (user()->getRoles() as $key => $val) {
                 <form id="form-filter-kategori">
                     <div class="form-group" id="filter-kategori-checkboxes">
                         <!-- Checkboxes will be rendered here by JS -->
+                    </div>
+                    <div class="form-group">
+                        <select id="filter-id_cluster" name="id_cluster"
+                            class="select2 select-sm form-control-sm"></select>
+                    </div>
+                    <div class="form-group">
+                        <select disabled id="filter-id_jalan" name="id_jalan"
+                            class="select-sm form-control-sm select2 "></select>
+                    </div>
+                    <div class="form-group row">
+                        <button class="btn btn-primary col-5 ml-1 mt-1 mb-1 btn-sm "
+                            onclick="filter_option()">Filter Data</button>
+                        <button class="btn btn-outline-warning col-5 m-1 btn-sm "
+                            onclick="hapus_filter_option()">Hapus Filter</button>
                     </div>
 
                     <div class="divider divider-left mt-2">
