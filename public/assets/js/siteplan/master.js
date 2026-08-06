@@ -656,6 +656,107 @@ Date.prototype.toDateInputValue = (function() {
         })
         $("#keterangan-warna-here").html(div)
     }
+    function getHitForFilter(filterKey, row, subsidi) {
+        if (filterKey === 'Masalah') {
+            const statusMasalah = $('#filter-status-masalah').val();
+            if (statusMasalah === 'dalam_proses') return { fill: 'Masalah Progress', tipe: 'Filter' };
+            if (statusMasalah === 'selesai') return { fill: 'Masalah Selesai', tipe: 'Filter' };
+            if (statusMasalah === 'batal') return { fill: 'Masalah Batal', tipe: 'Filter' };
+            if (statusMasalah === 'hold') return { fill: 'Masalah Hold', tipe: 'Filter' };
+            if (statusMasalah === 'dibuat') return { fill: 'Masalah Baru Dibuat', tipe: 'Filter' };
+            return { fill: 'Status Masalah', tipe: 'Filter' };
+        }
+
+        const hitMap = {
+            'Sudah Akad':       { fill: 'Akad ' + subsidi, tipe: 'Filter' },
+            'Akad Komersil':    { fill: 'Akad Komersil', tipe: 'Filter' },
+            'Akad Subsidi':     { fill: 'Akad Subsidi', tipe: 'Filter' },
+            'Booking':          { fill: 'Booking', tipe: 'Filter' },
+            'Batal':            { fill: 'Batal', tipe: 'Filter' },
+            'SP3K':             { fill: 'SP3K', tipe: 'Filter' },
+            'Masalah':          { fill: 'Status Masalah', tipe: 'Filter' },
+            'Turun Pembangunan':{ fill: 'Perintah Bangun', tipe: 'Filter' },
+            'Bangunan Selesai': { fill: 'Bangunan 100%', tipe: 'Filter' },
+            'Jatuh Tempo':      { fill: 'Jatuh Tempo', tipe: 'Filter' },
+            'Hasil Akad Belum Cair': { fill: 'Hasil Akad Belum Cair', tipe: 'Filter' },
+            'Pengajuan Pencairan Hasil Akad': { fill: 'Pengajuan Pencairan Hasil Akad', tipe: 'Filter' },
+            'Pencairan Hasil Akad': { fill: 'Lunas', tipe: 'Filter' }, // Note: assuming Lunas/Dajam Belum Cair, or let's use 'Lunas' as that exists
+        };
+        return hitMap[filterKey] || null;
+    }
+
+    function checkKavlingMatchesFilter(row, filterKey) {
+        switch (filterKey) {
+            case 'Sudah Akad':
+                return row.status_mkdt === 'Akad';
+            case 'Akad Komersil':
+                return row.status_mkdt === 'Akad' && row.is_subsidi == 0;
+            case 'Akad Subsidi':
+                return row.status_mkdt === 'Akad' && row.is_subsidi == 1;
+            case 'Booking':
+                return row.status_mkdt === 'Booking';
+            case 'Batal':
+                return row.is_batal == 1 || row.status_mkdt === 'Batal';
+            case 'SP3K':
+                return row.sp3k_tgl != null && row.sp3k_tgl !== '0000-00-00';
+            case 'Masalah':
+                // Check if any complaint exists or other problem (matches backend logic)
+                return row.status_komplain == 1 || row.status_komplain == 2 || row.status_komplain == 3;
+            case 'Turun Pembangunan':
+                return row.perintah_bangun == 1;
+            case 'Bangunan Selesai':
+                return parseInt(row.progres_bangunan) === 100;
+            case 'Jatuh Tempo':
+                if (!row.jatuh_tempo_tgl) return false;
+                const today = new Date();
+                const sevenDaysLater = new Date();
+                sevenDaysLater.setDate(today.getDate() + 7);
+                const jt = new Date(row.jatuh_tempo_tgl);
+                return jt <= today && jt <= sevenDaysLater;
+            case 'Hasil Akad Belum Cair':
+                return row.status_mkdt == 'Akad' && row.is_kpr == 1 && row.is_lunas == 1 && (row.pa_plan_id == null || row.pa_pengajuan_count == null || row.pa_pengajuan_count == 0);
+            case 'Pengajuan Pencairan Hasil Akad':
+                if (row.status_mkdt != 'Akad' || row.is_kpr != 1 || row.is_lunas != 1) return false;
+                const hasilAkad = parseFloat(row.pa_total_hasil_akad || 0);
+                const totalCair = parseFloat(row.pa_total_cair_sum || 0);
+                return row.pa_plan_id != null && (hasilAkad - totalCair > 0.01);
+            case 'Pencairan Hasil Akad':
+                if (row.status_mkdt != 'Akad' || row.is_kpr != 1 || row.is_lunas != 1) return false;
+                const hAkad = parseFloat(row.pa_total_hasil_akad || 0);
+                const tCair = parseFloat(row.pa_total_cair_sum || 0);
+                return row.pa_plan_id != null && (hAkad - tCair <= 0.01);
+            default:
+                return false;
+        }
+    }
+
+    function getFilterColorOverride(row, subsidi) {
+        const serverData = getServerFilterData();
+        const activeKategori = serverData.kategori;
+        if (!activeKategori || activeKategori.length === 0) return null;
+
+        // Jika hanya 1 filter, backend sudah pasti mengembalikan row yang match.
+        if (activeKategori.length === 1) {
+            return getHitForFilter(activeKategori[0], row, subsidi);
+        }
+
+        for (const kat of activeKategori) {
+            if (checkKavlingMatchesFilter(row, kat)) {
+                return getHitForFilter(kat, row, subsidi);
+            }
+        }
+        
+        // Fallback untuk multi-select (misal: Akad + Masalah)
+        // Karena Masalah dicek dari tiket_masalah di backend (yang tidak ada datanya di frontend),
+        // checkKavlingMatchesFilter untuk Masalah akan gagal.
+        // Jika row ini dikembalikan backend tapi tidak match filter lain, kita asumsikan ini row Masalah.
+        if (activeKategori.includes('Masalah')) {
+            return getHitForFilter('Masalah', row, subsidi);
+        }
+
+        return null;
+    }
+
     //load shape kavling
     function load_kavling(refresh = false) {
         const loadSequence = ++siteplanLoadSequence;
@@ -738,7 +839,7 @@ Date.prototype.toDateInputValue = (function() {
                     tp_rumah = r[p].tipe_rumah
                     no_tp_rumah = r[p].no_tipe_rumah
 
-                    subsidi = (r[p].is_subsidi == 1) ? "Subsidi" : "Komersil"
+                    subsidi = (r[p].is_subsidi == "1") ? "Subsidi" : "Komersil"
 
                     //set default shape color
                     // set_fill("#fff67a", "#000000", 0, null)
@@ -1075,6 +1176,13 @@ Date.prototype.toDateInputValue = (function() {
                             fill: hit,
                             tipe: 'Status'
                         }
+                    }
+
+                    // Override warna jika filter kategori aktif
+                    const filterOverride = getFilterColorOverride(r[p], subsidi);
+                    if (filterOverride) {
+                        set_fill2(filterOverride.fill); // memastikan config warna diset
+                        hit = filterOverride;
                     }
 
                     // return;
@@ -1718,18 +1826,61 @@ Date.prototype.toDateInputValue = (function() {
                 if (res.token) csrfHash = res.token;
                 if (res.success && res.data) {
                     let html = '';
+                    let currentCat = '';
                     res.data.forEach(opt => {
+                        let catSlug = opt.cat.replace(/\s+/g, '-').toLowerCase();
+                        if (opt.cat !== currentCat) {
+                            currentCat = opt.cat;
+                            html += `
+                            <div class="divider divider-left mt-2 mb-1 filter-cat-divider" data-cat="${catSlug}">
+                                <div class="divider-text">${currentCat}</div>
+                            </div>`;
+                        }
                         let countText = opt.count !== undefined ? ` (${opt.count})` : '';
+                        let keySlug = opt.key.replace(/\s+/g, '-');
                         html += `
-                        <div class="custom-control custom-checkbox mb-1">
-                            <input type="checkbox" class="custom-control-input filter-kategori-cb" name="kategori[]" value="${opt.key}" id="cb-kat-${opt.key.replace(/\s+/g, '-')}" data-has-periode="${opt.has_periode}">
-                            <label class="custom-control-label" for="cb-kat-${opt.key.replace(/\s+/g, '-')}">${opt.label}${countText}</label>
+                        <div class="custom-control custom-checkbox mb-1 filter-cb-wrapper" data-key="${opt.key}" data-cat="${catSlug}">
+                            <input type="checkbox" class="custom-control-input filter-kategori-cb" name="kategori[]" value="${opt.key}" id="cb-kat-${keySlug}" data-has-periode="${opt.has_periode}">
+                            <label class="custom-control-label" for="cb-kat-${keySlug}">${opt.label}${countText}</label>
                         </div>`;
                     });
                     $('#filter-kategori-checkboxes').html(html);
 
                     $('.filter-kategori-cb').on('change', function() {
+                        const MULTI_ALLOWED = ['Sudah Akad', 'Akad Komersil', 'Akad Subsidi', 'Booking'];
+                        const val = $(this).val();
+                        const isMulti = MULTI_ALLOWED.includes(val);
+                        
+                        if ($(this).is(':checked')) {
+                            if (isMulti) {
+                                // Specific rule: Sudah Akad only with Booking
+                                if (val === 'Sudah Akad') {
+                                    $('.filter-kategori-cb:checked').each(function() {
+                                        if ($(this).val() !== 'Sudah Akad' && $(this).val() !== 'Booking') {
+                                            $(this).prop('checked', false);
+                                        }
+                                    });
+                                } else if (val === 'Akad Komersil' || val === 'Akad Subsidi') {
+                                    $('.filter-kategori-cb:checked').each(function() {
+                                        if ($(this).val() === 'Sudah Akad' || !MULTI_ALLOWED.includes($(this).val())) {
+                                            $(this).prop('checked', false);
+                                        }
+                                    });
+                                } else {
+                                    // Booking
+                                    $('.filter-kategori-cb:checked').each(function() {
+                                        if (!MULTI_ALLOWED.includes($(this).val())) {
+                                            $(this).prop('checked', false);
+                                        }
+                                    });
+                                }
+                            } else {
+                                $('.filter-kategori-cb:checked').not(this).prop('checked', false);
+                            }
+                        }
+                        updateAnimatedFilterVisibility();
                         checkMasalahOptions();
+                        checkPeriodeOptions();
                     });
 
                     // Re-check form state in case it was pre-filled
@@ -1737,35 +1888,114 @@ Date.prototype.toDateInputValue = (function() {
                     currentFilter.kategori.forEach(k => {
                         $(`.filter-kategori-cb[value="${k}"]`).prop('checked', true);
                     });
+
+                    updateAnimatedFilterVisibility();
+                    checkMasalahOptions();
+                    checkPeriodeOptions();
                 }
             }
         });
     }
 
+    function updateAnimatedFilterVisibility() {
+        const checkedBoxes = $('.filter-kategori-cb:checked');
+        const MULTI_ALLOWED = ['Sudah Akad', 'Akad Komersil', 'Akad Subsidi', 'Booking'];
+
+        if (checkedBoxes.length === 0) {
+            $('.filter-cb-wrapper').stop(true, true).slideDown(250);
+            $('.filter-cat-divider').stop(true, true).slideDown(250);
+            return;
+        }
+
+        let allowedKeys = [];
+        checkedBoxes.each(function() {
+            const val = $(this).val();
+            allowedKeys.push(val);
+            if (val === 'Sudah Akad') {
+                if (!allowedKeys.includes('Booking')) allowedKeys.push('Booking');
+            } else if (val === 'Akad Komersil' || val === 'Akad Subsidi') {
+                if (!allowedKeys.includes('Akad Komersil')) allowedKeys.push('Akad Komersil');
+                if (!allowedKeys.includes('Akad Subsidi')) allowedKeys.push('Akad Subsidi');
+                if (!allowedKeys.includes('Booking')) allowedKeys.push('Booking');
+            } else if (val === 'Booking') {
+                MULTI_ALLOWED.forEach(k => {
+                    if (!allowedKeys.includes(k)) allowedKeys.push(k);
+                });
+            }
+        });
+
+        $('.filter-cb-wrapper').each(function() {
+            const key = $(this).data('key');
+            if (allowedKeys.includes(key)) {
+                $(this).stop(true, true).slideDown(250);
+            } else {
+                $(this).stop(true, true).slideUp(250);
+            }
+        });
+
+        $('.filter-cat-divider').each(function() {
+            const cat = $(this).data('cat');
+            const hasVisibleChild = $('.filter-cb-wrapper[data-cat="' + cat + '"]').filter(function() {
+                const key = $(this).data('key');
+                return allowedKeys.includes(key);
+            }).length > 0;
+
+            if (hasVisibleChild) {
+                $(this).stop(true, true).slideDown(250);
+            } else {
+                $(this).stop(true, true).slideUp(250);
+            }
+        });
+    }
+
+    function checkPeriodeOptions() {
+        let showPeriode = false;
+        $('.filter-kategori-cb:checked').each(function() {
+            if ($(this).data('has-periode') === true || $(this).data('has-periode') === 'true') {
+                showPeriode = true;
+            }
+        });
+        if (showPeriode) {
+            $('#filter-periode-container').stop(true, true).slideDown(300);
+        } else {
+            $('#filter-periode-container').stop(true, true).slideUp(300);
+        }
+    }
+
     function checkMasalahOptions() {
         let hasMasalah = false;
         $('.filter-kategori-cb:checked').each(function() {
-            if ($(this).val() === 'Status Masalah' || $(this).val() === 'Periode Masalah') {
+            if ($(this).val() === 'Masalah') {
                 hasMasalah = true;
             }
         });
         if (hasMasalah) {
-            $('.filter-masalah-options').show();
+            $('.filter-masalah-options').stop(true, true).slideDown(300);
         } else {
-            $('.filter-masalah-options').hide();
+            $('.filter-masalah-options').stop(true, true).slideUp(300);
         }
     }
 
     window.apply_server_filter = function() {
+        filter.id_cluster = $("#filter-id_cluster").val();
+        filter.id_jalan = $("#filter-id_jalan").val();
         $('#modal-setting-filter').modal('hide');
         load_kavling();
+        renderActiveFilterTags();
     }
 
     window.reset_server_filter = function() {
         $('#form-filter-kategori')[0].reset();
+        $('#filter-id_cluster').val(null).trigger('change');
+        $('#filter-id_jalan').val(null).trigger('change');
+        filter.id_cluster = '';
+        filter.id_jalan = '';
+        updateAnimatedFilterVisibility();
         checkMasalahOptions();
+        checkPeriodeOptions();
         $('#modal-setting-filter').modal('hide');
         load_kavling();
+        renderActiveFilterTags();
     }
 
     $('#modal-setting-filter').on('show.bs.modal shown.bs.modal', function () {
@@ -1790,6 +2020,55 @@ Date.prototype.toDateInputValue = (function() {
             data.kategori.push($(this).val());
         });
         return data;
+    }
+
+    function renderActiveFilterTags() {
+        let html = '';
+        if (filter.id_cluster) {
+            const clusterText = $("#filter-id_cluster option:selected").text();
+            html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('cluster')">Cluster: ${clusterText} &times;</span>`;
+        }
+        
+        if (filter.id_jalan) {
+            const jalanText = $("#filter-id_jalan option:selected").text();
+            html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('jalan')">Blok: ${jalanText} &times;</span>`;
+        }
+        
+        $('.filter-kategori-cb:checked').each(function() {
+            const val = $(this).val();
+            const text = $(this).next('label').text().replace(/\s\(\d+\)$/, '');
+            html += `<span class="badge badge-light-info mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('kategori', '${val}')">${text} &times;</span>`;
+        });
+
+        if ($('#filter-periode-mulai').val() || $('#filter-periode-selesai').val()) {
+            const start = $('#filter-periode-mulai').val() || '...';
+            const end = $('#filter-periode-selesai').val() || '...';
+            html += `<span class="badge badge-light-warning mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('periode')">${start} - ${end} &times;</span>`;
+        }
+
+        $('#active-filter-tags').html(html);
+    }
+
+    window.removeFilterTag = function(type, val = null) {
+        if (type === 'cluster') {
+            $('#filter-id_cluster').val(null).trigger('change');
+            filter.id_cluster = '';
+            $('#filter-id_jalan').val(null).trigger('change');
+            filter.id_jalan = '';
+        } else if (type === 'jalan') {
+            $('#filter-id_jalan').val(null).trigger('change');
+            filter.id_jalan = '';
+        } else if (type === 'kategori') {
+            $(`.filter-kategori-cb[value="${val}"]`).prop('checked', false);
+        } else if (type === 'periode') {
+            $('#filter-periode-mulai').val('');
+            $('#filter-periode-selesai').val('');
+        }
+        checkMasalahOptions();
+        checkPeriodeOptions();
+        
+        // Auto-apply immediately (user feedback)
+        window.apply_server_filter();
     }
     // stage.add(siteplan, masked, datal);
     stage.add(siteplan, masked);
