@@ -155,9 +155,9 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Controllers\\Karyawan.php": {
-    "mtime": 1725606760.5136755,
-    "ast_hash": "29cb8f919b10e053fe24b1389725f0b4",
-    "semantic_hash": "29cb8f919b10e053fe24b1389725f0b4"
+    "mtime": 1785995874.0829773,
+    "ast_hash": "86af44e62904a90d53e4a675bc3d3993",
+    "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Controllers\\Kavling.php": {
     "mtime": 1785503880.6812122,
@@ -215,9 +215,9 @@
     "semantic_hash": "77e047e94fc7449f7b017b2e80bd2106"
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Controllers\\Pengguna.php": {
-    "mtime": 1779782053.0926466,
-    "ast_hash": "88ad156a8b1ce1871245b0aa3cc88bb0",
-    "semantic_hash": "88ad156a8b1ce1871245b0aa3cc88bb0"
+    "mtime": 1785995880.2326202,
+    "ast_hash": "f8d93a99f0e1643c03611d66ce88f275",
+    "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Controllers\\PosisiKonsumen.php": {
     "mtime": 1781767705.2680705,
@@ -255,7 +255,7 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Controllers\\Siteplan.php": {
-    "mtime": 1785504399.5392118,
+    "mtime": 1785512808.8458107,
     "ast_hash": "68cb65976709049e1307aa0f909158cb",
     "semantic_hash": ""
   },
@@ -790,8 +790,8 @@
     "semantic_hash": "58e97e7297ef76ff509cb600af2d35c0"
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Repositories\\KavlingRepository.php": {
-    "mtime": 1785505616.6111221,
-    "ast_hash": "cf9b5111c8ba470c6f4abaca155fd696",
+    "mtime": 1785993798.8576124,
+    "ast_hash": "7626ca4e9d24d62a449787377c677ce0",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Repositories\\KeuanganRepository.php": {
@@ -860,8 +860,8 @@
     "semantic_hash": "1c42111b429c90d5374c91f1706c76ab"
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Services\\FileAccessService.php": {
-    "mtime": 1785503880.6961398,
-    "ast_hash": "e9a708bcba85ac61922b6e5cb97730b7",
+    "mtime": 1785506742.9107566,
+    "ast_hash": "469764b1ef7e356684efb1d2224aa8e4",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Services\\KeuanganService.php": {
@@ -885,8 +885,8 @@
     "semantic_hash": "26b2a5f92c231171126164363b407039"
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Services\\NotifikasiService.php": {
-    "mtime": 1785503846.902665,
-    "ast_hash": "19ac6e70087adfb1e0c15092e1a8e5be",
+    "mtime": 1785506742.9120386,
+    "ast_hash": "ff605130d5e466d17f7761c6ccb15ed1",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Services\\PembayaranService.php": {
@@ -1155,8 +1155,8 @@
     "semantic_hash": "6ca9932c098907f6d2bf9f26e40b8b64"
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Views\\pdf\\spptb-new.php": {
-    "mtime": 1785503880.721609,
-    "ast_hash": "827a063818dcdb478b2093dfadedd93b",
+    "mtime": 1785506742.9150453,
+    "ast_hash": "cf15f70d3e1948c20a748685b4ee7f2b",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Views\\pdf\\spptb-page-next.php": {
@@ -1210,8 +1210,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Views\\siteplan\\master.php": {
-    "mtime": 1785504441.789645,
-    "ast_hash": "fb35ed9759d051eb4400b50b3048bc52",
+    "mtime": 1785995267.1342566,
+    "ast_hash": "119c11889506481448b240497425503d",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Views\\siteplan\\mkdt.php": {
@@ -4709,11 +4709,6 @@
     "ast_hash": "43a36ada24fb8c221cfd2c330f762229",
     "semantic_hash": ""
   },
-  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\doc\\modal-open-set-harga.html": {
-    "mtime": 1785503846.9452262,
-    "ast_hash": "c101147f9f8f59f9044b5fb09863eed4",
-    "semantic_hash": ""
-  },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\public\\robots.txt": {
     "mtime": 1719281901.0,
     "ast_hash": "d3b8d8cde26b65f660ff8f8b0879ee94",
@@ -4752,21 +4747,6 @@
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\writable\\session\\index.html": {
     "mtime": 1719281901.0,
     "ast_hash": "c92aa5f16d78423a983a5d7ae44428e4",
-    "semantic_hash": ""
-  },
-  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\doc\\aplikasi SIGAPP.pdf": {
-    "mtime": 1785503846.944134,
-    "ast_hash": "d013d738577e1f6fb1a179e436ed5714",
-    "semantic_hash": ""
-  },
-  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\doc\\MoM_02_26062024_SIG..pdf": {
-    "mtime": 1785503846.9367392,
-    "ast_hash": "bf1042df7e85ac35e1fd28e5477cce5b",
-    "semantic_hash": ""
-  },
-  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\doc\\sigap keu.pdf": {
-    "mtime": 1785503846.9507518,
-    "ast_hash": "425ffa2646014d077a25841b08eeff91",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\images\\logo.png": {
@@ -8399,14 +8379,9 @@
     "ast_hash": "d6601bc2951ab2593b5aaa6559fd69f1",
     "semantic_hash": ""
   },
-  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\doc\\RENCANA_PINDAH_JUDUL_BREADCRUMB_NAVBAR.md": {
-    "mtime": 1785503846.9377425,
-    "ast_hash": "417c4a87d1626d0f388d6350d04036c4",
-    "semantic_hash": ""
-  },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Controllers\\Profil.php": {
-    "mtime": 1781323183.033084,
-    "ast_hash": "146f9d45abae9f1e5972b75a51456b85",
+    "mtime": 1785995868.2174523,
+    "ast_hash": "6223686179a8c5fa16c720bd90642804",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Database\\Migrations\\2026-06-11-000003_CreateDanaJaminanModuleTables.php": {
@@ -8510,8 +8485,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Views\\siteplan\\partials\\modal_detail.php": {
-    "mtime": 1785503880.7344356,
-    "ast_hash": "694ccd4eb828849d8059ca92793e42bc",
+    "mtime": 1785819671.1195974,
+    "ast_hash": "f58abcac020d04784839d435d697f071",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Views\\siteplan\\partials\\modal_detail_styles.php": {
@@ -8520,8 +8495,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\public\\assets\\js\\siteplan-detail-modal.js": {
-    "mtime": 1785503881.1247385,
-    "ast_hash": "1b747baa30a49008445d6e64a59557b2",
+    "mtime": 1785819664.865255,
+    "ast_hash": "5203b8cc543c852ec4de2e07aafeb408",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\public\\assets\\js\\tagihan-bayar-modal.js": {
@@ -8622,16 +8597,6 @@
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Database\\Migrations\\2026-07-13-000001_AddVoidFieldsToKeuanganTable.php": {
     "mtime": 1784170662.6894054,
     "ast_hash": "b0383fc81035f6deb9a3458056d52ffc",
-    "semantic_hash": ""
-  },
-  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Database\\Migrations\\2026-07-29-083319_CreateMasalahTables.php": {
-    "mtime": 1785503880.6877294,
-    "ast_hash": "4fb3b4b77b26dcf738631384c169257e",
-    "semantic_hash": ""
-  },
-  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Database\\Migrations\\2026-07-29-094804_ModifyMasalahTables.php": {
-    "mtime": 1785503880.6888094,
-    "ast_hash": "30a021cb4cfc3b82e767b04b9c7062e9",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Libraries\\StreamFileResponse.php": {
@@ -8770,8 +8735,8 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\public\\assets\\js\\siteplan\\master.js": {
-    "mtime": 1785504856.2524037,
-    "ast_hash": "671ae68c9cecf5cc90a2d2a0bc5402de",
+    "mtime": 1785995365.1163893,
+    "ast_hash": "ba81e17675b36b78e5136e617fb28170",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\public\\assets\\js\\siteplan\\mkdt.js": {
@@ -8905,28 +8870,133 @@
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\public\\assets\\images\\pwa\\apple-touch-icon.png": {
-    "mtime": 1781767705.8124602,
-    "ast_hash": "896652779abc47f073a23ae8289484dd",
+    "mtime": 1512632918.0,
+    "ast_hash": "00edeb3c19f533ce5e82e4d8887fabaf",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\public\\assets\\images\\pwa\\icon-192.png": {
-    "mtime": 1781767705.8159702,
-    "ast_hash": "b05b1a5b08d1d3ab57eb3385a478cc2c",
+    "mtime": 1512632918.0,
+    "ast_hash": "00edeb3c19f533ce5e82e4d8887fabaf",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\public\\assets\\images\\pwa\\icon-512.png": {
-    "mtime": 1781767705.8179839,
-    "ast_hash": "4d3cb61a37c4059b197c4a64d3405f24",
+    "mtime": 1508827942.0,
+    "ast_hash": "c61363f9a30bce23c7b406ca1a0cf07f",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\public\\assets\\images\\pwa\\maskable-192.png": {
-    "mtime": 1781767705.8205059,
-    "ast_hash": "f075439b2e02ce5aebd462ce3ee89204",
+    "mtime": 1512632918.0,
+    "ast_hash": "00edeb3c19f533ce5e82e4d8887fabaf",
     "semantic_hash": ""
   },
   "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\public\\assets\\images\\pwa\\maskable-512.png": {
-    "mtime": 1781767705.822517,
-    "ast_hash": "f28a3131f936aa86797ed171b744db91",
+    "mtime": 1508827942.0,
+    "ast_hash": "c61363f9a30bce23c7b406ca1a0cf07f",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Database\\Migrations\\2026-07-30-000001_CreateTiketMasalahModule.php": {
+    "mtime": 1785506742.9042919,
+    "ast_hash": "bdfe114828706f0196e42fa25d39600b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Database\\Migrations\\2026-08-06-053739_SeedSiteplanFilterMasalahColors.php": {
+    "mtime": 1785994680.6665344,
+    "ast_hash": "1f3883740791f544771dab97e73aec84",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Database\\Migrations\\2026-08-06-054724_SeedSiteplanFilterMasalahDetailColors.php": {
+    "mtime": 1785995253.8276095,
+    "ast_hash": "3e6924d6bb0301c8665dc5d26715c849",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Database\\Migrations\\2026-08-06-130000_SyncUsersNameFromKaryawan.php": {
+    "mtime": 1785995864.0735571,
+    "ast_hash": "8a5ebf40ca8ee666fd2b8267db62142c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Models\\TiketMasalahFotoModel.php": {
+    "mtime": 1785506742.9052944,
+    "ast_hash": "03a25cab2fb0371fdbd0bad06b3e340d",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Models\\TiketMasalahModel.php": {
+    "mtime": 1785506742.906297,
+    "ast_hash": "74e62edb8c71d7d1a58cc5efc80156d2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Models\\TiketMasalahProgressModel.php": {
+    "mtime": 1785506742.9073,
+    "ast_hash": "faa487c454ad2cd10db662baa8a00b81",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Models\\TiketMasalahUserModel.php": {
+    "mtime": 1785506742.9079244,
+    "ast_hash": "2144668b7614f85165c024e487cb20d2",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Models\\UserModel.php": {
+    "mtime": 1785995858.2460558,
+    "ast_hash": "96782567e81fc1b4216fde473a320a9c",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Repositories\\TiketMasalahRepository.php": {
+    "mtime": 1785506742.9089258,
+    "ast_hash": "68e92dc807c3057c38d45c8a8c8f973a",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Services\\TiketMasalahService.php": {
+    "mtime": 1785506742.9130397,
+    "ast_hash": "9ed1d9cd8f7155f43ac8dacfe0c88a75",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Views\\siteplan\\partials\\modal_tiket_masalah.php": {
+    "mtime": 1785506742.918343,
+    "ast_hash": "fa39faec9e2c2b5cdd1457329ef86516",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\app\\Views\\siteplan\\partials\\modal_tiket_masalah_styles.php": {
+    "mtime": 1785506742.9190078,
+    "ast_hash": "4de49c94698c91b1c39f7663e41aeb26",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\public\\assets\\js\\siteplan\\tiket-masalah.js": {
+    "mtime": 1785506742.9423983,
+    "ast_hash": "bac7565e08c5f74e0f2fe97dec891739",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\.agents\\skills\\sigapp-ui-acuan copy\\SKILL.md": {
+    "mtime": 1785506742.9006512,
+    "ast_hash": "0d9a2563a8351fccb0b8a942211196ae",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\.agents\\skills\\sigapp-ui-acuan copy\\agents\\openai.yaml": {
+    "mtime": 1785506742.9012854,
+    "ast_hash": "f2a1913101b7684b999cb66587fe57bf",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\docs\\modal-open-set-harga.html": {
+    "mtime": 1785506742.9328723,
+    "ast_hash": "c101147f9f8f59f9044b5fb09863eed4",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\docs\\RENCANA_PINDAH_JUDUL_BREADCRUMB_NAVBAR.md": {
+    "mtime": 1785506742.9230146,
+    "ast_hash": "417c4a87d1626d0f388d6350d04036c4",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\docs\\aplikasi SIGAPP.pdf": {
+    "mtime": 1785506742.9308667,
+    "ast_hash": "d013d738577e1f6fb1a179e436ed5714",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\docs\\MoM_02_26062024_SIG..pdf": {
+    "mtime": 1785506742.9220104,
+    "ast_hash": "bf1042df7e85ac35e1fd28e5477cce5b",
+    "semantic_hash": ""
+  },
+  "C:\\Users\\Salivs\\Data\\laragon\\www\\sigapp.dev\\docs\\sigap keu.pdf": {
+    "mtime": 1785506742.940393,
+    "ast_hash": "425ffa2646014d077a25841b08eeff91",
     "semantic_hash": ""
   }
 }

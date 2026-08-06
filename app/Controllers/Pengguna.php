@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Models\DivisiModel;
 use App\Models\KaryawanModel;
-use Myth\Auth\Models\UserModel;
+use App\Models\UserModel;
 use Myth\Auth\Authorization\PermissionModel;
 use Myth\Auth\Authorization\GroupModel;
 use Myth\Auth\Password;
@@ -177,6 +177,9 @@ class Pengguna extends BaseController
 
         //get karyawan data
         $k = $this->karyawanModel->where('nik', $this->request->getPost('nik'))->first();
+        if ($k && ! empty($k->nama_karyawan)) {
+            $fields['name'] = $k->nama_karyawan;
+        }
 
 
         $valid = [
@@ -257,6 +260,9 @@ class Pengguna extends BaseController
         $nik = $this->request->getPost('nik');
         //get karyawan data
         $k = $this->karyawanModel->where('nik', $this->request->getPost('nik'))->first();
+        if ($k && ! empty($k->nama_karyawan)) {
+            $fields['name'] = $k->nama_karyawan;
+        }
 
         // var_dump($fields);die();
 

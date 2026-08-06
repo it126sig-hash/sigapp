@@ -187,6 +187,7 @@ class Karyawan extends BaseController
 				if ($k->id_user) {
 					$this->changeGroup($k->id_user, $fields['id_divisi']);
 					$this->chnagePermission($k->id_user, $fields['id_level']);
+					\Config\Database::connect()->table('users')->where('id', $k->id_user)->update(['name' => $fields['nama_karyawan']]);
 				}
 
 

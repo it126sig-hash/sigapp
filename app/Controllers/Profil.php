@@ -100,13 +100,32 @@ class Profil extends BaseController
 
         if ($photo && $photo->isValid() && ! $photo->hasMoved()) {
             try {
-                $fields['profile_photo'] = $this->fileAccessService->store($photo, 'uploads/profile/' . date('Ymd'));
+                $storedPath = $this->fileAccessService->store($photo, 'uploads/profile/' . date('Ymd'));
+                $fields['profile_photo'] = $storedPath;
+
+                $absolutePath = $this->fileAccessService->privatePath($storedPath);
+                if (is_file($absolutePath)) {
+                    try {
+                        $image = \Config\Services::image()->withFile($absolutePath);
+                        $info = $image->getFile()->getProperties(true);
+                        $width = $info['width'] ?? 0;
+                        $height = $info['height'] ?? 0;
+
+                        if ($width > 400 || $height > 400) {
+                            $image->resize(400, 400, true, 'auto');
+                        }
+                        $image->save($absolutePath, 85);
+                    } catch (\Throwable $e) {
+                        log_message('warning', 'Gagal kompres foto profil: ' . $e->getMessage());
+                    }
+                }
             } catch (RuntimeException $e) {
                 return redirect()->back()->withInput()->with('error', 'Foto profil gagal disimpan.');
             }
         }
 
         $this->db->table('users')->where('id', $userId)->update($fields);
+        $this->db->table('karyawan')->where('id_user', $userId)->update(['nama_karyawan' => $fields['name']]);
 
         return redirect()->to(base_url('profil'))->with('message', 'Profil berhasil diperbaharui.');
     }
