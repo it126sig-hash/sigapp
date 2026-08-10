@@ -7,6 +7,8 @@ use App\Models\SiteplanuploadModel;
 use App\Repositories\ProyekRepository;
 use CodeIgniter\HTTP\IncomingRequest;
 use RuntimeException;
+use App\Services\HistoryService;
+use App\Controllers\Notif;
 
 class ProyekService
 {
@@ -16,6 +18,8 @@ class ProyekService
     private FileAccessService $fileAccessService;
     private $validation;
     private $db;
+    private HistoryService $historyService;
+    private Notif $notif;
 
     public function __construct()
     {
@@ -25,6 +29,8 @@ class ProyekService
         $this->fileAccessService = new FileAccessService();
         $this->validation = \Config\Services::validation();
         $this->db = db_connect();
+        $this->historyService = new HistoryService();
+        $this->notif = new Notif();
     }
 
     public function getAll(array $params = []): array
@@ -107,6 +113,14 @@ class ProyekService
             $siteplan['id_proyek'] = (int) $this->proyekModel->getInsertID();
             $this->siteplanUploadModel->insert($siteplan);
 
+            $this->historyService->log('master_proyek', [
+                'reference_type' => 'proyek',
+                'reference_id' => $siteplan['id_proyek'],
+                'action' => 'insert',
+                'new_data' => $fields
+            ]);
+            $this->notif->tambah_notif("6", "Menambahkan Master Proyek: " . ($fields['nama_proyek'] ?? ''), user_id(), null, null, null, $siteplan['id_proyek']);
+
             $this->db->transComplete();
         } catch (\Throwable $e) {
             $this->db->transRollback();
@@ -147,6 +161,8 @@ class ProyekService
             return ['success' => false, 'messages' => $validation];
         }
 
+        $oldData = $this->proyekModel->find($idProyek);
+
         $this->db->transStart();
 
         try {
@@ -170,6 +186,15 @@ class ProyekService
             if (!$this->proyekModel->update($idProyek, $fields)) {
                 throw new RuntimeException('Update error!');
             }
+
+            $this->historyService->log('master_proyek', [
+                'reference_type' => 'proyek',
+                'reference_id' => $idProyek,
+                'action' => 'update',
+                'old_data' => $oldData,
+                'new_data' => $fields
+            ]);
+            $this->notif->tambah_notif("6", "Mengubah Master Proyek: " . ($fields['nama_proyek'] ?? ''), user_id(), null, null, null, $idProyek);
 
             $this->db->transComplete();
         } catch (\Throwable $e) {

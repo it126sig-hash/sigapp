@@ -8,6 +8,8 @@ use App\Models\TipeModel;
 use App\Repositories\TipeRepository;
 use CodeIgniter\HTTP\IncomingRequest;
 use RuntimeException;
+use App\Services\HistoryService;
+use App\Controllers\Notif;
 
 class TipeService
 {
@@ -42,6 +44,8 @@ class TipeService
     private FileAccessService $fileAccessService;
     private $validation;
     private $db;
+    private HistoryService $historyService;
+    private Notif $notif;
 
     public function __construct()
     {
@@ -52,6 +56,8 @@ class TipeService
         $this->fileAccessService = new FileAccessService();
         $this->validation = \Config\Services::validation();
         $this->db = db_connect();
+        $this->historyService = new HistoryService();
+        $this->notif = new Notif();
     }
 
     public function getAll(array $params): array
@@ -167,6 +173,14 @@ class TipeService
                 }
             }
 
+            $this->historyService->log('master_tipe', [
+                'reference_type' => 'tipe',
+                'reference_id' => $idTipe,
+                'action' => 'insert',
+                'new_data' => $fields
+            ]);
+            $this->notif->tambah_notif("6", "Menambahkan Master Tipe: " . ($fields['tipe_rumah'] ?? ''), user_id(), null, null, null, $fields['id_proyek']);
+
             $this->db->transComplete();
         } catch (\Throwable $e) {
             $this->db->transRollback();
@@ -194,6 +208,8 @@ class TipeService
             return ['success' => false, 'messages' => $validation];
         }
 
+        $oldData = $this->tipeModel->find($idTipe);
+
         $this->db->transStart();
 
         try {
@@ -212,6 +228,15 @@ class TipeService
             if (!$this->tipeModel->update($idTipe, $fields)) {
                 throw new RuntimeException('Update error!');
             }
+
+            $this->historyService->log('master_tipe', [
+                'reference_type' => 'tipe',
+                'reference_id' => $idTipe,
+                'action' => 'update',
+                'old_data' => $oldData,
+                'new_data' => $fields
+            ]);
+            $this->notif->tambah_notif("6", "Mengubah Master Tipe: " . ($fields['tipe_rumah'] ?? ''), user_id(), null, null, null, $fields['id_proyek']);
 
             $this->db->transComplete();
         } catch (\Throwable $e) {

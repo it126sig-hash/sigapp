@@ -14,6 +14,10 @@ class HistoryService
         'target_siteplan' => 'Target Siteplan',
         'cashout_subkon' => 'Cashout Subkon',
         'siteplan' => 'Siteplan (Planning)',
+        'master_proyek' => 'Master Proyek',
+        'master_cluster' => 'Master Cluster',
+        'master_jalan' => 'Master Jalan',
+        'master_tipe' => 'Master Tipe',
     ];
 
     protected $db;

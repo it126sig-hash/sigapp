@@ -8,6 +8,8 @@ use App\Controllers\BaseController;
 use App\Models\ClusterModel;
 use App\Models\ProyekModel;
 use Hermawan\DataTables\DataTable;
+use App\Services\HistoryService;
+use App\Controllers\Notif;
 
 class Cluster extends BaseController
 {
@@ -16,6 +18,8 @@ class Cluster extends BaseController
 	protected $proyekModel;
 	protected $validation;
 	protected $db;
+	protected HistoryService $historyService;
+	protected Notif $notif;
 
 	public function __construct()
 	{
@@ -23,6 +27,8 @@ class Cluster extends BaseController
 		$this->proyekModel = new ProyekModel();
 		$this->validation =  \Config\Services::validation();
 		$this->db = db_connect();
+		$this->historyService = new HistoryService();
+		$this->notif = new Notif();
 	}
 
 	public function index()
@@ -191,6 +197,14 @@ class Cluster extends BaseController
 		} else {
 
 			if ($this->clusterModel->insert($fields)) {
+				$insertId = (int) $this->clusterModel->getInsertID();
+				$this->historyService->log('master_cluster', [
+					'reference_type' => 'cluster',
+					'reference_id' => $insertId,
+					'action' => 'insert',
+					'new_data' => $fields
+				]);
+				$this->notif->tambah_notif("6", "Menambahkan Master Cluster: " . ($fields['nama_cluster'] ?? ''), user_id(), null, null, null, $fields['id_proyek']);
 
 				$response['success'] = true;
 				$response['messages'] = 'Data has been inserted successfully';
@@ -228,8 +242,18 @@ class Cluster extends BaseController
 			$response['success'] = false;
 			$response['messages'] = $this->validation->listErrors();
 		} else {
+			$oldData = $this->clusterModel->find($fields['id_cluster']);
 
 			if ($this->clusterModel->update($fields['id_cluster'], $fields)) {
+
+				$this->historyService->log('master_cluster', [
+					'reference_type' => 'cluster',
+					'reference_id' => $fields['id_cluster'],
+					'action' => 'update',
+					'old_data' => $oldData,
+					'new_data' => $fields
+				]);
+				$this->notif->tambah_notif("6", "Mengubah Master Cluster: " . ($fields['nama_cluster'] ?? ''), user_id(), null, null, null, $fields['id_proyek']);
 
 				$response['success'] = true;
 				$response['messages'] = 'Successfully updated';

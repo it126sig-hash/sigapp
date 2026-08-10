@@ -625,11 +625,26 @@ function renderNotificationSummary(response) {
   $("#notif-activity-count").text(activityUnread);
 }
 
+// Smart Polling AJAX (Menggantikan SSE yang bikin freeze)
+let notifPollTimer = null;
+const NOTIF_POLL_INTERVAL = 30000; // 30 detik
+
 function loadNotificationBadge() {
+  if (notifPollTimer) {
+      clearTimeout(notifPollTimer);
+      notifPollTimer = null;
+  }
+
+  // Jika tab tidak aktif, jeda polling
+  if (document.visibilityState === 'hidden') {
+      notifPollTimer = setTimeout(loadNotificationBadge, 5000);
+      return;
+  }
+
   if (notificationBadgeRequest && notificationBadgeRequest.readyState !== 4) {
     notificationBadgeRequest.abort();
   }
-
+  
   notificationBadgeRequest = $.ajax({
     type: "get",
     url: base_url + "/notif/summary",
@@ -644,9 +659,17 @@ function loadNotificationBadge() {
     },
     complete: function () {
       notificationBadgeRequest = null;
-    },
+      notifPollTimer = setTimeout(loadNotificationBadge, NOTIF_POLL_INTERVAL);
+    }
   });
 }
+
+// Refresh badge seketika saat user kembali membuka tab
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        loadNotificationBadge();
+    }
+});
 
 function getNotif(forceReload = true) {
   if (notificationCenterRequest && notificationCenterRequest.readyState !== 4) {

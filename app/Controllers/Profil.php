@@ -87,6 +87,7 @@ class Profil extends BaseController
 
         $fields = [
             'name' => trim((string) $this->request->getPost('name')),
+            'email_notif_enabled' => $this->request->getPost('email_notif_enabled') ? 1 : 0,
             'updated_at' => date('Y-m-d H:i:s'),
         ];
 

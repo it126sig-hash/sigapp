@@ -459,7 +459,7 @@ class Siteplan extends BaseController
                 dengan tipe rumah ' . $this->request->getVar('tp-kavling') . ' 
                 pada tanggal: ' . date_format(date_create(date('Y-m-d')), "d-M-Y") . '';
 
-        $this->notif->tambah_notif("0", $notif, user_id(), null, null); //4 mkdt 9 direksi
+        $this->notif->tambah_notif("0", $notif, user_id(), $response['id'] ?? null, null); //4 mkdt 9 direksi
 
         return $response;
     }
@@ -513,7 +513,9 @@ class Siteplan extends BaseController
                 ]);
 
                 $notif = 'Menambahkan data fasum/lainnya ke siteplan: ' . ($fields['nama'] ?? '') . ' pada tanggal: ' . date('d-M-Y');
-                $this->notif->tambah_notif("0", $notif, user_id(), null, null);
+                $idProyek = clone $this->db;
+                $idProyek = $idProyek->table('jalan')->select('cluster.id_proyek')->join('cluster', 'cluster.id_cluster = jalan.id_cluster')->where('id_jalan', $fields['id_jalan'])->get()->getRow()->id_proyek ?? null;
+                $this->notif->tambah_notif("0", $notif, user_id(), null, null, null, $idProyek);
             } else {
                 $response['success'] = false;
                 $response['messages'] = 'Insertion error!';
@@ -639,7 +641,7 @@ class Siteplan extends BaseController
         ]);
         
         $notif = 'Mengupdate data ' . $id_len . ' kavling pada siteplan pada tanggal: ' . date('d-M-Y');
-        $this->notif->tambah_notif("0", $notif, user_id(), null, null);
+        $this->notif->tambah_notif("0", $notif, user_id(), $id[0] ?? null, null);
 
         $response['success'] = true;
         $response['messages'] = 'Successfully updated';
@@ -693,7 +695,9 @@ class Siteplan extends BaseController
                 ]);
 
                 $notif = 'Mengupdate data fasum/lainnya ke siteplan: ' . ($fields['nama'] ?? '') . ' pada tanggal: ' . date('d-M-Y');
-                $this->notif->tambah_notif("0", $notif, user_id(), null, null);
+                $idProyek = clone $this->db;
+                $idProyek = $idProyek->table('jalan')->select('cluster.id_proyek')->join('cluster', 'cluster.id_cluster = jalan.id_cluster')->where('id_jalan', $fields['id_jalan'])->get()->getRow()->id_proyek ?? null;
+                $this->notif->tambah_notif("0", $notif, user_id(), null, null, null, $idProyek);
             } else {
                 $response['success'] = false;
                 $response['messages'] = 'Data gagal diperbaharui!';

@@ -130,6 +130,20 @@ if ($displayName === '') {
                                 </div>
 
                                 <div class="divider divider-left">
+                                    <div class="divider-text">Pengaturan Notifikasi</div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="custom-control custom-switch custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="email_notif_enabled" name="email_notif_enabled" <?= (isset($profile->email_notif_enabled) && $profile->email_notif_enabled) ? 'checked' : '' ?>>
+                                        <label class="custom-control-label" for="email_notif_enabled">
+                                        Terima Rangkuman Notifikasi via Email
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted">Kami akan mengirimkan email rangkuman notifikasi jika Anda tidak sedang aktif di aplikasi.</small>
+                                </div>
+
+                                <div class="divider divider-left">
                                     <div class="divider-text">Ubah Password</div>
                                 </div>
 
