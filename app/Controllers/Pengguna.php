@@ -165,12 +165,14 @@ class Pengguna extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
         $username = $this->request->getPost('username');
+        $email = $this->request->getPost('email');
         $fields['active'] = $this->request->getPost('active');
 
         $fields['updated_at'] = date('Y-m-d H:i:s');
 
         //bypass username validation if 
         $u = 'required|min_length[4]|max_length[20]|is_unique[users.username]';
+        $e = 'required|valid_email|is_unique[users.email]';
         $c = $this->userModel->where('id', $id)->first();
 
 
@@ -201,14 +203,28 @@ class Pengguna extends BaseController
 
                 'rules' => $u,
                 'errors' => [
-                    'required' => '{field} Harus diisi',
-                    'min_length' => '{field} Minimal 4 Karakter',
-                    'max_length' => '{field} Maksimal 20 Karakter',
+                    'required' => 'Username Harus diisi',
+                    'min_length' => 'Username Minimal 4 Karakter',
+                    'max_length' => 'Username Maksimal 20 Karakter',
                     'is_unique' => 'Username sudah digunakan sebelumnya'
                 ]
 
             ];
         };
+
+        if ($email && $c->email != $email) {
+            $fields['email'] = $email;
+            $valid['email'] = [
+                'rules' => $e,
+                'errors' => [
+                    'required' => 'Email Harus diisi',
+                    'valid_email' => 'Format Email tidak valid',
+                    'is_unique' => 'Email sudah digunakan sebelumnya'
+                ]
+            ];
+        } else if ($email) {
+            $fields['email'] = $email; // Update email if it hasn't changed but is in post
+        }
 
         $this->validation->setRules($valid);
       
@@ -216,8 +232,12 @@ class Pengguna extends BaseController
             $response['success'] = false;
             $response['messages'] = $this->validation->listErrors();
         } else {
-            //encrypt password
-            $fields['password_hash'] = Password::hash($this->request->getVar('password'));
+            //encrypt password if provided
+            $newPassword = $this->request->getVar('password');
+            if (!empty($newPassword)) {
+                $fields['password_hash'] = Password::hash($newPassword);
+            }
+            unset($fields['password']); // Remove raw password from fields array
 
             if ($this->userModel->update($id, $fields)) {
 
