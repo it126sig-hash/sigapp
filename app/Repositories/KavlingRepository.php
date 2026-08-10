@@ -352,10 +352,8 @@ class KavlingRepository
     public function getKategoriOptions(int $idProyek): array
     {
         $options = [
-            ['key' => 'Sudah Akad', 'label' => 'Sudah Akad', 'has_periode' => true, 'cat' => 'Status kavling'],
-            ['key' => 'Akad Komersil', 'label' => 'Akad Komersil', 'has_periode' => true, 'cat' => 'Status kavling'],
-            ['key' => 'Akad Subsidi', 'label' => 'Akad Subsidi', 'has_periode' => true, 'cat' => 'Status kavling'],
-            ['key' => 'Booking', 'label' => 'Booking', 'has_periode' => true, 'cat' => 'Status kavling'],
+            ['key' => 'Akad & Booking', 'label' => 'Akad & Booking', 'has_periode' => true, 'cat' => 'Status kavling'],
+            ['key' => 'Akad Subsidi & Akad Komersil', 'label' => 'Akad Subsidi & Akad Komersil', 'has_periode' => true, 'cat' => 'Status kavling'],
             ['key' => 'Batal', 'label' => 'Batal', 'has_periode' => true, 'cat' => 'Status kavling'],
             ['key' => 'SP3K', 'label' => 'SP3K', 'has_periode' => true, 'cat' => 'Status kavling'],
             ['key' => 'Masalah', 'label' => 'Masalah', 'has_periode' => true, 'cat' => 'Masalah'],
@@ -421,23 +419,35 @@ class KavlingRepository
         };
 
         switch ($kategori) {
-            case 'Sudah Akad':
+            case 'Akad & Booking':
+                $builder->groupStart()
+                    ->groupStart()
+                        ->where('mkdt.status_mkdt', 'Akad');
+                        if ($periodeMulai && $periodeSelesai) {
+                            $builder->where('mkdt.akad_tgl >=', $periodeMulai);
+                            $builder->where('mkdt.akad_tgl <=', $periodeSelesai);
+                        } elseif ($periodeMulai) {
+                            $builder->where('mkdt.akad_tgl >=', $periodeMulai);
+                        } elseif ($periodeSelesai) {
+                            $builder->where('mkdt.akad_tgl <=', $periodeSelesai);
+                        }
+                    $builder->groupEnd()
+                    ->orGroupStart()
+                        ->where('mkdt.status_mkdt', 'Booking');
+                        if ($periodeMulai && $periodeSelesai) {
+                            $builder->where('mkdt.booking_tgl >=', $periodeMulai);
+                            $builder->where('mkdt.booking_tgl <=', $periodeSelesai);
+                        } elseif ($periodeMulai) {
+                            $builder->where('mkdt.booking_tgl >=', $periodeMulai);
+                        } elseif ($periodeSelesai) {
+                            $builder->where('mkdt.booking_tgl <=', $periodeSelesai);
+                        }
+                    $builder->groupEnd()
+                ->groupEnd();
+                break;
+            case 'Akad Subsidi & Akad Komersil':
                 $builder->where('mkdt.status_mkdt', 'Akad');
                 $dateCondition('mkdt.akad_tgl');
-                break;
-            case 'Akad Komersil':
-                $builder->where('mkdt.status_mkdt', 'Akad');
-                $builder->where('mkdt.is_subsidi', 0);
-                $dateCondition('mkdt.akad_tgl');
-                break;
-            case 'Akad Subsidi':
-                $builder->where('mkdt.status_mkdt', 'Akad');
-                $builder->where('mkdt.is_subsidi', 1);
-                $dateCondition('mkdt.akad_tgl');
-                break;
-            case 'Booking':
-                $builder->where('mkdt.status_mkdt', 'Booking');
-                $dateCondition('mkdt.booking_tgl');
                 break;
             case 'Batal':
                 $builder->groupStart()

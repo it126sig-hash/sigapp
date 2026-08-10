@@ -1828,133 +1828,39 @@ Date.prototype.toDateInputValue = (function() {
                     let html = '';
                     let currentCat = '';
                     res.data.forEach(opt => {
-                        let catSlug = opt.cat.replace(/\s+/g, '-').toLowerCase();
                         if (opt.cat !== currentCat) {
+                            if (currentCat !== '') {
+                                html += `</optgroup>`;
+                            }
                             currentCat = opt.cat;
-                            html += `
-                            <div class="divider divider-left mt-2 mb-1 filter-cat-divider" data-cat="${catSlug}">
-                                <div class="divider-text">${currentCat}</div>
-                            </div>`;
+                            html += `<optgroup label="${currentCat}">`;
                         }
                         let countText = opt.count !== undefined ? ` (${opt.count})` : '';
-                        let keySlug = opt.key.replace(/\s+/g, '-');
-                        html += `
-                        <div class="custom-control custom-checkbox mb-1 filter-cb-wrapper" data-key="${opt.key}" data-cat="${catSlug}">
-                            <input type="checkbox" class="custom-control-input filter-kategori-cb" name="kategori[]" value="${opt.key}" id="cb-kat-${keySlug}" data-has-periode="${opt.has_periode}">
-                            <label class="custom-control-label" for="cb-kat-${keySlug}">${opt.label}${countText}</label>
-                        </div>`;
+                        let hasPeriode = opt.has_periode ? 'true' : 'false';
+                        html += `<option value="${opt.key}" data-has-periode="${hasPeriode}" data-is-kategori="true">${opt.label}${countText}</option>`;
                     });
-                    $('#filter-kategori-checkboxes').html(html);
-
-                    $('.filter-kategori-cb').on('change', function() {
-                        const MULTI_ALLOWED = ['Sudah Akad', 'Akad Komersil', 'Akad Subsidi', 'Booking'];
-                        const val = $(this).val();
-                        const isMulti = MULTI_ALLOWED.includes(val);
-                        
-                        if ($(this).is(':checked')) {
-                            if (isMulti) {
-                                // Specific rule: Sudah Akad only with Booking
-                                if (val === 'Sudah Akad') {
-                                    $('.filter-kategori-cb:checked').each(function() {
-                                        if ($(this).val() !== 'Sudah Akad' && $(this).val() !== 'Booking') {
-                                            $(this).prop('checked', false);
-                                        }
-                                    });
-                                } else if (val === 'Akad Komersil' || val === 'Akad Subsidi') {
-                                    $('.filter-kategori-cb:checked').each(function() {
-                                        if ($(this).val() === 'Sudah Akad' || !MULTI_ALLOWED.includes($(this).val())) {
-                                            $(this).prop('checked', false);
-                                        }
-                                    });
-                                } else {
-                                    // Booking
-                                    $('.filter-kategori-cb:checked').each(function() {
-                                        if (!MULTI_ALLOWED.includes($(this).val())) {
-                                            $(this).prop('checked', false);
-                                        }
-                                    });
-                                }
-                            } else {
-                                $('.filter-kategori-cb:checked').not(this).prop('checked', false);
-                            }
-                        }
-                        updateAnimatedFilterVisibility();
+                    if (currentCat !== '') {
+                        html += `</optgroup>`;
+                    }
+                    
+                    $('#pilih-divisi').append(html);
+                    $('#pilih-divisi').trigger('change');
+                    
+                    $('#pilih-divisi').on('change', function() {
                         checkMasalahOptions();
                         checkPeriodeOptions();
                     });
-
-                    // Re-check form state in case it was pre-filled
-                    let currentFilter = getServerFilterData();
-                    currentFilter.kategori.forEach(k => {
-                        $(`.filter-kategori-cb[value="${k}"]`).prop('checked', true);
-                    });
-
-                    updateAnimatedFilterVisibility();
-                    checkMasalahOptions();
-                    checkPeriodeOptions();
                 }
-            }
-        });
-    }
-
-    function updateAnimatedFilterVisibility() {
-        const checkedBoxes = $('.filter-kategori-cb:checked');
-        const MULTI_ALLOWED = ['Sudah Akad', 'Akad Komersil', 'Akad Subsidi', 'Booking'];
-
-        if (checkedBoxes.length === 0) {
-            $('.filter-cb-wrapper').stop(true, true).slideDown(250);
-            $('.filter-cat-divider').stop(true, true).slideDown(250);
-            return;
-        }
-
-        let allowedKeys = [];
-        checkedBoxes.each(function() {
-            const val = $(this).val();
-            allowedKeys.push(val);
-            if (val === 'Sudah Akad') {
-                if (!allowedKeys.includes('Booking')) allowedKeys.push('Booking');
-            } else if (val === 'Akad Komersil' || val === 'Akad Subsidi') {
-                if (!allowedKeys.includes('Akad Komersil')) allowedKeys.push('Akad Komersil');
-                if (!allowedKeys.includes('Akad Subsidi')) allowedKeys.push('Akad Subsidi');
-                if (!allowedKeys.includes('Booking')) allowedKeys.push('Booking');
-            } else if (val === 'Booking') {
-                MULTI_ALLOWED.forEach(k => {
-                    if (!allowedKeys.includes(k)) allowedKeys.push(k);
-                });
-            }
-        });
-
-        $('.filter-cb-wrapper').each(function() {
-            const key = $(this).data('key');
-            if (allowedKeys.includes(key)) {
-                $(this).stop(true, true).slideDown(250);
-            } else {
-                $(this).stop(true, true).slideUp(250);
-            }
-        });
-
-        $('.filter-cat-divider').each(function() {
-            const cat = $(this).data('cat');
-            const hasVisibleChild = $('.filter-cb-wrapper[data-cat="' + cat + '"]').filter(function() {
-                const key = $(this).data('key');
-                return allowedKeys.includes(key);
-            }).length > 0;
-
-            if (hasVisibleChild) {
-                $(this).stop(true, true).slideDown(250);
-            } else {
-                $(this).stop(true, true).slideUp(250);
             }
         });
     }
 
     function checkPeriodeOptions() {
         let showPeriode = false;
-        $('.filter-kategori-cb:checked').each(function() {
-            if ($(this).data('has-periode') === true || $(this).data('has-periode') === 'true') {
-                showPeriode = true;
-            }
-        });
+        let selectedOption = $('#pilih-divisi option:selected');
+        if (selectedOption.data('has-periode') === true || selectedOption.data('has-periode') === 'true') {
+            showPeriode = true;
+        }
         if (showPeriode) {
             $('#filter-periode-container').stop(true, true).slideDown(300);
         } else {
@@ -1964,11 +1870,10 @@ Date.prototype.toDateInputValue = (function() {
 
     function checkMasalahOptions() {
         let hasMasalah = false;
-        $('.filter-kategori-cb:checked').each(function() {
-            if ($(this).val() === 'Masalah') {
-                hasMasalah = true;
-            }
-        });
+        let selectedValue = $('#pilih-divisi').val();
+        if (selectedValue === 'Masalah') {
+            hasMasalah = true;
+        }
         if (hasMasalah) {
             $('.filter-masalah-options').stop(true, true).slideDown(300);
         } else {
@@ -1979,7 +1884,6 @@ Date.prototype.toDateInputValue = (function() {
     window.apply_server_filter = function() {
         filter.id_cluster = $("#filter-id_cluster").val();
         filter.id_jalan = $("#filter-id_jalan").val();
-        $('#modal-setting-filter').modal('hide');
         load_kavling();
         renderActiveFilterTags();
     }
@@ -1988,21 +1892,14 @@ Date.prototype.toDateInputValue = (function() {
         $('#form-filter-kategori')[0].reset();
         $('#filter-id_cluster').val(null).trigger('change');
         $('#filter-id_jalan').val(null).trigger('change');
+        $('#pilih-divisi').val('0').trigger('change');
         filter.id_cluster = '';
         filter.id_jalan = '';
-        updateAnimatedFilterVisibility();
         checkMasalahOptions();
         checkPeriodeOptions();
-        $('#modal-setting-filter').modal('hide');
         load_kavling();
         renderActiveFilterTags();
     }
-
-    $('#modal-setting-filter').on('show.bs.modal shown.bs.modal', function () {
-        if ($('#filter-kategori-checkboxes').is(':empty')) {
-            fetch_kategori_options();
-        }
-    });
 
     $(document).ready(function() {
         fetch_kategori_options();
@@ -2016,9 +1913,10 @@ Date.prototype.toDateInputValue = (function() {
             status_masalah: $('#filter-status-masalah').val() || '',
             periode_masalah_jenis: $('#filter-periode-masalah-jenis').val() || ''
         };
-        $('.filter-kategori-cb:checked').each(function() {
-            data.kategori.push($(this).val());
-        });
+        let selectedOption = $('#pilih-divisi option:selected');
+        if (selectedOption.data('is-kategori')) {
+            data.kategori.push(selectedOption.val());
+        }
         return data;
     }
 
@@ -2034,11 +1932,11 @@ Date.prototype.toDateInputValue = (function() {
             html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('jalan')">Blok: ${jalanText} &times;</span>`;
         }
         
-        $('.filter-kategori-cb:checked').each(function() {
-            const val = $(this).val();
-            const text = $(this).next('label').text().replace(/\s\(\d+\)$/, '');
-            html += `<span class="badge badge-light-info mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('kategori', '${val}')">${text} &times;</span>`;
-        });
+        let selectedOption = $('#pilih-divisi option:selected');
+        if (selectedOption.data('is-kategori')) {
+            const text = selectedOption.text().replace(/\s\(\d+\)$/, '');
+            html += `<span class="badge badge-light-info mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('kategori')">${text} &times;</span>`;
+        }
 
         if ($('#filter-periode-mulai').val() || $('#filter-periode-selesai').val()) {
             const start = $('#filter-periode-mulai').val() || '...';
@@ -2059,7 +1957,7 @@ Date.prototype.toDateInputValue = (function() {
             $('#filter-id_jalan').val(null).trigger('change');
             filter.id_jalan = '';
         } else if (type === 'kategori') {
-            $(`.filter-kategori-cb[value="${val}"]`).prop('checked', false);
+            $('#pilih-divisi').val('0').trigger('change');
         } else if (type === 'periode') {
             $('#filter-periode-mulai').val('');
             $('#filter-periode-selesai').val('');
