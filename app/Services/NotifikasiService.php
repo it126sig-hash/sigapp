@@ -26,6 +26,9 @@ class NotifikasiService
     }
     function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null)
     {
+        if (is_array($id_kavling)) {
+            $id_kavling = $id_kavling[0] ?? null;
+        }
         if (is_array($target)) {
             $batchData = [];
             foreach ($target as $t) {

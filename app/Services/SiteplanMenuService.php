@@ -313,6 +313,11 @@ class SiteplanMenuService
             $html .= $this->renderItem($item);
         }
 
+        if ($groupId === 6) {
+            $html .= '<button id="btn_pilih_seleksi" type="button" class="btn-icon btn btn-success btn-round btn-sm my-float d-none" onclick="tambah_kavling(true)"><i class="fas fa-check"></i> Pilih Seleksi</button>';
+            $html .= '<button id="btn_batal_seleksi" type="button" class="btn-icon btn btn-danger btn-round btn-sm my-float d-none" onclick="batal_tambah_kavling()"><i class="fas fa-times"></i> Batal</button>';
+        }
+
         $html .= '</div>';
 
         return $html;
@@ -322,7 +327,7 @@ class SiteplanMenuService
     {
         $key = (string) ($item->item_key ?? '');
         if ($key === 'planning_manual_selection') {
-            return '<div class="custom-control custom-switch custom-control-inline">
+            return '<div class="custom-control custom-switch custom-control-inline d-none" id="container_tambah_jalan">
                 <input onchange="hapus_seleksi()" type="checkbox" value="1" class="custom-control-input" id="tambah_jalan" name="tambah_jalan" />
                 <label class="custom-control-label" for="tambah_jalan">Manual Seleksi</label>
             </div>';
@@ -349,6 +354,11 @@ class SiteplanMenuService
         $iconHtml = $icon !== '' ? '<i class="' . esc($icon) . '"></i> ' : '';
         $btnClass = trim((string) ($item->btn_class ?? 'btn-primary'));
         $extraClass = trim((string) ($item->extra_class ?? ''));
+        
+        if ($key === 'planning_undo_manual_selection') {
+            $extraClass = trim($extraClass . ' d-none');
+        }
+        
         $classes = trim('btn-icon btn ' . ($btnClass ?: 'btn-primary') . ' btn-round btn-sm my-float ' . $extraClass);
         $styleAttr = in_array($key, ['planning_selection_done', 'planning_selection_cancel'], true) ? ' style="display: none;"' : '';
 
