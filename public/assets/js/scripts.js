@@ -1096,6 +1096,25 @@ function handleNotificationClick(id_notif, id_kavling, type, el) {
         } else if (typeof modal_tagihan === "function") {
           modal_tagihan(id_kavling);
         }
+      } else if (type && type.startsWith("tiket_masalah")) {
+        let parts = type.split("|");
+        let tmRefType = parts[1] || null;
+        let tmRefId = parts[2] || null;
+
+        // Auto-select filter Masalah di #pilih-divisi
+        if ($('#pilih-divisi').length) {
+          $('#pilih-divisi').val('Masalah').trigger('change');
+          // Trigger apply filter agar data siteplan ter-load
+          if (typeof apply_server_filter === 'function') {
+            apply_server_filter();
+          }
+        }
+        
+        if (tmRefType && tmRefId && typeof window.openTiketMasalah === 'function') {
+            window.openTiketMasalah(tmRefType, tmRefId);
+        } else if (id_kavling && id_kavling !== 'null' && typeof window.openTiketMasalah === 'function') {
+            window.openTiketMasalah('kavling', id_kavling);
+        }
       } else if (type === "progress" && typeof openSiteplanKavlingFromNotification === "function") {
         openSiteplanKavlingFromNotification(id_kavling);
       } else {

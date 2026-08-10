@@ -214,12 +214,19 @@ class Notif extends BaseController
         }
 
         $role = (string) $this->group_id;
+        $userId = function_exists('user_id') ? (int) user_id() : 0;
+        
         $builder->groupStart()
             ->where('notification.group_target', $role)
             ->orLike('notification.group_target', $role . ';', 'after')
             ->orLike('notification.group_target', ';' . $role . ';', 'both')
             ->orLike('notification.group_target', ';' . $role, 'before')
-            ->orWhere('notification.group_target', '0')
-            ->groupEnd();
+            ->orWhere('notification.group_target', '0');
+            
+        if ($userId > 0) {
+            $builder->orWhere('notification.user_id', $userId);
+        }
+        
+        $builder->groupEnd();
     }
 }

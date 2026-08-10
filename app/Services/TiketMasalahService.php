@@ -102,6 +102,20 @@ class TiketMasalahService
             $assignedUsers = explode(',', $assignedUsers);
         }
 
+        // Notifikasi ke departemen user pembuat
+        $userGroupId = session()->get('group_id');
+        if ($userGroupId) {
+            $this->notifikasiService->tambah_notif(
+                $userGroupId,                   // group_target = departemen user
+                "Tiket masalah baru: " . substr($data['keterangan'], 0, 80),
+                $userId,                        // add_by
+                $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
+                null,                           // id_konsumen
+                'tiket_masalah|' . $data['ref_type'] . '|' . $data['ref_id'], // type
+                $data['id_proyek'] ?? null      // id_proyek
+            );
+        }
+
         foreach ($assignedUsers as $uid) {
             $uid = (int) $uid;
             if ($uid > 0 && $uid != $userId) {
@@ -110,6 +124,18 @@ class TiketMasalahService
                     'user_id' => $uid
                 ]);
 
+                // Cek departemen user yang di-assign
+                $assigneeGroupRow = $this->db->table('auth_groups_users')
+                    ->select('group_id')
+                    ->where('user_id', $uid)
+                    ->get()->getRow();
+                $assigneeGroupId = $assigneeGroupRow ? $assigneeGroupRow->group_id : null;
+
+                // Deduplikasi: jika dia ada di departemen pembuat yang sudah dinotif, skip individual notif
+                if ($userGroupId && $assigneeGroupId == $userGroupId) {
+                    continue;
+                }
+
                 // Notify user
                 $this->notifikasiService->tambah_notif_user(
                     $uid,
@@ -117,7 +143,8 @@ class TiketMasalahService
                     $userId,
                     $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                     null,
-                    'tiket_masalah'
+                    'tiket_masalah|' . $data['ref_type'] . '|' . $data['ref_id'],
+                    $data['id_proyek'] ?? null
                 );
             }
         }
@@ -210,7 +237,8 @@ class TiketMasalahService
                     $userId,
                     $tiket->ref_type == 'kavling' ? $tiket->ref_id : null,
                     null,
-                    'tiket_masalah'
+                    'tiket_masalah|' . $tiket->ref_type . '|' . $tiket->ref_id,
+                    $tiket->id_proyek ?? null
                 );
             }
         }
