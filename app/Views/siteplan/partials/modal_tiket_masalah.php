@@ -55,7 +55,7 @@
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0 font-weight-bold text-slate-700">Daftar Tiket Kendala</h6>
                                 <button class="btn btn-primary btn-sm rounded-pill px-3" id="btn_show_buat_tiket">
-                                    <i class="feather icon-plus mr-1"></i> Buat Masalah Baru
+                                    <i class="feather icon-plus mr-1"></i> Buat Laporan
                                 </button>
                             </div>
                             <div id="list_tiket_masalah">

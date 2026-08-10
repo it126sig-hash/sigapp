@@ -284,6 +284,45 @@ class KavlingRepository
         }
 
         if (!empty($kategoriFilters['kategori'])) {
+            if (in_array('Masalah', $kategoriFilters['kategori'])) {
+                $statusMasalah = $kategoriFilters['status_masalah'] ?? null;
+                $periodeMulai = $kategoriFilters['periode_mulai'] ?? null;
+                $periodeSelesai = $kategoriFilters['periode_selesai'] ?? null;
+                $periodeMasalahJenis = $kategoriFilters['periode_masalah_jenis'] ?? null;
+
+                $statusSql = "";
+                if ($statusMasalah) {
+                    $statusSql = "AND tm.status = " . $this->db->escape($statusMasalah);
+                } else {
+                    $statusSql = "AND tm.status != 'selesai'";
+                }
+
+                $dateSql = "";
+                $dateCol = ($periodeMasalahJenis === 'tgl_selesai') ? "tmp.created_at" : "tm.tanggal_masalah";
+
+                if ($periodeMulai && $periodeSelesai) {
+                    $dateSql = "AND $dateCol >= " . $this->db->escape($periodeMulai) . " AND $dateCol <= " . $this->db->escape($periodeSelesai);
+                } elseif ($periodeMulai) {
+                    $dateSql = "AND $dateCol >= " . $this->db->escape($periodeMulai);
+                } elseif ($periodeSelesai) {
+                    $dateSql = "AND $dateCol <= " . $this->db->escape($periodeSelesai);
+                }
+
+                if ($periodeMasalahJenis === 'tgl_selesai' && $dateSql !== "") {
+                    $builder->select("(
+                        SELECT tm.prioritas FROM tiket_masalah_progress tmp 
+                        JOIN tiket_masalah tm ON tmp.id_tiket_masalah = tm.id 
+                        WHERE tm.ref_type = 'kavling' AND tm.ref_id = kavling.id_kavling AND tmp.status_sesudah = 'selesai' 
+                        $statusSql $dateSql
+                        ORDER BY tm.created_at DESC LIMIT 1
+                    ) as prioritas_masalah", false);
+                } else {
+                    $builder->select("(SELECT tm.prioritas FROM tiket_masalah tm 
+                        WHERE tm.ref_type = 'kavling' AND tm.ref_id = kavling.id_kavling 
+                        $statusSql $dateSql
+                        ORDER BY tm.created_at DESC LIMIT 1) as prioritas_masalah", false);
+                }
+            }
             $this->applyKategoriFilter($builder, $kategoriFilters);
         }
 

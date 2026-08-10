@@ -440,7 +440,7 @@ $(document).ready(function() {
         if (!isClosed) {
             actionBtnHtml = `
                 <button class="btn btn-primary btn-block font-weight-bold py-2 mt-3 shadow-sm rounded-12" id="btn_toggle_add_progress">
-                    <i class="feather icon-plus-circle mr-1"></i> Tambah Log Perbaikan
+                    <i class="feather icon-plus-circle mr-1"></i> Tambah Progres Laporan
                 </button>
             `;
         } else {

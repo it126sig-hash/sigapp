@@ -13,6 +13,7 @@ class HistoryService
         'pencairan_akad' => 'Pencairan Akad',
         'target_siteplan' => 'Target Siteplan',
         'cashout_subkon' => 'Cashout Subkon',
+        'siteplan' => 'Siteplan (Planning)',
     ];
 
     protected $db;

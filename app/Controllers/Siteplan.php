@@ -25,6 +25,7 @@ use App\Services\MkdtHistoryService;
 use App\Services\SiteplanUrgentService;
 use App\Services\TargetSiteplanService;
 use App\Services\PencairanAkadService;
+use App\Services\HistoryService;
 
 use App\Repositories\CashOutRepository;
 
@@ -56,6 +57,7 @@ class Siteplan extends BaseController
     protected $targetSiteplanService;
     protected $activeProyekService;
     protected $pencairanAkadService;
+    protected $historyService;
 
     public function __construct()
     {
@@ -82,6 +84,7 @@ class Siteplan extends BaseController
         $this->targetSiteplanService = new TargetSiteplanService();
         $this->activeProyekService = new ActiveProyekService();
         $this->pencairanAkadService = new PencairanAkadService();
+        $this->historyService = new HistoryService();
 
         $this->kavlingRepo = new KavlingRepository();
 
@@ -342,7 +345,7 @@ class Siteplan extends BaseController
                 'keterangan'  => $row->keterangan ?? null,
             ];
         }
-
+        
         return $map;
     }
     function add_kavling()
@@ -421,6 +424,13 @@ class Siteplan extends BaseController
                         $response['id'][$x] = $this->kavlingModel->getInsertID();
                         $response['no_kavling'][$x] = $pecah[$x];
                         $response['points'][$x] = $bpoints[$x];
+                        
+                        $this->historyService->log('siteplan', [
+                            'reference_type' => 'kavling',
+                            'reference_id' => $response['id'][$x],
+                            'action' => 'insert',
+                            'new_data' => $fields
+                        ]);
                     }
                 }
                 $response['success'] = true;
@@ -430,6 +440,13 @@ class Siteplan extends BaseController
                     $response['success'] = true;
                     $response['messages'] = 'Data berhasil diinput';
                     $response['id'] = $this->kavlingModel->getInsertID();
+                    
+                    $this->historyService->log('siteplan', [
+                        'reference_type' => 'kavling',
+                        'reference_id' => $response['id'],
+                        'action' => 'insert',
+                        'new_data' => $fields
+                    ]);
                 } else {
                     $response['success'] = false;
                     $response['messages'] = 'Insertion error!';
@@ -485,7 +502,18 @@ class Siteplan extends BaseController
             if ($builder->insert($fields)) {
                 $response['success'] = true;
                 $response['messages'] = 'Data berhasil diinput';
-                // $response['id'] = $builder->insertID();
+                $insertId = $this->db->insertID();
+                $response['id'] = $insertId;
+                
+                $this->historyService->log('siteplan', [
+                    'reference_type' => 'others',
+                    'reference_id' => $insertId,
+                    'action' => 'insert',
+                    'new_data' => $fields
+                ]);
+
+                $notif = 'Menambahkan data fasum/lainnya ke siteplan: ' . ($fields['nama'] ?? '') . ' pada tanggal: ' . date('d-M-Y');
+                $this->notif->tambah_notif("0", $notif, user_id(), null, null);
             } else {
                 $response['success'] = false;
                 $response['messages'] = 'Insertion error!';
@@ -539,7 +567,16 @@ class Siteplan extends BaseController
             $seenNo[$key] = true;
         }
 
+        $oldDataMap = [];
+        if ($id_len > 0) {
+            $oldRows = $this->db->table('kavling')->whereIn('id_kavling', $id)->get()->getResultArray();
+            foreach ($oldRows as $row) {
+                $oldDataMap[$row['id_kavling']] = $row;
+            }
+        }
+
         $this->db->transBegin();
+        $logEntries = [];
 
         for ($x = 0; $x < $id_len; $x++) {
             $fields['id_kavling'] = $id[$x];
@@ -575,6 +612,12 @@ class Siteplan extends BaseController
                 $response['messages'] = 'Update error!';
                 return $this->response->setJSON($response);
             }
+
+            $logEntries[] = [
+                'id_kavling' => $fields['id_kavling'],
+                'old_data' => $oldDataMap[$fields['id_kavling']] ?? null,
+                'new_data' => $fields
+            ];
         }
 
         if ($this->db->transStatus() === FALSE) {
@@ -585,6 +628,19 @@ class Siteplan extends BaseController
         }
 
         $this->db->transCommit();
+        
+        $this->historyService->log('siteplan', [
+            'reference_type' => 'kavling',
+            'reference_id' => $id[0] ?? 0, // Using the first ID as reference
+            'action' => 'batch_update',
+            'metadata' => ['batch_ids' => $id],
+            'old_data' => array_column($logEntries, 'old_data'),
+            'new_data' => array_column($logEntries, 'new_data')
+        ]);
+        
+        $notif = 'Mengupdate data ' . $id_len . ' kavling pada siteplan pada tanggal: ' . date('d-M-Y');
+        $this->notif->tambah_notif("0", $notif, user_id(), null, null);
+
         $response['success'] = true;
         $response['messages'] = 'Successfully updated';
 
@@ -621,10 +677,23 @@ class Siteplan extends BaseController
             $response['success'] = false;
             $response['messages'] = $this->validation->listErrors();
         } else {
+            $oldData = $builder->where('id', $id)->get()->getRowArray();
+
             $builder->where('id', $id);
             if ($builder->update($fields)) {
                 $response['success'] = true;
                 $response['messages'] = 'Data berhasil diperbaharui';
+                
+                $this->historyService->log('siteplan', [
+                    'reference_type' => 'others',
+                    'reference_id' => $id,
+                    'action' => 'update',
+                    'old_data' => $oldData,
+                    'new_data' => $fields
+                ]);
+
+                $notif = 'Mengupdate data fasum/lainnya ke siteplan: ' . ($fields['nama'] ?? '') . ' pada tanggal: ' . date('d-M-Y');
+                $this->notif->tambah_notif("0", $notif, user_id(), null, null);
             } else {
                 $response['success'] = false;
                 $response['messages'] = 'Data gagal diperbaharui!';
@@ -722,6 +791,32 @@ class Siteplan extends BaseController
                 ->whereIn('others.scope', ['siteplan', 'produksi'])
                 ->orWhere('others.scope IS NULL', null, false)
                 ->groupEnd();
+        }
+
+        $kategoriList = $this->request->getVar('kategori') ?? [];
+        if (in_array('Masalah', $kategoriList)) {
+            $statusMasalah = $this->request->getVar('status_masalah');
+            $periodeMulai = $this->request->getVar('periode_mulai');
+            $periodeSelesai = $this->request->getVar('periode_selesai');
+            $periodeMasalahJenis = $this->request->getVar('periode_masalah_jenis');
+
+            $statusSql = "";
+            if ($statusMasalah) {
+                $statusSql = "AND tm.status = " . $this->db->escape($statusMasalah);
+            }
+            $dateSql = "";
+            if ($periodeMulai && $periodeSelesai) {
+                $col = ($periodeMasalahJenis === 'tgl_selesai') ? 'tm.tgl_selesai' : 'tm.created_at';
+                $dateSql = "AND DATE($col) >= " . $this->db->escape($periodeMulai) . " AND DATE($col) <= " . $this->db->escape($periodeSelesai);
+            }
+            
+            $q->where("EXISTS (
+                SELECT 1 FROM tiket_masalah tm
+                WHERE tm.ref_type = 'others' AND tm.ref_id = others.id
+                $statusSql
+                $dateSql
+            )");
+            $q->select("(SELECT tm.prioritas FROM tiket_masalah tm WHERE tm.ref_type = 'others' AND tm.ref_id = others.id $statusSql $dateSql ORDER BY tm.created_at DESC LIMIT 1) as prioritas_masalah", false);
         }
 
         $result['data'] = $q->get()->getResult();

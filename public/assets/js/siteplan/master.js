@@ -9,6 +9,7 @@ let sv_url,
         id_jalan: ''
     },
     filterwarna = {
+        Filter: null,
         Status: null,
         Subsidi: null,
         Komersil: null,
@@ -408,10 +409,15 @@ Date.prototype.toDateInputValue = (function() {
     let filterwarnahitung = {};
 
     function set_fill2(e) { //test set fill dengan config dari db
-        // console.log(conf[e])
-        if (!conf[e])
-            e = "Warna Tidak Ditemukan"
-        set_fill(conf[e].fill, conf[e].stroke, conf[e].strokeWidth, conf[e].dashed)
+        if (!conf[e]) {
+            e = "Warna Tidak Ditemukan";
+        }
+        
+        if (conf[e]) {
+            set_fill(conf[e].fill, conf[e].stroke, conf[e].strokeWidth, conf[e].dashed);
+        } else {
+            set_fill('#d1d5db', '#000000', '0', null); // default
+        }
         return e;
     }
 
@@ -445,6 +451,7 @@ Date.prototype.toDateInputValue = (function() {
     function get_kategori_color(kategori) {
         if (conf[kategori]) return conf[kategori].fill;
         if (kategori == 'Belum Target') return '#f8fafc';
+
         if (String(kategori).indexOf('Target ') === 0) {
             const colors = ['#f59e0b', '#14b8a6', '#3b82f6', '#a855f7', '#ef4444', '#22c55e'];
             const year = parseInt(String(kategori).replace('Target ', ''), 10);
@@ -624,7 +631,7 @@ Date.prototype.toDateInputValue = (function() {
         $("#filter-kategori").append(`<option value="">Semua</option>`);
         let div = "",
             kv
-        // console.log(filterwarna)
+        console.log(filterwarna)
         $.each(filterwarna, function(i, v) {
             if (v) {
                 div += `
@@ -658,13 +665,11 @@ Date.prototype.toDateInputValue = (function() {
     }
     function getHitForFilter(filterKey, row, subsidi) {
         if (filterKey === 'Masalah') {
-            const statusMasalah = $('#filter-status-masalah').val();
-            if (statusMasalah === 'dalam_proses') return { fill: 'Masalah Progress', tipe: 'Filter' };
-            if (statusMasalah === 'selesai') return { fill: 'Masalah Selesai', tipe: 'Filter' };
-            if (statusMasalah === 'batal') return { fill: 'Masalah Batal', tipe: 'Filter' };
-            if (statusMasalah === 'hold') return { fill: 'Masalah Hold', tipe: 'Filter' };
-            if (statusMasalah === 'dibuat') return { fill: 'Masalah Baru Dibuat', tipe: 'Filter' };
-            return { fill: 'Status Masalah', tipe: 'Filter' };
+            const prio = row.prioritas_masalah ? row.prioritas_masalah.toLowerCase() : 'normal';
+            if (prio === 'urgent') return { fill: 'Masalah Urgent', tipe: 'Filter' };
+            if (prio === 'medium') return { fill: 'Masalah Medium', tipe: 'Filter' };
+            if (prio === 'low') return { fill: 'Masalah Low', tipe: 'Filter' };
+            return { fill: 'Masalah Normal', tipe: 'Filter' };
         }
 
         const hitMap = {
@@ -770,6 +775,7 @@ Date.prototype.toDateInputValue = (function() {
 
         hapus_seleksi();
         filterwarna = {
+            Filter: null,
             Status: null,
             Subsidi: null,
             Komersil: null,
@@ -1266,15 +1272,14 @@ Date.prototype.toDateInputValue = (function() {
             }
         });
 
-        //load jalan fasos rth
         siteplanOthersRequest = $.ajax({
             url: base_url + 'siteplan/get_others',
             type: 'post',
-            data: {
+            data: Object.assign({
                 [csrfName]: csrfHash,
                 id_proyek: dt_proyek.id_proyek,
                 id_role: va
-            },
+            }, getServerFilterData()),
             dataType: 'json',
             beforeSend: function() {
                 $("#loading").removeClass("hidden");
@@ -1290,6 +1295,7 @@ Date.prototype.toDateInputValue = (function() {
                 dashed = ""
 
                 var r = result.data
+                let activeKategori = $('#pilih-divisi').val() || [];
 
                 for (var p = 0; p < r.length; p++) {
                     if (r[p].tipe == "jalan")
@@ -1298,6 +1304,20 @@ Date.prototype.toDateInputValue = (function() {
                         set_fill("#9000ff", "#000", "0", null) // warna ungu
                     else if (r[p].tipe == "rth")
                         set_fill("#0f0", "#000", "0", null) // warna merah
+                    
+                    if (activeKategori.includes('Masalah')) {
+                        const prio = r[p].prioritas_masalah ? r[p].prioritas_masalah.toLowerCase() : 'normal';
+                        let hitFill = 'Masalah Normal';
+                        if (prio === 'urgent') hitFill = 'Masalah Urgent';
+                        else if (prio === 'medium') hitFill = 'Masalah Medium';
+                        else if (prio === 'low') hitFill = 'Masalah Low';
+
+                        set_fill2(hitFill);
+                        filterwarna['Filter'] = filterwarna['Filter'] || {};
+                        filterwarna['Filter'][hitFill] = get_kategori_color(hitFill);
+                        hitung_kavling({fill: hitFill});
+                    }
+
                     kav = new Konva.Line({
                         points: JSON.parse("[" + r[p].points + "]"),
                         fill: fill,
@@ -1313,6 +1333,10 @@ Date.prototype.toDateInputValue = (function() {
                         id: 'others' + r[p].id
                     });
                     siteplan.add(kav);
+                }
+                
+                if (activeKategori.includes('Masalah')) {
+                    set_keterangan_warna();
                 }
             },
             error: function(xhr, st) {
