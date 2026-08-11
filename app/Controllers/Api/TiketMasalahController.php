@@ -130,6 +130,13 @@ class TiketMasalahController extends BaseController
         return $this->respond(['success' => true, 'data' => $users]);
     }
 
+    public function datatable()
+    {
+        $params = $this->request->getPost();
+        $result = $this->service->getDatatableData($params);
+        return $this->respond($result);
+    }
+
     public function createOthersArea()
     {
         $idJalan = (int) $this->request->getPost('id_jalan');

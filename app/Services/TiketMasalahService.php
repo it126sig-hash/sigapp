@@ -66,6 +66,54 @@ class TiketMasalahService
         return $progress;
     }
 
+    public function getDatatableData(array $params): array
+    {
+        $limit = $params['length'] ?? 10;
+        $offset = $params['start'] ?? 0;
+        $search = $params['search']['value'] ?? '';
+
+        $orderColIdx = $params['order'][0]['column'] ?? null;
+        $orderDir = $params['order'][0]['dir'] ?? 'desc';
+        
+        $orderColName = 'tm.created_at';
+        $columns = [
+            0 => null, // action
+            1 => null, // no
+            2 => 'lokasi',
+            3 => 'tm.keterangan',
+            4 => 'tm.status',
+            5 => 'tm.prioritas',
+            6 => 'u.username',
+            7 => null, // assigned users
+            8 => 'tm.created_at'
+        ];
+
+        if ($orderColIdx !== null && isset($columns[$orderColIdx])) {
+            $orderColName = $columns[$orderColIdx];
+        }
+
+        $queryParams = [
+            'limit' => (int)$limit,
+            'offset' => (int)$offset,
+            'search' => $search,
+            'order_by' => $orderColName,
+            'order_dir' => $orderDir,
+            'filter_status' => $params['filter_status'] ?? null,
+            'filter_prioritas' => $params['filter_prioritas'] ?? null
+        ];
+
+        $data = $this->repository->getDatatables($queryParams);
+        $recordsFiltered = $this->repository->countDatatables($queryParams);
+        $recordsTotal = $this->repository->countAll();
+
+        return [
+            'draw' => (int)($params['draw'] ?? 1),
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data
+        ];
+    }
+
     public function createTiket(array $data, array $files): array
     {
         $this->db->transStart();

@@ -269,6 +269,16 @@ $(document).ready(function() {
         loadTiketList();
     };
 
+    window.tm_open_detail = function(idTiket, refType, refId) {
+        // Buka modal dan siapkan header
+        window.openTiketMasalah(refType, refId);
+        
+        // Tunggu sebentar agar modal tampil dan header ter-set, lalu langsung lompat ke detail
+        setTimeout(() => {
+            window.loadTiketDetail(idTiket);
+        }, 100);
+    };
+
     function loadTiketList() {
         $.ajax({
             url: base_url + 'api/tiket-masalah/list',
@@ -918,6 +928,11 @@ $(document).ready(function() {
                         if(res.success) {
                             Swal.fire('Berhasil', 'Progress berhasil ditambahkan', 'success');
                             loadTiketDetail(tiket.id);
+                            
+                            // Reload tabel global jika ada (berada di halaman global tiket masalah)
+                            if (typeof window.tableTiketGlobal !== 'undefined') {
+                                window.tableTiketGlobal.ajax.reload(null, false);
+                            }
                         } else {
                             Swal.fire('Error', res.message, 'error');
                             submitBtn.prop('disabled', false).html('Simpan Progress');
