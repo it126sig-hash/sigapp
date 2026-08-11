@@ -67,7 +67,7 @@ class TiketMasalahController extends BaseController
             'id_proyek' => 'required|numeric',
             'tanggal_masalah' => 'required|valid_date[Y-m-d]',
             'keterangan' => 'required',
-            'prioritas' => 'required|in_list[urgent,medium,normal,low]',
+            'prioritas' => 'required|in_list[urgent,medium,normal,low,laporan]',
         ];
 
         if (!$this->validate($rules)) {
@@ -128,5 +128,52 @@ class TiketMasalahController extends BaseController
     {
         $users = $this->service->getUserList();
         return $this->respond(['success' => true, 'data' => $users]);
+    }
+
+    public function createOthersArea()
+    {
+        $idJalan = (int) $this->request->getPost('id_jalan');
+        $points  = trim((string) $this->request->getPost('points'));
+        $tipe    = trim((string) $this->request->getPost('tipe'));
+        $nama    = trim((string) $this->request->getPost('nama'));
+
+        $pointList = array_filter(array_map('trim', explode(',', $points)), static function ($point) {
+            return $point !== '';
+        });
+
+        if (count($pointList) < 6 || count($pointList) % 2 !== 0) {
+            return $this->fail('Seleksi manual minimal 3 titik', 400);
+        }
+
+        if (!in_array($tipe, ['jalan', 'fasos', 'rth', 'fasum'])) {
+            return $this->fail('Tipe tidak valid', 400);
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $fields = [
+            'id_jalan'             => $idJalan > 0 ? $idJalan : null,
+            'tipe'                 => $tipe,
+            'nama'                 => $nama !== '' ? $nama : null,
+            'scope'                => 'masalah',
+            'points'               => implode(',', $pointList),
+            'planning_add_by'      => user_id(),
+            'planning_created_at'  => $now,
+            'planning_edit_by'     => user_id(),
+            'planning_updated_at'  => $now,
+            'produksi_add_by'      => user_id(),
+            'produksi_created_at'  => $now,
+            'produksi_edit_by'     => user_id(),
+            'produksi_updated_at'  => $now,
+            'legal_add_by'         => user_id(),
+            'legal_created_at'     => $now,
+            'legal_edit_by'        => user_id(),
+            'legal_updated_at'     => $now,
+        ];
+
+        $db = \Config\Database::connect();
+        $db->table('others')->insert($fields);
+        $insertId = $db->insertID();
+
+        return $this->respond(['success' => true, 'data' => ['id' => $insertId]]);
     }
 }

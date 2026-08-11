@@ -779,9 +779,9 @@ class Siteplan extends BaseController
                 cluster.id_cluster, 
                 cluster.nama_cluster,
                 ')
-            ->join('jalan', 'jalan.id_jalan = others.id_jalan')
-            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+            ->join('jalan', 'jalan.id_jalan = others.id_jalan', 'left')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster', 'left')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left')
             ->join("users as a", "a.id = others.planning_add_by", "left")
             ->join("users as b", "b.id = others.produksi_add_by", "left")
             ->join("users as c", "c.id = others.legal_add_by", "left")
@@ -790,14 +790,19 @@ class Siteplan extends BaseController
             ->join("users as f", "f.id = others.legal_edit_by", "left")
             ->where($where);
 
+        $kategoriList = $this->request->getVar('kategori') ?? [];
+
         if (($id == null || $id == "") && $this->db->fieldExists('scope', 'others')) {
+            $allowedScopes = ['siteplan', 'produksi'];
+            if (in_array('Masalah', $kategoriList)) {
+                $allowedScopes[] = 'masalah';
+            }
             $q->groupStart()
-                ->whereIn('others.scope', ['siteplan', 'produksi'])
+                ->whereIn('others.scope', $allowedScopes)
                 ->orWhere('others.scope IS NULL', null, false)
                 ->groupEnd();
         }
 
-        $kategoriList = $this->request->getVar('kategori') ?? [];
         if (in_array('Masalah', $kategoriList)) {
             $statusMasalah = $this->request->getVar('status_masalah');
             $periodeMulai = $this->request->getVar('periode_mulai');

@@ -16,9 +16,84 @@ $(document).ready(function() {
             let refType = (tipe === 'kavling') ? 'kavling' : 'others';
             window.openTiketMasalah(refType, id);
         } else {
-            Swal.fire('Error', 'Silakan pilih objek di siteplan terlebih dahulu', 'error');
+            if (typeof toastr !== 'undefined') {
+                toastr.info("Pilih area yang akan dibuat laporan", "", { closeButton: true, tapToDismiss: false });
+            } else {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Pilih area yang akan dibuat laporan', showConfirmButton: false, timer: 3000 });
+            }
+
+            // Sembunyikan menu bawaan
+            $('#menu_here').hide();
+
+            // Inject tombol manual seleksi khusus TM jika belum ada (langsung ke body agar tidak terpengaruh CSS lain)
+            if ($('#tm_container_manual_seleksi').length === 0) {
+                let html = `
+                    <div id="tm_container_manual_seleksi" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1060; background: white; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); display: flex; gap: 10px; align-items: center; border: 1px solid #ff4d4f;">
+                        <button type="button" class="btn btn-success btn-round btn-sm" id="tm_btn_selesai_seleksi_manual">
+                            <i class="fas fa-check"></i> Pilih Seleksi
+                        </button>
+                        <button type="button" class="btn btn-danger btn-round btn-sm" id="tm_btn_batal_seleksi_manual">
+                            <i class="fas fa-times"></i> Batal
+                        </button>
+                        
+                        <div class="border-left mx-1" style="height: 24px;"></div>
+                        
+                        <div class="custom-control custom-switch m-0" style="padding-left: 2.25rem;">
+                            <input type="checkbox" value="1" class="custom-control-input" id="tm_tambah_jalan" name="tm_tambah_jalan" onchange="if($('#tambah_jalan').length === 0){ $('body').append('<input type=\\'checkbox\\' class=\\'d-none\\' id=\\'tambah_jalan\\' name=\\'tambah_jalan\\' />'); } $('#tambah_jalan').prop('checked', this.checked).trigger('change'); if(typeof hapus_seleksi === 'function') hapus_seleksi();" />
+                            <label class="custom-control-label font-weight-bold" for="tm_tambah_jalan" style="cursor: pointer; padding-top: 2px;">Manual Seleksi</label>
+                        </div>
+                        
+                        <div class="border-left mx-1" style="height: 24px;"></div>
+                        
+                        <button type="button" class="btn btn-warning btn-round btn-sm" id="tm_btn_undo_seleksi_manual" onclick="if(typeof undo_manual_selection === 'function') undo_manual_selection();">
+                            <i class="fas fa-undo"></i> Undo Titik
+                        </button>
+                    </div>
+                `;
+                $('body').append(html);
+            } else {
+                $('#tm_container_manual_seleksi').show();
+            }
         }
     };
+
+    $(document).on('click', '#tm_btn_batal_seleksi_manual', function() {
+        if (typeof hapus_seleksi === 'function') hapus_seleksi();
+        
+        $('#tm_tambah_jalan').prop('checked', false).trigger('change');
+        
+        // Hapus container dan kembalikan menu bawaan
+        $('#tm_container_manual_seleksi').remove();
+        $('#menu_here').show();
+    });
+
+    $(document).on('click', '#tm_btn_selesai_seleksi_manual', function() {
+        if (typeof add_jalan === 'function') add_jalan();
+
+        let points = [];
+        if (typeof dtt !== 'undefined' && dtt.length >= 6) {
+            points = dtt;
+        } else if (typeof line_ms !== 'undefined' && line_ms.points) {
+            points = line_ms.points();
+        } else if (typeof refresh_manual_selection_points === 'function') {
+            points = refresh_manual_selection_points();
+        }
+
+        if (!points || points.length < 6 || points.length % 2 !== 0) {
+            if (typeof toastr !== 'undefined') toastr.warning("Silahkan seleksi minimal 3 titik!");
+            else Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Silahkan seleksi minimal 3 titik!', showConfirmButton: false, timer: 3000 });
+            return;
+        }
+
+        let pointsStr = typeof points === 'string' ? points : points.join(',');
+
+        // Set global points to be used on submit
+        window.tmNewPoints = pointsStr;
+        
+        // Langsung buka form buat tiket dengan state 'new_others'
+        window.openTiketMasalah('new_others', null);
+    });
+
 
     window.openTiketMasalah = function(refType, refId) {
         currentRefType = refType;
@@ -28,9 +103,7 @@ $(document).ready(function() {
 
         // Reset view
         $('#list_tiket_masalah').html('<div class="text-center p-4"><span class="spinner-border text-primary"></span></div>');
-        $('#view_list_tiket').removeClass('d-none');
-        $('#view_detail_tiket, #form_buat_tiket').addClass('d-none');
-
+        
         // Modal listener untuk konfirmasi tutup jika sedang mengisi form
         if (typeof removeModalListener === 'function') {
             removeModalListener('#modal_tiket_masalah');
@@ -38,6 +111,123 @@ $(document).ready(function() {
 
         // Tampilkan modal
         modalMasalah.modal('show');
+
+        if (refType === 'new_others') {
+            $('#view_list_tiket, #view_detail_tiket').addClass('d-none');
+            $('#form_buat_tiket').removeClass('d-none');
+            
+            // Show new fields and make them required
+            $('#tm_new_others_fields').removeClass('d-none');
+            $('#tm_id_jenis, #tm_nama_others').prop('required', true);
+
+            // Reset form
+            $('#form_buat_tiket_form')[0].reset();
+            selectedFiles = [];
+            if (typeof renderFilePreviews === 'function') renderFilePreviews();
+            
+            if ($('#tm_assigned_users').hasClass('select2-hidden-accessible')) {
+                $('#tm_assigned_users').val(null).trigger('change');
+            }
+            initAssignedUsersSelect2();
+            
+            if (typeof $.fn.richText === 'function') {
+                if ($('#keterangan_masalah').siblings('.richText-editor').length === 0) {
+                    $('#keterangan_masalah').richText();
+                }
+                $('#keterangan_masalah').val('');
+                $('#keterangan_masalah').prev('.richText-editor').trigger('setContent', '');
+            }
+
+            // Fetch Cluster from server via API
+            if (!$.fn.select2) return;
+            if (!$('#tm_id_cluster').hasClass("select2-hidden-accessible")) {
+                $('#tm_id_cluster').select2({
+                    dropdownParent: $('#modal_tiket_masalah'),
+                    placeholder: "Pilih Cluster",
+                    allowClear: true,
+                    ajax: {
+                        url: base_url + "cluster/getAll",
+                        dataType: "json",
+                        delay: 250,
+                        method: "post",
+                        data: function (params) {
+                            return {
+                                [csrfName]: typeof csrfHash !== 'undefined' ? csrfHash : '',
+                                search: params.term,
+                                id_proyek: getSelectedProyekId()
+                            };
+                        },
+                        processResults: function (r) {
+                            if (typeof csrfHash !== 'undefined' && r.token) csrfHash = r.token;
+                            let results = [];
+                            if (r.data) {
+                                $.each(r.data, function(index, item) {
+                                    results.push({ id: item[0], text: item[3] });
+                                });
+                            }
+                            return { results: results };
+                        },
+                        cache: true
+                    }
+                });
+
+                $('#tm_id_jalan').prop('disabled', true);
+                $('#tm_id_jalan').select2({
+                    dropdownParent: $('#modal_tiket_masalah'),
+                    placeholder: "Pilih Jalan/Blok",
+                    allowClear: true,
+                    ajax: {
+                        url: base_url + "jalan/getAll",
+                        dataType: "json",
+                        delay: 250,
+                        method: "post",
+                        data: function (params) {
+                            return {
+                                [csrfName]: typeof csrfHash !== 'undefined' ? csrfHash : '',
+                                search: params.term,
+                                id_cluster: $('#tm_id_cluster').val(),
+                                id_proyek: getSelectedProyekId()
+                            };
+                        },
+                        processResults: function (r) {
+                            if (typeof csrfHash !== 'undefined' && r.token) csrfHash = r.token;
+                            let results = [];
+                            if (r.data) {
+                                $.each(r.data, function(index, item) {
+                                    results.push({ id: item[0], text: item[3] });
+                                });
+                            }
+                            return { results: results };
+                        },
+                        cache: true
+                    }
+                });
+
+                $('#tm_id_cluster').on('change', function() {
+                    $('#tm_id_jalan').val(null).trigger('change');
+                    if ($(this).val()) {
+                        $('#tm_id_jalan').prop('disabled', false);
+                    } else {
+                        $('#tm_id_jalan').prop('disabled', true);
+                    }
+                });
+            }
+
+            // Set hero header for new area
+            $('#tm_hero_project_title').text('AREA BARU');
+            $('#tm_hero_location_text').text('Belum Disimpan');
+            $('#tm_hero_tipe_text').text('Silakan lengkapi form area');
+            $('#tm_hero_progress_text').text('0%');
+            $('#tm_hero_progress_bar').css('width', '0%');
+            return;
+        }
+
+        // Jika bukan new_others, sembunyikan fields area baru
+        $('#tm_new_others_fields').addClass('d-none');
+        $('#tm_id_jenis, #tm_nama_others').prop('required', false);
+        
+        $('#view_list_tiket').removeClass('d-none');
+        $('#view_detail_tiket, #form_buat_tiket').addClass('d-none');
 
         // Load info header
         $.ajax({
@@ -195,7 +385,9 @@ $(document).ready(function() {
         
         // Init RichText
         if (typeof $.fn.richText === 'function') {
-            $('#keterangan_masalah').richText();
+            if ($('#keterangan_masalah').siblings('.richText-editor').length === 0) {
+                $('#keterangan_masalah').richText();
+            }
             $('#keterangan_masalah').val('');
             $('#keterangan_masalah').prev('.richText-editor').trigger('setContent', '');
         }
@@ -362,8 +554,6 @@ $(document).ready(function() {
 
         try {
             let formData = new FormData(this);
-            formData.append('ref_type', currentRefType);
-            formData.append('ref_id', currentRefId);
             formData.append('id_proyek', getSelectedProyekId());
 
             // Append files from selectedFiles array
@@ -379,28 +569,83 @@ $(document).ready(function() {
                 }
             }
 
-            $.ajax({
-                url: base_url + 'api/tiket-masalah/store',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(res) {
-                    if (typeof removeModalListener === 'function') {
-                        removeModalListener('#modal_tiket_masalah');
+            const processSubmitTiket = (fd) => {
+                fd.set('ref_type', currentRefType);
+                fd.set('ref_id', currentRefId);
+
+                $.ajax({
+                    url: base_url + 'api/tiket-masalah/store',
+                    type: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (typeof removeModalListener === 'function') {
+                            removeModalListener('#modal_tiket_masalah');
+                        }
+                        
+                        // Kembalikan UI dari mode manual seleksi
+                        if (currentRefType === 'others') {
+                            if (typeof hapus_seleksi === 'function') hapus_seleksi();
+                            $('#tambah_jalan').prop('checked', false);
+                            if ($('#tm_btn_batal_seleksi_manual').length > 0) {
+                                $('#tm_btn_batal_seleksi_manual').trigger('click');
+                            }
+                        }
+
+                        Swal.fire('Berhasil', res.message, 'success');
+                        $('#form_buat_tiket').addClass('d-none');
+                        $('#view_list_tiket').removeClass('d-none');
+                        loadTiketList();
+                    },
+                    error: function(xhr) {
+                        Swal.fire('Error', xhr.responseJSON?.message || 'Gagal membuat tiket', 'error');
+                    },
+                    complete: function() {
+                        submitBtn.prop('disabled', false).html('Simpan Tiket');
                     }
-                    Swal.fire('Berhasil', res.message, 'success');
-                    $('#form_buat_tiket').addClass('d-none');
-                    $('#view_list_tiket').removeClass('d-none');
-                    loadTiketList();
-                },
-                error: function(xhr) {
-                    Swal.fire('Error', xhr.responseJSON?.message || 'Gagal membuat tiket', 'error');
-                },
-                complete: function() {
-                    submitBtn.prop('disabled', false).html('Simpan Tiket');
-                }
-            });
+                });
+            };
+
+            // Jika ini adalah area baru (new_others), hit create-others-area dulu
+            if (currentRefType === 'new_others') {
+                let areaData = new FormData();
+                areaData.append('points', window.tmNewPoints || '');
+                areaData.append('tipe', $('#tm_id_jenis').val() || '');
+                areaData.append('id_cluster', $('#tm_id_cluster').val() || '');
+                areaData.append('id_jalan', $('#tm_id_jalan').val() || '');
+                areaData.append('nama', $('#tm_nama_others').val() || '');
+                areaData.append('id_proyek', getSelectedProyekId());
+
+                $.ajax({
+                    url: base_url + 'api/tiket-masalah/create-others-area',
+                    type: 'POST',
+                    data: areaData,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (res.success) {
+                            // Update state ke area yang sudah ada
+                            currentRefType = 'others';
+                            currentRefId = res.data.id;
+                            
+                            // Lanjut submit tiket
+                            processSubmitTiket(formData);
+                        } else {
+                            submitBtn.prop('disabled', false).html('Simpan Tiket');
+                            Swal.fire('Error', res.message || 'Gagal menyimpan area', 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        submitBtn.prop('disabled', false).html('Simpan Tiket');
+                        let msg = xhr.responseJSON?.message || 'Gagal menghubungi server untuk menyimpan area';
+                        Swal.fire('Error', msg, 'error');
+                    }
+                });
+            } else {
+                processSubmitTiket(formData);
+            }
+
         } catch (error) {
             Swal.fire('Error', 'Terjadi kesalahan sistem', 'error');
             submitBtn.prop('disabled', false).html('Simpan Tiket');

@@ -101,6 +101,39 @@
                                 </div>
                                 <div class="card-body p-3">
                                     <form id="form_buat_tiket_form">
+                                        <!-- BLOK INPUT AREA BARU (Disembunyikan jika tiket untuk area yang sudah ada) -->
+                                        <div id="tm_new_others_fields" class="d-none border p-3 bg-light rounded mb-3">
+                                            <h6 class="font-weight-bold text-primary mb-3 border-bottom pb-2"><i class="feather icon-map-pin mr-1"></i> Data Area Baru</h6>
+                                            <div class="row">
+                                                <div class="col-md-6 form-group">
+                                                    <label class="form-label" for="tm_id_jenis">Jenis Area <span class="text-danger">*</span></label>
+                                                    <select id="tm_id_jenis" name="id_jenis" class="custom-select">
+                                                        <option value=""> - Pilih Jenis - </option>
+                                                        <option value="jalan">Jalan</option>
+                                                        <option value="fasos">Fasos</option>
+                                                        <option value="rth">RTH</option>
+                                                        <option value="fasum">Fasum</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6 form-group">
+                                                    <label class="form-label" for="tm_nama_others">Nama Area <span class="text-danger">*</span></label>
+                                                    <input type="text" id="tm_nama_others" name="nama" class="form-control" placeholder="Mis: Taman Utama">
+                                                </div>
+                                                <div class="col-md-6 form-group">
+                                                    <label class="form-label" for="tm_id_cluster">Cluster (Opsional)</label>
+                                                    <select id="tm_id_cluster" name="id_cluster" class="select2 form-control" style="width:100%">
+                                                        <option value=""> - Semua Cluster - </option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6 form-group">
+                                                    <label class="form-label" for="tm_id_jalan">Jalan/Blok (Opsional)</label>
+                                                    <select id="tm_id_jalan" name="id_jalan" class="select2 form-control" style="width:100%">
+                                                        <option value=""> - Pilih Jalan - </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="row">
                                             <div class="col-md-6 form-group">
                                                 <label class="tm-detail-label">Tanggal Masalah <span class="text-danger">*</span></label>
