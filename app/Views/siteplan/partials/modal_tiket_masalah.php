@@ -13,17 +13,23 @@
         height: 100vh;
         display: flex;
     }
+
     #modal_tiket_masalah .modal-content {
         height: 100vh;
         border-radius: 0;
     }
+
     #modal_tiket_masalah .detail-kavling-sidebar,
     #modal_tiket_masalah .detail-hero-card {
         position: static !important;
-    #modal_tiket_masalah .badge-prio-laporan { background-color: #00cfe8; color: #fff; }
+
+        #modal_tiket_masalah .badge-prio-laporan {
+            background-color: #00cfe8;
+            color: #fff;
+        }
 </style>
 <div class="modal fade" id="modal_tiket_masalah" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen" role="document">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl p-1" role="document">
         <div class="modal-content border-0">
 
             <div class="modal-header bg-white border-bottom-0 pb-0">
@@ -121,13 +127,13 @@
                                                 </div>
                                                 <div class="col-md-6 form-group">
                                                     <label class="form-label" for="tm_id_cluster">Cluster (Opsional)</label>
-                                                    <select id="tm_id_cluster" name="id_cluster" class="select2 form-control" style="width:100%">
+                                                    <select id="tm_id_cluster" name="id_cluster" class="form-control" style="width:100%">
                                                         <option value=""> - Semua Cluster - </option>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-6 form-group">
                                                     <label class="form-label" for="tm_id_jalan">Jalan/Blok (Opsional)</label>
-                                                    <select id="tm_id_jalan" name="id_jalan" class="select2 form-control" style="width:100%">
+                                                    <select id="tm_id_jalan" name="id_jalan" class="form-control" style="width:100%">
                                                         <option value=""> - Pilih Jalan - </option>
                                                     </select>
                                                 </div>
@@ -142,12 +148,12 @@
                                             <div class="col-md-6 form-group">
                                                 <label class="tm-detail-label">Skala Prioritas <span class="text-danger">*</span></label>
                                                 <select name="prioritas" class="custom-select" required>
-                                                <option value="normal">Normal</option>
-                                                <option value="low">Low</option>
-                                                <option value="medium">Medium</option>
-                                                <option value="urgent">Urgent</option>
-                                                <option value="laporan">Laporan</option>
-                                            </select>
+                                                    <option value="normal">Normal</option>
+                                                    <option value="low">Low</option>
+                                                    <option value="medium">Medium</option>
+                                                    <option value="urgent">Urgent</option>
+                                                    <option value="laporan">Laporan</option>
+                                                </select>
                                             </div>
                                         </div>
 
@@ -166,10 +172,10 @@
                                                 <span class="text-xs text-muted">Bisa upload beberapa foto sekaligus</span>
                                                 <div class="mt-2">
                                                     <button type="button" class="btn btn-sm btn-outline-primary mr-1" onclick="$('#tm_foto').click()">
-                                                        <i class="feather icon-file-plus mr-1"></i> Pilih File
+                                                        <i class="fas fa-folder-open mr-1"></i> Pilih File
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-outline-info" onclick="$('#tm_foto_camera').click()">
-                                                        <i class="feather icon-camera mr-1"></i> Ambil Foto Kamera
+                                                        <i class="fas fa-camera mr-1"></i> Ambil Foto Kamera
                                                     </button>
                                                 </div>
                                             </div>

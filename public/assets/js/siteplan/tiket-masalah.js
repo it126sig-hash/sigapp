@@ -833,8 +833,8 @@ $(document).ready(function() {
                             <div class="drag-drop-zone p-2 mb-1" id="tm_progress_dropzone">
                                 <p class="mb-0 text-xs font-weight-bold text-muted">Tarik & Lepas Foto di sini, atau Paste (Ctrl + V)</p>
                                 <div class="mt-1">
-                                    <button type="button" class="btn btn-xs btn-outline-primary mr-1" onclick="$('#foto_progress').click()">Pilih File</button>
-                                    <button type="button" class="btn btn-xs btn-outline-info" onclick="$('#foto_progress_camera').click()">Kamera</button>
+                                    <button type="button" class="btn btn-xs btn-outline-primary mr-1" onclick="$('#foto_progress').click()"><i class="fas fa-folder-open mr-1"></i> Pilih File</button>
+                                    <button type="button" class="btn btn-xs btn-outline-info" onclick="$('#foto_progress_camera').click()"><i class="fas fa-camera mr-1"></i> Kamera</button>
                                 </div>
                             </div>
 

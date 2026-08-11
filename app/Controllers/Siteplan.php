@@ -812,6 +812,8 @@ class Siteplan extends BaseController
             $statusSql = "";
             if ($statusMasalah) {
                 $statusSql = "AND tm.status = " . $this->db->escape($statusMasalah);
+            } else {
+                $statusSql = "AND tm.status NOT IN ('selesai', 'batal')";
             }
             $dateSql = "";
             if ($periodeMulai && $periodeSelesai) {
