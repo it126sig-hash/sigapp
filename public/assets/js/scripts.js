@@ -263,15 +263,19 @@ function initModalListener(id) {
         removeModalListener(id);
         // tutup modal manual
         $(id).modal("hide");
-        state.status.tab.isClosed = true;
-        state.id_cashout_subkon = null;
+        if (typeof state !== 'undefined') {
+          if (state.status && state.status.tab) {
+              state.status.tab.isClosed = true;
+          }
+          state.id_cashout_subkon = null;
 
-        //
-        state.mkdt = {};
+          //
+          state.mkdt = {};
 
-        //unload data um & bb
-        state.data_um = {};
-        state.data_bb = {};
+          //unload data um & bb
+          state.data_um = {};
+          state.data_bb = {};
+        }
       }
     });
   });

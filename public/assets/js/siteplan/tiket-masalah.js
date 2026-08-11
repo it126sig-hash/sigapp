@@ -144,6 +144,7 @@ $(document).ready(function() {
                                         <span class="badge-meta ml-1">
                                             <i class="feather icon-user"></i> PIC: ${item.pic_username}
                                         </span>
+                                        ${item.assigned_users_list ? `<span class="badge-meta ml-1"><i class="feather icon-users"></i> Dilibatkan: ${item.assigned_users_list}</span>` : ''}
                                     </div>
                                     ${lastUpdateHtml}
                                 </div>
@@ -165,8 +166,7 @@ $(document).ready(function() {
         $('#list_tiket_masalah').html(html);
     }
 
-    // --- FORM BUAT TIKET ---
-    $('#btn_show_buat_tiket').click(function() {
+        $('#btn_show_buat_tiket').click(function() {
         $('#view_list_tiket').addClass('d-none');
         $('#form_buat_tiket').removeClass('d-none');
 
@@ -174,6 +174,11 @@ $(document).ready(function() {
         $('#form_buat_tiket_form')[0].reset();
         selectedFiles = [];
         renderFilePreviews();
+
+        // Reset Select2
+        if ($('#tm_assigned_users').hasClass('select2-hidden-accessible')) {
+            $('#tm_assigned_users').val(null).trigger('change');
+        }
 
         // Aktifkan initModalListener saat mengedit/mengisi form
         if (typeof initModalListener === 'function') {
@@ -187,6 +192,13 @@ $(document).ready(function() {
 
         // Load & Initialize Select2 for assigned users
         initAssignedUsersSelect2();
+        
+        // Init RichText
+        if (typeof $.fn.richText === 'function') {
+            $('#keterangan_masalah').richText();
+            $('#keterangan_masalah').val('');
+            $('#keterangan_masalah').prev('.richText-editor').trigger('setContent', '');
+        }
     });
 
     $('#btn_batal_buat_tiket').click(function() {
@@ -465,22 +477,32 @@ $(document).ready(function() {
 
                         <h5 class="tm-detail-title mb-4">${data.keterangan}</h5>
 
-                        <div class="mb-3">
-                            <div class="tm-detail-label mb-1">PENANGGUNG JAWAB</div>
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-circle mr-2">${data.pic_username.charAt(0).toUpperCase()}</div>
-                                <span class="tm-detail-val">${data.pic_username}</span>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <div class="tm-detail-label mb-1">PENANGGUNG JAWAB</div>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle mr-2" style="width:24px; height:24px; font-size:10px;">${data.pic_username.charAt(0).toUpperCase()}</div>
+                                    <span class="tm-detail-val text-truncate">${data.pic_username}</span>
+                                </div>
                             </div>
-                        </div>
+                            <div class="col-6 mb-3">
+                                <div class="tm-detail-label mb-1">TANGGAL DIBUAT</div>
+                                <div class="tm-detail-val">${formattedDate}</div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <div class="tm-detail-label mb-1">LOKASI</div>
+                                <div class="tm-detail-val text-muted font-weight-normal">${lokasiText}</div>
+                            </div>
 
-                        <div class="mb-3">
-                            <div class="tm-detail-label mb-1">TANGGAL DIBUAT</div>
-                            <div class="tm-detail-val">${formattedDate}</div>
-                        </div>
-
-                        <div class="mb-4">
-                            <div class="tm-detail-label mb-1">LOKASI</div>
-                            <div class="tm-detail-val text-muted font-weight-normal">${lokasiText}</div>
+                            ${data.assigned_users && data.assigned_users.length > 0 ? `
+                            <div class="col-12 mb-3">
+                                <div class="tm-detail-label mb-1">USER YANG DILIBATKAN</div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    ${data.assigned_users.map(u => `<span class="badge badge-light-primary"><i class="feather icon-user mr-1"></i>${u.username}</span>`).join('')}
+                                </div>
+                            </div>
+                            ` : ''}
                         </div>
 
                         <hr class="my-3">
@@ -558,7 +580,7 @@ $(document).ready(function() {
                     <form id="form_add_progress">
                         <input type="hidden" name="id_tiket_masalah" value="${tiket.id}">
                         <div class="form-group mb-2">
-                            <textarea name="keterangan" class="form-control" rows="3" placeholder="Tuliskan perkembangan perbaikan masalah..." required></textarea>
+                            <textarea name="keterangan" id="progress_keterangan" class="form-control richtext" rows="3" placeholder="Tuliskan perkembangan perbaikan masalah..." required></textarea>
                         </div>
                         <div class="form-group mb-2">
                             <label class="tm-detail-label">Foto Progress (Opsional)</label>
@@ -576,9 +598,9 @@ $(document).ready(function() {
                             <div id="tm_progress_preview_container" class="upload-preview-container"></div>
                         </div>
                         ${statusOptions}
-                        <div class="text-right mt-3">
-                            <button type="button" class="btn btn-sm btn-light border mr-2" onclick="$('#tm_form_progress_container').addClass('d-none')">Batal</button>
-                            <button type="submit" class="btn btn-sm btn-primary px-3">Simpan Progress</button>
+                        <div class="d-flex flex-column flex-md-row justify-content-end mt-3 gap-2">
+                            <button type="button" class="btn btn-light border mb-2 mb-md-0 order-2 order-md-1" onclick="$('#tm_form_progress_container').addClass('d-none')">Batal</button>
+                            <button type="submit" class="btn btn-primary px-3 order-1 order-md-2">Simpan Progress</button>
                         </div>
                     </form>
                 </div>
@@ -586,6 +608,12 @@ $(document).ready(function() {
         `;
 
         $('#tm_form_progress_container').html(formHtml);
+
+        if (typeof $.fn.richText === 'function') {
+            $('#progress_keterangan').richText();
+            $('#progress_keterangan').val('');
+            $('#progress_keterangan').prev('.richText-editor').trigger('setContent', '');
+        }
 
         // Progress file input handlers
         $('#foto_progress, #foto_progress_camera').on('change', function() {
@@ -730,6 +758,7 @@ $(document).ready(function() {
         if (prio === 'urgent') cls = 'badge-prio-urgent';
         else if (prio === 'medium') cls = 'badge-prio-medium';
         else if (prio === 'low') cls = 'badge-prio-low';
+        else if (prio === 'laporan') cls = 'badge-prio-laporan';
 
         return `<span class="badge-prio ${cls}">${prio.toUpperCase()}</span>`;
     }

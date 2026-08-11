@@ -625,6 +625,7 @@
 <script src="<?= base_url() ?>app-assets/vendors/js/extensions/polyfill.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/forms/select/select2.full.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/bootstrap/extensions/fixed-columns/dataTables.fixedColumns.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/charts/chart.min.js"></script>
 
 <script src="<?= base_url() ?>assets/js/jquery.richtext.min.js"></script>
 

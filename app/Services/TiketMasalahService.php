@@ -187,7 +187,10 @@ class TiketMasalahService
         $statusSebelum = $tiket->status;
         $statusSesudah = $data['status'] ?? null;
 
-        if ($statusSesudah && $statusSesudah != $statusSebelum) {
+        if (empty($statusSesudah) && $statusSebelum === 'dibuat') {
+            $statusSesudah = 'dalam_proses';
+            $this->tiketModel->update($idTiket, ['status' => $statusSesudah]);
+        } else if ($statusSesudah && $statusSesudah != $statusSebelum) {
             if (!$isPic) {
                 return ['success' => false, 'message' => 'Hanya PIC yang dapat mengubah status tiket'];
             }

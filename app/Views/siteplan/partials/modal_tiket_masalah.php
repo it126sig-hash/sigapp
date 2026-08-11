@@ -2,8 +2,28 @@
     window.current_user_id = <?= (int) (user_id() ?? 0) ?>;
 </script>
 
+<style>
+    #modal_tiket_masalah .modal-dialog {
+        max-width: 100%;
+        margin: 0;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 100vh;
+        display: flex;
+    }
+    #modal_tiket_masalah .modal-content {
+        height: 100vh;
+        border-radius: 0;
+    }
+    #modal_tiket_masalah .detail-kavling-sidebar,
+    #modal_tiket_masalah .detail-hero-card {
+        position: static !important;
+    #modal_tiket_masalah .badge-prio-laporan { background-color: #00cfe8; color: #fff; }
+</style>
 <div class="modal fade" id="modal_tiket_masalah" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen" role="document">
         <div class="modal-content border-0">
 
             <div class="modal-header bg-white border-bottom-0 pb-0">
@@ -55,7 +75,7 @@
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0 font-weight-bold text-slate-700">Daftar Tiket Kendala</h6>
                                 <button class="btn btn-primary btn-sm rounded-pill px-3" id="btn_show_buat_tiket">
-                                    <i class="feather icon-plus mr-1"></i> Buat Laporan
+                                    <i class="fas fa-plus mr-1"></i> Buat Laporan
                                 </button>
                             </div>
                             <div id="list_tiket_masalah">
@@ -66,7 +86,7 @@
                         <!-- VIEW 2: DETAIL TIKET & HISTORY -->
                         <div id="view_detail_tiket" class="d-none">
                             <button class="btn btn-sm btn-light border mb-3 rounded-pill" id="btn_back_to_list">
-                                <i class="feather icon-arrow-left mr-1"></i> Kembali ke Daftar
+                                <i class="fas fa-arrow-left mr-1"></i> Kembali ke Daftar
                             </button>
                             <div id="tm_detail_content">
                                 <!-- Rendered via JS -->
@@ -88,18 +108,19 @@
                                             </div>
                                             <div class="col-md-6 form-group">
                                                 <label class="tm-detail-label">Skala Prioritas <span class="text-danger">*</span></label>
-                                                <select name="prioritas" class="form-control" required>
-                                                    <option value="normal" selected>Normal (Kuning)</option>
-                                                    <option value="low">Low (Abu-abu)</option>
-                                                    <option value="medium">Medium (Oranye)</option>
-                                                    <option value="urgent">Urgent (Merah)</option>
-                                                </select>
+                                                <select name="prioritas" class="custom-select" required>
+                                                <option value="normal">Normal</option>
+                                                <option value="low">Low</option>
+                                                <option value="medium">Medium</option>
+                                                <option value="urgent">Urgent</option>
+                                                <option value="laporan">Laporan</option>
+                                            </select>
                                             </div>
                                         </div>
 
                                         <div class="form-group">
                                             <label class="tm-detail-label">Keterangan Masalah <span class="text-danger">*</span></label>
-                                            <textarea name="keterangan" class="form-control" rows="3" required placeholder="Deskripsikan masalah dengan jelas..."></textarea>
+                                            <textarea name="keterangan" id="keterangan_masalah" class="form-control richtext" rows="3" required placeholder="Deskripsikan masalah dengan jelas..."></textarea>
                                         </div>
 
                                         <!-- ADVANCED FILE UPLOAD (Drag & Drop, Clipboard Paste, Kamera HTML5) -->
@@ -136,9 +157,9 @@
 
                                         <hr class="my-3">
 
-                                        <div class="text-right">
-                                            <button type="button" class="btn btn-light border mr-2" id="btn_batal_buat_tiket">Batal</button>
-                                            <button type="submit" class="btn btn-primary px-4">Simpan Tiket</button>
+                                        <div class="d-flex flex-column flex-md-row justify-content-end mt-3 gap-2">
+                                            <button type="button" class="btn btn-light border mb-2 mb-md-0 order-2 order-md-1" id="btn_batal_buat_tiket">Batal</button>
+                                            <button type="submit" class="btn btn-primary px-4 order-1 order-md-2">Simpan Tiket</button>
                                         </div>
                                     </form>
                                 </div>
