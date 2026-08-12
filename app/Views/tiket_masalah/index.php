@@ -1,6 +1,7 @@
 <!-- Datatables CSS -->
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/extensions/sweetalert2.min.css">
 
 <div class="app-content content">
     <div class="content-overlay"></div>
@@ -21,7 +22,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="content-body">
             <section id="basic-datatable">
                 <div class="row">
@@ -43,9 +44,9 @@
                                     <div class="form-group mb-0">
                                         <select id="filter_prioritas" class="form-control form-control-sm">
                                             <option value="">Semua Prioritas</option>
-                                            <option value="rendah">Rendah</option>
-                                            <option value="menengah">Menengah</option>
-                                            <option value="tinggi">Tinggi</option>
+                                            <option value="low">Low</option>
+                                            <option value="normal">Normal</option>
+                                            <option value="medium">Medium</option>
                                             <option value="urgent">Urgent</option>
                                         </select>
                                     </div>
@@ -92,6 +93,7 @@
     .table td {
         vertical-align: top;
     }
+
     .badge-prioritas {
         font-size: 85%;
     }
@@ -107,7 +109,7 @@
 <script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
-
+<script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
 <!-- Load JS Khusus untuk Halaman Ini -->
 <script src="<?= base_url('assets/js/tiket_masalah/index.js') ?>"></script>
 <!-- Memanggil js modal agar fungsinya jalan -->

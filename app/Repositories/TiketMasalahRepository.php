@@ -116,6 +116,10 @@ class TiketMasalahRepository
             $builder->where('tm.prioritas', $params['filter_prioritas']);
         }
 
+        if (!empty($params['filter_proyek'])) {
+            $builder->where('tm.id_proyek', $params['filter_proyek']);
+        }
+
         if (!empty($params['order_by']) && !empty($params['order_dir'])) {
             $builder->orderBy($params['order_by'], $params['order_dir']);
         } else {

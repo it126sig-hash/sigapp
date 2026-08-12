@@ -37,7 +37,7 @@ class Pengguna extends BaseController
 
     //     $data['content'] = '';
     //     // WARNING: Ensure output escaping for all user-provided data passed to views
-        // return view('user/login', $data);
+    // return view('user/login', $data);
     // }
 
 
@@ -117,10 +117,10 @@ class Pengguna extends BaseController
     public function getOne()
     {
 
-        
+
         // Validate input
         if (!$this->validate(['id_user' => 'required|integer'])) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->response->setJSON(['success' => false, 'messages' => $this->validator->getErrors()]);
         }
         $id = $this->request->getPost('id_user');
 
@@ -153,16 +153,16 @@ class Pengguna extends BaseController
 
 
 
-        
+
         // Validate input
         if (!$this->validate(['id' => 'required|integer'])) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->response->setJSON(['success' => false, 'messages' => $this->validator->getErrors()]);
         }
         $id = $this->request->getPost('id');
-        
+
         // Validate input
         if (!$this->validate(['username' => 'required|max_length[255]'])) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->response->setJSON(['success' => false, 'messages' => $this->validator->getErrors()]);
         }
         $username = $this->request->getPost('username');
         $email = $this->request->getPost('email');
@@ -222,15 +222,13 @@ class Pengguna extends BaseController
                     'is_unique' => 'Email sudah digunakan sebelumnya'
                 ]
             ];
-        } else if ($email) {
-            $fields['email'] = $email; // Update email if it hasn't changed but is in post
         }
 
         $this->validation->setRules($valid);
-      
+
         if ($this->validation->run($fields) == FALSE) {
             $response['success'] = false;
-            $response['messages'] = $this->validation->listErrors();
+            $response['messages'] = $this->validation->getErrors();
         } else {
             //encrypt password if provided
             $newPassword = $this->request->getVar('password');
@@ -242,15 +240,17 @@ class Pengguna extends BaseController
             if ($this->userModel->update($id, $fields)) {
 
                 //cahnge group/divisi
-                $this->changeGroup($id, $k->id_divisi);
-                $this->chnagePermission($id, $k->id_level);
+                if ($k) {
+                    $this->changeGroup($id, $k->id_divisi);
+                    $this->chnagePermission($id, $k->id_level);
+                }
 
                 $response['success'] = true;
                 $response['messages'] = 'Successfully updated';
             } else {
 
                 $response['success'] = false;
-                $response['messages'] = 'Update error!';
+                $response['messages'] = 'Update error: ' . implode(', ', $this->userModel->errors());
             }
         }
 
@@ -272,10 +272,10 @@ class Pengguna extends BaseController
 
         $fields['created_at'] = date('Y-m-d H:i:s');
 
-        
+
         // Validate input
         if (!$this->validate(['nik' => 'required|max_length[255]'])) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->response->setJSON(['success' => false, 'messages' => $this->validator->getErrors()]);
         }
         $nik = $this->request->getPost('nik');
         //get karyawan data
@@ -310,7 +310,7 @@ class Pengguna extends BaseController
 
         if ($this->validation->run($fields) == FALSE) {
             $response['success'] = false;
-            $response['messages'] = $this->validation->listErrors();
+            $response['messages'] = $this->validation->getErrors();
         } else {
 
             //encrypt password
@@ -345,10 +345,10 @@ class Pengguna extends BaseController
         $response = array();
         $response['token'] = csrf_hash();
 
-        
+
         // Validate input
         if (!$this->validate(['active' => 'required|max_length[255]'])) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->response->setJSON(['success' => false, 'messages' => $this->validator->getErrors()]);
         }
         $st = $this->request->getPost('active');
         $f['id'] = $this->request->getPost('id');
@@ -361,7 +361,7 @@ class Pengguna extends BaseController
         } else {
 
             $response['success'] = false;
-            $response['messages'] = 'Update error!';
+            $response['messages'] = 'Update error: ' . implode(', ', $this->userModel->errors());
         }
 
         return $this->response->setJSON($response);

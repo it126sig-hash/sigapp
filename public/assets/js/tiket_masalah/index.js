@@ -8,6 +8,7 @@ $(document).ready(function() {
             data: function(d) {
                 d.filter_status = $('#filter_status').val();
                 d.filter_prioritas = $('#filter_prioritas').val();
+                d.filter_proyek = window.SIGAPP && window.SIGAPP.activeProyekId ? window.SIGAPP.activeProyekId : ''; 
             }
         },
         columns: [

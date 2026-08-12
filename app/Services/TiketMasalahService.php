@@ -99,7 +99,8 @@ class TiketMasalahService
             'order_by' => $orderColName,
             'order_dir' => $orderDir,
             'filter_status' => $params['filter_status'] ?? null,
-            'filter_prioritas' => $params['filter_prioritas'] ?? null
+            'filter_prioritas' => $params['filter_prioritas'] ?? null,
+            'filter_proyek' => $params['filter_proyek'] ?? null
         ];
 
         $data = $this->repository->getDatatables($queryParams);
@@ -121,6 +122,16 @@ class TiketMasalahService
         $userId = user_id();
         $data['pic_user_id'] = $userId;
         $data['status'] = 'dibuat';
+
+        // Fallback safeguard jika id_proyek kosong/0
+        if (empty($data['id_proyek']) || $data['id_proyek'] == 0) {
+            $activeProyekService = new \App\Services\ActiveProyekService();
+            $activeProyekService->bootstrapForRequest();
+            $active = $activeProyekService->getActive();
+            if ($active) {
+                $data['id_proyek'] = $active->id_proyek;
+            }
+        }
 
         $idTiket = $this->tiketModel->insert($data);
 

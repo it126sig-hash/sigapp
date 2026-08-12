@@ -564,7 +564,7 @@ $(document).ready(function() {
 
         try {
             let formData = new FormData(this);
-            formData.append('id_proyek', getSelectedProyekId());
+            formData.append('id_proyek', activeProyekId());
 
             // Append files from selectedFiles array
             if (selectedFiles.length > 0) {
@@ -1036,7 +1036,10 @@ $(document).ready(function() {
     }
 
     function getSelectedProyekId() {
-        return $('#f_id_proyek').val() || 1;
+        if ($('#f_id_proyek').length) {
+            return $('#f_id_proyek').val();
+        }
+        return window.SIGAPP && window.SIGAPP.activeProyekId ? window.SIGAPP.activeProyekId : 1;
     }
 
     async function compressImage(file) {
