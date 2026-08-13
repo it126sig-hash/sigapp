@@ -141,11 +141,15 @@
                                         </div>
 
                                         <div class="row">
-                                            <div class="col-md-6 form-group">
-                                                <label class="tm-detail-label">Tanggal Masalah <span class="text-danger">*</span></label>
+                                            <div class="col-md-4 form-group">
+                                                <label class="tm-detail-label">Tanggal Laporan <span class="text-danger">*</span></label>
                                                 <input type="text" name="tanggal_masalah" class="form-control flatpickr" value="<?= date('Y-m-d') ?>" required>
                                             </div>
-                                            <div class="col-md-6 form-group">
+                                            <div class="col-md-4 form-group">
+                                                <label class="tm-detail-label">Tanggal Kunjungan</label>
+                                                <input type="text" name="tanggal_kunjungan" class="form-control flatpickr" placeholder="Pilih Tanggal">
+                                            </div>
+                                            <div class="col-md-4 form-group">
                                                 <label class="tm-detail-label">Skala Prioritas <span class="text-danger">*</span></label>
                                                 <select name="prioritas" class="custom-select" required>
                                                     <option value="normal">Normal</option>

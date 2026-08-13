@@ -140,6 +140,9 @@ class Home extends BaseController
             $r['target'] = $this->getDashboardTargetSummary($id_proyek, (int) $tahun);
             $alertCounts = $this->siteplanUrgentService->getDashboardAlertCounts($id_proyek);
             $r['alerts'] = $this->buildDashboardAlerts($alertCounts, $r['production']);
+            
+            $r['hasil_akad'] = $this->getDashboardHasilAkadSummary($id_proyek);
+            $r['tiket_masalah'] = $this->getDashboardTiketMasalahSummary($id_proyek);
         }
 
         // get aktivitas dashboard
@@ -413,6 +416,66 @@ class Home extends BaseController
             ],
         ];
     }
+
+    private function getDashboardHasilAkadSummary(int $id_proyek): array
+    {
+        $pengajuanAgg = $this->db->table('pencairan_akad_pengajuan')
+            ->select("id_plan,
+                      SUM(CASE WHEN status IN ('active','partial') THEN total_pengajuan - total_cair ELSE 0 END) AS outstanding,
+                      SUM(CASE WHEN status != 'void' THEN total_cair ELSE 0 END) AS total_cair")
+            ->groupBy('id_plan')
+            ->getCompiledSelect();
+
+        $row = $this->db->table('mkdt m')
+            ->select('
+                SUM(COALESCE(pap.total_hasil_akad, m.harga_kpr_acc)) AS total_hasil_akad,
+                SUM(COALESCE(pg.outstanding, 0)) AS pengajuan_pencairan,
+                SUM(COALESCE(pg.total_cair, 0)) AS sudah_cair
+            ', false)
+            ->join('kavling k', 'k.id_mkdt = m.id_mkdt')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+            ->join('pencairan_akad_plan pap', 'pap.id_mkdt = m.id_mkdt', 'left')
+            ->join("({$pengajuanAgg}) pg", 'pg.id_plan = pap.id', 'left')
+            ->where('cl.id_proyek', $id_proyek)
+            ->where('m.status_mkdt', 'Akad')
+            ->where('m.is_kpr', 1)
+            ->get()
+            ->getRow();
+
+        $total_hasil_akad = (float) ($row->total_hasil_akad ?? 0);
+        $sudah_cair = (float) ($row->sudah_cair ?? 0);
+
+        return [
+            'total_hasil_akad' => $total_hasil_akad,
+            'pengajuan_pencairan' => (float) ($row->pengajuan_pencairan ?? 0),
+            'sudah_cair' => $sudah_cair,
+            'sisa_cair' => max(0, $total_hasil_akad - $sudah_cair),
+        ];
+    }
+
+    private function getDashboardTiketMasalahSummary(int $id_proyek): array
+    {
+        $rows = $this->db->table('tiket_masalah tm')
+            ->select('
+                tm.id, tm.keterangan, tm.status, tm.prioritas, tm.created_at, tm.updated_at,
+                IF(tm.ref_type = "kavling", CONCAT(jk.nama_jalan, " - ", k.no_kavling), CONCAT(jo.nama_jalan, " - ", o.nama)) as lokasi
+            ')
+            ->join('kavling k', 'k.id_kavling = tm.ref_id AND tm.ref_type = "kavling"', 'left')
+            ->join('jalan jk', 'jk.id_jalan = k.id_jalan', 'left')
+            ->join('others o', 'o.id = tm.ref_id AND tm.ref_type = "others"', 'left')
+            ->join('jalan jo', 'jo.id_jalan = o.id_jalan', 'left')
+            ->where('tm.id_proyek', $id_proyek)
+            ->orderBy('tm.updated_at', 'DESC')
+            ->limit(5)
+            ->get()
+            ->getResult();
+
+        return [
+            'recent_tickets' => $rows
+        ];
+    }
+
     function getBookingAkad($field = 'booking_tgl',  $id_proyek = null, $thn = null, $bln = null)
     {
         if (!$thn)

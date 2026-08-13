@@ -54,9 +54,9 @@ $(document).ready(function() {
                 data: 'keterangan',
                 name: 'tm.keterangan',
                 render: function(data, type, row) {
-                    let html = `<div><strong>Laporan:</strong> ${data}</div>`;
+                    let html = `<div> ${data}</div>`;
                     if (row.last_progress_keterangan) {
-                        html += `<div class="mt-1 text-muted small"><strong>Update:</strong> ${row.last_progress_keterangan}</div>`;
+                        html += `<div class="mt-1 text-muted small"><strong>Update Terakhir:</strong> ${row.last_progress_keterangan}</div>`;
                         if (row.last_progress_date) {
                             // formatting date
                             let d = new Date(row.last_progress_date);

@@ -13,7 +13,7 @@ class TiketMasalahModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'ref_type', 'ref_id', 'id_proyek', 'tanggal_masalah',
+        'ref_type', 'ref_id', 'id_proyek', 'tanggal_masalah', 'tanggal_kunjungan',
         'keterangan', 'prioritas', 'status', 'pic_user_id'
     ];
 

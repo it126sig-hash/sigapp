@@ -66,6 +66,7 @@ class TiketMasalahController extends BaseController
             'ref_id' => 'required|numeric',
             'id_proyek' => 'required|numeric',
             'tanggal_masalah' => 'required|valid_date[Y-m-d]',
+            'tanggal_kunjungan' => 'permit_empty|valid_date[Y-m-d]',
             'keterangan' => 'required',
             'prioritas' => 'required|in_list[urgent,medium,normal,low,laporan]',
         ];

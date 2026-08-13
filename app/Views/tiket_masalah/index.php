@@ -64,8 +64,8 @@
                                                     <th>Keterangan Masalah / Progress</th>
                                                     <th>Status</th>
                                                     <th>Prioritas</th>
-                                                    <th>PIC</th>
-                                                    <th>Assigned Users</th>
+                                                    <th>Pembuat Laporan</th>
+                                                    <th>PIC Penanganan</th>
                                                     <th>Tanggal</th>
                                                 </tr>
                                             </thead>

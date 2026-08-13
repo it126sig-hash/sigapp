@@ -758,11 +758,8 @@ class Siteplan extends BaseController
     {
         $result['token'] = csrf_hash();
         $id = $this->request->getVar('id_kavling');
-
-        $where = ['cluster.id_proyek' => $this->request->getVar('id_proyek')];
-        if ($id != null || $id != "") {
-            $where = ["others.id" => $id];
-        }
+        $idProyek = $this->request->getVar('id_proyek');
+        $kategoriList = $this->request->getVar('kategori') ?? [];
 
         $q = $this->db->table('others')
             ->select('
@@ -787,10 +784,18 @@ class Siteplan extends BaseController
             ->join("users as c", "c.id = others.legal_add_by", "left")
             ->join("users as d", "d.id = others.planning_edit_by", "left")
             ->join("users as e", "e.id = others.produksi_edit_by", "left")
-            ->join("users as f", "f.id = others.legal_edit_by", "left")
-            ->where($where);
+            ->join("users as f", "f.id = others.legal_edit_by", "left");
 
-        $kategoriList = $this->request->getVar('kategori') ?? [];
+        if ($id != null || $id != "") {
+            $q->where(["others.id" => $id]);
+        } else {
+            $q->groupStart()
+                ->where('cluster.id_proyek', $idProyek);
+            if (in_array('Masalah', $kategoriList)) {
+                $q->orWhere("EXISTS (SELECT 1 FROM tiket_masalah tm WHERE tm.ref_type = 'others' AND tm.ref_id = others.id AND tm.id_proyek = " . $this->db->escape($idProyek) . ")");
+            }
+            $q->groupEnd();
+        }
 
         if (($id == null || $id == "") && $this->db->fieldExists('scope', 'others')) {
             $allowedScopes = ['siteplan', 'produksi'];

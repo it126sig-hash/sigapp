@@ -388,17 +388,25 @@
 					<div class="dashboard-kpi-grid">
 						<div class="dashboard-kpi-card">
 							<div class="kpi-card-head">
-								<div class="kpi-label">Kavling</div>
-								<div class="kpi-icon-badge green"><i data-feather="home"></i></div>
+								<div class="kpi-label">Perhitungan Hasil Akad</div>
+								<div class="kpi-icon-badge green"><i data-feather="dollar-sign"></i></div>
 							</div>
 							<div class="kpi-value-row">
-								<div class="kpi-value" id="dash_total_kavling">-</div>
-								<div class="kpi-unit">units</div>
+								<div class="kpi-value" id="dash_ha_total" style="font-size:1.5rem">Rp 0</div>
 							</div>
-							<div class="kpi-progress"><div class="kpi-progress-bar green" id="kavling-progress-bar"></div></div>
-							<div class="kpi-stats-row">
-								<div><strong id="dash_kavling_available">-</strong>tersedia</div>
-								<div><strong id="dash_kavling_lunas">-</strong>lunas</div>
+							<div class="kpi-stats-row mt-1" style="flex-direction: column; gap: 0.5rem;">
+								<div class="d-flex justify-content-between w-100">
+									<span>Pengajuan:</span>
+									<strong id="dash_ha_pengajuan">Rp 0</strong>
+								</div>
+								<div class="d-flex justify-content-between w-100">
+									<span>Sudah Cair:</span>
+									<strong id="dash_ha_sudah_cair" class="text-success">Rp 0</strong>
+								</div>
+								<div class="d-flex justify-content-between w-100">
+									<span>Sisa Cair:</span>
+									<strong id="dash_ha_sisa" class="text-danger">Rp 0</strong>
+								</div>
 							</div>
 						</div>
 						<div class="dashboard-kpi-card">
@@ -566,6 +574,33 @@
 				</div>
 			</div>
 		</div>
+			<div class="row match-height">
+				<div class="col-12">
+					<div class="card">
+						<div class="card-header border-bottom">
+							<h4 class="card-title">Riwayat Tiket Masalah (Update Terakhir)</h4>
+						</div>
+						<div class="table-responsive">
+							<table class="table table-hover mb-0">
+								<thead>
+									<tr>
+										<th>Waktu</th>
+										<th>Lokasi</th>
+										<th>Keterangan</th>
+										<th>Prioritas</th>
+										<th>Status</th>
+									</tr>
+								</thead>
+								<tbody id="dashboard-tiket-masalah-body">
+									<tr>
+										<td colspan="5" class="text-center">Pilih proyek untuk memuat data</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
 	</div>
 	</div>
 </div>
@@ -643,14 +678,16 @@
 		const production = r.production || {};
 		const target = r.target || {};
 
-		$("#dash_total_kavling").html(formatNumber(summary.total_kavling));
-		$("#dash_kavling_available").html(formatNumber(summary.kavling_tersedia));
-		$("#dash_kavling_lunas").html(formatNumber(summary.kavling_lunas));
+		// Dashboard update untuk Hasil Akad
+		if (r.hasil_akad) {
+			$("#dash_ha_total").html(formatRupiah(r.hasil_akad.total_hasil_akad));
+			$("#dash_ha_pengajuan").html(formatRupiah(r.hasil_akad.pengajuan_pencairan));
+			$("#dash_ha_sudah_cair").html(formatRupiah(r.hasil_akad.sudah_cair));
+			$("#dash_ha_sisa").html(formatRupiah(r.hasil_akad.sisa_cair));
+		}
+
 		$("#dash_sales_rate").html(formatPercent(summary.booking_to_akad_rate) + '%');
 
-		const totalKavling = Number(summary.total_kavling || 0);
-		const kavlingTerjualPct = totalKavling > 0 ? Math.min(100, ((totalKavling - Number(summary.kavling_tersedia || 0)) / totalKavling) * 100) : 0;
-		$("#kavling-progress-bar").css('width', kavlingTerjualPct + '%');
 		$("#sales-progress-bar").css('width', Math.min(100, Number(summary.booking_to_akad_rate || 0)) + '%');
 
 		$("#st_booking_akad").html(formatNumber(r.booking_akad));
@@ -709,6 +746,44 @@
 			`;
 		});
 		$("#dashboard-alerts").html(html);
+	}
+
+	function renderDashboardTiketMasalah(tickets) {
+		if (!tickets || tickets.length === 0) {
+			$("#dashboard-tiket-masalah-body").html(`
+				<tr>
+					<td colspan="5" class="text-center text-muted">Belum ada tiket masalah.</td>
+				</tr>
+			`);
+			return;
+		}
+
+		let html = '';
+		$.each(tickets, function(i, item) {
+			let badgeClass = 'badge-light-secondary';
+			if (item.prioritas === 'urgent') badgeClass = 'badge-light-danger';
+			else if (item.prioritas === 'medium') badgeClass = 'badge-light-warning';
+			else if (item.prioritas === 'normal') badgeClass = 'badge-light-primary';
+			
+			let statusClass = 'badge-light-secondary';
+			if (item.status === 'selesai') statusClass = 'badge-light-success';
+			else if (item.status === 'dalam_proses') statusClass = 'badge-light-info';
+			else if (item.status === 'dibuat') statusClass = 'badge-light-primary';
+			else if (item.status === 'batal') statusClass = 'badge-light-danger';
+
+			let waktu = item.updated_at ? item.updated_at : item.created_at;
+
+			html += `
+				<tr>
+					<td style="white-space: nowrap;">${escapeHtml(waktu)}</td>
+					<td>${escapeHtml(item.lokasi || '-')}</td>
+					<td>${escapeHtml(item.keterangan)}</td>
+					<td><span class="badge ${badgeClass}">${escapeHtml(item.prioritas)}</span></td>
+					<td><span class="badge ${statusClass}">${escapeHtml(item.status)}</span></td>
+				</tr>
+			`;
+		});
+		$("#dashboard-tiket-masalah-body").html(html);
 	}
 
 	let sdate = getFirstDate(0),
@@ -829,9 +904,10 @@
 					$("#st_pembangunan").html("-")
 					$("#st_100persen").html("-")
 					$("#st_telat").html("-")
-					$("#dash_total_kavling").html("-")
-					$("#dash_kavling_available").html("-")
-					$("#dash_kavling_lunas").html("-")
+					$("#dash_ha_total").html("Rp 0")
+					$("#dash_ha_pengajuan").html("Rp 0")
+					$("#dash_ha_sudah_cair").html("Rp 0")
+					$("#dash_ha_sisa").html("Rp 0")
 					$("#dash_sales_rate").html("0%")
 					$("#dash_finance_unpaid").html("Rp 0")
 					$("#dash_finance_overdue").html("0")
@@ -844,6 +920,7 @@
 					$("#dash_target_realization").html("0")
 					$("#dash_target_count").html("0")
 					$("#dash_target_year").html(thn)
+					$("#dashboard-tiket-masalah-body").html('<tr><td colspan="5" class="text-center">Memuat data...</td></tr>')
 				}
 
 				if (aktivitas)
@@ -860,6 +937,10 @@
 					$("#st_100persen").html(r.pembangunan_selesai)
 					$("#st_telat").html(r.pembangunan_telat)
 					updateDashboardCommandCenter(r)
+					
+					if (r.tiket_masalah) {
+						renderDashboardTiketMasalah(r.tiket_masalah.recent_tickets);
+					}
 				}
 
 				if (aktivitas) {
