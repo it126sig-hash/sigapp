@@ -138,6 +138,11 @@ $(document).ready(function() {
                 $('#keterangan_masalah').prev('.richText-editor').trigger('setContent', '');
             }
 
+            // Initialize flatpickr on date input if available
+            if (typeof $.fn.flatpickr === 'function') {
+                $('.flatpickr').flatpickr({ dateFormat: 'Y-m-d' });
+            }
+
             // Fetch Cluster from server via API
             if (!$.fn.select2) return;
             if (!$('#tm_id_cluster').hasClass("select2-hidden-accessible")) {
@@ -558,6 +563,39 @@ $(document).ready(function() {
     // Submit Form Buat Tiket
     $('#form_buat_tiket_form').submit(async function(e) {
         e.preventDefault();
+
+        // Client-side Validation
+        let tglMasalah = $(this).find('[name="tanggal_masalah"]').val();
+        let tglKunjungan = $(this).find('[name="tanggal_kunjungan"]').val();
+        let prioritas = $(this).find('[name="prioritas"]').val();
+        let keterangan = $(this).find('[name="keterangan"]').val();
+        let plainText = keterangan ? keterangan.replace(/(<([^>]+)>)/gi, "").trim() : "";
+
+        let isValid = true;
+        let errMsg = "";
+
+        if (currentRefType === 'new_others') {
+            let idJenis = $('#tm_id_jenis').val();
+            let namaOthers = $('#tm_nama_others').val();
+            if (!idJenis || !namaOthers || idJenis.trim() === '' || namaOthers.trim() === '') {
+                isValid = false;
+                errMsg = "Harap lengkapi Jenis Area dan Nama Area!";
+            }
+        }
+
+        if (isValid && (!tglMasalah || !tglKunjungan || !prioritas || plainText === '')) {
+            isValid = false;
+            errMsg = "Harap lengkapi semua field (termasuk Tanggal Laporan, Tanggal Kunjungan, Prioritas, dan Keterangan)!";
+        }
+
+        if (!isValid) {
+            if (typeof toastr !== 'undefined') {
+                toastr.error(errMsg);
+            } else {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: errMsg, showConfirmButton: false, timer: 3000 });
+            }
+            return;
+        }
 
         let submitBtn = $(this).find('button[type="submit"]');
         submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
