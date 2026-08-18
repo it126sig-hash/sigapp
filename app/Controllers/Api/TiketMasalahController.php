@@ -86,6 +86,35 @@ class TiketMasalahController extends BaseController
         return $this->fail('Gagal membuat tiket');
     }
 
+    public function update()
+    {
+        $rules = [
+            'id_tiket_masalah' => 'required|numeric',
+            'ref_type' => 'required|in_list[kavling,others]',
+            'ref_id' => 'required|numeric',
+            'id_proyek' => 'required|numeric',
+            'tanggal_masalah' => 'required|valid_date[Y-m-d]',
+            'tanggal_kunjungan' => 'permit_empty|valid_date[Y-m-d]',
+            'keterangan' => 'required',
+            'prioritas' => 'required|in_list[urgent,medium,normal,low,laporan]',
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->failValidationErrors($this->validator->getErrors());
+        }
+
+        $idTiket = (int) $this->request->getPost('id_tiket_masalah');
+        $data = $this->request->getPost();
+        $files = $this->request->getFiles();
+
+        $result = $this->service->updateTiket($idTiket, $data, $files['foto'] ?? []);
+
+        if ($result['success']) {
+            return $this->respond(['success' => true, 'message' => 'Tiket berhasil diperbarui', 'id' => $idTiket]);
+        }
+        return $this->fail($result['message'] ?? 'Gagal memperbarui tiket');
+    }
+
     public function addProgress()
     {
         $rules = [

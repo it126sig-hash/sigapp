@@ -119,6 +119,8 @@
 .badge-status-proses { background-color: #cff4fc; color: #055160; }
 .badge-status-proses .dot { background-color: #0dcaf0; }
 
+.badge-status-draft { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+.badge-status-draft .dot { background-color: #ffc107; }
 .badge-status-dibuat { background-color: #e2e3e5; color: #41464b; }
 .badge-status-dibuat .dot { background-color: #6c757d; }
 

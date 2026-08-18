@@ -1225,6 +1225,7 @@ foreach (user()->getRoles() as $key => $val) {
                                     <label>Status Masalah</label>
                                     <select name="status_masalah" id="filter-status-masalah" class="form-control form-control-sm">
                                         <option value="">Semua Status (yang belum selesai)</option>
+                                        <option value="draft">Draft</option>
                                         <option value="dibuat">Baru Dibuat</option>
                                         <option value="dalam_proses">Progress</option>
                                         <option value="selesai">Selesai</option>

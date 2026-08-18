@@ -247,10 +247,17 @@ $(document).ready(function() {
                     // Render Hero Card Header (Matching Reference Image)
                     $('#tm_hero_project_title').text(info.nama_proyek || 'PROYEK');
 
-                    let locText = `${info.nama_jalan || ''}, No. ${info.no_kavling || ''}`;
-                    if (refType !== 'kavling') {
-                        locText = `${info.nama_jalan || ''}, ${info.no_kavling || ''}`;
+                    let locText = '';
+                    if (refType === 'kavling') {
+                        locText = `${info.nama_jalan || ''}, No. ${info.no_kavling || ''}`;
+                    } else {
+                        if (info.nama_jalan) {
+                            locText = `${info.nama_jalan}, ${info.no_kavling || ''}`;
+                        } else {
+                            locText = `${info.no_kavling || 'Area Tidak Diketahui'}`;
+                        }
                     }
+                    locText = locText.replace(/^,\s*/, '').trim();
                     $('#tm_hero_location_text').text(locText);
 
                     let tipeText = '';
@@ -260,7 +267,11 @@ $(document).ready(function() {
                         let ket = info.tipe_keterangan ? ` ${info.tipe_keterangan}` : '';
                         tipeText = `${tRumah} ${dim} ${ket}`.trim() || 'Kavling Standar';
                     } else {
-                        tipeText = `Fasilitas: ${info.tipe.toUpperCase()}`;
+                        if (info.tipe) {
+                            tipeText = `Fasilitas: ${info.tipe.toUpperCase()}`;
+                        } else {
+                            tipeText = `Fasilitas Umum`;
+                        }
                     }
                     $('#tm_hero_tipe_text').text(tipeText);
 
@@ -282,6 +293,58 @@ $(document).ready(function() {
         setTimeout(() => {
             window.loadTiketDetail(idTiket);
         }, 100);
+    };
+
+    window.editTiketDraft = function(data) {
+        window.currentEditTiketId = data.id;
+        
+        // Beralih view dari detail ke form
+        $('#view_detail_tiket').addClass('d-none');
+        $('#form_buat_tiket').removeClass('d-none');
+        
+        // Reset file queue karena saat edit belum support hapus foto lama via form ini
+        selectedFiles = [];
+        if (typeof renderFilePreviews === 'function') renderFilePreviews();
+
+        // Populate field standar
+        $('#form_buat_tiket_form [name="tanggal_masalah"]').val(data.tanggal_masalah);
+        if (typeof $.fn.flatpickr === 'function') {
+            $('#form_buat_tiket_form [name="tanggal_masalah"]').flatpickr({ dateFormat: 'Y-m-d' });
+        }
+        
+        if (data.tanggal_kunjungan) {
+            $('#form_buat_tiket_form [name="tanggal_kunjungan"]').val(data.tanggal_kunjungan);
+            if (typeof $.fn.flatpickr === 'function') {
+                $('#form_buat_tiket_form [name="tanggal_kunjungan"]').flatpickr({ dateFormat: 'Y-m-d' });
+            }
+        }
+        
+        $('#form_buat_tiket_form [name="prioritas"]').val(data.prioritas);
+        
+        // Populate keterangan
+        if (typeof $.fn.richText === 'function') {
+            if ($('#keterangan_masalah').siblings('.richText-editor').length === 0) {
+                $('#keterangan_masalah').richText();
+            }
+            $('#keterangan_masalah').val(data.keterangan);
+            $('#keterangan_masalah').prev('.richText-editor').trigger('setContent', data.keterangan);
+        } else {
+            $('#keterangan_masalah').val(data.keterangan);
+        }
+
+        // Jika ref_type others (manual selection)
+        if (data.ref_type === 'others') {
+            $('#tm_new_others_fields').removeClass('d-none');
+            $('#tm_id_jenis').val(data.others_id_jenis).trigger('change');
+            $('#tm_nama_others').val(data.others_nama);
+            $('#tm_id_jenis, #tm_nama_others').prop('required', true);
+        } else {
+            $('#tm_new_others_fields').addClass('d-none');
+            $('#tm_id_jenis, #tm_nama_others').prop('required', false);
+        }
+
+        // Assigned users diabaikan dulu untuk simplicity di sisi UI (bisa ditambahkan jika perlu)
+        initAssignedUsersSelect2();
     };
 
     function loadTiketList() {
@@ -414,6 +477,7 @@ $(document).ready(function() {
         }
         $('#form_buat_tiket').addClass('d-none');
         $('#view_list_tiket').removeClass('d-none');
+        window.currentEditTiketId = null; // Clear edit ID on cancel
     });
 
     function initAssignedUsersSelect2() {
@@ -560,6 +624,11 @@ $(document).ready(function() {
         }
     });
 
+    // Button clicks set a flag on the form to identify if it's draft or normal
+    let submitActionType = 'normal';
+    $('#btn_simpan_tiket').click(function() { submitActionType = 'normal'; });
+    $('#btn_simpan_draft').click(function() { submitActionType = 'draft'; });
+
     // Submit Form Buat Tiket
     $('#form_buat_tiket_form').submit(async function(e) {
         e.preventDefault();
@@ -574,7 +643,7 @@ $(document).ready(function() {
         let isValid = true;
         let errMsg = "";
 
-        if (currentRefType === 'new_others') {
+        if (currentRefType === 'new_others' || (window.currentEditTiketId && currentRefType === 'others')) {
             let idJenis = $('#tm_id_jenis').val();
             let namaOthers = $('#tm_nama_others').val();
             if (!idJenis || !namaOthers || idJenis.trim() === '' || namaOthers.trim() === '') {
@@ -583,9 +652,9 @@ $(document).ready(function() {
             }
         }
 
-        if (isValid && (!tglMasalah || !tglKunjungan || !prioritas || plainText === '')) {
+        if (isValid && (!tglMasalah || !prioritas || plainText === '')) {
             isValid = false;
-            errMsg = "Harap lengkapi semua field (termasuk Tanggal Laporan, Tanggal Kunjungan, Prioritas, dan Keterangan)!";
+            errMsg = "Harap lengkapi semua field yang wajib diisi (Tanggal Laporan, Prioritas, dan Keterangan)!";
         }
 
         if (!isValid) {
@@ -598,11 +667,27 @@ $(document).ready(function() {
         }
 
         let submitBtn = $(this).find('button[type="submit"]');
-        submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
+        let draftBtn = $('#btn_simpan_draft');
+        submitBtn.prop('disabled', true);
+        draftBtn.prop('disabled', true);
+        
+        let originalSubmitText = submitBtn.html();
+        if(submitActionType === 'draft') {
+            draftBtn.html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
+        } else {
+            submitBtn.html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
+        }
 
         try {
             let formData = new FormData(this);
             formData.append('id_proyek', activeProyekId());
+            if (submitActionType === 'draft') {
+                formData.append('is_draft', 1);
+            }
+            
+            if (window.currentEditTiketId) {
+                formData.append('id_tiket_masalah', window.currentEditTiketId);
+            }
 
             // Append files from selectedFiles array
             if (selectedFiles.length > 0) {
@@ -621,8 +706,10 @@ $(document).ready(function() {
                 fd.set('ref_type', currentRefType);
                 fd.set('ref_id', currentRefId);
 
+                let targetUrl = window.currentEditTiketId ? (base_url + 'api/tiket-masalah/update') : (base_url + 'api/tiket-masalah/store');
+
                 $.ajax({
-                    url: base_url + 'api/tiket-masalah/store',
+                    url: targetUrl,
                     type: 'POST',
                     data: fd,
                     processData: false,
@@ -650,10 +737,19 @@ $(document).ready(function() {
                         Swal.fire('Error', xhr.responseJSON?.message || 'Gagal membuat tiket', 'error');
                     },
                     complete: function() {
-                        submitBtn.prop('disabled', false).html('Simpan Tiket');
+                        submitBtn.prop('disabled', false).html(originalSubmitText);
+                        draftBtn.prop('disabled', false).html('Save as Draft');
                     }
                 });
             };
+
+            // Convert array global window.tmNewPoints ke format JSON string atau FormData string jika ada
+            if (window.tmNewPoints && currentRefType === 'new_others') {
+                formData.append('points', window.tmNewPoints);
+            }
+            if (window.tmNewPoints && window.currentEditTiketId && currentRefType === 'others') {
+                formData.append('points', window.tmNewPoints);
+            }
 
             // Jika ini adalah area baru (new_others), hit create-others-area dulu
             if (currentRefType === 'new_others') {
@@ -732,8 +828,9 @@ $(document).ready(function() {
         let photos = '';
         if(data.foto && data.foto.length > 0) {
             photos = '<div class="d-flex flex-wrap gap-2 mt-2">';
-            data.foto.forEach(f => {
-                photos += `<a href="${f.url}" target="_blank"><img src="${f.url}" class="img-thumb-grid"></a>`;
+            let allUrlsStr = encodeURIComponent(JSON.stringify(data.foto.map(f => f.url)));
+            data.foto.forEach((f, index) => {
+                photos += `<a href="javascript:void(0)" onclick="window.openLightbox('${allUrlsStr}', ${index})"><img src="${f.url}" class="img-thumb-grid"></a>`;
             });
             photos += '</div>';
         } else {
@@ -753,6 +850,18 @@ $(document).ready(function() {
                 <div class="alert alert-secondary text-center text-xs mt-3 mb-0">
                     <i class="feather icon-lock mr-1"></i> Tiket sudah ${data.status.toUpperCase()} (Terkunci)
                 </div>
+            `;
+        }
+
+        let isCreator = (window.current_user_id == data.pic_user_id);
+        let isSupervisor = (typeof window.is_supervisor_manager !== 'undefined' && window.is_supervisor_manager);
+        let editBtnHtml = '';
+        if (data.status === 'draft' && (isCreator || isSupervisor)) {
+            let labelEdit = isCreator ? "Edit Draft" : "Edit & Ambil Alih Draft";
+            editBtnHtml = `
+                <button class="btn btn-warning btn-block font-weight-bold py-2 mt-2 shadow-sm rounded-12" id="btn_edit_draft_tiket" data-id="${data.id}">
+                    <i class="feather icon-edit mr-1"></i> ${labelEdit}
+                </button>
             `;
         }
 
@@ -809,6 +918,7 @@ $(document).ready(function() {
                         </div>
 
                         ${actionBtnHtml}
+                        ${editBtnHtml}
                     </div>
                 </div>
 
@@ -841,6 +951,11 @@ $(document).ready(function() {
                 $('#tm_form_progress_container').toggleClass('d-none');
             });
         }
+        
+        // Setup Edit Draft logic
+        $('#btn_edit_draft_tiket').click(function() {
+            window.editTiketDraft(data);
+        });
     }
 
     function setupProgressForm(tiket) {
@@ -1004,8 +1119,9 @@ $(document).ready(function() {
                             let photos = '';
                             if(p.foto_urls && p.foto_urls.length > 0) {
                                 photos = '<div class="d-flex flex-wrap gap-2 mt-2">';
-                                p.foto_urls.forEach(url => {
-                                    photos += `<a href="${url}" target="_blank"><img src="${url}" class="img-thumb-grid"></a>`;
+                                let allUrlsStr = encodeURIComponent(JSON.stringify(p.foto_urls));
+                                p.foto_urls.forEach((url, index) => {
+                                    photos += `<a href="javascript:void(0)" onclick="window.openLightbox('${allUrlsStr}', ${index})"><img src="${url}" class="img-thumb-grid"></a>`;
                                 });
                                 photos += '</div>';
                             }
@@ -1069,6 +1185,7 @@ $(document).ready(function() {
         else if (status === 'dalam_proses') cls = 'badge-status-proses';
         else if (status === 'hold') cls = 'badge-status-hold';
         else if (status === 'batal') cls = 'badge-status-batal';
+        else if (status === 'draft') cls = 'badge-status-draft';
 
         return `<span class="badge-status-pill ${cls}"><span class="dot"></span> ${label}</span>`;
     }
@@ -1098,4 +1215,31 @@ $(document).ready(function() {
             throw error;
         }
     }
+
+    window.openLightbox = function(encodedUrls, activeIndex) {
+        try {
+            let urls = JSON.parse(decodeURIComponent(encodedUrls));
+            let innerHtml = '';
+            urls.forEach((url, i) => {
+                let activeClass = (i === activeIndex) ? 'active' : '';
+                innerHtml += `
+                    <div class="carousel-item ${activeClass}">
+                        <img class="d-block w-100" src="${url}" style="max-height: 85vh; object-fit: contain;">
+                    </div>
+                `;
+            });
+            
+            // Hide controls if only 1 image
+            if (urls.length <= 1) {
+                $('#tm_lightbox_carousel .carousel-control-prev, #tm_lightbox_carousel .carousel-control-next').hide();
+            } else {
+                $('#tm_lightbox_carousel .carousel-control-prev, #tm_lightbox_carousel .carousel-control-next').show();
+            }
+
+            $('#tm_lightbox_inner').html(innerHtml);
+            $('#tm_lightbox_modal').modal('show');
+        } catch (e) {
+            console.error("Error opening lightbox:", e);
+        }
+    };
 });

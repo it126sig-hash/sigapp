@@ -1,5 +1,6 @@
 <script>
     window.current_user_id = <?= (int) (user_id() ?? 0) ?>;
+    window.is_supervisor_manager = <?= (function_exists('in_groups') && in_groups(['Admin', 'Direksi', 'Manager', 'Supervisor'])) ? 'true' : 'false' ?>;
 </script>
 
 <style>
@@ -201,8 +202,9 @@
                                         <hr class="my-3">
 
                                         <div class="d-flex flex-column flex-md-row justify-content-end mt-3 gap-2">
-                                            <button type="button" class="btn btn-light border mb-2 mb-md-0 order-2 order-md-1" id="btn_batal_buat_tiket">Batal</button>
-                                            <button type="submit" class="btn btn-primary px-4 order-1 order-md-2">Simpan Tiket</button>
+                                            <button type="button" class="btn btn-light border mb-2 mb-md-0 order-3 order-md-1" id="btn_batal_buat_tiket">Batal</button>
+                                            <button type="submit" class="btn btn-secondary px-4 order-2 order-md-2" id="btn_simpan_draft">Save as Draft</button>
+                                            <button type="submit" class="btn btn-primary px-4 order-1 order-md-3" id="btn_simpan_tiket">Simpan Tiket</button>
                                         </div>
                                     </form>
                                 </div>
@@ -212,6 +214,34 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lightbox Modal -->
+<div class="modal fade" id="tm_lightbox_modal" tabindex="-1" role="dialog" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-header border-0 pb-0 justify-content-end position-absolute w-100" style="z-index: 10;">
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 1; text-shadow: 0 0 10px rgba(0,0,0,0.5); font-size: 2.5rem; padding: 1rem;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0 text-center bg-dark rounded">
+                <div id="tm_lightbox_carousel" class="carousel slide" data-ride="carousel" data-interval="false">
+                    <div class="carousel-inner" id="tm_lightbox_inner">
+                        <!-- Items injected via JS -->
+                    </div>
+                    <a class="carousel-control-prev" href="#tm_lightbox_carousel" role="button" data-slide="prev" style="width: 10%;">
+                        <span class="carousel-control-prev-icon" aria-hidden="true" style="width: 3rem; height: 3rem; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#tm_lightbox_carousel" role="button" data-slide="next" style="width: 10%;">
+                        <span class="carousel-control-next-icon" aria-hidden="true" style="width: 3rem; height: 3rem; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>

@@ -121,7 +121,8 @@ class TiketMasalahService
 
         $userId = user_id();
         $data['pic_user_id'] = $userId;
-        $data['status'] = 'dibuat';
+        $data['status'] = !empty($data['is_draft']) ? 'draft' : 'dibuat';
+        unset($data['is_draft']);
 
         // Fallback safeguard jika id_proyek kosong/0
         if (empty($data['id_proyek']) || $data['id_proyek'] == 0) {
@@ -161,9 +162,9 @@ class TiketMasalahService
             $assignedUsers = explode(',', $assignedUsers);
         }
 
-        // Notifikasi ke departemen user pembuat
+        // Notifikasi ke departemen user pembuat (hanya jika bukan draft)
         $userGroupId = session()->get('group_id');
-        if ($userGroupId) {
+        if ($userGroupId && $data['status'] !== 'draft') {
             $this->notifikasiService->tambah_notif(
                 $userGroupId,                   // group_target = departemen user
                 "Tiket masalah baru: " . substr($data['keterangan'], 0, 80),
@@ -213,6 +214,127 @@ class TiketMasalahService
         return [
             'success' => $this->db->transStatus(),
             'id' => $idTiket
+        ];
+    }
+
+    public function updateTiket(int $idTiket, array $data, array $files): array
+    {
+        $tiket = $this->tiketModel->find($idTiket);
+        if (!$tiket) {
+            return ['success' => false, 'message' => 'Tiket tidak ditemukan'];
+        }
+
+        if ($tiket->status !== 'draft') {
+            return ['success' => false, 'message' => 'Hanya tiket dalam status draft yang bisa diedit'];
+        }
+
+        $userId = user_id();
+        $isCreator = ($tiket->pic_user_id == $userId);
+        $isSupervisor = (function_exists('in_groups') && in_groups(['Admin', 'Direksi', 'Manager', 'Supervisor']));
+        
+        if (!$isCreator && !$isSupervisor) {
+            return ['success' => false, 'message' => 'Anda tidak memiliki hak akses untuk mengedit tiket ini'];
+        }
+
+        $this->db->transStart();
+
+        $data['status'] = !empty($data['is_draft']) ? 'draft' : 'dibuat';
+        unset($data['is_draft']);
+        
+        // Update user PIC to the one who takes over (or keeps it if creator)
+        $data['pic_user_id'] = $userId;
+
+        // Fallback safeguard
+        if (empty($data['id_proyek']) || $data['id_proyek'] == 0) {
+            $data['id_proyek'] = $tiket->id_proyek;
+        }
+        
+        // Remove 'id_tiket_masalah' and 'ref_type' / 'ref_id' from update data if not changing
+        unset($data['id_tiket_masalah']);
+
+        $this->tiketModel->update($idTiket, $data);
+
+        // Upload photos (tambahan ke yang sudah ada)
+        $lok = 'uploads/tiket_masalah/' . date('Ymd') . '/';
+        foreach ($files as $img) {
+            if ($img->isValid() && !$img->hasMoved()) {
+                $name = $img->getRandomName();
+                $path = $this->fileAccessService->storeAs($img, $lok, $name);
+
+                $absPath = $this->fileAccessService->privatePath($path);
+                $this->compressImageIfPossible($absPath);
+
+                $this->tiketFotoModel->insert([
+                    'id_tiket_masalah' => $idTiket,
+                    'file_path' => $path,
+                    'file_name' => $img->getClientName(),
+                    'uploaded_by' => $userId
+                ]);
+            }
+        }
+
+        // Assigned users di update
+        $assignedUsers = $data['assigned_users'] ?? [];
+        if (!is_array($assignedUsers)) {
+            $assignedUsers = array_filter(explode(',', $assignedUsers));
+        }
+
+        if (!empty($assignedUsers)) {
+            // Delete old assigns and insert new ones
+            $this->tiketUserModel->where('id_tiket_masalah', $idTiket)->delete();
+            
+            foreach ($assignedUsers as $uid) {
+                $uid = (int) $uid;
+                if ($uid > 0 && $uid != $userId) {
+                    $this->tiketUserModel->insert([
+                        'id_tiket_masalah' => $idTiket,
+                        'user_id' => $uid
+                    ]);
+                }
+            }
+        }
+
+        // Notifikasi jika tiket tidak lagi draft
+        if ($data['status'] === 'dibuat') {
+            $userGroupId = session()->get('group_id');
+            if ($userGroupId) {
+                $this->notifikasiService->tambah_notif(
+                    $userGroupId,
+                    "Tiket masalah baru (dari draft): " . substr($data['keterangan'], 0, 80),
+                    $userId,
+                    $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
+                    null,
+                    'tiket_masalah|' . $data['ref_type'] . '|' . $data['ref_id'],
+                    $data['id_proyek'] ?? null
+                );
+            }
+            
+            $assignedRows = $this->tiketUserModel->where('id_tiket_masalah', $idTiket)->findAll();
+            foreach ($assignedRows as $row) {
+                $uid = $row->user_id;
+                if ($uid != $userId) {
+                    $assigneeGroupRow = $this->db->table('auth_groups_users')->select('group_id')->where('user_id', $uid)->get()->getRow();
+                    $assigneeGroupId = $assigneeGroupRow ? $assigneeGroupRow->group_id : null;
+                    if ($userGroupId && $assigneeGroupId == $userGroupId) {
+                        continue;
+                    }
+                    $this->notifikasiService->tambah_notif_user(
+                        $uid,
+                        "Tiket masalah baru ditugaskan ke Anda: " . substr($data['keterangan'], 0, 50),
+                        $userId,
+                        $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
+                        null,
+                        'tiket_masalah|' . $data['ref_type'] . '|' . $data['ref_id'],
+                        $data['id_proyek'] ?? null
+                    );
+                }
+            }
+        }
+
+        $this->db->transComplete();
+
+        return [
+            'success' => $this->db->transStatus()
         ];
     }
 
