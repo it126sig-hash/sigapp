@@ -380,7 +380,14 @@ $(document).ready(function() {
 
                 let thumbHtml = '';
                 if (item.foto_url_1) {
-                    thumbHtml = `<img src="${item.foto_url_1}" class="rounded border mr-2" style="width: 48px; height: 48px; object-fit: cover;">`;
+                    thumbHtml = `
+                        <div class="position-relative mr-3" style="width: 240px; height: 160px; flex-shrink: 0;">
+                            <img src="${item.foto_url_1}" class="w-100 h-100 rounded-lg" style="object-fit: cover;">
+                            <div class="position-absolute" style="bottom: 8px; left: 8px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px;">
+                                <i class="fas fa-image"></i> ${item.foto_count} Foto
+                            </div>
+                        </div>
+                    `;
                 }
 
                 let lastUpdateHtml = '';
@@ -391,40 +398,32 @@ $(document).ready(function() {
                 }
 
                 html += `
-                <div class="tm-list-card prio-${item.prioritas} mb-3 p-3 cursor-pointer" onclick="loadTiketDetail(${item.id})">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1 pr-3">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                ${getPriorityBadgeHtml(item.prioritas)}
-                                <span class="text-xs text-muted font-weight-medium">
-                                    <i class="feather icon-calendar mr-1"></i>${formattedDate}
-                                </span>
-                                <span class="text-xs text-muted font-weight-bold ml-1">#TKT-${item.id}</span>
-                            </div>
-                            <h6 class="font-weight-bold text-dark mb-2">${item.keterangan}</h6>
-                            <div class="d-flex align-items-center flex-wrap gap-2">
-                                ${thumbHtml}
-                                <div>
-                                    <div class="d-flex gap-2">
-                                        <span class="badge-meta">
-                                            <i class="fas fa-image"></i> ${item.foto_count} Foto
-                                        </span>
-                                        <span class="badge-meta ml-1">
-                                            <i class="fas fa-user"></i> PIC: ${item.pic_username}
-                                        </span>
-                                        ${item.assigned_users_list ? `<span class="badge-meta ml-1"><i class="fas fa-users"></i> Dilibatkan: ${item.assigned_users_list}</span>` : ''}
-                                    </div>
-                                    ${lastUpdateHtml}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-right d-flex flex-column align-items-end justify-content-between" style="min-height: 80px;">
+                <div class="tm-list-card prio-${item.prioritas} mb-3 cursor-pointer p-2" onclick="loadTiketDetail(${item.id})">
+                    <div class="d-flex align-items-stretch w-100">
+                        ${thumbHtml}
+                        <div class="flex-grow-1 py-1 pr-2 d-flex flex-column justify-content-between">
                             <div>
-                                <span class="text-xs font-weight-bold text-muted d-block mb-1 text-right">STATUS</span>
-                                ${getStatusBadgeHtml(item.status)}
+                                <!-- Top Row -->
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        ${getPriorityBadgeHtml(item.prioritas)}
+                                        <span class="text-xs text-muted font-weight-medium">${formattedDate} &bull; #TKT-${item.id}</span>
+                                    </div>
+                                    <div class="text-right" style="margin-top: -4px;">
+                                        <span class="text-muted d-block text-right mb-1" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">STATUS</span>
+                                        ${getStatusBadgeHtml(item.status)}
+                                    </div>
+                                </div>
+                                <!-- Title -->
+                                <h5 class="font-weight-bold text-dark pr-5" style="line-height: 1.4; font-size: 1.15rem; margin-top: -8px;">${item.keterangan}</h5>
                             </div>
-                            <div class="mt-2 text-muted">
-                                <i class="feather icon-chevron-right font-medium-3"></i>
+                            <!-- Bottom Row -->
+                            <div class="d-flex align-items-center justify-content-between mt-3">
+                                <div class="d-flex gap-2">
+                                    <span class="badge-meta bg-light text-muted border-0 text-xs shadow-none" style="border-radius: 15px; padding: 5px 12px; background-color: #f1f5f9 !important;"><i class="fas fa-user text-secondary mr-1"></i> PIC: ${item.pic_username}</span>
+                                    ${item.assigned_users_list ? `<span class="badge-meta bg-light text-muted border-0 text-xs shadow-none" style="border-radius: 15px; padding: 5px 12px; background-color: #f1f5f9 !important;"><i class="fas fa-users text-secondary mr-1"></i> Dilibatkan: ${item.assigned_users_list}</span>` : ''}
+                                </div>
+                                ${lastUpdateHtml}
                             </div>
                         </div>
                     </div>
@@ -841,13 +840,13 @@ $(document).ready(function() {
         let actionBtnHtml = '';
         if (!isClosed) {
             actionBtnHtml = `
-                <button class="btn btn-primary btn-block font-weight-bold py-2 mt-3 shadow-sm rounded-12" id="btn_toggle_add_progress">
+                <button class="btn btn-primary btn-block font-weight-bold py-2 mt-auto shadow-sm rounded-12" id="btn_toggle_add_progress">
                     <i class="feather icon-plus-circle mr-1"></i> Tambah Progres Laporan
                 </button>
             `;
         } else {
             actionBtnHtml = `
-                <div class="alert alert-secondary text-center text-xs mt-3 mb-0">
+                <div class="alert alert-secondary text-center text-xs mt-auto mb-0 rounded-12">
                     <i class="feather icon-lock mr-1"></i> Tiket sudah ${data.status.toUpperCase()} (Terkunci)
                 </div>
             `;
@@ -865,79 +864,122 @@ $(document).ready(function() {
             `;
         }
 
-        let lokasiText = currentRefData ? `${currentRefData.nama_cluster} - ${currentRefData.nama_jalan}` : '-';
+        let lokasiText = '-';
+        if (currentRefData) {
+            let hasCluster = currentRefData.nama_cluster && currentRefData.nama_cluster.trim() !== '';
+            let hasJalan = currentRefData.nama_jalan && currentRefData.nama_jalan.trim() !== '';
+            
+            if (hasCluster || hasJalan) {
+                let parts = [];
+                if (hasCluster) parts.push(currentRefData.nama_cluster);
+                if (hasJalan) parts.push(currentRefData.nama_jalan);
+                lokasiText = parts.join(' - ');
+            } else if (currentRefData.nama && currentRefData.tipe) {
+                lokasiText = `${currentRefData.nama} (${currentRefData.tipe.toUpperCase()})`;
+            } else if (currentRefData.nama) {
+                lokasiText = currentRefData.nama;
+            }
+        }
+
+        let mainPhoto = (data.foto && data.foto.length > 0) ? data.foto[0].url : base_url + 'assets/images/placeholder.jpg';
+        let allUrlsStr = (data.foto && data.foto.length > 0) ? encodeURIComponent(JSON.stringify(data.foto.map(f => f.url))) : '[]';
+        
+        let photosHtml = '';
+        if(data.foto && data.foto.length > 0) {
+            data.foto.forEach((f, index) => {
+                photosHtml += `<a href="javascript:void(0)" onclick="window.openLightbox('${allUrlsStr}', ${index})"><img src="${f.url}" class="img-thumb-grid"></a>`;
+            });
+        }
+
+        let assignedHtml = '';
+        if (data.assigned_users && data.assigned_users.length > 0) {
+            assignedHtml = data.assigned_users.map(u => `<span class="badge badge-light-primary border-0 rounded-pill px-3 py-1 text-xs"><i class="fas fa-user mr-1"></i>${u.username}</span>`).join('');
+        } else {
+            assignedHtml = '-';
+        }
 
         let html = `
             <div class="row">
-                <!-- SIDEBAR DETAIL TIKET -->
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <div class="tm-sidebar-card shadow-sm">
-                        <div class="d-flex gap-2 mb-3">
-                            ${getPriorityBadgeHtml(data.prioritas)}
-                            <div class="ml-1">${getStatusBadgeHtml(data.status)}</div>
-                        </div>
-
-                        <h5 class="tm-detail-title mb-4">${data.keterangan}</h5>
-
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <div class="tm-detail-label mb-1">PENANGGUNG JAWAB</div>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-circle mr-2" style="width:24px; height:24px; font-size:10px;">${data.pic_username.charAt(0).toUpperCase()}</div>
-                                    <span class="tm-detail-val text-truncate">${data.pic_username}</span>
-                                </div>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <div class="tm-detail-label mb-1">TANGGAL DIBUAT</div>
-                                <div class="tm-detail-val">${formattedDate}</div>
-                            </div>
-                            
-                            <div class="col-12 mb-3">
-                                <div class="tm-detail-label mb-1">LOKASI</div>
-                                <div class="tm-detail-val text-muted font-weight-normal">${lokasiText}</div>
-                            </div>
-
-                            ${data.assigned_users && data.assigned_users.length > 0 ? `
-                            <div class="col-12 mb-3">
-                                <div class="tm-detail-label mb-1">USER YANG DILIBATKAN</div>
-                                <div class="d-flex flex-wrap gap-2">
-                                    ${data.assigned_users.map(u => `<span class="badge badge-light-primary"><i class="feather icon-user mr-1"></i>${u.username}</span>`).join('')}
-                                </div>
-                            </div>
-                            ` : ''}
-                        </div>
-
-                        <hr class="my-3">
-
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="tm-detail-label">LAMPIRAN VISUAL</span>
-                                <span class="text-xs text-primary font-weight-bold">${data.foto ? data.foto.length : 0} Foto</span>
-                            </div>
-                            ${photos}
-                        </div>
-
-                        ${actionBtnHtml}
-                        ${editBtnHtml}
+                <!-- KOLOM KIRI: Visual & Tombol -->
+                <div class="col-md-5 mb-4 mb-md-0 d-flex flex-column">
+                    <div class="position-relative mb-2 rounded-12 overflow-hidden border" style="height: 350px;">
+                        <img src="${mainPhoto}" class="w-100 h-100" style="object-fit: cover;">
+                        ${(data.foto && data.foto.length > 0) ? `
+                        <button class="btn btn-dark btn-sm position-absolute px-3 rounded-pill" onclick="window.openLightbox('${allUrlsStr}', 0)" style="bottom: 15px; right: 15px; opacity: 0.9;">
+                            <i class="fas fa-search mr-1"></i> Lihat Gambar
+                        </button>
+                        ` : ''}
                     </div>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        ${photosHtml}
+                    </div>
+                    ${actionBtnHtml}
+                    ${editBtnHtml}
                 </div>
 
-                <!-- HISTORY TIMELINE KANAN -->
-                <div class="col-md-8">
-                    <div class="bg-white p-3 rounded-12 border shadow-sm h-100">
-                        <div class="d-flex align-items-center mb-4">
-                            <div style="width: 4px; height: 20px; background: #2057a3; border-radius: 2px;" class="mr-2"></div>
-                            <h5 class="mb-0 font-weight-bold text-dark">History Progress</h5>
+                <!-- KOLOM KANAN: Detail Info & History -->
+                <div class="col-md-7">
+                    <!-- Top Info -->
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            ${getPriorityBadgeHtml(data.prioritas)}
+                            <span class="text-xs text-muted font-weight-medium">${formattedDate} &bull; #TKT-${data.id}</span>
                         </div>
-
-                        <!-- Form Progress (Hidden by default, toggled via button) -->
-                        <div id="tm_form_progress_container" class="mb-4 d-none"></div>
-
-                        <!-- Timeline Items -->
-                        <div id="tm_progress_list">
-                            <!-- Injected via JS -->
+                        <div class="text-right">
+                            <span class="text-muted d-block text-right mb-1" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">STATUS</span>
+                            ${getStatusBadgeHtml(data.status)}
                         </div>
                     </div>
+
+                    <!-- Title & Location -->
+                    <!-- <h4 class="font-weight-bold text-dark mb-1" style="line-height: 1.4;">${data.keterangan}</h4> -->
+                    <div class="text-muted text-sm font-weight-medium mb-3">
+                        <i class="fas fa-map-marker-alt mr-1"></i> ${lokasiText}
+                    </div>
+
+                    <!-- Alert Deskripsi -->
+                    <div class="alert alert-danger d-flex p-3 rounded mb-4" style="border-left: 4px solid #ea5455; background-color: #fff1f1;">
+                        <i class="fas fa-exclamation-circle text-danger mr-2 mt-1" style="font-size: 1.1rem;"></i>
+                        <div>
+                            <div class="font-weight-bold text-dark mb-1 text-sm">Deskripsi Masalah</div>
+                            <div class="text-dark" style="font-size: 0.85rem;">${data.keterangan}</div>
+                        </div>
+                    </div>
+
+                    <!-- 3 Columns Info -->
+                    <div class="row mb-4">
+                        <div class="col-4">
+                            <div class="tm-detail-label mb-2" style="font-size: 0.65rem;">PENANGGUNG JAWAB</div>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle mr-2" style="width:24px; height:24px; font-size:10px;">${data.pic_username.charAt(0).toUpperCase()}</div>
+                                <span class="font-weight-bold text-dark text-sm">${data.pic_username}</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="tm-detail-label mb-2" style="font-size: 0.65rem;">TANGGAL DIBUAT</div>
+                            <div class="d-flex align-items-center text-dark font-weight-bold text-sm">
+                                <i class="fas fa-calendar-alt text-muted mr-2"></i> ${formattedDate}
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="tm-detail-label mb-2" style="font-size: 0.65rem;">USER DILIBATKAN</div>
+                            <div class="d-flex flex-wrap gap-1">
+                                ${assignedHtml}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <hr class="mb-4" style="border-color: #e9ecef;">
+
+                    <!-- History Progress -->
+                    <div class="d-flex align-items-center mb-4">
+                        <div style="width: 4px; height: 20px; background: #2057a3; border-radius: 2px;" class="mr-2"></div>
+                        <h5 class="mb-0 font-weight-bold text-dark">History Progress</h5>
+                    </div>
+
+                    <div id="tm_form_progress_container" class="mb-4 d-none"></div>
+                    <div id="tm_progress_list"></div>
                 </div>
             </div>
         `;
@@ -1238,6 +1280,11 @@ $(document).ready(function() {
 
             $('#tm_lightbox_inner').html(innerHtml);
             $('#tm_lightbox_modal').modal('show');
+            
+            // Fix overlay bug: ensures the new backdrop is above the first modal (1050) but below lightbox (1060)
+            setTimeout(() => {
+                $('.modal-backdrop').last().css('z-index', 1059);
+            }, 100);
         } catch (e) {
             console.error("Error opening lightbox:", e);
         }
