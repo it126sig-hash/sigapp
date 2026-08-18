@@ -1184,7 +1184,7 @@ foreach (user()->getRoles() as $key => $val) {
                                 <div class="form-group">
                                     <select id="pilih-divisi" class="form-control-sm select2">
                                         <optgroup label="Departemen">
-                                            <option value="0">Pilih Divisi</option>
+                                            <option value="0">Pilih Filter</option>
                                             <!-- <option value="8" class="dropdown-item">Sales & Promotion</option> -->
                                             <option value="7" class="dropdown-item">Produksi</option>
                                             <option value="4" class="dropdown-item">Marketing Data</option>
