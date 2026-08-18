@@ -472,9 +472,9 @@ class TiketMasalahService
                     p.id_proyek,
                     COALESCE(o.progres, 0) as progres_bangunan
                 ")
-                ->join('jalan j', 'j.id_jalan = o.id_jalan')
-                ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
-                ->join('proyek p', 'p.id_proyek = cl.id_proyek')
+                ->join('jalan j', 'j.id_jalan = o.id_jalan', 'left')
+                ->join('cluster cl', 'cl.id_cluster = j.id_cluster', 'left')
+                ->join('proyek p', 'p.id_proyek = cl.id_proyek', 'left')
                 ->where('o.id', $refId)
                 ->get()
                 ->getRow();

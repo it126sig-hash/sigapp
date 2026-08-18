@@ -407,12 +407,12 @@ $(document).ready(function() {
                                 <div>
                                     <div class="d-flex gap-2">
                                         <span class="badge-meta">
-                                            <i class="feather icon-image"></i> ${item.foto_count} Foto
+                                            <i class="fas fa-image"></i> ${item.foto_count} Foto
                                         </span>
                                         <span class="badge-meta ml-1">
-                                            <i class="feather icon-user"></i> PIC: ${item.pic_username}
+                                            <i class="fas fa-user"></i> PIC: ${item.pic_username}
                                         </span>
-                                        ${item.assigned_users_list ? `<span class="badge-meta ml-1"><i class="feather icon-users"></i> Dilibatkan: ${item.assigned_users_list}</span>` : ''}
+                                        ${item.assigned_users_list ? `<span class="badge-meta ml-1"><i class="fas fa-users"></i> Dilibatkan: ${item.assigned_users_list}</span>` : ''}
                                     </div>
                                     ${lastUpdateHtml}
                                 </div>
