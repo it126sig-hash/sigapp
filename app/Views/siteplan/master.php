@@ -624,10 +624,14 @@ foreach (user()->getRoles() as $key => $val) {
     #menu {
         display: none;
         position: absolute;
-        width: 80px;
+        min-width: 175px;
         background-color: white;
-        box-shadow: 0 0 5px grey;
-        border-radius: 3px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+        border-radius: 5px;
+        border: 1px solid rgba(0,0,0,0.08);
+        z-index: 9999;
+        overflow: hidden;
+        padding: 3px 0;
     }
 
     #menu button {
@@ -635,11 +639,33 @@ foreach (user()->getRoles() as $key => $val) {
         background-color: white;
         border: none;
         margin: 0;
-        padding: 10px;
+        padding: 8px 14px;
+        text-align: left;
+        cursor: pointer;
+        white-space: nowrap;
+        font-size: 13px;
     }
 
     #menu button:hover {
-        background-color: lightgray;
+        background-color: #f0f4ff;
+        color: #3b5bdb;
+    }
+
+    #menu .ctx-menu-header {
+        padding: 5px 14px 3px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        background: #fafafa;
+        cursor: default;
+    }
+
+    #menu .ctx-menu-divider {
+        height: 1px;
+        background: #e8e8e8;
+        margin: 3px 0;
     }
 
     #div_filter {
@@ -1175,8 +1201,8 @@ foreach (user()->getRoles() as $key => $val) {
                             <div id="menu">
                                 <div>
                                     <button id="menu-btn-lihat_detail">Detail</button>
-                                    <!-- <button id="menu-btn-input">Isi/Ubah</button> -->
                                 </div>
+                                <div id="menu-dynamic-items"></div>
                             </div>
                         </div>
                         <div class="col-md-3 d-md-block" style="overflow-y:auto" id="filter-side">

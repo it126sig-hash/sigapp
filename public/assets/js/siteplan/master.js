@@ -262,6 +262,7 @@ Date.prototype.toDateInputValue = (function() {
         // $("#pilih-divisi").select2("val", roleid)
         // change_div();
         load_menu();
+        loadSiteplanMenuItems(); // load dynamic context menu items
 
 
         // scaling layer to fit stage
@@ -1458,15 +1459,7 @@ Date.prototype.toDateInputValue = (function() {
 
     var editdtt = [];
 
-    //event klik kavling
-    masked.on('dblclick', function(e) {
-        if (!addMode) {
-            if (e.evt.button === 0 && e.target.attrs.id) {
-                //open detail modal
-                lihat_detail();
-            }
-        }
-    })
+    //event klik kavling (dblclick dihapus agar ditangani stage)
 
     //hide tooltip on tap at siteplan
     siteplan.on('tap', function() {
@@ -2195,6 +2188,100 @@ Date.prototype.toDateInputValue = (function() {
 
     //context menu
     let currentShape;
+
+    // ── Dynamic context menu dari home/getMenuItemsJson ──────────────────────
+    function loadSiteplanMenuItems() {
+        return $.ajax({
+            url: base_url + 'home/getMenuItemsJson',
+            type: 'post',
+            data: { [csrfName]: csrfHash },
+            dataType: 'json'
+        }).done(function(response) {
+            csrfHash = response.token;
+            window.siteplanMenuItems = response.items || [];
+        }).fail(function() {
+            window.siteplanMenuItems = [];
+        });
+    }
+
+    function buildContextMenuItems(sh) {
+        const container = document.getElementById('menu-dynamic-items');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const items = window.siteplanMenuItems || [];
+        if (items.length === 0) return;
+
+        // Divider antara tombol "Detail" dan dynamic items
+        const divider = document.createElement('div');
+        divider.className = 'ctx-menu-divider';
+        container.appendChild(divider);
+
+        let lastGroup = null;
+
+        items.forEach(function(item) {
+            // Group header hanya untuk admin (role 1)
+            if (parseInt(roleid, 10) === 1 && item.group_label && item.group_label !== lastGroup) {
+                lastGroup = item.group_label;
+                const header = document.createElement('div');
+                header.className = 'ctx-menu-header';
+                header.textContent = item.group_label;
+                container.appendChild(header);
+            }
+
+            const btn = document.createElement('button');
+            if (item.icon) {
+                const icon = document.createElement('i');
+                icon.className = item.icon;
+                icon.style.marginRight = '6px';
+                btn.appendChild(icon);
+            }
+            btn.appendChild(document.createTextNode(item.label || ''));
+
+            btn.addEventListener('click', function() {
+                menuNode.style.display = 'none';
+                runSiteplanMenuActionFromCanvas(item.onclick, sh, item);
+            });
+
+            container.appendChild(btn);
+        });
+    }
+
+    function runSiteplanMenuActionFromCanvas(onclick, sh, menuItem) {
+        if (!onclick || !sh) return;
+
+        // Set editdtt agar isi_data() dan open_* functions tahu kavling mana yang dipilih
+        editdtt = [sh];
+
+        const targetOnclick = String(onclick).trim();
+
+        if (targetOnclick === 'isi_data()') {
+            // Jika admin, paksa role sesuai id_group dari menu item
+            const originalPilihDivisi = $('#pilih-divisi').val();
+            if (parseInt(roleid, 10) === 1 && menuItem && menuItem.id_group) {
+                $('#pilih-divisi').val(String(menuItem.id_group));
+            }
+            isi_data();
+            // Kembalikan filter setelah dipanggil (jika perlu)
+            if (parseInt(roleid, 10) === 1 && menuItem && menuItem.id_group) {
+                $('#pilih-divisi').val(originalPilihDivisi);
+            }
+            return;
+        }
+
+        try {
+            const fn = new Function(targetOnclick);
+            fn.call(window);
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Aksi gagal',
+                text: error.message || 'Fungsi tidak tersedia di halaman ini.'
+            });
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     document.getElementById('menu-btn-lihat_detail').addEventListener('click', () => {
         if (currentShape.target.attrs.id) {
             //open detail modal
@@ -2202,11 +2289,17 @@ Date.prototype.toDateInputValue = (function() {
         }
     });
     var menuNode = document.getElementById('menu');
-    window.addEventListener('click', () => {
+    window.addEventListener('click', (e) => {
         // hide menu
         menuNode.style.display = 'none';
     });
-    stage.on('contextmenu', function(e) {
+    window.addEventListener('touchstart', (e) => {
+        // hide menu on mobile tap outside
+        if (!menuNode.contains(e.target)) {
+            menuNode.style.display = 'none';
+        }
+    });
+    stage.on('contextmenu dblclick dbltap', function(e) {
         // prevent default behavior
         e.evt.preventDefault();
 
@@ -2214,10 +2307,32 @@ Date.prototype.toDateInputValue = (function() {
             // if we are on empty place of the stage we will do nothing
             return;
         }
+
+        // Resolve target attributes. If clicking on selection border/text, use editdtt[0]
+        let targetAttrs = e.target.attrs;
+        const shapeId = targetAttrs ? targetAttrs.id : '';
+        
+        if (shapeId === 'sel' || shapeId === 'tsel' || shapeId === 'line_ms' || (shapeId && shapeId.startsWith('border'))) {
+            if (typeof editdtt !== 'undefined' && editdtt.length > 0) {
+                targetAttrs = editdtt[0];
+            } else {
+                return;
+            }
+        } else if (!shapeId || !shapeId.startsWith('kav')) {
+            // Hanya tampilkan menu untuk kavling (bukan jalan/fasos/dll)
+            return;
+        }
+
         currentShape = e;
+
+        // Set editdtt supaya tombol Detail (lihat_detail) bisa digunakan
+        editdtt = [targetAttrs];
+
+        // Render dynamic menu items dengan data shape saat ini
+        buildContextMenuItems(targetAttrs);
+
         // show menu
         menuNode.style.display = 'initial';
-        var containerRect = stage.container().getBoundingClientRect();
         menuNode.style.top = stage.getPointerPosition().y + 4 + 'px';
         menuNode.style.left = stage.getPointerPosition().x + 20 + 'px';
     });
