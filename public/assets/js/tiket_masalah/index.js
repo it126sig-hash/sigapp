@@ -16,25 +16,18 @@ $(document).ready(function() {
                 data: null,
                 orderable: false,
                 searchable: false,
+                className: 'td-aksi',
                 render: function(data, type, row) {
-                    let mapBtn = '';
-                    if ((row.ref_type === 'kavling' || row.ref_type === 'others') && row.ref_id) {
-                        let url = base_url + 'siteplan/master/' + row.id_proyek + '?focus_type=' + row.ref_type + '&focus_id=' + row.ref_id;
-                        // mapBtn = `
-                        //     <a href="${url}" class="btn btn-sm btn-info btn-icon rounded-circle ml-1" title="Lihat di Peta">
-                        //         <i class="fas fa-map-marker-alt"></i>
-                        //     </a>
-                        // `;
-                    }
                     return `
-                        <button class="btn btn-sm btn-primary btn-icon rounded-circle btn-view-tiket" 
-                            data-id="${row.id}" 
-                            data-ref-type="${row.ref_type}" 
-                            data-ref-id="${row.ref_id}" 
-                            title="Detail Tiket">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        ${mapBtn}
+                        <div class="m-aksi">
+                            <button class="btn btn-sm btn-primary btn-icon rounded-circle btn-view-tiket" 
+                                data-id="${row.id}" 
+                                data-ref-type="${row.ref_type}" 
+                                data-ref-id="${row.ref_id}" 
+                                title="Detail Tiket">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
                     `;
                 }
             },
@@ -42,28 +35,92 @@ $(document).ready(function() {
                 data: null,
                 orderable: false,
                 searchable: false,
+                className: 'td-no',
                 render: function(data, type, row, meta) {
-                    return meta.row + meta.settings._iDisplayStart + 1;
+                    let no = meta.row + meta.settings._iDisplayStart + 1;
+                    return `<div class="m-no"><span class="badge">#${no}</span></div>`;
                 }
             },
             {
                 data: 'lokasi',
-                name: 'lokasi'
+                name: 'lokasi',
+                render: function(data, type, row) {
+                    let html = `<div class="m-lokasi">${data || '-'}</div>`;
+                    html += `<div class="m-foto">`;
+                    if (row.foto_urls && row.foto_urls.length > 0) {
+                        let allUrlsStr = encodeURIComponent(JSON.stringify(row.foto_urls));
+                        let firstPhoto = row.foto_urls[0];
+                        let moreIndicator = '';
+                        if (row.foto_urls.length > 1) {
+                            moreIndicator = `<div class="foto-overlay-count" onclick="window.openLightbox('${allUrlsStr}', 0)" style="cursor:pointer;">+${row.foto_urls.length - 1}</div>`;
+                        }
+                        
+                        html += `
+                            <a href="javascript:void(0)" onclick="window.openLightbox('${allUrlsStr}', 0)">
+                                <img src="${firstPhoto}" class="img-thumb-grid">
+                            </a>
+                            ${moreIndicator}
+                        `;
+                    }
+                    html += `</div>`;
+                    return html;
+                }
             },
             {
                 data: 'keterangan',
                 name: 'tm.keterangan',
+                className: 'text-left',
                 render: function(data, type, row) {
-                    let html = `<div> ${data}</div>`;
+                    let ket = data ? data.replace(/^Laporan\s*/i, '') : '';
+                    let html = `<div class="m-ket">
+                        <span class="m-ket-label">Keterangan</span>
+                        <div class="m-ket-text">${ket}</div>`;
+                        
                     if (row.last_progress_keterangan) {
-                        html += `<div class="mt-1 text-muted small"><strong>Update Terakhir:</strong> ${row.last_progress_keterangan}</div>`;
+                        html += `<div class="m-ket-update">
+                            <div class="m-ket-update-title">Update Terakhir:</div>
+                            <div class="m-ket-update-text">${row.last_progress_keterangan}</div>`;
                         if (row.last_progress_date) {
-                            // formatting date
                             let d = new Date(row.last_progress_date);
-                            html += `<div class="text-muted small"><i class="fas fa-clock"></i> ${d.toLocaleString('id-ID')}</div>`;
+                            html += `<div class="m-ket-update-date"><i class="fas fa-clock"></i> ${d.toLocaleDateString('id-ID')}, ${d.toLocaleTimeString('id-ID').replace(/\./g,':')}</div>`;
                         }
+                        html += `</div>`;
                     }
+                    html += `</div>`;
+                    html += `<div class="m-divider"></div>`;
                     return html;
+                }
+            },
+            {
+                data: 'tanggal_masalah',
+                name: 'tm.tanggal_masalah',
+                render: function(data, type, row) {
+                    let d = data ? new Date(data).toLocaleDateString('id-ID') : '-';
+                    return `<div class="m-tgl"><span class="m-lbl">Tgl Kunjungan</span><span class="m-val">${d}</span></div>`;
+                }
+            },
+            {
+                data: 'pic_username',
+                name: 'u.username',
+                render: function(data, type, row) {
+                    let d = row.created_at ? new Date(row.created_at).toLocaleDateString('id-ID') : '-';
+                    let pic = data ? data : '-';
+                    return `<div class="m-pembuat">
+                        <div>
+                            <span class="m-lbl">Pembuat</span>
+                            <span class="m-val">${pic}</span>
+                        </div>
+                        <span class="m-val-right">${d}</span>
+                    </div>`;
+                }
+            },
+            {
+                data: 'assigned_users_list',
+                name: 'assigned_users_list',
+                orderable: false,
+                render: function(data, type, row) {
+                    let val = data ? data : '-';
+                    return `<div class="m-pic"><span class="m-lbl">PIC Penanganan</span><span class="m-val">${val}</span></div>`;
                 }
             },
             {
@@ -71,14 +128,14 @@ $(document).ready(function() {
                 name: 'tm.status',
                 render: function(data, type, row) {
                     let cls = 'badge-status-dibuat';
-                    let label = data.replace('_', ' ').toUpperCase();
+                    let label = data ? data.replace('_', ' ').toUpperCase() : '';
 
                     if (data === 'selesai') cls = 'badge-status-selesai';
                     else if (data === 'dalam_proses') cls = 'badge-status-proses';
                     else if (data === 'hold') cls = 'badge-status-hold';
                     else if (data === 'batal') cls = 'badge-status-batal';
 
-                    return `<span class="badge-status-pill ${cls}"><span class="dot"></span> ${label}</span>`;
+                    return `<div class="m-status"><span class="badge-status-pill ${cls}">${label}</span></div>`;
                 }
             },
             {
@@ -86,29 +143,18 @@ $(document).ready(function() {
                 name: 'tm.prioritas',
                 render: function(data, type, row) {
                     let cls = 'badge-prio-normal';
+                    let label = data ? data.toUpperCase() : '';
                     if (data === 'urgent') cls = 'badge-prio-urgent';
                     else if (data === 'medium') cls = 'badge-prio-medium';
                     else if (data === 'low') cls = 'badge-prio-low';
                     else if (data === 'laporan') cls = 'badge-prio-laporan';
                     
-                    return `<span class="badge-prio ${cls}">${data.toUpperCase()}</span>`;
+                    return `<div class="m-prio"><span class="badge-prio ${cls}">${label}</span></div>`;
                 }
-            },
-            {
-                data: 'pic_username',
-                name: 'u.username'
-            },
-            {
-                data: 'assigned_users_list',
-                name: 'assigned_users_list',
-                orderable: false
-            },
-            {
-                data: 'tanggal_masalah',
-                name: 'tm.tanggal_masalah'
             }
         ],
-        order: [[7, 'desc']], // Default urut berdasarkan tanggal terbaru
+        responsive: false,
+        order: [[5, 'desc']], // Default urut berdasarkan tanggal pembuatan (index 5)
         language: {
             url: base_url + "assets/vendor/datatables/i18n/Indonesian.json" // Opsional jika ada
         }

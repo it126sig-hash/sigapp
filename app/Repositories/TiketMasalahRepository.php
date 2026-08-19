@@ -81,10 +81,11 @@ class TiketMasalahRepository
                 tm.id, tm.ref_type, tm.ref_id, tm.id_proyek, tm.tanggal_masalah, 
                 tm.keterangan, tm.prioritas, tm.status, tm.created_at,
                 u.username as pic_username,
-                IF(tm.ref_type = "kavling", CONCAT(jk.nama_jalan, " - ", k.no_kavling), CONCAT(jo.nama_jalan, " - ", o.nama)) as lokasi,
+                IF(tm.ref_type = "kavling", CONCAT_WS(" - ", jk.nama_jalan, k.no_kavling), CONCAT_WS(" - ", jo.nama_jalan, o.nama)) as lokasi,
                 (SELECT keterangan FROM tiket_masalah_progress tmp WHERE tmp.id_tiket_masalah = tm.id ORDER BY tmp.created_at DESC LIMIT 1) as last_progress_keterangan,
                 (SELECT created_at FROM tiket_masalah_progress tmp WHERE tmp.id_tiket_masalah = tm.id ORDER BY tmp.created_at DESC LIMIT 1) as last_progress_date,
-                (SELECT GROUP_CONCAT(u2.username SEPARATOR \', \') FROM tiket_masalah_user tmu JOIN users u2 ON u2.id = tmu.user_id WHERE tmu.id_tiket_masalah = tm.id) as assigned_users_list
+                (SELECT GROUP_CONCAT(u2.username SEPARATOR \', \') FROM tiket_masalah_user tmu JOIN users u2 ON u2.id = tmu.user_id WHERE tmu.id_tiket_masalah = tm.id) as assigned_users_list,
+                (SELECT GROUP_CONCAT(tmf.file_path ORDER BY tmf.id ASC SEPARATOR \'||\') FROM tiket_masalah_foto tmf WHERE tmf.id_tiket_masalah = tm.id) as foto_paths
             ')
             ->join('users u', 'u.id = tm.pic_user_id', 'left')
             ->join('kavling k', 'k.id_kavling = tm.ref_id AND tm.ref_type = "kavling"', 'left')

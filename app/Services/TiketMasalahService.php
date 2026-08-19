@@ -104,6 +104,18 @@ class TiketMasalahService
         ];
 
         $data = $this->repository->getDatatables($queryParams);
+
+        // Format foto paths ke public URL
+        foreach ($data as $row) {
+            $row->foto_urls = [];
+            if (!empty($row->foto_paths)) {
+                $paths = explode('||', $row->foto_paths);
+                foreach ($paths as $path) {
+                    $row->foto_urls[] = $this->fileAccessService->pathUrl('tiket_masalah', $path);
+                }
+            }
+        }
+
         $recordsFiltered = $this->repository->countDatatables($queryParams);
         $recordsTotal = $this->repository->countAll();
 
