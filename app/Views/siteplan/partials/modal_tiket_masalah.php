@@ -104,12 +104,12 @@
                         <div id="form_buat_tiket" class="d-none">
                             <div class="card border-0 shadow-sm rounded-12 mb-0">
                                 <div class="card-header bg-white p-3 border-bottom">
-                                    <h6 class="mb-0 font-weight-bold">Buat Tiket Masalah Baru</h6>
+                                    <h6 class="mb-0 font-weight-bold">Buat Laporan</h6>
                                 </div>
-                                <div class="card-body p-3">
+                                <div class="card-body p-1">
                                     <form id="form_buat_tiket_form">
                                         <!-- BLOK INPUT AREA BARU (Disembunyikan jika tiket untuk area yang sudah ada) -->
-                                        <div id="tm_new_others_fields" class="d-none border p-3 bg-light rounded mb-3">
+                                        <div id="tm_new_others_fields" class="d-none border p-1 bg-light rounded mb-3">
                                             <h6 class="font-weight-bold text-primary mb-3 border-bottom pb-2"><i class="feather icon-map-pin mr-1"></i> Data Area Baru</h6>
                                             <div class="row">
                                                 <div class="col-md-6 form-group">

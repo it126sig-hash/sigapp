@@ -30,15 +30,15 @@ $(document).ready(function() {
                 let html = `
                     <div id="tm_container_manual_seleksi" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1060; background: white; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); display: flex; gap: 10px; align-items: center; border: 1px solid #ff4d4f;">
                         <button type="button" class="btn btn-success btn-round btn-sm" id="tm_btn_selesai_seleksi_manual">
-                            <i class="fas fa-check"></i> Pilih Seleksi
+                            <i class="fas fa-check mr-1"></i>
                         </button>
                         <button type="button" class="btn btn-danger btn-round btn-sm" id="tm_btn_batal_seleksi_manual">
-                            <i class="fas fa-times"></i> Batal
+                            <i class="fas fa-times"></i> 
                         </button>
                         
                         <div class="border-left mx-1" style="height: 24px;"></div>
                         
-                        <div class="custom-control custom-switch m-0" style="padding-left: 2.25rem;">
+                        <div class="custom-control custom-switch m-0" >
                             <input type="checkbox" value="1" class="custom-control-input" id="tm_tambah_jalan" name="tm_tambah_jalan" onchange="if($('#tambah_jalan').length === 0){ $('body').append('<input type=\\'checkbox\\' class=\\'d-none\\' id=\\'tambah_jalan\\' name=\\'tambah_jalan\\' />'); } $('#tambah_jalan').prop('checked', this.checked).trigger('change'); if(typeof hapus_seleksi === 'function') hapus_seleksi();" />
                             <label class="custom-control-label font-weight-bold" for="tm_tambah_jalan" style="cursor: pointer; padding-top: 2px;">Manual Seleksi</label>
                         </div>
@@ -46,7 +46,7 @@ $(document).ready(function() {
                         <div class="border-left mx-1" style="height: 24px;"></div>
                         
                         <button type="button" class="btn btn-warning btn-round btn-sm" id="tm_btn_undo_seleksi_manual" onclick="if(typeof undo_manual_selection === 'function') undo_manual_selection();">
-                            <i class="fas fa-undo"></i> Undo Titik
+                            <i class="fas fa-undo"></i>
                         </button>
                     </div>
                 `;
@@ -54,6 +54,9 @@ $(document).ready(function() {
             } else {
                 $('#tm_container_manual_seleksi').show();
             }
+
+            // Otomatis aktifkan mode manual seleksi
+            $('#tm_tambah_jalan').prop('checked', true).trigger('change');
         }
     };
 
@@ -92,6 +95,10 @@ $(document).ready(function() {
         
         // Langsung buka form buat tiket dengan state 'new_others'
         window.openTiketMasalah('new_others', null);
+
+        // Hapus/sembunyikan menu manual seleksi dan kembalikan menu utama
+        $('#tm_container_manual_seleksi').remove();
+        $('#menu_here').show();
     });
 
 
@@ -682,12 +689,14 @@ $(document).ready(function() {
             return;
         }
 
-        let submitBtn = $(this).find('button[type="submit"]');
+        let submitBtn = $('#btn_simpan_tiket');
         let draftBtn = $('#btn_simpan_draft');
         submitBtn.prop('disabled', true);
         draftBtn.prop('disabled', true);
         
         let originalSubmitText = submitBtn.html();
+        let originalDraftText = draftBtn.html();
+        
         if(submitActionType === 'draft') {
             draftBtn.html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
         } else {
@@ -719,6 +728,13 @@ $(document).ready(function() {
             }
 
             const processSubmitTiket = (fd) => {
+                // Bersihkan field yang tidak diperlukan untuk store/update tiket
+                fd.delete('id_jenis');
+                fd.delete('nama');
+                fd.delete('id_cluster');
+                fd.delete('id_jalan');
+                fd.delete('points');
+
                 fd.set('ref_type', currentRefType);
                 fd.set('ref_id', currentRefId);
 
@@ -750,11 +766,15 @@ $(document).ready(function() {
                         loadTiketList();
                     },
                     error: function(xhr) {
-                        Swal.fire('Error', xhr.responseJSON?.message || 'Gagal membuat tiket', 'error');
+                        let msg = xhr.responseJSON?.message || 'Gagal membuat tiket';
+                        if (xhr.responseJSON?.messages) {
+                            msg = Object.values(xhr.responseJSON.messages).join('<br>');
+                        }
+                        Swal.fire({ title: 'Error', html: msg, icon: 'error' });
                     },
                     complete: function() {
                         submitBtn.prop('disabled', false).html(originalSubmitText);
-                        draftBtn.prop('disabled', false).html('Save as Draft');
+                        draftBtn.prop('disabled', false).html(originalDraftText);
                     }
                 });
             };

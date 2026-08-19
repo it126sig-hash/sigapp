@@ -146,6 +146,11 @@ class TiketMasalahService
             }
         }
 
+        // Handle MySQL strict mode untuk tanggal_kunjungan (opsional)
+        if (isset($data['tanggal_kunjungan']) && trim($data['tanggal_kunjungan']) === '') {
+            $data['tanggal_kunjungan'] = null;
+        }
+
         $idTiket = $this->tiketModel->insert($data);
 
         // Upload photos
@@ -259,6 +264,11 @@ class TiketMasalahService
         // Fallback safeguard
         if (empty($data['id_proyek']) || $data['id_proyek'] == 0) {
             $data['id_proyek'] = $tiket->id_proyek;
+        }
+
+        // Handle MySQL strict mode untuk tanggal_kunjungan (opsional)
+        if (isset($data['tanggal_kunjungan']) && trim($data['tanggal_kunjungan']) === '') {
+            $data['tanggal_kunjungan'] = null;
         }
         
         // Remove 'id_tiket_masalah' and 'ref_type' / 'ref_id' from update data if not changing
