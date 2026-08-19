@@ -116,6 +116,21 @@ if ($displayName === '') {
                                 </div>
 
                                 <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        name="email"
+                                        class="form-control <?= isset($errors['email']) ? 'is-invalid' : '' ?>"
+                                        value="<?= old('email', esc($profile->email ?? '')) ?>"
+                                        maxlength="255"
+                                        required>
+                                    <?php if (isset($errors['email'])) : ?>
+                                        <div class="invalid-feedback"><?= esc($errors['email']) ?></div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="form-group">
                                     <label for="profile_photo">Foto Profil</label>
                                     <input
                                         type="file"

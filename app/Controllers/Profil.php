@@ -47,6 +47,15 @@ class Profil extends BaseController
                     'max_length' => '{field} maksimal 120 karakter',
                 ],
             ],
+            'email' => [
+                'label' => 'Email',
+                'rules' => "required|valid_email|is_unique[users.email,id,{$userId}]",
+                'errors' => [
+                    'required' => '{field} harus diisi',
+                    'valid_email' => '{field} tidak valid',
+                    'is_unique' => '{field} sudah terdaftar',
+                ],
+            ],
             'password' => [
                 'label' => 'Password',
                 'rules' => 'permit_empty|min_length[4]|max_length[50]',
@@ -87,6 +96,7 @@ class Profil extends BaseController
 
         $fields = [
             'name' => trim((string) $this->request->getPost('name')),
+            'email' => trim((string) $this->request->getPost('email')),
             'email_notif_enabled' => $this->request->getPost('email_notif_enabled') ? 1 : 0,
             'updated_at' => date('Y-m-d H:i:s'),
         ];
