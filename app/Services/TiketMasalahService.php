@@ -403,6 +403,7 @@ class TiketMasalahService
             'keterangan' => $data['keterangan'] ?? '',
             'status_sebelum' => $statusSebelum,
             'status_sesudah' => $statusSesudah,
+            'is_pin_requested' => !empty($data['is_pin_requested']) ? 1 : 0,
             'foto_paths' => !empty($fotoPaths) ? implode(';', $fotoPaths) : null
         ]);
 
@@ -432,6 +433,48 @@ class TiketMasalahService
         return [
             'success' => $this->db->transStatus()
         ];
+    }
+
+    public function togglePinProgress(int $idProgress): array
+    {
+        $progress = $this->tiketProgressModel->find($idProgress);
+        if (!$progress) {
+            return ['success' => false, 'message' => 'Progress tidak ditemukan'];
+        }
+
+        $idTiket = $progress->id_tiket_masalah;
+        $tiket = $this->tiketModel->find($idTiket);
+        if (!$tiket) {
+            return ['success' => false, 'message' => 'Tiket tidak ditemukan'];
+        }
+
+        $userId = user_id();
+        $groupId = session()->get('group_id');
+        $isPic = ($tiket->pic_user_id == $userId) || ($groupId == 1);
+
+        if (!$isPic) {
+            return ['success' => false, 'message' => 'Hanya PIC yang dapat pin atau unpin progress'];
+        }
+
+        // Jika saat ini belum dipin, kita akan pin. Cek kuota.
+        if ($progress->is_pinned == 0) {
+            $pinnedCount = $this->tiketProgressModel
+                ->where('id_tiket_masalah', $idTiket)
+                ->where('is_pinned', 1)
+                ->countAllResults();
+            
+            if ($pinnedCount >= 3) {
+                return ['success' => false, 'message' => 'Maksimal 3 progress yang dapat di-pin'];
+            }
+            $newStatus = 1;
+        } else {
+            // Jika saat ini sudah dipin, kita akan unpin.
+            $newStatus = 0;
+        }
+
+        $this->tiketProgressModel->update($idProgress, ['is_pinned' => $newStatus]);
+
+        return ['success' => true, 'is_pinned' => $newStatus];
     }
 
     public function getRefInfo(string $refType, int $refId): ?object

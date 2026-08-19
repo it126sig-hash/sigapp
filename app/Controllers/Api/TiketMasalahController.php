@@ -137,6 +137,29 @@ class TiketMasalahController extends BaseController
         return $this->fail($result['message'] ?? 'Gagal menambahkan progress');
     }
 
+    public function togglePin()
+    {
+        $rules = [
+            'id_progress' => 'required|numeric',
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->failValidationErrors($this->validator->getErrors());
+        }
+
+        $idProgress = (int) $this->request->getPost('id_progress');
+        $result = $this->service->togglePinProgress($idProgress);
+
+        if ($result['success']) {
+            return $this->respond([
+                'success' => true, 
+                'message' => $result['is_pinned'] ? 'Progress berhasil dipin' : 'Progress berhasil di-unpin',
+                'is_pinned' => $result['is_pinned']
+            ]);
+        }
+        return $this->fail($result['message'] ?? 'Gagal mengubah pin progress');
+    }
+
     public function refInfo()
     {
         $refType = $this->request->getPost('ref_type');

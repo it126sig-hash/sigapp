@@ -67,6 +67,7 @@ class TiketMasalahRepository
             ->select('tmp.*, u.username as user_username')
             ->join('users u', 'u.id = tmp.user_id', 'left')
             ->where('tmp.id_tiket_masalah', $idTiket)
+            ->orderBy('tmp.is_pinned', 'DESC')
             ->orderBy('tmp.created_at', 'ASC')
             ->limit($limit, $offset)
             ->get()

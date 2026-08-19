@@ -14,7 +14,7 @@ class TiketMasalahProgressModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = [
         'id_tiket_masalah', 'user_id', 'keterangan',
-        'status_sebelum', 'status_sesudah', 'foto_paths'
+        'status_sebelum', 'status_sesudah', 'is_pin_requested', 'is_pinned', 'foto_paths'
     ];
 
     // Dates

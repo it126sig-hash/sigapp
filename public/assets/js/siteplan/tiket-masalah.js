@@ -111,6 +111,10 @@ $(document).ready(function() {
 
         // Tampilkan modal
         modalMasalah.modal('show');
+        
+        if (typeof initModalListener === 'function') {
+            initModalListener('#modal_tiket_masalah');
+        }
 
         if (refType === 'new_others') {
             $('#view_list_tiket, #view_detail_tiket').addClass('d-none');
@@ -364,9 +368,22 @@ $(document).ready(function() {
     }
 
     function renderTiketList(data) {
-        let html = '';
+        let html = `
+        <style>
+            @media (max-width: 767.98px) {
+                .tm-thumb-container { width: 100% !important; height: 180px !important; }
+                .tm-title-text { font-size: 1rem !important; }
+                .w-md-auto { width: 100% !important; }
+                .status-badge-container { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; border-top: 1px dashed #eee; padding-top: 10px; }
+            }
+            @media (min-width: 768px) {
+                .tm-thumb-container { width: 240px !important; height: 160px !important; }
+                .w-md-auto { width: auto !important; }
+            }
+        </style>
+        `;
         if(data.length === 0) {
-            html = `
+            html += `
                 <div class="text-center p-5 bg-white rounded-12 border">
                     <i class="feather icon-check-circle text-success font-large-2 mb-2"></i>
                     <h6 class="font-weight-bold text-dark mb-1">Tidak Ada Tiket Masalah</h6>
@@ -381,7 +398,7 @@ $(document).ready(function() {
                 let thumbHtml = '';
                 if (item.foto_url_1) {
                     thumbHtml = `
-                        <div class="position-relative mr-3" style="width: 240px; height: 160px; flex-shrink: 0;">
+                        <div class="position-relative mb-3 mb-md-0 mr-md-3 tm-thumb-container" style="flex-shrink: 0;">
                             <img src="${item.foto_url_1}" class="w-100 h-100 rounded-lg" style="object-fit: cover;">
                             <div class="position-absolute" style="bottom: 8px; left: 8px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px;">
                                 <i class="fas fa-image"></i> ${item.foto_count} Foto
@@ -394,32 +411,32 @@ $(document).ready(function() {
                 if (item.last_progress_keterangan) {
                     let lastDate = new Date(item.last_progress_date);
                     let formattedLastDate = lastDate.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'});
-                    lastUpdateHtml = `<div class="text-xs text-muted mt-1 text-truncate" style="max-width: 380px;"><strong>Last update (${formattedLastDate}):</strong> ${item.last_progress_keterangan}</div>`;
+                    lastUpdateHtml = `<div class="text-xs text-muted mt-2 mt-md-1 text-truncate" style="max-width: 380px;"><strong>Last update (${formattedLastDate}):</strong> ${item.last_progress_keterangan}</div>`;
                 }
 
                 html += `
                 <div class="tm-list-card prio-${item.prioritas} mb-3 cursor-pointer p-2" onclick="loadTiketDetail(${item.id})">
-                    <div class="d-flex align-items-stretch w-100">
+                    <div class="d-flex flex-column flex-md-row align-items-stretch w-100">
                         ${thumbHtml}
-                        <div class="flex-grow-1 py-1 pr-2 d-flex flex-column justify-content-between">
+                        <div class="flex-grow-1 py-1 pr-md-2 d-flex flex-column justify-content-between">
                             <div>
                                 <!-- Top Row -->
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div class="d-flex align-items-center gap-2">
+                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-2">
+                                    <div class="d-flex align-items-center gap-2 mb-2 mb-md-0">
                                         ${getPriorityBadgeHtml(item.prioritas)}
                                         <span class="text-xs text-muted font-weight-medium">${formattedDate} &bull; #TKT-${item.id}</span>
                                     </div>
-                                    <div class="text-right" style="margin-top: -4px;">
-                                        <span class="text-muted d-block text-right mb-1" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">STATUS</span>
+                                    <div class="text-right w-md-auto status-badge-container" style="margin-top: -4px;">
+                                        <span class="text-muted d-block d-md-block text-left text-md-right mb-1" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 0 !important;">STATUS</span>
                                         ${getStatusBadgeHtml(item.status)}
                                     </div>
                                 </div>
                                 <!-- Title -->
-                                <h5 class="font-weight-bold text-dark pr-5" style="line-height: 1.4; font-size: 1.15rem; margin-top: -8px;">${item.keterangan}</h5>
+                                <h5 class="font-weight-bold text-dark pr-md-5 tm-title-text" style="line-height: 1.4; font-size: 1.15rem; margin-top: 4px;">${item.keterangan}</h5>
                             </div>
                             <!-- Bottom Row -->
-                            <div class="d-flex align-items-center justify-content-between mt-3">
-                                <div class="d-flex gap-2">
+                            <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mt-3">
+                                <div class="d-flex flex-wrap gap-2 mb-2 mb-md-0">
                                     <span class="badge-meta bg-light text-muted border-0 text-xs shadow-none" style="border-radius: 15px; padding: 5px 12px; background-color: #f1f5f9 !important;"><i class="fas fa-user text-secondary mr-1"></i> PIC: ${item.pic_username}</span>
                                     ${item.assigned_users_list ? `<span class="badge-meta bg-light text-muted border-0 text-xs shadow-none" style="border-radius: 15px; padding: 5px 12px; background-color: #f1f5f9 !important;"><i class="fas fa-users text-secondary mr-1"></i> Dilibatkan: ${item.assigned_users_list}</span>` : ''}
                                 </div>
@@ -807,8 +824,10 @@ $(document).ready(function() {
             data: { id_tiket_masalah: id },
             success: function(res) {
                 if(res.success) {
+                    let activeUserId = (typeof current_user_id !== 'undefined') ? current_user_id : (window.current_user_id || 0);
+                    let isPic = (res.data.pic_user_id == activeUserId) || (typeof window.is_supervisor_manager !== 'undefined' && window.is_supervisor_manager);
                     renderTiketDetail(res.data);
-                    loadTiketProgress(id);
+                    loadTiketProgress(id, isPic);
                 }
             }
         });
@@ -821,6 +840,15 @@ $(document).ready(function() {
     });
 
     function renderTiketDetail(data) {
+        let styleHtml = `
+        <style>
+            .tm-btn-action { width: 100%; }
+            .transition-all { transition: all 0.3s ease; }
+            @media (min-width: 768px) {
+                .tm-btn-action { width: auto; min-width: 220px; }
+            }
+        </style>
+        `;
         let tglDetail = new Date(data.created_at);
         let formattedDate = tglDetail.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'});
 
@@ -840,14 +868,14 @@ $(document).ready(function() {
         let actionBtnHtml = '';
         if (!isClosed) {
             actionBtnHtml = `
-                <button class="btn btn-primary btn-block font-weight-bold py-2 mt-auto shadow-sm rounded-12" id="btn_toggle_add_progress">
-                    <i class="feather icon-plus-circle mr-1"></i> Tambah Progres Laporan
+                <button class="btn btn-primary font-weight-bold p-1 shadow-sm rounded-12 tm-btn-action transition-all" id="btn_toggle_add_progress">
+                    <i class="fas fa-plus mr-1"></i> <span class="btn-text">Tambah Progres Laporan</span>
                 </button>
             `;
         } else {
             actionBtnHtml = `
-                <div class="alert alert-secondary text-center text-xs mt-auto mb-0 rounded-12">
-                    <i class="feather icon-lock mr-1"></i> Tiket sudah ${data.status.toUpperCase()} (Terkunci)
+                <div class="alert alert-secondary text-center text-xs mb-0 rounded-12 tm-btn-action d-flex align-items-center justify-content-center">
+                    <i class="fas fa-lock mr-1"></i> Tiket sudah ${data.status.toUpperCase()} (Terkunci)
                 </div>
             `;
         }
@@ -858,7 +886,7 @@ $(document).ready(function() {
         if (data.status === 'draft' && (isCreator || isSupervisor)) {
             let labelEdit = isCreator ? "Edit Draft" : "Edit & Ambil Alih Draft";
             editBtnHtml = `
-                <button class="btn btn-warning btn-block font-weight-bold py-2 mt-2 shadow-sm rounded-12" id="btn_edit_draft_tiket" data-id="${data.id}">
+                <button class="btn btn-warning font-weight-bold py-2 px-3 shadow-sm rounded-12 tm-btn-action transition-all" id="btn_edit_draft_tiket" data-id="${data.id}">
                     <i class="feather icon-edit mr-1"></i> ${labelEdit}
                 </button>
             `;
@@ -893,7 +921,7 @@ $(document).ready(function() {
 
         let assignedHtml = '';
         if (data.assigned_users && data.assigned_users.length > 0) {
-            assignedHtml = data.assigned_users.map(u => `<span class="badge badge-light-primary border-0 rounded-pill px-3 py-1 text-xs"><i class="fas fa-user mr-1"></i>${u.username}</span>`).join('');
+            assignedHtml = data.assigned_users.map(u => `<span class="badge badge-light-primary border-0 rounded-pill px-2 py-1 text-xs"><i class="fas fa-user mr-1"></i>${u.username}</span>`).join('');
         } else {
             assignedHtml = '-';
         }
@@ -913,8 +941,6 @@ $(document).ready(function() {
                     <div class="d-flex flex-wrap gap-2 mb-4">
                         ${photosHtml}
                     </div>
-                    ${actionBtnHtml}
-                    ${editBtnHtml}
                 </div>
 
                 <!-- KOLOM KANAN: Detail Info & History -->
@@ -933,9 +959,9 @@ $(document).ready(function() {
 
                     <!-- Title & Location -->
                     <!-- <h4 class="font-weight-bold text-dark mb-1" style="line-height: 1.4;">${data.keterangan}</h4> -->
-                    <div class="text-muted text-sm font-weight-medium mb-3">
+                    <!-- <div class="text-muted text-sm font-weight-medium mb-3">
                         <i class="fas fa-map-marker-alt mr-1"></i> ${lokasiText}
-                    </div>
+                    </div> -->
 
                     <!-- Alert Deskripsi -->
                     <div class="alert alert-danger d-flex p-3 rounded mb-4" style="border-left: 4px solid #ea5455; background-color: #fff1f1;">
@@ -982,15 +1008,36 @@ $(document).ready(function() {
                     <div id="tm_progress_list"></div>
                 </div>
             </div>
+            
+            <!-- Sticky Footer Tombol -->
+            <div class="position-sticky bg-white p-1 border-top shadow" style="bottom: -8px; margin: 1rem -8px -8px -8px; z-index: 1020; border-radius: 0 0 0.3rem 0.3rem;">
+                <div class="d-flex flex-column flex-md-row gap-2 justify-content-end">
+                    ${editBtnHtml}
+                    ${actionBtnHtml}
+                </div>
+            </div>
         `;
 
-        $('#tm_detail_content').html(html);
+        $('#tm_detail_content').html(styleHtml + html);
 
         // Setup Form Progress logic
         if(!isClosed) {
             setupProgressForm(data);
             $('#btn_toggle_add_progress').click(function() {
-                $('#tm_form_progress_container').toggleClass('d-none');
+                let $container = $('#tm_form_progress_container');
+                let isHidden = $container.hasClass('d-none') || $container.is(':hidden');
+                
+                if (isHidden) {
+                    $container.hide().removeClass('d-none').slideDown(300);
+                    $(this).html('<i class="fas fa-times mr-1"></i> <span class="btn-text">Batal</span>');
+                    $(this).removeClass('btn-primary').addClass('btn-secondary');
+                } else {
+                    $container.slideUp(300, function() {
+                        $(this).addClass('d-none').css('display', '');
+                    });
+                    $(this).html('<i class="fas fa-plus mr-1"></i> <span class="btn-text">Tambah Progres Laporan</span>');
+                    $(this).removeClass('btn-secondary').addClass('btn-primary');
+                }
             });
         }
         
@@ -1023,7 +1070,7 @@ $(document).ready(function() {
 
         let formHtml = `
             <div class="card bg-light border-primary mb-3">
-                <div class="card-body p-3">
+                <div class="card-body p-1">
                     <h6 class="font-weight-bold text-primary mb-2">
                         <i class="feather icon-edit-3 mr-1"></i> Tambah Catatan Progress
                     </h6>
@@ -1048,6 +1095,10 @@ $(document).ready(function() {
                             <div id="tm_progress_preview_container" class="upload-preview-container"></div>
                         </div>
                         ${statusOptions}
+                        <div class="form-group mb-3 custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="is_pin_requested" name="is_pin_requested" value="1">
+                            <label class="custom-control-label font-weight-bold" for="is_pin_requested">Request Pin ke Atas (Maks 3)</label>
+                        </div>
                         <div class="d-flex flex-column flex-md-row justify-content-end mt-3 gap-2">
                             <button type="button" class="btn btn-light border mb-2 mb-md-0 order-2 order-md-1" onclick="$('#tm_form_progress_container').addClass('d-none')">Batal</button>
                             <button type="submit" class="btn btn-primary px-3 order-1 order-md-2">Simpan Progress</button>
@@ -1145,7 +1196,7 @@ $(document).ready(function() {
         });
     }
 
-    function loadTiketProgress(id) {
+    function loadTiketProgress(id, isPic = false) {
         $.ajax({
             url: base_url + 'api/tiket-masalah/progress',
             type: 'POST',
@@ -1178,6 +1229,25 @@ $(document).ready(function() {
                                     </div>
                                 `;
                             }
+                            
+                            let pinHtml = '';
+                            if (p.is_pinned == 1) {
+                                pinHtml = `<span class="badge badge-primary text-xs font-weight-bold ml-2" style="background-color: #ffd700; color: #333;"><i class="fas fa-thumbtack"></i> Pinned</span>`;
+                            } else if (p.is_pin_requested == 1) {
+                                pinHtml = `<span class="badge badge-info text-xs font-weight-bold ml-2"><i class="fas fa-hand-paper"></i> Request Pin</span>`;
+                            }
+                            
+                            let pinActionHtml = '';
+                            if (isPic) {
+                                if (p.is_pinned == 1) {
+                                    pinActionHtml = `<button type="button" class="btn btn-sm btn-outline-danger float-right ml-2" onclick="window.togglePinProgress(${p.id}, ${id})"><i class="fas fa-thumbtack" style="transform: rotate(45deg);"></i> Unpin</button>`;
+                                } else {
+                                    pinActionHtml = `<button type="button" class="btn btn-sm btn-outline-warning float-right ml-2" onclick="window.togglePinProgress(${p.id}, ${id})"><i class="fas fa-thumbtack"></i> Pin</button>`;
+                                }
+                            }
+                            
+                            let bgClass = p.is_pinned == 1 ? 'bg-light-warning' : '';
+
                             let tglProgress = new Date(p.created_at);
                             let formattedDate = tglProgress.toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'});
 
@@ -1189,10 +1259,12 @@ $(document).ready(function() {
                                         <span class="tm-timeline-user">${p.user_username}</span>
                                         <span class="text-muted mx-1">•</span>
                                         <span class="tm-timeline-time">${formattedDate}</span>
+                                        ${pinHtml}
                                     </div>
                                     <div>${statusBadgeHeader}</div>
                                 </div>
-                                <div class="tm-timeline-card">
+                                <div class="tm-timeline-card ${bgClass}">
+                                    ${pinActionHtml}
                                     <p class="mb-0 text-dark" style="font-size: 0.9rem; line-height: 1.5;">${p.keterangan}</p>
                                     ${statusChange}
                                     ${photos}
@@ -1257,6 +1329,39 @@ $(document).ready(function() {
             throw error;
         }
     }
+
+    window.togglePinProgress = function(idProgress, idTiket) {
+        Swal.fire({
+            title: 'Konfirmasi',
+            text: "Ubah status pin untuk progress ini?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Lanjutkan',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: base_url + 'api/tiket-masalah/toggle-pin',
+                    type: 'POST',
+                    data: { id_progress: idProgress },
+                    success: function(res) {
+                        if (res.success) {
+                            Swal.fire('Berhasil', res.message, 'success');
+                            // Reload detail/progress to show new pin status
+                            window.loadTiketDetail(idTiket);
+                        } else {
+                            Swal.fire('Gagal', res.message || 'Terjadi kesalahan', 'error');
+                        }
+                    },
+                    error: function(err) {
+                        let msg = err.responseJSON && err.responseJSON.messages ? err.responseJSON.messages : 'Gagal menghubungi server';
+                        if (typeof msg === 'object') msg = Object.values(msg).join(', ');
+                        Swal.fire('Gagal', msg, 'error');
+                    }
+                });
+            }
+        });
+    };
 
     window.openLightbox = function(encodedUrls, activeIndex) {
         try {

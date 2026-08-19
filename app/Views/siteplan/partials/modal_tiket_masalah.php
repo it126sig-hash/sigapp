@@ -42,7 +42,7 @@
                 </button>
             </div>
 
-            <div class="modal-body p-3" style="background-color: #f8fafc;">
+            <div class="modal-body p-2" style="background-color: #f8fafc;">
 
                 <div class="row">
                     <!-- LEFT SIDEBAR (col-md-3 Sticky Hero Card) -->
