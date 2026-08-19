@@ -152,7 +152,7 @@ class TiketMasalahController extends BaseController
 
         if ($result['success']) {
             return $this->respond([
-                'success' => true, 
+                'success' => true,
                 'message' => $result['is_pinned'] ? 'Progress berhasil dipin' : 'Progress berhasil di-unpin',
                 'is_pinned' => $result['is_pinned']
             ]);

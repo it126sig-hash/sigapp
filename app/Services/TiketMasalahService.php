@@ -227,11 +227,20 @@ class TiketMasalahService
         }
 
         $this->db->transComplete();
-
-        return [
-            'success' => $this->db->transStatus(),
+        $isSuccess = $this->db->transStatus();
+        
+        $response = [
+            'success' => $isSuccess,
             'id' => $idTiket
         ];
+
+        if (!$isSuccess) {
+            $dbError = $this->db->error();
+            $response['message'] = 'Database Error: ' . ($dbError['message'] ?? 'Unknown error during transaction');
+            log_message('error', 'DB Error (TiketMasalahService::createTiket): ' . print_r($dbError, true));
+        }
+
+        return $response;
     }
 
     public function updateTiket(int $idTiket, array $data, array $files): array
