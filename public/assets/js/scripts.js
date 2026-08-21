@@ -263,15 +263,19 @@ function initModalListener(id) {
         removeModalListener(id);
         // tutup modal manual
         $(id).modal("hide");
-        state.status.tab.isClosed = true;
-        state.id_cashout_subkon = null;
+        if (typeof state !== 'undefined') {
+          if (state.status && state.status.tab) {
+              state.status.tab.isClosed = true;
+          }
+          state.id_cashout_subkon = null;
 
-        //
-        state.mkdt = {};
+          //
+          state.mkdt = {};
 
-        //unload data um & bb
-        state.data_um = {};
-        state.data_bb = {};
+          //unload data um & bb
+          state.data_um = {};
+          state.data_bb = {};
+        }
       }
     });
   });
@@ -625,11 +629,26 @@ function renderNotificationSummary(response) {
   $("#notif-activity-count").text(activityUnread);
 }
 
+// Smart Polling AJAX (Menggantikan SSE yang bikin freeze)
+let notifPollTimer = null;
+const NOTIF_POLL_INTERVAL = 30000; // 30 detik
+
 function loadNotificationBadge() {
+  if (notifPollTimer) {
+      clearTimeout(notifPollTimer);
+      notifPollTimer = null;
+  }
+
+  // Jika tab tidak aktif, jeda polling
+  if (document.visibilityState === 'hidden') {
+      notifPollTimer = setTimeout(loadNotificationBadge, 5000);
+      return;
+  }
+
   if (notificationBadgeRequest && notificationBadgeRequest.readyState !== 4) {
     notificationBadgeRequest.abort();
   }
-
+  
   notificationBadgeRequest = $.ajax({
     type: "get",
     url: base_url + "/notif/summary",
@@ -644,9 +663,17 @@ function loadNotificationBadge() {
     },
     complete: function () {
       notificationBadgeRequest = null;
-    },
+      notifPollTimer = setTimeout(loadNotificationBadge, NOTIF_POLL_INTERVAL);
+    }
   });
 }
+
+// Refresh badge seketika saat user kembali membuka tab
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        loadNotificationBadge();
+    }
+});
 
 function getNotif(forceReload = true) {
   if (notificationCenterRequest && notificationCenterRequest.readyState !== 4) {
@@ -1072,6 +1099,25 @@ function handleNotificationClick(id_notif, id_kavling, type, el) {
           openSiteplanKeuanganFromNotification(id_kavling);
         } else if (typeof modal_tagihan === "function") {
           modal_tagihan(id_kavling);
+        }
+      } else if (type && type.startsWith("tiket_masalah")) {
+        let parts = type.split("|");
+        let tmRefType = parts[1] || null;
+        let tmRefId = parts[2] || null;
+
+        // Auto-select filter Masalah di #pilih-divisi
+        if ($('#pilih-divisi').length) {
+          $('#pilih-divisi').val('Masalah').trigger('change');
+          // Trigger apply filter agar data siteplan ter-load
+          if (typeof apply_server_filter === 'function') {
+            apply_server_filter();
+          }
+        }
+        
+        if (tmRefType && tmRefId && typeof window.openTiketMasalah === 'function') {
+            window.openTiketMasalah(tmRefType, tmRefId);
+        } else if (id_kavling && id_kavling !== 'null' && typeof window.openTiketMasalah === 'function') {
+            window.openTiketMasalah('kavling', id_kavling);
         }
       } else if (type === "progress" && typeof openSiteplanKavlingFromNotification === "function") {
         openSiteplanKavlingFromNotification(id_kavling);

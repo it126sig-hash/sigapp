@@ -37,7 +37,7 @@ class Pengguna extends BaseController
 
     //     $data['content'] = '';
     //     // WARNING: Ensure output escaping for all user-provided data passed to views
-        // return view('user/login', $data);
+    // return view('user/login', $data);
     // }
 
 
@@ -117,10 +117,10 @@ class Pengguna extends BaseController
     public function getOne()
     {
 
-        
+
         // Validate input
         if (!$this->validate(['id_user' => 'required|integer'])) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->response->setJSON(['success' => false, 'messages' => $this->validator->getErrors()]);
         }
         $id = $this->request->getPost('id_user');
 
@@ -153,24 +153,26 @@ class Pengguna extends BaseController
 
 
 
-        
+
         // Validate input
         if (!$this->validate(['id' => 'required|integer'])) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->response->setJSON(['success' => false, 'messages' => $this->validator->getErrors()]);
         }
         $id = $this->request->getPost('id');
-        
+
         // Validate input
         if (!$this->validate(['username' => 'required|max_length[255]'])) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->response->setJSON(['success' => false, 'messages' => $this->validator->getErrors()]);
         }
         $username = $this->request->getPost('username');
+        $email = $this->request->getPost('email');
         $fields['active'] = $this->request->getPost('active');
 
         $fields['updated_at'] = date('Y-m-d H:i:s');
 
         //bypass username validation if 
         $u = 'required|min_length[4]|max_length[20]|is_unique[users.username]';
+        $e = 'required|valid_email|is_unique[users.email]';
         $c = $this->userModel->where('id', $id)->first();
 
 
@@ -201,36 +203,54 @@ class Pengguna extends BaseController
 
                 'rules' => $u,
                 'errors' => [
-                    'required' => '{field} Harus diisi',
-                    'min_length' => '{field} Minimal 4 Karakter',
-                    'max_length' => '{field} Maksimal 20 Karakter',
+                    'required' => 'Username Harus diisi',
+                    'min_length' => 'Username Minimal 4 Karakter',
+                    'max_length' => 'Username Maksimal 20 Karakter',
                     'is_unique' => 'Username sudah digunakan sebelumnya'
                 ]
 
             ];
         };
 
+        if ($email && $c->email != $email) {
+            $fields['email'] = $email;
+            $valid['email'] = [
+                'rules' => $e,
+                'errors' => [
+                    'required' => 'Email Harus diisi',
+                    'valid_email' => 'Format Email tidak valid',
+                    'is_unique' => 'Email sudah digunakan sebelumnya'
+                ]
+            ];
+        }
+
         $this->validation->setRules($valid);
-      
+
         if ($this->validation->run($fields) == FALSE) {
             $response['success'] = false;
-            $response['messages'] = $this->validation->listErrors();
+            $response['messages'] = $this->validation->getErrors();
         } else {
-            //encrypt password
-            $fields['password_hash'] = Password::hash($this->request->getVar('password'));
+            //encrypt password if provided
+            $newPassword = $this->request->getVar('password');
+            if (!empty($newPassword)) {
+                $fields['password_hash'] = Password::hash($newPassword);
+            }
+            unset($fields['password']); // Remove raw password from fields array
 
             if ($this->userModel->update($id, $fields)) {
 
                 //cahnge group/divisi
-                $this->changeGroup($id, $k->id_divisi);
-                $this->chnagePermission($id, $k->id_level);
+                if ($k) {
+                    $this->changeGroup($id, $k->id_divisi);
+                    $this->chnagePermission($id, $k->id_level);
+                }
 
                 $response['success'] = true;
                 $response['messages'] = 'Successfully updated';
             } else {
 
                 $response['success'] = false;
-                $response['messages'] = 'Update error!';
+                $response['messages'] = 'Update error: ' . implode(', ', $this->userModel->errors());
             }
         }
 
@@ -252,10 +272,10 @@ class Pengguna extends BaseController
 
         $fields['created_at'] = date('Y-m-d H:i:s');
 
-        
+
         // Validate input
         if (!$this->validate(['nik' => 'required|max_length[255]'])) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->response->setJSON(['success' => false, 'messages' => $this->validator->getErrors()]);
         }
         $nik = $this->request->getPost('nik');
         //get karyawan data
@@ -290,7 +310,7 @@ class Pengguna extends BaseController
 
         if ($this->validation->run($fields) == FALSE) {
             $response['success'] = false;
-            $response['messages'] = $this->validation->listErrors();
+            $response['messages'] = $this->validation->getErrors();
         } else {
 
             //encrypt password
@@ -325,10 +345,10 @@ class Pengguna extends BaseController
         $response = array();
         $response['token'] = csrf_hash();
 
-        
+
         // Validate input
         if (!$this->validate(['active' => 'required|max_length[255]'])) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            return $this->response->setJSON(['success' => false, 'messages' => $this->validator->getErrors()]);
         }
         $st = $this->request->getPost('active');
         $f['id'] = $this->request->getPost('id');
@@ -341,7 +361,7 @@ class Pengguna extends BaseController
         } else {
 
             $response['success'] = false;
-            $response['messages'] = 'Update error!';
+            $response['messages'] = 'Update error: ' . implode(', ', $this->userModel->errors());
         }
 
         return $this->response->setJSON($response);

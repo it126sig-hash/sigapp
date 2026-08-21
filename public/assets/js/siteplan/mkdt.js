@@ -181,6 +181,32 @@
   },
 });
 
+$("#idk-kode_referal").select2({
+  placeholder: " ",
+  allowClear: true,
+  dropdownParent: $('#modal-isi_data_konsumen'),
+  ajax: {
+    url: base_url + "api/mgm/search-options",
+    dataType: "json",
+    delay: 250,
+    method: "post",
+    data: function (params) {
+      return {
+        [csrfName]: csrfHash,
+        q: params.term,
+        // Kirimkan id_proyek aktif. Karena ini di siteplan, proyek sudah terfilter 
+        id_proyek: typeof dt_proyek !== 'undefined' ? dt_proyek.id_proyek : '' 
+      };
+    },
+    processResults: function (r) {
+      return {
+        results: r.results,
+      };
+    },
+    cache: false,
+  },
+});
+
 
 const containerIsiKonsumen = $("#tab-isi-konsumen");
 let latestIsiDataKonsumenRequestId = 0;
@@ -861,6 +887,13 @@ function fillMkdt(v) {
   setVal("#idk-instansi_pasangan", v.instansi_pasangan);
 
   setVal("#idk-sales", v.sales);
+
+  if (v.referred_by_kode) {
+    let option = new Option(v.referred_by_kode + ' - ' + v.referred_by_nama, v.referred_by_kode, true, true);
+    $("#idk-kode_referal").append(option).trigger('change');
+  } else {
+    $("#idk-kode_referal").val(null).trigger('change');
+  }
 
   setVal("#idk-is_kpr", v.is_kpr);
   setVal("#idk-is_subsidi", v.is_subsidi);

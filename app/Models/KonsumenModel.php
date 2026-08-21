@@ -13,6 +13,7 @@ class KonsumenModel extends Model {
 	
 	protected $allowedFields = [
 		'id_konsumen',
+		'kode_referal',
 		'no_spptb',
 		'nama_konsumen',
 		'npwp',

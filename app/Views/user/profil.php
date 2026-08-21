@@ -116,6 +116,21 @@ if ($displayName === '') {
                                 </div>
 
                                 <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        name="email"
+                                        class="form-control <?= isset($errors['email']) ? 'is-invalid' : '' ?>"
+                                        value="<?= old('email', esc($profile->email ?? '')) ?>"
+                                        maxlength="255"
+                                        required>
+                                    <?php if (isset($errors['email'])) : ?>
+                                        <div class="invalid-feedback"><?= esc($errors['email']) ?></div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="form-group">
                                     <label for="profile_photo">Foto Profil</label>
                                     <input
                                         type="file"
@@ -127,6 +142,20 @@ if ($displayName === '') {
                                     <?php if (isset($errors['profile_photo'])) : ?>
                                         <div class="invalid-feedback d-block"><?= esc($errors['profile_photo']) ?></div>
                                     <?php endif; ?>
+                                </div>
+
+                                <div class="divider divider-left">
+                                    <div class="divider-text">Pengaturan Notifikasi</div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <div class="custom-control custom-switch custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="email_notif_enabled" name="email_notif_enabled" <?= (isset($profile->email_notif_enabled) && $profile->email_notif_enabled) ? 'checked' : '' ?>>
+                                        <label class="custom-control-label" for="email_notif_enabled">
+                                        Terima Rangkuman Notifikasi via Email
+                                        </label>
+                                    </div>
+                                    <small class="form-text text-muted">Kami akan mengirimkan email rangkuman notifikasi jika Anda tidak sedang aktif di aplikasi.</small>
                                 </div>
 
                                 <div class="divider divider-left">

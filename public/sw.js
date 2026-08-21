@@ -104,3 +104,36 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(cacheFirst(request));
   }
 });
+
+self.addEventListener('push', function(event) {
+  const data = event.data ? event.data.json() : {};
+  const title = data.title || 'SIGAPP';
+  const options = {
+      body: data.body || 'Ada notifikasi baru',
+      icon: scopedUrl('assets/images/pwa/icon-192.png'),
+      badge: scopedUrl('assets/images/pwa/icon-192.png'),
+      data: { url: data.url || '/' },
+      tag: data.tag || 'sigapp-notif',
+      renotify: true
+  };
+  
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  const url = event.notification.data.url || '/';
+  event.waitUntil(
+      clients.matchAll({ type: 'window' }).then(windowClients => {
+          for (var i = 0; i < windowClients.length; i++) {
+              var client = windowClients[i];
+              if (client.url === scopedUrl(url) && 'focus' in client) {
+                  return client.focus();
+              }
+          }
+          if (clients.openWindow) {
+              return clients.openWindow(url);
+          }
+      })
+  );
+});

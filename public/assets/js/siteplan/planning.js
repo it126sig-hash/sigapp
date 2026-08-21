@@ -1,8 +1,18 @@
-
-    function tambah_kavling() {
+    function tambah_kavling(from_pilih_seleksi = false) {
         if (editdtt.length > 0) {
             return swal('error', "Terjadi Kesalahan.", "Lokasi sudah diisi oleh kavling lain")
         }
+
+        if (dtt.length === 0 && !from_pilih_seleksi) {
+            $("#btn_pilih_seleksi, #btn_batal_seleksi, #container_tambah_jalan, #planning_undo_manual_selection").removeClass('d-none').show();
+            $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").hide();
+            return;
+        }
+
+        if (dtt.length === 0 && from_pilih_seleksi) {
+            return swal('warning', 'Peringatan', 'Harus ada seleksi di canvas!');
+        }
+
         $("#fm-add_kavling")
 
         let shape
@@ -41,6 +51,15 @@
             keyboard: false
         });
         $("#points").val(dtt);
+    }
+
+    function batal_tambah_kavling() {
+        $("#btn_pilih_seleksi, #btn_batal_seleksi, #container_tambah_jalan, #planning_undo_manual_selection").hide();
+        $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").show();
+        
+        if ($("#tambah_jalan").prop("checked")) {
+            $("#tambah_jalan").prop("checked", false).trigger('change');
+        }
     }
 
     /**************************** planning ***************************** */

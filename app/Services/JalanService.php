@@ -6,6 +6,8 @@ use App\Models\JalanModel;
 use App\Models\ProyekModel;
 use App\Repositories\JalanRepository;
 use CodeIgniter\HTTP\IncomingRequest;
+use App\Services\HistoryService;
+use App\Controllers\Notif;
 
 class JalanService
 {
@@ -13,6 +15,8 @@ class JalanService
     private ProyekModel $proyekModel;
     private JalanRepository $jalanRepository;
     private $validation;
+    private HistoryService $historyService;
+    private Notif $notif;
 
     public function __construct()
     {
@@ -20,6 +24,8 @@ class JalanService
         $this->proyekModel = new ProyekModel();
         $this->jalanRepository = new JalanRepository();
         $this->validation = \Config\Services::validation();
+        $this->historyService = new HistoryService();
+        $this->notif = new Notif();
     }
 
     public function getIndexData(): array
@@ -94,6 +100,17 @@ class JalanService
         }
 
         if ($this->jalanModel->insert($fields)) {
+            $insertId = (int) $this->jalanModel->getInsertID();
+            $this->historyService->log('master_jalan', [
+                'reference_type' => 'jalan',
+                'reference_id' => $insertId,
+                'action' => 'insert',
+                'new_data' => $fields
+            ]);
+            $db = db_connect();
+            $idProyek = $db->table('cluster')->select('id_proyek')->where('id_cluster', $fields['id_cluster'])->get()->getRow()->id_proyek ?? null;
+            $this->notif->tambah_notif("6", "Menambahkan Master Jalan: " . ($fields['nama_jalan'] ?? ''), user_id(), null, null, null, $idProyek);
+
             return ['success' => true, 'messages' => 'Data has been inserted successfully'];
         }
 
@@ -114,7 +131,19 @@ class JalanService
             return ['success' => false, 'messages' => $validation];
         }
 
+        $oldData = $this->jalanModel->find($idJalan);
         if ($this->jalanModel->update($idJalan, $fields)) {
+            $this->historyService->log('master_jalan', [
+                'reference_type' => 'jalan',
+                'reference_id' => $idJalan,
+                'action' => 'update',
+                'old_data' => $oldData,
+                'new_data' => $fields
+            ]);
+            $db = db_connect();
+            $idProyek = $db->table('cluster')->select('id_proyek')->where('id_cluster', $fields['id_cluster'])->get()->getRow()->id_proyek ?? null;
+            $this->notif->tambah_notif("6", "Mengubah Master Jalan: " . ($fields['nama_jalan'] ?? ''), user_id(), null, null, null, $idProyek);
+
             return ['success' => true, 'messages' => 'Successfully updated'];
         }
 

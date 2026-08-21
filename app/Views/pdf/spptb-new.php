@@ -131,7 +131,7 @@ function title_case($s)
 // salah hitung lebar float:right di sebelahnya walau <img> sudah diberi width/height
 // eksplisit. background-image tidak dibaca dimensi aslinya oleh mPDF, jadi float aman.
 $logoSrc = (new \App\Services\FileAccessService())->existingPath($proyek->logo) ?: base_url($proyek->logo);
-$logoHeight = 150;
+$logoHeight = 130;
 $logoWidth = $logoHeight;
 if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
     $logoWidth = (int) round($logoHeight * $logoDims[0] / $logoDims[1]);
@@ -147,7 +147,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
 
 <div style="overflow: hidden;">
     <div style="float: left; width: <?= $logoWidth ?>px; height: <?= $logoHeight ?>px; background-image: url('<?= $logoSrc ?>'); background-size: contain; background-repeat: no-repeat; background-position: left top;"></div>
-    <div style="float: right; width: 55mm;">
+    <div style="float: right; width: 60mm;">
         <div style="border: 1px solid #111; padding: 4px 8px; font-size: 8pt;">
             Asli : Keuangan Pusat<br>
             Copy 1 : Konsumen<br>
@@ -159,6 +159,9 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
         </div>
         <div style="font-size: 12pt;">
             <strong>No. SPPTB : <?= strtoupper($data->no_spptb) ?></strong>
+        </div>
+        <div style="font-size: 10pt; margin-top: 4px;">
+            <strong>Kode Referal: <?= empty($data->kode_referal) ? '-' : strtoupper($data->kode_referal) ?></strong>
         </div>
     </div>
 </div>
@@ -302,6 +305,14 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
         <tr>
             <td></td>
             <td>2. Di bidang apa? <b><?= strtoupper($data->bidang_pekerjaan) ?></b></td>
+        </tr>
+        <tr>
+            <td class="td-width" valign="top" style="padding-top: 10px;">
+                Direferensikan oleh
+            </td>
+            <td valign="top" style="padding-top: 10px;">
+                : <?= !empty($data->referred_by_kode) ? strtoupper($data->referred_by_kode) . ' (' . title_case($data->referred_by_nama) . ')' : '-' ?>
+            </td>
         </tr>
     </tbody>
 </table>

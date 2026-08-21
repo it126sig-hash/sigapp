@@ -24,24 +24,54 @@ class NotifikasiService
         else
             $this->group_id = session()->group_id;
     }
-    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null)
+    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null)
     {
-
-        $data = [
-            'notif' => $notif,
-            'group_target' => $target,
-            'type' => $type,
-            'is_read' => 0,
-            'add_by' => $add_by,
-            'id_kavling' => $id_kavling,
-            'id_konsumen' => $id_konsumen,
-            'created_at' => date('Y-m-d H:i:s')
-        ];
-        return $this->db->table('notification')
-            ->insert($data);
+        if (is_array($id_kavling)) {
+            $id_kavling = $id_kavling[0] ?? null;
+        }
+        if (is_array($target)) {
+            $batchData = [];
+            foreach ($target as $t) {
+                $batchData[] = [
+                    'notif' => $notif,
+                    'group_target' => $t,
+                    'add_by' => $add_by,
+                    'id_kavling' => $id_kavling,
+                    'id_konsumen' => $id_konsumen,
+                    'type' => $type,
+                    'id_proyek' => $id_proyek,
+                    'is_read' => 0,
+                    'created_at' => date('Y-m-d H:i:s')
+                ];
+            }
+            $this->db->table('notification')->insertBatch($batchData);
+            $insertId = $this->db->insertID(); // Approximate, we will use it for triggers
+            
+            foreach ($target as $t) {
+                $this->triggerNotifSideEffects($insertId, $t, null, $notif, $add_by);
+            }
+            return $insertId;
+        } else {
+            $data = [
+                'notif' => $notif,
+                'group_target' => $target,
+                'type' => $type,
+                'is_read' => 0,
+                'add_by' => $add_by,
+                'id_kavling' => $id_kavling,
+                'id_konsumen' => $id_konsumen,
+                'id_proyek' => $id_proyek,
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+            $this->db->table('notification')->insert($data);
+            $insertId = $this->db->insertID();
+            
+            $this->triggerNotifSideEffects($insertId, $target, null, $notif, $add_by);
+            return $insertId;
+        }
     }
 
-    function tambah_notif_user($user_id, $notif, $add_by, $id_kavling, $id_konsumen, $type = null)
+    function tambah_notif_user($user_id, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null)
     {
         $data = [
             'notif' => $notif,
@@ -52,11 +82,41 @@ class NotifikasiService
             'add_by' => $add_by,
             'id_kavling' => $id_kavling,
             'id_konsumen' => $id_konsumen,
+            'id_proyek' => $id_proyek,
             'created_at' => date('Y-m-d H:i:s')
         ];
-        return $this->db->table('notification')
-            ->insert($data);
+        $this->db->table('notification')->insert($data);
+        $insertId = $this->db->insertID();
+        
+        $this->triggerNotifSideEffects($insertId, null, $user_id, $notif, $add_by);
+        return $insertId;
     }
+    
+    protected function triggerNotifSideEffects($notificationId, $targetGroup, $targetUser, $notifMsg, $actorId)
+    {
+        // 1. Queue email
+        $this->db->table('notification_email_queue')->insert([
+            'notification_id' => $notificationId,
+            'target_group' => $targetGroup,
+            'target_user_id' => $targetUser,
+            'actor_user_id' => $actorId,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+        
+        // 2. Web Push Notification
+        // Panggil push service secara async (bisa blocking dikit, sebaiknya dipisah ke job queue di masa depan)
+        try {
+            $pushService = new \App\Services\WebPushService();
+            if ($targetUser) {
+                $pushService->sendToUser($targetUser, 'SIGAPP', $notifMsg);
+            } else if ($targetGroup) {
+                $pushService->sendToGroup($targetGroup, 'SIGAPP', $notifMsg, '/', $actorId);
+            }
+        } catch (\Exception $e) {
+            log_message('error', 'Push Notif Error: ' . $e->getMessage());
+        }
+    }
+
     function getNotif($all = false){
         $r['token'] = csrf_hash();
 

@@ -66,8 +66,9 @@ class TiketMasalahController extends BaseController
             'ref_id' => 'required|numeric',
             'id_proyek' => 'required|numeric',
             'tanggal_masalah' => 'required|valid_date[Y-m-d]',
+            'tanggal_kunjungan' => 'permit_empty|valid_date[Y-m-d]',
             'keterangan' => 'required',
-            'prioritas' => 'required|in_list[urgent,medium,normal,low]',
+            'prioritas' => 'required|in_list[urgent,medium,normal,low,laporan]',
         ];
 
         if (!$this->validate($rules)) {
@@ -83,6 +84,35 @@ class TiketMasalahController extends BaseController
             return $this->respondCreated(['success' => true, 'message' => 'Tiket berhasil dibuat', 'id' => $result['id']]);
         }
         return $this->fail('Gagal membuat tiket');
+    }
+
+    public function update()
+    {
+        $rules = [
+            'id_tiket_masalah' => 'required|numeric',
+            'ref_type' => 'required|in_list[kavling,others]',
+            'ref_id' => 'required|numeric',
+            'id_proyek' => 'required|numeric',
+            'tanggal_masalah' => 'required|valid_date[Y-m-d]',
+            'tanggal_kunjungan' => 'permit_empty|valid_date[Y-m-d]',
+            'keterangan' => 'required',
+            'prioritas' => 'required|in_list[urgent,medium,normal,low,laporan]',
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->failValidationErrors($this->validator->getErrors());
+        }
+
+        $idTiket = (int) $this->request->getPost('id_tiket_masalah');
+        $data = $this->request->getPost();
+        $files = $this->request->getFiles();
+
+        $result = $this->service->updateTiket($idTiket, $data, $files['foto'] ?? []);
+
+        if ($result['success']) {
+            return $this->respond(['success' => true, 'message' => 'Tiket berhasil diperbarui', 'id' => $idTiket]);
+        }
+        return $this->fail($result['message'] ?? 'Gagal memperbarui tiket');
     }
 
     public function addProgress()
@@ -107,6 +137,29 @@ class TiketMasalahController extends BaseController
         return $this->fail($result['message'] ?? 'Gagal menambahkan progress');
     }
 
+    public function togglePin()
+    {
+        $rules = [
+            'id_progress' => 'required|numeric',
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->failValidationErrors($this->validator->getErrors());
+        }
+
+        $idProgress = (int) $this->request->getPost('id_progress');
+        $result = $this->service->togglePinProgress($idProgress);
+
+        if ($result['success']) {
+            return $this->respond([
+                'success' => true,
+                'message' => $result['is_pinned'] ? 'Progress berhasil dipin' : 'Progress berhasil di-unpin',
+                'is_pinned' => $result['is_pinned']
+            ]);
+        }
+        return $this->fail($result['message'] ?? 'Gagal mengubah pin progress');
+    }
+
     public function refInfo()
     {
         $refType = $this->request->getPost('ref_type');
@@ -128,5 +181,59 @@ class TiketMasalahController extends BaseController
     {
         $users = $this->service->getUserList();
         return $this->respond(['success' => true, 'data' => $users]);
+    }
+
+    public function datatable()
+    {
+        $params = $this->request->getPost();
+        $result = $this->service->getDatatableData($params);
+        return $this->respond($result);
+    }
+
+    public function createOthersArea()
+    {
+        $idJalan = (int) $this->request->getPost('id_jalan');
+        $points  = trim((string) $this->request->getPost('points'));
+        $tipe    = trim((string) $this->request->getPost('tipe'));
+        $nama    = trim((string) $this->request->getPost('nama'));
+
+        $pointList = array_filter(array_map('trim', explode(',', $points)), static function ($point) {
+            return $point !== '';
+        });
+
+        if (count($pointList) < 6 || count($pointList) % 2 !== 0) {
+            return $this->fail('Seleksi manual minimal 3 titik', 400);
+        }
+
+        if (!in_array($tipe, ['jalan', 'fasos', 'rth', 'fasum'])) {
+            return $this->fail('Tipe tidak valid', 400);
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $fields = [
+            'id_jalan'             => $idJalan > 0 ? $idJalan : null,
+            'tipe'                 => $tipe,
+            'nama'                 => $nama !== '' ? $nama : null,
+            'scope'                => 'masalah',
+            'points'               => implode(',', $pointList),
+            'planning_add_by'      => user_id(),
+            'planning_created_at'  => $now,
+            'planning_edit_by'     => user_id(),
+            'planning_updated_at'  => $now,
+            'produksi_add_by'      => user_id(),
+            'produksi_created_at'  => $now,
+            'produksi_edit_by'     => user_id(),
+            'produksi_updated_at'  => $now,
+            'legal_add_by'         => user_id(),
+            'legal_created_at'     => $now,
+            'legal_edit_by'        => user_id(),
+            'legal_updated_at'     => $now,
+        ];
+
+        $db = \Config\Database::connect();
+        $db->table('others')->insert($fields);
+        $insertId = $db->insertID();
+
+        return $this->respond(['success' => true, 'data' => ['id' => $insertId]]);
     }
 }

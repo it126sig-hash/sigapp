@@ -624,10 +624,14 @@ foreach (user()->getRoles() as $key => $val) {
     #menu {
         display: none;
         position: absolute;
-        width: 80px;
+        min-width: 175px;
         background-color: white;
-        box-shadow: 0 0 5px grey;
-        border-radius: 3px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+        border-radius: 5px;
+        border: 1px solid rgba(0,0,0,0.08);
+        z-index: 9999;
+        overflow: hidden;
+        padding: 3px 0;
     }
 
     #menu button {
@@ -635,11 +639,33 @@ foreach (user()->getRoles() as $key => $val) {
         background-color: white;
         border: none;
         margin: 0;
-        padding: 10px;
+        padding: 8px 14px;
+        text-align: left;
+        cursor: pointer;
+        white-space: nowrap;
+        font-size: 13px;
     }
 
     #menu button:hover {
-        background-color: lightgray;
+        background-color: #f0f4ff;
+        color: #3b5bdb;
+    }
+
+    #menu .ctx-menu-header {
+        padding: 5px 14px 3px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        background: #fafafa;
+        cursor: default;
+    }
+
+    #menu .ctx-menu-divider {
+        height: 1px;
+        background: #e8e8e8;
+        margin: 3px 0;
     }
 
     #div_filter {
@@ -1175,39 +1201,86 @@ foreach (user()->getRoles() as $key => $val) {
                             <div id="menu">
                                 <div>
                                     <button id="menu-btn-lihat_detail">Detail</button>
-                                    <!-- <button id="menu-btn-input">Isi/Ubah</button> -->
                                 </div>
+                                <div id="menu-dynamic-items"></div>
                             </div>
                         </div>
                         <div class="col-md-3 d-md-block" style="overflow-y:auto" id="filter-side">
-                            <div class="form-group">
-                                <select id="pilih-divisi" class="form-control-sm select2">
-                                    <option value="0">Pilih Divisi</option>
-                                    <!-- <option value="8" class="dropdown-item">Sales & Promotion</option> -->
-                                    <option value="7" class="dropdown-item">Produksi</option>
-                                    <option value="4" class="dropdown-item">Marketing Data</option>
-                                    <option value="5" class="dropdown-item">Legal & Pertanahan</option>
-                                    <option value="10" class="dropdown-item">Pajak</option>
-                                    <option value="3" class="dropdown-item">Keuangan</option>
-                                    <option value="6" class="dropdown-item">Planning</option>
-                                    <option value="11" class="dropdown-item">Target</option>
-                                    <!-- <option value="9" class="dropdown-item">Management</option> -->
-                                </select>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <button onclick="load_kavling()" class="btn btn-sm w-100 btn-primary mt-1">
-                                            <i class="fa fa-refresh"></i> Muat Ulang</button>
+                            <form id="form-filter-kategori">
+                                <div class="form-group">
+                                    <select id="pilih-divisi" class="form-control-sm select2">
+                                        <optgroup label="Departemen">
+                                            <option value="0">Pilih Filter</option>
+                                            <!-- <option value="8" class="dropdown-item">Sales & Promotion</option> -->
+                                            <option value="7" class="dropdown-item">Produksi</option>
+                                            <option value="4" class="dropdown-item">Marketing Data</option>
+                                            <option value="5" class="dropdown-item">Legal & Pertanahan</option>
+                                            <option value="10" class="dropdown-item">Pajak</option>
+                                            <option value="3" class="dropdown-item">Keuangan</option>
+                                            <option value="6" class="dropdown-item">Planning</option>
+                                            <option value="11" class="dropdown-item">Target</option>
+                                            <!-- <option value="9" class="dropdown-item">Management</option> -->
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <select id="filter-id_cluster" name="id_cluster" class="select2 select-sm form-control-sm"></select>
+                                </div>
+                                <div class="form-group">
+                                    <select disabled id="filter-id_jalan" name="id_jalan" class="select-sm form-control-sm select2"></select>
+                                </div>
+
+                                <div id="filter-periode-container" style="display:none;">
+                                    <div class="divider divider-left mt-2 mb-1">
+                                        <div class="divider-text">Periode Tanggal</div>
                                     </div>
-                                    <div class="col-6 pl-0">
-                                        <button id="filter-btn-modal" class="btn btn-sm w-100 btn-outline-primary mt-1" data-toggle="modal"
-                                            data-target="#modal-setting-filter"><i class="fa fa-filter"></i> Filter</button>
+                                    <div class="form-group">
+                                        <label>Tanggal Mulai</label>
+                                        <input type="date" class="form-control form-control-sm" name="periode_mulai" id="filter-periode-mulai">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Tanggal Selesai</label>
+                                        <input type="date" class="form-control form-control-sm" name="periode_selesai" id="filter-periode-selesai">
                                     </div>
                                 </div>
 
-                            </div>
+                                <div class="divider divider-left mt-2 filter-masalah-options" style="display:none;">
+                                    <div class="divider-text">Opsi Masalah</div>
+                                </div>
+                                <div class="form-group filter-masalah-options" id="filter-status-masalah-container" style="display:none;">
+                                    <label>Status Masalah</label>
+                                    <select name="status_masalah" id="filter-status-masalah" class="form-control form-control-sm">
+                                        <option value="">Semua Status (yang belum selesai)</option>
+                                        <option value="draft">Draft</option>
+                                        <option value="dibuat">Baru Dibuat</option>
+                                        <option value="dalam_proses">Progress</option>
+                                        <option value="selesai">Selesai</option>
+                                        <option value="batal">Batal</option>
+                                        <option value="hold">Hold</option>
+                                    </select>
+                                </div>
+                                <div class="form-group filter-masalah-options" id="filter-periode-masalah-jenis-container" style="display:none;">
+                                    <label>Berdasarkan Tanggal</label>
+                                    <select name="periode_masalah_jenis" id="filter-periode-masalah-jenis" class="form-control form-control-sm">
+                                        <option value="tgl_buat">Tanggal Buat Tiket</option>
+                                        <option value="tgl_selesai">Tanggal Selesai Tiket</option>
+                                    </select>
+                                </div>
 
-                            <div class="divider divider-left">
-                                <div class="divider-text">Filter</div>
+                                <div class="row mt-1">
+                                    <div class="col-6">
+                                        <button type="button" onclick="apply_server_filter()" class="btn btn-sm w-100 btn-primary">
+                                            <i class="fa fa-filter"></i> Terapkan</button>
+                                    </div>
+                                    <div class="col-6 pl-0">
+                                        <button type="button" onclick="reset_server_filter()" class="btn btn-sm w-100 btn-outline-warning">
+                                            <i class="fa fa-times"></i> Reset</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <div class="divider divider-left mt-2">
+                                <div class="divider-text">Active Filter</div>
                             </div>
                             <div id="active-filter-tags" class="mb-1">
                                 <!-- Rendered by JS: badges showing active filters -->
@@ -1227,72 +1300,6 @@ foreach (user()->getRoles() as $key => $val) {
             </div>
         </div>
         <!--/ Kick start -->
-    </div>
-</div>
-<!--#################################### Modal Filter/Setting #########################################-->
-<div class="modal modal-slide-in fade" id="modal-setting-filter">
-    <div class="modal-dialog sidebar-sm">
-        <div class="add-new-record modal-content pt-0">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
-            <div class="modal-header mb-1">
-                <h5 class="modal-title" id="exampleModalLabel">Pengaturan Filter Kategori</h5>
-            </div>
-            <div class="modal-body flex-grow-1" style="overflow-y: auto;">
-                <form id="form-filter-kategori">
-                    <div class="form-group">
-                        <select id="filter-id_cluster" name="id_cluster"
-                            class="select2 select-sm form-control-sm"></select>
-                    </div>
-                    <div class="form-group">
-                        <select disabled id="filter-id_jalan" name="id_jalan"
-                            class="select-sm form-control-sm select2 "></select>
-                    </div>
-                    <div class="form-group" id="filter-kategori-checkboxes">
-                        <!-- Checkboxes will be rendered here by JS -->
-                    </div>
-
-
-                    <div id="filter-periode-container" style="display:none;">
-                        <div class="divider divider-left mt-2">
-                            <div class="divider-text">Periode Tanggal</div>
-                        </div>
-                        <div class="form-group">
-                            <label>Tanggal Mulai</label>
-                            <input type="date" class="form-control form-control-sm" name="periode_mulai" id="filter-periode-mulai">
-                        </div>
-                        <div class="form-group">
-                            <label>Tanggal Selesai</label>
-                            <input type="date" class="form-control form-control-sm" name="periode_selesai" id="filter-periode-selesai">
-                        </div>
-                    </div>
-
-                    <div class="divider divider-left mt-2 filter-masalah-options" style="display:none;">
-                        <div class="divider-text">Opsi Masalah</div>
-                    </div>
-                    <div class="form-group filter-masalah-options" id="filter-status-masalah-container" style="display:none;">
-                        <label>Status Masalah</label>
-                        <select name="status_masalah" id="filter-status-masalah" class="form-control form-control-sm">
-                            <option value="">Semua Status (yang belum selesai)</option>
-                            <option value="dibuat">Baru Dibuat</option>
-                            <option value="dalam_proses">Progress</option>
-                            <option value="selesai">Selesai</option>
-                            <option value="batal">Batal</option>
-                            <option value="hold">Hold</option>
-                        </select>
-                    </div>
-                    <div class="form-group filter-masalah-options" id="filter-periode-masalah-jenis-container" style="display:none;">
-                        <label>Berdasarkan Tanggal</label>
-                        <select name="periode_masalah_jenis" id="filter-periode-masalah-jenis" class="form-control form-control-sm">
-                            <option value="tgl_buat">Tanggal Buat Tiket</option>
-                            <option value="tgl_selesai">Tanggal Selesai Tiket</option>
-                        </select>
-                    </div>
-
-                    <button type="button" class="btn btn-primary col-12 mt-2" onclick="apply_server_filter()">Terapkan Filter</button>
-                    <button type="button" class="btn btn-outline-warning col-12 mt-1" onclick="reset_server_filter()">Reset Filter</button>
-                </form>
-            </div>
-        </div>
     </div>
 </div>
 

@@ -46,6 +46,18 @@ class KavlingRepository
 
         return $row ? (int) $row->id_proyek : null;
     }
+
+    public function getIdProyekByKavling(int $id_kavling): ?int
+    {
+        $row = $this->db->table('kavling')
+            ->select('cluster.id_proyek')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->where('kavling.id_kavling', $id_kavling)
+            ->get()->getRow();
+
+        return $row ? (int) $row->id_proyek : null;
+    }
     public function getKavlingById(int $idKavling): ?object
     {
         return $this->model->select('
@@ -284,6 +296,45 @@ class KavlingRepository
         }
 
         if (!empty($kategoriFilters['kategori'])) {
+            if (in_array('Masalah', $kategoriFilters['kategori'])) {
+                $statusMasalah = $kategoriFilters['status_masalah'] ?? null;
+                $periodeMulai = $kategoriFilters['periode_mulai'] ?? null;
+                $periodeSelesai = $kategoriFilters['periode_selesai'] ?? null;
+                $periodeMasalahJenis = $kategoriFilters['periode_masalah_jenis'] ?? null;
+
+                $statusSql = "";
+                if ($statusMasalah) {
+                    $statusSql = "AND tm.status = " . $this->db->escape($statusMasalah);
+                } else {
+                    $statusSql = "AND tm.status != 'selesai'";
+                }
+
+                $dateSql = "";
+                $dateCol = ($periodeMasalahJenis === 'tgl_selesai') ? "tmp.created_at" : "tm.tanggal_masalah";
+
+                if ($periodeMulai && $periodeSelesai) {
+                    $dateSql = "AND $dateCol >= " . $this->db->escape($periodeMulai) . " AND $dateCol <= " . $this->db->escape($periodeSelesai);
+                } elseif ($periodeMulai) {
+                    $dateSql = "AND $dateCol >= " . $this->db->escape($periodeMulai);
+                } elseif ($periodeSelesai) {
+                    $dateSql = "AND $dateCol <= " . $this->db->escape($periodeSelesai);
+                }
+
+                if ($periodeMasalahJenis === 'tgl_selesai' && $dateSql !== "") {
+                    $builder->select("(
+                        SELECT tm.prioritas FROM tiket_masalah_progress tmp 
+                        JOIN tiket_masalah tm ON tmp.id_tiket_masalah = tm.id 
+                        WHERE tm.ref_type = 'kavling' AND tm.ref_id = kavling.id_kavling AND tmp.status_sesudah = 'selesai' 
+                        $statusSql $dateSql
+                        ORDER BY tm.created_at DESC LIMIT 1
+                    ) as prioritas_masalah", false);
+                } else {
+                    $builder->select("(SELECT tm.prioritas FROM tiket_masalah tm 
+                        WHERE tm.ref_type = 'kavling' AND tm.ref_id = kavling.id_kavling 
+                        $statusSql $dateSql
+                        ORDER BY tm.created_at DESC LIMIT 1) as prioritas_masalah", false);
+                }
+            }
             $this->applyKategoriFilter($builder, $kategoriFilters);
         }
 
@@ -352,10 +403,8 @@ class KavlingRepository
     public function getKategoriOptions(int $idProyek): array
     {
         $options = [
-            ['key' => 'Sudah Akad', 'label' => 'Sudah Akad', 'has_periode' => true, 'cat' => 'Status kavling'],
-            ['key' => 'Akad Komersil', 'label' => 'Akad Komersil', 'has_periode' => true, 'cat' => 'Status kavling'],
-            ['key' => 'Akad Subsidi', 'label' => 'Akad Subsidi', 'has_periode' => true, 'cat' => 'Status kavling'],
-            ['key' => 'Booking', 'label' => 'Booking', 'has_periode' => true, 'cat' => 'Status kavling'],
+            ['key' => 'Akad & Booking', 'label' => 'Akad & Booking', 'has_periode' => true, 'cat' => 'Status kavling'],
+            ['key' => 'Akad Subsidi & Akad Komersil', 'label' => 'Akad Subsidi & Akad Komersil', 'has_periode' => true, 'cat' => 'Status kavling'],
             ['key' => 'Batal', 'label' => 'Batal', 'has_periode' => true, 'cat' => 'Status kavling'],
             ['key' => 'SP3K', 'label' => 'SP3K', 'has_periode' => true, 'cat' => 'Status kavling'],
             ['key' => 'Masalah', 'label' => 'Masalah', 'has_periode' => true, 'cat' => 'Masalah'],
@@ -421,23 +470,35 @@ class KavlingRepository
         };
 
         switch ($kategori) {
-            case 'Sudah Akad':
+            case 'Akad & Booking':
+                $builder->groupStart()
+                    ->groupStart()
+                        ->where('mkdt.status_mkdt', 'Akad');
+                        if ($periodeMulai && $periodeSelesai) {
+                            $builder->where('mkdt.akad_tgl >=', $periodeMulai);
+                            $builder->where('mkdt.akad_tgl <=', $periodeSelesai);
+                        } elseif ($periodeMulai) {
+                            $builder->where('mkdt.akad_tgl >=', $periodeMulai);
+                        } elseif ($periodeSelesai) {
+                            $builder->where('mkdt.akad_tgl <=', $periodeSelesai);
+                        }
+                    $builder->groupEnd()
+                    ->orGroupStart()
+                        ->where('mkdt.status_mkdt', 'Booking');
+                        if ($periodeMulai && $periodeSelesai) {
+                            $builder->where('mkdt.booking_tgl >=', $periodeMulai);
+                            $builder->where('mkdt.booking_tgl <=', $periodeSelesai);
+                        } elseif ($periodeMulai) {
+                            $builder->where('mkdt.booking_tgl >=', $periodeMulai);
+                        } elseif ($periodeSelesai) {
+                            $builder->where('mkdt.booking_tgl <=', $periodeSelesai);
+                        }
+                    $builder->groupEnd()
+                ->groupEnd();
+                break;
+            case 'Akad Subsidi & Akad Komersil':
                 $builder->where('mkdt.status_mkdt', 'Akad');
                 $dateCondition('mkdt.akad_tgl');
-                break;
-            case 'Akad Komersil':
-                $builder->where('mkdt.status_mkdt', 'Akad');
-                $builder->where('mkdt.is_subsidi', 0);
-                $dateCondition('mkdt.akad_tgl');
-                break;
-            case 'Akad Subsidi':
-                $builder->where('mkdt.status_mkdt', 'Akad');
-                $builder->where('mkdt.is_subsidi', 1);
-                $dateCondition('mkdt.akad_tgl');
-                break;
-            case 'Booking':
-                $builder->where('mkdt.status_mkdt', 'Booking');
-                $dateCondition('mkdt.booking_tgl');
                 break;
             case 'Batal':
                 $builder->groupStart()
@@ -451,7 +512,7 @@ class KavlingRepository
                 if ($statusMasalah) {
                     $statusSql = "AND tm.status = " . $this->db->escape($statusMasalah);
                 } else {
-                    $statusSql = "AND tm.status != 'selesai'";
+                    $statusSql = "AND tm.status NOT IN ('selesai', 'batal')";
                 }
 
                 $dateSql = "";

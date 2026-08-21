@@ -9,6 +9,7 @@ let sv_url,
         id_jalan: ''
     },
     filterwarna = {
+        Filter: null,
         Status: null,
         Subsidi: null,
         Komersil: null,
@@ -261,6 +262,7 @@ Date.prototype.toDateInputValue = (function() {
         // $("#pilih-divisi").select2("val", roleid)
         // change_div();
         load_menu();
+        loadSiteplanMenuItems(); // load dynamic context menu items
 
 
         // scaling layer to fit stage
@@ -408,10 +410,15 @@ Date.prototype.toDateInputValue = (function() {
     let filterwarnahitung = {};
 
     function set_fill2(e) { //test set fill dengan config dari db
-        // console.log(conf[e])
-        if (!conf[e])
-            e = "Warna Tidak Ditemukan"
-        set_fill(conf[e].fill, conf[e].stroke, conf[e].strokeWidth, conf[e].dashed)
+        if (!conf[e]) {
+            e = "Warna Tidak Ditemukan";
+        }
+        
+        if (conf[e]) {
+            set_fill(conf[e].fill, conf[e].stroke, conf[e].strokeWidth, conf[e].dashed);
+        } else {
+            set_fill('#d1d5db', '#000000', '0', null); // default
+        }
         return e;
     }
 
@@ -445,6 +452,7 @@ Date.prototype.toDateInputValue = (function() {
     function get_kategori_color(kategori) {
         if (conf[kategori]) return conf[kategori].fill;
         if (kategori == 'Belum Target') return '#f8fafc';
+
         if (String(kategori).indexOf('Target ') === 0) {
             const colors = ['#f59e0b', '#14b8a6', '#3b82f6', '#a855f7', '#ef4444', '#22c55e'];
             const year = parseInt(String(kategori).replace('Target ', ''), 10);
@@ -624,7 +632,7 @@ Date.prototype.toDateInputValue = (function() {
         $("#filter-kategori").append(`<option value="">Semua</option>`);
         let div = "",
             kv
-        // console.log(filterwarna)
+        console.log(filterwarna)
         $.each(filterwarna, function(i, v) {
             if (v) {
                 div += `
@@ -658,13 +666,11 @@ Date.prototype.toDateInputValue = (function() {
     }
     function getHitForFilter(filterKey, row, subsidi) {
         if (filterKey === 'Masalah') {
-            const statusMasalah = $('#filter-status-masalah').val();
-            if (statusMasalah === 'dalam_proses') return { fill: 'Masalah Progress', tipe: 'Filter' };
-            if (statusMasalah === 'selesai') return { fill: 'Masalah Selesai', tipe: 'Filter' };
-            if (statusMasalah === 'batal') return { fill: 'Masalah Batal', tipe: 'Filter' };
-            if (statusMasalah === 'hold') return { fill: 'Masalah Hold', tipe: 'Filter' };
-            if (statusMasalah === 'dibuat') return { fill: 'Masalah Baru Dibuat', tipe: 'Filter' };
-            return { fill: 'Status Masalah', tipe: 'Filter' };
+            const prio = row.prioritas_masalah ? row.prioritas_masalah.toLowerCase() : 'normal';
+            if (prio === 'urgent') return { fill: 'Masalah Urgent', tipe: 'Filter' };
+            if (prio === 'medium') return { fill: 'Masalah Medium', tipe: 'Filter' };
+            if (prio === 'low') return { fill: 'Masalah Low', tipe: 'Filter' };
+            return { fill: 'Masalah Normal', tipe: 'Filter' };
         }
 
         const hitMap = {
@@ -770,6 +776,7 @@ Date.prototype.toDateInputValue = (function() {
 
         hapus_seleksi();
         filterwarna = {
+            Filter: null,
             Status: null,
             Subsidi: null,
             Komersil: null,
@@ -1266,15 +1273,14 @@ Date.prototype.toDateInputValue = (function() {
             }
         });
 
-        //load jalan fasos rth
         siteplanOthersRequest = $.ajax({
             url: base_url + 'siteplan/get_others',
             type: 'post',
-            data: {
+            data: Object.assign({
                 [csrfName]: csrfHash,
                 id_proyek: dt_proyek.id_proyek,
                 id_role: va
-            },
+            }, getServerFilterData()),
             dataType: 'json',
             beforeSend: function() {
                 $("#loading").removeClass("hidden");
@@ -1290,6 +1296,7 @@ Date.prototype.toDateInputValue = (function() {
                 dashed = ""
 
                 var r = result.data
+                let activeKategori = $('#pilih-divisi').val() || [];
 
                 for (var p = 0; p < r.length; p++) {
                     if (r[p].tipe == "jalan")
@@ -1298,6 +1305,20 @@ Date.prototype.toDateInputValue = (function() {
                         set_fill("#9000ff", "#000", "0", null) // warna ungu
                     else if (r[p].tipe == "rth")
                         set_fill("#0f0", "#000", "0", null) // warna merah
+                    
+                    if (activeKategori.includes('Masalah')) {
+                        const prio = r[p].prioritas_masalah ? r[p].prioritas_masalah.toLowerCase() : 'normal';
+                        let hitFill = 'Masalah Normal';
+                        if (prio === 'urgent') hitFill = 'Masalah Urgent';
+                        else if (prio === 'medium') hitFill = 'Masalah Medium';
+                        else if (prio === 'low') hitFill = 'Masalah Low';
+
+                        set_fill2(hitFill);
+                        filterwarna['Filter'] = filterwarna['Filter'] || {};
+                        filterwarna['Filter'][hitFill] = get_kategori_color(hitFill);
+                        hitung_kavling({fill: hitFill});
+                    }
+
                     kav = new Konva.Line({
                         points: JSON.parse("[" + r[p].points + "]"),
                         fill: fill,
@@ -1313,6 +1334,10 @@ Date.prototype.toDateInputValue = (function() {
                         id: 'others' + r[p].id
                     });
                     siteplan.add(kav);
+                }
+                
+                if (activeKategori.includes('Masalah')) {
+                    set_keterangan_warna();
                 }
             },
             error: function(xhr, st) {
@@ -1434,15 +1459,7 @@ Date.prototype.toDateInputValue = (function() {
 
     var editdtt = [];
 
-    //event klik kavling
-    masked.on('dblclick', function(e) {
-        if (!addMode) {
-            if (e.evt.button === 0 && e.target.attrs.id) {
-                //open detail modal
-                lihat_detail();
-            }
-        }
-    })
+    //event klik kavling (dblclick dihapus agar ditangani stage)
 
     //hide tooltip on tap at siteplan
     siteplan.on('tap', function() {
@@ -1828,133 +1845,39 @@ Date.prototype.toDateInputValue = (function() {
                     let html = '';
                     let currentCat = '';
                     res.data.forEach(opt => {
-                        let catSlug = opt.cat.replace(/\s+/g, '-').toLowerCase();
                         if (opt.cat !== currentCat) {
+                            if (currentCat !== '') {
+                                html += `</optgroup>`;
+                            }
                             currentCat = opt.cat;
-                            html += `
-                            <div class="divider divider-left mt-2 mb-1 filter-cat-divider" data-cat="${catSlug}">
-                                <div class="divider-text">${currentCat}</div>
-                            </div>`;
+                            html += `<optgroup label="${currentCat}">`;
                         }
                         let countText = opt.count !== undefined ? ` (${opt.count})` : '';
-                        let keySlug = opt.key.replace(/\s+/g, '-');
-                        html += `
-                        <div class="custom-control custom-checkbox mb-1 filter-cb-wrapper" data-key="${opt.key}" data-cat="${catSlug}">
-                            <input type="checkbox" class="custom-control-input filter-kategori-cb" name="kategori[]" value="${opt.key}" id="cb-kat-${keySlug}" data-has-periode="${opt.has_periode}">
-                            <label class="custom-control-label" for="cb-kat-${keySlug}">${opt.label}${countText}</label>
-                        </div>`;
+                        let hasPeriode = opt.has_periode ? 'true' : 'false';
+                        html += `<option value="${opt.key}" data-has-periode="${hasPeriode}" data-is-kategori="true">${opt.label}${countText}</option>`;
                     });
-                    $('#filter-kategori-checkboxes').html(html);
-
-                    $('.filter-kategori-cb').on('change', function() {
-                        const MULTI_ALLOWED = ['Sudah Akad', 'Akad Komersil', 'Akad Subsidi', 'Booking'];
-                        const val = $(this).val();
-                        const isMulti = MULTI_ALLOWED.includes(val);
-                        
-                        if ($(this).is(':checked')) {
-                            if (isMulti) {
-                                // Specific rule: Sudah Akad only with Booking
-                                if (val === 'Sudah Akad') {
-                                    $('.filter-kategori-cb:checked').each(function() {
-                                        if ($(this).val() !== 'Sudah Akad' && $(this).val() !== 'Booking') {
-                                            $(this).prop('checked', false);
-                                        }
-                                    });
-                                } else if (val === 'Akad Komersil' || val === 'Akad Subsidi') {
-                                    $('.filter-kategori-cb:checked').each(function() {
-                                        if ($(this).val() === 'Sudah Akad' || !MULTI_ALLOWED.includes($(this).val())) {
-                                            $(this).prop('checked', false);
-                                        }
-                                    });
-                                } else {
-                                    // Booking
-                                    $('.filter-kategori-cb:checked').each(function() {
-                                        if (!MULTI_ALLOWED.includes($(this).val())) {
-                                            $(this).prop('checked', false);
-                                        }
-                                    });
-                                }
-                            } else {
-                                $('.filter-kategori-cb:checked').not(this).prop('checked', false);
-                            }
-                        }
-                        updateAnimatedFilterVisibility();
+                    if (currentCat !== '') {
+                        html += `</optgroup>`;
+                    }
+                    
+                    $('#pilih-divisi').append(html);
+                    $('#pilih-divisi').trigger('change');
+                    
+                    $('#pilih-divisi').on('change', function() {
                         checkMasalahOptions();
                         checkPeriodeOptions();
                     });
-
-                    // Re-check form state in case it was pre-filled
-                    let currentFilter = getServerFilterData();
-                    currentFilter.kategori.forEach(k => {
-                        $(`.filter-kategori-cb[value="${k}"]`).prop('checked', true);
-                    });
-
-                    updateAnimatedFilterVisibility();
-                    checkMasalahOptions();
-                    checkPeriodeOptions();
                 }
-            }
-        });
-    }
-
-    function updateAnimatedFilterVisibility() {
-        const checkedBoxes = $('.filter-kategori-cb:checked');
-        const MULTI_ALLOWED = ['Sudah Akad', 'Akad Komersil', 'Akad Subsidi', 'Booking'];
-
-        if (checkedBoxes.length === 0) {
-            $('.filter-cb-wrapper').stop(true, true).slideDown(250);
-            $('.filter-cat-divider').stop(true, true).slideDown(250);
-            return;
-        }
-
-        let allowedKeys = [];
-        checkedBoxes.each(function() {
-            const val = $(this).val();
-            allowedKeys.push(val);
-            if (val === 'Sudah Akad') {
-                if (!allowedKeys.includes('Booking')) allowedKeys.push('Booking');
-            } else if (val === 'Akad Komersil' || val === 'Akad Subsidi') {
-                if (!allowedKeys.includes('Akad Komersil')) allowedKeys.push('Akad Komersil');
-                if (!allowedKeys.includes('Akad Subsidi')) allowedKeys.push('Akad Subsidi');
-                if (!allowedKeys.includes('Booking')) allowedKeys.push('Booking');
-            } else if (val === 'Booking') {
-                MULTI_ALLOWED.forEach(k => {
-                    if (!allowedKeys.includes(k)) allowedKeys.push(k);
-                });
-            }
-        });
-
-        $('.filter-cb-wrapper').each(function() {
-            const key = $(this).data('key');
-            if (allowedKeys.includes(key)) {
-                $(this).stop(true, true).slideDown(250);
-            } else {
-                $(this).stop(true, true).slideUp(250);
-            }
-        });
-
-        $('.filter-cat-divider').each(function() {
-            const cat = $(this).data('cat');
-            const hasVisibleChild = $('.filter-cb-wrapper[data-cat="' + cat + '"]').filter(function() {
-                const key = $(this).data('key');
-                return allowedKeys.includes(key);
-            }).length > 0;
-
-            if (hasVisibleChild) {
-                $(this).stop(true, true).slideDown(250);
-            } else {
-                $(this).stop(true, true).slideUp(250);
             }
         });
     }
 
     function checkPeriodeOptions() {
         let showPeriode = false;
-        $('.filter-kategori-cb:checked').each(function() {
-            if ($(this).data('has-periode') === true || $(this).data('has-periode') === 'true') {
-                showPeriode = true;
-            }
-        });
+        let selectedOption = $('#pilih-divisi option:selected');
+        if (selectedOption.data('has-periode') === true || selectedOption.data('has-periode') === 'true') {
+            showPeriode = true;
+        }
         if (showPeriode) {
             $('#filter-periode-container').stop(true, true).slideDown(300);
         } else {
@@ -1964,11 +1887,10 @@ Date.prototype.toDateInputValue = (function() {
 
     function checkMasalahOptions() {
         let hasMasalah = false;
-        $('.filter-kategori-cb:checked').each(function() {
-            if ($(this).val() === 'Masalah') {
-                hasMasalah = true;
-            }
-        });
+        let selectedValue = $('#pilih-divisi').val();
+        if (selectedValue === 'Masalah') {
+            hasMasalah = true;
+        }
         if (hasMasalah) {
             $('.filter-masalah-options').stop(true, true).slideDown(300);
         } else {
@@ -1979,7 +1901,6 @@ Date.prototype.toDateInputValue = (function() {
     window.apply_server_filter = function() {
         filter.id_cluster = $("#filter-id_cluster").val();
         filter.id_jalan = $("#filter-id_jalan").val();
-        $('#modal-setting-filter').modal('hide');
         load_kavling();
         renderActiveFilterTags();
     }
@@ -1988,21 +1909,14 @@ Date.prototype.toDateInputValue = (function() {
         $('#form-filter-kategori')[0].reset();
         $('#filter-id_cluster').val(null).trigger('change');
         $('#filter-id_jalan').val(null).trigger('change');
+        $('#pilih-divisi').val('0').trigger('change');
         filter.id_cluster = '';
         filter.id_jalan = '';
-        updateAnimatedFilterVisibility();
         checkMasalahOptions();
         checkPeriodeOptions();
-        $('#modal-setting-filter').modal('hide');
         load_kavling();
         renderActiveFilterTags();
     }
-
-    $('#modal-setting-filter').on('show.bs.modal shown.bs.modal', function () {
-        if ($('#filter-kategori-checkboxes').is(':empty')) {
-            fetch_kategori_options();
-        }
-    });
 
     $(document).ready(function() {
         fetch_kategori_options();
@@ -2016,9 +1930,10 @@ Date.prototype.toDateInputValue = (function() {
             status_masalah: $('#filter-status-masalah').val() || '',
             periode_masalah_jenis: $('#filter-periode-masalah-jenis').val() || ''
         };
-        $('.filter-kategori-cb:checked').each(function() {
-            data.kategori.push($(this).val());
-        });
+        let selectedOption = $('#pilih-divisi option:selected');
+        if (selectedOption.data('is-kategori')) {
+            data.kategori.push(selectedOption.val());
+        }
         return data;
     }
 
@@ -2034,11 +1949,11 @@ Date.prototype.toDateInputValue = (function() {
             html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('jalan')">Blok: ${jalanText} &times;</span>`;
         }
         
-        $('.filter-kategori-cb:checked').each(function() {
-            const val = $(this).val();
-            const text = $(this).next('label').text().replace(/\s\(\d+\)$/, '');
-            html += `<span class="badge badge-light-info mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('kategori', '${val}')">${text} &times;</span>`;
-        });
+        let selectedOption = $('#pilih-divisi option:selected');
+        if (selectedOption.data('is-kategori')) {
+            const text = selectedOption.text().replace(/\s\(\d+\)$/, '');
+            html += `<span class="badge badge-light-info mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('kategori')">${text} &times;</span>`;
+        }
 
         if ($('#filter-periode-mulai').val() || $('#filter-periode-selesai').val()) {
             const start = $('#filter-periode-mulai').val() || '...';
@@ -2059,7 +1974,7 @@ Date.prototype.toDateInputValue = (function() {
             $('#filter-id_jalan').val(null).trigger('change');
             filter.id_jalan = '';
         } else if (type === 'kategori') {
-            $(`.filter-kategori-cb[value="${val}"]`).prop('checked', false);
+            $('#pilih-divisi').val('0').trigger('change');
         } else if (type === 'periode') {
             $('#filter-periode-mulai').val('');
             $('#filter-periode-selesai').val('');
@@ -2273,6 +2188,100 @@ Date.prototype.toDateInputValue = (function() {
 
     //context menu
     let currentShape;
+
+    // ── Dynamic context menu dari home/getMenuItemsJson ──────────────────────
+    function loadSiteplanMenuItems() {
+        return $.ajax({
+            url: base_url + 'home/getMenuItemsJson',
+            type: 'post',
+            data: { [csrfName]: csrfHash },
+            dataType: 'json'
+        }).done(function(response) {
+            csrfHash = response.token;
+            window.siteplanMenuItems = response.items || [];
+        }).fail(function() {
+            window.siteplanMenuItems = [];
+        });
+    }
+
+    function buildContextMenuItems(sh) {
+        const container = document.getElementById('menu-dynamic-items');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const items = window.siteplanMenuItems || [];
+        if (items.length === 0) return;
+
+        // Divider antara tombol "Detail" dan dynamic items
+        const divider = document.createElement('div');
+        divider.className = 'ctx-menu-divider';
+        container.appendChild(divider);
+
+        let lastGroup = null;
+
+        items.forEach(function(item) {
+            // Group header hanya untuk admin (role 1)
+            if (parseInt(roleid, 10) === 1 && item.group_label && item.group_label !== lastGroup) {
+                lastGroup = item.group_label;
+                const header = document.createElement('div');
+                header.className = 'ctx-menu-header';
+                header.textContent = item.group_label;
+                container.appendChild(header);
+            }
+
+            const btn = document.createElement('button');
+            if (item.icon) {
+                const icon = document.createElement('i');
+                icon.className = item.icon;
+                icon.style.marginRight = '6px';
+                btn.appendChild(icon);
+            }
+            btn.appendChild(document.createTextNode(item.label || ''));
+
+            btn.addEventListener('click', function() {
+                menuNode.style.display = 'none';
+                runSiteplanMenuActionFromCanvas(item.onclick, sh, item);
+            });
+
+            container.appendChild(btn);
+        });
+    }
+
+    function runSiteplanMenuActionFromCanvas(onclick, sh, menuItem) {
+        if (!onclick || !sh) return;
+
+        // Set editdtt agar isi_data() dan open_* functions tahu kavling mana yang dipilih
+        editdtt = [sh];
+
+        const targetOnclick = String(onclick).trim();
+
+        if (targetOnclick === 'isi_data()') {
+            // Jika admin, paksa role sesuai id_group dari menu item
+            const originalPilihDivisi = $('#pilih-divisi').val();
+            if (parseInt(roleid, 10) === 1 && menuItem && menuItem.id_group) {
+                $('#pilih-divisi').val(String(menuItem.id_group));
+            }
+            isi_data();
+            // Kembalikan filter setelah dipanggil (jika perlu)
+            if (parseInt(roleid, 10) === 1 && menuItem && menuItem.id_group) {
+                $('#pilih-divisi').val(originalPilihDivisi);
+            }
+            return;
+        }
+
+        try {
+            const fn = new Function(targetOnclick);
+            fn.call(window);
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Aksi gagal',
+                text: error.message || 'Fungsi tidak tersedia di halaman ini.'
+            });
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     document.getElementById('menu-btn-lihat_detail').addEventListener('click', () => {
         if (currentShape.target.attrs.id) {
             //open detail modal
@@ -2280,11 +2289,17 @@ Date.prototype.toDateInputValue = (function() {
         }
     });
     var menuNode = document.getElementById('menu');
-    window.addEventListener('click', () => {
+    window.addEventListener('click', (e) => {
         // hide menu
         menuNode.style.display = 'none';
     });
-    stage.on('contextmenu', function(e) {
+    window.addEventListener('touchstart', (e) => {
+        // hide menu on mobile tap outside
+        if (!menuNode.contains(e.target)) {
+            menuNode.style.display = 'none';
+        }
+    });
+    stage.on('contextmenu dblclick dbltap', function(e) {
         // prevent default behavior
         e.evt.preventDefault();
 
@@ -2292,10 +2307,32 @@ Date.prototype.toDateInputValue = (function() {
             // if we are on empty place of the stage we will do nothing
             return;
         }
+
+        // Resolve target attributes. If clicking on selection border/text, use editdtt[0]
+        let targetAttrs = e.target.attrs;
+        const shapeId = targetAttrs ? targetAttrs.id : '';
+        
+        if (shapeId === 'sel' || shapeId === 'tsel' || shapeId === 'line_ms' || (shapeId && shapeId.startsWith('border'))) {
+            if (typeof editdtt !== 'undefined' && editdtt.length > 0) {
+                targetAttrs = editdtt[0];
+            } else {
+                return;
+            }
+        } else if (!shapeId || !shapeId.startsWith('kav')) {
+            // Hanya tampilkan menu untuk kavling (bukan jalan/fasos/dll)
+            return;
+        }
+
         currentShape = e;
+
+        // Set editdtt supaya tombol Detail (lihat_detail) bisa digunakan
+        editdtt = [targetAttrs];
+
+        // Render dynamic menu items dengan data shape saat ini
+        buildContextMenuItems(targetAttrs);
+
         // show menu
         menuNode.style.display = 'initial';
-        var containerRect = stage.container().getBoundingClientRect();
         menuNode.style.top = stage.getPointerPosition().y + 4 + 'px';
         menuNode.style.left = stage.getPointerPosition().x + 20 + 'px';
     });

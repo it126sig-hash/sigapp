@@ -32,39 +32,12 @@ class Notif extends BaseController
         else
             $this->group_id = session()->group_id;
     }
-    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null)
+    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null)
     {
-        if (is_array($target)) {
-            $batchData = [];
-            foreach ($target as $t) {
-                $batchData[] = [
-                    'notif' => $notif,
-                    'group_target' => $t,
-                    'add_by' => $add_by,
-                    'id_kavling' => $id_kavling,
-                    'id_konsumen' => $id_konsumen,
-                    'type' => $type,
-                    'is_read' => 0,
-                    'created_at' => date('Y-m-d H:i:s')
-                ];
-            }
-            return $this->db->table('notification')
-                ->insertBatch($batchData);
-        } else {
-            $data = [
-                'notif' => $notif,
-                'group_target' => $target,
-                'add_by' => $add_by,
-                'id_kavling' => $id_kavling,
-                'id_konsumen' => $id_konsumen,
-                'type' => $type,
-                'is_read' => 0,
-                'created_at' => date('Y-m-d H:i:s')
-            ];
-            return $this->db->table('notification')
-                ->insert($data);
-        }
+        $notifService = new \App\Services\NotifikasiService();
+        return $notifService->tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type, $id_proyek);
     }
+
     
     function getNotif($all = false){
         $r['token'] = csrf_hash();
@@ -163,15 +136,15 @@ class Notif extends BaseController
         $builder = $this->db->table('notification')
             ->select('notification.*, users.username, nama_jalan, no_kavling, proyek.id_proyek, auth_groups.id as divisi_id, auth_groups.name as divisi')
             ->join('users', 'users.id = notification.add_by')
-            ->join('kavling', 'kavling.id_kavling = notification.id_kavling')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-            ->join('cluster', 'jalan.id_cluster = cluster.id_cluster')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+            ->join('kavling', 'kavling.id_kavling = notification.id_kavling', 'left')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
+            ->join('cluster', 'jalan.id_cluster = cluster.id_cluster', 'left')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left')
             ->join('auth_groups_users', 'auth_groups_users.user_id = notification.add_by', 'left')
             ->join('auth_groups', 'auth_groups.id = auth_groups_users.group_id', 'left');
 
         if ($id_proyek) {
-            $builder->where('proyek.id_proyek', (int) $id_proyek);
+            $builder->where('COALESCE(notification.id_proyek, proyek.id_proyek)', (int) $id_proyek);
         }
 
         $this->applyGroupTargetFilter($builder);
@@ -219,14 +192,14 @@ class Notif extends BaseController
     protected function getUnreadActivityCount($idProyek = null): int
     {
         $builder = $this->db->table('notification')
-            ->join('kavling', 'kavling.id_kavling = notification.id_kavling')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-            ->join('cluster', 'jalan.id_cluster = cluster.id_cluster')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+            ->join('kavling', 'kavling.id_kavling = notification.id_kavling', 'left')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
+            ->join('cluster', 'jalan.id_cluster = cluster.id_cluster', 'left')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left')
             ->where('notification.is_read', 0);
 
         if ($idProyek) {
-            $builder->where('proyek.id_proyek', (int) $idProyek);
+            $builder->where('COALESCE(notification.id_proyek, proyek.id_proyek)', (int) $idProyek);
         }
 
         $this->applyGroupTargetFilter($builder);
@@ -241,12 +214,19 @@ class Notif extends BaseController
         }
 
         $role = (string) $this->group_id;
+        $userId = function_exists('user_id') ? (int) user_id() : 0;
+        
         $builder->groupStart()
             ->where('notification.group_target', $role)
             ->orLike('notification.group_target', $role . ';', 'after')
             ->orLike('notification.group_target', ';' . $role . ';', 'both')
             ->orLike('notification.group_target', ';' . $role, 'before')
-            ->orWhere('notification.group_target', '0')
-            ->groupEnd();
+            ->orWhere('notification.group_target', '0');
+            
+        if ($userId > 0) {
+            $builder->orWhere('notification.user_id', $userId);
+        }
+        
+        $builder->groupEnd();
     }
 }

@@ -23,6 +23,7 @@ class TransaksiRepository extends Model
             'konsumen.file_data_diri AS data_diri_lok',
 
             'konsumen.no_spptb',
+            'konsumen.kode_referal',
             'konsumen.nama_konsumen',
             'konsumen.nik AS nik_konsumen',
             'konsumen.alamat_konsumen',
@@ -52,11 +53,15 @@ class TransaksiRepository extends Model
             'u_pb.username AS perintah_bangun_user',
             'u_ub.username AS edit_by_user',
             'list_bank.bank as nama_bank',
+            'referrer.nama_konsumen as referred_by_nama',
+            'referrer.kode_referal as referred_by_kode',
         ])
             ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
             ->join('users u_pb', 'u_pb.id = mkdt.perintah_bangun', 'left') //user perintah bangun
             ->join('users u_ub', 'u_ub.id = mkdt.edit_by', 'left') //user edit by
             ->join('list_bank', 'list_bank.id = mkdt.id_bank', 'left')
+            ->join('referrals', 'referrals.id_mkdt_referred = mkdt.id_mkdt', 'left')
+            ->join('konsumen referrer', 'referrer.id_konsumen = referrals.id_konsumen_referrer', 'left')
             ->where('mkdt.id_mkdt', $idMkdt)
             ->first();
     }
@@ -123,6 +128,9 @@ class TransaksiRepository extends Model
             hargajual.id_tipe AS tipe_pricelist,
             mkdt.*,
             `konsumen`.`no_spptb`,
+            `konsumen`.`kode_referal`,
+            referrer.nama_konsumen as referred_by_nama,
+            referrer.kode_referal as referred_by_kode,
             `konsumen`.`nama_konsumen`,
             `konsumen`.`nik`,
             `konsumen`.`npwp`,
@@ -154,6 +162,8 @@ class TransaksiRepository extends Model
             ->join('tipe', 'tipe.id_tipe = kavling.id_tipe')
             ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt')
             ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
+            ->join('referrals', 'referrals.id_mkdt_referred = mkdt.id_mkdt', 'left')
+            ->join('konsumen referrer', 'referrer.id_konsumen = referrals.id_konsumen_referrer', 'left')
             ->join('hargajual', 'hargajual.id = kavling.harga_akhir', 'left')
             ->where('kavling.id_kavling', $idKavling)
             ->get()->getRow();

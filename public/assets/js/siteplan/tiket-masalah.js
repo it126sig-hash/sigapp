@@ -16,9 +16,91 @@ $(document).ready(function() {
             let refType = (tipe === 'kavling') ? 'kavling' : 'others';
             window.openTiketMasalah(refType, id);
         } else {
-            Swal.fire('Error', 'Silakan pilih objek di siteplan terlebih dahulu', 'error');
+            if (typeof toastr !== 'undefined') {
+                toastr.info("Pilih area yang akan dibuat laporan", "", { closeButton: true, tapToDismiss: false });
+            } else {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Pilih area yang akan dibuat laporan', showConfirmButton: false, timer: 3000 });
+            }
+
+            // Sembunyikan menu bawaan
+            $('#menu_here').hide();
+
+            // Inject tombol manual seleksi khusus TM jika belum ada (langsung ke body agar tidak terpengaruh CSS lain)
+            if ($('#tm_container_manual_seleksi').length === 0) {
+                let html = `
+                    <div id="tm_container_manual_seleksi" style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1060; background: white; padding: 10px 20px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); display: flex; gap: 10px; align-items: center; border: 1px solid #ff4d4f;">
+                        <button type="button" class="btn btn-success btn-round btn-sm" id="tm_btn_selesai_seleksi_manual">
+                            <i class="fas fa-check mr-1"></i>
+                        </button>
+                        <button type="button" class="btn btn-danger btn-round btn-sm" id="tm_btn_batal_seleksi_manual">
+                            <i class="fas fa-times"></i> 
+                        </button>
+                        
+                        <div class="border-left mx-1" style="height: 24px;"></div>
+                        
+                        <div class="custom-control custom-switch m-0" >
+                            <input type="checkbox" value="1" class="custom-control-input" id="tm_tambah_jalan" name="tm_tambah_jalan" onchange="if($('#tambah_jalan').length === 0){ $('body').append('<input type=\\'checkbox\\' class=\\'d-none\\' id=\\'tambah_jalan\\' name=\\'tambah_jalan\\' />'); } $('#tambah_jalan').prop('checked', this.checked).trigger('change'); if(typeof hapus_seleksi === 'function') hapus_seleksi();" />
+                            <label class="custom-control-label font-weight-bold" for="tm_tambah_jalan" style="cursor: pointer; padding-top: 2px;">Manual Seleksi</label>
+                        </div>
+                        
+                        <div class="border-left mx-1" style="height: 24px;"></div>
+                        
+                        <button type="button" class="btn btn-warning btn-round btn-sm" id="tm_btn_undo_seleksi_manual" onclick="if(typeof undo_manual_selection === 'function') undo_manual_selection();">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                    </div>
+                `;
+                $('body').append(html);
+            } else {
+                $('#tm_container_manual_seleksi').show();
+            }
+
+            // Otomatis aktifkan mode manual seleksi
+            $('#tm_tambah_jalan').prop('checked', true).trigger('change');
         }
     };
+
+    $(document).on('click', '#tm_btn_batal_seleksi_manual', function() {
+        if (typeof hapus_seleksi === 'function') hapus_seleksi();
+        
+        $('#tm_tambah_jalan').prop('checked', false).trigger('change');
+        
+        // Hapus container dan kembalikan menu bawaan
+        $('#tm_container_manual_seleksi').remove();
+        $('#menu_here').show();
+    });
+
+    $(document).on('click', '#tm_btn_selesai_seleksi_manual', function() {
+        if (typeof add_jalan === 'function') add_jalan();
+
+        let points = [];
+        if (typeof dtt !== 'undefined' && dtt.length >= 6) {
+            points = dtt;
+        } else if (typeof line_ms !== 'undefined' && line_ms.points) {
+            points = line_ms.points();
+        } else if (typeof refresh_manual_selection_points === 'function') {
+            points = refresh_manual_selection_points();
+        }
+
+        if (!points || points.length < 6 || points.length % 2 !== 0) {
+            if (typeof toastr !== 'undefined') toastr.warning("Silahkan seleksi minimal 3 titik!");
+            else Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Silahkan seleksi minimal 3 titik!', showConfirmButton: false, timer: 3000 });
+            return;
+        }
+
+        let pointsStr = typeof points === 'string' ? points : points.join(',');
+
+        // Set global points to be used on submit
+        window.tmNewPoints = pointsStr;
+        
+        // Langsung buka form buat tiket dengan state 'new_others'
+        window.openTiketMasalah('new_others', null);
+
+        // Hapus/sembunyikan menu manual seleksi dan kembalikan menu utama
+        $('#tm_container_manual_seleksi').remove();
+        $('#menu_here').show();
+    });
+
 
     window.openTiketMasalah = function(refType, refId) {
         currentRefType = refType;
@@ -28,9 +110,7 @@ $(document).ready(function() {
 
         // Reset view
         $('#list_tiket_masalah').html('<div class="text-center p-4"><span class="spinner-border text-primary"></span></div>');
-        $('#view_list_tiket').removeClass('d-none');
-        $('#view_detail_tiket, #form_buat_tiket').addClass('d-none');
-
+        
         // Modal listener untuk konfirmasi tutup jika sedang mengisi form
         if (typeof removeModalListener === 'function') {
             removeModalListener('#modal_tiket_masalah');
@@ -38,6 +118,132 @@ $(document).ready(function() {
 
         // Tampilkan modal
         modalMasalah.modal('show');
+        
+        if (typeof initModalListener === 'function') {
+            initModalListener('#modal_tiket_masalah');
+        }
+
+        if (refType === 'new_others') {
+            $('#view_list_tiket, #view_detail_tiket').addClass('d-none');
+            $('#form_buat_tiket').removeClass('d-none');
+            
+            // Show new fields and make them required
+            $('#tm_new_others_fields').removeClass('d-none');
+            $('#tm_id_jenis, #tm_nama_others').prop('required', true);
+
+            // Reset form
+            $('#form_buat_tiket_form')[0].reset();
+            selectedFiles = [];
+            if (typeof renderFilePreviews === 'function') renderFilePreviews();
+            
+            if ($('#tm_assigned_users').hasClass('select2-hidden-accessible')) {
+                $('#tm_assigned_users').val(null).trigger('change');
+            }
+            initAssignedUsersSelect2();
+            
+            if (typeof $.fn.richText === 'function') {
+                if ($('#keterangan_masalah').siblings('.richText-editor').length === 0) {
+                    $('#keterangan_masalah').richText();
+                }
+                $('#keterangan_masalah').val('');
+                $('#keterangan_masalah').prev('.richText-editor').trigger('setContent', '');
+            }
+
+            // Initialize flatpickr on date input if available
+            if (typeof $.fn.flatpickr === 'function') {
+                $('.flatpickr').flatpickr({ dateFormat: 'Y-m-d' });
+            }
+
+            // Fetch Cluster from server via API
+            if (!$.fn.select2) return;
+            if (!$('#tm_id_cluster').hasClass("select2-hidden-accessible")) {
+                $('#tm_id_cluster').select2({
+                    dropdownParent: $('#modal_tiket_masalah'),
+                    placeholder: "Pilih Cluster",
+                    allowClear: true,
+                    ajax: {
+                        url: base_url + "cluster/getAll",
+                        dataType: "json",
+                        delay: 250,
+                        method: "post",
+                        data: function (params) {
+                            return {
+                                [csrfName]: typeof csrfHash !== 'undefined' ? csrfHash : '',
+                                search: params.term,
+                                id_proyek: getSelectedProyekId()
+                            };
+                        },
+                        processResults: function (r) {
+                            if (typeof csrfHash !== 'undefined' && r.token) csrfHash = r.token;
+                            let results = [];
+                            if (r.data) {
+                                $.each(r.data, function(index, item) {
+                                    results.push({ id: item[0], text: item[3] });
+                                });
+                            }
+                            return { results: results };
+                        },
+                        cache: true
+                    }
+                });
+
+                $('#tm_id_jalan').prop('disabled', true);
+                $('#tm_id_jalan').select2({
+                    dropdownParent: $('#modal_tiket_masalah'),
+                    placeholder: "Pilih Jalan/Blok",
+                    allowClear: true,
+                    ajax: {
+                        url: base_url + "jalan/getAll",
+                        dataType: "json",
+                        delay: 250,
+                        method: "post",
+                        data: function (params) {
+                            return {
+                                [csrfName]: typeof csrfHash !== 'undefined' ? csrfHash : '',
+                                search: params.term,
+                                id_cluster: $('#tm_id_cluster').val(),
+                                id_proyek: getSelectedProyekId()
+                            };
+                        },
+                        processResults: function (r) {
+                            if (typeof csrfHash !== 'undefined' && r.token) csrfHash = r.token;
+                            let results = [];
+                            if (r.data) {
+                                $.each(r.data, function(index, item) {
+                                    results.push({ id: item[0], text: item[3] });
+                                });
+                            }
+                            return { results: results };
+                        },
+                        cache: true
+                    }
+                });
+
+                $('#tm_id_cluster').on('change', function() {
+                    $('#tm_id_jalan').val(null).trigger('change');
+                    if ($(this).val()) {
+                        $('#tm_id_jalan').prop('disabled', false);
+                    } else {
+                        $('#tm_id_jalan').prop('disabled', true);
+                    }
+                });
+            }
+
+            // Set hero header for new area
+            $('#tm_hero_project_title').text('AREA BARU');
+            $('#tm_hero_location_text').text('Belum Disimpan');
+            $('#tm_hero_tipe_text').text('Silakan lengkapi form area');
+            $('#tm_hero_progress_text').text('0%');
+            $('#tm_hero_progress_bar').css('width', '0%');
+            return;
+        }
+
+        // Jika bukan new_others, sembunyikan fields area baru
+        $('#tm_new_others_fields').addClass('d-none');
+        $('#tm_id_jenis, #tm_nama_others').prop('required', false);
+        
+        $('#view_list_tiket').removeClass('d-none');
+        $('#view_detail_tiket, #form_buat_tiket').addClass('d-none');
 
         // Load info header
         $.ajax({
@@ -52,10 +258,17 @@ $(document).ready(function() {
                     // Render Hero Card Header (Matching Reference Image)
                     $('#tm_hero_project_title').text(info.nama_proyek || 'PROYEK');
 
-                    let locText = `${info.nama_jalan || ''}, No. ${info.no_kavling || ''}`;
-                    if (refType !== 'kavling') {
-                        locText = `${info.nama_jalan || ''}, ${info.no_kavling || ''}`;
+                    let locText = '';
+                    if (refType === 'kavling') {
+                        locText = `${info.nama_jalan || ''}, No. ${info.no_kavling || ''}`;
+                    } else {
+                        if (info.nama_jalan) {
+                            locText = `${info.nama_jalan}, ${info.no_kavling || ''}`;
+                        } else {
+                            locText = `${info.no_kavling || 'Area Tidak Diketahui'}`;
+                        }
                     }
+                    locText = locText.replace(/^,\s*/, '').trim();
                     $('#tm_hero_location_text').text(locText);
 
                     let tipeText = '';
@@ -65,7 +278,11 @@ $(document).ready(function() {
                         let ket = info.tipe_keterangan ? ` ${info.tipe_keterangan}` : '';
                         tipeText = `${tRumah} ${dim} ${ket}`.trim() || 'Kavling Standar';
                     } else {
-                        tipeText = `Fasilitas: ${info.tipe.toUpperCase()}`;
+                        if (info.tipe) {
+                            tipeText = `Fasilitas: ${info.tipe.toUpperCase()}`;
+                        } else {
+                            tipeText = `Fasilitas Umum`;
+                        }
                     }
                     $('#tm_hero_tipe_text').text(tipeText);
 
@@ -77,6 +294,68 @@ $(document).ready(function() {
         });
 
         loadTiketList();
+    };
+
+    window.tm_open_detail = function(idTiket, refType, refId) {
+        // Buka modal dan siapkan header
+        window.openTiketMasalah(refType, refId);
+        
+        // Tunggu sebentar agar modal tampil dan header ter-set, lalu langsung lompat ke detail
+        setTimeout(() => {
+            window.loadTiketDetail(idTiket);
+        }, 100);
+    };
+
+    window.editTiketDraft = function(data) {
+        window.currentEditTiketId = data.id;
+        
+        // Beralih view dari detail ke form
+        $('#view_detail_tiket').addClass('d-none');
+        $('#form_buat_tiket').removeClass('d-none');
+        
+        // Reset file queue karena saat edit belum support hapus foto lama via form ini
+        selectedFiles = [];
+        if (typeof renderFilePreviews === 'function') renderFilePreviews();
+
+        // Populate field standar
+        $('#form_buat_tiket_form [name="tanggal_masalah"]').val(data.tanggal_masalah);
+        if (typeof $.fn.flatpickr === 'function') {
+            $('#form_buat_tiket_form [name="tanggal_masalah"]').flatpickr({ dateFormat: 'Y-m-d' });
+        }
+        
+        if (data.tanggal_kunjungan) {
+            $('#form_buat_tiket_form [name="tanggal_kunjungan"]').val(data.tanggal_kunjungan);
+            if (typeof $.fn.flatpickr === 'function') {
+                $('#form_buat_tiket_form [name="tanggal_kunjungan"]').flatpickr({ dateFormat: 'Y-m-d' });
+            }
+        }
+        
+        $('#form_buat_tiket_form [name="prioritas"]').val(data.prioritas);
+        
+        // Populate keterangan
+        if (typeof $.fn.richText === 'function') {
+            if ($('#keterangan_masalah').siblings('.richText-editor').length === 0) {
+                $('#keterangan_masalah').richText();
+            }
+            $('#keterangan_masalah').val(data.keterangan);
+            $('#keterangan_masalah').prev('.richText-editor').trigger('setContent', data.keterangan);
+        } else {
+            $('#keterangan_masalah').val(data.keterangan);
+        }
+
+        // Jika ref_type others (manual selection)
+        if (data.ref_type === 'others') {
+            $('#tm_new_others_fields').removeClass('d-none');
+            $('#tm_id_jenis').val(data.others_id_jenis).trigger('change');
+            $('#tm_nama_others').val(data.others_nama);
+            $('#tm_id_jenis, #tm_nama_others').prop('required', true);
+        } else {
+            $('#tm_new_others_fields').addClass('d-none');
+            $('#tm_id_jenis, #tm_nama_others').prop('required', false);
+        }
+
+        // Assigned users diabaikan dulu untuk simplicity di sisi UI (bisa ditambahkan jika perlu)
+        initAssignedUsersSelect2();
     };
 
     function loadTiketList() {
@@ -96,9 +375,22 @@ $(document).ready(function() {
     }
 
     function renderTiketList(data) {
-        let html = '';
+        let html = `
+        <style>
+            @media (max-width: 767.98px) {
+                .tm-thumb-container { width: 100% !important; height: 180px !important; }
+                .tm-title-text { font-size: 1rem !important; }
+                .w-md-auto { width: 100% !important; }
+                .status-badge-container { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; border-top: 1px dashed #eee; padding-top: 10px; }
+            }
+            @media (min-width: 768px) {
+                .tm-thumb-container { width: 240px !important; height: 160px !important; }
+                .w-md-auto { width: auto !important; }
+            }
+        </style>
+        `;
         if(data.length === 0) {
-            html = `
+            html += `
                 <div class="text-center p-5 bg-white rounded-12 border">
                     <i class="feather icon-check-circle text-success font-large-2 mb-2"></i>
                     <h6 class="font-weight-bold text-dark mb-1">Tidak Ada Tiket Masalah</h6>
@@ -112,50 +404,50 @@ $(document).ready(function() {
 
                 let thumbHtml = '';
                 if (item.foto_url_1) {
-                    thumbHtml = `<img src="${item.foto_url_1}" class="rounded border mr-2" style="width: 48px; height: 48px; object-fit: cover;">`;
+                    thumbHtml = `
+                        <div class="position-relative mb-3 mb-md-0 mr-md-3 tm-thumb-container" style="flex-shrink: 0;">
+                            <img src="${item.foto_url_1}" class="w-100 h-100 rounded-lg" style="object-fit: cover;">
+                            <div class="position-absolute" style="bottom: 8px; left: 8px; background: rgba(0,0,0,0.6); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px;">
+                                <i class="fas fa-image"></i> ${item.foto_count} Foto
+                            </div>
+                        </div>
+                    `;
                 }
 
                 let lastUpdateHtml = '';
                 if (item.last_progress_keterangan) {
                     let lastDate = new Date(item.last_progress_date);
                     let formattedLastDate = lastDate.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'});
-                    lastUpdateHtml = `<div class="text-xs text-muted mt-1 text-truncate" style="max-width: 380px;"><strong>Last update (${formattedLastDate}):</strong> ${item.last_progress_keterangan}</div>`;
+                    lastUpdateHtml = `<div class="text-xs text-muted mt-2 mt-md-1 text-truncate" style="max-width: 380px;"><strong>Last update (${formattedLastDate}):</strong> ${item.last_progress_keterangan}</div>`;
                 }
 
                 html += `
-                <div class="tm-list-card prio-${item.prioritas} mb-3 p-3 cursor-pointer" onclick="loadTiketDetail(${item.id})">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="flex-grow-1 pr-3">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                ${getPriorityBadgeHtml(item.prioritas)}
-                                <span class="text-xs text-muted font-weight-medium">
-                                    <i class="feather icon-calendar mr-1"></i>${formattedDate}
-                                </span>
-                                <span class="text-xs text-muted font-weight-bold ml-1">#TKT-${item.id}</span>
-                            </div>
-                            <h6 class="font-weight-bold text-dark mb-2">${item.keterangan}</h6>
-                            <div class="d-flex align-items-center flex-wrap gap-2">
-                                ${thumbHtml}
-                                <div>
-                                    <div class="d-flex gap-2">
-                                        <span class="badge-meta">
-                                            <i class="feather icon-image"></i> ${item.foto_count} Foto
-                                        </span>
-                                        <span class="badge-meta ml-1">
-                                            <i class="feather icon-user"></i> PIC: ${item.pic_username}
-                                        </span>
-                                    </div>
-                                    ${lastUpdateHtml}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-right d-flex flex-column align-items-end justify-content-between" style="min-height: 80px;">
+                <div class="tm-list-card prio-${item.prioritas} mb-3 cursor-pointer p-2" onclick="loadTiketDetail(${item.id})">
+                    <div class="d-flex flex-column flex-md-row align-items-stretch w-100">
+                        ${thumbHtml}
+                        <div class="flex-grow-1 py-1 pr-md-2 d-flex flex-column justify-content-between">
                             <div>
-                                <span class="text-xs font-weight-bold text-muted d-block mb-1 text-right">STATUS</span>
-                                ${getStatusBadgeHtml(item.status)}
+                                <!-- Top Row -->
+                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-2">
+                                    <div class="d-flex align-items-center gap-2 mb-2 mb-md-0">
+                                        ${getPriorityBadgeHtml(item.prioritas)}
+                                        <span class="text-xs text-muted font-weight-medium">${formattedDate} &bull; #TKT-${item.id}</span>
+                                    </div>
+                                    <div class="text-right w-md-auto status-badge-container" style="margin-top: -4px;">
+                                        <span class="text-muted d-block d-md-block text-left text-md-right mb-1" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 0 !important;">STATUS</span>
+                                        ${getStatusBadgeHtml(item.status)}
+                                    </div>
+                                </div>
+                                <!-- Title -->
+                                <h5 class="font-weight-bold text-dark pr-md-5 tm-title-text" style="line-height: 1.4; font-size: 1.15rem; margin-top: 4px;">${item.keterangan}</h5>
                             </div>
-                            <div class="mt-2 text-muted">
-                                <i class="feather icon-chevron-right font-medium-3"></i>
+                            <!-- Bottom Row -->
+                            <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mt-3">
+                                <div class="d-flex flex-wrap gap-2 mb-2 mb-md-0">
+                                    <span class="badge-meta bg-light text-muted border-0 text-xs shadow-none" style="border-radius: 15px; padding: 5px 12px; background-color: #f1f5f9 !important;"><i class="fas fa-user text-secondary mr-1"></i> PIC: ${item.pic_username}</span>
+                                    ${item.assigned_users_list ? `<span class="badge-meta bg-light text-muted border-0 text-xs shadow-none" style="border-radius: 15px; padding: 5px 12px; background-color: #f1f5f9 !important;"><i class="fas fa-users text-secondary mr-1"></i> Dilibatkan: ${item.assigned_users_list}</span>` : ''}
+                                </div>
+                                ${lastUpdateHtml}
                             </div>
                         </div>
                     </div>
@@ -165,8 +457,7 @@ $(document).ready(function() {
         $('#list_tiket_masalah').html(html);
     }
 
-    // --- FORM BUAT TIKET ---
-    $('#btn_show_buat_tiket').click(function() {
+        $('#btn_show_buat_tiket').click(function() {
         $('#view_list_tiket').addClass('d-none');
         $('#form_buat_tiket').removeClass('d-none');
 
@@ -174,6 +465,11 @@ $(document).ready(function() {
         $('#form_buat_tiket_form')[0].reset();
         selectedFiles = [];
         renderFilePreviews();
+
+        // Reset Select2
+        if ($('#tm_assigned_users').hasClass('select2-hidden-accessible')) {
+            $('#tm_assigned_users').val(null).trigger('change');
+        }
 
         // Aktifkan initModalListener saat mengedit/mengisi form
         if (typeof initModalListener === 'function') {
@@ -187,6 +483,15 @@ $(document).ready(function() {
 
         // Load & Initialize Select2 for assigned users
         initAssignedUsersSelect2();
+        
+        // Init RichText
+        if (typeof $.fn.richText === 'function') {
+            if ($('#keterangan_masalah').siblings('.richText-editor').length === 0) {
+                $('#keterangan_masalah').richText();
+            }
+            $('#keterangan_masalah').val('');
+            $('#keterangan_masalah').prev('.richText-editor').trigger('setContent', '');
+        }
     });
 
     $('#btn_batal_buat_tiket').click(function() {
@@ -195,6 +500,7 @@ $(document).ready(function() {
         }
         $('#form_buat_tiket').addClass('d-none');
         $('#view_list_tiket').removeClass('d-none');
+        window.currentEditTiketId = null; // Clear edit ID on cancel
     });
 
     function initAssignedUsersSelect2() {
@@ -341,18 +647,72 @@ $(document).ready(function() {
         }
     });
 
+    // Button clicks set a flag on the form to identify if it's draft or normal
+    let submitActionType = 'normal';
+    $('#btn_simpan_tiket').click(function() { submitActionType = 'normal'; });
+    $('#btn_simpan_draft').click(function() { submitActionType = 'draft'; });
+
     // Submit Form Buat Tiket
     $('#form_buat_tiket_form').submit(async function(e) {
         e.preventDefault();
 
-        let submitBtn = $(this).find('button[type="submit"]');
-        submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
+        // Client-side Validation
+        let tglMasalah = $(this).find('[name="tanggal_masalah"]').val();
+        let tglKunjungan = $(this).find('[name="tanggal_kunjungan"]').val();
+        let prioritas = $(this).find('[name="prioritas"]').val();
+        let keterangan = $(this).find('[name="keterangan"]').val();
+        let plainText = keterangan ? keterangan.replace(/(<([^>]+)>)/gi, "").trim() : "";
+
+        let isValid = true;
+        let errMsg = "";
+
+        if (currentRefType === 'new_others' || (window.currentEditTiketId && currentRefType === 'others')) {
+            let idJenis = $('#tm_id_jenis').val();
+            let namaOthers = $('#tm_nama_others').val();
+            if (!idJenis || !namaOthers || idJenis.trim() === '' || namaOthers.trim() === '') {
+                isValid = false;
+                errMsg = "Harap lengkapi Jenis Area dan Nama Area!";
+            }
+        }
+
+        if (isValid && (!tglMasalah || !prioritas || plainText === '')) {
+            isValid = false;
+            errMsg = "Harap lengkapi semua field yang wajib diisi (Tanggal Laporan, Prioritas, dan Keterangan)!";
+        }
+
+        if (!isValid) {
+            if (typeof toastr !== 'undefined') {
+                toastr.error(errMsg);
+            } else {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: errMsg, showConfirmButton: false, timer: 3000 });
+            }
+            return;
+        }
+
+        let submitBtn = $('#btn_simpan_tiket');
+        let draftBtn = $('#btn_simpan_draft');
+        submitBtn.prop('disabled', true);
+        draftBtn.prop('disabled', true);
+        
+        let originalSubmitText = submitBtn.html();
+        let originalDraftText = draftBtn.html();
+        
+        if(submitActionType === 'draft') {
+            draftBtn.html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
+        } else {
+            submitBtn.html('<span class="spinner-border spinner-border-sm"></span> Menyimpan...');
+        }
 
         try {
             let formData = new FormData(this);
-            formData.append('ref_type', currentRefType);
-            formData.append('ref_id', currentRefId);
-            formData.append('id_proyek', getSelectedProyekId());
+            formData.append('id_proyek', activeProyekId());
+            if (submitActionType === 'draft') {
+                formData.append('is_draft', 1);
+            }
+            
+            if (window.currentEditTiketId) {
+                formData.append('id_tiket_masalah', window.currentEditTiketId);
+            }
 
             // Append files from selectedFiles array
             if (selectedFiles.length > 0) {
@@ -367,28 +727,105 @@ $(document).ready(function() {
                 }
             }
 
-            $.ajax({
-                url: base_url + 'api/tiket-masalah/store',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(res) {
-                    if (typeof removeModalListener === 'function') {
-                        removeModalListener('#modal_tiket_masalah');
+            const processSubmitTiket = (fd) => {
+                // Bersihkan field yang tidak diperlukan untuk store/update tiket
+                fd.delete('id_jenis');
+                fd.delete('nama');
+                fd.delete('id_cluster');
+                fd.delete('id_jalan');
+                fd.delete('points');
+
+                fd.set('ref_type', currentRefType);
+                fd.set('ref_id', currentRefId);
+
+                let targetUrl = window.currentEditTiketId ? (base_url + 'api/tiket-masalah/update') : (base_url + 'api/tiket-masalah/store');
+
+                $.ajax({
+                    url: targetUrl,
+                    type: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (typeof removeModalListener === 'function') {
+                            removeModalListener('#modal_tiket_masalah');
+                        }
+                        
+                        // Kembalikan UI dari mode manual seleksi
+                        if (currentRefType === 'others') {
+                            if (typeof hapus_seleksi === 'function') hapus_seleksi();
+                            $('#tambah_jalan').prop('checked', false);
+                            if ($('#tm_btn_batal_seleksi_manual').length > 0) {
+                                $('#tm_btn_batal_seleksi_manual').trigger('click');
+                            }
+                        }
+
+                        Swal.fire('Berhasil', res.message, 'success');
+                        $('#form_buat_tiket').addClass('d-none');
+                        $('#view_list_tiket').removeClass('d-none');
+                        loadTiketList();
+                    },
+                    error: function(xhr) {
+                        let msg = xhr.responseJSON?.message || 'Gagal membuat tiket';
+                        if (xhr.responseJSON?.messages) {
+                            msg = Object.values(xhr.responseJSON.messages).join('<br>');
+                        }
+                        Swal.fire({ title: 'Error', html: msg, icon: 'error' });
+                    },
+                    complete: function() {
+                        submitBtn.prop('disabled', false).html(originalSubmitText);
+                        draftBtn.prop('disabled', false).html(originalDraftText);
                     }
-                    Swal.fire('Berhasil', res.message, 'success');
-                    $('#form_buat_tiket').addClass('d-none');
-                    $('#view_list_tiket').removeClass('d-none');
-                    loadTiketList();
-                },
-                error: function(xhr) {
-                    Swal.fire('Error', xhr.responseJSON?.message || 'Gagal membuat tiket', 'error');
-                },
-                complete: function() {
-                    submitBtn.prop('disabled', false).html('Simpan Tiket');
-                }
-            });
+                });
+            };
+
+            // Convert array global window.tmNewPoints ke format JSON string atau FormData string jika ada
+            if (window.tmNewPoints && currentRefType === 'new_others') {
+                formData.append('points', window.tmNewPoints);
+            }
+            if (window.tmNewPoints && window.currentEditTiketId && currentRefType === 'others') {
+                formData.append('points', window.tmNewPoints);
+            }
+
+            // Jika ini adalah area baru (new_others), hit create-others-area dulu
+            if (currentRefType === 'new_others') {
+                let areaData = new FormData();
+                areaData.append('points', window.tmNewPoints || '');
+                areaData.append('tipe', $('#tm_id_jenis').val() || '');
+                areaData.append('id_cluster', $('#tm_id_cluster').val() || '');
+                areaData.append('id_jalan', $('#tm_id_jalan').val() || '');
+                areaData.append('nama', $('#tm_nama_others').val() || '');
+                areaData.append('id_proyek', getSelectedProyekId());
+
+                $.ajax({
+                    url: base_url + 'api/tiket-masalah/create-others-area',
+                    type: 'POST',
+                    data: areaData,
+                    processData: false,
+                    contentType: false,
+                    success: function(res) {
+                        if (res.success) {
+                            // Update state ke area yang sudah ada
+                            currentRefType = 'others';
+                            currentRefId = res.data.id;
+                            
+                            // Lanjut submit tiket
+                            processSubmitTiket(formData);
+                        } else {
+                            submitBtn.prop('disabled', false).html('Simpan Tiket');
+                            Swal.fire('Error', res.message || 'Gagal menyimpan area', 'error');
+                        }
+                    },
+                    error: function(xhr) {
+                        submitBtn.prop('disabled', false).html('Simpan Tiket');
+                        let msg = xhr.responseJSON?.message || 'Gagal menghubungi server untuk menyimpan area';
+                        Swal.fire('Error', msg, 'error');
+                    }
+                });
+            } else {
+                processSubmitTiket(formData);
+            }
+
         } catch (error) {
             Swal.fire('Error', 'Terjadi kesalahan sistem', 'error');
             submitBtn.prop('disabled', false).html('Simpan Tiket');
@@ -407,8 +844,10 @@ $(document).ready(function() {
             data: { id_tiket_masalah: id },
             success: function(res) {
                 if(res.success) {
+                    let activeUserId = (typeof current_user_id !== 'undefined') ? current_user_id : (window.current_user_id || 0);
+                    let isPic = (res.data.pic_user_id == activeUserId) || (typeof window.is_supervisor_manager !== 'undefined' && window.is_supervisor_manager);
                     renderTiketDetail(res.data);
-                    loadTiketProgress(id);
+                    loadTiketProgress(id, isPic);
                 }
             }
         });
@@ -421,14 +860,24 @@ $(document).ready(function() {
     });
 
     function renderTiketDetail(data) {
+        let styleHtml = `
+        <style>
+            .tm-btn-action { width: 100%; }
+            .transition-all { transition: all 0.3s ease; }
+            @media (min-width: 768px) {
+                .tm-btn-action { width: auto; min-width: 220px; }
+            }
+        </style>
+        `;
         let tglDetail = new Date(data.created_at);
         let formattedDate = tglDetail.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'});
 
         let photos = '';
         if(data.foto && data.foto.length > 0) {
             photos = '<div class="d-flex flex-wrap gap-2 mt-2">';
-            data.foto.forEach(f => {
-                photos += `<a href="${f.url}" target="_blank"><img src="${f.url}" class="img-thumb-grid"></a>`;
+            let allUrlsStr = encodeURIComponent(JSON.stringify(data.foto.map(f => f.url)));
+            data.foto.forEach((f, index) => {
+                photos += `<a href="javascript:void(0)" onclick="window.openLightbox('${allUrlsStr}', ${index})"><img src="${f.url}" class="img-thumb-grid"></a>`;
             });
             photos += '</div>';
         } else {
@@ -439,93 +888,183 @@ $(document).ready(function() {
         let actionBtnHtml = '';
         if (!isClosed) {
             actionBtnHtml = `
-                <button class="btn btn-primary btn-block font-weight-bold py-2 mt-3 shadow-sm rounded-12" id="btn_toggle_add_progress">
-                    <i class="feather icon-plus-circle mr-1"></i> Tambah Log Perbaikan
+                <button class="btn btn-primary font-weight-bold p-1 shadow-sm rounded-12 tm-btn-action transition-all" id="btn_toggle_add_progress">
+                    <i class="fas fa-plus mr-1"></i> <span class="btn-text">Tambah Progres Laporan</span>
                 </button>
             `;
         } else {
             actionBtnHtml = `
-                <div class="alert alert-secondary text-center text-xs mt-3 mb-0">
-                    <i class="feather icon-lock mr-1"></i> Tiket sudah ${data.status.toUpperCase()} (Terkunci)
+                <div class="alert alert-secondary text-center text-xs mb-0 rounded-12 tm-btn-action d-flex align-items-center justify-content-center">
+                    <i class="fas fa-lock mr-1"></i> Tiket sudah ${data.status.toUpperCase()} (Terkunci)
                 </div>
             `;
         }
 
-        let lokasiText = currentRefData ? `${currentRefData.nama_cluster} - ${currentRefData.nama_jalan}` : '-';
+        let isCreator = (window.current_user_id == data.pic_user_id);
+        let isSupervisor = (typeof window.is_supervisor_manager !== 'undefined' && window.is_supervisor_manager);
+        let editBtnHtml = '';
+        if (data.status === 'draft' && (isCreator || isSupervisor)) {
+            let labelEdit = isCreator ? "Edit Draft" : "Edit & Ambil Alih Draft";
+            editBtnHtml = `
+                <button class="btn btn-warning font-weight-bold py-2 px-3 shadow-sm rounded-12 tm-btn-action transition-all" id="btn_edit_draft_tiket" data-id="${data.id}">
+                    <i class="feather icon-edit mr-1"></i> ${labelEdit}
+                </button>
+            `;
+        }
+
+        let lokasiText = '-';
+        if (currentRefData) {
+            let hasCluster = currentRefData.nama_cluster && currentRefData.nama_cluster.trim() !== '';
+            let hasJalan = currentRefData.nama_jalan && currentRefData.nama_jalan.trim() !== '';
+            
+            if (hasCluster || hasJalan) {
+                let parts = [];
+                if (hasCluster) parts.push(currentRefData.nama_cluster);
+                if (hasJalan) parts.push(currentRefData.nama_jalan);
+                lokasiText = parts.join(' - ');
+            } else if (currentRefData.nama && currentRefData.tipe) {
+                lokasiText = `${currentRefData.nama} (${currentRefData.tipe.toUpperCase()})`;
+            } else if (currentRefData.nama) {
+                lokasiText = currentRefData.nama;
+            }
+        }
+
+        let mainPhoto = (data.foto && data.foto.length > 0) ? data.foto[0].url : base_url + 'assets/images/placeholder.jpg';
+        let allUrlsStr = (data.foto && data.foto.length > 0) ? encodeURIComponent(JSON.stringify(data.foto.map(f => f.url))) : '[]';
+        
+        let photosHtml = '';
+        if(data.foto && data.foto.length > 0) {
+            data.foto.forEach((f, index) => {
+                photosHtml += `<a href="javascript:void(0)" onclick="window.openLightbox('${allUrlsStr}', ${index})"><img src="${f.url}" class="img-thumb-grid"></a>`;
+            });
+        }
+
+        let assignedHtml = '';
+        if (data.assigned_users && data.assigned_users.length > 0) {
+            assignedHtml = data.assigned_users.map(u => `<span class="badge badge-light-primary border-0 rounded-pill px-2 py-1 text-xs"><i class="fas fa-user mr-1"></i>${u.username}</span>`).join('');
+        } else {
+            assignedHtml = '-';
+        }
 
         let html = `
             <div class="row">
-                <!-- SIDEBAR DETAIL TIKET -->
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <div class="tm-sidebar-card shadow-sm">
-                        <div class="d-flex gap-2 mb-3">
-                            ${getPriorityBadgeHtml(data.prioritas)}
-                            <div class="ml-1">${getStatusBadgeHtml(data.status)}</div>
-                        </div>
-
-                        <h5 class="tm-detail-title mb-4">${data.keterangan}</h5>
-
-                        <div class="mb-3">
-                            <div class="tm-detail-label mb-1">PENANGGUNG JAWAB</div>
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-circle mr-2">${data.pic_username.charAt(0).toUpperCase()}</div>
-                                <span class="tm-detail-val">${data.pic_username}</span>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="tm-detail-label mb-1">TANGGAL DIBUAT</div>
-                            <div class="tm-detail-val">${formattedDate}</div>
-                        </div>
-
-                        <div class="mb-4">
-                            <div class="tm-detail-label mb-1">LOKASI</div>
-                            <div class="tm-detail-val text-muted font-weight-normal">${lokasiText}</div>
-                        </div>
-
-                        <hr class="my-3">
-
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="tm-detail-label">LAMPIRAN VISUAL</span>
-                                <span class="text-xs text-primary font-weight-bold">${data.foto ? data.foto.length : 0} Foto</span>
-                            </div>
-                            ${photos}
-                        </div>
-
-                        ${actionBtnHtml}
+                <!-- KOLOM KIRI: Visual & Tombol -->
+                <div class="col-md-5 mb-4 mb-md-0 d-flex flex-column">
+                    <div class="position-relative mb-2 rounded-12 overflow-hidden border" style="height: 350px;">
+                        <img src="${mainPhoto}" class="w-100 h-100" style="object-fit: cover;">
+                        ${(data.foto && data.foto.length > 0) ? `
+                        <button class="btn btn-dark btn-sm position-absolute px-3 rounded-pill" onclick="window.openLightbox('${allUrlsStr}', 0)" style="bottom: 15px; right: 15px; opacity: 0.9;">
+                            <i class="fas fa-search mr-1"></i> Lihat Gambar
+                        </button>
+                        ` : ''}
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        ${photosHtml}
                     </div>
                 </div>
 
-                <!-- HISTORY TIMELINE KANAN -->
-                <div class="col-md-8">
-                    <div class="bg-white p-3 rounded-12 border shadow-sm h-100">
-                        <div class="d-flex align-items-center mb-4">
-                            <div style="width: 4px; height: 20px; background: #2057a3; border-radius: 2px;" class="mr-2"></div>
-                            <h5 class="mb-0 font-weight-bold text-dark">History Progress</h5>
+                <!-- KOLOM KANAN: Detail Info & History -->
+                <div class="col-md-7">
+                    <!-- Top Info -->
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            ${getPriorityBadgeHtml(data.prioritas)}
+                            <span class="text-xs text-muted font-weight-medium">${formattedDate} &bull; #TKT-${data.id}</span>
                         </div>
-
-                        <!-- Form Progress (Hidden by default, toggled via button) -->
-                        <div id="tm_form_progress_container" class="mb-4 d-none"></div>
-
-                        <!-- Timeline Items -->
-                        <div id="tm_progress_list">
-                            <!-- Injected via JS -->
+                        <div class="text-right">
+                            <span class="text-muted d-block text-right mb-1" style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px;">STATUS</span>
+                            ${getStatusBadgeHtml(data.status)}
                         </div>
                     </div>
+
+                    <!-- Title & Location -->
+                    <!-- <h4 class="font-weight-bold text-dark mb-1" style="line-height: 1.4;">${data.keterangan}</h4> -->
+                    <!-- <div class="text-muted text-sm font-weight-medium mb-3">
+                        <i class="fas fa-map-marker-alt mr-1"></i> ${lokasiText}
+                    </div> -->
+
+                    <!-- Alert Deskripsi -->
+                    <div class="alert alert-danger d-flex p-3 rounded mb-4" style="border-left: 4px solid #ea5455; background-color: #fff1f1;">
+                        <i class="fas fa-exclamation-circle text-danger mr-2 mt-1" style="font-size: 1.1rem;"></i>
+                        <div>
+                            <div class="font-weight-bold text-dark mb-1 text-sm">Deskripsi Masalah</div>
+                            <div class="text-dark" style="font-size: 0.85rem;">${data.keterangan}</div>
+                        </div>
+                    </div>
+
+                    <!-- 3 Columns Info -->
+                    <div class="row mb-4">
+                        <div class="col-4">
+                            <div class="tm-detail-label mb-2" style="font-size: 0.65rem;">PENANGGUNG JAWAB</div>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle mr-2" style="width:24px; height:24px; font-size:10px;">${data.pic_username.charAt(0).toUpperCase()}</div>
+                                <span class="font-weight-bold text-dark text-sm">${data.pic_username}</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="tm-detail-label mb-2" style="font-size: 0.65rem;">TANGGAL DIBUAT</div>
+                            <div class="d-flex align-items-center text-dark font-weight-bold text-sm">
+                                <i class="fas fa-calendar-alt text-muted mr-2"></i> ${formattedDate}
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="tm-detail-label mb-2" style="font-size: 0.65rem;">USER DILIBATKAN</div>
+                            <div class="d-flex flex-wrap gap-1">
+                                ${assignedHtml}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <hr class="mb-4" style="border-color: #e9ecef;">
+
+                    <!-- History Progress -->
+                    <div class="d-flex align-items-center mb-4">
+                        <div style="width: 4px; height: 20px; background: #2057a3; border-radius: 2px;" class="mr-2"></div>
+                        <h5 class="mb-0 font-weight-bold text-dark">History Progress</h5>
+                    </div>
+
+                    <div id="tm_form_progress_container" class="mb-4 d-none"></div>
+                    <div id="tm_progress_list"></div>
+                </div>
+            </div>
+            
+            <!-- Sticky Footer Tombol -->
+            <div class="position-sticky bg-white p-1 border-top shadow" style="bottom: -8px; margin: 1rem -8px -8px -8px; z-index: 1020; border-radius: 0 0 0.3rem 0.3rem;">
+                <div class="d-flex flex-column flex-md-row gap-2 justify-content-end">
+                    ${editBtnHtml}
+                    ${actionBtnHtml}
                 </div>
             </div>
         `;
 
-        $('#tm_detail_content').html(html);
+        $('#tm_detail_content').html(styleHtml + html);
 
         // Setup Form Progress logic
         if(!isClosed) {
             setupProgressForm(data);
             $('#btn_toggle_add_progress').click(function() {
-                $('#tm_form_progress_container').toggleClass('d-none');
+                let $container = $('#tm_form_progress_container');
+                let isHidden = $container.hasClass('d-none') || $container.is(':hidden');
+                
+                if (isHidden) {
+                    $container.hide().removeClass('d-none').slideDown(300);
+                    $(this).html('<i class="fas fa-times mr-1"></i> <span class="btn-text">Batal</span>');
+                    $(this).removeClass('btn-primary').addClass('btn-secondary');
+                } else {
+                    $container.slideUp(300, function() {
+                        $(this).addClass('d-none').css('display', '');
+                    });
+                    $(this).html('<i class="fas fa-plus mr-1"></i> <span class="btn-text">Tambah Progres Laporan</span>');
+                    $(this).removeClass('btn-secondary').addClass('btn-primary');
+                }
             });
         }
+        
+        // Setup Edit Draft logic
+        $('#btn_edit_draft_tiket').click(function() {
+            window.editTiketDraft(data);
+        });
     }
 
     function setupProgressForm(tiket) {
@@ -551,14 +1090,14 @@ $(document).ready(function() {
 
         let formHtml = `
             <div class="card bg-light border-primary mb-3">
-                <div class="card-body p-3">
+                <div class="card-body p-1">
                     <h6 class="font-weight-bold text-primary mb-2">
                         <i class="feather icon-edit-3 mr-1"></i> Tambah Catatan Progress
                     </h6>
                     <form id="form_add_progress">
                         <input type="hidden" name="id_tiket_masalah" value="${tiket.id}">
                         <div class="form-group mb-2">
-                            <textarea name="keterangan" class="form-control" rows="3" placeholder="Tuliskan perkembangan perbaikan masalah..." required></textarea>
+                            <textarea name="keterangan" id="progress_keterangan" class="form-control richtext" rows="3" placeholder="Tuliskan perkembangan perbaikan masalah..." required></textarea>
                         </div>
                         <div class="form-group mb-2">
                             <label class="tm-detail-label">Foto Progress (Opsional)</label>
@@ -566,8 +1105,8 @@ $(document).ready(function() {
                             <div class="drag-drop-zone p-2 mb-1" id="tm_progress_dropzone">
                                 <p class="mb-0 text-xs font-weight-bold text-muted">Tarik & Lepas Foto di sini, atau Paste (Ctrl + V)</p>
                                 <div class="mt-1">
-                                    <button type="button" class="btn btn-xs btn-outline-primary mr-1" onclick="$('#foto_progress').click()">Pilih File</button>
-                                    <button type="button" class="btn btn-xs btn-outline-info" onclick="$('#foto_progress_camera').click()">Kamera</button>
+                                    <button type="button" class="btn btn-xs btn-outline-primary mr-1" onclick="$('#foto_progress').click()"><i class="fas fa-folder-open mr-1"></i> Pilih File</button>
+                                    <button type="button" class="btn btn-xs btn-outline-info" onclick="$('#foto_progress_camera').click()"><i class="fas fa-camera mr-1"></i> Kamera</button>
                                 </div>
                             </div>
 
@@ -576,9 +1115,13 @@ $(document).ready(function() {
                             <div id="tm_progress_preview_container" class="upload-preview-container"></div>
                         </div>
                         ${statusOptions}
-                        <div class="text-right mt-3">
-                            <button type="button" class="btn btn-sm btn-light border mr-2" onclick="$('#tm_form_progress_container').addClass('d-none')">Batal</button>
-                            <button type="submit" class="btn btn-sm btn-primary px-3">Simpan Progress</button>
+                        <div class="form-group mb-3 custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="is_pin_requested" name="is_pin_requested" value="1">
+                            <label class="custom-control-label font-weight-bold" for="is_pin_requested">Request Pin ke Atas (Maks 3)</label>
+                        </div>
+                        <div class="d-flex flex-column flex-md-row justify-content-end mt-3 gap-2">
+                            <button type="button" class="btn btn-light border mb-2 mb-md-0 order-2 order-md-1" onclick="$('#tm_form_progress_container').addClass('d-none')">Batal</button>
+                            <button type="submit" class="btn btn-primary px-3 order-1 order-md-2">Simpan Progress</button>
                         </div>
                     </form>
                 </div>
@@ -586,6 +1129,12 @@ $(document).ready(function() {
         `;
 
         $('#tm_form_progress_container').html(formHtml);
+
+        if (typeof $.fn.richText === 'function') {
+            $('#progress_keterangan').richText();
+            $('#progress_keterangan').val('');
+            $('#progress_keterangan').prev('.richText-editor').trigger('setContent', '');
+        }
 
         // Progress file input handlers
         $('#foto_progress, #foto_progress_camera').on('change', function() {
@@ -645,6 +1194,11 @@ $(document).ready(function() {
                         if(res.success) {
                             Swal.fire('Berhasil', 'Progress berhasil ditambahkan', 'success');
                             loadTiketDetail(tiket.id);
+                            
+                            // Reload tabel global jika ada (berada di halaman global tiket masalah)
+                            if (typeof window.tableTiketGlobal !== 'undefined') {
+                                window.tableTiketGlobal.ajax.reload(null, false);
+                            }
                         } else {
                             Swal.fire('Error', res.message, 'error');
                             submitBtn.prop('disabled', false).html('Simpan Progress');
@@ -662,7 +1216,7 @@ $(document).ready(function() {
         });
     }
 
-    function loadTiketProgress(id) {
+    function loadTiketProgress(id, isPic = false) {
         $.ajax({
             url: base_url + 'api/tiket-masalah/progress',
             type: 'POST',
@@ -678,8 +1232,9 @@ $(document).ready(function() {
                             let photos = '';
                             if(p.foto_urls && p.foto_urls.length > 0) {
                                 photos = '<div class="d-flex flex-wrap gap-2 mt-2">';
-                                p.foto_urls.forEach(url => {
-                                    photos += `<a href="${url}" target="_blank"><img src="${url}" class="img-thumb-grid"></a>`;
+                                let allUrlsStr = encodeURIComponent(JSON.stringify(p.foto_urls));
+                                p.foto_urls.forEach((url, index) => {
+                                    photos += `<a href="javascript:void(0)" onclick="window.openLightbox('${allUrlsStr}', ${index})"><img src="${url}" class="img-thumb-grid"></a>`;
                                 });
                                 photos += '</div>';
                             }
@@ -694,6 +1249,25 @@ $(document).ready(function() {
                                     </div>
                                 `;
                             }
+                            
+                            let pinHtml = '';
+                            if (p.is_pinned == 1) {
+                                pinHtml = `<span class="badge badge-primary text-xs font-weight-bold ml-2" style="background-color: #ffd700; color: #333;"><i class="fas fa-thumbtack"></i> Pinned</span>`;
+                            } else if (p.is_pin_requested == 1) {
+                                pinHtml = `<span class="badge badge-info text-xs font-weight-bold ml-2"><i class="fas fa-hand-paper"></i> Request Pin</span>`;
+                            }
+                            
+                            let pinActionHtml = '';
+                            if (isPic) {
+                                if (p.is_pinned == 1) {
+                                    pinActionHtml = `<button type="button" class="btn btn-sm btn-outline-danger float-right ml-2" onclick="window.togglePinProgress(${p.id}, ${id})"><i class="fas fa-thumbtack" style="transform: rotate(45deg);"></i> Unpin</button>`;
+                                } else {
+                                    pinActionHtml = `<button type="button" class="btn btn-sm btn-outline-warning float-right ml-2" onclick="window.togglePinProgress(${p.id}, ${id})"><i class="fas fa-thumbtack"></i> Pin</button>`;
+                                }
+                            }
+                            
+                            let bgClass = p.is_pinned == 1 ? 'bg-light-warning' : '';
+
                             let tglProgress = new Date(p.created_at);
                             let formattedDate = tglProgress.toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'});
 
@@ -705,10 +1279,12 @@ $(document).ready(function() {
                                         <span class="tm-timeline-user">${p.user_username}</span>
                                         <span class="text-muted mx-1">•</span>
                                         <span class="tm-timeline-time">${formattedDate}</span>
+                                        ${pinHtml}
                                     </div>
                                     <div>${statusBadgeHeader}</div>
                                 </div>
-                                <div class="tm-timeline-card">
+                                <div class="tm-timeline-card ${bgClass}">
+                                    ${pinActionHtml}
                                     <p class="mb-0 text-dark" style="font-size: 0.9rem; line-height: 1.5;">${p.keterangan}</p>
                                     ${statusChange}
                                     ${photos}
@@ -730,6 +1306,7 @@ $(document).ready(function() {
         if (prio === 'urgent') cls = 'badge-prio-urgent';
         else if (prio === 'medium') cls = 'badge-prio-medium';
         else if (prio === 'low') cls = 'badge-prio-low';
+        else if (prio === 'laporan') cls = 'badge-prio-laporan';
 
         return `<span class="badge-prio ${cls}">${prio.toUpperCase()}</span>`;
     }
@@ -742,12 +1319,16 @@ $(document).ready(function() {
         else if (status === 'dalam_proses') cls = 'badge-status-proses';
         else if (status === 'hold') cls = 'badge-status-hold';
         else if (status === 'batal') cls = 'badge-status-batal';
+        else if (status === 'draft') cls = 'badge-status-draft';
 
         return `<span class="badge-status-pill ${cls}"><span class="dot"></span> ${label}</span>`;
     }
 
     function getSelectedProyekId() {
-        return $('#f_id_proyek').val() || 1;
+        if ($('#f_id_proyek').length) {
+            return $('#f_id_proyek').val();
+        }
+        return window.SIGAPP && window.SIGAPP.activeProyekId ? window.SIGAPP.activeProyekId : 1;
     }
 
     async function compressImage(file) {
@@ -768,4 +1349,69 @@ $(document).ready(function() {
             throw error;
         }
     }
+
+    window.togglePinProgress = function(idProgress, idTiket) {
+        Swal.fire({
+            title: 'Konfirmasi',
+            text: "Ubah status pin untuk progress ini?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Lanjutkan',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: base_url + 'api/tiket-masalah/toggle-pin',
+                    type: 'POST',
+                    data: { id_progress: idProgress },
+                    success: function(res) {
+                        if (res.success) {
+                            Swal.fire('Berhasil', res.message, 'success');
+                            // Reload detail/progress to show new pin status
+                            window.loadTiketDetail(idTiket);
+                        } else {
+                            Swal.fire('Gagal', res.message || 'Terjadi kesalahan', 'error');
+                        }
+                    },
+                    error: function(err) {
+                        let msg = err.responseJSON && err.responseJSON.messages ? err.responseJSON.messages : 'Gagal menghubungi server';
+                        if (typeof msg === 'object') msg = Object.values(msg).join(', ');
+                        Swal.fire('Gagal', msg, 'error');
+                    }
+                });
+            }
+        });
+    };
+
+    window.openLightbox = function(encodedUrls, activeIndex) {
+        try {
+            let urls = JSON.parse(decodeURIComponent(encodedUrls));
+            let innerHtml = '';
+            urls.forEach((url, i) => {
+                let activeClass = (i === activeIndex) ? 'active' : '';
+                innerHtml += `
+                    <div class="carousel-item ${activeClass}">
+                        <img class="d-block w-100" src="${url}" style="max-height: 85vh; object-fit: contain;">
+                    </div>
+                `;
+            });
+            
+            // Hide controls if only 1 image
+            if (urls.length <= 1) {
+                $('#tm_lightbox_carousel .carousel-control-prev, #tm_lightbox_carousel .carousel-control-next').hide();
+            } else {
+                $('#tm_lightbox_carousel .carousel-control-prev, #tm_lightbox_carousel .carousel-control-next').show();
+            }
+
+            $('#tm_lightbox_inner').html(innerHtml);
+            $('#tm_lightbox_modal').modal('show');
+            
+            // Fix overlay bug: ensures the new backdrop is above the first modal (1050) but below lightbox (1060)
+            setTimeout(() => {
+                $('.modal-backdrop').last().css('z-index', 1059);
+            }, 100);
+        } catch (e) {
+            console.error("Error opening lightbox:", e);
+        }
+    };
 });

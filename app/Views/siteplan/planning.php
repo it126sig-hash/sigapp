@@ -10,11 +10,11 @@
                 <h5 class="modal-title" id="exampleModalLabel">Tambah Data</h5>
             </div>
             <div class="modal-body flex-grow-1">
-                <div class="form-group">
+                <div class="form-group hidden">
                     <label class="form-label" for="basic-icon-default-fullname">Proyek</label>
                     <input type="hidden" class="form-control" id="points" readonly name="points" value="" />
                     <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
-                    <input type="text" class="form-control" id="nama_proyek" readonly name="nama_proyek"
+                    <input type="hidden" class="form-control" id="nama_proyek" readonly name="nama_proyek"
                         placeholder="ASI" />
                     <input type="hidden" name="id_proyek" id="id_proyek">
                 </div>
@@ -110,4 +110,4 @@
     </div>
 </div>
 
-<script src="<?= base_url() ?>assets/js/siteplan/planning.js?v=<?= filemtime(FCPATH.'assets/js/siteplan/planning.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/planning.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/planning.js') ?>"></script>

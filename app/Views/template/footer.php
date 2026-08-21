@@ -69,8 +69,10 @@
            serviceWorkerUrl: "<?= base_url('sw.js') ?>",
            serviceWorkerScope: "<?= base_url() ?>"
        };
+       window.VAPID_PUBLIC_KEY = "<?= getenv('VAPID_PUBLIC_KEY') ?>";
    </script>
    <script src="<?= base_url('assets/js/pwa-install.js') ?>?<?= filemtime(FCPATH . 'assets/js/pwa-install.js') ?>"></script>
+   <script src="<?= base_url('assets/js/push-subscription.js') ?>?<?= filemtime(FCPATH . 'assets/js/push-subscription.js') ?>"></script>
    <!-- END: Theme JS-->
 
    <!-- BEGIN: Page JS-->
