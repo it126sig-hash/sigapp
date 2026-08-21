@@ -3,22 +3,24 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/extensions/sweetalert2.min.css">
 
 <style>
-    .subrow-table {
-        background: #f8f8f8;
-    }
-
-    .subrow-table th {
-        background: #e0e0e0;
-    }
-
     td.details-control {
-        background: url('<?= base_url() ?>assets/images/details_open.png') no-repeat center center;
         cursor: pointer;
         width: 30px;
     }
 
-    tr.shown td.details-control {
-        background: url('<?= base_url() ?>assets/images/details_close.png') no-repeat center center;
+    .subrow-wrapper {
+        background: #f4f5f7;
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+
+    .subrow-table {
+        background: #ffffff;
+    }
+
+    .subrow-table th {
+        background: #f8f8f8;
+        font-size: 0.8rem;
     }
 </style>
 
@@ -54,14 +56,13 @@
                                     <thead>
                                         <tr>
                                             <th></th>
-                                            <th>Nama Konsumen (Referrer)</th>
-                                            <th>Kode Referal</th>
-                                            <th>Kavling Dimiliki</th>
-                                            <th>Jml Referal</th>
-                                            <th>Total Penghasilan</th>
-                                            <th>Sudah Cair (Promosi)</th>
-                                            <th>Sudah Cair (Keuangan)</th>
-                                            <th>Sisa Belum Cair</th>
+                                            <th>NAMA KONSUMEN (KAVLING DIMILIKI)</th>
+                                            <th>KODE REFERAL</th>
+                                            <th>JML REFERAL</th>
+                                            <th>TOTAL PENGHASILAN</th>
+                                            <th>CAIR KE MEMBER (PROMOSI)</th>
+                                            <th>SUDAH CAIR (KEUANGAN)</th>
+                                            <th>SISA BELUM CAIR</th>
                                         </tr>
                                     </thead>
                                     <tbody id="mgm-tbody">
@@ -76,8 +77,9 @@
     </div>
 </div>
 
-<?= $this->include('mgm/modal_bonus_action') ?>
+
 <?= $this->include('mgm/modal_setting_stages') ?>
+<?= $this->include('mgm/modal_detail_pencairan') ?>
 
 <script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js"></script>
@@ -85,4 +87,4 @@
 <script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
 
-<script src="<?= base_url() ?>assets/js/mgm.js"></script>
+<script src="<?= base_url() ?>assets/js/mgm.js?v=<?= time() ?>"></script>

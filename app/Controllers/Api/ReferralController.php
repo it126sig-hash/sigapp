@@ -77,8 +77,15 @@ class ReferralController extends BaseApiController
     public function submitKeuangan(): ResponseInterface
     {
         $idBonus = $this->request->getPost('id_bonus');
-        
-        $res = $this->service->submitToKeuangan($idBonus);
+        $file = $this->request->getFile('bukti_bayar');
+
+        $path = null;
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            $storageService = new \App\Services\StorageService();
+            $path = $storageService->store($file, 'uploads/keuangan/mgm/' . date('Ymd'));
+        }
+
+        $res = $this->service->submitToKeuangan($idBonus, $path);
         if (!$res['success']) return $this->failValidationErrors($res['message']);
         
         return $this->success(['message' => 'Berhasil diajukan ke Keuangan']);

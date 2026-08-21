@@ -167,7 +167,7 @@ class ReferralService
         return ['success' => true];
     }
 
-    public function submitToKeuangan(int $idReferralBonus): array
+    public function submitToKeuangan(int $idReferralBonus, ?string $buktiPath = null): array
     {
         $bonus = $this->bonusModel->find($idReferralBonus);
         if (!$bonus) return ['success' => false, 'message' => 'Bonus not found'];
@@ -179,42 +179,17 @@ class ReferralService
         $db = \Config\Database::connect();
         $db->transStart();
 
-        // Ambil info referral, mkdt, konsumen untuk keperluan pengajuan
-        $sql = "SELECT r.id_mkdt_referred, kv.id_kavling, k.nama_konsumen
-                FROM referrals r
-                JOIN mkdt mk ON mk.id_mkdt = r.id_mkdt_referred
-                JOIN kavling kv ON kv.id_mkdt = mk.id_mkdt
-                JOIN konsumen k ON k.id_konsumen = r.id_konsumen_referrer
-                WHERE r.id = ?";
-        $info = $db->query($sql, [$bonus->id_referral])->getRow();
-
-        // Create record di pengajuan_pencairan
-        // Note: Asumsi tabel pengajuan_pencairan sudah ada dan bisa insert
-        // Kita perlu generate kode pengajuan
-        $kode = 'PRM-' . date('Y') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
-        
-        $dataPengajuan = [
-            'kode_pengajuan' => $kode,
-            'departemen_asal' => 'promosi',
-            'id_user_pengaju' => user_id(),
-            'id_kavling' => $info->id_kavling,
-            'jenis_biaya' => 'referral_bonus',
-            'id_referensi' => $bonus->id,
-            'keperluan' => "Pencairan Bonus Referral a/n " . $info->nama_konsumen,
-            'nominal_diajukan' => $bonus->nominal_bonus,
-            'tanggal_pengajuan' => date('Y-m-d'),
-            'status' => 'diajukan'
+        // Update bonus status
+        $updateData = [
+            'status' => 'diajukan_keuangan',
+            'edit_by' => user_id()
         ];
         
-        $db->table('pengajuan_pencairan')->insert($dataPengajuan);
-        $idPengajuan = $db->insertID();
+        if ($buktiPath) {
+            $updateData['bukti_pengajuan_keuangan'] = $buktiPath;
+        }
 
-        // Update bonus status
-        $this->bonusModel->update($idReferralBonus, [
-            'status' => 'diajukan_keuangan',
-            'id_pengajuan_pencairan' => $idPengajuan,
-            'edit_by' => user_id()
-        ]);
+        $this->bonusModel->update($idReferralBonus, $updateData);
 
         $db->transComplete();
 

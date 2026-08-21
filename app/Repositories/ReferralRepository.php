@@ -17,7 +17,7 @@ class ReferralRepository extends Model
                 k.nama_konsumen as referrer_nama,
                 k.kode_referal,
                 COUNT(DISTINCT r.id) as jumlah_referal,
-                GROUP_CONCAT(DISTINCT kv_ref.no_kavling SEPARATOR ", ") as kavling_dimiliki,
+                GROUP_CONCAT(DISTINCT CONCAT(jl_ref.nama_jalan, ", No. ", kv_ref.no_kavling) SEPARATOR " | ") as kavling_dimiliki,
                 
                 -- Summary bonus dari sub-query
                 COALESCE(SUM(rb.nominal_bonus), 0) as total_penghasilan,
@@ -28,12 +28,12 @@ class ReferralRepository extends Model
             ->join('konsumen k', 'k.id_konsumen = r.id_konsumen_referrer')
             ->join('mkdt mk_ref', 'mk_ref.id_konsumen = k.id_konsumen', 'left') // untuk dapatkan kavling milik referrer
             ->join('kavling kv_ref', 'kv_ref.id_mkdt = mk_ref.id_mkdt', 'left')
+            ->join('jalan jl_ref', 'jl_ref.id_jalan = kv_ref.id_jalan', 'left')
             ->join('referral_bonuses rb', 'rb.id_referral = r.id', 'left')
             ->where('r.id_proyek', $idProyek);
 
         if (!empty($filters['id_cluster'])) {
-            $builder->join('jalan jl', 'jl.id_jalan = kv_ref.id_jalan', 'left')
-                    ->where('jl.id_cluster', $filters['id_cluster']);
+            $builder->where('jl_ref.id_cluster', $filters['id_cluster']);
         }
 
         return $builder->groupBy('r.id_konsumen_referrer')
@@ -80,7 +80,7 @@ class ReferralRepository extends Model
                 r.id as id_referral,
                 r.id_mkdt_referred,
                 k.nama_konsumen as referred_nama,
-                kv.no_kavling as referred_kavling,
+                CONCAT(jl.nama_jalan, ', No. ', kv.no_kavling) as referred_kavling,
                 mk.status_mkdt,
                 mk.id_mkdt,
                 
@@ -89,14 +89,26 @@ class ReferralRepository extends Model
                 st.id as id_stage,
                 COALESCE(rb.nominal_bonus, st.nominal_default) as nominal_bonus,
                 rb.status as bonus_status,
+                CASE 
+                    WHEN rb.status IN ('diajukan_keuangan') THEN 'Menunggu Pencairan'
+                    WHEN rb.status IN ('dikonfirmasi', 'dibayar_promosi') THEN 'Diajukan Promosi'
+                    WHEN rb.status IN ('cair', 'selesai') THEN 'Cair Dari Keuangan'
+                    WHEN rb.status = 'batal' THEN 'Batal'
+                    ELSE 'Belum diajukan'
+                END as bonus_status_badge,
                 rb.keterangan as bonus_keterangan,
                 rb.paid_by_promosi,
                 rb.cair_keuangan_at,
-                rb.bukti_bayar_promosi
+                rb.bukti_bayar_promosi,
+                rb.created_at,
+                rb.eligible_at,
+                rb.confirmed_at,
+                rb.paid_promosi_at
             FROM referrals r
             JOIN mkdt mk ON mk.id_mkdt = r.id_mkdt_referred
             JOIN konsumen k ON k.id_konsumen = mk.id_konsumen
             LEFT JOIN kavling kv ON kv.id_mkdt = mk.id_mkdt
+            LEFT JOIN jalan jl ON jl.id_jalan = kv.id_jalan
             JOIN referral_bonus_stages st ON st.id_proyek = r.id_proyek AND st.is_active = 1
             LEFT JOIN referral_bonuses rb ON rb.id_referral = r.id AND rb.id_stage = st.id
             WHERE r.id_konsumen_referrer = ? AND r.id_proyek = ?

@@ -281,19 +281,109 @@
 			font-weight: 700;
 			font-size: 0.92rem;
 			letter-spacing: 0.02em;
+			margin-top: 12px;
+		}
+
+		.login-mobile-footer {
+			display: none;
 		}
 
 		@media (max-width: 991.98px) {
+			body.login-page {
+				background-color: #f6f8fb;
+				background-image: 
+					url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath fill='%232e7cb6' d='M100,0 C150,50 200,20 200,100 L200,0 Z'/%3E%3Cpath fill='%23195f9c' d='M150,0 C180,30 200,10 200,70 L200,0 Z'/%3E%3C/svg%3E"),
+					url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath fill='%23ef8a2a' d='M0,200 C50,150 20,100 100,200 Z'/%3E%3Cpath fill='%23d67920' d='M0,200 C30,170 10,130 60,200 Z'/%3E%3C/svg%3E");
+				background-position: top right, bottom left;
+				background-repeat: no-repeat;
+				background-size: 250px, 250px;
+				background-attachment: fixed;
+			}
+
 			.login-aside {
 				display: none;
+			}
+			
+			.login-main {
+				background: transparent;
+				padding: 20px;
+			}
+
+			.login-card {
+				background: #fff;
+				border-radius: 16px;
+				padding: 36px 24px;
+				box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
 			}
 
 			.login-mobile-brand {
 				display: flex;
+				flex-direction: column;
+				align-items: center;
+				margin-bottom: 24px;
 			}
 
-			.login-main {
-				padding: 32px 20px;
+			.login-mobile-brand img {
+				display: block;
+				width: 72px;
+				height: auto;
+				border-radius: 0;
+			}
+
+			.login-mobile-brand .brand-sigapp {
+				font-size: 1.9rem;
+				font-weight: 900;
+				color: #1e5fa3;
+				line-height: 1;
+				letter-spacing: 1px;
+			}
+
+			.login-card h2 {
+				text-align: center;
+				font-size: 1.3rem;
+				margin-bottom: 8px;
+			}
+
+			.login-card .login-subtitle {
+				text-align: center;
+				font-size: 0.85rem;
+				color: #777;
+				margin-bottom: 32px;
+			}
+
+			.login-form-group label {
+				color: #5a7395;
+				font-weight: 700;
+				font-size: 0.8rem;
+			}
+
+			.login-input-group .form-control {
+				border-radius: 8px;
+				border: 1px solid #dce3eb;
+				height: 50px;
+			}
+
+			.login-submit {
+				border-radius: 8px;
+				background: linear-gradient(90deg, #24649c, #2b84be);
+				border: none;
+				margin-top: 24px;
+				height: 50px;
+			}
+
+			.login-mobile-footer {
+				display: block;
+				text-align: center;
+				font-size: 0.7rem;
+				color: #888;
+				margin-top: 32px;
+				padding-top: 16px;
+				border-top: 1px solid #f0f0f0;
+			}
+
+			.login-mobile-footer .text-primary {
+				color: #1e5fa3;
+				font-weight: 700;
 			}
 		}
 	</style>
@@ -331,7 +421,7 @@
 			<div class="login-card">
 				<div class="login-mobile-brand">
 					<img src="<?= base_url('images/logo.png') ?>" alt="SIGAPP">
-					<span>SIGAPP</span>
+					<div class="brand-sigapp">SIGAPP</div>
 				</div>
 
 				<h2>Selamat Datang 👋</h2>
@@ -381,19 +471,15 @@
 					</div>
 
 					<?php if ($config->allowRemembering) : ?>
-						<div class="login-remember">
-							<div class="form-check">
-								<label class="form-check-label">
-									<input type="checkbox" name="remember" class="form-check-input" <?php if (old('remember')) : ?> checked <?php endif ?>>
-									<?= lang('Auth.rememberMe') ?>
-								</label>
-							</div>
-						</div>
+						<input type="hidden" name="remember" value="1">
 					<?php endif; ?>
 
 					<button type="submit" class="btn btn-primary btn-block login-submit"><?= lang('Auth.loginAction') ?></button>
 				</form>
 
+				<div class="login-mobile-footer">
+					&copy; <?= date('Y') ?> <span class="text-primary">SIGAPP</span>. All rights reserved.
+				</div>
 			</div>
 		</div>
 		<!-- /Form side -->
