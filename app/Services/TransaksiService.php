@@ -12,6 +12,7 @@ use App\Services\StorageService;
 
 use App\Services\KonsumenService;
 use App\Services\KeuanganService;
+use App\Services\ReferralService;
 use App\Services\MkdtHistoryService;
 use App\Repositories\NotifRepository;
 
@@ -26,6 +27,7 @@ class TransaksiService
     protected $db;
     protected $konsumenService;
     protected $keuanganService;
+    protected $referralService;
     protected $notif;
     protected $kavlingRepo;
     protected $hargaJualRepo;
@@ -50,6 +52,7 @@ class TransaksiService
 
         $this->konsumenService = new KonsumenService();
         $this->keuanganService = new KeuanganService();
+        $this->referralService = new ReferralService();
         $this->notif = new NotifRepository();
 
         $this->kavlingRepo = new KavlingRepository();
@@ -262,6 +265,8 @@ class TransaksiService
             if (!$idKonsumen) {
                 throw new \RuntimeException('Gagal menyimpan data konsumen.');
             }
+            // Generate referral code for this consumer
+            $this->referralService->generateKodeReferal($idKonsumen);
 
             // 2b. Create/Update MKDT
             $mk['id_konsumen'] = $idKonsumen;
@@ -278,6 +283,19 @@ class TransaksiService
 
             $idMkdt = $mkResult['id_mkdt'];
             $uniqId = $mkResult['uniq_id'];
+
+            // Process input kode referral
+            if (!empty($opt['kode_referal'])) {
+                $idProyek = $this->kavlingRepo->getIdProyekByKavling($idKavling);
+                if ($idProyek) {
+                    $this->referralService->createReferral($idMkdt, $opt['kode_referal'], $idProyek);
+                }
+            }
+            
+            // Check status for bonus (Booking is initial status)
+            if (!empty($mk['status_mkdt'])) {
+                $this->referralService->checkAndActivateBonuses($idMkdt, $mk['status_mkdt']);
+            }
 
             // 2c. Sync Tagihan
             $this->keuanganService->syncTagihan($idMkdt, $um, user_id());
@@ -428,6 +446,8 @@ class TransaksiService
                     $oldData->id_konsumen ?? null
                 );
             }
+            
+            $this->referralService->checkAndActivateBonuses($idMkdt, $data['status_mkdt']);
 
             $summary = $this->mkdtHistoryService->buildStatusSummary($oldData, $data, $perintahBangun);
             $this->mkdtHistoryService->log(

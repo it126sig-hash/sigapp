@@ -46,6 +46,18 @@ class KavlingRepository
 
         return $row ? (int) $row->id_proyek : null;
     }
+
+    public function getIdProyekByKavling(int $id_kavling): ?int
+    {
+        $row = $this->db->table('kavling')
+            ->select('cluster.id_proyek')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->where('kavling.id_kavling', $id_kavling)
+            ->get()->getRow();
+
+        return $row ? (int) $row->id_proyek : null;
+    }
     public function getKavlingById(int $idKavling): ?object
     {
         return $this->model->select('

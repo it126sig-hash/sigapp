@@ -160,6 +160,7 @@ class TransaksiController extends BaseApiController
             'id_konsumen'     => $req->getPost('id_konsumen') ?: null,
             'is_data_baru'    => (int) ($req->getPost('mkdt_data_baru') ?? 0) === 1,
             'allow_duplicate_nik' => (int) ($req->getPost('allow_duplicate_nik') ?? 0) === 1,
+            'kode_referal'    => trim((string) ($req->getPost('kode_referal') ?? '')),
         ];
 
         $resp = $this->mkdtService->saveTransaksi($kons, $mk, $um, $files, $opt);

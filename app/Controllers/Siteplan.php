@@ -1098,11 +1098,16 @@ class Siteplan extends BaseController
                 konsumen.file_ktp,
                 konsumen.file_data_diri,
                 konsumen.email_konsumen,
+                konsumen.kode_referal,
+                referrer.kode_referal as referred_by_kode,
+                referrer.nama_konsumen as referred_by_nama,
                 username
             ')
             ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
+            ->join('referrals', 'referrals.id_mkdt_referred = mkdt.id_mkdt', 'left')
+            ->join('konsumen referrer', 'referrer.id_konsumen = referrals.id_konsumen_referrer', 'left')
             ->join('users', 'users.id = mkdt.edit_by')
-            ->where('id_mkdt', $id_mkdt)
+            ->where('mkdt.id_mkdt', $id_mkdt)
             ->first();
         if ($d['mkdt'] && !empty($d['mkdt']->surat_batal)) {
             $d['mkdt']->surat_batal_access_url = $this->fileAccessService->accessUrl('mkdt_surat_batal', (int) $d['mkdt']->id_mkdt);

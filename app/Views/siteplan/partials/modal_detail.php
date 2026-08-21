@@ -132,6 +132,12 @@
                                             <span id="dt-nama_konsumen">-</span>
                                         </div>
                                     </li>
+                                    <li class="mb-2">
+                                        <div class="me-2">
+                                            <b class="mb-0 d-block">Kode Referal</b>
+                                            <span id="dt-kode_referal" style="cursor: pointer; color: #1e88e5; text-decoration: underline;" onclick="copyReferralCode(this)" title="Klik untuk menyalin" data-bs-toggle="tooltip">-</span>
+                                        </div>
+                                    </li>
                                 </ul>
                                 <button class="btn btn-outline-primary btn-block waves-effect detail-consumer-toggle"
                                     type="button" data-toggle="collapse" data-target="#detailConsumerMore"
@@ -261,6 +267,17 @@
                                                     <div class="detail-info-col text-right">
                                                         <span class="detail-info-label">Notaris</span>
                                                         <span class="detail-info-value" id="s-notaris">-</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="detail-info-row" id="s-referred_by_container" style="display:none;">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Pemberi Referal (Kode)</span>
+                                                        <span class="detail-info-value" id="s-referred_by_kode" style="cursor: pointer; color: #1e88e5; text-decoration: underline;" onclick="copyReferralCode(this)" title="Klik untuk menyalin" data-bs-toggle="tooltip">-</span>
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Nama Pemberi Referal</span>
+                                                        <span class="detail-info-value" id="s-referred_by_nama">-</span>
                                                     </div>
                                                 </div>
 
@@ -2076,3 +2093,51 @@
         </div>
     </div>
 </div>
+
+<script>
+function copyReferralCode(el) {
+    var text = el.innerText;
+    if (!text || text === '-') return;
+    
+    // Gunakan modern API (navigator.clipboard) dengan fallback ke execCommand jika gagal
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function() {
+            showToastSuccess(el);
+        }, function(err) {
+            fallbackCopy(text, el);
+        });
+    } else {
+        fallbackCopy(text, el);
+    }
+}
+
+function fallbackCopy(text, el) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    // Posisikan elemen agar tidak menggeser halaman
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.position = "fixed";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        var successful = document.execCommand('copy');
+        if (successful) showToastSuccess(el);
+    } catch (err) {
+        console.error('Fallback: Oops, unable to copy', err);
+    }
+    document.body.removeChild(textArea);
+}
+
+function showToastSuccess(el) {
+    // Ubah title sementara atau tampilkan toast
+    var originalTitle = el.getAttribute('title');
+    el.setAttribute('title', 'Tersalin!');
+    $(el).tooltip('dispose').tooltip('show');
+    setTimeout(function() {
+        el.setAttribute('title', 'Klik untuk menyalin');
+        $(el).tooltip('dispose').tooltip();
+    }, 1500);
+}
+</script>

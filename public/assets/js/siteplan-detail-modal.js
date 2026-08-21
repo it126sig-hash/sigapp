@@ -379,6 +379,14 @@ function lihat_detail() {
         if (r.mkdt) {
             let mkdt = r.mkdt
             setText("#dt-promo", mkdt.promo)
+            setText("#dt-kode_referal", mkdt.kode_referal)
+            if (mkdt.referred_by_nama) {
+                $("#s-referred_by_kode").text(mkdt.referred_by_kode || '-');
+                $("#s-referred_by_nama").text(mkdt.referred_by_nama);
+                $("#s-referred_by_container").show();
+            } else {
+                $("#s-referred_by_container").hide();
+            }
             setText("#dt-is_kpr", isKPR[mkdt.is_kpr], true, "success")
             setText("#dt-is_subsidi", isSubsidi[mkdt.is_subsidi], true, "success")
             setText("#dt-no_spptb", mkdt.no_spptb)
