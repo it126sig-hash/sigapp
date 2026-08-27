@@ -148,6 +148,39 @@ class ReferralRepository extends Model
             ->get()->getResultArray();
     }
 
+    /**
+     * Validasi kode referral secara publik (lintas proyek).
+     * Mengembalikan data konsumen + semua kavling yang dimiliki beserta nama proyek.
+     */
+    public function findPublicByKode(string $kode): ?object
+    {
+        $sql = "SELECT
+                    k.nama_konsumen,
+                    k.kode_referal,
+                    GROUP_CONCAT(
+                        DISTINCT CONCAT(p.nama_proyek, ' — ', jl.nama_jalan, ' No. ', kv.no_kavling)
+                        ORDER BY p.nama_proyek, jl.nama_jalan, kv.no_kavling
+                        SEPARATOR ' | '
+                    ) as kavling_dimiliki,
+                    GROUP_CONCAT(
+                        DISTINCT p.nama_proyek
+                        ORDER BY p.nama_proyek
+                        SEPARATOR ', '
+                    ) as nama_proyek
+                FROM konsumen k
+                JOIN mkdt mk  ON mk.id_konsumen = k.id_konsumen
+                JOIN kavling kv ON kv.id_mkdt = mk.id_mkdt
+                JOIN jalan jl   ON jl.id_jalan = kv.id_jalan
+                JOIN cluster cl ON cl.id_cluster = jl.id_cluster
+                JOIN proyek p   ON p.id_proyek = cl.id_proyek
+                WHERE k.kode_referal = ?
+                  AND mk.status_mkdt NOT IN ('Batal')
+                GROUP BY k.id_konsumen
+                LIMIT 1";
+
+        return $this->db->query($sql, [$kode])->getRow();
+    }
+
     public function searchReferrerOptions(string $search, int $idProyek): array
     {
         $builder = $this->db->table('konsumen k')

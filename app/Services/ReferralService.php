@@ -22,6 +22,37 @@ class ReferralService
         $this->konsumenModel = new KonsumenModel();
     }
 
+    /**
+     * Validasi kode referral untuk endpoint publik.
+     * Tidak membutuhkan sesi login.
+     *
+     * @return array{valid: bool, message?: string, data?: array}
+     */
+    public function validateKodePublic(string $kode): array
+    {
+        $kode = strtoupper(trim($kode));
+
+        if (empty($kode)) {
+            return ['valid' => false, 'message' => 'Kode referral tidak boleh kosong'];
+        }
+
+        $data = $this->repo->findPublicByKode($kode);
+
+        if (!$data) {
+            return ['valid' => false, 'message' => 'Kode referral tidak valid atau tidak ditemukan'];
+        }
+
+        return [
+            'valid' => true,
+            'data'  => [
+                'kode_referal'     => $data->kode_referal,
+                'nama_konsumen'    => $data->nama_konsumen,
+                'nama_proyek'      => $data->nama_proyek,
+                'kavling_dimiliki' => $data->kavling_dimiliki,
+            ],
+        ];
+    }
+
     public function generateKodeReferal(int $idKonsumen): string
     {
         $konsumen = $this->konsumenModel->find($idKonsumen);
