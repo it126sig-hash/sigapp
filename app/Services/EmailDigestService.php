@@ -28,11 +28,20 @@ class EmailDigestService
             mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
         ));
 
-        // Ambil semua queue yang pending
+        // Ambil semua queue yang pending dengan join ke proyek, kavling, users, dan auth_groups
         $queues = $this->db->table('notification_email_queue q')
             ->select('q.*, n.notif, n.type, n.created_at as notif_date')
+            ->select('p.nama_proyek, k.no_kavling')
+            ->select('u.name as actor_name, u.username as actor_username')
+            ->select('ag.name as departemen_name, ag.description as departemen_desc')
             ->join('notification n', 'n.id = q.notification_id')
+            ->join('proyek p', 'p.id_proyek = n.id_proyek', 'left')
+            ->join('kavling k', 'k.id_kavling = n.id_kavling', 'left')
+            ->join('users u', 'u.id = q.actor_user_id', 'left')
+            ->join('auth_groups_users agu', 'agu.user_id = u.id', 'left')
+            ->join('auth_groups ag', 'ag.id = agu.group_id', 'left')
             ->where('q.status', 'pending')
+            ->groupBy('q.id') // Cegah duplikasi jika user actor memiliki lebih dari satu grup
             ->get()->getResult();
 
         if (empty($queues)) return 0;
@@ -76,7 +85,17 @@ class EmailDigestService
                     continue;
                 }
 
-                $sent = $this->sendDigestEmail($user, $userItems);
+                // Kelompokkan per proyek sebelum dikirim ke template email
+                $groupedByProyek = [];
+                foreach ($userItems as $item) {
+                    $proyekName = !empty($item->nama_proyek) ? $item->nama_proyek : 'Umum / Lainnya';
+                    if (!isset($groupedByProyek[$proyekName])) {
+                        $groupedByProyek[$proyekName] = [];
+                    }
+                    $groupedByProyek[$proyekName][] = $item;
+                }
+
+                $sent = $this->sendDigestEmail($user, $groupedByProyek);
                 if ($sent) {
                     $emailsSent++;
                 }
