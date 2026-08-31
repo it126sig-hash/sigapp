@@ -14,7 +14,7 @@ use App\Services\KonsumenService;
 use App\Services\KeuanganService;
 use App\Services\ReferralService;
 use App\Services\MkdtHistoryService;
-use App\Repositories\NotifRepository;
+use App\Services\NotifikasiService;
 
 use App\Models\MkdtModel;
 use App\Models\KavlingModel;
@@ -53,7 +53,7 @@ class TransaksiService
         $this->konsumenService = new KonsumenService();
         $this->keuanganService = new KeuanganService();
         $this->referralService = new ReferralService();
-        $this->notif = new NotifRepository();
+        $this->notif = new NotifikasiService();
 
         $this->kavlingRepo = new KavlingRepository();
         $this->hargaJualRepo = new HargaJualRepository($this->db);

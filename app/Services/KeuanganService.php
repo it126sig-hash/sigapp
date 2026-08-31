@@ -6,7 +6,7 @@ use App\Models\KeuanganModel;
 use CodeIgniter\Database\BaseConnection;
 use App\Repositories\KeuanganRepository;
 use App\Repositories\LogPembayaranRepository;
-use App\Repositories\NotifRepository;
+use App\Services\NotifikasiService;
 use App\Repositories\KavlingRepository;
 use App\Repositories\HargaJualRepository;
 use App\Repositories\TransaksiRepository;
@@ -33,7 +33,7 @@ class KeuanganService
         $this->mkdtModel = new MkdtModel();
         $this->keuRepo = new KeuanganRepository();
 
-        $this->notif = new NotifRepository();
+        $this->notif = new NotifikasiService();
     }
 
     public function simpanIsiTagihan($request, int $actorId): array

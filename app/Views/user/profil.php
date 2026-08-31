@@ -87,6 +87,35 @@ if ($displayName === '') {
                             <h5 class="mb-25"><?= esc($displayName) ?></h5>
                             <div class="text-muted"><?= esc($profile->email ?? '-') ?></div>
                         </div>
+
+                        <div class="divider divider-left mt-2">
+                            <div class="divider-text">Google Calendar</div>
+                        </div>
+                        <?php $googleCalendarStatus = $googleCalendarStatus ?? ['connected' => false, 'configured' => false, 'ready' => false, 'message' => '']; ?>
+                        <?php if (! empty($googleCalendarStatus['connected'])) : ?>
+                            <div class="alert alert-success mb-1" role="alert">
+                                Terhubung<?= ! empty($googleCalendarStatus['google_email']) ? ' sebagai ' . esc($googleCalendarStatus['google_email']) : '' ?>.
+                            </div>
+                            <form action="<?= base_url('google-calendar/disconnect') ?>" method="post">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-outline-danger btn-block">
+                                    <i class="fa fa-unlink mr-50"></i> Disconnect Google Calendar
+                                </button>
+                            </form>
+                        <?php else : ?>
+                            <?php if (empty($googleCalendarStatus['configured']) || empty($googleCalendarStatus['ready'])) : ?>
+                                <div class="alert alert-warning mb-1" role="alert">
+                                    <?= esc($googleCalendarStatus['message'] ?? 'Google Calendar belum dikonfigurasi.') ?>
+                                </div>
+                            <?php else : ?>
+                                <div class="alert alert-secondary mb-1" role="alert">
+                                    Belum terhubung. Event tiket urgent akan dilewati sampai akun Google Calendar dihubungkan.
+                                </div>
+                            <?php endif; ?>
+                            <a href="<?= base_url('google-calendar/connect') ?>" class="btn btn-outline-primary btn-block <?= (empty($googleCalendarStatus['configured']) || empty($googleCalendarStatus['ready'])) ? 'disabled' : '' ?>">
+                                <i class="fa fa-calendar-plus mr-50"></i> Connect Google Calendar
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
 

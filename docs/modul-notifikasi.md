@@ -18,7 +18,8 @@ Modul notifikasi terdiri dari beberapa jalur:
 2. Notifikasi urgent berbasis jatuh tempo/proyek aktif.
 3. Browser Web Push melalui service worker dan VAPID.
 4. Email digest melalui queue `notification_email_queue`.
-5. SSE endpoint yang tersedia, tetapi frontend saat ini memakai polling.
+5. Google Calendar sync untuk tiket masalah urgent per assigned user.
+6. SSE endpoint yang tersedia, tetapi frontend saat ini memakai polling.
 
 Sumber data utama berada di tabel `notification`. Side effect untuk email dan push dibuat oleh `App\Services\NotifikasiService`.
 
@@ -32,6 +33,8 @@ Sumber data utama berada di tabel `notification`. Side effect untuk email dan pu
 | Email digest | `app/Services/EmailDigestService.php` | Ambil queue pending, kelompokkan target, kirim email HTML |
 | Command digest | `app/Commands/SendEmailDigest.php` | Command `php spark notif:send-digest` |
 | Template email | `app/Views/emails/email_digest.php` | HTML email digest |
+| Google Calendar sync | `app/Services/GoogleCalendarService.php` | OAuth Google per user dan create event urgent setelah email digest sukses |
+| Google Calendar OAuth | `app/Controllers/GoogleCalendar.php` | Connect, callback, dan disconnect akun Google Calendar dari profil |
 | Web push | `app/Services/WebPushService.php` | Simpan subscription dan kirim push ke user/group |
 | API push | `app/Controllers/Api/NotifPushController.php` | Subscribe/unsubscribe push |
 | SSE | `app/Controllers/Api/SseController.php` | Stream badge dan notification event |
@@ -52,6 +55,12 @@ $routes->get('/notif/summary', 'Notif::getSummary');
 $routes->get('/notif/center', 'Notif::getCenter');
 $routes->post('/notif/snooze', 'Notif::snooze');
 $routes->post('/notif/mark-as-read/(:num)', 'Notif::markAsRead/$1');
+
+$routes->group('google-calendar', ['filter' => 'login'], function ($routes) {
+    $routes->get('connect', 'GoogleCalendar::connect');
+    $routes->get('callback', 'GoogleCalendar::callback');
+    $routes->post('disconnect', 'GoogleCalendar::disconnect');
+});
 
 $routes->group('api/notif', ['namespace' => 'App\Controllers\Api'], function($routes) {
     $routes->post('push/subscribe', 'NotifPushController::subscribe');
@@ -114,13 +123,49 @@ Alur saat ini:
 3. User target dicari dari `users`, `auth_groups_users`, dan preferensi `email_notif_enabled`.
 4. Actor user tidak dikirimi notifikasi miliknya sendiri.
 5. Email dikirim dengan template `app/Views/emails/email_digest.php`.
-6. Queue ditandai `sent`.
+6. Jika email user berhasil dikirim, tiket masalah urgent di item digest disinkronkan ke Google Calendar user tersebut.
+7. Queue ditandai `sent` hanya jika pengiriman email untuk target batch berhasil; jika ada kegagalan pengiriman, queue ditandai `failed`.
 
 Preferensi email user:
 
 - kolom `users.email_notif_enabled`;
 - default `1`;
 - diubah dari halaman profil.
+
+## Google Calendar Sync Tiket Masalah Urgent
+
+Google Calendar sync dibuat setelah email digest user berhasil terkirim, bukan saat tiket langsung disimpan. Alurnya:
+
+1. User menghubungkan akun Google lewat tombol `Connect Google Calendar` di halaman Profil.
+2. OAuth callback menyimpan access token dan refresh token terenkripsi di `google_calendar_connections`.
+3. Saat `php spark notif:send-digest` berhasil mengirim email ke user, `EmailDigestService` memanggil `GoogleCalendarService`.
+4. Service hanya memproses notification type `tiket_masalah|{ref_type}|{ref_id}|{id_tiket_masalah}`.
+5. Event hanya dibuat jika tiket berprioritas `urgent`, bukan draft, memiliki `tanggal_kunjungan`, dan user adalah assigned user tiket.
+6. Event dibuat satu kali per kombinasi `user_id + id_tiket_masalah`; hasil dicatat di `google_calendar_event_syncs`.
+7. Jika user belum connect Google Calendar, tiket dan email tetap berjalan; sync dicatat sebagai `skipped`.
+
+Waktu event:
+
+- tanggal mengikuti `tanggal_kunjungan`;
+- jam mengikuti waktu email berhasil dikirim + 2 jam;
+- durasi default 1 jam;
+- reminder popup default 30 menit.
+
+Konfigurasi `.env`:
+
+```dotenv
+GOOGLE_CALENDAR_CLIENT_ID=
+GOOGLE_CALENDAR_CLIENT_SECRET=
+GOOGLE_CALENDAR_REDIRECT_URI=
+GOOGLE_CALENDAR_TOKEN_KEY=
+GOOGLE_CALENDAR_DEFAULT_ID=primary
+GOOGLE_CALENDAR_TIMEZONE=Asia/Jakarta
+GOOGLE_CALENDAR_EVENT_OFFSET_HOURS=2
+GOOGLE_CALENDAR_EVENT_DURATION_MINUTES=60
+GOOGLE_CALENDAR_POPUP_REMINDER_MINUTES=30
+```
+
+`GOOGLE_CALENDAR_REDIRECT_URI` boleh dikosongkan jika URL `site_url('google-calendar/callback')` sudah sesuai dengan redirect URI di Google Cloud. `GOOGLE_CALENDAR_TOKEN_KEY` wajib diisi dan tidak boleh dicommit.
 
 Konfigurasi email saat dicek:
 
@@ -181,6 +226,33 @@ Kolom penting:
 - `processed_at`
 - `created_at`
 
+### `google_calendar_connections`
+
+Kolom penting:
+
+- `id`
+- `user_id`
+- `google_email`
+- `calendar_id`
+- `access_token_enc`
+- `refresh_token_enc`
+- `token_expires_at`
+- `connected_at`
+- `disconnected_at`
+
+### `google_calendar_event_syncs`
+
+Kolom penting:
+
+- `id`
+- `user_id`
+- `id_tiket_masalah`
+- `notification_email_queue_id`
+- `google_event_id`
+- `event_start_at`
+- `status`: `created`, `skipped`, `failed`
+- `error_message`
+
 ### `push_subscriptions`
 
 Kolom penting:
@@ -215,59 +287,16 @@ Lokasi:
 
 - `app/Services/EmailDigestService.php`
 
-Masalah:
+Status:
 
-- Queue ditandai `sent` setelah loop target selesai.
-- Tidak ada pencatatan `failed` per queue/user jika `send()` gagal.
-- Output command bisa melaporkan email terkirim walau mailer error.
+- Sudah diperbaiki untuk jalur digest terbaru: queue ditandai `sent` hanya jika batch target tidak memiliki kegagalan email.
+- Command digest sekarang melaporkan jumlah email, queue, dan sync Google Calendar yang sukses/gagal/dilewati.
 
-Rekomendasi:
+Catatan:
 
-- Mark `sent` hanya untuk queue yang benar-benar berhasil dikirim.
-- Gunakan status `failed` dan simpan error/debug message jika memungkinkan.
-- Tambahkan counter `sent`, `failed`, `skipped`.
-- Jangan jadikan queue `sent` jika semua target user gagal.
+- Status queue masih bersifat per notification queue, bukan per penerima email. Jika satu queue group memiliki sebagian penerima gagal, queue ditandai `failed` agar tidak dilaporkan sukses palsu.
 
-### 2. Web push group multi-target belum aman
-
-Lokasi:
-
-- `app/Services/WebPushService.php`
-- `app/Services/NotifikasiService.php`
-
-Masalah:
-
-- Banyak pemanggil memakai target seperti `"3;4;9"`.
-- `WebPushService::sendToGroup()` melakukan `where('group_id', $groupId)`, sehingga string `"3;4;9"` tidak match.
-- Target `"0"` atau global juga tidak terkirim karena `empty($groupId)` dianggap false condition untuk pengiriman.
-
-Rekomendasi:
-
-- Parse group target dengan `explode(';', $targetGroup)`.
-- Untuk target `0`, kirim ke semua user aktif kecuali actor, atau definisikan perilaku global secara eksplisit.
-- Deduplicate user sebelum kirim push.
-
-### 3. Masih ada jalur yang memakai `NotifRepository`
-
-Lokasi:
-
-- `app/Repositories/NotifRepository.php`
-- `app/Services/TransaksiService.php`
-- `app/Services/KeuanganService.php`
-- `app/Services/PembayaranService.php`
-- `app/Services/CashOutService.php`
-
-Masalah:
-
-- `NotifRepository::tambah_notif()` hanya insert tabel `notification`.
-- Email queue dan web push tidak dibuat dari jalur ini.
-
-Rekomendasi:
-
-- Migrasikan pemanggil ke `NotifikasiService`.
-- Jika repository tetap dipertahankan, repository sebaiknya hanya query/insert data, sedangkan side effect tetap dikelola service.
-
-### 4. Konfigurasi email belum siap
+### 2. Konfigurasi email belum siap
 
 Lokasi:
 
@@ -288,7 +317,7 @@ Rekomendasi:
 - Hindari hardcode kredensial di `app/Config/Email.php`.
 - Tambahkan logging error pengiriman email.
 
-### 5. SSE tersedia tetapi tidak dipakai frontend
+### 3. SSE tersedia tetapi tidak dipakai frontend
 
 Lokasi:
 
@@ -313,13 +342,15 @@ Rekomendasi:
 4. Pastikan target group multi-value seperti `"3;4;9"` diuji untuk app, email, dan push.
 5. Pastikan notifikasi personal memakai `user_id`, bukan hanya `group_target`.
 6. Jangan mark queue email sebagai `sent` sebelum pengiriman benar-benar sukses.
-7. Untuk fitur baru, uji minimal:
+7. Jika menambah notification type tiket masalah yang perlu sync Calendar, sertakan `id_tiket_masalah` di type.
+8. Untuk fitur baru, uji minimal:
    - insert notification;
    - muncul di `/notif/summary`;
    - muncul di `/notif/center`;
    - mark as read;
    - queue email dibuat;
    - command digest menangani sukses/gagal;
+   - event Google Calendar hanya dibuat setelah email user sukses;
    - push tidak error jika VAPID/subscription tersedia.
 
 ## Checklist Verifikasi Cepat
@@ -328,9 +359,11 @@ Rekomendasi:
 php -l app/Controllers/Notif.php
 php -l app/Services/NotifikasiService.php
 php -l app/Services/EmailDigestService.php
+php -l app/Services/GoogleCalendarService.php
 php -l app/Services/WebPushService.php
 php -l app/Controllers/Api/NotifPushController.php
 php -l app/Controllers/Api/SseController.php
+php -l app/Controllers/GoogleCalendar.php
 php -l app/Commands/SendEmailDigest.php
 ```
 
@@ -365,8 +398,5 @@ WHERE active = 1
 
 Prioritas paling masuk akal:
 
-1. Perbaiki `EmailDigestService` agar queue tidak salah `sent`.
-2. Perbaiki `WebPushService::sendToGroup()` untuk target multi-group dan global.
-3. Migrasikan pemanggil `NotifRepository` ke `NotifikasiService`.
-4. Pindahkan konfigurasi email ke `.env`.
-5. Tambahkan test kecil untuk target group parser dan status email queue.
+1. Pindahkan konfigurasi email ke `.env`.
+2. Tambahkan test kecil untuk status email queue dan deduplikasi Google Calendar sync.
