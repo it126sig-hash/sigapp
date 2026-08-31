@@ -1,29 +1,7 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/extensions/sweetalert2.min.css">
-
-<style>
-    td.details-control {
-        cursor: pointer;
-        width: 30px;
-    }
-
-    .subrow-wrapper {
-        background: #f4f5f7;
-        padding: 1rem;
-        border-radius: 0.5rem;
-    }
-
-    .subrow-table {
-        background: #ffffff;
-    }
-
-    .subrow-table th {
-        background: #f8f8f8;
-        font-size: 0.8rem;
-    }
-</style>
-
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/mgm.css?v=<?= time() ?>">
 <div class="app-content content">
     <div class="content-overlay"></div>
     <div class="header-navbar-shadow"></div>
@@ -61,8 +39,7 @@
                                             <th>JML REFERAL</th>
                                             <th>TOTAL PENGHASILAN</th>
                                             <th>CAIR KE MEMBER (PROMOSI)</th>
-                                            <th>SUDAH CAIR (KEUANGAN)</th>
-                                            <th>SISA BELUM CAIR</th>
+                                            <th class="text-right">CAIR DARI KEUANGAN</th>
                                         </tr>
                                     </thead>
                                     <tbody id="mgm-tbody">
@@ -87,4 +64,11 @@
 <script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
 
+<script>
+    window.SIGAPP = window.SIGAPP || {};
+    window.SIGAPP.mgmRoles = {
+        canPromosi: <?= in_groups(['1', '8']) ? 'true' : 'false' ?>,
+        canKeuangan: <?= in_groups(['1', '3']) ? 'true' : 'false' ?>
+    };
+</script>
 <script src="<?= base_url() ?>assets/js/mgm.js?v=<?= time() ?>"></script>

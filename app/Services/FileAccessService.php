@@ -32,6 +32,7 @@ class FileAccessService
         'pencairan_jaminan' => [1, 2,  3, 9],
         'bank_kpr_disbursement' => [1, 2,  3, 9],
         'pencairan_akad'    => [1, 2,  3, 9],
+        'mgm_bonus_file'    => [1, 3, 8, 9],
         'file_hargajual'    => [1, 2,  3, 4, 9],
         'cashout_subkon'    => [1, 2,  3, 7, 9],
         'kavling_perintah_bangun' => [1, 2,  4, 7, 9],

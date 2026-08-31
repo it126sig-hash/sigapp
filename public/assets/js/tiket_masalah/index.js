@@ -1,4 +1,31 @@
 $(document).ready(function() {
+    // Inisialisasi Filter
+    if (typeof $.fn.flatpickr === 'function') {
+        $('#filter_periode').flatpickr({
+            mode: "range",
+            dateFormat: "Y-m-d",
+            onClose: function(selectedDates, dateStr, instance) {
+                window.tableTiketGlobal.ajax.reload();
+            }
+        });
+    }
+
+    // Load Data Pembuat & Divisi
+    $.get(base_url + 'api/tiket-masalah/users', function(res) {
+        if (res.success) {
+            let opts = '<option value="">Semua Pembuat</option>';
+            res.data.forEach(u => { opts += `<option value="${u.id}">${u.name} (${u.username})</option>`; });
+            $('#filter_pembuat').html(opts).select2({ placeholder: "Semua Pembuat", allowClear: true });
+        }
+    });
+    $.get(base_url + 'api/tiket-masalah/divisions', function(res) {
+        if (res.success) {
+            let opts = '<option value="">Semua Divisi</option>';
+            res.data.forEach(d => { opts += `<option value="${d.id}">${d.name}</option>`; });
+            $('#filter_divisi').html(opts).select2({ placeholder: "Semua Divisi", allowClear: true });
+        }
+    });
+
     window.tableTiketGlobal = $('#table-tiket-masalah-global').DataTable({
         processing: true,
         serverSide: true,
@@ -9,6 +36,9 @@ $(document).ready(function() {
                 d.filter_status = $('#filter_status').val();
                 d.filter_prioritas = $('#filter_prioritas').val();
                 d.filter_proyek = window.SIGAPP && window.SIGAPP.activeProyekId ? window.SIGAPP.activeProyekId : ''; 
+                d.filter_periode = $('#filter_periode').val();
+                d.filter_pembuat = $('#filter_pembuat').val();
+                d.filter_divisi = $('#filter_divisi').val();
             }
         },
         columns: [
@@ -19,13 +49,21 @@ $(document).ready(function() {
                 className: 'td-aksi',
                 render: function(data, type, row) {
                     return `
-                        <div class="m-aksi">
+                        <div class="m-aksi d-flex gap-1" style="gap: 5px;">
                             <button class="btn btn-sm btn-primary btn-icon rounded-circle btn-view-tiket" 
                                 data-id="${row.id}" 
                                 data-ref-type="${row.ref_type}" 
                                 data-ref-id="${row.ref_id}" 
                                 title="Detail Tiket">
                                 <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-info btn-icon rounded-circle btn-view-lokasi" 
+                                data-id="${row.id}" 
+                                data-ref-type="${row.ref_type}" 
+                                data-ref-id="${row.ref_id}" 
+                                data-id-proyek="${row.id_proyek}"
+                                title="Lihat Lokasi">
+                                <i class="fas fa-map-marker-alt"></i>
                             </button>
                         </div>
                     `;
@@ -175,7 +213,18 @@ $(document).ready(function() {
     });
 
     // Event listener untuk filter Datatables
-    $('#filter_status, #filter_prioritas').on('change', function() {
+    $('#filter_status, #filter_prioritas, #filter_pembuat, #filter_divisi').on('change', function() {
         window.tableTiketGlobal.ajax.reload();
+    });
+
+    // Event handler untuk tombol view lokasi
+    $('#table-tiket-masalah-global').on('click', '.btn-view-lokasi', function() {
+        let idProyek = $(this).data('id-proyek');
+        let refType = $(this).data('ref-type');
+        let refId = $(this).data('ref-id');
+        let idTiket = $(this).data('id');
+
+        let url = base_url + 'siteplan/' + idProyek + '?show_tiket=' + idTiket + '&ref_type=' + refType + '&ref_id=' + refId;
+        window.open(url, '_blank');
     });
 });

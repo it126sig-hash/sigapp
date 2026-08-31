@@ -183,6 +183,12 @@ class TiketMasalahController extends BaseController
         return $this->respond(['success' => true, 'data' => $users]);
     }
 
+    public function divisions()
+    {
+        $divisions = $this->service->getDivisionList();
+        return $this->respond(['success' => true, 'data' => $divisions]);
+    }
+
     public function datatable()
     {
         $params = $this->request->getPost();

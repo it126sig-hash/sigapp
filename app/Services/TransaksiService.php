@@ -284,12 +284,20 @@ class TransaksiService
             $idMkdt = $mkResult['id_mkdt'];
             $uniqId = $mkResult['uniq_id'];
 
-            // Process input kode referral
-            if (!empty($opt['kode_referal'])) {
-                $idProyek = $this->kavlingRepo->getIdProyekByKavling($idKavling);
-                if ($idProyek) {
-                    $this->referralService->createReferral($idMkdt, $opt['kode_referal'], $idProyek);
+            // Process input, change, or removal of referral code.
+            $idProyek = $this->kavlingRepo->getIdProyekByKavling($idKavling);
+            if ($idProyek) {
+                $referralResult = $this->referralService->syncReferralForMkdt(
+                    $idMkdt,
+                    (string) ($opt['kode_referal'] ?? ''),
+                    (int) $idProyek,
+                    (string) ($mk['status_mkdt'] ?? '')
+                );
+                if (!$referralResult['success']) {
+                    throw new \RuntimeException($referralResult['message']);
                 }
+            } elseif (!empty($opt['kode_referal'])) {
+                throw new \RuntimeException('Proyek kavling tidak ditemukan untuk validasi kode referal.');
             }
             
             // Check status for bonus (Booking is initial status)

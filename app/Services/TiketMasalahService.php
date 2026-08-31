@@ -100,7 +100,10 @@ class TiketMasalahService
             'order_dir' => $orderDir,
             'filter_status' => $params['filter_status'] ?? null,
             'filter_prioritas' => $params['filter_prioritas'] ?? null,
-            'filter_proyek' => $params['filter_proyek'] ?? null
+            'filter_proyek' => $params['filter_proyek'] ?? null,
+            'filter_periode' => $params['filter_periode'] ?? null,
+            'filter_pembuat' => $params['filter_pembuat'] ?? null,
+            'filter_divisi' => $params['filter_divisi'] ?? null
         ];
 
         $data = $this->repository->getDatatables($queryParams);
@@ -567,6 +570,15 @@ class TiketMasalahService
             ->where('active', 1)
             ->where('deleted_at IS NULL', null, false)
             ->orderBy('username', 'ASC')
+            ->get()
+            ->getResult();
+    }
+
+    public function getDivisionList(): array
+    {
+        return $this->db->table('auth_groups')
+            ->select('id, name')
+            ->orderBy('name', 'ASC')
             ->get()
             ->getResult();
     }

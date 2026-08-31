@@ -1,6 +1,6 @@
 # Guide Status Modul Member Get Member
 
-Dokumen ini merangkum status pada modul Member Get Member (MGM) berdasarkan implementasi saat ini.
+Dokumen ini merangkum alur dan status modul Member Get Member (MGM) setelah sinkronisasi referral, bonus Booking/Akad, pengajuan Promosi, dan pencairan Keuangan dipisahkan.
 
 ## Entry Point Modul
 
@@ -11,33 +11,50 @@ Dokumen ini merangkum status pada modul Member Get Member (MGM) berdasarkan impl
 - API utama: `app/Controllers/Api/ReferralController.php`
 - Service status: `app/Services/ReferralService.php`
 - Query list/detail: `app/Repositories/ReferralRepository.php`
+- Repair bonus lama: `php spark mgm:repair-bonuses --dry-run`
 
-`MemberGetMemberController` hanya merender halaman MGM. Semua status bonus berasal dari tabel `referral_bonuses` dan diproses lewat `ReferralService`.
+`MemberGetMemberController` hanya merender halaman MGM. Semua aturan bisnis referral dan bonus berada di `ReferralService`; angka list/subrow dihitung dari query `ReferralRepository`.
 
 ## Tabel Yang Terlibat
 
 | Tabel | Fungsi |
 |---|---|
 | `konsumen.kode_referal` | Kode referral milik konsumen/referrer. Dibuat otomatis saat data konsumen disimpan jika belum ada. |
-| `referrals` | Relasi referrer dengan MKDT/konsumen yang direferensikan. Satu `id_mkdt_referred` hanya boleh punya satu referral. |
-| `referral_bonus_stages` | Master tahapan bonus per proyek. Berisi nama tahapan, nominal default, urutan, status MKDT pemicu, dan aktif/tidak. |
-| `referral_bonuses` | Status bonus aktual per referral dan per tahapan. Inilah sumber utama status MGM. |
+| `referrals` | Relasi pemilik kode referral dengan transaksi MKDT yang memakai kode tersebut. Field `status` menandai relasi `active` atau `inactive`. |
+| `referral_bonus_stages` | Master tahapan bonus per proyek, misalnya Bonus Booking dan Bonus Akad. |
+| `referral_bonuses` | Status dan nominal aktual per referral dan per tahapan. |
+| `referral_bonus_histories` | Riwayat perubahan referral/bonus, perubahan nominal, pengajuan, pencairan Keuangan, pembayaran Promosi, dan pembatalan. |
+
+## Sinkronisasi Kode Referal Dari MKDT
+
+Saat MKDT menyimpan data booking konsumen, `TransaksiService::saveTransaksi()` memanggil `ReferralService::syncReferralForMkdt()`.
+
+Perilakunya:
+
+| Kondisi input kode referal | Perilaku sistem |
+|---|---|
+| Kode baru valid | Membuat referral aktif untuk transaksi MKDT tersebut, lalu membuat bonus yang trigger statusnya cocok dengan status MKDT saat itu. |
+| Kode berubah | Memindahkan referral dan bonus transaksi ke pemilik kode baru selama referral belum terkunci. |
+| Kode dikosongkan | Menonaktifkan referral dan membatalkan bonus yang belum terkunci. |
+| Kode invalid / beda proyek | Penyimpanan MKDT ditolak. |
+| Kode milik konsumen sendiri | Penyimpanan MKDT ditolak. |
+| Referral sudah terkunci | Perubahan atau penghapusan kode referal ditolak. |
+
+Referral terkunci ketika ada bonus pada referral tersebut yang sudah dibayar oleh Sales & Promotion ke member (`paid_by_promosi = 1`, status `dibayar_promosi`, atau status `selesai`).
 
 ## Trigger Tahapan Bonus
 
 Tahapan bonus diatur dari modal "Pengaturan Tahapan Bonus Referral".
 
-Field penting:
-
 | Field | Arti |
 |---|---|
 | `nama_tahapan` | Nama tahapan bonus yang tampil di UI. |
-| `trigger_status_mkdt` | Status MKDT yang memicu bonus, contoh `Booking`, `Akad`, `SP3K`, `Batal`. |
+| `trigger_status_mkdt` | Status MKDT yang memicu bonus, contoh `Booking` atau `Akad`. |
 | `nominal_default` | Nominal awal bonus saat tahapan menjadi eligible. |
 | `urutan` | Urutan tampil tahapan. |
-| `is_active` | Hanya stage aktif yang dipakai untuk membuat/menampilkan bonus. |
+| `is_active` | Hanya stage aktif yang dipakai. |
 
-Saat status MKDT disimpan atau diubah, `ReferralService::checkAndActivateBonuses()` akan mencari stage aktif dengan `trigger_status_mkdt` yang sama dengan status MKDT. Pencocokan tidak sensitif huruf besar/kecil.
+Saat status MKDT disimpan atau diubah, `ReferralService::checkAndActivateBonuses()` mencari stage aktif yang `trigger_status_mkdt`-nya sama dengan status MKDT. Stage bernama Akad hanya boleh aktif ketika status MKDT sudah `Akad`, sehingga Bonus Akad tidak muncul di modal detail sebelum transaksi benar-benar akad.
 
 Jika cocok:
 
@@ -45,77 +62,94 @@ Jika cocok:
 - Bonus sebelumnya `batal`: aktifkan ulang menjadi `eligible`.
 - Bonus sudah ada dengan status lain: tidak dibuat ulang.
 
-## Status Bonus Mentah
+Alur umum: status `Booking` membuat Bonus Booking; saat status berubah menjadi `Akad`, Bonus Akad dibuat sebagai stage terpisah tanpa menghapus Bonus Booking.
 
-Status mentah disimpan di `referral_bonuses.status`.
+## Status Bonus
 
-| Status | Label umum di UI | Arti | Aksi berikutnya |
-|---|---|---|---|
-| `eligible` | `Pending` / `Belum diajukan` | Bonus sudah terbentuk otomatis karena status MKDT memenuhi trigger stage, tetapi belum dikonfirmasi Promosi. | Promosi konfirmasi bonus. |
-| `dikonfirmasi` | `Diajukan Promosi` | Promosi sudah mengonfirmasi kelayakan bonus. Nominal dapat mengikuti default atau diubah saat konfirmasi. | Bayar dari Promosi atau ajukan ke Keuangan. |
-| `dibayar_promosi` | `Diajukan Promosi` | Promosi sudah membayar dana talangan ke member. Bukti bayar tersimpan di `bukti_bayar_promosi`. | Ajukan reimburse/pencairan ke Keuangan. |
-| `diajukan_keuangan` | `Menunggu Pencairan` | Bonus sudah diajukan ke Keuangan. | Tunggu sinkronisasi status dari proses Keuangan. |
-| `cair` | `Cair Dari Keuangan` | Keuangan sudah mencairkan, tetapi belum ditandai selesai dari sisi pembayaran Promosi. | Dapat menjadi `selesai` setelah Promosi membayar/menutup proses. |
-| `selesai` | `Completed` / `Cair Dari Keuangan` | Siklus bonus selesai. Umumnya terjadi jika Keuangan sudah cair dan Promosi sudah membayar member. | Tidak ada aksi lanjutan di UI saat ini. |
-| `batal` | `Batal` | Bonus dibatalkan. | Dapat aktif ulang menjadi `eligible` jika status MKDT kembali memenuhi trigger stage. |
+Status mentah tetap disimpan di `referral_bonuses.status`, tetapi UI menampilkan status Promosi dan Keuangan secara terpisah.
 
-Catatan: stage yang aktif tetapi belum punya row `referral_bonuses` akan tampil seperti `Belum diajukan` pada detail subrow karena `bonus_status` bernilai kosong/null.
-
-## Alur Transisi Status
-
-| Dari | Aksi/pemicu | Ke | Method/endpoint |
-|---|---|---|---|
-| Tidak ada bonus | Status MKDT cocok dengan stage aktif | `eligible` | `ReferralService::checkAndActivateBonuses()` |
-| `batal` | Status MKDT cocok ulang dengan stage aktif | `eligible` | `ReferralService::checkAndActivateBonuses()` |
-| `eligible` | Konfirmasi Promosi | `dikonfirmasi` | `POST /api/mgm/confirm-bonus` |
-| `dikonfirmasi` | Bayar dari Promosi dengan bukti bayar | `dibayar_promosi` | `POST /api/mgm/pay-promosi` |
-| `dikonfirmasi` | Ajukan ke Keuangan | `diajukan_keuangan` | `POST /api/mgm/submit-keuangan` |
-| `dibayar_promosi` | Ajukan ke Keuangan | `diajukan_keuangan` | `POST /api/mgm/submit-keuangan` |
-| `diajukan_keuangan` | Keuangan cair, belum dibayar Promosi | `cair` | `ReferralService::syncFromKeuangan()` |
-| `diajukan_keuangan` | Keuangan cair, sudah dibayar Promosi | `selesai` | `ReferralService::syncFromKeuangan()` |
-| `diajukan_keuangan` | Keuangan menolak, belum dibayar Promosi | `dikonfirmasi` | `ReferralService::syncFromKeuangan()` |
-| `diajukan_keuangan` | Keuangan menolak, sudah dibayar Promosi | `dibayar_promosi` | `ReferralService::syncFromKeuangan()` |
-| `cair` | Promosi membayar/menutup pembayaran | `selesai` | `ReferralService::payByPromosi()` |
-| Status apa pun | Pembatalan bonus | `batal` | `POST /api/mgm/cancel-bonus` |
-| Status apa pun | Tandai selesai manual dari service | `selesai` | `ReferralService::markSelesai()` |
-
-## Timeline Di Modal Detail
-
-Timeline pada modal detail menampilkan tiga langkah:
-
-| Langkah | Status yang dianggap aktif | Status yang dianggap selesai |
+| Status mentah | Label bonus | Arti |
 |---|---|---|
-| Pengajuan Dibuat | `eligible` | Semua status selain `eligible` dan `batal` |
-| Verifikasi Dept. Promosi | `dikonfirmasi`, `dibayar_promosi` | `diajukan_keuangan`, `cair`, `selesai` |
-| Menunggu Keuangan | `diajukan_keuangan` | `cair`, `selesai` |
+| `eligible` | Belum diajukan | Bonus otomatis terbentuk, belum dikonfirmasi/diajukan. |
+| `dikonfirmasi` | Belum diajukan | Promosi sudah mengonfirmasi nominal/kelayakan, tetapi belum mengajukan ke Keuangan dan belum membayar member. |
+| `dibayar_promosi` | Cair Dari Promosi | Promosi sudah membayar bonus ke member. Referral terkunci. |
+| `diajukan_keuangan` | Diajukan Keuangan | Promosi sudah mengajukan dana ke Keuangan dengan nominal, tanggal SPP, dan lampiran SPP. |
+| `cair` | Cair Dari Keuangan | Keuangan sudah transfer dana ke Promosi, tetapi Promosi belum membayar member. |
+| `selesai` | Cair Dari Keuangan | Keuangan sudah cair dan Promosi sudah membayar member. |
+| `batal` | Batal | Bonus dibatalkan karena referral dihapus/dibatalkan atau aksi pembatalan. |
 
-Status `batal` tidak menampilkan aksi form pada modal detail.
+## Alur Promosi Dan Keuangan
 
-## Label Ringkasan Per Referred
+| Dari | Aksi/pemicu | Ke | Endpoint |
+|---|---|---|---|
+| Tidak ada bonus | Status MKDT cocok stage aktif | `eligible` | `ReferralService::checkAndActivateBonuses()` |
+| `batal` | Status MKDT cocok ulang | `eligible` | `ReferralService::checkAndActivateBonuses()` |
+| `eligible` | Promosi konfirmasi nominal | `dikonfirmasi` | `POST /api/mgm/confirm-bonus` |
+| `dikonfirmasi` | Promosi bayar member | `dibayar_promosi` | `POST /api/mgm/pay-promosi` |
+| `dikonfirmasi` / `dibayar_promosi` | Promosi ajukan SPP ke Keuangan | `diajukan_keuangan` | `POST /api/mgm/submit-keuangan` |
+| `diajukan_keuangan` | Keuangan transfer dana ke Promosi, member belum dibayar | `cair` | `POST /api/mgm/mark-cair-keuangan` |
+| `diajukan_keuangan` | Keuangan transfer dana ke Promosi, member sudah dibayar | `selesai` | `POST /api/mgm/mark-cair-keuangan` |
+| `cair` | Promosi bayar member | `selesai` | `POST /api/mgm/pay-promosi` |
+| Status apa pun | Promosi/Admin batalkan bonus | `batal` | `POST /api/mgm/cancel-bonus` |
 
-Pada subrow "Daftar Member yang Diajak", beberapa stage milik satu referred digabung menjadi satu label status.
+Role aksi:
 
-Urutan prioritas label:
+- Admin (`1`) bisa menjalankan aksi Promosi dan Keuangan.
+- Keuangan (`3`) bisa menjalankan `Cair Keuangan`.
+- Sales & Promotion (`8`) bisa konfirmasi bonus, ajukan ke Keuangan, bayar member, batal, dan update catatan.
 
-| Kondisi stage | Label |
-|---|---|
-| Ada minimal satu `diajukan_keuangan` | `Menunggu Pencairan` |
-| Ada minimal satu `dikonfirmasi` atau `dibayar_promosi` | `Diajukan Promosi` |
-| Ada minimal satu `eligible` atau belum ada row bonus | `Belum diajukan` |
-| Ada minimal satu `cair` atau `selesai` | `Cair Dari Keuangan` |
+## Field Pengajuan Dan Pencairan
 
-Karena prioritas ini, jika satu referred punya stage yang sudah cair tetapi masih ada stage lain yang eligible/null, label gabungannya dapat tetap tampil `Belum diajukan`.
+| Field | Diisi oleh | Fungsi |
+|---|---|---|
+| `nominal_pengajuan_keuangan` | Promosi | Nominal yang diajukan ke Keuangan. Tidak boleh melebihi nominal bonus. |
+| `tanggal_spp` | Promosi | Tanggal SPP saat pengajuan. |
+| `bukti_pengajuan_keuangan` | Promosi | Lampiran SPP foto/PDF. |
+| `submitted_keuangan_at` / `submitted_keuangan_by` | Sistem | Waktu dan user pengaju. |
+| `nominal_cair_keuangan` | Keuangan | Nominal cair, otomatis terisi dari nominal pengajuan di UI dan divalidasi di backend. |
+| `tanggal_cair_keuangan` | Keuangan | Tanggal dana cair/transfer ke Promosi. |
+| `bukti_transfer_ke_promosi` | Keuangan | Bukti transfer dana dari Keuangan ke Promosi. |
+| `cair_keuangan_at` / `cair_keuangan_by` | Sistem | Waktu dan user yang mencatat pencairan. |
+
+Lampiran MGM disimpan sebagai protected upload dan ditampilkan melalui gateway `FileAccessService` source `mgm_bonus_file`, bukan direct URL `uploads`.
 
 ## Ringkasan Angka Di List Utama
 
-List utama diambil dari `ReferralRepository::getListMGM()`.
+List utama diambil dari `ReferralRepository::getListMGM()` dan hanya menampilkan referral aktif.
 
-| Kolom UI | Rumus saat ini |
+| Kolom UI | Rumus |
 |---|---|
-| Total Penghasilan | `SUM(referral_bonuses.nominal_bonus)` |
-| Cair ke Member (Promosi) | Sum status `dibayar_promosi` dan `selesai` |
-| Sudah Cair (Keuangan) | Sum status `cair` dan `selesai` |
-| Sisa Belum Cair | Sum status selain `cair`, `selesai`, `dibayar_promosi`, dan `batal` |
+| Jumlah referal | `COUNT(DISTINCT referrals.id)` untuk referral aktif pemilik kode tersebut. |
+| Total Penghasilan | Total `nominal_bonus` semua bonus aktif non-`batal`. |
+| Cair ke Member | Total bonus yang `paid_by_promosi = 1`, status `dibayar_promosi`, atau status `selesai`. |
+| Sudah Cair dari Keuangan | Total `nominal_cair_keuangan` untuk status `cair`/`selesai` atau bonus yang punya `cair_keuangan_at`. |
+| Sedang Diajukan | Total `nominal_pengajuan_keuangan` untuk status `diajukan_keuangan`. |
+| Sisa Belum Cair | `total_penghasilan - sudah_cair_keuangan`. Nominal yang sedang diajukan tetap masuk sisa sampai benar-benar cair dari Keuangan. |
+
+## Subtable Dan Modal Detail
+
+Subtable per referrer mengelompokkan transaksi yang memakai kode referal, lalu menjumlahkan semua stage bonus transaksi tersebut.
+
+Kolom subtable:
+
+- Aksi untuk membuka modal detail.
+- Nama konsumen referred dan kavling.
+- Status MKDT.
+- Status bonus gabungan dari semua stage.
+- Nominal bonus.
+- Dibayar Promosi.
+- Cair Keuangan.
+
+Modal detail menampilkan:
+
+- Stage bonus, misalnya Booking dan Akad.
+- Nominal bonus per stage.
+- Status Promosi dan status Keuangan secara terpisah.
+- Aksi Promosi: konfirmasi nominal, ajukan SPP ke Keuangan, bayar member.
+- Aksi Keuangan: cairkan dana ke Promosi dengan tanggal cair, nominal cair otomatis dari pengajuan, dan bukti transfer.
+- Timeline per stage di bawah masing-masing kartu bonus; disembunyikan saat modal pertama dibuka dan muncul setelah user klik `Lihat Detail`.
+- Icon timeline menjadi aktif hanya untuk step yang sudah tercapai: bonus dibentuk, pengajuan ke Keuangan, cair dari Keuangan, atau cair ke member.
+- Tab `Riwayat Bonus` yang menampilkan gabungan seluruh perubahan dari `referral_bonus_histories` untuk semua stage bonus pada referral tersebut.
 
 ## Endpoint MGM
 
@@ -123,9 +157,10 @@ List utama diambil dari `ReferralRepository::getListMGM()`.
 |---|---|
 | `POST /api/mgm/list` | List referrer untuk tabel utama. |
 | `POST /api/mgm/subrows` | Detail referred dan stage bonus per referrer. |
-| `POST /api/mgm/confirm-bonus` | Mengubah `eligible` menjadi `dikonfirmasi`. |
-| `POST /api/mgm/pay-promosi` | Mencatat pembayaran Promosi dan bukti bayar. |
-| `POST /api/mgm/submit-keuangan` | Mengubah status menjadi `diajukan_keuangan`. |
+| `POST /api/mgm/confirm-bonus` | Mengubah `eligible` menjadi `dikonfirmasi` dan dapat menyesuaikan nominal bonus. |
+| `POST /api/mgm/pay-promosi` | Mencatat pembayaran Promosi ke member dan bukti bayar. |
+| `POST /api/mgm/submit-keuangan` | Mencatat pengajuan SPP Promosi ke Keuangan. |
+| `POST /api/mgm/mark-cair-keuangan` | Mencatat pencairan Keuangan ke Promosi. |
 | `POST /api/mgm/cancel-bonus` | Membatalkan bonus menjadi `batal`. |
 | `POST /api/mgm/update-keterangan` | Update catatan bonus. |
 | `POST /api/mgm/search-options` | Select2 pilihan kode referral pada form MKDT. |
@@ -133,10 +168,13 @@ List utama diambil dari `ReferralRepository::getListMGM()`.
 | `POST /api/mgm/stages/save` | Tambah/edit master tahapan bonus. |
 | `POST /api/mgm/stages/delete` | Hapus master tahapan bonus. |
 
-## Catatan Implementasi Saat Ini
+## Repair Data Lama
 
-- `submitToKeuangan()` saat ini hanya mengubah status bonus menjadi `diajukan_keuangan`. Belum terlihat proses membuat row `pengajuan_pencairan` atau mengisi `referral_bonuses.id_pengajuan_pencairan`.
-- `syncFromKeuangan()` mencari bonus berdasarkan `id_pengajuan_pencairan`. Agar callback ini bekerja, integrasi Keuangan harus memastikan `id_pengajuan_pencairan` terisi.
-- `submitToKeuangan()` mencoba menyimpan `bukti_pengajuan_keuangan`, tetapi field ini belum ada di migration `referral_bonuses` dan belum masuk `ReferralBonusModel::$allowedFields`.
-- `cancelBonus()` dan `markSelesai()` di service tidak membatasi status asal. Kalau dipakai dari endpoint/tool lain, validasi bisnis sebaiknya ditambahkan sesuai kebutuhan.
-- Tombol/aksi UI yang terlihat saat ini mencakup konfirmasi, bayar Promosi, dan ajukan Keuangan. Endpoint cancel dan update keterangan sudah ada, tetapi belum terlihat sebagai tombol utama di modal detail.
+Gunakan command berikut setelah migration:
+
+```bash
+php spark mgm:repair-bonuses --dry-run
+php spark mgm:repair-bonuses
+```
+
+Command ini mencari referral aktif yang status MKDT-nya sudah cocok dengan stage aktif, tetapi belum punya row `referral_bonuses`, lalu membuat bonus missing melalui `ReferralService::checkAndActivateBonuses()`.

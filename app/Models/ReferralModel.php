@@ -13,6 +13,7 @@ class ReferralModel extends Model {
         'id_konsumen_referrer',
         'id_mkdt_referred',
         'id_proyek',
+        'status',
         'add_by'
     ];
     
