@@ -135,7 +135,12 @@
                                     <li class="mb-2">
                                         <div class="me-2">
                                             <b class="mb-0 d-block">Kode Referal</b>
-                                            <span id="dt-kode_referal" style="cursor: pointer; color: #1e88e5; text-decoration: underline;" onclick="copyReferralCode(this)" title="Klik untuk menyalin" data-bs-toggle="tooltip">-</span>
+                                            <div class="d-flex align-items-center">
+                                                <span id="dt-kode_referal" class="detail-referral-code" onclick="copyReferralCode(this)" title="Klik untuk menyalin" data-toggle="tooltip">-</span>
+                                                <button type="button" class="btn btn-outline-primary btn-sm ml-50 detail-referral-qr-btn" id="btn-detail-referral-qr" title="Generate QR Referal" disabled>
+                                                    <i class="fas fa-qrcode"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </li>
                                 </ul>
@@ -2083,6 +2088,66 @@
     </div>
 </div>
 
+<div class="modal fade" id="modal_referral_qr" tabindex="-1" role="dialog" aria-labelledby="modalReferralQrLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content referral-qr-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalReferralQrLabel">QR Referal</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6 text-center">
+                        <div class="referral-qr-preview">
+                            <div id="referral_qr_loading" class="text-muted py-3">
+                                <i class="fa fa-spinner fa-spin"></i> Membuat QR
+                            </div>
+                            <img id="referral_qr_img" class="img-fluid" alt="QR Referal" hidden>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="divider divider-left">
+                            <div class="divider-text font-weight-bold">Detail Referal</div>
+                        </div>
+                        <div class="detail-info-row mb-1">
+                            <div class="detail-info-col">
+                                <span class="detail-info-label">Proyek</span>
+                                <span class="detail-info-value" id="referral_qr_project">-</span>
+                            </div>
+                        </div>
+                        <div class="detail-info-row mb-1">
+                            <div class="detail-info-col">
+                                <span class="detail-info-label">Kode Referal</span>
+                                <span class="detail-info-value" id="referral_qr_code">-</span>
+                            </div>
+                        </div>
+                        <div class="detail-info-row mb-1">
+                            <div class="detail-info-col">
+                                <span class="detail-info-label">Nama Konsumen</span>
+                                <span class="detail-info-value" id="referral_qr_consumer">-</span>
+                            </div>
+                        </div>
+                        <div class="detail-info-row mb-1">
+                            <div class="detail-info-col">
+                                <span class="detail-info-label">Link Landing Page</span>
+                                <a href="javascript:void(0)" class="detail-info-value text-primary referral-qr-link" id="referral_qr_target_url" target="_blank" rel="noopener">-</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" id="btn-referral-qr-copy-link" disabled>
+                    <i class="fas fa-copy mr-50"></i> Salin Link
+                </button>
+                <a class="btn btn-primary" id="btn-referral-qr-download" href="javascript:void(0)" download disabled>
+                    <i class="fas fa-download mr-50"></i> Download QR
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- lightbox untuk gambar embed di catatan pricelist -->
 <div class="modal fade" id="modal_image_lightbox" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -2094,7 +2159,69 @@
     </div>
 </div>
 
+<style>
+.detail-referral-code {
+    color: #2057a3;
+    cursor: pointer;
+    text-decoration: underline;
+    word-break: break-word;
+}
+
+.detail-referral-qr-btn {
+    border-color: #2057a3;
+    color: #2057a3;
+    flex: 0 0 auto;
+}
+
+.detail-referral-qr-btn:hover,
+.detail-referral-qr-btn:focus {
+    background-color: #2057a3;
+    border-color: #2057a3;
+    color: #fff;
+}
+
+.referral-qr-modal {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.referral-qr-modal .modal-body {
+    background-color: #f8fafc;
+}
+
+.referral-qr-preview {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    min-height: 360px;
+    padding: 1rem;
+}
+
+.referral-qr-preview img {
+    max-height: 520px;
+}
+
+.referral-qr-link {
+    word-break: break-all;
+}
+</style>
+
 <script>
+window.SIGAPPReferralQr = window.SIGAPPReferralQr || {
+    current: {}
+};
+
+function setReferralQrPayload(payload) {
+    var kode = payload && payload.kode_referal ? String(payload.kode_referal) : '';
+    window.SIGAPPReferralQr.current = $.extend({}, payload || {}, {
+        kode_referal: kode
+    });
+    $("#btn-detail-referral-qr").prop("disabled", kode === '' || kode === '-');
+}
+
 function copyReferralCode(el) {
     var text = el.innerText;
     if (!text || text === '-') return;
@@ -2140,4 +2267,82 @@ function showToastSuccess(el) {
         $(el).tooltip('dispose').tooltip();
     }, 1500);
 }
+
+function copyReferralQrLink() {
+    var link = $("#referral_qr_target_url").attr("href");
+    if (!link || link === "javascript:void(0)") return;
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(link).then(function() {
+            Swal.fire({ icon: 'success', title: 'Link tersalin', timer: 1200, showConfirmButton: false });
+        });
+        return;
+    }
+
+    fallbackCopy(link, document.getElementById("referral_qr_target_url"));
+}
+
+function openReferralQrModal(payload) {
+    payload = payload || window.SIGAPPReferralQr.current || {};
+    var kode = payload.kode_referal ? String(payload.kode_referal) : '';
+    if (!kode || kode === '-') {
+        return Swal.fire({ icon: 'warning', title: 'Kode referal belum tersedia', showConfirmButton: false, timer: 1400 });
+    }
+
+    $("#referral_qr_img").prop("hidden", true).attr("src", "");
+    $("#referral_qr_loading").removeClass("text-danger").addClass("text-muted").html('<i class="fa fa-spinner fa-spin"></i> Membuat QR').show();
+    $("#referral_qr_project, #referral_qr_code, #referral_qr_consumer").text("-");
+    $("#referral_qr_target_url").attr("href", "javascript:void(0)").text("-");
+    $("#btn-referral-qr-copy-link").prop("disabled", true);
+    $("#btn-referral-qr-download").attr("href", "javascript:void(0)").removeAttr("download").addClass("disabled").prop("disabled", true);
+    $("#modal_referral_qr").modal("show");
+
+    $.ajax({
+        url: base_url + "api/referral-qr/preview",
+        type: "post",
+        dataType: "json",
+        data: {
+            [csrfName]: csrfHash,
+            kode_referal: kode,
+            id_mkdt: payload.id_mkdt || "",
+            id_proyek: payload.id_proyek || (typeof activeProyekId === "function" ? activeProyekId() : "")
+        },
+        success: function(res) {
+            csrfHash = res.token || csrfHash;
+            var data = res.data || {};
+            $("#referral_qr_img").attr("src", data.image_data_url || "").prop("hidden", false);
+            $("#referral_qr_loading").hide();
+            $("#referral_qr_project").text(data.nama_proyek || "-");
+            $("#referral_qr_code").text(data.kode_referal || "-");
+            $("#referral_qr_consumer").text(data.nama_konsumen || "-");
+            $("#referral_qr_target_url").attr("href", data.target_url || "javascript:void(0)").text(data.target_url || "-");
+            $("#btn-referral-qr-copy-link").prop("disabled", !data.target_url);
+            $("#btn-referral-qr-download")
+                .attr("href", data.download_url || "javascript:void(0)")
+                .attr("download", data.filename || "qr-referal.png")
+                .toggleClass("disabled", !data.download_url)
+                .prop("disabled", !data.download_url);
+        },
+        error: function(xhr) {
+            var response = xhr.responseJSON || {};
+            csrfHash = response.token || csrfHash;
+            $("#referral_qr_loading").removeClass("text-muted").addClass("text-danger").text(response.messages || response.message || "Gagal membuat QR referal");
+        }
+    });
+}
+
+$(document).on("click", "#btn-detail-referral-qr", function() {
+    openReferralQrModal(window.SIGAPPReferralQr.current);
+});
+
+$(document).on("click", ".js-referral-qr", function(e) {
+    e.preventDefault();
+    openReferralQrModal({
+        kode_referal: $(this).data("kode-referal"),
+        id_mkdt: $(this).data("id-mkdt"),
+        id_proyek: $(this).data("id-proyek") || (typeof activeProyekId === "function" ? activeProyekId() : "")
+    });
+});
+
+$(document).on("click", "#btn-referral-qr-copy-link", copyReferralQrLink);
 </script>

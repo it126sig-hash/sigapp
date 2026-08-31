@@ -248,6 +248,7 @@ function lihat_detail() {
         $("#dt-is_subsidi").text('-')
         $("#dt-no_spptb").text('-')
         $("#dt-nama_konsumen").text('-')
+        $("#dt-kode_referal").text('-')
         $("#dt-alamat_konsumen").text('-')
         $("#dt-nik_konsumen").text('-')
         $("#dt-npwp_konsumen").text('-')
@@ -380,6 +381,14 @@ function lihat_detail() {
             let mkdt = r.mkdt
             setText("#dt-promo", mkdt.promo)
             setText("#dt-kode_referal", mkdt.kode_referal)
+            if (typeof setReferralQrPayload === 'function') {
+                setReferralQrPayload({
+                    kode_referal: mkdt.kode_referal || '',
+                    nama_konsumen: mkdt.nama_konsumen || '',
+                    id_mkdt: mkdt.id_mkdt || '',
+                    id_proyek: (typeof activeProyekId === 'function' ? activeProyekId() : '')
+                });
+            }
             if (mkdt.referred_by_nama) {
                 $("#s-referred_by_kode").text(mkdt.referred_by_kode || '-');
                 $("#s-referred_by_nama").text(mkdt.referred_by_nama);
@@ -408,6 +417,10 @@ function lihat_detail() {
             setText("#s-akad_tgl", format_date(mkdt.akad_tgl))
         } else {
             setText("#dt-promo", '-')
+            setText("#dt-kode_referal", '-')
+            if (typeof setReferralQrPayload === 'function') {
+                setReferralQrPayload({});
+            }
             setText("#dt-is_kpr", '-')
             setText("#dt-is_subsidi", '-')
             setText("#dt-no_spptb", '-')

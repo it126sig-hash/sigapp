@@ -14,7 +14,7 @@ class ProyekRepository
     public function getAll(array $params = []): array
     {
         $builder = $this->db->table('proyek')
-            ->select('id_proyek, nama_proyek, alamat_proyek, kelurahan, kecamatan, kota, provinsi, siteplan, logo')
+            ->select('id_proyek, nama_proyek, alamat_proyek, kelurahan, kecamatan, kota, provinsi, siteplan, logo, landing_page_url')
             ->orderBy('order_by');
 
         if (!empty($params['search'])) {
@@ -27,7 +27,7 @@ class ProyekRepository
     public function getById(int $idProyek): ?object
     {
         return $this->db->table('proyek')
-            ->select('id_proyek, nama_proyek, alamat_proyek, kelurahan, kecamatan, kota, provinsi, siteplan, logo, id_users')
+            ->select('id_proyek, nama_proyek, alamat_proyek, kelurahan, kecamatan, kota, provinsi, siteplan, logo, landing_page_url, id_users')
             ->where('id_proyek', $idProyek)
             ->get()
             ->getRow();
@@ -36,7 +36,7 @@ class ProyekRepository
     public function getAccessibleForUser(int $userId, bool $isAdmin): array
     {
         $rows = $this->db->table('proyek')
-            ->select('id_proyek, nama_proyek, alamat_proyek, logo, id_users')
+            ->select('id_proyek, nama_proyek, alamat_proyek, logo, landing_page_url, id_users')
             ->orderBy('order_by', 'asc')
             ->get()
             ->getResult();

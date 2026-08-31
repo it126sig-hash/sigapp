@@ -240,6 +240,7 @@ class ProyekService
             'kecamatan' => $request->getPost('kecamatanProyek'),
             'kota' => $request->getPost('kotaProyek'),
             'provinsi' => $request->getPost('provinsiProyek'),
+            'landing_page_url' => trim((string) ($request->getPost('landingPageUrl') ?: 'https://sigapp.site')),
             'nama_pt' => $request->getPost('namaPt'),
             'no_rek' => $request->getPost('noRek'),
             'bank' => $request->getPost('bank'),
@@ -252,6 +253,7 @@ class ProyekService
         $rules = [
             'nama_proyek' => ['label' => 'Nama proyek', 'rules' => 'permit_empty|max_length[255]'],
             'alamat_proyek' => ['label' => 'Alamat proyek', 'rules' => 'permit_empty|max_length[255]'],
+            'landing_page_url' => ['label' => 'URL landing page', 'rules' => 'permit_empty|valid_url|max_length[255]'],
             'nama_pt' => ['label' => 'Nama PT', 'rules' => 'permit_empty|max_length[255]'],
             'no_rek' => ['label' => 'No rekening', 'rules' => 'permit_empty|max_length[255]'],
             'bank' => ['label' => 'Bank', 'rules' => 'permit_empty|max_length[255]'],

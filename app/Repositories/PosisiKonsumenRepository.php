@@ -25,6 +25,7 @@ class PosisiKonsumenRepository
             kavling.no_kavling,
             hargajual.id_tipe,
             konsumen.nama_konsumen,
+            konsumen.kode_referal,
             konsumen.sales,
             mkdt.booking_tgl,
             mkdt.wawancara_tgl,
@@ -71,6 +72,7 @@ class PosisiKonsumenRepository
             a.username as uadd_by,
             b.username as uedit_by,
             produksi.lpa_tanggal,
+            proyek.id_proyek,
             proyek.nama_proyek
             ')
             ->join('kavling', "kavling.id_mkdt = mkdt.id_mkdt")

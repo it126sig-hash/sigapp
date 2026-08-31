@@ -166,6 +166,10 @@
 									<input type="text" id="provinsiProyek" name="provinsiProyek" class="form-control" placeholder="Provinsi proyek" maxlength="255">
 								</div>
 								<div class="form-group">
+									<label for="landingPageUrl"> URL landing page: </label>
+									<input type="url" id="landingPageUrl" name="landingPageUrl" class="form-control" placeholder="https://sigapp.site" maxlength="255" value="https://sigapp.site">
+								</div>
+								<div class="form-group">
 									<label for="namaPt"> Nama PT: </label>
 									<input type="text" id="namaPt" name="namaPt" class="form-control" placeholder="Nama PT" maxlength="255">
 								</div>
@@ -282,6 +286,10 @@
 										<div class="form-group">
 											<label for="provinsiProyek"> Provinsi proyek: </label>
 											<input type="text" id="provinsiProyek" name="provinsiProyek" class="form-control" placeholder="Provinsi proyek" maxlength="255">
+										</div>
+										<div class="form-group">
+											<label for="landingPageUrl"> URL landing page: </label>
+											<input type="url" id="landingPageUrl" name="landingPageUrl" class="form-control" placeholder="https://sigapp.site" maxlength="255">
 										</div>
 										<div class="form-group">
 											<label for="namaPt"> Nama PT: </label>
@@ -640,6 +648,7 @@
 				$("#edit-form #kecamatanProyek").val(response.kecamatan);
 				$("#edit-form #kotaProyek").val(response.kota);
 				$("#edit-form #provinsiProyek").val(response.provinsi);
+				$("#edit-form #landingPageUrl").val(response.landing_page_url || 'https://sigapp.site');
 				$("#edit-form #namaPt").val(response.nama_pt);
 				$("#edit-form #bank").val(response.bank);
 				$("#edit-form #noRek").val(response.no_rek);
