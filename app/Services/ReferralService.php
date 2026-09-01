@@ -7,9 +7,16 @@ use App\Models\ReferralModel;
 use App\Models\ReferralBonusModel;
 use App\Models\ReferralBonusHistoryModel;
 use App\Models\KonsumenModel;
+use App\Services\NotifikasiService;
 
 class ReferralService
 {
+    private const GROUP_PROMOSI = '8';
+    private const GROUP_KEUANGAN = '3';
+    private const TYPE_MGM_REFERRAL_CREATED = 'mgm_referral_created';
+    private const TYPE_MGM_SPP_SUBMITTED = 'mgm_spp_submitted';
+    private const TYPE_MGM_SPP_CAIR = 'mgm_spp_cair';
+
     protected $repo;
     protected $model;
     protected $bonusModel;
@@ -167,21 +174,27 @@ class ReferralService
             ], 'Referral dibuat dari form MKDT');
         }
 
-        if ($statusMkdt !== '') {
-            $this->checkAndActivateBonuses($idMkdtReferred, $statusMkdt);
-        }
+        $activatedBonusIds = $statusMkdt !== ''
+            ? $this->checkAndActivateBonuses($idMkdtReferred, $statusMkdt)
+            : [];
 
-        return ['success' => true, 'id_referral' => $idReferral, 'referrer' => $referrer];
+        return [
+            'success' => true,
+            'id_referral' => $idReferral,
+            'referrer' => $referrer,
+            'activated_bonus_ids' => $activatedBonusIds,
+        ];
     }
 
-    public function checkAndActivateBonuses(int $idMkdt, string $newStatusMkdt): void
+    public function checkAndActivateBonuses(int $idMkdt, string $newStatusMkdt): array
     {
         $referral = $this->repo->getReferralByMkdt($idMkdt);
-        if (!$referral || ($referral->status ?? 'active') !== 'active') return;
+        if (!$referral || ($referral->status ?? 'active') !== 'active') return [];
 
         $stages = $this->repo->getBonusStagesByProyek($referral->id_proyek);
-        if (empty($stages)) return;
+        if (empty($stages)) return [];
 
+        $activatedBonusIds = [];
         foreach ($stages as $stage) {
             if ($this->isAkadStage($stage) && strcasecmp($newStatusMkdt, 'Akad') !== 0) {
                 continue;
@@ -209,6 +222,7 @@ class ReferralService
                         'status' => 'eligible',
                         'nominal_bonus' => $stage['nominal_default'],
                     ], ['trigger_status_mkdt' => $newStatusMkdt, 'id_stage' => $stage['id']]);
+                    $activatedBonusIds[] = (int) $idBonus;
                 } else if ($existingBonus->status === 'batal') {
                     // Re-activate if it was canceled
                     $this->bonusModel->update($existingBonus->id, [
@@ -219,9 +233,12 @@ class ReferralService
                     $after = clone $existingBonus;
                     $after->status = 'eligible';
                     $this->logHistory((int) $existingBonus->id, (int) $referral->id, 'bonus_reactivated', $existingBonus, $after, ['trigger_status_mkdt' => $newStatusMkdt]);
+                    $activatedBonusIds[] = (int) $existingBonus->id;
                 }
             }
         }
+
+        return $activatedBonusIds;
     }
 
     public function confirmBonus(int $idReferralBonus, ?float $nominalOverride): array
@@ -405,6 +422,7 @@ class ReferralService
             'tanggal_spp' => $tanggalSpp,
             'nominal_pengajuan_keuangan' => $nominalPengajuan,
         ], $keterangan);
+        $this->notifyMgmSppSubmitted((int) $idReferralBonus);
 
         return ['success' => true];
     }
@@ -475,6 +493,7 @@ class ReferralService
             'no_rekening' => trim($noRekening),
             'bank' => trim($bankPencairan),
         ], $keterangan);
+        $this->notifyMgmSppCair((int) $idReferralBonus);
 
         return ['success' => true];
     }
@@ -565,6 +584,104 @@ class ReferralService
                 ->orWhereIn('status', ['dibayar_promosi', 'selesai'])
             ->groupEnd()
             ->countAllResults() > 0;
+    }
+
+    public function notifyMgmBonusEligible(int $idReferralBonus): void
+    {
+        $context = $this->getMgmNotificationContext($idReferralBonus);
+        if (!$context) {
+            return;
+        }
+
+        $status = $this->isAkadNotificationContext($context) ? 'akad' : 'booking';
+        $message = sprintf(
+            'Konsumen %s kavling %s baru %s menggunakan kode referal %s',
+            $this->notificationValue($context->referred_nama ?? null, 'konsumen'),
+            $this->notificationValue($context->referred_kavling ?? null, 'kavling'),
+            $status,
+            $this->notificationValue($context->kode_referal ?? null, '-')
+        );
+
+        $this->sendMgmNotification(self::GROUP_PROMOSI, $message, self::TYPE_MGM_REFERRAL_CREATED, $context);
+    }
+
+    private function notifyMgmSppSubmitted(int $idReferralBonus): void
+    {
+        $context = $this->getMgmNotificationContext($idReferralBonus);
+        if (!$context) {
+            return;
+        }
+
+        $message = sprintf(
+            '%s mengajukan pencairan SPP bonus %s untuk %s kavling %s',
+            $this->notificationValue($context->submitted_keuangan_username ?? null, 'User Promosi'),
+            $this->notificationValue($context->nama_tahapan ?? null, 'MGM'),
+            $this->notificationValue($context->referred_nama ?? null, 'konsumen'),
+            $this->notificationValue($context->referred_kavling ?? null, 'kavling')
+        );
+
+        $this->sendMgmNotification(self::GROUP_KEUANGAN, $message, self::TYPE_MGM_SPP_SUBMITTED, $context);
+    }
+
+    private function notifyMgmSppCair(int $idReferralBonus): void
+    {
+        $context = $this->getMgmNotificationContext($idReferralBonus);
+        if (!$context) {
+            return;
+        }
+
+        $bank = $this->notificationValue($context->cair_keuangan_bank ?? null, '');
+        $bankSuffix = $bank !== '' ? ' (' . $bank . ')' : '';
+        $message = sprintf(
+            '%s mencairkan SPP bonus %s ke %s - %s%s',
+            $this->notificationValue($context->cair_keuangan_username ?? null, 'User Keuangan'),
+            $this->notificationValue($context->nama_tahapan ?? null, 'MGM'),
+            $this->notificationValue($context->cair_keuangan_penerima_nama ?? null, 'penerima'),
+            $this->notificationValue($context->cair_keuangan_no_rekening ?? null, 'no rekening'),
+            $bankSuffix
+        );
+
+        $this->sendMgmNotification(self::GROUP_PROMOSI, $message, self::TYPE_MGM_SPP_CAIR, $context);
+    }
+
+    private function getMgmNotificationContext(int $idReferralBonus): ?object
+    {
+        try {
+            return $this->repo->getMgmNotificationContextByBonus($idReferralBonus);
+        } catch (\Throwable $e) {
+            log_message('error', 'MGM Notif Context Error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    private function sendMgmNotification(string $targetGroup, string $message, string $type, object $context): void
+    {
+        try {
+            (new NotifikasiService())->tambah_notif(
+                $targetGroup,
+                $message,
+                $this->actorId(),
+                !empty($context->id_kavling) ? (int) $context->id_kavling : null,
+                !empty($context->id_konsumen) ? (int) $context->id_konsumen : null,
+                $type,
+                !empty($context->id_proyek) ? (int) $context->id_proyek : null
+            );
+        } catch (\Throwable $e) {
+            log_message('error', 'MGM Notif Error: ' . $e->getMessage());
+        }
+    }
+
+    private function notificationValue($value, string $fallback): string
+    {
+        $value = trim((string) $value);
+        return $value !== '' ? $value : $fallback;
+    }
+
+    private function isAkadNotificationContext(object $context): bool
+    {
+        return stripos((string) ($context->nama_tahapan ?? ''), 'akad') !== false
+            || strcasecmp((string) ($context->trigger_status_mkdt ?? ''), 'Akad') === 0
+            || strcasecmp((string) ($context->status_mkdt ?? ''), 'Akad') === 0;
     }
 
     private function logHistory(?int $idBonus, ?int $idReferral, string $action, $before = null, $after = null, array $payload = [], ?string $note = null): void

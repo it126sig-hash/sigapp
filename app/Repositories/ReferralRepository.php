@@ -250,6 +250,49 @@ class ReferralRepository extends Model
             ->get()->getResultArray();
     }
 
+    public function getMgmNotificationContextByBonus(int $idBonus): ?object
+    {
+        return $this->db->table('referral_bonuses rb')
+            ->select([
+                'rb.id AS id_bonus',
+                'rb.status AS bonus_status',
+                'rb.nominal_bonus',
+                'rb.nominal_pengajuan_keuangan',
+                'rb.nominal_cair_keuangan',
+                'rb.submitted_keuangan_by',
+                'rb.cair_keuangan_by',
+                'rb.cair_keuangan_penerima_nama',
+                'rb.cair_keuangan_no_rekening',
+                'rb.cair_keuangan_bank',
+                'r.id AS id_referral',
+                'r.id_proyek',
+                'mk.id_mkdt',
+                'mk.status_mkdt',
+                'mk.id_konsumen',
+                'kv.id_kavling',
+                'k_referred.nama_konsumen AS referred_nama',
+                'k_referrer.nama_konsumen AS referrer_nama',
+                'k_referrer.kode_referal',
+                'st.nama_tahapan',
+                'st.trigger_status_mkdt',
+                'submitted_user.username AS submitted_keuangan_username',
+                'cair_user.username AS cair_keuangan_username',
+            ])
+            ->select("CONCAT(COALESCE(jl.nama_jalan, '-'), ', No. ', COALESCE(kv.no_kavling, '-')) AS referred_kavling", false)
+            ->join('referrals r', 'r.id = rb.id_referral')
+            ->join('mkdt mk', 'mk.id_mkdt = r.id_mkdt_referred')
+            ->join('konsumen k_referred', 'k_referred.id_konsumen = mk.id_konsumen', 'left')
+            ->join('konsumen k_referrer', 'k_referrer.id_konsumen = r.id_konsumen_referrer', 'left')
+            ->join('referral_bonus_stages st', 'st.id = rb.id_stage', 'left')
+            ->join('kavling kv', 'kv.id_mkdt = mk.id_mkdt', 'left')
+            ->join('jalan jl', 'jl.id_jalan = kv.id_jalan', 'left')
+            ->join('users submitted_user', 'submitted_user.id = rb.submitted_keuangan_by', 'left')
+            ->join('users cair_user', 'cair_user.id = rb.cair_keuangan_by', 'left')
+            ->where('rb.id', $idBonus)
+            ->get()
+            ->getRow();
+    }
+
     /**
      * Validasi kode referral secara publik (lintas proyek).
      * Mengembalikan data konsumen + semua kavling yang dimiliki beserta nama proyek.

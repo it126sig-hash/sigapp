@@ -2,7 +2,7 @@
 
 Dokumen ini menjadi acuan modul notifikasi SIGAPP. Update dokumen ini setiap ada perubahan pada alur notifikasi, endpoint, tabel, service, atau konfigurasi pengiriman.
 
-Terakhir dicek: 2026-08-27
+Terakhir dicek: 2026-09-01
 
 ## Rekomendasi Penyimpanan
 
@@ -107,6 +107,18 @@ Untuk notifikasi personal gunakan:
 ```php
 $notifikasiService->tambah_notif_user($targetUserId, $message, $actorUserId, $idKavling, $idKonsumen, $type, $idProyek);
 ```
+
+## Notifikasi Member Get Member
+
+Modul Member Get Member memakai `App\Services\NotifikasiService` dari `ReferralService` dan `TransaksiService`, sehingga setiap event membuat row `notification`, queue email, dan web push.
+
+| Event | Target group | Type | Isi pesan |
+|---|---|---|---|
+| Bonus Booking/Akad menjadi eligible karena input konsumen atau status Akad memakai kode referal | Promosi (`8`) | `mgm_referral_created` | Nama konsumen referred, kavling, status booking/akad, dan kode referal. |
+| Promosi mengajukan SPP bonus ke Keuangan | Keuangan (`3`) | `mgm_spp_submitted` | User Promosi, tahapan bonus, nama konsumen, dan kavling. |
+| Keuangan mencairkan SPP bonus ke Promosi | Promosi (`8`) | `mgm_spp_cair` | User Keuangan, tahapan bonus, nama penerima, nomor rekening, dan bank jika tersedia. |
+
+Context notifikasi MGM mengisi `id_kavling`, `id_konsumen`, dan `id_proyek` dari relasi referral/bonus agar filter proyek dan klik aktivitas tetap memakai data kavling/konsumen yang benar.
 
 ## Email Digest
 
