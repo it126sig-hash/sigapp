@@ -68,77 +68,96 @@
                             <!-- Injected via JS -->
                         </div>
 
-                        <!-- BOTTOM SECTION: Form Pengajuan Pencairan -->
-                        <div class="row d-none" id="form_section">
-                            <div class="col-12">
+                        <div id="form_section_parking" class="d-none">
+                            <div class="mgm-action-form-wrap d-none" id="form_section">
                                 <div class="form-pengajuan-box">
-                                    <h6 class="font-weight-bold mb-3"><i class="fas fa-bars text-primary mr-1"></i> Form <span id="form_title_action">Pengajuan Pencairan</span></h6>
+                                    <div class="mgm-action-form-header">
+                                        <div class="mgm-action-form-icon">
+                                            <i class="fas fa-bars" id="form_action_icon"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h6 class="font-weight-bold mb-25">Form <span id="form_title_action">Pengajuan Pencairan</span></h6>
+                                            <div class="mgm-action-form-help" id="form_action_help">Lengkapi data pencairan bonus MGM.</div>
+                                        </div>
+                                    </div>
                                     <form id="formActionDinamis" onsubmit="submitFormActionDinamis(event)">
                                         <input type="hidden" name="id_bonus" id="form_id_bonus">
                                         <input type="hidden" name="action_type" id="form_action_type">
 
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label class="text-muted font-weight-bold mgm-form-label" id="label_nominal_pengajuan">NOMINAL</label>
+                                        <div class="mgm-action-form-grid">
+                                            <div class="form-group">
+                                                <label class="text-muted font-weight-bold mgm-form-label" id="label_nominal_pengajuan">NOMINAL</label>
+                                                <div class="mgm-field-shell">
+                                                    <i class="far fa-money-bill-alt"></i>
                                                     <input type="text" class="form-control form-control-lg font-weight-bold mgm-readonly-control" id="form_nominal_pengajuan" name="nominal" readonly>
                                                 </div>
                                             </div>
-                                            <div class="col-md-4">
-                                                <div class="form-group" id="group_tanggal_spp">
-                                                    <label class="text-muted font-weight-bold mgm-form-label">TANGGAL PENGAJUAN</label>
+                                            <div class="form-group" id="group_tanggal_spp">
+                                                <label class="text-muted font-weight-bold mgm-form-label">TANGGAL PENGAJUAN</label>
+                                                <div class="mgm-field-shell">
+                                                    <i class="far fa-calendar-alt"></i>
                                                     <input type="date" class="form-control form-control-lg" id="form_tanggal_spp" name="tanggal_spp">
                                                 </div>
-                                                <div class="form-group" id="group_tanggal_cair">
-                                                    <label class="text-muted font-weight-bold mgm-form-label">TANGGAL CAIR</label>
+                                            </div>
+                                            <div class="form-group" id="group_tanggal_cair">
+                                                <label class="text-muted font-weight-bold mgm-form-label">TANGGAL CAIR</label>
+                                                <div class="mgm-field-shell">
+                                                    <i class="far fa-calendar-check"></i>
                                                     <input type="date" class="form-control form-control-lg" id="form_tanggal_cair_keuangan" name="tanggal_cair_keuangan">
                                                 </div>
-                                                <div class="form-group" id="group_tanggal_pembayaran">
-                                                    <label class="text-muted font-weight-bold mgm-form-label">TANGGAL PEMBAYARAN</label>
+                                            </div>
+                                            <div class="form-group" id="group_tanggal_pembayaran">
+                                                <label class="text-muted font-weight-bold mgm-form-label">TANGGAL PEMBAYARAN</label>
+                                                <div class="mgm-field-shell">
+                                                    <i class="far fa-calendar-check"></i>
                                                     <input type="date" class="form-control form-control-lg" id="form_tanggal_pembayaran" name="tanggal_pembayaran">
                                                 </div>
                                             </div>
-                                            <div class="col-md-4">
-                                                <div class="form-group" id="group_upload">
-                                                    <label class="text-muted font-weight-bold mgm-form-label" id="label_upload_bukti">UPLOAD BUKTI</label>
-                                                    <div class="mgm-upload-dropzone" id="mgm_upload_dropzone">
-                                                        <input type="file" id="form_bukti" name="bukti" accept="image/*,application/pdf">
-                                                        <div class="mgm-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                                                        <div class="mgm-upload-title">Drop file, klik, atau paste</div>
-                                                        <div class="mgm-upload-filename" id="form_bukti_filename">Foto/PDF</div>
-                                                    </div>
-                                                    <small class="text-muted">Gambar akan dikompres sebelum dikirim.</small>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="row" id="group_recipient">
-                                            <div class="col-md-4">
+                                            <div class="mgm-recipient-grid mgm-form-full" id="group_recipient">
                                                 <div class="form-group">
                                                     <label class="text-muted font-weight-bold mgm-form-label" id="label_nama_penerima">NAMA PENERIMA</label>
-                                                    <input type="text" class="form-control form-control-lg" id="form_nama_penerima" name="nama_penerima">
+                                                    <div class="mgm-field-shell">
+                                                        <i class="far fa-user"></i>
+                                                        <input type="text" class="form-control form-control-lg" id="form_nama_penerima" name="nama_penerima">
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label class="text-muted font-weight-bold mgm-form-label" id="label_no_rekening">NO REKENING</label>
-                                                    <input type="text" class="form-control form-control-lg" id="form_no_rekening_penerima" name="no_rekening_penerima">
+                                                    <div class="mgm-field-shell">
+                                                        <i class="far fa-credit-card"></i>
+                                                        <input type="text" class="form-control form-control-lg" id="form_no_rekening_penerima" name="no_rekening_penerima">
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label class="text-muted font-weight-bold mgm-form-label" id="label_bank_penerima">BANK</label>
-                                                    <input type="text" class="form-control form-control-lg" id="form_bank_penerima" name="bank_penerima">
+                                                    <div class="mgm-field-shell">
+                                                        <i class="fas fa-university"></i>
+                                                        <input type="text" class="form-control form-control-lg" id="form_bank_penerima" name="bank_penerima">
+                                                    </div>
                                                 </div>
+                                            </div>
+                                            <div class="form-group mgm-form-full" id="group_keterangan">
+                                                <label class="text-muted font-weight-bold mgm-form-label">KETERANGAN <span>(OPSIONAL)</span></label>
+                                                <div class="mgm-textarea-shell">
+                                                    <i class="far fa-clipboard"></i>
+                                                    <textarea class="form-control" name="keterangan" id="form_keterangan_input" rows="3" maxlength="300" placeholder="Tambahkan catatan pencairan bila diperlukan"></textarea>
+                                                </div>
+                                                <div class="mgm-char-counter"><span id="form_keterangan_counter">0</span> / 300</div>
+                                            </div>
+                                            <div class="form-group mgm-form-full" id="group_upload">
+                                                <label class="text-muted font-weight-bold mgm-form-label" id="label_upload_bukti">UPLOAD BUKTI</label>
+                                                <div class="mgm-upload-dropzone" id="mgm_upload_dropzone">
+                                                    <input type="file" id="form_bukti" name="bukti" accept="image/*,application/pdf">
+                                                    <div class="mgm-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                                    <div class="mgm-upload-title">Upload bukti transfer</div>
+                                                    <div class="mgm-upload-note">Drag & drop file, klik, atau paste untuk memilih</div>
+                                                    <div class="mgm-upload-filename" id="form_bukti_filename">JPG, PNG, PDF</div>
+                                                </div>
+                                                <small class="text-muted">Gambar akan dikompres sebelum dikirim. Maksimal mengikuti konfigurasi server.</small>
                                             </div>
                                         </div>
 
-                                        <div class="form-group d-none" id="group_keterangan">
-                                            <label class="text-muted font-weight-bold mgm-form-label">KETERANGAN / CATATAN</label>
-                                            <textarea class="form-control" name="keterangan" id="form_keterangan_input" rows="2"></textarea>
-                                        </div>
-
-                                        <button type="submit" class="btn btn-primary btn-block btn-lg mt-2" id="btn_submit_dinamis">Kirim Pengajuan Sekarang</button>
+                                        <button type="submit" class="btn btn-primary btn-lg mt-1" id="btn_submit_dinamis">Kirim Pengajuan Sekarang</button>
                                     </form>
                                 </div>
                             </div>

@@ -12,7 +12,7 @@
                 <input type="hidden" id="action_id_bonus">
                 <input type="hidden" id="action_type">
                 
-                <div id="form-konfirmasi" style="display:none;">
+                <div id="form-konfirmasi" class="d-none">
                     <p>Konfirmasi kelayakan bonus ini. Anda bisa mengubah nominal default jika diperlukan.</p>
                     <div class="form-group">
                         <label>Nominal Bonus</label>
@@ -20,7 +20,7 @@
                     </div>
                 </div>
 
-                <div id="form-bayar-promosi" style="display:none;">
+                <div id="form-bayar-promosi" class="d-none">
                     <p>Catat pembayaran bonus dari kas Promosi.</p>
                     <div class="form-group">
                         <label>Bukti Bayar (Image/PDF)</label>
@@ -28,14 +28,14 @@
                     </div>
                 </div>
 
-                <div id="form-keterangan" style="display:none;">
+                <div id="form-keterangan" class="d-none">
                     <div class="form-group">
                         <label>Keterangan Tambahan / Alasan Batal</label>
                         <textarea class="form-control" id="action_keterangan" rows="3"></textarea>
                     </div>
                 </div>
 
-                <div id="form-submit-keuangan" style="display:none;">
+                <div id="form-submit-keuangan" class="d-none">
                     <p>Ajukan pencairan bonus ini ke departemen Keuangan.</p>
                 </div>
 

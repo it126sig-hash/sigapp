@@ -284,10 +284,8 @@ class ReferralService
         $bonus = $this->bonusModel->find($idReferralBonus);
         if (!$bonus) return ['success' => false, 'message' => 'Bonus not found'];
 
-        $canEditNominal = in_array($bonus->status, ['eligible', 'dikonfirmasi', 'cair', 'dibayar_promosi', 'selesai'], true)
-            || (int) ($bonus->paid_by_promosi ?? 0) === 1;
-        if (!$canEditNominal) {
-            return ['success' => false, 'message' => 'Status tidak valid untuk perubahan nominal bonus'];
+        if ($bonus->status !== 'eligible') {
+            return ['success' => false, 'message' => 'Nominal bonus hanya bisa diedit saat bonus baru dibuat'];
         }
 
         if ($nominalBonus <= 0) {
