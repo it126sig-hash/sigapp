@@ -1414,11 +1414,6 @@ $(document).ready(function() {
 
             $('#tm_lightbox_inner').html(innerHtml);
             $('#tm_lightbox_modal').modal('show');
-            
-            // Fix overlay bug: ensures the new backdrop is above the first modal (1050) but below lightbox (1060)
-            setTimeout(() => {
-                $('.modal-backdrop').last().css('z-index', 1059);
-            }, 100);
         } catch (e) {
             console.error("Error opening lightbox:", e);
         }

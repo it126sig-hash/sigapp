@@ -56,9 +56,9 @@ class ReferralService
         ];
     }
 
-    public function getSubRowsByReferrer(int $idKonsumenReferrer, int $idProyek): array
+    public function getSubRowsByReferrer(int $idKonsumenReferrer, int $idProyek, array $filters = []): array
     {
-        $rows = $this->repo->getSubRowsByReferrer($idKonsumenReferrer, $idProyek);
+        $rows = $this->repo->getSubRowsByReferrer($idKonsumenReferrer, $idProyek, $filters);
 
         foreach ($rows as &$row) {
             foreach ([
@@ -262,13 +262,62 @@ class ReferralService
         return ['success' => true];
     }
 
-    public function payByPromosi(int $idReferralBonus, string $buktiPath): array
+    public function updateNominalBonus(int $idReferralBonus, float $nominalBonus, ?string $keterangan = null): array
     {
+        $bonus = $this->bonusModel->find($idReferralBonus);
+        if (!$bonus) return ['success' => false, 'message' => 'Bonus not found'];
+
+        $canEditNominal = in_array($bonus->status, ['eligible', 'dikonfirmasi', 'cair', 'dibayar_promosi', 'selesai'], true)
+            || (int) ($bonus->paid_by_promosi ?? 0) === 1;
+        if (!$canEditNominal) {
+            return ['success' => false, 'message' => 'Status tidak valid untuk perubahan nominal bonus'];
+        }
+
+        if ($nominalBonus <= 0) {
+            return ['success' => false, 'message' => 'Nominal bonus harus lebih dari 0'];
+        }
+
+        $before = clone $bonus;
+        $data = [
+            'nominal_bonus' => $nominalBonus,
+            'edit_by' => $this->actorId(),
+        ];
+        if ($keterangan !== null) {
+            $data['keterangan'] = $keterangan;
+        }
+
+        $this->bonusModel->update($idReferralBonus, $data);
+        $this->logHistory($idReferralBonus, (int) $bonus->id_referral, 'bonus_nominal_updated', $before, $this->bonusModel->find($idReferralBonus), [], $keterangan);
+
+        return ['success' => true];
+    }
+
+    public function payByPromosi(
+        int $idReferralBonus,
+        string $buktiPath,
+        string $tanggalPembayaran,
+        string $namaPenerima,
+        string $noRekening,
+        string $bankPenerima,
+        ?string $keterangan = null
+    ): array {
         $bonus = $this->bonusModel->find($idReferralBonus);
         if (!$bonus) return ['success' => false, 'message' => 'Bonus not found'];
 
         if (!in_array($bonus->status, ['dikonfirmasi', 'dibayar_promosi', 'diajukan_keuangan', 'cair'], true)) {
             return ['success' => false, 'message' => 'Status tidak valid untuk pembayaran Promosi'];
+        }
+        if (trim($tanggalPembayaran) === '') {
+            return ['success' => false, 'message' => 'Tanggal pembayaran wajib diisi'];
+        }
+        if (trim($namaPenerima) === '') {
+            return ['success' => false, 'message' => 'Nama penerima wajib diisi'];
+        }
+        if (trim($noRekening) === '') {
+            return ['success' => false, 'message' => 'No rekening penerima wajib diisi'];
+        }
+        if (trim($bankPenerima) === '') {
+            return ['success' => false, 'message' => 'Bank penerima wajib diisi'];
         }
 
         $before = clone $bonus;
@@ -279,23 +328,32 @@ class ReferralService
             'status' => $newStatus,
             'paid_by_promosi' => 1,
             'paid_promosi_at' => date('Y-m-d H:i:s'),
+            'paid_promosi_tanggal' => $tanggalPembayaran,
             'paid_promosi_by' => $this->actorId(),
             'bukti_bayar_promosi' => $buktiPath,
+            'paid_promosi_penerima_nama' => trim($namaPenerima),
+            'paid_promosi_no_rekening' => trim($noRekening),
+            'paid_promosi_bank' => trim($bankPenerima),
+            'keterangan' => $keterangan,
             'edit_by' => $this->actorId()
         ]);
         $after = $this->bonusModel->find($idReferralBonus);
         $this->logHistory($idReferralBonus, (int) $bonus->id_referral, 'paid_by_promosi', $before, $after, [
             'bukti_bayar_promosi' => $buktiPath,
-        ]);
+            'tanggal_pembayaran' => $tanggalPembayaran,
+            'nama_penerima' => trim($namaPenerima),
+            'no_rekening' => trim($noRekening),
+            'bank' => trim($bankPenerima),
+        ], $keterangan);
         return ['success' => true];
     }
 
-    public function submitToKeuangan(int $idReferralBonus, ?float $nominalPengajuan, string $tanggalSpp, ?string $buktiPath = null): array
+    public function submitToKeuangan(int $idReferralBonus, ?float $nominalPengajuan, string $tanggalSpp, ?string $buktiPath = null, ?string $keterangan = null): array
     {
         $bonus = $this->bonusModel->find($idReferralBonus);
         if (!$bonus) return ['success' => false, 'message' => 'Bonus not found'];
 
-        if (!in_array($bonus->status, ['dikonfirmasi', 'dibayar_promosi'])) {
+        if (!in_array($bonus->status, ['eligible', 'dikonfirmasi', 'dibayar_promosi'], true)) {
             return ['success' => false, 'message' => 'Status tidak valid'];
         }
 
@@ -321,8 +379,13 @@ class ReferralService
             'tanggal_spp' => $tanggalSpp,
             'submitted_keuangan_at' => date('Y-m-d H:i:s'),
             'submitted_keuangan_by' => $this->actorId(),
+            'keterangan' => $keterangan,
             'edit_by' => $this->actorId()
         ];
+        if ($bonus->status === 'eligible') {
+            $updateData['confirmed_by'] = $this->actorId();
+            $updateData['confirmed_at'] = date('Y-m-d H:i:s');
+        }
         
         if ($buktiPath) {
             $updateData['bukti_pengajuan_keuangan'] = $buktiPath;
@@ -341,12 +404,21 @@ class ReferralService
             'bukti_pengajuan_keuangan' => $buktiPath,
             'tanggal_spp' => $tanggalSpp,
             'nominal_pengajuan_keuangan' => $nominalPengajuan,
-        ]);
+        ], $keterangan);
 
         return ['success' => true];
     }
 
-    public function markCairKeuangan(int $idReferralBonus, string $tanggalCair, ?float $nominalCair, string $buktiPath): array
+    public function markCairKeuangan(
+        int $idReferralBonus,
+        string $tanggalCair,
+        ?float $nominalCair,
+        string $buktiPath,
+        string $namaPenerima,
+        string $noRekening,
+        string $bankPencairan,
+        ?string $keterangan = null
+    ): array
     {
         $bonus = $this->bonusModel->find($idReferralBonus);
         if (!$bonus) return ['success' => false, 'message' => 'Bonus not found'];
@@ -357,6 +429,15 @@ class ReferralService
 
         if (trim($tanggalCair) === '') {
             return ['success' => false, 'message' => 'Tanggal cair wajib diisi'];
+        }
+        if (trim($namaPenerima) === '') {
+            return ['success' => false, 'message' => 'Nama penerima wajib diisi'];
+        }
+        if (trim($noRekening) === '') {
+            return ['success' => false, 'message' => 'No rekening wajib diisi'];
+        }
+        if (trim($bankPencairan) === '') {
+            return ['success' => false, 'message' => 'Bank pencairan wajib diisi'];
         }
 
         $nominalPengajuan = (float) ($bonus->nominal_pengajuan_keuangan ?: $bonus->nominal_bonus);
@@ -378,6 +459,10 @@ class ReferralService
             'cair_keuangan_at' => date('Y-m-d H:i:s'),
             'cair_keuangan_by' => $this->actorId(),
             'bukti_transfer_ke_promosi' => $buktiPath,
+            'cair_keuangan_penerima_nama' => trim($namaPenerima),
+            'cair_keuangan_no_rekening' => trim($noRekening),
+            'cair_keuangan_bank' => trim($bankPencairan),
+            'keterangan' => $keterangan,
             'edit_by' => $this->actorId(),
         ]);
 
@@ -386,7 +471,10 @@ class ReferralService
             'tanggal_cair_keuangan' => $tanggalCair,
             'nominal_cair_keuangan' => $nominalCair,
             'bukti_transfer_ke_promosi' => $buktiPath,
-        ]);
+            'nama_penerima' => trim($namaPenerima),
+            'no_rekening' => trim($noRekening),
+            'bank' => trim($bankPencairan),
+        ], $keterangan);
 
         return ['success' => true];
     }

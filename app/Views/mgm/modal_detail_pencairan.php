@@ -86,22 +86,49 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group" id="group_tanggal_spp">
-                                                    <label class="text-muted font-weight-bold mgm-form-label">TANGGAL SPP</label>
+                                                    <label class="text-muted font-weight-bold mgm-form-label">TANGGAL PENGAJUAN</label>
                                                     <input type="date" class="form-control form-control-lg" id="form_tanggal_spp" name="tanggal_spp">
                                                 </div>
                                                 <div class="form-group" id="group_tanggal_cair">
                                                     <label class="text-muted font-weight-bold mgm-form-label">TANGGAL CAIR</label>
                                                     <input type="date" class="form-control form-control-lg" id="form_tanggal_cair_keuangan" name="tanggal_cair_keuangan">
                                                 </div>
+                                                <div class="form-group" id="group_tanggal_pembayaran">
+                                                    <label class="text-muted font-weight-bold mgm-form-label">TANGGAL PEMBAYARAN</label>
+                                                    <input type="date" class="form-control form-control-lg" id="form_tanggal_pembayaran" name="tanggal_pembayaran">
+                                                </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group" id="group_upload">
                                                     <label class="text-muted font-weight-bold mgm-form-label" id="label_upload_bukti">UPLOAD BUKTI</label>
-                                                    <div class="custom-file">
-                                                        <input type="file" class="custom-file-input form-control-lg" id="form_bukti" name="bukti" accept="image/*,application/pdf">
-                                                        <label class="custom-file-label" for="form_bukti"><i class="far fa-file mr-1"></i> Pilih File</label>
+                                                    <div class="mgm-upload-dropzone" id="mgm_upload_dropzone">
+                                                        <input type="file" id="form_bukti" name="bukti" accept="image/*,application/pdf">
+                                                        <div class="mgm-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                                                        <div class="mgm-upload-title">Drop file, klik, atau paste</div>
+                                                        <div class="mgm-upload-filename" id="form_bukti_filename">Foto/PDF</div>
                                                     </div>
-                                                    <small class="text-muted">Foto/PDF. Gambar bisa paste (Ctrl+V).</small>
+                                                    <small class="text-muted">Gambar akan dikompres sebelum dikirim.</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row" id="group_recipient">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="text-muted font-weight-bold mgm-form-label" id="label_nama_penerima">NAMA PENERIMA</label>
+                                                    <input type="text" class="form-control form-control-lg" id="form_nama_penerima" name="nama_penerima">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="text-muted font-weight-bold mgm-form-label" id="label_no_rekening">NO REKENING</label>
+                                                    <input type="text" class="form-control form-control-lg" id="form_no_rekening_penerima" name="no_rekening_penerima">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label class="text-muted font-weight-bold mgm-form-label" id="label_bank_penerima">BANK</label>
+                                                    <input type="text" class="form-control form-control-lg" id="form_bank_penerima" name="bank_penerima">
                                                 </div>
                                             </div>
                                         </div>
@@ -123,6 +150,38 @@
                             <div class="divider-text">Riwayat Bonus Keseluruhan</div>
                         </div>
                         <div class="history-list" id="history_container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Preview Lampiran Progres Bonus -->
+<div class="modal fade" id="modalMgmLampiran" tabindex="-1" role="dialog" aria-labelledby="modalMgmLampiranTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content mgm-lampiran-modal">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title font-weight-bold" id="modalMgmLampiranTitle">Lampiran Progres Bonus</h5>
+                    <div class="small text-muted" id="lampiran_progress_stage">-</div>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-7 mb-1 mb-lg-0">
+                        <div class="mgm-lampiran-preview" id="lampiran_progress_preview">
+                            <div class="text-muted small">Belum ada lampiran.</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="mgm-lampiran-info" id="lampiran_progress_info"></div>
+                        <a href="#" class="btn btn-outline-primary btn-block mt-1 d-none" id="lampiran_open_link" target="_blank" rel="noopener">
+                            <i class="fas fa-external-link-alt mr-50"></i>Buka Lampiran
+                        </a>
                     </div>
                 </div>
             </div>

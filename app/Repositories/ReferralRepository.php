@@ -24,6 +24,7 @@ class ReferralRepository extends Model
             )";
             $params[] = (int) $filters['id_cluster'];
         }
+        $filterSql = $this->mgmFilterSql($filters, $params, 'k');
 
         $sql = "SELECT
                 r.id_konsumen_referrer,
@@ -42,7 +43,9 @@ class ReferralRepository extends Model
                 ) AS sisa_belum_cair
             FROM referrals r
             JOIN konsumen k ON k.id_konsumen = r.id_konsumen_referrer
-            LEFT JOIN referral_bonuses rb ON rb.id_referral = r.id
+            JOIN mkdt mk ON mk.id_mkdt = r.id_mkdt_referred
+            JOIN referral_bonus_stages st ON st.id_proyek = r.id_proyek AND st.is_active = 1
+            LEFT JOIN referral_bonuses rb ON rb.id_referral = r.id AND rb.id_stage = st.id
             LEFT JOIN (
                 SELECT
                     mk_ref.id_konsumen,
@@ -56,14 +59,18 @@ class ReferralRepository extends Model
             WHERE r.id_proyek = ?
               AND COALESCE(r.status, 'active') = 'active'
               {$clusterSql}
+              {$filterSql}
             GROUP BY r.id_konsumen_referrer, k.nama_konsumen, k.kode_referal, kav.kavling_dimiliki
             ORDER BY jumlah_referal DESC";
 
         return $this->db->query($sql, $params)->getResultArray();
     }
 
-    public function getSubRowsByReferrer(int $idKonsumenReferrer, int $idProyek): array
+    public function getSubRowsByReferrer(int $idKonsumenReferrer, int $idProyek, array $filters = []): array
     {
+        $params = [$idKonsumenReferrer, $idProyek];
+        $filterSql = $this->mgmFilterSql($filters, $params, 'kr');
+
         $sql = "SELECT 
                 r.id as id_referral,
                 r.id_mkdt_referred,
@@ -72,6 +79,8 @@ class ReferralRepository extends Model
                 CONCAT(jl.nama_jalan, ', No. ', kv.no_kavling) as referred_kavling,
                 mk.status_mkdt,
                 mk.id_mkdt,
+                mk.booking_tgl,
+                mk.akad_tgl,
                 
                 rb.id as id_bonus,
                 st.nama_tahapan,
@@ -94,22 +103,37 @@ class ReferralRepository extends Model
                 rb.bukti_pengajuan_keuangan,
                 rb.submitted_keuangan_at,
                 rb.submitted_keuangan_by,
+                submitted_user.username as submitted_keuangan_username,
                 rb.nominal_cair_keuangan,
                 rb.tanggal_cair_keuangan,
                 rb.bukti_transfer_ke_promosi,
                 rb.cair_keuangan_by,
+                cair_user.username as cair_keuangan_username,
                 rb.bukti_bayar_promosi,
+                rb.paid_promosi_tanggal,
+                rb.paid_promosi_by,
+                paid_user.username as paid_promosi_username,
+                rb.paid_promosi_penerima_nama,
+                rb.paid_promosi_no_rekening,
+                rb.paid_promosi_bank,
+                rb.cair_keuangan_penerima_nama,
+                rb.cair_keuangan_no_rekening,
+                rb.cair_keuangan_bank,
                 rb.created_at,
                 rb.eligible_at,
                 rb.confirmed_at,
                 rb.paid_promosi_at
             FROM referrals r
             JOIN mkdt mk ON mk.id_mkdt = r.id_mkdt_referred
+            JOIN konsumen kr ON kr.id_konsumen = r.id_konsumen_referrer
             JOIN konsumen k ON k.id_konsumen = mk.id_konsumen
             LEFT JOIN kavling kv ON kv.id_mkdt = mk.id_mkdt
             LEFT JOIN jalan jl ON jl.id_jalan = kv.id_jalan
             JOIN referral_bonus_stages st ON st.id_proyek = r.id_proyek AND st.is_active = 1
             LEFT JOIN referral_bonuses rb ON rb.id_referral = r.id AND rb.id_stage = st.id
+            LEFT JOIN users submitted_user ON submitted_user.id = rb.submitted_keuangan_by
+            LEFT JOIN users cair_user ON cair_user.id = rb.cair_keuangan_by
+            LEFT JOIN users paid_user ON paid_user.id = rb.paid_promosi_by
             WHERE r.id_konsumen_referrer = ? AND r.id_proyek = ?
               AND COALESCE(r.status, 'active') = 'active'
               AND (
@@ -119,9 +143,10 @@ class ReferralRepository extends Model
                       AND LOWER(st.trigger_status_mkdt) <> 'akad'
                   )
               )
+              {$filterSql}
             ORDER BY r.id DESC, st.urutan ASC";
 
-        $rows = $this->db->query($sql, [$idKonsumenReferrer, $idProyek])->getResultArray();
+        $rows = $this->db->query($sql, $params)->getResultArray();
         $bonusIds = array_values(array_filter(array_map(static fn ($row) => (int) ($row['id_bonus'] ?? 0), $rows)));
         $referralIds = array_values(array_unique(array_filter(array_map(static fn ($row) => (int) ($row['id_referral'] ?? 0), $rows))));
         if ((empty($bonusIds) && empty($referralIds)) || !$this->db->tableExists('referral_bonus_histories')) {
@@ -261,12 +286,15 @@ class ReferralRepository extends Model
     public function searchReferrerOptions(string $search, int $idProyek): array
     {
         $builder = $this->db->table('konsumen k')
-            ->select('k.kode_referal, k.nama_konsumen')
+            ->select('k.kode_referal, k.nama_konsumen, COUNT(DISTINCT r.id) as jumlah_referal')
             ->join('mkdt mk', 'mk.id_konsumen = k.id_konsumen')
             ->join('kavling kv', 'kv.id_mkdt = mk.id_mkdt')
             ->join('jalan jl', 'jl.id_jalan = kv.id_jalan')
             ->join('cluster cl', 'cl.id_cluster = jl.id_cluster')
+            ->join('referrals r', 'r.id_konsumen_referrer = k.id_konsumen AND r.id_proyek = cl.id_proyek')
             ->where('cl.id_proyek', $idProyek)
+            ->where('r.id_proyek', $idProyek)
+            ->where("COALESCE(r.status, 'active') = 'active'", null, false)
             ->where('mk.status_mkdt !=', 'Batal')
             ->where('k.kode_referal IS NOT NULL')
             ->where('k.kode_referal !=', '');
@@ -278,6 +306,92 @@ class ReferralRepository extends Model
                 ->groupEnd();
         }
 
-        return $builder->groupBy('k.id_konsumen')->limit(20)->get()->getResult();
+        return $builder
+            ->groupBy('k.id_konsumen, k.kode_referal, k.nama_konsumen')
+            ->orderBy('jumlah_referal', 'DESC')
+            ->limit(20)
+            ->get()
+            ->getResult();
+    }
+
+    private function mgmFilterSql(array $filters, array &$params, string $referrerAlias): string
+    {
+        $conditions = [];
+
+        if (!empty($filters['kode_referal'])) {
+            $conditions[] = "{$referrerAlias}.kode_referal = ?";
+            $params[] = strtoupper(trim((string) $filters['kode_referal']));
+        }
+
+        $status = (string) ($filters['filter_status'] ?? '');
+        if ($status === 'booking') {
+            $conditions[] = $this->nonAkadStageSql();
+            $conditions[] = $this->dateRangeSql('mk.booking_tgl', $filters, $params);
+        } elseif ($status === 'akad') {
+            $conditions[] = $this->akadStageSql();
+            $conditions[] = "LOWER(COALESCE(mk.status_mkdt, '')) = 'akad'";
+            $conditions[] = $this->dateRangeSql('mk.akad_tgl', $filters, $params);
+        } elseif ($status === 'cair_bonus_booking') {
+            $conditions[] = $this->nonAkadStageSql();
+            $conditions[] = $this->anyDateRangeSql(['rb.tanggal_cair_keuangan', 'rb.paid_promosi_tanggal'], $filters, $params);
+        } elseif ($status === 'cair_bonus_akad') {
+            $conditions[] = $this->akadStageSql();
+            $conditions[] = $this->anyDateRangeSql(['rb.tanggal_cair_keuangan', 'rb.paid_promosi_tanggal'], $filters, $params);
+        } elseif (!empty($filters['kode_referal']) && (!empty($filters['tanggal_mulai']) || !empty($filters['tanggal_selesai']))) {
+            $conditions[] = $this->anyDateRangeSql([
+                'mk.booking_tgl',
+                'mk.akad_tgl',
+                'rb.tanggal_cair_keuangan',
+                'rb.paid_promosi_tanggal',
+            ], $filters, $params);
+        }
+
+        if (empty($conditions)) {
+            return '';
+        }
+
+        return ' AND ' . implode(' AND ', array_map(static fn ($condition) => "({$condition})", $conditions));
+    }
+
+    private function nonAkadStageSql(): string
+    {
+        return "(LOWER(COALESCE(st.nama_tahapan, '')) NOT LIKE '%akad%' AND LOWER(COALESCE(st.trigger_status_mkdt, '')) <> 'akad')";
+    }
+
+    private function akadStageSql(): string
+    {
+        return "(LOWER(COALESCE(st.nama_tahapan, '')) LIKE '%akad%' OR LOWER(COALESCE(st.trigger_status_mkdt, '')) = 'akad')";
+    }
+
+    private function dateRangeSql(string $column, array $filters, array &$params): string
+    {
+        $conditions = [$this->validDateSql($column)];
+
+        if (!empty($filters['tanggal_mulai'])) {
+            $conditions[] = "{$column} >= ?";
+            $params[] = $filters['tanggal_mulai'];
+        }
+
+        if (!empty($filters['tanggal_selesai'])) {
+            $conditions[] = "{$column} <= ?";
+            $params[] = $filters['tanggal_selesai'];
+        }
+
+        return implode(' AND ', $conditions);
+    }
+
+    private function anyDateRangeSql(array $columns, array $filters, array &$params): string
+    {
+        $conditions = [];
+        foreach ($columns as $column) {
+            $conditions[] = $this->dateRangeSql($column, $filters, $params);
+        }
+
+        return '(' . implode(' OR ', array_map(static fn ($condition) => "({$condition})", $conditions)) . ')';
+    }
+
+    private function validDateSql(string $column): string
+    {
+        return "{$column} IS NOT NULL AND {$column} <> '' AND {$column} <> '0000-00-00'";
     }
 }

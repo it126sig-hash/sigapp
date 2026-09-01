@@ -38,6 +38,49 @@ function palid(id, val, msg) {
     return true;
 }
 
+function initSigappModalStacking(attempt = 0) {
+  if (window.SIGAPP_MODAL_STACKING_READY) {
+    return;
+  }
+
+  if (!window.jQuery || !$.fn.modal) {
+    if (attempt < 20) {
+      window.setTimeout(() => initSigappModalStacking(attempt + 1), 100);
+    }
+    return;
+  }
+
+  window.SIGAPP_MODAL_STACKING_READY = true;
+
+  $(document).on("show.bs.modal", ".modal", function () {
+    const zIndex = 1050 + ($(".modal.show").not(this).length * 20);
+    $(this).css("z-index", zIndex);
+
+    window.setTimeout(() => {
+      $(".modal-backdrop")
+        .not(".sigapp-modal-stack")
+        .last()
+        .css("z-index", zIndex - 10)
+        .addClass("sigapp-modal-stack");
+    }, 0);
+  });
+
+  $(document).on("hidden.bs.modal", ".modal", function () {
+    $(this).css("z-index", "");
+
+    window.setTimeout(() => {
+      const openModalCount = $(".modal.show").length;
+      if (openModalCount > 0) {
+        $("body").addClass("modal-open");
+      } else {
+        $(".modal-backdrop.sigapp-modal-stack").removeClass("sigapp-modal-stack").css("z-index", "");
+      }
+    }, 0);
+  });
+}
+
+initSigappModalStacking();
+
 (function (window, undefined) {
   "use strict";
   /*
