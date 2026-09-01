@@ -11,34 +11,49 @@ class FileAccessService
     private const PRIVATE_DIR = 'protected_uploads';
 
     private array $sourceRoles = [
-        'file_produksi'     => [1, 3, 4, 5, 6, 7, 8, 9, 10],
-        'gambar_kerja'      => [1, 6, 7, 9],
-        'siteplan_upload'   => [1, 6, 9],
-        'file_spptb'        => [1, 3, 4, 9],
-        'pencairan_jaminan' => [1, 3, 9],
-        'bank_kpr_disbursement' => [1, 3, 9],
-        'pencairan_akad'    => [1, 3, 9],
-        'file_hargajual'    => [1, 3, 4, 9],
-        'cashout_subkon'    => [1, 3, 7, 9],
-        'kavling_perintah_bangun' => [1, 4, 7, 9],
-        'mkdt_perintah'     => [1, 4, 7, 9],
-        'mkdt_file_spptb'   => [1, 3, 4, 9],
-        'mkdt_sp3k'         => [1, 3, 4, 9],
-        'mkdt_bast'         => [1, 3, 4, 9],
-        'mkdt_surat_batal'  => [1, 3, 4, 5, 8, 9],
-        'konsumen_ktp'      => [1, 3, 4, 5, 8, 9],
-        'konsumen_npwp'     => [1, 3, 4, 5, 8, 9],
-        'konsumen_data'     => [1, 3, 4, 5, 8, 9],
-        'si'                => [1, 4, 7, 9],
-        'komplain_sales'    => [1, 7, 8, 9],
-        'komplain_produksi' => [1, 7, 8, 9],
-        'produksi_jalan_progress' => [1, 7, 9],
-        'profile_photo'     => [1, 3, 4, 5, 6, 7, 8, 9, 10],
-        'poskon_export'     => [1, 3, 4, 5, 6, 7, 8, 9, 10],
-        'tiket_masalah'     => [1, 3, 4, 5, 6, 7, 8, 9, 10],
+        /*
+        role id: 
+        1: Admin
+        2: Umum
+        3: Keungan
+        4: MKDT
+        5: Legal
+        6: Planning
+        7: Produksi
+        8: Sales & Promotion
+        9: Direksi
+        10: Pajak
+        */
+
+        'file_produksi'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
+        'gambar_kerja'      => [1, 2,  6, 7, 9],
+        'siteplan_upload'   => [1, 2,  2, 3, 4, 5, 6, 7, 8, 9, 10],
+        'file_spptb'        => [1, 2,  3, 4, 9],
+        'pencairan_jaminan' => [1, 2,  3, 9],
+        'bank_kpr_disbursement' => [1, 2,  3, 9],
+        'pencairan_akad'    => [1, 2,  3, 9],
+        'mgm_bonus_file'    => [1, 3, 8, 9],
+        'file_hargajual'    => [1, 2,  3, 4, 9],
+        'cashout_subkon'    => [1, 2,  3, 7, 9],
+        'kavling_perintah_bangun' => [1, 2,  4, 7, 9],
+        'mkdt_perintah'     => [1, 2,  4, 7, 9],
+        'mkdt_file_spptb'   => [1, 2,  3, 4, 9],
+        'mkdt_sp3k'         => [1, 2,  3, 4, 9],
+        'mkdt_bast'         => [1, 2,  3, 4, 9],
+        'mkdt_surat_batal'  => [1, 2,  3, 4, 5, 8, 9],
+        'konsumen_ktp'      => [1, 2,  3, 4, 5, 8, 9],
+        'konsumen_npwp'     => [1, 2,  3, 4, 5, 8, 9],
+        'konsumen_data'     => [1, 2,  3, 4, 5, 8, 9],
+        'si'                => [1, 2,  4, 7, 9],
+        'komplain_sales'    => [1, 2,  7, 8, 9],
+        'komplain_produksi' => [1, 2,  7, 8, 9],
+        'produksi_jalan_progress' => [1, 2,  7, 9],
+        'profile_photo'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
+        'poskon_export'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
+        'tiket_masalah'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
     ];
 
-    private array $projectAssetRoles = [1, 3, 4, 5, 6, 7, 8, 9, 10];
+    private array $projectAssetRoles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
     private $db;
 
@@ -345,10 +360,10 @@ class FileAccessService
 
         $kavling = $row->id_kavling
             ? $this->db->table('kavling')
-                ->select('jalan.nama_jalan, kavling.no_kavling')
-                ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-                ->where('kavling.id_kavling', $row->id_kavling)
-                ->get()->getRow()
+            ->select('jalan.nama_jalan, kavling.no_kavling')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->where('kavling.id_kavling', $row->id_kavling)
+            ->get()->getRow()
             : null;
 
         if (!$kavling) {

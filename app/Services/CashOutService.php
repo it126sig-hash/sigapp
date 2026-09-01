@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use CodeIgniter\Database\BaseConnection;
-use App\Repositories\NotifRepository;
+use App\Services\NotifikasiService;
 use App\Repositories\CashOutRepository;
 use Hermawan\DataTables\DataTable;
 
@@ -19,7 +19,7 @@ class CashOutService
         $this->repo = model(CashOutRepository::class);
         $this->db = \Config\Database::connect();
 
-        $this->notif = new NotifRepository();
+        $this->notif = new NotifikasiService();
     }
 
     function insert($data)

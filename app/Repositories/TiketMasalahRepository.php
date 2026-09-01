@@ -122,6 +122,26 @@ class TiketMasalahRepository
             $builder->where('tm.id_proyek', $params['filter_proyek']);
         }
 
+        if (!empty($params['filter_pembuat'])) {
+            $builder->where('tm.pic_user_id', $params['filter_pembuat']);
+        }
+
+        if (!empty($params['filter_divisi'])) {
+            // Join auth_groups_users only if needed to avoid duplicate rows or performance hits if not needed
+            $builder->join('auth_groups_users agu', 'agu.user_id = tm.pic_user_id', 'left')
+                    ->where('agu.group_id', $params['filter_divisi']);
+        }
+
+        if (!empty($params['filter_periode'])) {
+            $dates = explode(' to ', $params['filter_periode']);
+            if (count($dates) == 2) {
+                $builder->where('DATE(tm.created_at) >=', trim($dates[0]))
+                        ->where('DATE(tm.created_at) <=', trim($dates[1]));
+            } else {
+                $builder->where('DATE(tm.created_at)', trim($dates[0]));
+            }
+        }
+
         if (!empty($params['order_by']) && !empty($params['order_dir'])) {
             $builder->orderBy($params['order_by'], $params['order_dir']);
         } else {

@@ -100,7 +100,10 @@ class TiketMasalahService
             'order_dir' => $orderDir,
             'filter_status' => $params['filter_status'] ?? null,
             'filter_prioritas' => $params['filter_prioritas'] ?? null,
-            'filter_proyek' => $params['filter_proyek'] ?? null
+            'filter_proyek' => $params['filter_proyek'] ?? null,
+            'filter_periode' => $params['filter_periode'] ?? null,
+            'filter_pembuat' => $params['filter_pembuat'] ?? null,
+            'filter_divisi' => $params['filter_divisi'] ?? null
         ];
 
         $data = $this->repository->getDatatables($queryParams);
@@ -188,7 +191,7 @@ class TiketMasalahService
                 $userId,                        // add_by
                 $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                 null,                           // id_konsumen
-                'tiket_masalah|' . $data['ref_type'] . '|' . $data['ref_id'], // type
+                $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket), // type
                 $data['id_proyek'] ?? null      // id_proyek
             );
         }
@@ -220,7 +223,7 @@ class TiketMasalahService
                     $userId,
                     $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                     null,
-                    'tiket_masalah|' . $data['ref_type'] . '|' . $data['ref_id'],
+                    $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
                     $data['id_proyek'] ?? null
                 );
             }
@@ -335,7 +338,7 @@ class TiketMasalahService
                     $userId,
                     $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                     null,
-                    'tiket_masalah|' . $data['ref_type'] . '|' . $data['ref_id'],
+                    $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
                     $data['id_proyek'] ?? null
                 );
             }
@@ -355,7 +358,7 @@ class TiketMasalahService
                         $userId,
                         $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                         null,
-                        'tiket_masalah|' . $data['ref_type'] . '|' . $data['ref_id'],
+                        $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
                         $data['id_proyek'] ?? null
                     );
                 }
@@ -453,7 +456,7 @@ class TiketMasalahService
                     $userId,
                     $tiket->ref_type == 'kavling' ? $tiket->ref_id : null,
                     null,
-                    'tiket_masalah|' . $tiket->ref_type . '|' . $tiket->ref_id,
+                    $this->notificationType($tiket->ref_type, (int) $tiket->ref_id, (int) $idTiket),
                     $tiket->id_proyek ?? null
                 );
             }
@@ -506,6 +509,11 @@ class TiketMasalahService
         $this->tiketProgressModel->update($idProgress, ['is_pinned' => $newStatus]);
 
         return ['success' => true, 'is_pinned' => $newStatus];
+    }
+
+    private function notificationType(string $refType, int $refId, int $idTiket): string
+    {
+        return 'tiket_masalah|' . $refType . '|' . $refId . '|' . $idTiket;
     }
 
     public function getRefInfo(string $refType, int $refId): ?object
@@ -562,6 +570,15 @@ class TiketMasalahService
             ->where('active', 1)
             ->where('deleted_at IS NULL', null, false)
             ->orderBy('username', 'ASC')
+            ->get()
+            ->getResult();
+    }
+
+    public function getDivisionList(): array
+    {
+        return $this->db->table('auth_groups')
+            ->select('id, name')
+            ->orderBy('name', 'ASC')
             ->get()
             ->getResult();
     }

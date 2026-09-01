@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Services\FileAccessService;
+use App\Services\GoogleCalendarService;
 use Myth\Auth\Password;
 use RuntimeException;
 
@@ -10,11 +11,13 @@ class Profil extends BaseController
 {
     protected $db;
     protected FileAccessService $fileAccessService;
+    protected GoogleCalendarService $googleCalendarService;
 
     public function __construct()
     {
         $this->db = db_connect();
         $this->fileAccessService = new FileAccessService();
+        $this->googleCalendarService = new GoogleCalendarService();
     }
 
     public function index()
@@ -28,6 +31,7 @@ class Profil extends BaseController
             'profile' => $profile,
             'photoUrl' => $photoUrl,
             'defaultPhotoUrl' => base_url('app-assets/images/portrait/small/avatar-s-11.jpg'),
+            'googleCalendarStatus' => $this->googleCalendarService->getStatus((int) $profile->id),
         ];
 
         return view('template', $data);

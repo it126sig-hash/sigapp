@@ -25,14 +25,37 @@
             <p>Halo <strong><?= esc($user->username) ?></strong>,</p>
             <p>Berikut adalah notifikasi terbaru yang belum Anda baca:</p>
             
-            <?php foreach ($items as $item): ?>
-            <div class="item">
-                <div class="time"><?= date('d M Y, H:i', strtotime($item->notif_date)) ?></div>
-                <div class="message"><?= esc($item->notif) ?></div>
+            <?php foreach ($items as $proyekName => $notifs): ?>
+            <div style="margin-bottom: 25px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fafafa;">
+                <div style="background-color: #2057a3; color: #fff; padding: 10px 15px; font-weight: bold; font-size: 16px;">
+                    Proyek: <?= esc($proyekName) ?>
+                </div>
+                <div style="padding: 10px 15px;">
+                    <?php foreach ($notifs as $item): ?>
+                    <div class="item">
+                        <div class="time"><?= date('d M Y, H:i', strtotime($item->notif_date)) ?></div>
+                        
+                        <?php 
+                        $actor = !empty($item->actor_name) ? $item->actor_name : (!empty($item->actor_username) ? $item->actor_username : 'Sistem');
+                        $dept = !empty($item->departemen_desc) ? $item->departemen_desc : (!empty($item->departemen_name) ? $item->departemen_name : '');
+                        $deptStr = $dept ? " ({$dept})" : '';
+                        $kavlingStr = !empty($item->no_kavling) ? " | <strong>Kavling:</strong> " . esc($item->no_kavling) : '';
+                        ?>
+                        
+                        <div style="font-size: 13px; color: #555; margin: 4px 0;">
+                            <strong>Dari:</strong> <?= esc($actor) ?><?= esc($deptStr) ?>
+                            <?= $kavlingStr ?>
+                        </div>
+                        <div class="message" style="margin-top: 6px;">
+                            <strong>Isi Notifikasi:</strong> <span style="color: #222;"><?= esc($item->notif) ?></span>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
             <?php endforeach; ?>
             
-            <div style="text-align: center;">
+            <div style="text-align: center; margin-top: 30px;">
                 <a href="<?= base_url() ?>" class="btn">Buka Aplikasi</a>
             </div>
         </div>

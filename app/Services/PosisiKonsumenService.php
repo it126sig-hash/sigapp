@@ -61,6 +61,8 @@ class PosisiKonsumenService
             'no_tipe_rumah'=> $row->no_tipe_rumah ?? '',
             'tipe_rumah'   => $row->tipe_rumah ?? '',
             'harga_akhir'  => $row->harga_akhir ?? null,
+            'kode_referal' => $row->kode_referal ?? '',
+            'id_proyek'    => $row->id_proyek ?? null,
             'nama_proyek'  => $row->nama_proyek ?? '',
             'uadd_by'      => $row->uadd_by ?? '',
         ];
@@ -107,6 +109,22 @@ class PosisiKonsumenService
             . '</div>';
     }
 
+    private function renderReferralQrHtml(object $row): string
+    {
+        $kodeReferal = trim((string) ($row->kode_referal ?? ''));
+        if ($kodeReferal === '') {
+            return '-';
+        }
+
+        return '<a href="javascript:void(0)" class="text-primary font-weight-bold js-referral-qr"'
+            . ' data-kode-referal="' . esc($kodeReferal) . '"'
+            . ' data-id-mkdt="' . esc((string) ($row->id_mkdt ?? '')) . '"'
+            . ' data-id-proyek="' . esc((string) ($row->id_proyek ?? '')) . '"'
+            . ' title="Generate QR Referal">'
+            . '<i class="fas fa-qrcode mr-50"></i>' . esc($kodeReferal)
+            . '</a>';
+    }
+
     public function getDataTable($request, $status = null)
     {
         $status = $status ?? "Booking";
@@ -145,6 +163,7 @@ class PosisiKonsumenService
                 'kavling.no_kavling',
                 'hargajual.id_tipe',
                 'konsumen.nama_konsumen',
+                'konsumen.kode_referal',
                 'konsumen.sales',
                 'mkdt.booking_tgl',
                 'mkdt.wawancara_tgl',
@@ -253,6 +272,9 @@ class PosisiKonsumenService
             })
             ->edit('action', function ($value) {
                 return $this->renderPoskonActionHtml($value);
+            })
+            ->edit('kode_referal', function ($value) {
+                return $this->renderReferralQrHtml($value);
             })
             ->edit('keterangan_status', function ($v) {
                 return $v->keterangan_status ?: '-';

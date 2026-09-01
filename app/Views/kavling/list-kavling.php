@@ -421,6 +421,7 @@
                       <th colspan="2" id="tb-KAVLING">KAVLING</th>
                       <th rowspan="3" id="tb-TYPE">TYPE</th>
                       <th rowspan="3" id="tb-NAMA_KONSUMEN">NAMA KONSUMEN</th>
+                      <th rowspan="3" id="tb-KODE_REFERAL">KODE REFERAL</th>
                       <th rowspan="3" id="tb-SALES">SALES</th>
                       <th rowspan="3" id="tb-TGL_BOOKING">TGL BOOKING</th>
                       <th rowspan="3" id="tb-TGL_WAWANCARA">TGL WAWANCARA</th>
@@ -966,7 +967,7 @@ if (!empty($roles)) {
         scrollX: true,
         scrollCollapse: true,
         fixedColumns: {
-          leftColumns: isMobileTable ? 0 : 6
+          leftColumns: isMobileTable ? 0 : 7
         },
         processing: true,
         serverSide: true,
@@ -983,11 +984,11 @@ if (!empty($roles)) {
             orderable: false
           },
           {
-            targets: [7, 9],
+            targets: [8, 10],
             orderable: true
           },
           {
-            targets: [9, 15],
+            targets: [10, 16],
             visible: false
           }
         ],
@@ -1237,7 +1238,7 @@ if (!empty($roles)) {
     function applyPoskonFilters() {
       if (table) {
         var filterVal = $("#filter_status_kavling").val();
-        table.columns([9, 15]).visible(filterVal !== 'booking');
+        table.columns([10, 16]).visible(filterVal !== 'booking');
         var url = (filterVal === 'akad' || filterVal === 'indent') ?
           base_url + 'list-kavling/akad/ambil' :
           base_url + 'list-kavling/ambil';

@@ -30,8 +30,21 @@
                         <div class="card">
                             <div class="card-header border-bottom d-flex justify-content-between align-items-center">
                                 <h4 class="card-title mb-0">Daftar Tiket Masalah Global</h4>
-                                <div class="heading-elements d-flex align-items-center gap-2">
-                                    <div class="form-group mb-0 mr-1">
+                                <div class="heading-elements d-flex align-items-center gap-2 flex-wrap justify-content-end" style="gap: 10px;">
+                                    <div class="form-group mb-0">
+                                        <input type="text" id="filter_periode" class="form-control form-control-sm flatpickr" placeholder="Filter Periode (Semua)">
+                                    </div>
+                                    <div class="form-group mb-0" style="min-width: 150px;">
+                                        <select id="filter_divisi" class="form-control form-control-sm select2">
+                                            <option value="">Semua Divisi</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0" style="min-width: 150px;">
+                                        <select id="filter_pembuat" class="form-control form-control-sm select2">
+                                            <option value="">Semua Pembuat</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group mb-0">
                                         <select id="filter_status" class="form-control form-control-sm">
                                             <option value="active" selected>Aktif (Tanpa Selesai/Batal)</option>
                                             <option value="">Semua Status</option>

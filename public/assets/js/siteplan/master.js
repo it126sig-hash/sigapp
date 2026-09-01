@@ -1256,6 +1256,7 @@ Date.prototype.toDateInputValue = (function() {
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
                 handlePendingSiteplanUrgentAction()
+                handlePendingSiteplanTiketAction()
                 scheduleSiteplanUrgentPanelLoad();
             },
             error: function(xhr, st, err) {
@@ -2977,6 +2978,61 @@ Date.prototype.toDateInputValue = (function() {
 
             openSiteplanKavlingFromNotification(item.id_kavling);
         }, 300);
+    }
+
+    let pendingSiteplanTiketActionConsumed = false;
+    function handlePendingSiteplanTiketAction() {
+        if (pendingSiteplanTiketActionConsumed) {
+            return;
+        }
+
+        const params = new URLSearchParams(window.location.search || '');
+        const idTiket = params.get('show_tiket');
+        const refType = params.get('ref_type');
+        const refId = params.get('ref_id');
+
+        if (!idTiket || !refType || !refId) {
+            return;
+        }
+
+        pendingSiteplanTiketActionConsumed = true;
+        setTimeout(function() {
+            let sh = null;
+            if (refType === 'kavling') {
+                sh = findSiteplanKavlingAttrs(refId);
+            } else if (refType === 'others') {
+                try {
+                    const node = typeof siteplan.findOne === 'function' ?
+                        siteplan.findOne('#others' + refId) :
+                        (siteplan.find('#others' + refId)[0] || null);
+                    sh = node && node.attrs ? node.attrs : null;
+                } catch (error) {}
+            }
+
+            if (sh) {
+                if (typeof hapus_seleksi === 'function') hapus_seleksi();
+                editdtt.push(sh);
+                if (typeof drawBorderEdit === 'function') drawBorderEdit(sh);
+            } else if (refType === 'others') {
+                // Alternatif cari di array data jika node belum ter-render
+                if (typeof dtt_jalan !== 'undefined') {
+                    dtt_jalan.forEach(function(sh_jalan) {
+                        if (sh_jalan.id == refId || sh_jalan.id_others == refId) {
+                            sh = sh_jalan;
+                        }
+                    });
+                    if (sh) {
+                        if (typeof hapus_seleksi === 'function') hapus_seleksi();
+                        editdtt.push(sh);
+                        if (typeof drawBorderEdit === 'function') drawBorderEdit(sh);
+                    }
+                }
+            }
+
+            if (typeof window.tm_open_detail === 'function') {
+                window.tm_open_detail(idTiket, refType, refId);
+            }
+        }, 600);
     }
 
     function openSiteplanKeuanganFromNotification(id_kavling) {

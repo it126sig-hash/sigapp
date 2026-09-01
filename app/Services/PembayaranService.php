@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Repositories\NotifRepository;
+use App\Services\NotifikasiService;
 use App\Repositories\KeuanganRepository;
 use App\Repositories\KavlingRepository;
 use App\Repositories\LogPembayaranRepository;
@@ -24,7 +24,7 @@ class PembayaranService
 
     public function __construct()
     {
-        $this->notif = new NotifRepository();
+        $this->notif = new NotifikasiService();
         $this->keuRepo = new KeuanganRepository();
         $this->kavRepo = new KavlingRepository();
         $this->mkdtModel = new MkdtModel();

@@ -90,23 +90,46 @@ class WebPushService
      */
     public function sendToGroup(string $groupId, string $title, string $body, string $url = '/', int $excludeUserId = 0)
     {
-        if (!$this->webPush || empty($groupId)) return false;
+        if (!$this->webPush || $groupId === '') return false;
 
-        $builder = $this->db->table('auth_groups_users')
-            ->select('user_id')
-            ->where('group_id', $groupId);
+        if ($groupId === '0') {
+            $builder = $this->db->table('users')
+                ->select('id as user_id')
+                ->where('active', 1)
+                ->where('deleted_at', null);
             
-        if ($excludeUserId > 0) {
-            $builder->where('user_id !=', $excludeUserId);
+            if ($excludeUserId > 0) {
+                $builder->where('id !=', $excludeUserId);
+            }
+        } else {
+            $groups = explode(';', $groupId);
+            $builder = $this->db->table('auth_groups_users')
+                ->select('user_id')
+                ->whereIn('group_id', $groups);
+                
+            if ($excludeUserId > 0) {
+                $builder->where('user_id !=', $excludeUserId);
+            }
         }
         
         $users = $builder->get()->getResult();
         
         $successCount = 0;
+        $sentUsers = [];
+        
         foreach ($users as $u) {
-            if ($this->sendToUser((int)$u->user_id, $title, $body, $url)) {
+            $uid = (int)$u->user_id;
+            
+            // Deduplicate to avoid sending multiple push notifications to the same user
+            if (in_array($uid, $sentUsers)) {
+                continue;
+            }
+            
+            if ($this->sendToUser($uid, $title, $body, $url)) {
                 $successCount++;
             }
+            
+            $sentUsers[] = $uid;
         }
         
         return $successCount > 0;

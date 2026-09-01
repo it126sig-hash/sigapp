@@ -9,6 +9,7 @@ class EmailDigestService
 {
     protected $db;
     protected $email;
+    protected GoogleCalendarService $googleCalendarService;
 
     public function __construct()
     {
@@ -16,6 +17,7 @@ class EmailDigestService
         
         $config = new EmailConfig();
         $this->email = \Config\Services::email($config);
+        $this->googleCalendarService = new GoogleCalendarService();
     }
 
     public function processQueue()
@@ -28,14 +30,33 @@ class EmailDigestService
             mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
         ));
 
-        // Ambil semua queue yang pending
+        // Ambil semua queue yang pending dengan join ke proyek, kavling, users, dan auth_groups
         $queues = $this->db->table('notification_email_queue q')
             ->select('q.*, n.notif, n.type, n.created_at as notif_date')
+            ->select('p.nama_proyek, k.no_kavling')
+            ->select('u.name as actor_name, u.username as actor_username')
+            ->select('ag.name as departemen_name, ag.description as departemen_desc')
             ->join('notification n', 'n.id = q.notification_id')
+            ->join('proyek p', 'p.id_proyek = n.id_proyek', 'left')
+            ->join('kavling k', 'k.id_kavling = n.id_kavling', 'left')
+            ->join('users u', 'u.id = q.actor_user_id', 'left')
+            ->join('auth_groups_users agu', 'agu.user_id = u.id', 'left')
+            ->join('auth_groups ag', 'ag.id = agu.group_id', 'left')
             ->where('q.status', 'pending')
+            ->groupBy('q.id') // Cegah duplikasi jika user actor memiliki lebih dari satu grup
             ->get()->getResult();
 
-        if (empty($queues)) return 0;
+        if (empty($queues)) {
+            return [
+                'emails_sent' => 0,
+                'emails_failed' => 0,
+                'queues_sent' => 0,
+                'queues_failed' => 0,
+                'calendar_created' => 0,
+                'calendar_skipped' => 0,
+                'calendar_failed' => 0,
+            ];
+        }
 
         // Group by target
         $grouped = [];
@@ -55,10 +76,19 @@ class EmailDigestService
             $grouped[$key]['queue_ids'][] = $q->id;
         }
 
-        $emailsSent = 0;
+        $stats = [
+            'emails_sent' => 0,
+            'emails_failed' => 0,
+            'queues_sent' => 0,
+            'queues_failed' => 0,
+            'calendar_created' => 0,
+            'calendar_skipped' => 0,
+            'calendar_failed' => 0,
+        ];
 
         foreach ($grouped as $group) {
             $users = $this->getTargetUsers($group['target_group'], $group['target_user_id']);
+            $failedUsers = 0;
             
             foreach ($users as $user) {
                 // Skip if user was the actor for all of these notifications
@@ -76,23 +106,53 @@ class EmailDigestService
                     continue;
                 }
 
-                $sent = $this->sendDigestEmail($user, $userItems);
+                // Kelompokkan per proyek sebelum dikirim ke template email
+                $groupedByProyek = [];
+                foreach ($userItems as $item) {
+                    $proyekName = !empty($item->nama_proyek) ? $item->nama_proyek : 'Umum / Lainnya';
+                    if (!isset($groupedByProyek[$proyekName])) {
+                        $groupedByProyek[$proyekName] = [];
+                    }
+                    $groupedByProyek[$proyekName][] = $item;
+                }
+
+                $sentAt = date('Y-m-d H:i:s');
+                try {
+                    $sent = $this->sendDigestEmail($user, $groupedByProyek);
+                } catch (\Throwable $e) {
+                    $sent = false;
+                    log_message('error', 'Email digest gagal untuk user ' . $user->id . ': ' . $e->getMessage());
+                }
                 if ($sent) {
-                    $emailsSent++;
+                    $stats['emails_sent']++;
+                    $calendarStats = $this->syncGoogleCalendarForUser($user, $userItems, $sentAt);
+                    $stats['calendar_created'] += $calendarStats['created'];
+                    $stats['calendar_skipped'] += $calendarStats['skipped'];
+                    $stats['calendar_failed'] += $calendarStats['failed'];
+                } else {
+                    $failedUsers++;
+                    $stats['emails_failed']++;
                 }
             }
 
-            // Mark queues as processed
+            $queueStatus = $failedUsers > 0 ? 'failed' : 'sent';
             $this->db->table('notification_email_queue')
                 ->whereIn('id', $group['queue_ids'])
                 ->update([
-                    'status' => 'sent',
+                    'status' => $queueStatus,
                     'batch_id' => $batchId,
                     'processed_at' => date('Y-m-d H:i:s')
                 ]);
+
+            if ($queueStatus === 'sent') {
+                $stats['queues_sent'] += count($group['queue_ids']);
+            } else {
+                $stats['queues_failed'] += count($group['queue_ids']);
+                log_message('error', 'Email digest gagal untuk sebagian user. Queue tidak ditandai sent: ' . implode(',', $group['queue_ids']));
+            }
         }
 
-        return $emailsSent;
+        return $stats;
     }
 
     protected function getTargetUsers($groupId, $userId)
@@ -132,5 +192,28 @@ class EmailDigestService
         $this->email->setMailType('html');
 
         return $this->email->send();
+    }
+
+    protected function syncGoogleCalendarForUser($user, array $items, string $sentAt): array
+    {
+        $stats = [
+            'created' => 0,
+            'skipped' => 0,
+            'failed' => 0,
+        ];
+
+        foreach ($items as $item) {
+            $result = $this->googleCalendarService->syncUrgentTicketFromNotificationItem($item, (int) $user->id, $sentAt);
+            $status = $result['status'] ?? 'skipped';
+            if ($status === 'created') {
+                $stats['created']++;
+            } elseif ($status === 'failed') {
+                $stats['failed']++;
+            } else {
+                $stats['skipped']++;
+            }
+        }
+
+        return $stats;
     }
 }

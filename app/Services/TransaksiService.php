@@ -14,7 +14,7 @@ use App\Services\KonsumenService;
 use App\Services\KeuanganService;
 use App\Services\ReferralService;
 use App\Services\MkdtHistoryService;
-use App\Repositories\NotifRepository;
+use App\Services\NotifikasiService;
 
 use App\Models\MkdtModel;
 use App\Models\KavlingModel;
@@ -53,7 +53,7 @@ class TransaksiService
         $this->konsumenService = new KonsumenService();
         $this->keuanganService = new KeuanganService();
         $this->referralService = new ReferralService();
-        $this->notif = new NotifRepository();
+        $this->notif = new NotifikasiService();
 
         $this->kavlingRepo = new KavlingRepository();
         $this->hargaJualRepo = new HargaJualRepository($this->db);
@@ -230,6 +230,7 @@ class TransaksiService
             ? $this->transaksiRepo->getKonsumenTransaksi((int) $kons['id_mkdt'])
             : null;
         $isNewMkdt = empty($kons['id_mkdt']) || $isDataBaru;
+        $activatedMgmBonusIds = [];
 
         // Transisi ke Akad hanya boleh lewat saveStatus() (modal status), bukan form data konsumen.
         $oldStatusMkdt = $oldMkdt->status_mkdt ?? null;
@@ -284,17 +285,32 @@ class TransaksiService
             $idMkdt = $mkResult['id_mkdt'];
             $uniqId = $mkResult['uniq_id'];
 
-            // Process input kode referral
-            if (!empty($opt['kode_referal'])) {
-                $idProyek = $this->kavlingRepo->getIdProyekByKavling($idKavling);
-                if ($idProyek) {
-                    $this->referralService->createReferral($idMkdt, $opt['kode_referal'], $idProyek);
+            // Process input, change, or removal of referral code.
+            $idProyek = $this->kavlingRepo->getIdProyekByKavling($idKavling);
+            if ($idProyek) {
+                $referralResult = $this->referralService->syncReferralForMkdt(
+                    $idMkdt,
+                    (string) ($opt['kode_referal'] ?? ''),
+                    (int) $idProyek,
+                    (string) ($mk['status_mkdt'] ?? '')
+                );
+                if (!$referralResult['success']) {
+                    throw new \RuntimeException($referralResult['message']);
                 }
+                $activatedMgmBonusIds = array_merge(
+                    $activatedMgmBonusIds,
+                    $referralResult['activated_bonus_ids'] ?? []
+                );
+            } elseif (!empty($opt['kode_referal'])) {
+                throw new \RuntimeException('Proyek kavling tidak ditemukan untuk validasi kode referal.');
             }
             
             // Check status for bonus (Booking is initial status)
             if (!empty($mk['status_mkdt'])) {
-                $this->referralService->checkAndActivateBonuses($idMkdt, $mk['status_mkdt']);
+                $activatedMgmBonusIds = array_merge(
+                    $activatedMgmBonusIds,
+                    $this->referralService->checkAndActivateBonuses($idMkdt, $mk['status_mkdt'])
+                );
             }
 
             // 2c. Sync Tagihan
@@ -332,6 +348,15 @@ class TransaksiService
             );
 
             $db->transComplete();
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi database gagal.');
+            }
+
+            foreach (array_unique(array_map('intval', $activatedMgmBonusIds)) as $idBonus) {
+                if ($idBonus > 0) {
+                    $this->referralService->notifyMgmBonusEligible($idBonus);
+                }
+            }
 
             return [
                 'success'     => true,
@@ -418,6 +443,7 @@ class TransaksiService
         // --- Transactional flow
         $db = $this->db;
         $db->transException(true);
+        $activatedMgmBonusIds = [];
         try {
             $db->transStart();
 
@@ -447,7 +473,7 @@ class TransaksiService
                 );
             }
             
-            $this->referralService->checkAndActivateBonuses($idMkdt, $data['status_mkdt']);
+            $activatedMgmBonusIds = $this->referralService->checkAndActivateBonuses($idMkdt, $data['status_mkdt']);
 
             $summary = $this->mkdtHistoryService->buildStatusSummary($oldData, $data, $perintahBangun);
             $this->mkdtHistoryService->log(
@@ -461,6 +487,15 @@ class TransaksiService
             );
 
             $db->transComplete();
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi database gagal.');
+            }
+
+            foreach (array_unique(array_map('intval', $activatedMgmBonusIds)) as $idBonus) {
+                if ($idBonus > 0) {
+                    $this->referralService->notifyMgmBonusEligible($idBonus);
+                }
+            }
 
             return [
                 'success'  => true,

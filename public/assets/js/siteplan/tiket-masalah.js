@@ -884,24 +884,33 @@ $(document).ready(function() {
             photos = '<div class="text-muted text-xs">Tidak ada lampiran foto awal.</div>';
         }
 
+        let isCreator = (window.current_user_id == data.pic_user_id);
+        let isSupervisor = (typeof window.is_supervisor_manager !== 'undefined' && window.is_supervisor_manager);
+        let isAssigned = data.assigned_users && data.assigned_users.some(u => u.id == window.current_user_id);
+        let hasAccess = isCreator || isSupervisor || isAssigned;
+
         let isClosed = data.status === 'batal' || data.status === 'selesai';
         let actionBtnHtml = '';
-        if (!isClosed) {
-            actionBtnHtml = `
-                <button class="btn btn-primary font-weight-bold p-1 shadow-sm rounded-12 tm-btn-action transition-all" id="btn_toggle_add_progress">
-                    <i class="fas fa-plus mr-1"></i> <span class="btn-text">Tambah Progres Laporan</span>
-                </button>
-            `;
-        } else {
+        if (isClosed) {
             actionBtnHtml = `
                 <div class="alert alert-secondary text-center text-xs mb-0 rounded-12 tm-btn-action d-flex align-items-center justify-content-center">
                     <i class="fas fa-lock mr-1"></i> Tiket sudah ${data.status.toUpperCase()} (Terkunci)
                 </div>
             `;
+        } else if (!hasAccess) {
+            actionBtnHtml = `
+                <div class="alert alert-warning text-center text-xs mb-0 rounded-12 tm-btn-action d-flex align-items-center justify-content-center" title="Hanya pihak yang dilibatkan yang dapat menambah progres">
+                    <i class="fas fa-ban mr-1"></i> Tidak Punya Akses
+                </div>
+            `;
+        } else {
+            actionBtnHtml = `
+                <button class="btn btn-primary font-weight-bold p-1 shadow-sm rounded-12 tm-btn-action transition-all" id="btn_toggle_add_progress">
+                    <i class="fas fa-plus mr-1"></i> <span class="btn-text">Tambah Progres Laporan</span>
+                </button>
+            `;
         }
 
-        let isCreator = (window.current_user_id == data.pic_user_id);
-        let isSupervisor = (typeof window.is_supervisor_manager !== 'undefined' && window.is_supervisor_manager);
         let editBtnHtml = '';
         if (data.status === 'draft' && (isCreator || isSupervisor)) {
             let labelEdit = isCreator ? "Edit Draft" : "Edit & Ambil Alih Draft";
@@ -1405,11 +1414,6 @@ $(document).ready(function() {
 
             $('#tm_lightbox_inner').html(innerHtml);
             $('#tm_lightbox_modal').modal('show');
-            
-            // Fix overlay bug: ensures the new backdrop is above the first modal (1050) but below lightbox (1060)
-            setTimeout(() => {
-                $('.modal-backdrop').last().css('z-index', 1059);
-            }, 100);
         } catch (e) {
             console.error("Error opening lightbox:", e);
         }
