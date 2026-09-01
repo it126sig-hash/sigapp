@@ -7,6 +7,7 @@ $(document).ready(function() {
     let currentDetailContext = null;
     let selectedStage = null;
     let selectedAction = '';
+    let selectedStageIndex = null;
     let dtStages;
     let mgmFilters = {};
     let selectedFilterReferrerText = '';
@@ -30,6 +31,10 @@ $(document).ready(function() {
     const parseDate = (value) => value ? new Date(String(value).replace(' ', 'T')) : null;
     const showSection = (selector) => $(selector).removeClass('d-none').show();
     const hideSection = (selector) => $(selector).addClass('d-none').hide();
+    const showFormGroup = (selector) => $(selector).removeClass('d-none').each(function() {
+        this.style.display = '';
+    });
+    const hideFormGroup = (selector) => $(selector).addClass('d-none').hide();
     const toDateInputValue = (date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -401,13 +406,46 @@ $(document).ready(function() {
         const form = $('#formActionDinamis')[0];
         if (form) form.reset();
         selectedAction = '';
+        selectedStageIndex = null;
         $('#form_action_type').val('');
         $('#form_bukti').prop('required', false).val('');
-        $('#form_bukti_filename').text('Foto/PDF');
-        $('#group_upload, #group_tanggal_spp, #group_tanggal_cair, #group_tanggal_pembayaran, #group_recipient, #group_keterangan').hide();
+        $('#form_bukti_filename').text('JPG, PNG, PDF');
+        hideFormGroup('#group_upload, #group_tanggal_spp, #group_tanggal_cair, #group_tanggal_pembayaran, #group_recipient, #group_keterangan');
         $('#form_tanggal_spp, #form_tanggal_cair_keuangan, #form_tanggal_pembayaran, #form_nama_penerima, #form_no_rekening_penerima, #form_bank_penerima').prop('required', false);
         $('#form_nominal_pengajuan').prop('readonly', true).addClass('mgm-readonly-control');
+        $('#form_keterangan_counter').text('0');
         $('#btn_submit_dinamis').removeClass('btn-danger').addClass('btn-primary').html('<i class="fas fa-save mr-50"></i> Simpan');
+    }
+
+    function parkActionForm() {
+        const formSection = $('#form_section');
+        if (!formSection.length) return;
+
+        formSection.detach().appendTo('#form_section_parking');
+        hideSection(formSection);
+        $('.form-pengajuan-box').hide();
+    }
+
+    function placeActionForm(index) {
+        const slot = $(`#stage_form_slot_${index}`);
+        const formSection = $('#form_section');
+        if (!slot.length || !formSection.length) return false;
+
+        formSection.detach().appendTo(slot);
+        return true;
+    }
+
+    function scrollToActionForm() {
+        const formTop = $('#form_section').offset()?.top;
+        if (formTop && $('#form_section').is(':visible')) {
+            $('#modalDetailPencairan .modal-body').animate({
+                scrollTop: $('#modalDetailPencairan .modal-body').scrollTop() + formTop - $('#modalDetailPencairan .modal-body').offset().top - 16
+            }, 240);
+        }
+    }
+
+    function updateKeteranganCounter() {
+        $('#form_keterangan_counter').text(($('#form_keterangan_input').val() || '').length);
     }
 
     function resetToggleButtons() {
@@ -421,28 +459,35 @@ $(document).ready(function() {
         if (!selectedStage) return;
 
         $('#form_action_type').val(action);
-        $('#group_upload, #group_tanggal_spp, #group_tanggal_cair, #group_tanggal_pembayaran, #group_recipient, #group_keterangan').hide();
+        hideFormGroup('#group_upload, #group_tanggal_spp, #group_tanggal_cair, #group_tanggal_pembayaran, #group_recipient, #group_keterangan');
         $('#form_tanggal_spp, #form_tanggal_cair_keuangan, #form_tanggal_pembayaran, #form_nama_penerima, #form_no_rekening_penerima, #form_bank_penerima').prop('required', false);
         $('#form_bukti').prop('required', false);
         $('#form_nominal_pengajuan').prop('readonly', true).addClass('mgm-readonly-control');
         $('#form_keterangan_input').val(selectedStage.bonus_keterangan || '');
+        updateKeteranganCounter();
 
         if (action === 'update_nominal') {
+            $('#form_action_icon').attr('class', 'fas fa-pen');
+            $('#form_action_help').text('Sesuaikan nominal bonus dan tambahkan catatan bila diperlukan.');
             $('#label_nominal_pengajuan').text('NOMINAL BONUS');
             $('#form_title_action').text('Edit Nominal Bonus');
             $('#form_nominal_pengajuan').val(formatCurrency(selectedStage.nominal_bonus || 0)).prop('readonly', false).removeClass('mgm-readonly-control');
-            $('#group_keterangan').show();
+            showFormGroup('#group_keterangan');
             $('#btn_submit_dinamis').html('<i class="fas fa-save mr-50"></i> Simpan Nominal');
         } else if (action === 'submit_keuangan') {
+            $('#form_action_icon').attr('class', 'fas fa-paper-plane');
+            $('#form_action_help').text('Lengkapi data pengajuan SPP bonus untuk dikirim ke bagian Keuangan.');
             $('#label_nominal_pengajuan').text('NOMINAL PENGAJUAN');
             $('#label_upload_bukti').text('LAMPIRAN PENGAJUAN');
             $('#form_title_action').text('Pengajuan SPP Bonus');
             $('#form_nominal_pengajuan').val(formatCurrency(selectedStage.nominal_pengajuan_keuangan || selectedStage.nominal_bonus || 0)).prop('readonly', false).removeClass('mgm-readonly-control');
             $('#form_tanggal_spp').val(selectedStage.tanggal_spp || today()).prop('required', true);
-            $('#group_tanggal_spp, #group_upload, #group_keterangan').show();
+            showFormGroup('#group_tanggal_spp, #group_upload, #group_keterangan');
             $('#form_bukti').prop('required', true);
             $('#btn_submit_dinamis').html('<i class="fas fa-paper-plane mr-50"></i> Ajukan SPP Bonus');
         } else if (action === 'pay_promosi') {
+            $('#form_action_icon').attr('class', 'fas fa-hand-holding-usd');
+            $('#form_action_help').text('Catat pencairan bonus dari Promosi ke member atau konsumen penerima.');
             $('#label_nominal_pengajuan').text('NOMINAL BAYAR MEMBER');
             $('#label_upload_bukti').text('LAMPIRAN PEMBAYARAN');
             $('#label_nama_penerima').text('NAMA PENERIMA');
@@ -454,10 +499,12 @@ $(document).ready(function() {
             $('#form_nama_penerima').val(selectedStage.paid_promosi_penerima_nama || '').prop('required', true);
             $('#form_no_rekening_penerima').val(selectedStage.paid_promosi_no_rekening || '').prop('required', true);
             $('#form_bank_penerima').val(selectedStage.paid_promosi_bank || '').prop('required', true);
-            $('#group_tanggal_pembayaran, #group_recipient, #group_upload, #group_keterangan').show();
+            showFormGroup('#group_tanggal_pembayaran, #group_recipient, #group_upload, #group_keterangan');
             $('#form_bukti').prop('required', true);
             $('#btn_submit_dinamis').html('<i class="fas fa-hand-holding-usd mr-50"></i> Cairkan Bonus ke Member');
         } else if (action === 'mark_cair_keuangan') {
+            $('#form_action_icon').attr('class', 'fas fa-university');
+            $('#form_action_help').text('Lengkapi data pencairan dana dari Keuangan untuk bonus MGM.');
             $('#label_nominal_pengajuan').text('NOMINAL CAIR');
             $('#label_upload_bukti').text('LAMPIRAN CAIR KEUANGAN');
             $('#label_nama_penerima').text('NAMA PENERIMA');
@@ -469,15 +516,14 @@ $(document).ready(function() {
             $('#form_nama_penerima').val(selectedStage.cair_keuangan_penerima_nama || '').prop('required', true);
             $('#form_no_rekening_penerima').val(selectedStage.cair_keuangan_no_rekening || '').prop('required', true);
             $('#form_bank_penerima').val(selectedStage.cair_keuangan_bank || '').prop('required', true);
-            $('#group_tanggal_cair, #group_recipient, #group_upload, #group_keterangan').show();
+            showFormGroup('#group_tanggal_cair, #group_recipient, #group_upload, #group_keterangan');
             $('#form_bukti').prop('required', true);
             $('#btn_submit_dinamis').html('<i class="fas fa-university mr-50"></i> Cairkan dari Keuangan');
         }
     }
 
     function canEditNominal(stage) {
-        const paidPromosi = parseInt(stage.paid_by_promosi || 0, 10) === 1;
-        return roles.canPromosi && stage.id_bonus && (paidPromosi || ['eligible', 'dikonfirmasi', 'cair', 'dibayar_promosi', 'selesai'].includes(stage.bonus_status));
+        return roles.canPromosi && stage.id_bonus && stage.bonus_status === 'eligible';
     }
 
     function primaryAction(stage) {
@@ -818,6 +864,7 @@ $(document).ready(function() {
                                 </button>
                             </div>
                         </div>
+                        <div class="stage-form-slot" id="stage_form_slot_${idx}"></div>
                         <div class="stage-timeline-wrap d-none" id="stage_timeline_${idx}">
                             ${renderTimeline(stage, idx)}
                         </div>
@@ -826,6 +873,7 @@ $(document).ready(function() {
             });
         }
 
+        parkActionForm();
         $('#stages_list_container').html(stagesHtml);
         $('#summary_potensi').text(formatCurrency(sumPotensi));
         $('#summary_cair').text(formatCurrency(sumKeuangan(currentStages)));
@@ -879,15 +927,17 @@ $(document).ready(function() {
 
         const action = preferredAction || primaryAction(selectedStage).value;
         if (!action) {
-            hideSection('#form_section');
+            parkActionForm();
+            resetActionForm();
             return;
         }
 
-        const sameActionVisible = selectedAction === action && $('#form_section').is(':visible') && $('.form-pengajuan-box').is(':visible');
+        const formInSameSlot = $('#form_section').parent().is(`#stage_form_slot_${index}`);
+        const sameActionVisible = selectedAction === action && selectedStageIndex === index && formInSameSlot && $('#form_section').is(':visible') && $('.form-pengajuan-box').is(':visible');
         resetToggleButtons();
         if (sameActionVisible) {
             $('.form-pengajuan-box').slideUp(180, function() {
-                hideSection('#form_section');
+                parkActionForm();
                 resetActionForm();
             });
             return;
@@ -895,8 +945,13 @@ $(document).ready(function() {
 
         resetActionForm();
         selectedAction = action;
+        selectedStageIndex = index;
         $('#form_id_bonus').val(selectedStage.id_bonus || '');
         setActionType(action);
+        if (!placeActionForm(index)) {
+            resetActionForm();
+            return;
+        }
         showSummaryTab();
         showSection('#form_section');
         $('.form-pengajuan-box').hide().slideDown(180);
@@ -1087,7 +1142,11 @@ $(document).ready(function() {
             return;
         }
 
-        $('#form_bukti_filename').text('Foto/PDF');
+        $('#form_bukti_filename').text('JPG, PNG, PDF');
+    });
+
+    $(document).on('input', '#form_keterangan_input', function() {
+        updateKeteranganCounter();
     });
 
     $(document).on('click', '.btn-open-detail', function() {
@@ -1140,16 +1199,13 @@ $(document).ready(function() {
         }
         selectStage(parseInt($(this).data('index'), 10), $(this).data('action'), 'action');
         this.blur();
-        const formTop = $('#form_section').offset()?.top;
-        if (formTop && $('#form_section').is(':visible')) {
-            $('#modalDetailPencairan .modal-body').animate({
-                scrollTop: $('#modalDetailPencairan .modal-body').scrollTop() + formTop - $('#modalDetailPencairan .modal-body').offset().top - 16
-            }, 180);
-        }
+        scrollToActionForm();
     });
 
     $(document).on('click', '.btn-edit-nominal', function() {
         selectStage(parseInt($(this).data('index'), 10), 'update_nominal', 'action');
+        this.blur();
+        scrollToActionForm();
     });
 
     if ($.fn.select2) {

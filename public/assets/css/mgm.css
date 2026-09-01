@@ -325,6 +325,10 @@ td.details-control {
     }
     .stage-flow-card:last-child { margin-bottom: 0; }
 
+    .stage-form-slot {
+        background: #fbfcff;
+    }
+
     .stage-card {
         border: 0;
         border-radius: 8px 8px 0 0;
@@ -645,19 +649,129 @@ td.details-control {
         background-color: #f3f4f6;
     }
 
+    .mgm-action-form-wrap {
+        padding: 0 18px 18px;
+    }
+
     .form-pengajuan-box {
         border: 1px solid #e5e7eb;
         border-radius: 8px;
         display: none;
-        padding: 16px;
+        padding: 18px;
         background: #fff;
-        margin-top: 15px;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .04);
+        margin-top: 0;
+    }
+
+    .mgm-action-form-header {
+        align-items: center;
+        display: flex;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .mgm-action-form-icon {
+        align-items: center;
+        background: #eef3ff;
+        border-radius: 8px;
+        color: #2057a3;
+        display: inline-flex;
+        flex: 0 0 38px;
+        height: 38px;
+        justify-content: center;
+        width: 38px;
+    }
+
+    .mgm-action-form-header h6 {
+        color: #111827;
+        font-size: 1rem;
+    }
+
+    .mgm-action-form-help {
+        color: #64748b;
+        font-size: .78rem;
+        font-weight: 500;
+    }
+
+    .mgm-action-form-grid {
+        display: grid;
+        gap: 12px 18px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mgm-action-form-grid > .form-group,
+    .mgm-recipient-grid .form-group {
+        margin-bottom: 0;
+    }
+
+    .mgm-form-full {
+        grid-column: 1 / -1;
+    }
+
+    .mgm-recipient-grid {
+        display: grid;
+        gap: 12px 18px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .mgm-field-shell,
+    .mgm-textarea-shell {
+        position: relative;
+    }
+
+    .mgm-field-shell > i,
+    .mgm-textarea-shell > i {
+        color: #64748b;
+        font-size: .92rem;
+        left: 13px;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+    }
+
+    .mgm-textarea-shell > i {
+        top: 17px;
+        transform: none;
+    }
+
+    .mgm-field-shell .form-control,
+    .mgm-textarea-shell .form-control {
+        border-color: #d9e0ea;
+        border-radius: 8px;
+        color: #111827;
+        padding-left: 38px;
+    }
+
+    .mgm-field-shell .form-control:focus,
+    .mgm-textarea-shell .form-control:focus {
+        border-color: #2057a3;
+        box-shadow: 0 0 0 .12rem rgba(32, 87, 163, .12);
+    }
+
+    .mgm-textarea-shell .form-control {
+        min-height: 72px;
+        padding-top: 11px;
+        resize: vertical;
+    }
+
+    .mgm-form-label span {
+        color: #94a3b8;
+        font-weight: 700;
+    }
+
+    .mgm-char-counter {
+        color: #64748b;
+        font-size: .72rem;
+        font-weight: 700;
+        margin-top: 4px;
+        text-align: right;
     }
 
     .mgm-upload-dropzone {
         align-items: center;
-        background: #f8fafc;
-        border: 1px dashed #b6c5dc;
+        background: #f8fbff;
+        border: 1px dashed #98b8e9;
         border-radius: 8px;
         color: #64748b;
         cursor: pointer;
@@ -695,10 +809,28 @@ td.details-control {
         font-weight: 800;
     }
 
+    .mgm-upload-note {
+        color: #64748b;
+        font-size: .78rem;
+        font-weight: 500;
+        margin-top: 2px;
+    }
+
     .mgm-upload-filename {
         font-size: .78rem;
+        font-weight: 600;
         margin-top: 3px;
         overflow-wrap: anywhere;
+    }
+
+    #btn_submit_dinamis {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 330px;
+        width: 100%;
     }
 
     .mgm-file-link {
@@ -825,6 +957,11 @@ td.details-control {
             border-top: 1px solid #e5e7eb;
             padding: 14px 0 0;
         }
+
+        .mgm-action-form-grid,
+        .mgm-recipient-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     @media (max-width: 575.98px) {
@@ -856,6 +993,14 @@ td.details-control {
 
         .stage-card {
             padding: 16px;
+        }
+
+        .mgm-action-form-wrap {
+            padding: 0 12px 12px;
+        }
+
+        .form-pengajuan-box {
+            padding: 14px;
         }
 
         .mgm-timeline-card {
