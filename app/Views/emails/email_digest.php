@@ -47,7 +47,7 @@
                             <?= $kavlingStr ?>
                         </div>
                         <div class="message" style="margin-top: 6px;">
-                            <strong>Isi Notifikasi:</strong> <span style="color: #222;"><?= esc($item->notif) ?></span>
+                            <span style="color: #222;"><?= esc($item->notif_text ?? '-') ?></span>
                         </div>
                     </div>
                     <?php endforeach; ?>

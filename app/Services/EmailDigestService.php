@@ -2,21 +2,24 @@
 
 namespace App\Services;
 
+use App\Support\NotificationTextFormatter;
+use CodeIgniter\Database\BaseConnection;
+use CodeIgniter\Email\Email;
 use Config\Email as EmailConfig;
 
 class EmailDigestService
 {
-    protected $db;
-    protected $email;
+    protected BaseConnection $db;
+    protected Email $email;
     protected GoogleCalendarService $googleCalendarService;
 
-    public function __construct()
+    public function __construct(?BaseConnection $db = null, ?Email $email = null, ?GoogleCalendarService $googleCalendarService = null)
     {
-        $this->db = db_connect();
+        $this->db = $db ?? db_connect();
 
         $config = new EmailConfig();
-        $this->email = \Config\Services::email($config);
-        $this->googleCalendarService = new GoogleCalendarService();
+        $this->email = $email ?? \Config\Services::email($config);
+        $this->googleCalendarService = $googleCalendarService ?? new GoogleCalendarService();
     }
 
     public function processQueue(): array
@@ -37,11 +40,13 @@ class EmailDigestService
         $rows = $this->db->table('notification_deliveries d')
             ->select('d.id as delivery_id, d.attempts, d.user_id as recipient_user_id')
             ->select('n.id as notification_id, n.notif, n.type, n.created_at as notif_date, n.add_by as actor_user_id')
+            ->select('nr.read_at as recipient_read_at')
             ->select('p.nama_proyek, k.no_kavling')
             ->select('recipient.id as recipient_id, recipient.email, recipient.username, recipient.email_notif_enabled')
             ->select('u.name as actor_name, u.username as actor_username')
             ->select('MIN(ag.name) as departemen_name, MIN(ag.description) as departemen_desc', false)
             ->join('notification n', 'n.id = d.notification_id')
+            ->join('notification_recipients nr', 'nr.id = d.notification_recipient_id AND nr.user_id = d.user_id')
             ->join('users recipient', 'recipient.id = d.user_id')
             ->join('proyek p', 'p.id_proyek = n.id_proyek', 'left')
             ->join('kavling k', 'k.id_kavling = n.id_kavling', 'left')
@@ -71,6 +76,17 @@ class EmailDigestService
         }
 
         foreach ($grouped as $userRows) {
+            $readRows = array_values(array_filter($userRows, static fn ($item) => ! empty($item->recipient_read_at)));
+            if ($readRows !== []) {
+                $this->markDeliveries($this->deliveryIds($readRows), 'skipped', 'Notifikasi sudah dibaca sebelum email digest dikirim.');
+                $stats['queues_skipped'] += count($readRows);
+            }
+
+            $userRows = array_values(array_filter($userRows, static fn ($item) => empty($item->recipient_read_at)));
+            if ($userRows === []) {
+                continue;
+            }
+
             $user = (object) [
                 'id' => $userRows[0]->recipient_id,
                 'email' => $userRows[0]->email,
@@ -84,10 +100,14 @@ class EmailDigestService
                 continue;
             }
 
+            $actorRows = array_values(array_filter($userRows, static fn ($item) => (int) $item->actor_user_id === (int) $user->id));
+            if ($actorRows !== []) {
+                $this->markDeliveries($this->deliveryIds($actorRows), 'skipped', 'Actor notifikasi tidak dikirim email ke diri sendiri.');
+                $stats['queues_skipped'] += count($actorRows);
+            }
+
             $items = array_values(array_filter($userRows, static fn ($item) => (int) $item->actor_user_id !== (int) $user->id));
             if ($items === []) {
-                $this->markDeliveries($this->deliveryIds($userRows), 'skipped', 'Actor notifikasi tidak dikirim email ke diri sendiri.');
-                $stats['queues_skipped'] += count($userRows);
                 continue;
             }
 
@@ -108,16 +128,10 @@ class EmailDigestService
                 $stats['calendar_created'] += $calendarStats['created'];
                 $stats['calendar_skipped'] += $calendarStats['skipped'];
                 $stats['calendar_failed'] += $calendarStats['failed'];
-
-                $skippedActorRows = array_udiff($userRows, $items, static fn ($a, $b) => ((int) $a->delivery_id) <=> ((int) $b->delivery_id));
-                if ($skippedActorRows !== []) {
-                    $this->markDeliveries($this->deliveryIds($skippedActorRows), 'skipped', 'Actor notifikasi tidak dikirim email ke diri sendiri.');
-                    $stats['queues_skipped'] += count($skippedActorRows);
-                }
             } else {
-                $this->retryOrFailDeliveries($userRows, 'Email digest gagal dikirim.');
+                $this->retryOrFailDeliveries($items, 'Email digest gagal dikirim.');
                 $stats['emails_failed']++;
-                $stats['queues_failed'] += count($userRows);
+                $stats['queues_failed'] += count($items);
             }
         }
 
@@ -134,8 +148,12 @@ class EmailDigestService
             mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
         ));
 
+        $stats = $this->emptyStats();
+        $overlapIds = $this->skipLegacyRowsCoveredByOutbox($batchId);
+        $stats['queues_skipped'] += count($overlapIds);
+
         $queues = $this->db->table('notification_email_queue q')
-            ->select('q.*, n.notif, n.type, n.created_at as notif_date')
+            ->select('q.*, n.notif, n.type, n.is_read as legacy_is_read, n.created_at as notif_date')
             ->select('p.nama_proyek, k.no_kavling')
             ->select('u.name as actor_name, u.username as actor_username')
             ->select('MIN(ag.name) as departemen_name, MIN(ag.description) as departemen_desc', false)
@@ -150,7 +168,6 @@ class EmailDigestService
             ->get()
             ->getResult();
 
-        $stats = $this->emptyStats();
         if (empty($queues)) {
             return $stats;
         }
@@ -180,10 +197,13 @@ class EmailDigestService
                     continue;
                 }
 
-                $userItems = array_filter($group['items'], static fn ($item) => (int) $item->actor_user_id !== (int) $user->id);
+                $userItems = array_values(array_filter($group['items'], static fn ($item) => (int) $item->actor_user_id !== (int) $user->id));
+                $userItems = $this->unreadLegacyItemsForUser($userItems, (int) $user->id);
                 if (empty($userItems)) {
                     continue;
                 }
+
+                $userQueueIds = $this->legacyQueueIds($userItems);
 
                 $sentAt = date('Y-m-d H:i:s');
                 try {
@@ -195,42 +215,118 @@ class EmailDigestService
 
                 if ($sent) {
                     $stats['emails_sent']++;
-                    $sentQueueIds = array_merge($sentQueueIds, $group['queue_ids']);
+                    $sentQueueIds = array_merge($sentQueueIds, $userQueueIds);
                     $calendarStats = $this->syncGoogleCalendarForUser($user, $userItems, $sentAt);
                     $stats['calendar_created'] += $calendarStats['created'];
                     $stats['calendar_skipped'] += $calendarStats['skipped'];
                     $stats['calendar_failed'] += $calendarStats['failed'];
                 } else {
                     $stats['emails_failed']++;
-                    $failedQueueIds = array_merge($failedQueueIds, $group['queue_ids']);
+                    $failedQueueIds = array_merge($failedQueueIds, $userQueueIds);
                 }
             }
 
+            $failedQueueIds = array_values(array_unique(array_map('intval', $failedQueueIds)));
+            $sentQueueIds = array_values(array_diff(
+                array_unique(array_map('intval', $sentQueueIds)),
+                $failedQueueIds
+            ));
+            $skippedQueueIds = array_values(array_diff(
+                array_unique(array_map('intval', $group['queue_ids'])),
+                $failedQueueIds,
+                $sentQueueIds
+            ));
+
             if ($failedQueueIds !== []) {
-                $this->db->table('notification_email_queue')
-                    ->whereIn('id', array_unique($failedQueueIds))
-                    ->update([
-                        'status' => 'failed',
-                        'batch_id' => $batchId,
-                        'processed_at' => date('Y-m-d H:i:s'),
-                    ]);
-                $stats['queues_failed'] += count(array_unique($failedQueueIds));
-                continue;
+                $this->markLegacyQueues($failedQueueIds, 'failed', $batchId);
+                $stats['queues_failed'] += count($failedQueueIds);
             }
 
             if ($sentQueueIds !== []) {
-                $this->db->table('notification_email_queue')
-                    ->whereIn('id', array_unique($sentQueueIds))
-                    ->update([
-                        'status' => 'sent',
-                        'batch_id' => $batchId,
-                        'processed_at' => date('Y-m-d H:i:s'),
-                    ]);
-                $stats['queues_sent'] += count(array_unique($sentQueueIds));
+                $this->markLegacyQueues($sentQueueIds, 'sent', $batchId);
+                $stats['queues_sent'] += count($sentQueueIds);
+            }
+
+            if ($skippedQueueIds !== []) {
+                $this->markLegacyQueues($skippedQueueIds, 'skipped', $batchId);
+                $stats['queues_skipped'] += count($skippedQueueIds);
             }
         }
 
         return $stats;
+    }
+
+    protected function skipLegacyRowsCoveredByOutbox(string $batchId): array
+    {
+        if (! $this->db->tableExists('notification_deliveries')) {
+            return [];
+        }
+
+        $rows = $this->db->table('notification_email_queue q')
+            ->select('q.id')
+            ->join('notification_deliveries d', 'd.notification_id = q.notification_id')
+            ->where('q.status', 'pending')
+            ->where('d.channel', 'email')
+            ->groupBy('q.id')
+            ->get()
+            ->getResult();
+
+        $ids = array_values(array_unique(array_map(static fn ($row) => (int) $row->id, $rows)));
+        if ($ids !== []) {
+            $this->markLegacyQueues($ids, 'skipped', $batchId);
+        }
+
+        return $ids;
+    }
+
+    protected function unreadLegacyItemsForUser(array $items, int $userId): array
+    {
+        if ($items === []) {
+            return [];
+        }
+
+        if (! $this->db->tableExists('notification_recipients')) {
+            return array_values(array_filter($items, static fn ($item) => (int) ($item->legacy_is_read ?? 0) === 0));
+        }
+
+        $notificationIds = array_values(array_unique(array_map(static fn ($item) => (int) $item->notification_id, $items)));
+        $rows = $this->db->table('notification_recipients')
+            ->select('notification_id, read_at')
+            ->where('user_id', $userId)
+            ->whereIn('notification_id', $notificationIds)
+            ->get()
+            ->getResult();
+
+        $readState = [];
+        foreach ($rows as $row) {
+            $readState[(int) $row->notification_id] = $row->read_at;
+        }
+
+        return array_values(array_filter($items, static function ($item) use ($readState): bool {
+            $notificationId = (int) $item->notification_id;
+
+            return array_key_exists($notificationId, $readState) && empty($readState[$notificationId]);
+        }));
+    }
+
+    protected function markLegacyQueues(array $ids, string $status, string $batchId): void
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        $this->db->table('notification_email_queue')
+            ->whereIn('id', $ids)
+            ->update([
+                'status' => $status,
+                'batch_id' => $batchId,
+                'processed_at' => date('Y-m-d H:i:s'),
+            ]);
+    }
+
+    protected function legacyQueueIds(array $items): array
+    {
+        return array_values(array_unique(array_map(static fn ($item) => (int) $item->id, $items)));
     }
 
     protected function getTargetUsers($groupId, $userId): array
@@ -305,6 +401,7 @@ class EmailDigestService
     {
         $groupedByProyek = [];
         foreach ($items as $item) {
+            $item->notif_text = NotificationTextFormatter::plain($item->notif ?? '');
             $proyekName = ! empty($item->nama_proyek) ? $item->nama_proyek : 'Umum / Lainnya';
             $groupedByProyek[$proyekName][] = $item;
         }

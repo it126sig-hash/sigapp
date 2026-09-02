@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Controllers\BaseController;
 use App\Repositories\NotificationRepository;
 use App\Services\SiteplanUrgentService;
+use App\Support\NotificationTextFormatter;
 
 class Notif extends BaseController
 {
@@ -202,12 +203,7 @@ class Notif extends BaseController
 
     protected function plainNotificationText($value): string
     {
-        $decoded = html_entity_decode((string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $decoded = preg_replace('/<\s*(br|\/p|\/div|\/li)\s*\/?>/i', ' ', $decoded);
-        $text = trim(strip_tags($decoded));
-        $text = preg_replace('/\s+/u', ' ', $text);
-
-        return $text === '' ? '-' : $text;
+        return NotificationTextFormatter::plain($value);
     }
 
     protected function applyGroupTargetFilter($builder): void

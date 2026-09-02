@@ -2,7 +2,7 @@
 
 Dokumen ini adalah acuan teknis modul notifikasi SIGAPP. Update file ini setiap ada perubahan alur notifikasi, endpoint, tabel, service, command, konfigurasi delivery, atau side effect.
 
-Terakhir dicek: 2026-09-01
+Terakhir dicek: 2026-09-02
 
 ## Ringkasan
 
@@ -13,7 +13,7 @@ Modul notifikasi sekarang memakai pola bertahap:
 3. `notification_deliveries` menjadi outbox delivery per recipient dan channel.
 4. Navbar/halaman aktif tetap polling `/notif/summary` setiap 30 detik.
 5. Browser/PWA background memakai Web Push, tanpa self-hosted WebSocket/SSE.
-6. Email digest membaca delivery recipient-specific jika tabel baru tersedia, lalu fallback ke `notification_email_queue` lama selama masa transisi.
+6. Email digest membaca delivery recipient-specific yang masih unread jika tabel baru tersedia, lalu fallback ke `notification_email_queue` lama selama masa transisi.
 
 ## File Utama
 
@@ -25,6 +25,7 @@ Modul notifikasi sekarang memakai pola bertahap:
 | Repository list | `app/Repositories/NotificationRepository.php` | Query list, unread count, dan mark read per user |
 | Repository lama | `app/Repositories/NotifRepository.php` | Legacy insert-only; jangan dipakai untuk notification baru |
 | Email digest | `app/Services/EmailDigestService.php` | Kirim digest dan update delivery/queue sesuai hasil nyata |
+| Formatter teks | `app/Support/NotificationTextFormatter.php` | Normalisasi isi notifikasi untuk activity, email, dan Web Push |
 | Command email | `app/Commands/SendEmailDigest.php` | `php spark notif:send-digest` |
 | Web Push | `app/Services/WebPushService.php` | PSR-18 client, validasi VAPID, subscribe, dan kirim push |
 | Push dispatcher | `app/Services/NotificationDispatchService.php` | Proses delivery `web_push` dari cron |
@@ -125,7 +126,7 @@ Format payload push dari delivery outbox:
 
 - `title`: nama pembuat notifikasi dari `users.name`, fallback `users.username`, fallback `SIGAPP`.
 - `body`: `[Departemen] Isi notifikasi`, dengan departemen dari `auth_groups.name` dan fallback `Umum`.
-- Isi notifikasi didecode dari HTML entity, dihapus tag HTML-nya, dinormalisasi spasinya, dan dibatasi sekitar 180 karakter agar tetap rapi di notification tray.
+- Isi notifikasi memakai `NotificationTextFormatter`: HTML entity didecode, tag HTML dihapus, dan whitespace dinormalisasi. Hasilnya lalu dibatasi sekitar 180 karakter agar tetap rapi di notification tray.
 - Jika actor punya lebih dari satu group, departemen yang dipakai adalah nilai agregasi stabil `MIN(auth_groups.name)` agar query aman pada MySQL `ONLY_FULL_GROUP_BY`.
 - Test push memakai format yang sama dengan user login sebagai actor.
 
@@ -155,7 +156,7 @@ Behavior UI:
 - Jika urgent kosong dan activity tersedia, dropdown otomatis membuka tab `Aktivitas` selama user belum memilih tab secara manual.
 - Tombol footer `Aktivitas Lagi` dihapus; activity tambahan dimuat lewat infinite scroll saat tab `Aktivitas` aktif.
 - Tombol `Perbarui` menjadi icon button kecil di header dropdown.
-- Isi activity memakai field `notif_text` dari backend. Field ini dibuat dari `html_entity_decode`, `strip_tags`, dan normalisasi whitespace supaya notif yang berisi tag HTML tidak tampil raw di dropdown.
+- Isi activity memakai field `notif_text` dari backend. Field ini dibuat oleh `NotificationTextFormatter` supaya notif yang berisi tag HTML tidak tampil raw di dropdown dan formatnya sama dengan email/Web Push.
 - Frontend tetap punya fallback plain-text sanitizer untuk response lama yang belum memiliki `notif_text`.
 
 ## Endpoint Push
@@ -199,8 +200,13 @@ php spark notif:send-digest
 
 Behavior:
 
-- Jika `notification_deliveries` ada dan memiliki row email pending/failed, digest membaca delivery baru per user.
-- Jika belum ada delivery baru, service fallback ke `notification_email_queue`.
+- Sumber payload email tetap `notification.notif`; queue hanya menyimpan referensi dan status delivery.
+- Isi email dinormalisasi dengan `NotificationTextFormatter`, di-escape saat dirender, dan ditampilkan langsung tanpa label `Isi Notifikasi`.
+- Jika `notification_deliveries` ada dan memiliki row email pending/failed, digest membaca delivery baru per user dan mengecek `notification_recipients.read_at` saat command dijalankan.
+- Delivery yang notifikasinya sudah dibaca tidak dikirim dan ditandai `skipped`.
+- Jika belum ada delivery baru, service fallback ke `notification_email_queue` dan tetap memfilter unread per user melalui `notification_recipients`; jika tabel recipient belum tersedia, fallback memakai `notification.is_read`.
+- Queue legacy dengan `notification_id` yang sudah memiliki delivery email ditandai `skipped`, sehingga dual-write tidak mengirim notifikasi yang sama dua kali.
+- Queue legacy yang tidak mempunyai penerima unread/eligible juga ditandai `skipped` agar tidak tertahan sebagai `pending`.
 - Email user hanya ditandai `sent` setelah `send()` benar-benar sukses.
 - Email gagal tidak dilaporkan sukses dan delivery/queue diberi status `failed`.
 - User tanpa email atau `email_notif_enabled = 0` ditandai `skipped`.
@@ -288,7 +294,7 @@ Masih dipertahankan untuk transisi:
 - `target_group`
 - `target_user_id`
 - `actor_user_id`
-- `status`
+- `status`: `pending`, `sent`, `failed`, `skipped`
 - `batch_id`
 - `processed_at`
 - `created_at`
@@ -300,6 +306,8 @@ Migration baru:
 ```bash
 php spark migrate
 ```
+
+Migration `2026-09-02-000001_AddSkippedStatusToNotificationEmailQueue` menambahkan status `skipped` pada queue legacy. Saat rollback, row `skipped` diubah menjadi `sent` sebelum enum lama dipulihkan agar notifikasi yang sengaja dilewati tidak terkirim ulang.
 
 Sebelum menjalankan di production/shared hosting, backup minimal tabel:
 
@@ -385,7 +393,9 @@ GROUP BY status;
 1. Cek SMTP `.env`.
 2. Jalankan `php spark notif:send-digest`.
 3. Pastikan queue/delivery gagal tidak berubah menjadi `sent`.
-4. Pastikan Calendar hanya sync setelah email sukses.
+4. Pastikan delivery yang `notification_recipients.read_at` sudah terisi berubah menjadi `skipped` dan tidak muncul di email.
+5. Pastikan queue legacy yang sudah memiliki email delivery berubah menjadi `skipped`, bukan dikirim ulang.
+6. Pastikan Calendar hanya sync setelah email sukses.
 
 ## Checklist Verifikasi
 
@@ -394,12 +404,14 @@ php -l app/Controllers/Notif.php
 php -l app/Repositories/NotificationRepository.php
 php -l app/Services/NotifikasiService.php
 php -l app/Services/EmailDigestService.php
+php -l app/Support/NotificationTextFormatter.php
 php -l app/Services/WebPushService.php
 php -l app/Services/NotificationDispatchService.php
 php -l app/Controllers/Api/NotifPushController.php
 php -l app/Commands/SendEmailDigest.php
 php -l app/Commands/DispatchNotifications.php
 php -l app/Database/Migrations/2026-09-01-000001_NormalizeNotificationDeliveryOutbox.php
+php -l app/Database/Migrations/2026-09-02-000001_AddSkippedStatusToNotificationEmailQueue.php
 php spark routes
 php spark list notif
 php spark migrate:status
@@ -412,4 +424,7 @@ Acceptance:
 - Test push tampil sebagai notifikasi sistem.
 - Badge halaman aktif diperbarui maksimal sekitar 30 detik.
 - User A mark-read tidak mengubah unread user B.
+- Email digest hanya memuat item yang masih unread untuk penerima saat command dijalankan.
+- Isi activity dan email sama-sama plain text; template email tidak menampilkan label `Isi Notifikasi`.
+- Queue legacy yang tumpang tindih dengan outbox tidak menyebabkan email duplikat.
 - Pending/failed delivery dapat dipantau dan diproses ulang dengan aman.

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\NotificationTextFormatter;
 use App\Models\PushSubscriptionModel;
 use GuzzleHttp\Client;
 use Minishlink\WebPush\Subscription;
@@ -176,22 +177,12 @@ class WebPushService
     {
         $title = trim((string) ($actorName ?: $actorUsername ?: 'SIGAPP'));
         $department = trim((string) ($department ?: 'Umum'));
-        $bodyMessage = $this->limitText($this->plainText($message), 180);
+        $bodyMessage = $this->limitText(NotificationTextFormatter::plain($message, 'Ada notifikasi baru'), 180);
 
         return [
             'title' => $title !== '' ? $title : 'SIGAPP',
             'body' => '[' . ($department !== '' ? $department : 'Umum') . '] ' . ($bodyMessage !== '' ? $bodyMessage : 'Ada notifikasi baru'),
         ];
-    }
-
-    private function plainText(string $value): string
-    {
-        $decoded = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $decoded = preg_replace('/<\s*(br|\/p|\/div|\/li)\s*\/?>/i', ' ', $decoded);
-        $text = trim(strip_tags($decoded));
-        $text = preg_replace('/\s+/u', ' ', $text);
-
-        return $text ?: 'Ada notifikasi baru';
     }
 
     private function limitText(string $value, int $limit): string
