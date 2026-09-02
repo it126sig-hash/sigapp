@@ -92,9 +92,19 @@ class NotificationDispatchService
             ])
             ->update();
 
+        $actorDepartment = $this->db->table('auth_groups_users agu')
+            ->select('agu.user_id, MIN(ag.name) as department_name', false)
+            ->join('auth_groups ag', 'ag.id = agu.group_id')
+            ->groupBy('agu.user_id')
+            ->getCompiledSelect();
+
         return $this->db->table('notification_deliveries d')
             ->select('d.*, n.notif, n.type, n.id_kavling')
+            ->select('actor.name as actor_name, actor.username as actor_username')
+            ->select('actor_department.department_name as actor_department')
             ->join('notification n', 'n.id = d.notification_id')
+            ->join('users actor', 'actor.id = n.add_by', 'left')
+            ->join("({$actorDepartment}) actor_department", 'actor_department.user_id = n.add_by', 'left')
             ->where('d.claim_token', $claimToken)
             ->orderBy('d.id', 'asc')
             ->get()
@@ -114,10 +124,17 @@ class NotificationDispatchService
             return 'skipped';
         }
 
+        $payload = $this->webPushService->buildActorPayload(
+            (string) $delivery->notif,
+            $delivery->actor_name ?? null,
+            $delivery->actor_username ?? null,
+            $delivery->actor_department ?? null
+        );
+
         $send = $this->webPushService->sendToSubscriptions(
             $subscriptions,
-            'SIGAPP',
-            (string) $delivery->notif,
+            $payload['title'],
+            $payload['body'],
             $this->urlForNotification($delivery)
         );
 

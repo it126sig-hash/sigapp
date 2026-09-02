@@ -646,7 +646,9 @@ function notificationEscape(value) {
 
 function notificationPlainText(value) {
   const holder = document.createElement("div");
-  holder.innerHTML = value === null || value === undefined ? "" : String(value);
+  holder.innerHTML = value === null || value === undefined
+    ? ""
+    : String(value).replace(/<\s*(br|\/p|\/div|\/li)\s*\/?>/gi, " ");
   const text = (holder.textContent || holder.innerText || "")
     .replace(/\s+/g, " ")
     .trim();

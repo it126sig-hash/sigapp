@@ -172,6 +172,41 @@ class WebPushService
         return $result;
     }
 
+    public function buildActorPayload(string $message, ?string $actorName = null, ?string $actorUsername = null, ?string $department = null): array
+    {
+        $title = trim((string) ($actorName ?: $actorUsername ?: 'SIGAPP'));
+        $department = trim((string) ($department ?: 'Umum'));
+        $bodyMessage = $this->limitText($this->plainText($message), 180);
+
+        return [
+            'title' => $title !== '' ? $title : 'SIGAPP',
+            'body' => '[' . ($department !== '' ? $department : 'Umum') . '] ' . ($bodyMessage !== '' ? $bodyMessage : 'Ada notifikasi baru'),
+        ];
+    }
+
+    private function plainText(string $value): string
+    {
+        $decoded = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $decoded = preg_replace('/<\s*(br|\/p|\/div|\/li)\s*\/?>/i', ' ', $decoded);
+        $text = trim(strip_tags($decoded));
+        $text = preg_replace('/\s+/u', ' ', $text);
+
+        return $text ?: 'Ada notifikasi baru';
+    }
+
+    private function limitText(string $value, int $limit): string
+    {
+        if ($limit <= 0) {
+            return $value;
+        }
+
+        if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+            return mb_strlen($value) > $limit ? rtrim(mb_substr($value, 0, $limit - 1)) . '…' : $value;
+        }
+
+        return strlen($value) > $limit ? rtrim(substr($value, 0, $limit - 3)) . '...' : $value;
+    }
+
     protected function resolveGroupUserIds(string $groupId, int $excludeUserId = 0): array
     {
         if ($groupId === '') {

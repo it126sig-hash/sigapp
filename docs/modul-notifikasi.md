@@ -121,6 +121,14 @@ Dependency wajib:
 
 `WebPushService` memakai `GuzzleHttp\Client` sebagai PSR-18 client eksplisit untuk `minishlink/web-push` v11. VAPID divalidasi saat service dibuat dan command dispatch dimulai. Key tidak dicetak ke log.
 
+Format payload push dari delivery outbox:
+
+- `title`: nama pembuat notifikasi dari `users.name`, fallback `users.username`, fallback `SIGAPP`.
+- `body`: `[Departemen] Isi notifikasi`, dengan departemen dari `auth_groups.name` dan fallback `Umum`.
+- Isi notifikasi didecode dari HTML entity, dihapus tag HTML-nya, dinormalisasi spasinya, dan dibatasi sekitar 180 karakter agar tetap rapi di notification tray.
+- Jika actor punya lebih dari satu group, departemen yang dipakai adalah nilai agregasi stabil `MIN(auth_groups.name)` agar query aman pada MySQL `ONLY_FULL_GROUP_BY`.
+- Test push memakai format yang sama dengan user login sebagai actor.
+
 Konfigurasi `.env`:
 
 ```dotenv

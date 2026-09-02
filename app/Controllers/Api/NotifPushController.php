@@ -66,12 +66,16 @@ class NotifPushController extends BaseApiController
             return $this->error('Web Push belum siap. Periksa VAPID dan PSR-18 HTTP client.', 503);
         }
 
-        $sent = $this->webPushService->sendToUser(
-            (int) user_id(),
-            'SIGAPP',
+        $userId = (int) user_id();
+        $actor = $this->currentActorContext($userId);
+        $payload = $this->webPushService->buildActorPayload(
             'Test push notification berhasil dikirim.',
-            site_url('/')
+            $actor['name'] ?? null,
+            $actor['username'] ?? null,
+            $actor['department'] ?? null
         );
+
+        $sent = $this->webPushService->sendToUser($userId, $payload['title'], $payload['body'], site_url('/'));
 
         if (! $sent) {
             return $this->error('Tidak ada subscription aktif atau pengiriman gagal.', 422);
@@ -107,5 +111,24 @@ class NotifPushController extends BaseApiController
         $cache->save($key, $count + 1, 60);
 
         return true;
+    }
+
+    private function currentActorContext(int $userId): array
+    {
+        $db = db_connect();
+        $departmentSubquery = $db->table('auth_groups_users agu')
+            ->select('agu.user_id, MIN(ag.name) as department', false)
+            ->join('auth_groups ag', 'ag.id = agu.group_id')
+            ->groupBy('agu.user_id')
+            ->getCompiledSelect();
+
+        $row = $db->table('users')
+            ->select('users.name, users.username, actor_department.department')
+            ->join("({$departmentSubquery}) actor_department", 'actor_department.user_id = users.id', 'left')
+            ->where('users.id', $userId)
+            ->get()
+            ->getRowArray();
+
+        return $row ?: [];
     }
 }
