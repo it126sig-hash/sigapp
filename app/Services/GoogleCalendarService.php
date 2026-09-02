@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\NotificationTextFormatter;
 use CodeIgniter\HTTP\CURLRequest;
 use DateInterval;
 use DateTimeImmutable;
@@ -10,6 +11,8 @@ use RuntimeException;
 
 class GoogleCalendarService
 {
+    private const EVENT_SUMMARY_NOTE_LIMIT = 140;
+
     private const SCOPE = 'openid email https://www.googleapis.com/auth/calendar.events';
     private const AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
     private const TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -329,7 +332,7 @@ class GoogleCalendarService
         $timezone = $this->timezone;
 
         $payload = [
-            'summary' => '[URGENT] Tiket Masalah - ' . ($ticket->lokasi ?: ($ticket->nama_proyek ?? 'SIGAPP')),
+            'summary' => $this->buildEventSummary($ticket),
             'description' => $this->buildEventDescription($ticket),
             'start' => [
                 'dateTime' => $start->format('Y-m-d\TH:i:s'),
@@ -368,6 +371,75 @@ class GoogleCalendarService
         return $body;
     }
 
+    protected function buildEventSummary(object $ticket): string
+    {
+        $location = $this->buildEventSummaryLocation($ticket);
+        $note = $this->normalizeEventSummaryPart($ticket->keterangan ?? '');
+
+        if ($note !== '') {
+            $note = $this->limitEventSummaryNote($note);
+        }
+
+        return '[SIGAPP] ' . $location . ($note !== '' ? ': ' . $note : '');
+    }
+
+    protected function buildEventSummaryLocation(object $ticket): string
+    {
+        if (($ticket->ref_type ?? '') === 'others') {
+            $jalan = $this->normalizeEventSummaryPart($ticket->others_nama_jalan ?? '');
+            $tipe = strtoupper($this->normalizeEventSummaryPart($ticket->others_tipe ?? ''));
+            $nama = $this->normalizeEventSummaryPart($ticket->others_nama ?? '');
+            $jenisArea = trim($tipe . ($nama !== '' ? ' ' . $nama : ''));
+
+            if ($jalan !== '' && $jenisArea !== '') {
+                return $jalan . '/' . $jenisArea;
+            }
+
+            if ($jalan !== '') {
+                return $jalan;
+            }
+
+            if ($jenisArea !== '') {
+                return $jenisArea;
+            }
+        } else {
+            $jalan = $this->normalizeEventSummaryPart($ticket->kavling_nama_jalan ?? '');
+            $noKavling = $this->normalizeEventSummaryPart($ticket->kavling_no_kavling ?? '');
+            $tipeRumah = $this->normalizeEventSummaryPart($ticket->kavling_tipe_rumah ?? '');
+            $location = $jalan;
+
+            if ($noKavling !== '') {
+                $location = trim($location . ' No ' . $noKavling);
+            }
+
+            if ($tipeRumah !== '') {
+                $location = $location !== '' ? $location . '/' . $tipeRumah : $tipeRumah;
+            }
+
+            if ($location !== '') {
+                return $location;
+            }
+        }
+
+        return $this->normalizeEventSummaryPart($ticket->lokasi ?? '')
+            ?: $this->normalizeEventSummaryPart($ticket->nama_proyek ?? '')
+            ?: 'Tiket Masalah';
+    }
+
+    protected function normalizeEventSummaryPart($value): string
+    {
+        return NotificationTextFormatter::plain($value, '');
+    }
+
+    protected function limitEventSummaryNote(string $value): string
+    {
+        if (strlen($value) <= self::EVENT_SUMMARY_NOTE_LIMIT) {
+            return $value;
+        }
+
+        return substr($value, 0, self::EVENT_SUMMARY_NOTE_LIMIT - 3) . '...';
+    }
+
     protected function buildEventDescription(object $ticket): string
     {
         $plainText = trim(strip_tags((string) $ticket->keterangan));
@@ -400,10 +472,13 @@ class GoogleCalendarService
     {
         return $this->db->table('tiket_masalah tm')
             ->select('tm.*, p.nama_proyek')
+            ->select('jk.nama_jalan as kavling_nama_jalan, k.no_kavling as kavling_no_kavling, t.tipe_rumah as kavling_tipe_rumah')
+            ->select('jo.nama_jalan as others_nama_jalan, o.tipe as others_tipe, o.nama as others_nama')
             ->select('IF(tm.ref_type = "kavling", CONCAT_WS(" - ", jk.nama_jalan, k.no_kavling), CONCAT_WS(" - ", jo.nama_jalan, o.nama)) as lokasi', false)
             ->join('proyek p', 'p.id_proyek = tm.id_proyek', 'left')
             ->join('kavling k', 'k.id_kavling = tm.ref_id AND tm.ref_type = "kavling"', 'left')
             ->join('jalan jk', 'jk.id_jalan = k.id_jalan', 'left')
+            ->join('tipe t', 't.id_tipe = k.id_tipe', 'left')
             ->join('others o', 'o.id = tm.ref_id AND tm.ref_type = "others"', 'left')
             ->join('jalan jo', 'jo.id_jalan = o.id_jalan', 'left')
             ->where('tm.id', $ticketId)

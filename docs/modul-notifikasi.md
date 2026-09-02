@@ -211,6 +211,10 @@ Behavior:
 - Email gagal tidak dilaporkan sukses dan delivery/queue diberi status `failed`.
 - User tanpa email atau `email_notif_enabled = 0` ditandai `skipped`.
 - Google Calendar sync hanya dipanggil setelah email user sukses.
+- Event Google Calendar untuk tiket masalah urgent memakai judul:
+  - Kavling: `[SIGAPP] {Nama Jalan} No {No Kavling}/{Tipe Rumah}: {Keterangan Tiket}`
+  - Others: `[SIGAPP] {Nama Jalan}/{TIPE AREA} {Nama Area}: {Keterangan Tiket}`
+- Judul Calendar dibuat dari detail tiket terbaru, dinormalisasi menjadi plain text, dan tidak mengubah isi notifikasi asli di `notification.notif`.
 
 ## Tabel
 
