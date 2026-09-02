@@ -121,9 +121,15 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_access_url)
                 </a>
                 <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right notification-center-menu" id="list-notif">
                     <li class="dropdown-menu-header">
-                        <div class="dropdown-header d-flex align-items-center">
-                            <h4 class="notification-title mb-0 mr-auto">Notifikasi</h4>
-                            <span class="badge badge-pill badge-light-primary" id="notif-summary-badge" style="display:none;">0</span>
+                        <div class="dropdown-header notification-center-header d-flex align-items-center">
+                            <div class="mr-auto">
+                                <h4 class="notification-title mb-0">Notifikasi</h4>
+                                <small class="text-muted">Aktivitas dan pengingat terbaru</small>
+                            </div>
+                            <span class="badge badge-pill badge-light-primary mr-50" id="notif-summary-badge" style="display:none;">0</span>
+                            <button type="button" class="btn btn-flat-primary btn-icon btn-sm notification-refresh-btn" id="refresh-notif-center" title="Perbarui notifikasi" aria-label="Perbarui notifikasi">
+                                <i data-feather="refresh-cw"></i>
+                            </button>
                         </div>
                     </li>
                     <li class="notification-center-tabs px-1 pt-50">
@@ -149,15 +155,9 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_access_url)
                             </div>
                             <div class="notification-center-pane" id="notif-activity-pane" role="tabpanel" aria-labelledby="notif-activity-tab">
                                 <div id="notif-here">
-                                    <?= $notif ?>
+                                    <div class="notification-center-empty">Memuat aktivitas...</div>
                                 </div>
                             </div>
-                        </div>
-                    </li>
-                    <li class="dropdown-menu-footer">
-                        <div class="d-flex">
-                            <a class="btn btn-primary flex-fill mr-50" href="javascript:void(0)" id="refresh-notif-center">Perbarui</a>
-                            <a class="btn btn-outline-primary flex-fill" href="javascript:void(0)" id="load-more-notif">Aktivitas Lagi</a>
                         </div>
                     </li>
                 </ul>
@@ -171,6 +171,7 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_access_url)
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-user">
                     <a class="dropdown-item d-none" href="javascript:void(0);" id="sigapp-pwa-install-action"><i class="mr-50" data-feather="download"></i> Install SIGAPP</a>
+                    <a class="dropdown-item d-none" href="javascript:void(0);" id="sigapp-push-action"><i class="mr-50" data-feather="bell"></i> <span data-push-label>Aktifkan Notifikasi</span></a>
                     <a class="dropdown-item" href="<?= base_url('profil') ?>"><i class="mr-50" data-feather="user"></i> Ubah Profil</a>
                     <!-- <div class="dropdown-divider"></div><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="settings"></i> Settings</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="credit-card"></i> Pricing</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="help-circle"></i> FAQ</a> -->
                     <div class="dropdown-divider"></div>

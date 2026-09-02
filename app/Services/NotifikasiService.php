@@ -2,172 +2,309 @@
 
 namespace App\Services;
 
+use App\Data\NotificationAudience;
+use App\Data\NotificationData;
+use App\Repositories\NotificationRepository;
+use CodeIgniter\Database\BaseConnection;
+use RuntimeException;
+
 class NotifikasiService
 {
-    protected $db;
-    protected $group_id;
+    protected BaseConnection $db;
+    protected NotificationRepository $notificationRepository;
 
-    function __construct()
+    public function __construct()
     {
         $this->db = db_connect();
-
-        if (!session()->group_id) {
-            $q = $this->db->table('auth_groups_users')
-                ->select('group_id')
-                ->where('user_id', user_id())
-                ->get()->getRow();
-
-            session()->set('group_id', $q->group_id);
-        }
-        if(session()->group_id == 1)
-            $this->group_id = "";
-        else
-            $this->group_id = session()->group_id;
-    }
-    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null)
-    {
-        if (is_array($id_kavling)) {
-            $id_kavling = $id_kavling[0] ?? null;
-        }
-        if (is_array($target)) {
-            $batchData = [];
-            foreach ($target as $t) {
-                $batchData[] = [
-                    'notif' => $notif,
-                    'group_target' => $t,
-                    'add_by' => $add_by,
-                    'id_kavling' => $id_kavling,
-                    'id_konsumen' => $id_konsumen,
-                    'type' => $type,
-                    'id_proyek' => $id_proyek,
-                    'is_read' => 0,
-                    'created_at' => date('Y-m-d H:i:s')
-                ];
-            }
-            $this->db->table('notification')->insertBatch($batchData);
-            $insertId = $this->db->insertID(); // Approximate, we will use it for triggers
-            
-            foreach ($target as $t) {
-                $this->triggerNotifSideEffects($insertId, $t, null, $notif, $add_by);
-            }
-            return $insertId;
-        } else {
-            $data = [
-                'notif' => $notif,
-                'group_target' => $target,
-                'type' => $type,
-                'is_read' => 0,
-                'add_by' => $add_by,
-                'id_kavling' => $id_kavling,
-                'id_konsumen' => $id_konsumen,
-                'id_proyek' => $id_proyek,
-                'created_at' => date('Y-m-d H:i:s')
-            ];
-            $this->db->table('notification')->insert($data);
-            $insertId = $this->db->insertID();
-            
-            $this->triggerNotifSideEffects($insertId, $target, null, $notif, $add_by);
-            return $insertId;
-        }
+        $this->notificationRepository = new NotificationRepository($this->db);
     }
 
-    function tambah_notif_user($user_id, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null)
+    public function create(NotificationData $data, NotificationAudience $audience): int
     {
-        $data = [
-            'notif' => $notif,
-            'user_id' => $user_id,
-            'group_target' => null,
-            'type' => $type,
+        $now = date('Y-m-d H:i:s');
+        $idKavling = is_array($data->idKavling) ? ($data->idKavling[0] ?? null) : $data->idKavling;
+
+        $this->db->transStart();
+
+        $this->db->table('notification')->insert([
+            'notif' => $data->message,
+            'group_target' => $audience->legacyGroupTarget(),
+            'user_id' => $audience->legacyUserId(),
+            'type' => $data->type,
             'is_read' => 0,
-            'add_by' => $add_by,
-            'id_kavling' => $id_kavling,
-            'id_konsumen' => $id_konsumen,
-            'id_proyek' => $id_proyek,
-            'created_at' => date('Y-m-d H:i:s')
-        ];
-        $this->db->table('notification')->insert($data);
-        $insertId = $this->db->insertID();
-        
-        $this->triggerNotifSideEffects($insertId, null, $user_id, $notif, $add_by);
-        return $insertId;
+            'add_by' => $data->actorUserId,
+            'id_kavling' => $idKavling,
+            'id_konsumen' => $data->idKonsumen,
+            'id_proyek' => $data->idProyek,
+            'created_at' => $now,
+        ]);
+
+        $notificationId = (int) $this->db->insertID();
+        if ($notificationId <= 0) {
+            $this->db->transRollback();
+            throw new RuntimeException('Gagal membuat notifikasi.');
+        }
+
+        $recipientRows = [];
+        if ($this->featureEnabled('NOTIF_DUAL_WRITE_RECIPIENTS', true)) {
+            $recipientIds = $this->resolveRecipientIds($audience, $data->actorUserId);
+            $recipientRows = $this->storeRecipients($notificationId, $recipientIds, $now);
+        }
+        if ($this->featureEnabled('NOTIF_WRITE_DELIVERY_OUTBOX', true)) {
+            $this->storeDeliveries($notificationId, $recipientRows, $data->actorUserId, $now);
+        }
+        if ($this->featureEnabled('NOTIF_WRITE_LEGACY_EMAIL_QUEUE', true)) {
+            $this->storeLegacyEmailQueue($notificationId, $audience, $data->actorUserId, $now);
+        }
+
+        $this->db->transComplete();
+        if ($this->db->transStatus() === false) {
+            throw new RuntimeException('Gagal menyimpan notifikasi dan delivery outbox.');
+        }
+
+        return $notificationId;
     }
-    
-    protected function triggerNotifSideEffects($notificationId, $targetGroup, $targetUser, $notifMsg, $actorId)
+
+    public function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null)
     {
-        // 1. Queue email
+        return $this->create(
+            new NotificationData(
+                (string) $notif,
+                (int) $add_by,
+                $id_kavling,
+                $id_konsumen,
+                $type ? (string) $type : null,
+                $id_proyek ? (int) $id_proyek : null
+            ),
+            NotificationAudience::fromLegacyTarget($target)
+        );
+    }
+
+    public function tambah_notif_user($user_id, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null)
+    {
+        return $this->create(
+            new NotificationData(
+                (string) $notif,
+                (int) $add_by,
+                $id_kavling,
+                $id_konsumen,
+                $type ? (string) $type : null,
+                $id_proyek ? (int) $id_proyek : null
+            ),
+            NotificationAudience::forUser((int) $user_id)
+        );
+    }
+
+    public function getActivity($all = false, $offset = null, $id_proyek = null, $limit = 10): array
+    {
+        $userId = function_exists('user_id') ? (int) user_id() : 0;
+        if ($userId <= 0) {
+            return [];
+        }
+
+        return $this->notificationRepository->listForUser(
+            $userId,
+            $this->currentGroupId($userId),
+            $id_proyek ? (int) $id_proyek : null,
+            (int) ($offset ?? 0),
+            (int) $limit,
+            (bool) $all
+        );
+    }
+
+    protected function resolveRecipientIds(NotificationAudience $audience, int $actorUserId): array
+    {
+        $recipients = [];
+
+        if ($audience->isGlobal()) {
+            foreach ($this->activeUsersQuery()->get()->getResult() as $user) {
+                $recipients[(int) $user->id] = (int) $user->id;
+            }
+        }
+
+        if ($audience->groupIds() !== []) {
+            $rows = $this->activeUsersQuery()
+                ->join('auth_groups_users agu', 'agu.user_id = users.id')
+                ->whereIn('agu.group_id', $audience->groupIds())
+                ->groupBy('users.id')
+                ->get()
+                ->getResult();
+
+            foreach ($rows as $user) {
+                $recipients[(int) $user->id] = (int) $user->id;
+            }
+        }
+
+        if ($audience->userIds() !== []) {
+            foreach ($audience->userIds() as $userId) {
+                if ($this->isActiveUser((int) $userId)) {
+                    $recipients[(int) $userId] = (int) $userId;
+                }
+            }
+        }
+
+        foreach ($this->adminUserIds() as $adminId) {
+            $recipients[$adminId] = $adminId;
+        }
+
+        if ($actorUserId > 0 && $this->isActiveUser($actorUserId)) {
+            $recipients[$actorUserId] = $actorUserId;
+        }
+
+        ksort($recipients);
+
+        return array_values($recipients);
+    }
+
+    protected function storeRecipients(int $notificationId, array $userIds, string $now): array
+    {
+        if (! $this->db->tableExists('notification_recipients')) {
+            return [];
+        }
+
+        $rows = [];
+        foreach ($userIds as $userId) {
+            $existing = $this->db->table('notification_recipients')
+                ->select('id')
+                ->where('notification_id', $notificationId)
+                ->where('user_id', $userId)
+                ->get()
+                ->getRow();
+
+            if (! $existing) {
+                $this->db->table('notification_recipients')->insert([
+                    'notification_id' => $notificationId,
+                    'user_id' => $userId,
+                    'read_at' => null,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+                $recipientId = (int) $this->db->insertID();
+            } else {
+                $recipientId = (int) $existing->id;
+            }
+
+            if ($recipientId > 0) {
+                $rows[] = ['id' => $recipientId, 'user_id' => (int) $userId];
+            }
+        }
+
+        return $rows;
+    }
+
+    protected function storeDeliveries(int $notificationId, array $recipientRows, int $actorUserId, string $now): void
+    {
+        if (! $this->db->tableExists('notification_deliveries') || $recipientRows === []) {
+            return;
+        }
+
+        foreach ($recipientRows as $recipient) {
+            foreach (['email', 'web_push'] as $channel) {
+                $status = ((int) $recipient['user_id'] === $actorUserId) ? 'skipped' : 'pending';
+                $this->insertDeliveryIfMissing(
+                    (int) $recipient['id'],
+                    $notificationId,
+                    (int) $recipient['user_id'],
+                    $channel,
+                    $status,
+                    $status === 'skipped' ? 'Actor notifikasi tidak dikirim ke channel delivery sendiri.' : null,
+                    $now
+                );
+            }
+        }
+    }
+
+    protected function insertDeliveryIfMissing(int $recipientId, int $notificationId, int $userId, string $channel, string $status, ?string $lastError, string $now): void
+    {
+        $exists = $this->db->table('notification_deliveries')
+            ->where('notification_recipient_id', $recipientId)
+            ->where('channel', $channel)
+            ->countAllResults();
+
+        if ($exists > 0) {
+            return;
+        }
+
+        $this->db->table('notification_deliveries')->insert([
+            'notification_recipient_id' => $recipientId,
+            'notification_id' => $notificationId,
+            'user_id' => $userId,
+            'channel' => $channel,
+            'status' => $status,
+            'attempts' => 0,
+            'available_at' => $now,
+            'processed_at' => $status === 'skipped' ? $now : null,
+            'last_error' => $lastError,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+
+    protected function storeLegacyEmailQueue(int $notificationId, NotificationAudience $audience, int $actorUserId, string $now): void
+    {
+        if (! $this->db->tableExists('notification_email_queue')) {
+            return;
+        }
+
         $this->db->table('notification_email_queue')->insert([
             'notification_id' => $notificationId,
-            'target_group' => $targetGroup,
-            'target_user_id' => $targetUser,
-            'actor_user_id' => $actorId,
-            'created_at' => date('Y-m-d H:i:s')
+            'target_group' => $audience->legacyGroupTarget(),
+            'target_user_id' => $audience->legacyUserId(),
+            'actor_user_id' => $actorUserId,
+            'status' => 'pending',
+            'created_at' => $now,
         ]);
-        
-        // 2. Web Push Notification
-        // Panggil push service secara async (bisa blocking dikit, sebaiknya dipisah ke job queue di masa depan)
-        try {
-            $pushService = new \App\Services\WebPushService();
-            if ($targetUser) {
-                $pushService->sendToUser($targetUser, 'SIGAPP', $notifMsg);
-            } else if ($targetGroup) {
-                $pushService->sendToGroup($targetGroup, 'SIGAPP', $notifMsg, '/', $actorId);
-            }
-        } catch (\Exception $e) {
-            log_message('error', 'Push Notif Error: ' . $e->getMessage());
-        }
     }
 
-    function getNotif($all = false){
-        $r['token'] = csrf_hash();
-
-        $offset = 0;
-
-        if($all)
-            $this->group_id = '';
-
-        $r['notif'] = $this->getActivity(false, $offset);
-
-        return $this->response->setJSON($r);
-    }
-
-    function loadNotif($all = false)
+    protected function activeUsersQuery()
     {
-        $r['token'] = csrf_hash();
-        $offset = $this->request->getVar('offset');
-
-        if($all)
-            $this->group_id = '';
-
-        $r['notif'] = $this->getActivity(false, $offset);
-
-        return $this->response->setJSON($r);
+        return $this->db->table('users')
+            ->select('users.id')
+            ->where('users.active', 1)
+            ->where('users.deleted_at IS NULL', null, false);
     }
 
-    function getActivity($all = false, $offset = null, $id_proyek = null){
-        if($all)
-            $this->group_id = '';
-
-        $builder = $this->db->table('notification')
-            ->select('notification.*, users.username, nama_jalan, no_kavling,   ')
-            ->join('users', 'users.id = notification.add_by')
-            ->join('kavling', 'kavling.id_kavling = notification.id_kavling', 'left')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
-            ->join('cluster', 'jalan.id_cluster = cluster.id_cluster', 'left')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left');
-
-        if ($id_proyek) {
-            $builder->groupStart()
-                ->like('proyek.id_proyek', ''.$id_proyek.'')
-                ->orWhere('notification.id_kavling IS NULL')
-            ->groupEnd();
+    protected function isActiveUser(int $userId): bool
+    {
+        if ($userId <= 0) {
+            return false;
         }
 
-        return $builder->groupStart()
-                ->like('group_target', $this->group_id)
-                ->orWhere('user_id', user_id())
-            ->groupEnd()
-            ->orderBy('created_at', 'desc')
-            ->limit(5, $offset)
-            ->get()->getResult();
+        return (bool) $this->activeUsersQuery()
+            ->where('users.id', $userId)
+            ->countAllResults();
+    }
+
+    protected function adminUserIds(): array
+    {
+        $rows = $this->activeUsersQuery()
+            ->join('auth_groups_users agu', 'agu.user_id = users.id')
+            ->where('agu.group_id', 1)
+            ->groupBy('users.id')
+            ->get()
+            ->getResult();
+
+        return array_values(array_unique(array_map(static fn ($row) => (int) $row->id, $rows)));
+    }
+
+    protected function currentGroupId(int $userId): int
+    {
+        $row = $this->db->table('auth_groups_users')
+            ->select('group_id')
+            ->where('user_id', $userId)
+            ->get()
+            ->getRow();
+
+        return (int) ($row->group_id ?? 0);
+    }
+
+    protected function featureEnabled(string $key, bool $default): bool
+    {
+        $value = getenv($key);
+        if ($value === false || $value === '') {
+            return $default;
+        }
+
+        return in_array(strtolower((string) $value), ['1', 'true', 'yes', 'on'], true);
     }
 }

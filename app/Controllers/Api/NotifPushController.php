@@ -2,48 +2,110 @@
 
 namespace App\Controllers\Api;
 
-use App\Controllers\BaseController;
 use App\Services\WebPushService;
+use CodeIgniter\HTTP\ResponseInterface;
 
-class NotifPushController extends BaseController
+class NotifPushController extends BaseApiController
 {
-    protected $webPushService;
+    protected WebPushService $webPushService;
 
     public function __construct()
     {
         $this->webPushService = new WebPushService();
     }
 
-    public function subscribe()
+    public function status(): ResponseInterface
     {
-        if (!function_exists('user_id') || !user_id()) {
-            return $this->response->setStatusCode(401)->setJSON(['error' => 'Unauthorized']);
-        }
+        $userId = (int) user_id();
 
+        return $this->success([
+            'ready' => $this->webPushService->isReady(),
+            'has_vapid_public_key' => (bool) getenv('VAPID_PUBLIC_KEY'),
+            'active_subscriptions' => $this->webPushService->activeSubscriptionCount($userId),
+        ]);
+    }
+
+    public function subscribe(): ResponseInterface
+    {
         $json = $this->request->getJSON(true);
-        if (!$json || !isset($json['endpoint'])) {
-            return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid subscription data']);
+        if (! $this->validSubscriptionPayload($json)) {
+            return $this->error('Data subscription tidak valid.', 422);
         }
 
         $userAgent = $this->request->getUserAgent()->getAgentString();
-        $this->webPushService->subscribe(user_id(), $json, $userAgent);
+        $saved = $this->webPushService->subscribe((int) user_id(), $json, $userAgent);
+        if (! $saved) {
+            return $this->error('Gagal menyimpan subscription.', 500);
+        }
 
-        return $this->response->setJSON(['status' => 'success']);
+        return $this->success([
+            'active_subscriptions' => $this->webPushService->activeSubscriptionCount((int) user_id()),
+        ], 'Subscription push aktif.');
     }
 
-    public function unsubscribe()
+    public function unsubscribe(): ResponseInterface
     {
-        if (!function_exists('user_id') || !user_id()) {
-            return $this->response->setStatusCode(401)->setJSON(['error' => 'Unauthorized']);
-        }
-
         $json = $this->request->getJSON(true);
-        if (!$json || !isset($json['endpoint'])) {
-            return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid endpoint data']);
+        $endpoint = is_array($json) ? trim((string) ($json['endpoint'] ?? '')) : '';
+        if ($endpoint === '') {
+            return $this->error('Endpoint subscription tidak valid.', 422);
         }
 
-        $this->webPushService->unsubscribe(user_id(), $json['endpoint']);
+        $this->webPushService->unsubscribe((int) user_id(), $endpoint);
 
-        return $this->response->setJSON(['status' => 'success']);
+        return $this->success(null, 'Subscription push dinonaktifkan.');
+    }
+
+    public function test(): ResponseInterface
+    {
+        if (! $this->allowPushTest()) {
+            return $this->error('Terlalu sering mengirim test push. Coba lagi sebentar.', 429);
+        }
+
+        if (! $this->webPushService->isReady()) {
+            return $this->error('Web Push belum siap. Periksa VAPID dan PSR-18 HTTP client.', 503);
+        }
+
+        $sent = $this->webPushService->sendToUser(
+            (int) user_id(),
+            'SIGAPP',
+            'Test push notification berhasil dikirim.',
+            site_url('/')
+        );
+
+        if (! $sent) {
+            return $this->error('Tidak ada subscription aktif atau pengiriman gagal.', 422);
+        }
+
+        return $this->success(null, 'Test push dikirim.');
+    }
+
+    private function validSubscriptionPayload($payload): bool
+    {
+        if (! is_array($payload)) {
+            return false;
+        }
+
+        $endpoint = trim((string) ($payload['endpoint'] ?? ''));
+        $keys = $payload['keys'] ?? [];
+
+        return $endpoint !== ''
+            && is_array($keys)
+            && trim((string) ($keys['p256dh'] ?? '')) !== ''
+            && trim((string) ($keys['auth'] ?? '')) !== '';
+    }
+
+    private function allowPushTest(): bool
+    {
+        $cache = cache();
+        $key = 'notif_push_test_' . (int) user_id();
+        $count = (int) ($cache->get($key) ?? 0);
+        if ($count >= 5) {
+            return false;
+        }
+
+        $cache->save($key, $count + 1, 60);
+
+        return true;
     }
 }

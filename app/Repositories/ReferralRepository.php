@@ -435,6 +435,6 @@ class ReferralRepository extends Model
 
     private function validDateSql(string $column): string
     {
-        return "{$column} IS NOT NULL AND {$column} <> '' AND {$column} <> '0000-00-00'";
+        return "{$column} IS NOT NULL AND YEAR({$column}) > 0";
     }
 }

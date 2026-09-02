@@ -623,6 +623,8 @@ let notificationCenterUrgentItems = {};
 let notificationCenterRequest = null;
 let notificationBadgeRequest = null;
 let notificationCenterLoaded = false;
+let notificationCenterUserSelectedTab = false;
+let notificationActivityHasMore = true;
 
 function notificationProjectId() {
   if (typeof dt_proyek !== "undefined" && dt_proyek && dt_proyek.id_proyek) {
@@ -640,6 +642,45 @@ function notificationEscape(value) {
   return $("<div>")
     .text(value === null || value === undefined || value === "" ? "-" : value)
     .html();
+}
+
+function notificationPlainText(value) {
+  const holder = document.createElement("div");
+  holder.innerHTML = value === null || value === undefined ? "" : String(value);
+  const text = (holder.textContent || holder.innerText || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return text || "-";
+}
+
+function refreshNotificationIcons() {
+  if (window.feather && typeof window.feather.replace === "function") {
+    window.feather.replace();
+  }
+}
+
+function setNotificationRefreshLoading(loading) {
+  const $button = $("#refresh-notif-center");
+  if (!$button.length) {
+    return;
+  }
+
+  $button.prop("disabled", loading);
+  $button.html(loading
+    ? '<i class="fa fa-spinner fa-spin"></i>'
+    : '<i data-feather="refresh-cw"></i>');
+  refreshNotificationIcons();
+}
+
+function renderNotificationCenterError(message) {
+  const target = $("#notif-activity-pane").hasClass("is-active")
+    ? "#notif-here"
+    : "#notif-urgent-here";
+
+  $(target).html(
+    `<div class="notification-center-empty">${notificationEscape(message || "Gagal memuat notifikasi.")}</div>`,
+  );
 }
 
 function updateNotificationBadge(total) {
@@ -737,18 +778,14 @@ function getNotif(forceReload = true) {
     },
     dataType: "json",
     beforeSend: function () {
-      $("#refresh-notif-center, #load-more-notif").prop("disabled", true);
-      $("#refresh-notif-center").html(
-        'Memuat <i class="fa fa-spinner fa-spin"></i>',
-      );
-      $("#notification-center-body").addClass("blur");
+      setNotificationRefreshLoading(true);
+      $("#notification-center-body").addClass("is-loading");
     },
     success: function (r) {
       updateNotificationToken(r.token);
 
-      $("#refresh-notif-center, #load-more-notif").prop("disabled", false);
-      $("#refresh-notif-center").html("Perbarui");
-      $("#notification-center-body").removeClass("blur");
+      setNotificationRefreshLoading(false);
+      $("#notification-center-body").removeClass("is-loading");
       notificationCenterLoaded = true;
       renderNotificationCenter(r);
     },
@@ -757,12 +794,9 @@ function getNotif(forceReload = true) {
         return;
       }
 
-      $("#refresh-notif-center, #load-more-notif").prop("disabled", false);
-      $("#refresh-notif-center").html("Perbarui");
-      $("#notification-center-body").removeClass("blur");
-      $("#notif-urgent-here").html(
-        '<div class="notification-center-empty">Gagal memuat jatuh tempo.</div>',
-      );
+      setNotificationRefreshLoading(false);
+      $("#notification-center-body").removeClass("is-loading");
+      renderNotificationCenterError("Gagal memuat notifikasi.");
     },
     complete: function () {
       notificationCenterRequest = null;
@@ -771,14 +805,13 @@ function getNotif(forceReload = true) {
 }
 
 function ensureNotificationCenterLoaded() {
-  if (!notificationCenterLoaded) {
-    getNotif(false);
-  }
+  getNotif(false);
 }
 
 function renderNotificationCenter(response) {
   const urgent = response.urgent || {};
   const activity = response.activity || {};
+  const activityItems = activity.items || [];
   const urgentTotal = parseInt(response.urgent_total || urgent.total || 0, 10);
   const activityUnread = parseInt(response.activity_unread_count || 0, 10);
   const badgeTotal = parseInt(response.badge_total || urgentTotal + activityUnread, 10);
@@ -787,8 +820,13 @@ function renderNotificationCenter(response) {
   $("#notif-urgent-count").text(urgentTotal);
   $("#notif-activity-count").text(activityUnread);
   renderNotificationUrgent(urgent.sections || {}, urgentTotal);
-  renderNotificationActivity(activity.items || [], true);
-  start = (activity.items || []).length;
+  renderNotificationActivity(activityItems, true);
+  start = activityItems.length;
+  notificationActivityHasMore = activityItems.length >= 10;
+
+  if (!notificationCenterUserSelectedTab) {
+    setNotificationCenterTab(urgentTotal > 0 ? "urgent" : "activity", false);
+  }
 }
 
 function renderNotificationUrgent(sections, total) {
@@ -905,21 +943,31 @@ const DIVISI_AVATAR_COLOR = {
 
 function renderActivityItem(v) {
   const unread = v.is_read == 0;
-  const initial = (v.username || "?").trim().charAt(0).toUpperCase() || "?";
+  const username = v.username || "Sistem";
+  const initial = username.trim().charAt(0).toUpperCase() || "?";
   const badgeClass = DIVISI_BADGE_CLASS[v.divisi_id] || "badge-light-secondary";
   const avatarColor = DIVISI_AVATAR_COLOR[v.divisi_id] || "#82868b";
   const divisiBadge = v.divisi
     ? `<span class="badge badge-pill ${badgeClass}">${notificationEscape(v.divisi)}</span>`
+    : "";
+  const notifText = notificationEscape(v.notif_text || notificationPlainText(v.notif));
+  const hasLocation = v.nama_jalan || v.no_kavling;
+  const locationText = hasLocation
+    ? `<span class="activity-location">${notificationEscape(v.nama_jalan)} No. ${notificationEscape(v.no_kavling)}</span>`
     : "";
 
   return `
     <div class="activity-item${unread ? " is-unread" : ""}" onclick="handleNotificationClick(${v.id}, '${v.id_kavling}', '${v.type || ""}', this)">
       <div class="activity-avatar" style="background:${avatarColor}">${initial}</div>
       <div class="activity-body">
-        <p class="activity-text"><strong>${notificationEscape(v.username)}</strong> ${notificationEscape(v.notif)} <span class="text-muted">(${notificationEscape(v.nama_jalan)} No. ${notificationEscape(v.no_kavling)})</span></p>
-        <div class="activity-meta">
+        <div class="activity-title-row">
+          <strong>${notificationEscape(username)}</strong>
           ${divisiBadge}
+        </div>
+        <p class="activity-text">${notifText}</p>
+        <div class="activity-meta">
           <span class="activity-time">${notificationEscape(format_datetime(v.created_at))}</span>
+          ${locationText}
         </div>
       </div>
     </div>
@@ -934,21 +982,17 @@ $("#header-notif").on("click", function () {
   window.setTimeout(ensureNotificationCenterLoaded, 0);
 });
 
-$("#refresh-notif-center").click(function () {
+$("#refresh-notif-center").click(function (event) {
+  event.preventDefault();
   getNotif();
 });
 
-$("#load-more-notif").click(function () {
-  if (!notificationCenterLoaded) {
-    getNotif();
-    return;
+function setNotificationCenterTab(target, fromUser = true) {
+  const normalizedTarget = target === "activity" ? "activity" : "urgent";
+  if (fromUser) {
+    notificationCenterUserSelectedTab = true;
   }
 
-  loadData();
-});
-
-function setNotificationCenterTab(target) {
-  const normalizedTarget = target === "activity" ? "activity" : "urgent";
   $("#notif-urgent-tab, #notif-activity-tab").removeClass("active");
   $("#notif-urgent-pane, #notif-activity-pane").removeClass("is-active active");
 
@@ -965,11 +1009,15 @@ function setNotificationCenterTab(target) {
 
 $("#notif-urgent-tab, #notif-activity-tab").on("click", function (event) {
   event.preventDefault();
-  setNotificationCenterTab($(this).data("notif-target"));
+  setNotificationCenterTab($(this).data("notif-target"), true);
 });
 
 // Fungsi untuk memuat data dari server
 function loadData() {
+  if (!notificationActivityHasMore) {
+    return;
+  }
+
   isLoading = true;
   $.ajax({
     url: base_url + "/loadnotif",
@@ -986,6 +1034,7 @@ function loadData() {
       }
       renderNotificationActivity(r.notif || [], false);
       if (r.notif && r.notif.length > 0) start += r.notif.length;
+      if (!r.notif || r.notif.length < 10) notificationActivityHasMore = false;
       isLoading = false;
     },
     error: function () {
@@ -1180,6 +1229,7 @@ $("#notification-center-body").scroll(function () {
   if (
     $(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight &&
     !isLoading &&
+    notificationActivityHasMore &&
     $("#notif-activity-pane").hasClass("is-active")
   ) {
     loadData();

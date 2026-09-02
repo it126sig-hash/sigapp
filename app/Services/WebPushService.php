@@ -2,22 +2,26 @@
 
 namespace App\Services;
 
-use Minishlink\WebPush\WebPush;
-use Minishlink\WebPush\Subscription;
 use App\Models\PushSubscriptionModel;
+use GuzzleHttp\Client;
+use Minishlink\WebPush\Subscription;
+use Minishlink\WebPush\VAPID;
+use Minishlink\WebPush\WebPush;
+use Throwable;
 
 class WebPushService
 {
-    protected $webPush;
-    protected $pushModel;
+    protected ?WebPush $webPush = null;
+    protected PushSubscriptionModel $pushModel;
     protected $db;
+    protected array $auth;
+    protected ?string $initError = null;
 
     public function __construct()
     {
         $this->pushModel = new PushSubscriptionModel();
         $this->db = db_connect();
-
-        $auth = [
+        $this->auth = [
             'VAPID' => [
                 'subject' => getenv('VAPID_SUBJECT') ?: 'mailto:admin@sigapp.dev',
                 'publicKey' => getenv('VAPID_PUBLIC_KEY') ?: '',
@@ -26,112 +30,179 @@ class WebPushService
         ];
 
         try {
-            $this->webPush = new WebPush($auth);
-        } catch (\Exception $e) {
-            log_message('error', 'WebPush init error: ' . $e->getMessage());
+            $this->validateVapid();
+            $client = new Client([
+                'timeout' => 15,
+                'connect_timeout' => 5,
+            ]);
+            $this->webPush = new WebPush($this->auth, [
+                'TTL' => 3600,
+                'urgency' => 'normal',
+                'batchSize' => 50,
+            ], $client);
+        } catch (Throwable $e) {
+            $this->initError = $e->getMessage();
+            log_message('error', 'WebPush init error: ' . $this->initError);
             $this->webPush = null;
         }
     }
 
-    public function subscribe(int $userId, array $subscriptionData, ?string $userAgent = null)
+    public function isReady(): bool
+    {
+        return $this->webPush !== null;
+    }
+
+    public function initError(): ?string
+    {
+        return $this->initError;
+    }
+
+    public function validateVapid(): void
+    {
+        VAPID::validate($this->auth['VAPID']);
+    }
+
+    public function subscribe(int $userId, array $subscriptionData, ?string $userAgent = null): bool
     {
         return $this->pushModel->saveSubscription($userId, $subscriptionData, $userAgent);
     }
 
-    public function unsubscribe(int $userId, string $endpoint)
+    public function unsubscribe(int $userId, string $endpoint): bool
     {
         return $this->pushModel->deleteSubscription($userId, $endpoint);
     }
 
-    /**
-     * Send push notification to all devices of a specific user
-     */
-    public function sendToUser(int $userId, string $title, string $body, string $url = '/')
+    public function activeSubscriptionCount(int $userId): int
     {
-        if (!$this->webPush) return false;
+        return count($this->pushModel->activeForUser($userId));
+    }
 
-        $subscriptions = $this->pushModel->where('user_id', $userId)->findAll();
-        if (empty($subscriptions)) return false;
+    public function sendToUser(int $userId, string $title, string $body, string $url = '/'): bool
+    {
+        $result = $this->sendToSubscriptions($this->pushModel->activeForUser($userId), $title, $body, $url);
 
-        $payload = json_encode([
-            'title' => $title,
-            'body'  => $body,
-            'url'   => $url
-        ]);
+        return $result['success'] > 0;
+    }
 
-        foreach ($subscriptions as $sub) {
-            $subscription = Subscription::create([
-                'endpoint' => $sub->endpoint,
-                'publicKey' => $sub->p256dh_key,
-                'authToken' => $sub->auth_token,
-            ]);
-
-            $this->webPush->queueNotification($subscription, $payload);
-        }
-
+    public function sendToGroup(string $groupId, string $title, string $body, string $url = '/', int $excludeUserId = 0): bool
+    {
+        $userIds = $this->resolveGroupUserIds($groupId, $excludeUserId);
         $successCount = 0;
-        foreach ($this->webPush->flush() as $report) {
-            $endpoint = $report->getRequest()->getUri()->__toString();
-            if ($report->isSuccess()) {
+
+        foreach ($userIds as $userId) {
+            if ($this->sendToUser($userId, $title, $body, $url)) {
                 $successCount++;
-            } else {
-                log_message('error', "Push send failed to endpoint {$endpoint}: {$report->getReason()}");
-                if ($report->isSubscriptionExpired()) {
-                    $this->pushModel->where('endpoint', $endpoint)->delete();
-                }
             }
         }
 
         return $successCount > 0;
     }
 
-    /**
-     * Send push notification to a group/department, excluding the actor
-     */
-    public function sendToGroup(string $groupId, string $title, string $body, string $url = '/', int $excludeUserId = 0)
+    public function sendToSubscriptions(array $subscriptions, string $title, string $body, string $url = '/'): array
     {
-        if (!$this->webPush || $groupId === '') return false;
+        $result = [
+            'success' => 0,
+            'failed' => 0,
+            'expired' => 0,
+            'retryable' => 0,
+            'errors' => [],
+        ];
+
+        if (! $this->webPush) {
+            $result['failed'] = count($subscriptions);
+            $result['retryable'] = count($subscriptions);
+            $result['errors'][] = $this->initError ?: 'WebPush tidak siap.';
+            return $result;
+        }
+
+        if ($subscriptions === []) {
+            return $result;
+        }
+
+        $payload = json_encode([
+            'title' => $title,
+            'body' => $body,
+            'url' => $url,
+            'tag' => 'sigapp-notif-' . md5($body . $url),
+        ]);
+
+        foreach ($subscriptions as $sub) {
+            try {
+                $subscription = Subscription::create([
+                    'endpoint' => $sub->endpoint,
+                    'publicKey' => $sub->p256dh_key,
+                    'authToken' => $sub->auth_token,
+                ]);
+                $this->webPush->queueNotification($subscription, $payload);
+            } catch (Throwable $e) {
+                $result['failed']++;
+                $result['errors'][] = $e->getMessage();
+                $this->pushModel->recordFailure((string) ($sub->endpoint ?? ''));
+            }
+        }
+
+        foreach ($this->webPush->flush() as $report) {
+            $endpoint = $report->getEndpoint();
+            if ($report->isSuccess()) {
+                $result['success']++;
+                $this->pushModel->resetFailure($endpoint);
+                continue;
+            }
+
+            $result['failed']++;
+            $reason = $report->getReason();
+            $response = $report->getResponse();
+            $statusCode = $response ? $response->getStatusCode() : 0;
+            $result['errors'][] = $statusCode > 0 ? "{$statusCode}: {$reason}" : $reason;
+
+            if ($report->isSubscriptionExpired()) {
+                $result['expired']++;
+                $this->pushModel->disableEndpoint($endpoint);
+                continue;
+            }
+
+            if ($statusCode === 0 || $statusCode === 429 || $statusCode >= 500) {
+                $result['retryable']++;
+            }
+
+            $this->pushModel->recordFailure($endpoint);
+            log_message('error', "Push send failed to endpoint {$endpoint}: {$reason}");
+        }
+
+        return $result;
+    }
+
+    protected function resolveGroupUserIds(string $groupId, int $excludeUserId = 0): array
+    {
+        if ($groupId === '') {
+            return [];
+        }
 
         if ($groupId === '0') {
             $builder = $this->db->table('users')
                 ->select('id as user_id')
                 ->where('active', 1)
-                ->where('deleted_at', null);
-            
-            if ($excludeUserId > 0) {
-                $builder->where('id !=', $excludeUserId);
-            }
+                ->where('deleted_at IS NULL', null, false);
         } else {
-            $groups = explode(';', $groupId);
+            $groups = array_values(array_filter(array_map('intval', explode(';', $groupId))));
+            if ($groups === []) {
+                return [];
+            }
+
             $builder = $this->db->table('auth_groups_users')
                 ->select('user_id')
                 ->whereIn('group_id', $groups);
-                
-            if ($excludeUserId > 0) {
-                $builder->where('user_id !=', $excludeUserId);
-            }
         }
-        
-        $users = $builder->get()->getResult();
-        
-        $successCount = 0;
-        $sentUsers = [];
-        
-        foreach ($users as $u) {
-            $uid = (int)$u->user_id;
-            
-            // Deduplicate to avoid sending multiple push notifications to the same user
-            if (in_array($uid, $sentUsers)) {
-                continue;
-            }
-            
-            if ($this->sendToUser($uid, $title, $body, $url)) {
-                $successCount++;
-            }
-            
-            $sentUsers[] = $uid;
+
+        if ($excludeUserId > 0) {
+            $builder->where($groupId === '0' ? 'id !=' : 'user_id !=', $excludeUserId);
         }
-        
-        return $successCount > 0;
+
+        $users = [];
+        foreach ($builder->get()->getResult() as $row) {
+            $users[(int) $row->user_id] = (int) $row->user_id;
+        }
+
+        return array_values($users);
     }
 }

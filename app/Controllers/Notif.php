@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
+use App\Repositories\NotificationRepository;
 use App\Services\SiteplanUrgentService;
 
 class Notif extends BaseController
@@ -11,11 +12,13 @@ class Notif extends BaseController
     protected $db;
     protected $group_id;
     protected $siteplanUrgentService;
+    protected NotificationRepository $notificationRepository;
 
     function __construct()
     {
         $this->db = db_connect();
         $this->siteplanUrgentService = new SiteplanUrgentService();
+        $this->notificationRepository = new NotificationRepository($this->db);
 
         if (!session()->group_id) {
             $q = $this->db->table('auth_groups_users')
@@ -47,7 +50,7 @@ class Notif extends BaseController
         if($all)
             $this->group_id = '';
 
-        $r['notif'] = $this->getActivity(false, $offset);
+        $r['notif'] = $this->sanitizeActivityItems($this->getActivity(false, $offset));
         
         // Dapatkan jumlah unread notifikasi
         $r['unread_count'] = $this->getUnreadActivityCount();
@@ -77,7 +80,7 @@ class Notif extends BaseController
         $urgent = $idProyek > 0
             ? $this->siteplanUrgentService->getUrgentSummary($idProyek, $groupId, $userId)
             : $this->siteplanUrgentService->emptySummary();
-        $activity = $this->getActivity(false, 0, $idProyek > 0 ? $idProyek : null, 10);
+        $activity = $this->sanitizeActivityItems($this->getActivity(false, 0, $idProyek > 0 ? $idProyek : null, 10));
         $activityUnreadCount = $this->getUnreadActivityCount($idProyek > 0 ? $idProyek : null);
 
         return $this->response->setJSON([
@@ -125,46 +128,32 @@ class Notif extends BaseController
         if($all)
             $this->group_id = '';
 
-        $r['notif'] = $this->getActivity(false, $offset, $idProyek > 0 ? $idProyek : null);
+        $r['notif'] = $this->sanitizeActivityItems($this->getActivity(false, $offset, $idProyek > 0 ? $idProyek : null));
 
         return $this->response->setJSON($r);
     }
 
     function getActivity($all = false, $offset = null, $id_proyek = null, $limit = 10){
-        if($all)
-            $this->group_id = '';
-        $builder = $this->db->table('notification')
-            ->select('notification.*, users.username, nama_jalan, no_kavling, proyek.id_proyek, auth_groups.id as divisi_id, auth_groups.name as divisi')
-            ->join('users', 'users.id = notification.add_by')
-            ->join('kavling', 'kavling.id_kavling = notification.id_kavling', 'left')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
-            ->join('cluster', 'jalan.id_cluster = cluster.id_cluster', 'left')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left')
-            ->join('auth_groups_users', 'auth_groups_users.user_id = notification.add_by', 'left')
-            ->join('auth_groups', 'auth_groups.id = auth_groups_users.group_id', 'left');
-
-        if ($id_proyek) {
-            $builder->where('COALESCE(notification.id_proyek, proyek.id_proyek)', (int) $id_proyek);
-        }
-
-        $this->applyGroupTargetFilter($builder);
-
-        if (!$all) {
-            $builder->orderBy('is_read', 'asc'); // Urutkan yang belum dibaca terlebih dahulu
-        }
-
-        $q = $builder
-            ->orderBy('created_at', 'desc')
-            ->limit($limit, $offset) // Menampilkan 10 agar history lebih banyak
-            ->get()->getResult();
-
-        return $q;
+        return $this->notificationRepository->listForUser(
+            (int) user_id(),
+            $this->getCurrentGroupId(),
+            $id_proyek ? (int) $id_proyek : null,
+            (int) ($offset ?? 0),
+            (int) $limit,
+            (bool) $all
+        );
     }
     
     function markAsRead($id) {
-        $this->db->table('notification')
-            ->where('id', $id)
-            ->update(['is_read' => 1]);
+        $success = $this->notificationRepository->markAsReadForUser((int) $id, (int) user_id());
+
+        if (! $success) {
+            return $this->response->setStatusCode(404)->setJSON([
+                'status' => 'not_found',
+                'token' => csrf_hash(),
+            ]);
+        }
+
         return $this->response->setJSON(['status' => 'success', 'token' => csrf_hash()]);
     }
 
@@ -191,20 +180,33 @@ class Notif extends BaseController
 
     protected function getUnreadActivityCount($idProyek = null): int
     {
-        $builder = $this->db->table('notification')
-            ->join('kavling', 'kavling.id_kavling = notification.id_kavling', 'left')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
-            ->join('cluster', 'jalan.id_cluster = cluster.id_cluster', 'left')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left')
-            ->where('notification.is_read', 0);
+        return $this->notificationRepository->unreadCountForUser(
+            (int) user_id(),
+            $this->getCurrentGroupId(),
+            $idProyek ? (int) $idProyek : null
+        );
+    }
 
-        if ($idProyek) {
-            $builder->where('COALESCE(notification.id_proyek, proyek.id_proyek)', (int) $idProyek);
+    protected function sanitizeActivityItems(array $items): array
+    {
+        foreach ($items as $item) {
+            if (is_object($item)) {
+                $item->notif_text = $this->plainNotificationText($item->notif ?? '');
+            } elseif (is_array($item)) {
+                $item['notif_text'] = $this->plainNotificationText($item['notif'] ?? '');
+            }
         }
 
-        $this->applyGroupTargetFilter($builder);
+        return $items;
+    }
 
-        return (int) $builder->countAllResults();
+    protected function plainNotificationText($value): string
+    {
+        $decoded = html_entity_decode((string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = trim(strip_tags($decoded));
+        $text = preg_replace('/\s+/u', ' ', $text);
+
+        return $text === '' ? '-' : $text;
     }
 
     protected function applyGroupTargetFilter($builder): void

@@ -956,6 +956,36 @@ select,
     width: min(430px, calc(100vw - 1.5rem));
 }
 
+.notification-center-header {
+    gap: .5rem;
+    padding: .85rem 1rem .7rem;
+}
+
+.notification-center-header .notification-title {
+    color: #111827;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.notification-refresh-btn {
+    align-items: center;
+    border-radius: 8px !important;
+    color: #2057a3 !important;
+    display: inline-flex;
+    height: 2rem;
+    justify-content: center;
+    width: 2rem;
+}
+
+.notification-refresh-btn:hover {
+    background: #edf3fb !important;
+}
+
+.notification-refresh-btn svg {
+    height: 1rem;
+    width: 1rem;
+}
+
 .notification-center-tabs .nav-tabs {
     border-bottom: 1px solid #e5e7eb;
     flex-wrap: nowrap;
@@ -985,6 +1015,11 @@ select,
 .notification-center-body {
     max-height: 420px;
     overflow-y: auto;
+    transition: opacity .15s ease;
+}
+
+.notification-center-body.is-loading {
+    opacity: .72;
 }
 
 .notification-center-pane {
@@ -1705,12 +1740,32 @@ select,
     cursor: pointer;
 }
 
+.notification-center-body .activity-item {
+    margin: .5rem .75rem;
+    padding: .75rem;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px !important;
+    transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+
+.notification-center-body .activity-item:hover {
+    background: #f8fafc;
+    border-color: #c8d7ee;
+    transform: translateY(-1px);
+}
+
 .activity-item:last-child {
     border-bottom: none;
 }
 
 .activity-item.is-unread {
     background: #f8f8fb;
+}
+
+.notification-center-body .activity-item.is-unread {
+    background: #f4f8fd;
+    border-left: 3px solid #2057a3;
 }
 
 .activity-avatar {
@@ -1726,15 +1781,44 @@ select,
     font-size: .95rem;
 }
 
+.notification-center-body .activity-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: .82rem;
+}
+
 .activity-body {
     flex: 1 1 auto;
     min-width: 0;
+}
+
+.activity-title-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+    margin-bottom: .25rem;
+}
+
+.activity-title-row strong {
+    color: #111827;
+    font-size: .86rem;
 }
 
 .activity-text {
     margin: 0;
     font-size: .9rem;
     color: #6e6b7b;
+}
+
+.notification-center-body .activity-text {
+    color: #4b5563;
+    display: -webkit-box;
+    font-size: .82rem;
+    line-height: 1.35;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
 .activity-text strong {
@@ -1752,6 +1836,11 @@ select,
 .activity-time {
     font-size: .75rem;
     color: #b9b9c3;
+}
+
+.activity-location {
+    color: #9ca3af;
+    font-size: .75rem;
 }
 
 .activity-item.is-unread .activity-time::before {
