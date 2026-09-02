@@ -30,7 +30,7 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_access_url)
 <!-- BEGIN: Header-->
 <nav class="header-navbar navbar navbar-expand-lg align-items-center floating-nav navbar-light ">
     <div class="navbar-container d-flex content align-items-center w-100">
-        <div class="bookmark-wrapper d-flex align-items-center flex-grow-1 min-width-0">
+        <div class="bookmark-wrapper navbar-project-area d-flex align-items-center flex-grow-1 min-width-0">
             <ul class="nav navbar-nav d-xl-none flex-shrink-0">
                 <li class="nav-item"><a class="nav-link menu-toggle" href="javascript:void(0);"><i class="ficon" data-feather="menu"></i></a></li>
             </ul>
@@ -93,7 +93,7 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_access_url)
                 <!-- <li class="nav-item d-none d-lg-block"><button onclick="export_siteplan()" class="btn btn-outline-primary " id="btn-export-siteplan"> Export </button></li> -->
             </ul>
         </div>
-        <ul class="nav navbar-nav align-items-center ml-auto">
+        <ul class="nav navbar-nav navbar-header-actions align-items-center ml-auto flex-shrink-0">
             <?php
             /*<li class="nav-item dropdown mr-25">
                 <a class="" onclick="load_kavling(true)">

@@ -1130,6 +1130,16 @@ select,
 }
 
 /* Navbar project switcher */
+.navbar-project-area {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.header-navbar .navbar-header-actions {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+}
+
 .navbar-project-switcher {
     flex: 1 1 auto;
     max-width: 50%;
@@ -1150,6 +1160,8 @@ select,
     font-size: .95rem;
     font-weight: 600;
     line-height: 1.25;
+    overflow: hidden;
+    text-align: left;
     transition: background-color .2s ease;
 }
 
@@ -1194,6 +1206,7 @@ select,
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
+    text-align: left;
     text-overflow: ellipsis;
 }
 
@@ -1244,6 +1257,7 @@ select,
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
+    text-align: left;
     text-overflow: ellipsis;
 }
 
@@ -1360,7 +1374,8 @@ select,
 
 @media (max-width: 767.98px) {
     .navbar-project-switcher {
-        max-width: calc(100% - 3rem);
+        flex: 1 1 0;
+        max-width: 100%;
     }
 
     .navbar-project-pill {
