@@ -1,7 +1,9 @@
-<!-- Datatables CSS -->
+<!-- Datatables & Form CSS -->
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/extensions/sweetalert2.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/forms/select/select2.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
 
 <div class="app-content content">
     <div class="content-overlay"></div>
@@ -30,39 +32,11 @@
                         <div class="card">
                             <div class="card-header border-bottom d-flex justify-content-between align-items-center">
                                 <h4 class="card-title mb-0">Daftar Tiket Masalah Global</h4>
-                                <div class="heading-elements d-flex align-items-center gap-2 flex-wrap justify-content-end" style="gap: 10px;">
-                                    <div class="form-group mb-0">
-                                        <input type="text" id="filter_periode" class="form-control form-control-sm flatpickr" placeholder="Filter Periode (Semua)">
-                                    </div>
-                                    <div class="form-group mb-0" style="min-width: 150px;">
-                                        <select id="filter_divisi" class="form-control form-control-sm select2">
-                                            <option value="">Semua Divisi</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group mb-0" style="min-width: 150px;">
-                                        <select id="filter_pembuat" class="form-control form-control-sm select2">
-                                            <option value="">Semua Pembuat</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group mb-0">
-                                        <select id="filter_status" class="form-control form-control-sm">
-                                            <option value="active" selected>Aktif (Tanpa Selesai/Batal)</option>
-                                            <option value="">Semua Status</option>
-                                            <option value="dibuat">Dibuat</option>
-                                            <option value="dalam_proses">Dalam Proses</option>
-                                            <option value="selesai">Selesai</option>
-                                            <option value="batal">Batal</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group mb-0">
-                                        <select id="filter_prioritas" class="form-control form-control-sm">
-                                            <option value="">Semua Prioritas</option>
-                                            <option value="low">Low</option>
-                                            <option value="normal">Normal</option>
-                                            <option value="medium">Medium</option>
-                                            <option value="urgent">Urgent</option>
-                                        </select>
-                                    </div>
+                                <div class="heading-elements">
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill shadow-sm" data-toggle="modal" data-target="#modalFilterTiket">
+                                        <i class="fas fa-filter mr-50"></i> Filter
+                                        <span id="filter_badge_count" class="badge badge-pill badge-primary ml-50 d-none">0</span>
+                                    </button>
                                 </div>
                             </div>
                             <div class="card-content">
@@ -75,7 +49,7 @@
                                                     <th width="20">No</th>
                                                     <th>Lokasi &amp; Foto</th>
                                                     <th>Keterangan</th>
-                                                    <th>Tanggal Kunjungan</th>
+                                                    <th>Tanggal Laporan</th>
                                                     <th>Pembuat Laporan</th>
                                                     <th>PIC Penanganan</th>
                                                     <th>Status</th>
@@ -92,6 +66,84 @@
                     </div>
                 </div>
             </section>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Slide-in Filter Tiket Masalah -->
+<div class="modal modal-slide-in fade" id="modalFilterTiket" tabindex="-1" role="dialog" aria-labelledby="modalFilterTiketTitle" aria-hidden="true">
+    <div class="modal-dialog sidebar-sm" role="document">
+        <div class="add-new-record modal-content pt-0">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
+            <div class="modal-header mb-1 border-bottom pb-1">
+                <h5 class="modal-title font-weight-bold" id="modalFilterTiketTitle">
+                    <i class="fas fa-sliders-h text-primary mr-50"></i> Filter Tiket Masalah
+                </h5>
+            </div>
+            <div class="modal-body flex-grow-1">
+                <div class="form-group mb-2">
+                    <label class="font-weight-bold text-muted text-uppercase font-small-3">
+                        <i class="fas fa-calendar-alt text-primary mr-50"></i> Tanggal Laporan (Periode)
+                    </label>
+                    <input type="text" id="filter_periode" class="form-control flatpickr" placeholder="Pilih rentang tanggal...">
+                    <small class="text-muted d-block mt-50">Pilih rentang tanggal dibuatnya laporan</small>
+                </div>
+
+                <div class="form-group mb-2">
+                    <label class="font-weight-bold text-muted text-uppercase font-small-3">
+                        <i class="fas fa-sitemap text-info mr-50"></i> Divisi
+                    </label>
+                    <select id="filter_divisi" class="form-control select2" style="width: 100%;">
+                        <option value="">Semua Divisi</option>
+                    </select>
+                </div>
+
+                <div class="form-group mb-2">
+                    <label class="font-weight-bold text-muted text-uppercase font-small-3">
+                        <i class="fas fa-user-edit text-success mr-50"></i> Pembuat Laporan
+                    </label>
+                    <select id="filter_pembuat" class="form-control select2" style="width: 100%;">
+                        <option value="">Semua Pembuat</option>
+                    </select>
+                    <small class="text-muted d-block mt-50">Menampilkan pembuat yang memiliki riwayat laporan</small>
+                </div>
+
+                <div class="form-group mb-2">
+                    <label class="font-weight-bold text-muted text-uppercase font-small-3">
+                        <i class="fas fa-tasks text-warning mr-50"></i> Status Tiket
+                    </label>
+                    <select id="filter_status" class="form-control select2" style="width: 100%;">
+                        <option value="active" selected>Aktif (Tanpa Selesai/Batal)</option>
+                        <option value="">Semua Status</option>
+                        <option value="dibuat">Dibuat</option>
+                        <option value="dalam_proses">Dalam Proses</option>
+                        <option value="selesai">Selesai</option>
+                        <option value="batal">Batal</option>
+                    </select>
+                </div>
+
+                <div class="form-group mb-2">
+                    <label class="font-weight-bold text-muted text-uppercase font-small-3">
+                        <i class="fas fa-flag text-danger mr-50"></i> Skala Prioritas
+                    </label>
+                    <select id="filter_prioritas" class="form-control select2" style="width: 100%;">
+                        <option value="">Semua Prioritas</option>
+                        <option value="low">Low</option>
+                        <option value="normal">Normal</option>
+                        <option value="medium">Medium</option>
+                        <option value="urgent">Urgent</option>
+                        <option value="laporan">Laporan</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer border-top pt-1">
+                <button type="button" id="btn_reset_filter" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-undo mr-50"></i> Reset
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" data-dismiss="modal">
+                    <i class="fas fa-check mr-50"></i> Terapkan
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -353,6 +405,8 @@
 <script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/forms/select/select2.full.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
 <!-- Load JS Khusus untuk Halaman Ini -->
 <script src="<?= base_url('assets/js/tiket_masalah/index.js?v=' . filemtime(FCPATH . 'assets/js/tiket_masalah/index.js')) ?>"></script>
 <!-- Memanggil js modal agar fungsinya jalan -->

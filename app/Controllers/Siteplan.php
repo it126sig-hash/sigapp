@@ -488,6 +488,10 @@ class Siteplan extends BaseController
         // $pecah = explode(";", $fields['no_kavling']);
 
         $this->validation->setRules([
+            'tipe' => [
+                'label' => 'Jenis',
+                'rules' => 'required|in_list[jalan,fasos,rth,fasum,ruko]'
+            ],
             'id_cluster' => [
                 'label' => 'Cluster',
                 'rules' => 'permit_empty|max_length[255]'
@@ -669,6 +673,10 @@ class Siteplan extends BaseController
         $id = $this->request->getPost('id_kavling');
 
         $this->validation->setRules([
+            'tipe' => [
+                'label' => 'Jenis',
+                'rules' => 'required|in_list[jalan,fasos,rth,fasum,ruko]'
+            ],
             'no_kavling' => [
                 'label' => 'No Rumah',
                 'rules' => 'permit_empty|max_length[255]'

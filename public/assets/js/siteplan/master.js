@@ -1306,7 +1306,9 @@ Date.prototype.toDateInputValue = (function() {
                         set_fill("#9000ff", "#000", "0", null) // warna ungu
                     else if (r[p].tipe == "rth")
                         set_fill("#0f0", "#000", "0", null) // warna merah
-                    
+                    else if (r[p].tipe == "ruko")
+                        set_fill("#2057a3", "#000", "0", null) // warna biru utama SIGAPP
+
                     if (activeKategori.includes('Masalah')) {
                         const prio = r[p].prioritas_masalah ? r[p].prioritas_masalah.toLowerCase() : 'normal';
                         let hitFill = 'Masalah Normal';

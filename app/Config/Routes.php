@@ -13,6 +13,7 @@ $routes->get('toc', '\App\Controllers\Web\LegalPageController::termsOfService');
 
 $routes->get('dashboard', 'Home::dashboard');
 $routes->get('/', 'Home::dashboard');
+$routes->get('landing', '\App\Controllers\Web\LandingController::index');
 
 //poskon
 $routes->get('/list-kavling', 'PosisiKonsumen::index');
@@ -318,6 +319,7 @@ $routes->group('api/tiket-masalah', ['namespace' => 'App\Controllers\Api', 'filt
     $routes->post('add-progress',       'TiketMasalahController::addProgress');
     $routes->post('ref-info',           'TiketMasalahController::refInfo');
     $routes->get('users',               'TiketMasalahController::users');
+    $routes->get('divisions',           'TiketMasalahController::divisions');
     $routes->post('create-others-area', 'TiketMasalahController::createOthersArea');
     $routes->post('datatable',          'TiketMasalahController::datatable');
     $routes->post('toggle-pin',         'TiketMasalahController::togglePin');

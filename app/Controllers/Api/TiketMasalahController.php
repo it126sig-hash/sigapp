@@ -211,7 +211,7 @@ class TiketMasalahController extends BaseController
             return $this->fail('Seleksi manual minimal 3 titik', 400);
         }
 
-        if (!in_array($tipe, ['jalan', 'fasos', 'rth', 'fasum'])) {
+        if (!in_array($tipe, ['jalan', 'fasos', 'rth', 'fasum', 'ruko'], true)) {
             return $this->fail('Tipe tidak valid', 400);
         }
 

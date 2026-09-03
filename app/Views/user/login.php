@@ -11,6 +11,8 @@
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-title" content="SIGAPP">
 	<meta name="apple-mobile-web-app-status-bar-style" content="default">
+	<!-- Ganti content di bawah dengan tag verifikasi Google Search Console yang asli jika memverifikasi root domain -->
+	<meta name="google-site-verification" content="KODE_VERIFIKASI_ANDA_DISINI" />
 	<title>Login - SIGAPP</title>
 	<link rel="manifest" href="<?= base_url('manifest.webmanifest') ?>">
 	<link rel="apple-touch-icon" href="<?= base_url('assets/images/pwa/apple-touch-icon.png') ?>">

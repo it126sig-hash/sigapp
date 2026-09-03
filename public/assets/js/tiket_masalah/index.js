@@ -1,28 +1,65 @@
 $(document).ready(function() {
+    let fpPeriode = null;
+
+    function updateFilterBadge() {
+        let activeCount = 0;
+        if ($('#filter_periode').val()) activeCount++;
+        if ($('#filter_divisi').val()) activeCount++;
+        if ($('#filter_pembuat').val()) activeCount++;
+        if ($('#filter_status').val() && $('#filter_status').val() !== 'active') activeCount++;
+        if ($('#filter_prioritas').val()) activeCount++;
+
+        if (activeCount > 0) {
+            $('#filter_badge_count').text(activeCount).removeClass('d-none');
+        } else {
+            $('#filter_badge_count').text('0').addClass('d-none');
+        }
+    }
+
     // Inisialisasi Filter
     if (typeof $.fn.flatpickr === 'function') {
-        $('#filter_periode').flatpickr({
+        fpPeriode = $('#filter_periode').flatpickr({
             mode: "range",
             dateFormat: "Y-m-d",
             onClose: function(selectedDates, dateStr, instance) {
+                updateFilterBadge();
                 window.tableTiketGlobal.ajax.reload();
             }
         });
     }
 
+    // Inisialisasi select2 untuk modal filter
+    $('#filter_status, #filter_prioritas').select2({
+        dropdownParent: $('#modalFilterTiket')
+    });
+
     // Load Data Pembuat & Divisi
     $.get(base_url + 'api/tiket-masalah/users', function(res) {
         if (res.success) {
             let opts = '<option value="">Semua Pembuat</option>';
-            res.data.forEach(u => { opts += `<option value="${u.id}">${u.name} (${u.username})</option>`; });
-            $('#filter_pembuat').html(opts).select2({ placeholder: "Semua Pembuat", allowClear: true });
+            res.data.forEach(u => {
+                let label = u.name ? `${u.name} (${u.username})` : u.username;
+                opts += `<option value="${u.id}">${label}</option>`;
+            });
+            $('#filter_pembuat').html(opts).select2({
+                placeholder: "Semua Pembuat",
+                allowClear: true,
+                dropdownParent: $('#modalFilterTiket')
+            });
         }
     });
+
     $.get(base_url + 'api/tiket-masalah/divisions', function(res) {
         if (res.success) {
             let opts = '<option value="">Semua Divisi</option>';
-            res.data.forEach(d => { opts += `<option value="${d.id}">${d.name}</option>`; });
-            $('#filter_divisi').html(opts).select2({ placeholder: "Semua Divisi", allowClear: true });
+            res.data.forEach(d => {
+                opts += `<option value="${d.id}">${d.name}</option>`;
+            });
+            $('#filter_divisi').html(opts).select2({
+                placeholder: "Semua Divisi",
+                allowClear: true,
+                dropdownParent: $('#modalFilterTiket')
+            });
         }
     });
 
@@ -134,7 +171,7 @@ $(document).ready(function() {
                 name: 'tm.tanggal_masalah',
                 render: function(data, type, row) {
                     let d = data ? new Date(data).toLocaleDateString('id-ID') : '-';
-                    return `<div class="m-tgl"><span class="m-lbl">Tgl Kunjungan</span><span class="m-val">${d}</span></div>`;
+                    return `<div class="m-tgl"><span class="m-lbl">Tgl Laporan</span><span class="m-val">${d}</span></div>`;
                 }
             },
             {
@@ -214,6 +251,21 @@ $(document).ready(function() {
 
     // Event listener untuk filter Datatables
     $('#filter_status, #filter_prioritas, #filter_pembuat, #filter_divisi').on('change', function() {
+        updateFilterBadge();
+        window.tableTiketGlobal.ajax.reload();
+    });
+
+    // Reset filter
+    $('#btn_reset_filter').on('click', function() {
+        $('#filter_periode').val('');
+        if (fpPeriode) {
+            fpPeriode.clear();
+        }
+        $('#filter_divisi').val('').trigger('change');
+        $('#filter_pembuat').val('').trigger('change');
+        $('#filter_status').val('active').trigger('change');
+        $('#filter_prioritas').val('').trigger('change');
+        updateFilterBadge();
         window.tableTiketGlobal.ajax.reload();
     });
 

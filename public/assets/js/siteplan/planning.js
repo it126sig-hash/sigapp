@@ -766,7 +766,7 @@ function selesai_selection(e) {
   } else if (this.value == "jalan") {
     $(".h").hide();
     $("#div_jalan, #div_luas").show();
-  } else if (this.value == "fasos" || this.value == "rth") {
+  } else if (this.value == "fasos" || this.value == "rth" || this.value == "ruko") {
     $(".h").hide();
     $("#div_jalan, #div_fasos").show();
   } else {

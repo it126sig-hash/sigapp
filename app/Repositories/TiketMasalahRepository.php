@@ -135,10 +135,10 @@ class TiketMasalahRepository
         if (!empty($params['filter_periode'])) {
             $dates = explode(' to ', $params['filter_periode']);
             if (count($dates) == 2) {
-                $builder->where('DATE(tm.created_at) >=', trim($dates[0]))
-                        ->where('DATE(tm.created_at) <=', trim($dates[1]));
+                $builder->where('DATE(tm.tanggal_masalah) >=', trim($dates[0]))
+                        ->where('DATE(tm.tanggal_masalah) <=', trim($dates[1]));
             } else {
-                $builder->where('DATE(tm.created_at)', trim($dates[0]));
+                $builder->where('DATE(tm.tanggal_masalah)', trim($dates[0]));
             }
         }
 

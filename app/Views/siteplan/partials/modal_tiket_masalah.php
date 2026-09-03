@@ -120,6 +120,7 @@
                                                         <option value="fasos">Fasos</option>
                                                         <option value="rth">RTH</option>
                                                         <option value="fasum">Fasum</option>
+                                                        <option value="ruko">RUKO</option>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-6 form-group">

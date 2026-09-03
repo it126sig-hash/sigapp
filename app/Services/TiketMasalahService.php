@@ -81,11 +81,11 @@ class TiketMasalahService
             1 => null, // no
             2 => 'lokasi',
             3 => 'tm.keterangan',
-            4 => 'tm.status',
-            5 => 'tm.prioritas',
-            6 => 'u.username',
-            7 => null, // assigned users
-            8 => 'tm.created_at'
+            4 => 'tm.tanggal_masalah',
+            5 => 'u.username',
+            6 => null, // assigned users
+            7 => 'tm.status',
+            8 => 'tm.prioritas'
         ];
 
         if ($orderColIdx !== null && isset($columns[$orderColIdx])) {
@@ -565,11 +565,13 @@ class TiketMasalahService
 
     public function getUserList(): array
     {
-        return $this->db->table('users')
-            ->select('id, username, name')
-            ->where('active', 1)
-            ->where('deleted_at IS NULL', null, false)
-            ->orderBy('username', 'ASC')
+        return $this->db->table('users u')
+            ->select('u.id, u.username, u.name')
+            ->join('tiket_masalah tm', 'tm.pic_user_id = u.id')
+            ->where('u.active', 1)
+            ->where('u.deleted_at IS NULL', null, false)
+            ->groupBy('u.id')
+            ->orderBy('u.username', 'ASC')
             ->get()
             ->getResult();
     }

@@ -26,6 +26,7 @@
                         <option value="jalan">Jalan</option>
                         <option value="fasos">Fasos</option>
                         <option value="rth">RTH</option>
+                        <option value="ruko">RUKO</option>
                     </select>
                 </div>
                 <div class="form-group">
