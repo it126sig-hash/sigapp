@@ -24,6 +24,12 @@ class NotifikasiService
         $now = date('Y-m-d H:i:s');
         $idKavling = is_array($data->idKavling) ? ($data->idKavling[0] ?? null) : $data->idKavling;
 
+        // Validasi: actionUrl tidak boleh eksternal
+        $actionUrl = $data->actionUrl;
+        if ($actionUrl && preg_match('/^https?:\/\//i', $actionUrl)) {
+            $actionUrl = null;
+        }
+
         $this->db->transStart();
 
         $this->db->table('notification')->insert([
@@ -36,6 +42,7 @@ class NotifikasiService
             'id_kavling' => $idKavling,
             'id_konsumen' => $data->idKonsumen,
             'id_proyek' => $data->idProyek,
+            'action_url' => $actionUrl,
             'created_at' => $now,
         ]);
 
@@ -65,7 +72,7 @@ class NotifikasiService
         return $notificationId;
     }
 
-    public function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null)
+    public function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null, ?string $actionUrl = null)
     {
         return $this->create(
             new NotificationData(
@@ -74,13 +81,14 @@ class NotifikasiService
                 $id_kavling,
                 $id_konsumen,
                 $type ? (string) $type : null,
-                $id_proyek ? (int) $id_proyek : null
+                $id_proyek ? (int) $id_proyek : null,
+                $actionUrl
             ),
             NotificationAudience::fromLegacyTarget($target)
         );
     }
 
-    public function tambah_notif_user($user_id, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null)
+    public function tambah_notif_user($user_id, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null, ?string $actionUrl = null)
     {
         return $this->create(
             new NotificationData(
@@ -89,7 +97,8 @@ class NotifikasiService
                 $id_kavling,
                 $id_konsumen,
                 $type ? (string) $type : null,
-                $id_proyek ? (int) $id_proyek : null
+                $id_proyek ? (int) $id_proyek : null,
+                $actionUrl
             ),
             NotificationAudience::forUser((int) $user_id)
         );

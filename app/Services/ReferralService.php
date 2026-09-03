@@ -662,7 +662,8 @@ class ReferralService
                 !empty($context->id_kavling) ? (int) $context->id_kavling : null,
                 !empty($context->id_konsumen) ? (int) $context->id_konsumen : null,
                 $type,
-                !empty($context->id_proyek) ? (int) $context->id_proyek : null
+                !empty($context->id_proyek) ? (int) $context->id_proyek : null,
+                'member-get-member?id_referral=' . $referral->id
             );
         } catch (\Throwable $e) {
             log_message('error', 'MGM Notif Error: ' . $e->getMessage());

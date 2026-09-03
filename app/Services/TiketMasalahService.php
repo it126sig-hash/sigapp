@@ -183,6 +183,8 @@ class TiketMasalahService
         }
 
         // Notifikasi ke departemen user pembuat (hanya jika bukan draft)
+        $actionUrl = ($data['ref_type'] == 'kavling') ? 'siteplan/view?id_kavling=' . $data['ref_id'] . '&filter=Masalah&tiket_ref_type=kavling' : null;
+
         $userGroupId = session()->get('group_id');
         if ($userGroupId && $data['status'] !== 'draft') {
             $this->notifikasiService->tambah_notif(
@@ -192,7 +194,8 @@ class TiketMasalahService
                 $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                 null,                           // id_konsumen
                 $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket), // type
-                $data['id_proyek'] ?? null      // id_proyek
+                $data['id_proyek'] ?? null,     // id_proyek
+                $actionUrl
             );
         }
 
@@ -224,7 +227,8 @@ class TiketMasalahService
                     $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                     null,
                     $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
-                    $data['id_proyek'] ?? null
+                    $data['id_proyek'] ?? null,
+                    $actionUrl
                 );
             }
         }
@@ -330,6 +334,8 @@ class TiketMasalahService
 
         // Notifikasi jika tiket tidak lagi draft
         if ($data['status'] === 'dibuat') {
+            $actionUrl = ($data['ref_type'] == 'kavling') ? 'siteplan/view?id_kavling=' . $data['ref_id'] . '&filter=Masalah&tiket_ref_type=kavling' : null;
+
             $userGroupId = session()->get('group_id');
             if ($userGroupId) {
                 $this->notifikasiService->tambah_notif(
@@ -339,7 +345,8 @@ class TiketMasalahService
                     $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                     null,
                     $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
-                    $data['id_proyek'] ?? null
+                    $data['id_proyek'] ?? null,
+                    $actionUrl
                 );
             }
             
@@ -359,7 +366,8 @@ class TiketMasalahService
                         $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                         null,
                         $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
-                        $data['id_proyek'] ?? null
+                        $data['id_proyek'] ?? null,
+                        $actionUrl
                     );
                 }
             }
@@ -448,6 +456,8 @@ class TiketMasalahService
             $notifyUids[] = $tiket->pic_user_id;
         }
 
+        $actionUrl = ($tiket->ref_type == 'kavling') ? 'siteplan/view?id_kavling=' . $tiket->ref_id . '&filter=Masalah&tiket_ref_type=kavling' : null;
+
         foreach ($notifyUids as $uid) {
             if ($uid != $userId) {
                 $this->notifikasiService->tambah_notif_user(
@@ -457,7 +467,8 @@ class TiketMasalahService
                     $tiket->ref_type == 'kavling' ? $tiket->ref_id : null,
                     null,
                     $this->notificationType($tiket->ref_type, (int) $tiket->ref_id, (int) $idTiket),
-                    $tiket->id_proyek ?? null
+                    $tiket->id_proyek ?? null,
+                    $actionUrl
                 );
             }
         }
@@ -564,6 +575,17 @@ class TiketMasalahService
     }
 
     public function getUserList(): array
+    {
+        return $this->db->table('users')
+            ->select('id, username, name')
+            ->where('active', 1)
+            ->where('deleted_at IS NULL', null, false)
+            ->orderBy('username', 'ASC')
+            ->get()
+            ->getResult();
+    }
+
+    public function getCreatorList(): array
     {
         return $this->db->table('users u')
             ->select('u.id, u.username, u.name')

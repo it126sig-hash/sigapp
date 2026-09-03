@@ -889,7 +889,7 @@ class KeuanganService
                 $this->mkdtModel->update(['id_mkdt' => $id_mkdt], $data);
             }
 
-            $this->notif->tambah_notif("3;4;9", $pesanNotif, user_id(), $id_kavling, $id_konsumen, 'tagihan');
+            $this->notif->tambah_notif("3;4;9", $pesanNotif, user_id(), $id_kavling, $id_konsumen, 'tagihan', null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=keuangan");
 
             $db->transComplete();
 

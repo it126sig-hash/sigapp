@@ -99,7 +99,7 @@ class NotificationDispatchService
             ->getCompiledSelect();
 
         return $this->db->table('notification_deliveries d')
-            ->select('d.*, n.notif, n.type, n.id_kavling')
+            ->select('d.*, n.notif, n.type, n.id_kavling, n.id_proyek')
             ->select('actor.name as actor_name, actor.username as actor_username')
             ->select('actor_department.department_name as actor_department')
             ->join('notification n', 'n.id = d.notification_id')
@@ -124,18 +124,34 @@ class NotificationDispatchService
             return 'skipped';
         }
 
+        $idProyek = (int) ($delivery->id_proyek ?? 0);
+        $namaProyek = $idProyek > 0 ? $this->getNamaProyek($idProyek) : null;
+        
+        if (! $namaProyek && ! empty($delivery->id_kavling)) {
+            $idProyek = $this->resolveProyekIdFromKavling($delivery->id_kavling);
+            if ($idProyek > 0) {
+                $namaProyek = $this->getNamaProyek($idProyek);
+            }
+        }
+
         $payload = $this->webPushService->buildActorPayload(
             (string) $delivery->notif,
             $delivery->actor_name ?? null,
             $delivery->actor_username ?? null,
-            $delivery->actor_department ?? null
+            $delivery->actor_department ?? null,
+            $namaProyek
         );
+
+        $icon = $idProyek > 0 ? site_url('notif/icon/' . $idProyek) : null;
+        $url = site_url('notif/open/' . $delivery->notification_id);
 
         $send = $this->webPushService->sendToSubscriptions(
             $subscriptions,
             $payload['title'],
             $payload['body'],
-            $this->urlForNotification($delivery)
+            $url,
+            $icon,
+            (int) $delivery->notification_id
         );
 
         if (($send['success'] ?? 0) > 0) {
@@ -211,5 +227,25 @@ class NotificationDispatchService
     private function claimToken(): string
     {
         return bin2hex(random_bytes(16));
+    }
+
+    private function getNamaProyek(int $idProyek): ?string
+    {
+        if ($idProyek <= 0) return null;
+        $proyek = $this->db->table('proyek')->select('nama_proyek')->where('id_proyek', $idProyek)->get()->getRow();
+        return $proyek ? $proyek->nama_proyek : null;
+    }
+
+    private function resolveProyekIdFromKavling($idKavling): int
+    {
+        $kavling = $this->db->table('kavling')
+            ->select('cluster.id_proyek')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster', 'left')
+            ->where('kavling.id_kavling', $idKavling)
+            ->get()
+            ->getRow();
+        
+        return $kavling && $kavling->id_proyek ? (int) $kavling->id_proyek : 0;
     }
 }

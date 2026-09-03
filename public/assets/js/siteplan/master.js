@@ -1257,6 +1257,7 @@ Date.prototype.toDateInputValue = (function() {
                 cek_tanggal_pembangunan(refresh)
                 handlePendingSiteplanUrgentAction()
                 handlePendingSiteplanTiketAction()
+                if (typeof handlePendingNotificationDeepLink === 'function') handlePendingNotificationDeepLink();
                 scheduleSiteplanUrgentPanelLoad();
             },
             error: function(xhr, st, err) {
@@ -3300,3 +3301,34 @@ Date.prototype.toDateInputValue = (function() {
             $("#dt-air_pdam-input_form").removeClass("hidden");
         }
     });
+
+    let pendingNotificationDeepLinkConsumed = false;
+    window.handlePendingNotificationDeepLink = function() {
+        if (pendingNotificationDeepLinkConsumed) return;
+        pendingNotificationDeepLinkConsumed = true;
+        
+        const params = new URLSearchParams(window.location.search);
+        const id_kavling = params.get('id_kavling');
+        const tab = params.get('tab');
+        
+        if (id_kavling) {
+            setTimeout(function() {
+                const sh = findSiteplanKavlingAttrs(id_kavling);
+                if (sh && typeof detail_kavling === 'function') {
+                    hapus_seleksi();
+                    editdtt.push(sh);
+                    drawBorderEdit(sh);
+                    detail_kavling(sh, id_kavling);
+                    
+                    if (tab) {
+                        setTimeout(function() {
+                            const tabTarget = $('#modal_detail .nav-tabs a[href="#detail-panel-' + tab + '"]');
+                            if (tabTarget.length) {
+                                tabTarget.tab('show');
+                            }
+                        }, 500); // Wait for modal and content to render
+                    }
+                }
+            }, 300);
+        }
+    };

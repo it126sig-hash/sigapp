@@ -514,7 +514,8 @@ $(document).ready(function() {
                 if(res.success) {
                     let opts = '';
                     res.data.forEach(function(u) {
-                        opts += `<option value="${u.id}">${u.name} (${u.username})</option>`;
+                        let label = u.name ? `${u.name} (${u.username})` : u.username;
+                        opts += `<option value="${u.id}">${label}</option>`;
                     });
                     $('#tm_assigned_users').html(opts).select2({
                         placeholder: "Pilih atau cari user...",

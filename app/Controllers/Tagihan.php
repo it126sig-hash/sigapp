@@ -384,7 +384,7 @@ class Tagihan extends BaseController
             $pesanNotif = $kons['id_mkdt'] ?
                 ('Melakukan perubahan data konsumen : ' . $kons['nama_konsumen']) : ('Booking kavling atas nama : ' . $kons['nama_konsumen']);
 
-            $this->notif->tambah_notif("3;4;9", $pesanNotif, user_id(), $idKavling, $idKonsumen, 'mkdt_konsumen');
+            $this->notif->tambah_notif("3;4;9", $pesanNotif, user_id(), $idKavling, $idKonsumen, 'mkdt_konsumen', null, "siteplan/view?id_kavling=" . $idKavling . "&tab=konsumen");
 
             $db->transComplete();
 

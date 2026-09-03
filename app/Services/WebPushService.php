@@ -33,8 +33,11 @@ class WebPushService
         try {
             $this->validateVapid();
             $client = new Client([
-                'timeout' => 15,
-                'connect_timeout' => 5,
+                'timeout' => 30,
+                'connect_timeout' => 10,
+                'curl' => [
+                    CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+                ],
             ]);
             $this->webPush = new WebPush($this->auth, [
                 'TTL' => 3600,
@@ -99,7 +102,7 @@ class WebPushService
         return $successCount > 0;
     }
 
-    public function sendToSubscriptions(array $subscriptions, string $title, string $body, string $url = '/'): array
+    public function sendToSubscriptions(array $subscriptions, string $title, string $body, string $url = '/', ?string $icon = null, ?int $notificationId = null): array
     {
         $result = [
             'success' => 0,
@@ -123,8 +126,10 @@ class WebPushService
         $payload = json_encode([
             'title' => $title,
             'body' => $body,
+            'icon' => $icon,
             'url' => $url,
-            'tag' => 'sigapp-notif-' . md5($body . $url),
+            'tag' => $notificationId ? 'sigapp-notif-' . $notificationId : 'sigapp-notif-' . md5($body . $url),
+            'notification_id' => $notificationId,
         ]);
 
         foreach ($subscriptions as $sub) {
@@ -173,9 +178,10 @@ class WebPushService
         return $result;
     }
 
-    public function buildActorPayload(string $message, ?string $actorName = null, ?string $actorUsername = null, ?string $department = null): array
+    public function buildActorPayload(string $message, ?string $actorName = null, ?string $actorUsername = null, ?string $department = null, ?string $projectName = null): array
     {
-        $title = trim((string) ($actorName ?: $actorUsername ?: 'SIGAPP'));
+        $actorTitle = trim((string) ($actorName ?: $actorUsername ?: 'SIGAPP'));
+        $title = $projectName ? trim($projectName) . ' — ' . $actorTitle : ($actorTitle === 'SIGAPP' ? 'SIGAPP' : 'SIGAPP — ' . $actorTitle);
         $department = trim((string) ($department ?: 'Umum'));
         $bodyMessage = $this->limitText(NotificationTextFormatter::plain($message, 'Ada notifikasi baru'), 180);
 

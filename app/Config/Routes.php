@@ -37,6 +37,8 @@ $routes->get('/notif/summary', 'Notif::getSummary');
 $routes->get('/notif/center', 'Notif::getCenter');
 $routes->post('/notif/snooze', 'Notif::snooze');
 $routes->post('/notif/mark-as-read/(:num)', 'Notif::markAsRead/$1');
+$routes->get('/notif/icon/(:num)', 'Notif::icon/$1');
+$routes->get('/notif/open/(:num)', 'Notif::open/$1', ['filter' => 'login']);
 $routes->get('/loadaktivitas', 'Home::loadAktivitas');
 
 $routes->get('/profil', 'Profil::index');
@@ -320,6 +322,7 @@ $routes->group('api/tiket-masalah', ['namespace' => 'App\Controllers\Api', 'filt
     $routes->post('ref-info',           'TiketMasalahController::refInfo');
     $routes->get('users',               'TiketMasalahController::users');
     $routes->get('divisions',           'TiketMasalahController::divisions');
+    $routes->get('creators',            'TiketMasalahController::creators');
     $routes->post('create-others-area', 'TiketMasalahController::createOthersArea');
     $routes->post('datatable',          'TiketMasalahController::datatable');
     $routes->post('toggle-pin',         'TiketMasalahController::togglePin');

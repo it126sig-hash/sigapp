@@ -67,21 +67,35 @@ class NotifPushController extends BaseApiController
         }
 
         $userId = (int) user_id();
+        $idProyek = (int) session()->get('id_proyek');
+        if ($idProyek <= 0) {
+            $idProyek = (int) $this->request->getGet('id_proyek');
+        }
+        
+        $namaProyek = null;
+        if ($idProyek > 0) {
+            $proyek = db_connect()->table('proyek')->select('nama_proyek')->where('id_proyek', $idProyek)->get()->getRow();
+            $namaProyek = $proyek ? $proyek->nama_proyek : null;
+        }
+        
         $actor = $this->currentActorContext($userId);
         $payload = $this->webPushService->buildActorPayload(
             'Test push notification berhasil dikirim.',
             $actor['name'] ?? null,
             $actor['username'] ?? null,
-            $actor['department'] ?? null
+            $actor['department'] ?? null,
+            $namaProyek
         );
-
-        $sent = $this->webPushService->sendToUser($userId, $payload['title'], $payload['body'], site_url('/'));
-
-        if (! $sent) {
-            return $this->error('Tidak ada subscription aktif atau pengiriman gagal.', 422);
+        $icon = $idProyek > 0 ? site_url('notif/icon/' . $idProyek) : null;
+        
+        $subs = (new \App\Models\PushSubscriptionModel())->activeForUser($userId);
+        $res = $this->webPushService->sendToSubscriptions($subs, $payload['title'], $payload['body'], site_url('/'), $icon, null);
+        
+        if ($res['success'] == 0) {
+            return $this->error('Pengiriman gagal. Errors: ' . implode(', ', $res['errors']), 422);
         }
 
-        return $this->success(null, 'Test push dikirim.');
+        return $this->success($res, 'Test push dikirim.');
     }
 
     private function validSubscriptionPayload($payload): bool

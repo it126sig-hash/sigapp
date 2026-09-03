@@ -432,3 +432,25 @@ Acceptance:
 - Isi activity dan email sama-sama plain text; template email tidak menampilkan label `Isi Notifikasi`.
 - Queue legacy yang tumpang tindih dengan outbox tidak menyebabkan email duplikat.
 - Pending/failed delivery dapat dipantau dan diproses ulang dengan aman.
+
+
+## Web Push Deep Linking & Routing Baru
+
+Notifikasi push SIGAPP sekarang memuat ikon proyek (logo), nama proyek + pengirim pada judul, dan mendukung deep-linking spesifik per modul.
+
+### Endpoint Pembuka: `/notif/open/{id}`
+Saat notifikasi push diklik, user tidak langsung diarahkan ke hardcoded URL. Service worker akan mengarahkan ke endpoint pembuka `/notif/open/{id}` yang akan:
+1. Memvalidasi bahwa `user_id` login cocok dengan penerima notifikasi.
+2. Otomatis menandai notifikasi tersebut sebagai sudah dibaca (`read_at = NOW()`).
+3. Mengecek `id_proyek` notifikasi. Jika berbeda dengan sesi proyek aktif, sistem akan **otomatis mengganti sesi proyek** (`ActiveProyekService::setActive`).
+4. Mengarahkan pengguna ke `action_url` spesifik.
+
+### Daftar Mapping Action URL & Tipe Notifikasi
+Notifikasi disisipkan action URL agar saat diklik langsung membuka modal/tab terkait:
+- **Produksi / Master Data / General**: `siteplan/view?id_kavling={id}` -> Membuka modal detail kavling default.
+- **Konsumen & MKDT**: `siteplan/view?id_kavling={id}&tab=konsumen` -> Membuka modal detail kavling langsung pada tab Konsumen.
+- **Keuangan & Tagihan**: `siteplan/view?id_kavling={id}&tab=keuangan` -> Membuka modal detail kavling pada tab Keuangan.
+- **Legal & Pajak**: `siteplan/view?id_kavling={id}&tab=legal` -> Membuka modal detail kavling pada tab Legal.
+- **Tiket Masalah**: `siteplan/view?id_kavling={id}&filter=Masalah&tiket_ref_type={ref_type}` -> Membuka modal detail kavling dengan filter tiket masalah.
+- **Cashout Subkon**: `cashout/subkon?open_kavling={id_kavling}` -> Membuka daftar cashout dan otomatis menampilkan data kavling terkait.
+- **Member Get Member**: `member-get-member?id_referral={id}` -> Membuka halaman referral dan menampilkan detailnya.

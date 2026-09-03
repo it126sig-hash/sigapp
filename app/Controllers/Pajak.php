@@ -416,12 +416,12 @@ class Pajak extends BaseController
 
 			if ($pph42_nilai > 0) {
 				$notif = $isNew ? 'Melakukan pembayaran PPH42' : 'Melakukan perubahan pembayaran/detail pada PPH42';
-				$this->notif->tambah_notif("3;5", $notif, $actorId, $id_kavling, 0); //keuangan legal
+				$this->notif->tambah_notif("3;5", $notif, $actorId, $id_kavling, 0, null, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=legal"); //keuangan legal
 			}
 
 			if ($ppn_tgl_bayar) {
 				$notif = $isNew ? 'Melakukan pembayaran PPN' : 'Melakukan perubahan pembayaran/detail pada PPN';
-				$this->notif->tambah_notif("3;5", $notif, $actorId, $id_kavling, 0); //keuangan legal
+				$this->notif->tambah_notif("3;5", $notif, $actorId, $id_kavling, 0, null, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=legal"); //keuangan legal
 			}
 
 			if ($this->db->transStatus() === false) {

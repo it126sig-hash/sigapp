@@ -34,7 +34,7 @@ $(document).ready(function() {
     });
 
     // Load Data Pembuat & Divisi
-    $.get(base_url + 'api/tiket-masalah/users', function(res) {
+    $.get(base_url + 'api/tiket-masalah/creators', function(res) {
         if (res.success) {
             let opts = '<option value="">Semua Pembuat</option>';
             res.data.forEach(u => {

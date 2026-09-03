@@ -36,13 +36,35 @@ class Notif extends BaseController
         else
             $this->group_id = session()->group_id;
     }
-    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null)
+    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null, ?string $actionUrl = null)
     {
         $notifService = new \App\Services\NotifikasiService();
-        return $notifService->tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type, $id_proyek);
+        return $notifService->tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type, $id_proyek, $actionUrl);
     }
 
     
+    public function icon(int $idProyek)
+    {
+        $iconService = new \App\Services\NotificationIconService();
+        $path = $iconService->getIconPath($idProyek);
+        
+        $mime = mime_content_type($path);
+        
+        $this->response->setContentType($mime);
+        $this->response->setHeader('Cache-Control', 'public, max-age=86400');
+        $this->response->setHeader('ETag', md5_file($path));
+        
+        return $this->response->setBody(file_get_contents($path));
+    }
+
+    public function open(int $notificationId)
+    {
+        $navigationService = new \App\Services\NotificationNavigationService();
+        $url = $navigationService->processOpen($notificationId, (int) user_id());
+        
+        return redirect()->to($url);
+    }
+
     function getNotif($all = false){
         $r['token'] = csrf_hash();
 

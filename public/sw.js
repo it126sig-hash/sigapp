@@ -106,11 +106,17 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener('push', function(event) {
-  const data = event.data ? event.data.json() : {};
+  let data = {};
+  try {
+      data = event.data ? event.data.json() : {};
+  } catch (e) {
+      console.error("Gagal parse payload push:", e);
+  }
+  
   const title = data.title || 'SIGAPP';
   const options = {
       body: data.body || 'Ada notifikasi baru',
-      icon: scopedUrl('assets/images/pwa/icon-192.png'),
+      icon: data.icon || scopedUrl('assets/images/pwa/icon-192.png'),
       badge: scopedUrl('assets/images/pwa/icon-192.png'),
       data: { url: data.url || '/' },
       tag: data.tag || 'sigapp-notif',
@@ -122,17 +128,32 @@ self.addEventListener('push', function(event) {
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  const url = event.notification.data.url || '/';
+  let url = event.notification.data.url || '/';
+
+  // Pastikan URL absolute
+  if (!url.startsWith('http')) {
+      url = scopedUrl(url);
+  }
+
+  const targetUrl = new URL(url, self.location.origin);
+
   event.waitUntil(
-      clients.matchAll({ type: 'window' }).then(windowClients => {
+      clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+          // Cari window yang sudah berada di origin yang sama
           for (var i = 0; i < windowClients.length; i++) {
               var client = windowClients[i];
-              if (client.url === scopedUrl(url) && 'focus' in client) {
-                  return client.focus();
+              const clientUrl = new URL(client.url);
+              
+              if (clientUrl.origin === targetUrl.origin && 'focus' in client) {
+                  client.focus();
+                  if ('navigate' in client) {
+                      return client.navigate(targetUrl.href);
+                  }
+                  return;
               }
           }
           if (clients.openWindow) {
-              return clients.openWindow(url);
+              return clients.openWindow(targetUrl.href);
           }
       })
   );

@@ -179,8 +179,15 @@ class TiketMasalahController extends BaseController
 
     public function users()
     {
-        $users = $this->service->getUserList();
+        $creatorsOnly = (bool) $this->request->getGet('creators_only');
+        $users = $creatorsOnly ? $this->service->getCreatorList() : $this->service->getUserList();
         return $this->respond(['success' => true, 'data' => $users]);
+    }
+
+    public function creators()
+    {
+        $creators = $this->service->getCreatorList();
+        return $this->respond(['success' => true, 'data' => $creators]);
     }
 
     public function divisions()
