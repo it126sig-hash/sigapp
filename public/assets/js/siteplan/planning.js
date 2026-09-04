@@ -186,7 +186,12 @@ function edit_kavling_batch() {
     },
     success: function (res) {
       csrfHash = res.token;
-      $("#fm-add_kavling #id_jenis").val(tipe).change();
+      
+      let form_jenis = tipe;
+      if (tipe === "kavling" && editdtt[0].data && editdtt[0].data.jenis) {
+          form_jenis = editdtt[0].data.jenis;
+      }
+      $("#fm-add_kavling #id_jenis").val(form_jenis).change();
 
       let r = res.data,
         id_kavling = "",
@@ -473,7 +478,7 @@ function add_kavling() {
     no_kavlen =
       no_kav[no_kav.length - 1] == "" ? no_kav.length - 1 : no_kav.length;
 
-  if ($("#fm-add_kavling #id_jenis").val() == "kavling") {
+  if ($("#fm-add_kavling #id_jenis").val() == "kavling" || $("#fm-add_kavling #id_jenis").val() == "ruko") {
     //jika no kavling dan selection tidak sesuai
     if (batchdtt.length != no_kavlen) {
       Swal.fire({
@@ -760,13 +765,13 @@ function selesai_selection(e) {
   $planningJenis.change(function () {
   if (this.value == "") {
     $(".h").hide();
-  } else if (this.value == "kavling") {
+  } else if (this.value == "kavling" || this.value == "ruko") {
     $(".h").hide();
     $("#div_kavling").show();
   } else if (this.value == "jalan") {
     $(".h").hide();
     $("#div_jalan, #div_luas").show();
-  } else if (this.value == "fasos" || this.value == "rth" || this.value == "ruko") {
+  } else if (this.value == "fasos" || this.value == "rth") {
     $(".h").hide();
     $("#div_jalan, #div_fasos").show();
   } else {

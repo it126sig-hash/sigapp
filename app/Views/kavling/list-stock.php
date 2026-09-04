@@ -65,21 +65,13 @@
             <table id="data_table" class="datatables-basic table compact">
               <thead>
                 <tr>
-                  <th>No</th>
-                  <th>Blok</th>
-                  <th>No</th>
-                  <th>Tipe</th>
-                  <th>Progres Bangunan</th>
-                  <th>Nama Konsumen</th>
-                  <th>Kontak</th>
-                  <th>Keterangan Batal</th>
-
-                  <th>Created At</th>
-                  <th>Created By</th>
-                  <th>Updated At</th>
-                  <th>Updated By</th>
-
-                  <th></th>
+                  <th>Aksi</th>
+                  <th>Nama Jalan</th>
+                  <th>No Kavling</th>
+                  <th>Tipe Rumah</th>
+                  <th>Tanggal Pembangunan</th>
+                  <th>Tanggal Selesai Pembangunan</th>
+                  <th>Terakhir Diperbarui</th>
                 </tr>
               </thead>
             </table>
@@ -152,20 +144,227 @@
 <script src="<?= base_url() ?>/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
 <!-- <script type="text/javascript" src="https://cdn.datatables.net/fixedcolumns/3.2.1/js/dataTables.fixedColumns.min.js"></script> -->
 <!-- <script src="https://adminlte.io/themes/v3/plugins/jquery-validation/additional-methods.min.js"></script> -->
+<style>
+  .poskon-action-cell .dropdown-menu {
+    max-height: 280px;
+    overflow-y: auto;
+  }
+</style>
+<?php
+$k = null;
+$v = null;
+$roles = user()->getRoles();
+if (!empty($roles)) {
+  foreach ($roles as $key => $val) {
+    $k = $key;
+    $v = $val;
+    break;
+  }
+}
+?>
 <script>
+  var roleid = "<?= $k; ?>";
+  var rolename = "<?= $v; ?>";
+  let dt_proyek = [];
+  window.siteplanMenuItems = [];
+  window.editdtt = [];
+
+  function getKavlingIdFromShape(sh, fallbackId) {
+    if (!sh) return fallbackId || '';
+    return (sh.data && sh.data.id_kavling) || fallbackId || String(sh.id || '').replace(/^kav/, '');
+  }
+
+  function buildKavlingShape(row) {
+    const idKavling = row.id_kavling || row.id || '';
+    return {
+      id: "kav" + idKavling,
+      data: {
+        tipe: "kavling",
+        id_kavling: idKavling,
+        id_mkdt: row.id_mkdt || null,
+        id_keuangan: row.id_keuangan || null,
+        id_legal: row.id_legal || null,
+        id_produksi: row.id_produksi || null,
+        nama_jalan: row.nama_jalan || '',
+        no_kavling: row.no_kavling || ''
+      },
+      data2: {
+        harga_akhir: row.harga_akhir || row.id_hargajual || "-",
+        id_hargajual: row.id_hargajual || row.harga_akhir || "-",
+        id_komplain: row.id_komplain || null,
+        no_tipe_rumah: row.no_tipe_rumah || '',
+        tipe_rumah: row.tipe_rumah || '',
+        harga_akhir_tgl: row.harga_akhir_tgl || '',
+        harga_akhir_oleh: row.harga_akhir_oleh || row.uadd_by || ''
+      }
+    };
+  }
+
+  function syncProjectContextFromRow(row) {
+    dt_proyek = $.extend({}, window.SIGAPP?.activeProyekName || {}, dt_proyek || {}, {
+      id_proyek: typeof activeProyekId === 'function' ? activeProyekId() : '',
+      nama_proyek: window.SIGAPP?.activeProyekName || '',
+    });
+    if (row && row.nama_proyek) {
+      dt_proyek.nama_proyek = row.nama_proyek;
+    }
+    return dt_proyek;
+  }
+
+  function encodePoskonRow(row) {
+    return encodeURIComponent(JSON.stringify(row || {}));
+  }
+
+  function decodePoskonRow(encoded) {
+    if (!encoded) return {};
+    try {
+      return JSON.parse(decodeURIComponent(encoded));
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function loadSiteplanMenuItems() {
+    return $.ajax({
+      url: base_url + 'home/getMenuItemsJson',
+      type: 'post',
+      data: {
+        [csrfName]: csrfHash
+      },
+      dataType: 'json'
+    }).done(function(response) {
+      csrfHash = response.token;
+      window.siteplanMenuItems = response.items || [];
+    }).fail(function() {
+      window.siteplanMenuItems = [];
+    });
+  }
+
+  function buildSiteplanMenuItemsHtml(row, itemClass) {
+    const rowEncoded = encodePoskonRow(row);
+    let menuHtml = '';
+    let lastGroup = null;
+
+    (window.siteplanMenuItems || []).forEach(function(item) {
+      if (parseInt(roleid, 10) === 1 && item.group_label && item.group_label !== lastGroup) {
+        lastGroup = item.group_label;
+        menuHtml += '<div class="dropdown-header">' + $('<div>').text(item.group_label).html() + '</div>';
+      }
+
+      const icon = item.icon ? '<i class="' + item.icon + '"></i> ' : '';
+      menuHtml += '<button type="button" class="' + itemClass + ' poskon-menu-action" data-onclick="' +
+        encodeURIComponent(item.onclick || '') + '" data-row="' + rowEncoded + '" data-group="' + (item.id_group || '') + '">' +
+        icon + $('<div>').text(item.label || '').html() + '</button>';
+    });
+
+    return menuHtml;
+  }
+
+  function renderPoskonActionCell(row) {
+    const idKavling = row.id_kavling;
+    if (!idKavling) return '';
+
+    const rowEncoded = encodePoskonRow(row);
+    const menuHtml = buildSiteplanMenuItemsHtml(row, 'dropdown-item');
+
+    const dropdown = menuHtml ?
+      '<div class="btn-group ml-50">' +
+      '<button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Aksi</button>' +
+      '<div class="dropdown-menu dropdown-menu-right">' + menuHtml + '</div>' +
+      '</div>' :
+      '';
+
+    return '<div class="btn-group poskon-action-cell" style="white-space:nowrap">' +
+      '<button type="button" class="btn btn-info btn-sm poskon-detail-btn" data-row="' + rowEncoded + '" title="Lihat Detail">' +
+      '<i class="fa fa-eye"></i></button>' + dropdown + '</div>';
+  }
+
+  function runSiteplanMenuAction(onclick, row, menuItem) {
+    if (!onclick) return;
+
+    syncProjectContextFromRow(row);
+    const sh = buildKavlingShape(row);
+    window.editdtt = [sh];
+    $('.id_kavling').val(row.id_kavling || '');
+
+    if (String(onclick).trim() === 'isi_data()') {
+      const itemGroup = menuItem && menuItem.id_group ? parseInt(menuItem.id_group, 10) : 0;
+      const targetRole = itemGroup > 0 ? itemGroup : parseInt(roleid, 10);
+      if (typeof openDepartmentModal === 'function') return openDepartmentModal(targetRole, sh, 'edit');
+    }
+
+    try {
+      const fn = new Function(onclick);
+      fn.call(window);
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Aksi gagal dijalankan',
+        text: error.message || 'Fungsi aksi tidak tersedia pada halaman ini.'
+      });
+    }
+  }
+
+  window.openDetailModal = function(id_kavling, rowData) {
+    const row = rowData || {};
+    const idKav = id_kavling || row.id_kavling;
+    if (!idKav) return;
+
+    syncProjectContextFromRow(row);
+    const sh = buildKavlingShape($.extend({}, row, {
+      id_kavling: idKav
+    }));
+    window.editdtt = [sh];
+
+    if (typeof detail_kavling === 'function') {
+      return detail_kavling(sh, idKav);
+    }
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Modal detail tidak tersedia',
+      text: 'Komponen detail kavling belum dimuat pada halaman.'
+    });
+  };
+
+  $(document).on('click', '.poskon-detail-btn', function() {
+    const row = decodePoskonRow($(this).attr('data-row'));
+    openDetailModal(row.id_kavling, row);
+  });
+
+  $(document).on('click', '.poskon-menu-action', function(e) {
+    e.preventDefault();
+    const $btn = $(this);
+    const row = decodePoskonRow($btn.attr('data-row'));
+    const onclick = decodeURIComponent($btn.attr('data-onclick') || '');
+    const menuItem = {
+      id_group: parseInt($btn.attr('data-group') || '0', 10)
+    };
+    runSiteplanMenuAction(onclick, row, menuItem);
+  });
 
 
   $(function() {
+    loadSiteplanMenuItems();
     var table = $('#data_table').DataTable({
       fnDrawCallback: function() {
         $('[data-toggle="popover"]').popover();
       },
+      columns: [
+        { data: null, render: function(data, type, row) { return renderPoskonActionCell(row); } },
+        { data: 'nama_jalan' },
+        { data: 'no_kavling' },
+        { data: 'tipe_rumah' },
+        { data: 'tanggal_pembangunan_formatted' },
+        { data: 'tanggal_selesai_pembangunan_formatted' },
+        { data: 'terakhir_diperbarui' }
+      ],
       columnDefs: [{
-        'targets': [2,3,4],
+        'targets': [1,2,3],
         'createdCell': function(td, cellData, rowData, row, col) {
           $(td).attr('data-toggle', 'popover');
           $(td).attr('data-placement', 'top');
-          $(td).attr('data-content', rowData[1] + " No. " + rowData[2]);
+          $(td).attr('data-content', rowData.nama_jalan + " No. " + rowData.no_kavling);
           $(td).attr('data-trigger', 'hover');
         }
       }],
@@ -310,104 +509,11 @@
 
   });
  
-  $('thead > tr> th:nth-child(1)').css({
-    'min-width': '50px',
-    'max-width': '50px'
-  });
-  $('thead > tr> th:nth-child(2)').css({
-    'min-width': '200px',
-    'max-width': '200px'
-  });
-  $('thead > tr> th:nth-child(3)').css({
-    'min-width': '50px',
-    'max-width': '50px'
-  });
-  $('thead > tr> th:nth-child(4)').css({
-    'min-width': '50px',
-    'max-width': '50px'
-  });
-  $('thead > tr> th:nth-child(5)').css({
-    'min-width': '80px',
-    'max-width': '80px'
-  });
-  $('thead > tr> th:nth-child(6)').css({
-    'min-width': '250px',
-    'max-width': '2500px'
-  });
-  $('thead > tr> th:nth-child(7)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(8)').css({
-    'min-width': '80px',
-    'max-width': '80px'
-  });
-  $('thead > tr> th:nth-child(9)').css({
-    'min-width': '250px',
-    'max-width': '250px'
-  });
-  $('thead > tr> th:nth-child(10)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(11)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(12)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(13)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(14)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(15)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(16)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(17)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(18)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(19)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(20)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(21)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(22)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(23)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(24)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(25)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
+  $('thead > tr> th:nth-child(1)').css({ 'min-width': '120px' });
+  $('thead > tr> th:nth-child(2)').css({ 'min-width': '200px' });
+  $('thead > tr> th:nth-child(3)').css({ 'min-width': '80px' });
+  $('thead > tr> th:nth-child(4)').css({ 'min-width': '80px' });
+  $('thead > tr> th:nth-child(5)').css({ 'min-width': '120px' });
+  $('thead > tr> th:nth-child(6)').css({ 'min-width': '120px' });
+  $('thead > tr> th:nth-child(7)').css({ 'min-width': '150px' });
 </script>

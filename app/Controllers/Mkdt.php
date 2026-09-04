@@ -1521,6 +1521,8 @@ class Mkdt extends BaseController
                 mkdt.status_mkdt,
 
                 produksi.progres_bangunan,
+                produksi.tanggal_pembangunan,
+                produksi.tanggal_selesai_pembangunan,
                 
                 jalan.id_jalan,
                 jalan.nama_jalan,
@@ -1687,30 +1689,14 @@ class Mkdt extends BaseController
         //looping data untuk datatable
         $no = $var['start'];
         foreach ($x->getResult() as $key => $v) {
-            $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-sm btn-info" onclick="edit(' . $v->id_mkdt . ')"><i class="fa fa-edit"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-sm btn-danger" onclick="remove(' . $v->id_mkdt . ')"><i class="fa ' . $no . '"></i></button>';
-            $ops .= '</div>';
             $no++;
-            $nama_konsumen = ($v->nama_konsumen != null) ? $v->nama_konsumen . "(" . $v->status_mkdt . ")" : "";
-            $data['data'][] = array(
-
-                $no,
-
-                $v->nama_jalan,
-                $v->no_kavling,
-                $v->tipe_rumah,
-                $v->progres_bangunan . "%",
-                $nama_konsumen,
-                $v->hp_konsumen,
-                $v->keterangan_batal,
-
-                $v->uadd_by,
-                date_format(date_create($v->created_at), "d-M-Y H:i"),
-                $v->uedit_by,
-                date_format(date_create($v->updated_at), "d-M-Y H:i"),
-                $ops
-            );
+            $row_data = (array) $v;
+            $row_data['no_index'] = $no;
+            $row_data['tanggal_pembangunan_formatted'] = $this->format_tgl($v->tanggal_pembangunan);
+            $row_data['tanggal_selesai_pembangunan_formatted'] = $this->format_tgl($v->tanggal_selesai_pembangunan);
+            $row_data['terakhir_diperbarui'] = $v->uedit_by . '<br>' . date_format(date_create($v->updated_at), "d-M-Y H:i");
+            
+            $data['data'][] = $row_data;
         }
 
         return $this->response->setJSON($data);

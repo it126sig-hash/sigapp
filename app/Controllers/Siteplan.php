@@ -352,7 +352,7 @@ class Siteplan extends BaseController
     {
         $response = array();
 
-        if ($this->request->getPost('id_jenis') == "kavling") {
+        if (in_array($this->request->getPost('id_jenis'), ["kavling", "ruko"])) {
             $id_jalan = $this->request->getPost('id_jalan');
             $no_kavling = $this->request->getPost('no_kavling');
             $pecah = explode(";", $no_kavling);
