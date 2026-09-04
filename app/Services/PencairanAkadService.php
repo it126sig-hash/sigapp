@@ -836,9 +836,24 @@ class PencairanAkadService
             $builder->where("m.harga_kpr_acc - COALESCE(pg.total_cair, 0) <= 0.01", null, false);
         }
 
+        $tanggalAkad = $request->getVar('tanggal_akad');
+        if ($tanggalAkad) {
+            $tgl = explode(' to ', $tanggalAkad);
+            if (count($tgl) === 2) {
+                $builder->where('m.akad_tgl >=', $tgl[0]);
+                $builder->where('m.akad_tgl <=', $tgl[1]);
+            } else {
+                $builder->where('m.akad_tgl', $tgl[0]);
+            }
+        }
+
         return DataTable::of($builder)
             ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
             ->add('Aksi', function ($v) {
+                if (!function_exists('in_groups') || !in_groups(['1', '3'])) {
+                    return '-';
+                }
+
                 $sh = htmlspecialchars(json_encode([
                     'id_kavling' => $v->id_kavling,
                     'id_mkdt' => $v->id_mkdt,
