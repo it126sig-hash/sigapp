@@ -292,6 +292,26 @@ class PosisiKonsumenService
         if ($request->getVar('id_jalan'))
             $builder->where('jalan.id_jalan', $request->getVar('id_jalan'));
 
+        if ($request->getVar('periode_booking')) {
+            $dates = explode(' to ', $request->getVar('periode_booking'));
+            if (count($dates) == 2) {
+                $builder->where('mkdt.booking_tgl >=', $dates[0]);
+                $builder->where('mkdt.booking_tgl <=', $dates[1]);
+            } else if (count($dates) == 1 && $dates[0] != '') {
+                $builder->where('mkdt.booking_tgl', $dates[0]);
+            }
+        }
+
+        if ($request->getVar('periode_batal')) {
+            $dates = explode(' to ', $request->getVar('periode_batal'));
+            if (count($dates) == 2) {
+                $builder->where('mkdt.mkdt_batal_tgl >=', $dates[0]);
+                $builder->where('mkdt.mkdt_batal_tgl <=', $dates[1]);
+            } else if (count($dates) == 1 && $dates[0] != '') {
+                $builder->where('mkdt.mkdt_batal_tgl', $dates[0]);
+            }
+        }
+
         return DataTable::of($builder)
             ->setSearchableColumns([
                 'jalan.nama_jalan',
@@ -310,9 +330,12 @@ class PosisiKonsumenService
                 return $this->is_active($value->is_kpr, 'KPR', 'TUNAI');
             })
             ->edit('keterangan_batal', function ($value) {
+                return $value->keterangan_batal;
+            })
+            ->edit('tanggal_batal', function ($value) {
                 $tanggal_batal = $this->format_tgl($value->mkdt_batal_tgl);
-                $keterangan_batal = $value->keterangan_batal;
-                return $keterangan_batal . "<br> <span class='text-muted'>Dibatalkan pada: " . $tanggal_batal . "</span>";
+                $oleh = $value->nama_pembatal ?? '-';
+                return $tanggal_batal . "<br><span class='text-muted'>Oleh: " . $oleh . "</span>";
             })
             ->edit('perlu_refund', function ($value) {
                 if ((int) ($value->perlu_refund ?? 0) === 1) {

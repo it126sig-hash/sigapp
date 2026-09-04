@@ -100,6 +100,7 @@ class PosisiKonsumenRepository
             kavling.no_kavling,
             tipe.tipe_rumah,
             mkdt.keterangan_batal,
+            "" as tanggal_batal,
             mkdt.perlu_refund,
             konsumen.nama_konsumen,
             mkdt.booking_tgl,
@@ -134,6 +135,7 @@ class PosisiKonsumenRepository
 
             a.username as uadd_by,
             b.username as uedit_by,
+            user_batal.username as nama_pembatal,
             produksi.lpa_tanggal,
             proyek.nama_proyek
             ')
@@ -148,6 +150,7 @@ class PosisiKonsumenRepository
             ->join('proyek', "proyek.id_proyek = cluster.id_proyek", 'left')
             ->join('users a', "a.id = mkdt.add_by", 'left')
             ->join('users b', "b.id = mkdt.edit_by", 'left')
+            ->join('users user_batal', "user_batal.id = mkdt.mkdt_batal_oleh", 'left')
             ->join('mkdt_payment_summary mps', "mps.id_mkdt = mkdt.id_mkdt", 'left')
             ->where('mkdt.status_mkdt', "Batal");
     }

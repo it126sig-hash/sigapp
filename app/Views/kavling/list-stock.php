@@ -21,43 +21,15 @@
           <h5 class="card-header">
             <?=$data['title']?>
           </h5>
-          <div class="card-header border-bottom">
-            <div class="col-md-4 mb-1">
-              <label>Cluster</label>
-              <select disabled id="id_cluster" name="id_cluster" class="select2  form-control"></select>
-            </div>
-            <div class="col-md-4 mb-1">
-              <label>Blok</label>
-              <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
-            </div>
-            <!-- <div class="col-md-4 mb-1">
-              <label>Wawancara</label>
-              <select id="wawancara" name="wawancara" class="select2 self form-control">
-                <option value=""> Tanpa Filter </option>
-                <option value="1"> Sudah </option>
-                <option value="0"> Belum </option>
-              </select>
-            </div>
-            <div class="col-md-4 mb-1">
-              <label>SP3K</label>
-              <select id="sp3k" name="sp3k" class="select2 self form-control">
-                <option value=""> Tanpa Filter </option>
-                <option value="1"> Sudah </option>
-                <option value="0"> Belum </option>
-              </select>
-            </div>
-
-            <div class="col-md-4 mb-1">
-              <label>Akad</label>
-              <select id="akad" name="akad" class="select2 self form-control">
-                <option value=""> Tanpa Filter </option>
-                <option value="1"> Sudah </option>
-                <option value="0"> Belum </option>
-              </select>
-            </div> -->
-            <hr class="col-12" />
-            <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm">Filter Data</button>
-
+          <div class="card-header border-bottom d-flex justify-content-between align-items-center">
+            <button type="button" id="btn_open_filter" class="btn btn-outline-primary waves-effect btn-sm">
+              <i class="fa fa-filter"></i> Filter Data
+            </button>
+          </div>
+          <div class="poskon-active-filters" id="poskon-active-filters" hidden>
+            <span class="poskon-active-filters-label">Filter Aktif:</span>
+            <div class="poskon-active-filters-chips" id="poskon-active-filters-chips"></div>
+            <a href="javascript:void(0)" id="btn_filter_clear_all" class="poskon-active-filters-clear">Bersihkan</a>
           </div>
         </div>
         <div class="card">
@@ -126,6 +98,38 @@
         </form>
       </div>
     </div>
+    <div class="modal modal-slide-in fade" id="modal-filter-lanjutan">
+      <div class="modal-dialog sidebar-sm">
+        <div class="add-new-record modal-content pt-0">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
+          <div class="modal-header mb-1">
+            <h5 class="modal-title"><i class="fa fa-filter"></i> Filter Lanjutan</h5>
+          </div>
+          <div class="modal-body flex-grow-1">
+            <div class="form-group">
+              <label><i class="fa fa-map-marker-alt"></i> Cluster</label>
+              <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
+            </div>
+            <div class="form-group">
+              <label><i class="fa fa-road"></i> Blok / Jalan</label>
+              <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
+            </div>
+            <div class="form-group">
+              <label><i class="fa fa-calendar-alt"></i> Periode Tgl Pembangunan</label>
+              <input type="text" id="filter_tgl_pembangunan" class="form-control flatpickr-range" placeholder="Pilih rentang tanggal" />
+            </div>
+            <div class="form-group">
+              <label><i class="fa fa-calendar-check"></i> Periode Tgl Selesai</label>
+              <input type="text" id="filter_tgl_selesai" class="form-control flatpickr-range" placeholder="Pilih rentang tanggal" />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="btn_filter_reset" class="btn btn-outline-secondary"><i class="fa fa-undo"></i> Reset</button>
+            <button type="button" id="btn_filter_apply" class="btn btn-primary"><i class="fa fa-check"></i> Terapkan</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </div>
 
@@ -149,7 +153,53 @@
     max-height: 280px;
     overflow-y: auto;
   }
+  .poskon-active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    padding: .6rem .85rem;
+    margin-bottom: 1rem;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+  }
+  .poskon-active-filters-label {
+    font-size: .78rem;
+    font-weight: 700;
+    color: #4b5563;
+    white-space: nowrap;
+  }
+  .poskon-active-filters-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+  }
+  .poskon-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .3rem .6rem;
+    border-radius: 999px;
+    background: #eaf1fb;
+    color: #2057a3;
+    font-size: .75rem;
+    font-weight: 600;
+  }
+  .poskon-filter-chip i {
+    cursor: pointer;
+    font-size: .7rem;
+  }
+  .poskon-active-filters-clear {
+    margin-left: auto;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #2057a3;
+    white-space: nowrap;
+    cursor: pointer;
+  }
 </style>
+
 <?php
 $k = null;
 $v = null;
@@ -389,14 +439,12 @@ if (!empty($roles)) {
           [csrfName]: csrfHash
         },
         data: function(data) {
-          data[csrfName] = csrfHash
-          data.id_proyek = activeProyekId()
-          data.id_cluster = $("#id_cluster").val()
-          data.id_jalan = $("#id_jalan").val()
-          data.sp3k = ""
-          data.wawancara = ""
-          data.akad = ""
-
+          data[csrfName] = csrfHash;
+          data.id_proyek = activeProyekId();
+          data.id_cluster = $("#id_cluster").val();
+          data.id_jalan = $("#id_jalan").val();
+          data.tgl_pembangunan = $("#filter_tgl_pembangunan").val();
+          data.tgl_selesai = $("#filter_tgl_selesai").val();
         },
         dataSrc: function(r) {
           csrfHash = r.token
@@ -499,10 +547,93 @@ if (!empty($roles)) {
       },
     })
 
-    //on click btn filter
-    $("#btn_draw").on("click", function(e) {
+    // Initialize flatpickr range
+    $(".flatpickr-range").flatpickr({
+      mode: "range",
+      dateFormat: "Y-m-d",
+      altInput: true,
+      altFormat: "j M Y"
+    });
+
+    // Handle filter modal open
+    $("#btn_open_filter").on("click", function() {
+      $("#modal-filter-lanjutan").modal("show");
+    });
+
+    function applyFilters() {
       table.draw();
-    })
+      renderActiveFilterChips();
+    }
+
+    function resetFilterFields() {
+      $("#id_cluster").val(null).trigger('change');
+      $("#filter_tgl_pembangunan").val('');
+      $("#filter_tgl_selesai").val('');
+      if ($("#filter_tgl_pembangunan")[0]._flatpickr) {
+        $("#filter_tgl_pembangunan")[0]._flatpickr.clear();
+      }
+      if ($("#filter_tgl_selesai")[0]._flatpickr) {
+        $("#filter_tgl_selesai")[0]._flatpickr.clear();
+      }
+    }
+
+    function renderActiveFilterChips() {
+      var chips = [];
+
+      function addChip(key, label) {
+        chips.push('<span class="poskon-filter-chip" data-filter-key="' + key + '">' + label +
+          ' <i class="fa fa-times" data-remove-filter="' + key + '"></i></span>');
+      }
+
+      var clusterData = $("#id_cluster").select2('data')[0];
+      if (clusterData && clusterData.id) addChip('id_cluster', 'Cluster: ' + $('<div>').text(clusterData.text).html());
+
+      var jalanData = $("#id_jalan").select2('data')[0];
+      if (jalanData && jalanData.id) addChip('id_jalan', 'Blok: ' + $('<div>').text(jalanData.text).html());
+
+      var tglPembangunan = $("#filter_tgl_pembangunan").val();
+      if (tglPembangunan) addChip('tgl_pembangunan', 'Tgl Pembangunan: ' + tglPembangunan);
+
+      var tglSelesai = $("#filter_tgl_selesai").val();
+      if (tglSelesai) addChip('tgl_selesai', 'Tgl Selesai: ' + tglSelesai);
+
+      $("#poskon-active-filters-chips").html(chips.join(''));
+      $("#poskon-active-filters").prop('hidden', chips.length === 0);
+    }
+
+    $("#btn_filter_apply").on("click", function() {
+      applyFilters();
+      $("#modal-filter-lanjutan").modal("hide");
+    });
+
+    $("#btn_filter_reset").on("click", function() {
+      resetFilterFields();
+    });
+
+    $(document).on('click', '[data-remove-filter]', function() {
+      var key = $(this).data('remove-filter');
+      if (key === 'id_cluster') {
+        $("#id_cluster").val(null).trigger('change');
+      } else if (key === 'id_jalan') {
+        $("#id_jalan").val(null).trigger('change');
+      } else if (key === 'tgl_pembangunan') {
+        $("#filter_tgl_pembangunan").val('');
+        if ($("#filter_tgl_pembangunan")[0]._flatpickr) {
+          $("#filter_tgl_pembangunan")[0]._flatpickr.clear();
+        }
+      } else if (key === 'tgl_selesai') {
+        $("#filter_tgl_selesai").val('');
+        if ($("#filter_tgl_selesai")[0]._flatpickr) {
+          $("#filter_tgl_selesai")[0]._flatpickr.clear();
+        }
+      }
+      applyFilters();
+    });
+
+    $("#btn_filter_clear_all").on('click', function() {
+      resetFilterFields();
+      applyFilters();
+    });
 
     //remove bug arrow select2
     $(".select2-selection__arrow").css("pointer-events", "none")
@@ -517,3 +648,38 @@ if (!empty($roles)) {
   $('thead > tr> th:nth-child(6)').css({ 'min-width': '120px' });
   $('thead > tr> th:nth-child(7)').css({ 'min-width': '150px' });
 </script>
+<?php
+// Dapatkan role_id dari variable $k yang sudah di-set di atas
+$role_id = $k;
+
+// Include Modal View Sesuai Role
+if (in_array($role_id, [6, 1])) {
+  echo view('siteplan/planning');
+}
+if (in_array($role_id, [7, 1])) {
+  echo view('siteplan/produksi');
+}
+if (in_array($role_id, [8, 1])) {
+  echo view('siteplan/sales');
+}
+if (in_array($role_id, [5, 1])) {
+  echo view('siteplan/legal');
+}
+if (in_array($role_id, [4, 1])) {
+  echo view('siteplan/mkdt');
+}
+if (in_array($role_id, [9, 1])) {
+  echo view('siteplan/direksi');
+}
+if (in_array($role_id, [3, 1])) {
+  echo view('siteplan/keuangan');
+}
+if (in_array($role_id, [10, 1])) {
+  echo view('siteplan/pajak');
+}
+if (in_array($role_id, [1, 7, 3])) {
+  echo view('siteplan/cashout_subkon');
+}
+?>
+<?= view('siteplan/partials/modal_detail', ['data' => $data['data'] ?? []]) ?>
+<script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>

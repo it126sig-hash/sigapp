@@ -1559,6 +1559,26 @@ class Mkdt extends BaseController
         else
             $query->where(["proyek.id_proyek" => $var['id_proyek']]);
 
+        if (!empty($var['tgl_pembangunan'])) {
+            $dates = explode(' to ', $var['tgl_pembangunan']);
+            if (count($dates) == 2) {
+                $query->where('produksi.tanggal_pembangunan >=', $dates[0]);
+                $query->where('produksi.tanggal_pembangunan <=', $dates[1]);
+            } else {
+                $query->where('produksi.tanggal_pembangunan', $dates[0]);
+            }
+        }
+
+        if (!empty($var['tgl_selesai'])) {
+            $dates = explode(' to ', $var['tgl_selesai']);
+            if (count($dates) == 2) {
+                $query->where('produksi.tanggal_selesai_pembangunan >=', $dates[0]);
+                $query->where('produksi.tanggal_selesai_pembangunan <=', $dates[1]);
+            } else {
+                $query->where('produksi.tanggal_selesai_pembangunan', $dates[0]);
+            }
+        }
+
         $query->where('produksi.progres_bangunan', 100);
         $query->groupStart()
             ->where('mkdt.status_mkdt', 'Batal')
@@ -1566,7 +1586,7 @@ class Mkdt extends BaseController
             ->groupEnd();
 
         // Jika ada parameter pencarian
-        $search = ''; // Ganti dengan input pencarian jika ada
+        $search = isset($var['search']['value']) ? $var['search']['value'] : '';
         if (!empty($search)) {
             $query->groupStart()
                 ->like('nama_konsumen', $search)
@@ -1612,6 +1632,26 @@ class Mkdt extends BaseController
         else
             $countfiltered->where(["proyek.id_proyek" => $var['id_proyek']]);
 
+        if (!empty($var['tgl_pembangunan'])) {
+            $dates = explode(' to ', $var['tgl_pembangunan']);
+            if (count($dates) == 2) {
+                $countfiltered->where('produksi.tanggal_pembangunan >=', $dates[0]);
+                $countfiltered->where('produksi.tanggal_pembangunan <=', $dates[1]);
+            } else {
+                $countfiltered->where('produksi.tanggal_pembangunan', $dates[0]);
+            }
+        }
+
+        if (!empty($var['tgl_selesai'])) {
+            $dates = explode(' to ', $var['tgl_selesai']);
+            if (count($dates) == 2) {
+                $countfiltered->where('produksi.tanggal_selesai_pembangunan >=', $dates[0]);
+                $countfiltered->where('produksi.tanggal_selesai_pembangunan <=', $dates[1]);
+            } else {
+                $countfiltered->where('produksi.tanggal_selesai_pembangunan', $dates[0]);
+            }
+        }
+
         $countfiltered->where('produksi.progres_bangunan', 100);
         $countfiltered->groupStart()
             ->where('mkdt.status_mkdt', 'Batal')
@@ -1619,7 +1659,7 @@ class Mkdt extends BaseController
             ->groupEnd();
 
         // Jika ada parameter pencarian
-        // $search = ''; // Ganti dengan input pencarian jika ada
+        $search = isset($var['search']['value']) ? $var['search']['value'] : '';
         if (!empty($search)) {
             $countfiltered->groupStart()
                 ->like('nama_konsumen', $search)
@@ -1662,6 +1702,26 @@ class Mkdt extends BaseController
         else
             $countTotal->where(["proyek.id_proyek" => $var['id_proyek']]);
 
+        if (!empty($var['tgl_pembangunan'])) {
+            $dates = explode(' to ', $var['tgl_pembangunan']);
+            if (count($dates) == 2) {
+                $countTotal->where('produksi.tanggal_pembangunan >=', $dates[0]);
+                $countTotal->where('produksi.tanggal_pembangunan <=', $dates[1]);
+            } else {
+                $countTotal->where('produksi.tanggal_pembangunan', $dates[0]);
+            }
+        }
+
+        if (!empty($var['tgl_selesai'])) {
+            $dates = explode(' to ', $var['tgl_selesai']);
+            if (count($dates) == 2) {
+                $countTotal->where('produksi.tanggal_selesai_pembangunan >=', $dates[0]);
+                $countTotal->where('produksi.tanggal_selesai_pembangunan <=', $dates[1]);
+            } else {
+                $countTotal->where('produksi.tanggal_selesai_pembangunan', $dates[0]);
+            }
+        }
+
         $countTotal->where('produksi.progres_bangunan', 100);
         $countTotal->groupStart()
             ->where('mkdt.status_mkdt', 'Batal')
@@ -1669,7 +1729,7 @@ class Mkdt extends BaseController
             ->groupEnd();
 
         // Jika ada parameter pencarian
-        // $search = ''; // Ganti dengan input pencarian jika ada
+        $search = isset($var['search']['value']) ? $var['search']['value'] : '';
         if (!empty($search)) {
             $countTotal->groupStart()
                 ->like('nama_konsumen', $search)
