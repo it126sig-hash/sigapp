@@ -135,13 +135,14 @@ class Home extends BaseController
             $r['booking_batal'] = (int) ($q->jumlah_booking_batal ?? 0);
             $r['booking_aktif'] = (int) ($q->jumlah_booking_aktif ?? 0);
             $r['summary'] = $this->getDashboardProjectSummary($id_proyek, $sdate, $edate);
+            $r['summary']['booking_to_akad_rate'] = $r['booking'] > 0 ? round(($r['booking_akad'] / $r['booking']) * 100, 1) : 0;
             $r['finance'] = $this->getDashboardFinanceSummary($id_proyek, $sdate, $edate);
             $r['production'] = $this->getDashboardProductionSummary($id_proyek, $sdate, $edate);
             $r['target'] = $this->getDashboardTargetSummary($id_proyek, (int) $tahun);
             $alertCounts = $this->siteplanUrgentService->getDashboardAlertCounts($id_proyek);
             $r['alerts'] = $this->buildDashboardAlerts($alertCounts, $r['production']);
             
-            $r['hasil_akad'] = $this->getDashboardHasilAkadSummary($id_proyek);
+            $r['hasil_akad'] = $this->getDashboardHasilAkadSummary($id_proyek, $sdate, $edate);
             $r['tiket_masalah'] = $this->getDashboardTiketMasalahSummary($id_proyek);
         }
 
@@ -417,7 +418,7 @@ class Home extends BaseController
         ];
     }
 
-    private function getDashboardHasilAkadSummary(int $id_proyek): array
+    private function getDashboardHasilAkadSummary(int $id_proyek, string $sdate, string $edate): array
     {
         $pengajuanAgg = $this->db->table('pencairan_akad_pengajuan')
             ->select("id_plan,
@@ -440,6 +441,8 @@ class Home extends BaseController
             ->where('cl.id_proyek', $id_proyek)
             ->where('m.status_mkdt', 'Akad')
             ->where('m.is_kpr', 1)
+            ->where('m.akad_tgl >=', $sdate)
+            ->where('m.akad_tgl <=', $edate)
             ->get()
             ->getRow();
 

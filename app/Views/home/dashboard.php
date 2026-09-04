@@ -36,25 +36,42 @@
 	.dashboard-period-pills {
 		display: inline-flex;
 		background: #f1f0f5;
-		border-radius: 999px;
-		padding: .25rem;
-		gap: .15rem;
+		border-radius: 10px;
+		padding: .35rem;
+		gap: .25rem;
 	}
 
 	.dashboard-period-pills .btn {
 		border: none;
-		border-radius: 999px;
-		padding: .4rem 1rem;
+		border-radius: 8px;
+		padding: .5rem 1rem;
 		font-size: .86rem;
 		font-weight: 600;
 		color: #6e6b7b;
 		background: transparent;
+		transition: all 0.2s ease;
+	}
+
+	.dashboard-period-pills input[type="month"].btn {
+		font-family: inherit;
+		cursor: pointer;
+		outline: none;
+	}
+
+	.dashboard-period-pills input[type="month"]::-webkit-calendar-picker-indicator {
+		cursor: pointer;
+		opacity: 0.6;
+		transition: opacity 0.2s ease;
+	}
+
+	.dashboard-period-pills input[type="month"]:hover::-webkit-calendar-picker-indicator {
+		opacity: 1;
 	}
 
 	.dashboard-period-pills .btn.active {
 		background: #fff;
 		color: #7367f0;
-		box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+		box-shadow: 0 2px 6px rgba(15, 23, 42, .08);
 	}
 
 	.dashboard-kpi-grid {
@@ -76,6 +93,12 @@
 		display: flex;
 		flex-direction: column;
 		box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+		transition: all 0.2s ease;
+	}
+	
+	.dashboard-kpi-card.cursor-pointer:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(15, 23, 42, .1);
 	}
 
 	.kpi-card-head {
@@ -378,15 +401,15 @@
 					<p class="dashboard-subtitle">Real-time operational and sales monitoring</p>
 				</div>
 				<div class="dashboard-period-pills" id="filter-statistik-pills">
-					<button type="button" id="filter-bulan" class="btn active">Per <?= date("F") ?></button>
-					<button type="button" id="filter-6bulan" class="btn" data-val="<?= date("Y") ?>">Per <?= date("Y") ?></button>
-					<button type="button" id="filter-1tahun" class="btn" data-val="<?= date("Y", strtotime("-1 year")) ?>">Per <?= date("Y", strtotime("-1 year")) ?></button>
+					<input type="month" id="filter-bulan" class="btn active" max="<?= date('Y-m') ?>" value="<?= date('Y-m') ?>" onclick="try { this.showPicker(); } catch(e) {}">
+					<button type="button" id="filter-6bulan" class="btn" data-val="<?= date("Y") ?>">Per Tahun <?= date("Y") ?></button>
+					<button type="button" id="filter-1tahun" class="btn" data-val="<?= date("Y", strtotime("-1 year")) ?>">Per Tahun <?= date("Y", strtotime("-1 year")) ?></button>
 				</div>
 			</div>
 			<div class="row match-height pb-1">
 				<div class="col-12">
 					<div class="dashboard-kpi-grid">
-						<div class="dashboard-kpi-card">
+						<div class="dashboard-kpi-card cursor-pointer" onclick="window.location.href='<?= base_url('keuangan/hasil-akad/list') ?>'">
 							<div class="kpi-card-head">
 								<div class="kpi-label">Perhitungan Hasil Akad</div>
 								<div class="kpi-icon-badge green"><i data-feather="dollar-sign"></i></div>
@@ -409,7 +432,7 @@
 								</div>
 							</div>
 						</div>
-						<div class="dashboard-kpi-card">
+						<div class="dashboard-kpi-card cursor-pointer" onclick="window.location.href='<?= base_url('list-kavling') ?>'">
 							<div class="kpi-card-head">
 								<div class="kpi-label">Sales Periode</div>
 								<div class="kpi-icon-badge amber"><i data-feather="tag"></i></div>
@@ -425,7 +448,7 @@
 							</div>
 							<div class="kpi-card-caption"><span id="st_sp3k">-</span> SP3K &middot; <span id="st_booking_batal">-</span> batal &middot; Konversi <span id="dash_sales_rate">0%</span></div>
 						</div>
-						<div class="dashboard-kpi-card">
+						<div class="dashboard-kpi-card cursor-pointer" onclick="window.location.href='<?= base_url('tagihan/list') ?>'">
 							<div class="kpi-card-head">
 								<div class="kpi-label">Keuangan</div>
 								<div class="kpi-icon-badge slate"><i data-feather="credit-card"></i></div>
@@ -437,7 +460,7 @@
 							<div class="kpi-alert-pill" id="finance-overdue-pill"><i data-feather="alert-circle"></i> <span id="dash_finance_overdue">0</span> overdue</div>
 							<div class="kpi-card-caption">Masuk periode: <span id="dash_payment_in">Rp 0</span></div>
 						</div>
-						<div class="dashboard-kpi-card">
+						<div class="dashboard-kpi-card cursor-pointer" onclick="window.location.href='<?= base_url('list-kavling') ?>'">
 							<div class="kpi-card-head">
 								<div class="kpi-label">Produksi</div>
 								<div class="kpi-icon-badge green"><i data-feather="tool"></i></div>
@@ -825,13 +848,30 @@
 		$("#header-notif").dropdown('toggle');
 	})
 
-	$("#filter-bulan").click(function() {
-		sdate = getFirstDate(0)
-		edate = getLastDate()
+	$("#filter-bulan").on("change", function() {
+		$("#filter-statistik-pills .btn").removeClass('active');
+		$(this).addClass('active');
 
-		load_dashboard(true, false, false)
-	})
+		let val = $(this).val();
+		if (!val) {
+			val = "<?= date('Y-m') ?>";
+			$(this).val(val);
+		}
+		let parts = val.split('-');
+		let year = parts[0];
+		let month = parts[1];
+		
+		sdate = `${year}-${month}-01`;
+		let lastDay = new Date(year, month, 0).getDate();
+		edate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
+		thn = year;
+
+		load_dashboard(true, false, false);
+	});
+	
 	$("#filter-6bulan").click(function() {
+		$("#filter-statistik-pills .btn").removeClass('active');
+		$(this).addClass('active');
 		$("#chart-judul").html("Trend Sales Tahun <?=date("Y")?>")
 		thn = "<?=date("Y")?>"
 
@@ -842,6 +882,8 @@
 	})
 
 	$("#filter-1tahun").click(function() {
+		$("#filter-statistik-pills .btn").removeClass('active');
+		$(this).addClass('active');
 		$("#chart-judul").html("Trend Sales Tahun <?= date("Y", strtotime("-1 year")) ?>")
 
 		thn = "<?= date("Y", strtotime("-1 year")) ?>"
