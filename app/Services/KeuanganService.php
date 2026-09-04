@@ -395,10 +395,40 @@ class KeuanganService
         if ($request->getVar('id_jalan'))
             $builder->where('j.id_jalan', $request->getVar('id_jalan'));
 
+        $isKpr = $request->getVar('is_kpr');
+        if ($isKpr !== null && $isKpr !== '') {
+            $builder->where('m.is_kpr', $isKpr);
+        }
+
+        $bookingRange = $request->getVar('booking_tgl_range');
+        if (!empty($bookingRange)) {
+            $dates = explode(' to ', $bookingRange);
+            if (count($dates) === 2) {
+                $builder->where('m.booking_tgl >=', $dates[0]);
+                $builder->where('m.booking_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('m.booking_tgl', $dates[0]);
+            }
+        }
+
+        $jatuhTempoRange = $request->getVar('jatuh_tempo_tgl_range');
+        if (!empty($jatuhTempoRange)) {
+            $dates = explode(' to ', $jatuhTempoRange);
+            if (count($dates) === 2) {
+                $builder->where('keuangan.jatuh_tempo_tgl >=', $dates[0]);
+                $builder->where('keuangan.jatuh_tempo_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('keuangan.jatuh_tempo_tgl', $dates[0]);
+            }
+        }
+
 
         return DataTable::of($builder)
             ->addSearchableColumns('nama_konsumen', 'no_kavling')
             ->add('Aksi', function ($value) {
+                if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+                    return '-';
+                }
                 $sh = json_encode([
                     'data' => [
                         'id_mkdt' => $value->id_mkdt,
@@ -460,9 +490,39 @@ class KeuanganService
         if ($request->getVar('id_jalan'))
             $builder->where('j.id_jalan', $request->getVar('id_jalan'));
 
+        $isKpr = $request->getVar('is_kpr');
+        if ($isKpr !== null && $isKpr !== '') {
+            $builder->where('m.is_kpr', $isKpr);
+        }
+
+        $bookingRange = $request->getVar('booking_tgl_range');
+        if (!empty($bookingRange)) {
+            $dates = explode(' to ', $bookingRange);
+            if (count($dates) === 2) {
+                $builder->where('m.booking_tgl >=', $dates[0]);
+                $builder->where('m.booking_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('m.booking_tgl', $dates[0]);
+            }
+        }
+
+        $jatuhTempoRange = $request->getVar('jatuh_tempo_tgl_range');
+        if (!empty($jatuhTempoRange)) {
+            $dates = explode(' to ', $jatuhTempoRange);
+            if (count($dates) === 2) {
+                $builder->where('keu_agg.jatuh_tempo_tgl >=', $dates[0]);
+                $builder->where('keu_agg.jatuh_tempo_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('keu_agg.jatuh_tempo_tgl', $dates[0]);
+            }
+        }
+
         return DataTable::of($builder)
             ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
             ->add('Aksi', function ($value) {
+                if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+                    return '-';
+                }
                 $sh = json_encode([
                     'data' => [
                         'id_mkdt'     => $value->id_mkdt,
