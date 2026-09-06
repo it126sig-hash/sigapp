@@ -1,11 +1,13 @@
-<!-- BEGIN: Body-->
-
 <?php
 $__activeProyekService = new \App\Services\ActiveProyekService();
 $__activeProyekService->bootstrapForRequest();
 $__activeProyek = $__activeProyekService->getActive();
 $__accessibleProyek = $__activeProyekService->getAccessibleList((int) user_id());
 $__needsProjectSelection = $__activeProyekService->needsSelection();
+$__showAutoSelectedToast = session()->get('show_auto_selected_proyek_toast') === true;
+if ($__showAutoSelectedToast) {
+    session()->remove('show_auto_selected_proyek_toast');
+}
 $__defaultProjectLogo = base_url('assets/images/pwa/icon-192.png');
 ?>
 
@@ -28,6 +30,7 @@ $__defaultProjectLogo = base_url('assets/images/pwa/icon-192.png');
                     : $__defaultProjectLogo
             ) ?>,
             needsProjectSelection: <?= json_encode($__needsProjectSelection) ?>,
+            showAutoSelectedToast: <?= json_encode($__showAutoSelectedToast) ?>,
             accessibleProyek: <?= json_encode(array_map(static function ($row) {
                 return [
                     'id_proyek'          => (int) $row->id_proyek,

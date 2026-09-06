@@ -53,7 +53,7 @@ class ActiveProyekService
 
         if (! session()->has(self::SESSION_INITIALIZED_KEY)) {
             session()->set(self::SESSION_INITIALIZED_KEY, true);
-            session()->set(self::PICKER_PENDING_KEY, true);
+            session()->set('show_auto_selected_proyek_toast', true);
         }
 
         $this->ensureDefaultActive($userId);

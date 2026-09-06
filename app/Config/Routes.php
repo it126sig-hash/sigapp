@@ -353,6 +353,13 @@ $routes->group('api/mgm', ['namespace' => 'App\Controllers\Api', 'filter' => 'lo
     $routes->post('stages/delete', 'ReferralSettingController::deleteStage');
 });
 
+$routes->group('api/kavling-request', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+    $routes->post('submit', 'KavlingRequestController::submit');
+    $routes->post('kavling-list', 'KavlingRequestController::kavlingList');
+    $routes->post('list', 'KavlingRequestController::list');
+    $routes->post('update-status', 'KavlingRequestController::updateStatus');
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Public API — No authentication required
 // Throttle: 20 requests / 60 seconds per IP

@@ -146,7 +146,6 @@ writable/refactor/
 
 
 #graphify
-graphify/*
-graphify/.gitignore
+/graphify/*
 
 *.zip
