@@ -195,7 +195,8 @@ class TiketMasalahService
                 null,                           // id_konsumen
                 $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket), // type
                 $data['id_proyek'] ?? null,     // id_proyek
-                $actionUrl
+                $actionUrl,
+                \App\Enums\NotificationEvent::TIKET_MASALAH_BARU
             );
         }
 
@@ -228,7 +229,8 @@ class TiketMasalahService
                     null,
                     $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
                     $data['id_proyek'] ?? null,
-                    $actionUrl
+                    $actionUrl,
+                    \App\Enums\NotificationEvent::TIKET_MASALAH_ASSIGN
                 );
             }
         }
@@ -346,7 +348,8 @@ class TiketMasalahService
                     null,
                     $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
                     $data['id_proyek'] ?? null,
-                    $actionUrl
+                    $actionUrl,
+                    \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE
                 );
             }
             
@@ -367,7 +370,8 @@ class TiketMasalahService
                         null,
                         $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
                         $data['id_proyek'] ?? null,
-                        $actionUrl
+                        $actionUrl,
+                        \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE
                     );
                 }
             }
@@ -468,7 +472,8 @@ class TiketMasalahService
                     null,
                     $this->notificationType($tiket->ref_type, (int) $tiket->ref_id, (int) $idTiket),
                     $tiket->id_proyek ?? null,
-                    $actionUrl
+                    $actionUrl,
+                    \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE
                 );
             }
         }

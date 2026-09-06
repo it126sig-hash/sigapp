@@ -454,3 +454,20 @@ Notifikasi disisipkan action URL agar saat diklik langsung membuka modal/tab ter
 - **Tiket Masalah**: `siteplan/view?id_kavling={id}&filter=Masalah&tiket_ref_type={ref_type}` -> Membuka modal detail kavling dengan filter tiket masalah.
 - **Cashout Subkon**: `cashout/subkon?open_kavling={id_kavling}` -> Membuka daftar cashout dan otomatis menampilkan data kavling terkait.
 - **Member Get Member**: `member-get-member?id_referral={id}` -> Membuka halaman referral dan menampilkan detailnya.
+
+## Preferensi Notifikasi Dinamis
+
+Mulai sekarang, notifikasi mendukung preferensi granular per user per channel (In-App, Email, Web Push) berdasarkan event type spesifik (contoh: Konsumen Baru, Tagihan KPR).
+
+**Arsitektur Preferensi:**
+1. **Registry Event**: pp/Enums/NotificationEvent.php mendaftarkan konstanta event, sedangkan 
+otification_event_types di DB (di-seed lewat NotificationEventTypeSeeder) mendaftarkan nama lengkap dan kategori untuk UI.
+2. **Override per User**: Pengaturan user disimpan di tabel user_notification_preferences. Terdapat kolom is_locked (TINYINT) yang jika bernilai 1 maka preferensi tidak bisa diubah oleh user bersangkutan (paksaan admin/sistem).
+3. **Penerapan Default**: Default preferensi seluruh notifikasi adalah **ON** untuk ketiga channel. Jika user belum menyimpan pengaturan, sistem menggunakan merged defaults (NotificationPreferenceService::getUserPreferences).
+4. **Pemotongan Pengiriman**:
+   - Jika preferensi In-App dimatikan: row 
+otification_recipients tetap dibuat, namun langsung ditandai sudah dibaca (ead_at = NOW()).
+   - Jika preferensi Email / Web Push dimatikan: row 
+otification_deliveries untuk channel tersebut akan ditandai dengan status preference_blocked (bukan pending).
+5. **Caller Implementation**: Fungsi pembantu 	ambah_notif kini memilik signature tambahan argumen ke-9: ?string  = null. Pengembang wajib mengirim konstanta NotificationEvent::NAMA_EVENT setiap kali memanggil notifikasi dari Controller/Service.
+

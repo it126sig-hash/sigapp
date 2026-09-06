@@ -204,7 +204,7 @@ class Cluster extends BaseController
 					'action' => 'insert',
 					'new_data' => $fields
 				]);
-				$this->notif->tambah_notif("6", "Menambahkan Master Cluster: " . ($fields['nama_cluster'] ?? ''), user_id(), null, null, null, $fields['id_proyek']);
+				$this->notif->tambah_notif("6", "Menambahkan Master Cluster: " . ($fields['nama_cluster'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_CLUSTER, $fields['id_proyek']);
 
 				$response['success'] = true;
 				$response['messages'] = 'Data has been inserted successfully';
@@ -253,7 +253,7 @@ class Cluster extends BaseController
 					'old_data' => $oldData,
 					'new_data' => $fields
 				]);
-				$this->notif->tambah_notif("6", "Mengubah Master Cluster: " . ($fields['nama_cluster'] ?? ''), user_id(), null, null, null, $fields['id_proyek']);
+				$this->notif->tambah_notif("6", "Mengubah Master Cluster: " . ($fields['nama_cluster'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_CLUSTER, $fields['id_proyek']);
 
 				$response['success'] = true;
 				$response['messages'] = 'Successfully updated';

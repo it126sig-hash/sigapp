@@ -77,6 +77,11 @@ $routes->group('api/notif', ['namespace' => 'App\Controllers\Api', 'filter' => '
     $routes->post('push/subscribe', 'NotifPushController::subscribe');
     $routes->post('push/unsubscribe', 'NotifPushController::unsubscribe');
     $routes->post('push/test', 'NotifPushController::test', ['filter' => 'throttle:5,60']);
+
+    // Preferensi Notifikasi
+    $routes->get('preferences', 'NotificationPreferenceController::index');
+    $routes->post('preferences', 'NotificationPreferenceController::save');
+    $routes->post('preferences/reset', 'NotificationPreferenceController::reset');
 });
 
 

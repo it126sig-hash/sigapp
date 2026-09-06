@@ -120,7 +120,7 @@ class ProyekService
                 'action' => 'insert',
                 'new_data' => $fields
             ]);
-            $this->notif->tambah_notif("6", "Menambahkan Master Proyek: " . ($fields['nama_proyek'] ?? ''), user_id(), null, null, null, $siteplan['id_proyek']);
+            $this->notif->tambah_notif("6", "Menambahkan Master Proyek: " . ($fields['nama_proyek'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_PROYEK, $siteplan['id_proyek']);
 
             $this->db->transComplete();
         } catch (\Throwable $e) {
@@ -195,7 +195,7 @@ class ProyekService
                 'old_data' => $oldData,
                 'new_data' => $fields
             ]);
-            $this->notif->tambah_notif("6", "Mengubah Master Proyek: " . ($fields['nama_proyek'] ?? ''), user_id(), null, null, null, $idProyek);
+            $this->notif->tambah_notif("6", "Mengubah Master Proyek: " . ($fields['nama_proyek'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_PROYEK, $idProyek);
 
             $this->db->transComplete();
         } catch (\Throwable $e) {

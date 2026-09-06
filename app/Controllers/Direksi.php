@@ -70,7 +70,7 @@ class Direksi extends BaseController
 
         if($q){
             $notif = 'Diskresi Harga Jual : Rp. '. number_format($f['diskresi_harga'], 0, ',', '.') .' - '. $f['diskresi_memo'];
-            $this->notif->tambah_notif("3;4;9", $notif, user_id(), $id_kavling, null, null, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); 
+            $this->notif->tambah_notif("3;4;9", $notif, user_id(), $id_kavling, null, \App\Enums\NotificationEvent::DISKRESI_HARGA, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); 
 
             $response['success'] = true;
             $response['messages'] = 'Berhasil melakukan perubahan data';

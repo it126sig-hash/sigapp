@@ -109,7 +109,7 @@ class JalanService
             ]);
             $db = db_connect();
             $idProyek = $db->table('cluster')->select('id_proyek')->where('id_cluster', $fields['id_cluster'])->get()->getRow()->id_proyek ?? null;
-            $this->notif->tambah_notif("6", "Menambahkan Master Jalan: " . ($fields['nama_jalan'] ?? ''), user_id(), null, null, null, $idProyek);
+            $this->notif->tambah_notif("6", "Menambahkan Master Jalan: " . ($fields['nama_jalan'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_JALAN, $idProyek);
 
             return ['success' => true, 'messages' => 'Data has been inserted successfully'];
         }
@@ -142,7 +142,7 @@ class JalanService
             ]);
             $db = db_connect();
             $idProyek = $db->table('cluster')->select('id_proyek')->where('id_cluster', $fields['id_cluster'])->get()->getRow()->id_proyek ?? null;
-            $this->notif->tambah_notif("6", "Mengubah Master Jalan: " . ($fields['nama_jalan'] ?? ''), user_id(), null, null, null, $idProyek);
+            $this->notif->tambah_notif("6", "Mengubah Master Jalan: " . ($fields['nama_jalan'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_JALAN, $idProyek);
 
             return ['success' => true, 'messages' => 'Successfully updated'];
         }

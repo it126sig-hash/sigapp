@@ -97,7 +97,7 @@ class ProduksiService
             return ['success' => false, 'messages' => 'Terjadi Kesalahan'];
         }
 
-        $this->notifService->tambah_notif('7;4;9', $notif, $userId, $idKavling, '', null, null, "siteplan/view?id_kavling=" . $idKavling);
+        $this->notifService->tambah_notif('7;4;9', $notif, $userId, $idKavling, '', \App\Enums\NotificationEvent::PROGRESS_PRODUKSI, null, "siteplan/view?id_kavling=" . $idKavling);
         return ['success' => true, 'messages' => 'Successfully updated'];
     }
 

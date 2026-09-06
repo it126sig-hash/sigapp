@@ -179,7 +179,7 @@ class TipeService
                 'action' => 'insert',
                 'new_data' => $fields
             ]);
-            $this->notif->tambah_notif("6", "Menambahkan Master Tipe: " . ($fields['tipe_rumah'] ?? ''), user_id(), null, null, null, $fields['id_proyek']);
+            $this->notif->tambah_notif("6", "Menambahkan Master Tipe: " . ($fields['tipe_rumah'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_TIPE, $fields['id_proyek']);
 
             $this->db->transComplete();
         } catch (\Throwable $e) {
@@ -236,7 +236,7 @@ class TipeService
                 'old_data' => $oldData,
                 'new_data' => $fields
             ]);
-            $this->notif->tambah_notif("6", "Mengubah Master Tipe: " . ($fields['tipe_rumah'] ?? ''), user_id(), null, null, null, $fields['id_proyek']);
+            $this->notif->tambah_notif("6", "Mengubah Master Tipe: " . ($fields['tipe_rumah'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_TIPE, $fields['id_proyek']);
 
             $this->db->transComplete();
         } catch (\Throwable $e) {

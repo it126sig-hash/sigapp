@@ -35,26 +35,21 @@ class EmailDigestService
         return $this->processLegacyQueue();
     }
 
+
+
     protected function processDeliveryQueue(): array
     {
         $rows = $this->db->table('notification_deliveries d')
             ->select('d.id as delivery_id, d.attempts, d.user_id as recipient_user_id')
             ->select('n.id as notification_id, n.notif, n.type, n.created_at as notif_date, n.add_by as actor_user_id')
             ->select('nr.read_at as recipient_read_at')
-            ->select('p.nama_proyek, k.no_kavling')
+            ->select('COALESCE(p.id_proyek, pk.id_proyek) as id_proyek, COALESCE(p.nama_proyek, pk.nama_proyek) as nama_proyek, k.no_kavling')
             ->select('recipient.id as recipient_id, recipient.email, recipient.username, recipient.email_notif_enabled')
             ->select('u.name as actor_name, u.username as actor_username')
             ->select('MIN(ag.name) as departemen_name, MIN(ag.description) as departemen_desc', false)
             ->join('notification n', 'n.id = d.notification_id')
             ->join('notification_recipients nr', 'nr.id = d.notification_recipient_id AND nr.user_id = d.user_id')
             ->join('users recipient', 'recipient.id = d.user_id')
-            ->join('proyek p', 'p.id_proyek = n.id_proyek', 'left')
-            ->join('kavling k', 'k.id_kavling = n.id_kavling', 'left')
-            ->join('users u', 'u.id = n.add_by', 'left')
-            ->join('auth_groups_users agu', 'agu.user_id = u.id', 'left')
-            ->join('auth_groups ag', 'ag.id = agu.group_id', 'left')
-            ->where('d.channel', 'email')
-            ->whereIn('d.status', ['pending', 'failed'])
             ->where('d.available_at <=', date('Y-m-d H:i:s'))
             ->where('d.attempts <', 5)
             ->groupBy('d.id')
@@ -154,12 +149,15 @@ class EmailDigestService
 
         $queues = $this->db->table('notification_email_queue q')
             ->select('q.*, n.notif, n.type, n.is_read as legacy_is_read, n.created_at as notif_date')
-            ->select('p.nama_proyek, k.no_kavling')
+            ->select('COALESCE(p.id_proyek, pk.id_proyek) as id_proyek, COALESCE(p.nama_proyek, pk.nama_proyek) as nama_proyek, k.no_kavling')
             ->select('u.name as actor_name, u.username as actor_username')
             ->select('MIN(ag.name) as departemen_name, MIN(ag.description) as departemen_desc', false)
             ->join('notification n', 'n.id = q.notification_id')
             ->join('proyek p', 'p.id_proyek = n.id_proyek', 'left')
             ->join('kavling k', 'k.id_kavling = n.id_kavling', 'left')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
+            ->join('cluster c', 'c.id_cluster = j.id_cluster', 'left')
+            ->join('proyek pk', 'pk.id_proyek = c.id_proyek', 'left')
             ->join('users u', 'u.id = q.actor_user_id', 'left')
             ->join('auth_groups_users agu', 'agu.user_id = u.id', 'left')
             ->join('auth_groups ag', 'ag.id = agu.group_id', 'left')
@@ -172,85 +170,94 @@ class EmailDigestService
             return $stats;
         }
 
-        $grouped = [];
+        $userItemsMap = [];
+        $allQueueIds = [];
+
         foreach ($queues as $q) {
-            $key = ($q->target_group ?: 'all') . '-' . ($q->target_user_id ?: 'all');
-            if (! isset($grouped[$key])) {
-                $grouped[$key] = [
-                    'target_group' => $q->target_group,
-                    'target_user_id' => $q->target_user_id,
-                    'items' => [],
-                    'queue_ids' => [],
-                ];
-            }
-            $grouped[$key]['items'][] = $q;
-            $grouped[$key]['queue_ids'][] = $q->id;
-        }
-
-        foreach ($grouped as $group) {
-            $users = $this->getTargetUsers($group['target_group'], $group['target_user_id']);
-            $sentQueueIds = [];
-            $failedQueueIds = [];
-
+            $allQueueIds[] = $q->id;
+            $users = $this->getTargetUsers($q->target_group, $q->target_user_id);
             foreach ($users as $user) {
                 if ((int) $user->email_notif_enabled === 0 || empty($user->email)) {
                     continue;
                 }
-
-                $userItems = array_values(array_filter($group['items'], static fn ($item) => (int) $item->actor_user_id !== (int) $user->id));
-                $userItems = $this->unreadLegacyItemsForUser($userItems, (int) $user->id);
-                if (empty($userItems)) {
+                if ((int) $q->actor_user_id === (int) $user->id) {
                     continue;
                 }
-
-                $userQueueIds = $this->legacyQueueIds($userItems);
-
-                $sentAt = date('Y-m-d H:i:s');
-                try {
-                    $sent = $this->sendDigestEmail($user, $this->groupItemsByProyek($userItems));
-                } catch (\Throwable $e) {
-                    $sent = false;
-                    log_message('error', 'Email digest gagal untuk user ' . $user->id . ': ' . $e->getMessage());
+                if (!isset($userItemsMap[$user->id])) {
+                    $userItemsMap[$user->id] = ['user' => $user, 'items' => []];
                 }
-
-                if ($sent) {
-                    $stats['emails_sent']++;
-                    $sentQueueIds = array_merge($sentQueueIds, $userQueueIds);
-                    $calendarStats = $this->syncGoogleCalendarForUser($user, $userItems, $sentAt);
-                    $stats['calendar_created'] += $calendarStats['created'];
-                    $stats['calendar_skipped'] += $calendarStats['skipped'];
-                    $stats['calendar_failed'] += $calendarStats['failed'];
-                } else {
-                    $stats['emails_failed']++;
-                    $failedQueueIds = array_merge($failedQueueIds, $userQueueIds);
+                // Avoid duplicating the same notification for the same user if multiple queues overlap
+                $exists = false;
+                foreach ($userItemsMap[$user->id]['items'] as $existingItem) {
+                    if ($existingItem->notification_id == $q->notification_id) {
+                        $exists = true;
+                        break;
+                    }
+                }
+                if (!$exists) {
+                    $userItemsMap[$user->id]['items'][] = $q;
                 }
             }
+        }
 
-            $failedQueueIds = array_values(array_unique(array_map('intval', $failedQueueIds)));
-            $sentQueueIds = array_values(array_diff(
-                array_unique(array_map('intval', $sentQueueIds)),
-                $failedQueueIds
-            ));
-            $skippedQueueIds = array_values(array_diff(
-                array_unique(array_map('intval', $group['queue_ids'])),
-                $failedQueueIds,
-                $sentQueueIds
-            ));
+        $sentQueueIds = [];
+        $failedQueueIds = [];
 
-            if ($failedQueueIds !== []) {
-                $this->markLegacyQueues($failedQueueIds, 'failed', $batchId);
-                $stats['queues_failed'] += count($failedQueueIds);
+        foreach ($userItemsMap as $userId => $data) {
+            $user = $data['user'];
+            
+            $userItems = $this->unreadLegacyItemsForUser($data['items'], $userId);
+            if (empty($userItems)) {
+                continue;
             }
 
-            if ($sentQueueIds !== []) {
-                $this->markLegacyQueues($sentQueueIds, 'sent', $batchId);
-                $stats['queues_sent'] += count($sentQueueIds);
+            $userQueueIds = $this->legacyQueueIds($userItems);
+
+            $sentAt = date('Y-m-d H:i:s');
+            try {
+                $sent = $this->sendDigestEmail($user, $this->groupItemsByProyek($userItems));
+            } catch (\Throwable $e) {
+                $sent = false;
+                log_message('error', 'Email digest gagal untuk user ' . $user->id . ': ' . $e->getMessage());
             }
 
-            if ($skippedQueueIds !== []) {
-                $this->markLegacyQueues($skippedQueueIds, 'skipped', $batchId);
-                $stats['queues_skipped'] += count($skippedQueueIds);
+            if ($sent) {
+                $stats['emails_sent']++;
+                $sentQueueIds = array_merge($sentQueueIds, $userQueueIds);
+                $calendarStats = $this->syncGoogleCalendarForUser($user, $userItems, $sentAt);
+                $stats['calendar_created'] += $calendarStats['created'];
+                $stats['calendar_skipped'] += $calendarStats['skipped'];
+                $stats['calendar_failed'] += $calendarStats['failed'];
+            } else {
+                $stats['emails_failed']++;
+                $failedQueueIds = array_merge($failedQueueIds, $userQueueIds);
             }
+        }
+
+        $failedQueueIds = array_values(array_unique(array_map('intval', $failedQueueIds)));
+        $sentQueueIds = array_values(array_diff(
+            array_unique(array_map('intval', $sentQueueIds)),
+            $failedQueueIds
+        ));
+        $skippedQueueIds = array_values(array_diff(
+            array_unique(array_map('intval', $allQueueIds)),
+            $failedQueueIds,
+            $sentQueueIds
+        ));
+
+        if ($failedQueueIds !== []) {
+            $this->markLegacyQueues($failedQueueIds, 'failed', $batchId);
+            $stats['queues_failed'] += count($failedQueueIds);
+        }
+
+        if ($sentQueueIds !== []) {
+            $this->markLegacyQueues($sentQueueIds, 'sent', $batchId);
+            $stats['queues_sent'] += count($sentQueueIds);
+        }
+
+        if ($skippedQueueIds !== []) {
+            $this->markLegacyQueues($skippedQueueIds, 'skipped', $batchId);
+            $stats['queues_skipped'] += count($skippedQueueIds);
         }
 
         return $stats;

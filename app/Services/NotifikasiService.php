@@ -12,11 +12,13 @@ class NotifikasiService
 {
     protected BaseConnection $db;
     protected NotificationRepository $notificationRepository;
+    protected NotificationPreferenceService $preferenceService;
 
     public function __construct()
     {
         $this->db = db_connect();
         $this->notificationRepository = new NotificationRepository($this->db);
+        $this->preferenceService = new NotificationPreferenceService();
     }
 
     public function create(NotificationData $data, NotificationAudience $audience): int
@@ -53,12 +55,14 @@ class NotifikasiService
         }
 
         $recipientRows = [];
+        $recipientUserIds = $this->resolveRecipientIds($audience, $data->actorUserId);
+        $eventType = $data->eventType ?? $data->type;
+
         if ($this->featureEnabled('NOTIF_DUAL_WRITE_RECIPIENTS', true)) {
-            $recipientIds = $this->resolveRecipientIds($audience, $data->actorUserId);
-            $recipientRows = $this->storeRecipients($notificationId, $recipientIds, $now);
+            $recipientRows = $this->storeRecipients($notificationId, $recipientUserIds, $data->actorUserId, $eventType, $now);
         }
         if ($this->featureEnabled('NOTIF_WRITE_DELIVERY_OUTBOX', true)) {
-            $this->storeDeliveries($notificationId, $recipientRows, $data->actorUserId, $now);
+            $this->storeDeliveries($notificationId, $recipientRows, $data->actorUserId, $eventType, $now);
         }
         if ($this->featureEnabled('NOTIF_WRITE_LEGACY_EMAIL_QUEUE', true)) {
             $this->storeLegacyEmailQueue($notificationId, $audience, $data->actorUserId, $now);
@@ -72,36 +76,36 @@ class NotifikasiService
         return $notificationId;
     }
 
-    public function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null, ?string $actionUrl = null)
+    public function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null, ?string $actionUrl = null, ?string $eventType = null)
     {
-        return $this->create(
-            new NotificationData(
-                (string) $notif,
-                (int) $add_by,
-                $id_kavling,
-                $id_konsumen,
-                $type ? (string) $type : null,
-                $id_proyek ? (int) $id_proyek : null,
-                $actionUrl
-            ),
-            NotificationAudience::fromLegacyTarget($target)
+        $audience = NotificationAudience::fromLegacyTarget($target);
+        $data = new NotificationData(
+            message: $notif,
+            actorUserId: $add_by,
+            idKavling: $id_kavling,
+            idKonsumen: $id_konsumen,
+            type: $type,
+            idProyek: $id_proyek,
+            actionUrl: $actionUrl,
+            eventType: $eventType
         );
+        return $this->create($data, $audience);
     }
 
-    public function tambah_notif_user($user_id, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null, ?string $actionUrl = null)
+    public function tambah_notif_user($user_id, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null, ?string $actionUrl = null, ?string $eventType = null)
     {
-        return $this->create(
-            new NotificationData(
-                (string) $notif,
-                (int) $add_by,
-                $id_kavling,
-                $id_konsumen,
-                $type ? (string) $type : null,
-                $id_proyek ? (int) $id_proyek : null,
-                $actionUrl
-            ),
-            NotificationAudience::forUser((int) $user_id)
+        $audience = NotificationAudience::forUser($user_id);
+        $data = new NotificationData(
+            message: $notif,
+            actorUserId: $add_by,
+            idKavling: $id_kavling,
+            idKonsumen: $id_konsumen,
+            type: $type,
+            idProyek: $id_proyek,
+            actionUrl: $actionUrl,
+            eventType: $eventType
         );
+        return $this->create($data, $audience);
     }
 
     public function getActivity($all = false, $offset = null, $id_proyek = null, $limit = 10): array
@@ -165,7 +169,7 @@ class NotifikasiService
         return array_values($recipients);
     }
 
-    protected function storeRecipients(int $notificationId, array $userIds, string $now): array
+    protected function storeRecipients(int $notificationId, array $userIds, int $actorUserId, ?string $eventType, string $now): array
     {
         if (! $this->db->tableExists('notification_recipients')) {
             return [];
@@ -173,6 +177,17 @@ class NotifikasiService
 
         $rows = [];
         foreach ($userIds as $userId) {
+            $isActor = ($userId === $actorUserId);
+            $readAt = null;
+
+            if ($isActor) {
+                $readAt = $now;
+            } elseif ($eventType !== null && !$this->preferenceService->isAllowed($userId, $eventType, 'in_app')) {
+                // Jika user mematikan in_app notif untuk event ini, tandai sebagai sudah dibaca
+                // agar tidak muncul di unread badge, tapi tetap ter-record.
+                $readAt = $now;
+            }
+
             $existing = $this->db->table('notification_recipients')
                 ->select('id')
                 ->where('notification_id', $notificationId)
@@ -184,7 +199,7 @@ class NotifikasiService
                 $this->db->table('notification_recipients')->insert([
                     'notification_id' => $notificationId,
                     'user_id' => $userId,
-                    'read_at' => null,
+                    'read_at' => $readAt,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);
@@ -201,7 +216,7 @@ class NotifikasiService
         return $rows;
     }
 
-    protected function storeDeliveries(int $notificationId, array $recipientRows, int $actorUserId, string $now): void
+    protected function storeDeliveries(int $notificationId, array $recipientRows, int $actorUserId, ?string $eventType, string $now): void
     {
         if (! $this->db->tableExists('notification_deliveries') || $recipientRows === []) {
             return;
@@ -210,13 +225,23 @@ class NotifikasiService
         foreach ($recipientRows as $recipient) {
             foreach (['email', 'web_push'] as $channel) {
                 $status = ((int) $recipient['user_id'] === $actorUserId) ? 'skipped' : 'pending';
+                $lastError = $status === 'skipped' ? 'Actor notifikasi tidak dikirim ke channel delivery sendiri.' : null;
+
+                // Cek preference
+                if ($status === 'pending' && $eventType !== null) {
+                    if (!$this->preferenceService->isAllowed((int) $recipient['user_id'], $eventType, $channel)) {
+                        $status = 'preference_blocked';
+                        $lastError = 'Notifikasi ini diblokir oleh preferensi user.';
+                    }
+                }
+
                 $this->insertDeliveryIfMissing(
                     (int) $recipient['id'],
                     $notificationId,
                     (int) $recipient['user_id'],
                     $channel,
                     $status,
-                    $status === 'skipped' ? 'Actor notifikasi tidak dikirim ke channel delivery sendiri.' : null,
+                    $lastError,
                     $now
                 );
             }

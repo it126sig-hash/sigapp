@@ -203,7 +203,7 @@ class Mkdt extends BaseController
         if ($q) {
             //insert ke log
             $notif = 'Membatalkan booking';
-            $this->notif->tambah_notif("3;4;9", $notif, user_id(), $id_kavling, $id_konsumen, null, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi
+            $this->notif->tambah_notif("3;4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::BATAL_BOOKING, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi
 
             $this->mkdtHistoryService->log(
                 (int) $id_kavling,
@@ -434,7 +434,7 @@ class Mkdt extends BaseController
 
                 //insert ke log
                 $notif = 'Menambahkan konsumen baru';
-                $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, null, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi
+                $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::KONSUMEN_BARU, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi
             } else {
                 $response['success'] = false;
                 $response['messages'] = 'Terjadi kesaahan saat melakukan penambahan konsumen';
@@ -464,7 +464,7 @@ class Mkdt extends BaseController
             if ($before_upadte_pb->perintah_bangun == 0) {
                 //insert log
                 $notif = 'Terbit perintah bangun pada : ' . date_format(date_create($this->request->getVar('perintah_bangun_tgl')), "d-M-Y");
-                $this->notif->tambah_notif("7;4;9", $notif, user_id(), $id_kavling, $id_konsumen, null, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi 7 produksi
+                $this->notif->tambah_notif("7;4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::PERINTAH_BANGUN, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi 7 produksi
             }
 
             /************************ upload perintah bangun *****************************/
@@ -497,7 +497,7 @@ class Mkdt extends BaseController
 
             if ($before_upadte && $before_upadte->wawancara == 0) {
                 $notif = 'Telah melakukan wawancara pada : ' . date_format(date_create($this->request->getVar('wawancara_tgl')), "d-M-Y");
-                $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, null, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen");
+                $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::WAWANCARA, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen");
             }
 
             $f2['wawancara'] = 1;
@@ -515,7 +515,7 @@ class Mkdt extends BaseController
             if ($before_upadte && $before_upadte->akad == 0) {
                 //insert log
                 $notif = 'Telah melakukan akad pada : ' . date_format(date_create($this->request->getVar('wawancara_tgl')), "d-M-Y");
-                $this->notif->tambah_notif("3;5;8;4;9", $notif, user_id(), $id_kavling, $id_konsumen, null, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi 7 produksi 3 keuangan 8 sales
+                $this->notif->tambah_notif("3;5;8;4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::AKAD, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi 7 produksi 3 keuangan 8 sales
             }
             /************************ upload bast *****************************/
             if ($this->request->getFile('bast_file')->getSize() > 0) {
@@ -628,7 +628,7 @@ class Mkdt extends BaseController
 
                 if ($f2['sp3k'] == 1) {
                     $notif = 'Melakukan perubahan pada tanggal terbit SP3K (' . date_format(date_create($f2['sp3k_tgl']), "d-M-Y") . ') dan exp (' . date_format(date_create($f2['sp3k_tgl_exp']), "d-M-Y") . ') ';
-                    $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, null, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi
+                    $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::DATA_KONSUMEN_UPDATE, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi
                 }
 
                 //update id_mkdt di tbl kav
@@ -650,7 +650,7 @@ class Mkdt extends BaseController
                 if ($f2['sp3k'] == 1) {
                     if ($old_data->sp3k_tgl != $f2['sp3k_tgl']) {
                         $notif = 'Melakukan perubahan pada tanggal terbit SP3K (' . date_format(date_create($f2['sp3k_tgl']), "d-M-Y") . ') dan exp (' . date_format(date_create($f2['sp3k_tgl_exp']), "d-M-Y") . ') ';
-                        $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, null, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen");
+                        $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::DATA_KONSUMEN_UPDATE, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen");
                     }
                 }
 

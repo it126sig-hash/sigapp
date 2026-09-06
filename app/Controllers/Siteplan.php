@@ -459,7 +459,7 @@ class Siteplan extends BaseController
                 dengan tipe rumah ' . $this->request->getVar('tp-kavling') . ' 
                 pada tanggal: ' . date_format(date_create(date('Y-m-d')), "d-M-Y") . '';
 
-        $this->notif->tambah_notif("0", $notif, user_id(), $response['id'] ?? null, null); //4 mkdt 9 direksi
+        $this->notif->tambah_notif("0", $notif, user_id(), $response['id'] ?? null, null, \App\Enums\NotificationEvent::KAVLING_ADDED); //4 mkdt 9 direksi
 
         return $response;
     }
@@ -519,7 +519,7 @@ class Siteplan extends BaseController
                 $notif = 'Menambahkan data fasum/lainnya ke siteplan: ' . ($fields['nama'] ?? '') . ' pada tanggal: ' . date('d-M-Y');
                 $idProyek = clone $this->db;
                 $idProyek = $idProyek->table('jalan')->select('cluster.id_proyek')->join('cluster', 'cluster.id_cluster = jalan.id_cluster')->where('id_jalan', $fields['id_jalan'])->get()->getRow()->id_proyek ?? null;
-                $this->notif->tambah_notif("0", $notif, user_id(), null, null, null, $idProyek);
+                $this->notif->tambah_notif("0", $notif, user_id(), null, null, \App\Enums\NotificationEvent::OTHERS_ADDED, $idProyek);
             } else {
                 $response['success'] = false;
                 $response['messages'] = 'Insertion error!';
@@ -645,7 +645,7 @@ class Siteplan extends BaseController
         ]);
         
         $notif = 'Mengupdate data ' . $id_len . ' kavling pada siteplan pada tanggal: ' . date('d-M-Y');
-        $this->notif->tambah_notif("0", $notif, user_id(), $id[0] ?? null, null);
+        $this->notif->tambah_notif("0", $notif, user_id(), $id[0] ?? null, null, \App\Enums\NotificationEvent::KAVLING_UPDATED);
 
         $response['success'] = true;
         $response['messages'] = 'Successfully updated';
@@ -705,7 +705,7 @@ class Siteplan extends BaseController
                 $notif = 'Mengupdate data fasum/lainnya ke siteplan: ' . ($fields['nama'] ?? '') . ' pada tanggal: ' . date('d-M-Y');
                 $idProyek = clone $this->db;
                 $idProyek = $idProyek->table('jalan')->select('cluster.id_proyek')->join('cluster', 'cluster.id_cluster = jalan.id_cluster')->where('id_jalan', $fields['id_jalan'])->get()->getRow()->id_proyek ?? null;
-                $this->notif->tambah_notif("0", $notif, user_id(), null, null, null, $idProyek);
+                $this->notif->tambah_notif("0", $notif, user_id(), null, null, \App\Enums\NotificationEvent::OTHERS_UPDATED, $idProyek);
             } else {
                 $response['success'] = false;
                 $response['messages'] = 'Data gagal diperbaharui!';
@@ -1052,7 +1052,7 @@ class Siteplan extends BaseController
                 );
 
                 $notif = 'Turun pembanguanan untuk kavling: ' . $this->request->getVar('tp-kavling') . ' pada tanggal: ' . date_format(date_create($f['perintah_bangun_tgl']), "d-M-Y") . '';
-                $this->notif->tambah_notif("4;9", $notif, user_id(), $id, null); //4 mkdt 9 direksi
+                $this->notif->tambah_notif("4;9", $notif, user_id(), $id, null, \App\Enums\NotificationEvent::TURUN_PEMBANGUNAN); //4 mkdt 9 direksi
             } else {
                 $r['success'] = false;
                 $r['messages'] = 'Gagal melakukan perubahan data';

@@ -36,10 +36,10 @@ class Notif extends BaseController
         else
             $this->group_id = session()->group_id;
     }
-    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null, ?string $actionUrl = null)
+    function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null, ?string $actionUrl = null, ?string $eventType = null)
     {
         $notifService = new \App\Services\NotifikasiService();
-        return $notifService->tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type, $id_proyek, $actionUrl);
+        return $notifService->tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type, $id_proyek, $actionUrl, $eventType);
     }
 
     

@@ -334,7 +334,7 @@ class TransaksiService
             $pesanNotif = $kons['id_mkdt']
                 ? ('Melakukan perubahan data konsumen : ' . $kons['nama_konsumen'])
                 : ('Booking kavling atas nama : ' . $kons['nama_konsumen']);
-            $this->notif->tambah_notif('3;4;9', $pesanNotif, user_id(), $idKavling, $idKonsumen, 'mkdt_konsumen', null, "siteplan/view?id_kavling=" . $idKavling . "&tab=konsumen");
+            $this->notif->tambah_notif('3;4;9', $pesanNotif, user_id(), $idKavling, $idKonsumen, $isNew ? \App\Enums\NotificationEvent::BOOKING_BARU : \App\Enums\NotificationEvent::DATA_KONSUMEN_UPDATE, null, "siteplan/view?id_kavling=" . $idKavling . "&tab=konsumen");
 
             $summary = $this->mkdtHistoryService->buildKonsumenSummary($oldMkdt, $kons, $mk, $isNewMkdt);
             $this->mkdtHistoryService->log(
@@ -465,12 +465,12 @@ class TransaksiService
 
             if ($data['status_mkdt'] === 'Akad' && !$wasAkad) {
                 $this->notif->tambah_notif(
-                    '3;5;8;4;9',
+                    "3;5;8;4;9",
                     'Telah melakukan akad pada kavling ini',
                     user_id(),
                     $idKavling,
-                    $oldData->id_konsumen ?? null,
-                    'mkdt_konsumen',
+                    $idKonsumen,
+                    \App\Enums\NotificationEvent::AKAD,
                     null,
                     "siteplan/view?id_kavling=" . $idKavling . "&tab=konsumen"
                 );
