@@ -4,15 +4,19 @@ namespace App\Controllers;
 
 use App\Libraries\StreamFileResponse;
 use App\Services\FileAccessService;
+use App\Services\ImageThumbnailService;
+use CodeIgniter\Files\File;
 use RuntimeException;
 
 class FileController extends BaseController
 {
     protected FileAccessService $fileAccessService;
+    protected ImageThumbnailService $thumbnailService;
 
     public function __construct()
     {
         $this->fileAccessService = new FileAccessService();
+        $this->thumbnailService = new ImageThumbnailService();
     }
 
     public function show(string $source, int $id)
@@ -22,7 +26,24 @@ class FileController extends BaseController
 
     public function thumbnail(string $source, int $id)
     {
-        return $this->stream($source, $id, true);
+        try {
+            try {
+                $file = $this->fileAccessService->resolve($source, $id, true);
+            } catch (RuntimeException $e) {
+                if ($e->getMessage() === 'FORBIDDEN') {
+                    throw $e;
+                }
+                $file = $this->fileAccessService->resolve($source, $id, false);
+            }
+        } catch (RuntimeException $e) {
+            if ($e->getMessage() === 'FORBIDDEN') {
+                return $this->response->setStatusCode(403)->setBody('Akses file ditolak');
+            }
+
+            return $this->response->setStatusCode(404)->setBody('File tidak ditemukan');
+        }
+
+        return $this->streamThumbnail($file);
     }
 
     public function path(string $source)
@@ -40,6 +61,21 @@ class FileController extends BaseController
         return $this->streamFile($file);
     }
 
+    public function pathThumbnail(string $source)
+    {
+        try {
+            $file = $this->fileAccessService->resolvePath($source, (string) $this->request->getGet('path'));
+        } catch (RuntimeException $e) {
+            if ($e->getMessage() === 'FORBIDDEN') {
+                return $this->response->setStatusCode(403)->setBody('Akses file ditolak');
+            }
+
+            return $this->response->setStatusCode(404)->setBody('File tidak ditemukan');
+        }
+
+        return $this->streamThumbnail($file);
+    }
+
     private function stream(string $source, int $id, bool $thumbnail)
     {
         try {
@@ -50,6 +86,27 @@ class FileController extends BaseController
             }
 
             return $this->response->setStatusCode(404)->setBody('File tidak ditemukan');
+        }
+
+        return $this->streamFile($file);
+    }
+
+    private function streamThumbnail(array $file)
+    {
+        $absolutePath = (string) ($file['absolute_path'] ?? '');
+        $mimeType = (string) ($file['mime_type'] ?? '');
+
+        if ($absolutePath !== '' && is_file($absolutePath) && str_starts_with($mimeType, 'image/')) {
+            $w = (int) $this->request->getGet('w');
+            $h = (int) $this->request->getGet('h');
+            $width = $w > 0 ? max(16, min(1000, $w)) : 100;
+            $height = $h > 0 ? max(16, min(1000, $h)) : $width;
+
+            $thumbPath = $this->thumbnailService->getThumbnail($absolutePath, $width, $height, 'center');
+            if ($thumbPath && is_file($thumbPath)) {
+                $file['absolute_path'] = $thumbPath;
+                $file['mime_type'] = (new File($thumbPath))->getMimeType() ?: $mimeType;
+            }
         }
 
         return $this->streamFile($file);

@@ -46,7 +46,7 @@ class ProyekService
                 $value->id_proyek,
                 $value->nama_proyek,
                 $value->alamat_proyek,
-                "<img width='50px' src='" . $this->fileAccessService->accessUrl('proyek_logo', (int) $value->id_proyek) . "'>",
+                "<img width='50px' src='" . $this->fileAccessService->thumbnailUrl('proyek_logo', (int) $value->id_proyek) . "'>",
                 $ops,
             ];
         }
@@ -64,6 +64,7 @@ class ProyekService
 
         $data->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', $idProyek);
         $data->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', $idProyek);
+        $data->logo_thumbnail_url = $this->fileAccessService->thumbnailUrl('proyek_logo', $idProyek);
         $data->logo_pt_access_url = $this->fileAccessService->accessUrl('proyek_logo_pt', $idProyek);
         $data->list_siteplan = $this->getSiteplanList($idProyek);
 

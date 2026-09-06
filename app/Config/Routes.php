@@ -107,9 +107,10 @@ $routes->group('setting-data', ['filter' => 'login'], function ($routes) {
 $routes->get("getmodal", 'Modal::index');
 
 $routes->group('files', ['filter' => 'login'], function ($routes) {
+    $routes->get('(:segment)/path/thumbnail', 'FileController::pathThumbnail/$1');
     $routes->get('(:segment)/path', 'FileController::path/$1');
-    $routes->get('(:segment)/(:num)', 'FileController::show/$1/$2');
     $routes->get('(:segment)/(:num)/thumbnail', 'FileController::thumbnail/$1/$2');
+    $routes->get('(:segment)/(:num)', 'FileController::show/$1/$2');
 });
 
 
@@ -199,6 +200,8 @@ $routes->post("/keuangan/pencairan-akad/plan/save-retensi", 'PencairanAkad::save
 $routes->post("/keuangan/pencairan-akad/plan/save-tenor", 'PencairanAkad::saveTenor');
 $routes->post("/keuangan/pencairan-akad/pengajuan/store", 'PencairanAkad::storePengajuan');
 $routes->post("/keuangan/pencairan-akad/pencairan/store", 'PencairanAkad::cairkan');
+$routes->post("/keuangan/pencairan-akad/payment/list", 'PencairanAkad::listPayment');
+$routes->post("/keuangan/pencairan-akad/payment/void", 'PencairanAkad::voidPayment');
 $routes->post("/keuangan/pencairan-akad/void", 'PencairanAkad::void');
 $routes->get("/keuangan/pencairan-akad/history/(:num)", 'PencairanAkad::history/$1');
 

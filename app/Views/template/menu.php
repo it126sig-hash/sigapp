@@ -23,16 +23,17 @@ $__defaultProjectLogo = base_url('assets/images/pwa/icon-192.png');
             activeProyekId: <?= json_encode($__activeProyek ? (int) $__activeProyek->id_proyek : null) ?>,
             activeProyekName: <?= json_encode($__activeProyek->nama_proyek ?? '') ?>,
             activeProyekLogoUrl: <?= json_encode(
-                ($__activeProyek && ! empty($__activeProyek->logo_access_url))
-                    ? $__activeProyek->logo_access_url
+                ($__activeProyek && ! empty($__activeProyek->logo_thumbnail_url ?? $__activeProyek->logo_access_url))
+                    ? ($__activeProyek->logo_thumbnail_url ?? $__activeProyek->logo_access_url)
                     : $__defaultProjectLogo
             ) ?>,
             needsProjectSelection: <?= json_encode($__needsProjectSelection) ?>,
             accessibleProyek: <?= json_encode(array_map(static function ($row) {
                 return [
-                    'id_proyek'       => (int) $row->id_proyek,
-                    'nama_proyek'     => $row->nama_proyek,
-                    'logo_access_url' => $row->logo_access_url ?? '',
+                    'id_proyek'          => (int) $row->id_proyek,
+                    'nama_proyek'        => $row->nama_proyek,
+                    'logo_access_url'    => $row->logo_access_url ?? '',
+                    'logo_thumbnail_url' => $row->logo_thumbnail_url ?? ($row->logo_access_url ?? ''),
                 ];
             }, $__accessibleProyek)) ?>,
         };

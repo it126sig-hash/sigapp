@@ -143,3 +143,10 @@ vendor/
 #-------------------------
 .agent/
 writable/refactor/
+
+
+#graphify
+graphify/*
+graphify/.gitignore
+
+*.zip

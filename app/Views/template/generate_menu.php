@@ -12,7 +12,7 @@ $profilePhotoUrl = base_url('app-assets/images/portrait/small/avatar-s-11.jpg');
 
 if (! empty($currentUser->profile_photo)) {
     try {
-        $profilePhotoUrl = (new \App\Services\FileAccessService())->pathUrl('profile_photo', $currentUser->profile_photo);
+        $profilePhotoUrl = (new \App\Services\FileAccessService())->pathThumbnailUrl('profile_photo', $currentUser->profile_photo);
     } catch (\Throwable $e) {
         $profilePhotoUrl = base_url('app-assets/images/portrait/small/avatar-s-11.jpg');
     }
@@ -23,8 +23,8 @@ $accessibleProyek = $accessibleProyek ?? [];
 $defaultProjectLogo = base_url('assets/images/pwa/icon-192.png');
 $activeProyekId = $activeProyek ? (int) $activeProyek->id_proyek : null;
 $activeProyekName = $activeProyek->nama_proyek ?? 'Pilih proyek';
-$activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_access_url))
-    ? $activeProyek->logo_access_url
+$activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_thumbnail_url ?? $activeProyek->logo_access_url))
+    ? ($activeProyek->logo_thumbnail_url ?? $activeProyek->logo_access_url)
     : $defaultProjectLogo;
 ?>
 <!-- BEGIN: Header-->
@@ -68,7 +68,7 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_access_url)
                     <div class="dropdown-menu navbar-project-dropdown" aria-labelledby="navbar-project-switcher">
                         <?php foreach ($accessibleProyek as $proyek) :
                             $isActive = $activeProyekId === (int) $proyek->id_proyek;
-                            $logoUrl = ! empty($proyek->logo_access_url) ? $proyek->logo_access_url : $defaultProjectLogo;
+                            $logoUrl = ! empty($proyek->logo_thumbnail_url ?? $proyek->logo_access_url) ? ($proyek->logo_thumbnail_url ?? $proyek->logo_access_url) : $defaultProjectLogo;
                         ?>
                             <a
                                 class="dropdown-item navbar-project-item<?= $isActive ? ' active' : '' ?>"

@@ -124,6 +124,12 @@ class FileAccessService
         return $download ? $url . '&download=1' : $url;
     }
 
+    public function pathThumbnailUrl(string $source, string $logicalPath): string
+    {
+        $token = $this->encodePathToken($this->normalizeLogicalPath($logicalPath));
+        return site_url('files/' . rawurlencode($source) . '/path/thumbnail?path=' . rawurlencode($token));
+    }
+
     public function resolve(string $source, int $id, bool $thumbnail = false): array
     {
         $file = $this->resolveMetadata($source, $id, $thumbnail);

@@ -521,6 +521,98 @@ class PencairanAkadService
         }
     }
 
+    public function listPayment(int $idPengajuan): array
+    {
+        $payments = $this->db->table('pencairan_akad_payment')
+            ->where('id_pengajuan', $idPengajuan)
+            ->where('total_cair >', 0)
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->getResult();
+
+        return $this->response(true, 'Daftar pembayaran', ['payments' => $payments]);
+    }
+
+    public function voidPayment(int $idPayment, string $reason, int $actorId): array
+    {
+        $payment = $this->db->table('pencairan_akad_payment')->where('id', $idPayment)->get()->getRow();
+        if (! $payment) {
+            return $this->response(false, 'Data pencairan tidak ditemukan');
+        }
+        if ((float) $payment->total_cair <= 0) {
+            return $this->response(false, 'Pencairan ini sudah dibatalkan atau bernilai 0');
+        }
+
+        $pengajuan = $this->db->table('pencairan_akad_pengajuan')->where('id', $payment->id_pengajuan)->get()->getRow();
+        if (! $pengajuan) {
+            return $this->response(false, 'Pengajuan tidak ditemukan');
+        }
+
+        $db = $this->db;
+        $db->transException(true);
+
+        try {
+            $db->transStart();
+
+            $details = $db->table('pencairan_akad_payment_detail')->where('id_payment', $idPayment)->get()->getResult();
+
+            foreach ($details as $detail) {
+                // Rollback Ledger
+                $this->ledgerService->voidByPencairanAkadPaymentDetail((int) $detail->id, $actorId);
+
+                // Reduce nominal_cair on pengajuan_detail
+                $pd = $db->table('pencairan_akad_pengajuan_detail')->where('id', $detail->id_pengajuan_detail)->get()->getRow();
+                if ($pd) {
+                    $newCair = $this->num($pd->nominal_cair) - $this->num($detail->nominal_cair);
+                    $db->table('pencairan_akad_pengajuan_detail')
+                        ->where('id', $detail->id_pengajuan_detail)
+                        ->update(['nominal_cair' => max(0, $newCair), 'updated_at' => date('Y-m-d H:i:s')]);
+                }
+            }
+
+            // Set payment to 0 and add note
+            $db->table('pencairan_akad_payment')->where('id', $idPayment)->update([
+                'total_cair' => 0,
+                'catatan' => trim($payment->catatan . ' (Void: ' . $reason . ')')
+            ]);
+
+            // Recalculate total_cair on pengajuan
+            $totalCairPengajuan = (float) $this->db->table('pencairan_akad_pengajuan_detail')
+                ->selectSum('nominal_cair')
+                ->where('id_pengajuan', $pengajuan->id)
+                ->get()
+                ->getRow()->nominal_cair;
+
+            $statusBaru = $totalCairPengajuan >= (float) $pengajuan->total_pengajuan - 0.01 ? 'paid' : ($totalCairPengajuan > 0.01 ? 'partial' : 'active');
+
+            $db->table('pencairan_akad_pengajuan')->where('id', $pengajuan->id)->update([
+                'total_cair' => $totalCairPengajuan,
+                'status' => $statusBaru,
+                'edit_by' => $actorId,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            $plan = $this->getPlanById((int) $pengajuan->id_plan);
+            if ($plan) {
+                $this->saveHistory((int) $plan->id_kavling, (int) $plan->id_mkdt, (int) $plan->id, $pengajuan->id, 'void', 'Pencairan dibatalkan: ' . $reason . ' (-Rp ' . number_format($payment->total_cair, 0, ',', '.') . ')', [], $actorId);
+            }
+
+            $db->transComplete();
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            return $this->response(true, 'Pencairan berhasil dibatalkan', ['id_pengajuan' => $pengajuan->id]);
+        } catch (\Throwable $e) {
+            try {
+                $db->transRollback();
+            } catch (\Throwable $rollback) {
+            }
+            log_message('error', '[PencairanAkadService::voidPayment] {message}', ['message' => $e->getMessage()]);
+            return $this->response(false, 'Gagal membatalkan pencairan: ' . $e->getMessage());
+        }
+    }
+
     public function void(int $idPengajuan, string $reason, int $actorId): array
     {
         $pengajuan = $this->db->table('pencairan_akad_pengajuan')->where('id', $idPengajuan)->get()->getRow();

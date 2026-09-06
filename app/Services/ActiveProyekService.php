@@ -180,6 +180,7 @@ class ActiveProyekService
 
         $id = (int) $proyek->id_proyek;
         $proyek->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', $id);
+        $proyek->logo_thumbnail_url = $this->fileAccessService->thumbnailUrl('proyek_logo', $id);
         $proyek->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', $id);
 
         return $proyek;

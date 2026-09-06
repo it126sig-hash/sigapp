@@ -366,11 +366,9 @@
       return `
         <tr>
           <td>${row.tanggal_pengajuan ? format_date(row.tanggal_pengajuan) : "-"}</td>
-          <td>${row.tanggal_rencana_cair ? format_date(row.tanggal_rencana_cair) : "-"}</td>
           <td class="text-right">Rp ${num_format(parseFloat(row.total_pengajuan || 0))}</td>
           <td class="text-right">Rp ${num_format(parseFloat(row.total_cair || 0))}</td>
           <td>${paChildStatusBadge(row.status)}</td>
-          <td>${lampiran}</td>
         </tr>`;
     }).join("");
 
@@ -379,11 +377,9 @@
         <thead>
           <tr>
             <th>Tgl Pengajuan</th>
-            <th>Rencana Cair</th>
             <th class="text-right">Total Pengajuan</th>
             <th class="text-right">Total Cair</th>
             <th>Status</th>
-            <th>Lampiran</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>

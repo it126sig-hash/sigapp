@@ -351,10 +351,17 @@ $(document).on("keydown", "#pa-tenor_here .pa-tenor-nominal", function (e) {
   e.preventDefault();
   const hasilAkad = paHasilAkadValue();
   const rawDigits = String($(this).val() || "0").replace(/,/g, "");
-  const amount = paParsePercentInput(rawDigits + "%", hasilAkad);
+  const pctString = rawDigits + "%";
+  const amount = paParsePercentInput(pctString, hasilAkad);
   if (amount === null) return;
   $(this).val(amount);
   $(this).keyup();
+  
+  const $row = $(this).closest(".pa-tenor-row");
+  const $catatan = $row.find(".pa-tenor-catatan");
+  if ($catatan.length) {
+    $catatan.val(pctString);
+  }
 });
 
 $(document).on("keyup change", "#pa-tenor_here .pa-tenor-nominal", function () {
@@ -552,12 +559,10 @@ function renderPencairanAkadPengajuanTable() {
   }
 
   pencairanAkadState.pengajuan.forEach(function (row, i) {
-    const lampiran = row.access_url
-      ? `<a href="${row.access_url}" target="_blank" class="btn btn-link btn-sm">Lihat</a>`
-      : "-";
     const action = row.status === "void"
       ? '<span class="text-muted">-</span>'
-      : `<button type="button" class="btn btn-outline-danger btn-sm" onclick="voidPencairanAkad(${row.id})" ${parseFloat(row.total_cair) > 0 ? "disabled" : ""}><i class="fas fa-ban"></i></button>`;
+      : `<button type="button" class="btn btn-outline-info btn-sm mr-25 mb-25" title="Riwayat Pencairan" onclick="showPencairanList(${row.id})"><i class="fas fa-list"></i></button>`
+        + `<button type="button" class="btn btn-outline-danger btn-sm mb-25" title="Void Pengajuan" onclick="voidPencairanAkad(${row.id})" ${parseFloat(row.total_cair) > 0 ? "disabled" : ""}><i class="fas fa-ban"></i></button>`;
     const itemList = (row.details || [])
       .map(function (d) {
         const label = d.jenis === "retensi" ? "Retensi - " + paEscape(d.nama_jaminan || "") : "Termin #" + d.urutan_tenor;
@@ -570,13 +575,11 @@ function renderPencairanAkadPengajuanTable() {
     tr.innerHTML = `
       <td>${i + 1}</td>
       <td>${row.tanggal_pengajuan ? format_date(row.tanggal_pengajuan) : "-"}</td>
-      <td>${row.tanggal_rencana_cair ? format_date(row.tanggal_rencana_cair) : "-"}</td>
       <td>${itemList}</td>
       <td class="text-right">Rp ${paMoney(row.total_pengajuan)}</td>
       <td class="text-right">Rp ${paMoney(row.total_cair)}</td>
       <td>${paStatusBadge(row.status)}</td>
       <td>${paEscape(row.add_by_name || "-")}</td>
-      <td>${lampiran}</td>
       <td>${action}</td>
     `;
     tb.appendChild(tr);
@@ -614,6 +617,83 @@ function voidPencairanAkad(id) {
           swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");
         }
       },
+    });
+  });
+}
+
+function showPencairanList(idPengajuan) {
+  $.ajax({
+    url: base_url + "keuangan/pencairan-akad/payment/list",
+    type: "post",
+    data: { [csrfName]: csrfHash, id_pengajuan: idPengajuan },
+    dataType: "json",
+    success: function (r) {
+      if (r.token) csrfHash = r.token;
+      if (r.success) {
+        if (!r.payments || !r.payments.length) {
+          swal("info", "Tidak ada", "Belum ada pencairan untuk pengajuan ini.");
+          return;
+        }
+        let html = '<table class="table table-sm table-bordered text-left" style="font-size:12px;">';
+        html += '<thead><tr><th>Tgl Cair</th><th>Nominal</th><th>Catatan</th><th>Aksi</th></tr></thead><tbody>';
+        r.payments.forEach(p => {
+          html += `<tr>
+            <td>${format_date(p.tanggal_cair)}</td>
+            <td class="text-right">Rp ${paMoney(p.total_cair)}</td>
+            <td>${paEscape(p.catatan)}</td>
+            <td><button class="btn btn-sm btn-danger py-0 px-1" onclick="voidPayment(${p.id})"><i class="fas fa-ban"></i> Void</button></td>
+          </tr>`;
+        });
+        html += '</tbody></table>';
+
+        Swal.fire({
+          title: 'Riwayat Pencairan',
+          html: html,
+          width: '600px',
+          showCloseButton: true,
+          showConfirmButton: false
+        });
+      }
+    }
+  });
+}
+
+function voidPayment(idPayment) {
+  Swal.fire({
+    title: "Batalkan pencairan ini?",
+    text: "Jurnal keuangan akan di-rollback. Masukkan alasan:",
+    input: 'text',
+    type: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Ya, Void",
+    cancelButtonText: "Batal",
+    inputValidator: (value) => {
+      if (!value) {
+        return 'Alasan harus diisi!'
+      }
+    }
+  }).then(function (result) {
+    if (!result.value) return;
+
+    $.ajax({
+      url: base_url + "keuangan/pencairan-akad/payment/void",
+      type: "post",
+      data: {
+        [csrfName]: csrfHash,
+        id_payment: idPayment,
+        reason: result.value,
+      },
+      dataType: "json",
+      success: function (r) {
+        if (r.token) csrfHash = r.token;
+        if (r.success === true) {
+          swal("success", "Sukses", "Pencairan berhasil dibatalkan");
+          Swal.close();
+          loadPencairanAkadData(false);
+        } else {
+          swal("error", "Gagal", r.messages || r.message || "Terjadi kesalahan");
+        }
+      }
     });
   });
 }

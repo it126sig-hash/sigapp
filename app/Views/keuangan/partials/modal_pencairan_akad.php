@@ -278,7 +278,7 @@
 </style>
 
 <!-- ################################## Pencairan Akad ##########################################-->
-<div class="modal fade text-left" id="pencairan_akad_modal" tabindex="-1" role="dialog"
+<div class="modal fade text-left" id="pencairan_akad_modal" role="dialog"
     aria-labelledby="pencairan_akad_modal_label" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
         <div class="modal-content">
@@ -509,11 +509,11 @@
                                                             <label>Tanggal Pengajuan</label>
                                                             <input type="date" class="form-control" name="tanggal_pengajuan" required>
                                                         </div>
-                                                        <div class="form-group">
+                                                        <div class="form-group" style="display:none;">
                                                             <label>Tanggal Rencana Cair</label>
                                                             <input type="date" class="form-control" name="tanggal_rencana_cair">
                                                         </div>
-                                                        <div class="form-group">
+                                                        <div class="form-group" style="display:none;">
                                                             <label>Lampiran Surat (PDF/Gambar, opsional)</label>
                                                             <div class="dropzone dropzone-lg custom-file" id="pa-dz-lampiran">
                                                                 <input type="file" class="custom-file-input dz-input" id="pa-lampiran-input"
@@ -582,13 +582,11 @@
                                                     <tr>
                                                         <th>#</th>
                                                         <th>Tgl Pengajuan</th>
-                                                        <th>Rencana Cair</th>
                                                         <th>Item Diajukan</th>
                                                         <th class="text-right">Total</th>
                                                         <th class="text-right">Cair</th>
                                                         <th>Status</th>
                                                         <th>PIC</th>
-                                                        <th>Lampiran</th>
                                                         <th>Aksi</th>
                                                     </tr>
                                                 </thead>
