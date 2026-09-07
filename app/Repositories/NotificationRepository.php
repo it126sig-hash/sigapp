@@ -26,10 +26,6 @@ class NotificationRepository
         }
         $this->applyLegacyAudienceFilter($builder, $userId, $groupId);
 
-        if (! $all) {
-            $builder->orderBy('notification.is_read', 'asc');
-        }
-
         return $builder
             ->orderBy('notification.created_at', 'desc')
             ->limit($limit, $offset)
@@ -102,15 +98,44 @@ class NotificationRepository
         return $this->db->affectedRows() > 0;
     }
 
+    public function markAllAsReadForUser(int $userId): bool
+    {
+        if ($this->usesRecipientReadPath()) {
+            $this->db->table('notification_recipients')
+                ->where('user_id', $userId)
+                ->where('read_at IS NULL', null, false)
+                ->update([
+                    'read_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+            return $this->db->affectedRows() > 0;
+        }
+
+        // Legacy mark all as read is difficult to do perfectly without joining, 
+        // but we'll update everything the user can see.
+        $subquery = $this->db->table('notification')
+            ->select('id')
+            ->where('is_read', 0);
+        $this->applyLegacyAudienceFilter($subquery, $userId, $this->currentGroupId($userId));
+        $ids = array_column($subquery->get()->getResultArray(), 'id');
+
+        if (empty($ids)) {
+            return false;
+        }
+
+        $this->db->table('notification')
+            ->whereIn('id', $ids)
+            ->update(['is_read' => 1]);
+
+        return $this->db->affectedRows() > 0;
+    }
+
     private function newListQuery(int $userId, ?int $idProyek, int $offset, int $limit, bool $all): BaseBuilder
     {
         $builder = $this->newBaseQuery($userId);
         if ($idProyek) {
             $this->applyProjectFilter($builder, $idProyek);
-        }
-
-        if (! $all) {
-            $builder->orderBy('is_read', 'asc', false);
         }
 
         return $builder

@@ -127,6 +127,9 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_thumbnail_u
                                 <small class="text-muted">Aktivitas dan pengingat terbaru</small>
                             </div>
                             <span class="badge badge-pill badge-light-primary mr-50" id="notif-summary-badge" style="display:none;">0</span>
+                            <button type="button" class="btn btn-flat-success btn-icon btn-sm mr-25 notification-mark-read-btn" id="mark-all-read-notif-center" title="Tandai semua dibaca" aria-label="Tandai semua dibaca">
+                                <i data-feather="check-square"></i>
+                            </button>
                             <button type="button" class="btn btn-flat-primary btn-icon btn-sm notification-refresh-btn" id="refresh-notif-center" title="Perbarui notifikasi" aria-label="Perbarui notifikasi">
                                 <i data-feather="refresh-cw"></i>
                             </button>

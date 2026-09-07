@@ -999,6 +999,30 @@ $("#refresh-notif-center").click(function (event) {
   getNotif();
 });
 
+$("#mark-all-read-notif-center").click(function (event) {
+  event.preventDefault();
+  let btn = $(this);
+  btn.prop("disabled", true);
+  
+  $.ajax({
+    type: "POST",
+    url: base_url + "/notif/mark-all-as-read",
+    data: { [csrfName]: csrfHash },
+    dataType: "json",
+    success: function (response) {
+      if (response && response.token) {
+        updateNotificationToken(response.token);
+      }
+      btn.prop("disabled", false);
+      getNotif(); // Refresh notifikasi agar badge & warna terupdate
+    },
+    error: function () {
+      btn.prop("disabled", false);
+      showToast("Gagal menandai notifikasi sebagai dibaca.", "danger");
+    }
+  });
+});
+
 $("#list-notif").on("click", ".notif-project-btn", function(e) {
   e.preventDefault();
   e.stopPropagation();

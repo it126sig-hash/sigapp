@@ -183,6 +183,12 @@ class Notif extends BaseController
         return $this->response->setJSON(['status' => 'success', 'token' => csrf_hash()]);
     }
 
+    function markAllAsRead() {
+        $success = $this->notificationRepository->markAllAsReadForUser((int) user_id());
+
+        return $this->response->setJSON(['status' => 'success', 'token' => csrf_hash()]);
+    }
+
     protected function getCurrentGroupId(): int
     {
         $groupId = (int) (session()->group_id ?? 0);
