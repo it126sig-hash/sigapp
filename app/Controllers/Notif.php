@@ -83,7 +83,8 @@ class Notif extends BaseController
 
     function getSummary()
     {
-        $idProyek = (int) ($this->request->getGet('id_proyek') ?: session()->get('id_proyek'));
+        $rawIdProyek = $this->request->getGet('id_proyek');
+        $idProyek = $rawIdProyek === 'all' ? 0 : (int) ($rawIdProyek ?: session()->get('id_proyek'));
         $activityUnreadCount = $this->getUnreadActivityCount($idProyek > 0 ? $idProyek : null);
 
         return $this->response->setJSON([
@@ -97,7 +98,8 @@ class Notif extends BaseController
 
     function getCenter()
     {
-        $idProyek = (int) ($this->request->getGet('id_proyek') ?: session()->get('id_proyek'));
+        $rawIdProyek = $this->request->getGet('id_proyek');
+        $idProyek = $rawIdProyek === 'all' ? 0 : (int) ($rawIdProyek ?: session()->get('id_proyek'));
         $groupId = $this->getCurrentGroupId();
         $userId = function_exists('user_id') ? (int) user_id() : 0;
         $urgent = $idProyek > 0
@@ -146,7 +148,8 @@ class Notif extends BaseController
     {
         $r['token'] = csrf_hash();
         $offset = $this->request->getVar('offset');
-        $idProyek = (int) $this->request->getVar('id_proyek');
+        $rawIdProyek = $this->request->getVar('id_proyek');
+        $idProyek = $rawIdProyek === 'all' ? 0 : (int) ($rawIdProyek ?: session()->get('id_proyek'));
 
         if($all)
             $this->group_id = '';
@@ -212,11 +215,19 @@ class Notif extends BaseController
 
     protected function sanitizeActivityItems(array $items): array
     {
-        foreach ($items as $item) {
+        $fileAccessService = new \App\Services\FileAccessService();
+
+        foreach ($items as &$item) {
             if (is_object($item)) {
                 $item->notif_text = $this->plainNotificationText($item->notif ?? '');
+                if (!empty($item->id_proyek)) {
+                    $item->logo_access_url = $fileAccessService->accessUrl('proyek_logo', (int) $item->id_proyek);
+                }
             } elseif (is_array($item)) {
                 $item['notif_text'] = $this->plainNotificationText($item['notif'] ?? '');
+                if (!empty($item['id_proyek'])) {
+                    $item['logo_access_url'] = $fileAccessService->accessUrl('proyek_logo', (int) $item['id_proyek']);
+                }
             }
         }
 

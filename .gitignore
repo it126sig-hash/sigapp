@@ -148,4 +148,7 @@ writable/refactor/
 #graphify
 /graphify/*
 
+# codegraph
+.codegraph/
+
 *.zip

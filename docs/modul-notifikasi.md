@@ -455,19 +455,18 @@ Notifikasi disisipkan action URL agar saat diklik langsung membuka modal/tab ter
 - **Cashout Subkon**: `cashout/subkon?open_kavling={id_kavling}` -> Membuka daftar cashout dan otomatis menampilkan data kavling terkait.
 - **Member Get Member**: `member-get-member?id_referral={id}` -> Membuka halaman referral dan menampilkan detailnya.
 
-## Preferensi Notifikasi Dinamis
+## Preferensi Notifikasi Dinamis (Opt-In / Opt-Out)
 
-Mulai sekarang, notifikasi mendukung preferensi granular per user per channel (In-App, Email, Web Push) berdasarkan event type spesifik (contoh: Konsumen Baru, Tagihan KPR).
+Mulai sekarang, notifikasi mendukung preferensi granular per user per channel (In-App, Email, Web Push) berdasarkan event type spesifik. Arsitektur terbaru telah diubah agar sistem menjadi **sepenuhnya dinamis**—setiap pengguna dari departemen manapun berhak (dan bisa) menerima notifikasi apapun jika mereka mengaktifkannya di pengaturan (berperilaku sebagai Opt-In).
 
-**Arsitektur Preferensi:**
-1. **Registry Event**: pp/Enums/NotificationEvent.php mendaftarkan konstanta event, sedangkan 
-otification_event_types di DB (di-seed lewat NotificationEventTypeSeeder) mendaftarkan nama lengkap dan kategori untuk UI.
-2. **Override per User**: Pengaturan user disimpan di tabel user_notification_preferences. Terdapat kolom is_locked (TINYINT) yang jika bernilai 1 maka preferensi tidak bisa diubah oleh user bersangkutan (paksaan admin/sistem).
-3. **Penerapan Default**: Default preferensi seluruh notifikasi adalah **ON** untuk ketiga channel. Jika user belum menyimpan pengaturan, sistem menggunakan merged defaults (NotificationPreferenceService::getUserPreferences).
-4. **Pemotongan Pengiriman**:
-   - Jika preferensi In-App dimatikan: row 
-otification_recipients tetap dibuat, namun langsung ditandai sudah dibaca (ead_at = NOW()).
-   - Jika preferensi Email / Web Push dimatikan: row 
-otification_deliveries untuk channel tersebut akan ditandai dengan status preference_blocked (bukan pending).
-5. **Caller Implementation**: Fungsi pembantu 	ambah_notif kini memilik signature tambahan argumen ke-9: ?string  = null. Pengembang wajib mengirim konstanta NotificationEvent::NAMA_EVENT setiap kali memanggil notifikasi dari Controller/Service.
-
+**Arsitektur Preferensi & Dynamic Resolution:**
+1. **Registry Event**: `app/Enums/NotificationEvent.php` mendaftarkan konstanta event, sedangkan tabel `notification_event_types` (di-seed lewat `NotificationEventTypeSeeder`) mendaftarkan metadata UI dan nilai *default* preferensi.
+2. **Dynamic Recipient Resolution**: Pada saat `NotifikasiService::create` dipanggil, penerima **tidak lagi** dibatasi secara mutlak oleh `group_target` bawaan dari legacy caller (misal: `"3;4;9"`). Sistem akan membaca preferensi setiap pengguna aktif:
+   - Jika pengguna menghidupkan event tersebut di tabel `user_notification_preferences`, mereka akan di-inklusikan sebagai penerima.
+   - Jika tidak ada preferensi eksplisit, sistem mengikuti `default_in_app`.
+   - Proses fallback ke `group_target` legacy tetap ada untuk memastikan _backward compatibility_ pada event yang belum terdaftar di registry.
+3. **Override per User**: Pengaturan user disimpan di tabel `user_notification_preferences`. Terdapat kolom `is_locked` (TINYINT) yang jika bernilai 1 maka preferensi tidak bisa diubah (paksaan admin).
+4. **Pemotongan Pengiriman (Delivery Gatekeeper)**:
+   - Jika preferensi In-App aktif, row `notification_recipients` dibuat. Jika dimatikan secara eksplisit, *tidak akan* diikutkan pada saat resolusi ID (kecuali merupakan actor sendiri).
+   - Jika preferensi Email / Web Push dimatikan: row `notification_deliveries` untuk channel tersebut akan ditandai dengan status `preference_blocked` (bukan pending).
+5. **Caller Implementation**: Fungsi pembantu `tambah_notif` memilik signature argumen ke-9: `?string $eventType = null`. Pengembang wajib mengirim konstanta `NotificationEvent::NAMA_EVENT` setiap kali memanggil notifikasi dari Controller/Service agar Dynamic Resolution bisa berjalan.

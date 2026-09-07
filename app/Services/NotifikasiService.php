@@ -55,8 +55,8 @@ class NotifikasiService
         }
 
         $recipientRows = [];
-        $recipientUserIds = $this->resolveRecipientIds($audience, $data->actorUserId);
         $eventType = $data->eventType ?? $data->type;
+        $recipientUserIds = $this->resolveRecipientIds($audience, $data->actorUserId, $eventType);
 
         if ($this->featureEnabled('NOTIF_DUAL_WRITE_RECIPIENTS', true)) {
             $recipientRows = $this->storeRecipients($notificationId, $recipientUserIds, $data->actorUserId, $eventType, $now);
@@ -125,10 +125,55 @@ class NotifikasiService
         );
     }
 
-    protected function resolveRecipientIds(NotificationAudience $audience, int $actorUserId): array
+    protected function resolveRecipientIds(NotificationAudience $audience, int $actorUserId, ?string $eventType = null): array
     {
         $recipients = [];
 
+        // 1. DYNAMIC RESOLUTION (Semua departemen bisa dapat asalkan aktif di preferensi/default)
+        if ($eventType !== null) {
+            $eventDef = $this->db->table('notification_event_types')
+                ->where('event_type', $eventType)
+                ->get()
+                ->getRow();
+
+            if ($eventDef) {
+                $isMandatory = (int) $eventDef->is_mandatory === 1;
+                $defaultInApp = (int) $eventDef->default_in_app === 1;
+
+                // Ambil semua preferensi untuk event ini agar tidak query N+1
+                $prefsRaw = $this->db->table('user_notification_preferences')
+                    ->where('event_type', $eventType)
+                    ->get()
+                    ->getResult();
+
+                $userPrefs = [];
+                foreach ($prefsRaw as $p) {
+                    $userPrefs[$p->user_id] = $p;
+                }
+
+                // Loop semua user aktif untuk cek siapa yang berhak menerima
+                foreach ($this->activeUsersQuery()->get()->getResult() as $user) {
+                    $userId = (int) $user->id;
+                    $isAllowed = true;
+
+                    if (!$isMandatory) {
+                        if (isset($userPrefs[$userId])) {
+                            // User memiliki pengaturan eksplisit, hormati pengaturannya
+                            $isAllowed = (int) $userPrefs[$userId]->in_app === 1;
+                        } else {
+                            // Belum ada pengaturan spesifik, ikuti default sistem
+                            $isAllowed = $defaultInApp;
+                        }
+                    }
+
+                    if ($isAllowed) {
+                        $recipients[$userId] = $userId;
+                    }
+                }
+            }
+        }
+
+        // 2. LEGACY AUDIENCE RESOLUTION (Backward compatibility & static targets)
         if ($audience->isGlobal()) {
             foreach ($this->activeUsersQuery()->get()->getResult() as $user) {
                 $recipients[(int) $user->id] = (int) $user->id;

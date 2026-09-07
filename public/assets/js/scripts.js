@@ -625,8 +625,13 @@ let notificationBadgeRequest = null;
 let notificationCenterLoaded = false;
 let notificationCenterUserSelectedTab = false;
 let notificationActivityHasMore = true;
+let currentNotifProjectId = "auto"; // Default: ikut proyek aktif
 
 function notificationProjectId() {
+  if (currentNotifProjectId && currentNotifProjectId !== "auto") {
+    return currentNotifProjectId;
+  }
+
   if (typeof dt_proyek !== "undefined" && dt_proyek && dt_proyek.id_proyek) {
     return dt_proyek.id_proyek;
   }
@@ -958,9 +963,14 @@ function renderActivityItem(v) {
     ? `<span class="activity-location">${notificationEscape(v.nama_jalan)} No. ${notificationEscape(v.no_kavling)}</span>`
     : "";
 
+  const defaultLogo = (typeof base_url !== 'undefined' ? base_url : '/') + 'assets/images/pwa/icon-192.png';
+  const logoUrl = v.logo_thumbnail_url || v.logo_access_url || defaultLogo;
+  
   return `
     <div class="activity-item${unread ? " is-unread" : ""}" onclick="handleNotificationClick(${v.id}, '${v.id_kavling}', '${v.type || ""}', this)">
-      <div class="activity-avatar" style="background:${avatarColor}">${initial}</div>
+      <div class="activity-avatar bg-transparent" style="padding:0; overflow:hidden; border: 1px solid #ebe9f1;">
+        <img src="${notificationEscape(logoUrl)}" alt="logo" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+      </div>
       <div class="activity-body">
         <div class="activity-title-row">
           <strong>${notificationEscape(username)}</strong>
@@ -987,6 +997,37 @@ $("#header-notif").on("click", function () {
 $("#refresh-notif-center").click(function (event) {
   event.preventDefault();
   getNotif();
+});
+
+$("#list-notif").on("click", ".notif-project-btn", function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  // Reset active classes
+  $(".notif-project-btn").removeClass("btn-primary active text-white").addClass("bg-white border text-secondary");
+  
+  // Set current to active
+  $(this).removeClass("bg-white border text-secondary").addClass("btn-primary active text-white");
+
+  // Update active project name in header
+  const idProyek = $(this).data("id-proyek");
+  const namaProyek = $(this).data("nama-proyek");
+  $("#notif-active-project-name").text(namaProyek);
+
+  currentNotifProjectId = idProyek;
+  
+  loadNotificationBadge();
+  if ($("#list-notif").hasClass("show")) {
+      getNotif(true);
+  }
+});
+
+// Enable horizontal scrolling with mouse wheel for the project filter
+$(document).on("wheel", ".notif-project-scroll", function(e) {
+  if (e.originalEvent.deltaY !== 0) {
+    e.preventDefault();
+    this.scrollLeft += e.originalEvent.deltaY;
+  }
 });
 
 function setNotificationCenterTab(target, fromUser = true) {

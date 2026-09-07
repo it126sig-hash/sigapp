@@ -334,7 +334,7 @@ class TransaksiService
             $pesanNotif = $kons['id_mkdt']
                 ? ('Melakukan perubahan data konsumen : ' . $kons['nama_konsumen'])
                 : ('Booking kavling atas nama : ' . $kons['nama_konsumen']);
-            $this->notif->tambah_notif('3;4;9', $pesanNotif, user_id(), $idKavling, $idKonsumen, $isNew ? \App\Enums\NotificationEvent::BOOKING_BARU : \App\Enums\NotificationEvent::DATA_KONSUMEN_UPDATE, null, "siteplan/view?id_kavling=" . $idKavling . "&tab=konsumen");
+            $this->notif->tambah_notif('3;4;9', $pesanNotif, user_id(), $idKavling, $idKonsumen, $isNewMkdt ? \App\Enums\NotificationEvent::BOOKING_BARU : \App\Enums\NotificationEvent::DATA_KONSUMEN_UPDATE, null, "siteplan/view?id_kavling=" . $idKavling . "&tab=konsumen");
 
             $summary = $this->mkdtHistoryService->buildKonsumenSummary($oldMkdt, $kons, $mk, $isNewMkdt);
             $this->mkdtHistoryService->log(

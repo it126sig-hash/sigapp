@@ -132,21 +132,52 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_thumbnail_u
                             </button>
                         </div>
                     </li>
-                    <li class="notification-center-tabs px-1 pt-50">
-                        <ul class="nav nav-tabs nav-justified" role="tablist">
+                    <li class="notification-center-tabs px-1 pt-50 pb-50 border-bottom">
+                        <ul class="nav nav-tabs nav-justified mb-0" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" id="notif-urgent-tab" href="javascript:void(0)" data-notif-target="urgent" role="tab">
                                     Jatuh Tempo <span class="badge badge-pill badge-light-danger ml-25" id="notif-urgent-count">0</span>
                                 </a>
                             </li>
-                            <li class="nav-item">
+                            <li class="nav-item border-left">
                                 <a class="nav-link" id="notif-activity-tab" href="javascript:void(0)" data-notif-target="activity" role="tab">
                                     Aktivitas <span class="badge badge-pill badge-light-primary ml-25" id="notif-activity-count">0</span>
                                 </a>
                             </li>
                         </ul>
                     </li>
-                    <li class="scrollable-container media-list notification-center-body" id="notification-center-body">
+                    <li class="notification-project-filter px-1 py-50 border-bottom">
+                        <div class="d-flex align-items-center mb-50" style="gap: 6px;">
+                            <i data-feather="folder" class="text-primary" style="width: 16px; height: 16px;"></i>
+                            <span class="text-dark font-weight-bolder" id="notif-active-project-name" style="font-size: 0.9rem;"><?= $activeProyekId ? esc($activeProyekName) : 'Semua Proyek' ?></span>
+                            <i data-feather="chevron-down" class="text-muted" style="width: 14px; height: 14px;"></i>
+                        </div>
+                        <div class="notif-project-scroll" style="display: flex; overflow-x: auto; gap: 8px; padding-bottom: 4px;">
+                            <style>
+                                .notif-project-scroll { scrollbar-width: thin; scrollbar-color: #d0d2d6 transparent; overscroll-behavior: contain; }
+                                .notif-project-scroll::-webkit-scrollbar { height: 4px; }
+                                .notif-project-scroll::-webkit-scrollbar-track { background: transparent; }
+                                .notif-project-scroll::-webkit-scrollbar-thumb { background: #d0d2d6; border-radius: 10px; }
+                                .notif-project-scroll::-webkit-scrollbar-thumb:hover { background: #b4b7bd; }
+                            </style>
+                            <button type="button" class="btn btn-sm <?= !$activeProyekId ? 'btn-primary active text-white' : 'border bg-white text-secondary' ?> rounded-pill notif-project-btn flex-shrink-0" data-id-proyek="all" data-nama-proyek="Semua Proyek" style="display: flex; align-items: center; gap: 6px; padding: 4px 12px;">
+                                <i data-feather="folder" style="width: 14px; height: 14px;"></i>
+                                Semua Proyek
+                            </button>
+                            <?php foreach ($accessibleProyek as $proyek) :
+                                $logoUrl = ! empty($proyek->logo_thumbnail_url ?? $proyek->logo_access_url) ? ($proyek->logo_thumbnail_url ?? $proyek->logo_access_url) : $defaultProjectLogo;
+                                $shortName = strlen($proyek->nama_proyek) > 7 ? substr($proyek->nama_proyek, 0, 7) . '...' : $proyek->nama_proyek;
+                                $isActive = ($activeProyekId === (int) $proyek->id_proyek);
+                            ?>
+                                <button type="button" class="btn btn-sm <?= $isActive ? 'btn-primary active text-white' : 'border bg-white text-secondary' ?> rounded-pill notif-project-btn flex-shrink-0" data-id-proyek="<?= (int) $proyek->id_proyek ?>" data-nama-proyek="<?= esc($proyek->nama_proyek) ?>" style="display: flex; align-items: center; gap: 6px; padding: 4px 12px;">
+                                    <img src="<?= esc($logoUrl) ?>" alt="logo" style="width: 14px; height: 14px; border-radius: 50%; object-fit: cover;">
+                                    <?= esc($shortName) ?>
+                                </button>
+                            <?php endforeach; ?>
+                        </div>
+                    </li>
+
+                    <li class="scrollable-container media-list notification-center-body" id="notification-center-body" style="overscroll-behavior: contain;">
                         <div class="notification-center-content">
                             <div class="notification-center-pane is-active" id="notif-urgent-pane" role="tabpanel" aria-labelledby="notif-urgent-tab">
                                 <div id="notif-urgent-here">

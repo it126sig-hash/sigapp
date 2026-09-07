@@ -2036,7 +2036,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="booking_tgl">Tanggal Booking</label>
-                                    <input type="text" id="booking_tgl" name="booking_tgl" class="form-control flatpickr-human-friendly" placeholder="-" readonly />
+                                    <input type="text" id="booking_tgl" name="booking_tgl" class="form-control flatpickr-human-friendly" placeholder="-" disabled />
                                 </div>
                                 <div class="form-group">
                                     <label for="booking_fee">Booking Fee</label>
