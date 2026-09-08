@@ -150,8 +150,7 @@ function planning_is_kavling_selection() {
 
 function edit_kavling_batch() {
   if (editdtt.length == 0) return;
-  $("#pindah_lokasi_btn").hide();
-  if (planning_is_kavling_selection()) $("#pindah_lokasi_btn").show();
+  $("#pindah_lokasi_btn").show();
 
   $(".t_luas_legal, .t_luas_produksi, .r_progres").html("-");
 
@@ -242,6 +241,7 @@ function edit_kavling_batch() {
       } else {
         if (r.length > 0) {
           $(".id_kavling").val(r[0].id);
+          $("#points").val(r[0].points);
           $("#f_luas").val(r[0].planning_luas);
           $("#f_nama").val(r[0].nama);
           $("#f_planning_keterangan").val(r[0].planning_keterangan);
@@ -561,10 +561,10 @@ var planningMoveState = {
 };
 
 function pindah_kavling() {
-  if (!planning_is_kavling_selection()) {
+  if (!editdtt.length) {
     return Swal.fire({
       icon: "error",
-      title: "Pilih kavling terlebih dahulu",
+      title: "Pilih objek terlebih dahulu",
       showConfirmButton: false,
       timer: 1500,
     });
@@ -578,9 +578,10 @@ function pindah_kavling() {
   };
 
   $("#modals-slide-in").modal("hide");
-  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn, #planning_undo_manual_selection").hide();
-  $("#selesai_pindah_btn, #batal_pindah_btn").show();
+  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").hide();
+  $("#selesai_pindah_btn, #batal_pindah_btn, #planning_undo_manual_selection, #container_tambah_jalan").removeClass('d-none').show();
   hapus_seleksi();
+  $("#tambah_jalan").prop("checked", true).trigger('change');
 }
 
 function selesai_selection(e) {
@@ -618,6 +619,8 @@ function selesai_selection(e) {
   } else if (planningMoveState.active) {
     $("#points").val(planningMoveState.previousPoints);
   }
+  $("#tambah_jalan").prop("checked", false).trigger('change');
+  
   editdtt = planningMoveState.active ? planningMoveState.selected.slice() : editdtt_tmp.slice();
   planningMoveState = {
     active: false,
@@ -626,8 +629,8 @@ function selesai_selection(e) {
   };
 
   $("#modals-slide-in").modal("show");
-  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn, #planning_undo_manual_selection").show();
-  $("#selesai_pindah_btn, #batal_pindah_btn").hide();
+  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").show();
+  $("#selesai_pindah_btn, #batal_pindah_btn, #planning_undo_manual_selection, #container_tambah_jalan").hide();
 }
 
 (function () {

@@ -472,7 +472,10 @@ class Siteplan extends BaseController
 
         $fields['id_jalan'] = $this->request->getPost('id_jalan');
         $fields['tipe'] = $this->request->getPost('id_jenis');
-        $fields['points'] = $this->request->getPost('points');
+        $points = $this->request->getPost('points');
+        if ($points) {
+            $fields['points'] = rtrim($points, ';');
+        }
         $fields['planning_luas'] = $this->request->getPost('f_luas');
         $fields['nama'] = $this->request->getPost('f_nama');
         $fields['planning_keterangan'] = $this->request->getPost('f_planning_keterangan');
@@ -660,7 +663,10 @@ class Siteplan extends BaseController
         $builder = $this->db->table("others");
 
         $fields['id_jalan'] = $this->request->getPost('id_jalan');
-        $fields['points'] = $this->request->getPost('points');
+        $points = $this->request->getPost('points');
+        if ($points) {
+            $fields['points'] = rtrim($points, ';');
+        }
         $fields['tipe'] = $this->request->getPost('id_jenis');
         // $fields['points'] = $this->request->getPost('points');
         $fields['planning_luas'] = $this->request->getPost('f_luas');

@@ -851,6 +851,7 @@
 				<div class="modal-body">
 					<p class="modal-title label_alamat" id="label_fothersproduksi"></p>
 					<input type="hidden" class="form-control id_kavling" name="id_kavling" value="" />
+					<input type="hidden" class="form-control" id="fother_points" name="points" value="" />
 					<input type="hidden" class="form-control" id="id_proyek" name="id_produksi" value="" />
 
 					<ul class="nav nav-tabs" role="tablist">
@@ -907,6 +908,9 @@
 								<textarea class="form-control" id="f_produksi_keterangan" name="f_produksi_keterangan" rows="3"
 									placeholder="Keterangan"></textarea>
 							</div>
+
+							<button id="pindah_lokasi_btn_produksi" onclick="pindah_others_produksi()" type="button"
+								class="btn btn-outline-primary btn-block waves-effect mb-1">Pindah Lokasi</button>
 
 							<div class="form-group produksi-jalan-only">
 								<label for="produksi_jalan_foto">Foto Kondisi Jalan Saat Ini</label>

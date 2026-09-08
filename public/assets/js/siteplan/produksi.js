@@ -51,16 +51,62 @@ function setProduksiJalanSelectionMode(active, clearSelection) {
   }
 }
 
+var produksiMoveState = {
+  active: false,
+  selected: [],
+  previousPoints: "",
+};
+
+function pindah_others_produksi() {
+  if (!editdtt.length) {
+    return Swal.fire({
+      icon: "error",
+      title: "Pilih objek terlebih dahulu",
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  }
+  
+  produksiMoveState = {
+    active: true,
+    selected: editdtt.slice(),
+    previousPoints: $("#fother_points").val(),
+  };
+
+  $("#modal_fothersproduksi").modal("hide");
+  setProduksiJalanSelectionMode(true, true);
+}
+
 function start_tambah_jalan_produksi() {
   setProduksiJalanSelectionMode(true, true);
 }
 
 function cancel_tambah_jalan_produksi() {
+  if (produksiMoveState && produksiMoveState.active) {
+    $("#fother_points").val(produksiMoveState.previousPoints);
+    editdtt = produksiMoveState.selected.slice();
+    produksiMoveState.active = false;
+    setProduksiJalanSelectionMode(false, true);
+    $("#modal_fothersproduksi").modal("show");
+    return;
+  }
   $("#modal_produksi_add_jalan").modal("hide");
   setProduksiJalanSelectionMode(false, true);
 }
 
 function tambah_jalan_produksi() {
+  if (produksiMoveState && produksiMoveState.active) {
+    if (!dtt || dtt.length < 6) {
+      return swal("error", "Seleksi manual minimal 3 titik");
+    }
+    $("#fother_points").val(dtt.join(","));
+    editdtt = produksiMoveState.selected.slice();
+    produksiMoveState.active = false;
+    setProduksiJalanSelectionMode(false, true);
+    $("#modal_fothersproduksi").modal("show");
+    return;
+  }
+
   if (!isProduksiManualSelectionActive()) {
     setProduksiJalanSelectionMode(true, false);
   }
@@ -947,6 +993,7 @@ function open_fotherproduksi(sh) {
           progres = d.progres ? d.progres : 0;
         $(".produksi-jalan-only").toggleClass("hidden", d.tipe !== "jalan");
         $(".id_kavling").val(d.id);
+        $("#fother_points").val(d.points);
         $(".t_luas_legal, .t_luas_produksi").html("-");
 
         if (d.planning_luas)
