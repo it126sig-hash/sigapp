@@ -416,6 +416,7 @@ class TransaksiService
 
         // Kalkulasi Turun KPR dari DB — abaikan nilai dari frontend
         $oldData = $this->transaksiRepo->getKonsumenTransaksi((int) $idMkdt);
+        $idKonsumen = $oldData ? $oldData->id_konsumen : null;
         $hargaKprDb = $oldData ? (float) $oldData->harga_kpr : 0;
         $accKpr = (float) ($data['harga_kpr_acc'] ?? 0);
         $data['harga_kpr']           = $hargaKprDb;
