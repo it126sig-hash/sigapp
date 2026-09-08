@@ -128,6 +128,7 @@ class NotifikasiService
     protected function resolveRecipientIds(NotificationAudience $audience, int $actorUserId, ?string $eventType = null): array
     {
         $recipients = [];
+        $useLegacy = true;
 
         // 1. DYNAMIC RESOLUTION (Semua departemen bisa dapat asalkan aktif di preferensi/default)
         if ($eventType !== null) {
@@ -137,6 +138,7 @@ class NotifikasiService
                 ->getRow();
 
             if ($eventDef) {
+                $useLegacy = false; // Event terdaftar di registry: override target legacy menjadi FULL OPT-IN
                 $isMandatory = (int) $eventDef->is_mandatory === 1;
                 $defaultInApp = (int) $eventDef->default_in_app === 1;
 
@@ -173,30 +175,32 @@ class NotifikasiService
             }
         }
 
-        // 2. LEGACY AUDIENCE RESOLUTION (Backward compatibility & static targets)
-        if ($audience->isGlobal()) {
-            foreach ($this->activeUsersQuery()->get()->getResult() as $user) {
-                $recipients[(int) $user->id] = (int) $user->id;
+        // 2. LEGACY AUDIENCE RESOLUTION (Hanya berjalan jika event belum terdaftar di registry)
+        if ($useLegacy) {
+            if ($audience->isGlobal()) {
+                foreach ($this->activeUsersQuery()->get()->getResult() as $user) {
+                    $recipients[(int) $user->id] = (int) $user->id;
+                }
             }
-        }
 
-        if ($audience->groupIds() !== []) {
-            $rows = $this->activeUsersQuery()
-                ->join('auth_groups_users agu', 'agu.user_id = users.id')
-                ->whereIn('agu.group_id', $audience->groupIds())
-                ->groupBy('users.id')
-                ->get()
-                ->getResult();
+            if ($audience->groupIds() !== []) {
+                $rows = $this->activeUsersQuery()
+                    ->join('auth_groups_users agu', 'agu.user_id = users.id')
+                    ->whereIn('agu.group_id', $audience->groupIds())
+                    ->groupBy('users.id')
+                    ->get()
+                    ->getResult();
 
-            foreach ($rows as $user) {
-                $recipients[(int) $user->id] = (int) $user->id;
+                foreach ($rows as $user) {
+                    $recipients[(int) $user->id] = (int) $user->id;
+                }
             }
-        }
 
-        if ($audience->userIds() !== []) {
-            foreach ($audience->userIds() as $userId) {
-                if ($this->isActiveUser((int) $userId)) {
-                    $recipients[(int) $userId] = (int) $userId;
+            if ($audience->userIds() !== []) {
+                foreach ($audience->userIds() as $userId) {
+                    if ($this->isActiveUser((int) $userId)) {
+                        $recipients[(int) $userId] = (int) $userId;
+                    }
                 }
             }
         }

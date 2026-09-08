@@ -122,9 +122,10 @@ class KavlingRequestService
             actorUserId: $userId,
             idKavling: $idKavling,
             idKonsumen: null,
-            type: 'request_kavling',
+            type: \App\Enums\NotificationEvent::REQUEST_KAVLING,
             idProyek: $idProyek,
-            actionUrl: $actionUrl
+            actionUrl: $actionUrl,
+            eventType: \App\Enums\NotificationEvent::REQUEST_KAVLING
         );
 
         $audience = NotificationAudience::forGroups([6]); // Group 6 = Planning

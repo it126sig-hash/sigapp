@@ -10,6 +10,7 @@ final class NotificationEvent
     const OTHERS_ADDED         = 'others_added';
     const OTHERS_UPDATED       = 'others_updated';
     const TURUN_PEMBANGUNAN    = 'turun_pembangunan';
+    const REQUEST_KAVLING      = 'request_kavling';
 
     // ── Konsumen & Transaksi (MKDT) ──
     const BOOKING_BARU         = 'booking_baru';

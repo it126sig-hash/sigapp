@@ -17,6 +17,7 @@ class NotificationEventTypeSeeder extends Seeder
             ['others_added', 'siteplan', 'Penambahan Fasum/Lainnya', 'Saat fasilitas umum atau lainnya ditambahkan', 1, 1, 1, 0, null, 3],
             ['others_updated', 'siteplan', 'Perubahan Fasum/Lainnya', 'Saat fasilitas umum atau lainnya diubah', 1, 1, 1, 0, null, 4],
             ['turun_pembangunan', 'siteplan', 'Turun Pembangunan', 'Saat kavling dipindah status turun pembangunan', 1, 1, 1, 0, '4;9', 5],
+            ['request_kavling', 'siteplan', 'Request Kavling Baru', 'Saat ada pengajuan kavling baru ke tim Planning', 1, 1, 1, 0, '6', 6],
 
             // Kategori: Konsumen
             ['booking_baru', 'konsumen', 'Booking Kavling Baru', 'Saat ada booking kavling baru', 1, 1, 1, 0, '3;4;9', 10],

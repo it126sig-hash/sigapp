@@ -356,6 +356,7 @@ if ($displayName === '') {
 </div>
 
 <script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
 
 <script>
     (function () {
