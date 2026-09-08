@@ -362,14 +362,48 @@ class EmailDigestService
 
     protected function sendDigestEmail($user, $items): bool
     {
-        $html = view('emails/email_digest', [
-            'user' => $user,
-            'items' => $items,
-        ]);
-
         $this->email->clear();
         $this->email->setTo($user->email);
         $this->email->setSubject('Rangkuman Notifikasi SIGAPP - ' . date('d M Y H:i'));
+
+        $fileAccessService = new FileAccessService();
+        $thumbnailService = new ImageThumbnailService();
+        $proyekLogos = [];
+
+        foreach ($items as $proyekName => $notifs) {
+            $firstNotif = $notifs[0] ?? null;
+            if ($firstNotif && !empty($firstNotif->id_proyek)) {
+                $idProyek = (int) $firstNotif->id_proyek;
+
+                if (!array_key_exists($idProyek, $proyekLogos)) {
+                    $proyekRow = $this->db->table('proyek')->select('logo')->where('id_proyek', $idProyek)->get()->getRow();
+                    
+                    if ($proyekRow && !empty($proyekRow->logo)) {
+                        $absolutePath = $fileAccessService->existingPath($proyekRow->logo);
+                        if ($absolutePath && is_file($absolutePath)) {
+                            $thumbPath = $thumbnailService->getThumbnail($absolutePath, 100, 100, 'center');
+                            if ($thumbPath && is_file($thumbPath)) {
+                                $this->email->attach($thumbPath, 'inline');
+                                $cid = $this->email->setAttachmentCID($thumbPath);
+                                if ($cid) {
+                                    $proyekLogos[$idProyek] = $cid;
+                                }
+                            }
+                        }
+                    }
+                    if (!isset($proyekLogos[$idProyek])) {
+                        $proyekLogos[$idProyek] = null;
+                    }
+                }
+            }
+        }
+
+        $html = view('emails/email_digest', [
+            'user' => $user,
+            'items' => $items,
+            'proyekLogos' => $proyekLogos,
+        ]);
+
         $this->email->setMessage($html);
         $this->email->setMailType('html');
 

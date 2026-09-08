@@ -485,7 +485,7 @@ class GoogleCalendarService
             ->where('tm.prioritas', 'urgent')
             ->where('tm.status !=', 'draft')
             ->where('tm.tanggal_kunjungan IS NOT NULL', null, false)
-            ->where('tm.tanggal_kunjungan !=', '0000-00-00')
+            ->where('YEAR(tm.tanggal_kunjungan) >', 0, false)
             ->get()
             ->getRow();
     }

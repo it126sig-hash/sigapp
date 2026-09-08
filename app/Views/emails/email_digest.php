@@ -30,9 +30,12 @@
                 <div style="background-color: #2057a3; color: #fff; padding: 10px 15px; font-weight: bold; font-size: 16px;">
                     <?php
                     $firstNotif = $notifs[0] ?? null;
-                    if ($firstNotif && !empty($firstNotif->id_proyek)): ?>
-                        <img src="<?= base_url('files/proyek_logo/' . $firstNotif->id_proyek . '/thumbnail') ?>" alt="Logo" style="height: 24px; vertical-align: middle; margin-right: 10px; background-color: #fff; border-radius: 4px; padding: 2px;">
-                    <?php endif; ?>
+                    if ($firstNotif && !empty($firstNotif->id_proyek)):
+                        $idProyek = (int) $firstNotif->id_proyek;
+                        if (!empty($proyekLogos[$idProyek])):
+                    ?>
+                        <img src="cid:<?= esc($proyekLogos[$idProyek], 'attr') ?>" alt="Logo" style="height: 24px; vertical-align: middle; margin-right: 10px; background-color: #fff; border-radius: 4px; padding: 2px;">
+                    <?php endif; endif; ?>
                     Proyek: <?= esc($proyekName) ?>
                 </div>
                 <div style="padding: 10px 15px;">

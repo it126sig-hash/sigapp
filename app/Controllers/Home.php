@@ -135,7 +135,7 @@ class Home extends BaseController
             $r['booking_batal'] = (int) ($q->jumlah_booking_batal ?? 0);
             $r['booking_aktif'] = (int) ($q->jumlah_booking_aktif ?? 0);
             $r['summary'] = $this->getDashboardProjectSummary($id_proyek, $sdate, $edate);
-            $r['summary']['booking_to_akad_rate'] = $r['booking'] > 0 ? round(($r['booking_akad'] / $r['booking']) * 100, 1) : 0;
+            $r['summary']['booking_to_akad_rate'] = $r['booking'] > 0 ? round(($r['akad'] / $r['booking']) * 100, 1) : 0;
             $r['finance'] = $this->getDashboardFinanceSummary($id_proyek, $sdate, $edate);
             $r['production'] = $this->getDashboardProductionSummary($id_proyek, $sdate, $edate);
             $r['target'] = $this->getDashboardTargetSummary($id_proyek, (int) $tahun);

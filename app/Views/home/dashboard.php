@@ -713,8 +713,8 @@
 
 		$("#sales-progress-bar").css('width', Math.min(100, Number(summary.booking_to_akad_rate || 0)) + '%');
 
-		$("#st_booking_akad").html(formatNumber(r.booking_akad));
-		$("#st_booking_batal").html(formatNumber(r.booking_batal));
+		$("#st_booking_akad").html(formatNumber(r.akad));
+		$("#st_booking_batal").html(formatNumber(r.batal));
 		$("#st_booking_aktif").html(formatNumber(r.booking_aktif));
 
 		$("#dash_finance_unpaid").html(formatRupiah(finance.nominal_belum_bayar));

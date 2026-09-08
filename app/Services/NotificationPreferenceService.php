@@ -62,6 +62,12 @@ class NotificationPreferenceService
      */
     public function getUserPreferences(int $userId, ?int $groupId = null): array
     {
+        // Auto-seed if empty (berguna untuk shared hosting yang sulit akses CLI)
+        if ($this->db->table('notification_event_types')->countAllResults() === 0) {
+            $seeder = \Config\Database::seeder();
+            $seeder->call('NotificationEventTypeSeeder');
+        }
+
         $builder = $this->db->table('notification_event_types e')
             ->select('e.*, p.in_app, p.email, p.web_push, p.is_locked')
             ->join('user_notification_preferences p', "p.event_type = e.event_type AND p.user_id = $userId", 'left')
