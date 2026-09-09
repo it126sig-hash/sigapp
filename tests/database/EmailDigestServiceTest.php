@@ -86,6 +86,20 @@ final class EmailDigestServiceTest extends CIUnitTestCase
         $this->assertSame([], $this->service->calendarNotificationIds);
     }
 
+    public function testDeliveryDigestPrependsKavlingLocation(): void
+    {
+        $this->insertLocation();
+        $this->insertNotification(104, 'Ada update kavling', 0, 11);
+        $this->insertRecipient(204, 104, 2, null);
+        $this->insertDelivery(304, 204, 104, 2, 'pending');
+
+        $stats = $this->service->processQueue();
+
+        $this->assertSame(1, $stats['emails_sent']);
+        $this->assertSame([104], $this->service->sentNotificationIds);
+        $this->assertSame(['Mawar No. A-12 - Ada update kavling'], $this->service->sentNotificationTexts);
+    }
+
     public function testLegacyFallbackSkipsReadAndOutboxCoveredRows(): void
     {
         $this->insertNotification(201, 'Sudah punya outbox', 0);
@@ -135,7 +149,9 @@ final class EmailDigestServiceTest extends CIUnitTestCase
             'CREATE TABLE auth_groups (id INTEGER PRIMARY KEY, name TEXT, description TEXT)',
             'CREATE TABLE auth_groups_users (user_id INTEGER, group_id INTEGER)',
             'CREATE TABLE proyek (id_proyek INTEGER PRIMARY KEY, nama_proyek TEXT)',
-            'CREATE TABLE kavling (id_kavling INTEGER PRIMARY KEY, no_kavling TEXT)',
+            'CREATE TABLE kavling (id_kavling INTEGER PRIMARY KEY, no_kavling TEXT, id_jalan INTEGER)',
+            'CREATE TABLE jalan (id_jalan INTEGER PRIMARY KEY, nama_jalan TEXT, id_cluster INTEGER)',
+            'CREATE TABLE cluster (id_cluster INTEGER PRIMARY KEY, id_proyek INTEGER)',
             'CREATE TABLE notification (id INTEGER PRIMARY KEY, notif TEXT, type TEXT, is_read INTEGER, created_at TEXT, add_by INTEGER, id_proyek INTEGER, id_kavling INTEGER)',
             'CREATE TABLE notification_recipients (id INTEGER PRIMARY KEY, notification_id INTEGER, user_id INTEGER, read_at TEXT)',
             'CREATE TABLE notification_deliveries (id INTEGER PRIMARY KEY, notification_recipient_id INTEGER, notification_id INTEGER, user_id INTEGER, channel TEXT, status TEXT, attempts INTEGER, available_at TEXT, processed_at TEXT, last_error TEXT, updated_at TEXT)',
@@ -160,7 +176,7 @@ final class EmailDigestServiceTest extends CIUnitTestCase
         ]);
     }
 
-    private function insertNotification(int $id, string $message, int $isRead): void
+    private function insertNotification(int $id, string $message, int $isRead, ?int $idKavling = null): void
     {
         $this->testDb->table('notification')->insert([
             'id' => $id,
@@ -170,8 +186,16 @@ final class EmailDigestServiceTest extends CIUnitTestCase
             'created_at' => '2026-09-02 10:00:00',
             'add_by' => 1,
             'id_proyek' => null,
-            'id_kavling' => null,
+            'id_kavling' => $idKavling,
         ]);
+    }
+
+    private function insertLocation(): void
+    {
+        $this->testDb->table('proyek')->insert(['id_proyek' => 1, 'nama_proyek' => 'Proyek Uji']);
+        $this->testDb->table('cluster')->insert(['id_cluster' => 1, 'id_proyek' => 1]);
+        $this->testDb->table('jalan')->insert(['id_jalan' => 1, 'nama_jalan' => 'Mawar', 'id_cluster' => 1]);
+        $this->testDb->table('kavling')->insert(['id_kavling' => 11, 'no_kavling' => 'A-12', 'id_jalan' => 1]);
     }
 
     private function insertRecipient(int $id, int $notificationId, int $userId, ?string $readAt): void

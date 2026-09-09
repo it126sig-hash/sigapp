@@ -31,6 +31,7 @@ class NotificationEventTypeSeeder extends Seeder
             // Kategori: Keuangan
             ['tagihan_kpr', 'keuangan', 'Tagihan Turun KPR', 'KPR telah cair/acc dari bank', 1, 1, 1, 0, '3;4;9', 20],
             ['cashout_subkon', 'keuangan', 'Cashout Subkontraktor', 'Pemberitahuan / jatuh tempo pencairan ke subkon', 1, 1, 1, 0, '7;3', 21],
+            ['pencairan_hasil_akad', 'keuangan', 'Pencairan Hasil Akad', 'Pemberitahuan pencairan hasil akad ke bank', 1, 1, 1, 0, '3;4;9', 22],
 
             // Kategori: Pajak
             ['pajak_pph', 'pajak', 'Pembayaran PPH', 'Pemberitahuan pelunasan atau proses PPH', 1, 1, 1, 0, '3;5', 30],

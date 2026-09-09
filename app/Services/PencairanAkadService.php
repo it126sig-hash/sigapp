@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\NotificationEvent;
 use Hermawan\DataTables\DataTable;
 
 class PencairanAkadService
@@ -10,6 +11,7 @@ class PencairanAkadService
     protected FileAccessService $fileAccessService;
     protected FinanceLedgerService $ledgerService;
     protected HistoryService $historyService;
+    protected NotifikasiService $notifikasiService;
 
     public function __construct()
     {
@@ -17,6 +19,7 @@ class PencairanAkadService
         $this->fileAccessService = new FileAccessService();
         $this->ledgerService = new FinanceLedgerService();
         $this->historyService = new HistoryService();
+        $this->notifikasiService = new NotifikasiService();
     }
 
     public function getData(int $idMkdt, int $idKavling): array
@@ -504,6 +507,30 @@ class PencairanAkadService
 
             $plan = $this->getPlanById((int) $pengajuan->id_plan);
             $this->saveHistory((int) $plan->id_kavling, (int) $plan->id_mkdt, (int) $plan->id, $idPengajuan, 'pencairan', 'Pencairan akad dicatat', $details, $actorId);
+
+            $kavData = $db->table('kavling k')
+                ->select('k.no_kavling, cl.id_proyek, m.id_konsumen')
+                ->join('jalan j', 'j.id_jalan = k.id_jalan')
+                ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+                ->join('mkdt m', 'm.id_mkdt = k.id_mkdt', 'left')
+                ->where('k.id_kavling', (int) $plan->id_kavling)
+                ->get()
+                ->getRow();
+
+            if ($kavData) {
+                $notifText = 'Pencairan hasil akad untuk kavling ' . $kavData->no_kavling . ' telah berhasil diproses sebesar Rp ' . number_format($totalCairBaru, 0, ',', '.');
+                $this->notifikasiService->tambah_notif(
+                    '3;4;9',
+                    $notifText,
+                    $actorId,
+                    (int) $plan->id_kavling,
+                    (int) ($kavData->id_konsumen ?? 0),
+                    'keuangan',
+                    (int) $kavData->id_proyek,
+                    'keuangan/hasil-akad/list',
+                    NotificationEvent::PENCAIRAN_HASIL_AKAD
+                );
+            }
 
             $db->transComplete();
             if ($db->transStatus() === false) {

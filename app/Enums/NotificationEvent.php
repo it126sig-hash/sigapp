@@ -24,6 +24,7 @@ final class NotificationEvent
     // ── Keuangan ──
     const TAGIHAN_KPR          = 'tagihan_kpr';
     const CASHOUT_SUBKON       = 'cashout_subkon';
+    const PENCAIRAN_HASIL_AKAD = 'pencairan_hasil_akad';
 
     // ── Pajak ──
     const PAJAK_PPH            = 'pajak_pph';

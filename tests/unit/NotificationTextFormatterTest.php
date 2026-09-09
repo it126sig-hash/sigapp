@@ -22,4 +22,25 @@ final class NotificationTextFormatterTest extends CIUnitTestCase
         $this->assertSame('-', NotificationTextFormatter::plain('<br>'));
         $this->assertSame('Ada notifikasi baru', NotificationTextFormatter::plain('   ', 'Ada notifikasi baru'));
     }
+
+    public function testKavlingLocationIsPrependedWhenAvailable(): void
+    {
+        $this->assertSame(
+            'Mawar No. A-12 - Status & aman',
+            NotificationTextFormatter::withKavling('Status &amp; <strong>aman</strong>', 'Mawar', 'A-12')
+        );
+    }
+
+    public function testKavlingLocationFallsBackToMessageWhenUnavailable(): void
+    {
+        $this->assertSame('Status aman', NotificationTextFormatter::withKavling('Status aman'));
+    }
+
+    public function testKavlingLocationIsNotDuplicated(): void
+    {
+        $this->assertSame(
+            'Mawar No A-12 sudah diperbarui',
+            NotificationTextFormatter::withKavling('Mawar No A-12 sudah diperbarui', 'Mawar', 'A-12')
+        );
+    }
 }

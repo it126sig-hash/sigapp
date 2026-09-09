@@ -78,16 +78,17 @@ class NotificationPreferenceService
 
         $result = [];
         foreach ($rows as $row) {
+            $isMandatory = (int) $row->is_mandatory === 1;
             $result[] = [
                 'event_type' => $row->event_type,
                 'category' => $row->category,
                 'label' => $row->label,
                 'description' => $row->description,
-                'is_mandatory' => (bool)$row->is_mandatory,
-                'is_locked' => (bool)$row->is_locked,
-                'in_app' => $row->in_app !== null ? (bool)$row->in_app : (bool)$row->default_in_app,
-                'email' => $row->email !== null ? (bool)$row->email : (bool)$row->default_email,
-                'web_push' => $row->web_push !== null ? (bool)$row->web_push : (bool)$row->default_web_push,
+                'is_mandatory' => $isMandatory,
+                'is_locked' => $isMandatory || (bool)$row->is_locked,
+                'in_app' => $isMandatory ? true : ($row->in_app !== null ? (bool)$row->in_app : (bool)$row->default_in_app),
+                'email' => $isMandatory ? true : ($row->email !== null ? (bool)$row->email : (bool)$row->default_email),
+                'web_push' => $isMandatory ? true : ($row->web_push !== null ? (bool)$row->web_push : (bool)$row->default_web_push),
             ];
         }
 
@@ -104,6 +105,16 @@ class NotificationPreferenceService
         $this->db->transStart();
 
         foreach ($preferences as $eventType => $channels) {
+            $eventDef = $this->db->table('notification_event_types')
+                ->select('is_mandatory')
+                ->where('event_type', $eventType)
+                ->get()
+                ->getRow();
+
+            if ($eventDef && (int) $eventDef->is_mandatory === 1) {
+                continue;
+            }
+
             $existing = $this->db->table('user_notification_preferences')
                 ->where('user_id', $userId)
                 ->where('event_type', $eventType)
@@ -138,6 +149,8 @@ class NotificationPreferenceService
             }
         }
 
+        $this->syncInAppVisibility($userId, $now);
+
         $this->db->transComplete();
     }
 
@@ -150,5 +163,49 @@ class NotificationPreferenceService
             ->where('user_id', $userId)
             ->where('is_locked', 0) // Jangan hapus yang dikunci admin
             ->delete();
+
+        $this->syncInAppVisibility($userId);
+    }
+
+    private function syncInAppVisibility(int $userId, ?string $now = null): void
+    {
+        if (! $this->db->tableExists('notification_recipients')
+            || ! $this->db->fieldExists('in_app_visible', 'notification_recipients')
+            || ! $this->db->tableExists('notification_event_types')
+        ) {
+            return;
+        }
+
+        $now ??= date('Y-m-d H:i:s');
+
+        $rows = $this->db->table('notification_recipients nr')
+            ->select('nr.id, e.is_mandatory, e.default_in_app, p.in_app')
+            ->join('notification n', 'n.id = nr.notification_id')
+            ->join('notification_event_types e', 'e.event_type = n.type')
+            ->join('user_notification_preferences p', 'p.user_id = nr.user_id AND p.event_type = e.event_type', 'left')
+            ->where('nr.user_id', $userId)
+            ->get()
+            ->getResult();
+
+        $updates = [];
+        foreach ($rows as $row) {
+            if ((int) $row->is_mandatory === 1) {
+                $visible = 1;
+            } elseif ($row->in_app !== null) {
+                $visible = (int) $row->in_app === 1 ? 1 : 0;
+            } else {
+                $visible = (int) $row->default_in_app === 1 ? 1 : 0;
+            }
+
+            $updates[] = [
+                'id' => (int) $row->id,
+                'in_app_visible' => $visible,
+                'updated_at' => $now,
+            ];
+        }
+
+        foreach (array_chunk($updates, 100) as $chunk) {
+            $this->db->table('notification_recipients')->updateBatch($chunk, 'id');
+        }
     }
 }

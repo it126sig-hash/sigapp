@@ -192,6 +192,30 @@
   });
 
   document.addEventListener("click", (event) => {
+    const logoutLink = event.target.closest("[data-sigapp-logout]");
+    if (logoutLink) {
+      event.preventDefault();
+
+      const href = logoutLink.href || base_url + "/logout";
+      let settled = false;
+      const goLogout = () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        window.location.href = href;
+      };
+
+      unsubscribePush()
+        .catch((error) => {
+          console.warn("Gagal unsubscribe push sebelum logout", error);
+        })
+        .then(goLogout, goLogout);
+
+      window.setTimeout(goLogout, 1500);
+      return;
+    }
+
     const button = event.target.closest("#sigapp-push-action");
     if (!button || button.classList.contains("disabled")) {
       return;

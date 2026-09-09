@@ -13,6 +13,7 @@ class NotifikasiService
     protected BaseConnection $db;
     protected NotificationRepository $notificationRepository;
     protected NotificationPreferenceService $preferenceService;
+    protected ?bool $hasRecipientVisibilityColumn = null;
 
     public function __construct()
     {
@@ -140,7 +141,9 @@ class NotifikasiService
             if ($eventDef) {
                 $useLegacy = false; // Event terdaftar di registry: override target legacy menjadi FULL OPT-IN
                 $isMandatory = (int) $eventDef->is_mandatory === 1;
-                $defaultInApp = (int) $eventDef->default_in_app === 1;
+                $defaultAnyChannel = (int) $eventDef->default_in_app === 1
+                    || (int) $eventDef->default_email === 1
+                    || (int) $eventDef->default_web_push === 1;
 
                 // Ambil semua preferensi untuk event ini agar tidak query N+1
                 $prefsRaw = $this->db->table('user_notification_preferences')
@@ -161,10 +164,12 @@ class NotifikasiService
                     if (!$isMandatory) {
                         if (isset($userPrefs[$userId])) {
                             // User memiliki pengaturan eksplisit, hormati pengaturannya
-                            $isAllowed = (int) $userPrefs[$userId]->in_app === 1;
+                            $isAllowed = (int) $userPrefs[$userId]->in_app === 1
+                                || (int) $userPrefs[$userId]->email === 1
+                                || (int) $userPrefs[$userId]->web_push === 1;
                         } else {
                             // Belum ada pengaturan spesifik, ikuti default sistem
-                            $isAllowed = $defaultInApp;
+                            $isAllowed = $defaultAnyChannel;
                         }
                     }
 
@@ -228,12 +233,9 @@ class NotifikasiService
         foreach ($userIds as $userId) {
             $isActor = ($userId === $actorUserId);
             $readAt = null;
+            $inAppVisible = $eventType === null || $this->preferenceService->isAllowed($userId, $eventType, 'in_app');
 
             if ($isActor) {
-                $readAt = $now;
-            } elseif ($eventType !== null && !$this->preferenceService->isAllowed($userId, $eventType, 'in_app')) {
-                // Jika user mematikan in_app notif untuk event ini, tandai sebagai sudah dibaca
-                // agar tidak muncul di unread badge, tapi tetap ter-record.
                 $readAt = $now;
             }
 
@@ -245,16 +247,30 @@ class NotifikasiService
                 ->getRow();
 
             if (! $existing) {
-                $this->db->table('notification_recipients')->insert([
+                $insert = [
                     'notification_id' => $notificationId,
                     'user_id' => $userId,
                     'read_at' => $readAt,
                     'created_at' => $now,
                     'updated_at' => $now,
-                ]);
+                ];
+
+                if ($this->hasRecipientVisibilityColumn()) {
+                    $insert['in_app_visible'] = $inAppVisible ? 1 : 0;
+                }
+
+                $this->db->table('notification_recipients')->insert($insert);
                 $recipientId = (int) $this->db->insertID();
             } else {
                 $recipientId = (int) $existing->id;
+                if ($this->hasRecipientVisibilityColumn()) {
+                    $this->db->table('notification_recipients')
+                        ->where('id', $recipientId)
+                        ->update([
+                            'in_app_visible' => $inAppVisible ? 1 : 0,
+                            'updated_at' => $now,
+                        ]);
+                }
             }
 
             if ($recipientId > 0) {
@@ -316,11 +332,20 @@ class NotifikasiService
             'status' => $status,
             'attempts' => 0,
             'available_at' => $now,
-            'processed_at' => $status === 'skipped' ? $now : null,
+            'processed_at' => in_array($status, ['skipped', 'preference_blocked'], true) ? $now : null,
             'last_error' => $lastError,
             'created_at' => $now,
             'updated_at' => $now,
         ]);
+    }
+
+    protected function hasRecipientVisibilityColumn(): bool
+    {
+        if ($this->hasRecipientVisibilityColumn !== null) {
+            return $this->hasRecipientVisibilityColumn;
+        }
+
+        return $this->hasRecipientVisibilityColumn = $this->db->fieldExists('in_app_visible', 'notification_recipients');
     }
 
     protected function storeLegacyEmailQueue(int $notificationId, NotificationAudience $audience, int $actorUserId, string $now): void

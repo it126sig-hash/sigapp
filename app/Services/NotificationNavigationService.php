@@ -17,13 +17,6 @@ class NotificationNavigationService
 
     public function processOpen(int $notificationId, int $userId): string
     {
-        // Validasi recipient
-        $recipient = $this->db->table('notification_recipients')
-            ->where('notification_id', $notificationId)
-            ->where('user_id', $userId)
-            ->get()
-            ->getRow();
-
         // Jika fitur dual write aktif, kita memvalidasi recipient
         $checkRecipient = getenv('NOTIF_DUAL_WRITE_RECIPIENTS');
         if ($checkRecipient === false || $checkRecipient === '') {
@@ -32,16 +25,19 @@ class NotificationNavigationService
             $checkRecipient = in_array(strtolower((string) $checkRecipient), ['1', 'true', 'yes', 'on'], true);
         }
 
-        if ($checkRecipient && ! $recipient) {
-            // Bisa jadi notifikasi global lama, cek notification table langsung
-            $notif = $this->db->table('notification')->where('id', $notificationId)->get()->getRow();
-            if (! $notif) {
+        if ($checkRecipient && $this->db->tableExists('notification_recipients')) {
+            $recipient = $this->db->table('notification_recipients')
+                ->where('notification_id', $notificationId)
+                ->where('user_id', $userId)
+                ->get()
+                ->getRow();
+
+            if (! $recipient) {
                 return site_url('/');
             }
-        } else {
-            $notif = $this->db->table('notification')->where('id', $notificationId)->get()->getRow();
         }
 
+        $notif = $this->db->table('notification')->where('id', $notificationId)->get()->getRow();
         if (! $notif) {
             return site_url('/');
         }

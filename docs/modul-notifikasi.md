@@ -2,15 +2,15 @@
 
 Dokumen ini adalah acuan teknis modul notifikasi SIGAPP. Update file ini setiap ada perubahan alur notifikasi, endpoint, tabel, service, command, konfigurasi delivery, atau side effect.
 
-Terakhir dicek: 2026-09-02
+Terakhir dicek: 2026-09-09
 
 ## Ringkasan
 
 Modul notifikasi sekarang memakai pola bertahap:
 
 1. `notification` tetap menjadi tabel event dan payload utama.
-2. `notification_recipients` menyimpan status baca per user.
-3. `notification_deliveries` menjadi outbox delivery per recipient dan channel.
+2. `notification_recipients` menyimpan status baca per user dan flag visibility In-App.
+3. `notification_deliveries` menjadi outbox delivery per recipient dan channel, termasuk status `preference_blocked`.
 4. Navbar/halaman aktif tetap polling `/notif/summary` setiap 30 detik.
 5. Browser/PWA background memakai Web Push, tanpa self-hosted WebSocket/SSE.
 6. Email digest membaca delivery recipient-specific yang masih unread jika tabel baru tersedia, lalu fallback ke `notification_email_queue` lama selama masa transisi.
@@ -25,14 +25,14 @@ Modul notifikasi sekarang memakai pola bertahap:
 | Repository list | `app/Repositories/NotificationRepository.php` | Query list, unread count, dan mark read per user |
 | Repository lama | `app/Repositories/NotifRepository.php` | Legacy insert-only; jangan dipakai untuk notification baru |
 | Email digest | `app/Services/EmailDigestService.php` | Kirim digest dan update delivery/queue sesuai hasil nyata |
-| Formatter teks | `app/Support/NotificationTextFormatter.php` | Normalisasi isi notifikasi untuk activity, email, dan Web Push |
+| Formatter teks | `app/Support/NotificationTextFormatter.php` | Normalisasi isi notifikasi dan prefix lokasi kavling untuk activity, email, dan Web Push |
 | Command email | `app/Commands/SendEmailDigest.php` | `php spark notif:send-digest` |
 | Web Push | `app/Services/WebPushService.php` | PSR-18 client, validasi VAPID, subscribe, dan kirim push |
 | Push dispatcher | `app/Services/NotificationDispatchService.php` | Proses delivery `web_push` dari cron |
 | Command push | `app/Commands/DispatchNotifications.php` | `php spark notif:dispatch --channel=web_push --limit=100` |
 | API push | `app/Controllers/Api/NotifPushController.php` | Status, subscribe, unsubscribe, test push |
 | Frontend polling | `public/assets/js/scripts.js` | Render badge/center dan mark-read |
-| Frontend push | `public/assets/js/push-subscription.js` | Explicit opt-in push, sync subscription, cek HTTP status |
+| Frontend push | `public/assets/js/push-subscription.js` | Explicit opt-in push, sync subscription, unsubscribe saat logout, cek HTTP status |
 | Service worker | `public/sw.js` | Tampilkan push dan handle click |
 | Menu user | `app/Views/template/generate_menu.php` | Tombol `Aktifkan Notifikasi` |
 | Footer | `app/Views/template/footer.php` | Inject `SIGAPP_PWA` dan `VAPID_PUBLIC_KEY` |
@@ -46,6 +46,7 @@ $routes->get('/getnotif', 'Notif::getNotif');
 $routes->get('/loadnotif', 'Notif::loadNotif');
 $routes->get('/notif/summary', 'Notif::getSummary');
 $routes->get('/notif/center', 'Notif::getCenter');
+$routes->get('/notif/open/(:num)', 'Notif::open/$1');
 $routes->post('/notif/snooze', 'Notif::snooze');
 $routes->post('/notif/mark-as-read/(:num)', 'Notif::markAsRead/$1');
 
@@ -89,6 +90,8 @@ Behavior service:
 - Admin group `1` ditambahkan sebagai recipient semua event.
 - Actor tetap menjadi recipient in-app agar melihat aktivitasnya sendiri.
 - Delivery `email` dan `web_push` untuk actor ditandai `skipped`.
+- Recipient menyimpan `in_app_visible`: jika channel In-App dimatikan untuk event tersebut, notifikasi tidak muncul di badge, dropdown, notification center, atau load-more akun itu.
+- Preferensi Email dan Web Push dihitung per user per channel; channel yang dimatikan tidak menjadi delivery `pending`, tetapi dicatat sebagai `preference_blocked`.
 - `notification_email_queue` lama tetap ditulis untuk rollback/transisi satu rilis.
 
 Feature flag `.env`:
@@ -108,6 +111,7 @@ Semua flag default `true` jika tidak diisi. Saat rollback sementara, matikan rea
 `Notif.php` memakai `NotificationRepository`:
 
 - Jika `notification_recipients` ada, list dan unread count dibaca dari recipient milik user login.
+- Row recipient dengan `in_app_visible = 0` tidak dibaca oleh `/notif/summary`, `/notif/center`, `/loadnotif`, dan badge dropdown.
 - `POST /notif/mark-as-read/{notificationId}` hanya update row recipient milik user login.
 - Jika tabel baru belum ada, query fallback ke filter legacy `group_target`, `user_id`, dan global `0`.
 - Bentuk response `/notif/summary`, `/notif/center`, dan `/loadnotif` tetap kompatibel dengan frontend lama.
@@ -126,7 +130,7 @@ Format payload push dari delivery outbox:
 
 - `title`: nama pembuat notifikasi dari `users.name`, fallback `users.username`, fallback `SIGAPP`.
 - `body`: `[Departemen] Isi notifikasi`, dengan departemen dari `auth_groups.name` dan fallback `Umum`.
-- Isi notifikasi memakai `NotificationTextFormatter`: HTML entity didecode, tag HTML dihapus, dan whitespace dinormalisasi. Hasilnya lalu dibatasi sekitar 180 karakter agar tetap rapi di notification tray.
+- Isi notifikasi memakai `NotificationTextFormatter`: HTML entity didecode, tag HTML dihapus, whitespace dinormalisasi, dan jika tersedia diprefix dengan `{Nama Jalan} No. {No Kavling} - Isi notifikasi`. Hasilnya lalu dibatasi sekitar 180 karakter agar tetap rapi di notification tray.
 - Jika actor punya lebih dari satu group, departemen yang dipakai adalah nilai agregasi stabil `MIN(auth_groups.name)` agar query aman pada MySQL `ONLY_FULL_GROUP_BY`.
 - Test push memakai format yang sama dengan user login sebagai actor.
 
@@ -145,6 +149,8 @@ Frontend:
 - Prompt browser hanya muncul setelah user klik `Aktifkan Notifikasi`.
 - Response endpoint subscribe/unsubscribe wajib dicek `response.ok`; error 400/500 tidak boleh dilaporkan sukses.
 - Endpoint yang sama dipindahkan ke user login terbaru lewat `endpoint_hash`, sehingga browser yang berganti akun tidak menerima push akun lama.
+- Saat user menekan `Logout`, frontend mencoba memanggil `/api/notif/push/unsubscribe` untuk endpoint browser saat ini sebelum berpindah ke route logout. Logout tetap dilanjutkan walau unsubscribe gagal/timeout.
+- Login SIGAPP dibuat panjang: form login mengirim `remember=1`, `Auth::$allowRemembering = true`, `Auth::$rememberLength = 365 * DAY`, dan `Session::$expiration = 31536000`.
 
 ## Navbar Notification Center
 
@@ -156,7 +162,7 @@ Behavior UI:
 - Jika urgent kosong dan activity tersedia, dropdown otomatis membuka tab `Aktivitas` selama user belum memilih tab secara manual.
 - Tombol footer `Aktivitas Lagi` dihapus; activity tambahan dimuat lewat infinite scroll saat tab `Aktivitas` aktif.
 - Tombol `Perbarui` menjadi icon button kecil di header dropdown.
-- Isi activity memakai field `notif_text` dari backend. Field ini dibuat oleh `NotificationTextFormatter` supaya notif yang berisi tag HTML tidak tampil raw di dropdown dan formatnya sama dengan email/Web Push.
+- Isi activity memakai field `notif_text` dari backend. Field ini dibuat oleh `NotificationTextFormatter` supaya notif yang berisi tag HTML tidak tampil raw di dropdown, menampilkan `nama_jalan` + `no_kavling` jika tersedia, dan formatnya sama dengan email/Web Push.
 - Frontend tetap punya fallback plain-text sanitizer untuk response lama yang belum memiliki `notif_text`.
 
 ## Endpoint Push
@@ -189,6 +195,7 @@ Policy:
 - Maksimum 5 attempt.
 - Delay retry: 1, 5, 15, lalu 60 menit.
 - Delivery tanpa subscription aktif ditandai `skipped`.
+- Delivery yang diblokir preferensi user ditandai `preference_blocked` dengan `processed_at` terisi, sehingga tidak pernah diklaim dispatcher.
 
 ## Email Digest
 
@@ -201,7 +208,7 @@ php spark notif:send-digest
 Behavior:
 
 - Sumber payload email tetap `notification.notif`; queue hanya menyimpan referensi dan status delivery.
-- Isi email dinormalisasi dengan `NotificationTextFormatter`, di-escape saat dirender, dan ditampilkan langsung tanpa label `Isi Notifikasi`.
+- Isi email dinormalisasi dengan `NotificationTextFormatter`, diprefix lokasi `nama_jalan` + `no_kavling` jika tersedia, di-escape saat dirender, dan ditampilkan langsung tanpa label `Isi Notifikasi`.
 - Jika `notification_deliveries` ada dan memiliki row email pending/failed, digest membaca delivery baru per user dan mengecek `notification_recipients.read_at` saat command dijalankan.
 - Delivery yang notifikasinya sudah dibaca tidak dikirim dan ditandai `skipped`.
 - Jika belum ada delivery baru, service fallback ke `notification_email_queue` dan tetap memfilter unread per user melalui `notification_recipients`; jika tabel recipient belum tersedia, fallback memakai `notification.is_read`.
@@ -244,6 +251,7 @@ Kolom:
 - `id`
 - `notification_id`
 - `user_id`
+- `in_app_visible`: `1` tampil di UI In-App, `0` disembunyikan total dari badge/dropdown/center/load-more
 - `read_at`
 - `created_at`
 - `updated_at`
@@ -252,6 +260,7 @@ Index:
 
 - unique `uniq_notif_recip_user (notification_id, user_id)`
 - `idx_notif_recip_user_read (user_id, read_at, notification_id)`
+- `idx_notif_recip_user_visible_read (user_id, in_app_visible, read_at, notification_id)`
 
 ### `notification_deliveries`
 
@@ -262,7 +271,7 @@ Kolom:
 - `notification_id`
 - `user_id`
 - `channel`: `web_push`, `email`
-- `status`: `pending`, `processing`, `sent`, `failed`, `skipped`
+- `status`: `pending`, `processing`, `sent`, `failed`, `skipped`, `preference_blocked`
 - `attempts`
 - `available_at`
 - `processed_at`
@@ -311,6 +320,10 @@ Migration baru:
 php spark migrate
 ```
 
+Migration `2026-09-09-000001_AddNotificationPreferenceVisibility` menambahkan `notification_recipients.in_app_visible`, index visibility, dan status `preference_blocked` pada enum `notification_deliveries.status`. Saat rollback, row `preference_blocked` diubah menjadi `skipped` sebelum enum lama dipulihkan.
+
+Migration `2026-09-09-000002_SyncNotificationEventTypesFromSeeder` memanggil `NotificationEventTypeSeeder` agar event registry baru otomatis masuk saat `php spark migrate`, meskipun tabel `notification_event_types` sudah berisi event lama. Seeder memakai `INSERT IGNORE`, jadi event yang sudah ada tidak diduplikasi.
+
 Migration `2026-09-02-000001_AddSkippedStatusToNotificationEmailQueue` menambahkan status `skipped` pada queue legacy. Saat rollback, row `skipped` diubah menjadi `sent` sebelum enum lama dipulihkan agar notifikasi yang sengaja dilewati tidak terkirim ulang.
 
 Sebelum menjalankan di production/shared hosting, backup minimal tabel:
@@ -352,6 +365,7 @@ Recipient unread:
 SELECT COUNT(*) AS unread
 FROM notification_recipients
 WHERE user_id = ?
+  AND in_app_visible = 1
   AND read_at IS NULL;
 ```
 
@@ -416,6 +430,8 @@ php -l app/Commands/SendEmailDigest.php
 php -l app/Commands/DispatchNotifications.php
 php -l app/Database/Migrations/2026-09-01-000001_NormalizeNotificationDeliveryOutbox.php
 php -l app/Database/Migrations/2026-09-02-000001_AddSkippedStatusToNotificationEmailQueue.php
+php -l app/Database/Migrations/2026-09-09-000001_AddNotificationPreferenceVisibility.php
+php -l app/Database/Migrations/2026-09-09-000002_SyncNotificationEventTypesFromSeeder.php
 php spark routes
 php spark list notif
 php spark migrate:status
@@ -428,8 +444,14 @@ Acceptance:
 - Test push tampil sebagai notifikasi sistem.
 - Badge halaman aktif diperbarui maksimal sekitar 30 detik.
 - User A mark-read tidak mengubah unread user B.
+- Toggle In-App off membuat event tersebut hilang dari badge, dropdown, center, dan load-more akun itu.
+- Toggle Web Push off tidak menghasilkan delivery `web_push` pending untuk akun itu.
+- Toggle Email off tidak menghasilkan delivery `email` pending untuk akun itu.
+- Web Push tetap bisa terkirim saat In-App off jika channel Web Push event tersebut aktif.
+- Logout menonaktifkan endpoint browser saat ini, lalu login akun lain memindahkan endpoint ke user baru melalui `endpoint_hash`.
+- `/notif/open/{id}` mengarahkan aman ke home bila user login bukan recipient notifikasi.
 - Email digest hanya memuat item yang masih unread untuk penerima saat command dijalankan.
-- Isi activity dan email sama-sama plain text; template email tidak menampilkan label `Isi Notifikasi`.
+- Isi activity, email, dan Web Push sama-sama plain text serta menampilkan `{Nama Jalan} No. {No Kavling}` jika notifikasi memiliki `id_kavling`; template email tidak menampilkan label `Isi Notifikasi`.
 - Queue legacy yang tumpang tindih dengan outbox tidak menyebabkan email duplikat.
 - Pending/failed delivery dapat dipantau dan diproses ulang dengan aman.
 
@@ -461,12 +483,15 @@ Mulai sekarang, notifikasi mendukung preferensi granular per user per channel (I
 
 **Arsitektur Preferensi & Dynamic Resolution:**
 1. **Registry Event**: `app/Enums/NotificationEvent.php` mendaftarkan konstanta event, sedangkan tabel `notification_event_types` (di-seed lewat `NotificationEventTypeSeeder`) mendaftarkan metadata UI dan nilai *default* preferensi.
+   - Event `is_mandatory = 1` selalu dikembalikan API sebagai channel aktif dan `is_locked = true`, sehingga UI tidak menampilkan opt-out palsu.
 2. **Dynamic Recipient Resolution**: Pada saat `NotifikasiService::create` dipanggil, penerima **tidak lagi** dibatasi secara mutlak oleh `group_target` bawaan dari legacy caller (misal: `"3;4;9"`). Sistem akan membaca preferensi setiap pengguna aktif:
-   - Jika pengguna menghidupkan event tersebut di tabel `user_notification_preferences`, mereka akan di-inklusikan sebagai penerima.
-   - Jika tidak ada preferensi eksplisit, sistem mengikuti `default_in_app`.
+   - Jika pengguna menghidupkan minimal satu channel event tersebut di tabel `user_notification_preferences`, mereka akan di-inklusikan sebagai penerima.
+   - Jika tidak ada preferensi eksplisit, sistem mengikuti gabungan default `default_in_app`, `default_email`, dan `default_web_push`.
    - Proses fallback ke `group_target` legacy tetap ada untuk memastikan _backward compatibility_ pada event yang belum terdaftar di registry.
 3. **Override per User**: Pengaturan user disimpan di tabel `user_notification_preferences`. Terdapat kolom `is_locked` (TINYINT) yang jika bernilai 1 maka preferensi tidak bisa diubah (paksaan admin).
 4. **Pemotongan Pengiriman (Delivery Gatekeeper)**:
-   - Jika preferensi In-App aktif, row `notification_recipients` dibuat. Jika dimatikan secara eksplisit, *tidak akan* diikutkan pada saat resolusi ID (kecuali merupakan actor sendiri).
-   - Jika preferensi Email / Web Push dimatikan: row `notification_deliveries` untuk channel tersebut akan ditandai dengan status `preference_blocked` (bukan pending).
+   - Jika preferensi In-App aktif, row `notification_recipients.in_app_visible` bernilai `1`.
+   - Jika preferensi In-App dimatikan, row recipient tetap boleh ada untuk kebutuhan Email/Web Push, tetapi `in_app_visible = 0` sehingga notifikasi hilang total dari UI akun tersebut.
+   - Save/reset preferensi merekalkulasi `in_app_visible` untuk row recipient user tersebut yang sudah ada.
+   - Jika preferensi Email / Web Push dimatikan: row `notification_deliveries` untuk channel tersebut ditandai `preference_blocked` dengan `processed_at` terisi, bukan `pending`.
 5. **Caller Implementation**: Fungsi pembantu `tambah_notif` memilik signature argumen ke-9: `?string $eventType = null`. Pengembang wajib mengirim konstanta `NotificationEvent::NAMA_EVENT` setiap kali memanggil notifikasi dari Controller/Service agar Dynamic Resolution bisa berjalan.

@@ -8,6 +8,7 @@ use CodeIgniter\Database\BaseConnection;
 class NotificationRepository
 {
     private BaseConnection $db;
+    private ?bool $hasRecipientVisibilityColumn = null;
 
     public function __construct(?BaseConnection $db = null)
     {
@@ -44,6 +45,8 @@ class NotificationRepository
                 ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left')
                 ->where('nr.user_id', $userId)
                 ->where('nr.read_at IS NULL', null, false);
+
+            $this->applyRecipientVisibilityFilter($builder);
 
             if ($idProyek) {
                 $this->applyProjectFilter($builder, $idProyek);
@@ -101,7 +104,12 @@ class NotificationRepository
     public function markAllAsReadForUser(int $userId): bool
     {
         if ($this->usesRecipientReadPath()) {
-            $this->db->table('notification_recipients')
+            $builder = $this->db->table('notification_recipients');
+            if ($this->hasRecipientVisibilityColumn()) {
+                $builder->where('in_app_visible', 1);
+            }
+
+            $builder
                 ->where('user_id', $userId)
                 ->where('read_at IS NULL', null, false)
                 ->update([
@@ -145,7 +153,7 @@ class NotificationRepository
 
     private function newBaseQuery(int $userId): BaseBuilder
     {
-        return $this->db->table('notification_recipients nr')
+        $builder = $this->db->table('notification_recipients nr')
             ->select('notification.*, users.username, nama_jalan, no_kavling, COALESCE(notification.id_proyek, proyek.id_proyek) as id_proyek')
             ->select('MIN(auth_groups.id) as divisi_id, MIN(auth_groups.name) as divisi', false)
             ->select('CASE WHEN nr.read_at IS NULL THEN 0 ELSE 1 END as is_read', false)
@@ -157,8 +165,11 @@ class NotificationRepository
             ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left')
             ->join('auth_groups_users', 'auth_groups_users.user_id = notification.add_by', 'left')
             ->join('auth_groups', 'auth_groups.id = auth_groups_users.group_id', 'left')
-            ->where('nr.user_id', $userId)
-            ->groupBy('notification.id');
+            ->where('nr.user_id', $userId);
+
+        $this->applyRecipientVisibilityFilter($builder);
+
+        return $builder->groupBy('notification.id');
     }
 
     private function legacyBaseQuery(): BaseBuilder
@@ -221,12 +232,33 @@ class NotificationRepository
         return in_array(strtolower((string) $value), ['1', 'true', 'yes', 'on'], true);
     }
 
+    private function applyRecipientVisibilityFilter(BaseBuilder $builder): void
+    {
+        if ($this->hasRecipientVisibilityColumn()) {
+            $builder->where('nr.in_app_visible', 1);
+        }
+    }
+
+    private function hasRecipientVisibilityColumn(): bool
+    {
+        if ($this->hasRecipientVisibilityColumn !== null) {
+            return $this->hasRecipientVisibilityColumn;
+        }
+
+        return $this->hasRecipientVisibilityColumn = $this->db->fieldExists('in_app_visible', 'notification_recipients');
+    }
+
     private function syncLegacyReadState(int $notificationId): void
     {
-        $unread = $this->db->table('notification_recipients')
+        $builder = $this->db->table('notification_recipients')
             ->where('notification_id', $notificationId)
-            ->where('read_at IS NULL', null, false)
-            ->countAllResults();
+            ->where('read_at IS NULL', null, false);
+
+        if ($this->hasRecipientVisibilityColumn()) {
+            $builder->where('in_app_visible', 1);
+        }
+
+        $unread = $builder->countAllResults();
 
         if ((int) $unread === 0) {
             $this->db->table('notification')

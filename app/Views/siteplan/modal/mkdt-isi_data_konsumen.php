@@ -816,7 +816,7 @@
                                                                     id="mk-tbb" name="mk-tbb">
                                                             </div>
                                                             <div class="form-group floating-label">
-                                                                <label>Total Harga Allin</label>
+                                                                <label>Uang Muka All In</label>
                                                                 <input placeholder=" " type="text" required
                                                                     class="form-control num mk-fm" id="mk-harga_allin"
                                                                     name="mk-harga_allin">
@@ -1229,7 +1229,7 @@
                         Simpan <i class="fa fa-arrow-right" aria-hidden="true"></i></a>
 
                 </div> -->
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 </section>

@@ -263,9 +263,9 @@
         <div class="form-group">
           <label class="form-label">Status Pencairan</label>
           <select id="status_cair" name="status_cair" class="form-control">
-            <option value="">Semua</option>
-            <option value="belum_cair">Belum Cair</option>
+            <option value="belum_cair" selected>Belum Cair</option>
             <option value="sudah_cair">Sudah Cair</option>
+            <option value="">Semua</option>
           </select>
         </div>
         <button type="button" id="btn_draw" class="btn btn-primary btn-block waves-effect text-uppercase mt-2" data-dismiss="modal">
@@ -678,7 +678,7 @@
       document.getElementById('tanggal_akad')._flatpickr.clear();
       $("#id_cluster").val(null).trigger("change");
       $("#id_jalan").val(null).trigger("change");
-      $("#status_cair").val("");
+      $("#status_cair").val("belum_cair");
       
       updateActiveFilterText();
       hasilAkadDetailCache = {};

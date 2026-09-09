@@ -47,7 +47,7 @@ class FileAccessService
         'si'                => [1, 2,  4, 7, 9],
         'komplain_sales'    => [1, 2,  7, 8, 9],
         'komplain_produksi' => [1, 2,  7, 8, 9],
-        'produksi_jalan_progress' => [1, 2,  7, 9],
+        'produksi_jalan_progress' => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'profile_photo'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'poskon_export'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'tiket_masalah'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],

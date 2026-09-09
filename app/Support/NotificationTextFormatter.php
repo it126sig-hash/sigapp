@@ -13,4 +13,31 @@ final class NotificationTextFormatter
 
         return $text === '' ? $fallback : $text;
     }
+
+    public static function withKavling($value, $namaJalan = null, $noKavling = null, string $fallback = '-'): string
+    {
+        $message = self::plain($value, $fallback);
+        $jalan = self::plain($namaJalan ?? '', '');
+        $kavling = self::plain($noKavling ?? '', '');
+
+        $location = trim($jalan . ($kavling !== '' ? ' No. ' . $kavling : ''));
+        if ($location === '') {
+            return $message;
+        }
+
+        if (self::normalizedContains($message, $location)) {
+            return $message;
+        }
+
+        return $location . ' - ' . $message;
+    }
+
+    private static function normalizedContains(string $haystack, string $needle): bool
+    {
+        $normalize = static fn (string $text): string => trim(preg_replace('/[^a-z0-9]+/i', ' ', strtolower($text)) ?? '');
+        $haystack = $normalize($haystack);
+        $needle = $normalize($needle);
+
+        return $needle !== '' && str_contains($haystack, $needle);
+    }
 }

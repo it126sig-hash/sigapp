@@ -420,7 +420,7 @@ if ($displayName === '') {
             html += '<th class="align-middle">TIPE AKTIVITAS & PERISTIWA PROYEK</th>';
             html += '<th class="text-center" width="120"><i class="fa fa-desktop mr-25"></i> IN-APP<br><div class="custom-control custom-checkbox mt-50 d-inline-block"><input type="checkbox" class="custom-control-input select-all-channel" id="selectAllInApp" data-channel="in_app"><label class="custom-control-label" for="selectAllInApp" style="font-size: 0.8rem; text-transform:none;">Semua</label></div></th>';
             html += '<th class="text-center" width="120"><i class="fa fa-envelope mr-25"></i> EMAIL<br><div class="custom-control custom-checkbox mt-50 d-inline-block"><input type="checkbox" class="custom-control-input select-all-channel" id="selectAllEmail" data-channel="email"><label class="custom-control-label" for="selectAllEmail" style="font-size: 0.8rem; text-transform:none;">Semua</label></div></th>';
-            html += '<th class="text-center" width="120"><i class="fa fa-bell mr-25"></i> PUSH & WA<br><div class="custom-control custom-checkbox mt-50 d-inline-block"><input type="checkbox" class="custom-control-input select-all-channel" id="selectAllWebPush" data-channel="web_push"><label class="custom-control-label" for="selectAllWebPush" style="font-size: 0.8rem; text-transform:none;">Semua</label></div></th>';
+            html += '<th class="text-center" width="120"><i class="fa fa-bell mr-25"></i> PWA PUSH<br><div class="custom-control custom-checkbox mt-50 d-inline-block"><input type="checkbox" class="custom-control-input select-all-channel" id="selectAllWebPush" data-channel="web_push"><label class="custom-control-label" for="selectAllWebPush" style="font-size: 0.8rem; text-transform:none;">Semua</label></div></th>';
             html += '</tr></thead><tbody>';
 
             let catIndex = 1;
@@ -429,7 +429,7 @@ if ($displayName === '') {
                 
                 prefs.forEach(pref => {
                     const disabled = pref.is_locked ? 'disabled' : '';
-                    const lockedIcon = pref.is_locked ? ' <i class="fa fa-lock text-muted" title="Dikunci oleh Admin"></i>' : '';
+                    const lockedIcon = pref.is_locked ? ' <i class="fa fa-lock text-muted" title="Wajib atau dikunci"></i>' : '';
                     
                     html += `<tr>`;
                     html += `<td>
@@ -520,11 +520,18 @@ if ($displayName === '') {
                 contentType: 'application/json',
                 data: JSON.stringify({ preferences: payload }),
                 success: function(res) {
+                    if (!res.success) {
+                        Swal.fire('Gagal', res.messages || 'Preferensi tidak dapat disimpan', 'error');
+                        return;
+                    }
+
                     Swal.fire('Berhasil', res.messages, 'success');
-                    btn.html(originalHtml).prop('disabled', false);
+                    loadPreferences();
                 },
                 error: function(err) {
                     Swal.fire('Gagal', 'Terjadi kesalahan saat menyimpan', 'error');
+                },
+                complete: function() {
                     btn.html(originalHtml).prop('disabled', false);
                 }
             });
@@ -545,6 +552,11 @@ if ($displayName === '') {
                         url: apiUrl + '/reset',
                         type: 'POST',
                         success: function(res) {
+                            if (!res.success) {
+                                Swal.fire('Gagal', res.messages || 'Preferensi tidak dapat direset', 'error');
+                                return;
+                            }
+
                             Swal.fire('Berhasil', res.messages, 'success');
                             loadPreferences();
                         },

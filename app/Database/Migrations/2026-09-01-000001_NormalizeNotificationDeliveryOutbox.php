@@ -65,6 +65,12 @@ class NormalizeNotificationDeliveryOutbox extends Migration
                 'constraint' => 11,
                 'unsigned' => true,
             ],
+            'in_app_visible' => [
+                'type' => 'TINYINT',
+                'constraint' => 1,
+                'unsigned' => true,
+                'default' => 1,
+            ],
             'read_at' => [
                 'type' => 'DATETIME',
                 'null' => true,
@@ -81,6 +87,7 @@ class NormalizeNotificationDeliveryOutbox extends Migration
         $this->forge->addKey('id', true);
         $this->forge->addKey(['notification_id', 'user_id']);
         $this->forge->addKey(['user_id', 'read_at', 'notification_id'], false, false, 'idx_notif_recip_user_read');
+        $this->forge->addKey(['user_id', 'in_app_visible', 'read_at', 'notification_id'], false, false, 'idx_notif_recip_user_visible_read');
         $this->forge->createTable('notification_recipients', true);
 
         if (! $this->indexExists('notification_recipients', 'uniq_notif_recip_user')) {
@@ -121,7 +128,7 @@ class NormalizeNotificationDeliveryOutbox extends Migration
             ],
             'status' => [
                 'type' => 'ENUM',
-                'constraint' => ['pending', 'processing', 'sent', 'failed', 'skipped'],
+                'constraint' => ['pending', 'processing', 'sent', 'failed', 'skipped', 'preference_blocked'],
                 'default' => 'pending',
             ],
             'attempts' => [

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\NotificationTextFormatter;
 use CodeIgniter\Database\BaseConnection;
 
 class NotificationDispatchService
@@ -99,10 +100,12 @@ class NotificationDispatchService
             ->getCompiledSelect();
 
         return $this->db->table('notification_deliveries d')
-            ->select('d.*, n.notif, n.type, n.id_kavling, n.id_proyek')
+            ->select('d.*, n.notif, n.type, n.id_kavling, n.id_proyek, j.nama_jalan, k.no_kavling')
             ->select('actor.name as actor_name, actor.username as actor_username')
             ->select('actor_department.department_name as actor_department')
             ->join('notification n', 'n.id = d.notification_id')
+            ->join('kavling k', 'k.id_kavling = n.id_kavling', 'left')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
             ->join('users actor', 'actor.id = n.add_by', 'left')
             ->join("({$actorDepartment}) actor_department", 'actor_department.user_id = n.add_by', 'left')
             ->where('d.claim_token', $claimToken)
@@ -134,8 +137,15 @@ class NotificationDispatchService
             }
         }
 
+        $message = NotificationTextFormatter::withKavling(
+            $delivery->notif,
+            $delivery->nama_jalan ?? null,
+            $delivery->no_kavling ?? null,
+            'Ada notifikasi baru'
+        );
+
         $payload = $this->webPushService->buildActorPayload(
-            (string) $delivery->notif,
+            $message,
             $delivery->actor_name ?? null,
             $delivery->actor_username ?? null,
             $delivery->actor_department ?? null,

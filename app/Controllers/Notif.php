@@ -225,12 +225,12 @@ class Notif extends BaseController
 
         foreach ($items as &$item) {
             if (is_object($item)) {
-                $item->notif_text = $this->plainNotificationText($item->notif ?? '');
+                $item->notif_text = $this->plainNotificationText($item->notif ?? '', $item->nama_jalan ?? null, $item->no_kavling ?? null);
                 if (!empty($item->id_proyek)) {
                     $item->logo_access_url = $fileAccessService->accessUrl('proyek_logo', (int) $item->id_proyek);
                 }
             } elseif (is_array($item)) {
-                $item['notif_text'] = $this->plainNotificationText($item['notif'] ?? '');
+                $item['notif_text'] = $this->plainNotificationText($item['notif'] ?? '', $item['nama_jalan'] ?? null, $item['no_kavling'] ?? null);
                 if (!empty($item['id_proyek'])) {
                     $item['logo_access_url'] = $fileAccessService->accessUrl('proyek_logo', (int) $item['id_proyek']);
                 }
@@ -240,9 +240,9 @@ class Notif extends BaseController
         return $items;
     }
 
-    protected function plainNotificationText($value): string
+    protected function plainNotificationText($value, $namaJalan = null, $noKavling = null): string
     {
-        return NotificationTextFormatter::plain($value);
+        return NotificationTextFormatter::withKavling($value, $namaJalan, $noKavling);
     }
 
     protected function applyGroupTargetFilter($builder): void

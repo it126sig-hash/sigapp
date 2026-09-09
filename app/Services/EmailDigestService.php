@@ -43,13 +43,26 @@ class EmailDigestService
             ->select('d.id as delivery_id, d.attempts, d.user_id as recipient_user_id')
             ->select('n.id as notification_id, n.notif, n.type, n.created_at as notif_date, n.add_by as actor_user_id')
             ->select('nr.read_at as recipient_read_at')
-            ->select('COALESCE(p.id_proyek, pk.id_proyek) as id_proyek, COALESCE(p.nama_proyek, pk.nama_proyek) as nama_proyek, k.no_kavling')
+            ->select('COALESCE(p.id_proyek, pk.id_proyek) as id_proyek, COALESCE(p.nama_proyek, pk.nama_proyek) as nama_proyek, j.nama_jalan, k.no_kavling')
             ->select('recipient.id as recipient_id, recipient.email, recipient.username, recipient.email_notif_enabled')
             ->select('u.name as actor_name, u.username as actor_username')
             ->select('MIN(ag.name) as departemen_name, MIN(ag.description) as departemen_desc', false)
             ->join('notification n', 'n.id = d.notification_id')
             ->join('notification_recipients nr', 'nr.id = d.notification_recipient_id AND nr.user_id = d.user_id')
             ->join('users recipient', 'recipient.id = d.user_id')
+            ->join('proyek p', 'p.id_proyek = n.id_proyek', 'left')
+            ->join('kavling k', 'k.id_kavling = n.id_kavling', 'left')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
+            ->join('cluster c', 'c.id_cluster = j.id_cluster', 'left')
+            ->join('proyek pk', 'pk.id_proyek = c.id_proyek', 'left')
+            ->join('users u', 'u.id = n.add_by', 'left')
+            ->join('auth_groups_users agu', 'agu.user_id = u.id', 'left')
+            ->join('auth_groups ag', 'ag.id = agu.group_id', 'left')
+            ->where('d.channel', 'email')
+            ->groupStart()
+                ->where('d.status', 'pending')
+                ->orWhere('d.status', 'failed')
+            ->groupEnd()
             ->where('d.available_at <=', date('Y-m-d H:i:s'))
             ->where('d.attempts <', 5)
             ->groupBy('d.id')
@@ -149,7 +162,7 @@ class EmailDigestService
 
         $queues = $this->db->table('notification_email_queue q')
             ->select('q.*, n.notif, n.type, n.is_read as legacy_is_read, n.created_at as notif_date')
-            ->select('COALESCE(p.id_proyek, pk.id_proyek) as id_proyek, COALESCE(p.nama_proyek, pk.nama_proyek) as nama_proyek, k.no_kavling')
+            ->select('COALESCE(p.id_proyek, pk.id_proyek) as id_proyek, COALESCE(p.nama_proyek, pk.nama_proyek) as nama_proyek, j.nama_jalan, k.no_kavling')
             ->select('u.name as actor_name, u.username as actor_username')
             ->select('MIN(ag.name) as departemen_name, MIN(ag.description) as departemen_desc', false)
             ->join('notification n', 'n.id = q.notification_id')
@@ -442,7 +455,7 @@ class EmailDigestService
     {
         $groupedByProyek = [];
         foreach ($items as $item) {
-            $item->notif_text = NotificationTextFormatter::plain($item->notif ?? '');
+            $item->notif_text = NotificationTextFormatter::withKavling($item->notif ?? '', $item->nama_jalan ?? null, $item->no_kavling ?? null);
             $proyekName = ! empty($item->nama_proyek) ? $item->nama_proyek : 'Umum / Lainnya';
             $groupedByProyek[$proyekName][] = $item;
         }
