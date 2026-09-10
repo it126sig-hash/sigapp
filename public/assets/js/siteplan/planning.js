@@ -30,8 +30,10 @@
             }
         }
         $("#fm-add_kavling")[0].reset()
-
         $("#fm-add_kavling .select2").val(null).trigger('change')
+        $("#rotation").val("");
+        $("#ui-rotation").val("");
+        $("#rotation-icon").css("transform", "rotate(0deg)");
 
 
         $(".t_luas_legal, .t_luas_produksi, .r_progres").html('-')
@@ -45,12 +47,26 @@
 
         $('#status_tanah').val("Standar").trigger('change');
 
-
-        $('#modals-slide-in').modal({
-            backdrop: 'static',
-            keyboard: false
-        });
-        $("#points").val(dtt);
+        if (batchdtt && batchdtt.length > 0 && typeof PolygonClip !== 'undefined' && PolygonClip.computeMABR) {
+            interactiveFacadeArrow(batchdtt[0], function(selectedAngle) {
+                if (selectedAngle !== null) {
+                    $("#rotation").val(selectedAngle.toFixed(1));
+                    $("#ui-rotation").val(selectedAngle.toFixed(1));
+                    $("#rotation-icon").css("transform", "rotate(" + selectedAngle.toFixed(1) + "deg)");
+                }
+                $('#modals-slide-in').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+                $("#points").val(dtt);
+            });
+        } else {
+            $('#modals-slide-in').modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+            $("#points").val(dtt);
+        }
     }
 
     function batal_tambah_kavling() {
@@ -585,13 +601,13 @@ function pindah_kavling() {
 }
 
 function selesai_selection(e) {
+  let destinationPoints = [];
   if (e == 1) {
-    const destinationPoints = planning_collect_selection_points();
+    destinationPoints = planning_collect_selection_points();
     const expectedCount = planningMoveState.active ? planningMoveState.selected.length : 1;
 
     if (!destinationPoints.length) {
       Swal.fire({
-        //position: 'bottom-end',
         icon: "error",
         title: "Tidak ada lokasi yang dipilih",
         showConfirmButton: false,
@@ -628,9 +644,32 @@ function selesai_selection(e) {
     previousPoints: "",
   };
 
-  $("#modals-slide-in").modal("show");
-  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").show();
-  $("#selesai_pindah_btn, #batal_pindah_btn, #planning_undo_manual_selection, #container_tambah_jalan").hide();
+  let openModal = function() {
+    $("#modals-slide-in").modal("show");
+    $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").show();
+    $("#selesai_pindah_btn, #batal_pindah_btn, #planning_undo_manual_selection, #container_tambah_jalan").hide();
+  };
+
+  if (!planningMoveState.active && (typeof editdtt === 'undefined' || editdtt.length === 0)) {
+    $("#fm-add_kavling")[0].reset();
+    $(".select2").not("#pilih-divisi").val(null).trigger("change");
+    $("#rotation").val("");
+    $("#ui-rotation").val("");
+    $("#rotation-icon").css("transform", "rotate(0deg)");
+  }
+  if (e == 1 && typeof interactiveFacadeArrow !== 'undefined') {
+    let ptsArr = typeof destinationPoints !== 'undefined' && destinationPoints.length > 0 ? destinationPoints[0] : (typeof dtt !== 'undefined' ? dtt : []);
+    interactiveFacadeArrow(ptsArr, function(selectedAngle) {
+      if (selectedAngle !== null) {
+          $("#rotation").val(selectedAngle.toFixed(1));
+          $("#ui-rotation").val(selectedAngle.toFixed(1));
+          $("#rotation-icon").css("transform", "rotate(" + selectedAngle.toFixed(1) + "deg)");
+      }
+      openModal();
+    });
+  } else {
+    openModal();
+  }
 }
 
 (function () {
@@ -794,3 +833,263 @@ document.addEventListener("DOMContentLoaded", function() {
     if (namaProyek) namaProyek.value = pl_nama_proyek;
     if (idProyek) idProyek.value = pl_id_proyek;
 });
+
+
+$(document).ready(function() {
+
+    // 4. Klik luar shape otomatis deselect
+    if (typeof stage !== 'undefined') {
+        stage.on('click tap', function(e) {
+            if ($("#tambah_jalan").prop("checked")) return; 
+            
+            let isBackground = (e.target === stage || e.target.className === 'Image' || e.target.hasName('bg') || e.target.hasName('background') || e.target.id() === 'img');
+            
+            if (isBackground) {
+                if (typeof hapus_seleksi === 'function') {
+                    hapus_seleksi();
+                    $("#add_kavling, #edit_kavling_batch").hide();
+                    if (typeof layer !== 'undefined') layer.batchDraw();
+                }
+            }
+        });
+    }
+    let originalBatchDtt = [];
+    let originalEditDtt = [];
+    
+        $('#modals-slide-in').on('shown.bs.modal', function () {
+        originalBatchDtt = JSON.parse(JSON.stringify(typeof batchdtt !== 'undefined' ? batchdtt : []));
+        originalEditDtt = JSON.parse(JSON.stringify(typeof editdtt !== 'undefined' ? editdtt : []));
+        
+        let editPoints = null;
+        if (originalEditDtt.length > 0 && originalEditDtt[0].points) {
+            editPoints = originalEditDtt[0].points;
+        }
+
+        let firstPts = originalBatchDtt.length > 0 ? originalBatchDtt[0] : editPoints;
+        
+        let isEditMode = (originalEditDtt && originalEditDtt.length > 0);
+        let hasManyPoints = false;
+        if (firstPts) {
+            let len = typeof firstPts === 'string' ? firstPts.split(',').length : firstPts.length;
+            if (len >= 6) hasManyPoints = true;
+        }
+
+        // Tampilkan container jika banyak titik (magic wand) ATAU sedang mode edit
+        if (hasManyPoints || isEditMode) {
+            $("#simplify-rect-container").show();
+            $("#btn-simplify-rect").text("Sederhanakan ke Rect");
+            $("#btn-simplify-rect").removeClass("btn-warning").addClass("btn-outline-primary");
+            
+            // Cek apakah ada value rotation dari database (Edit Mode)
+            if (isEditMode && originalEditDtt[0] && originalEditDtt[0].data && originalEditDtt[0].data.rotation !== null && originalEditDtt[0].data.rotation !== undefined) {
+                // Jika belum diset oleh arrow, set dari DB
+                if (!$("#rotation").val()) {
+                    $("#rotation").val(originalEditDtt[0].data.rotation);
+                }
+            }
+            
+            let existingRot = $("#rotation").val();
+            if (existingRot !== "" && existingRot !== null && existingRot !== undefined) {
+                $("#ui-rotation").val(existingRot);
+                $("#rotation-icon").css("transform", "rotate(" + existingRot + "deg)");
+            } else {
+                $("#ui-rotation").val("");
+                $("#rotation-icon").css("transform", "rotate(0deg)");
+            }
+        } else {
+            $("#simplify-rect-container").hide();
+        }
+    });
+
+    $("#ui-rotation").on("input", function() {
+        let val = $(this).val();
+        $("#rotation").val(val);
+        if (val !== "") {
+            $("#rotation-icon").css("transform", "rotate(" + val + "deg)");
+        } else {
+            $("#rotation-icon").css("transform", "rotate(0deg)");
+        }
+    });
+
+    $("#btn-ubah-fasad").on("click", function() {
+        $('#modals-slide-in').modal('hide');
+        let targetPoints = (typeof batchdtt !== 'undefined' && batchdtt.length > 0) ? batchdtt[0] : (typeof editdtt !== 'undefined' && editdtt.length > 0 ? editdtt[0].points : (typeof dtt !== 'undefined' ? dtt : []));
+        
+        interactiveFacadeArrow(targetPoints, function(selectedAngle) {
+            if (selectedAngle !== null) {
+                $("#rotation").val(selectedAngle.toFixed(1));
+                $("#ui-rotation").val(selectedAngle.toFixed(1));
+                $("#rotation-icon").css("transform", "rotate(" + selectedAngle.toFixed(1) + "deg)");
+            }
+            $('#modals-slide-in').modal('show');
+        });
+    });
+
+    $("#btn-simplify-rect").on("click", function() {
+        let isEditMode = (typeof batchdtt !== 'undefined' && batchdtt.length === 0 && typeof editdtt !== 'undefined' && editdtt.length > 0);
+        
+        if ($(this).text() === "Sederhanakan ke Rect") {
+            if (typeof PolygonClip !== 'undefined' && PolygonClip.computeMABR) {
+                let targetArray = isEditMode ? editdtt : batchdtt;
+                let allPointsStr = [];
+                
+                for (let i = 0; i < targetArray.length; i++) {
+                    const currentItem = targetArray[i];
+                    const currentPoints = isEditMode ? currentItem.points : (typeof currentItem === 'string' ? currentItem.split(',').map(Number) : currentItem);
+                    if (currentPoints.length < 6) {
+                        allPointsStr.push(isEditMode ? currentItem.points : currentItem);
+                        continue;
+                    }
+
+                    const mabr = PolygonClip.computeMABR(currentPoints);
+                    let newPointsStr = mabr.points.join(',');
+                    allPointsStr.push(newPointsStr);
+                    
+                    if (isEditMode) {
+                        targetArray[i].points = newPointsStr;
+                    } else {
+                        targetArray[i] = newPointsStr;
+                    }
+                    
+                    if (i === 0) {
+                        if (!$("#rotation").val()) {
+                            let angle = mabr.angle;
+                            $("#ui-rotation").val(angle.toFixed(1));
+                            $("#rotation-icon").css("transform", "rotate(" + angle.toFixed(1) + "deg)");
+                            $("#rotation").val(angle.toFixed(1));
+                        }
+                    }
+                }
+                
+                if (isEditMode) {
+                    $("#points").val(allPointsStr.join(';'));
+                } else {
+                    if (allPointsStr.length > 0) $("#points").val(allPointsStr[0]);
+                }
+                
+                $(this).text("Batal Menyederhanakan");
+                $(this).removeClass("btn-outline-primary").addClass("btn-warning");
+                
+                updateSelectionPreview(targetArray, isEditMode);
+            }
+        } else {
+            if (isEditMode) {
+                editdtt = JSON.parse(JSON.stringify(originalEditDtt));
+                let allOriginalPts = editdtt.map(e => e.points);
+                $("#points").val(allOriginalPts.join(';'));
+                updateSelectionPreview(editdtt, true);
+            } else {
+                batchdtt = JSON.parse(JSON.stringify(originalBatchDtt));
+                if (batchdtt.length > 0) $("#points").val(typeof batchdtt[0] === 'string' ? batchdtt[0] : batchdtt[0].join(','));
+                updateSelectionPreview(batchdtt, false);
+            }
+            
+            $("#rotation").val("");
+            $("#ui-rotation").val("");
+            $("#rotation-icon").css("transform", "rotate(0deg)");
+            $(this).text("Sederhanakan ke Rect");
+            $(this).removeClass("btn-warning").addClass("btn-outline-primary");
+        }
+    });
+
+    function updateSelectionPreview(targetArray, isEditMode) {
+        if (typeof stage === 'undefined') return;
+        let lines = stage.find("#sel");
+        for (let i = 0; i < lines.length; i++) {
+            let item = targetArray[i];
+            if (item) {
+                let pts = isEditMode ? item.points : item;
+                pts = typeof pts === 'string' ? pts.split(',').map(Number) : pts;
+                if (lines[i]) lines[i].points(pts);
+            }
+        }
+        stage.batchDraw();
+    }
+});
+
+function interactiveFacadeArrow(pointsArr, callback) {
+    if (typeof pointsArr === 'string') pointsArr = pointsArr.split(',').map(Number);
+    if (pointsArr.length < 6) {
+        callback(null); return;
+    }
+
+    let cx = 0, cy = 0;
+    for(let i=0; i<pointsArr.length; i+=2) {
+        cx += pointsArr[i];
+        cy += pointsArr[i+1];
+    }
+    cx /= (pointsArr.length/2);
+    cy /= (pointsArr.length/2);
+
+    let selLine = stage.find('#sel')[0];
+    let layer = selLine ? selLine.getLayer() : stage.getLayers()[0];
+    
+    let arrow = new Konva.Arrow({
+        points: [cx, cy, cx, cy - 50],
+        pointerLength: 10,
+        pointerWidth: 10,
+        fill: 'black',
+        stroke: 'black',
+        strokeWidth: 4,
+        id: 'facade_arrow'
+    });
+    
+    layer.add(arrow);
+    layer.batchDraw();
+
+    let arrowAngle = 0;
+
+    let moveHandler = function() {
+        let pos = stage.getPointerPosition();
+        if (!pos) return;
+        
+        let t = stage.getAbsoluteTransform().copy();
+        t.invert();
+        let localPos = t.point(pos);
+        
+        let dx = localPos.x - cx;
+        let dy = localPos.y - cy;
+        arrowAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+        
+        let len = Math.sqrt(dx*dx + dy*dy);
+        if (len < 20) len = 20; 
+        
+        arrow.points([cx, cy, cx + Math.cos(arrowAngle * Math.PI/180)*len, cy + Math.sin(arrowAngle * Math.PI/180)*len]);
+        layer.batchDraw();
+    };
+
+    stage.on('mousemove.facade', moveHandler);
+    stage.on('touchmove.facade', moveHandler);
+
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'bottom',
+        showConfirmButton: false,
+        timer: 10000,
+        timerProgressBar: true,
+    });
+    Toast.fire({
+        icon: 'warning',
+        title: 'Arahkan panah ke arah jalan, lalu KLIK KIRI pada peta.'
+    });
+
+    let clickHandler = function(e) {
+        if (e.evt) e.evt.preventDefault();
+        
+        stage.off('mousemove.facade');
+        stage.off('touchmove.facade');
+        stage.off('click.facade');
+        stage.off('tap.facade');
+        
+        arrow.destroy();
+        layer.batchDraw();
+        Swal.close();
+        
+        callback(arrowAngle);
+    };
+
+    setTimeout(() => {
+        stage.on('click.facade', clickHandler);
+        stage.on('tap.facade', clickHandler);
+    }, 100);
+}

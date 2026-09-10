@@ -392,6 +392,7 @@ class Siteplan extends BaseController
         $fields['points'] = $this->request->getPost('points');
         $fields['luas_tanah'] = $this->request->getPost('f_luas');
         $fields['status_tanah'] = $this->request->getPost('status_tanah');
+        $fields['rotation'] = $this->request->getPost('rotation') !== '' ? $this->request->getPost('rotation') : null;
 
         //multiple selection var
         $bpoints = $this->request->getPost('bpoints[]');
@@ -545,6 +546,7 @@ class Siteplan extends BaseController
         $fields['id_tipe'] = $this->request->getPost('id_tipe');
         $fields['status_tanah'] = $this->request->getPost('status_tanah');
         $fields['luas_tanah'] = $this->request->getPost('f_luas');
+        $fields['rotation'] = $this->request->getPost('rotation') !== '' ? $this->request->getPost('rotation') : null;
 
         $id = $splitList($this->request->getPost('id_kavling'));
         $no = $splitList($this->request->getPost('no_kavling'));

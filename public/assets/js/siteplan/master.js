@@ -1192,65 +1192,114 @@ Date.prototype.toDateInputValue = (function() {
                         hit = filterOverride;
                     }
 
-                    // return;
-
                     //set untuk filter warna
                     filterwarna[hit.tipe] = {
                         ...filterwarna[hit.tipe],
                         [hit.fill]: get_kategori_color(hit.fill)
                     }
 
-
-                    // console.log(hit.fill, conf[hit.fill].fill);
-
                     hitung_kavling(hit)
-                    //data di tiap kavling harus disesuaikan dengan divisi yang dipilih
-                    kav = new Konva.Line({
-                        points: JSON.parse("[" + r[p].points + "]"),
-                        // lineCap: 'round',
-                        // lineJoin: 'round',
-                        // stroke: stroke,
-                        fill: get_kategori_color(hit.fill),
-                        // strokeWidth: strokeWidth,
-                        dash: dashed,
-                        opacity: 1,
-                        closed: true,
-                        globalCompositeOperation: 'multiply',
-                        kategori: hit.fill,
-                        data: {
-                            nama_jalan: r[p].nama_jalan,
-                            no_kavling: r[p].no_kavling,
-                            id_produksi: r[p].id_produksi,
-                            id_legal: r[p].id_legal,
-                            id_keuangan: r[p].id_keuangan,
-                            id_sales: r[p].id_sales,
-                            id_planning: r[p].id_planning,
-                            id_mkdt: r[p].id_mkdt,
-                            id_umum: r[p].id_umum,
-                            id_direksi: r[p].id_direksi,
-                            tipe: 'kavling',
-                            status_tanah: r[p].status_tanah,
-                            luas_tanah: r[p].luas_tanah,
-                            is_batal: r[p].is_batal,
-                            // total_biaya: ktotal_biaya,
-                            // sudah_bayar: ksudah_bayar
-                        },
-                        data2: {
-                            id_hargajual: id_hargajual,
-                            status_mkdt: r[p].status_mkdt,
-                            id_tipe: r[p].id_tipe,
-                            tipe_rumah: tp_rumah,
-                            no_tipe_rumah: no_tp_rumah,
-                            id_gambar_kerja: r[p].id_gambar_kerja,
-                            harga_akhir: r[p].harga_akhir,
-                            harga_akhir_tgl: r[p].harga_akhir_tgl,
-                            harga_akhir_oleh: r[p].harga_akhir_oleh_username,
-                            id_serah_terima: r[p].id_serah_terima,
-                            id_komplain: r[p].id_komplain,
-                            target: targetInfo,
-                        },
-                        id: 'kav' + r[p].id_kavling
-                    });
+                    
+                    const dataObj = {
+                        nama_jalan: r[p].nama_jalan,
+                        no_kavling: r[p].no_kavling,
+                        id_produksi: r[p].id_produksi,
+                        id_legal: r[p].id_legal,
+                        id_keuangan: r[p].id_keuangan,
+                        id_sales: r[p].id_sales,
+                        id_planning: r[p].id_planning,
+                        id_mkdt: r[p].id_mkdt,
+                        id_umum: r[p].id_umum,
+                        id_direksi: r[p].id_direksi,
+                        tipe: 'kavling',
+                        status_tanah: r[p].status_tanah,
+                        rotation: r[p].rotation,
+                        luas_tanah: r[p].luas_tanah,
+                        is_batal: r[p].is_batal,
+                    };
+                    const data2Obj = {
+                        id_hargajual: id_hargajual,
+                        status_mkdt: r[p].status_mkdt,
+                        id_tipe: r[p].id_tipe,
+                        tipe_rumah: tp_rumah,
+                        no_tipe_rumah: no_tp_rumah,
+                        id_gambar_kerja: r[p].id_gambar_kerja,
+                        harga_akhir: r[p].harga_akhir,
+                        harga_akhir_tgl: r[p].harga_akhir_tgl,
+                        harga_akhir_oleh: r[p].harga_akhir_oleh_username,
+                        id_serah_terima: r[p].id_serah_terima,
+                        id_komplain: r[p].id_komplain,
+                        target: targetInfo,
+                    };
+
+                    const useMultiColor = window.multiColorMode === true; 
+
+                    if (useMultiColor && typeof PolygonClip !== 'undefined') {
+                        kav = new Konva.Group({
+                            id: 'kav' + r[p].id_kavling,
+                            kategori: hit.fill,
+                            data: dataObj,
+                            data2: data2Obj,
+                            points: JSON.parse("[" + r[p].points + "]") // ditambahkan agar compatibility dgn drawBorderEdit
+                        });
+
+                        const pointsArr = JSON.parse("[" + r[p].points + "]");
+                        
+                        // Menentukan warna untuk 3 bagian
+                        let color1 = get_kategori_color(r[p].status_mkdt || 'Def'); // Transaksi
+                        let color2 = get_kategori_color(r[p].is_lunas == 1 ? 'Lunas' : 'Belum Lunas'); // Keuangan
+                        let color3 = get_kategori_color(parseInt(r[p].progres_bangunan) == 100 ? 'Ready Stock' : (parseInt(r[p].progres_bangunan) > 0 ? 'Pembangunan' : 'Def')); // Produksi
+
+                        // Potong polygon jadi 3 bagian horizontal
+                        const rotation = r[p].rotation;
+                        const subPolygons = PolygonClip.splitKavlingShapeOBB(pointsArr, [1, 1, 1], rotation);
+                        const colors = [color1, color2, color3];
+
+                        subPolygons.forEach((subPoints, idx) => {
+                            if (subPoints.length > 0) {
+                                const subShape = new Konva.Line({
+                                    points: subPoints,
+                                    fill: colors[idx % colors.length],
+                                    dash: dashed,
+                                    opacity: 1,
+                                    closed: true,
+                                    globalCompositeOperation: 'multiply',
+                                    kategori: hit.fill,
+                                    data: dataObj,
+                                    data2: data2Obj,
+                                    id: 'kav' + r[p].id_kavling,
+                                    name: 'subShape'
+                                });
+                                kav.add(subShape);
+                            }
+                        });
+                        
+                        // Tambahkan outline utuh di atasnya agar border kavling terlihat jelas
+                        const outlineShape = new Konva.Line({
+                            points: pointsArr,
+                            stroke: '#000',
+                            strokeWidth: 0.5,
+                            closed: true,
+                            listening: false // tidak menangkap event, diteruskan ke subShape di bawahnya
+                        });
+                        kav.add(outlineShape);
+
+                    } else {
+                        // Rendering standar
+                        kav = new Konva.Line({
+                            points: JSON.parse("[" + r[p].points + "]"),
+                            fill: get_kategori_color(hit.fill),
+                            dash: dashed,
+                            opacity: 1,
+                            closed: true,
+                            globalCompositeOperation: 'multiply',
+                            kategori: hit.fill,
+                            data: dataObj,
+                            data2: data2Obj,
+                            id: 'kav' + r[p].id_kavling
+                        });
+                    }
+                    
                     siteplan.add(kav);
                 }
                 set_keterangan_warna()
@@ -1499,8 +1548,13 @@ Date.prototype.toDateInputValue = (function() {
     })
 
     siteplan.on('click tap', function(e) {
-        var k = e.target, //get shape
-            sh = k.attrs, //get attribut shape
+        var k = e.target; //get shape
+        // Jika shape adalah bagian dari Konva.Group (multi-color mode), gunakan group-nya
+        if (k.hasName('subShape') && k.parent) {
+            k = k.parent;
+        }
+
+        var sh = k.attrs, //get attribut shape
             role = $('#pilih-divisi option:selected').val(),
             id_kavling = ''
 
@@ -1596,7 +1650,9 @@ Date.prototype.toDateInputValue = (function() {
     //even mouse move data kavling
     var data, mousePos, persentase;
     siteplan.on('mousemove', function(e) {
-        data = e.target.attrs;
+        var k = e.target;
+        if (k.hasName('subShape') && k.parent) k = k.parent;
+        data = k.attrs;
         // console.log(data);
 
         //posisi tooltip
@@ -1626,7 +1682,9 @@ Date.prototype.toDateInputValue = (function() {
     //even mouse move data kavling
     var data, mousePos, persentase;
     siteplan.on('mousemove', function(e) {
-        data = e.target.attrs;
+        var k = e.target;
+        if (k.hasName('subShape') && k.parent) k = k.parent;
+        data = k.attrs;
         // console.log(data);
 
         //posisi tooltip
