@@ -1625,6 +1625,7 @@ Date.prototype.toDateInputValue = (function() {
     });
 
     stage.on('click tap', function(e) {
+        if (typeof isFacadeArrowActive !== 'undefined' && isFacadeArrowActive) return;
         if (isManualSelectionActive()) {
             var pos = this.getRelativePointerPosition();
 

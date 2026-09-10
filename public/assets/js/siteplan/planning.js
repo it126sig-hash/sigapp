@@ -187,6 +187,9 @@ function edit_kavling_batch() {
 
   $("#fm-add_kavling")[0].reset();
   $(".select2").not("#pilih-divisi").val(null).trigger("change");
+  $("#rotation").val("");
+  $("#ui-rotation").val("");
+  $("#rotation-icon").css("transform", "rotate(0deg)");
 
   $.ajax({
     url: url,
@@ -253,6 +256,13 @@ function edit_kavling_batch() {
           $("#no_kavling").val(no);
           $("#points").val(points);
           $("#f_luas").val(r[0].luas_tanah);
+          
+          let rotVal = r[0].rotation;
+          if (rotVal !== null && rotVal !== undefined && rotVal !== '') {
+              $("#rotation").val(rotVal);
+              $("#ui-rotation").val(rotVal);
+              $("#rotation-icon").css("transform", "rotate(" + rotVal + "deg)");
+          }
         }
       } else {
         if (r.length > 0) {
@@ -835,19 +845,25 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
+var isFacadeArrowActive = false;
+
 $(document).ready(function() {
 
     // 4. Klik luar shape otomatis deselect
     if (typeof stage !== 'undefined') {
-        stage.on('click tap', function(e) {
+        stage.on('click.planningDeselect tap.planningDeselect', function(e) {
+            if (typeof isFacadeArrowActive !== 'undefined' && isFacadeArrowActive) return;
+            if (typeof isManualSelectionActive === 'function' && isManualSelectionActive()) return;
             if ($("#tambah_jalan").prop("checked")) return; 
             
-            let isBackground = (e.target === stage || e.target.className === 'Image' || e.target.hasName('bg') || e.target.hasName('background') || e.target.id() === 'img');
+            let targetData = e.target.attrs && e.target.attrs.data;
+            let isShape = targetData && targetData.tipe;
+            let isSubShape = e.target.hasName && e.target.hasName('subShape');
             
-            if (isBackground) {
+            if (!isShape && !isSubShape && typeof editdtt !== 'undefined' && editdtt.length > 0) {
                 if (typeof hapus_seleksi === 'function') {
                     hapus_seleksi();
-                    $("#add_kavling, #edit_kavling_batch").hide();
+                    $("#add_kavling, #edit_kavling_batch").show();
                     if (typeof layer !== 'undefined') layer.batchDraw();
                 }
             }
@@ -1008,8 +1024,10 @@ $(document).ready(function() {
 });
 
 function interactiveFacadeArrow(pointsArr, callback) {
+    isFacadeArrowActive = true;
     if (typeof pointsArr === 'string') pointsArr = pointsArr.split(',').map(Number);
     if (pointsArr.length < 6) {
+        isFacadeArrowActive = false;
         callback(null); return;
     }
 
@@ -1074,6 +1092,7 @@ function interactiveFacadeArrow(pointsArr, callback) {
     });
 
     let clickHandler = function(e) {
+        isFacadeArrowActive = false;
         if (e.evt) e.evt.preventDefault();
         
         stage.off('mousemove.facade');
