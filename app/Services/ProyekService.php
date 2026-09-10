@@ -40,10 +40,11 @@ class ProyekService
         foreach ($this->proyekRepository->getAll($params) as $key => $value) {
             $ops = '<div class="btn-group">';
             $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_proyek . ')"><i class="fas fa-edit"></i></button>';
+            $ops .= '	<button type="button" class="btn btn-outline-info waves-effect btn-sm" onclick="viewProyek(' . $value->id_proyek . ')"><i class="fas fa-eye"></i></button>';
             $ops .= '</div>';
 
             $rows[$key] = [
-                $value->id_proyek,
+                $key + 1,
                 $value->nama_proyek,
                 $value->alamat_proyek,
                 "<img width='50px' src='" . $this->fileAccessService->thumbnailUrl('proyek_logo', (int) $value->id_proyek) . "'>",
@@ -246,6 +247,7 @@ class ProyekService
             'no_rek' => $request->getPost('noRek'),
             'bank' => $request->getPost('bank'),
             'atas_nama' => $request->getPost('atasNama'),
+            'order_by' => (int) $request->getPost('orderBy'),
         ];
     }
 

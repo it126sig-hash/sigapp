@@ -1789,12 +1789,17 @@ function showFoto(data, imbuhan = "", del = true) {
         item.foto_lat && item.foto_lng
           ? `${Number(item.foto_lat).toFixed(6)}, ${Number(item.foto_lng).toFixed(6)}`
           : "-, -";
+      
+      const coordinateHTML =
+        item.foto_lat && item.foto_lng
+          ? `<div class="detail-file-meta" style="cursor: pointer;" onclick="copyCoordinateToClipboard(this, '${coordinateText}')" title="Klik untuk menyalin"><i class="fas fa-map-marker-alt text-danger mr-50"></i> ${coordinateText}</div>`
+          : `<div class="detail-file-meta"><i class="fas fa-map-marker-alt text-secondary mr-50"></i> -, -</div>`;
+          
       bodyDiv.innerHTML = `
-        <div class="detail-file-title">${item.file_name || (isDocument ? "File" : "Foto")}</div>
-        ${isDocument ? "" : `<div class="detail-file-meta">Tanggal foto: ${item.tgl_capture ? format_date(item.tgl_capture) : "-"}</div>`}
-        <div class="detail-file-meta">Diunggah oleh: ${item.username || "-"}</div>
-        <div class="detail-file-meta">${item.file_keterangan || "-"}</div>
-        ${isDocument ? "" : `<div class="detail-file-meta">Titik koordinat: ${coordinateText}</div>`}
+        <div class="detail-file-title font-weight-bold mb-50">${item.file_keterangan || (isDocument ? "Dokumen" : "Foto")}</div>
+        ${isDocument ? "" : `<div class="detail-file-meta text-primary"><i class="fas fa-calendar-alt mr-50"></i> ${item.tgl_capture ? format_date(item.tgl_capture) : "-"}</div>`}
+        <div class="detail-file-meta text-info"><i class="fas fa-user mr-50"></i> ${item.username || "-"}</div>
+        ${isDocument ? "" : coordinateHTML}
       `;
 
       const actionDiv = document.createElement("div");
@@ -2456,3 +2461,31 @@ const list_pekerjaan = {
         "Pekerjaan Sanitasi": ["Pasang closet", "Pasang washtafel", "Pasang bak mandi", "Pasang bak cuci piring", "Septictank"],
         "Pekerjaan Finishing & Pegecatan": ["Pengecatan kusen", "Pengecatan pintu dan jendela", "Pengecatan Plapond", "Pengecatan tembok"]
     };
+
+window.copyCoordinateToClipboard = function(el, text) {
+    if (!text || text === '-' || text === '-, -') return;
+    const prevHtml = el.innerHTML;
+    const onSuccess = () => {
+        el.innerHTML = '<i class="fas fa-check text-success mr-50"></i> <span class="text-success">Tersalin!</span>';
+        setTimeout(() => { el.innerHTML = prevHtml; }, 1500);
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(onSuccess).catch(() => fallback());
+    } else {
+        fallback();
+    }
+
+    function fallback() {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            if(document.execCommand('copy')) onSuccess();
+        } catch (err) {}
+        document.body.removeChild(textArea);
+    }
+};

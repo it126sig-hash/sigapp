@@ -88,23 +88,25 @@ class TipeService
     {
         $result = $this->tipeRepository->getDataTables($params);
         $rows = [];
+        $no = $params['start'] + 1; // Assuming 'start' is passed from DataTables
 
         foreach ($result['rows'] as $key => $value) {
             $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_tipe . ')"><i class="fa fa-edit"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="remove(' . $value->id_tipe . ')"><i class="fa fa-trash"></i></button>';
+            $ops .= '   <button type="button" class="btn btn-outline-info waves-effect btn-sm" onclick="view(' . $value->id_tipe . ')" title="Lihat Detail"><i class="fa fa-eye"></i></button>';
+            $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_tipe . ')" title="Perbaharui Data"><i class="fa fa-edit"></i></button>';
+            $ops .= '	<button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="remove(' . $value->id_tipe . ')" title="Hapus"><i class="fa fa-trash"></i></button>';
             $ops .= '</div>';
 
+            $tipeRumahMerge = $value->tipe_rumah . ' (' . $value->lb . '/' . $value->lt . ')';
+
             $rows[$key] = [
-                $value->id_tipe,
-                $value->nama_proyek,
+                $no++,
                 $value->no_tipe_rumah,
-                $value->tipe_rumah,
+                $tipeRumahMerge,
                 $this->statusBadge($value->is_subsidi, 'Subsidi', 'Non-Subsidi'),
-                $value->lb,
-                $value->lt,
                 $value->jumlah_kamar_tidur,
                 $value->jumlah_kamar_mandi,
+                '<span class="badge badge-light-info font-weight-bolder" style="cursor: pointer;" onclick="listKavling(' . $value->id_tipe . ')" title="Lihat List Kavling">' . $value->jumlah_kavling . ' Unit</span>',
                 $value->keterangan,
                 $ops,
             ];
@@ -255,6 +257,13 @@ class TipeService
     {
         if ($idTipe <= 0) {
             return ['success' => false, 'messages' => 'Id tipe tidak valid'];
+        }
+
+        $kavlingModel = new \App\Models\KavlingModel();
+        $count = $kavlingModel->where('id_tipe', $idTipe)->countAllResults();
+        
+        if ($count > 0) {
+            return ['success' => false, 'messages' => 'Data tipe tidak bisa dihapus karena sedang digunakan oleh ' . $count . ' kavling.'];
         }
 
         if ($this->tipeModel->where('id_tipe', $idTipe)->delete()) {
@@ -408,11 +417,9 @@ class TipeService
 
     private function statusBadge($id, string $texts, string $textf): string
     {
-        $r = '<span class="btn btn-outline-secondary" text-capitalized="">' . $textf . '</span>';
         if ($id == '1') {
-            $r = '<span class="btn  btn-outline-warning" text-capitalized="">' . $texts . '</span>';
+            return '<span class="badge badge-pill badge-light-warning" style="font-weight: 600; font-size: 11px; padding: 0.4rem 0.8rem; border: 1px solid #f8d75e;">' . $texts . '</span>';
         }
-
-        return $r;
+        return '<span class="badge badge-pill badge-light-secondary" style="font-weight: 600; font-size: 11px; padding: 0.4rem 0.8rem; border: 1px solid #dcdcdc; color: #6e6b7b;">' . $textf . '</span>';
     }
 }

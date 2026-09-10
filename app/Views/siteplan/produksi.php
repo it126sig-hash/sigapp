@@ -325,6 +325,46 @@
 		z-index: 3;
 	}
 
+	#modal_divisi7 .foto-container-title {
+		align-items: baseline;
+		color: #111827 !important;
+		display: flex;
+		flex-wrap: wrap;
+		font-size: .92rem !important;
+		font-weight: 800 !important;
+		gap: .35rem .5rem;
+		line-height: 1.4;
+		margin-bottom: .5rem;
+	}
+
+	#modal_divisi7 .foto-container-title .title-main {
+		align-items: center;
+		color: #111827;
+		display: inline-flex;
+		font-size: .92rem;
+		font-weight: 800;
+	}
+
+	#modal_divisi7 .foto-container-title .title-icon {
+		color: #2057a3;
+		font-size: .92rem;
+	}
+
+	#modal_divisi7 .foto-container-title .title-subtitle {
+		color: #64748b;
+		font-size: .78rem;
+		font-weight: 500;
+	}
+
+	.dark-layout #modal_divisi7 .foto-container-title,
+	.dark-layout #modal_divisi7 .foto-container-title .title-main {
+		color: #f8fafc !important;
+	}
+
+	.dark-layout #modal_divisi7 .foto-container-title .title-subtitle {
+		color: #94a3b8;
+	}
+
 	#modal_divisi7 .foto-container .custom-file {
 		background: #f8fafc;
 		border: 1px dashed #9db5d8;
@@ -943,7 +983,7 @@
 	<div class="modal-dialog modal-dialog-scrollable modal-xl">
 		<div class="modal-content pt-0">
 			<div class="modal-header">
-				<h5 class="modal-title" id="exampleModalLabel">Produksi</h5>
+				<h5 class="modal-title" id="exampleModalLabel"><i class="fas fa-hard-hat mr-50"></i>Produksi</h5>
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>
@@ -977,30 +1017,30 @@
 					<ul class="nav nav-tabs" role="tablist">
 						<li class="nav-item">
 							<a class="nav-link active" id="fm-prod-progress-tab" data-toggle="tab"
-								href="#fm-prod-progress" role="tab" aria-selected="true">Progres</a>
+								href="#fm-prod-progress" role="tab" aria-selected="true"><i class="fas fa-chart-line mr-50"></i>Progres</a>
 						</li>
 						<li class="nav-item">
 							<a class="nav-link" id="fm-prod-dokumentasi-tab" data-toggle="tab"
-								href="#fm-prod-dokumentasi" role="tab" aria-selected="true">Dokumentasi Bangunan</a>
+								href="#fm-prod-dokumentasi" role="tab" aria-selected="true"><i class="fas fa-home mr-50"></i>Dokumentasi Bangunan</a>
 						</li>
 						<!-- <li class="nav-item">
 							<a class="nav-link" id="fm-prod-slf-tab" data-toggle="tab" href="#fm-prod-slf" role="tab" aria-selected="true">SLF</a>
 						</li> -->
 						<li class="nav-item">
 							<a class="nav-link" id="fm-prod-jalan-tab" data-toggle="tab" href="#fm-prod-jalan"
-								role="tab" aria-selected="true">Jalan</a>
+								role="tab" aria-selected="true"><i class="fas fa-road mr-50"></i>Jalan</a>
 						</li>
 						<li class="nav-item">
 							<a class="nav-link" id="fm-prod-listrik-tab" data-toggle="tab" href="#fm-prod-listrik"
-								role="tab" aria-selected="true">Listrik</a>
+								role="tab" aria-selected="true"><i class="fas fa-bolt mr-50"></i>Listrik</a>
 						</li>
 						<li class="nav-item">
 							<a class="nav-link" id="fm-prod-air-tab" data-toggle="tab" href="#fm-prod-air" role="tab"
-								aria-selected="true">Air</a>
+								aria-selected="true"><i class="fas fa-tint mr-50"></i>Air</a>
 						</li>
 						<li class="nav-item">
 							<a class="nav-link" id="fm-prod-history-tab" data-toggle="tab" href="#fm-prod-history"
-								role="tab" aria-selected="false">Riwayat</a>
+								role="tab" aria-selected="false"><i class="fas fa-history mr-50"></i>Riwayat</a>
 						</li>
 					</ul>
 					<div class="tab-content">
@@ -1009,7 +1049,7 @@
 							<div id="produksi-progress-edit-area" class="produksi-progress-grid">
 								<div class="produksi-compact-card">
 									<div class="divider divider-left">
-										<div class="divider-text">Progress Fisik</div>
+										<div class="divider-text"><i class="fas fa-hammer mr-50"></i>Progress Fisik</div>
 									</div>
 									<div class="produksi-checklist-grid">
 									<div class="form-group">
@@ -1094,7 +1134,7 @@
 								</div>
 								<div class="produksi-compact-card">
 									<div class="divider divider-left">
-										<div class="divider-text">LPA</div>
+										<div class="divider-text"><i class="fas fa-layer-group mr-50"></i>LPA</div>
 									</div>
 									<div class="form-group">
 										<div class="custom-control custom-switch custom-control-inline">
@@ -1109,7 +1149,7 @@
 											id="lpa_tanggal" name="lpa_tanggal">
 									</div>
 									<div class="divider divider-left">
-										<div class="divider-text">Sumur Bor</div>
+										<div class="divider-text"><i class="fas fa-faucet mr-50"></i>Sumur Bor</div>
 									</div>
 									<div class="form-group">
 										<div class="custom-control custom-switch custom-control-inline">
@@ -1134,7 +1174,7 @@
 
 								<div class="produksi-compact-card">
 									<div class="divider divider-left">
-										<div class="divider-text">Catatan Progres</div>
+										<div class="divider-text"><i class="fas fa-clipboard-list mr-50"></i>Catatan Progres</div>
 									</div>
 									<div class="form-group">
 										<label for="progres_bangunan">Progres Bangunan</label>
@@ -1153,7 +1193,7 @@
 								</div>
 								<div class="produksi-compact-card">
 									<div class="divider divider-left">
-										<div class="divider-text">Tanggal Pembangunan Rumah</div>
+										<div class="divider-text"><i class="fas fa-calendar-alt mr-50"></i>Tanggal Pembangunan Rumah</div>
 									</div>
 
 										<div class="form-group">
@@ -1252,8 +1292,12 @@
 						<div class="tab-pane" id="fm-prod-dokumentasi" aria-labelledby="fm-prod-dokumentasi-tab"
 							role="tabpanel">
 							<div class="form-group foto-container">
-								<label>Foto Konstruksi(Pembesian, Pondaasi Sloof & Kolom Ringbalok, Pekerjaan Dinding,
-									Pekerjaan Atap & Plafon)</label>
+								<label class="foto-container-title" for="prod_foto_konstruksi">
+									<span class="title-main">
+										<i class="fas fa-tools title-icon mr-50"></i>Foto Konstruksi
+									</span>
+									<span class="title-subtitle">(Pembesian, Pondasi Sloof & Kolom Ringbalok, Pekerjaan Dinding, Pekerjaan Atap & Plafon)</span>
+								</label>
 								<div class="produksi-upload-action">
 									<div>
 										<strong class="d-block">Dokumentasi konstruksi</strong>
@@ -1287,8 +1331,12 @@
 							</div>
 							<hr>
 							<div class="form-group foto-container">
-								<label for="upload_komplain_produksi">Foto Exterior(Depan dan Belakang, foto memiliki
-									titik koordinat)</label>
+								<label class="foto-container-title" for="prod_foto_exterior">
+									<span class="title-main">
+										<i class="fas fa-home title-icon mr-50"></i>Foto Exterior
+									</span>
+									<span class="title-subtitle">(Depan dan Belakang, foto memiliki titik koordinat)</span>
+								</label>
 								<div class="custom-file">
 									<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
 										name="prod_foto_exterior[]" id="prod_foto_exterior" multiple
@@ -1312,8 +1360,12 @@
 							</div>
 							<hr>
 							<div class="form-group foto-container">
-								<label for="upload_komplain_produksi">Foto Interior(kamar, dapur, toilet, ruang tengah,
-									finishing cat kusen & pintu. Foto memiliki titik koordinat)</label>
+								<label class="foto-container-title" for="prod_foto_interior">
+									<span class="title-main">
+										<i class="fas fa-couch title-icon mr-50"></i>Foto Interior
+									</span>
+									<span class="title-subtitle">(Kamar, dapur, toilet, ruang tengah, finishing cat kusen & pintu. Foto memiliki titik koordinat)</span>
+								</label>
 								<div class="custom-file">
 									<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
 										name="prod_foto_interior[]" id="prod_foto_interior" multiple
@@ -1397,7 +1449,7 @@
 						</div> -->
 						<div class="tab-pane" id="fm-prod-jalan" aria-labelledby="fm-prod-jalan-tab" role="tabpanel">
 							<div class="divider divider-left">
-								<div class="divider-text">Foto Jalan</div>
+								<div class="divider-text"><i class="fas fa-images mr-50"></i>Foto Jalan</div>
 							</div>
 							<div>
 								<div class="form-group foto-container">
@@ -1453,7 +1505,7 @@
 						<div class="tab-pane" id="fm-prod-listrik" aria-labelledby="fm-prod-listrik-tab"
 							role="tabpanel">
 							<div class="divider divider-left">
-								<div class="divider-text">Ketersediaan Listrik</div>
+								<div class="divider-text"><i class="fas fa-bolt mr-50"></i>Ketersediaan Listrik</div>
 							</div>
 							<div class="form-group">
 								<label>Jenis Sumber Listrik</label>
@@ -1546,7 +1598,7 @@
 						</div>
 						<div class="tab-pane" id="fm-prod-air" aria-labelledby="fm-prod-air-tab" role="tabpanel">
 							<div class="divider divider-left">
-								<div class="divider-text">Ketersediaan Air</div>
+								<div class="divider-text"><i class="fas fa-tint mr-50"></i>Ketersediaan Air</div>
 							</div>
 							<div class="form-group">
 								<label>Jenis Sumber Air</label>
@@ -1647,7 +1699,7 @@
 						</div>
 						<div class="tab-pane" id="fm-prod-history" aria-labelledby="fm-prod-history-tab" role="tabpanel">
 							<div class="divider divider-left">
-								<div class="divider-text">Riwayat Perubahan Produksi</div>
+								<div class="divider-text"><i class="fas fa-history mr-50"></i>Riwayat Perubahan Produksi</div>
 							</div>
 							<div id="produksi-history-timeline" class="produksi-history-list">
 								<div class="text-muted">Memuat riwayat...</div>
@@ -1656,7 +1708,7 @@
 					</div>
 
 					<div class="divider divider-left hidden">
-						<div class="divider-text">Checklist</div>
+						<div class="divider-text"><i class="fas fa-tasks mr-50"></i>Checklist</div>
 					</div>
 					<p>
 						<button data-toggle="collapse" href="#collapseExample" type="button"
@@ -1711,10 +1763,25 @@
 
 				</form>
 			</div>
-			<div class="modal-footer">
-				<button id="add-form-btn-produksi" class="btn btn-primary data-submit mr-1" onclick="save_produksi()"
-					href="javascript:void(0)">Simpan</button>
-				<button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+			<div class="modal-footer flex-column align-items-stretch">
+				<div id="produksi-upload-progress" class="w-100 mb-1" style="display: none;">
+					<div class="d-flex justify-content-between align-items-center mb-50">
+						<span id="produksi-upload-status" class="font-weight-bold text-primary font-small-3">
+							<i class="fas fa-cloud-upload-alt mr-50"></i>Mengunggah berkas...
+						</span>
+						<span id="produksi-upload-percentage" class="font-weight-bold text-primary font-small-3">0%</span>
+					</div>
+					<div class="progress" style="height: 8px; border-radius: 4px; background: #e5eaf2; overflow: hidden;">
+						<div id="produksi-upload-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+							role="progressbar" style="width: 0%; transition: width 0.2s ease;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+					</div>
+					<small id="produksi-upload-hint" class="text-muted d-block mt-25 font-small-2">Sedang mengunggah berkas ke server...</small>
+				</div>
+				<div class="d-flex justify-content-end w-100">
+					<button id="add-form-btn-produksi" class="btn btn-primary data-submit mr-1" onclick="save_produksi()"
+						href="javascript:void(0)"><i class="fas fa-save mr-50"></i>Simpan</button>
+					<button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+				</div>
 			</div>
 		</div>
 	</div>

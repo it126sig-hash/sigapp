@@ -69,6 +69,10 @@ class JalanService
                 $value->id_jalan,
                 $value->nama_cluster,
                 $value->nama_jalan,
+                '<span class="badge badge-light-primary badge-pill">' . $value->total_kavling . '</span>',
+                '<span class="badge badge-light-success badge-pill">' . $value->total_akad . '</span>',
+                '<span class="badge badge-light-warning badge-pill">' . $value->total_booking . '</span>',
+                '<span class="badge badge-light-secondary badge-pill">' . $value->total_belum_terjual . '</span>',
                 $this->actionButtons((int) $value->id_jalan),
             ];
         }
@@ -154,6 +158,12 @@ class JalanService
     {
         if ($idJalan <= 0) {
             return ['success' => false, 'messages' => 'Id jalan tidak valid'];
+        }
+
+        $db = db_connect();
+        $kavlingCount = $db->table('kavling')->where('id_jalan', $idJalan)->countAllResults();
+        if ($kavlingCount > 0) {
+            return ['success' => false, 'messages' => "Tidak dapat menghapus jalan karena sudah memiliki $kavlingCount kavling terdaftar."];
         }
 
         if ($this->jalanModel->where('id_jalan', $idJalan)->delete()) {
