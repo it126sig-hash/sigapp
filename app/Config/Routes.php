@@ -218,6 +218,15 @@ $routes->get("/keuangan/hasil-akad/export-template", 'PencairanAkad::exportTempl
 $routes->get("/keuangan/hasil-akad/import", 'PencairanAkad::importForm');
 $routes->post("/keuangan/hasil-akad/import", 'PencairanAkad::import');
 
+$routes->group('laporan', ['namespace' => 'App\Controllers\Web', 'filter' => 'login'], function ($routes) {
+    $routes->get('cash-in', 'CashInReportController::index');
+});
+
+$routes->group('api/laporan/cash-in', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+    $routes->post('summary', 'CashInReportController::summary');
+    $routes->post('detail', 'CashInReportController::detail');
+});
+
 
 $routes->get("/pembayaran/hitungulang", 'Pembayaran::recalculateSummary');
 

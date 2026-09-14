@@ -1506,55 +1506,85 @@
                                     </div>
                                     <div class="tab-pane" id="dt-spesifikasi" aria-labelledby="dt-spesifikasi-tab"
                                         role="tabpanel">
-                                        <div class="detail-card-grid mb-1" id="dt-spesifikasi-summary">
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Tipe</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-tipe">-</div>
+                                        <div class="row">
+                                            <!-- Kolom 1 (Sebelah Kiri) -->
+                                            <div class="col-lg-6 col-md-12 mb-1 mb-lg-0">
+                                                <div class="row">
+                                                    <!-- Sub-kolom 1: Informasi Tipe (Card Vertical) -->
+                                                    <div class="col-sm-6 col-12 mb-1 mb-sm-0">
+                                                        <div class="detail-summary-card detail-status-card h-100" id="dt-spesifikasi-summary">
+                                                            <div class="detail-status-card-header">
+                                                                <div class="detail-card-icon"><i class="fas fa-home"></i></div>
+                                                                <div class="detail-status-card-title">Informasi Tipe</div>
+                                                            </div>
+                                                            <div class="detail-spec-vertical-list">
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-tag mr-50 text-primary"></i> Tipe</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-tipe">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-ruler-combined mr-50 text-primary"></i> Luas Bangunan</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-lb">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-vector-square mr-50 text-primary"></i> Luas Tanah</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-lt">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-bed mr-50 text-primary"></i> Kamar Tidur</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-kamar-tidur">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-bath mr-50 text-primary"></i> Kamar Mandi</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-kamar-mandi">-</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Sub-kolom 2: Spesifikasi Teknis (Card Vertical) -->
+                                                    <div class="col-sm-6 col-12">
+                                                        <div class="detail-summary-card detail-status-card h-100" id="dt-spesifikasi-teknis">
+                                                            <div class="detail-status-card-header">
+                                                                <div class="detail-card-icon"><i class="fas fa-tools"></i></div>
+                                                                <div class="detail-status-card-title">Spesifikasi Teknis</div>
+                                                            </div>
+                                                            <div class="detail-spec-vertical-list">
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-warehouse mr-50 text-primary"></i> Atap</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-atap">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-border-all mr-50 text-primary"></i> Dinding</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-dinding">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-th-large mr-50 text-primary"></i> Lantai</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-lantai">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-cubes mr-50 text-primary"></i> Pondasi</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-pondasi">-</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Luas Bangunan</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-lb">-</div>
+
+                                            <!-- Kolom 2 (Sebelah Kanan): Berisi Gambar -->
+                                            <div class="col-lg-6 col-md-12">
+                                                <div class="detail-summary-card detail-status-card h-100">
+                                                    <div class="detail-status-card-header">
+                                                        <div class="detail-card-icon"><i class="fas fa-images"></i></div>
+                                                        <div class="detail-status-card-title">Gambar &amp; Denah</div>
+                                                    </div>
+                                                    <div class="detail-spec-images-list" id="dt-spesifikasi-files">
+                                                        <div class="detail-spec-file-tile mb-1" id="dt-spesifikasi-gambar-tipe"></div>
+                                                        <div class="detail-spec-file-tile" id="dt-spesifikasi-gambar-denah"></div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Luas Tanah</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-lt">-</div>
-                                            </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Kamar Tidur</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-kamar-tidur">-</div>
-                                            </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Kamar Mandi</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-kamar-mandi">-</div>
-                                            </div>
-                                        </div>
-                                        <div class="divider divider-left">
-                                            <div class="divider-text">Spesifikasi Teknis</div>
-                                        </div>
-                                        <div class="detail-card-grid mb-1" id="dt-spesifikasi-teknis">
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Atap</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-atap">-</div>
-                                            </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Dinding</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-dinding">-</div>
-                                            </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Lantai</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-lantai">-</div>
-                                            </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Pondasi</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-pondasi">-</div>
-                                            </div>
-                                        </div>
-                                        <div class="divider divider-left">
-                                            <div class="divider-text">Gambar Tipe</div>
-                                        </div>
-                                        <div class="detail-card-grid" id="dt-spesifikasi-files">
-                                            <div class="detail-spec-file-tile" id="dt-spesifikasi-gambar-tipe"></div>
-                                            <div class="detail-spec-file-tile" id="dt-spesifikasi-gambar-denah"></div>
                                         </div>
                                     </div>
                                     <div class="tab-pane" id="dt-produksi" aria-labelledby="dt-produksi-tab"

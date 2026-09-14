@@ -34,12 +34,106 @@
         background: #fff;
         padding: 0 4px;
     }
+    /* Loading overlay and upload progress styles */
+    #fm-idk_keu {
+        position: relative;
+    }
+
+    .idk-loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 1070;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: inherit;
+        transition: opacity 0.25s ease;
+    }
+
+    .dark-layout .idk-loading-overlay {
+        background: rgba(22, 29, 49, 0.92);
+        color: #d0d2d6;
+    }
+
+    .idk-loading-card {
+        background: #ffffff;
+        border: 1px solid #ebe9f1;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(34, 41, 47, 0.15);
+        padding: 2rem 2.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        max-width: 440px;
+        width: 90%;
+    }
+
+    .dark-layout .idk-loading-card {
+        background: #283046;
+        border-color: #3b4253;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .idk-spinner {
+        width: 3.2rem;
+        height: 3.2rem;
+        border-width: 0.28rem;
+    }
+
+    .idk-progress-wrapper {
+        height: 10px;
+        border-radius: 6px;
+        background: #e9ecef;
+        overflow: hidden;
+        width: 100%;
+        max-width: 340px;
+    }
+
+    .dark-layout .idk-progress-wrapper {
+        background: #3b4253;
+    }
+
+    .btn-save-idk.disabled,
+    .btn-save-idk:disabled {
+        opacity: 0.65;
+        cursor: not-allowed !important;
+        pointer-events: none !important;
+    }
 </style>
 <section class="isi_konsumen">
     <div class="modal fade" id="modal-isi_data_konsumen">
         <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
             <form id="fm-idk_keu" class="add-new-record modal-content pt-0" enctype="multipart/form-data"
                 autocomplete="off">
+                <!-- Loading Overlay saat submit dan uploading dokumen -->
+                <div id="idk-loading-overlay" class="idk-loading-overlay" style="display: none;">
+                    <div class="idk-loading-card">
+                        <div class="spinner-border text-primary idk-spinner mb-1" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <h5 class="idk-loading-title font-weight-bold mb-50">Menyimpan Data Konsumen</h5>
+                        <div id="idk-loading-status" class="idk-loading-status font-small-3 text-muted mb-1">
+                            <i class="fas fa-cloud-upload-alt mr-50 text-primary"></i>
+                            <span id="idk-status-text">Sedang menyiapkan berkas dan data...</span>
+                        </div>
+                        <div class="progress idk-progress-wrapper mb-50">
+                            <div id="idk-upload-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center w-100 mb-50" style="max-width: 340px;">
+                            <small id="idk-file-info" class="text-muted font-small-2"></small>
+                            <span id="idk-upload-percentage" class="font-weight-bold text-primary font-small-3">0%</span>
+                        </div>
+                        <small id="idk-upload-hint" class="text-muted font-small-2">Mohon jangan menutup jendela ini hingga proses selesai.</small>
+                    </div>
+                </div>
                 <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">Ã—</button> -->
                 <div class="modal-header mb-1">
                     <h5 class="modal-title" id="exampleModalLabel">Isi Data Konsumen</h5>
@@ -1038,6 +1132,19 @@
 
                                     </div>
                                     <div class="sticky-button-wrapper">
+                                        <div class="idk-inline-upload-progress w-100 mb-1" style="display: none;">
+                                            <div class="d-flex justify-content-between align-items-center mb-50">
+                                                <span class="idk-inline-status font-weight-bold text-primary font-small-3">
+                                                    <i class="fas fa-cloud-upload-alt mr-50"></i>Mengunggah berkas...
+                                                </span>
+                                                <span class="idk-inline-percentage font-weight-bold text-primary font-small-3">0%</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px; border-radius: 4px; background: #e5eaf2; overflow: hidden;">
+                                                <div class="idk-inline-bar progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                                    role="progressbar" style="width: 0%; transition: width 0.2s ease;"></div>
+                                            </div>
+                                            <small class="idk-inline-hint text-muted d-block mt-25 font-small-2">Sedang mengunggah dokumen & menyimpan data...</small>
+                                        </div>
                                         <div>
                                             <button type="reset" class="btn btn-outline-danger mr-1"
                                                 data-dismiss="modal">Tutup</button>
@@ -1045,9 +1152,9 @@
                                             <a onclick="btnNext('#idk_biaya-tab')" class="btn btn-secondary mr-1"
                                                 href="javascript:void(0)"><i class="fa fa-arrow-left"
                                                     aria-hidden="true"></i> Sebelumnya</a>
-                                            <a class="btn btn-success data-submit mr-1" href="javascript:void(0)"
+                                            <button type="button" class="btn btn-success data-submit btn-save-idk mr-1"
                                                 onclick="btnNext('save')">
-                                                Simpan <i class="fa fa-save" aria-hidden="true"></i></a>
+                                                Simpan <i class="fa fa-save" aria-hidden="true"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -1061,8 +1168,8 @@
                                                         <div class="custom-file">
                                                             <input type="file" class="custom-file-input"
                                                                 accept="application/pdf" name="file_spptb"
-                                                                id="idk_file_spptb" onchange="" />
-                                                            <label class="custom-file-label" id="label-idk_file_spptb"
+                                                                id="idk_file_spptb" onchange="if(this.files &amp;&amp; this.files[0]) $('#label-idk_file_spptb').text(this.files[0].name);" />
+                                                            <label class="custom-file-label text-truncate" id="label-idk_file_spptb"
                                                                 for="idk_file_spptb">Upload SPPTB yang sudah
                                                                 ditandatangani</label>
                                                         </div>
@@ -1074,8 +1181,8 @@
                                                         <div class="custom-file">
                                                             <input type="file" class="custom-file-input"
                                                                 accept="application/pdf" name="file_surat_kuasa"
-                                                                id="idk_file_surat_kuasa" onchange="" />
-                                                            <label class="custom-file-label"
+                                                                id="idk_file_surat_kuasa" onchange="if(this.files &amp;&amp; this.files[0]) $('#label-idk_file_surat_kuasa').text(this.files[0].name);" />
+                                                            <label class="custom-file-label text-truncate"
                                                                 id="label-idk_file_surat_kuasa"
                                                                 for="idk_file_surat_kuasa">Upload Lampiran Surat Kuasa
                                                                 SPPTB</label>
@@ -1130,6 +1237,19 @@
                                         </div>
                                     </div>
                                     <div class="sticky-button-wrapper">
+                                        <div class="idk-inline-upload-progress w-100 mb-1" style="display: none;">
+                                            <div class="d-flex justify-content-between align-items-center mb-50">
+                                                <span class="idk-inline-status font-weight-bold text-primary font-small-3">
+                                                    <i class="fas fa-cloud-upload-alt mr-50"></i>Mengunggah berkas...
+                                                </span>
+                                                <span class="idk-inline-percentage font-weight-bold text-primary font-small-3">0%</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px; border-radius: 4px; background: #e5eaf2; overflow: hidden;">
+                                                <div class="idk-inline-bar progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                                    role="progressbar" style="width: 0%; transition: width 0.2s ease;"></div>
+                                            </div>
+                                            <small class="idk-inline-hint text-muted d-block mt-25 font-small-2">Sedang mengunggah dokumen & menyimpan data...</small>
+                                        </div>
                                         <div>
                                             <button type="reset" class="btn btn-outline-danger mr-1"
                                                 data-dismiss="modal">Tutup</button>
@@ -1137,9 +1257,9 @@
                                             <a onclick="btnNext('#idk_tagihan-tab')" class="btn btn-secondary mr-1"
                                                 href="javascript:void(0)"><i class="fa fa-arrow-left"
                                                     aria-hidden="true"></i> Sebelumnya</a>
-                                            <a class="btn btn-success data-submit mr-1" href="javascript:void(0)"
+                                            <button type="button" class="btn btn-success data-submit btn-save-idk mr-1"
                                                 onclick="btnNext('save')">
-                                                Simpan <i class="fa fa-save" aria-hidden="true"></i></a>
+                                                Simpan <i class="fa fa-save" aria-hidden="true"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -1200,6 +1320,19 @@
                                         </div>
                                     </div>
                                     <div class="sticky-button-wrapper">
+                                        <div class="idk-inline-upload-progress w-100 mb-1" style="display: none;">
+                                            <div class="d-flex justify-content-between align-items-center mb-50">
+                                                <span class="idk-inline-status font-weight-bold text-primary font-small-3">
+                                                    <i class="fas fa-cloud-upload-alt mr-50"></i>Mengunggah berkas...
+                                                </span>
+                                                <span class="idk-inline-percentage font-weight-bold text-primary font-small-3">0%</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px; border-radius: 4px; background: #e5eaf2; overflow: hidden;">
+                                                <div class="idk-inline-bar progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                                    role="progressbar" style="width: 0%; transition: width 0.2s ease;"></div>
+                                            </div>
+                                            <small class="idk-inline-hint text-muted d-block mt-25 font-small-2">Sedang mengunggah dokumen & menyimpan data...</small>
+                                        </div>
                                         <div>
                                             <button type="reset" class="btn btn-outline-danger mr-1"
                                                 data-dismiss="modal">Tutup</button>
@@ -1207,9 +1340,9 @@
                                             <a onclick="btnNext('#idk_tagihan-tab')" class="btn btn-secondary mr-1"
                                                 href="javascript:void(0)"><i class="fa fa-arrow-left"
                                                     aria-hidden="true"></i> Sebelumnya</a>
-                                            <a class="btn btn-success data-submit mr-1" href="javascript:void(0)"
+                                            <button type="button" class="btn btn-success data-submit btn-save-idk mr-1"
                                                 onclick="btnNext('save')">
-                                                Simpan <i class="fa fa-save" aria-hidden="true"></i></a>
+                                                Simpan <i class="fa fa-save" aria-hidden="true"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -1233,3 +1366,131 @@
         </div>
     </div>
 </section>
+
+<script>
+    window.idkIsSubmitting = false;
+
+    window.getIdkFilesInfo = function () {
+        var fileInputs = [
+            { id: "file_ktp", label: "KTP" },
+            { id: "file_npwp", label: "NPWP" },
+            { id: "file_data_diri", label: "Data Diri" },
+            { id: "idk_file_spptb", label: "SPPTB" },
+            { id: "idk_file_surat_kuasa", label: "Surat Kuasa" }
+        ];
+        var totalBytes = 0;
+        var count = 0;
+        var names = [];
+
+        fileInputs.forEach(function (item) {
+            var el = document.getElementById(item.id);
+            if (el && el.files && el.files[0] && el.files[0].size > 0) {
+                totalBytes += el.files[0].size;
+                count++;
+                names.push(item.label);
+            }
+        });
+
+        var hasFiles = count > 0;
+        var sizeStr = "";
+        if (totalBytes > 0) {
+            if (totalBytes >= 1024 * 1024) {
+                sizeStr = (totalBytes / (1024 * 1024)).toFixed(1) + " MB";
+            } else {
+                sizeStr = Math.round(totalBytes / 1024) + " KB";
+            }
+        }
+
+        return {
+            hasFiles: hasFiles,
+            count: count,
+            totalBytes: totalBytes,
+            text: hasFiles ? count + " berkas (" + names.join(", ") + ") • " + sizeStr : ""
+        };
+    };
+
+    window.startIdkLoading = function (hasFiles, fileInfoText) {
+        window.idkIsSubmitting = true;
+
+        // 1. Disable all Simpan buttons & change text with spinner
+        var $saveBtns = $("#modal-isi_data_konsumen .btn-save-idk, #add-form-btn-idk_keu");
+        $saveBtns.prop("disabled", true)
+                 .addClass("disabled")
+                 .css("pointer-events", "none")
+                 .html('<i class="fa fa-spinner fa-spin mr-50"></i> Menyimpan...');
+
+        // 2. Disable other buttons in modal (close, nav)
+        $("#modal-isi_data_konsumen .sticky-button-wrapper button, #modal-isi_data_konsumen .sticky-button-wrapper a, #modal-isi_data_konsumen .close")
+            .not(".btn-save-idk")
+            .prop("disabled", true)
+            .addClass("disabled")
+            .css("pointer-events", "none");
+
+        // 3. Reset progress bars
+        $("#idk-upload-progress-bar, .idk-inline-bar")
+            .css("width", "0%")
+            .attr("aria-valuenow", 0);
+        $("#idk-upload-percentage, .idk-inline-percentage").text("0%");
+
+        // 4. Update status messages
+        if (hasFiles) {
+            $("#idk-status-text, .idk-inline-status").html('<i class="fas fa-cloud-upload-alt mr-50 text-primary"></i> Mengunggah dokumen & berkas...');
+            $("#idk-file-info").text(fileInfoText || "Mengunggah berkas...");
+            $("#idk-upload-hint, .idk-inline-hint").text("Sedang mengunggah dokumen ke server, mohon tunggu...");
+        } else {
+            $("#idk-status-text, .idk-inline-status").html('<i class="fas fa-save mr-50 text-primary"></i> Menyimpan data konsumen...');
+            $("#idk-file-info").text("");
+            $("#idk-upload-progress-bar, .idk-inline-bar").css("width", "60%").attr("aria-valuenow", 60);
+            $("#idk-upload-percentage, .idk-inline-percentage").text("Memproses...");
+            $("#idk-upload-hint, .idk-inline-hint").text("Sedang memproses data di server, mohon tunggu...");
+        }
+
+        // 5. Show inline progress & modal overlay
+        $(".idk-inline-upload-progress").slideDown(200);
+        $("#idk-loading-overlay").fadeIn(200);
+    };
+
+    window.updateIdkUploadProgress = function (percent, hasFiles) {
+        percent = Math.min(100, Math.max(0, percent));
+        if (hasFiles) {
+            $("#idk-upload-progress-bar, .idk-inline-bar")
+                .css("width", percent + "%")
+                .attr("aria-valuenow", percent);
+            $("#idk-upload-percentage, .idk-inline-percentage").text(percent + "%");
+
+            if (percent < 100) {
+                $("#idk-status-text, .idk-inline-status").html('<i class="fas fa-cloud-upload-alt mr-50 text-primary"></i> Mengunggah dokumen (' + percent + '%)...');
+            } else {
+                $("#idk-status-text, .idk-inline-status").html('<i class="fas fa-spinner fa-spin mr-50 text-primary"></i> Menyimpan data di server...');
+                $("#idk-upload-hint, .idk-inline-hint").text("Dokumen selesai diunggah. Sedang mencatat ke database...");
+            }
+        }
+    };
+
+    window.stopIdkLoading = function () {
+        window.idkIsSubmitting = false;
+
+        // 1. Hide overlay & inline progress
+        $("#idk-loading-overlay").fadeOut(200);
+        $(".idk-inline-upload-progress").slideUp(200);
+
+        // 2. Re-enable Simpan buttons & restore text
+        var $saveBtns = $("#modal-isi_data_konsumen .btn-save-idk, #add-form-btn-idk_keu");
+        $saveBtns.prop("disabled", false)
+                 .removeClass("disabled")
+                 .css("pointer-events", "")
+                 .html('Simpan <i class="fa fa-save" aria-hidden="true"></i>');
+
+        // 3. Re-enable other modal buttons
+        $("#modal-isi_data_konsumen .sticky-button-wrapper button, #modal-isi_data_konsumen .sticky-button-wrapper a, #modal-isi_data_konsumen .close")
+            .prop("disabled", false)
+            .removeClass("disabled")
+            .css("pointer-events", "");
+    };
+
+    $(document).ready(function () {
+        $("#modal-isi_data_konsumen").on("hidden.bs.modal", function () {
+            stopIdkLoading();
+        });
+    });
+</script>

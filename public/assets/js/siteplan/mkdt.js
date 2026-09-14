@@ -258,6 +258,9 @@ function isValidKonsumen(i) {
 }
 // Klik NEXT/SIMPAN
 function btnNext(next) {
+  if (window.idkIsSubmitting) {
+    return;
+  }
   let isValid = isValidKonsumen(next);
   if (next === "save" && isValid) {
     Swal.fire({
@@ -1585,8 +1588,11 @@ function renderNikUsageWarning(rows) {
 }
 
 function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
-  const btnSave = "#add-form-btn-idk_keu";
-  // updateButtons(btnSave, "#prev-form-btn-idk_keu");
+  if (window.idkIsSubmitting) {
+    return;
+  }
+
+  const btnSave = "#modal-isi_data_konsumen .btn-save-idk, #add-form-btn-idk_keu";
 
   if (parseFloat(removeComma($("#mk-total_cicilan_um").val() || 0)) > 0) {
     if (parseFloat(removeComma($("#mk-total_tot").val())) != parseFloat(removeComma($("#mk-total_cicilan_um").val()))) {
@@ -1623,6 +1629,8 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
 
   appendCollectionToFormData(fd, state.data_um);
 
+  const fileInfo = typeof getIdkFilesInfo === "function" ? getIdkFilesInfo() : { hasFiles: false, text: "" };
+
   $.ajax({
     url: base_url + "api/transaksi/simpan",
     type: "post",
@@ -1630,11 +1638,39 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
     processData: false,
     data: fd,
     dataType: "json",
+    xhr: function () {
+      let xhr = new window.XMLHttpRequest();
+      if (xhr.upload) {
+        xhr.upload.addEventListener(
+          "progress",
+          function (evt) {
+            if (evt.lengthComputable) {
+              let percentComplete = Math.round((evt.loaded / evt.total) * 100);
+              if (typeof updateIdkUploadProgress === "function") {
+                updateIdkUploadProgress(percentComplete, fileInfo.hasFiles);
+              }
+            }
+          },
+          false,
+        );
+      }
+      return xhr;
+    },
     beforeSend: function () {
-      simpanBtn(btnSave, true);
+      if (typeof startIdkLoading === "function") {
+        startIdkLoading(fileInfo.hasFiles, fileInfo.text);
+      } else {
+        simpanBtn(btnSave, true);
+      }
     },
     success: function (r) {
       csrfHash = r.token;
+      if (typeof stopIdkLoading === "function") {
+        stopIdkLoading();
+      } else {
+        simpanBtn(btnSave, false);
+      }
+
       if (r.success === true) {
         Swal.fire({
           //position: 'bottom-end',
@@ -1645,13 +1681,11 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
         }).then(function () {
           removeModalListener("#modal-isi_data_konsumen");
           $(".modal").modal("hide");
-          simpanBtn(btnSave, false);
 
           load_kavling();
           hapus_seleksi();
         });
       } else if (r.require_nik_confirmation === true) {
-        simpanBtn(btnSave, false);
         Swal.fire({
           icon: "warning",
           title: "NIK sudah digunakan",
@@ -1672,20 +1706,22 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
           title: r.messages,
           showConfirmButton: false,
           timer: 1500,
-        }).then(function () {
-          simpanBtn(btnSave, false);
         });
       }
     },
     error: function (e) {
+      if (typeof stopIdkLoading === "function") {
+        stopIdkLoading();
+      } else {
+        simpanBtn(btnSave, false);
+      }
+
       Swal.fire({
         //position: 'bottom-end',
         icon: "error",
-        title: "Terjadi kesalahan",
+        title: "Terjadi kesalahan saat menyimpan data",
         showConfirmButton: true,
         // timer: 1500
-      }).then(function () {
-        simpanBtn(btnSave, false);
       });
     },
   });
