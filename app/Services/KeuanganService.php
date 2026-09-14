@@ -460,11 +460,11 @@ class KeuanganService
                 return number_format($v->um + $v->adm + $v->bb);
             })
             ->edit('sudah_bayar', function ($v) {
-                return number_format($v->total_um + $v->total_adm + $v->total_bb);
+                return number_format($v->total_booking + $v->total_um + $v->total_adm + $v->total_bb);
             })
             ->edit('sisa_tagihan', function ($v) {
                 $tot = $v->um + $v->adm + $v->bb;
-                $sb = $v->total_um + $v->total_adm + $v->total_bb;
+                $sb = $v->total_booking + $v->total_um + $v->total_adm + $v->total_bb;
                 return number_format($tot - $sb);
             })
             // ->edit('action', function ($value) {

@@ -760,14 +760,7 @@ function loadKeuSB(sb) {
   }
 
   $.each(sb, function (i, v) {
-    if (v.payment_type != "Booking") {
-      nom += parseFloat(v.nominal) || 0;
-
-      // let sp = v.payment_type.split(";");
-      // if (sp.includes("Uang Muka")) nom += parseFloat(v.nominal) || 0;
-      // if (v.status == "UM") nom_ll += parseFloat(v.nominal) || 0;
-      // else if (v.status == "BB") nom_bb += parseFloat(v.nominal) || 0;
-    }
+    nom += parseFloat(v.nominal) || 0;
   });
   nom = nom > tot ? tot : nom;
   // sisa = tot - nom;

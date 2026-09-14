@@ -100,9 +100,10 @@ class KeuanganRepository extends Model
             (m.harga_administrasi) as adm,
             (m.harga_bphtb + m.harga_biaya_proses + m.harga_ppn + m.harga_penambahan_um +m.harga_penambahan +m.harga_penambahan_tanah) as bb,
 
-            mps.total_um,
-            mps.total_adm,
-            mps.total_bb,
+            COALESCE(mps.total_um, 0) as total_um,
+            COALESCE(mps.total_adm, 0) as total_adm,
+            COALESCE(mps.total_bb, 0) as total_bb,
+            COALESCE(mps.total_booking, 0) as total_booking,
 
             a.username as uadd_by,
             b.username as uedit_by,
@@ -203,14 +204,12 @@ class KeuanganRepository extends Model
             ->select('lp.id_mkdt, COALESCE(SUM(lpd.nominal), 0) AS total_sudah_bayar_detail')
             ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
             ->where('lp.is_deleted', 0)
-            ->where('lp.payment_type !=', 'Booking')
             ->groupBy('lp.id_mkdt')
             ->getCompiledSelect();
 
         $paidLogSubQuery = $this->db->table('log_pembayaran')
             ->select('id_mkdt, COALESCE(SUM(nominal), 0) AS total_sudah_bayar_log')
             ->where('is_deleted', 0)
-            ->where('payment_type !=', 'Booking')
             ->groupBy('id_mkdt')
             ->getCompiledSelect();
 
@@ -254,6 +253,11 @@ class KeuanganRepository extends Model
             ->join('users b', 'b.id = m.edit_by', 'left')
             ->where('m.status_mkdt !=', 'Batal')
             ->where('m.is_lunas', '0')
+            ->where(
+                'COALESCE(tagihan_agg.total_tagihan, 0) > COALESCE(NULLIF(paid_detail_agg.total_sudah_bayar_detail, 0), paid_log_agg.total_sudah_bayar_log, 0)',
+                null,
+                false
+            )
             ->where('
                 (m.harga_uang_muka - m.harga_diskon_uang_muka - m.harga_sbum) +
                 (m.harga_administrasi) +
@@ -280,14 +284,12 @@ class KeuanganRepository extends Model
             ->select('lp.id_mkdt, COALESCE(SUM(lpd.nominal), 0) AS total_sudah_bayar_detail')
             ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
             ->where('lp.is_deleted', 0)
-            ->where('lp.payment_type !=', 'Booking')
             ->groupBy('lp.id_mkdt')
             ->getCompiledSelect();
 
         $paidLogSubQuery = $this->db->table('log_pembayaran')
             ->select('id_mkdt, COALESCE(SUM(nominal), 0) AS total_sudah_bayar_log')
             ->where('is_deleted', 0)
-            ->where('payment_type !=', 'Booking')
             ->groupBy('id_mkdt')
             ->getCompiledSelect();
 
