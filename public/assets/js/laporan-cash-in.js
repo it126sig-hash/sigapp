@@ -3,12 +3,19 @@
 
   var config = window.CASH_IN_REPORT || {};
   var detailTable = null;
+  var cashInChart = null;
+  var lastSummary = null;
+  var comparisonEnabled = false;
   var categoryLabels = {
     booking_fee: "Booking Fee",
     uang_muka: "Uang Muka",
     hasil_akad: "Hasil Akad",
     all: "Total Cash In",
   };
+  var categoryColors = [
+    ["#2057a3", "#4f83c2", "#93b7df"],
+    ["#1f7a8c", "#4fa3b1", "#9bcbd1"],
+  ];
 
   function updateToken(response) {
     if (response && response.token) {
@@ -24,9 +31,24 @@
     return data;
   }
 
+  function escapeHtml(value) {
+    return $("<div>").text(String(value == null ? "" : value)).html();
+  }
+
   function money(value) {
     var numeric = Number(value || 0);
     return "Rp " + new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 }).format(numeric);
+  }
+
+  function shortMoney(value) {
+    var numeric = Number(value || 0);
+    if (Math.abs(numeric) >= 1000000000) {
+      return "Rp " + (numeric / 1000000000).toLocaleString("id-ID", { maximumFractionDigits: 1 }) + " M";
+    }
+    if (Math.abs(numeric) >= 1000000) {
+      return "Rp " + (numeric / 1000000).toLocaleString("id-ID", { maximumFractionDigits: 1 }) + " Jt";
+    }
+    return money(numeric);
   }
 
   function formatDate(value) {
@@ -34,7 +56,8 @@
       return "-";
     }
 
-    var parts = String(value).split("-");
+    var date = String(value).split(" ")[0];
+    var parts = date.split("-");
     return parts.length === 3 ? parts[2] + "-" + parts[1] + "-" + parts[0] : value;
   }
 
@@ -63,25 +86,47 @@
       ' data-year="' + year + '"' +
       ' data-month="' + month + '"' +
       ' data-category="' + category + '"' +
-      ' data-label="' + label + '"' +
-      ' aria-label="Lihat detail ' + label + '">' +
+      ' data-label="' + escapeHtml(label) + '"' +
+      ' aria-label="Lihat detail ' + escapeHtml(label) + '">' +
       money(value) +
       "</button>"
     );
   }
 
+  function renderHeader(years) {
+    var firstRow = ['<th rowspan="2" class="cash-in-month-column">Bulan</th>'];
+    var secondRow = [];
+
+    years.forEach(function (year, index) {
+      var suffix = index === 0 ? "a" : "b";
+      firstRow.push(
+        '<th colspan="4" class="text-center cash-in-year-heading cash-in-year-heading-' + suffix + '">' +
+        escapeHtml(year) +
+        "</th>"
+      );
+      ["Booking Fee", "Uang Muka", "Hasil Akad", "Total"].forEach(function (label) {
+        secondRow.push('<th class="cash-in-year-subheading-' + suffix + '">' + label + "</th>");
+      });
+    });
+
+    $("#cash_in_matrix_head").html(
+      "<tr>" + firstRow.join("") + "</tr><tr>" + secondRow.join("") + "</tr>"
+    );
+    $("#cash_in_matrix").toggleClass("is-comparison", years.length > 1);
+  }
+
   function renderSummary(data) {
     var years = data.years || [];
-    if (years.length !== 2) {
-      showError("Data tahun perbandingan tidak lengkap.");
+    if (years.length < 1 || years.length > 2) {
+      showError("Data tahun laporan tidak lengkap.");
       return;
     }
 
-    $("#cash_in_year_a_heading").text(years[0]);
-    $("#cash_in_year_b_heading").text(years[1]);
+    lastSummary = data;
+    renderHeader(years);
 
     var rows = (data.months || []).map(function (month) {
-      var cells = ["<td>" + month.month_label + "</td>"];
+      var cells = ["<td>" + escapeHtml(month.month_label) + "</td>"];
       years.forEach(function (year) {
         var amounts = month.values[String(year)] || month.values[year] || {};
         cells.push("<td>" + detailButton(amounts.booking_fee, year, month.month, "booking_fee", "Booking Fee", false) + "</td>");
@@ -104,6 +149,87 @@
 
     $("#cash_in_matrix_body").html(rows.join(""));
     $("#cash_in_matrix_foot").html("<tr>" + footer.join("") + "</tr>");
+    $("#cash_in_toggle_chart").prop("disabled", false);
+
+    if (!$("#cash_in_chart_card").prop("hidden")) {
+      renderChart(data);
+    }
+  }
+
+  function chartDatasets(data) {
+    var definitions = [
+      { key: "booking_fee", label: "Booking Fee" },
+      { key: "uang_muka", label: "Uang Muka" },
+      { key: "hasil_akad", label: "Hasil Akad" },
+    ];
+    var datasets = [];
+
+    (data.years || []).forEach(function (year, yearIndex) {
+      definitions.forEach(function (definition, categoryIndex) {
+        datasets.push({
+          label: definition.label + " " + year,
+          backgroundColor: categoryColors[yearIndex][categoryIndex],
+          borderColor: categoryColors[yearIndex][categoryIndex],
+          borderWidth: 1,
+          stack: "year-" + year,
+          data: (data.months || []).map(function (month) {
+            var amounts = month.values[String(year)] || month.values[year] || {};
+            return Number(amounts[definition.key] || 0);
+          }),
+        });
+      });
+    });
+
+    return datasets;
+  }
+
+  function renderChart(data) {
+    var canvas = document.getElementById("cash_in_chart");
+    if (!canvas || typeof Chart === "undefined") {
+      return;
+    }
+    if (cashInChart) {
+      cashInChart.destroy();
+    }
+
+    cashInChart = new Chart(canvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: (data.months || []).map(function (month) { return month.month_label; }),
+        datasets: chartDatasets(data),
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: {
+          position: "bottom",
+          labels: { boxWidth: 12, usePointStyle: true },
+        },
+        tooltips: {
+          mode: "index",
+          intersect: false,
+          callbacks: {
+            label: function (tooltipItem, chartData) {
+              var label = chartData.datasets[tooltipItem.datasetIndex].label || "";
+              return label + ": " + money(tooltipItem.yLabel);
+            },
+          },
+        },
+        scales: {
+          xAxes: [{
+            stacked: true,
+            gridLines: { display: false },
+          }],
+          yAxes: [{
+            stacked: true,
+            ticks: {
+              beginAtZero: true,
+              callback: function (value) { return shortMoney(value); },
+            },
+          }],
+        },
+      },
+    });
   }
 
   function loadSummary() {
@@ -115,17 +241,19 @@
     var yearA = Number($("#cash_in_year_a").val());
     var yearB = Number($("#cash_in_year_b").val());
 
-    if (yearA === yearB) {
+    if (comparisonEnabled && yearA === yearB) {
       showError("Pilih dua tahun yang berbeda.");
       return;
     }
 
     $("#cash_in_loading").prop("hidden", false);
-    $("#cash_in_apply").prop("disabled", true);
+    $("#cash_in_apply, #cash_in_add_comparison, #cash_in_remove_comparison").prop("disabled", true);
 
     var payload = csrfData();
     payload.year_a = yearA;
-    payload.year_b = yearB;
+    if (comparisonEnabled) {
+      payload.year_b = yearB;
+    }
 
     $.ajax({
       url: config.summaryUrl,
@@ -148,8 +276,43 @@
       })
       .always(function () {
         $("#cash_in_loading").prop("hidden", true);
-        $("#cash_in_apply").prop("disabled", false);
+        $("#cash_in_apply, #cash_in_add_comparison, #cash_in_remove_comparison").prop("disabled", false);
       });
+  }
+
+  function setComparison(enabled) {
+    comparisonEnabled = enabled;
+    $("#cash_in_comparison_controls").prop("hidden", !enabled);
+    $("#cash_in_add_comparison").prop("hidden", enabled);
+
+    if (enabled && $("#cash_in_year_a").val() === $("#cash_in_year_b").val()) {
+      var yearA = $("#cash_in_year_a").val();
+      var alternative = $("#cash_in_year_b option").filter(function () {
+        return this.value !== yearA;
+      }).first().val();
+      if (alternative) {
+        $("#cash_in_year_b").val(alternative);
+      }
+    }
+  }
+
+  function toggleChart() {
+    if (!lastSummary) {
+      return;
+    }
+
+    var chartCard = $("#cash_in_chart_card");
+    var willShow = chartCard.prop("hidden");
+    chartCard.prop("hidden", !willShow);
+    $("#cash_in_toggle_chart span").text(willShow ? "Sembunyikan Chart" : "Tampilkan Chart");
+
+    if (willShow) {
+      renderChart(lastSummary);
+      chartCard.get(0).scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } else if (cashInChart) {
+      cashInChart.destroy();
+      cashInChart = null;
+    }
   }
 
   function openDetail(button) {
@@ -175,7 +338,7 @@
       searching: true,
       lengthChange: true,
       pageLength: 10,
-      order: [[3, "asc"]],
+      order: [[4, "asc"]],
       scrollX: true,
       autoWidth: false,
       ajax: {
@@ -204,6 +367,7 @@
         { data: "jenis_pendapatan", name: "jenis_pendapatan", visible: category === "all" },
         { data: "alamat_kavling", name: "alamat_kavling" },
         { data: "nama_konsumen", name: "nama_konsumen" },
+        { data: "keterangan", name: "keterangan" },
         {
           data: "tanggal_transaksi",
           name: "tanggal_transaksi",
@@ -230,7 +394,14 @@
   }
 
   $(function () {
+    setComparison(false);
     $("#cash_in_apply").on("click", loadSummary);
+    $("#cash_in_add_comparison").on("click", function () { setComparison(true); });
+    $("#cash_in_remove_comparison").on("click", function () {
+      setComparison(false);
+      loadSummary();
+    });
+    $("#cash_in_toggle_chart").on("click", toggleChart);
     $("#cash_in_matrix_body").on("click", ".cash-in-value-button", function () {
       openDetail($(this));
     });
@@ -245,7 +416,7 @@
     if (config.hasProject) {
       loadSummary();
     } else {
-      $("#cash_in_year_a, #cash_in_year_b, #cash_in_apply").prop("disabled", true);
+      $("#cash_in_year_a, #cash_in_year_b, #cash_in_apply, #cash_in_add_comparison, #cash_in_remove_comparison, #cash_in_toggle_chart").prop("disabled", true);
     }
   });
 })(jQuery);

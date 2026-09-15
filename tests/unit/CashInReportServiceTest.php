@@ -44,6 +44,28 @@ final class CashInReportServiceTest extends CIUnitTestCase
         $service->getSummary(7, 2026, 2026);
     }
 
+    public function testSummarySupportsSingleYearByDefault(): void
+    {
+        $repository = $this->createMock(CashInReportRepository::class);
+        $repository->expects($this->once())
+            ->method('getMonthlyPaymentTotals')
+            ->with(7, [2026])
+            ->willReturn([
+                ['tahun' => 2026, 'bulan' => 1, 'booking_fee' => 1500000, 'uang_muka' => 1000000],
+            ]);
+        $repository->expects($this->once())
+            ->method('getMonthlyAkadTotals')
+            ->with(7, [2026])
+            ->willReturn([]);
+
+        $result = (new CashInReportService($repository))->getSummary(7, 2026);
+
+        $this->assertSame([2026], $result['years']);
+        $this->assertSame(1500000.0, $result['months'][0]['values'][2026]['booking_fee']);
+        $this->assertSame(1000000.0, $result['months'][0]['values'][2026]['uang_muka']);
+        $this->assertSame(2500000.0, $result['months'][0]['values'][2026]['total']);
+    }
+
     public function testDetailRejectsRefundAsUnsupportedCategory(): void
     {
         $service = new CashInReportService($this->createMock(CashInReportRepository::class));
@@ -91,8 +113,8 @@ final class CashInReportServiceTest extends CIUnitTestCase
             'month' => 2,
             'category' => 'all',
             'search' => ['value' => ' A-12 '],
-            'columns' => [4 => ['name' => 'nominal']],
-            'order' => [['column' => 4, 'dir' => 'desc']],
+            'columns' => [5 => ['name' => 'nominal']],
+            'order' => [['column' => 5, 'dir' => 'desc']],
         ]);
 
         $this->assertSame(4, $result['draw']);

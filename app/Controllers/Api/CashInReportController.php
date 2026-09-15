@@ -34,10 +34,11 @@ class CashInReportController extends BaseApiController
         }
 
         try {
+            $yearBRaw = $this->request->getPost('year_b');
             $summary = $this->reportService->getSummary(
                 (int) $activeProyek->id_proyek,
                 (int) $this->request->getPost('year_a'),
-                (int) $this->request->getPost('year_b')
+                $yearBRaw === null || $yearBRaw === '' ? null : (int) $yearBRaw
             );
 
             $summary['project'] = [

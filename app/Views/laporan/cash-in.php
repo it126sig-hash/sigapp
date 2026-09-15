@@ -23,7 +23,7 @@
                             </div>
                             <div class="cash-in-filter-controls">
                                 <div class="form-group mb-0">
-                                    <label for="cash_in_year_a">Tahun A</label>
+                                    <label for="cash_in_year_a">Tahun</label>
                                     <select id="cash_in_year_a" class="form-control">
                                         <?php foreach ($availableYears as $year): ?>
                                             <option value="<?= (int) $year ?>" <?= (int) $year === (int) $defaultYearA ? 'selected' : '' ?>>
@@ -32,19 +32,27 @@
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
-                                <div class="cash-in-versus" aria-hidden="true">vs</div>
-                                <div class="form-group mb-0">
-                                    <label for="cash_in_year_b">Tahun B</label>
-                                    <select id="cash_in_year_b" class="form-control">
-                                        <?php foreach ($availableYears as $year): ?>
-                                            <option value="<?= (int) $year ?>" <?= (int) $year === (int) $defaultYearB ? 'selected' : '' ?>>
-                                                <?= (int) $year ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                <button type="button" id="cash_in_add_comparison" class="btn btn-outline-primary">
+                                    <i class="fas fa-plus mr-25"></i> Tahun Pembanding
+                                </button>
+                                <div id="cash_in_comparison_controls" class="cash-in-comparison-controls" hidden>
+                                    <div class="cash-in-versus" aria-hidden="true">vs</div>
+                                    <div class="form-group mb-0">
+                                        <label for="cash_in_year_b">Tahun Pembanding</label>
+                                        <select id="cash_in_year_b" class="form-control">
+                                            <?php foreach ($availableYears as $year): ?>
+                                                <option value="<?= (int) $year ?>" <?= (int) $year === (int) $defaultYearB ? 'selected' : '' ?>>
+                                                    <?= (int) $year ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <button type="button" id="cash_in_remove_comparison" class="btn btn-outline-danger cash-in-remove-comparison" title="Hapus tahun pembanding" aria-label="Hapus tahun pembanding">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
                                 <button type="button" id="cash_in_apply" class="btn btn-primary">
-                                    <i class="fas fa-chart-bar mr-25"></i> Tampilkan
+                                    <i class="fas fa-filter mr-25"></i> Tampilkan
                                 </button>
                             </div>
                         </div>
@@ -65,36 +73,38 @@
         <div class="card cash-in-matrix-card">
             <div class="card-header">
                 <div>
-                    <h5 class="mb-25">Perbandingan Pendapatan Bulanan</h5>
+                    <h5 class="mb-25">Pendapatan Bulanan</h5>
                     <small class="text-muted">Klik nominal untuk melihat transaksi penyusunnya.</small>
                 </div>
-                <span id="cash_in_loading" class="cash-in-loading" hidden>
-                    <span class="spinner-border spinner-border-sm mr-50" role="status" aria-hidden="true"></span>
-                    Memuat...
-                </span>
+                <div class="d-flex align-items-center cash-in-report-actions">
+                    <span id="cash_in_loading" class="cash-in-loading" hidden>
+                        <span class="spinner-border spinner-border-sm mr-50" role="status" aria-hidden="true"></span>
+                        Memuat...
+                    </span>
+                    <button type="button" id="cash_in_toggle_chart" class="btn btn-outline-primary btn-sm" disabled>
+                        <i class="fas fa-chart-bar mr-25"></i>
+                        <span>Tampilkan Chart</span>
+                    </button>
+                </div>
             </div>
             <div class="card-datatable cash-in-table-wrap">
                 <table id="cash_in_matrix" class="table table-bordered table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th rowspan="2" class="cash-in-month-column">Bulan</th>
-                            <th colspan="4" id="cash_in_year_a_heading" class="text-center cash-in-year-heading"></th>
-                            <th colspan="4" id="cash_in_year_b_heading" class="text-center cash-in-year-heading"></th>
-                        </tr>
-                        <tr>
-                            <th>Booking Fee</th>
-                            <th>Uang Muka</th>
-                            <th>Hasil Akad</th>
-                            <th>Total</th>
-                            <th>Booking Fee</th>
-                            <th>Uang Muka</th>
-                            <th>Hasil Akad</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
+                    <thead id="cash_in_matrix_head"></thead>
                     <tbody id="cash_in_matrix_body"></tbody>
                     <tfoot id="cash_in_matrix_foot"></tfoot>
                 </table>
+            </div>
+        </div>
+
+        <div id="cash_in_chart_card" class="card cash-in-chart-card" hidden>
+            <div class="card-header">
+                <div>
+                    <h5 class="mb-25">Chart Cash In Bulanan</h5>
+                    <small class="text-muted">Perbandingan komposisi Booking Fee, Uang Muka, dan Hasil Akad.</small>
+                </div>
+            </div>
+            <div class="card-body cash-in-chart-body">
+                <canvas id="cash_in_chart"></canvas>
             </div>
         </div>
     </section>
@@ -122,6 +132,7 @@
                                     <th>Jenis Pendapatan</th>
                                     <th>Jalan / No. Kavling</th>
                                     <th>Nama Konsumen</th>
+                                    <th>Keterangan</th>
                                     <th>Tanggal Bayar / Cair</th>
                                     <th>Nominal</th>
                                 </tr>
@@ -139,6 +150,7 @@
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/responsive.bootstrap4.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/charts/chart.min.js') ?>"></script>
 <script>
 window.CASH_IN_REPORT = <?= json_encode([
     'summaryUrl' => base_url('api/laporan/cash-in/summary'),

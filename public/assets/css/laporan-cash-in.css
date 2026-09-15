@@ -4,6 +4,10 @@
     --cash-in-muted: #6b7280;
 }
 
+.cash-in-report-page [hidden] {
+    display: none !important;
+}
+
 .cash-in-report-page .cash-in-filter-card,
 .cash-in-report-page .cash-in-matrix-card {
     border: 1px solid var(--cash-in-border);
@@ -41,6 +45,13 @@
 .cash-in-filter-controls {
     align-items: flex-end;
     display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+}
+
+.cash-in-comparison-controls {
+    align-items: flex-end;
+    display: flex;
     gap: .65rem;
 }
 
@@ -63,6 +74,12 @@
     text-transform: uppercase;
 }
 
+.cash-in-remove-comparison {
+    min-width: 40px;
+    padding-left: .75rem;
+    padding-right: .75rem;
+}
+
 .cash-in-matrix-card .card-header {
     align-items: center;
     border-bottom: 1px solid var(--cash-in-border);
@@ -75,12 +92,20 @@
     font-weight: 600;
 }
 
+.cash-in-report-actions {
+    gap: .75rem;
+}
+
 .cash-in-table-wrap,
 .cash-in-detail-table-wrap {
     overflow-x: auto;
 }
 
 #cash_in_matrix {
+    min-width: 760px;
+}
+
+#cash_in_matrix.is-comparison {
     min-width: 1380px;
 }
 
@@ -103,6 +128,18 @@
     background: var(--cash-in-primary);
     color: #fff;
     font-size: .9rem;
+}
+
+#cash_in_matrix thead .cash-in-year-heading-b {
+    background: #1f7a8c;
+}
+
+#cash_in_matrix thead .cash-in-year-subheading-a {
+    background: #edf3fb;
+}
+
+#cash_in_matrix thead .cash-in-year-subheading-b {
+    background: #e8f4f5;
 }
 
 #cash_in_matrix .cash-in-month-column,
@@ -204,20 +241,59 @@
     vertical-align: middle;
 }
 
+.cash-in-chart-card {
+    border: 1px solid var(--cash-in-border);
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+.cash-in-chart-card .card-header {
+    border-bottom: 1px solid var(--cash-in-border);
+    padding: 1rem 1.25rem;
+}
+
+.cash-in-chart-body {
+    height: 420px;
+    min-height: 320px;
+    position: relative;
+}
+
 @media (max-width: 767.98px) {
     .cash-in-filter-controls {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
+        align-items: stretch;
+        display: flex;
+        flex-direction: column;
         width: 100%;
     }
 
-    .cash-in-filter-controls .btn {
-        grid-column: 1 / -1;
+    .cash-in-filter-controls > .btn,
+    .cash-in-filter-controls > .form-group {
+        width: 100%;
+    }
+
+    .cash-in-comparison-controls {
+        align-items: flex-end;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
         width: 100%;
     }
 
     .cash-in-filter-controls select {
         min-width: 0;
+    }
+
+    .cash-in-report-actions {
+        margin-top: .75rem;
+        width: 100%;
+    }
+
+    #cash_in_toggle_chart {
+        margin-left: auto;
+    }
+
+    .cash-in-chart-body {
+        height: 340px;
+        padding: .75rem;
     }
 
     #cash_in_detail_modal .modal-dialog {

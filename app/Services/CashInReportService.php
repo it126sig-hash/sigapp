@@ -41,12 +41,19 @@ class CashInReportService
         return range($maximum, $minimum);
     }
 
-    public function getSummary(int $idProyek, int $yearA, int $yearB): array
+    public function getSummary(int $idProyek, int $yearA, ?int $yearB = null): array
     {
         $this->assertProject($idProyek);
-        $this->assertComparisonYears($yearA, $yearB);
+        $this->assertYear($yearA);
 
-        $years = [$yearA, $yearB];
+        $years = [$yearA];
+        if ($yearB !== null) {
+            $this->assertYear($yearB);
+            if ($yearA === $yearB) {
+                throw new InvalidArgumentException('Pilih dua tahun yang berbeda.');
+            }
+            $years[] = $yearB;
+        }
         $summary = $this->emptySummary($years);
 
         foreach ($this->repository->getMonthlyPaymentTotals($idProyek, $years) as $row) {
@@ -142,6 +149,7 @@ class CashInReportService
             'jenis_pendapatan' => 'cash_in.jenis_pendapatan',
             'alamat_kavling' => 'cash_in.alamat_kavling',
             'nama_konsumen' => 'cash_in.nama_konsumen',
+            'keterangan' => 'cash_in.keterangan',
             'tanggal_transaksi' => 'cash_in.tanggal_transaksi',
             'nominal' => 'cash_in.nominal',
         ];
@@ -186,16 +194,6 @@ class CashInReportService
         }
 
         return $amounts;
-    }
-
-    private function assertComparisonYears(int $yearA, int $yearB): void
-    {
-        $this->assertYear($yearA);
-        $this->assertYear($yearB);
-
-        if ($yearA === $yearB) {
-            throw new InvalidArgumentException('Pilih dua tahun yang berbeda.');
-        }
     }
 
     private function assertYear(int $year): void
