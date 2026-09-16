@@ -4,6 +4,7 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/extensions/sweetalert2.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/forms/select/select2.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/richtext.min.css">
 
 <div class="app-content content">
     <div class="content-overlay"></div>
@@ -191,6 +192,8 @@
     @media (max-width: 767.98px) {
         #table-tiket-masalah-global {
             border: none;
+            width: 100% !important;
+            white-space: normal !important;
         }
         #table-tiket-masalah-global thead {
             display: none;
@@ -209,9 +212,11 @@
             border: 1px solid #f0f0f0;
             position: relative;
             align-items: flex-start;
+            white-space: normal !important;
         }
         #table-tiket-masalah-global td {
-            display: contents; 
+            display: contents;
+            white-space: normal !important;
         }
         
         .m-aksi {
@@ -407,6 +412,8 @@
 <script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/forms/select/select2.full.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
+<script src="<?= base_url() ?>assets/js/jquery.richtext.min.js"></script>
+<script src="<?= base_url() ?>assets/js/vendor/browser-image-compression.js"></script>
 <!-- Load JS Khusus untuk Halaman Ini -->
 <script src="<?= base_url('assets/js/tiket_masalah/index.js?v=' . filemtime(FCPATH . 'assets/js/tiket_masalah/index.js')) ?>"></script>
 <!-- Memanggil js modal agar fungsinya jalan -->

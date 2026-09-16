@@ -42,7 +42,7 @@
                 </button>
             </div>
 
-            <div class="modal-body p-2" style="background-color: #f8fafc;">
+            <div class="modal-body p-2" style="background-color: #e2e4e6;">
 
                 <div class="row">
                     <!-- LEFT SIDEBAR (col-md-3 Sticky Hero Card) -->
@@ -92,9 +92,6 @@
 
                         <!-- VIEW 2: DETAIL TIKET & HISTORY -->
                         <div id="view_detail_tiket" class="d-none">
-                            <button class="btn btn-sm btn-light border mb-3 rounded-pill" id="btn_back_to_list">
-                                <i class="fas fa-arrow-left mr-1"></i> Kembali ke Daftar
-                            </button>
                             <div id="tm_detail_content">
                                 <!-- Rendered via JS -->
                             </div>
@@ -189,6 +186,7 @@
                                             <input type="file" id="tm_foto" class="d-none" multiple accept="image/*">
                                             <input type="file" id="tm_foto_camera" class="d-none" accept="image/*" capture="environment">
 
+                                            <div id="tm_existing_preview_container" class="upload-preview-container mb-2"></div>
                                             <div id="tm_preview_container" class="upload-preview-container"></div>
                                         </div>
 
