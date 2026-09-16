@@ -47,7 +47,7 @@ class FileAccessService
         'si'                => [1, 2,  4, 7, 9],
         'komplain_sales'    => [1, 2,  7, 8, 9],
         'komplain_produksi' => [1, 2,  7, 8, 9],
-        'produksi_jalan_progress' => [1, 2,  7, 9],
+        'produksi_jalan_progress' => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'profile_photo'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'poskon_export'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'tiket_masalah'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
@@ -122,6 +122,12 @@ class FileAccessService
         $token = $this->encodePathToken($this->normalizeLogicalPath($logicalPath));
         $url = site_url('files/' . rawurlencode($source) . '/path?path=' . rawurlencode($token));
         return $download ? $url . '&download=1' : $url;
+    }
+
+    public function pathThumbnailUrl(string $source, string $logicalPath): string
+    {
+        $token = $this->encodePathToken($this->normalizeLogicalPath($logicalPath));
+        return site_url('files/' . rawurlencode($source) . '/path/thumbnail?path=' . rawurlencode($token));
     }
 
     public function resolve(string $source, int $id, bool $thumbnail = false): array

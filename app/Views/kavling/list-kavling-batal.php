@@ -35,48 +35,50 @@
             Posisi Konsumen Batal
           </h2>
           <div class="card-header border-bottom">
-            <div class="col-md-4 mb-1">
-              <label>Cluster</label>
-              <select disabled id="id_cluster" name="id_cluster" class="select2  form-control"></select>
+            <div class="d-flex align-items-center">
+              <button type="button" class="btn btn-outline-primary waves-effect btn-sm" data-toggle="modal" data-target="#filterModal">
+                <i class="fa fa-filter"></i> Filter
+              </button>
+              <button type="button" id="btn_clear_filter" class="btn btn-outline-danger waves-effect btn-sm ml-1">
+                <i class="fa fa-times"></i> Clear Filter
+              </button>
+              <span id="active_filter_text" class="ml-1 text-muted">Tanpa Filter</span>
             </div>
-            <div class="col-md-4 mb-1">
-              <label>Blok</label>
-              <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
-            </div>
-            <hr class="col-12" hidden />
-            <div class="col-md-4 mb-1" hidden>
-              <label>Wawancara</label>
-              <select id="wawancara" name="wawancara" class="select2 self form-control">
-                <option value=""> Tanpa Filter </option>
-                <option value="1"> Sudah </option>
-                <option value="0"> Belum </option>
-              </select>
-            </div>
-            <div class="col-md-4 mb-1" hidden>
-              <label>SP3K</label>
-              <select id="sp3k" name="sp3k" class="select2 self form-control">
-                <option value=""> Tanpa Filter </option>
-                <option value="1"> Sudah </option>
-                <option value="0"> Belum </option>
-              </select>
-            </div>
-
-            <div class="col-md-4 mb-1"></div>
-            <div class="col-md-4 mb-1 hidden">
-              <label>Akad</label>
-              <select id="akad" name="akad" class="select2 self form-control">
-                <option value=""> Tanpa Filter </option>
-                <option value="1"> Sudah </option>
-                <option value="0"> Belum </option>
-              </select>
-            </div>
-            <hr class="col-12" />
-            <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm">Filter Data</button>
             <div class="btn-group">
-              <!-- <button type="button" id="btn_export_excel" class="btn btn-success waves-effect btn-sm"><i class="fa fa-file-excel"></i> Export Excel</button> -->
               <button type="button" id="btn_export_pdf" class="btn btn-danger waves-effect btn-sm"><i class="fa fa-file-pdf"></i> Export PDF</button>
             </div>
+          </div>
 
+          <!-- Modal Slide In -->
+          <div class="modal modal-slide-in fade" id="filterModal">
+            <div class="modal-dialog sidebar-sm">
+              <form class="modal-content pt-0">
+                <div class="modal-header mb-1">
+                  <h5 class="modal-title" id="exampleModalLabel"><i class="fa fa-filter mr-1"></i>Filter Data</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
+                </div>
+                <div class="modal-body flex-grow-1">
+                  <div class="form-group">
+                    <label>Cluster</label>
+                    <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
+                  </div>
+                  <div class="form-group">
+                    <label>Blok</label>
+                    <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
+                  </div>
+                  <div class="form-group">
+                    <label>Periode Tanggal Booking</label>
+                    <input type="text" id="periode_booking" class="form-control flatpickr-range" placeholder="Pilih Periode">
+                  </div>
+                  <div class="form-group">
+                    <label>Periode Tanggal Batal</label>
+                    <input type="text" id="periode_batal" class="form-control flatpickr-range" placeholder="Pilih Periode">
+                  </div>
+                  <button type="button" id="btn_draw_modal" class="btn btn-primary mb-1 d-grid w-100">Apply Filter</button>
+                  <button type="button" id="btn_clear_filter_modal" class="btn btn-outline-danger d-grid w-100">Clear Filter</button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
         <div class="card">
@@ -107,6 +109,7 @@
                       <th colspan="2" id="tb-KAVLING">KAVLING</th>
                       <th rowspan="2" id="tb-TYPE">TYPE</th>
                       <th rowspan="2" id="tb-KET_BATAL">Keterangan Batal</th>
+                      <th rowspan="2" id="tb-TGL_BATAL">Tanggal Batal & Oleh</th>
                       <th rowspan="2" id="tb-STATUS_REFUND">Status Refund</th>
                       <th rowspan="2">Nama Konsumen</th>
                       <th rowspan="2">Tanggal Booking</th>
@@ -203,9 +206,8 @@
           data.id_proyek = activeProyekId()
           data.id_cluster = $("#id_cluster").val()
           data.id_jalan = $("#id_jalan").val()
-          data.sp3k = $("#sp3k").val()
-          data.wawancara = $("#wawancara").val()
-          data.akad = $("#akad").val()
+          data.periode_booking = $("#periode_booking").val()
+          data.periode_batal = $("#periode_batal").val()
         },
         dataSrc: function(r) {
           csrfHash = r.token
@@ -213,6 +215,12 @@
         },
         async: "true"
       }
+    });
+
+    // Init flatpickr
+    $('.flatpickr-range').flatpickr({
+      mode: 'range',
+      dateFormat: 'Y-m-d'
     });
 
     //on chnage search
@@ -308,10 +316,42 @@
       },
     })
 
-    //on click btn filter
-    $("#btn_draw").on("click", function(e) {
+    function updateFilterText() {
+      let text = [];
+      if ($('#id_cluster').val()) text.push('Cluster: ' + $('#id_cluster option:selected').text());
+      if ($('#id_jalan').val()) text.push('Blok: ' + $('#id_jalan option:selected').text());
+      if ($('#periode_booking').val()) text.push('Booking: ' + $('#periode_booking').val());
+      if ($('#periode_batal').val()) text.push('Batal: ' + $('#periode_batal').val());
+      
+      if (text.length > 0) {
+        $('#active_filter_text').html('Filter aktif: ' + text.join(' | '));
+      } else {
+        $('#active_filter_text').html('Tanpa Filter');
+      }
+    }
+
+    //on click apply filter
+    $("#btn_draw_modal").on("click", function(e) {
       table.draw();
       load_riwayat();
+      updateFilterText();
+      $('#filterModal').modal('hide');
+    })
+
+    // clear filter
+    $("#btn_clear_filter, #btn_clear_filter_modal").on("click", function(e) {
+      $('#id_cluster').val(null).trigger('change');
+      $('#id_jalan').val(null).trigger('change');
+      $('#periode_booking').val('');
+      $('#periode_batal').val('');
+      
+      // Update text and table
+      updateFilterText();
+      table.draw();
+      load_riwayat();
+      
+      // If triggered from modal
+      $('#filterModal').modal('hide');
     })
 
     $("#btn_export_excel").on('click', function(e) {

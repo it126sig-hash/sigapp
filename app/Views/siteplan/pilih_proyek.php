@@ -62,7 +62,7 @@
                             <div class="card-body d-flex flex-column align-items-center text-center py-2">
                                 <img
                                     class="project-select-card-logo mb-1"
-                                    src="<?= esc($a->logo_access_url ?? site_url('files/proyek_logo/' . $a->id_proyek)) ?>"
+                                    src="<?= esc($a->logo_thumbnail_url ?? $a->logo_access_url ?? site_url('files/proyek_logo/' . $a->id_proyek . '/thumbnail')) ?>"
                                     alt="">
                                 <h5 class="card-title mb-0"><?= esc($a->nama_proyek) ?></h5>
                             </div>

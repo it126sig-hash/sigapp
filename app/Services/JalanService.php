@@ -69,6 +69,10 @@ class JalanService
                 $value->id_jalan,
                 $value->nama_cluster,
                 $value->nama_jalan,
+                '<span class="badge badge-light-primary badge-pill">' . $value->total_kavling . '</span>',
+                '<span class="badge badge-light-success badge-pill">' . $value->total_akad . '</span>',
+                '<span class="badge badge-light-warning badge-pill">' . $value->total_booking . '</span>',
+                '<span class="badge badge-light-secondary badge-pill">' . $value->total_belum_terjual . '</span>',
                 $this->actionButtons((int) $value->id_jalan),
             ];
         }
@@ -109,7 +113,7 @@ class JalanService
             ]);
             $db = db_connect();
             $idProyek = $db->table('cluster')->select('id_proyek')->where('id_cluster', $fields['id_cluster'])->get()->getRow()->id_proyek ?? null;
-            $this->notif->tambah_notif("6", "Menambahkan Master Jalan: " . ($fields['nama_jalan'] ?? ''), user_id(), null, null, null, $idProyek);
+            $this->notif->tambah_notif("6", "Menambahkan Master Jalan: " . ($fields['nama_jalan'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_JALAN, $idProyek);
 
             return ['success' => true, 'messages' => 'Data has been inserted successfully'];
         }
@@ -142,7 +146,7 @@ class JalanService
             ]);
             $db = db_connect();
             $idProyek = $db->table('cluster')->select('id_proyek')->where('id_cluster', $fields['id_cluster'])->get()->getRow()->id_proyek ?? null;
-            $this->notif->tambah_notif("6", "Mengubah Master Jalan: " . ($fields['nama_jalan'] ?? ''), user_id(), null, null, null, $idProyek);
+            $this->notif->tambah_notif("6", "Mengubah Master Jalan: " . ($fields['nama_jalan'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_JALAN, $idProyek);
 
             return ['success' => true, 'messages' => 'Successfully updated'];
         }
@@ -154,6 +158,12 @@ class JalanService
     {
         if ($idJalan <= 0) {
             return ['success' => false, 'messages' => 'Id jalan tidak valid'];
+        }
+
+        $db = db_connect();
+        $kavlingCount = $db->table('kavling')->where('id_jalan', $idJalan)->countAllResults();
+        if ($kavlingCount > 0) {
+            return ['success' => false, 'messages' => "Tidak dapat menghapus jalan karena sudah memiliki $kavlingCount kavling terdaftar."];
         }
 
         if ($this->jalanModel->where('id_jalan', $idJalan)->delete()) {

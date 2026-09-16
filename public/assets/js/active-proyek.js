@@ -88,8 +88,8 @@
           setSwitchingState(false);
           if (typeof showToast === "function") {
             showToast(
-              "error",
               (response && response.message) || "Gagal mengganti proyek.",
+              "danger"
             );
           }
           return;
@@ -100,7 +100,7 @@
       .fail(function () {
         setSwitchingState(false);
         if (typeof showToast === "function") {
-          showToast("error", "Gagal mengganti proyek.");
+          showToast("Gagal mengganti proyek.", "danger");
         }
       });
   }
@@ -192,8 +192,26 @@
     switchActiveProyek($(this).data("id-proyek"), { force: true });
   });
 
+  function showAutoSelectedNotification() {
+    if (window.SIGAPP && window.SIGAPP.showAutoSelectedToast && window.SIGAPP.activeProyekId && !isProjectSelectionExempt()) {
+      if (typeof showToast === "function") {
+        showToast(
+          "Proyek <b>" + (window.SIGAPP.activeProyekName || "") + "</b> otomatis terpilih. <br>Klik nama proyek di header untuk mengubah.",
+          "info"
+        );
+      } else if (typeof toastr !== "undefined") {
+        toastr.info(
+          "Proyek " + (window.SIGAPP.activeProyekName || "") + " otomatis terpilih. Klik nama proyek di header untuk mengubah.",
+          "Informasi Proyek",
+          { timeOut: 5000, closeButton: true, progressBar: true }
+        );
+      }
+    }
+  }
+
   $(function () {
     refreshFeatherIcons(document);
     renderProjectSelectionModal();
+    showAutoSelectedNotification();
   });
 })(jQuery);

@@ -71,6 +71,27 @@ class MenuAccessService
         return $tree;
     }
 
+    public function canAccessUrl(int $userId, string $url): bool
+    {
+        $url = ltrim(trim($url), '/');
+        if ($url === '') {
+            return false;
+        }
+
+        $menu = $this->db->table('menus')
+            ->select('id')
+            ->where('url', $url)
+            ->where('is_active', 1)
+            ->get()
+            ->getRow();
+
+        if (! $menu) {
+            return false;
+        }
+
+        return in_array((int) $menu->id, $this->getEffectiveMenuIds($userId), true);
+    }
+
     public function syncGroupMenus(int $groupId, array $menuIds): void
     {
         $menuIds = $this->filterValidMenuIds($menuIds);

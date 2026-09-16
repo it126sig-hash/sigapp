@@ -21,11 +21,12 @@ class SendEmailDigest extends BaseCommand
         
         CLI::write(
             sprintf(
-                'Selesai. Email sent: %d, failed: %d. Queue sent: %d, failed: %d. Calendar created: %d, skipped: %d, failed: %d.',
+                'Selesai. Email sent: %d, failed: %d. Queue sent: %d, failed: %d, skipped: %d. Calendar created: %d, skipped: %d, failed: %d.',
                 $stats['emails_sent'] ?? 0,
                 $stats['emails_failed'] ?? 0,
                 $stats['queues_sent'] ?? 0,
                 $stats['queues_failed'] ?? 0,
+                $stats['queues_skipped'] ?? 0,
                 $stats['calendar_created'] ?? 0,
                 $stats['calendar_skipped'] ?? 0,
                 $stats['calendar_failed'] ?? 0

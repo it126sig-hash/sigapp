@@ -319,6 +319,14 @@ function lihat_detail() {
 
                 let lAlamat = setLabelAlamat(siteplanActiveProyekName(), sh.data.nama_jalan, sh.data.no_kavling, sh.data2.no_tipe_rumah, sh.data2.tipe_rumah)
 
+                if (r.pricelist && r.pricelist.hargajual) {
+                    sh.data2.harga_akhir = num_format(r.pricelist.hargajual);
+                }
+                if (r.kavling) {
+                    sh.data2.harga_akhir_tgl = r.kavling.harga_akhir_tgl || sh.data2.harga_akhir_tgl;
+                    sh.data2.harga_akhir_oleh = r.kavling.harga_akhir_oleh_username || sh.data2.harga_akhir_oleh;
+                }
+
                 $(".label_alamat").html(lAlamat);
                 $("#label-hargajual").html(`
                     <h5 class="text-primary mb-0"><strong>Rp. ${sh.data2.harga_akhir}</strong></h5>
@@ -1153,35 +1161,35 @@ function lihat_detail() {
         $produksi.empty().append($lastUpdate).append(`
             <div class="detail-production-dashboard mt-1">
                 <div class="detail-progress-card">
-                    <div class="detail-mini-label">Progres Bangunan</div>
+                    <div class="detail-mini-label"><i class="fas fa-chart-line text-primary mr-50"></i> Progres Bangunan</div>
                     <div class="detail-progress-number"><span id="dt-produksi-progress-summary">0</span>%</div>
                     <div class="detail-progress-track mt-1">
                         <div class="detail-progress-fill is-empty" id="dt-produksi-progress-bar"></div>
                     </div>
                 </div>
                 <div class="detail-mini-card">
-                    <div class="detail-mini-label">Tanggal Bangun</div>
+                    <div class="detail-mini-label"><i class="fas fa-hammer text-primary mr-50"></i> Tanggal Bangun</div>
                     <div class="detail-mini-value" id="dt-produksi-tanggal-bangun">-</div>
                 </div>
                 <div class="detail-mini-card">
-                    <div class="detail-mini-label">Tanggal Selesai</div>
+                    <div class="detail-mini-label"><i class="fas fa-check-circle text-success mr-50"></i> Tanggal Selesai</div>
                     <div class="detail-mini-value" id="dt-produksi-tanggal-selesai">-</div>
                 </div>
                 <div class="detail-mini-card">
-                    <div class="detail-mini-label">Listrik</div>
+                    <div class="detail-mini-label"><i class="fas fa-bolt text-warning mr-50"></i> Listrik</div>
                     <div class="detail-mini-value" id="dt-produksi-listrik-summary">-</div>
                 </div>
                 <div class="detail-mini-card">
-                    <div class="detail-mini-label">Air</div>
+                    <div class="detail-mini-label"><i class="fas fa-tint text-info mr-50"></i> Air</div>
                     <div class="detail-mini-value" id="dt-produksi-air-summary">-</div>
                 </div>
             </div>
             <div class="detail-accordion" id="detailProductionAccordion">
-                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-progress', 'Progres & Jadwal', true)}
-                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-dokumentasi', 'Dokumentasi')}
-                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-jalan', 'Jalan')}
-                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-listrik', 'Listrik')}
-                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-air', 'Air')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-progress', '<i class="fas fa-tasks text-primary mr-50"></i> Progres & Jadwal', true)}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-dokumentasi', '<i class="fas fa-camera text-primary mr-50"></i> Dokumentasi')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-jalan', '<i class="fas fa-road text-primary mr-50"></i> Jalan')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-listrik', '<i class="fas fa-bolt text-warning mr-50"></i> Listrik')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-air', '<i class="fas fa-tint text-info mr-50"></i> Air')}
             </div>
         `);
 

@@ -1,4 +1,4 @@
-﻿    #modal_detail .modal-dialog {
+    #modal_detail .modal-dialog {
         max-width: min(1440px, calc(100vw - 32px));
         margin: 1rem auto;
     }
@@ -852,11 +852,62 @@
         overflow-wrap: anywhere;
     }
 
+    #modal_detail .detail-spec-vertical-list {
+        display: flex;
+        flex-direction: column;
+        gap: .65rem;
+    }
+
+    #modal_detail .detail-spec-vertical-item {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: .65rem .85rem;
+        transition: all .2s ease;
+    }
+
+    #modal_detail .detail-spec-vertical-item:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+    }
+
+    #modal_detail .detail-spec-vertical-item .detail-mini-label {
+        align-items: center;
+        color: #64748b;
+        display: flex;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: .03em;
+        margin-bottom: 0;
+        text-transform: uppercase;
+    }
+
+    #modal_detail .detail-spec-vertical-item .detail-mini-value {
+        color: #1e293b;
+        font-size: .92rem;
+        font-weight: 700;
+        line-height: 1.35;
+        margin-top: .2rem;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .detail-spec-images-list {
+        display: flex;
+        flex-direction: column;
+        gap: .85rem;
+    }
+
     #modal_detail .detail-spec-file-tile {
         background: #fff;
-        border: 1px solid #cfd6e3;
+        border: 1px solid #e2e8f0;
         border-radius: 8px;
         overflow: hidden;
+        transition: border-color .2s ease, box-shadow .2s ease;
+    }
+
+    #modal_detail .detail-spec-file-tile:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, .06);
     }
 
     #modal_detail .detail-spec-file-preview {
@@ -864,14 +915,22 @@
         background: #f8fafc;
         display: flex;
         justify-content: center;
-        min-height: 220px;
+        height: 175px;
+        min-height: 175px;
+        overflow: hidden;
     }
 
     #modal_detail .detail-spec-file-preview img {
         display: block;
-        height: 220px;
+        height: 100%;
+        max-height: 175px;
         object-fit: contain;
+        transition: transform .25s ease;
         width: 100%;
+    }
+
+    #modal_detail .detail-spec-file-preview:hover img {
+        transform: scale(1.02);
     }
 
     #modal_detail .detail-spec-file-empty {
@@ -882,8 +941,16 @@
     }
 
     #modal_detail .detail-spec-file-body {
+        align-items: center;
+        background: #fff;
         border-top: 1px solid #edf0f2;
-        padding: .85rem 1rem 1rem;
+        display: flex;
+        justify-content: space-between;
+        padding: .65rem .85rem;
+    }
+
+    #modal_detail .detail-spec-file-body .detail-mini-label {
+        margin-bottom: 0;
     }
 
     #modal_detail .foto-container {

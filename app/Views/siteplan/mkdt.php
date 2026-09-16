@@ -1113,6 +1113,10 @@
     }
 
     @media (max-width: 1199.98px) {
+        #modal_divisi4 .modal-body {
+            overflow-y: auto;
+        }
+
         #modal_divisi4 .mkdt-layout {
             flex-wrap: wrap;
         }
@@ -1130,7 +1134,12 @@
         }
 
         #modal_divisi4 .mkdt-main-content {
-            max-height: calc(100vh - 12rem);
+            max-height: none;
+            overflow: visible;
+        }
+
+        #modal_divisi4 .mkdt-scroll-content {
+            overflow-y: visible;
         }
     }
 
@@ -1147,10 +1156,6 @@
 
         #modal_divisi4 .card-body {
             padding: .85rem;
-        }
-
-        #modal_divisi4 .mkdt-main-content {
-            max-height: calc(100vh - 14rem);
         }
 
         #modal_divisi4 .nav-tabs {
@@ -2036,7 +2041,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="booking_tgl">Tanggal Booking</label>
-                                    <input type="text" id="booking_tgl" name="booking_tgl" class="form-control flatpickr-human-friendly" placeholder="-" readonly />
+                                    <input type="text" id="booking_tgl" name="booking_tgl" class="form-control flatpickr-human-friendly" placeholder="-" disabled />
                                 </div>
                                 <div class="form-group">
                                     <label for="booking_fee">Booking Fee</label>

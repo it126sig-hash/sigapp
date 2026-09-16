@@ -28,6 +28,14 @@
             <?php foreach ($items as $proyekName => $notifs): ?>
             <div style="margin-bottom: 25px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fafafa;">
                 <div style="background-color: #2057a3; color: #fff; padding: 10px 15px; font-weight: bold; font-size: 16px;">
+                    <?php
+                    $firstNotif = $notifs[0] ?? null;
+                    if ($firstNotif && !empty($firstNotif->id_proyek)):
+                        $idProyek = (int) $firstNotif->id_proyek;
+                        if (!empty($proyekLogos[$idProyek])):
+                    ?>
+                        <img src="cid:<?= esc($proyekLogos[$idProyek], 'attr') ?>" alt="Logo" style="height: 24px; vertical-align: middle; margin-right: 10px; background-color: #fff; border-radius: 4px; padding: 2px;">
+                    <?php endif; endif; ?>
                     Proyek: <?= esc($proyekName) ?>
                 </div>
                 <div style="padding: 10px 15px;">
@@ -47,7 +55,7 @@
                             <?= $kavlingStr ?>
                         </div>
                         <div class="message" style="margin-top: 6px;">
-                            <strong>Isi Notifikasi:</strong> <span style="color: #222;"><?= esc($item->notif) ?></span>
+                            <span style="color: #222;"><?= esc($item->notif_text ?? '-') ?></span>
                         </div>
                     </div>
                     <?php endforeach; ?>

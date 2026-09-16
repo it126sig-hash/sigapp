@@ -322,7 +322,9 @@ class CashoutSubkonService
                             user_id(),
                             $id_kavling,
                             null,
-                            'cashout_subkon'
+                            \App\Enums\NotificationEvent::CASHOUT_SUBKON,
+                            null,
+                            'cashout/subkon?open_kavling=' . $id_kavling
                         );
                     }
                 }
@@ -595,7 +597,9 @@ class CashoutSubkonService
                 user_id(),
                 $id_kavling,
                 null,
-                'cashout_subkon'
+                \App\Enums\NotificationEvent::CASHOUT_SUBKON,
+                null,
+                'cashout/subkon?open_kavling=' . $id_kavling
             );
         }
     }

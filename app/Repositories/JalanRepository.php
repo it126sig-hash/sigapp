@@ -98,7 +98,12 @@ class JalanRepository
     private function baseQuery()
     {
         return $this->db->table('jalan')
-            ->select('id_jalan, jalan.id_cluster, nama_cluster, nama_proyek, nama_jalan')
+            ->select("id_jalan, jalan.id_cluster, nama_cluster, nama_proyek, nama_jalan,
+                (SELECT COUNT(kavling.id_kavling) FROM kavling WHERE kavling.id_jalan = jalan.id_jalan) as total_kavling,
+                (SELECT COUNT(kavling.id_kavling) FROM kavling JOIN mkdt ON mkdt.id_mkdt = kavling.id_mkdt WHERE kavling.id_jalan = jalan.id_jalan AND mkdt.status_mkdt = 'Akad' AND mkdt.is_batal = 0) as total_akad,
+                (SELECT COUNT(kavling.id_kavling) FROM kavling JOIN mkdt ON mkdt.id_mkdt = kavling.id_mkdt WHERE kavling.id_jalan = jalan.id_jalan AND mkdt.status_mkdt = 'Booking' AND mkdt.is_batal = 0) as total_booking,
+                (SELECT COUNT(kavling.id_kavling) FROM kavling LEFT JOIN mkdt ON mkdt.id_mkdt = kavling.id_mkdt WHERE kavling.id_jalan = jalan.id_jalan AND (kavling.id_mkdt IS NULL OR mkdt.status_mkdt = 'Batal' OR mkdt.is_batal = 1)) as total_belum_terjual
+            ")
             ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
             ->join('proyek', 'proyek.id_proyek = cluster.id_proyek');
     }

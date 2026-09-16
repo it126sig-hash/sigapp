@@ -717,6 +717,11 @@ class ProduksiController extends BaseApiController
             'produksi_updated_at' => $now,
         ];
 
+        $points = $this->request->getPost('points');
+        if ($points !== null && $points !== '') {
+            $fields['points'] = $points;
+        }
+
         $db = \Config\Database::connect();
         $db->transStart();
         $this->repo->updateOthers($id, $fields);
