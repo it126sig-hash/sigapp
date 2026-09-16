@@ -292,6 +292,10 @@ $routes->group('api/mkdt', ['namespace' => 'App\Controllers\Api', 'filter' => 'l
     $routes->post('history', 'MkdtController::history');
 });
 
+$routes->group('api/tagihan/booking', ['namespace' => 'App\Controllers\Api', 'filter' => ['login', 'csrf']], function ($routes) {
+    $routes->post('verifikasi', 'BookingPaymentController::verify');
+});
+
 $routes->group('api/referral-qr', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
     $routes->post('preview', 'ReferralQrController::preview');
     $routes->get('download', 'ReferralQrController::download');

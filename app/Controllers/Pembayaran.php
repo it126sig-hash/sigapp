@@ -34,6 +34,7 @@ class Pembayaran extends BaseController
         }
         if ($this->num($this->request->getPost("bt-bayar_tagihan_um")) == 0) {
             $response = [
+                'token' => csrf_hash(),
                 'status' => false,
                 'message' => 'Nominal pembayaran tidak boleh 0!',
             ];
@@ -41,6 +42,7 @@ class Pembayaran extends BaseController
         }
         if ($total != $this->num($this->request->getPost("bt-bayar_tagihan_um"))) {
             $response = [
+                'token' => csrf_hash(),
                 'status' => false,
                 'message' => 'Alokasi dana harus sama dengan nominal pembayaran!',
             ];

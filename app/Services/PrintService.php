@@ -91,6 +91,7 @@ class PrintService
         $id_poryek = $this->kavling->getIdProyekByIdMkdt((int) $id_mkdt);
 
         $data['pembayaran'] = $this->lpModel->getRiwayatBayarByIdPembayran($id);
+        $this->assertPaymentOwnership((int) $id, (int) $id_mkdt, $data['pembayaran']);
         $data['detail'] = $this->lpModel->getDetailRiwayatBayarById($id);
         $data['list'] = $this->keuRepo->getLIKeu();
         $data['konsumen'] = $this->konsumen->getKonsumenTransaksi($id_mkdt);
@@ -116,6 +117,18 @@ class PrintService
         $id_poryek = $this->kavling->getIdProyekByIdMkdt((int) $id_mkdt);
 
         $data['pembayaran'] = $this->lpModel->getRiwayatBayarByIdPembayran($id);
+        $this->assertPaymentOwnership((int) $id, (int) $id_mkdt, $data['pembayaran']);
+        $details = $this->lpModel->getDetailRiwayatBayarById((int) $id);
+        $installmentAmount = 0.0;
+        foreach ($details as $detail) {
+            $isSeparateBooking = ($detail['kategori'] ?? '') === 'BO'
+                && (int) ($detail['booking_is_installment'] ?? 0) === 0;
+            if (! $isSeparateBooking) $installmentAmount += (float) ($detail['nominal'] ?? 0);
+        }
+        if ($installmentAmount <= 0) {
+            throw new \DomainException('Pembayaran booking tersendiri tidak dapat dicetak sebagai kuitansi uang muka.');
+        }
+        $data['pembayaran']->nominal = $installmentAmount;
         $data['list'] = $this->keuRepo->getLIKeu();
         $data['konsumen'] = $this->konsumen->getKonsumenTransaksi($id_mkdt);
         $data['proyek'] = $this->proyek->find($id_poryek);
@@ -132,6 +145,16 @@ class PrintService
         $this->mpdf->generate($html, $filename, $header = '', $mg, [210, 148]);
 
         exit();
+    }
+
+    private function assertPaymentOwnership(int $idPembayaran, int $idMkdt, mixed $payment): void
+    {
+        if (! $payment) throw new \DomainException('Pembayaran tidak ditemukan.');
+        if ((int) ($payment->is_deleted ?? 0) === 1) throw new \DomainException('Pembayaran sudah dihapus.');
+        if ((int) ($payment->id_mkdt ?? 0) === $idMkdt) return;
+        $linked = $this->db->table('mkdt_booking_payment')
+            ->where('id_mkdt', $idMkdt)->where('id_pembayaran', $idPembayaran)->countAllResults();
+        if ($linked === 0) throw new \DomainException('Pembayaran tidak terkait dengan transaksi MKDT ini.');
     }
     function exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)
     {

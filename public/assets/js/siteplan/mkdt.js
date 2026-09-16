@@ -935,6 +935,26 @@ function fillMkdt(v) {
   $("#spptb_ttd_file").html(spptbLink);
 }
 
+function applyBookingVerificationLock(booking) {
+  const locked = Boolean(booking?.locked);
+  const fee = document.querySelector("#idk-booking_fee");
+  const date = document.querySelector("#idk-booking_tgl");
+  if (fee) {
+    fee.readOnly = locked;
+    fee.classList.toggle("bg-light", locked);
+    fee.title = locked ? "Booking fee sudah diverifikasi Keuangan" : "";
+  }
+  if (date) {
+    date.readOnly = locked;
+    date.classList.toggle("bg-light", locked);
+    date.title = locked ? "Tanggal booking sudah diverifikasi Keuangan" : "";
+    if (date._flatpickr) {
+      date._flatpickr.set("clickOpens", !locked);
+      if (date._flatpickr.altInput) date._flatpickr.altInput.readOnly = locked;
+    }
+  }
+}
+
 $("#idk-status_mkdt").change(updateIdkBatalSection);
 
 function fillSpptbList(list) {
@@ -1501,13 +1521,14 @@ async function isi_data_konsumen() {
 
       // MKDT fields
       fillMkdt(v);
+      applyBookingVerificationLock(res.booking);
 
       // SPPTB list
       fillSpptbList(res.list_spptb || []);
 
       // Tagihan + render
       fillTagihan(tg);
-      $("#idk-total_sudah_dibayar").val(res.total_sudah_bayar || 0).keyup();
+      $("#idk-total_sudah_dibayar").val(res.angsuran?.sudah_bayar || 0).keyup();
 
       // Hitung total & label alamat sekali saja
       sum_mktotal();

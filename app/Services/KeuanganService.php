@@ -460,11 +460,11 @@ class KeuanganService
                 return number_format($v->um + $v->adm + $v->bb);
             })
             ->edit('sudah_bayar', function ($v) {
-                return number_format($v->total_booking + $v->total_um + $v->total_adm + $v->total_bb);
+                return number_format($v->total_um + $v->total_adm + $v->total_bb);
             })
             ->edit('sisa_tagihan', function ($v) {
                 $tot = $v->um + $v->adm + $v->bb;
-                $sb = $v->total_booking + $v->total_um + $v->total_adm + $v->total_bb;
+                $sb = $v->total_um + $v->total_adm + $v->total_bb;
                 return number_format($tot - $sb);
             })
             // ->edit('action', function ($value) {
@@ -554,7 +554,11 @@ class KeuanganService
                 return number_format((float) $v->sudah_bayar);
             })
             ->edit('sisa_tagihan', function ($v) {
-                return number_format((float) $v->sisa_tagihan);
+                $value = number_format((float) $v->sisa_tagihan);
+                if ((int) ($v->perlu_rekonsiliasi ?? 0) === 1) {
+                    $value .= ' <span class="badge badge-warning">Perlu rekonsiliasi</span>';
+                }
+                return $value;
             })
             ->toJson(true);
     }

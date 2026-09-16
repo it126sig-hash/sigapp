@@ -1,0 +1,79 @@
+#modal_divisi3 .booking-fee-card {
+  background: #f7faff;
+  border: 1px solid #bad1ee;
+  border-left: 4px solid #2057a3;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  padding: 1rem;
+}
+
+#modal_divisi3 .booking-fee-grid {
+  display: grid;
+  gap: 0.75rem 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+#modal_divisi3 .booking-fee-grid > div {
+  min-width: 0;
+}
+
+#modal_divisi3 .booking-fee-label {
+  color: #667085;
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+}
+
+#modal_divisi3 .booking-fee-value {
+  color: #101828;
+  display: block;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+#modal_divisi3 .booking-fee-grid .badge {
+  max-width: 100%;
+  white-space: normal;
+}
+
+#modal_divisi3 .booking-fee-history {
+  border-top: 1px solid #dbe7f5;
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+}
+
+#modal_divisi3 .booking-fee-history-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  justify-content: space-between;
+  padding: 0.5rem 0 0;
+}
+
+#modal_divisi3 .booking-fee-history-row > span {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+#modal_divisi3 .booking-fee-history-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 575.98px) {
+  #modal_divisi3 .booking-fee-card {
+    padding: 0.875rem;
+  }
+
+  #modal_divisi3 .booking-fee-grid {
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  }
+}

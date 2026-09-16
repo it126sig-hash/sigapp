@@ -10,6 +10,7 @@ use App\Services\TransaksiService;
 use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\HTTP\ResponseInterface;
 use App\Services\KonsumenService;
+use App\Services\BookingPaymentService;
 use App\Repositories\LogPembayaranRepository;
 use App\Repositories\KeuanganRepository;
 use Throwable;
@@ -78,6 +79,14 @@ class Tagihan extends BaseController
             return (float) ($item['total_nominal'] ?? 0);
         }, $data['item_sudah_bayar']));
         $data['log_pembayaran'] = $includeLog ? $this->keuanganService->getRiwayatBayarWithDetailById($id_mkdt) : [];
+        $bookingService = new BookingPaymentService($this->db);
+        $data['booking'] = $bookingService->getBooking((int) $id_mkdt);
+        $data['angsuran'] = $bookingService->getInstallment((int) $id_mkdt);
+        // Keep the legacy fields for callers, but make their semantics explicit:
+        // these totals are installments and exclude positive booking receipts.
+        $data['total_sudah_bayar'] = $data['angsuran']['sudah_bayar'];
+        $data['item_sudah_bayar'] = $data['angsuran']['items'];
+        $data['total_item_sudah_bayar'] = $data['angsuran']['sudah_bayar'];
 
         return $this->response->setJSON($data);
     }

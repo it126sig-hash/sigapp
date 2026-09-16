@@ -14,6 +14,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Controllers\Notif;
 use App\Services\FileAccessService;
 use App\Services\MkdtHistoryService;
+use App\Services\BookingPaymentService;
 
 class Mkdt extends BaseController
 {
@@ -28,6 +29,7 @@ class Mkdt extends BaseController
     protected $username;
     protected $fileAccessService;
     protected $mkdtHistoryService;
+    protected BookingPaymentService $bookingPaymentService;
 
     public function __construct()
     {
@@ -42,6 +44,7 @@ class Mkdt extends BaseController
         $this->username = $this->db->table('users')->select('username')->get()->getRow();
         $this->fileAccessService = new FileAccessService();
         $this->mkdtHistoryService = new MkdtHistoryService();
+        $this->bookingPaymentService = new BookingPaymentService($this->db);
     }
     function get_data_by_id($st = null)
     {
@@ -334,6 +337,18 @@ class Mkdt extends BaseController
 
         $f['id_mkdt'] = $this->request->getPost('id_mkdt');
 
+        if (! empty($f['id_mkdt'])) {
+            try {
+                $this->bookingPaymentService->assertEditable(
+                    (int) $f['id_mkdt'],
+                    (float) $this->num($this->request->getPost('booking_fee')),
+                    $this->request->getPost('booking_tgl')
+                );
+            } catch (\DomainException $e) {
+                return $this->response->setJSON(['token'=>csrf_hash(),'success'=>false,'messages'=>$e->getMessage()]);
+            }
+        }
+
         $uniqid = uniqid('', true);
 
 
@@ -607,6 +622,8 @@ class Mkdt extends BaseController
 
         $id_mkdt = $f2['id_mkdt'];
 
+        $this->db->transException(true)->transBegin();
+        try {
         if ($f2['id_mkdt'] == null) {
             $f2['add_by'] = user_id();
             $f2['edit_by'] = user_id();
@@ -660,6 +677,15 @@ class Mkdt extends BaseController
                 $response['success'] = false;
                 $response['messages'] = 'Terjadi Kesalahan';
             }
+        }
+
+        if (! empty($id_mkdt)) $this->bookingPaymentService->synchronize((int) $id_mkdt, (int) user_id());
+        if ($this->db->transStatus() === false) throw new \RuntimeException('Transaksi database gagal.');
+        $this->db->transCommit();
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            $response['success'] = false;
+            $response['messages'] = 'Gagal menyimpan booking: ' . $e->getMessage();
         }
 
         return $this->response->setJSON($response);

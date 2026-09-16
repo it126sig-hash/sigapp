@@ -48,8 +48,8 @@ class CashInReportRepository
 
         return $this->baseLogPaymentDetailQuery($idProyek)
             ->select("YEAR(lp.tanggal_bayar) AS tahun, MONTH(lp.tanggal_bayar) AS bulan")
-            ->select("SUM(CASE WHEN kl.kategori = 'BO' THEN lpd.nominal ELSE 0 END) AS booking_fee", false)
-            ->select("SUM(CASE WHEN kl.kategori != 'BO' THEN lpd.nominal ELSE 0 END) AS uang_muka", false)
+            ->select("SUM(CASE WHEN kl.kategori = 'BO' AND COALESCE(lpd.booking_is_installment,0) = 0 THEN lpd.nominal ELSE 0 END) AS booking_fee", false)
+            ->select("SUM(CASE WHEN kl.kategori != 'BO' OR COALESCE(lpd.booking_is_installment,0) = 1 THEN lpd.nominal ELSE 0 END) AS uang_muka", false)
             ->where('lp.tanggal_bayar >=', $startDate)
             ->where('lp.tanggal_bayar <', $endDate)
             ->groupBy('YEAR(lp.tanggal_bayar), MONTH(lp.tanggal_bayar)', false)
@@ -161,9 +161,9 @@ class CashInReportRepository
             ->where('lp.tanggal_bayar <', $endDate);
 
         if ($category === 'booking_fee') {
-            $builder->where('kl.kategori', 'BO');
+            $builder->where('kl.kategori', 'BO')->where('lpd.booking_is_installment', 0);
         } else {
-            $builder->where('kl.kategori !=', 'BO');
+            $builder->groupStart()->where('kl.kategori !=', 'BO')->orWhere('lpd.booking_is_installment', 1)->groupEnd();
         }
 
         return $builder->getCompiledSelect();

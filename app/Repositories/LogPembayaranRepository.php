@@ -99,6 +99,7 @@ class LogPembayaranRepository extends Model
                 'log_pembayaran_detail.*',
                 'kl.item',
                 'kl.kategori',
+                'log_pembayaran_detail.booking_is_installment',
             ])
             ->join('keuangan_item_list kl', 'kl.id_keuangan_item_list = log_pembayaran_detail.id_keuangan_item_list')
             ->where('log_pembayaran_detail.id_pembayaran', $id_Pembayaran)
@@ -139,6 +140,7 @@ class LogPembayaranRepository extends Model
                 'lpd.id_pembayaran',
                 'lpd.id_keuangan_item_list',
                 'lpd.nominal',
+                'lpd.booking_is_installment',
                 'kl.item',
                 'kl.kategori',
             ])
