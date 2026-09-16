@@ -48,8 +48,8 @@ class CashInReportRepository
 
         return $this->baseLogPaymentDetailQuery($idProyek)
             ->select("YEAR(lp.tanggal_bayar) AS tahun, MONTH(lp.tanggal_bayar) AS bulan")
-            ->select("SUM(CASE WHEN kl.kategori = 'BO' AND COALESCE(lpd.booking_is_installment,0) = 0 THEN lpd.nominal ELSE 0 END) AS booking_fee", false)
-            ->select("SUM(CASE WHEN kl.kategori != 'BO' OR COALESCE(lpd.booking_is_installment,0) = 1 THEN lpd.nominal ELSE 0 END) AS uang_muka", false)
+            ->select("SUM(CASE WHEN kl.kategori = 'BO' THEN lpd.nominal ELSE 0 END) AS booking_fee", false)
+            ->select("SUM(CASE WHEN kl.kategori = 'UM' THEN lpd.nominal ELSE 0 END) AS uang_muka", false)
             ->where('lp.tanggal_bayar >=', $startDate)
             ->where('lp.tanggal_bayar <', $endDate)
             ->groupBy('YEAR(lp.tanggal_bayar), MONTH(lp.tanggal_bayar)', false)
@@ -89,7 +89,6 @@ class CashInReportRepository
                 ->like('cash_in.jenis_pendapatan', $dataTable['search'])
                 ->orLike('cash_in.alamat_kavling', $dataTable['search'])
                 ->orLike('cash_in.nama_konsumen', $dataTable['search'])
-                ->orLike('cash_in.keterangan', $dataTable['search'])
                 ->orLike('cash_in.tanggal_transaksi', $dataTable['search'])
                 ->groupEnd();
         }
@@ -154,16 +153,19 @@ class CashInReportRepository
             ->select($this->db->escape($label) . ' AS jenis_pendapatan', false)
             ->select("TRIM(CONCAT(COALESCE(j.nama_jalan, ''), ' No. ', COALESCE(k.no_kavling, '-'))) AS alamat_kavling", false)
             ->select("COALESCE(c.nama_konsumen, '-') AS nama_konsumen", false)
-            ->select("COALESCE(kl.item, '-') AS keterangan", false)
             ->select('lp.tanggal_bayar AS tanggal_transaksi')
             ->select('lpd.nominal')
+            ->select('k.id_kavling')
+            ->select('m.id_mkdt')
+            ->select("COALESCE(j.nama_jalan, '') AS nama_jalan", false)
+            ->select("COALESCE(k.no_kavling, '-') AS no_kavling", false)
             ->where('lp.tanggal_bayar >=', $startDate)
             ->where('lp.tanggal_bayar <', $endDate);
 
         if ($category === 'booking_fee') {
-            $builder->where('kl.kategori', 'BO')->where('lpd.booking_is_installment', 0);
+            $builder->where('kl.kategori', 'BO');
         } else {
-            $builder->groupStart()->where('kl.kategori !=', 'BO')->orWhere('lpd.booking_is_installment', 1)->groupEnd();
+            $builder->where('kl.kategori', 'UM');
         }
 
         return $builder->getCompiledSelect();
@@ -177,9 +179,12 @@ class CashInReportRepository
             ->select("'Hasil Akad' AS jenis_pendapatan", false)
             ->select("TRIM(CONCAT(COALESCE(j.nama_jalan, ''), ' No. ', COALESCE(k.no_kavling, '-'))) AS alamat_kavling", false)
             ->select("COALESCE(c.nama_konsumen, '-') AS nama_konsumen", false)
-            ->select("COALESCE(NULLIF(pay.catatan, ''), 'Hasil Akad') AS keterangan", false)
             ->select('pay.tanggal_cair AS tanggal_transaksi')
             ->select('pay.total_cair AS nominal')
+            ->select('k.id_kavling')
+            ->select('m.id_mkdt')
+            ->select("COALESCE(j.nama_jalan, '') AS nama_jalan", false)
+            ->select("COALESCE(k.no_kavling, '-') AS no_kavling", false)
             ->where('pay.tanggal_cair >=', $startDate)
             ->where('pay.tanggal_cair <', $endDate)
             ->getCompiledSelect();

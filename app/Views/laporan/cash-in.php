@@ -132,9 +132,9 @@
                                     <th>Jenis Pendapatan</th>
                                     <th>Jalan / No. Kavling</th>
                                     <th>Nama Konsumen</th>
-                                    <th>Keterangan</th>
                                     <th>Tanggal Bayar / Cair</th>
                                     <th>Nominal</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                         </table>
@@ -145,20 +145,80 @@
     </div>
 </div>
 
+<style>
+    <?= view('siteplan/partials/modal_detail_styles') ?>@media (max-width: 1199.98px) {
+        #modal_detail .detail-kavling-layout {
+            flex-wrap: wrap;
+        }
+
+        #modal_detail .detail-kavling-sidebar,
+        #modal_detail .detail-kavling-content {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        #modal_detail .detail-kavling-sidebar {
+            position: static;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        #modal_detail .modal-dialog {
+            max-width: calc(100vw - 12px);
+            margin: .5rem auto;
+        }
+
+        #modal_detail .modal-body {
+            max-height: calc(100vh - 5.5rem);
+            padding: .75rem;
+        }
+
+        #modal_detail .nav-pills {
+            flex-direction: row !important;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding-bottom: .25rem;
+        }
+
+        #modal_detail .detail-dashboard-grid,
+        #modal_detail .detail-card-grid,
+        #modal_detail .detail-production-dashboard {
+            grid-template-columns: 1fr;
+        }
+
+        #modal_detail .card-body {
+            padding: .85rem;
+        }
+    }
+</style>
+<link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/extensions/sweetalert2.min.css') ?>">
+
 <script src="<?= base_url('app-assets/vendors/js/vendors.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/extensions/sweetalert2.all.min.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/responsive.bootstrap4.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/charts/chart.min.js') ?>"></script>
+
+<?= view('siteplan/partials/modal_detail', ['data' => []]) ?>
 <script>
-window.CASH_IN_REPORT = <?= json_encode([
-    'summaryUrl' => base_url('api/laporan/cash-in/summary'),
-    'detailUrl' => base_url('api/laporan/cash-in/detail'),
-    'hasProject' => (bool) $activeProyek,
-    'projectName' => (string) ($activeProyek->nama_proyek ?? ''),
-    'csrfName' => csrf_token(),
-    'csrfHash' => csrf_hash(),
-], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
+    window.CASH_IN_REPORT = <?= json_encode([
+                                'summaryUrl' => base_url('api/laporan/cash-in/summary'),
+                                'detailUrl' => base_url('api/laporan/cash-in/detail'),
+                                'hasProject' => (bool) $activeProyek,
+                                'projectName' => (string) ($activeProyek->nama_proyek ?? ''),
+                                'csrfName' => csrf_token(),
+                                'csrfHash' => csrf_hash(),
+                            ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
+
+    // Global variables needed by siteplan-detail-modal.js
+    if (typeof dt_proyek === 'undefined') var dt_proyek = <?= json_encode($activeProyek ?? new \stdClass()) ?>;
+    if (typeof csrfName === 'undefined') var csrfName = '<?= csrf_token() ?>';
+    if (typeof csrfHash === 'undefined') var csrfHash = '<?= csrf_hash() ?>';
+    if (typeof not_found === 'undefined') var not_found = '<?= base_url('assets/images/not-found.png') ?>';
+    if (typeof editdtt === 'undefined') var editdtt = [];
+    if (typeof roleid === 'undefined') var roleid = '<?= user_id() ? (session()->get('role_id') ?? 0) : 0 ?>';
 </script>
+<script src="<?= base_url('assets/js/siteplan-detail-modal.js') ?>?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
 <script src="<?= base_url('assets/js/laporan-cash-in.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/laporan-cash-in.js') ?>"></script>

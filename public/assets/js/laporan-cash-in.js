@@ -338,7 +338,7 @@
       searching: true,
       lengthChange: true,
       pageLength: 10,
-      order: [[4, "asc"]],
+      order: [[3, "asc"]],
       scrollX: true,
       autoWidth: false,
       ajax: {
@@ -367,7 +367,6 @@
         { data: "jenis_pendapatan", name: "jenis_pendapatan", visible: category === "all" },
         { data: "alamat_kavling", name: "alamat_kavling" },
         { data: "nama_konsumen", name: "nama_konsumen" },
-        { data: "keterangan", name: "keterangan" },
         {
           data: "tanggal_transaksi",
           name: "tanggal_transaksi",
@@ -378,6 +377,22 @@
           name: "nominal",
           className: "text-right font-weight-bold",
           render: function (value) { return money(value); },
+        },
+        {
+          data: null,
+          orderable: false,
+          searchable: false,
+          className: "text-center",
+          render: function (data, type, row) {
+            if (!row.id_kavling) return "-";
+            return '<button type="button" class="btn btn-info btn-sm cash-in-view-kavling" ' +
+              'data-id-kavling="' + escapeHtml(row.id_kavling) + '" ' +
+              'data-id-mkdt="' + escapeHtml(row.id_mkdt || "") + '" ' +
+              'data-nama-jalan="' + escapeHtml(row.nama_jalan || "") + '" ' +
+              'data-no-kavling="' + escapeHtml(row.no_kavling || "") + '" ' +
+              'title="Lihat Detail Kavling">' +
+              '<i class="fa fa-eye"></i></button>';
+          },
         },
       ],
       language: {
@@ -410,6 +425,41 @@
         detailTable.destroy();
         detailTable = null;
         $("#cash_in_detail_table tbody").empty();
+      }
+    });
+
+    $(document).on("click", ".cash-in-view-kavling", function () {
+      var btn = $(this);
+      var idKavling = btn.data("id-kavling");
+      if (!idKavling) return;
+
+      var sh = {
+        id: "kav" + idKavling,
+        data: {
+          tipe: "kavling",
+          id_kavling: idKavling,
+          id_mkdt: btn.data("id-mkdt") || null,
+          id_keuangan: null,
+          id_legal: null,
+          id_produksi: null,
+          nama_jalan: btn.data("nama-jalan") || "",
+          no_kavling: btn.data("no-kavling") || "",
+        },
+        data2: {
+          harga_akhir: "-",
+          id_hargajual: "",
+          id_komplain: null,
+          no_tipe_rumah: "",
+          tipe_rumah: "",
+          harga_akhir_tgl: "",
+          harga_akhir_oleh: "",
+        },
+      };
+
+      window.editdtt = [sh];
+
+      if (typeof detail_kavling === "function") {
+        detail_kavling(sh, idKavling);
       }
     });
 

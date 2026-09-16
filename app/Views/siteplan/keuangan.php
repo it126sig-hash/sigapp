@@ -1510,6 +1510,6 @@
     </div>
 </div>
 
-<script src="<?= base_url() ?>assets/js/siteplan/keuangan.js?v=<?= filemtime(FCPATH.'assets/js/siteplan/keuangan.js') ?>"></script>
-<script src="<?= base_url() ?>assets/js/tagihan-bayar-modal.js?v=<?= filemtime(FCPATH.'assets/js/tagihan-bayar-modal.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/keuangan.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/keuangan.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/tagihan-bayar-modal.js?v=<?= filemtime(FCPATH . 'assets/js/tagihan-bayar-modal.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/pencairan-akad-modal.js?v=<?= filemtime(FCPATH . 'assets/js/pencairan-akad-modal.js') ?>"></script>

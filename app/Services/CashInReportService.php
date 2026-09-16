@@ -149,7 +149,6 @@ class CashInReportService
             'jenis_pendapatan' => 'cash_in.jenis_pendapatan',
             'alamat_kavling' => 'cash_in.alamat_kavling',
             'nama_konsumen' => 'cash_in.nama_konsumen',
-            'keterangan' => 'cash_in.keterangan',
             'tanggal_transaksi' => 'cash_in.tanggal_transaksi',
             'nominal' => 'cash_in.nominal',
         ];

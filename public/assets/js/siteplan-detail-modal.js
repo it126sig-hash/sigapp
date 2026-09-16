@@ -319,6 +319,14 @@ function lihat_detail() {
 
                 let lAlamat = setLabelAlamat(siteplanActiveProyekName(), sh.data.nama_jalan, sh.data.no_kavling, sh.data2.no_tipe_rumah, sh.data2.tipe_rumah)
 
+                if (r.pricelist && r.pricelist.hargajual) {
+                    sh.data2.harga_akhir = num_format(r.pricelist.hargajual);
+                }
+                if (r.kavling) {
+                    sh.data2.harga_akhir_tgl = r.kavling.harga_akhir_tgl || sh.data2.harga_akhir_tgl;
+                    sh.data2.harga_akhir_oleh = r.kavling.harga_akhir_oleh_username || sh.data2.harga_akhir_oleh;
+                }
+
                 $(".label_alamat").html(lAlamat);
                 $("#label-hargajual").html(`
                     <h5 class="text-primary mb-0"><strong>Rp. ${sh.data2.harga_akhir}</strong></h5>

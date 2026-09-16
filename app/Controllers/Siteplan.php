@@ -1150,14 +1150,18 @@ class Siteplan extends BaseController
                 perintah_bangun,
                 perintah_bangun_tgl,
                 perintah_bangun_file,
-                username,
+                users.username,
                 kavling.id_tipe,
                 pajak.pph42_id_billing,
                 pajak.pph42_ntpn,
                 pajak.pph42_nilai,
-                pajak.pph42_tgl_bayar
+                pajak.pph42_tgl_bayar,
+                kavling.harga_akhir,
+                kavling.harga_akhir_tgl,
+                u_ha.username as harga_akhir_oleh_username
             ')
             ->join('users', 'users.id = kavling.perintah_bangun_oleh', 'left')
+            ->join('users u_ha', 'u_ha.id = kavling.harga_akhir_oleh', 'left')
             ->join('pajak', 'pajak.id_mkdt = kavling.id_mkdt', 'left')
             ->where('id_kavling', $id_kavling)
             ->first();
@@ -1206,9 +1210,16 @@ class Siteplan extends BaseController
 
         $id_hargajual = $this->request->getVar('id_hargajual');
         $d['pricelist'] = null;
+        if (!$id_hargajual && $d['kavling'] && !empty($d['kavling']->harga_akhir)) {
+            $id_hargajual = $d['kavling']->harga_akhir;
+        }
+        
         if ($id_hargajual) {
-            $d['pricelist'] = $this->db->table('hargajual')
-                ->where('id', $id_hargajual)->get()->getResult()[0];
+            $pricelistResults = $this->db->table('hargajual')
+                ->where('id', $id_hargajual)->get()->getResult();
+            if (count($pricelistResults) > 0) {
+                $d['pricelist'] = $pricelistResults[0];
+            }
         }
 
 
@@ -1362,7 +1373,7 @@ class Siteplan extends BaseController
         $d['ku'] = (count($ku) > 0) ? $ku[0] : null;
 
         $d['legal'] = $this->legalModel
-            ->select("legal.*, a.username as uadd_by, ,b.username as uedit_by")
+            ->select("legal.*, a.username as uadd_by, b.username as uedit_by")
             ->where('id_legal', $this->request->getVar('id_legal'))
             ->join('users a', 'a.id = legal.add_by', 'left')
             ->join('users b', 'b.id = legal.edit_by', 'left')

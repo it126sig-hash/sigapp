@@ -626,9 +626,9 @@ foreach (user()->getRoles() as $key => $val) {
         position: absolute;
         min-width: 175px;
         background-color: white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
         border-radius: 5px;
-        border: 1px solid rgba(0,0,0,0.08);
+        border: 1px solid rgba(0, 0, 0, 0.08);
         z-index: 9999;
         overflow: hidden;
         padding: 3px 0;
@@ -1203,27 +1203,27 @@ foreach (user()->getRoles() as $key => $val) {
                                     <button id="menu-btn-lihat_detail">Detail</button>
                                 </div>
                                 <?php if ($k != 6): ?>
-                                <div>
-                                    <button id="menu-btn-request-kavling" type="button" onclick="handleContextRequestKavling()">Request Ubah Tipe</button>
-                                </div>
+                                    <div>
+                                        <button id="menu-btn-request-kavling" type="button" onclick="handleContextRequestKavling()">Request Ubah Tipe</button>
+                                    </div>
                                 <?php endif; ?>
                                 <div id="menu-dynamic-items"></div>
                             </div>
                         </div>
                         <div class="col-md-3 d-md-block" style="overflow-y:auto" id="filter-side">
                             <?php if ($k != 6): ?>
-                            <div class="mb-2">
-                                <button type="button" class="btn btn-outline-primary btn-sm btn-block" onclick="openModalRequestKavling()">
-                                    <i class="fa fa-plus-circle mr-1"></i> Request Kavling / Tipe
-                                </button>
-                            </div>
+                                <div class="mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm btn-block" onclick="openModalRequestKavling()">
+                                        <i class="fa fa-plus-circle mr-1"></i> Request Kavling / Tipe
+                                    </button>
+                                </div>
                             <?php endif; ?>
                             <?php if ($k == 6 || $k == 1): ?>
-                            <div class="mb-2">
-                                <button type="button" class="btn btn-outline-primary btn-sm btn-block" onclick="openModalListRequestKavling()">
-                                    <i class="fa fa-list-alt mr-1"></i> List Request Kavling
-                                </button>
-                            </div>
+                                <div class="mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm btn-block" onclick="openModalListRequestKavling()">
+                                        <i class="fa fa-list-alt mr-1"></i> List Request Kavling
+                                    </button>
+                                </div>
                             <?php endif; ?>
                             <div class="custom-control custom-switch mb-2">
                                 <input type="checkbox" class="custom-control-input" id="toggle-multicolor" onchange="window.multiColorMode = this.checked; load_kavling(true);">
@@ -1881,22 +1881,22 @@ foreach (user()->getRoles() as $key => $val) {
 <script src="<?= base_url() ?>assets/js/siteplan/tiket-masalah.js?v=<?= time() ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/request-kavling.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/request-kavling.js') ?>"></script>
 <?php if ($k != 6): ?>
-<script>
-function handleContextRequestKavling() {
-    if (typeof currentShape !== 'undefined' && currentShape && currentShape.target && currentShape.target.attrs) {
-        let shapeId = currentShape.target.attrs.id;
-        if (shapeId && shapeId.startsWith('kav')) {
-            let kavId = shapeId.substring(3);
-            openModalRequestKavling(kavId);
-            let $select = $('#req-id_kavling');
-            let kavData = currentShape.target.attrs.data || {};
-            let kavText = (kavData.nama_jalan ? kavData.nama_jalan + ' ' : '') + 'No. ' + (kavData.no_kavling || kavId);
-            let option = new Option(kavText, kavId, true, true);
-            $select.append(option).trigger('change');
-            return;
+    <script>
+        function handleContextRequestKavling() {
+            if (typeof currentShape !== 'undefined' && currentShape && currentShape.target && currentShape.target.attrs) {
+                let shapeId = currentShape.target.attrs.id;
+                if (shapeId && shapeId.startsWith('kav')) {
+                    let kavId = shapeId.substring(3);
+                    openModalRequestKavling(kavId);
+                    let $select = $('#req-id_kavling');
+                    let kavData = currentShape.target.attrs.data || {};
+                    let kavText = (kavData.nama_jalan ? kavData.nama_jalan + ' ' : '') + 'No. ' + (kavData.no_kavling || kavId);
+                    let option = new Option(kavText, kavId, true, true);
+                    $select.append(option).trigger('change');
+                    return;
+                }
+            }
+            openModalRequestKavling();
         }
-    }
-    openModalRequestKavling();
-}
-</script>
+    </script>
 <?php endif; ?>

@@ -170,6 +170,10 @@
     font-weight: 700;
 }
 
+#cash_in_matrix tfoot td:not(:first-child) {
+    text-align: right;
+}
+
 .cash-in-value-button {
     background: transparent;
     border: 0;
