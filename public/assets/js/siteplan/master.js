@@ -16,6 +16,9 @@ let sv_url,
         Legal: null,
         Pajak: null,
         Target: null,
+        MKDT: null,
+        Produksi: null,
+        Keuangan: null,
         'Lain-lain': null
     };
 
@@ -146,6 +149,28 @@ Date.prototype.toDateInputValue = (function() {
     var siteplanKavlingRequest = null,
         siteplanOthersRequest = null,
         siteplanLoadSequence = 0;
+
+    function updateSiteplanRenderStats() {
+        const kavlingNodes = Array.from(siteplan.find('.siteplan-kavling'));
+        const stats = {
+            kavlingNodes: kavlingNodes.length,
+            compositeNodes: kavlingNodes.filter((node) => node.getClassName() === 'Shape').length,
+            legacyLineNodes: kavlingNodes.filter((node) => node.getClassName() === 'Line').length,
+            subShapeNodes: siteplan.find('.subShape').length,
+            dataShapeNodes: siteplan.find('.siteplan-data-shape').length
+        };
+
+        const holder = document.getElementById('konva-holder');
+        if (holder) {
+            holder.dataset.renderStats = JSON.stringify(stats);
+        }
+
+        return stats;
+    }
+
+    window.getSiteplanRenderStats = function() {
+        return updateSiteplanRenderStats();
+    };
 
     function syncSiteplanMainHeight(konva_h) {
         const $card = $('.siteplan-main-card');
@@ -461,6 +486,11 @@ Date.prototype.toDateInputValue = (function() {
         return '#d1d5db';
     }
 
+    function get_kategori_stroke_width(kategori) {
+        const configured = conf[kategori] ? Number(conf[kategori].strokeWidth) : 0;
+        return Number.isFinite(configured) ? Math.max(0, configured) : 0;
+    }
+
     function legalHasValue(value) {
         return value !== null &&
             value !== undefined &&
@@ -624,6 +654,61 @@ Date.prototype.toDateInputValue = (function() {
 
     }
 
+    function registerCompositeLegend(rows) {
+        const counted = {};
+
+        (rows || []).forEach(function(row) {
+            const groupName = row.label || row.key || 'Status';
+            filterwarna[groupName] = filterwarna[groupName] || {};
+
+            (row.segments || []).concat(row.markers || []).forEach(function(item) {
+                const configName = item.config_name || 'Def';
+                filterwarna[groupName][configName] = get_kategori_color(configName);
+
+                const countKey = groupName + ':' + configName;
+                if (!counted[countKey]) {
+                    filterwarnahitung[countKey] = (filterwarnahitung[countKey] || 0) + 1;
+                    counted[countKey] = true;
+                }
+            });
+        });
+    }
+
+    function compositeRowSummary(row) {
+        const segments = row.segments || [];
+        const showRatio = segments.length > 1;
+        const labels = segments.map(function(segment) {
+            const ratio = Math.round((Number(segment.ratio) || 0) * 100);
+            return segment.config_name + (showRatio ? ' ' + ratio + '%' : '');
+        });
+        const markers = (row.markers || []).map(function(marker) {
+            return marker.config_name;
+        });
+
+        return labels.concat(markers.map(function(marker) { return 'Penanda ' + marker; })).join(' / ');
+    }
+
+    function setSiteplanTooltip(attrs) {
+        if (!attrs.data || !attrs.data.nama_jalan || !attrs.data.no_kavling) {
+            return false;
+        }
+
+        const lines = [
+            attrs.data.nama_jalan + ' No. ' + attrs.data.no_kavling,
+            attrs.data2.no_tipe_rumah,
+            attrs.data2.tipe_rumah + ' ( ' + attrs.data.luas_tanah + ' / ' + attrs.data.status_tanah + ')',
+            'HJ: Rp. ' + attrs.data2.harga_akhir
+        ];
+
+        (attrs.visualRows || []).forEach(function(row) {
+            lines.push((row.label || row.key) + ': ' + compositeRowSummary(row));
+        });
+
+        tooltip.text(lines.join('\n'));
+        tooltipbg.height(Math.max(57, tooltip.height() + 10));
+        return true;
+    }
+
     function set_keterangan_warna() {
         $("#keterangan-warna-here").html(" ")
 
@@ -636,7 +721,7 @@ Date.prototype.toDateInputValue = (function() {
         $.each(filterwarna, function(i, v) {
             if (v) {
                 div += `
-                <div class="divider">
+                <div class="divider divider-left">
                     <div class="divider-text">${i} ${i == 'Subsidi' || i == 'Komersil' ? 'Dipasarkan' : ''}</div>
                 </div>`;
                 const statusOrder = i === 'Legal' ? legalStatusOrder : (i === 'Pajak' ? pajakStatusOrder : null);
@@ -657,7 +742,7 @@ Date.prototype.toDateInputValue = (function() {
 
                     div += `<div class="form-group row">
                                 <div class="btn col-2 ml-1" style="background-color:${y}"></div>
-                                <div class="col-9"> ${kv} (${filterwarnahitung[x]})</div>
+                                <div class="col-9"> ${kv} (${filterwarnahitung[i + ':' + x] ?? filterwarnahitung[x] ?? 0})</div>
                             </div>`;
                 })
             }
@@ -783,6 +868,9 @@ Date.prototype.toDateInputValue = (function() {
             Legal: null,
             Pajak: null,
             Target: null,
+            MKDT: null,
+            Produksi: null,
+            Keuangan: null,
             'Lain-lain': null
         };
         filterwarnahitung = {};
@@ -807,7 +895,7 @@ Date.prototype.toDateInputValue = (function() {
             return typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val) && !isNaN(new Date(val).getTime()) && val !== "0000-00-00";
         };
 
-        siteplan.find('Line').forEach(line => line.destroy());
+        siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
 
         let va = $("#pilih-divisi option:selected").val();
         wr_pembangunan = [];
@@ -1192,13 +1280,20 @@ Date.prototype.toDateInputValue = (function() {
                         hit = filterOverride;
                     }
 
-                    //set untuk filter warna
-                    filterwarna[hit.tipe] = {
-                        ...filterwarna[hit.tipe],
-                        [hit.fill]: get_kategori_color(hit.fill)
-                    }
+                    const visualRows = Array.isArray(r[p].visual_rows) ? r[p].visual_rows : [];
+                    const useCompositeMode = String(va) === '0' && !filterOverride && visualRows.length > 0;
 
-                    hitung_kavling(hit)
+                    if (useCompositeMode) {
+                        registerCompositeLegend(visualRows);
+                    } else {
+                        //set untuk filter warna
+                        filterwarna[hit.tipe] = {
+                            ...filterwarna[hit.tipe],
+                            [hit.fill]: get_kategori_color(hit.fill)
+                        }
+
+                        hitung_kavling(hit)
+                    }
                     
                     const dataObj = {
                         nama_jalan: r[p].nama_jalan,
@@ -1232,62 +1327,27 @@ Date.prototype.toDateInputValue = (function() {
                         target: targetInfo,
                     };
 
-                    const useMultiColor = window.multiColorMode === true; 
+                    const pointsArr = JSON.parse("[" + r[p].points + "]");
 
-                    if (useMultiColor && typeof PolygonClip !== 'undefined') {
-                        kav = new Konva.Group({
+                    if (useCompositeMode && typeof SiteplanCompositeShape !== 'undefined') {
+                        kav = SiteplanCompositeShape.createKonvaShape(Konva, {
                             id: 'kav' + r[p].id_kavling,
                             kategori: hit.fill,
                             data: dataObj,
                             data2: data2Obj,
-                            points: JSON.parse("[" + r[p].points + "]") // ditambahkan agar compatibility dgn drawBorderEdit
-                        });
-
-                        const pointsArr = JSON.parse("[" + r[p].points + "]");
-                        
-                        // Menentukan warna untuk 3 bagian
-                        let color1 = get_kategori_color(r[p].status_mkdt || 'Def'); // Transaksi
-                        let color2 = get_kategori_color(r[p].is_lunas == 1 ? 'Lunas' : 'Belum Lunas'); // Keuangan
-                        let color3 = get_kategori_color(parseInt(r[p].progres_bangunan) == 100 ? 'Ready Stock' : (parseInt(r[p].progres_bangunan) > 0 ? 'Pembangunan' : 'Def')); // Produksi
-
-                        // Potong polygon jadi 3 bagian horizontal
-                        const rotation = r[p].rotation;
-                        const subPolygons = PolygonClip.splitKavlingShapeOBB(pointsArr, [1, 1, 1], rotation);
-                        const colors = [color1, color2, color3];
-
-                        subPolygons.forEach((subPoints, idx) => {
-                            if (subPoints.length > 0) {
-                                const subShape = new Konva.Line({
-                                    points: subPoints,
-                                    fill: colors[idx % colors.length],
-                                    dash: dashed,
-                                    opacity: 1,
-                                    closed: true,
-                                    globalCompositeOperation: 'multiply',
-                                    kategori: hit.fill,
-                                    data: dataObj,
-                                    data2: data2Obj,
-                                    id: 'kav' + r[p].id_kavling,
-                                    name: 'subShape'
-                                });
-                                kav.add(subShape);
-                            }
-                        });
-                        
-                        // Tambahkan outline utuh di atasnya agar border kavling terlihat jelas
-                        const outlineShape = new Konva.Line({
                             points: pointsArr,
+                            facadeRotation: r[p].rotation,
+                            visualRows: visualRows,
+                            strokeWidthResolver: get_kategori_stroke_width,
                             stroke: '#000',
-                            strokeWidth: 0.5,
-                            closed: true,
-                            listening: false // tidak menangkap event, diteruskan ke subShape di bawahnya
-                        });
-                        kav.add(outlineShape);
-
+                            strokeWidth: 0,
+                            opacity: 1,
+                            globalCompositeOperation: 'multiply'
+                        }, get_kategori_color);
                     } else {
                         // Rendering standar
                         kav = new Konva.Line({
-                            points: JSON.parse("[" + r[p].points + "]"),
+                            points: pointsArr,
                             fill: get_kategori_color(hit.fill),
                             dash: dashed,
                             opacity: 1,
@@ -1296,12 +1356,14 @@ Date.prototype.toDateInputValue = (function() {
                             kategori: hit.fill,
                             data: dataObj,
                             data2: data2Obj,
-                            id: 'kav' + r[p].id_kavling
+                            id: 'kav' + r[p].id_kavling,
+                            name: 'siteplan-kavling siteplan-data-shape'
                         });
                     }
                     
                     siteplan.add(kav);
                 }
+                updateSiteplanRenderStats();
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
                 handlePendingSiteplanUrgentAction()
@@ -1384,10 +1446,13 @@ Date.prototype.toDateInputValue = (function() {
                             nama_jalan: r[p].nama_jalan,
                         },
                         data2: {},
-                        id: 'others' + r[p].id
+                        id: 'others' + r[p].id,
+                        name: 'siteplan-other siteplan-data-shape'
                     });
                     siteplan.add(kav);
                 }
+
+                updateSiteplanRenderStats();
                 
                 if (activeKategori.includes('Masalah')) {
                     set_keterangan_warna();
@@ -1531,17 +1596,7 @@ Date.prototype.toDateInputValue = (function() {
         });
 
         //text tooltip
-        if (data.data) {
-            if (!data.data.nama_jalan || !data.data.no_kavling)
-                return;
-            tooltip.text(
-                data.data.nama_jalan +
-                " No. " + data.data.no_kavling + "\n" +
-                data.data2.no_tipe_rumah + "\n" +
-                data.data2.tipe_rumah + " ( " + data.data.luas_tanah + " / " + data.data.status_tanah + ") \n" +
-                "HJ: Rp. " + data.data2.harga_akhir +
-                ""
-            );
+        if (setSiteplanTooltip(data)) {
             group.moveToTop();
             group.show(); //show tooltip
         }
@@ -1663,56 +1718,13 @@ Date.prototype.toDateInputValue = (function() {
             y: mousePos.y + 5,
         });
         //text tooltip
-        if (data.data) {
-            if (!data.data.nama_jalan || !data.data.no_kavling)
-                return;
-            tooltip.text(
-                data.data.nama_jalan +
-                " No. " + data.data.no_kavling + "\n" +
-                data.data2.no_tipe_rumah + "\n" +
-                data.data2.tipe_rumah + " ( " + data.data.luas_tanah + " / " + data.data.status_tanah + ") \n" +
-                "HJ: Rp. " + data.data2.harga_akhir
-            );
-            // }
+        if (setSiteplanTooltip(data)) {
             group.moveToTop();
             group.show(); //show tooltip
 
         }
 
     })
-    //even mouse move data kavling
-    var data, mousePos, persentase;
-    siteplan.on('mousemove', function(e) {
-        var k = e.target;
-        if (k.hasName('subShape') && k.parent) k = k.parent;
-        data = k.attrs;
-        // console.log(data);
-
-        //posisi tooltip
-        mousePos = stage.getRelativePointerPosition();
-        group.position({
-            x: mousePos.x + 20,
-            y: mousePos.y + 5,
-        });
-        //text tooltip
-        if (data.data) {
-            if (!data.data.nama_jalan || !data.data.no_kavling)
-                return;
-            tooltip.text(
-                data.data.nama_jalan +
-                " No. " + data.data.no_kavling + "\n" +
-                data.data2.no_tipe_rumah + "\n" +
-                data.data2.tipe_rumah + " ( " + data.data.luas_tanah + " / " + data.data.status_tanah + ") \n" +
-                "HJ: Rp. " + data.data2.harga_akhir
-            );
-            // }
-            group.moveToTop();
-            group.show(); //show tooltip
-
-        }
-
-    })
-
     //highligh kavling
     siteplan.on('mouseover', function(e) {
         var sh = e.target;

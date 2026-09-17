@@ -23,6 +23,7 @@ use App\Services\ActiveProyekService;
 use App\Services\FileAccessService;
 use App\Services\MkdtHistoryService;
 use App\Services\SiteplanUrgentService;
+use App\Services\SiteplanVisualStatusService;
 use App\Services\TargetSiteplanService;
 use App\Services\PencairanAkadService;
 use App\Services\HistoryService;
@@ -54,6 +55,7 @@ class Siteplan extends BaseController
     protected $fileAccessService;
     protected $mkdtHistoryService;
     protected $siteplanUrgentService;
+    protected $siteplanVisualStatusService;
     protected $targetSiteplanService;
     protected $activeProyekService;
     protected $pencairanAkadService;
@@ -81,6 +83,7 @@ class Siteplan extends BaseController
         $this->fileAccessService = new FileAccessService();
         $this->mkdtHistoryService = new MkdtHistoryService();
         $this->siteplanUrgentService = new SiteplanUrgentService();
+        $this->siteplanVisualStatusService = new SiteplanVisualStatusService();
         $this->targetSiteplanService = new TargetSiteplanService();
         $this->activeProyekService = new ActiveProyekService();
         $this->pencairanAkadService = new PencairanAkadService();
@@ -742,16 +745,21 @@ class Siteplan extends BaseController
             'periode_masalah_jenis' => $this->request->getVar('periode_masalah_jenis')
         ];
 
+        $idRole = (int) $this->request->getVar('id_role');
         $data = $this->kavlingRepo->getAll(
             $this->request->getVar('id_proyek'),
             $this->request->getVar('id_cluster'),
             $this->request->getVar('id_jalan'),
-            $this->request->getVar('id_role'),
+            $idRole,
             $kategoriFilters
         );
 
+        if ($idRole === 0) {
+            $data = $this->siteplanVisualStatusService->appendVisualRows($data);
+        }
+
         $result['data'] = $data;
-        if ((int) $this->request->getVar('id_role') === 11) {
+        if ($idRole === 11) {
             $result['target_kavling'] = $this->targetSiteplanService->getKavlingTargetMap((int) $this->request->getVar('id_proyek'));
         }
         return $this->response->setJSON($result);

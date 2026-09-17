@@ -35,6 +35,7 @@
                 <tr>
                   <th>Item</th>
                   <th>Fill</th>
+                  <th>Ketebalan garis</th>
                   <th>Dashed</th>
                   <th>Keterangan</th>
                   <th>Add by</th>
@@ -68,6 +69,12 @@
                   <div class="form-group">
                     <label for="fill"> Fill: <span class="text-danger">*</span> </label>
                     <input type="text" id="fill" name="fill" class="form-control" placeholder="Fill" maxlength="20" required>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="form-group">
+                    <label for="strokeWidth"> Ketebalan garis: </label>
+                    <input type="number" id="strokeWidth" name="strokeWidth" class="form-control" min="0" max="100" step="1" value="0" placeholder="0 = default">
                   </div>
                 </div>
                 <div class="col-12">
@@ -142,6 +149,11 @@
               <div class="form-group">
                 <label for="fill"> Fill: <span class="text-danger">*</span> </label> <Br>
                 <input type="text" id="fill" name="fill" class="form-control" placeholder="Fill" maxlength="20" required data-coloris>
+              </div>
+
+              <div class="form-group">
+                <label for="strokeWidth"> Ketebalan garis: </label>
+                <input type="number" id="strokeWidth" name="strokeWidth" class="form-control" min="0" max="100" step="1" placeholder="0 = default">
               </div>
 
               <div class="col-12 hidden">
@@ -365,6 +377,7 @@
 
         $("#edit-form #configName").val(response.config_name);
         $("#edit-form #fill").val(response.fill);
+        $("#edit-form #strokeWidth").val(response.strokeWidth || 0);
         $("#edit-form #dashed").val(response.dashed);
         $("#edit-form #keterangan").val(response.keterangan);
         $("#edit-form #addBy").val(response.add_by);

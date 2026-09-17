@@ -10,9 +10,9 @@ class KavlingRepository
 {
     protected $db;
     protected $model;
-    public function __construct()
+    public function __construct(?BaseConnection $db = null)
     {
-        $this->db = \Config\Database::connect();
+        $this->db = $db ?? \Config\Database::connect();
         $this->model = model(KavlingModel::class);
     }
 
@@ -256,7 +256,7 @@ class KavlingRepository
     }
 
     /**
-     * Select tambahan untuk status pencairan hasil akad (divisi Keuangan / id_divisi 3 saja).
+     * Select tambahan untuk status pencairan hasil akad (mode utama dan divisi Keuangan).
      * Join tunggal ke derived table teragregasi per id_plan, bukan subquery per baris.
      */
     private function addPencairanAkadSelect(BaseBuilder $builder): void
@@ -283,15 +283,60 @@ class KavlingRepository
     }
 
     /**
+     * Field lintas departemen yang diperlukan renderer utama siteplan.
+     */
+    private function addCompositeVisualSelect(BaseBuilder $builder): void
+    {
+        $builder->select('
+            mkdt.booking_tgl,
+            mkdt.wawancara,
+            mkdt.wawancara_tgl,
+            mkdt.sp3k,
+            mkdt.sp3k_tgl,
+            mkdt.akad_indent,
+            mkdt.akad,
+            mkdt.akad_tgl,
+            mkdt.is_kpr,
+            kavling.perintah_bangun AS is_turun_pembangunan
+        ', true);
+    }
+
+    /**
+     * Satu join agregat untuk tanggal jatuh tempo aktif paling awal per transaksi.
+     */
+    private function addCompositeFinanceSelect(BaseBuilder $builder): void
+    {
+        $builder->join(
+            "(SELECT id_mkdt, MIN(jatuh_tempo_tgl) AS jatuh_tempo_tgl
+              FROM keuangan
+              WHERE sudah_dibayar = 0
+                AND is_void = 0
+                AND jatuh_tempo_tgl IS NOT NULL
+              GROUP BY id_mkdt) keu_visual",
+            'keu_visual.id_mkdt = mkdt.id_mkdt',
+            'left',
+            false
+        );
+
+        $builder->select('keu_visual.jatuh_tempo_tgl', true);
+    }
+
+    /**
      * Main: ambil data kavling dengan seluruh filter.
      */
     public function getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null, $kategoriFilters = [])
     {
         $builder = $this->baseQuery();
 
-        $this->addDivisiSelect($builder, $id_divisi);
+        $idDivisi = (int) $id_divisi;
 
-        if ((int) $id_divisi === 3) {
+        $this->addDivisiSelect($builder, $idDivisi);
+
+        if ($idDivisi === 0) {
+            $this->addCompositeVisualSelect($builder);
+            $this->addCompositeFinanceSelect($builder);
+            $this->addPencairanAkadSelect($builder);
+        } elseif ($idDivisi === 3) {
             $this->addPencairanAkadSelect($builder);
         }
 

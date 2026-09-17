@@ -1225,10 +1225,6 @@ foreach (user()->getRoles() as $key => $val) {
                                     </button>
                                 </div>
                             <?php endif; ?>
-                            <div class="custom-control custom-switch mb-2">
-                                <input type="checkbox" class="custom-control-input" id="toggle-multicolor" onchange="window.multiColorMode = this.checked; load_kavling(true);">
-                                <label class="custom-control-label" for="toggle-multicolor">Multi-Color Mode</label>
-                            </div>
                             <form id="form-filter-kategori">
                                 <div class="form-group">
                                     <select id="pilih-divisi" class="form-control-sm select2">
@@ -1342,6 +1338,7 @@ foreach (user()->getRoles() as $key => $val) {
 <!-- <script src="<?= base_url() ?>assets/js/scripts.js"></script> -->
 <!-- END: Page Vendor JS-->
 <script src="<?= base_url() ?>assets/js/siteplan/polygon-clip.js?v=999<?= time() ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/composite-shape.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/composite-shape.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/master.js?v=999<?= time() ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
 
