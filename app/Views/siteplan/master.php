@@ -1793,7 +1793,7 @@ foreach (user()->getRoles() as $key => $val) {
     </div>
 </div>
 <div class="modal fade" id="modal-list-jatuh-tempo">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="add-new-record modal-content pt-0">
             <div class="modal-header mb-1">
                 <h1 class="modal-title" id="exampleModalLabel">Konsumen Jatuh Tempo</h1>

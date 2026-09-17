@@ -3140,6 +3140,8 @@ Date.prototype.toDateInputValue = (function() {
                                 nama_jalan: v.nama_jalan,
                                 nama_proyek: v.nama_proyek,
                                 id_tipe: v.id_tipe,
+                                status_mkdt: v.status_mkdt,
+                                is_lunas: v.is_lunas,
                                 tagihan_list: [] // Tempat menampung banyak tagihan
                             };
                         }
@@ -3189,7 +3191,10 @@ Date.prototype.toDateInputValue = (function() {
                             <tr>
                                 <td class="text-center">${no++}</td>
                                 <td>
-                                    <strong>${item.nama_konsumen}</strong><br>
+                                    <strong>${item.nama_konsumen}</strong>
+                                    ${item.status_mkdt == 'Batal' ? '<span class="badge badge-danger">Batal</span>' : ''}
+                                    ${item.is_lunas == '1' ? '<span class="badge badge-success">Lunas</span>' : ''}
+                                    <br>
                                     <small>${item.nama_jalan} No. ${item.no_kavling}: Tipe ${item.id_tipe}</small>
                                 </td>
                                 <td>${tagihanHtml}</td>

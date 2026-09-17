@@ -43,6 +43,8 @@ class KeuanganRepository extends Model
             j.nama_jalan,
             cl.nama_cluster,
             m.id_mkdt,
+            m.status_mkdt,
+            m.is_lunas,
             nama_proyek
         ')
             ->join('mkdt m', 'm.id_mkdt = keuangan.id_mkdt')
