@@ -81,6 +81,36 @@ describe('Siteplan composite shape paint plan', () => {
         expect(plan.bounds.minX).toBe(0);
     });
 
+    test('label kavling berada di pusat OBB dan mengikuti rotasi upright', () => {
+        const plan = SiteplanCompositeShape.buildPaintPlan(
+            square,
+            [{ key: 'mkdt', segments: [{ config_name: 'Booking', ratio: 1 }] }],
+            270,
+            color,
+            undefined,
+            '27'
+        );
+
+        expect(plan.label.text).toBe('27');
+        expect(plan.label.x).toBeCloseTo(45);
+        expect(plan.label.y).toBeCloseTo(60);
+        expect(plan.label.angle).toBeCloseTo(0);
+        expect(plan.label.fontSize).toBeGreaterThan(0);
+    });
+
+    test('label kosong tidak menghasilkan rencana label', () => {
+        const plan = SiteplanCompositeShape.buildPaintPlan(
+            square,
+            [{ key: 'mkdt', segments: [{ config_name: 'Booking', ratio: 1 }] }],
+            null,
+            color,
+            undefined,
+            ' '
+        );
+
+        expect(plan.label).toBeNull();
+    });
+
     test('facade rotation hanya mengatur layout dan tidak merotasi node Konva', () => {
         class Shape {
             constructor(config) {
@@ -123,5 +153,63 @@ describe('Siteplan composite shape paint plan', () => {
         expect(context.beginPath).toHaveBeenCalledTimes(1);
         expect(context.lineTo).toHaveBeenCalledTimes(3);
         expect(context.fillStrokeShape).toHaveBeenCalledWith(node);
+    });
+
+    test('marker digambar source-over setelah segmen warna dasar', () => {
+        class Shape {
+            constructor(config) {
+                this.config = config;
+            }
+        }
+
+        const shape = SiteplanCompositeShape.createKonvaShape({ Shape }, {
+            points: square,
+            data: { no_kavling: '27' },
+            visualRows: [{
+                key: 'produksi',
+                segments: [{ config_name: 'Pembangunan', ratio: 1 }],
+                markers: [{ config_name: 'Perintah Bangun', position: 0.5 }]
+            }]
+        }, color);
+        const modes = [];
+        const nativeContext = {
+            save: jest.fn(),
+            restore: jest.fn(),
+            beginPath: jest.fn(),
+            moveTo: jest.fn(),
+            lineTo: jest.fn(),
+            closePath: jest.fn(),
+            clip: jest.fn(),
+            fill: jest.fn(),
+            fillText: jest.fn(),
+            strokeText: jest.fn(),
+            translate: jest.fn(),
+            rotate: jest.fn(),
+            stroke: jest.fn(),
+            strokeStyle: '#000',
+            lineWidth: 0
+        };
+        let compositeMode = 'multiply';
+        Object.defineProperty(nativeContext, 'globalCompositeOperation', {
+            get: () => compositeMode,
+            set: (value) => {
+                compositeMode = value;
+                modes.push(value);
+            }
+        });
+
+        shape.config.sceneFunc({ _context: nativeContext }, {
+            stroke: () => '#000',
+            strokeWidth: () => 0
+        });
+
+        expect(modes).toContain('source-over');
+        expect(nativeContext.fill).toHaveBeenCalledTimes(2);
+        expect(nativeContext.strokeText).toHaveBeenCalledWith('27', 0, 0);
+        expect(nativeContext.fillText).toHaveBeenCalledWith('27', 0, 0);
+        expect(nativeContext.fill.mock.invocationCallOrder[1])
+            .toBeLessThan(nativeContext.strokeText.mock.invocationCallOrder[0]);
+        expect(nativeContext.strokeText.mock.invocationCallOrder[0])
+            .toBeLessThan(nativeContext.fillText.mock.invocationCallOrder[0]);
     });
 });

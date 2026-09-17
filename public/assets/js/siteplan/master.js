@@ -1342,7 +1342,7 @@ Date.prototype.toDateInputValue = (function() {
                             stroke: '#000',
                             strokeWidth: 0,
                             opacity: 1,
-                            globalCompositeOperation: 'multiply'
+                            globalCompositeOperation: 'source-over'
                         }, get_kategori_color);
                     } else {
                         // Rendering standar

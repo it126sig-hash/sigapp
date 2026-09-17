@@ -103,6 +103,36 @@
         });
     }
 
+    function uprightAngle(angle) {
+        let normalized = angle;
+        while (normalized > Math.PI / 2) normalized -= Math.PI;
+        while (normalized < -Math.PI / 2) normalized += Math.PI;
+        return normalized;
+    }
+
+    function buildLabelPlan(layoutFrame, layoutBounds, text) {
+        if (text === null || text === undefined || String(text).trim() === '') {
+            return null;
+        }
+
+        const width = layoutBounds.maxX - layoutBounds.minX;
+        const height = layoutBounds.maxY - layoutBounds.minY;
+        const fontSize = clamp(Math.min(width, height) * 0.32, 8, 32);
+        const anchor = rotatePoint({
+            x: (layoutBounds.minX + layoutBounds.maxX) / 2,
+            y: (layoutBounds.minY + layoutBounds.maxY) / 2
+        }, layoutFrame.angle, layoutFrame.center);
+
+        return {
+            text: String(text),
+            x: anchor.x,
+            y: anchor.y,
+            angle: uprightAngle(layoutFrame.angle),
+            fontSize: fontSize,
+            haloWidth: clamp(fontSize * 0.12, 1, 3)
+        };
+    }
+
     function normalizeSegments(segments) {
         const valid = (Array.isArray(segments) ? segments : []).map(function(segment) {
             return {
@@ -123,7 +153,7 @@
         });
     }
 
-    function buildPaintPlan(flatPoints, visualRows, rotationDeg, colorResolver, strokeWidthResolver) {
+    function buildPaintPlan(flatPoints, visualRows, rotationDeg, colorResolver, strokeWidthResolver, labelText) {
         const layoutFrame = frame(flatPoints, rotationDeg);
         const layoutBounds = layoutFrame.bounds;
         const width = layoutBounds.maxX - layoutBounds.minX;
@@ -186,7 +216,8 @@
         return {
             polygon: layoutFrame.polygon,
             bounds: bounds(layoutFrame.polygon),
-            rows: paintRows
+            rows: paintRows,
+            label: buildLabelPlan(layoutFrame, layoutBounds, labelText)
         };
     }
 
@@ -199,6 +230,27 @@
         nativeContext.closePath();
     }
 
+    function drawLabel(nativeContext, label) {
+        if (!label) {
+            return;
+        }
+
+        nativeContext.save();
+        nativeContext.globalCompositeOperation = 'source-over';
+        nativeContext.translate(label.x, label.y);
+        nativeContext.rotate(label.angle);
+        nativeContext.font = label.fontSize + 'px Arial, sans-serif';
+        nativeContext.textAlign = 'center';
+        nativeContext.textBaseline = 'middle';
+        nativeContext.lineJoin = 'round';
+        nativeContext.lineWidth = label.haloWidth;
+        nativeContext.strokeStyle = '#ffffff';
+        nativeContext.strokeText(label.text, 0, 0);
+        nativeContext.fillStyle = '#111827';
+        nativeContext.fillText(label.text, 0, 0);
+        nativeContext.restore();
+    }
+
     function createKonvaShape(Konva, options, colorResolver) {
         const points = options.points || [];
         const paintPlan = buildPaintPlan(
@@ -206,7 +258,8 @@
             options.visualRows,
             options.facadeRotation,
             colorResolver,
-            options.strokeWidthResolver
+            options.strokeWidthResolver,
+            options.data && options.data.no_kavling
         );
         const shapeOptions = Object.assign({}, options);
         delete shapeOptions.facadeRotation;
@@ -223,18 +276,30 @@
                 path(nativeContext, paintPlan.polygon);
                 nativeContext.clip();
 
+                // Draw base status colors first with the exact configured colors.
                 paintPlan.rows.forEach(function(row) {
                     row.segments.forEach(function(segment) {
                         path(nativeContext, segment.points);
                         nativeContext.fillStyle = segment.color;
                         nativeContext.fill();
                     });
+                });
+
+                // Markers are annotations, not part of the blended base colors.
+                // Force source-over and draw them in a second pass so they stay
+                // consistent and visibly sit above every segment.
+                nativeContext.globalCompositeOperation = 'source-over';
+                paintPlan.rows.forEach(function(row) {
                     row.markers.forEach(function(marker) {
                         path(nativeContext, marker.points);
                         nativeContext.fillStyle = marker.color;
                         nativeContext.fill();
                     });
                 });
+
+                // Keep the number above both status segments and markers while
+                // retaining the same single Konva.Shape node.
+                drawLabel(nativeContext, paintPlan.label);
 
                 nativeContext.restore();
                 path(nativeContext, paintPlan.polygon);
