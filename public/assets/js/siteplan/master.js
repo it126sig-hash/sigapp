@@ -5,7 +5,7 @@ let sv_url,
     wr_pembangunan = [],
     list_jatuhtempo = [],
     filter = {
-        id_cluster: '',
+        id_cluster: [],
         id_jalan: ''
     },
     filterwarna = {
@@ -145,7 +145,9 @@ Date.prototype.toDateInputValue = (function() {
     var siteplanImageReady = false,
         siteplanStageReady = false,
         siteplanCanvasInitialized = false,
-        siteplanFitDone = false;
+        siteplanFitDone = false,
+        siteplanFilterReady = false,
+        siteplanInitialDataRequested = false;
     var siteplanKavlingRequest = null,
         siteplanOthersRequest = null,
         siteplanLoadSequence = 0;
@@ -216,6 +218,48 @@ Date.prototype.toDateInputValue = (function() {
         initSiteplanCanvas();
     }
 
+    function selectedClusterIds() {
+        if (typeof SiteplanFilterState === 'undefined') {
+            return Array.isArray(filter.id_cluster) ? filter.id_cluster : [];
+        }
+
+        return SiteplanFilterState.normalizeIds($('#filter-id_cluster').val());
+    }
+
+    function setSiteplanClusterHint(show, message) {
+        const $hint = $('#siteplan-cluster-hint');
+        if (!$hint.length) return;
+
+        if (message) $hint.text(message);
+        $hint.toggle(Boolean(show));
+        $hint.toggleClass('text-primary', Boolean(show));
+    }
+
+    function clearSiteplanDataShapes() {
+        siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
+        filterwarnahitung = {};
+        $('#keterangan-warna-here').empty();
+        updateSiteplanRenderStats();
+        siteplan.batchDraw();
+    }
+
+    function tryLoadInitialSiteplanData() {
+        if (!siteplanCanvasInitialized || !siteplanFilterReady || siteplanInitialDataRequested) {
+            return;
+        }
+
+        siteplanInitialDataRequested = true;
+        filter.id_cluster = selectedClusterIds();
+        if (filter.id_cluster.length === 0) {
+            clearSiteplanDataShapes();
+            setSiteplanClusterHint(true, 'Pilih minimal satu cluster untuk menampilkan data siteplan.');
+            return;
+        }
+
+        setSiteplanClusterHint(false);
+        load_kavling(roleid == 1 || roleid == 7);
+    }
+
     // siteplan img object :
     var imageObj = new Image();
     imageObj.onload = function() {
@@ -281,8 +325,8 @@ Date.prototype.toDateInputValue = (function() {
         tempCtx.drawImage(img, 0, 0);
         imageInfo.data = tempCtx.getImageData(0, 0, imageInfo.width, imageInfo.height);
 
-        //load kavling dari database
-        load_kavling(roleid == 1 || roleid == 7);
+        // Data baru dimuat setelah riwayat cluster selesai dipulihkan.
+        tryLoadInitialSiteplanData();
 
         // $("#pilih-divisi").select2("val", roleid)
         // change_div();
@@ -851,6 +895,7 @@ Date.prototype.toDateInputValue = (function() {
     //load shape kavling
     function load_kavling(refresh = false) {
         const loadSequence = ++siteplanLoadSequence;
+        filter.id_cluster = selectedClusterIds();
 
         if (siteplanKavlingRequest && siteplanKavlingRequest.readyState !== 4) {
             siteplanKavlingRequest.abort();
@@ -858,6 +903,17 @@ Date.prototype.toDateInputValue = (function() {
         if (siteplanOthersRequest && siteplanOthersRequest.readyState !== 4) {
             siteplanOthersRequest.abort();
         }
+
+        if (filter.id_cluster.length === 0) {
+            filter.id_jalan = '';
+            $('#filter-id_jalan').val(null).trigger('change.select2').prop('disabled', true);
+            clearSiteplanDataShapes();
+            setSiteplanClusterHint(true, 'Pilih minimal satu cluster untuk menampilkan data siteplan.');
+            $('#loading').addClass('hidden');
+            return;
+        }
+
+        setSiteplanClusterHint(false);
 
         hapus_seleksi();
         filterwarna = {
@@ -1392,6 +1448,7 @@ Date.prototype.toDateInputValue = (function() {
             data: Object.assign({
                 [csrfName]: csrfHash,
                 id_proyek: dt_proyek.id_proyek,
+                id_cluster: filter.id_cluster,
                 id_role: va
             }, getServerFilterData()),
             dataType: 'json',
@@ -1603,6 +1660,8 @@ Date.prototype.toDateInputValue = (function() {
     })
 
     siteplan.on('click tap', function(e) {
+        if (typeof isFacadeArrowActive !== 'undefined' && isFacadeArrowActive) return;
+
         var k = e.target; //get shape
         // Jika shape adalah bagian dari Konva.Group (multi-color mode), gunakan group-nya
         if (k.hasName('subShape') && k.parent) {
@@ -1936,7 +1995,7 @@ Date.prototype.toDateInputValue = (function() {
                     }
                     
                     $('#pilih-divisi').append(html);
-                    $('#pilih-divisi').trigger('change');
+                    $('#pilih-divisi').trigger('change.select2');
                     
                     $('#pilih-divisi').on('change', function() {
                         checkMasalahOptions();
@@ -1974,18 +2033,21 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     window.apply_server_filter = function() {
-        filter.id_cluster = $("#filter-id_cluster").val();
+        filter.id_cluster = selectedClusterIds();
         filter.id_jalan = $("#filter-id_jalan").val();
+        SiteplanFilterState.save(getSiteplanStorage(), siteplanCurrentUserId, dt_proyek.id_proyek, filter.id_cluster);
         load_kavling();
         renderActiveFilterTags();
     }
 
     window.reset_server_filter = function() {
+        const preservedClusters = selectedClusterIds();
         $('#form-filter-kategori')[0].reset();
-        $('#filter-id_cluster').val(null).trigger('change');
-        $('#filter-id_jalan').val(null).trigger('change');
-        $('#pilih-divisi').val('0').trigger('change');
-        filter.id_cluster = '';
+        $('#filter-id_cluster').val(preservedClusters).trigger('change.select2');
+        $('#filter-id_jalan').val(null).trigger('change.select2');
+        $('#pilih-divisi').val('0').trigger('change.select2');
+        $('#filter-id_jalan').prop('disabled', preservedClusters.length === 0);
+        filter.id_cluster = preservedClusters;
         filter.id_jalan = '';
         checkMasalahOptions();
         checkPeriodeOptions();
@@ -2012,15 +2074,31 @@ Date.prototype.toDateInputValue = (function() {
         return data;
     }
 
+    function getSiteplanStorage() {
+        try {
+            return window.localStorage;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function escapeSiteplanHtml(value) {
+        return $('<div>').text(value == null ? '' : String(value)).html();
+    }
+
     function renderActiveFilterTags() {
         let html = '';
-        if (filter.id_cluster) {
-            const clusterText = $("#filter-id_cluster option:selected").text();
-            html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('cluster')">Cluster: ${clusterText} &times;</span>`;
-        }
+        const selectedClusters = new Set(selectedClusterIds());
+        $('#filter-id_cluster option:selected').each(function() {
+            const clusterId = String($(this).val());
+            if (!selectedClusters.has(clusterId)) return;
+
+            const clusterText = escapeSiteplanHtml($(this).text());
+            html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('cluster', '${clusterId}')">Cluster: ${clusterText} &times;</span>`;
+        });
         
         if (filter.id_jalan) {
-            const jalanText = $("#filter-id_jalan option:selected").text();
+            const jalanText = escapeSiteplanHtml($("#filter-id_jalan option:selected").text());
             html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('jalan')">Blok: ${jalanText} &times;</span>`;
         }
         
@@ -2041,15 +2119,19 @@ Date.prototype.toDateInputValue = (function() {
 
     window.removeFilterTag = function(type, val = null) {
         if (type === 'cluster') {
-            $('#filter-id_cluster').val(null).trigger('change');
-            filter.id_cluster = '';
-            $('#filter-id_jalan').val(null).trigger('change');
+            const remaining = selectedClusterIds().filter(function(id) {
+                return id !== String(val);
+            });
+            $('#filter-id_cluster').val(remaining).trigger('change.select2');
+            filter.id_cluster = remaining;
+            $('#filter-id_jalan').val(null).trigger('change.select2');
             filter.id_jalan = '';
+            $('#filter-id_jalan').prop('disabled', remaining.length === 0);
         } else if (type === 'jalan') {
             $('#filter-id_jalan').val(null).trigger('change');
             filter.id_jalan = '';
         } else if (type === 'kategori') {
-            $('#pilih-divisi').val('0').trigger('change');
+            $('#pilih-divisi').val('0').trigger('change.select2');
         } else if (type === 'periode') {
             $('#filter-periode-mulai').val('');
             $('#filter-periode-selesai').val('');
@@ -2170,57 +2252,41 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     function filter_option() {
-        filter.id_cluster = $("#filter-id_cluster").val()
+        filter.id_cluster = selectedClusterIds()
         filter.id_jalan = $("#filter-id_jalan").val()
         load_kavling()
     }
 
     function hapus_filter_option() {
-        $('#filter-id_cluster').val(null).trigger('change');
-        filter_option()
+        $('#filter-id_jalan').val(null).trigger('change.select2');
+        filter.id_jalan = '';
+        load_kavling()
     }
 
     //select2 cluster
+    const siteplanClusterSelectData = (siteplanClusterOptions || []).map(function(item) {
+        return {
+            id: String(item.id_cluster),
+            text: item.nama_cluster
+        };
+    });
+
     $("#filter-id_cluster").select2({
         placeholder: "Pilih Cluster",
         allowClear: true,
-        ajax: {
-            url: base_url + "/cluster/getAll",
-            dataType: 'json',
-            delay: 250,
-            method: 'post',
-            data: function(params) {
-                return {
-                    [csrfName]: csrfHash,
-                    search: params.term,
-                    id_proyek: dt_proyek.id_proyek
-                };
-            },
-            processResults: function(r) {
-                csrfHash = r.token
-
-                let results = [];
-                $.each(r.data, function(index, item) {
-                    results.push({
-                        id: item[0],
-                        text: item[3]
-                    });
-                });
-
-                return {
-                    results: results
-                };
-            },
-            cache: true
-        },
+        closeOnSelect: false,
+        data: siteplanClusterSelectData,
+        width: '100%'
     })
     // on select cluster
     $("#filter-id_cluster").on("change", function(e) {
-        $('#filter-id_jalan').val(null).trigger('change');
-        if (this.value)
-            $("#filter-id_jalan").prop("disabled", false)
-        else
-            $("#filter-id_jalan").prop("disabled", true)
+        const clusterIds = selectedClusterIds();
+        $('#filter-id_jalan').val(null).trigger('change.select2');
+        filter.id_jalan = '';
+        $("#filter-id_jalan").prop("disabled", clusterIds.length === 0);
+        setSiteplanClusterHint(true, clusterIds.length === 0
+            ? 'Pilih minimal satu cluster untuk menampilkan data siteplan.'
+            : 'Klik Terapkan untuk memuat cluster terpilih.');
     });
     $("#filter-id_jalan").select2({
         placeholder: "Pilih Blok",
@@ -2245,7 +2311,7 @@ Date.prototype.toDateInputValue = (function() {
                 $.each(r.data, function(index, item) {
                     results.push({
                         id: item[0],
-                        text: item[3]
+                        text: item[2] + ' — ' + item[3]
                     });
                 });
 
@@ -2256,6 +2322,20 @@ Date.prototype.toDateInputValue = (function() {
             cache: true
         },
     })
+
+    const restoredClusterIds = SiteplanFilterState.restore(
+        getSiteplanStorage(),
+        siteplanCurrentUserId,
+        dt_proyek.id_proyek,
+        siteplanClusterSelectData.map(function(item) { return item.id; })
+    );
+    $('#filter-id_cluster').val(restoredClusterIds).trigger('change.select2');
+    $('#filter-id_jalan').prop('disabled', restoredClusterIds.length === 0);
+    filter.id_cluster = restoredClusterIds;
+    filter.id_jalan = '';
+    siteplanFilterReady = true;
+    renderActiveFilterTags();
+    tryLoadInitialSiteplanData();
 
     //remove bug arrow select2
     $(".select2-selection__arrow").css("pointer-events", "none")

@@ -58,14 +58,14 @@
                     backdrop: 'static',
                     keyboard: false
                 });
-                $("#points").val(dtt);
+                $("#fm-add_kavling #planning_points").val(dtt);
             });
         } else {
             $('#modals-slide-in').modal({
                 backdrop: 'static',
                 keyboard: false
             });
-            $("#points").val(dtt);
+            $("#fm-add_kavling #planning_points").val(dtt);
         }
     }
 
@@ -254,7 +254,7 @@ function edit_kavling_batch() {
           $("#status_tanah").val(r[0].status_tanah).change();
           $(".id_kavling").val(id_kavling);
           $("#no_kavling").val(no);
-          $("#points").val(points);
+          $("#fm-add_kavling #planning_points").val(points);
           $("#f_luas").val(r[0].luas_tanah);
           
           let rotVal = r[0].rotation;
@@ -267,7 +267,7 @@ function edit_kavling_batch() {
       } else {
         if (r.length > 0) {
           $(".id_kavling").val(r[0].id);
-          $("#points").val(r[0].points);
+          $("#fm-add_kavling #planning_points").val(r[0].points);
           $("#f_luas").val(r[0].planning_luas);
           $("#f_nama").val(r[0].nama);
           $("#f_planning_keterangan").val(r[0].planning_keterangan);
@@ -370,10 +370,19 @@ function open_planning(sh, role, id_kavling) {
 }
 
 function edit_kavling() {
+  if (!editdtt.length || !editdtt[0] || !editdtt[0].data) {
+    return Swal.fire({
+      icon: "error",
+      title: "Pilih data yang akan diubah terlebih dahulu",
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  }
+
   let no_kav = $("#fm-add_kavling #no_kavling").val().split(";"),
     no_kavlen =
       no_kav[no_kav.length - 1] == "" ? no_kav.length - 1 : no_kav.length,
-    points_len = planning_split_semicolon($("#points").val()).length,
+    points_len = planning_split_semicolon($("#fm-add_kavling #planning_points").val()).length,
     tipe = editdtt[0].data.tipe,
     url = base_url + "/siteplan/edit_others";
 
@@ -416,6 +425,8 @@ function edit_kavling() {
     success: function (response) {
       csrfHash = response.token;
       if (response.success === true) {
+        $("#tambah_jalan").prop("checked", false).trigger('change');
+        planning_forget_hidden_move_nodes();
         Swal.fire({
           //position: 'bottom-end',
           icon: "success",
@@ -427,6 +438,8 @@ function edit_kavling() {
           $("#add-form-btn").html("Simpan");
           $("#add-form-btn").removeClass("disabled");
         });
+        load_kavling();
+        hapus_seleksi();
       } else {
         Swal.fire({
           //position: 'bottom-end',
@@ -439,8 +452,6 @@ function edit_kavling() {
           $("#add-form-btn").removeClass("disabled");
         });
       }
-      load_kavling();
-      hapus_seleksi();
     },
     error: function () {
       Swal.fire({
@@ -548,6 +559,7 @@ function add_kavling() {
           timer: 1500,
         }).then(function () {
           $("#modals-slide-in").modal("hide");
+          $("#tambah_jalan").prop("checked", false).trigger('change');
           load_kavling();
           hapus_seleksi();
         });
@@ -585,6 +597,64 @@ var planningMoveState = {
   selected: [],
   previousPoints: "",
 };
+var planningHiddenMoveNodes = [];
+
+function planning_redraw_move_nodes(nodes) {
+  const layers = [];
+
+  nodes.forEach(function (node) {
+    const nodeLayer = node.getLayer();
+    if (nodeLayer && layers.indexOf(nodeLayer) === -1) layers.push(nodeLayer);
+  });
+
+  layers.forEach(function (nodeLayer) {
+    nodeLayer.batchDraw();
+  });
+}
+
+function planning_find_move_node(item) {
+  if (!item || !item.id || typeof siteplan === "undefined") return null;
+
+  if (typeof siteplan.findOne === "function") {
+    return siteplan.findOne("#" + item.id);
+  }
+
+  const nodes = siteplan.find("#" + item.id);
+  return nodes.length ? nodes[0] : null;
+}
+
+function planning_hide_move_nodes(selectedItems) {
+  planningHiddenMoveNodes = selectedItems
+    .map(planning_find_move_node)
+    .filter(function (node, index, nodes) {
+      return node && nodes.indexOf(node) === index;
+    });
+
+  planningHiddenMoveNodes.forEach(function (node) {
+    node.hide();
+  });
+  planning_redraw_move_nodes(planningHiddenMoveNodes);
+}
+
+function planning_restore_hidden_move_nodes() {
+  planningHiddenMoveNodes.forEach(function (node) {
+    node.show();
+  });
+  planning_redraw_move_nodes(planningHiddenMoveNodes);
+  planningHiddenMoveNodes = [];
+}
+
+function planning_forget_hidden_move_nodes() {
+  planningHiddenMoveNodes = [];
+}
+
+function planning_reset_move_state() {
+  planningMoveState = {
+    active: false,
+    selected: [],
+    previousPoints: "",
+  };
+}
 
 function pindah_kavling() {
   if (!editdtt.length) {
@@ -600,8 +670,9 @@ function pindah_kavling() {
   planningMoveState = {
     active: true,
     selected: editdtt.slice(),
-    previousPoints: $("#points").val(),
+    previousPoints: $("#fm-add_kavling #planning_points").val(),
   };
+  planning_hide_move_nodes(planningMoveState.selected);
 
   $("#modals-slide-in").modal("hide");
   $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").hide();
@@ -612,6 +683,8 @@ function pindah_kavling() {
 
 function selesai_selection(e) {
   let destinationPoints = [];
+  const wasMoveActive = planningMoveState.active;
+  const selectedForEdit = wasMoveActive ? planningMoveState.selected.slice() : editdtt_tmp.slice();
   if (e == 1) {
     destinationPoints = planning_collect_selection_points();
     const expectedCount = planningMoveState.active ? planningMoveState.selected.length : 1;
@@ -641,18 +714,11 @@ function selesai_selection(e) {
       return;
     }
 
-    $("#points").val(planning_join_semicolon(destinationPoints));
-  } else if (planningMoveState.active) {
-    $("#points").val(planningMoveState.previousPoints);
+    $("#fm-add_kavling #planning_points").val(planning_join_semicolon(destinationPoints));
+  } else if (wasMoveActive) {
+    $("#fm-add_kavling #planning_points").val(planningMoveState.previousPoints);
+    planning_restore_hidden_move_nodes();
   }
-  $("#tambah_jalan").prop("checked", false).trigger('change');
-  
-  editdtt = planningMoveState.active ? planningMoveState.selected.slice() : editdtt_tmp.slice();
-  planningMoveState = {
-    active: false,
-    selected: [],
-    previousPoints: "",
-  };
 
   let openModal = function() {
     $("#modals-slide-in").modal("show");
@@ -660,7 +726,16 @@ function selesai_selection(e) {
     $("#selesai_pindah_btn, #batal_pindah_btn, #planning_undo_manual_selection, #container_tambah_jalan").hide();
   };
 
-  if (!planningMoveState.active && (typeof editdtt === 'undefined' || editdtt.length === 0)) {
+  let completeSelection = function(keepPreview) {
+    if (!keepPreview) {
+      $("#tambah_jalan").prop("checked", false).trigger('change');
+    }
+    editdtt = selectedForEdit;
+    planning_reset_move_state();
+    openModal();
+  };
+
+  if (!wasMoveActive && selectedForEdit.length === 0) {
     $("#fm-add_kavling")[0].reset();
     $(".select2").not("#pilih-divisi").val(null).trigger("change");
     $("#rotation").val("");
@@ -675,12 +750,21 @@ function selesai_selection(e) {
           $("#ui-rotation").val(selectedAngle.toFixed(1));
           $("#rotation-icon").css("transform", "rotate(" + selectedAngle.toFixed(1) + "deg)");
       }
-      openModal();
+      completeSelection(true);
     });
   } else {
-    openModal();
+    completeSelection(false);
   }
 }
+
+$(document).on("click", "#modals-slide-in [data-planning-cancel-edit]", function () {
+  if (planningMoveState.active) {
+    $("#fm-add_kavling #planning_points").val(planningMoveState.previousPoints);
+  }
+  $("#tambah_jalan").prop("checked", false).trigger('change');
+  planning_restore_hidden_move_nodes();
+  planning_reset_move_state();
+});
 
 (function () {
   const $planningForm = $("#fm-add_kavling");
@@ -978,9 +1062,9 @@ $(document).ready(function() {
                 }
                 
                 if (isEditMode) {
-                    $("#points").val(allPointsStr.join(';'));
+                    $("#fm-add_kavling #planning_points").val(allPointsStr.join(';'));
                 } else {
-                    if (allPointsStr.length > 0) $("#points").val(allPointsStr[0]);
+                    if (allPointsStr.length > 0) $("#fm-add_kavling #planning_points").val(allPointsStr[0]);
                 }
                 
                 $(this).text("Batal Menyederhanakan");
@@ -992,11 +1076,11 @@ $(document).ready(function() {
             if (isEditMode) {
                 editdtt = JSON.parse(JSON.stringify(originalEditDtt));
                 let allOriginalPts = editdtt.map(e => e.points);
-                $("#points").val(allOriginalPts.join(';'));
+                $("#fm-add_kavling #planning_points").val(allOriginalPts.join(';'));
                 updateSelectionPreview(editdtt, true);
             } else {
                 batchdtt = JSON.parse(JSON.stringify(originalBatchDtt));
-                if (batchdtt.length > 0) $("#points").val(typeof batchdtt[0] === 'string' ? batchdtt[0] : batchdtt[0].join(','));
+                if (batchdtt.length > 0) $("#fm-add_kavling #planning_points").val(typeof batchdtt[0] === 'string' ? batchdtt[0] : batchdtt[0].join(','));
                 updateSelectionPreview(batchdtt, false);
             }
             

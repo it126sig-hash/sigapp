@@ -99,6 +99,10 @@ class FileAccessService
 
     public function existingPath(?string $logicalPath): ?string
     {
+        if ($logicalPath === null || trim($logicalPath) === '') {
+            return null;
+        }
+
         try {
             return $this->findExistingPath($logicalPath);
         } catch (RuntimeException) {
@@ -110,6 +114,25 @@ class FileAccessService
     {
         $url = site_url('files/' . rawurlencode($source) . '/' . $id);
         return $download ? $url . '?download=1' : $url;
+    }
+
+    public function versionedAccessUrl(string $source, int $id, ?string $logicalPath, bool $download = false): string
+    {
+        $url = $this->accessUrl($source, $id);
+        $path = $this->existingPath($logicalPath);
+
+        if ($path) {
+            $size = (int) (filesize($path) ?: 0);
+            $modifiedAt = (int) (filemtime($path) ?: 0);
+            $version = substr(sha1($this->normalizeLogicalPath($logicalPath) . '|' . $size . '|' . $modifiedAt), 0, 16);
+            $url .= '?v=' . rawurlencode($version);
+        }
+
+        if ($download) {
+            $url .= str_contains($url, '?') ? '&download=1' : '?download=1';
+        }
+
+        return $url;
     }
 
     public function thumbnailUrl(string $source, int $id): string

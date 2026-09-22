@@ -25,15 +25,18 @@ class JalanRepository
     {
         $builder = $this->baseQuery();
         $search = $params['search'] ?? '';
+        $clusterIds = $this->normalizeIds($params['id_cluster'] ?? null);
 
-        if (!empty($params['id_cluster'])) {
-            $builder
-                ->like('jalan.nama_jalan', $search)
-                ->where('cluster.id_cluster', $params['id_cluster']);
+        if ($search !== '') {
+            $builder->like('jalan.nama_jalan', $search);
+        }
 
-            if (!empty($params['id_proyek'])) {
-                $builder->where('cluster.id_proyek', $params['id_proyek']);
-            }
+        if (!empty($params['id_proyek'])) {
+            $builder->where('cluster.id_proyek', $params['id_proyek']);
+        }
+
+        if ($clusterIds !== []) {
+            $builder->whereIn('cluster.id_cluster', $clusterIds);
         }
 
         return $builder->get()->getResult();
@@ -82,10 +85,13 @@ class JalanRepository
     {
         $builder = $this->baseQuery();
 
-        if (!empty($idCluster)) {
-            $builder->where('cluster.id_cluster', $idCluster);
-        } elseif (!empty($idProyek)) {
+        $clusterIds = $this->normalizeIds($idCluster);
+        if (!empty($idProyek)) {
             $builder->where('proyek.id_proyek', $idProyek);
+        }
+
+        if ($clusterIds !== []) {
+            $builder->whereIn('cluster.id_cluster', $clusterIds);
         }
 
         if ($search !== '') {
@@ -93,6 +99,21 @@ class JalanRepository
         }
 
         return $builder;
+    }
+
+    private function normalizeIds($value): array
+    {
+        $values = is_array($value) ? $value : (($value === null || $value === '') ? [] : [$value]);
+        $ids = [];
+
+        foreach ($values as $item) {
+            $id = filter_var($item, FILTER_VALIDATE_INT);
+            if ($id !== false && $id > 0) {
+                $ids[(int) $id] = (int) $id;
+            }
+        }
+
+        return array_values($ids);
     }
 
     private function baseQuery()

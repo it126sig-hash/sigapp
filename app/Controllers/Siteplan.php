@@ -24,6 +24,7 @@ use App\Services\FileAccessService;
 use App\Services\MkdtHistoryService;
 use App\Services\SiteplanUrgentService;
 use App\Services\SiteplanVisualStatusService;
+use App\Services\SiteplanDataService;
 use App\Services\TargetSiteplanService;
 use App\Services\PencairanAkadService;
 use App\Services\HistoryService;
@@ -56,6 +57,7 @@ class Siteplan extends BaseController
     protected $mkdtHistoryService;
     protected $siteplanUrgentService;
     protected $siteplanVisualStatusService;
+    protected $siteplanDataService;
     protected $targetSiteplanService;
     protected $activeProyekService;
     protected $pencairanAkadService;
@@ -90,6 +92,13 @@ class Siteplan extends BaseController
         $this->historyService = new HistoryService();
 
         $this->kavlingRepo = new KavlingRepository();
+        $this->siteplanDataService = new SiteplanDataService(
+            $this->kavlingRepo,
+            null,
+            $this->siteplanVisualStatusService,
+            $this->targetSiteplanService,
+            $this->fileAccessService
+        );
 
         $this->hak_akses = new Home();
     }
@@ -129,8 +138,17 @@ class Siteplan extends BaseController
 
         // ambil data proyek
         $data['data']['proyek'] = $this->getProyekOr404($idProyek);
-        $data['data']['proyek']->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', (int) $data['data']['proyek']->id_proyek);
+        $data['data']['proyek']->siteplan_access_url = $this->fileAccessService->versionedAccessUrl(
+            'proyek_siteplan',
+            (int) $data['data']['proyek']->id_proyek,
+            $data['data']['proyek']->siteplan ?? null
+        );
         $data['data']['proyek']->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', (int) $data['data']['proyek']->id_proyek);
+        $data['data']['siteplan_cluster_options'] = $this->clusterModel
+            ->select('id_cluster, nama_cluster')
+            ->where('cluster.id_proyek', $idProyek)
+            ->orderBy('nama_cluster', 'ASC')
+            ->findAll();
 
         // var_dump($data);die();
 
@@ -734,34 +752,10 @@ class Siteplan extends BaseController
     }
     function getAllKavling()
     {
+        $result = $this->siteplanDataService->getKavlings((array) $this->request->getVar());
         $result['token'] = csrf_hash();
         $result['config'] = [];
 
-        $kategoriFilters = [
-            'kategori' => $this->request->getVar('kategori') ?? [],
-            'periode_mulai' => $this->request->getVar('periode_mulai'),
-            'periode_selesai' => $this->request->getVar('periode_selesai'),
-            'status_masalah' => $this->request->getVar('status_masalah'),
-            'periode_masalah_jenis' => $this->request->getVar('periode_masalah_jenis')
-        ];
-
-        $idRole = (int) $this->request->getVar('id_role');
-        $data = $this->kavlingRepo->getAll(
-            $this->request->getVar('id_proyek'),
-            $this->request->getVar('id_cluster'),
-            $this->request->getVar('id_jalan'),
-            $idRole,
-            $kategoriFilters
-        );
-
-        if ($idRole === 0) {
-            $data = $this->siteplanVisualStatusService->appendVisualRows($data);
-        }
-
-        $result['data'] = $data;
-        if ($idRole === 11) {
-            $result['target_kavling'] = $this->targetSiteplanService->getKavlingTargetMap((int) $this->request->getVar('id_proyek'));
-        }
         return $this->response->setJSON($result);
     }
 
@@ -780,121 +774,8 @@ class Siteplan extends BaseController
     }
     function get_others()
     {
+        $result = $this->siteplanDataService->getOthers((array) $this->request->getVar());
         $result['token'] = csrf_hash();
-        $id = $this->request->getVar('id_kavling');
-        $idProyek = $this->request->getVar('id_proyek');
-        $kategoriList = $this->request->getVar('kategori') ?? [];
-
-        $q = $this->db->table('others')
-            ->select('
-                others.*,
-                a.username as planning_add,
-                b.username as produksi_add,
-                c.username as legal_add,
-
-                d.username as planning_edit,
-                e.username as produksi_edit,
-                f.username as legal_edit,
-
-                jalan.nama_jalan, 
-                cluster.id_cluster, 
-                cluster.nama_cluster,
-                ')
-            ->join('jalan', 'jalan.id_jalan = others.id_jalan', 'left')
-            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster', 'left')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left')
-            ->join("users as a", "a.id = others.planning_add_by", "left")
-            ->join("users as b", "b.id = others.produksi_add_by", "left")
-            ->join("users as c", "c.id = others.legal_add_by", "left")
-            ->join("users as d", "d.id = others.planning_edit_by", "left")
-            ->join("users as e", "e.id = others.produksi_edit_by", "left")
-            ->join("users as f", "f.id = others.legal_edit_by", "left");
-
-        if ($id != null || $id != "") {
-            $q->where(["others.id" => $id]);
-        } else {
-            $q->groupStart()
-                ->where('cluster.id_proyek', $idProyek);
-            if (in_array('Masalah', $kategoriList)) {
-                $q->orWhere("EXISTS (SELECT 1 FROM tiket_masalah tm WHERE tm.ref_type = 'others' AND tm.ref_id = others.id AND tm.id_proyek = " . $this->db->escape($idProyek) . ")");
-            }
-            $q->groupEnd();
-        }
-
-        if (($id == null || $id == "") && $this->db->fieldExists('scope', 'others')) {
-            $allowedScopes = ['siteplan', 'produksi'];
-            if (in_array('Masalah', $kategoriList)) {
-                $allowedScopes[] = 'masalah';
-            }
-            $q->groupStart()
-                ->whereIn('others.scope', $allowedScopes)
-                ->orWhere('others.scope IS NULL', null, false)
-                ->groupEnd();
-        }
-
-        if (in_array('Masalah', $kategoriList)) {
-            $statusMasalah = $this->request->getVar('status_masalah');
-            $periodeMulai = $this->request->getVar('periode_mulai');
-            $periodeSelesai = $this->request->getVar('periode_selesai');
-            $periodeMasalahJenis = $this->request->getVar('periode_masalah_jenis');
-
-            $statusSql = "";
-            if ($statusMasalah) {
-                $statusSql = "AND tm.status = " . $this->db->escape($statusMasalah);
-            } else {
-                $statusSql = "AND tm.status NOT IN ('selesai', 'batal')";
-            }
-            $dateSql = "";
-            if ($periodeMulai && $periodeSelesai) {
-                $col = ($periodeMasalahJenis === 'tgl_selesai') ? 'tm.tgl_selesai' : 'tm.created_at';
-                $dateSql = "AND DATE($col) >= " . $this->db->escape($periodeMulai) . " AND DATE($col) <= " . $this->db->escape($periodeSelesai);
-            }
-            
-            $q->where("EXISTS (
-                SELECT 1 FROM tiket_masalah tm
-                WHERE tm.ref_type = 'others' AND tm.ref_id = others.id
-                $statusSql
-                $dateSql
-            )");
-            $q->select("(SELECT tm.prioritas FROM tiket_masalah tm WHERE tm.ref_type = 'others' AND tm.ref_id = others.id $statusSql $dateSql ORDER BY tm.created_at DESC LIMIT 1) as prioritas_masalah", false);
-        }
-
-        $result['data'] = $q->get()->getResult();
-        $result['history'] = [];
-        $result['history_total'] = 0;
-        $result['history_limit'] = 0;
-        $result['history_offset'] = 0;
-        $result['history_next_offset'] = 0;
-        $result['history_has_more'] = false;
-
-        if (($id !== null && $id !== '') && $this->db->tableExists('produksi_jalan_progress_history')) {
-            $historyLimit = (int) ($this->request->getVar('history_limit') ?? 10);
-            $historyLimit = max(1, min(50, $historyLimit));
-            $historyOffset = max(0, (int) ($this->request->getVar('history_offset') ?? 0));
-
-            $historyTotal = $this->db->table('produksi_jalan_progress_history')
-                ->where('id_others', $id)
-                ->countAllResults();
-
-            $history = $this->db->table('produksi_jalan_progress_history h')
-                ->select('h.*, users.username')
-                ->join('users', 'users.id = h.add_by', 'left')
-                ->where('h.id_others', $id)
-                ->orderBy('h.created_at', 'DESC')
-                ->limit($historyLimit, $historyOffset)
-                ->get()->getResult();
-
-            foreach ($history as $item) {
-                $item->foto_urls = $this->fileAccessService->pathUrlsFromDelimitedString($item->foto ?? '', 'produksi_jalan_progress');
-            }
-
-            $result['history'] = $history;
-            $result['history_total'] = $historyTotal;
-            $result['history_limit'] = $historyLimit;
-            $result['history_offset'] = $historyOffset;
-            $result['history_next_offset'] = $historyOffset + count($history);
-            $result['history_has_more'] = $result['history_next_offset'] < $historyTotal;
-        }
 
         return $this->response->setJSON($result);
     }

@@ -24,6 +24,9 @@ foreach (user()->getRoles() as $key => $val) {
     let dt_proyek = '<?php echo json_encode($data['proyek']) ?>';
     dt_proyek = JSON.parse(dt_proyek);
 
+    const siteplanCurrentUserId = <?= (int) user_id() ?>;
+    const siteplanClusterOptions = <?= json_encode($data['siteplan_cluster_options'] ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
+
     const conf = JSON.parse('<?= $conf ?>')
 
     const li_keu = JSON.parse('<?= $li_keu ?>')
@@ -1243,7 +1246,10 @@ foreach (user()->getRoles() as $key => $val) {
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <select id="filter-id_cluster" name="id_cluster" class="select2 select-sm form-control-sm"></select>
+                                    <select id="filter-id_cluster" name="id_cluster[]" multiple class="select2 select-sm form-control-sm"></select>
+                                    <small id="siteplan-cluster-hint" class="form-text text-muted">
+                                        Pilih minimal satu cluster untuk menampilkan data siteplan.
+                                    </small>
                                 </div>
                                 <div class="form-group">
                                     <select disabled id="filter-id_jalan" name="id_jalan" class="select-sm form-control-sm select2"></select>
@@ -1339,6 +1345,7 @@ foreach (user()->getRoles() as $key => $val) {
 <!-- END: Page Vendor JS-->
 <script src="<?= base_url() ?>assets/js/siteplan/polygon-clip.js?v=999<?= time() ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/composite-shape.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/composite-shape.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/filter-state.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/filter-state.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/master.js?v=999<?= time() ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
 

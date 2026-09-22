@@ -5,14 +5,15 @@
 <div class="modal modal-slide-in fade" id="modals-slide-in">
     <div class="modal-dialog sidebar-sm">
         <form id="fm-add_kavling" class="add-new-record modal-content pt-0">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
+            <button type="button" class="close" data-dismiss="modal" data-planning-cancel-edit
+                aria-label="Close">×</button>
             <div class="modal-header mb-1">
                 <h5 class="modal-title" id="exampleModalLabel">Tambah Data</h5>
             </div>
             <div class="modal-body flex-grow-1">
                 <div class="form-group hidden">
                     <label class="form-label" for="basic-icon-default-fullname">Proyek</label>
-                    <input type="hidden" class="form-control" id="points" readonly name="points" value="" />
+                    <input type="hidden" class="form-control" id="planning_points" readonly name="points" value="" />
                     <input type="hidden" class="form-control" id="rotation" readonly name="rotation" value="" />
                     <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
                     <input type="hidden" class="form-control" id="nama_proyek" readonly name="nama_proyek"
@@ -122,7 +123,8 @@
                 </div>
                 <a id="add-form-btn" class="btn btn-primary data-submit mr-1" onclick="add_kavling()"
                     href="javascript:void(0)">Simpan</a>
-                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal"
+                    data-planning-cancel-edit>Cancel</button>
             </div>
         </form>
     </div>

@@ -327,6 +327,7 @@ class KavlingRepository
     public function getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null, $kategoriFilters = [])
     {
         $builder = $this->baseQuery();
+        $clusterIds = $this->normalizeIds($id_cluster);
 
         $idDivisi = (int) $id_divisi;
 
@@ -386,7 +387,7 @@ class KavlingRepository
         // filter proyek
         $builder->where('cluster.id_proyek', $id_proyek);
 
-        $projectJalanIds = $this->getProjectJalanIds($id_proyek, $id_cluster);
+        $projectJalanIds = $this->getProjectJalanIds($id_proyek, $clusterIds);
         if ($projectJalanIds === []) {
             return [];
         }
@@ -394,8 +395,8 @@ class KavlingRepository
         $builder->whereIn('kavling.id_jalan', $projectJalanIds);
 
         // filter cluster
-        if ($id_cluster) {
-            $builder->where('cluster.id_cluster', $id_cluster);
+        if ($clusterIds !== []) {
+            $builder->whereIn('cluster.id_cluster', $clusterIds);
         }
 
         // filter jalan
@@ -417,8 +418,9 @@ class KavlingRepository
             ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
             ->where('cluster.id_proyek', $id_proyek);
 
-        if ($id_cluster) {
-            $builder->where('cluster.id_cluster', $id_cluster);
+        $clusterIds = $this->normalizeIds($id_cluster);
+        if ($clusterIds !== []) {
+            $builder->whereIn('cluster.id_cluster', $clusterIds);
         }
 
         $rows = $builder->get()->getResult();
@@ -426,6 +428,21 @@ class KavlingRepository
         return array_values(array_map(static function ($row) {
             return (string) $row->id_jalan;
         }, $rows));
+    }
+
+    private function normalizeIds($value): array
+    {
+        $values = is_array($value) ? $value : (($value === null || $value === '') ? [] : [$value]);
+        $ids = [];
+
+        foreach ($values as $item) {
+            $id = filter_var($item, FILTER_VALIDATE_INT);
+            if ($id !== false && $id > 0) {
+                $ids[(int) $id] = (int) $id;
+            }
+        }
+
+        return array_values($ids);
     }
 
     public function getPerintahBangun($id_kavling)

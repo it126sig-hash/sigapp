@@ -63,7 +63,11 @@ class ProyekService
             return null;
         }
 
-        $data->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', $idProyek);
+        $data->siteplan_access_url = $this->fileAccessService->versionedAccessUrl(
+            'proyek_siteplan',
+            $idProyek,
+            $data->siteplan ?? null
+        );
         $data->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', $idProyek);
         $data->logo_thumbnail_url = $this->fileAccessService->thumbnailUrl('proyek_logo', $idProyek);
         $data->logo_pt_access_url = $this->fileAccessService->accessUrl('proyek_logo_pt', $idProyek);
