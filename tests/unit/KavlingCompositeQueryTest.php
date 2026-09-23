@@ -26,12 +26,18 @@ final class KavlingCompositeQueryTest extends CIUnitTestCase
         $sql = $builder->getCompiledSelect(false);
 
         $this->assertStringContainsString('hargajual`.`is_subsidi', $sql);
+        $this->assertStringContainsString('mkdt`.`id_konsumen` AS `visual_id_konsumen', $sql);
         $this->assertStringContainsString('kavling`.`perintah_bangun` AS `is_turun_pembangunan', $sql);
         $this->assertStringNotContainsString('mkdt_perintah_bangun', $sql);
-        $this->assertStringContainsString('MIN(jatuh_tempo_tgl) AS jatuh_tempo_tgl', $sql);
+        $this->assertStringContainsString('COUNT(*) AS tagihan_aktif_count', $sql);
+        $this->assertStringContainsString('MIN(CASE', $sql);
+        $this->assertStringContainsString('WHEN sudah_dibayar = 0 AND jatuh_tempo_tgl IS NOT NULL', $sql);
+        $this->assertStringContainsString('WHERE is_void = 0', $sql);
         $this->assertStringContainsString('GROUP BY id_mkdt', $sql);
         $this->assertStringContainsString('GROUP BY id_plan', $sql);
         $this->assertStringContainsString("status <> 'void'", $sql);
+        $this->assertStringContainsString("status IN ('active', 'partial')", $sql);
+        $this->assertStringContainsString('pa_pengajuan_outstanding_count', $sql);
         $this->assertStringNotContainsString('SELECT jatuh_tempo_tgl FROM keuangan WHERE', $sql);
     }
 }

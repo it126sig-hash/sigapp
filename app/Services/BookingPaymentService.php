@@ -14,12 +14,14 @@ class BookingPaymentService
 {
     private BookingPaymentRepository $repo;
     private FinanceLedgerService $ledger;
+    private MkdtSettlementService $settlement;
 
     public function __construct(private ?BaseConnection $db = null)
     {
         $this->db ??= \Config\Database::connect();
         $this->repo = new BookingPaymentRepository($this->db);
         $this->ledger = new FinanceLedgerService($this->db);
+        $this->settlement = new MkdtSettlementService($this->db);
     }
 
     public function assertEditable(int $idMkdt, float $nominal, ?string $tanggal): void
@@ -63,6 +65,7 @@ class BookingPaymentService
             }
             $this->repo->saveLink($idMkdt, null);
             $this->repo->recalculate($idMkdt);
+            $this->settlement->synchronize($idMkdt);
             return $this->getBooking($idMkdt);
         }
 
@@ -143,6 +146,7 @@ class BookingPaymentService
             $this->ledger->recordIncomeFromLogPembayaran($paymentId, $actorId);
         }
         $this->repo->recalculate($idMkdt);
+        $this->settlement->synchronize($idMkdt);
         return $this->getBooking($idMkdt);
     }
 

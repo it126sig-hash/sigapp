@@ -21,21 +21,23 @@ describe('Siteplan composite shape paint plan', () => {
         expect(four.rows).toHaveLength(4);
     });
 
-    test('pencairan 30 persen mengisi segmen kiri lebih dulu', () => {
+    test('pencairan 30 persen mengisi dari kiri di atas dasar lunas', () => {
         const plan = SiteplanCompositeShape.buildPaintPlan(square, [{
             key: 'keuangan',
             segments: [
-                { config_name: 'Cair', ratio: 0.3 },
-                { config_name: 'Pengajuan', ratio: 0.7 }
-            ]
+                { config_name: 'Pencairan Hasil Akad', ratio: 0.3 },
+                { config_name: 'Lunas', ratio: 0.7 }
+            ],
+            markers: [{ config_name: 'Pengajuan Pencairan Hasil Akad', position: 0.5 }]
         }], 90, color);
         const cair = plan.rows[0].segments[0].points;
-        const pengajuan = plan.rows[0].segments[1].points;
+        const lunas = plan.rows[0].segments[1].points;
 
         expect(cair[0].x).toBeCloseTo(0);
         expect(cair[1].x).toBeCloseTo(27);
-        expect(pengajuan[0].x).toBeCloseTo(27);
-        expect(pengajuan[1].x).toBeCloseTo(90);
+        expect(lunas[0].x).toBeCloseTo(27);
+        expect(lunas[1].x).toBeCloseTo(90);
+        expect(plan.rows[0].markers[0].config_name).toBe('Pengajuan Pencairan Hasil Akad');
     });
 
     test('marker berada di tengah baris dan rasio invalid dinormalisasi', () => {
@@ -50,6 +52,25 @@ describe('Siteplan composite shape paint plan', () => {
         const markerY = plan.rows[0].markers[0].points.map((point) => point.y);
         expect(Math.min(...markerY)).toBeLessThan(60);
         expect(Math.max(...markerY)).toBeGreaterThan(60);
+    });
+
+    test('tiga marker pengajuan dibagi merata tanpa bertumpuk', () => {
+        const plan = SiteplanCompositeShape.buildPaintPlan(square, [{
+            key: 'keuangan',
+            segments: [{ config_name: 'Lunas', ratio: 1 }],
+            markers: [
+                { config_name: 'Pengajuan Pencairan Hasil Akad', position: 0.25 },
+                { config_name: 'Pengajuan Pencairan Hasil Akad', position: 0.5 },
+                { config_name: 'Pengajuan Pencairan Hasil Akad', position: 0.75 }
+            ]
+        }], 90, color);
+        const markerRanges = plan.rows[0].markers.map((marker) => {
+            const y = marker.points.map((point) => point.y);
+            return [Math.min(...y), Math.max(...y)];
+        });
+
+        expect(markerRanges[0][1]).toBeLessThan(markerRanges[1][0]);
+        expect(markerRanges[1][1]).toBeLessThan(markerRanges[2][0]);
     });
 
     test('ketebalan marker mengikuti konfigurasi strokeWidth', () => {
@@ -109,6 +130,77 @@ describe('Siteplan composite shape paint plan', () => {
         );
 
         expect(plan.label).toBeNull();
+    });
+
+    test('tooltip keuangan menampilkan lunas, persentase, dan jumlah outstanding dalam dua baris', () => {
+        const lines = SiteplanCompositeShape.tooltipLines({
+            key: 'keuangan',
+            label: 'Keuangan',
+            segments: [
+                { config_name: 'Pencairan Hasil Akad', ratio: 0.3 },
+                { config_name: 'Lunas', ratio: 0.7 }
+            ],
+            markers: [
+                { config_name: 'Pengajuan Pencairan Hasil Akad', position: 0.3333 },
+                { config_name: 'Pengajuan Pencairan Hasil Akad', position: 0.6667 }
+            ],
+            meta: {
+                disbursement_ratio: 0.3,
+                outstanding_submission_count: 2
+            }
+        });
+
+        expect(lines).toEqual([
+            'Keuangan: Lunas / Pencairan Hasil Akad 30%',
+            'Pengajuan Pencairan Hasil Akad: 2 belum cair'
+        ]);
+    });
+
+    test('tooltip keuangan tidak menampilkan baris pengajuan ketika seluruh pengajuan sudah cair', () => {
+        const lines = SiteplanCompositeShape.tooltipLines({
+            key: 'keuangan',
+            label: 'Keuangan',
+            segments: [
+                { config_name: 'Pencairan Hasil Akad', ratio: 0.3 },
+                { config_name: 'Lunas', ratio: 0.7 }
+            ],
+            markers: [],
+            meta: {
+                disbursement_ratio: 0.3,
+                outstanding_submission_count: 0
+            }
+        });
+
+        expect(lines).toEqual(['Keuangan: Lunas / Pencairan Hasil Akad 30%']);
+    });
+
+    test('tooltip menghilangkan persentase jika total hasil akad tidak valid', () => {
+        const lines = SiteplanCompositeShape.tooltipLines({
+            key: 'keuangan',
+            label: 'Keuangan',
+            segments: [{ config_name: 'Lunas', ratio: 1 }],
+            markers: [{ config_name: 'Pengajuan Pencairan Hasil Akad', position: 0.5 }],
+            meta: {
+                disbursement_ratio: null,
+                outstanding_submission_count: 1
+            }
+        });
+
+        expect(lines).toEqual([
+            'Keuangan: Lunas',
+            'Pengajuan Pencairan Hasil Akad: 1 belum cair'
+        ]);
+    });
+
+    test('tooltip belum lunas mempertahankan format marker lama', () => {
+        const lines = SiteplanCompositeShape.tooltipLines({
+            key: 'keuangan',
+            label: 'Keuangan',
+            segments: [{ config_name: 'Belum Lunas', ratio: 1 }],
+            markers: [{ config_name: 'Jatuh Tempo', position: 0.5 }]
+        });
+
+        expect(lines).toEqual(['Keuangan: Belum Lunas / Penanda Jatuh Tempo']);
     });
 
     test('facade rotation hanya mengatur layout dan tidak merotasi node Konva', () => {

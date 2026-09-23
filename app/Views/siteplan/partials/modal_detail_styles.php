@@ -574,8 +574,9 @@
     }
 
     #modal_detail #s-co,
-    #modal_detail #s-si,
-    #modal_detail #s-pa-retensi {
+    #modal_detail #s-hutang-subkon,
+    #modal_detail #s-pa-retensi,
+    #modal_detail #s-pa-pengajuan {
         max-height: 220px;
         overflow-y: auto;
         padding-right: .4rem;
@@ -799,6 +800,308 @@
         background-color: #2057a3;
         border-color: #2057a3;
         opacity: 1;
+    }
+
+    #modal_detail .detail-summary-dashboard {
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    #modal_detail .detail-summary-dashboard > .detail-summary-card {
+        border-color: #dfe4ea;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, .05);
+        min-width: 0;
+        padding: 1.15rem 1.2rem;
+    }
+
+    #modal_detail .detail-summary-card-header {
+        border-bottom: 1px solid #edf0f2;
+        margin-bottom: 1rem;
+        padding-bottom: .85rem;
+    }
+
+    #modal_detail .detail-summary-card-icon {
+        border-radius: 8px;
+        flex: 0 0 34px;
+        font-size: .9rem;
+        height: 34px;
+        width: 34px;
+    }
+
+    #modal_detail .detail-summary-card-icon-status {
+        background: #edf4ff;
+        color: #2057a3;
+    }
+
+    #modal_detail .detail-summary-card-icon-building {
+        background: #f0efff;
+        color: #6558d9;
+    }
+
+    #modal_detail .detail-summary-card-icon-finance {
+        background: #e9faf3;
+        color: #039b68;
+    }
+
+    #modal_detail .detail-summary-card-icon-retention {
+        background: #e9faf8;
+        color: #00a69a;
+    }
+
+    #modal_detail .detail-summary-highlight-row {
+        align-items: center;
+        background: #f8fafc;
+        border: 1px solid #edf0f2;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        padding: .8rem .9rem;
+    }
+
+    #modal_detail .detail-summary-highlight-row .detail-status-badge {
+        align-self: flex-start;
+    }
+
+    #modal_detail .detail-summary-meta-row,
+    #modal_detail .detail-summary-referral-row {
+        margin-bottom: .85rem;
+    }
+
+    #modal_detail .detail-summary-meta-row .detail-info-col,
+    #modal_detail .detail-summary-referral-row .detail-info-col {
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    #modal_detail #s-referred_by_kode {
+        color: #2057a3;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+
+    #modal_detail .detail-summary-dashboard .detail-section-divider {
+        border-top-style: solid;
+        margin: .9rem 0 .75rem;
+        padding-top: .75rem;
+    }
+
+    #modal_detail .detail-summary-dashboard .detail-section-divider-compact {
+        margin-top: .85rem;
+    }
+
+    #modal_detail .detail-summary-dashboard .detail-section-title {
+        font-size: .78rem;
+        line-height: 1.35;
+        text-transform: none;
+    }
+
+    #modal_detail .detail-sp3k-grid {
+        margin-bottom: 0;
+    }
+
+    #modal_detail .detail-sp3k-grid .detail-mini-card {
+        background: #f8fafc;
+        border-color: #e5eaf0;
+        box-shadow: none;
+        padding: .75rem .8rem;
+    }
+
+    #modal_detail .detail-sp3k-grid .detail-mini-card-warning {
+        background: #fffbf2;
+        border-color: #f5d889;
+    }
+
+    #modal_detail .detail-sp3k-grid .detail-mini-card-warning .detail-mini-label,
+    #modal_detail .detail-sp3k-grid .detail-mini-card-warning .detail-mini-value {
+        color: #a85b12;
+    }
+
+    #modal_detail .detail-summary-progress-block {
+        margin-bottom: 1rem;
+    }
+
+    #modal_detail .detail-progress-value {
+        color: #2057a3;
+        flex: 0 0 auto;
+        font-size: 1rem;
+        width: auto;
+    }
+
+    #modal_detail .detail-building-dates {
+        background: #f8fafc;
+        border: 1px solid #e5eaf0;
+        border-radius: 8px;
+        padding: .75rem .85rem;
+    }
+
+    #modal_detail .detail-building-dates-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #modal_detail .detail-building-finish-row {
+        align-items: center;
+        border-top: 1px solid #e5eaf0;
+        display: flex;
+        gap: .75rem;
+        justify-content: space-between;
+        margin-top: .7rem;
+        padding-top: .65rem;
+    }
+
+    #modal_detail .detail-building-finish-row .detail-info-value {
+        text-align: right;
+        width: auto;
+    }
+
+    #modal_detail .detail-building-check {
+        color: #2057a3;
+        font-size: .7rem;
+        margin-right: .2rem;
+    }
+
+    #modal_detail .detail-amenities-grid {
+        display: grid;
+        gap: .5rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #modal_detail .detail-amenity-item {
+        align-items: center;
+        background: #f8fafc;
+        border: 1px solid #edf0f2;
+        border-radius: 8px;
+        display: flex;
+        gap: .5rem;
+        justify-content: space-between;
+        min-width: 0;
+        padding: .55rem .65rem;
+    }
+
+    #modal_detail .detail-amenity-item-wide {
+        grid-column: 1 / -1;
+    }
+
+    #modal_detail .detail-amenity-item .detail-status-badge {
+        flex: 0 0 auto;
+        font-size: .65rem;
+        padding: .18rem .5rem;
+    }
+
+    #modal_detail .detail-chart-summary {
+        align-items: center;
+        display: grid;
+        gap: 1.25rem;
+        grid-template-columns: minmax(145px, .85fr) minmax(165px, 1.15fr);
+        min-height: 155px;
+    }
+
+    #modal_detail .detail-chart-wrap {
+        height: 150px;
+        margin: 0 auto;
+        max-width: 170px;
+        position: relative;
+        width: 100%;
+    }
+
+    #modal_detail .detail-chart-wrap canvas {
+        max-height: 150px;
+        max-width: 170px;
+    }
+
+    #modal_detail .detail-chart-empty {
+        color: #98a2b3;
+        display: none;
+        font-size: .75rem;
+        left: 50%;
+        line-height: 1.35;
+        position: absolute;
+        text-align: center;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+    }
+
+    #modal_detail .detail-chart-metrics {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    #modal_detail .detail-chart-metric {
+        border-bottom: 1px solid #edf0f2;
+        display: flex;
+        flex-direction: column;
+        gap: .3rem;
+        padding: .7rem 0;
+    }
+
+    #modal_detail .detail-chart-metric:last-child {
+        border-bottom: 0;
+    }
+
+    #modal_detail .detail-chart-metric .detail-info-value {
+        font-size: 1rem;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .detail-summary-dashboard .detail-cashout-timeline {
+        gap: .55rem;
+    }
+
+    #modal_detail .detail-summary-dashboard .detail-cashout-timeline-item,
+    #modal_detail .detail-summary-list-item {
+        background: #f8fafc;
+        border: 1px solid #edf0f2;
+        border-radius: 8px;
+        padding: .65rem .75rem;
+    }
+
+    #modal_detail .detail-summary-dashboard .detail-cashout-timeline-item {
+        border-left: 1px solid #edf0f2;
+    }
+
+    #modal_detail .detail-summary-dashboard .detail-cashout-timeline-item::before {
+        display: none;
+    }
+
+    #modal_detail .detail-summary-dashboard .detail-cashout-timeline-item .detail-info-row,
+    #modal_detail .detail-summary-list-item .detail-info-row {
+        margin-bottom: 0;
+    }
+
+    #modal_detail .detail-summary-list {
+        display: flex;
+        flex-direction: column;
+        gap: .55rem;
+    }
+
+    #modal_detail .detail-summary-item-note {
+        color: #98a2b3;
+        font-size: .72rem;
+        line-height: 1.35;
+        margin-top: .25rem;
+    }
+
+    #modal_detail .detail-summary-empty {
+        align-items: center;
+        background: #fbfcfe;
+        border: 1px dashed #d8e0ea;
+        border-radius: 8px;
+        color: #98a2b3;
+        display: flex;
+        flex-direction: column;
+        font-size: .8rem;
+        gap: .45rem;
+        justify-content: center;
+        min-height: 92px;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    #modal_detail .detail-summary-empty i {
+        color: #c3cfdd;
+        font-size: 1.25rem;
     }
 
     #modal_detail .detail-price-comparison > .row > [class*="col-md-"] {
@@ -1178,6 +1481,35 @@
         background: #283046;
     }
 
+    .dark-layout #modal_detail .detail-summary-card-header,
+    .dark-layout #modal_detail .detail-chart-metric,
+    .dark-layout #modal_detail .detail-building-finish-row {
+        border-color: rgba(255, 255, 255, .08);
+    }
+
+    .dark-layout #modal_detail .detail-summary-highlight-row,
+    .dark-layout #modal_detail .detail-building-dates,
+    .dark-layout #modal_detail .detail-amenity-item,
+    .dark-layout #modal_detail .detail-summary-dashboard .detail-cashout-timeline-item,
+    .dark-layout #modal_detail .detail-summary-list-item,
+    .dark-layout #modal_detail .detail-summary-empty,
+    .dark-layout #modal_detail .detail-sp3k-grid .detail-mini-card {
+        background: #242b3d;
+        border-color: rgba(255, 255, 255, .08);
+    }
+
+    .dark-layout #modal_detail .detail-sp3k-grid .detail-mini-card-warning {
+        background: rgba(180, 83, 9, .16);
+        border-color: rgba(245, 216, 137, .35);
+    }
+
+    .dark-layout #modal_detail .detail-summary-card-icon-status,
+    .dark-layout #modal_detail .detail-summary-card-icon-building,
+    .dark-layout #modal_detail .detail-summary-card-icon-finance,
+    .dark-layout #modal_detail .detail-summary-card-icon-retention {
+        background: rgba(255, 255, 255, .08);
+    }
+
     .dark-layout #modal_detail .detail-section-divider {
         border-top-color: rgba(255, 255, 255, .08);
     }
@@ -1285,5 +1617,55 @@
         #modal_detail .detail-dashboard-grid,
         #modal_detail .detail-card-grid {
             grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        #modal_detail .detail-summary-dashboard > .detail-summary-card {
+            padding: 1rem;
+        }
+
+        #modal_detail .detail-chart-summary {
+            gap: .5rem;
+            grid-template-columns: 1fr;
+        }
+
+        #modal_detail .detail-chart-wrap {
+            height: 140px;
+            max-width: 160px;
+        }
+
+        #modal_detail .detail-chart-wrap canvas {
+            max-height: 140px;
+            max-width: 160px;
+        }
+
+        #modal_detail .detail-chart-metrics {
+            display: grid;
+            gap: .65rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        #modal_detail .detail-chart-metric {
+            border-bottom: 0;
+            padding: .5rem 0;
+        }
+    }
+
+    @media (max-width: 419.98px) {
+        #modal_detail .detail-building-dates-grid,
+        #modal_detail .detail-info-pair,
+        #modal_detail .detail-chart-metrics {
+            grid-template-columns: 1fr;
+        }
+
+        #modal_detail .detail-building-finish-row {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: .25rem;
+        }
+
+        #modal_detail .detail-building-finish-row .detail-info-value {
+            text-align: left;
         }
     }

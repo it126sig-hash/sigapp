@@ -732,6 +732,14 @@ Date.prototype.toDateInputValue = (function() {
         return labels.concat(markers.map(function(marker) { return 'Penanda ' + marker; })).join(' / ');
     }
 
+    function compositeTooltipLines(row) {
+        if (typeof SiteplanCompositeShape !== 'undefined' && typeof SiteplanCompositeShape.tooltipLines === 'function') {
+            return SiteplanCompositeShape.tooltipLines(row);
+        }
+
+        return [(row.label || row.key) + ': ' + compositeRowSummary(row)];
+    }
+
     function setSiteplanTooltip(attrs) {
         if (!attrs.data || !attrs.data.nama_jalan || !attrs.data.no_kavling) {
             return false;
@@ -745,7 +753,9 @@ Date.prototype.toDateInputValue = (function() {
         ];
 
         (attrs.visualRows || []).forEach(function(row) {
-            lines.push((row.label || row.key) + ': ' + compositeRowSummary(row));
+            compositeTooltipLines(row).forEach(function(line) {
+                lines.push(line);
+            });
         });
 
         tooltip.text(lines.join('\n'));

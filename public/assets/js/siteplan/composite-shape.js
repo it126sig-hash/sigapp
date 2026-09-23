@@ -153,6 +153,50 @@
         });
     }
 
+    function rowSummary(row) {
+        const segments = Array.isArray(row.segments) ? row.segments : [];
+        const showRatio = segments.length > 1;
+        const labels = segments.map(function(segment) {
+            const ratio = Math.round((Number(segment.ratio) || 0) * 100);
+            return segment.config_name + (showRatio ? ' ' + ratio + '%' : '');
+        });
+        const markers = (Array.isArray(row.markers) ? row.markers : []).map(function(marker) {
+            return 'Penanda ' + marker.config_name;
+        });
+
+        return labels.concat(markers).join(' / ');
+    }
+
+    function tooltipLines(row) {
+        const label = row.label || row.key || 'Status';
+        const segments = Array.isArray(row.segments) ? row.segments : [];
+        const isSettledFinance = row.key === 'keuangan' && segments.some(function(segment) {
+            return segment.config_name === 'Lunas' || segment.config_name === 'Pencairan Hasil Akad';
+        });
+
+        if (!isSettledFinance) {
+            return [label + ': ' + rowSummary(row)];
+        }
+
+        const meta = row.meta || {};
+        const rawRatio = meta.disbursement_ratio;
+        const numericRatio = Number(rawRatio);
+        const hasRatio = rawRatio !== null && rawRatio !== undefined && rawRatio !== '' && Number.isFinite(numericRatio);
+        const outstandingCount = Math.max(0, Math.floor(Number(meta.outstanding_submission_count) || 0));
+        let financeLine = label + ': Lunas';
+
+        if (hasRatio) {
+            financeLine += ' / Pencairan Hasil Akad ' + Math.round(clamp(numericRatio, 0, 1) * 100) + '%';
+        }
+
+        const lines = [financeLine];
+        if (outstandingCount > 0) {
+            lines.push('Pengajuan Pencairan Hasil Akad: ' + outstandingCount + ' belum cair');
+        }
+
+        return lines;
+    }
+
     function buildPaintPlan(flatPoints, visualRows, rotationDeg, colorResolver, strokeWidthResolver, labelText) {
         const layoutFrame = frame(flatPoints, rotationDeg);
         const layoutBounds = layoutFrame.bounds;
@@ -332,6 +376,7 @@
 
     return {
         buildPaintPlan: buildPaintPlan,
-        createKonvaShape: createKonvaShape
+        createKonvaShape: createKonvaShape,
+        tooltipLines: tooltipLines
     };
 });

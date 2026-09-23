@@ -266,6 +266,7 @@ class KavlingRepository
         $builder->join(
             "(SELECT id_plan,
                      SUM(CASE WHEN status <> 'void' THEN 1 ELSE 0 END) AS pa_pengajuan_count,
+                     SUM(CASE WHEN status IN ('active', 'partial') THEN 1 ELSE 0 END) AS pa_pengajuan_outstanding_count,
                      SUM(CASE WHEN status <> 'void' THEN total_cair ELSE 0 END) AS pa_total_cair_sum
               FROM pencairan_akad_pengajuan
               GROUP BY id_plan) papg",
@@ -278,6 +279,7 @@ class KavlingRepository
             pap.id AS pa_plan_id,
             pap.total_hasil_akad AS pa_total_hasil_akad,
             papg.pa_pengajuan_count,
+            papg.pa_pengajuan_outstanding_count,
             papg.pa_total_cair_sum
         ', true);
     }
@@ -297,28 +299,33 @@ class KavlingRepository
             mkdt.akad,
             mkdt.akad_tgl,
             mkdt.is_kpr,
+            mkdt.id_konsumen AS visual_id_konsumen,
             kavling.perintah_bangun AS is_turun_pembangunan
         ', true);
     }
 
     /**
-     * Satu join agregat untuk tanggal jatuh tempo aktif paling awal per transaksi.
+     * Satu join agregat untuk jumlah tagihan aktif dan tanggal jatuh tempo paling awal per transaksi.
      */
     private function addCompositeFinanceSelect(BaseBuilder $builder): void
     {
         $builder->join(
-            "(SELECT id_mkdt, MIN(jatuh_tempo_tgl) AS jatuh_tempo_tgl
+            "(SELECT id_mkdt,
+                     COUNT(*) AS tagihan_aktif_count,
+                     MIN(CASE
+                         WHEN sudah_dibayar = 0 AND jatuh_tempo_tgl IS NOT NULL
+                         THEN jatuh_tempo_tgl
+                         ELSE NULL
+                     END) AS jatuh_tempo_tgl
               FROM keuangan
-              WHERE sudah_dibayar = 0
-                AND is_void = 0
-                AND jatuh_tempo_tgl IS NOT NULL
+              WHERE is_void = 0
               GROUP BY id_mkdt) keu_visual",
             'keu_visual.id_mkdt = mkdt.id_mkdt',
             'left',
             false
         );
 
-        $builder->select('keu_visual.jatuh_tempo_tgl', true);
+        $builder->select('keu_visual.tagihan_aktif_count, keu_visual.jatuh_tempo_tgl', true);
     }
 
     /**

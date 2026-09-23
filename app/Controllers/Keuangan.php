@@ -705,18 +705,13 @@ class Keuangan extends BaseController
 
         $e = $this->request->getVar('e');
 
-        $is_lunas = $this->request->getVar('is_lunas') ? 1 : 0;
-
-        $lunas = $this->request->getVar('bt-persentase_bayar_tagihan_um');
-        $lunas_bb = $this->request->getVar('bt-persentase_bayar_tagihan_bb');
-        if ($lunas == "100%" && $lunas_bb == '100%')
-            $is_lunas = 1;
-
-
         // $refund_paid = $this->request->getVar('refund_paid');
         $refund_paid = 1;
 
         $kav = $this->get_kavling($id_kavling);
+
+        $this->db->transException(true)->transBegin();
+        try {
 
         if ($this->request->getVar('status_mkdt') == "Batal") {
             $nominal_refund = $this->num($this->request->getVar("nominal_refund"));
@@ -727,36 +722,27 @@ class Keuangan extends BaseController
             $d['refund_tgl'] = $tgl_refund;
 
 
-            try {
-                $this->mkdtModel->update($id_mkdt, $d);
-                // insert into log_pembayaran
-                $data = array(
-                    "id_mkdt" => $id_mkdt,
-                    "nominal" => $nominal_refund,
-                    "payment_type" => "Refund",
-                    "tanggal_bayar" => $tgl_refund,
-                    "keterangan" => "Refund: " . $this->request->getVar("keterangan_refund") . " - " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
-                    "add_by" => user_id(),
-                    "edit_by" => user_id()
-                );
-
-                if ($this->lpModel->insert($data)) {
-                    $response['success'] = true;
-                    $response['messages'] = 'Data berhasil ditambah';
-                } else {
-                    $response['success'] = false;
-                    $response['messages'] = 'Terjadi kesalahan';
-                }
-            } catch (\Exception $e) {
-                $response['success'] = false;
-                $response['messages'] = 'Terjadi kesalahan: ' . $e->getMessage();
+            if (! $this->mkdtModel->update($id_mkdt, $d)) {
+                throw new \RuntimeException('Gagal memperbarui data refund');
             }
+            // insert into log_pembayaran
+            $data = array(
+                "id_mkdt" => $id_mkdt,
+                "nominal" => $nominal_refund,
+                "payment_type" => "Refund",
+                "tanggal_bayar" => $tgl_refund,
+                "keterangan" => "Refund: " . $this->request->getVar("keterangan_refund") . " - " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
+                "add_by" => user_id(),
+                "edit_by" => user_id()
+            );
+
+            if (! $this->lpModel->insert($data)) {
+                throw new \RuntimeException('Gagal menyimpan pembayaran refund');
+            }
+            $response['success'] = true;
+            $response['messages'] = 'Data berhasil ditambah';
         } else {
             $f['id_keuangan'] = $this->request->getPost('b-for');
-
-            //jika is_lunas di cek
-            $this->mkdtModel->update($id_mkdt, ['is_lunas' => $is_lunas]);
-
 
             $f['booking_fee_paid'] = '';
             $f['id_mkdt'] = $id_mkdt;
@@ -794,15 +780,19 @@ class Keuangan extends BaseController
                     "edit_by" => user_id()
                 );
 
-                $this->lpModel->insert($data);
+                if (! $this->lpModel->insert($data)) {
+                    throw new \RuntimeException('Gagal menyimpan pembayaran booking');
+                }
 
                 //update table mkdt set booking fee sudah dibayar
-                $this->mkdtModel->update(
+                if (! $this->mkdtModel->update(
                     $id_mkdt,
                     array(
                         'booking_paid' => $f['booking_fee_paid']
                     )
-                );
+                )) {
+                    throw new \RuntimeException('Gagal memperbarui status pembayaran booking');
+                }
             }
             //end of bayar booking
 
@@ -819,7 +809,9 @@ class Keuangan extends BaseController
                         "add_by" => user_id(),
                         "edit_by" => user_id()
                     );
-                    $this->lpModel->insert($data);
+                    if (! $this->lpModel->insert($data)) {
+                        throw new \RuntimeException('Gagal menyimpan pembayaran UM');
+                    }
                 }
             } elseif ($e == 'bb') {
                 if ($bayar_tagihan_bb > 0) {
@@ -833,12 +825,30 @@ class Keuangan extends BaseController
                         "add_by" => user_id(),
                         "edit_by" => user_id()
                     );
-                    $this->lpModel->insert($data);
+                    if (! $this->lpModel->insert($data)) {
+                        throw new \RuntimeException('Gagal menyimpan pembayaran BB');
+                    }
                 }
             }
 
             $response['success'] = true;
             $response['messages'] = "Data berhasil diinput";
+        }
+
+        if (empty($response['success'])) {
+            throw new \RuntimeException($response['messages'] ?? 'Gagal menyimpan pembayaran');
+        }
+
+        $this->keuanganService->synchronizeLunasStatus((int) $id_mkdt);
+        if ($this->db->transStatus() === false) {
+            throw new \RuntimeException('Transaksi gagal');
+        }
+        $this->db->transCommit();
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            log_message('error', '[Keuangan::save] {message}', ['message' => $e->getMessage()]);
+            $response['success'] = false;
+            $response['messages'] = 'Gagal menyimpan pembayaran: ' . $e->getMessage();
         }
 
         return $this->response->setJSON($response);

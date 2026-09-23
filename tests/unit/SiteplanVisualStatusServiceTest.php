@@ -15,13 +15,13 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
 
     public function testMkdtUsesLatestMilestoneAndBatalOnlyChangesMkdtRow(): void
     {
-        $rows = $this->service->buildRows((object) [
+        $rows = $this->service->buildRows($this->activeFinance([
             'status_mkdt' => 'Batal',
             'is_batal' => 1,
             'akad' => 1,
             'progres_bangunan' => 50,
             'is_lunas' => 1,
-        ]);
+        ]));
 
         $this->assertSame('Batal', $rows[0]['segments'][0]['config_name']);
         $this->assertSame('Pembangunan', $rows[1]['segments'][0]['config_name']);
@@ -122,11 +122,11 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
 
     public function testProductionAndDueDateMarkersUseMiddlePosition(): void
     {
-        $rows = $this->service->buildRows((object) [
+        $rows = $this->service->buildRows($this->activeFinance([
             'is_turun_pembangunan' => 1,
             'is_lunas' => 0,
             'jatuh_tempo_tgl' => '2026-09-17',
-        ], new DateTimeImmutable('2026-09-17'));
+        ]), new DateTimeImmutable('2026-09-17'));
 
         $this->assertSame([['config_name' => 'Perintah Bangun', 'position' => 0.5]], $rows[1]['markers']);
         $this->assertSame([['config_name' => 'Jatuh Tempo', 'position' => 0.5]], $rows[2]['markers']);
@@ -142,46 +142,234 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
         $this->assertSame([], $rows[1]['markers']);
     }
 
-    public function testFinancePartialDisbursementCreatesLeftToRightRatios(): void
+    /**
+     * @dataProvider productionMarkerProvider
+     */
+    public function testProductionMarkerStopsWhenBuildingIsComplete(float $progress, bool $expectsMarker): void
     {
         $rows = $this->service->buildRows((object) [
-            'is_lunas' => 1,
-            'pa_pengajuan_count' => 1,
-            'pa_total_hasil_akad' => 100,
-            'pa_total_cair_sum' => 30,
+            'progres_bangunan' => $progress,
+            'is_turun_pembangunan' => 1,
         ]);
 
+        $expected = $expectsMarker
+            ? [['config_name' => 'Perintah Bangun', 'position' => 0.5]]
+            : [];
+
+        $this->assertSame($expected, $rows[1]['markers']);
+    }
+
+    public static function productionMarkerProvider(): array
+    {
+        return [
+            'belum mulai' => [0, true],
+            'baru mulai' => [1, true],
+            'hampir selesai' => [99, true],
+            'selesai' => [100, false],
+            'lebih dari seratus' => [120, false],
+        ];
+    }
+
+    /**
+     * @dataProvider inactiveFinanceProvider
+     */
+    public function testFinanceStaysDefaultUntilConsumerAndActiveBillExist(array $data): void
+    {
+        $rows = $this->service->buildRows((object) array_merge([
+            'is_lunas' => 0,
+            'jatuh_tempo_tgl' => '2026-09-17',
+        ], $data), new DateTimeImmutable('2026-09-17'));
+
         $this->assertSame([
-            ['config_name' => 'Pencairan Hasil Akad', 'ratio' => 0.3],
-            ['config_name' => 'Pengajuan Pencairan Hasil Akad', 'ratio' => 0.7],
+            ['config_name' => 'Def', 'ratio' => 1.0],
+        ], $rows[2]['segments']);
+        $this->assertSame([], $rows[2]['markers']);
+    }
+
+    public static function inactiveFinanceProvider(): array
+    {
+        return [
+            'belum booking' => [['visual_id_konsumen' => null, 'tagihan_aktif_count' => null]],
+            'tagihan tanpa konsumen' => [['visual_id_konsumen' => null, 'tagihan_aktif_count' => 1]],
+            'konsumen tanpa tagihan' => [['visual_id_konsumen' => 1, 'tagihan_aktif_count' => 0]],
+        ];
+    }
+
+    public function testFinanceUsesBelumLunasWhenConsumerAndActiveBillExist(): void
+    {
+        $rows = $this->service->buildRows($this->activeFinance([
+            'is_lunas' => 0,
+        ]));
+
+        $this->assertSame([
+            ['config_name' => 'Belum Lunas', 'ratio' => 1.0],
         ], $rows[2]['segments']);
     }
 
-    public function testFinanceSubmissionWithoutDisbursementUsesSubmissionColor(): void
+    public function testFinanceWithoutSubmissionUsesLunasWithoutMarker(): void
     {
-        $rows = $this->service->buildRows((object) [
+        $rows = $this->service->buildRows($this->activeFinance([
             'is_lunas' => 1,
-            'pa_pengajuan_count' => 1,
-            'pa_total_hasil_akad' => 100,
-            'pa_total_cair_sum' => 0,
-        ]);
+            'pa_pengajuan_count' => 0,
+        ]));
 
         $this->assertSame([
-            ['config_name' => 'Pengajuan Pencairan Hasil Akad', 'ratio' => 1.0],
+            ['config_name' => 'Lunas', 'ratio' => 1.0],
         ], $rows[2]['segments']);
+        $this->assertSame([], $rows[2]['markers']);
+        $this->assertSame([
+            'disbursement_ratio' => null,
+            'outstanding_submission_count' => 0,
+        ], $rows[2]['meta']);
+    }
+
+    public function testFinancePartialDisbursementCreatesLeftToRightRatios(): void
+    {
+        $rows = $this->service->buildRows($this->activeFinance([
+            'is_lunas' => 1,
+            'pa_pengajuan_count' => 1,
+            'pa_pengajuan_outstanding_count' => 1,
+            'pa_total_hasil_akad' => 100,
+            'pa_total_cair_sum' => 30,
+        ]));
+
+        $this->assertSame([
+            ['config_name' => 'Pencairan Hasil Akad', 'ratio' => 0.3],
+            ['config_name' => 'Lunas', 'ratio' => 0.7],
+        ], $rows[2]['segments']);
+        $this->assertSame([
+            ['config_name' => 'Pengajuan Pencairan Hasil Akad', 'position' => 0.5],
+        ], $rows[2]['markers']);
+        $this->assertSame([
+            'disbursement_ratio' => 0.3,
+            'outstanding_submission_count' => 1,
+        ], $rows[2]['meta']);
+    }
+
+    public function testFinanceSubmissionWithoutDisbursementUsesLunasBaseAndSubmissionMarker(): void
+    {
+        $rows = $this->service->buildRows($this->activeFinance([
+            'is_lunas' => 1,
+            'pa_pengajuan_count' => 1,
+            'pa_pengajuan_outstanding_count' => 1,
+            'pa_total_hasil_akad' => 100,
+            'pa_total_cair_sum' => 0,
+        ]));
+
+        $this->assertSame([
+            ['config_name' => 'Lunas', 'ratio' => 1.0],
+        ], $rows[2]['segments']);
+        $this->assertSame([
+            ['config_name' => 'Pengajuan Pencairan Hasil Akad', 'position' => 0.5],
+        ], $rows[2]['markers']);
+        $this->assertSame([
+            'disbursement_ratio' => 0.0,
+            'outstanding_submission_count' => 1,
+        ], $rows[2]['meta']);
     }
 
     public function testFinanceRatiosClampAtOneHundredPercent(): void
     {
-        $rows = $this->service->buildRows((object) [
+        $rows = $this->service->buildRows($this->activeFinance([
             'is_lunas' => 1,
             'pa_pengajuan_count' => 1,
+            'pa_pengajuan_outstanding_count' => 0,
             'pa_total_hasil_akad' => 100,
             'pa_total_cair_sum' => 120,
-        ]);
+        ]));
 
         $this->assertSame([
             ['config_name' => 'Pencairan Hasil Akad', 'ratio' => 1.0],
         ], $rows[2]['segments']);
+        $this->assertSame([], $rows[2]['markers']);
+        $this->assertSame(1.0, $rows[2]['meta']['disbursement_ratio']);
+    }
+
+    /**
+     * @dataProvider invalidHasilAkadProvider
+     */
+    public function testFinanceInvalidHasilAkadKeepsLunasBaseAndSubmissionMarker($totalResult): void
+    {
+        $rows = $this->service->buildRows($this->activeFinance([
+            'is_lunas' => 1,
+            'pa_pengajuan_count' => 1,
+            'pa_pengajuan_outstanding_count' => 1,
+            'pa_total_hasil_akad' => $totalResult,
+            'pa_total_cair_sum' => 30,
+        ]));
+
+        $this->assertSame([
+            ['config_name' => 'Lunas', 'ratio' => 1.0],
+        ], $rows[2]['segments']);
+        $this->assertSame([
+            ['config_name' => 'Pengajuan Pencairan Hasil Akad', 'position' => 0.5],
+        ], $rows[2]['markers']);
+        $this->assertNull($rows[2]['meta']['disbursement_ratio']);
+    }
+
+    public static function invalidHasilAkadProvider(): array
+    {
+        return [
+            'null' => [null],
+            'nol' => [0],
+            'negatif' => [-100],
+            'bukan angka' => ['invalid'],
+        ];
+    }
+
+    public function testFinancePaidSubmissionDoesNotCreateOutstandingMarker(): void
+    {
+        $rows = $this->service->buildRows($this->activeFinance([
+            'is_lunas' => 1,
+            'pa_pengajuan_count' => 1,
+            'pa_pengajuan_outstanding_count' => 0,
+            'pa_total_hasil_akad' => 100,
+            'pa_total_cair_sum' => 30,
+        ]));
+
+        $this->assertSame([], $rows[2]['markers']);
+        $this->assertSame(0, $rows[2]['meta']['outstanding_submission_count']);
+        $this->assertSame(0.3, $rows[2]['meta']['disbursement_ratio']);
+    }
+
+    /**
+     * @dataProvider outstandingMarkerProvider
+     */
+    public function testFinanceOutstandingMarkersAreDistributedAndCapped(
+        int $outstandingCount,
+        array $expectedPositions
+    ): void {
+        $rows = $this->service->buildRows($this->activeFinance([
+            'is_lunas' => 1,
+            'pa_pengajuan_count' => $outstandingCount,
+            'pa_pengajuan_outstanding_count' => $outstandingCount,
+            'pa_total_hasil_akad' => 100,
+            'pa_total_cair_sum' => 0,
+        ]));
+
+        $this->assertSame(
+            $expectedPositions,
+            array_column($rows[2]['markers'], 'position')
+        );
+        $this->assertSame($outstandingCount, $rows[2]['meta']['outstanding_submission_count']);
+    }
+
+    public static function outstandingMarkerProvider(): array
+    {
+        return [
+            'tidak ada' => [0, []],
+            'satu' => [1, [0.5]],
+            'dua' => [2, [0.3333, 0.6667]],
+            'tiga' => [3, [0.25, 0.5, 0.75]],
+            'empat dibatasi tiga garis' => [4, [0.25, 0.5, 0.75]],
+        ];
+    }
+
+    private function activeFinance(array $data): object
+    {
+        return (object) array_merge([
+            'visual_id_konsumen' => 1,
+            'tagihan_aktif_count' => 1,
+        ], $data);
     }
 }

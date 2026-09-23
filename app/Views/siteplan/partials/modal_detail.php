@@ -246,14 +246,14 @@
                                 <div class="tab-content">
                                     <div class="tab-pane active" id="dtt-summary" aria-labelledby="dtt-summary-tab"
                                         role="tabpanel">
-                                        <div class="detail-dashboard-grid">
-                                            <div class="detail-summary-card detail-status-card">
-                                                <div class="detail-status-card-header">
-                                                    <div class="detail-card-icon"><i class="fas fa-user"></i></div>
+                                        <div class="detail-dashboard-grid detail-summary-dashboard">
+                                            <div class="detail-summary-card detail-status-card detail-summary-status-card">
+                                                <div class="detail-status-card-header detail-summary-card-header">
+                                                    <div class="detail-card-icon detail-summary-card-icon detail-summary-card-icon-status"><i class="far fa-file-alt"></i></div>
                                                     <div class="detail-status-card-title">Status &amp; Akad</div>
                                                 </div>
 
-                                                <div class="detail-info-row">
+                                                <div class="detail-info-row detail-summary-highlight-row">
                                                     <div class="detail-info-col">
                                                         <span class="detail-info-label">Status Kavling</span>
                                                         <span class="detail-status-badge badge-secondary" id="s-status_mkdt">-</span>
@@ -264,133 +264,125 @@
                                                     </div>
                                                 </div>
 
-                                                <div class="detail-info-row">
+                                                <div class="detail-info-row detail-summary-meta-row">
                                                     <div class="detail-info-col">
                                                         <span class="detail-info-label">Bank Pelaksana</span>
                                                         <span class="detail-info-value" id="s-st_bank">-</span>
                                                     </div>
-                                                    <div class="detail-info-col text-right">
+                                                    <div class="detail-info-col">
                                                         <span class="detail-info-label">Notaris</span>
                                                         <span class="detail-info-value" id="s-notaris">-</span>
                                                     </div>
                                                 </div>
 
-                                                <div class="detail-info-row" id="s-referred_by_container" style="display:none;">
+                                                <div class="detail-info-row detail-summary-referral-row" id="s-referred_by_container" style="display:none;">
                                                     <div class="detail-info-col">
                                                         <span class="detail-info-label">Pemberi Referal (Kode)</span>
-                                                        <span class="detail-info-value" id="s-referred_by_kode" style="cursor: pointer; color: #1e88e5; text-decoration: underline;" onclick="copyReferralCode(this)" title="Klik untuk menyalin" data-bs-toggle="tooltip">-</span>
+                                                        <span class="detail-info-value" id="s-referred_by_kode" onclick="copyReferralCode(this)" title="Klik untuk menyalin" data-bs-toggle="tooltip">-</span>
                                                     </div>
-                                                    <div class="detail-info-col text-right">
+                                                    <div class="detail-info-col">
                                                         <span class="detail-info-label">Nama Pemberi Referal</span>
                                                         <span class="detail-info-value" id="s-referred_by_nama">-</span>
                                                     </div>
                                                 </div>
 
                                                 <div class="detail-section-divider">
-                                                    <span class="detail-section-title detail-section-title-dot">SP3K</span>
+                                                    <span class="detail-section-title detail-section-title-dot">Surat Penegasan Persetujuan Kredit (SP3K)</span>
                                                 </div>
-                                                <div class="detail-info-pair">
+                                                <div class="detail-info-pair detail-sp3k-grid">
                                                     <div class="detail-mini-card">
                                                         <div class="detail-mini-label">Terbit</div>
                                                         <div class="detail-mini-value" id="s-st_sp3k_tgl">-</div>
                                                     </div>
-                                                    <div class="detail-mini-card">
+                                                    <div class="detail-mini-card detail-mini-card-warning">
                                                         <div class="detail-mini-label">Kadaluarsa</div>
                                                         <div class="detail-mini-value" id="s-st_sp3k_tgl_exp">-</div>
                                                     </div>
                                                 </div>
-
-                                                <div class="detail-section-divider">
-                                                    <span class="detail-section-title detail-section-title-dot">Standing Instruction</span>
-                                                </div>
-                                                <div id="s-si"></div>
                                             </div>
 
-                                            <div class="detail-summary-card detail-status-card">
-                                                <div class="detail-status-card-header">
-                                                    <div class="detail-card-icon"><i class="fas fa-tools"></i></div>
+                                            <div class="detail-summary-card detail-status-card detail-summary-building-card">
+                                                <div class="detail-status-card-header detail-summary-card-header">
+                                                    <div class="detail-card-icon detail-summary-card-icon detail-summary-card-icon-building"><i class="far fa-building"></i></div>
                                                     <div class="detail-status-card-title">Bangunan</div>
                                                 </div>
 
-                                                <div class="mb-2">
+                                                <div class="detail-summary-progress-block">
                                                     <div class="d-flex justify-content-between mb-50">
                                                         <span class="detail-info-label">Progres Fisik</span>
-                                                        <span class="detail-info-value" id="s-progress_bangunan_text">0%</span>
+                                                        <span class="detail-info-value detail-progress-value" id="s-progress_bangunan_text">0%</span>
                                                     </div>
                                                     <div class="detail-progress-track">
                                                         <div id="s-progress_bangunan_bar" class="detail-progress-fill is-empty" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                                     </div>
                                                 </div>
 
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label"><i class="fas fa-check-circle detail-text-primary"></i> Selesai Pembangunan</span>
+                                                <div class="detail-building-dates">
+                                                    <div class="detail-building-dates-grid">
+                                                        <div class="detail-info-col">
+                                                            <span class="detail-info-label">Tgl Turun Perintah Bangun</span>
+                                                            <span class="detail-info-value" id="s-perintah_bangun_tgl">-</span>
+                                                        </div>
+                                                        <div class="detail-info-col">
+                                                            <span class="detail-info-label">Mulai Bangun</span>
+                                                            <span class="detail-info-value" id="s-tanggal_pembangunan">-</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="detail-building-finish-row">
+                                                        <span class="detail-info-label"><i class="fas fa-check detail-building-check"></i> Selesai Pembangunan</span>
                                                         <span class="detail-info-value" id="s-tanggal_selesai_pembangunan">-</span>
-                                                    </div>
-                                                    <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label">Mulai Bangun</span>
-                                                        <span class="detail-info-value" id="s-tanggal_pembangunan">-</span>
-                                                    </div>
-                                                </div>
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">Tgl Turun Perintah Bangun</span>
-                                                        <span class="detail-info-value" id="s-perintah_bangun_tgl">-</span>
                                                     </div>
                                                 </div>
 
                                                 <div class="detail-section-divider">
                                                     <span class="detail-section-title detail-section-title-dot">Site Amenities</span>
                                                 </div>
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
+                                                <div class="detail-amenities-grid">
+                                                    <div class="detail-amenity-item">
                                                         <span class="detail-info-label">Saluran</span>
                                                         <span class="detail-status-badge badge-secondary" id="s-st_saluran">-</span>
                                                     </div>
-                                                    <div class="detail-info-col text-right">
+                                                    <div class="detail-amenity-item">
                                                         <span class="detail-info-label">Air</span>
                                                         <span class="detail-status-badge badge-secondary" id="s-st_air">-</span>
                                                     </div>
-                                                </div>
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
+                                                    <div class="detail-amenity-item">
                                                         <span class="detail-info-label">Listrik</span>
                                                         <span class="detail-status-badge badge-secondary" id="s-st_jalan">-</span>
                                                     </div>
-                                                    <div class="detail-info-col text-right">
+                                                    <div class="detail-amenity-item">
                                                         <span class="detail-info-label">SLO/NIDI</span>
                                                         <span class="detail-status-badge badge-secondary" id="s-slo">-</span>
                                                     </div>
-                                                </div>
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
+                                                    <div class="detail-amenity-item detail-amenity-item-wide">
                                                         <span class="detail-info-label">LPA</span>
                                                         <span class="detail-status-badge badge-secondary" id="s-lpa">-</span>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div class="detail-summary-card detail-status-card">
-                                                <div class="detail-status-card-header">
-                                                    <div class="detail-card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                                            <div class="detail-summary-card detail-status-card detail-summary-finance-card">
+                                                <div class="detail-status-card-header detail-summary-card-header">
+                                                    <div class="detail-card-icon detail-summary-card-icon detail-summary-card-icon-finance"><i class="fas fa-dollar-sign"></i></div>
                                                     <div class="detail-status-card-title">Keuangan</div>
                                                 </div>
 
-                                                <div class="d-flex justify-content-center mb-1" style="position: relative; height:160px; width:100%">
-                                                    <canvas id="keuanganChart"></canvas>
-                                                    <div id="keuanganChart-empty" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); display:none; text-align:center; color:#999; font-size:0.75rem;">
-                                                        Belum ada<br>pembayaran
+                                                <div class="detail-chart-summary">
+                                                    <div class="detail-chart-wrap">
+                                                        <canvas id="keuanganChart"></canvas>
+                                                        <div class="detail-chart-empty" id="keuanganChart-empty">
+                                                            Belum ada<br>pembayaran
+                                                        </div>
                                                     </div>
-                                                </div>
-
-                                                <div class="detail-info-row mt-1">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Telah Dibayar</span>
-                                                        <span class="detail-info-value detail-text-success" id="s-total_dibayar">Rp 0</span>
-                                                    </div>
-                                                    <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label"><span class="detail-dot detail-dot-danger"></span>Sisa Tagihan</span>
-                                                        <span class="detail-info-value detail-text-danger" id="s-sisa_tagihan">Rp 0</span>
+                                                    <div class="detail-chart-metrics">
+                                                        <div class="detail-chart-metric">
+                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Telah Dibayar</span>
+                                                            <span class="detail-info-value detail-text-success" id="s-total_dibayar">Rp 0</span>
+                                                        </div>
+                                                        <div class="detail-chart-metric">
+                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-danger"></span>Sisa Tagihan</span>
+                                                            <span class="detail-info-value detail-text-danger" id="s-sisa_tagihan">Rp 0</span>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -422,45 +414,53 @@
                                                     </div>
                                                 </div>
 
-                                                <div class="detail-section-divider">
+                                                <div class="detail-section-divider detail-section-divider-compact">
                                                     <span class="detail-section-title detail-section-title-dot">Cashout Status</span>
                                                 </div>
                                                 <div id="s-co"></div>
 
-                                                <div class="detail-section-divider">
+                                                <div class="detail-section-divider detail-section-divider-compact">
                                                     <span class="detail-section-title detail-section-title-dot">Hutang Subkon</span>
                                                 </div>
                                                 <div id="s-hutang-subkon"></div>
                                             </div>
 
-                                            <div class="detail-summary-card detail-status-card">
-                                                <div class="detail-status-card-header">
-                                                    <div class="detail-card-icon"><i class="fas fa-hand-holding-usd"></i></div>
+                                            <div class="detail-summary-card detail-status-card detail-summary-retention-card">
+                                                <div class="detail-status-card-header detail-summary-card-header">
+                                                    <div class="detail-card-icon detail-summary-card-icon detail-summary-card-icon-retention"><i class="fas fa-shield-alt"></i></div>
                                                     <div class="detail-status-card-title">Retensi &amp; Hasil Akad</div>
                                                 </div>
 
-                                                <div class="d-flex justify-content-center mb-1" style="position: relative; height:160px; width:100%">
-                                                    <canvas id="hasilAkadChart"></canvas>
-                                                    <div id="hasilAkadChart-empty" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); display:none; text-align:center; color:#999; font-size:0.75rem;">
-                                                        Belum ada<br>data pencairan
+                                                <div class="detail-chart-summary">
+                                                    <div class="detail-chart-wrap">
+                                                        <canvas id="hasilAkadChart"></canvas>
+                                                        <div class="detail-chart-empty" id="hasilAkadChart-empty">
+                                                            Belum ada<br>data pencairan
+                                                        </div>
+                                                    </div>
+                                                    <div class="detail-chart-metrics">
+                                                        <div class="detail-chart-metric">
+                                                            <span class="detail-info-label">Total Hasil Akad</span>
+                                                            <span class="detail-info-value" id="s-pa_total_hasil_akad">-</span>
+                                                        </div>
+                                                        <div class="detail-chart-metric">
+                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Sudah Cair</span>
+                                                            <span class="detail-info-value detail-text-success" id="s-pa_total_cair">-</span>
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                <div class="detail-info-row mt-1">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">Total Hasil Akad</span>
-                                                        <span class="detail-info-value" id="s-pa_total_hasil_akad">-</span>
-                                                    </div>
-                                                    <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Sudah Cair</span>
-                                                        <span class="detail-info-value detail-text-success" id="s-pa_total_cair">-</span>
-                                                    </div>
-                                                </div>
-
-                                                <div class="detail-section-divider">
+                                                <div class="detail-section-divider detail-section-divider-compact">
                                                     <span class="detail-section-title detail-section-title-dot">Item Retensi</span>
                                                 </div>
                                                 <div id="s-pa-retensi"></div>
+
+                                                <div id="s-pa-pengajuan-section" class="d-none">
+                                                    <div class="detail-section-divider detail-section-divider-compact">
+                                                        <span class="detail-section-title detail-section-title-dot">Pengajuan Hasil Akad</span>
+                                                    </div>
+                                                    <div id="s-pa-pengajuan"></div>
+                                                </div>
                                             </div>
 
                                         </div>

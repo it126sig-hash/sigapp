@@ -22,6 +22,7 @@ class PembayaranService
     protected $summaryRepo;
     protected $ledgerService;
     protected BookingPaymentService $bookingService;
+    protected MkdtSettlementService $settlementService;
 
     public function __construct()
     {
@@ -34,6 +35,7 @@ class PembayaranService
         $this->ledgerService = new FinanceLedgerService();
         $this->db = \Config\Database::connect();
         $this->bookingService = new BookingPaymentService($this->db);
+        $this->settlementService = new MkdtSettlementService($this->db);
     }
 
 
@@ -82,8 +84,6 @@ class PembayaranService
 
         // $e = $data->getVar('e');
 
-        $is_lunas = $data->getVar('is_lunas') ? 1 : 0;
-
         if ($this->lpModel->hasRecentDuplicate($form['id_mkdt'], $form['id_keuangan'], $form['nominal'], $form['tanggal_bayar'], $form['payment_type'])) {
             return [
                 'token' => csrf_hash(),
@@ -95,12 +95,15 @@ class PembayaranService
         #############################
         $db = $this->db;
         try {
-            $db->transStart();
+            $db->transException(true)->transBegin();
 
             $this->bookingService->assertManualAllocationAllowed((int) $form['id_mkdt'], $pembayaran);
 
             //insert log pembayaran
             $id_pembayaran = $this->lpModel->insert($form);
+            if (! $id_pembayaran) {
+                throw new \RuntimeException('Gagal menambahkan pembayaran');
+            }
 
             foreach ($pembayaran as $k => $v) {
                 $form_pembayaran = [
@@ -122,19 +125,17 @@ class PembayaranService
                 // var_dump($kategori);
                 // die();
                 if (!$r) {
-                    $db->transRollback();
-                    $response = [
-                        'token' => csrf_hash(),
-                        'status' => false,
-                        'message' => 'Gagal menambahkan detail pembayaran'
-                    ];
-                    return $response;
+                    throw new \RuntimeException('Gagal menambahkan detail pembayaran');
                 }
             }
 
             $this->ledgerService->recordIncomeFromLogPembayaran((int) $id_pembayaran, user_id());
             (new \App\Repositories\BookingPaymentRepository($db))->recalculate((int) $form['id_mkdt']);
+            $this->settlementService->synchronize((int) $form['id_mkdt']);
 
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
             $db->transCommit();
             $response = [
                 'status' => true,
@@ -175,13 +176,14 @@ class PembayaranService
         $db = $this->db;
 
         try {
-            $db->transBegin();
+            $db->transException(true)->transBegin();
             $this->bookingService->assertMayDelete((int) $idPembayaran);
             //soft delete log pembayaran
             $idMkdt = $this->lpModel->softDeleteAndReturnIdMkdt($idPembayaran);
             $this->ledgerService->voidByLogPembayaran((int) $idPembayaran, user_id());
             //recalculate summary
             $this->recalculateSummary($idMkdt);
+            $this->settlementService->synchronize((int) $idMkdt);
 
             if ($db->transStatus() === false) {
                 throw new \RuntimeException('Transaksi gagal');

@@ -7,6 +7,8 @@ use DateTimeInterface;
 
 class SiteplanVisualStatusService
 {
+    private const MAX_PENGAJUAN_MARKERS = 3;
+
     public function appendVisualRows(array $rows, ?DateTimeInterface $today = null): array
     {
         foreach ($rows as $index => $row) {
@@ -71,7 +73,7 @@ class SiteplanVisualStatusService
         }
 
         $markers = [];
-        if ($this->truthy($this->value($row, 'is_turun_pembangunan'))) {
+        if ($progress < 100 && $this->truthy($this->value($row, 'is_turun_pembangunan'))) {
             $markers[] = $this->marker('Perintah Bangun');
         }
 
@@ -80,6 +82,13 @@ class SiteplanVisualStatusService
 
     private function financeRow($row, DateTimeInterface $today): array
     {
+        $hasConsumer = (int) ($this->value($row, 'visual_id_konsumen') ?? 0) > 0;
+        $hasActiveBill = (int) ($this->value($row, 'tagihan_aktif_count') ?? 0) > 0;
+
+        if (!$hasConsumer || !$hasActiveBill) {
+            return $this->row('keuangan', 'Keuangan', [$this->segment('Def', 1)]);
+        }
+
         $isLunas = $this->truthy($this->value($row, 'is_lunas'));
         $markers = [];
 
@@ -91,35 +100,75 @@ class SiteplanVisualStatusService
             return $this->row('keuangan', 'Keuangan', [$this->segment('Belum Lunas', 1)], $markers);
         }
 
-        $submissionCount = max(0, (int) ($this->value($row, 'pa_pengajuan_count') ?? 0));
+        $outstandingCount = max(0, (int) ($this->value($row, 'pa_pengajuan_outstanding_count') ?? 0));
+        $submissionCount = max(
+            $outstandingCount,
+            (int) ($this->value($row, 'pa_pengajuan_count') ?? 0)
+        );
+        $submissionMarkers = $this->submissionMarkers($outstandingCount);
+
         if ($submissionCount === 0) {
-            return $this->row('keuangan', 'Keuangan', [$this->segment('Lunas', 1)]);
+            return $this->row(
+                'keuangan',
+                'Keuangan',
+                [$this->segment('Lunas', 1)],
+                [],
+                $this->financeMeta(null, 0)
+            );
         }
 
         $totalResult = max(0, (float) ($this->value($row, 'pa_total_hasil_akad') ?? 0));
         $totalDisbursed = max(0, (float) ($this->value($row, 'pa_total_cair_sum') ?? 0));
-        if ($totalResult <= 0 || $totalDisbursed <= 0) {
-            return $this->row('keuangan', 'Keuangan', [$this->segment('Pengajuan Pencairan Hasil Akad', 1)]);
+        if ($totalResult <= 0) {
+            return $this->row(
+                'keuangan',
+                'Keuangan',
+                [$this->segment('Lunas', 1)],
+                $submissionMarkers,
+                $this->financeMeta(null, $outstandingCount)
+            );
         }
 
         $disbursedRatio = min(1, $totalDisbursed / $totalResult);
+        if ($disbursedRatio <= 0) {
+            return $this->row(
+                'keuangan',
+                'Keuangan',
+                [$this->segment('Lunas', 1)],
+                $submissionMarkers,
+                $this->financeMeta(0, $outstandingCount)
+            );
+        }
+
         $segments = [$this->segment('Pencairan Hasil Akad', $disbursedRatio)];
 
         if ($disbursedRatio < 1) {
-            $segments[] = $this->segment('Pengajuan Pencairan Hasil Akad', 1 - $disbursedRatio);
+            $segments[] = $this->segment('Lunas', 1 - $disbursedRatio);
         }
 
-        return $this->row('keuangan', 'Keuangan', $segments);
+        return $this->row(
+            'keuangan',
+            'Keuangan',
+            $segments,
+            $submissionMarkers,
+            $this->financeMeta($disbursedRatio, $outstandingCount)
+        );
     }
 
-    private function row(string $key, string $label, array $segments, array $markers = []): array
+    private function row(string $key, string $label, array $segments, array $markers = [], array $meta = []): array
     {
-        return [
+        $row = [
             'key' => $key,
             'label' => $label,
             'segments' => $segments,
             'markers' => $markers,
         ];
+
+        if ($meta !== []) {
+            $row['meta'] = $meta;
+        }
+
+        return $row;
     }
 
     private function segment(string $configName, float $ratio): array
@@ -130,11 +179,36 @@ class SiteplanVisualStatusService
         ];
     }
 
-    private function marker(string $configName): array
+    private function marker(string $configName, float $position = 0.5): array
     {
         return [
             'config_name' => $configName,
-            'position' => 0.5,
+            'position' => round(max(0, min(1, $position)), 4),
+        ];
+    }
+
+    private function submissionMarkers(int $outstandingCount): array
+    {
+        $visibleCount = min(self::MAX_PENGAJUAN_MARKERS, max(0, $outstandingCount));
+        $markers = [];
+
+        for ($index = 1; $index <= $visibleCount; $index++) {
+            $markers[] = $this->marker(
+                'Pengajuan Pencairan Hasil Akad',
+                $index / ($visibleCount + 1)
+            );
+        }
+
+        return $markers;
+    }
+
+    private function financeMeta(?float $disbursementRatio, int $outstandingCount): array
+    {
+        return [
+            'disbursement_ratio' => $disbursementRatio === null
+                ? null
+                : round(max(0, min(1, $disbursementRatio)), 4),
+            'outstanding_submission_count' => max(0, $outstandingCount),
         ];
     }
 

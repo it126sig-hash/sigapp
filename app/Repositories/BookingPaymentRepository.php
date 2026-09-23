@@ -105,7 +105,7 @@ class BookingPaymentRepository
             ->join('keuangan_item_list kl', 'kl.id_keuangan_item_list = lpd.id_keuangan_item_list')
             ->join('(SELECT MIN(id_keuangan_item_list) AS id_keuangan_item_list FROM ' . $this->db->prefixTable('keuangan_item_list') . " WHERE kategori = 'UM' AND deleted_at IS NULL) um", '1 = 1', 'left', false)
             ->where('lp.id_mkdt', $id)->where('lp.is_deleted', 0)->where("NOT $separate", null, false)
-            ->where("COALESCE(lp.payment_type, '') != 'Refund'", null, false)
+            ->where("LOWER(REPLACE(TRIM(COALESCE(lp.payment_type,'')), ';', '')) != 'refund'", null, false)
             ->groupBy('1, 2, 3', false)->get()->getResultArray();
         // Legacy headers without any allocation remain part of installments unless they are Booking/Refund.
         $legacy = $this->db->table('log_pembayaran lp')->select('COALESCE(SUM(lp.nominal),0) AS total', false)
