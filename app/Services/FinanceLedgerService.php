@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\FinanceLedgerRepository;
+use CodeIgniter\Database\BaseConnection;
 
 class FinanceLedgerService
 {
@@ -20,10 +21,10 @@ class FinanceLedgerService
     protected FinanceLedgerRepository $ledgerRepo;
     protected $db;
 
-    public function __construct()
+    public function __construct(?BaseConnection $db = null)
     {
-        $this->ledgerRepo = new FinanceLedgerRepository();
-        $this->db = \Config\Database::connect();
+        $this->db = $db ?? \Config\Database::connect();
+        $this->ledgerRepo = new FinanceLedgerRepository($this->db);
     }
 
     public function recordIncomeFromLogPembayaran(int $idPembayaran, ?int $actorId = null): int
@@ -34,6 +35,11 @@ class FinanceLedgerService
         }
 
         if ((int) ($payment->is_deleted ?? 0) === 1) {
+            $this->voidByLogPembayaran($idPembayaran, $actorId);
+            return 0;
+        }
+
+        if ($this->num($payment->nominal ?? 0) <= 0) {
             $this->voidByLogPembayaran($idPembayaran, $actorId);
             return 0;
         }

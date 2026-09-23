@@ -99,6 +99,7 @@ class LogPembayaranRepository extends Model
                 'log_pembayaran_detail.*',
                 'kl.item',
                 'kl.kategori',
+                'log_pembayaran_detail.booking_is_installment',
             ])
             ->join('keuangan_item_list kl', 'kl.id_keuangan_item_list = log_pembayaran_detail.id_keuangan_item_list')
             ->where('log_pembayaran_detail.id_pembayaran', $id_Pembayaran)
@@ -110,7 +111,6 @@ class LogPembayaranRepository extends Model
         $row = $this->select('COALESCE(SUM(nominal), 0) AS total_bayar')
             ->where('id_mkdt', $id_Mkdt)
             ->where('is_deleted', 0)
-            ->where('payment_type !=', 'Booking')
             ->first();
 
         return (float) ($row->total_bayar ?? 0);
@@ -128,7 +128,6 @@ class LogPembayaranRepository extends Model
             ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
             ->where('lp.id_mkdt', $id_Mkdt)
             ->where('lp.is_deleted', 0)
-            ->where('lp.payment_type !=', 'Booking')
             ->groupBy(['lpd.id_keuangan_item_list', 'kl.item', 'kl.kategori'])
             ->orderBy('kl.id_keuangan_item_list', 'ASC')
             ->get()
@@ -141,6 +140,7 @@ class LogPembayaranRepository extends Model
                 'lpd.id_pembayaran',
                 'lpd.id_keuangan_item_list',
                 'lpd.nominal',
+                'lpd.booking_is_installment',
                 'kl.item',
                 'kl.kategori',
             ])

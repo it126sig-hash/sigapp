@@ -5,14 +5,16 @@
 <div class="modal modal-slide-in fade" id="modals-slide-in">
     <div class="modal-dialog sidebar-sm">
         <form id="fm-add_kavling" class="add-new-record modal-content pt-0">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
+            <button type="button" class="close" data-dismiss="modal" data-planning-cancel-edit
+                aria-label="Close">×</button>
             <div class="modal-header mb-1">
                 <h5 class="modal-title" id="exampleModalLabel">Tambah Data</h5>
             </div>
             <div class="modal-body flex-grow-1">
                 <div class="form-group hidden">
                     <label class="form-label" for="basic-icon-default-fullname">Proyek</label>
-                    <input type="hidden" class="form-control" id="points" readonly name="points" value="" />
+                    <input type="hidden" class="form-control" id="planning_points" readonly name="points" value="" />
+                    <input type="hidden" class="form-control" id="rotation" readonly name="rotation" value="" />
                     <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
                     <input type="hidden" class="form-control" id="nama_proyek" readonly name="nama_proyek"
                         placeholder="ASI" />
@@ -26,6 +28,7 @@
                         <option value="jalan">Jalan</option>
                         <option value="fasos">Fasos</option>
                         <option value="rth">RTH</option>
+                        <option value="ruko">RUKO</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -35,6 +38,22 @@
                 <div class="form-group">
                     <label class="form-label" for="basic-icon-default-post">Jalan</label>
                     <select disabled id="id_jalan" name="id_jalan" class="select id_jalan 2custom-select"></select>
+                </div>
+                <div class="form-group" id="simplify-rect-container" style="display:none; background: #f8f8f8; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    <label class="form-label font-weight-bold"><i class="fa fa-magic"></i> Perataan Bentuk Kavling</label>
+                    <p class="small text-muted mb-1">Gunakan fitur ini untuk merapikan hasil seleksi magic wand menjadi kotak presisi (rect) dan menentukan arah depan kavling.</p>
+                    <button type="button" id="btn-simplify-rect" class="btn btn-sm btn-outline-primary mb-1 w-100">Sederhanakan ke Rect</button>
+                    
+                    <div id="rotation-ui" class="mt-2" style="background: #f8f9fa; padding: 10px; border-radius: 5px; border: 1px solid #dee2e6;">
+                        <label class="form-label mb-1">Arah Fasad (Depan):</label>
+                        <div class="d-flex align-items-center">
+                            <div style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: #e9ecef; border-radius: 50%; margin-right: 10px;">
+                                <i id="rotation-icon" class="fa fa-arrow-right" style="font-size: 1.2rem; transform: rotate(0deg); transition: transform 0.3s;"></i>
+                            </div>
+                            <input type="number" id="ui-rotation" class="form-control form-control-sm mr-2" value="" placeholder="Derajat" style="width:80px; background-color: #fff;">
+                            <button type="button" id="btn-ubah-fasad" class="btn btn-sm btn-outline-info"><i class="fa fa-location-arrow"></i> Ubah Arah Fasad</button>
+                        </div>
+                    </div>
                 </div>
                 <hr>
                 <span>Luas di Lapangan : <br>
@@ -104,10 +123,11 @@
                 </div>
                 <a id="add-form-btn" class="btn btn-primary data-submit mr-1" onclick="add_kavling()"
                     href="javascript:void(0)">Simpan</a>
-                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal"
+                    data-planning-cancel-edit>Cancel</button>
             </div>
         </form>
     </div>
 </div>
 
-<script src="<?= base_url() ?>assets/js/siteplan/planning.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/planning.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/planning.js?v=999<?= time() ?>"></script>

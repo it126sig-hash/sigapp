@@ -38,6 +38,7 @@ class TransaksiService
     protected $storageService;
     protected $fileAccessService;
     protected $mkdtHistoryService;
+    protected BookingPaymentService $bookingPaymentService;
 
     // $kavlingRepo,
     //         $hargaRepo,
@@ -64,6 +65,7 @@ class TransaksiService
         $this->storageService = new StorageService();
         $this->fileAccessService = new FileAccessService();
         $this->mkdtHistoryService = new MkdtHistoryService();
+        $this->bookingPaymentService = new BookingPaymentService($this->db);
 
         $this->mkdt = new MkdtModel();
         $this->kavling = new KavlingModel();
@@ -139,6 +141,8 @@ class TransaksiService
                 $resp['log_pembayaran'] = $this->logRepo->getRiwayatBayarById($idMkdt);
                 $resp['list_spptb'] = $this->fileAccessService->addAccessUrlsToRows($this->spptbRepo->getLatestByMkdtId($idMkdt, 3), 'file_spptb');
                 $resp['total_sudah_bayar'] = $this->logRepo->getTotalBayarByIdMkdt($idMkdt);
+                $resp['booking'] = $this->bookingPaymentService->getBooking((int) $idMkdt);
+                $resp['angsuran'] = $this->bookingPaymentService->getInstallment((int) $idMkdt);
             }
         }
 
@@ -285,6 +289,10 @@ class TransaksiService
             $idMkdt = $mkResult['id_mkdt'];
             $uniqId = $mkResult['uniq_id'];
 
+            // MKDT is the source of truth for booking. This executes in the same
+            // transaction so a failed payment/ledger sync also rolls MKDT back.
+            $this->bookingPaymentService->synchronize($idMkdt, user_id());
+
             // Process input, change, or removal of referral code.
             $idProyek = $this->kavlingRepo->getIdProyekByKavling($idKavling);
             if ($idProyek) {
@@ -334,7 +342,7 @@ class TransaksiService
             $pesanNotif = $kons['id_mkdt']
                 ? ('Melakukan perubahan data konsumen : ' . $kons['nama_konsumen'])
                 : ('Booking kavling atas nama : ' . $kons['nama_konsumen']);
-            $this->notif->tambah_notif('3;4;9', $pesanNotif, user_id(), $idKavling, $idKonsumen, 'mkdt_konsumen');
+            $this->notif->tambah_notif('3;4;9', $pesanNotif, user_id(), $idKavling, $idKonsumen, $isNewMkdt ? \App\Enums\NotificationEvent::BOOKING_BARU : \App\Enums\NotificationEvent::DATA_KONSUMEN_UPDATE, null, "siteplan/view?id_kavling=" . $idKavling . "&tab=konsumen");
 
             $summary = $this->mkdtHistoryService->buildKonsumenSummary($oldMkdt, $kons, $mk, $isNewMkdt);
             $this->mkdtHistoryService->log(
@@ -416,6 +424,7 @@ class TransaksiService
 
         // Kalkulasi Turun KPR dari DB — abaikan nilai dari frontend
         $oldData = $this->transaksiRepo->getKonsumenTransaksi((int) $idMkdt);
+        $idKonsumen = $oldData ? $oldData->id_konsumen : null;
         $hargaKprDb = $oldData ? (float) $oldData->harga_kpr : 0;
         $accKpr = (float) ($data['harga_kpr_acc'] ?? 0);
         $data['harga_kpr']           = $hargaKprDb;
@@ -465,11 +474,14 @@ class TransaksiService
 
             if ($data['status_mkdt'] === 'Akad' && !$wasAkad) {
                 $this->notif->tambah_notif(
-                    '3;5;8;4;9',
+                    "3;5;8;4;9",
                     'Telah melakukan akad pada kavling ini',
                     user_id(),
                     $idKavling,
-                    $oldData->id_konsumen ?? null
+                    $idKonsumen,
+                    \App\Enums\NotificationEvent::AKAD,
+                    null,
+                    "siteplan/view?id_kavling=" . $idKavling . "&tab=konsumen"
                 );
             }
             
@@ -555,6 +567,14 @@ class TransaksiService
         }
 
         // update
+        if (array_key_exists('booking_fee', $data) || array_key_exists('booking_tgl', $data)) {
+            $current = $this->bookingPaymentService->getBooking((int) $idMkdtExisting);
+            $this->bookingPaymentService->assertEditable(
+                (int) $idMkdtExisting,
+                (float) ($data['booking_fee'] ?? $current['nominal_mkdt']),
+                $data['booking_tgl'] ?? $current['tanggal_mkdt']
+            );
+        }
         $data['edit_by'] = $opt['actor_id'] ?? $data['edit_by'] ?? null;
         if (!$this->mkdt->update($idMkdtExisting, $data)) {
             throw new \RuntimeException('Gagal memperbaharui data booking (mkdt).');
@@ -569,7 +589,24 @@ class TransaksiService
 
     function update($id, $data)
     {
-        return $this->mkdt->update($id, $data);
+        $this->db->transException(true)->transBegin();
+        try {
+            if (array_key_exists('booking_fee', $data) || array_key_exists('booking_tgl', $data)) {
+                $current = $this->bookingPaymentService->getBooking((int) $id);
+                $this->bookingPaymentService->assertEditable((int) $id,
+                    (float) ($data['booking_fee'] ?? $current['nominal_mkdt']),
+                    $data['booking_tgl'] ?? $current['tanggal_mkdt']);
+            }
+            if (! $this->mkdt->update($id, $data)) throw new \RuntimeException('Gagal memperbarui MKDT.');
+            if (array_key_exists('booking_fee', $data) || array_key_exists('booking_tgl', $data)) {
+                $this->bookingPaymentService->synchronize((int) $id, user_id());
+            }
+            $this->db->transCommit();
+            return true;
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            throw $e;
+        }
     }
 
     protected function num($d)

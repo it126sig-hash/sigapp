@@ -89,7 +89,7 @@ class TipeRepository
     private function dataTablesBaseQuery(string $search = '', $idProyek = null)
     {
         $builder = $this->db->table('tipe')
-            ->select('id_tipe, tipe.id_proyek, no_tipe_rumah, tipe_rumah, lb, lt, jumlah_kamar_tidur, jumlah_kamar_mandi, harga, keterangan, nama_proyek, is_subsidi')
+            ->select('id_tipe, tipe.id_proyek, no_tipe_rumah, tipe_rumah, lb, lt, jumlah_kamar_tidur, jumlah_kamar_mandi, harga, keterangan, nama_proyek, is_subsidi, (SELECT count(id_kavling) FROM kavling WHERE kavling.id_tipe = tipe.id_tipe AND deleted_at IS NULL) as jumlah_kavling')
             ->join('proyek', 'proyek.id_proyek = tipe.id_proyek')
             ->orderBy('tipe_rumah', 'desc');
 

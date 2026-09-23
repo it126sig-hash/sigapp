@@ -21,6 +21,8 @@ class PembayaranService
     protected $mkdtModel;
     protected $summaryRepo;
     protected $ledgerService;
+    protected BookingPaymentService $bookingService;
+    protected MkdtSettlementService $settlementService;
 
     public function __construct()
     {
@@ -32,12 +34,14 @@ class PembayaranService
         $this->summaryRepo = new PaymentSummaryRepository();
         $this->ledgerService = new FinanceLedgerService();
         $this->db = \Config\Database::connect();
+        $this->bookingService = new BookingPaymentService($this->db);
+        $this->settlementService = new MkdtSettlementService($this->db);
     }
 
 
     function simpan($data)
     {
-        $response['roken'] = csrf_hash();
+        $response['token'] = csrf_hash();
         $li_keu = $this->keuRepo->getLIKeu();
 
         $pembayaran = [];
@@ -80,10 +84,9 @@ class PembayaranService
 
         // $e = $data->getVar('e');
 
-        $is_lunas = $data->getVar('is_lunas') ? 1 : 0;
-
         if ($this->lpModel->hasRecentDuplicate($form['id_mkdt'], $form['id_keuangan'], $form['nominal'], $form['tanggal_bayar'], $form['payment_type'])) {
             return [
+                'token' => csrf_hash(),
                 'status' => false,
                 'message' => 'Pembayaran dengan nominal dan tanggal yang sama baru saja disimpan. Silakan cek Riwayat Pembayaran sebelum mengulang.'
             ];
@@ -92,10 +95,15 @@ class PembayaranService
         #############################
         $db = $this->db;
         try {
-            $db->transStart();
+            $db->transException(true)->transBegin();
+
+            $this->bookingService->assertManualAllocationAllowed((int) $form['id_mkdt'], $pembayaran);
 
             //insert log pembayaran
             $id_pembayaran = $this->lpModel->insert($form);
+            if (! $id_pembayaran) {
+                throw new \RuntimeException('Gagal menambahkan pembayaran');
+            }
 
             foreach ($pembayaran as $k => $v) {
                 $form_pembayaran = [
@@ -105,7 +113,8 @@ class PembayaranService
                     "created_at" => date('Y-m-d H:i:s'),
                     "updated_at" => date('Y-m-d H:i:s'),
                     "add_by" => user_id(),
-                    "edit_by" => user_id()
+                    "edit_by" => user_id(),
+                    "booking_is_installment" => ($kategoriMap[$v['id']] === 'BO' ? 1 : 0),
                 ];
                 $r = $this->lpModel->insertDetail($form_pembayaran);
 
@@ -115,25 +124,18 @@ class PembayaranService
 
                 // var_dump($kategori);
                 // die();
-                // update summary
-                $this->summaryRepo->updateCategory(
-                    $form['id_mkdt'],
-                    $kategori,
-                    $this->num($v['nominal'])
-                );
-
                 if (!$r) {
-                    $db->transRollback();
-                    $response = [
-                        'status' => false,
-                        'message' => 'Gagal menambahkan detail pembayaran'
-                    ];
-                    return $response;
+                    throw new \RuntimeException('Gagal menambahkan detail pembayaran');
                 }
             }
 
             $this->ledgerService->recordIncomeFromLogPembayaran((int) $id_pembayaran, user_id());
+            (new \App\Repositories\BookingPaymentRepository($db))->recalculate((int) $form['id_mkdt']);
+            $this->settlementService->synchronize((int) $form['id_mkdt']);
 
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
             $db->transCommit();
             $response = [
                 'status' => true,
@@ -143,35 +145,23 @@ class PembayaranService
             return $response;
         } catch (\Throwable $e) {
             $db->transRollback();
-            // echo $e->getMessage();
-            // echo '<pre>' . $e->getTraceAsString() . '</pre>';
+            log_message('error', '[PembayaranService::simpan] {message}', ['message' => $e->getMessage()]);
             $response = [
+                'token' => csrf_hash(),
                 'status' => false,
-                'message' => 'Gagal menambahkan pembayaran',
-                'error' => $e->getTraceAsString()
+                'message' => $e instanceof \DomainException ? $e->getMessage() : 'Gagal menambahkan pembayaran'
             ];
             return $response;
         }
     }
     function recalculateSummary($id_mkdt)
     {
-        $this->summaryRepo->setToZero($id_mkdt);
-
-        $detail = $this->lpModel->getDetailRiwayatBayarByIdMkdt($id_mkdt);
-
-        $grouped = [];
-        foreach ($detail as $row) {
-            $grouped[$row['kategori']] =
-                ($grouped[$row['kategori']] ?? 0) + $this->num($row['nominal']);
-        }
-
-        foreach ($grouped as $kategori => $nominal) {
-            $this->summaryRepo->updateCategory($id_mkdt, $kategori, $nominal);
-        }
+        (new \App\Repositories\BookingPaymentRepository($this->db))->recalculate((int) $id_mkdt);
     }
     function removeLP($request)
     {
-        $response = [
+            $response = [
+                'token' => csrf_hash(),
             'token'   => csrf_hash(),
             'success' => false,
             'messages' => 'Gagal menghapus data'
@@ -186,12 +176,14 @@ class PembayaranService
         $db = $this->db;
 
         try {
-            $db->transBegin();
+            $db->transException(true)->transBegin();
+            $this->bookingService->assertMayDelete((int) $idPembayaran);
             //soft delete log pembayaran
             $idMkdt = $this->lpModel->softDeleteAndReturnIdMkdt($idPembayaran);
             $this->ledgerService->voidByLogPembayaran((int) $idPembayaran, user_id());
             //recalculate summary
             $this->recalculateSummary($idMkdt);
+            $this->settlementService->synchronize((int) $idMkdt);
 
             if ($db->transStatus() === false) {
                 throw new \RuntimeException('Transaksi gagal');

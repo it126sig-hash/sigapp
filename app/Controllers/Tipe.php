@@ -81,6 +81,18 @@ class Tipe extends BaseController
         return $this->json($this->tipeService->remove((int) $this->request->getPost('id_tipe')));
     }
 
+    public function getListKavling()
+    {
+        $id = (int) $this->request->getPost('id_tipe');
+        $kavlingModel = new \App\Models\KavlingModel();
+        $list = $kavlingModel->select('kavling.id_kavling, kavling.no_kavling, kavling.status_kavling, jalan.nama_jalan')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
+            ->where('kavling.id_tipe', $id)
+            ->findAll();
+        
+        return $this->json(['success' => true, 'data' => $list]);
+    }
+
     private function json(array $payload)
     {
         $payload['token'] = $payload['token'] ?? csrf_hash();

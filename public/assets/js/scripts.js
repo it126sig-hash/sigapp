@@ -623,8 +623,15 @@ let notificationCenterUrgentItems = {};
 let notificationCenterRequest = null;
 let notificationBadgeRequest = null;
 let notificationCenterLoaded = false;
+let notificationCenterUserSelectedTab = false;
+let notificationActivityHasMore = true;
+let currentNotifProjectId = "auto"; // Default: ikut proyek aktif
 
 function notificationProjectId() {
+  if (currentNotifProjectId && currentNotifProjectId !== "auto") {
+    return currentNotifProjectId;
+  }
+
   if (typeof dt_proyek !== "undefined" && dt_proyek && dt_proyek.id_proyek) {
     return dt_proyek.id_proyek;
   }
@@ -640,6 +647,47 @@ function notificationEscape(value) {
   return $("<div>")
     .text(value === null || value === undefined || value === "" ? "-" : value)
     .html();
+}
+
+function notificationPlainText(value) {
+  const holder = document.createElement("div");
+  holder.innerHTML = value === null || value === undefined
+    ? ""
+    : String(value).replace(/<\s*(br|\/p|\/div|\/li)\s*\/?>/gi, " ");
+  const text = (holder.textContent || holder.innerText || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return text || "-";
+}
+
+function refreshNotificationIcons() {
+  if (window.feather && typeof window.feather.replace === "function") {
+    window.feather.replace();
+  }
+}
+
+function setNotificationRefreshLoading(loading) {
+  const $button = $("#refresh-notif-center");
+  if (!$button.length) {
+    return;
+  }
+
+  $button.prop("disabled", loading);
+  $button.html(loading
+    ? '<i class="fa fa-spinner fa-spin"></i>'
+    : '<i data-feather="refresh-cw"></i>');
+  refreshNotificationIcons();
+}
+
+function renderNotificationCenterError(message) {
+  const target = $("#notif-activity-pane").hasClass("is-active")
+    ? "#notif-here"
+    : "#notif-urgent-here";
+
+  $(target).html(
+    `<div class="notification-center-empty">${notificationEscape(message || "Gagal memuat notifikasi.")}</div>`,
+  );
 }
 
 function updateNotificationBadge(total) {
@@ -737,18 +785,14 @@ function getNotif(forceReload = true) {
     },
     dataType: "json",
     beforeSend: function () {
-      $("#refresh-notif-center, #load-more-notif").prop("disabled", true);
-      $("#refresh-notif-center").html(
-        'Memuat <i class="fa fa-spinner fa-spin"></i>',
-      );
-      $("#notification-center-body").addClass("blur");
+      setNotificationRefreshLoading(true);
+      $("#notification-center-body").addClass("is-loading");
     },
     success: function (r) {
       updateNotificationToken(r.token);
 
-      $("#refresh-notif-center, #load-more-notif").prop("disabled", false);
-      $("#refresh-notif-center").html("Perbarui");
-      $("#notification-center-body").removeClass("blur");
+      setNotificationRefreshLoading(false);
+      $("#notification-center-body").removeClass("is-loading");
       notificationCenterLoaded = true;
       renderNotificationCenter(r);
     },
@@ -757,12 +801,9 @@ function getNotif(forceReload = true) {
         return;
       }
 
-      $("#refresh-notif-center, #load-more-notif").prop("disabled", false);
-      $("#refresh-notif-center").html("Perbarui");
-      $("#notification-center-body").removeClass("blur");
-      $("#notif-urgent-here").html(
-        '<div class="notification-center-empty">Gagal memuat jatuh tempo.</div>',
-      );
+      setNotificationRefreshLoading(false);
+      $("#notification-center-body").removeClass("is-loading");
+      renderNotificationCenterError("Gagal memuat notifikasi.");
     },
     complete: function () {
       notificationCenterRequest = null;
@@ -771,14 +812,13 @@ function getNotif(forceReload = true) {
 }
 
 function ensureNotificationCenterLoaded() {
-  if (!notificationCenterLoaded) {
-    getNotif(false);
-  }
+  getNotif(false);
 }
 
 function renderNotificationCenter(response) {
   const urgent = response.urgent || {};
   const activity = response.activity || {};
+  const activityItems = activity.items || [];
   const urgentTotal = parseInt(response.urgent_total || urgent.total || 0, 10);
   const activityUnread = parseInt(response.activity_unread_count || 0, 10);
   const badgeTotal = parseInt(response.badge_total || urgentTotal + activityUnread, 10);
@@ -787,8 +827,13 @@ function renderNotificationCenter(response) {
   $("#notif-urgent-count").text(urgentTotal);
   $("#notif-activity-count").text(activityUnread);
   renderNotificationUrgent(urgent.sections || {}, urgentTotal);
-  renderNotificationActivity(activity.items || [], true);
-  start = (activity.items || []).length;
+  renderNotificationActivity(activityItems, true);
+  start = activityItems.length;
+  notificationActivityHasMore = activityItems.length >= 10;
+
+  if (!notificationCenterUserSelectedTab) {
+    setNotificationCenterTab(urgentTotal > 0 ? "urgent" : "activity", false);
+  }
 }
 
 function renderNotificationUrgent(sections, total) {
@@ -905,21 +950,36 @@ const DIVISI_AVATAR_COLOR = {
 
 function renderActivityItem(v) {
   const unread = v.is_read == 0;
-  const initial = (v.username || "?").trim().charAt(0).toUpperCase() || "?";
+  const username = v.username || "Sistem";
+  const initial = username.trim().charAt(0).toUpperCase() || "?";
   const badgeClass = DIVISI_BADGE_CLASS[v.divisi_id] || "badge-light-secondary";
   const avatarColor = DIVISI_AVATAR_COLOR[v.divisi_id] || "#82868b";
   const divisiBadge = v.divisi
     ? `<span class="badge badge-pill ${badgeClass}">${notificationEscape(v.divisi)}</span>`
     : "";
+  const notifText = notificationEscape(v.notif_text || notificationPlainText(v.notif));
+  const hasLocation = v.nama_jalan || v.no_kavling;
+  const locationText = hasLocation
+    ? `<span class="activity-location">${notificationEscape(v.nama_jalan)} No. ${notificationEscape(v.no_kavling)}</span>`
+    : "";
 
+  const defaultLogo = (typeof base_url !== 'undefined' ? base_url : '/') + 'assets/images/pwa/icon-192.png';
+  const logoUrl = v.logo_thumbnail_url || v.logo_access_url || defaultLogo;
+  
   return `
     <div class="activity-item${unread ? " is-unread" : ""}" onclick="handleNotificationClick(${v.id}, '${v.id_kavling}', '${v.type || ""}', this)">
-      <div class="activity-avatar" style="background:${avatarColor}">${initial}</div>
+      <div class="activity-avatar bg-transparent" style="padding:0; overflow:hidden; border: 1px solid #ebe9f1;">
+        <img src="${notificationEscape(logoUrl)}" alt="logo" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
+      </div>
       <div class="activity-body">
-        <p class="activity-text"><strong>${notificationEscape(v.username)}</strong> ${notificationEscape(v.notif)} <span class="text-muted">(${notificationEscape(v.nama_jalan)} No. ${notificationEscape(v.no_kavling)})</span></p>
-        <div class="activity-meta">
+        <div class="activity-title-row">
+          <strong>${notificationEscape(username)}</strong>
           ${divisiBadge}
+        </div>
+        <p class="activity-text">${notifText}</p>
+        <div class="activity-meta">
           <span class="activity-time">${notificationEscape(format_datetime(v.created_at))}</span>
+          ${locationText}
         </div>
       </div>
     </div>
@@ -934,21 +994,72 @@ $("#header-notif").on("click", function () {
   window.setTimeout(ensureNotificationCenterLoaded, 0);
 });
 
-$("#refresh-notif-center").click(function () {
+$("#refresh-notif-center").click(function (event) {
+  event.preventDefault();
   getNotif();
 });
 
-$("#load-more-notif").click(function () {
-  if (!notificationCenterLoaded) {
-    getNotif();
-    return;
-  }
-
-  loadData();
+$("#mark-all-read-notif-center").click(function (event) {
+  event.preventDefault();
+  let btn = $(this);
+  btn.prop("disabled", true);
+  
+  $.ajax({
+    type: "POST",
+    url: base_url + "/notif/mark-all-as-read",
+    data: { [csrfName]: csrfHash },
+    dataType: "json",
+    success: function (response) {
+      if (response && response.token) {
+        updateNotificationToken(response.token);
+      }
+      btn.prop("disabled", false);
+      getNotif(); // Refresh notifikasi agar badge & warna terupdate
+    },
+    error: function () {
+      btn.prop("disabled", false);
+      showToast("Gagal menandai notifikasi sebagai dibaca.", "danger");
+    }
+  });
 });
 
-function setNotificationCenterTab(target) {
+$("#list-notif").on("click", ".notif-project-btn", function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  // Reset active classes
+  $(".notif-project-btn").removeClass("btn-primary active text-white").addClass("bg-white border text-secondary");
+  
+  // Set current to active
+  $(this).removeClass("bg-white border text-secondary").addClass("btn-primary active text-white");
+
+  // Update active project name in header
+  const idProyek = $(this).data("id-proyek");
+  const namaProyek = $(this).data("nama-proyek");
+  $("#notif-active-project-name").text(namaProyek);
+
+  currentNotifProjectId = idProyek;
+  
+  loadNotificationBadge();
+  if ($("#list-notif").hasClass("show")) {
+      getNotif(true);
+  }
+});
+
+// Enable horizontal scrolling with mouse wheel for the project filter
+$(document).on("wheel", ".notif-project-scroll", function(e) {
+  if (e.originalEvent.deltaY !== 0) {
+    e.preventDefault();
+    this.scrollLeft += e.originalEvent.deltaY;
+  }
+});
+
+function setNotificationCenterTab(target, fromUser = true) {
   const normalizedTarget = target === "activity" ? "activity" : "urgent";
+  if (fromUser) {
+    notificationCenterUserSelectedTab = true;
+  }
+
   $("#notif-urgent-tab, #notif-activity-tab").removeClass("active");
   $("#notif-urgent-pane, #notif-activity-pane").removeClass("is-active active");
 
@@ -965,11 +1076,15 @@ function setNotificationCenterTab(target) {
 
 $("#notif-urgent-tab, #notif-activity-tab").on("click", function (event) {
   event.preventDefault();
-  setNotificationCenterTab($(this).data("notif-target"));
+  setNotificationCenterTab($(this).data("notif-target"), true);
 });
 
 // Fungsi untuk memuat data dari server
 function loadData() {
+  if (!notificationActivityHasMore) {
+    return;
+  }
+
   isLoading = true;
   $.ajax({
     url: base_url + "/loadnotif",
@@ -986,6 +1101,7 @@ function loadData() {
       }
       renderNotificationActivity(r.notif || [], false);
       if (r.notif && r.notif.length > 0) start += r.notif.length;
+      if (!r.notif || r.notif.length < 10) notificationActivityHasMore = false;
       isLoading = false;
     },
     error: function () {
@@ -1180,6 +1296,7 @@ $("#notification-center-body").scroll(function () {
   if (
     $(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight &&
     !isLoading &&
+    notificationActivityHasMore &&
     $("#notif-activity-pane").hasClass("is-active")
   ) {
     loadData();
@@ -1672,12 +1789,17 @@ function showFoto(data, imbuhan = "", del = true) {
         item.foto_lat && item.foto_lng
           ? `${Number(item.foto_lat).toFixed(6)}, ${Number(item.foto_lng).toFixed(6)}`
           : "-, -";
+      
+      const coordinateHTML =
+        item.foto_lat && item.foto_lng
+          ? `<div class="detail-file-meta" style="cursor: pointer;" onclick="copyCoordinateToClipboard(this, '${coordinateText}')" title="Klik untuk menyalin"><i class="fas fa-map-marker-alt text-danger mr-50"></i> ${coordinateText}</div>`
+          : `<div class="detail-file-meta"><i class="fas fa-map-marker-alt text-secondary mr-50"></i> -, -</div>`;
+          
       bodyDiv.innerHTML = `
-        <div class="detail-file-title">${item.file_name || (isDocument ? "File" : "Foto")}</div>
-        ${isDocument ? "" : `<div class="detail-file-meta">Tanggal foto: ${item.tgl_capture ? format_date(item.tgl_capture) : "-"}</div>`}
-        <div class="detail-file-meta">Diunggah oleh: ${item.username || "-"}</div>
-        <div class="detail-file-meta">${item.file_keterangan || "-"}</div>
-        ${isDocument ? "" : `<div class="detail-file-meta">Titik koordinat: ${coordinateText}</div>`}
+        <div class="detail-file-title font-weight-bold mb-50">${item.file_keterangan || (isDocument ? "Dokumen" : "Foto")}</div>
+        ${isDocument ? "" : `<div class="detail-file-meta text-primary"><i class="fas fa-calendar-alt mr-50"></i> ${item.tgl_capture ? format_date(item.tgl_capture) : "-"}</div>`}
+        <div class="detail-file-meta text-info"><i class="fas fa-user mr-50"></i> ${item.username || "-"}</div>
+        ${isDocument ? "" : coordinateHTML}
       `;
 
       const actionDiv = document.createElement("div");
@@ -2339,3 +2461,31 @@ const list_pekerjaan = {
         "Pekerjaan Sanitasi": ["Pasang closet", "Pasang washtafel", "Pasang bak mandi", "Pasang bak cuci piring", "Septictank"],
         "Pekerjaan Finishing & Pegecatan": ["Pengecatan kusen", "Pengecatan pintu dan jendela", "Pengecatan Plapond", "Pengecatan tembok"]
     };
+
+window.copyCoordinateToClipboard = function(el, text) {
+    if (!text || text === '-' || text === '-, -') return;
+    const prevHtml = el.innerHTML;
+    const onSuccess = () => {
+        el.innerHTML = '<i class="fas fa-check text-success mr-50"></i> <span class="text-success">Tersalin!</span>';
+        setTimeout(() => { el.innerHTML = prevHtml; }, 1500);
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(onSuccess).catch(() => fallback());
+    } else {
+        fallback();
+    }
+
+    function fallback() {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            if(document.execCommand('copy')) onSuccess();
+        } catch (err) {}
+        document.body.removeChild(textArea);
+    }
+};

@@ -51,16 +51,62 @@ function setProduksiJalanSelectionMode(active, clearSelection) {
   }
 }
 
+var produksiMoveState = {
+  active: false,
+  selected: [],
+  previousPoints: "",
+};
+
+function pindah_others_produksi() {
+  if (!editdtt.length) {
+    return Swal.fire({
+      icon: "error",
+      title: "Pilih objek terlebih dahulu",
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  }
+  
+  produksiMoveState = {
+    active: true,
+    selected: editdtt.slice(),
+    previousPoints: $("#fother_points").val(),
+  };
+
+  $("#modal_fothersproduksi").modal("hide");
+  setProduksiJalanSelectionMode(true, true);
+}
+
 function start_tambah_jalan_produksi() {
   setProduksiJalanSelectionMode(true, true);
 }
 
 function cancel_tambah_jalan_produksi() {
+  if (produksiMoveState && produksiMoveState.active) {
+    $("#fother_points").val(produksiMoveState.previousPoints);
+    editdtt = produksiMoveState.selected.slice();
+    produksiMoveState.active = false;
+    setProduksiJalanSelectionMode(false, true);
+    $("#modal_fothersproduksi").modal("show");
+    return;
+  }
   $("#modal_produksi_add_jalan").modal("hide");
   setProduksiJalanSelectionMode(false, true);
 }
 
 function tambah_jalan_produksi() {
+  if (produksiMoveState && produksiMoveState.active) {
+    if (!dtt || dtt.length < 6) {
+      return swal("error", "Seleksi manual minimal 3 titik");
+    }
+    $("#fother_points").val(dtt.join(","));
+    editdtt = produksiMoveState.selected.slice();
+    produksiMoveState.active = false;
+    setProduksiJalanSelectionMode(false, true);
+    $("#modal_fothersproduksi").modal("show");
+    return;
+  }
+
   if (!isProduksiManualSelectionActive()) {
     setProduksiJalanSelectionMode(true, false);
   }
@@ -273,6 +319,94 @@ function focusProduksiProgressForm() {
   if ($firstInput.length) $firstInput.trigger("focus");
 }
 
+function showProduksiUploadProgress(title = "Menyimpan Data Produksi") {
+  Swal.fire({
+    title: title,
+    html: `
+      <div class="text-left py-50">
+        <div class="d-flex justify-content-between align-items-center mb-50 font-small-3">
+          <span id="swal-upload-status" class="font-weight-bold text-primary">
+            <i class="fas fa-cloud-upload-alt mr-50"></i>Mengunggah berkas...
+          </span>
+          <span id="swal-upload-pct" class="font-weight-bold text-primary font-small-3">0%</span>
+        </div>
+        <div class="progress progress-bar-primary mb-50" style="height: 10px; border-radius: 6px; background: #e5eaf2; overflow: hidden;">
+          <div id="swal-upload-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+               role="progressbar" style="width: 0%; transition: width 0.2s ease;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <small id="swal-upload-detail" class="text-muted d-block font-small-2">
+          Mohon tunggu, berkas dan data sedang dikirim ke server...
+        </small>
+      </div>
+    `,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    showConfirmButton: false,
+  });
+}
+
+function updateProduksiUploadProgress(percent) {
+  let safePercent = Math.min(Math.max(percent, 0), 100);
+
+  // Update SweetAlert Progress
+  let $bar = $("#swal-upload-bar");
+  let $pct = $("#swal-upload-pct");
+  let $status = $("#swal-upload-status");
+  let $detail = $("#swal-upload-detail");
+
+  if (safePercent < 100) {
+    if ($bar.length) $bar.css("width", safePercent + "%").attr("aria-valuenow", safePercent);
+    if ($pct.length) $pct.text(safePercent + "%");
+    if ($status.length) {
+      $status.html('<i class="fas fa-cloud-upload-alt mr-50"></i>Mengunggah berkas...');
+    }
+    if ($detail.length) {
+      $detail.text("Mohon tunggu, berkas dan data sedang dikirim ke server (" + safePercent + "%)...");
+    }
+  } else {
+    if ($bar.length) $bar.css("width", "100%").attr("aria-valuenow", 100);
+    if ($pct.length) $pct.text("100%");
+    if ($status.length) {
+      $status.html('<i class="fas fa-cog fa-spin mr-50 text-warning"></i>Memproses & menyimpan data...');
+    }
+    if ($detail.length) {
+      $detail.html('Berkas selesai diunggah. Sedang memproses dan menyimpan ke database...');
+    }
+  }
+
+  // Update Inline Progress di Modal Footer
+  let $inlineBar = $("#produksi-upload-bar");
+  let $inlinePct = $("#produksi-upload-percentage");
+  let $inlineStatus = $("#produksi-upload-status");
+  let $inlineHint = $("#produksi-upload-hint");
+
+  if ($inlineBar.length) {
+    $inlineBar.css("width", safePercent + "%").attr("aria-valuenow", safePercent);
+  }
+  if ($inlinePct.length) {
+    $inlinePct.text(safePercent + "%");
+  }
+  if ($inlineStatus.length) {
+    if (safePercent < 100) {
+      $inlineStatus.html('<i class="fas fa-cloud-upload-alt mr-50"></i>Mengunggah berkas...');
+      if ($inlineHint.length) $inlineHint.text("Sedang mengunggah berkas ke server (" + safePercent + "%)...");
+    } else {
+      $inlineStatus.html('<i class="fas fa-cog fa-spin mr-50 text-warning"></i>Memproses & menyimpan data...');
+      if ($inlineHint.length) $inlineHint.text("Berkas selesai diunggah. Sedang menulis ke database...");
+    }
+  }
+
+  // Update Tombol Simpan
+  let $btn = $("#add-form-btn-produksi");
+  if ($btn.length) {
+    if (safePercent < 100) {
+      $btn.html('Mengunggah ' + safePercent + '% <i class="fas fa-spinner fa-spin ml-50"></i>');
+    } else {
+      $btn.html('Memproses... <i class="fas fa-spinner fa-spin ml-50"></i>');
+    }
+  }
+}
+
 function save_produksi() {
   if ($("#tanggal_pembangunan").val() == "") {
     $(".tanggal_pembangunan").addClass("is-invalid");
@@ -290,6 +424,14 @@ function save_produksi() {
   let fd = new FormData(form);
   fd.append(csrfName, csrfHash);
 
+  let hasFiles = false;
+  $("#fm-produksi input[type='file']").each(function () {
+    if (this.files && this.files.length > 0) {
+      hasFiles = true;
+      return false;
+    }
+  });
+
   $.ajax({
     url: base_url + "api/produksi/save",
     type: "post",
@@ -297,41 +439,58 @@ function save_produksi() {
     processData: false,
     data: fd,
     dataType: "json",
+    xhr: function () {
+      let xhr = new window.XMLHttpRequest();
+      xhr.upload.addEventListener(
+        "progress",
+        function (evt) {
+          if (evt.lengthComputable) {
+            let percentComplete = Math.round((evt.loaded / evt.total) * 100);
+            updateProduksiUploadProgress(percentComplete);
+          }
+        },
+        false,
+      );
+      return xhr;
+    },
     beforeSend: function () {
-      simpanBtn("#add-form-btn-produksi", true);
+      $("#add-form-btn-produksi").prop("disabled", true);
+      $("#modal_divisi7 .modal-footer button").prop("disabled", true);
+      $("#produksi-upload-progress").slideDown(200);
+      updateProduksiUploadProgress(0);
+      showProduksiUploadProgress(hasFiles ? "Mengunggah Data & Foto Produksi" : "Menyimpan Data Produksi");
     },
     success: function (r) {
       csrfHash = r.token;
-      // $('#add-form-btn-produksi').prop('disabled', false);
-      // return;
+      $("#produksi-upload-progress").slideUp(200);
+      $("#modal_divisi7 .modal-footer button").prop("disabled", false);
+      $("#add-form-btn-produksi").html('<i class="fas fa-save mr-50"></i>Simpan');
+
       if (r.success === true) {
         Swal.fire({
-          //position: 'bottom-end',
           icon: "success",
           title: r.messages,
           showConfirmButton: false,
           timer: 1500,
         }).then(function () {
           $(".modal").modal("hide");
-          simpanBtn("#add-form-btn-produksi", false);
         });
       } else {
         Swal.fire({
-          //position: 'bottom-end',
           icon: "error",
           title: r.messages,
           showConfirmButton: false,
           timer: 1500,
-        }).then(function () {
-          simpanBtn("#add-form-btn-produksi", false);
         });
       }
       load_kavling();
       hapus_seleksi();
     },
     error: function (xhr, st, err) {
-      simpanBtn("#add-form-btn-produksi", false);
-      return swal("error", err);
+      $("#produksi-upload-progress").slideUp(200);
+      $("#modal_divisi7 .modal-footer button").prop("disabled", false);
+      $("#add-form-btn-produksi").html('<i class="fas fa-save mr-50"></i>Simpan');
+      return swal("error", err || "Terjadi kesalahan saat menyimpan data");
     },
   });
 }
@@ -871,11 +1030,27 @@ function save_fotherproduksi() {
     processData: false,
     contentType: false,
     dataType: "json",
+    xhr: function () {
+      let xhr = new window.XMLHttpRequest();
+      xhr.upload.addEventListener(
+        "progress",
+        function (evt) {
+          if (evt.lengthComputable) {
+            let percentComplete = Math.round((evt.loaded / evt.total) * 100);
+            updateProduksiUploadProgress(percentComplete);
+          }
+        },
+        false,
+      );
+      return xhr;
+    },
     beforeSend: function () {
       $("#save_fotherproduksi-btn").prop("disabled", true);
       $("#save_fotherproduksi-btn").html(
-        'Menyimpan <i class="fa fa-spinner fa-spin"></i>',
+        'Mengunggah <i class="fa fa-spinner fa-spin"></i>',
       );
+      updateProduksiUploadProgress(0);
+      showProduksiUploadProgress("Mengunggah & Menyimpan Progres Jalan");
     },
     success: function (r) {
       csrfHash = r.token;
@@ -947,6 +1122,7 @@ function open_fotherproduksi(sh) {
           progres = d.progres ? d.progres : 0;
         $(".produksi-jalan-only").toggleClass("hidden", d.tipe !== "jalan");
         $(".id_kavling").val(d.id);
+        $("#fother_points").val(d.points);
         $(".t_luas_legal, .t_luas_produksi").html("-");
 
         if (d.planning_luas)

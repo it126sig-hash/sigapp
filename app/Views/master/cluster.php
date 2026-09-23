@@ -25,10 +25,14 @@
             <table id="data_table" class="datatables-basic table">
               <thead>
                 <tr>
-                  <th>Id cluster</th>
+                  <th>No</th>
                   <th>Id proyek</th>
                   <th>Nama Proyek</th>
                   <th>Nama cluster</th>
+                  <th>Kavling Dibangun</th>
+                  <th>Akad</th>
+                  <th>Booking</th>
+                  <th>Belum Terjual</th>
                   <th>Is active</th>
                   <th></th>
                 </tr>
@@ -49,18 +53,7 @@
           <div class="modal-body flex-grow-1">
             <div class="row">
               <input type="hidden" id="idCluster" name="idCluster" class="form-control" placeholder="Id cluster" maxlength="255" required>
-            </div>
-            <div>
-              <div class="form-group">
-                <label for="idProyek"> Pilih Proyek: </label>
-                <select id="idProyek" name="idProyek" class="custom-select select2">
-                  <?php
-                  foreach ($proyek as $p) {
-                    echo "<option value='$p->id_proyek'>$p->nama_proyek</option>";
-                  }
-                  ?>
-                </select>
-              </div>
+              <input type="hidden" id="idProyek" name="idProyek" class="form-control">
             </div>
             <div>
               <div class="form-group">
@@ -94,18 +87,7 @@
           <div class="modal-body flex-grow-1">
             <div class="row">
               <input type="hidden" id="idCluster" name="idCluster" class="form-control" placeholder="Id cluster" maxlength="255" required>
-            </div>
-            <div>
-              <div class="form-group">
-                <label for="idProyek"> Id proyek: </label>
-                <select id="idProyek" name="idProyek" class="custom-select">
-                  <?php
-                  foreach ($proyek as $p) {
-                    echo "<option value='$p->id_proyek'>$p->nama_proyek</option>";
-                  }
-                  ?>
-                </select>
-              </div>
+              <input type="hidden" id="idProyek" name="idProyek" class="form-control">
             </div>
             <div>
               <div class="form-group">
@@ -152,10 +134,20 @@
   $(function() {
     var table = $('#data_table').DataTable({
       paging: true,
-      columnDefs: [{
-        targets: [1],
-        visible: false
-      }],
+      columnDefs: [
+        {
+          targets: [0],
+          searchable: false,
+          orderable: false,
+          render: function(data, type, row, meta) {
+            return meta.row + meta.settings._iDisplayStart + 1;
+          }
+        },
+        {
+          targets: [1],
+          visible: false
+        }
+      ],
       lengthChange: true,
       searching: true,
       ordering: true,
@@ -181,10 +173,6 @@
         },
         async: "true"
       }
-    });
-    $("#idProyek").select2({
-      placeholder: "Pilih proyek",
-      allowClear: true
     });
     //on chnage search
     $(".dataTables_filter input")
@@ -213,6 +201,7 @@
     $("#add-form")[0].reset();
     $(".form-control").removeClass('is-invalid').removeClass('is-valid');
     $('#add-modal').modal('show');
+    initModalListener('#add-modal');
     if (activeProyekId()) {
       $("#add-form #idProyek").val(activeProyekId()).trigger('change');
     } else {
@@ -270,6 +259,7 @@
                 timer: 1500
               }).then(function() {
                 $('#data_table').DataTable().ajax.reload(null, false).draw(false);
+                removeModalListener('#add-modal');
                 $('#add-modal').modal('hide');
               })
 
@@ -323,6 +313,7 @@
         $("#edit-form")[0].reset();
         $(".form-control").removeClass('is-invalid').removeClass('is-valid');
         $('#edit-modal').modal('show');
+        initModalListener('#edit-modal');
 
         $("#edit-form #idCluster").val(response.id_cluster);
         $("#edit-form #idProyek").val(response.id_proyek);
@@ -378,6 +369,7 @@
                     timer: 1500
                   }).then(function() {
                     $('#data_table').DataTable().ajax.reload(null, false).draw(false);
+                    removeModalListener('#edit-modal');
                     $('#edit-modal').modal('hide');
                   })
 

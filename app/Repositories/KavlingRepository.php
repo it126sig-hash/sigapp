@@ -10,9 +10,9 @@ class KavlingRepository
 {
     protected $db;
     protected $model;
-    public function __construct()
+    public function __construct(?BaseConnection $db = null)
     {
-        $this->db = \Config\Database::connect();
+        $this->db = $db ?? \Config\Database::connect();
         $this->model = model(KavlingModel::class);
     }
 
@@ -256,7 +256,7 @@ class KavlingRepository
     }
 
     /**
-     * Select tambahan untuk status pencairan hasil akad (divisi Keuangan / id_divisi 3 saja).
+     * Select tambahan untuk status pencairan hasil akad (mode utama dan divisi Keuangan).
      * Join tunggal ke derived table teragregasi per id_plan, bukan subquery per baris.
      */
     private function addPencairanAkadSelect(BaseBuilder $builder): void
@@ -266,6 +266,7 @@ class KavlingRepository
         $builder->join(
             "(SELECT id_plan,
                      SUM(CASE WHEN status <> 'void' THEN 1 ELSE 0 END) AS pa_pengajuan_count,
+                     SUM(CASE WHEN status IN ('active', 'partial') THEN 1 ELSE 0 END) AS pa_pengajuan_outstanding_count,
                      SUM(CASE WHEN status <> 'void' THEN total_cair ELSE 0 END) AS pa_total_cair_sum
               FROM pencairan_akad_pengajuan
               GROUP BY id_plan) papg",
@@ -278,8 +279,53 @@ class KavlingRepository
             pap.id AS pa_plan_id,
             pap.total_hasil_akad AS pa_total_hasil_akad,
             papg.pa_pengajuan_count,
+            papg.pa_pengajuan_outstanding_count,
             papg.pa_total_cair_sum
         ', true);
+    }
+
+    /**
+     * Field lintas departemen yang diperlukan renderer utama siteplan.
+     */
+    private function addCompositeVisualSelect(BaseBuilder $builder): void
+    {
+        $builder->select('
+            mkdt.booking_tgl,
+            mkdt.wawancara,
+            mkdt.wawancara_tgl,
+            mkdt.sp3k,
+            mkdt.sp3k_tgl,
+            mkdt.akad_indent,
+            mkdt.akad,
+            mkdt.akad_tgl,
+            mkdt.is_kpr,
+            mkdt.id_konsumen AS visual_id_konsumen,
+            kavling.perintah_bangun AS is_turun_pembangunan
+        ', true);
+    }
+
+    /**
+     * Satu join agregat untuk jumlah tagihan aktif dan tanggal jatuh tempo paling awal per transaksi.
+     */
+    private function addCompositeFinanceSelect(BaseBuilder $builder): void
+    {
+        $builder->join(
+            "(SELECT id_mkdt,
+                     COUNT(*) AS tagihan_aktif_count,
+                     MIN(CASE
+                         WHEN sudah_dibayar = 0 AND jatuh_tempo_tgl IS NOT NULL
+                         THEN jatuh_tempo_tgl
+                         ELSE NULL
+                     END) AS jatuh_tempo_tgl
+              FROM keuangan
+              WHERE is_void = 0
+              GROUP BY id_mkdt) keu_visual",
+            'keu_visual.id_mkdt = mkdt.id_mkdt',
+            'left',
+            false
+        );
+
+        $builder->select('keu_visual.tagihan_aktif_count, keu_visual.jatuh_tempo_tgl', true);
     }
 
     /**
@@ -288,10 +334,17 @@ class KavlingRepository
     public function getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null, $kategoriFilters = [])
     {
         $builder = $this->baseQuery();
+        $clusterIds = $this->normalizeIds($id_cluster);
 
-        $this->addDivisiSelect($builder, $id_divisi);
+        $idDivisi = (int) $id_divisi;
 
-        if ((int) $id_divisi === 3) {
+        $this->addDivisiSelect($builder, $idDivisi);
+
+        if ($idDivisi === 0) {
+            $this->addCompositeVisualSelect($builder);
+            $this->addCompositeFinanceSelect($builder);
+            $this->addPencairanAkadSelect($builder);
+        } elseif ($idDivisi === 3) {
             $this->addPencairanAkadSelect($builder);
         }
 
@@ -341,7 +394,7 @@ class KavlingRepository
         // filter proyek
         $builder->where('cluster.id_proyek', $id_proyek);
 
-        $projectJalanIds = $this->getProjectJalanIds($id_proyek, $id_cluster);
+        $projectJalanIds = $this->getProjectJalanIds($id_proyek, $clusterIds);
         if ($projectJalanIds === []) {
             return [];
         }
@@ -349,8 +402,8 @@ class KavlingRepository
         $builder->whereIn('kavling.id_jalan', $projectJalanIds);
 
         // filter cluster
-        if ($id_cluster) {
-            $builder->where('cluster.id_cluster', $id_cluster);
+        if ($clusterIds !== []) {
+            $builder->whereIn('cluster.id_cluster', $clusterIds);
         }
 
         // filter jalan
@@ -372,8 +425,9 @@ class KavlingRepository
             ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
             ->where('cluster.id_proyek', $id_proyek);
 
-        if ($id_cluster) {
-            $builder->where('cluster.id_cluster', $id_cluster);
+        $clusterIds = $this->normalizeIds($id_cluster);
+        if ($clusterIds !== []) {
+            $builder->whereIn('cluster.id_cluster', $clusterIds);
         }
 
         $rows = $builder->get()->getResult();
@@ -381,6 +435,21 @@ class KavlingRepository
         return array_values(array_map(static function ($row) {
             return (string) $row->id_jalan;
         }, $rows));
+    }
+
+    private function normalizeIds($value): array
+    {
+        $values = is_array($value) ? $value : (($value === null || $value === '') ? [] : [$value]);
+        $ids = [];
+
+        foreach ($values as $item) {
+            $id = filter_var($item, FILTER_VALIDATE_INT);
+            if ($id !== false && $id > 0) {
+                $ids[(int) $id] = (int) $id;
+            }
+        }
+
+        return array_values($ids);
     }
 
     public function getPerintahBangun($id_kavling)

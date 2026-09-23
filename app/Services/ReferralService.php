@@ -13,9 +13,6 @@ class ReferralService
 {
     private const GROUP_PROMOSI = '8';
     private const GROUP_KEUANGAN = '3';
-    private const TYPE_MGM_REFERRAL_CREATED = 'mgm_referral_created';
-    private const TYPE_MGM_SPP_SUBMITTED = 'mgm_spp_submitted';
-    private const TYPE_MGM_SPP_CAIR = 'mgm_spp_cair';
 
     protected $repo;
     protected $model;
@@ -591,16 +588,12 @@ class ReferralService
             return;
         }
 
-        $status = $this->isAkadNotificationContext($context) ? 'akad' : 'booking';
         $message = sprintf(
-            'Konsumen %s kavling %s baru %s menggunakan kode referal %s',
-            $this->notificationValue($context->referred_nama ?? null, 'konsumen'),
-            $this->notificationValue($context->referred_kavling ?? null, 'kavling'),
-            $status,
-            $this->notificationValue($context->kode_referal ?? null, '-')
+            '%s mendaftar menggunakan kode referensi dari Anda',
+            $this->notificationValue($context->nama_konsumen ?? null, 'Konsumen')
         );
 
-        $this->sendMgmNotification(self::GROUP_PROMOSI, $message, self::TYPE_MGM_REFERRAL_CREATED, $context);
+        $this->sendMgmNotification(self::GROUP_PROMOSI, $message, \App\Enums\NotificationEvent::MGM_REFERRAL_CREATED, $context);
     }
 
     private function notifyMgmSppSubmitted(int $idReferralBonus): void
@@ -611,14 +604,12 @@ class ReferralService
         }
 
         $message = sprintf(
-            '%s mengajukan pencairan SPP bonus %s untuk %s kavling %s',
-            $this->notificationValue($context->submitted_keuangan_username ?? null, 'User Promosi'),
+            'Pengajuan SPP %s dari %s',
             $this->notificationValue($context->nama_tahapan ?? null, 'MGM'),
-            $this->notificationValue($context->referred_nama ?? null, 'konsumen'),
-            $this->notificationValue($context->referred_kavling ?? null, 'kavling')
+            $this->notificationValue($context->promosi_username ?? null, 'Promosi')
         );
 
-        $this->sendMgmNotification(self::GROUP_KEUANGAN, $message, self::TYPE_MGM_SPP_SUBMITTED, $context);
+        $this->sendMgmNotification(self::GROUP_KEUANGAN, $message, \App\Enums\NotificationEvent::MGM_SPP_SUBMITTED, $context);
     }
 
     private function notifyMgmSppCair(int $idReferralBonus): void
@@ -639,7 +630,7 @@ class ReferralService
             $bankSuffix
         );
 
-        $this->sendMgmNotification(self::GROUP_PROMOSI, $message, self::TYPE_MGM_SPP_CAIR, $context);
+        $this->sendMgmNotification(self::GROUP_PROMOSI, $message, \App\Enums\NotificationEvent::MGM_SPP_CAIR, $context);
     }
 
     private function getMgmNotificationContext(int $idReferralBonus): ?object
@@ -662,7 +653,8 @@ class ReferralService
                 !empty($context->id_kavling) ? (int) $context->id_kavling : null,
                 !empty($context->id_konsumen) ? (int) $context->id_konsumen : null,
                 $type,
-                !empty($context->id_proyek) ? (int) $context->id_proyek : null
+                !empty($context->id_proyek) ? (int) $context->id_proyek : null,
+                'member-get-member?id_referral=' . ($context->id_referral ?? '')
             );
         } catch (\Throwable $e) {
             log_message('error', 'MGM Notif Error: ' . $e->getMessage());

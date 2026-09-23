@@ -188,28 +188,25 @@
             <h5 class="list-hasil-akad-title"><?= $data['title'] ?></h5>
             <div class="list-hasil-akad-divider"></div>
             <div class="list-hasil-akad-filter">
-              <div class="filter-field">
-                <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
-              </div>
-              <div class="filter-field">
-                <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
-              </div>
-              <div class="filter-field filter-field-sm">
-                <select id="status_cair" name="status_cair" class="form-control">
-                  <option value="">Semua</option>
-                  <option value="belum_cair">Belum Cair</option>
-                  <option value="sudah_cair">Sudah Cair</option>
-                </select>
+              <div class="filter-action">
+                <button type="button" class="btn btn-primary waves-effect btn-sm text-uppercase" data-toggle="modal" data-target="#modal-filter">
+                  <i class="fas fa-filter mr-25"></i> Filter Data
+                </button>
               </div>
               <div class="filter-action">
-                <button type="button" id="btn_draw" class="btn btn-primary waves-effect btn-sm text-uppercase">
-                  <i class="fas fa-filter mr-25"></i> Filter Data
+                <button type="button" class="btn btn-outline-secondary waves-effect btn-sm text-uppercase btn-clear-filter">
+                  <i class="fas fa-times mr-25"></i> Clear Filter
                 </button>
               </div>
               <div class="filter-action">
                 <a href="<?= base_url('keuangan/hasil-akad/import') ?>" class="btn btn-outline-primary waves-effect btn-sm text-uppercase">
                   <i class="fas fa-upload mr-25"></i> Import Tanggal Cair
                 </a>
+              </div>
+            </div>
+            <div class="w-100 mt-50" id="active_filter_container" style="display: none;">
+              <div class="text-muted" style="font-size: 0.8rem;">
+                <i class="fas fa-info-circle mr-25"></i> <strong>Filter Aktif:</strong> <span id="active_filter_text"></span>
               </div>
             </div>
           </div>
@@ -240,6 +237,46 @@
       </div>
     </div>
   </section>
+</div>
+
+<!-- Modal Filter -->
+<div class="modal modal-slide-in fade" id="modal-filter">
+  <div class="modal-dialog sidebar-sm">
+    <form class="add-new-record modal-content pt-0">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
+      <div class="modal-header mb-1">
+        <h5 class="modal-title" id="exampleModalLabel">Filter Data</h5>
+      </div>
+      <div class="modal-body flex-grow-1">
+        <div class="form-group">
+          <label class="form-label">Tanggal Akad</label>
+          <input type="text" id="tanggal_akad" class="form-control" placeholder="Pilih Periode">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cluster</label>
+          <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Blok / Jalan</label>
+          <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status Pencairan</label>
+          <select id="status_cair" name="status_cair" class="form-control">
+            <option value="belum_cair" selected>Belum Cair</option>
+            <option value="sudah_cair">Sudah Cair</option>
+            <option value="">Semua</option>
+          </select>
+        </div>
+        <button type="button" id="btn_draw" class="btn btn-primary btn-block waves-effect text-uppercase mt-2" data-dismiss="modal">
+          <i class="fas fa-filter mr-25"></i> Terapkan Filter
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-block waves-effect text-uppercase mt-1 btn-clear-filter" data-dismiss="modal">
+          <i class="fas fa-times mr-25"></i> Clear Filter
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <?= view('keuangan/partials/modal_pencairan_akad') ?>
@@ -329,11 +366,9 @@
       return `
         <tr>
           <td>${row.tanggal_pengajuan ? format_date(row.tanggal_pengajuan) : "-"}</td>
-          <td>${row.tanggal_rencana_cair ? format_date(row.tanggal_rencana_cair) : "-"}</td>
           <td class="text-right">Rp ${num_format(parseFloat(row.total_pengajuan || 0))}</td>
           <td class="text-right">Rp ${num_format(parseFloat(row.total_cair || 0))}</td>
           <td>${paChildStatusBadge(row.status)}</td>
-          <td>${lampiran}</td>
         </tr>`;
     }).join("");
 
@@ -342,11 +377,9 @@
         <thead>
           <tr>
             <th>Tgl Pengajuan</th>
-            <th>Rencana Cair</th>
             <th class="text-right">Total Pengajuan</th>
             <th class="text-right">Total Cair</th>
             <th>Status</th>
-            <th>Lampiran</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -498,6 +531,7 @@
           data.id_cluster = $("#id_cluster").val()
           data.id_jalan = $("#id_jalan").val()
           data.status_cair = $("#status_cair").val()
+          data.tanggal_akad = $("#tanggal_akad").val()
         },
         dataSrc: function(r) {
           if (r.token) csrfHash = r.token
@@ -531,6 +565,7 @@
 
     if (activeProyekId()) {
       $("#id_cluster").prop("disabled", false);
+      updateActiveFilterText();
       hasilAkadTable.draw();
     }
 
@@ -609,13 +644,55 @@
         cache: true
       },
     })
+    
+    $("#tanggal_akad").flatpickr({
+      mode: "range",
+      dateFormat: "Y-m-d",
+    });
+
+    function updateActiveFilterText() {
+      let activeFilters = [];
+      
+      let tgl = $("#tanggal_akad").val();
+      if (tgl) activeFilters.push("Tgl Akad: " + tgl);
+      
+      let cluster = $("#id_cluster").find("option:selected").text();
+      if ($("#id_cluster").val() && cluster) activeFilters.push("Cluster: " + cluster);
+      
+      let jalan = $("#id_jalan").find("option:selected").text();
+      if ($("#id_jalan").val() && jalan) activeFilters.push("Blok/Jalan: " + jalan);
+      
+      let status = $("#status_cair").find("option:selected").text();
+      if ($("#status_cair").val() && status && status !== "Semua") activeFilters.push("Status Pencairan: " + status);
+      
+      if (activeFilters.length > 0) {
+        $("#active_filter_text").text(activeFilters.join(" | "));
+        $("#active_filter_container").show();
+      } else {
+        $("#active_filter_container").hide();
+        $("#active_filter_text").text("");
+      }
+    }
+
+    $(".btn-clear-filter").on("click", function(e) {
+      document.getElementById('tanggal_akad')._flatpickr.clear();
+      $("#id_cluster").val(null).trigger("change");
+      $("#id_jalan").val(null).trigger("change");
+      $("#status_cair").val("belum_cair");
+      
+      updateActiveFilterText();
+      hasilAkadDetailCache = {};
+      hasilAkadTable.draw();
+    });
 
     $("#btn_draw").on("click", function(e) {
+      updateActiveFilterText();
       hasilAkadDetailCache = {};
       hasilAkadTable.draw();
     })
 
     $("#status_cair").on("change", function(e) {
+      updateActiveFilterText();
       hasilAkadDetailCache = {};
       hasilAkadTable.draw();
     })

@@ -47,7 +47,7 @@ class FileAccessService
         'si'                => [1, 2,  4, 7, 9],
         'komplain_sales'    => [1, 2,  7, 8, 9],
         'komplain_produksi' => [1, 2,  7, 8, 9],
-        'produksi_jalan_progress' => [1, 2,  7, 9],
+        'produksi_jalan_progress' => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'profile_photo'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'poskon_export'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'tiket_masalah'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
@@ -99,6 +99,10 @@ class FileAccessService
 
     public function existingPath(?string $logicalPath): ?string
     {
+        if ($logicalPath === null || trim($logicalPath) === '') {
+            return null;
+        }
+
         try {
             return $this->findExistingPath($logicalPath);
         } catch (RuntimeException) {
@@ -112,6 +116,25 @@ class FileAccessService
         return $download ? $url . '?download=1' : $url;
     }
 
+    public function versionedAccessUrl(string $source, int $id, ?string $logicalPath, bool $download = false): string
+    {
+        $url = $this->accessUrl($source, $id);
+        $path = $this->existingPath($logicalPath);
+
+        if ($path) {
+            $size = (int) (filesize($path) ?: 0);
+            $modifiedAt = (int) (filemtime($path) ?: 0);
+            $version = substr(sha1($this->normalizeLogicalPath($logicalPath) . '|' . $size . '|' . $modifiedAt), 0, 16);
+            $url .= '?v=' . rawurlencode($version);
+        }
+
+        if ($download) {
+            $url .= str_contains($url, '?') ? '&download=1' : '?download=1';
+        }
+
+        return $url;
+    }
+
     public function thumbnailUrl(string $source, int $id): string
     {
         return site_url('files/' . rawurlencode($source) . '/' . $id . '/thumbnail');
@@ -122,6 +145,12 @@ class FileAccessService
         $token = $this->encodePathToken($this->normalizeLogicalPath($logicalPath));
         $url = site_url('files/' . rawurlencode($source) . '/path?path=' . rawurlencode($token));
         return $download ? $url . '&download=1' : $url;
+    }
+
+    public function pathThumbnailUrl(string $source, string $logicalPath): string
+    {
+        $token = $this->encodePathToken($this->normalizeLogicalPath($logicalPath));
+        return site_url('files/' . rawurlencode($source) . '/path/thumbnail?path=' . rawurlencode($token));
     }
 
     public function resolve(string $source, int $id, bool $thumbnail = false): array

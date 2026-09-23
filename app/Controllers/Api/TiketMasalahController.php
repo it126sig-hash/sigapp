@@ -179,8 +179,15 @@ class TiketMasalahController extends BaseController
 
     public function users()
     {
-        $users = $this->service->getUserList();
+        $creatorsOnly = (bool) $this->request->getGet('creators_only');
+        $users = $creatorsOnly ? $this->service->getCreatorList() : $this->service->getUserList();
         return $this->respond(['success' => true, 'data' => $users]);
+    }
+
+    public function creators()
+    {
+        $creators = $this->service->getCreatorList();
+        return $this->respond(['success' => true, 'data' => $creators]);
     }
 
     public function divisions()
@@ -211,7 +218,7 @@ class TiketMasalahController extends BaseController
             return $this->fail('Seleksi manual minimal 3 titik', 400);
         }
 
-        if (!in_array($tipe, ['jalan', 'fasos', 'rth', 'fasum'])) {
+        if (!in_array($tipe, ['jalan', 'fasos', 'rth', 'fasum', 'ruko'], true)) {
             return $this->fail('Tipe tidak valid', 400);
         }
 

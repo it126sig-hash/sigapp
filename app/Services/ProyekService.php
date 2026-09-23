@@ -40,13 +40,14 @@ class ProyekService
         foreach ($this->proyekRepository->getAll($params) as $key => $value) {
             $ops = '<div class="btn-group">';
             $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_proyek . ')"><i class="fas fa-edit"></i></button>';
+            $ops .= '	<button type="button" class="btn btn-outline-info waves-effect btn-sm" onclick="viewProyek(' . $value->id_proyek . ')"><i class="fas fa-eye"></i></button>';
             $ops .= '</div>';
 
             $rows[$key] = [
-                $value->id_proyek,
+                $key + 1,
                 $value->nama_proyek,
                 $value->alamat_proyek,
-                "<img width='50px' src='" . $this->fileAccessService->accessUrl('proyek_logo', (int) $value->id_proyek) . "'>",
+                "<img width='50px' src='" . $this->fileAccessService->thumbnailUrl('proyek_logo', (int) $value->id_proyek) . "'>",
                 $ops,
             ];
         }
@@ -62,8 +63,13 @@ class ProyekService
             return null;
         }
 
-        $data->siteplan_access_url = $this->fileAccessService->accessUrl('proyek_siteplan', $idProyek);
+        $data->siteplan_access_url = $this->fileAccessService->versionedAccessUrl(
+            'proyek_siteplan',
+            $idProyek,
+            $data->siteplan ?? null
+        );
         $data->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', $idProyek);
+        $data->logo_thumbnail_url = $this->fileAccessService->thumbnailUrl('proyek_logo', $idProyek);
         $data->logo_pt_access_url = $this->fileAccessService->accessUrl('proyek_logo_pt', $idProyek);
         $data->list_siteplan = $this->getSiteplanList($idProyek);
 
@@ -119,7 +125,7 @@ class ProyekService
                 'action' => 'insert',
                 'new_data' => $fields
             ]);
-            $this->notif->tambah_notif("6", "Menambahkan Master Proyek: " . ($fields['nama_proyek'] ?? ''), user_id(), null, null, null, $siteplan['id_proyek']);
+            $this->notif->tambah_notif("6", "Menambahkan Master Proyek: " . ($fields['nama_proyek'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_PROYEK, $siteplan['id_proyek']);
 
             $this->db->transComplete();
         } catch (\Throwable $e) {
@@ -194,7 +200,7 @@ class ProyekService
                 'old_data' => $oldData,
                 'new_data' => $fields
             ]);
-            $this->notif->tambah_notif("6", "Mengubah Master Proyek: " . ($fields['nama_proyek'] ?? ''), user_id(), null, null, null, $idProyek);
+            $this->notif->tambah_notif("6", "Mengubah Master Proyek: " . ($fields['nama_proyek'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_PROYEK, $idProyek);
 
             $this->db->transComplete();
         } catch (\Throwable $e) {
@@ -245,6 +251,7 @@ class ProyekService
             'no_rek' => $request->getPost('noRek'),
             'bank' => $request->getPost('bank'),
             'atas_nama' => $request->getPost('atasNama'),
+            'order_by' => (int) $request->getPost('orderBy'),
         ];
     }
 

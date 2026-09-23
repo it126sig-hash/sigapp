@@ -23,6 +23,7 @@ class KeuanganService
     protected $db;
     protected $mkdtModel;
     protected $notif;
+    protected MkdtSettlementService $settlementService;
 
     public function __construct()
     {
@@ -32,6 +33,7 @@ class KeuanganService
         // $this->mkdtService = new TransaksiService();
         $this->mkdtModel = new MkdtModel();
         $this->keuRepo = new KeuanganRepository();
+        $this->settlementService = new MkdtSettlementService($this->db);
 
         $this->notif = new NotifikasiService();
     }
@@ -77,6 +79,8 @@ class KeuanganService
             if ($this->hasRequestArray($request, 'berita_acara_bb')) {
                 $this->syncTagihanStatus($idMkdt, 'BB', $this->buildTagihanRows($request, '_bb', 'BB'), $actorId);
             }
+
+            $this->settlementService->synchronize($idMkdt);
 
             $db->transComplete();
 
@@ -382,6 +386,13 @@ class KeuanganService
         if (!empty($toDelete)) {
             $this->model->whereIn('id_keuangan', $toDelete)->delete();
         }
+
+        $this->settlementService->synchronize($idMkdt);
+    }
+
+    public function synchronizeLunasStatus(int $idMkdt): array
+    {
+        return $this->settlementService->synchronize($idMkdt);
     }
     public function getListTagihan($request, $status = null)
     {
@@ -395,10 +406,40 @@ class KeuanganService
         if ($request->getVar('id_jalan'))
             $builder->where('j.id_jalan', $request->getVar('id_jalan'));
 
+        $isKpr = $request->getVar('is_kpr');
+        if ($isKpr !== null && $isKpr !== '') {
+            $builder->where('m.is_kpr', $isKpr);
+        }
+
+        $bookingRange = $request->getVar('booking_tgl_range');
+        if (!empty($bookingRange)) {
+            $dates = explode(' to ', $bookingRange);
+            if (count($dates) === 2) {
+                $builder->where('m.booking_tgl >=', $dates[0]);
+                $builder->where('m.booking_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('m.booking_tgl', $dates[0]);
+            }
+        }
+
+        $jatuhTempoRange = $request->getVar('jatuh_tempo_tgl_range');
+        if (!empty($jatuhTempoRange)) {
+            $dates = explode(' to ', $jatuhTempoRange);
+            if (count($dates) === 2) {
+                $builder->where('keuangan.jatuh_tempo_tgl >=', $dates[0]);
+                $builder->where('keuangan.jatuh_tempo_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('keuangan.jatuh_tempo_tgl', $dates[0]);
+            }
+        }
+
 
         return DataTable::of($builder)
             ->addSearchableColumns('nama_konsumen', 'no_kavling')
             ->add('Aksi', function ($value) {
+                if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+                    return '-';
+                }
                 $sh = json_encode([
                     'data' => [
                         'id_mkdt' => $value->id_mkdt,
@@ -460,9 +501,39 @@ class KeuanganService
         if ($request->getVar('id_jalan'))
             $builder->where('j.id_jalan', $request->getVar('id_jalan'));
 
+        $isKpr = $request->getVar('is_kpr');
+        if ($isKpr !== null && $isKpr !== '') {
+            $builder->where('m.is_kpr', $isKpr);
+        }
+
+        $bookingRange = $request->getVar('booking_tgl_range');
+        if (!empty($bookingRange)) {
+            $dates = explode(' to ', $bookingRange);
+            if (count($dates) === 2) {
+                $builder->where('m.booking_tgl >=', $dates[0]);
+                $builder->where('m.booking_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('m.booking_tgl', $dates[0]);
+            }
+        }
+
+        $jatuhTempoRange = $request->getVar('jatuh_tempo_tgl_range');
+        if (!empty($jatuhTempoRange)) {
+            $dates = explode(' to ', $jatuhTempoRange);
+            if (count($dates) === 2) {
+                $builder->where('keu_agg.jatuh_tempo_tgl >=', $dates[0]);
+                $builder->where('keu_agg.jatuh_tempo_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('keu_agg.jatuh_tempo_tgl', $dates[0]);
+            }
+        }
+
         return DataTable::of($builder)
             ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
             ->add('Aksi', function ($value) {
+                if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+                    return '-';
+                }
                 $sh = json_encode([
                     'data' => [
                         'id_mkdt'     => $value->id_mkdt,
@@ -494,7 +565,11 @@ class KeuanganService
                 return number_format((float) $v->sudah_bayar);
             })
             ->edit('sisa_tagihan', function ($v) {
-                return number_format((float) $v->sisa_tagihan);
+                $value = number_format((float) $v->sisa_tagihan);
+                if ((int) ($v->perlu_rekonsiliasi ?? 0) === 1) {
+                    $value .= ' <span class="badge badge-warning">Perlu rekonsiliasi</span>';
+                }
+                return $value;
             })
             ->toJson(true);
     }
@@ -711,9 +786,20 @@ class KeuanganService
             return ['success' => false, 'message' => 'Tagihan sudah di-void'];
         }
 
-        $this->model->delete($idKeuangan);
+        $this->db->transException(true)->transBegin();
+        try {
+            if (! $this->model->delete($idKeuangan)) {
+                throw new \RuntimeException('Gagal menghapus tagihan');
+            }
+            $this->settlementService->synchronize((int) $row->id_mkdt);
+            $this->db->transCommit();
 
-        return ['success' => true, 'message' => 'Tagihan berhasil dihapus'];
+            return ['success' => true, 'message' => 'Tagihan berhasil dihapus'];
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            log_message('error', '[KeuanganService::deleteTagihan] {message}', ['message' => $e->getMessage()]);
+            return ['success' => false, 'message' => 'Gagal menghapus tagihan'];
+        }
     }
 
     /**
@@ -733,13 +819,24 @@ class KeuanganService
             return ['success' => false, 'message' => 'Alasan void wajib diisi'];
         }
 
-        $this->model->update($idKeuangan, [
-            'is_void'     => 1,
-            'void_reason' => $reason,
-            'edit_by'     => $actorId,
-        ]);
+        $this->db->transException(true)->transBegin();
+        try {
+            if (! $this->model->update($idKeuangan, [
+                'is_void'     => 1,
+                'void_reason' => $reason,
+                'edit_by'     => $actorId,
+            ])) {
+                throw new \RuntimeException('Gagal melakukan void tagihan');
+            }
+            $this->settlementService->synchronize((int) $row->id_mkdt);
+            $this->db->transCommit();
 
-        return ['success' => true, 'message' => 'Tagihan berhasil di-void'];
+            return ['success' => true, 'message' => 'Tagihan berhasil di-void'];
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            log_message('error', '[KeuanganService::voidTagihan] {message}', ['message' => $e->getMessage()]);
+            return ['success' => false, 'message' => 'Gagal melakukan void tagihan'];
+        }
     }
 
     /**
@@ -755,13 +852,24 @@ class KeuanganService
             return ['success' => false, 'message' => 'Tagihan tidak dalam status void'];
         }
 
-        $this->model->update($idKeuangan, [
-            'is_void'     => 0,
-            'void_reason' => null,
-            'edit_by'     => $actorId,
-        ]);
+        $this->db->transException(true)->transBegin();
+        try {
+            if (! $this->model->update($idKeuangan, [
+                'is_void'     => 0,
+                'void_reason' => null,
+                'edit_by'     => $actorId,
+            ])) {
+                throw new \RuntimeException('Gagal membatalkan void tagihan');
+            }
+            $this->settlementService->synchronize((int) $row->id_mkdt);
+            $this->db->transCommit();
 
-        return ['success' => true, 'message' => 'Void tagihan berhasil dibatalkan'];
+            return ['success' => true, 'message' => 'Void tagihan berhasil dibatalkan'];
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            log_message('error', '[KeuanganService::unvoidTagihan] {message}', ['message' => $e->getMessage()]);
+            return ['success' => false, 'message' => 'Gagal membatalkan void tagihan'];
+        }
     }
 
     private function hasRequestArray($request, string $name): bool
@@ -809,27 +917,22 @@ class KeuanganService
     function hapusTurunKPR($id)
     {
         $db = $this->db;
-        $db->transStart();
+        $row = $this->model->find($id);
+        if (! $row) {
+            return ['success' => false, 'message' => 'Tagihan Turun KPR tidak ditemukan.', 'deletedId' => $id];
+        }
 
         try {
-            // (Opsional) cek eksistensi untuk 404 yang lebih informatif
-            // $exists = $this->keuanganService->exists($id); // buat method exists() di service
-            // if (!$exists) {
-            //     $db->transRollback();
-            //     return $this->failNotFound('Data keuangan tidak ditemukan.');
-            // }
+            $db->transException(true)->transBegin();
 
-            $deleted = $this->delete($id); // pastikan return bool
+            $deleted = $this->delete($id);
             if (!$deleted) {
-                // Kalau service mengembalikan false, anggap kegagalan domain (mis. constraint)
-                $db->transRollback();
-                $resp = ['success' => false, 'message' => 'Gagal menghapus tagihan Turun KPR.', 'deletedId' => $id];
-                return $resp;
+                throw new \RuntimeException('Gagal menghapus tagihan Turun KPR.');
             }
 
+            $this->settlementService->synchronize((int) $row->id_mkdt);
             $db->transCommit();
 
-            // Gunakan response API trait agar seragam
             $resp = ['success' => true, 'message' => 'Berhasil menghapus tagihan Turun KPR.', 'deletedId' => $id];
             return $resp;
         } catch (\Throwable $e) {
@@ -864,10 +967,7 @@ class KeuanganService
         $db->transException(true);
 
         try {
-            $db->transStart();
-
-            $cek = $this->hasTurunKPR($id_mkdt);
-            if ($cek) {
+            if ($this->hasTurunKPR($id_mkdt)) {
                 return [
                     'token' => csrf_hash(),
                     'success' => false,
@@ -875,23 +975,31 @@ class KeuanganService
                 ];
             }
 
+            $db->transBegin();
+
             $insert = $this->insert($kpr);
-
-            if ($insert) {
-                $pesanNotif = "Menabahkan tagihan untuk Turun KPR";
-
-                $data = [
-                    'harga_kpr' => $harga_kpr,
-                    'harga_kpr_acc' => $harga_kpr_acc,
-                    'harga_penambahan_um' => $nominal,
-
-                ];
-                $this->mkdtModel->update(['id_mkdt' => $id_mkdt], $data);
+            if (! $insert) {
+                throw new \RuntimeException('Gagal menambahkan tagihan Turun KPR');
             }
 
-            $this->notif->tambah_notif("3;4;9", $pesanNotif, user_id(), $id_kavling, $id_konsumen, 'tagihan');
+            $pesanNotif = "Menabahkan tagihan untuk Turun KPR";
+            $data = [
+                'harga_kpr' => $harga_kpr,
+                'harga_kpr_acc' => $harga_kpr_acc,
+                'harga_penambahan_um' => $nominal,
+            ];
+            if (! $this->mkdtModel->update(['id_mkdt' => $id_mkdt], $data)) {
+                throw new \RuntimeException('Gagal memperbarui nilai Turun KPR');
+            }
 
-            $db->transComplete();
+            $this->settlementService->synchronize((int) $id_mkdt);
+
+            $this->notif->tambah_notif("3;4;9", $pesanNotif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::TAGIHAN_KPR, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=keuangan");
+
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+            $db->transCommit();
 
             $resp['data'] = [
                 'add_by' => user_id(),
@@ -904,8 +1012,9 @@ class KeuanganService
 
             return $resp;
         } catch (\Throwable $e) {
-            if ($db->transStatus() !== false) {
+            try {
                 $db->transRollback();
+            } catch (\Throwable $rollback) {
             }
             return [
                 'token' => csrf_hash(),

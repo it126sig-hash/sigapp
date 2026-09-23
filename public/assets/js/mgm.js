@@ -1384,4 +1384,23 @@ $(document).ready(function() {
             }
         });
     });
+
+    // Deep linking handler
+    const params = new URLSearchParams(window.location.search);
+    const idReferral = params.get('id_referral');
+    if (idReferral) {
+        setTimeout(function() {
+            const btn = $('.btn-detail-mgm[data-id="' + idReferral + '"]');
+            if (btn.length) {
+                btn.click();
+            } else {
+                if (typeof dtMgm !== 'undefined' && dtMgm) {
+                    dtMgm.search(idReferral).draw();
+                    setTimeout(function() {
+                        $('.btn-detail-mgm[data-id="' + idReferral + '"]').click();
+                    }, 1000);
+                }
+            }
+        }, 1000);
+    }
 });

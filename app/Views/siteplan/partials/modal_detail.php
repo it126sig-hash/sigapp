@@ -246,14 +246,14 @@
                                 <div class="tab-content">
                                     <div class="tab-pane active" id="dtt-summary" aria-labelledby="dtt-summary-tab"
                                         role="tabpanel">
-                                        <div class="detail-dashboard-grid">
-                                            <div class="detail-summary-card detail-status-card">
-                                                <div class="detail-status-card-header">
-                                                    <div class="detail-card-icon"><i class="fas fa-user"></i></div>
+                                        <div class="detail-dashboard-grid detail-summary-dashboard">
+                                            <div class="detail-summary-card detail-status-card detail-summary-status-card">
+                                                <div class="detail-status-card-header detail-summary-card-header">
+                                                    <div class="detail-card-icon detail-summary-card-icon detail-summary-card-icon-status"><i class="far fa-file-alt"></i></div>
                                                     <div class="detail-status-card-title">Status &amp; Akad</div>
                                                 </div>
 
-                                                <div class="detail-info-row">
+                                                <div class="detail-info-row detail-summary-highlight-row">
                                                     <div class="detail-info-col">
                                                         <span class="detail-info-label">Status Kavling</span>
                                                         <span class="detail-status-badge badge-secondary" id="s-status_mkdt">-</span>
@@ -264,133 +264,125 @@
                                                     </div>
                                                 </div>
 
-                                                <div class="detail-info-row">
+                                                <div class="detail-info-row detail-summary-meta-row">
                                                     <div class="detail-info-col">
                                                         <span class="detail-info-label">Bank Pelaksana</span>
                                                         <span class="detail-info-value" id="s-st_bank">-</span>
                                                     </div>
-                                                    <div class="detail-info-col text-right">
+                                                    <div class="detail-info-col">
                                                         <span class="detail-info-label">Notaris</span>
                                                         <span class="detail-info-value" id="s-notaris">-</span>
                                                     </div>
                                                 </div>
 
-                                                <div class="detail-info-row" id="s-referred_by_container" style="display:none;">
+                                                <div class="detail-info-row detail-summary-referral-row" id="s-referred_by_container" style="display:none;">
                                                     <div class="detail-info-col">
                                                         <span class="detail-info-label">Pemberi Referal (Kode)</span>
-                                                        <span class="detail-info-value" id="s-referred_by_kode" style="cursor: pointer; color: #1e88e5; text-decoration: underline;" onclick="copyReferralCode(this)" title="Klik untuk menyalin" data-bs-toggle="tooltip">-</span>
+                                                        <span class="detail-info-value" id="s-referred_by_kode" onclick="copyReferralCode(this)" title="Klik untuk menyalin" data-bs-toggle="tooltip">-</span>
                                                     </div>
-                                                    <div class="detail-info-col text-right">
+                                                    <div class="detail-info-col">
                                                         <span class="detail-info-label">Nama Pemberi Referal</span>
                                                         <span class="detail-info-value" id="s-referred_by_nama">-</span>
                                                     </div>
                                                 </div>
 
                                                 <div class="detail-section-divider">
-                                                    <span class="detail-section-title detail-section-title-dot">SP3K</span>
+                                                    <span class="detail-section-title detail-section-title-dot">Surat Penegasan Persetujuan Kredit (SP3K)</span>
                                                 </div>
-                                                <div class="detail-info-pair">
+                                                <div class="detail-info-pair detail-sp3k-grid">
                                                     <div class="detail-mini-card">
                                                         <div class="detail-mini-label">Terbit</div>
                                                         <div class="detail-mini-value" id="s-st_sp3k_tgl">-</div>
                                                     </div>
-                                                    <div class="detail-mini-card">
+                                                    <div class="detail-mini-card detail-mini-card-warning">
                                                         <div class="detail-mini-label">Kadaluarsa</div>
                                                         <div class="detail-mini-value" id="s-st_sp3k_tgl_exp">-</div>
                                                     </div>
                                                 </div>
-
-                                                <div class="detail-section-divider">
-                                                    <span class="detail-section-title detail-section-title-dot">Standing Instruction</span>
-                                                </div>
-                                                <div id="s-si"></div>
                                             </div>
 
-                                            <div class="detail-summary-card detail-status-card">
-                                                <div class="detail-status-card-header">
-                                                    <div class="detail-card-icon"><i class="fas fa-tools"></i></div>
+                                            <div class="detail-summary-card detail-status-card detail-summary-building-card">
+                                                <div class="detail-status-card-header detail-summary-card-header">
+                                                    <div class="detail-card-icon detail-summary-card-icon detail-summary-card-icon-building"><i class="far fa-building"></i></div>
                                                     <div class="detail-status-card-title">Bangunan</div>
                                                 </div>
 
-                                                <div class="mb-2">
+                                                <div class="detail-summary-progress-block">
                                                     <div class="d-flex justify-content-between mb-50">
                                                         <span class="detail-info-label">Progres Fisik</span>
-                                                        <span class="detail-info-value" id="s-progress_bangunan_text">0%</span>
+                                                        <span class="detail-info-value detail-progress-value" id="s-progress_bangunan_text">0%</span>
                                                     </div>
                                                     <div class="detail-progress-track">
                                                         <div id="s-progress_bangunan_bar" class="detail-progress-fill is-empty" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                                                     </div>
                                                 </div>
 
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label"><i class="fas fa-check-circle detail-text-primary"></i> Selesai Pembangunan</span>
+                                                <div class="detail-building-dates">
+                                                    <div class="detail-building-dates-grid">
+                                                        <div class="detail-info-col">
+                                                            <span class="detail-info-label">Tgl Turun Perintah Bangun</span>
+                                                            <span class="detail-info-value" id="s-perintah_bangun_tgl">-</span>
+                                                        </div>
+                                                        <div class="detail-info-col">
+                                                            <span class="detail-info-label">Mulai Bangun</span>
+                                                            <span class="detail-info-value" id="s-tanggal_pembangunan">-</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="detail-building-finish-row">
+                                                        <span class="detail-info-label"><i class="fas fa-check detail-building-check"></i> Selesai Pembangunan</span>
                                                         <span class="detail-info-value" id="s-tanggal_selesai_pembangunan">-</span>
-                                                    </div>
-                                                    <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label">Mulai Bangun</span>
-                                                        <span class="detail-info-value" id="s-tanggal_pembangunan">-</span>
-                                                    </div>
-                                                </div>
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">Tgl Turun Perintah Bangun</span>
-                                                        <span class="detail-info-value" id="s-perintah_bangun_tgl">-</span>
                                                     </div>
                                                 </div>
 
                                                 <div class="detail-section-divider">
                                                     <span class="detail-section-title detail-section-title-dot">Site Amenities</span>
                                                 </div>
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
+                                                <div class="detail-amenities-grid">
+                                                    <div class="detail-amenity-item">
                                                         <span class="detail-info-label">Saluran</span>
                                                         <span class="detail-status-badge badge-secondary" id="s-st_saluran">-</span>
                                                     </div>
-                                                    <div class="detail-info-col text-right">
+                                                    <div class="detail-amenity-item">
                                                         <span class="detail-info-label">Air</span>
                                                         <span class="detail-status-badge badge-secondary" id="s-st_air">-</span>
                                                     </div>
-                                                </div>
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
+                                                    <div class="detail-amenity-item">
                                                         <span class="detail-info-label">Listrik</span>
                                                         <span class="detail-status-badge badge-secondary" id="s-st_jalan">-</span>
                                                     </div>
-                                                    <div class="detail-info-col text-right">
+                                                    <div class="detail-amenity-item">
                                                         <span class="detail-info-label">SLO/NIDI</span>
                                                         <span class="detail-status-badge badge-secondary" id="s-slo">-</span>
                                                     </div>
-                                                </div>
-                                                <div class="detail-info-row">
-                                                    <div class="detail-info-col">
+                                                    <div class="detail-amenity-item detail-amenity-item-wide">
                                                         <span class="detail-info-label">LPA</span>
                                                         <span class="detail-status-badge badge-secondary" id="s-lpa">-</span>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div class="detail-summary-card detail-status-card">
-                                                <div class="detail-status-card-header">
-                                                    <div class="detail-card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                                            <div class="detail-summary-card detail-status-card detail-summary-finance-card">
+                                                <div class="detail-status-card-header detail-summary-card-header">
+                                                    <div class="detail-card-icon detail-summary-card-icon detail-summary-card-icon-finance"><i class="fas fa-dollar-sign"></i></div>
                                                     <div class="detail-status-card-title">Keuangan</div>
                                                 </div>
 
-                                                <div class="d-flex justify-content-center mb-1" style="position: relative; height:160px; width:100%">
-                                                    <canvas id="keuanganChart"></canvas>
-                                                    <div id="keuanganChart-empty" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); display:none; text-align:center; color:#999; font-size:0.75rem;">
-                                                        Belum ada<br>pembayaran
+                                                <div class="detail-chart-summary">
+                                                    <div class="detail-chart-wrap">
+                                                        <canvas id="keuanganChart"></canvas>
+                                                        <div class="detail-chart-empty" id="keuanganChart-empty">
+                                                            Belum ada<br>pembayaran
+                                                        </div>
                                                     </div>
-                                                </div>
-
-                                                <div class="detail-info-row mt-1">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Telah Dibayar</span>
-                                                        <span class="detail-info-value detail-text-success" id="s-total_dibayar">Rp 0</span>
-                                                    </div>
-                                                    <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label"><span class="detail-dot detail-dot-danger"></span>Sisa Tagihan</span>
-                                                        <span class="detail-info-value detail-text-danger" id="s-sisa_tagihan">Rp 0</span>
+                                                    <div class="detail-chart-metrics">
+                                                        <div class="detail-chart-metric">
+                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Telah Dibayar</span>
+                                                            <span class="detail-info-value detail-text-success" id="s-total_dibayar">Rp 0</span>
+                                                        </div>
+                                                        <div class="detail-chart-metric">
+                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-danger"></span>Sisa Tagihan</span>
+                                                            <span class="detail-info-value detail-text-danger" id="s-sisa_tagihan">Rp 0</span>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -422,45 +414,53 @@
                                                     </div>
                                                 </div>
 
-                                                <div class="detail-section-divider">
+                                                <div class="detail-section-divider detail-section-divider-compact">
                                                     <span class="detail-section-title detail-section-title-dot">Cashout Status</span>
                                                 </div>
                                                 <div id="s-co"></div>
 
-                                                <div class="detail-section-divider">
+                                                <div class="detail-section-divider detail-section-divider-compact">
                                                     <span class="detail-section-title detail-section-title-dot">Hutang Subkon</span>
                                                 </div>
                                                 <div id="s-hutang-subkon"></div>
                                             </div>
 
-                                            <div class="detail-summary-card detail-status-card">
-                                                <div class="detail-status-card-header">
-                                                    <div class="detail-card-icon"><i class="fas fa-hand-holding-usd"></i></div>
+                                            <div class="detail-summary-card detail-status-card detail-summary-retention-card">
+                                                <div class="detail-status-card-header detail-summary-card-header">
+                                                    <div class="detail-card-icon detail-summary-card-icon detail-summary-card-icon-retention"><i class="fas fa-shield-alt"></i></div>
                                                     <div class="detail-status-card-title">Retensi &amp; Hasil Akad</div>
                                                 </div>
 
-                                                <div class="d-flex justify-content-center mb-1" style="position: relative; height:160px; width:100%">
-                                                    <canvas id="hasilAkadChart"></canvas>
-                                                    <div id="hasilAkadChart-empty" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); display:none; text-align:center; color:#999; font-size:0.75rem;">
-                                                        Belum ada<br>data pencairan
+                                                <div class="detail-chart-summary">
+                                                    <div class="detail-chart-wrap">
+                                                        <canvas id="hasilAkadChart"></canvas>
+                                                        <div class="detail-chart-empty" id="hasilAkadChart-empty">
+                                                            Belum ada<br>data pencairan
+                                                        </div>
+                                                    </div>
+                                                    <div class="detail-chart-metrics">
+                                                        <div class="detail-chart-metric">
+                                                            <span class="detail-info-label">Total Hasil Akad</span>
+                                                            <span class="detail-info-value" id="s-pa_total_hasil_akad">-</span>
+                                                        </div>
+                                                        <div class="detail-chart-metric">
+                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Sudah Cair</span>
+                                                            <span class="detail-info-value detail-text-success" id="s-pa_total_cair">-</span>
+                                                        </div>
                                                     </div>
                                                 </div>
 
-                                                <div class="detail-info-row mt-1">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">Total Hasil Akad</span>
-                                                        <span class="detail-info-value" id="s-pa_total_hasil_akad">-</span>
-                                                    </div>
-                                                    <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Sudah Cair</span>
-                                                        <span class="detail-info-value detail-text-success" id="s-pa_total_cair">-</span>
-                                                    </div>
-                                                </div>
-
-                                                <div class="detail-section-divider">
+                                                <div class="detail-section-divider detail-section-divider-compact">
                                                     <span class="detail-section-title detail-section-title-dot">Item Retensi</span>
                                                 </div>
                                                 <div id="s-pa-retensi"></div>
+
+                                                <div id="s-pa-pengajuan-section" class="d-none">
+                                                    <div class="detail-section-divider detail-section-divider-compact">
+                                                        <span class="detail-section-title detail-section-title-dot">Pengajuan Hasil Akad</span>
+                                                    </div>
+                                                    <div id="s-pa-pengajuan"></div>
+                                                </div>
                                             </div>
 
                                         </div>
@@ -1506,55 +1506,85 @@
                                     </div>
                                     <div class="tab-pane" id="dt-spesifikasi" aria-labelledby="dt-spesifikasi-tab"
                                         role="tabpanel">
-                                        <div class="detail-card-grid mb-1" id="dt-spesifikasi-summary">
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Tipe</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-tipe">-</div>
+                                        <div class="row">
+                                            <!-- Kolom 1 (Sebelah Kiri) -->
+                                            <div class="col-lg-6 col-md-12 mb-1 mb-lg-0">
+                                                <div class="row">
+                                                    <!-- Sub-kolom 1: Informasi Tipe (Card Vertical) -->
+                                                    <div class="col-sm-6 col-12 mb-1 mb-sm-0">
+                                                        <div class="detail-summary-card detail-status-card h-100" id="dt-spesifikasi-summary">
+                                                            <div class="detail-status-card-header">
+                                                                <div class="detail-card-icon"><i class="fas fa-home"></i></div>
+                                                                <div class="detail-status-card-title">Informasi Tipe</div>
+                                                            </div>
+                                                            <div class="detail-spec-vertical-list">
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-tag mr-50 text-primary"></i> Tipe</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-tipe">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-ruler-combined mr-50 text-primary"></i> Luas Bangunan</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-lb">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-vector-square mr-50 text-primary"></i> Luas Tanah</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-lt">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-bed mr-50 text-primary"></i> Kamar Tidur</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-kamar-tidur">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-bath mr-50 text-primary"></i> Kamar Mandi</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-kamar-mandi">-</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Sub-kolom 2: Spesifikasi Teknis (Card Vertical) -->
+                                                    <div class="col-sm-6 col-12">
+                                                        <div class="detail-summary-card detail-status-card h-100" id="dt-spesifikasi-teknis">
+                                                            <div class="detail-status-card-header">
+                                                                <div class="detail-card-icon"><i class="fas fa-tools"></i></div>
+                                                                <div class="detail-status-card-title">Spesifikasi Teknis</div>
+                                                            </div>
+                                                            <div class="detail-spec-vertical-list">
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-warehouse mr-50 text-primary"></i> Atap</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-atap">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-border-all mr-50 text-primary"></i> Dinding</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-dinding">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-th-large mr-50 text-primary"></i> Lantai</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-lantai">-</div>
+                                                                </div>
+                                                                <div class="detail-spec-vertical-item">
+                                                                    <span class="detail-mini-label"><i class="fas fa-cubes mr-50 text-primary"></i> Pondasi</span>
+                                                                    <div class="detail-mini-value" id="dt-spesifikasi-pondasi">-</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Luas Bangunan</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-lb">-</div>
+
+                                            <!-- Kolom 2 (Sebelah Kanan): Berisi Gambar -->
+                                            <div class="col-lg-6 col-md-12">
+                                                <div class="detail-summary-card detail-status-card h-100">
+                                                    <div class="detail-status-card-header">
+                                                        <div class="detail-card-icon"><i class="fas fa-images"></i></div>
+                                                        <div class="detail-status-card-title">Gambar &amp; Denah</div>
+                                                    </div>
+                                                    <div class="detail-spec-images-list" id="dt-spesifikasi-files">
+                                                        <div class="detail-spec-file-tile mb-1" id="dt-spesifikasi-gambar-tipe"></div>
+                                                        <div class="detail-spec-file-tile" id="dt-spesifikasi-gambar-denah"></div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Luas Tanah</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-lt">-</div>
-                                            </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Kamar Tidur</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-kamar-tidur">-</div>
-                                            </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Kamar Mandi</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-kamar-mandi">-</div>
-                                            </div>
-                                        </div>
-                                        <div class="divider divider-left">
-                                            <div class="divider-text">Spesifikasi Teknis</div>
-                                        </div>
-                                        <div class="detail-card-grid mb-1" id="dt-spesifikasi-teknis">
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Atap</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-atap">-</div>
-                                            </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Dinding</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-dinding">-</div>
-                                            </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Lantai</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-lantai">-</div>
-                                            </div>
-                                            <div class="detail-mini-card">
-                                                <div class="detail-mini-label">Pondasi</div>
-                                                <div class="detail-mini-value" id="dt-spesifikasi-pondasi">-</div>
-                                            </div>
-                                        </div>
-                                        <div class="divider divider-left">
-                                            <div class="divider-text">Gambar Tipe</div>
-                                        </div>
-                                        <div class="detail-card-grid" id="dt-spesifikasi-files">
-                                            <div class="detail-spec-file-tile" id="dt-spesifikasi-gambar-tipe"></div>
-                                            <div class="detail-spec-file-tile" id="dt-spesifikasi-gambar-denah"></div>
                                         </div>
                                     </div>
                                     <div class="tab-pane" id="dt-produksi" aria-labelledby="dt-produksi-tab"
@@ -1894,26 +1924,30 @@
                                             </div>
                                             <div class="tab-pane" id="dt-fm-prod-dokumentasi"
                                                 aria-labelledby="dt-fm-prod-dokumentasi-tab" role="tabpanel">
+                                                
+                                                <div class="divider divider-left mt-1">
+                                                    <div class="divider-text"><i class="fas fa-tools text-primary mr-50"></i> Foto Konstruksi</div>
+                                                </div>
+                                                <small class="text-muted d-block mb-1">(Jika Ada, Pembesian, Pondasi)</small>
                                                 <div class="form-group foto-container">
-                                                    <label>Foto Konstruksi(Jika Ada, Pembesian, Pondasi)</label>
-
                                                     <div id="dt-list_prod_foto_konstruksi"
                                                         style="display: flex; flex-wrap: wrap;"></div>
                                                 </div>
-                                                <hr>
+                                                
+                                                <div class="divider divider-left mt-1">
+                                                    <div class="divider-text"><i class="fas fa-home text-primary mr-50"></i> Foto Exterior</div>
+                                                </div>
+                                                <small class="text-muted d-block mb-1">Depan dan Belakang(min. 1 photo), foto memiliki titik koordinat</small>
                                                 <div class="form-group foto-container">
-                                                    <label for="upload_komplain_produksi">Foto Exterior(Depan dan
-                                                        Belakang(min. 1 photo), foto memiliki titik koordinat)</label>
-
                                                     <div id="dt-list_prod_foto_exterior"
                                                         style="display: flex; flex-wrap: wrap;"></div>
                                                 </div>
-                                                <hr>
+                                                
+                                                <div class="divider divider-left mt-1">
+                                                    <div class="divider-text"><i class="fas fa-couch text-primary mr-50"></i> Foto Interior</div>
+                                                </div>
+                                                <small class="text-muted d-block mb-1">kamar, dapur, toilet, dan ruang tengah (min. 1 photo), foto memiliki titik koordinat</small>
                                                 <div class="form-group foto-container">
-                                                    <label for="upload_komplain_produksi">Foto Interior(kamar, dapur,
-                                                        toilet, dan ruang tengah (min. 1 photo), foto memiliki titik
-                                                        koordinat)</label>
-
                                                     <div id="dt-list_prod_foto_interior"
                                                         style="display: flex; flex-wrap: wrap;"></div>
                                                 </div>
@@ -1922,22 +1956,21 @@
 
                                             <div class="tab-pane" id="dt-fm-prod-jalan"
                                                 aria-labelledby="dt-fm-prod-jalan-tab" role="tabpanel">
-                                                <div class="divider">
-                                                    <div class="divider-text">Foto Jalan</div>
+                                                <div class="divider divider-left mt-1">
+                                                    <div class="divider-text"><i class="fas fa-road text-primary mr-50"></i> Foto Jalan</div>
                                                 </div>
                                                 <div>
                                                     <div class="form-group foto-container">
-                                                        <label for="jalan_foto">Foto Jalan</label>
-
                                                         <div id="dt-list_jalan_foto"
                                                             style="display: flex; flex-wrap: wrap;"></div>
                                                     </div>
                                                 </div>
+                                                <div class="divider divider-left mt-1">
+                                                    <div class="divider-text"><i class="fas fa-road text-primary mr-50"></i> Foto Jalan Update</div>
+                                                </div>
+                                                <small class="text-muted d-block mb-1">Setelah Akad(Paving)</small>
                                                 <div>
                                                     <div class="form-group foto-container">
-                                                        <label for="jalan_foto_update">Foto Jalan Update/Setelah
-                                                            Akad(Paving)</label>
-
                                                         <div id="dt-list_jalan_foto_update"
                                                             style="display: flex; flex-wrap: wrap;"></div>
                                                     </div>
@@ -1946,8 +1979,8 @@
                                             </div>
                                             <div class="tab-pane" id="dt-fm-prod-listrik"
                                                 aria-labelledby="dt-fm-prod-listrik-tab" role="tabpanel">
-                                                <div class="divider">
-                                                    <div class="divider-text">Ketersediaan Listrik</div>
+                                                <div class="divider divider-left mt-1">
+                                                    <div class="divider-text"><i class="fas fa-bolt text-warning mr-50"></i> Ketersediaan Listrik</div>
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Jenis Sumber Listrik</label>
@@ -1964,10 +1997,10 @@
                                                         <input type="text" class="form-control" id="dt-listrik_pln"
                                                             name="dt-listrik_pln" disabled>
                                                     </div>
+                                                    <div class="divider divider-left mt-1">
+                                                        <div class="divider-text"><i class="fas fa-lightbulb text-warning mr-50"></i> Foto Ketersediaan Lampu Menyala</div>
+                                                    </div>
                                                     <div class="form-group foto-container">
-                                                        <label>Foto Ketersediaan Lampu
-                                                            Menyala</label>
-
                                                         <div id="dt-list_listrik_pln_foto"
                                                             style="display: flex; flex-wrap: wrap;"></div>
                                                     </div>
@@ -1985,17 +2018,19 @@
                                                             id="dt-listrik_disediakan_tanggal"
                                                             name="dt-listrik_disediakan_tanggal" disabled>
                                                     </div>
+                                                    
+                                                    <div class="divider divider-left mt-1">
+                                                        <div class="divider-text"><i class="fas fa-file-upload text-primary mr-50"></i> Upload Bukti Pengajuan</div>
+                                                    </div>
                                                     <div class="form-group foto-container">
-                                                        <label for="label_listrik_disediakan_dokumen">Upload Bukti
-                                                            Pengajuan</label>
-
                                                         <div id="dt-list_listrik_disediakan_dokumen"
                                                             style="display: flex; flex-wrap: wrap;"></div>
                                                     </div>
+                                                    
+                                                    <div class="divider divider-left mt-1">
+                                                        <div class="divider-text"><i class="fas fa-lightbulb text-warning mr-50"></i> Foto Ketersediaan Lampu Menyala</div>
+                                                    </div>
                                                     <div class="form-group foto-container">
-                                                        <label for="dt-listrik_disediakan_foto">Foto Ketersediaan Lampu
-                                                            Menyala</label>
-
                                                         <div id="dt-list_listrik_disediakan_foto"
                                                             style="display: flex; flex-wrap: wrap;"></div>
                                                     </div>
@@ -2003,8 +2038,8 @@
                                             </div>
                                             <div class="tab-pane" id="dt-fm-prod-air"
                                                 aria-labelledby="dt-fm-prod-air-tab" role="tabpanel">
-                                                <div class="divider">
-                                                    <div class="divider-text">Ketersediaan Air</div>
+                                                <div class="divider divider-left mt-1">
+                                                    <div class="divider-text"><i class="fas fa-tint text-info mr-50"></i> Ketersediaan Air</div>
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Jenis Sumber Air</label>
@@ -2016,21 +2051,21 @@
                                                     </select>
                                                 </div>
                                                 <div id="dt-air_tanah-input_form">
+                                                    <div class="divider divider-left mt-1">
+                                                        <div class="divider-text"><i class="fas fa-water text-info mr-50"></i> Foto Air Tanah</div>
+                                                    </div>
+                                                    <small class="text-muted d-block mb-1">Foto ketersediaan air bersih dengan air mengalir & sumber air (min. 1 foto)</small>
                                                     <div class="form-group foto-container">
-                                                        <label for="dt-air_tanah">Foto ketersediaan air bersih dengan
-                                                            air
-                                                            mengalir & sumber air (min. 1 foto)</label>
-
                                                         <div id="dt-list_air_tanah"
                                                             style="display: flex; flex-wrap: wrap;"></div>
                                                     </div>
                                                 </div>
                                                 <div id="dt-air_komunal-input_form" class="hidden">
+                                                    <div class="divider divider-left mt-1">
+                                                        <div class="divider-text"><i class="fas fa-users text-info mr-50"></i> Foto Air Komunal</div>
+                                                    </div>
+                                                    <small class="text-muted d-block mb-1">Foto ketersediaan air bersih dengan air mengalir & sumber air komunal bersama (min. 1 foto)</small>
                                                     <div class="form-group foto-container">
-                                                        <label for="dt-air_komunal">Foto ketersediaan air bersih dengan
-                                                            air
-                                                            mengalir & sumber air komunal bersama (min. 1 foto)</label>
-
                                                         <div id="dt-list_air_komunal"
                                                             style="display: flex; flex-wrap: wrap;"></div>
                                                     </div>
@@ -2041,9 +2076,11 @@
                                                         <input type="text" class="form-control" id="dt-air_pdam_no"
                                                             name="dt-air_pdam_no" disabled>
                                                     </div>
+                                                    <div class="divider divider-left mt-1">
+                                                        <div class="divider-text"><i class="fas fa-faucet text-info mr-50"></i> Foto Air PDAM</div>
+                                                    </div>
+                                                    <small class="text-muted d-block mb-1">Foto ketersediaan air bersih dengan air mengalir & meteran air PDAM (min. 1 foto)</small>
                                                     <div class="form-group foto-container">
-                                                        <label for="dt-air_pdam">Foto ketersediaan air bersih dengan air
-                                                            mengalir & meteran air PDAM (min. 1 foto)</label>
                                                         <div id="dt-list_air_pdam"
                                                             style="display: flex; flex-wrap: wrap;">
                                                         </div>

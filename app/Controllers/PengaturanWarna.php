@@ -41,7 +41,7 @@ class PengaturanWarna extends BaseController
 		
 	    $data['data'] = array();
  
-		$result = $this->pengaturanWarnaModel->select('config_name, fill, dashed, keterangan, add_by, date_add, edit_by, date_edit')->findAll();
+		$result = $this->pengaturanWarnaModel->select('config_name, fill, strokeWidth, dashed, keterangan, add_by, date_add, edit_by, date_edit')->findAll();
 		
 		foreach ($result as $key => $value) {
 							
@@ -53,6 +53,7 @@ class PengaturanWarna extends BaseController
 			$data['data'][$key] = array(
 				$value->config_name,
 				"<span class='btn' style='background-color: ".$value->fill."'>$value->fill</span>",
+				$value->strokeWidth ?? 0,
 				$value->dashed,
 				$value->keterangan,
 				$value->add_by,
@@ -95,6 +96,7 @@ class PengaturanWarna extends BaseController
 
         $fields['config_name'] = $this->request->getPost('configName');
         $fields['fill'] = $this->request->getPost('fill');
+        $fields['strokeWidth'] = $this->request->getPost('strokeWidth');
         $fields['dashed'] = $this->request->getPost('dashed');
         $fields['keterangan'] = $this->request->getPost('keterangan');
         $fields['add_by'] = $this->request->getPost('addBy');
@@ -105,6 +107,7 @@ class PengaturanWarna extends BaseController
 
         $this->validation->setRules([
             'fill' => ['label' => 'Fill', 'rules' => 'required|max_length[20]'],
+            'strokeWidth' => ['label' => 'Ketebalan garis', 'rules' => 'permit_empty|integer|greater_than_equal_to[0]|less_than_equal_to[100]'],
             'dashed' => ['label' => 'Dashed', 'rules' => 'permit_empty|max_length[255]'],
             'keterangan' => ['label' => 'Keterangan', 'rules' => 'permit_empty|max_length[255]'],
             'add_by' => ['label' => 'Add by', 'rules' => 'permit_empty|max_length[255]'],
@@ -120,6 +123,8 @@ class PengaturanWarna extends BaseController
             $response['messages'] = $this->validation->listErrors();
 			
         } else {
+
+            $fields['strokeWidth'] = $this->normalizeStrokeWidth($fields['strokeWidth']);
 
             if ($this->pengaturanWarnaModel->insert($fields)) {
 												
@@ -144,6 +149,7 @@ class PengaturanWarna extends BaseController
 		
         $fields['config_name'] = $this->request->getPost('configName');
         $fields['fill'] = $this->request->getPost('fill');
+        $fields['strokeWidth'] = $this->request->getPost('strokeWidth');
         $fields['dashed'] = $this->request->getPost('dashed');
         $fields['keterangan'] = $this->request->getPost('keterangan');
         $fields['add_by'] = $this->request->getPost('addBy');
@@ -154,6 +160,7 @@ class PengaturanWarna extends BaseController
 
         $this->validation->setRules([
             'fill' => ['label' => 'Fill', 'rules' => 'required|max_length[20]'],
+            'strokeWidth' => ['label' => 'Ketebalan garis', 'rules' => 'permit_empty|integer|greater_than_equal_to[0]|less_than_equal_to[100]'],
             'dashed' => ['label' => 'Dashed', 'rules' => 'permit_empty|max_length[255]'],
             'keterangan' => ['label' => 'Keterangan', 'rules' => 'permit_empty|max_length[255]'],
             'add_by' => ['label' => 'Add by', 'rules' => 'permit_empty|max_length[255]'],
@@ -169,6 +176,8 @@ class PengaturanWarna extends BaseController
             $response['messages'] = $this->validation->listErrors();
 			
         } else {
+
+            $fields['strokeWidth'] = $this->normalizeStrokeWidth($fields['strokeWidth']);
 
             if ($this->pengaturanWarnaModel->update($fields['config_name'], $fields)) {
 				
@@ -214,5 +223,14 @@ class PengaturanWarna extends BaseController
 	
         return $this->response->setJSON($response);		
 	}	
+
+    private function normalizeStrokeWidth($value): int
+    {
+        if ($value === null || $value === '') {
+            return 0;
+        }
+
+        return max(0, min(100, (int) $value));
+    }
 		
-}	
+}

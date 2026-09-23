@@ -319,6 +319,14 @@ function lihat_detail() {
 
                 let lAlamat = setLabelAlamat(siteplanActiveProyekName(), sh.data.nama_jalan, sh.data.no_kavling, sh.data2.no_tipe_rumah, sh.data2.tipe_rumah)
 
+                if (r.pricelist && r.pricelist.hargajual) {
+                    sh.data2.harga_akhir = num_format(r.pricelist.hargajual);
+                }
+                if (r.kavling) {
+                    sh.data2.harga_akhir_tgl = r.kavling.harga_akhir_tgl || sh.data2.harga_akhir_tgl;
+                    sh.data2.harga_akhir_oleh = r.kavling.harga_akhir_oleh_username || sh.data2.harga_akhir_oleh;
+                }
+
                 $(".label_alamat").html(lAlamat);
                 $("#label-hargajual").html(`
                     <h5 class="text-primary mb-0"><strong>Rp. ${sh.data2.harga_akhir}</strong></h5>
@@ -392,7 +400,7 @@ function lihat_detail() {
             if (mkdt.referred_by_nama) {
                 $("#s-referred_by_kode").text(mkdt.referred_by_kode || '-');
                 $("#s-referred_by_nama").text(mkdt.referred_by_nama);
-                $("#s-referred_by_container").show();
+                $("#s-referred_by_container").css("display", "flex");
             } else {
                 $("#s-referred_by_container").hide();
             }
@@ -485,25 +493,6 @@ function lihat_detail() {
             setAmenityChip("#s-lpa", false)
         }
 
-        if (r.si) {
-            let si = ''
-            $.each(r.si, function(i, v) {
-                si += `
-                <div class="custom-control custom-checkbox mb-1">
-                    <input type="checkbox" class="custom-control-input" id="s-si-${i}" disabled ${v.id_kavling ? 'checked' : ''}>
-                    <label class="custom-control-label" for="s-si-${i}">${v.nama}
-                        <small class="text-muted d-block">${v.tanggal_si ? format_date(v.tanggal_si) : '-'}</small>
-                    </label>
-                </div>
-                `
-            });
-            applyLoadingEffect("#s-si")
-            setTimeout(() => {
-                setText("#s-si", si)
-                removeLoadingEffect("#s-si");
-            }, 500);
-        }
-
         const financeFlowTypeTag = {
             'cashout_subkon_allocation': { label: 'Subkon', cls: 'badge-warning' },
             'bayar_produksi': { label: 'Produksi', cls: 'badge-secondary' },
@@ -519,8 +508,9 @@ function lihat_detail() {
             const rows = Array.isArray(r.finance_flow.expense_rows) ? r.finance_flow.expense_rows : []
 
             if (rows.length == 0) {
-                cashout += `<div class="detail-mini-card text-center text-muted" style="font-size:.82rem;">
-                    Belum ada riwayat pembayaran yang tercatat
+                cashout += `<div class="detail-summary-empty">
+                    <i class="far fa-folder-open"></i>
+                    <span>Belum ada riwayat pembayaran yang tercatat</span>
                 </div>`
 
             } else {
@@ -557,23 +547,28 @@ function lihat_detail() {
             const rows = r.hutang_subkon
 
             if (rows.length == 0) {
-                hutang += `<div class="detail-mini-card text-center text-muted" style="font-size:.82rem;">
-                    Tidak ada hutang subkon
+                hutang += `<div class="detail-summary-empty">
+                    <i class="far fa-folder-open"></i>
+                    <span>Tidak ada hutang subkon</span>
                 </div>`
             } else {
                 $.each(rows, function(i, v) {
                     hutang += `
-                <div class="detail-info-row">
-                    <div class="detail-info-col">
-                        <span class="detail-info-label">${v.nomor_surat ?? '-'}</span>
-                        <span class="detail-info-value">${v.tanggal_jatuh_tempo ? format_date(v.tanggal_jatuh_tempo) : '-'}</span>
+                <div class="detail-summary-list-item">
+                    <div class="detail-info-row">
+                        <div class="detail-info-col">
+                            <span class="detail-info-label">${v.nomor_surat ?? '-'}</span>
+                            <span class="detail-info-value">${v.tanggal_jatuh_tempo ? format_date(v.tanggal_jatuh_tempo) : '-'}</span>
+                        </div>
+                        <div class="detail-info-col text-right">
+                            <span class="detail-info-value">${detailRupiah(v.nominal)}</span>
+                        </div>
                     </div>
-                    <div class="detail-info-col text-right">
-                        <span class="detail-info-value">${detailRupiah(v.nominal)}</span>
-                    </div>
-                </div>
-                ${v.keterangan ? `<div class="text-muted" style="font-size:.76rem; margin-top:-.35rem; margin-bottom:.5rem;">${v.keterangan}</div>` : ''}`
+                    ${v.keterangan ? `<div class="detail-summary-item-note">${v.keterangan}</div>` : ''}
+                </div>`
                 });
+
+                hutang = `<div class="detail-summary-list">${hutang}</div>`
             }
 
             applyLoadingEffect("#s-hutang-subkon")
@@ -627,7 +622,7 @@ function lihat_detail() {
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
                             ctx.font = '700 20px sans-serif';
-                            ctx.fillStyle = '#020617';
+                            ctx.fillStyle = document.body.classList.contains('dark-layout') ? '#f8fafc' : '#020617';
                             ctx.fillText(percentLabel, cx, cy - 9);
                             ctx.font = '700 11px sans-serif';
                             ctx.fillStyle = isLunas ? '#28c76f' : '#ea5455';
@@ -671,8 +666,9 @@ function lihat_detail() {
         const retensiItems = (Array.isArray(items) ? items : []).filter(v => v.jenis === 'retensi' && parseFloat(v.nominal || 0) > 0);
 
         if (retensiItems.length === 0) {
-            return `<div class="detail-mini-card text-center text-muted" style="font-size:.82rem;">
-                Belum ada rencana retensi
+            return `<div class="detail-summary-empty">
+                <i class="far fa-folder-open"></i>
+                <span>Belum ada rencana retensi</span>
             </div>`;
         }
 
@@ -708,6 +704,58 @@ function lihat_detail() {
         return `<div class="detail-cashout-timeline">${rows}</div>`;
     }
 
+    function renderPengajuanHasilAkad(listPengajuan) {
+        const pengajuan = (Array.isArray(listPengajuan) ? listPengajuan : [])
+            .filter(v => v.status !== 'void');
+
+        const section = $("#s-pa-pengajuan-section");
+        if (pengajuan.length === 0) {
+            section.addClass("d-none");
+            setText("#s-pa-pengajuan", "");
+            return;
+        }
+
+        const statusMap = {
+            active: { label: 'Aktif', cls: 'badge-secondary' },
+            partial: { label: 'Sebagian cair', cls: 'badge-warning' },
+            paid: { label: 'Sudah cair', cls: 'badge-success' },
+        };
+
+        const rows = pengajuan.map(function(v) {
+            const status = statusMap[v.status] || {
+                label: v.status || '-',
+                cls: 'badge-secondary',
+            };
+            const itemList = (Array.isArray(v.details) ? v.details : []).map(function(item) {
+                if (item.jenis === 'retensi') {
+                    return `Retensi ${detailEscapeHtml(item.nama_jaminan || '')}`.trim();
+                }
+
+                return `Termin ${detailEscapeHtml(item.urutan_tenor || '-')}`;
+            }).join(', ');
+
+            return `
+                <div class="detail-summary-list-item">
+                    <div class="detail-info-row">
+                        <div class="detail-info-col">
+                            <span class="detail-info-label">Pengajuan #${detailEscapeHtml(v.id || '-')}</span>
+                            <span class="detail-info-value">${v.tanggal_pengajuan ? format_date(v.tanggal_pengajuan) : '-'}</span>
+                        </div>
+                        <div class="detail-info-col text-right">
+                            <span class="detail-status-badge ${status.cls}">${detailEscapeHtml(status.label)}</span>
+                            <span class="detail-info-value">${detailRupiah(v.total_pengajuan)}</span>
+                        </div>
+                    </div>
+                    <div class="detail-summary-item-note">
+                        ${itemList ? `${itemList} &middot; ` : ''}Sudah cair ${detailRupiah(v.total_cair)}
+                    </div>
+                </div>`;
+        }).join('');
+
+        setText("#s-pa-pengajuan", `<div class="detail-summary-list">${rows}</div>`);
+        section.removeClass("d-none");
+    }
+
     function renderRetensiHasilAkad(pa) {
         if (modalHasilAkadChart) {
             modalHasilAkadChart.destroy();
@@ -717,6 +765,8 @@ function lihat_detail() {
         const items = pa && Array.isArray(pa.items) ? pa.items : [];
         const plan = pa && pa.plan ? pa.plan : null;
         const totalHasilAkad = plan ? parseFloat(plan.total_hasil_akad || 0) : 0;
+
+        renderPengajuanHasilAkad(pa && pa.list_pengajuan);
 
         applyLoadingEffect("#s-pa-retensi")
         setTimeout(() => {
@@ -771,7 +821,7 @@ function lihat_detail() {
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     ctx.font = '700 20px sans-serif';
-                    ctx.fillStyle = '#020617';
+                    ctx.fillStyle = document.body.classList.contains('dark-layout') ? '#f8fafc' : '#020617';
                     ctx.fillText(percentLabel, cx, cy - 9);
                     ctx.font = '700 11px sans-serif';
                     ctx.fillStyle = isLunas ? '#28c76f' : '#b45309';
@@ -1153,35 +1203,35 @@ function lihat_detail() {
         $produksi.empty().append($lastUpdate).append(`
             <div class="detail-production-dashboard mt-1">
                 <div class="detail-progress-card">
-                    <div class="detail-mini-label">Progres Bangunan</div>
+                    <div class="detail-mini-label"><i class="fas fa-chart-line text-primary mr-50"></i> Progres Bangunan</div>
                     <div class="detail-progress-number"><span id="dt-produksi-progress-summary">0</span>%</div>
                     <div class="detail-progress-track mt-1">
                         <div class="detail-progress-fill is-empty" id="dt-produksi-progress-bar"></div>
                     </div>
                 </div>
                 <div class="detail-mini-card">
-                    <div class="detail-mini-label">Tanggal Bangun</div>
+                    <div class="detail-mini-label"><i class="fas fa-hammer text-primary mr-50"></i> Tanggal Bangun</div>
                     <div class="detail-mini-value" id="dt-produksi-tanggal-bangun">-</div>
                 </div>
                 <div class="detail-mini-card">
-                    <div class="detail-mini-label">Tanggal Selesai</div>
+                    <div class="detail-mini-label"><i class="fas fa-check-circle text-success mr-50"></i> Tanggal Selesai</div>
                     <div class="detail-mini-value" id="dt-produksi-tanggal-selesai">-</div>
                 </div>
                 <div class="detail-mini-card">
-                    <div class="detail-mini-label">Listrik</div>
+                    <div class="detail-mini-label"><i class="fas fa-bolt text-warning mr-50"></i> Listrik</div>
                     <div class="detail-mini-value" id="dt-produksi-listrik-summary">-</div>
                 </div>
                 <div class="detail-mini-card">
-                    <div class="detail-mini-label">Air</div>
+                    <div class="detail-mini-label"><i class="fas fa-tint text-info mr-50"></i> Air</div>
                     <div class="detail-mini-value" id="dt-produksi-air-summary">-</div>
                 </div>
             </div>
             <div class="detail-accordion" id="detailProductionAccordion">
-                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-progress', 'Progres & Jadwal', true)}
-                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-dokumentasi', 'Dokumentasi')}
-                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-jalan', 'Jalan')}
-                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-listrik', 'Listrik')}
-                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-air', 'Air')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-progress', '<i class="fas fa-tasks text-primary mr-50"></i> Progres & Jadwal', true)}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-dokumentasi', '<i class="fas fa-camera text-primary mr-50"></i> Dokumentasi')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-jalan', '<i class="fas fa-road text-primary mr-50"></i> Jalan')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-listrik', '<i class="fas fa-bolt text-warning mr-50"></i> Listrik')}
+                ${detailAccordionItem('detailProductionAccordion', 'detail-produksi-air', '<i class="fas fa-tint text-info mr-50"></i> Air')}
             </div>
         `);
 
