@@ -13,11 +13,14 @@ class SiteplanVisualStatusService
     {
         foreach ($rows as $index => $row) {
             $visualRows = $this->buildRows($row, $today);
+            $visualFill = $this->buildFill($row, $visualRows);
 
             if (is_object($row)) {
                 $row->visual_rows = $visualRows;
+                $row->visual_fill = $visualFill;
             } else {
                 $row['visual_rows'] = $visualRows;
+                $row['visual_fill'] = $visualFill;
                 $rows[$index] = $row;
             }
         }
@@ -29,11 +32,55 @@ class SiteplanVisualStatusService
     {
         $today = $today ?? new DateTimeImmutable('today');
 
-        return [
+        $rows = [
             $this->mkdtRow($row),
             $this->productionRow($row),
             $this->financeRow($row, $today),
         ];
+
+        $marketFinalStatus = $this->marketFinalStatus($row);
+        if ($marketFinalStatus === null) {
+            return $rows;
+        }
+
+        $progress = max(0, (float) ($this->value($row, 'progres_bangunan') ?? 0));
+        if ($progress >= 100) {
+            $rows[1] = $this->finalRow($rows[1], $marketFinalStatus);
+        }
+
+        $financeRatio = $rows[2]['meta']['disbursement_ratio'] ?? null;
+        if (
+            $this->truthy($this->value($row, 'is_lunas'))
+            && is_numeric($financeRatio)
+            && (float) $financeRatio >= 1
+        ) {
+            $rows[2] = $this->finalRow($rows[2], $marketFinalStatus);
+        }
+
+        return $rows;
+    }
+
+    public function buildFill($row, ?array $visualRows = null): ?array
+    {
+        $visualRows = $visualRows ?? $this->buildRows($row);
+        $marketFinalStatus = $this->marketFinalStatus($row);
+
+        if ($marketFinalStatus === null || count($visualRows) !== 3) {
+            return null;
+        }
+
+        foreach ($visualRows as $visualRow) {
+            $segments = $visualRow['segments'] ?? [];
+            if (
+                count($segments) !== 1
+                || ($segments[0]['config_name'] ?? null) !== $marketFinalStatus
+                || !empty($visualRow['markers'])
+            ) {
+                return null;
+            }
+        }
+
+        return $this->fill($marketFinalStatus);
     }
 
     private function mkdtRow($row): array
@@ -185,6 +232,37 @@ class SiteplanVisualStatusService
             'config_name' => $configName,
             'position' => round(max(0, min(1, $position)), 4),
         ];
+    }
+
+    private function fill(string $configName): array
+    {
+        return [
+            'config_name' => $configName,
+            'tipe' => 'Status',
+        ];
+    }
+
+    private function finalRow(array $row, string $configName): array
+    {
+        $row['segments'] = [$this->segment($configName, 1)];
+        $row['markers'] = [];
+
+        return $row;
+    }
+
+    private function marketFinalStatus($row): ?string
+    {
+        $isSubsidi = $this->value($row, 'is_subsidi');
+
+        if ($isSubsidi === true || $isSubsidi === 1 || $isSubsidi === '1') {
+            return 'Akad Subsidi';
+        }
+
+        if ($isSubsidi === false || $isSubsidi === 0 || $isSubsidi === '0') {
+            return 'Akad Komersil';
+        }
+
+        return null;
     }
 
     private function submissionMarkers(int $outstandingCount): array

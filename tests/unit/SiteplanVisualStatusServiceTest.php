@@ -118,6 +118,175 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
 
         $this->assertCount(3, $rows[0]['visual_rows']);
         $this->assertSame('Booking', $rows[0]['visual_rows'][0]['segments'][0]['config_name']);
+        $this->assertNull($rows[0]['visual_fill']);
+    }
+
+    /**
+     * @dataProvider finalMarketColorProvider
+     */
+    public function testFinalMarketColorIsAppliedPerCompletedRow(
+        array $data,
+        array $expectedSegments,
+        ?string $expectedFill
+    ): void
+    {
+        $row = (object) $data;
+        $rows = $this->service->buildRows($row);
+
+        $this->assertSame(
+            $expectedSegments,
+            array_map(static fn (array $visualRow): array => array_column($visualRow['segments'], 'config_name'), $rows)
+        );
+        $this->assertSame($expectedFill, $this->service->buildFill($row, $rows)['config_name'] ?? null);
+    }
+
+    public static function finalMarketColorProvider(): array
+    {
+        return [
+            'komersil belum final tetap tiga status' => [[
+                'is_subsidi' => 0,
+                'status_mkdt' => 'Booking',
+                'progres_bangunan' => 50,
+                'visual_id_konsumen' => 1,
+                'tagihan_aktif_count' => 1,
+                'is_lunas' => 0,
+            ], [
+                ['Booking Komersil'],
+                ['Pembangunan'],
+                ['Belum Lunas'],
+            ], null],
+            'akad hanya menyelesaikan mkdt' => [[
+                'is_subsidi' => 1,
+                'status_mkdt' => 'Akad',
+                'progres_bangunan' => 50,
+                'visual_id_konsumen' => 1,
+                'tagihan_aktif_count' => 1,
+                'is_lunas' => 0,
+            ], [
+                ['Akad Subsidi'],
+                ['Pembangunan'],
+                ['Belum Lunas'],
+            ], null],
+            'bangunan selesai hanya menyelesaikan produksi' => [[
+                'is_subsidi' => 1,
+                'status_mkdt' => 'Booking',
+                'progres_bangunan' => 100,
+                'visual_id_konsumen' => 1,
+                'tagihan_aktif_count' => 1,
+                'is_lunas' => 0,
+            ], [
+                ['Booking Subsidi'],
+                ['Akad Subsidi'],
+                ['Belum Lunas'],
+            ], null],
+            'lunas dan hasil akad penuh hanya menyelesaikan keuangan' => [[
+                'is_subsidi' => 0,
+                'status_mkdt' => 'Booking',
+                'progres_bangunan' => 50,
+                'visual_id_konsumen' => 1,
+                'tagihan_aktif_count' => 1,
+                'is_lunas' => 1,
+                'pa_pengajuan_count' => 1,
+                'pa_total_hasil_akad' => 100,
+                'pa_total_cair_sum' => 100,
+            ], [
+                ['Booking Komersil'],
+                ['Pembangunan'],
+                ['Akad Komersil'],
+            ], null],
+            'hasil akad penuh tanpa lunas belum menyelesaikan keuangan' => [[
+                'is_subsidi' => 1,
+                'status_mkdt' => 'Booking',
+                'progres_bangunan' => 50,
+                'visual_id_konsumen' => 1,
+                'tagihan_aktif_count' => 1,
+                'is_lunas' => 0,
+                'pa_pengajuan_count' => 1,
+                'pa_total_hasil_akad' => 100,
+                'pa_total_cair_sum' => 100,
+            ], [
+                ['Booking Subsidi'],
+                ['Pembangunan'],
+                ['Belum Lunas'],
+            ], null],
+            'hasil akad parsial tetap memakai dua warna keuangan' => [[
+                'is_subsidi' => 1,
+                'status_mkdt' => 'Booking',
+                'progres_bangunan' => 50,
+                'visual_id_konsumen' => 1,
+                'tagihan_aktif_count' => 1,
+                'is_lunas' => 1,
+                'pa_pengajuan_count' => 1,
+                'pa_pengajuan_outstanding_count' => 1,
+                'pa_total_hasil_akad' => 100,
+                'pa_total_cair_sum' => 30,
+            ], [
+                ['Booking Subsidi'],
+                ['Pembangunan'],
+                ['Pencairan Hasil Akad', 'Lunas'],
+            ], null],
+            'semua fase final subsidi dapat disatukan' => [[
+                'is_subsidi' => 1,
+                'status_mkdt' => 'Akad',
+                'progres_bangunan' => 100,
+                'visual_id_konsumen' => 1,
+                'tagihan_aktif_count' => 1,
+                'is_lunas' => 1,
+                'pa_pengajuan_count' => 1,
+                'pa_total_hasil_akad' => 100,
+                'pa_total_cair_sum' => 100,
+            ], [
+                ['Akad Subsidi'],
+                ['Akad Subsidi'],
+                ['Akad Subsidi'],
+            ], 'Akad Subsidi'],
+            'semua fase final komersil dapat disatukan' => [[
+                'is_subsidi' => 0,
+                'status_mkdt' => 'Akad',
+                'progres_bangunan' => 100,
+                'visual_id_konsumen' => 1,
+                'tagihan_aktif_count' => 1,
+                'is_lunas' => 1,
+                'pa_pengajuan_count' => 1,
+                'pa_total_hasil_akad' => 100,
+                'pa_total_cair_sum' => 100,
+            ], [
+                ['Akad Komersil'],
+                ['Akad Komersil'],
+                ['Akad Komersil'],
+            ], 'Akad Komersil'],
+            'pembatalan mencegah penyatuan walau fase lain final' => [[
+                'is_subsidi' => 1,
+                'status_mkdt' => 'Batal',
+                'is_batal' => 1,
+                'progres_bangunan' => 100,
+                'visual_id_konsumen' => 1,
+                'tagihan_aktif_count' => 1,
+                'is_lunas' => 1,
+                'pa_pengajuan_count' => 1,
+                'pa_total_hasil_akad' => 100,
+                'pa_total_cair_sum' => 100,
+            ], [
+                ['Batal'],
+                ['Akad Subsidi'],
+                ['Akad Subsidi'],
+            ], null],
+            'jenis pasar tidak diketahui mempertahankan status asli' => [[
+                'is_subsidi' => null,
+                'status_mkdt' => 'Akad',
+                'progres_bangunan' => 100,
+                'visual_id_konsumen' => 1,
+                'tagihan_aktif_count' => 1,
+                'is_lunas' => 1,
+                'pa_pengajuan_count' => 1,
+                'pa_total_hasil_akad' => 100,
+                'pa_total_cair_sum' => 100,
+            ], [
+                ['Akad'],
+                ['Bangunan 100%'],
+                ['Pencairan Hasil Akad'],
+            ], null],
+        ];
     }
 
     public function testProductionAndDueDateMarkersUseMiddlePosition(): void

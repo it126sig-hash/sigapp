@@ -493,36 +493,17 @@ function drawBorder(t) {
 
 function drawBorderEdit(t) {
   let a = editdtt.length;
-  poly = new Konva.Line({
-    points: t.points,
-    stroke: "red",
-    strokeWidth: 2,
-    dash: [5, 5],
-    opacity: 1,
-    closed: !0,
-    id: "sel",
-  });
-  let box = poly.getClientRect();
-  // console.log(box)
-  // console.log(t.points)
+  let selectionHighlight = SiteplanInteractionHighlight.createSelectionHighlight(
+    Konva,
+    t.points,
+    a,
+  );
 
-  ((tpoly = new Konva.Text({
-    // x: t.points[0],
-    // y: t.points[t.points.length - 1] + 20,
-    x: box.x - 20 + box.width / 2,
-    y: box.y - 8 + box.height / 2,
-    text: a,
-    fontSize: 18,
-    fontFamily: "Calibri",
-    fill: "red",
-    width: 40,
-    padding: 0,
-    align: "center",
-    id: "tsel",
-  })),
-    maskedGroup.add(poly),
-    maskedGroup.add(tpoly),
-    masked.add(maskedGroup));
+  poly = selectionHighlight.innerLine;
+  tpoly = selectionHighlight.badgeText;
+  maskedGroup.add(selectionHighlight);
+  masked.add(maskedGroup);
+  masked.batchDraw();
 }
 
 function drawBorderAct(t, a, e = null) {

@@ -303,5 +303,92 @@ describe('Siteplan composite shape paint plan', () => {
             .toBeLessThan(nativeContext.strokeText.mock.invocationCallOrder[0]);
         expect(nativeContext.strokeText.mock.invocationCallOrder[0])
             .toBeLessThan(nativeContext.fillText.mock.invocationCallOrder[0]);
+        expect(nativeContext.stroke).not.toHaveBeenCalled();
+    });
+
+    test('status belum lengkap tetap menggambar tiga fill dalam satu node', () => {
+        class Shape {
+            constructor(config) {
+                this.config = config;
+            }
+        }
+
+        const shape = SiteplanCompositeShape.createKonvaShape({ Shape }, {
+            points: square,
+            data: { no_kavling: '27' },
+            visualRows: [
+                { key: 'mkdt', segments: [{ config_name: 'Akad Subsidi', ratio: 1 }], markers: [] },
+                { key: 'produksi', segments: [{ config_name: 'Pembangunan', ratio: 1 }], markers: [] },
+                { key: 'keuangan', segments: [{ config_name: 'Belum Lunas', ratio: 1 }], markers: [] }
+            ]
+        }, color);
+        const nativeContext = {
+            save: jest.fn(),
+            restore: jest.fn(),
+            beginPath: jest.fn(),
+            moveTo: jest.fn(),
+            lineTo: jest.fn(),
+            closePath: jest.fn(),
+            clip: jest.fn(),
+            fill: jest.fn(),
+            fillText: jest.fn(),
+            strokeText: jest.fn(),
+            translate: jest.fn(),
+            rotate: jest.fn()
+        };
+
+        shape.config.sceneFunc({ _context: nativeContext }, {});
+
+        expect(nativeContext.fill).toHaveBeenCalledTimes(3);
+        expect(nativeContext.strokeText).toHaveBeenCalledWith('27', 0, 0);
+        expect(nativeContext.fillText).toHaveBeenCalledWith('27', 0, 0);
+    });
+
+    test('semua status final menggambar satu fill, satu label, dan satu hit area', () => {
+        class Shape {
+            constructor(config) {
+                this.config = config;
+            }
+        }
+
+        const shape = SiteplanCompositeShape.createKonvaShape({ Shape }, {
+            points: square,
+            data: { no_kavling: '27' },
+            visualRows: [{
+                key: 'status',
+                segments: [{ config_name: 'Akad Subsidi', ratio: 1 }],
+                markers: []
+            }]
+        }, color);
+        const nativeContext = {
+            save: jest.fn(),
+            restore: jest.fn(),
+            beginPath: jest.fn(),
+            moveTo: jest.fn(),
+            lineTo: jest.fn(),
+            closePath: jest.fn(),
+            clip: jest.fn(),
+            fill: jest.fn(),
+            fillText: jest.fn(),
+            strokeText: jest.fn(),
+            translate: jest.fn(),
+            rotate: jest.fn()
+        };
+        const hitContext = {
+            beginPath: jest.fn(),
+            moveTo: jest.fn(),
+            lineTo: jest.fn(),
+            closePath: jest.fn(),
+            fillStrokeShape: jest.fn()
+        };
+        const node = {};
+
+        shape.config.sceneFunc({ _context: nativeContext }, node);
+        shape.config.hitFunc(hitContext, node);
+
+        expect(nativeContext.fill).toHaveBeenCalledTimes(1);
+        expect(nativeContext.strokeText).toHaveBeenCalledWith('27', 0, 0);
+        expect(nativeContext.fillText).toHaveBeenCalledWith('27', 0, 0);
+        expect(hitContext.fillStrokeShape).toHaveBeenCalledTimes(1);
     });
 });

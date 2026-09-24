@@ -1345,6 +1345,7 @@ foreach (user()->getRoles() as $key => $val) {
 <!-- END: Page Vendor JS-->
 <script src="<?= base_url() ?>assets/js/siteplan/polygon-clip.js?v=999<?= time() ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/composite-shape.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/composite-shape.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/interaction-highlight.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/interaction-highlight.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/filter-state.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/filter-state.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/master.js?v=999<?= time() ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>

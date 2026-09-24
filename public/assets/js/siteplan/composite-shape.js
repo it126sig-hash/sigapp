@@ -346,10 +346,6 @@
                 drawLabel(nativeContext, paintPlan.label);
 
                 nativeContext.restore();
-                path(nativeContext, paintPlan.polygon);
-                nativeContext.strokeStyle = node.stroke() || '#000000';
-                nativeContext.lineWidth = Math.max(0.5, Number(node.strokeWidth()) || 0);
-                nativeContext.stroke();
             },
             hitFunc: function(context, node) {
                 context.beginPath();

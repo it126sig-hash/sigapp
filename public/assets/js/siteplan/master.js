@@ -142,6 +142,9 @@ Date.prototype.toDateInputValue = (function() {
     masked.add(shape_ket);
     masked.add(group);
 
+    var hoverHighlight = SiteplanInteractionHighlight.createHoverHighlight(Konva);
+    masked.add(hoverHighlight);
+
     var siteplanImageReady = false,
         siteplanStageReady = false,
         siteplanCanvasInitialized = false,
@@ -237,10 +240,14 @@ Date.prototype.toDateInputValue = (function() {
 
     function clearSiteplanDataShapes() {
         siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
+        if (typeof hoverHighlight !== 'undefined' && hoverHighlight) {
+            hoverHighlight.hide();
+        }
         filterwarnahitung = {};
         $('#keterangan-warna-here').empty();
         updateSiteplanRenderStats();
         siteplan.batchDraw();
+        masked.batchDraw();
     }
 
     function tryLoadInitialSiteplanData() {
@@ -752,7 +759,7 @@ Date.prototype.toDateInputValue = (function() {
             'HJ: Rp. ' + attrs.data2.harga_akhir
         ];
 
-        (attrs.visualRows || []).forEach(function(row) {
+        (attrs.tooltipRows || attrs.visualRows || []).forEach(function(row) {
             compositeTooltipLines(row).forEach(function(line) {
                 lines.push(line);
             });
@@ -1339,6 +1346,17 @@ Date.prototype.toDateInputValue = (function() {
                         }
                     }
 
+                    const visualRows = Array.isArray(r[p].visual_rows) ? r[p].visual_rows : [];
+                    const visualFill = r[p].visual_fill && r[p].visual_fill.config_name ? r[p].visual_fill : null;
+                    const useUnifiedFill = String(va) === '0' && visualFill !== null;
+
+                    if (useUnifiedFill) {
+                        hit = {
+                            fill: visualFill.config_name,
+                            tipe: visualFill.tipe || 'Status'
+                        };
+                    }
+
                     // Override warna jika filter kategori aktif
                     const filterOverride = getFilterColorOverride(r[p], subsidi);
                     if (filterOverride) {
@@ -1346,10 +1364,12 @@ Date.prototype.toDateInputValue = (function() {
                         hit = filterOverride;
                     }
 
-                    const visualRows = Array.isArray(r[p].visual_rows) ? r[p].visual_rows : [];
-                    const useCompositeMode = String(va) === '0' && !filterOverride && visualRows.length > 0;
+                    const useCompositeShape = String(va) === '0'
+                        && !filterOverride
+                        && visualRows.length > 0
+                        && typeof SiteplanCompositeShape !== 'undefined';
 
-                    if (useCompositeMode) {
+                    if (useCompositeShape && !useUnifiedFill) {
                         registerCompositeLegend(visualRows);
                     } else {
                         //set untuk filter warna
@@ -1395,7 +1415,14 @@ Date.prototype.toDateInputValue = (function() {
 
                     const pointsArr = JSON.parse("[" + r[p].points + "]");
 
-                    if (useCompositeMode && typeof SiteplanCompositeShape !== 'undefined') {
+                    if (useCompositeShape) {
+                        const paintRows = useUnifiedFill ? [{
+                            key: 'status',
+                            label: 'Status',
+                            segments: [{ config_name: hit.fill, ratio: 1 }],
+                            markers: []
+                        }] : visualRows;
+
                         kav = SiteplanCompositeShape.createKonvaShape(Konva, {
                             id: 'kav' + r[p].id_kavling,
                             kategori: hit.fill,
@@ -1403,7 +1430,8 @@ Date.prototype.toDateInputValue = (function() {
                             data2: data2Obj,
                             points: pointsArr,
                             facadeRotation: r[p].rotation,
-                            visualRows: visualRows,
+                            visualRows: paintRows,
+                            tooltipRows: visualRows,
                             strokeWidthResolver: get_kategori_stroke_width,
                             stroke: '#000',
                             strokeWidth: 0,
@@ -1422,6 +1450,7 @@ Date.prototype.toDateInputValue = (function() {
                             kategori: hit.fill,
                             data: dataObj,
                             data2: data2Obj,
+                            visualRows: visualRows,
                             id: 'kav' + r[p].id_kavling,
                             name: 'siteplan-kavling siteplan-data-shape'
                         });
@@ -1625,6 +1654,10 @@ Date.prototype.toDateInputValue = (function() {
     }
     //destroy multiple selection
     function hapus_seleksi_batch() {
+        stage.find('#siteplan-selection').forEach(function(selectionHighlight) {
+            selectionHighlight.destroy();
+        });
+
         idsb = stage.find('#sel'); //find selection line
         idstb = stage.find('#tsel'); //find selection text
 
@@ -1643,6 +1676,34 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     var editdtt = [];
+
+    function getSiteplanKavlingNode(target) {
+        if (!target || typeof target.hasName !== 'function') return null;
+        if (target.hasName('siteplan-kavling')) return target;
+        if (target.hasName('subShape') && target.parent && target.parent.hasName('siteplan-kavling')) {
+            return target.parent;
+        }
+
+        return null;
+    }
+
+    function isSelectedKavling(node) {
+        const nodeId = node && typeof node.id === 'function' ? node.id() : '';
+        return editdtt.some(function(selected) {
+            return selected && selected.id === nodeId;
+        });
+    }
+
+    function getSiteplanKavlingPoints(node) {
+        if (node && typeof node.points === 'function') return node.points();
+        return node && typeof node.getAttr === 'function' ? (node.getAttr('points') || []) : [];
+    }
+
+    function hideKavlingHover() {
+        if (!hoverHighlight.isVisible()) return;
+        hoverHighlight.hide();
+        masked.batchDraw();
+    }
 
     //event klik kavling (dblclick dihapus agar ditangani stage)
 
@@ -1708,6 +1769,8 @@ Date.prototype.toDateInputValue = (function() {
                 editdtt.push(sh)
                 drawBorderEdit(sh)
             }
+
+            hideKavlingHover();
         }
     })
 
@@ -1794,17 +1857,27 @@ Date.prototype.toDateInputValue = (function() {
         }
 
     })
-    //highligh kavling
+    //highlight kavling tanpa menggambar ulang seluruh layer siteplan
     siteplan.on('mouseover', function(e) {
-        var sh = e.target;
-        sh.setAttr("strokeWidth", 4);
-        sh.setAttr("stroke", "black");
+        var node = getSiteplanKavlingNode(e.target);
+        if (!node || isManualSelectionActive() || isSelectedKavling(node)) {
+            hideKavlingHover();
+            return;
+        }
+
+        hoverHighlight.setHighlightPoints(getSiteplanKavlingPoints(node));
+        hoverHighlight.show();
+        hoverHighlight.moveToTop();
+        stage.container().style.cursor = 'pointer';
+        masked.batchDraw();
     })
 
     //hide tooltip
     siteplan.on('mouseout', function(e) {
-        var sh = e.target;
-        sh.setAttr("strokeWidth", 0);
+        if (getSiteplanKavlingNode(e.target)) {
+            hideKavlingHover();
+            stage.container().style.cursor = 'default';
+        }
         group.hide();
     })
 
