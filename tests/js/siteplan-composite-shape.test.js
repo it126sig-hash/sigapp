@@ -153,6 +153,31 @@ describe('Siteplan composite shape paint plan', () => {
         expect(Math.max(...markerY)).toBeGreaterThan(60);
     });
 
+    test('akad indent menjadi marker di atas warna status terakhir MKDT', () => {
+        const plan = SiteplanCompositeShape.buildPaintPlan(square, [{
+            key: 'mkdt',
+            label: 'MKDT',
+            segments: [{ config_name: 'SP3K Subsidi', ratio: 1 }],
+            markers: [{ config_name: 'Akad Indent', position: 0.5 }]
+        }], 90, color);
+
+        expect(plan.rows[0].segments[0]).toMatchObject({
+            config_name: 'SP3K Subsidi',
+            color: 'SP3K Subsidi'
+        });
+        expect(plan.rows[0].markers[0]).toMatchObject({
+            config_name: 'Akad Indent',
+            color: 'Akad Indent',
+            position: 0.5
+        });
+        expect(SiteplanCompositeShape.tooltipLines({
+            key: 'mkdt',
+            label: 'MKDT',
+            segments: [{ config_name: 'SP3K Subsidi', ratio: 1 }],
+            markers: [{ config_name: 'Akad Indent', position: 0.5 }]
+        })).toEqual(['MKDT: SP3K Subsidi / Penanda Akad Indent']);
+    });
+
     test('tiga marker pengajuan dibagi merata tanpa bertumpuk', () => {
         const plan = SiteplanCompositeShape.buildPaintPlan(square, [{
             key: 'keuangan',

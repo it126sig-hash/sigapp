@@ -90,8 +90,6 @@ class SiteplanVisualStatusService
             $status = 'Batal';
         } elseif ($this->truthy($this->value($row, 'akad')) || $this->value($row, 'status_mkdt') === 'Akad' || $this->hasDate($this->value($row, 'akad_tgl'))) {
             $status = 'Akad';
-        } elseif ($this->truthy($this->value($row, 'akad_indent'))) {
-            $status = 'Akad Indent';
         } elseif ($this->truthy($this->value($row, 'sp3k')) || $this->hasDate($this->value($row, 'sp3k_tgl'))) {
             $status = 'SP3K';
         } elseif ($this->truthy($this->value($row, 'wawancara')) || $this->hasDate($this->value($row, 'wawancara_tgl'))) {
@@ -104,7 +102,12 @@ class SiteplanVisualStatusService
             $status = $this->withMarketSuffix($status, $this->value($row, 'is_subsidi'));
         }
 
-        return $this->row('mkdt', 'MKDT', [$this->segment($status, 1)]);
+        $markers = [];
+        if ($status !== 'Batal' && $this->truthy($this->value($row, 'akad_indent'))) {
+            $markers[] = $this->marker('Akad Indent');
+        }
+
+        return $this->row('mkdt', 'MKDT', [$this->segment($status, 1)], $markers);
     }
 
     private function productionRow($row): array

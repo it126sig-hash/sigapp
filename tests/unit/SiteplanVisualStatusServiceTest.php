@@ -46,9 +46,54 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
             'booking' => [['booking_tgl' => '2026-01-01'], 'Booking'],
             'wawancara' => [['booking_tgl' => '2026-01-01', 'wawancara' => 1], 'Wawancara'],
             'sp3k' => [['wawancara' => 1, 'sp3k_tgl' => '2026-02-01'], 'SP3K'],
-            'akad indent' => [['sp3k' => 1, 'akad_indent' => 1], 'Akad Indent'],
+            'akad indent keeps sp3k milestone' => [['sp3k' => 1, 'akad_indent' => 1], 'SP3K'],
             'akad' => [['akad_indent' => 1, 'status_mkdt' => 'Akad'], 'Akad'],
         ];
+    }
+
+    /**
+     * @dataProvider mkdtAkadIndentMarkerProvider
+     */
+    public function testMkdtAkadIndentUsesLatestMilestoneAndGenericMarker(array $data, string $expected): void
+    {
+        $rows = $this->service->buildRows((object) array_merge($data, ['akad_indent' => 1]));
+
+        $this->assertSame($expected, $rows[0]['segments'][0]['config_name']);
+        $this->assertSame(
+            [['config_name' => 'Akad Indent', 'position' => 0.5]],
+            $rows[0]['markers']
+        );
+    }
+
+    public static function mkdtAkadIndentMarkerProvider(): array
+    {
+        return [
+            'default' => [[], 'Def'],
+            'booking' => [['booking_tgl' => '2026-01-01'], 'Booking'],
+            'wawancara' => [['wawancara' => 1], 'Wawancara'],
+            'sp3k subsidi' => [['sp3k' => 1, 'is_subsidi' => 1], 'SP3K Subsidi'],
+            'sp3k komersil' => [['sp3k' => 1, 'is_subsidi' => 0], 'SP3K Komersil'],
+            'akad' => [['status_mkdt' => 'Akad'], 'Akad'],
+        ];
+    }
+
+    public function testMkdtAkadIndentMarkerIsHiddenForCancelledStatus(): void
+    {
+        $rows = $this->service->buildRows((object) [
+            'status_mkdt' => 'Batal',
+            'is_batal' => 1,
+            'akad_indent' => 1,
+        ]);
+
+        $this->assertSame('Batal', $rows[0]['segments'][0]['config_name']);
+        $this->assertSame([], $rows[0]['markers']);
+    }
+
+    public function testMkdtWithoutAkadIndentHasNoMarker(): void
+    {
+        $rows = $this->service->buildRows((object) ['sp3k' => 1]);
+
+        $this->assertSame([], $rows[0]['markers']);
     }
 
     /**
@@ -70,8 +115,6 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
             'wawancara komersil' => [['wawancara' => 1, 'is_subsidi' => 0], 'Wawancara Komersil'],
             'sp3k subsidi' => [['sp3k' => 1, 'is_subsidi' => 1], 'SP3K Subsidi'],
             'sp3k komersil' => [['sp3k' => 1, 'is_subsidi' => 0], 'SP3K Komersil'],
-            'akad indent subsidi' => [['akad_indent' => 1, 'is_subsidi' => 1], 'Akad Indent Subsidi'],
-            'akad indent komersil' => [['akad_indent' => 1, 'is_subsidi' => 0], 'Akad Indent Komersil'],
             'akad subsidi' => [['akad' => 1, 'is_subsidi' => 1], 'Akad Subsidi'],
             'akad komersil' => [['akad' => 1, 'is_subsidi' => 0], 'Akad Komersil'],
         ];
@@ -119,6 +162,27 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
         $this->assertCount(3, $rows[0]['visual_rows']);
         $this->assertSame('Booking', $rows[0]['visual_rows'][0]['segments'][0]['config_name']);
         $this->assertNull($rows[0]['visual_fill']);
+    }
+
+    public function testAkadIndentMarkerPreventsUnifiedFill(): void
+    {
+        $row = $this->activeFinance([
+            'status_mkdt' => 'Akad',
+            'akad_indent' => 1,
+            'is_subsidi' => 1,
+            'progres_bangunan' => 100,
+            'is_lunas' => 1,
+            'pa_pengajuan_count' => 1,
+            'pa_total_hasil_akad' => 100,
+            'pa_total_cair_sum' => 100,
+        ]);
+        $rows = $this->service->buildRows($row);
+
+        $this->assertSame(
+            [['config_name' => 'Akad Indent', 'position' => 0.5]],
+            $rows[0]['markers']
+        );
+        $this->assertNull($this->service->buildFill($row, $rows));
     }
 
     /**
