@@ -2103,6 +2103,7 @@ window.SIGAPPMobileBottomNavQueue = window.SIGAPPMobileBottomNavQueue || [];
     activeSheet: null,
     movedSource: null,
   };
+  let sheetCloseTimer = null;
 
   const defaults = {
     filter: null,
@@ -2170,15 +2171,45 @@ window.SIGAPPMobileBottomNavQueue = window.SIGAPPMobileBottomNavQueue || [];
     return true;
   }
 
-  function closeSheet() {
+  function finishSheetClose() {
+    if (sheetCloseTimer) {
+      window.clearTimeout(sheetCloseTimer);
+      sheetCloseTimer = null;
+    }
+
     restoreMovedSource();
     state.activeSheet = null;
-    $(".sigapp-mobile-sheet, .sigapp-mobile-sheet-backdrop").removeClass("is-active");
+    $(".sigapp-mobile-sheet, .sigapp-mobile-sheet-backdrop").removeClass(
+      "is-active is-closing"
+    );
     $(".sigapp-mobile-sheet").attr("aria-hidden", "true");
     $("#sigapp-mobile-filter-sheet .sigapp-mobile-sheet-body").empty();
     $("#sigapp-mobile-action-sheet .sigapp-mobile-sheet-body").empty();
     navButton("filter").removeClass("is-active");
     navButton("actions").removeClass("is-active");
+  }
+
+  function closeSheet(animate = true) {
+    if (!animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      finishSheetClose();
+      return;
+    }
+
+    const $sheet = $(".sigapp-mobile-sheet.is-active").first();
+    if (!$sheet.length) return;
+
+    if (sheetCloseTimer) {
+      window.clearTimeout(sheetCloseTimer);
+    }
+
+    $sheet.removeClass("is-active").addClass("is-closing").attr("aria-hidden", "true");
+    $(".sigapp-mobile-sheet-backdrop")
+      .removeClass("is-active")
+      .addClass("is-closing");
+    navButton("filter").removeClass("is-active");
+    navButton("actions").removeClass("is-active");
+
+    sheetCloseTimer = window.setTimeout(finishSheetClose, 220);
   }
 
   function emptyMessage(message) {
@@ -2188,7 +2219,7 @@ window.SIGAPPMobileBottomNavQueue = window.SIGAPPMobileBottomNavQueue || [];
   function openSheet(sheetName) {
     if (!isMobile()) return;
 
-    closeSheet();
+    closeSheet(false);
 
     let $sheet = null;
     if (sheetName === "filter") {
@@ -2268,7 +2299,7 @@ window.SIGAPPMobileBottomNavQueue = window.SIGAPPMobileBottomNavQueue || [];
 
       $btn.on("click", function (event) {
         event.preventDefault();
-        closeSheet();
+        closeSheet(false);
 
         window.setTimeout(function () {
           if (typeof action.onClick === "function") {
@@ -2318,7 +2349,7 @@ window.SIGAPPMobileBottomNavQueue = window.SIGAPPMobileBottomNavQueue || [];
 
   function runMenu() {
     if (isMobile() && $("body").hasClass("sigapp-mobile-bottom-nav-ready")) {
-      closeSheet();
+      closeSheet(false);
       if ($("body").hasClass("menu-open")) {
         closeMobileMenu();
       } else {
@@ -2341,7 +2372,7 @@ window.SIGAPPMobileBottomNavQueue = window.SIGAPPMobileBottomNavQueue || [];
     $("body").toggleClass("sigapp-mobile-bottom-nav-ready", ready);
 
     if (!ready) {
-      closeSheet();
+      closeSheet(false);
       return;
     }
 

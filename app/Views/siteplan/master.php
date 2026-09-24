@@ -1229,6 +1229,17 @@ foreach (user()->getRoles() as $key => $val) {
                                 </div>
                             <?php endif; ?>
                             <form id="form-filter-kategori">
+
+                                <div class="row mt-1 mb-1">
+                                    <div class="col-6">
+                                        <button type="button" onclick="apply_server_filter()" class="btn btn-sm w-100 btn-primary">
+                                            <i class="fa fa-filter"></i> Terapkan</button>
+                                    </div>
+                                    <div class="col-6 pl-0">
+                                        <button type="button" onclick="reset_server_filter()" class="btn btn-sm w-100 btn-outline-warning">
+                                            <i class="fa fa-times"></i> Reset</button>
+                                    </div>
+                                </div>
                                 <div class="form-group">
                                     <select id="pilih-divisi" class="form-control-sm select2">
                                         <optgroup label="Departemen">
@@ -1292,16 +1303,6 @@ foreach (user()->getRoles() as $key => $val) {
                                     </select>
                                 </div>
 
-                                <div class="row mt-1">
-                                    <div class="col-6">
-                                        <button type="button" onclick="apply_server_filter()" class="btn btn-sm w-100 btn-primary">
-                                            <i class="fa fa-filter"></i> Terapkan</button>
-                                    </div>
-                                    <div class="col-6 pl-0">
-                                        <button type="button" onclick="reset_server_filter()" class="btn btn-sm w-100 btn-outline-warning">
-                                            <i class="fa fa-times"></i> Reset</button>
-                                    </div>
-                                </div>
                             </form>
 
                             <div class="divider divider-left mt-2">

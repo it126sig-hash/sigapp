@@ -186,17 +186,31 @@ Date.prototype.toDateInputValue = (function() {
             return fallbackHeight;
         }
 
-        if ($(window).width() < 768) {
-            $card.css({
-                '--siteplan-main-card-height': 'auto',
-                '--siteplan-main-content-height': 'auto'
-            });
-            $('#filter-side').css('height', 'auto');
-            return fallbackHeight;
-        }
-
         const paddingY = (parseFloat($cardBody.css('padding-top')) || 0) +
             (parseFloat($cardBody.css('padding-bottom')) || 0);
+
+        if ($(window).width() < 768) {
+            const mobileNav = document.getElementById('sigapp-mobile-bottom-nav');
+            const mobileNavRect = mobileNav ? mobileNav.getBoundingClientRect() : null;
+            const mobileNavStyle = mobileNav ? getComputedStyle(mobileNav) : null;
+            const mobileNavVisible = mobileNavRect && mobileNavStyle &&
+                mobileNavStyle.display !== 'none' && mobileNavRect.height > 0;
+            const bottomGap = mobileNavVisible
+                ? Math.max(12, window.innerHeight - mobileNavRect.top + 12)
+                : 88;
+            const cardRect = $card[0].getBoundingClientRect();
+            const availableCardHeight = Math.max(0, window.innerHeight - cardRect.top - bottomGap);
+            const availableContentHeight = Math.max(0, availableCardHeight - paddingY);
+            const contentHeight = Math.ceil(Math.max(fallbackHeight, availableContentHeight));
+
+            $card.css({
+                '--siteplan-main-card-height': Math.ceil(contentHeight + paddingY) + 'px',
+                '--siteplan-main-content-height': contentHeight + 'px'
+            });
+            $('#filter-side').css('height', 'auto');
+            return contentHeight;
+        }
+
         const cardRect = $card[0].getBoundingClientRect();
         const viewportGap = 16;
         const availableCardHeight = Math.max(0, window.innerHeight - cardRect.top - viewportGap);
@@ -238,6 +252,18 @@ Date.prototype.toDateInputValue = (function() {
         $hint.toggleClass('text-primary', Boolean(show));
     }
 
+    function showSiteplanClusterRequiredAlert() {
+        if (typeof Swal === 'undefined') return;
+        if (typeof Swal.isVisible === 'function' && Swal.isVisible()) return;
+
+        Swal.fire({
+            icon: 'warning',
+            title: 'Cluster belum dipilih',
+            text: 'Silakan pilih minimal satu cluster terlebih dahulu.',
+            confirmButtonText: 'Pilih Cluster'
+        });
+    }
+
     function clearSiteplanDataShapes() {
         siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
         if (typeof hoverHighlight !== 'undefined' && hoverHighlight) {
@@ -260,6 +286,7 @@ Date.prototype.toDateInputValue = (function() {
         if (filter.id_cluster.length === 0) {
             clearSiteplanDataShapes();
             setSiteplanClusterHint(true, 'Pilih minimal satu cluster untuk menampilkan data siteplan.');
+            showSiteplanClusterRequiredAlert();
             return;
         }
 
@@ -714,7 +741,11 @@ Date.prototype.toDateInputValue = (function() {
 
             (row.segments || []).concat(row.markers || []).forEach(function(item) {
                 const configName = item.config_name || 'Def';
-                filterwarna[groupName][configName] = get_kategori_color(configName);
+                const colorConfigName = item.color_config_name || configName;
+                filterwarna[groupName][configName] = typeof SiteplanCompositeShape !== 'undefined'
+                    && typeof SiteplanCompositeShape.legendBackground === 'function'
+                    ? SiteplanCompositeShape.legendBackground(item, get_kategori_color)
+                    : get_kategori_color(colorConfigName);
 
                 const countKey = groupName + ':' + configName;
                 if (!counted[countKey]) {
@@ -802,7 +833,7 @@ Date.prototype.toDateInputValue = (function() {
                     kv = (x == "Def") ? "Data yang bisa diolah" : x;
 
                     div += `<div class="form-group row">
-                                <div class="btn col-2 ml-1" style="background-color:${y}"></div>
+                                <div class="btn col-2 ml-1" style="background:${y}"></div>
                                 <div class="col-9"> ${kv} (${filterwarnahitung[i + ':' + x] ?? filterwarnahitung[x] ?? 0})</div>
                             </div>`;
                 })
@@ -926,6 +957,7 @@ Date.prototype.toDateInputValue = (function() {
             $('#filter-id_jalan').val(null).trigger('change.select2').prop('disabled', true);
             clearSiteplanDataShapes();
             setSiteplanClusterHint(true, 'Pilih minimal satu cluster untuk menampilkan data siteplan.');
+            showSiteplanClusterRequiredAlert();
             $('#loading').addClass('hidden');
             return;
         }
@@ -1109,7 +1141,15 @@ Date.prototype.toDateInputValue = (function() {
                                         const totalCair = parseFloat(r[p].pa_total_cair_sum || 0);
                                         if (hasilAkad - totalCair > 0.01)
                                             hit = set_fill2('Pengajuan Pencairan Hasil Akad')
-                                        else
+                                        else if (hasilAkad > 0) {
+                                            const marketColor = 'Akad ' + subsidi;
+                                            set_fill2(marketColor);
+                                            hit = {
+                                                fill: 'Pencairan Hasil Akad 100%',
+                                                color_fill: marketColor,
+                                                tipe: 'Status'
+                                            };
+                                        } else
                                             hit = set_fill2('Akad ' + subsidi)
                                     }
                                 } else {
@@ -1245,6 +1285,19 @@ Date.prototype.toDateInputValue = (function() {
                             }
                         }
 
+                        if (
+                            parseFloat(r[p].progres_bangunan || 0) >= 100
+                            && (r[p].is_subsidi == 0 || r[p].is_subsidi == 1)
+                        ) {
+                            const marketColor = 'Akad ' + subsidi;
+                            set_fill2(marketColor);
+                            hit = {
+                                fill: 'Bangunan 100%',
+                                color_fill: marketColor,
+                                tipe: 'Status'
+                            };
+                        }
+
                         //jika ada komplain (dari sales)
                         if (r[p].status_komplain == 1 || r[p].status_komplain == 2 || r[p].status_komplain == 3)
                             hit = set_fill2("Komplain")
@@ -1368,14 +1421,15 @@ Date.prototype.toDateInputValue = (function() {
                         && !filterOverride
                         && visualRows.length > 0
                         && typeof SiteplanCompositeShape !== 'undefined';
+                    const hitColorConfig = hit.color_fill || hit.fill;
 
-                    if (useCompositeShape && !useUnifiedFill) {
+                    if (useCompositeShape) {
                         registerCompositeLegend(visualRows);
                     } else {
                         //set untuk filter warna
                         filterwarna[hit.tipe] = {
                             ...filterwarna[hit.tipe],
-                            [hit.fill]: get_kategori_color(hit.fill)
+                            [hit.fill]: get_kategori_color(hitColorConfig)
                         }
 
                         hitung_kavling(hit)
@@ -1442,7 +1496,7 @@ Date.prototype.toDateInputValue = (function() {
                         // Rendering standar
                         kav = new Konva.Line({
                             points: pointsArr,
-                            fill: get_kategori_color(hit.fill),
+                            fill: get_kategori_color(hitColorConfig),
                             dash: dashed,
                             opacity: 1,
                             closed: true,
@@ -2370,6 +2424,9 @@ Date.prototype.toDateInputValue = (function() {
         setSiteplanClusterHint(true, clusterIds.length === 0
             ? 'Pilih minimal satu cluster untuk menampilkan data siteplan.'
             : 'Klik Terapkan untuk memuat cluster terpilih.');
+        if (clusterIds.length === 0) {
+            showSiteplanClusterRequiredAlert();
+        }
     });
     $("#filter-id_jalan").select2({
         placeholder: "Pilih Blok",

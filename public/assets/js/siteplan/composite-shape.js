@@ -135,8 +135,13 @@
 
     function normalizeSegments(segments) {
         const valid = (Array.isArray(segments) ? segments : []).map(function(segment) {
+            const legendColorConfigNames = Array.isArray(segment.legend_color_config_names)
+                ? segment.legend_color_config_names.filter(Boolean)
+                : [];
             return {
                 config_name: segment.config_name || 'Def',
+                color_config_name: segment.color_config_name || segment.config_name || 'Def',
+                legend_color_config_names: legendColorConfigNames,
                 ratio: clamp(Number(segment.ratio) || 0, 0, 1)
             };
         }).filter(function(segment) {
@@ -145,12 +150,43 @@
         const total = valid.reduce(function(sum, segment) { return sum + segment.ratio; }, 0);
 
         if (total <= 0) {
-            return [{ config_name: 'Def', ratio: 1 }];
+            return [{ config_name: 'Def', color_config_name: 'Def', legend_color_config_names: [], ratio: 1 }];
         }
 
         return valid.map(function(segment) {
-            return { config_name: segment.config_name, ratio: segment.ratio / total };
+            return {
+                config_name: segment.config_name,
+                color_config_name: segment.color_config_name,
+                legend_color_config_names: segment.legend_color_config_names,
+                ratio: segment.ratio / total
+            };
         });
+    }
+
+    function resolveLegendColorConfigNames(item) {
+        if (Array.isArray(item.legend_color_config_names) && item.legend_color_config_names.length > 0) {
+            return item.legend_color_config_names;
+        }
+
+        return [item.color_config_name || item.config_name || 'Def'];
+    }
+
+    function legendBackground(item, colorResolver) {
+        const resolveColor = typeof colorResolver === 'function' ? colorResolver : function() { return '#d1d5db'; };
+        const colors = resolveLegendColorConfigNames(item).map(resolveColor);
+
+        if (colors.length === 1) {
+            return colors[0];
+        }
+
+        const stops = [];
+        colors.forEach(function(color, index) {
+            const start = index * 100 / colors.length;
+            const end = (index + 1) * 100 / colors.length;
+            stops.push(color + ' ' + start + '%', color + ' ' + end + '%');
+        });
+
+        return 'linear-gradient(90deg, ' + stops.join(', ') + ')';
     }
 
     function rowSummary(row) {
@@ -171,7 +207,8 @@
         const label = row.label || row.key || 'Status';
         const segments = Array.isArray(row.segments) ? row.segments : [];
         const isSettledFinance = row.key === 'keuangan' && segments.some(function(segment) {
-            return segment.config_name === 'Lunas' || segment.config_name === 'Pencairan Hasil Akad';
+            return segment.config_name === 'Lunas'
+                || String(segment.config_name).indexOf('Pencairan Hasil Akad') === 0;
         });
 
         if (!isSettledFinance) {
@@ -214,10 +251,13 @@
             const segments = normalizeSegments(row.segments).map(function(segment) {
                 const start = consumed;
                 consumed += segment.ratio;
+                const colorConfigName = segment.color_config_name || segment.config_name;
                 return {
                     config_name: segment.config_name,
+                    color_config_name: colorConfigName,
+                    legend_color_config_names: segment.legend_color_config_names,
                     ratio: segment.ratio,
-                    color: resolveColor(segment.config_name),
+                    color: resolveColor(colorConfigName),
                     points: localRectToWorld(
                         layoutFrame,
                         layoutBounds.minX + width * start,
@@ -373,6 +413,7 @@
     return {
         buildPaintPlan: buildPaintPlan,
         createKonvaShape: createKonvaShape,
+        legendBackground: legendBackground,
         tooltipLines: tooltipLines
     };
 });

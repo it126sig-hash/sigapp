@@ -122,11 +122,12 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
     }
 
     /**
-     * @dataProvider finalMarketColorProvider
+     * @dataProvider finalStageColorProvider
      */
-    public function testFinalMarketColorIsAppliedPerCompletedRow(
+    public function testFinalStageSeparatesCanvasAndLegendColorsWithoutChangingStatus(
         array $data,
         array $expectedSegments,
+        array $expectedCanvasColors,
         ?string $expectedFill
     ): void
     {
@@ -137,10 +138,34 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
             $expectedSegments,
             array_map(static fn (array $visualRow): array => array_column($visualRow['segments'], 'config_name'), $rows)
         );
+        $this->assertSame(
+            $expectedCanvasColors,
+            array_map(
+                static fn (array $visualRow): array => array_map(
+                    static fn (array $segment) => $segment['color_config_name']
+                        ?? $segment['config_name'],
+                    $visualRow['segments']
+                ),
+                $rows
+            )
+        );
+        foreach ($rows as $visualRow) {
+            foreach ($visualRow['segments'] as $segment) {
+                $hasFinalLegend = in_array(
+                    $segment['config_name'],
+                    ['Bangunan 100%', 'Pencairan Hasil Akad 100%'],
+                    true
+                );
+                $this->assertSame(
+                    $hasFinalLegend ? ['Akad Subsidi', 'Akad Komersil'] : [],
+                    $segment['legend_color_config_names'] ?? []
+                );
+            }
+        }
         $this->assertSame($expectedFill, $this->service->buildFill($row, $rows)['config_name'] ?? null);
     }
 
-    public static function finalMarketColorProvider(): array
+    public static function finalStageColorProvider(): array
     {
         return [
             'komersil belum final tetap tiga status' => [[
@@ -150,6 +175,10 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 'visual_id_konsumen' => 1,
                 'tagihan_aktif_count' => 1,
                 'is_lunas' => 0,
+            ], [
+                ['Booking Komersil'],
+                ['Pembangunan'],
+                ['Belum Lunas'],
             ], [
                 ['Booking Komersil'],
                 ['Pembangunan'],
@@ -166,6 +195,10 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 ['Akad Subsidi'],
                 ['Pembangunan'],
                 ['Belum Lunas'],
+            ], [
+                ['Akad Subsidi'],
+                ['Pembangunan'],
+                ['Belum Lunas'],
             ], null],
             'bangunan selesai hanya menyelesaikan produksi' => [[
                 'is_subsidi' => 1,
@@ -174,6 +207,10 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 'visual_id_konsumen' => 1,
                 'tagihan_aktif_count' => 1,
                 'is_lunas' => 0,
+            ], [
+                ['Booking Subsidi'],
+                ['Bangunan 100%'],
+                ['Belum Lunas'],
             ], [
                 ['Booking Subsidi'],
                 ['Akad Subsidi'],
@@ -192,6 +229,10 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
             ], [
                 ['Booking Komersil'],
                 ['Pembangunan'],
+                ['Pencairan Hasil Akad 100%'],
+            ], [
+                ['Booking Komersil'],
+                ['Pembangunan'],
                 ['Akad Komersil'],
             ], null],
             'hasil akad penuh tanpa lunas belum menyelesaikan keuangan' => [[
@@ -204,6 +245,10 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 'pa_pengajuan_count' => 1,
                 'pa_total_hasil_akad' => 100,
                 'pa_total_cair_sum' => 100,
+            ], [
+                ['Booking Subsidi'],
+                ['Pembangunan'],
+                ['Belum Lunas'],
             ], [
                 ['Booking Subsidi'],
                 ['Pembangunan'],
@@ -224,8 +269,12 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 ['Booking Subsidi'],
                 ['Pembangunan'],
                 ['Pencairan Hasil Akad', 'Lunas'],
+            ], [
+                ['Booking Subsidi'],
+                ['Pembangunan'],
+                ['Pencairan Hasil Akad', 'Lunas'],
             ], null],
-            'semua fase final subsidi dapat disatukan' => [[
+            'semua fase final subsidi tetap tiga segmen' => [[
                 'is_subsidi' => 1,
                 'status_mkdt' => 'Akad',
                 'progres_bangunan' => 100,
@@ -237,10 +286,14 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 'pa_total_cair_sum' => 100,
             ], [
                 ['Akad Subsidi'],
+                ['Bangunan 100%'],
+                ['Pencairan Hasil Akad 100%'],
+            ], [
                 ['Akad Subsidi'],
                 ['Akad Subsidi'],
-            ], 'Akad Subsidi'],
-            'semua fase final komersil dapat disatukan' => [[
+                ['Akad Subsidi'],
+            ], null],
+            'semua fase final komersil tetap tiga segmen' => [[
                 'is_subsidi' => 0,
                 'status_mkdt' => 'Akad',
                 'progres_bangunan' => 100,
@@ -252,9 +305,13 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 'pa_total_cair_sum' => 100,
             ], [
                 ['Akad Komersil'],
+                ['Bangunan 100%'],
+                ['Pencairan Hasil Akad 100%'],
+            ], [
                 ['Akad Komersil'],
                 ['Akad Komersil'],
-            ], 'Akad Komersil'],
+                ['Akad Komersil'],
+            ], null],
             'pembatalan mencegah penyatuan walau fase lain final' => [[
                 'is_subsidi' => 1,
                 'status_mkdt' => 'Batal',
@@ -266,6 +323,10 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 'pa_pengajuan_count' => 1,
                 'pa_total_hasil_akad' => 100,
                 'pa_total_cair_sum' => 100,
+            ], [
+                ['Batal'],
+                ['Bangunan 100%'],
+                ['Pencairan Hasil Akad 100%'],
             ], [
                 ['Batal'],
                 ['Akad Subsidi'],
@@ -284,7 +345,11 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
             ], [
                 ['Akad'],
                 ['Bangunan 100%'],
-                ['Pencairan Hasil Akad'],
+                ['Pencairan Hasil Akad 100%'],
+            ], [
+                ['Akad'],
+                ['Bangunan 100%'],
+                ['Pencairan Hasil Akad 100%'],
             ], null],
         ];
     }
@@ -448,7 +513,11 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
         ]));
 
         $this->assertSame([
-            ['config_name' => 'Pencairan Hasil Akad', 'ratio' => 1.0],
+            [
+                'config_name' => 'Pencairan Hasil Akad 100%',
+                'ratio' => 1.0,
+                'legend_color_config_names' => ['Akad Subsidi', 'Akad Komersil'],
+            ],
         ], $rows[2]['segments']);
         $this->assertSame([], $rows[2]['markers']);
         $this->assertSame(1.0, $rows[2]['meta']['disbursement_ratio']);

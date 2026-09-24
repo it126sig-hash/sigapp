@@ -8,6 +8,7 @@ use DateTimeInterface;
 class SiteplanVisualStatusService
 {
     private const MAX_PENGAJUAN_MARKERS = 3;
+    private const FINAL_MARKET_LEGEND_COLORS = ['Akad Subsidi', 'Akad Komersil'];
 
     public function appendVisualRows(array $rows, ?DateTimeInterface $today = null): array
     {
@@ -39,13 +40,9 @@ class SiteplanVisualStatusService
         ];
 
         $marketFinalStatus = $this->marketFinalStatus($row);
-        if ($marketFinalStatus === null) {
-            return $rows;
-        }
-
         $progress = max(0, (float) ($this->value($row, 'progres_bangunan') ?? 0));
         if ($progress >= 100) {
-            $rows[1] = $this->finalRow($rows[1], $marketFinalStatus);
+            $rows[1] = $this->rowWithFinalMarketColors($rows[1], $marketFinalStatus);
         }
 
         $financeRatio = $rows[2]['meta']['disbursement_ratio'] ?? null;
@@ -54,7 +51,7 @@ class SiteplanVisualStatusService
             && is_numeric($financeRatio)
             && (float) $financeRatio >= 1
         ) {
-            $rows[2] = $this->finalRow($rows[2], $marketFinalStatus);
+            $rows[2] = $this->rowWithFinalMarketColors($rows[2], $marketFinalStatus);
         }
 
         return $rows;
@@ -71,9 +68,11 @@ class SiteplanVisualStatusService
 
         foreach ($visualRows as $visualRow) {
             $segments = $visualRow['segments'] ?? [];
+            $paintConfigName = $segments[0]['color_config_name'] ?? $segments[0]['config_name'] ?? null;
             if (
                 count($segments) !== 1
-                || ($segments[0]['config_name'] ?? null) !== $marketFinalStatus
+                || !empty($segments[0]['legend_color_config_names'])
+                || $paintConfigName !== $marketFinalStatus
                 || !empty($visualRow['markers'])
             ) {
                 return null;
@@ -187,7 +186,10 @@ class SiteplanVisualStatusService
             );
         }
 
-        $segments = [$this->segment('Pencairan Hasil Akad', $disbursedRatio)];
+        $disbursementStatus = $disbursedRatio >= 1
+            ? 'Pencairan Hasil Akad 100%'
+            : 'Pencairan Hasil Akad';
+        $segments = [$this->segment($disbursementStatus, $disbursedRatio)];
 
         if ($disbursedRatio < 1) {
             $segments[] = $this->segment('Lunas', 1 - $disbursedRatio);
@@ -242,9 +244,17 @@ class SiteplanVisualStatusService
         ];
     }
 
-    private function finalRow(array $row, string $configName): array
+    private function rowWithFinalMarketColors(array $row, ?string $marketFinalStatus): array
     {
-        $row['segments'] = [$this->segment($configName, 1)];
+        foreach ($row['segments'] as &$segment) {
+            if ($marketFinalStatus !== null) {
+                $segment['color_config_name'] = $marketFinalStatus;
+            }
+
+            $segment['legend_color_config_names'] = self::FINAL_MARKET_LEGEND_COLORS;
+        }
+        unset($segment);
+
         $row['markers'] = [];
 
         return $row;

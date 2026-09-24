@@ -40,6 +40,105 @@ describe('Siteplan composite shape paint plan', () => {
         expect(plan.rows[0].markers[0].config_name).toBe('Pengajuan Pencairan Hasil Akad');
     });
 
+    test('nama status tetap dipakai untuk teks sementara warna dapat mengikuti status akad', () => {
+        const plan = SiteplanCompositeShape.buildPaintPlan(square, [{
+            key: 'produksi',
+            label: 'Produksi',
+            segments: [{
+                config_name: 'Bangunan 100%',
+                color_config_name: 'Akad Subsidi',
+                ratio: 1
+            }]
+        }], 90, color);
+
+        expect(plan.rows[0].segments[0]).toMatchObject({
+            config_name: 'Bangunan 100%',
+            color_config_name: 'Akad Subsidi',
+            color: 'Akad Subsidi'
+        });
+        expect(SiteplanCompositeShape.tooltipLines({
+            key: 'produksi',
+            label: 'Produksi',
+            segments: [{
+                config_name: 'Bangunan 100%',
+                color_config_name: 'Akad Subsidi',
+                ratio: 1
+            }]
+        })).toEqual(['Produksi: Bangunan 100%']);
+    });
+
+    test('status final memakai warna pasar solid di canvas dan gradient 50:50 di legenda', () => {
+        const colorMap = {
+            'Akad Subsidi': '#dc3545',
+            'Akad Komersil': '#575656'
+        };
+        const row = {
+            key: 'produksi',
+            label: 'Produksi',
+            segments: [{
+                config_name: 'Bangunan 100%',
+                color_config_name: 'Akad Subsidi',
+                legend_color_config_names: ['Akad Subsidi', 'Akad Komersil'],
+                ratio: 1
+            }]
+        };
+        const plan = SiteplanCompositeShape.buildPaintPlan(square, [row], 90, (name) => colorMap[name]);
+
+        expect(plan.rows[0].segments).toHaveLength(1);
+        expect(plan.rows[0].segments[0]).toMatchObject({
+            config_name: 'Bangunan 100%',
+            color_config_name: 'Akad Subsidi',
+            legend_color_config_names: ['Akad Subsidi', 'Akad Komersil'],
+            color: '#dc3545'
+        });
+        expect(plan.rows[0].segments[0].colors).toBeUndefined();
+        expect(SiteplanCompositeShape.legendBackground(row.segments[0], (name) => colorMap[name]))
+            .toBe('linear-gradient(90deg, #dc3545 0%, #dc3545 50%, #575656 50%, #575656 100%)');
+        expect(SiteplanCompositeShape.tooltipLines(row)).toEqual(['Produksi: Bangunan 100%']);
+    });
+
+    test('canvas memakai warna pasar solid dengan satu fill tanpa CanvasGradient', () => {
+        class Shape {
+            constructor(config) {
+                this.config = config;
+            }
+        }
+
+        const shape = SiteplanCompositeShape.createKonvaShape({ Shape }, {
+            points: square,
+            visualRows: [{
+                key: 'keuangan',
+                segments: [{
+                    config_name: 'Pencairan Hasil Akad 100%',
+                    color_config_name: 'Akad Komersil',
+                    legend_color_config_names: ['Akad Subsidi', 'Akad Komersil'],
+                    ratio: 1
+                }]
+            }]
+        }, (name) => ({
+            'Akad Subsidi': '#dc3545',
+            'Akad Komersil': '#575656'
+        })[name]);
+        const nativeContext = {
+            save: jest.fn(),
+            restore: jest.fn(),
+            beginPath: jest.fn(),
+            moveTo: jest.fn(),
+            lineTo: jest.fn(),
+            closePath: jest.fn(),
+            clip: jest.fn(),
+            fill: jest.fn(),
+            fillStyle: null,
+            createLinearGradient: jest.fn()
+        };
+
+        shape.config.sceneFunc({ _context: nativeContext }, {});
+
+        expect(nativeContext.createLinearGradient).not.toHaveBeenCalled();
+        expect(nativeContext.fillStyle).toBe('#575656');
+        expect(nativeContext.fill).toHaveBeenCalledTimes(1);
+    });
+
     test('marker berada di tengah baris dan rasio invalid dinormalisasi', () => {
         const plan = SiteplanCompositeShape.buildPaintPlan(square, [{
             key: 'produksi',
@@ -172,6 +271,21 @@ describe('Siteplan composite shape paint plan', () => {
         });
 
         expect(lines).toEqual(['Keuangan: Lunas / Pencairan Hasil Akad 30%']);
+    });
+
+    test('tooltip keuangan menampilkan status khusus ketika pencairan sudah 100 persen', () => {
+        const lines = SiteplanCompositeShape.tooltipLines({
+            key: 'keuangan',
+            label: 'Keuangan',
+            segments: [{ config_name: 'Pencairan Hasil Akad 100%', ratio: 1 }],
+            markers: [],
+            meta: {
+                disbursement_ratio: 1,
+                outstanding_submission_count: 0
+            }
+        });
+
+        expect(lines).toEqual(['Keuangan: Lunas / Pencairan Hasil Akad 100%']);
     });
 
     test('tooltip menghilangkan persentase jika total hasil akad tidak valid', () => {

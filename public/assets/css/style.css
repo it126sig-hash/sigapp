@@ -1499,6 +1499,10 @@ select,
         display: block;
     }
 
+    .sigapp-mobile-sheet.is-closing {
+        display: block;
+    }
+
     .sigapp-mobile-sheet-panel {
         max-height: min(76vh, 640px);
         overflow: hidden;
@@ -1510,8 +1514,40 @@ select,
         pointer-events: auto;
     }
 
+    @keyframes sigapp-mobile-sheet-slide-in {
+        from {
+            transform: translateY(100%);
+        }
+
+        to {
+            transform: translateY(0);
+        }
+    }
+
     .sigapp-mobile-sheet.is-active .sigapp-mobile-sheet-panel {
         transform: translateY(0);
+        animation: sigapp-mobile-sheet-slide-in .22s ease-out both;
+    }
+
+    @keyframes sigapp-mobile-sheet-slide-out {
+        from {
+            transform: translateY(0);
+        }
+
+        to {
+            transform: translateY(100%);
+        }
+    }
+
+    .sigapp-mobile-sheet.is-closing .sigapp-mobile-sheet-panel {
+        transform: translateY(100%);
+        animation: sigapp-mobile-sheet-slide-out .22s ease-in both;
+    }
+
+    .sigapp-mobile-sheet-backdrop.is-closing {
+        display: block;
+        opacity: 0;
+        pointer-events: none;
     }
 
     .sigapp-mobile-sheet-handle {
@@ -1742,6 +1778,16 @@ select,
 
     .dark-layout .sigapp-mobile-sheet-title {
         color: #f8fafc;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sigapp-mobile-sheet-panel,
+    .sigapp-mobile-sheet.is-active .sigapp-mobile-sheet-panel,
+    .sigapp-mobile-sheet.is-closing .sigapp-mobile-sheet-panel,
+    .sigapp-mobile-sheet-backdrop {
+        animation: none;
+        transition: none;
     }
 }
 
