@@ -261,10 +261,44 @@ Date.prototype.toDateInputValue = (function() {
             title: 'Cluster belum dipilih',
             text: 'Silakan pilih minimal satu cluster terlebih dahulu.',
             confirmButtonText: 'Pilih Cluster'
+        }).then(function(result) {
+            if (!result || !result.isConfirmed) return;
+
+            const focusClusterSelect = function() {
+                const select = document.getElementById('filter-id_cluster');
+                if (!select) return;
+
+                const selection = select.nextElementSibling
+                    ? select.nextElementSibling.querySelector('.select2-selection')
+                    : null;
+                const target = selection
+                    ? (selection.querySelector('.select2-search__field') || selection)
+                    : select;
+
+                target.focus({ preventScroll: true });
+                if (window.matchMedia('(max-width: 767.98px)').matches) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            };
+
+            if (window.matchMedia('(max-width: 767.98px)').matches) {
+                if (window.SIGAPPMobileBottomNav &&
+                    typeof window.SIGAPPMobileBottomNav.open === 'function') {
+                    window.SIGAPPMobileBottomNav.open('filter');
+                } else {
+                    $('#sigapp-mobile-bottom-nav [data-sigapp-mobile-nav="filter"]').trigger('click');
+                }
+
+                window.setTimeout(focusClusterSelect, 100);
+                return;
+            }
+
+            focusClusterSelect();
         });
     }
 
     function clearSiteplanDataShapes() {
+        clearShapeFilterSelection();
         siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
         if (typeof hoverHighlight !== 'undefined' && hoverHighlight) {
             hoverHighlight.hide();
@@ -511,6 +545,7 @@ Date.prototype.toDateInputValue = (function() {
 
     var stroke, fill, strokeWidth, dashed;
     let filterwarnahitung = {};
+    const selectedShapeLegendKeys = new Set();
 
     function set_fill2(e) { //test set fill dengan config dari db
         if (!conf[e]) {
@@ -726,10 +761,37 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     function hitung_kavling(fill) {
-        let e = fill.fill
-        let p = filterwarnahitung[e] ? filterwarnahitung[e] : 0;
-        filterwarnahitung[e] = p + 1;
+        const groupName = fill.tipe || 'Status';
+        const countKey = groupName + ':' + fill.fill;
+        const count = filterwarnahitung[countKey] || 0;
+        filterwarnahitung[countKey] = count + 1;
 
+    }
+
+    function createLegendEntry(groupName, configName, item, kind) {
+        const colorConfigName = item.color_config_name || configName;
+        const background = typeof SiteplanCompositeShape !== 'undefined'
+            && typeof SiteplanCompositeShape.legendBackground === 'function'
+            ? SiteplanCompositeShape.legendBackground(item, get_kategori_color)
+            : get_kategori_color(colorConfigName);
+
+        return {
+            key: SiteplanShapeFilter.key(groupName, configName),
+            background: background,
+            kind: kind,
+            strokeWidth: kind === 'marker' ? get_kategori_stroke_width(colorConfigName) : 0
+        };
+    }
+
+    function registerLegendItem(groupName, item, kind, counted) {
+        const configName = item.config_name || 'Def';
+        filterwarna[groupName][configName] = createLegendEntry(groupName, configName, item, kind);
+
+        const countKey = groupName + ':' + configName;
+        if (!counted[countKey]) {
+            filterwarnahitung[countKey] = (filterwarnahitung[countKey] || 0) + 1;
+            counted[countKey] = true;
+        }
     }
 
     function registerCompositeLegend(rows) {
@@ -739,19 +801,11 @@ Date.prototype.toDateInputValue = (function() {
             const groupName = row.label || row.key || 'Status';
             filterwarna[groupName] = filterwarna[groupName] || {};
 
-            (row.segments || []).concat(row.markers || []).forEach(function(item) {
-                const configName = item.config_name || 'Def';
-                const colorConfigName = item.color_config_name || configName;
-                filterwarna[groupName][configName] = typeof SiteplanCompositeShape !== 'undefined'
-                    && typeof SiteplanCompositeShape.legendBackground === 'function'
-                    ? SiteplanCompositeShape.legendBackground(item, get_kategori_color)
-                    : get_kategori_color(colorConfigName);
-
-                const countKey = groupName + ':' + configName;
-                if (!counted[countKey]) {
-                    filterwarnahitung[countKey] = (filterwarnahitung[countKey] || 0) + 1;
-                    counted[countKey] = true;
-                }
+            (row.segments || []).forEach(function(item) {
+                registerLegendItem(groupName, item, 'fill', counted);
+            });
+            (row.markers || []).forEach(function(item) {
+                registerLegendItem(groupName, item, 'marker', counted);
             });
         });
     }
@@ -802,20 +856,18 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     function set_keterangan_warna() {
-        $("#keterangan-warna-here").html(" ")
+        const $legend = $("#keterangan-warna-here").empty();
 
         //filter
         $("#filter-kategori option").remove()
         $("#filter-kategori").append(`<option value="">Semua</option>`);
-        let div = "",
-            kv
-        console.log(filterwarna)
         $.each(filterwarna, function(i, v) {
             if (v) {
-                div += `
-                <div class="divider divider-left">
-                    <div class="divider-text">${i} ${i == 'Subsidi' || i == 'Komersil' ? 'Dipasarkan' : ''}</div>
-                </div>`;
+                const groupLabel = i + (i == 'Subsidi' || i == 'Komersil' ? ' Dipasarkan' : '');
+                const $divider = $('<div>', { class: 'divider divider-left' })
+                    .append($('<div>', { class: 'divider-text' }).text(groupLabel));
+                $legend.append($divider);
+
                 const statusOrder = i === 'Legal' ? legalStatusOrder : (i === 'Pajak' ? pajakStatusOrder : null);
                 const sortedKeys = statusOrder ?
                     statusOrder.filter(key => Object.prototype.hasOwnProperty.call(v, key)).concat(Object.keys(v).filter(key => !statusOrder.includes(key)).sort()) :
@@ -827,20 +879,80 @@ Date.prototype.toDateInputValue = (function() {
                     sortedObj[key] = v[key];
                 });
 
-                $.each(sortedObj, function(x, y) {
+                $.each(sortedObj, function(x, rawEntry) {
                     //untuk tambah option di filter
-                    $("#filter-kategori").append(`<option value="${x}">${x}</option>`);
-                    kv = (x == "Def") ? "Data yang bisa diolah" : x;
+                    $("#filter-kategori").append($('<option>').val(x).text(x));
 
-                    div += `<div class="form-group row">
-                                <div class="btn col-2 ml-1" style="background:${y}"></div>
-                                <div class="col-9"> ${kv} (${filterwarnahitung[i + ':' + x] ?? filterwarnahitung[x] ?? 0})</div>
-                            </div>`;
+                    const entry = typeof rawEntry === 'string' ? {
+                        key: SiteplanShapeFilter.key(i, x),
+                        background: rawEntry,
+                        kind: 'fill',
+                        strokeWidth: 0
+                    } : rawEntry;
+                    const label = (x == "Def") ? "Data yang bisa diolah" : x;
+                    const count = filterwarnahitung[i + ':' + x] ?? filterwarnahitung[x] ?? 0;
+                    const $item = $('<label>', { class: 'siteplan-legend-item' });
+                    const $checkbox = $('<input>', {
+                        type: 'checkbox',
+                        class: 'siteplan-shape-filter-checkbox',
+                        'aria-label': 'Filter shape ' + groupLabel + ' ' + label
+                    }).prop('checked', selectedShapeLegendKeys.has(entry.key));
+                    $checkbox.data('shapeKey', entry.key);
+
+                    const $swatch = $('<span>', { class: 'siteplan-legend-swatch' });
+                    if (entry.kind === 'marker') {
+                        const markerWidth = Math.min(6, Math.max(2, Number(entry.strokeWidth) || 3));
+                        $swatch.addClass('siteplan-legend-swatch-marker').append(
+                            $('<span>', { class: 'siteplan-legend-marker-line' }).css({
+                                background: entry.background,
+                                height: markerWidth + 'px'
+                            })
+                        );
+                    } else {
+                        $swatch.css('background', entry.background);
+                    }
+
+                    $item.append(
+                        $checkbox,
+                        $swatch,
+                        $('<span>', { class: 'siteplan-legend-label' }).text(label + ' (' + count + ')')
+                    );
+                    $legend.append($item);
                 })
             }
         })
-        $("#keterangan-warna-here").html(div)
     }
+
+    function clearShapeFilterSelection() {
+        selectedShapeLegendKeys.clear();
+        $('#keterangan-warna-here .siteplan-shape-filter-checkbox').prop('checked', false);
+    }
+
+    function applyShapeVisibilityFilter() {
+        hapus_seleksi();
+        hideKavlingHover();
+        group.hide();
+
+        siteplan.find('.siteplan-data-shape').forEach(function(node) {
+            const filterable = typeof node.hasName === 'function' && node.hasName('siteplan-kavling');
+            const legendKeys = typeof node.getAttr === 'function' ? node.getAttr('legendKeys') : [];
+            node.visible(SiteplanShapeFilter.shouldShow(filterable, legendKeys, selectedShapeLegendKeys));
+        });
+
+        siteplan.batchDraw();
+        masked.batchDraw();
+    }
+
+    $(document).on('change', '#keterangan-warna-here .siteplan-shape-filter-checkbox', function() {
+        const shapeKey = $(this).data('shapeKey');
+        if (this.checked) {
+            selectedShapeLegendKeys.add(shapeKey);
+        } else {
+            selectedShapeLegendKeys.delete(shapeKey);
+        }
+
+        applyShapeVisibilityFilter();
+    });
     function getHitForFilter(filterKey, row, subsidi) {
         if (filterKey === 'Masalah') {
             const prio = row.prioritas_masalah ? row.prioritas_masalah.toLowerCase() : 'normal';
@@ -943,6 +1055,7 @@ Date.prototype.toDateInputValue = (function() {
     //load shape kavling
     function load_kavling(refresh = false) {
         const loadSequence = ++siteplanLoadSequence;
+        clearShapeFilterSelection();
         filter.id_cluster = selectedClusterIds();
 
         if (siteplanKavlingRequest && siteplanKavlingRequest.readyState !== 4) {
@@ -1429,7 +1542,10 @@ Date.prototype.toDateInputValue = (function() {
                         //set untuk filter warna
                         filterwarna[hit.tipe] = {
                             ...filterwarna[hit.tipe],
-                            [hit.fill]: get_kategori_color(hitColorConfig)
+                            [hit.fill]: createLegendEntry(hit.tipe, hit.fill, {
+                                config_name: hit.fill,
+                                color_config_name: hitColorConfig
+                            }, 'fill')
                         }
 
                         hitung_kavling(hit)
@@ -1468,6 +1584,9 @@ Date.prototype.toDateInputValue = (function() {
                     };
 
                     const pointsArr = JSON.parse("[" + r[p].points + "]");
+                    const legendKeys = useCompositeShape
+                        ? SiteplanShapeFilter.keysFromRows(visualRows)
+                        : [SiteplanShapeFilter.key(hit.tipe, hit.fill)];
 
                     if (useCompositeShape) {
                         const paintRows = useUnifiedFill ? [{
@@ -1486,6 +1605,7 @@ Date.prototype.toDateInputValue = (function() {
                             facadeRotation: r[p].rotation,
                             visualRows: paintRows,
                             tooltipRows: visualRows,
+                            legendKeys: legendKeys,
                             strokeWidthResolver: get_kategori_stroke_width,
                             stroke: '#000',
                             strokeWidth: 0,
@@ -1505,6 +1625,7 @@ Date.prototype.toDateInputValue = (function() {
                             data: dataObj,
                             data2: data2Obj,
                             visualRows: visualRows,
+                            legendKeys: legendKeys,
                             id: 'kav' + r[p].id_kavling,
                             name: 'siteplan-kavling siteplan-data-shape'
                         });
@@ -1580,8 +1701,10 @@ Date.prototype.toDateInputValue = (function() {
 
                         set_fill2(hitFill);
                         filterwarna['Filter'] = filterwarna['Filter'] || {};
-                        filterwarna['Filter'][hitFill] = get_kategori_color(hitFill);
-                        hitung_kavling({fill: hitFill});
+                        filterwarna['Filter'][hitFill] = createLegendEntry('Filter', hitFill, {
+                            config_name: hitFill
+                        }, 'fill');
+                        hitung_kavling({fill: hitFill, tipe: 'Filter'});
                     }
 
                     kav = new Konva.Line({

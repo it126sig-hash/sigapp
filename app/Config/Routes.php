@@ -286,10 +286,12 @@ $routes->group('api/transaksi', ['namespace' => 'App\Controllers\Api', 'filter' 
     $routes->post('ambilsatu', 'TransaksiController::getByID');
     $routes->post('status/ambilsatu', 'TransaksiController::getStatusById');
     $routes->post('status/simpan', 'TransaksiController::saveStatus');
+    $routes->post('konsumen/ganti', 'TransaksiController::replaceConsumer');
 });
 
 $routes->group('api/mkdt', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
     $routes->post('history', 'MkdtController::history');
+    $routes->post('consumer-replacement-history', 'MkdtController::consumerReplacementHistory');
 });
 
 $routes->group('api/tagihan/booking', ['namespace' => 'App\Controllers\Api', 'filter' => ['login', 'csrf']], function ($routes) {

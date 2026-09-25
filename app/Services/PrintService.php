@@ -36,6 +36,7 @@ class PrintService
     protected $keuRepo;
     protected $posisiKonsumen;
     protected $fileAccessService;
+    protected $mkdtHistoryService;
     public function __construct()
     {
         $this->comproModel = new ProfilePerusahaanModel();
@@ -50,38 +51,96 @@ class PrintService
         $this->keuRepo = new KeuanganRepository();
         $this->posisiKonsumen = new PosisiKonsumenRepository();
         $this->fileAccessService = new FileAccessService();
+        $this->mkdtHistoryService = new MkdtHistoryService();
     }
 
     public function printSpptb(int $idKavling, int $idMkdt, int $idProyek): void
     {
         $data['proyek']       = $this->proyek->find($idProyek);
-        $data['data']         = $this->transaksi->getKonsumenByIdKavling($idKavling);
+        $data['data']         = $this->transaksi->getSpptbData($idKavling, $idMkdt);
+        if (!$data['proyek'] || !$data['data'] || (int) $data['data']->id_proyek !== $idProyek) {
+            throw new \DomainException('Data SPPTB tidak sesuai dengan MKDT, kavling, atau proyek yang diminta.');
+        }
         $data['list_tagihan'] = $this->keuanganModel
             ->where('id_mkdt', $idMkdt)
             ->orderBy('jatuh_tempo_tgl')
             ->find();
 
-        $html[] = view('pdf/spptb-new',       $data);
-        $html[] = view('pdf/spptb-new-page2', $data);
-        $html[] = view('pdf/spptb-new-page3', $data);
+        $sections = [[
+            'data' => $data['data'],
+            'list_tagihan' => $data['list_tagihan'],
+            'sort_at' => PHP_INT_MIN,
+        ]];
 
-        if ($data['data']->is_allin) {
-            $html[] = view('pdf/spptb-memo', $data);
+        foreach ($this->mkdtHistoryService->getConsumerReplacementSnapshots($idMkdt) as $history) {
+            $snapshot = $history->old_data ?? [];
+            if (empty($snapshot['spptb_data'])) {
+                continue;
+            }
+            $sections[] = [
+                'data' => (object) $snapshot['spptb_data'],
+                'list_tagihan' => array_map(static fn ($row) => (object) $row, $snapshot['list_tagihan'] ?? []),
+                'sort_at' => strtotime((string) ($history->created_at ?? '')) ?: 0,
+            ];
         }
 
-        $ktpPath  = !empty($data['data']->file_ktp)  ? $this->fileAccessService->existingPath($data['data']->file_ktp)  : null;
-        $npwpPath = !empty($data['data']->file_npwp) ? $this->fileAccessService->existingPath($data['data']->file_npwp) : null;
+        foreach ($this->transaksi->getLegacyReplacementSpptbData($idKavling, $idMkdt) as $legacy) {
+            $legacyTagihan = $this->keuanganModel
+                ->where('id_mkdt', (int) $legacy->id_mkdt)
+                ->orderBy('jatuh_tempo_tgl')
+                ->find();
+            $sections[] = [
+                'data' => $legacy,
+                'list_tagihan' => $legacyTagihan ?: $data['list_tagihan'],
+                'sort_at' => strtotime((string) ($legacy->created_at ?? '')) ?: 0,
+            ];
+        }
 
-        if ($ktpPath || $npwpPath) {
-            $ktpImg  = $ktpPath  ? "<img src='{$ktpPath}'  width='85mm' height='54mm'>" : '';
-            $npwpImg = $npwpPath ? "<img src='{$npwpPath}' width='85mm' height='54mm'>" : '';
-            $footer  = "<div style='text-align:center;'>{$ktpImg}{$npwpImg}</div>";
-        } else {
-            $footer = "<div style='text-align:center;'><span style='font-size:12px;color:red;'>Belum melampirkan KTP atau NPWP</span></div>";
+        $active = array_shift($sections);
+        usort($sections, static fn (array $a, array $b) => $a['sort_at'] <=> $b['sort_at']);
+        array_unshift($sections, $active);
+
+        $html = [];
+        $seenConsumers = [];
+        foreach ($sections as $section) {
+            $sectionData = $section['data'];
+            $consumerKey = (int) ($sectionData->id_konsumen ?? 0);
+            if ($consumerKey > 0 && isset($seenConsumers[$consumerKey])) {
+                continue;
+            }
+            if ($consumerKey > 0) {
+                $seenConsumers[$consumerKey] = true;
+            }
+
+            $viewData = [
+                'proyek' => $data['proyek'],
+                'data' => $sectionData,
+                'list_tagihan' => $section['list_tagihan'],
+            ];
+            $footer = $this->spptbConsumerFooter($sectionData);
+            $html[] = ['html' => view('pdf/spptb-new', $viewData), 'footer' => $footer];
+            $html[] = ['html' => view('pdf/spptb-new-page2', $viewData), 'footer' => ''];
+            $html[] = ['html' => view('pdf/spptb-new-page3', $viewData), 'footer' => ''];
+            if (!empty($sectionData->is_allin)) {
+                $html[] = ['html' => view('pdf/spptb-memo', $viewData), 'footer' => ''];
+            }
         }
 
         $filename = 'SPPTB - ' . $data['data']->nama_konsumen . ' - ' . date('Ymd') . '.pdf';
-        $this->mpdf->generate($html, $filename, '', [15, 15, 10, 25], 'F4', true, $footer);
+        $this->mpdf->generate($html, $filename, '', [15, 15, 10, 25], 'F4', true);
+    }
+
+    private function spptbConsumerFooter(object $consumer): string
+    {
+        $ktpPath = !empty($consumer->file_ktp) ? $this->fileAccessService->existingPath($consumer->file_ktp) : null;
+        $npwpPath = !empty($consumer->file_npwp) ? $this->fileAccessService->existingPath($consumer->file_npwp) : null;
+        if (!$ktpPath && !$npwpPath) {
+            return "<div style='text-align:center;'><span style='font-size:12px;color:red;'>Belum melampirkan KTP atau NPWP</span></div>";
+        }
+
+        $ktpImg = $ktpPath ? "<img src='" . htmlspecialchars($ktpPath, ENT_QUOTES, 'UTF-8') . "' width='85mm' height='54mm'>" : '';
+        $npwpImg = $npwpPath ? "<img src='" . htmlspecialchars($npwpPath, ENT_QUOTES, 'UTF-8') . "' width='85mm' height='54mm'>" : '';
+        return "<div style='text-align:center;'>{$ktpImg}{$npwpImg}</div>";
     }
 
     public function printKuitansi($var)

@@ -2408,6 +2408,7 @@ window.SIGAPPMobileBottomNavQueue = window.SIGAPPMobileBottomNavQueue || [];
 
   window.SIGAPPMobileBottomNav = {
     register: register,
+    open: openSheet,
     close: closeSheet,
     refresh: refresh,
   };

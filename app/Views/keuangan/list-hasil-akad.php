@@ -175,6 +175,131 @@
   .hasil-akad-child-error {
     color: #b91c1c;
   }
+
+  #modal-filter .flatpickr-wrapper {
+    width: 100%;
+  }
+
+  .hasil-akad-summary {
+    border-top: 1px solid #e5e7eb;
+    padding: .5rem .75rem .8rem;
+  }
+
+  .hasil-akad-summary .divider {
+    margin: .25rem 0 .65rem;
+  }
+
+  .hasil-akad-summary-grid {
+    display: grid;
+    gap: .65rem;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .hasil-akad-summary-card {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    display: flex;
+    gap: .65rem;
+    min-width: 0;
+    padding: .7rem;
+  }
+
+  .hasil-akad-summary-card>span:last-child {
+    min-width: 0;
+  }
+
+  .hasil-akad-summary-icon {
+    align-items: center;
+    background: #eef5ff;
+    border-radius: 7px;
+    color: #2057a3;
+    display: inline-flex;
+    flex: 0 0 34px;
+    height: 34px;
+    justify-content: center;
+  }
+
+  .hasil-akad-summary-label {
+    color: #6b7280;
+    display: block;
+    font-size: .65rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: .2rem;
+  }
+
+  .hasil-akad-summary-value {
+    color: #111827;
+    display: block;
+    font-size: .8rem;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 1199.98px) {
+    .hasil-akad-summary-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .hasil-akad-summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .flatpickr-calendar.multiMonth {
+      background: #fff;
+      max-width: 100%;
+      width: 100% !important;
+    }
+
+    .flatpickr-calendar.multiMonth .flatpickr-months,
+    .flatpickr-calendar.multiMonth .flatpickr-innerContainer,
+    .flatpickr-calendar.multiMonth .flatpickr-rContainer,
+    .flatpickr-calendar.multiMonth .flatpickr-weekdays,
+    .flatpickr-calendar.multiMonth .flatpickr-days,
+    .flatpickr-calendar.multiMonth .dayContainer {
+      background: #fff;
+    }
+
+    .flatpickr-calendar.multiMonth .flatpickr-rContainer,
+    .flatpickr-calendar.multiMonth .flatpickr-days,
+    .flatpickr-calendar.multiMonth .flatpickr-weekdays {
+      max-width: 100%;
+      width: 100%;
+    }
+
+    .flatpickr-calendar.multiMonth .flatpickr-month,
+    .flatpickr-calendar.multiMonth .flatpickr-weekdaycontainer,
+    .flatpickr-calendar.multiMonth .dayContainer {
+      flex: 0 0 50%;
+      max-width: 50% !important;
+      min-width: 0 !important;
+      width: 50% !important;
+    }
+
+    .flatpickr-calendar.multiMonth .flatpickr-weekday {
+      font-size: .65rem;
+    }
+
+    .flatpickr-calendar.multiMonth .flatpickr-day {
+      font-size: .7rem;
+      height: 30px;
+      line-height: 30px;
+      max-width: none;
+      width: 14.2857143%;
+    }
+  }
+
+  @media (max-width: 479.98px) {
+    .hasil-akad-summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 <!-- /.card-header -->
 <div class="app-content content list-hasil-akad-page">
@@ -233,6 +358,55 @@
               </thead>
             </table>
           </div>
+          <div class="hasil-akad-summary" id="hasil_akad_summary" aria-live="polite">
+            <div class="divider divider-left">
+              <div class="divider-text">Ringkasan Hasil Filter</div>
+            </div>
+            <div class="hasil-akad-summary-grid">
+              <div class="hasil-akad-summary-card">
+                <span class="hasil-akad-summary-icon"><i class="fas fa-home"></i></span>
+                <span class="min-width-0">
+                  <span class="hasil-akad-summary-label">Jumlah Kavling</span>
+                  <span class="hasil-akad-summary-value" id="summary_jumlah_kavling">0</span>
+                </span>
+              </div>
+              <div class="hasil-akad-summary-card">
+                <span class="hasil-akad-summary-icon"><i class="fas fa-tag"></i></span>
+                <span class="min-width-0">
+                  <span class="hasil-akad-summary-label">Total Harga Jual</span>
+                  <span class="hasil-akad-summary-value" id="summary_total_harga_jual">Rp 0</span>
+                </span>
+              </div>
+              <div class="hasil-akad-summary-card">
+                <span class="hasil-akad-summary-icon"><i class="fas fa-university"></i></span>
+                <span class="min-width-0">
+                  <span class="hasil-akad-summary-label">Total ACC KPR</span>
+                  <span class="hasil-akad-summary-value" id="summary_total_acc_kpr">Rp 0</span>
+                </span>
+              </div>
+              <div class="hasil-akad-summary-card">
+                <span class="hasil-akad-summary-icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                <span class="min-width-0">
+                  <span class="hasil-akad-summary-label">Pengajuan Outstanding</span>
+                  <span class="hasil-akad-summary-value text-warning" id="summary_total_pengajuan_outstanding">Rp 0</span>
+                </span>
+              </div>
+              <div class="hasil-akad-summary-card">
+                <span class="hasil-akad-summary-icon"><i class="fas fa-check-circle"></i></span>
+                <span class="min-width-0">
+                  <span class="hasil-akad-summary-label">Sudah Cair</span>
+                  <span class="hasil-akad-summary-value text-success" id="summary_total_sudah_cair">Rp 0</span>
+                </span>
+              </div>
+              <div class="hasil-akad-summary-card">
+                <span class="hasil-akad-summary-icon"><i class="fas fa-wallet"></i></span>
+                <span class="min-width-0">
+                  <span class="hasil-akad-summary-label">Sisa</span>
+                  <span class="hasil-akad-summary-value text-danger" id="summary_total_sisa">Rp 0</span>
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -249,8 +423,16 @@
       </div>
       <div class="modal-body flex-grow-1">
         <div class="form-group">
-          <label class="form-label">Tanggal Akad</label>
-          <input type="text" id="tanggal_akad" class="form-control" placeholder="Pilih Periode">
+          <label class="form-label">Jenis Tanggal</label>
+          <select id="jenis_tanggal" name="jenis_tanggal" class="form-control">
+            <option value="tanggal_pengajuan">Tanggal Pengajuan Pencairan</option>
+            <option value="tanggal_akad" selected>Tanggal Akad</option>
+            <option value="tanggal_pencairan">Tanggal Pencairan Hasil Akad &amp; Retensi</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Periode Tanggal</label>
+          <input type="text" id="periode_tanggal" class="form-control" placeholder="Pilih Periode" autocomplete="off">
         </div>
         <div class="form-group">
           <label class="form-label">Cluster</label>
@@ -300,6 +482,25 @@
 <script>
   let hasilAkadTable = null;
   let hasilAkadDetailCache = {};
+  let periodeTanggalPicker = null;
+
+  function hasilAkadSummaryMoney(value) {
+    const nominal = parseFloat(value || 0);
+    return "Rp " + num_format(Number.isFinite(nominal) ? nominal : 0);
+  }
+
+  function renderHasilAkadSummary(summary) {
+    const data = summary || {};
+    const jumlahKavling = parseInt(data.jumlah_kavling || 0, 10);
+
+    $("#summary_jumlah_kavling").text(num_format(Number.isFinite(jumlahKavling) ? jumlahKavling : 0));
+    $("#summary_total_harga_jual").text(hasilAkadSummaryMoney(data.total_harga_jual));
+    $("#summary_total_acc_kpr").text(hasilAkadSummaryMoney(data.total_acc_kpr));
+    $("#summary_total_pengajuan_outstanding").text(hasilAkadSummaryMoney(data.total_pengajuan_outstanding));
+    $("#summary_total_sudah_cair").text(hasilAkadSummaryMoney(data.total_sudah_cair));
+    $("#summary_total_sisa").text(hasilAkadSummaryMoney(data.total_sisa));
+    $("#hasil_akad_summary").attr("aria-busy", "false");
+  }
 
   function paChildEscape(value) {
     return $("<div>").text(value === null || value === undefined ? "" : value).html();
@@ -531,15 +732,25 @@
           data.id_cluster = $("#id_cluster").val()
           data.id_jalan = $("#id_jalan").val()
           data.status_cair = $("#status_cair").val()
-          data.tanggal_akad = $("#tanggal_akad").val()
+          data.jenis_tanggal = $("#jenis_tanggal").val()
+          data.periode_tanggal = $("#periode_tanggal").val()
         },
         dataSrc: function(r) {
           if (r.token) csrfHash = r.token
+          renderHasilAkadSummary(r.summary)
           return r.data;
         },
         async: "true"
       }
     });
+
+    $('#data_table_hasil_akad')
+      .on('preXhr.dt', function() {
+        $("#hasil_akad_summary").attr("aria-busy", "true");
+      })
+      .on('error.dt', function() {
+        renderHasilAkadSummary({});
+      });
 
     $('#data_table_hasil_akad tbody').on('click', '.hasil-akad-detail-toggle', function() {
       const tr = $(this).closest('tr');
@@ -645,16 +856,25 @@
       },
     })
     
-    $("#tanggal_akad").flatpickr({
-      mode: "range",
-      dateFormat: "Y-m-d",
+    $("#modal-filter").on("shown.bs.modal", function() {
+      if (!periodeTanggalPicker) {
+        periodeTanggalPicker = $("#periode_tanggal").flatpickr({
+          mode: "range",
+          dateFormat: "Y-m-d",
+          altInput: true,
+          altFormat: "d-m-Y",
+          showMonths: 2,
+          static: window.matchMedia("(max-width: 767.98px)").matches,
+        });
+      }
     });
 
     function updateActiveFilterText() {
       let activeFilters = [];
       
-      let tgl = $("#tanggal_akad").val();
-      if (tgl) activeFilters.push("Tgl Akad: " + tgl);
+      let tgl = $("#periode_tanggal").val();
+      let jenisTanggal = $("#jenis_tanggal").find("option:selected").text();
+      if (tgl) activeFilters.push(jenisTanggal + ": " + tgl.replace(" to ", " s/d "));
       
       let cluster = $("#id_cluster").find("option:selected").text();
       if ($("#id_cluster").val() && cluster) activeFilters.push("Cluster: " + cluster);
@@ -675,13 +895,15 @@
     }
 
     $(".btn-clear-filter").on("click", function(e) {
-      document.getElementById('tanggal_akad')._flatpickr.clear();
+      if (periodeTanggalPicker) periodeTanggalPicker.clear();
+      $("#jenis_tanggal").val("tanggal_akad");
       $("#id_cluster").val(null).trigger("change");
       $("#id_jalan").val(null).trigger("change");
       $("#status_cair").val("belum_cair");
       
       updateActiveFilterText();
       hasilAkadDetailCache = {};
+      renderHasilAkadSummary({});
       hasilAkadTable.draw();
     });
 

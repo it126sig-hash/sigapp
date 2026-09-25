@@ -2,6 +2,63 @@
     const pl_id_proyek = "<?= isset($data['proyek']->id_proyek) ? $data['proyek']->id_proyek : '' ?>";
     const pl_nama_proyek = "<?= isset($data['proyek']->nama_proyek) ? $data['proyek']->nama_proyek : '' ?>";
 </script>
+<style>
+    #modals-slide-in #fm-add_kavling {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        padding-bottom: 0 !important;
+    }
+
+    #modals-slide-in #fm-add_kavling .modal-header {
+        flex: 0 0 auto;
+    }
+
+    #modals-slide-in #fm-add_kavling .modal-body {
+        flex: 1 1 auto !important;
+        min-height: 0;
+        margin: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-bottom: 1rem;
+    }
+
+    #modals-slide-in .planning-modal-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 2;
+        display: flex;
+        flex: 0 0 auto;
+        gap: .75rem;
+        padding: 1rem 1.25rem;
+        border-top: 1px solid #e5e7eb;
+        background: #fff;
+        box-shadow: 0 -4px 12px rgba(17, 24, 39, .06);
+    }
+
+    #modals-slide-in .planning-modal-actions .btn {
+        flex: 1 1 0;
+        margin: 0 !important;
+    }
+
+    #modals-slide-in .planning-modal-actions .btn-primary {
+        border-color: #2057a3;
+        background-color: #2057a3;
+    }
+
+    #modals-slide-in .planning-modal-actions .btn-primary:hover,
+    #modals-slide-in .planning-modal-actions .btn-primary:focus {
+        border-color: #18457f;
+        background-color: #18457f;
+    }
+
+    @media (max-width: 575.98px) {
+        #modals-slide-in .planning-modal-actions {
+            padding: .75rem 1rem;
+        }
+    }
+</style>
 <div class="modal modal-slide-in fade" id="modals-slide-in">
     <div class="modal-dialog sidebar-sm">
         <form id="fm-add_kavling" class="add-new-record modal-content pt-0">
@@ -121,8 +178,10 @@
                     <label class="form-label" for="basic-icon-default-fullname">*catatan: gunakan titik koma ";" untuk
                         pemisah nomor rumah jika akan input rumah lebih dari 1 kavling sekaligus</label>
                 </div>
-                <a id="add-form-btn" class="btn btn-primary data-submit mr-1" onclick="add_kavling()"
-                    href="javascript:void(0)">Simpan</a>
+            </div>
+            <div class="planning-modal-actions">
+                <button id="add-form-btn" type="button" class="btn btn-primary data-submit"
+                    onclick="add_kavling()">Simpan</button>
                 <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal"
                     data-planning-cancel-edit>Cancel</button>
             </div>

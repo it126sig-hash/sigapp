@@ -1266,23 +1266,22 @@
                                 <div class="tab-pane" id="idk_riwayat" aria-labelledby="idk_riwayat-tab"
                                     role="tabpanel">
                                     <div class="row">
-                                        <div class="col-sm-12 col-md-6 col-lg-6">
+                                        <div class="col-sm-12 col-md-6 col-lg-6 d-none"
+                                            id="idk-riwayat-ganti-nama-section">
 
                                             <div class="card file-container">
                                                 <div class="card-body">
-                                                    <button class="btn btn-outline-primary" id="btn-ganti_nama"
-                                                        onclick="ganti_nama()">Klik Untuk Ganti Nama Konsumen</button>
                                                     <button class="btn btn-outline-warning" id="btn-refresh-ganti_nama"
-                                                        onclick="getRiwayatGantinama()">Muat Ulang Diwayat</button>
-                                                    <div class="divider">
-                                                        <div class="divider-text">Riwayat Ganti Nama </div>
+                                                        onclick="getRiwayatGantinama()">Muat Ulang Riwayat</button>
+                                                    <div class="divider divider-left">
+                                                        <div class="divider-text" id="idk-riwayat-ganti-nama-title">Riwayat Ganti Nama</div>
                                                     </div>
                                                     <div class="table-responsive">
                                                         <table class="table mb-0">
                                                             <thead>
                                                                 <tr>
                                                                     <th>No</th>
-                                                                    <th>File</th>
+                                                                    <th>Konsumen / SPPTB</th>
                                                                     <th>Oleh</th>
                                                                 </tr>
                                                             </thead>

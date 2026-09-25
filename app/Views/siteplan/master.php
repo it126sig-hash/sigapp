@@ -1172,6 +1172,54 @@ foreach (user()->getRoles() as $key => $val) {
             box-shadow: 0 0 0 0 rgba(255, 200, 0, 0);
         }
     }
+
+    #keterangan-warna-here .siteplan-legend-item {
+        display: grid;
+        grid-template-columns: 18px 38px minmax(0, 1fr);
+        align-items: center;
+        gap: .5rem;
+        min-height: 30px;
+        margin: 0 0 .35rem;
+        padding: .25rem .4rem;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    #keterangan-warna-here .siteplan-legend-item:hover,
+    #keterangan-warna-here .siteplan-legend-item:focus-within {
+        background: rgba(32, 87, 163, .08);
+    }
+
+    #keterangan-warna-here .siteplan-shape-filter-checkbox {
+        margin: 0;
+        accent-color: #2057a3;
+    }
+
+    #keterangan-warna-here .siteplan-legend-swatch {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 20px;
+        overflow: hidden;
+        border: 1px solid #9ca3af;
+        border-radius: 4px;
+        background-color: #fff;
+    }
+
+    #keterangan-warna-here .siteplan-legend-marker-line {
+        display: block;
+        width: calc(100% - 6px);
+        min-height: 2px;
+        border-radius: 999px;
+    }
+
+    #keterangan-warna-here .siteplan-legend-label {
+        min-width: 0;
+        color: #111827;
+        line-height: 1.25;
+    }
 </style>
 <!-- END: Vendor CSS-->
 
@@ -1348,6 +1396,7 @@ foreach (user()->getRoles() as $key => $val) {
 <script src="<?= base_url() ?>assets/js/siteplan/composite-shape.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/composite-shape.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/interaction-highlight.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/interaction-highlight.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/filter-state.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/filter-state.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/shape-filter.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/shape-filter.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/master.js?v=999<?= time() ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
 

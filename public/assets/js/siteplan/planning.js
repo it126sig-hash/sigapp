@@ -29,6 +29,7 @@
                 return swal('error', 'Terjadi Kesalahan', 'Seleksi kavling kosong terlebih dahulu')
             }
         }
+        planning_reset_simplify_state();
         $("#fm-add_kavling")[0].reset()
         $("#fm-add_kavling .select2").val(null).trigger('change')
         $("#rotation").val("");
@@ -164,9 +165,70 @@ function planning_is_kavling_selection() {
   });
 }
 
+var planningSimplifyState = {
+  initialized: false,
+  active: false,
+  originalPoints: "",
+  originalBatchDtt: [],
+  originalRotation: "",
+};
+
+function planning_reset_simplify_state() {
+  planningSimplifyState = {
+    initialized: false,
+    active: false,
+    originalPoints: "",
+    originalBatchDtt: [],
+    originalRotation: "",
+  };
+
+  $("#btn-simplify-rect")
+    .text("Sederhanakan ke Rect")
+    .removeClass("btn-warning")
+    .addClass("btn-outline-primary");
+}
+
+function planning_capture_simplify_state() {
+  planningSimplifyState.initialized = true;
+  planningSimplifyState.originalPoints = $("#fm-add_kavling #planning_points").val() || "";
+  planningSimplifyState.originalBatchDtt = JSON.parse(
+    JSON.stringify(typeof batchdtt !== "undefined" ? batchdtt : []),
+  );
+  planningSimplifyState.originalRotation = $("#rotation").val() || "";
+}
+
+function planning_get_working_points(isEditMode) {
+  if (isEditMode) {
+    return planning_split_semicolon($("#fm-add_kavling #planning_points").val());
+  }
+
+  const batchPoints = (typeof batchdtt !== "undefined" ? batchdtt : [])
+    .map(planning_normalize_points)
+    .filter((item) => item !== "");
+
+  return batchPoints.length
+    ? batchPoints
+    : planning_split_semicolon($("#fm-add_kavling #planning_points").val());
+}
+
+function planning_set_working_points(points, isEditMode) {
+  const normalizedPoints = points
+    .map(planning_normalize_points)
+    .filter((item) => item !== "");
+
+  if (isEditMode) {
+    $("#fm-add_kavling #planning_points").val(normalizedPoints.join(";"));
+    return;
+  }
+
+  batchdtt = normalizedPoints.slice();
+  $("#fm-add_kavling #planning_points").val(normalizedPoints[0] || "");
+}
+
 function edit_kavling_batch() {
   if (editdtt.length == 0) return;
   $("#pindah_lokasi_btn").show();
+  planning_reset_simplify_state();
 
   $(".t_luas_legal, .t_luas_produksi, .r_progres").html("-");
 
@@ -186,7 +248,7 @@ function edit_kavling_batch() {
   }
 
   $("#fm-add_kavling")[0].reset();
-  $(".select2").not("#pilih-divisi").val(null).trigger("change");
+  $("#fm-add_kavling .select2").val(null).trigger("change");
   $("#rotation").val("");
   $("#ui-rotation").val("");
   $("#rotation-icon").css("transform", "rotate(0deg)");
@@ -732,12 +794,13 @@ function selesai_selection(e) {
     }
     editdtt = selectedForEdit;
     planning_reset_move_state();
+    planning_reset_simplify_state();
     openModal();
   };
 
   if (!wasMoveActive && selectedForEdit.length === 0) {
     $("#fm-add_kavling")[0].reset();
-    $(".select2").not("#pilih-divisi").val(null).trigger("change");
+    $("#fm-add_kavling .select2").val(null).trigger("change");
     $("#rotation").val("");
     $("#ui-rotation").val("");
     $("#rotation-icon").css("transform", "rotate(0deg)");
@@ -764,6 +827,7 @@ $(document).on("click", "#modals-slide-in [data-planning-cancel-edit]", function
   $("#tambah_jalan").prop("checked", false).trigger('change');
   planning_restore_hidden_move_nodes();
   planning_reset_move_state();
+  planning_reset_simplify_state();
 });
 
 (function () {
@@ -953,21 +1017,15 @@ $(document).ready(function() {
             }
         });
     }
-    let originalBatchDtt = [];
-    let originalEditDtt = [];
-    
-        $('#modals-slide-in').on('shown.bs.modal', function () {
-        originalBatchDtt = JSON.parse(JSON.stringify(typeof batchdtt !== 'undefined' ? batchdtt : []));
-        originalEditDtt = JSON.parse(JSON.stringify(typeof editdtt !== 'undefined' ? editdtt : []));
-        
-        let editPoints = null;
-        if (originalEditDtt.length > 0 && originalEditDtt[0].points) {
-            editPoints = originalEditDtt[0].points;
+    $('#modals-slide-in').on('shown.bs.modal', function () {
+        let isEditMode = act === "edit" && typeof editdtt !== "undefined" && editdtt.length > 0;
+        let workingPoints = planning_get_working_points(isEditMode);
+        let firstPts = workingPoints.length > 0 ? workingPoints[0] : null;
+
+        if (!planningSimplifyState.initialized) {
+            planning_capture_simplify_state();
         }
 
-        let firstPts = originalBatchDtt.length > 0 ? originalBatchDtt[0] : editPoints;
-        
-        let isEditMode = (originalEditDtt && originalEditDtt.length > 0);
         let hasManyPoints = false;
         if (firstPts) {
             let len = typeof firstPts === 'string' ? firstPts.split(',').length : firstPts.length;
@@ -977,14 +1035,16 @@ $(document).ready(function() {
         // Tampilkan container jika banyak titik (magic wand) ATAU sedang mode edit
         if (hasManyPoints || isEditMode) {
             $("#simplify-rect-container").show();
-            $("#btn-simplify-rect").text("Sederhanakan ke Rect");
-            $("#btn-simplify-rect").removeClass("btn-warning").addClass("btn-outline-primary");
+            $("#btn-simplify-rect")
+                .text(planningSimplifyState.active ? "Batal Menyederhanakan" : "Sederhanakan ke Rect")
+                .toggleClass("btn-warning", planningSimplifyState.active)
+                .toggleClass("btn-outline-primary", !planningSimplifyState.active);
             
             // Cek apakah ada value rotation dari database (Edit Mode)
-            if (isEditMode && originalEditDtt[0] && originalEditDtt[0].data && originalEditDtt[0].data.rotation !== null && originalEditDtt[0].data.rotation !== undefined) {
+            if (isEditMode && editdtt[0] && editdtt[0].data && editdtt[0].data.rotation !== null && editdtt[0].data.rotation !== undefined) {
                 // Jika belum diset oleh arrow, set dari DB
                 if (!$("#rotation").val()) {
-                    $("#rotation").val(originalEditDtt[0].data.rotation);
+                    $("#rotation").val(editdtt[0].data.rotation);
                 }
             }
             
@@ -1026,30 +1086,24 @@ $(document).ready(function() {
     });
 
     $("#btn-simplify-rect").on("click", function() {
-        let isEditMode = (typeof batchdtt !== 'undefined' && batchdtt.length === 0 && typeof editdtt !== 'undefined' && editdtt.length > 0);
+        let isEditMode = act === "edit" && typeof editdtt !== "undefined" && editdtt.length > 0;
         
-        if ($(this).text() === "Sederhanakan ke Rect") {
+        if (!planningSimplifyState.active) {
             if (typeof PolygonClip !== 'undefined' && PolygonClip.computeMABR) {
-                let targetArray = isEditMode ? editdtt : batchdtt;
+                let targetArray = planning_get_working_points(isEditMode);
                 let allPointsStr = [];
                 
                 for (let i = 0; i < targetArray.length; i++) {
                     const currentItem = targetArray[i];
-                    const currentPoints = isEditMode ? currentItem.points : (typeof currentItem === 'string' ? currentItem.split(',').map(Number) : currentItem);
+                    const currentPoints = typeof currentItem === 'string' ? currentItem.split(',').map(Number) : currentItem;
                     if (currentPoints.length < 6) {
-                        allPointsStr.push(isEditMode ? currentItem.points : currentItem);
+                        allPointsStr.push(planning_normalize_points(currentItem));
                         continue;
                     }
 
                     const mabr = PolygonClip.computeMABR(currentPoints);
                     let newPointsStr = mabr.points.join(',');
                     allPointsStr.push(newPointsStr);
-                    
-                    if (isEditMode) {
-                        targetArray[i].points = newPointsStr;
-                    } else {
-                        targetArray[i] = newPointsStr;
-                    }
                     
                     if (i === 0) {
                         if (!$("#rotation").val()) {
@@ -1060,45 +1114,43 @@ $(document).ready(function() {
                         }
                     }
                 }
-                
-                if (isEditMode) {
-                    $("#fm-add_kavling #planning_points").val(allPointsStr.join(';'));
-                } else {
-                    if (allPointsStr.length > 0) $("#fm-add_kavling #planning_points").val(allPointsStr[0]);
-                }
+
+                planning_set_working_points(allPointsStr, isEditMode);
+                planningSimplifyState.active = true;
                 
                 $(this).text("Batal Menyederhanakan");
                 $(this).removeClass("btn-outline-primary").addClass("btn-warning");
                 
-                updateSelectionPreview(targetArray, isEditMode);
+                updateSelectionPreview(allPointsStr);
             }
         } else {
             if (isEditMode) {
-                editdtt = JSON.parse(JSON.stringify(originalEditDtt));
-                let allOriginalPts = editdtt.map(e => e.points);
-                $("#fm-add_kavling #planning_points").val(allOriginalPts.join(';'));
-                updateSelectionPreview(editdtt, true);
+                const originalPoints = planning_split_semicolon(planningSimplifyState.originalPoints);
+                planning_set_working_points(originalPoints, true);
+                updateSelectionPreview(originalPoints);
             } else {
-                batchdtt = JSON.parse(JSON.stringify(originalBatchDtt));
-                if (batchdtt.length > 0) $("#fm-add_kavling #planning_points").val(typeof batchdtt[0] === 'string' ? batchdtt[0] : batchdtt[0].join(','));
-                updateSelectionPreview(batchdtt, false);
+                const originalBatchDtt = JSON.parse(JSON.stringify(planningSimplifyState.originalBatchDtt));
+                planning_set_working_points(originalBatchDtt, false);
+                updateSelectionPreview(originalBatchDtt);
             }
-            
-            $("#rotation").val("");
-            $("#ui-rotation").val("");
-            $("#rotation-icon").css("transform", "rotate(0deg)");
+
+            const originalRotation = planningSimplifyState.originalRotation;
+            $("#rotation").val(originalRotation);
+            $("#ui-rotation").val(originalRotation);
+            $("#rotation-icon").css("transform", "rotate(" + (originalRotation || 0) + "deg)");
+            planningSimplifyState.active = false;
             $(this).text("Sederhanakan ke Rect");
             $(this).removeClass("btn-warning").addClass("btn-outline-primary");
         }
     });
 
-    function updateSelectionPreview(targetArray, isEditMode) {
+    function updateSelectionPreview(targetArray) {
         if (typeof stage === 'undefined') return;
         let lines = stage.find("#sel");
         for (let i = 0; i < lines.length; i++) {
             let item = targetArray[i];
             if (item) {
-                let pts = isEditMode ? item.points : item;
+                let pts = item && item.points ? item.points : item;
                 pts = typeof pts === 'string' ? pts.split(',').map(Number) : pts;
                 if (lines[i]) lines[i].points(pts);
             }

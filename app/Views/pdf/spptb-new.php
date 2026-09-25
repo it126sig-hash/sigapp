@@ -54,76 +54,87 @@
     }
 </style>
 <?php
-function num_format($n)
-{
-    $n = (int) $n;
+if (!function_exists('num_format')) {
+    function num_format($n)
+    {
+        $n = (int) $n;
 
-    if (!is_int($n) || $n == 0) {
-        return '-';
-    } else {
-        return number_format($n);
+        if (!is_int($n) || $n == 0) {
+            return '-';
+        } else {
+            return number_format($n);
+        }
     }
 }
 
+if (!function_exists('format_date')) {
+    function format_date($d)
+    {
+        $bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-function format_date($d)
-{
-
-    $bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-
-    if ($d) {
-        $d = explode("-", $d);
-        return $d[2] . " " . $bulan[(int) $d[1] - 1] . " " . $d[0];
+        if ($d) {
+            $d = explode("-", $d);
+            return $d[2] . " " . $bulan[(int) $d[1] - 1] . " " . $d[0];
+        }
+        return $d;
     }
-    return $d;
 }
 
-function penyebut($nilai)
-{
-    $nilai = abs($nilai);
-    $huruf = array("", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas");
-    $temp = "";
-    if ($nilai < 12) {
-        $temp = " " . $huruf[$nilai];
-    } else if ($nilai < 20) {
-        $temp = penyebut($nilai - 10) . " belas";
-    } else if ($nilai < 100) {
-        $temp = penyebut($nilai / 10) . " puluh" . penyebut($nilai % 10);
-    } else if ($nilai < 200) {
-        $temp = " seratus" . penyebut($nilai - 100);
-    } else if ($nilai < 1000) {
-        $temp = penyebut($nilai / 100) . " ratus" . penyebut($nilai % 100);
-    } else if ($nilai < 2000) {
-        $temp = " seribu" . penyebut($nilai - 1000);
-    } else if ($nilai < 1000000) {
-        $temp = penyebut($nilai / 1000) . " ribu" . penyebut($nilai % 1000);
-    } else if ($nilai < 1000000000) {
-        $temp = penyebut($nilai / 1000000) . " juta" . penyebut($nilai % 1000000);
-    } else if ($nilai < 1000000000000) {
-        $temp = penyebut($nilai / 1000000000) . " milyar" . penyebut(fmod($nilai, 1000000000));
-    } else if ($nilai < 1000000000000000) {
-        $temp = penyebut($nilai / 1000000000000) . " trilyun" . penyebut(fmod($nilai, 1000000000000));
+if (!function_exists('penyebut')) {
+    function penyebut($nilai)
+    {
+        $nilai = abs($nilai);
+        $huruf = array("", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas");
+        $temp = "";
+        if ($nilai < 12) {
+            $temp = " " . $huruf[$nilai];
+        } else if ($nilai < 20) {
+            $temp = penyebut($nilai - 10) . " belas";
+        } else if ($nilai < 100) {
+            $temp = penyebut($nilai / 10) . " puluh" . penyebut($nilai % 10);
+        } else if ($nilai < 200) {
+            $temp = " seratus" . penyebut($nilai - 100);
+        } else if ($nilai < 1000) {
+            $temp = penyebut($nilai / 100) . " ratus" . penyebut($nilai % 100);
+        } else if ($nilai < 2000) {
+            $temp = " seribu" . penyebut($nilai - 1000);
+        } else if ($nilai < 1000000) {
+            $temp = penyebut($nilai / 1000) . " ribu" . penyebut($nilai % 1000);
+        } else if ($nilai < 1000000000) {
+            $temp = penyebut($nilai / 1000000) . " juta" . penyebut($nilai % 1000000);
+        } else if ($nilai < 1000000000000) {
+            $temp = penyebut($nilai / 1000000000) . " milyar" . penyebut(fmod($nilai, 1000000000));
+        } else if ($nilai < 1000000000000000) {
+            $temp = penyebut($nilai / 1000000000000) . " trilyun" . penyebut(fmod($nilai, 1000000000000));
+        }
+        return $temp;
     }
-    return $temp;
-}
-function terbilang($nilai)
-{
-    if ($nilai < 0) {
-        $hasil = "minus " . trim(penyebut($nilai));
-    } else {
-        $hasil = trim(penyebut($nilai));
-    }
-    return $hasil;
 }
 
-function mark($cond)
-{
-    return $cond ? '&#10003;' : '&nbsp;';
+if (!function_exists('terbilang')) {
+    function terbilang($nilai)
+    {
+        if ($nilai < 0) {
+            $hasil = "minus " . trim(penyebut($nilai));
+        } else {
+            $hasil = trim(penyebut($nilai));
+        }
+        return $hasil;
+    }
+}
+
+if (!function_exists('mark')) {
+    function mark($cond)
+    {
+        return $cond ? '&#10003;' : '&nbsp;';
+    }
 } // ✓ atau kosong // checkbox ala mPDF (unicode)
 
-function title_case($s)
-{
-    return $s ? ucwords(strtolower($s)) : $s;
+if (!function_exists('title_case')) {
+    function title_case($s)
+    {
+        return $s ? ucwords(strtolower($s)) : $s;
+    }
 }
 
 // Logo dirender sebagai background-image (bukan <img>): beberapa file logo punya

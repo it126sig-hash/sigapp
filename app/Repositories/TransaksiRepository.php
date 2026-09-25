@@ -109,9 +109,22 @@ class TransaksiRepository extends Model
 
     public function getKonsumenByIdKavling($idKavling)
     {
+        $kavling = $this->db->table('kavling')
+            ->select('id_mkdt')
+            ->where('id_kavling', $idKavling)
+            ->get()->getRow();
+
+        return $kavling && $kavling->id_mkdt
+            ? $this->getSpptbData((int) $idKavling, (int) $kavling->id_mkdt)
+            : null;
+    }
+
+    public function getSpptbData(int $idKavling, int $idMkdt): ?object
+    {
         return $this->db->table('kavling')
             ->select('
             `proyek`.`nama_proyek`,
+            `proyek`.`id_proyek`,
             `proyek`.`alamat_proyek`,
             `proyek`.`kelurahan`,
             `proyek`.`kecamatan`,
@@ -136,6 +149,7 @@ class TransaksiRepository extends Model
             `konsumen`.`npwp`,
             `konsumen`.`file_npwp`,
             `konsumen`.`file_ktp`,
+            `konsumen`.`file_data_diri`,
             `konsumen`.`hp_konsumen`,
             `konsumen`.`alamat_konsumen`,
             `konsumen`.`tel_instansi`,
@@ -160,12 +174,56 @@ class TransaksiRepository extends Model
             ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
             ->join('proyek', 'cluster.id_proyek = proyek.id_proyek')
             ->join('tipe', 'tipe.id_tipe = kavling.id_tipe')
-            ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt')
+            ->join('mkdt', 'mkdt.id_kavling = kavling.id_kavling')
             ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
             ->join('referrals', 'referrals.id_mkdt_referred = mkdt.id_mkdt', 'left')
             ->join('konsumen referrer', 'referrer.id_konsumen = referrals.id_konsumen_referrer', 'left')
             ->join('hargajual', 'hargajual.id = kavling.harga_akhir', 'left')
             ->where('kavling.id_kavling', $idKavling)
+            ->where('mkdt.id_mkdt', $idMkdt)
             ->get()->getRow();
+    }
+
+    public function lockConsumerReplacementContext(int $idMkdt, int $idKavling): ?object
+    {
+        $sql = $this->db->table('mkdt')
+            ->select('mkdt.*, kavling.id_mkdt AS kavling_id_mkdt, konsumen.no_spptb, konsumen.nama_konsumen, konsumen.status AS konsumen_status, konsumen.file_ktp, konsumen.file_npwp, konsumen.file_data_diri')
+            ->join('kavling', 'kavling.id_kavling = mkdt.id_kavling')
+            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
+            ->where('mkdt.id_mkdt', $idMkdt)
+            ->where('mkdt.id_kavling', $idKavling)
+            ->getCompiledSelect();
+
+        return $this->db->query($sql . ' FOR UPDATE')->getRow();
+    }
+
+    public function getLegacyReplacementSpptbData(int $idKavling, int $currentIdMkdt): array
+    {
+        $current = $this->db->table('mkdt')
+            ->select('uniq_id')
+            ->where('id_mkdt', $currentIdMkdt)
+            ->get()->getRow();
+        if (!$current || empty($current->uniq_id)) {
+            return [];
+        }
+
+        $rows = $this->db->table('mkdt')
+            ->select('id_mkdt')
+            ->where('id_kavling', $idKavling)
+            ->where('uniq_id', $current->uniq_id)
+            ->where('is_ganti_nama', 'Ganti Nama')
+            ->where('id_mkdt !=', $currentIdMkdt)
+            ->orderBy('created_at', 'ASC')
+            ->orderBy('id_mkdt', 'ASC')
+            ->get()->getResult();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $data = $this->getSpptbData($idKavling, (int) $row->id_mkdt);
+            if ($data) {
+                $result[] = $data;
+            }
+        }
+        return $result;
     }
 }

@@ -91,6 +91,14 @@ class HistoryService
         ];
     }
 
+    public function getByReferenceAction(string $module, int $referenceId, string $action): array
+    {
+        return array_map(
+            static fn (array $row) => (object) $row,
+            $this->decodeRows($this->repo->getByReferenceAction($module, $referenceId, $action))
+        );
+    }
+
     public function moduleLabels(): array
     {
         return self::MODULE_LABELS;

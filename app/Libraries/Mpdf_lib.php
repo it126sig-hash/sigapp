@@ -30,15 +30,19 @@ class Mpdf_lib
 
         if (is_array($html)) {
             for ($i = 0; $i < count($html); $i++) {
-
-                if ($i == 0) {
+                $page = $html[$i];
+                $pageHtml = is_array($page) ? ($page['html'] ?? '') : $page;
+                if (is_array($page)) {
+                    $pageFooter = (string) ($page['footer'] ?? '');
+                    $pageFooter !== '' ? $mpdf->setHTMLFooter($pageFooter) : $mpdf->setFooter();
+                } elseif ($i == 0) {
                     $mpdf->setHTMLFooter($footer);
                 } else {
                     // Halaman lainnya → matikan footer
                     $mpdf->setFooter(); // <----- penting
                 }
 
-                $mpdf->WriteHTML($html[$i]);
+                $mpdf->WriteHTML($pageHtml);
                 if ($i < count($html) - 1) {
                     $mpdf->AddPage();
                 }

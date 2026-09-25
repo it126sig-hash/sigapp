@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Repositories\TransaksiRepository;
+
 class MkdtHistoryService
 {
     public const ACTION_SET_HARGA_JUAL        = 'set_harga_jual';
@@ -10,6 +12,7 @@ class MkdtHistoryService
     public const ACTION_TURUN_PEMBANGUNAN     = 'turun_pembangunan';
     public const ACTION_STANDING_INSTRUCTION  = 'standing_instruction';
     public const ACTION_BATAL_BOOKING         = 'batal_booking';
+    public const ACTION_GANTI_KONSUMEN        = 'ganti_konsumen';
 
     private const ACTION_LABELS = [
         self::ACTION_SET_HARGA_JUAL       => 'Set Harga Jual',
@@ -18,10 +21,13 @@ class MkdtHistoryService
         self::ACTION_TURUN_PEMBANGUNAN    => 'Turun Pembangunan',
         self::ACTION_STANDING_INSTRUCTION => 'Standing Instruction',
         self::ACTION_BATAL_BOOKING        => 'Batal Booking',
+        self::ACTION_GANTI_KONSUMEN       => 'Pindah Konsumen',
     ];
 
     public function __construct(
-        private readonly HistoryService $historyService = new HistoryService()
+        private readonly HistoryService $historyService = new HistoryService(),
+        private readonly TransaksiRepository $transaksiRepository = new TransaksiRepository(),
+        private readonly FileAccessService $fileAccessService = new FileAccessService()
     ) {}
 
     public function actionLabel(string $action): string
@@ -36,7 +42,8 @@ class MkdtHistoryService
         string $summary,
         ?array $oldData = null,
         ?array $newData = null,
-        ?int $actorId = null
+        ?int $actorId = null,
+        array $metadata = []
     ): bool {
         if (!$this->historyService->hasTable() || $summary === '') {
             return false;
@@ -50,10 +57,90 @@ class MkdtHistoryService
             'summary'        => $summary,
             'old_data'       => $oldData,
             'new_data'       => $newData,
-            'metadata'       => ['id_mkdt' => $idMkdt],
+            'metadata'       => array_merge(['id_mkdt' => $idMkdt], $metadata),
             'add_by'         => $actorId ?? (function_exists('user_id') ? user_id() : null),
             'created_at'     => date('Y-m-d H:i:s'),
         ]);
+    }
+
+    public function getConsumerReplacementSnapshots(int $idMkdt): array
+    {
+        return $this->historyService->getByReferenceAction(
+            'mkdt',
+            $idMkdt,
+            self::ACTION_GANTI_KONSUMEN
+        );
+    }
+
+    public function getConsumerReplacementHistory(int $idMkdt, int $idKavling): array
+    {
+        if (!$this->transaksiRepository->getSpptbData($idKavling, $idMkdt)) {
+            return [];
+        }
+
+        $rows = [];
+
+        foreach ($this->getConsumerReplacementSnapshots($idMkdt) as $history) {
+            $snapshot = $history->old_data['spptb_data'] ?? [];
+            if (empty($snapshot)) {
+                continue;
+            }
+
+            $fileSpptb = trim((string) ($snapshot['file_spptb'] ?? ''));
+            $rows[] = [
+                'source' => self::ACTION_GANTI_KONSUMEN,
+                'id_mkdt' => (int) ($snapshot['id_mkdt'] ?? $idMkdt),
+                'id_konsumen' => (int) ($snapshot['id_konsumen'] ?? 0),
+                'nama_konsumen' => (string) ($snapshot['nama_konsumen'] ?? '-'),
+                'no_spptb' => (string) ($snapshot['no_spptb'] ?? '-'),
+                'file_spptb_access_url' => $fileSpptb !== ''
+                    ? $this->fileAccessService->pathUrl('mkdt_file_spptb', $fileSpptb)
+                    : null,
+                'changed_by' => (string) ($history->username ?? '-'),
+                'changed_at' => (string) ($history->created_at ?? ''),
+                'summary' => (string) ($history->summary ?? ''),
+                'sort_at' => strtotime((string) ($history->created_at ?? '')) ?: 0,
+                'sort_id' => (int) ($history->id ?? 0),
+            ];
+        }
+
+        foreach ($this->transaksiRepository->getLegacyReplacementSpptbData($idKavling, $idMkdt) as $legacy) {
+            $rows[] = [
+                'source' => 'legacy',
+                'id_mkdt' => (int) ($legacy->id_mkdt ?? 0),
+                'id_konsumen' => (int) ($legacy->id_konsumen ?? 0),
+                'nama_konsumen' => (string) ($legacy->nama_konsumen ?? '-'),
+                'no_spptb' => (string) ($legacy->no_spptb ?? '-'),
+                'file_spptb_access_url' => !empty($legacy->file_spptb) && !empty($legacy->id_mkdt)
+                    ? $this->fileAccessService->accessUrl('mkdt_file_spptb', (int) $legacy->id_mkdt)
+                    : null,
+                'changed_by' => '-',
+                'changed_at' => (string) ($legacy->created_at ?? ''),
+                'summary' => 'Riwayat ganti nama legacy',
+                'sort_at' => strtotime((string) ($legacy->created_at ?? '')) ?: 0,
+                'sort_id' => (int) ($legacy->id_mkdt ?? 0),
+            ];
+        }
+
+        usort($rows, static function (array $a, array $b): int {
+            return [$a['sort_at'], $a['sort_id']] <=> [$b['sort_at'], $b['sort_id']];
+        });
+
+        $seen = [];
+        $result = [];
+        foreach ($rows as $row) {
+            $key = $row['id_konsumen'] > 0
+                ? 'consumer:' . $row['id_konsumen']
+                : 'mkdt:' . $row['id_mkdt'] . ':' . $row['changed_at'];
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            unset($row['sort_at'], $row['sort_id']);
+            $result[] = $row;
+        }
+
+        return $result;
     }
 
     public function getHistory(int $idKavling, int $limit = 10, int $offset = 0): array
