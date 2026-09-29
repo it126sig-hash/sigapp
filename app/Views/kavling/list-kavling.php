@@ -189,6 +189,10 @@
     padding: 1rem;
   }
 
+  .card.poskon-table-card {
+    overflow: visible !important;
+  }
+
   .poskon-datatable-card .card-body {
     padding: .5rem;
   }
@@ -280,6 +284,7 @@
   }
   #data_tables .poskon-akad-indent { background-color: #2057a3; }
   #data_tables .poskon-referral { font-size: .76rem; line-height: 1.25; }
+  #data_tables .poskon-progress-partial { color: #ff9f43 !important; }
   #data_tables th.poskon-keterangan-status,
   #data_tables td.poskon-keterangan-status {
     min-width: 280px !important;
@@ -438,7 +443,7 @@
                       <th colspan="6" id="tb-MARKETING_DATA">MARKETING DATA</th>
                       <th colspan="4" id="tb-KEUANGAN">KEUANGAN</th>
                       <th colspan="4" id="tb-PRODUKSI">PRODUKSI</th>
-                      <th colspan="3" id="tb-LEGAL">LEGAL</th>
+                      <th colspan="4" id="tb-LEGAL">LEGAL</th>
                       <th id="tb-GA">GA</th>
                       <th rowspan="3" id="tb-KETERANGAN_STATUS">KETERANGAN STATUS</th>
                     </tr>
@@ -462,6 +467,7 @@
                       <th rowspan="2" id="tb-JALAN">JALAN</th>
 
                       <th rowspan="2" id="tb-HGB">HGB</th>
+                      <th rowspan="2" id="tb-NIB_ELEKTRONIK">NIB ELEKTRONIK</th>
                       <th rowspan="2" id="tb-IMB">IMB</th>
                       <th rowspan="2" id="tb-PBB">PBB</th>
 
@@ -1001,7 +1007,7 @@ if (!empty($roles)) {
             visible: false
           },
           {
-            targets: 28,
+            targets: 29,
             className: 'poskon-keterangan-status',
             width: '280px'
           }

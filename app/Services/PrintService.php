@@ -487,13 +487,14 @@ class PrintService
         $sheet->mergeCells('U2:U3')->setCellValue('U2', 'LISTRIK');
 
         // Legal & GA
-        $sheet->mergeCells('V1:X1')->setCellValue('V1', 'LEGAL');
+        $sheet->mergeCells('V1:Y1')->setCellValue('V1', 'LEGAL');
         $sheet->mergeCells('V2:V3')->setCellValue('V2', 'HGB');
-        $sheet->mergeCells('W2:W3')->setCellValue('W2', 'IMB');
-        $sheet->mergeCells('X2:X3')->setCellValue('X2', 'PBB');
+        $sheet->mergeCells('W2:W3')->setCellValue('W2', 'NIB ELEKTRONIK');
+        $sheet->mergeCells('X2:X3')->setCellValue('X2', 'IMB');
+        $sheet->mergeCells('Y2:Y3')->setCellValue('Y2', 'PBB');
 
-        $sheet->mergeCells('Y1:Y1')->setCellValue('Y1', 'GA');
-        $sheet->mergeCells('Y2:Y3')->setCellValue('Y2', 'SIKUMBANG');
+        $sheet->mergeCells('Z1:Z1')->setCellValue('Z1', 'GA');
+        $sheet->mergeCells('Z2:Z3')->setCellValue('Z2', 'SIKUMBANG');
 
         // --- 2. STYLING HEADER ---
         $headerStyle = [
@@ -511,7 +512,7 @@ class PrintService
                 'startColor' => ['rgb' => 'F2F2F2'],
             ],
         ];
-        $sheet->getStyle('A1:Y3')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:Z3')->applyFromArray($headerStyle);
 
         //query data
         $dataRumah = $this->posisiKonsumen->getBaseQuery($st);
@@ -573,17 +574,18 @@ class PrintService
             $sheet->setCellValue('T' . $column, $row->lpa ? '✓' : '');
             $sheet->setCellValue('U' . $column, $row->st_listrik ? '✓' : '');
             $sheet->setCellValue('V' . $column, $row->sertifikat_split_no_hgb);
-            $sheet->setCellValue('W' . $column, $row->pbg_no);
-            $sheet->setCellValue('X' . $column, $row->pbb_pecah_nop);
-            $sheet->setCellValue('Y' . $column, $row->sikumbang);
+            $sheet->setCellValue('W' . $column, $row->sertifikat_split_nib);
+            $sheet->setCellValue('X' . $column, $row->pbg_no);
+            $sheet->setCellValue('Y' . $column, $row->pbb_pecah_nop);
+            $sheet->setCellValue('Z' . $column, $row->sikumbang);
 
             // Beri border untuk baris data
-            $sheet->getStyle('A' . $column . ':Y' . $column)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle('A' . $column . ':Z' . $column)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $column++;
         }
 
         // Auto size kolom agar rapi
-        foreach (range('A', 'Y') as $col) {
+        foreach (range('A', 'Z') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 

@@ -49,6 +49,7 @@ class PosisiKonsumenRepository
             produksi.st_jalan as st_listrik,
             "" as st_jalan,
             legal.sertifikat_split_no_hgb,
+            legal.sertifikat_split_nib,
             legal.pbg_no,
             legal.pbb_pecah_nop,
             "" as sikumbang,

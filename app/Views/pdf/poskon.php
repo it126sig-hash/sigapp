@@ -73,7 +73,7 @@
                 <th colspan="6" id="tb-MARKETING_DATA">MARKETING DATA</th>
                 <th colspan="4" id="tb-KEUANGAN">KEUANGAN</th>
                 <th colspan="4" id="tb-PRODUKSI">PRODUKSI</th>
-                <th colspan="3" id="tb-LEGAL">LEGAL</th>
+                <th colspan="4" id="tb-LEGAL">LEGAL</th>
                 <th id="tb-GA">GA</th>
             </tr>
 
@@ -96,6 +96,7 @@
                 <th rowspan="2" id="tb-JALAN">JALAN</th>
 
                 <th rowspan="2" id="tb-HGB">HGB</th>
+                <th rowspan="2" id="tb-NIB_ELEKTRONIK">NIB ELEKTRONIK</th>
                 <th rowspan="2" id="tb-IMB">IMB</th>
                 <th rowspan="2" id="tb-PBB">PBB</th>
 
@@ -161,6 +162,7 @@
                     <td class="center"><?= $row->st_listrik ? '✓' : ''; ?></td>
                     <td class="center"><?= ''; ?></td>
                     <td class="center"><?= $row->sertifikat_split_no_hgb ? '✓' : ''; ?></td>
+                    <td><?= esc($row->sertifikat_split_nib ?? ''); ?></td>
                     <td class="center"><?= $row->pbg_no ? '✓' : ''; ?></td>
                     <td class="center"><?= $row->pbb_pecah_nop ? '✓' : ''; ?></td>
                     <td class="center"><?= $row->sikumbang ? '✓' : ''; ?></td>

@@ -127,7 +127,23 @@ class PosisiKonsumenService
             . '</a>';
     }
 
-    private function renderProgress(float $target, float $paid): string
+    private function renderPercentageLabel(string $label, ?int $percentage, bool $colorize = false): string
+    {
+        $escapedLabel = esc($label);
+        if (!$colorize || $percentage === null) {
+            return $escapedLabel;
+        }
+        if ($percentage === 100) {
+            return '<span class="text-success font-weight-bold">' . $escapedLabel . '</span>';
+        }
+        if ($percentage > 0 && $percentage < 100) {
+            return '<span class="text-warning poskon-progress-partial font-weight-bold">' . $escapedLabel . '</span>';
+        }
+
+        return $escapedLabel;
+    }
+
+    private function renderProgress(float $target, float $paid, bool $colorize = false): string
     {
         $progress = $this->financialBreakdownService->progress($target, $paid);
         if ($progress['status'] === 'reconcile') {
@@ -137,7 +153,7 @@ class PosisiKonsumenService
             return '<span class="badge badge-warning" title="Pembayaran melebihi target MKDT">'
                 . esc($progress['label']) . '</span>';
         }
-        return esc($progress['label']);
+        return $this->renderPercentageLabel($progress['label'], $progress['percentage'], $colorize);
     }
 
     public function getDataTable($request, $status = null)
@@ -192,6 +208,7 @@ class PosisiKonsumenService
                 'produksi.lpa',
                 'produksi.st_jalan',
                 'legal.sertifikat_split_no_hgb',
+                'legal.sertifikat_split_nib',
                 'legal.pbg_no',
                 'legal.pbb_pecah_nop',
                 'mkdt.keterangan_status',
@@ -226,7 +243,8 @@ class PosisiKonsumenService
                 return $this->format_tgl($value->sp3k_tgl_exp);
             })
             ->edit('progres_bangunan', function ($v) {
-                return $v->progres_bangunan ?? 0 . "%";
+                $percentage = (int) ($v->progres_bangunan ?? 0);
+                return $this->renderPercentageLabel($percentage . '%', $percentage, true);
             })
             ->edit('is_kpr', function ($value) {
                 return $this->is_active($value->is_kpr, 'KPR', 'TUNAI');
@@ -257,19 +275,19 @@ class PosisiKonsumenService
                 if ($v->is_kpr == 0) {
                     return '-';
                 }
-                return $this->renderProgress((float) $v->um, (float) $v->total_um);
+                return $this->renderProgress((float) $v->um, (float) $v->total_um, true);
             })
             ->edit('adm', function ($v) {
                 if ($v->is_kpr == 0) {
                     return '-';
                 }
-                return $this->renderProgress((float) $v->adm, (float) $v->total_adm);
+                return $this->renderProgress((float) $v->adm, (float) $v->total_adm, true);
             })
             ->edit('bb', function ($v) {
                 if ($v->is_kpr == 0) {
                     return '-';
                 }
-                return $this->renderProgress((float) $v->bb, (float) $v->total_bb);
+                return $this->renderProgress((float) $v->bb, (float) $v->total_bb, true);
             })
             ->edit('action', function ($value) {
                 return $this->renderPoskonActionHtml($value);
