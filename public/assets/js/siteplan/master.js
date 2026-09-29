@@ -2256,7 +2256,19 @@ Date.prototype.toDateInputValue = (function() {
                     }
                     
                     $('#pilih-divisi').append(html);
+                    const pendingTiketAction = getPendingSiteplanTiketAction();
+                    if (pendingTiketAction && $('#pilih-divisi option[value="Masalah"]').length) {
+                        $('#pilih-divisi').val('Masalah');
+                    }
                     $('#pilih-divisi').trigger('change.select2');
+                    checkMasalahOptions();
+                    checkPeriodeOptions();
+
+                    // Jika siteplan telanjur memuat sebelum opsi dinamis selesai,
+                    // muat ulang agar deep-link tiket memakai filter Masalah.
+                    if (pendingTiketAction && siteplanInitialDataRequested && siteplanCanvasInitialized) {
+                        load_kavling();
+                    }
                     
                     $('#pilih-divisi').on('change', function() {
                         checkMasalahOptions();
@@ -3296,11 +3308,11 @@ Date.prototype.toDateInputValue = (function() {
 
         const viewportWidth = stage.width();
         const viewportHeight = stage.height();
-        const currentScale = stage.scaleX() || 1;
+        const currentScale = Math.min(stage.scaleX() || 1, 1.5);
         const targetScale = Math.max(currentScale, Math.min(
-            viewportWidth / Math.max(bounds.width * 4, 1),
-            viewportHeight / Math.max(bounds.height * 4, 1),
-            3
+            viewportWidth / Math.max(bounds.width * 6, 1),
+            viewportHeight / Math.max(bounds.height * 6, 1),
+            1.5
         ));
         const centerX = bounds.x + (bounds.width / 2);
         const centerY = bounds.y + (bounds.height / 2);
@@ -3501,9 +3513,6 @@ Date.prototype.toDateInputValue = (function() {
                 focusSiteplanLocation(node);
             }
 
-            if (typeof window.tm_open_detail === 'function') {
-                window.tm_open_detail(action.idTiket, action.refType, action.refId);
-            }
         }, 600);
     }
 
