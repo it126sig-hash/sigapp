@@ -146,12 +146,16 @@ class HasilAkadReportRepository
 
         if ($category === 'pengajuan') {
             return $this->basePengajuanQuery($idProyek)
+                ->join('users pengaju', 'pengaju.id = pg.add_by', 'left')
                 ->select('pg.id AS reference_id')
                 ->select("'pengajuan' AS kategori", false)
-                ->select("'Total Pengajuan Pencairan' AS jenis_laporan", false)
+                ->select($this->pengajuanItemSummarySql() . ' AS jenis_laporan', false)
                 ->select($this->addressSql())
                 ->select("COALESCE(c.nama_konsumen, '-') AS nama_konsumen", false)
                 ->select('pg.tanggal_pengajuan AS tanggal_transaksi')
+                ->select("COALESCE(pengaju.username, '-') AS pengaju_username", false)
+                ->select('pg.status AS status_pengajuan')
+                ->select($this->paymentDatesSql() . ' AS tanggal_pencairan', false)
                 ->select('pg.total_pengajuan AS nominal')
                 ->select('m.id_kavling, m.id_mkdt')
                 ->select("COALESCE(j.nama_jalan, '') AS nama_jalan", false)
@@ -162,12 +166,14 @@ class HasilAkadReportRepository
         }
 
         return $this->basePaymentQuery($idProyek)
+            ->join('users pencair', 'pencair.id = pay.add_by', 'left')
             ->select('pay.id AS reference_id')
             ->select("'cair' AS kategori", false)
-            ->select("'Total Cair Hasil Akad' AS jenis_laporan", false)
+            ->select($this->paymentItemSummarySql() . ' AS jenis_laporan', false)
             ->select($this->addressSql())
             ->select("COALESCE(c.nama_konsumen, '-') AS nama_konsumen", false)
             ->select('pay.tanggal_cair AS tanggal_transaksi')
+            ->select("COALESCE(pencair.username, '-') AS pencair_username", false)
             ->select('pay.total_cair AS nominal')
             ->select('m.id_kavling, m.id_mkdt')
             ->select("COALESCE(j.nama_jalan, '') AS nama_jalan", false)
@@ -238,6 +244,59 @@ class HasilAkadReportRepository
     private function addressSql(): string
     {
         return "TRIM(CONCAT(COALESCE(j.nama_jalan, ''), ' No. ', COALESCE(k.no_kavling, '-'))) AS alamat_kavling";
+    }
+
+    private function pengajuanItemSummarySql(): string
+    {
+        $label = $this->itemLabelSql('pi', 'ld');
+
+        return "COALESCE((
+            SELECT GROUP_CONCAT(
+                CONCAT({$label}, ' — Rp ', REPLACE(FORMAT(pgd.nominal_pengajuan, 0), ',', '.'))
+                ORDER BY CASE WHEN pi.jenis = 'retensi' THEN 1 ELSE 0 END, pi.urutan_tenor, pgd.id
+                SEPARATOR ' | '
+            )
+            FROM pencairan_akad_pengajuan_detail pgd
+            LEFT JOIN pencairan_akad_item pi ON pi.id = pgd.id_item
+            LEFT JOIN list_dajam ld ON ld.id = pi.id_list_dajam
+            WHERE pgd.id_pengajuan = pg.id
+        ), 'Pengajuan hasil akad')";
+    }
+
+    private function paymentItemSummarySql(): string
+    {
+        $label = $this->itemLabelSql('pi', 'ld');
+
+        return "COALESCE((
+            SELECT GROUP_CONCAT(
+                CONCAT({$label}, ' — Rp ', REPLACE(FORMAT(pyd.nominal_cair, 0), ',', '.'))
+                ORDER BY CASE WHEN pi.jenis = 'retensi' THEN 1 ELSE 0 END, pi.urutan_tenor, pyd.id
+                SEPARATOR ' | '
+            )
+            FROM pencairan_akad_payment_detail pyd
+            INNER JOIN pencairan_akad_pengajuan_detail pgd ON pgd.id = pyd.id_pengajuan_detail
+            LEFT JOIN pencairan_akad_item pi ON pi.id = pgd.id_item
+            LEFT JOIN list_dajam ld ON ld.id = pi.id_list_dajam
+            WHERE pyd.id_payment = pay.id
+        ), 'Pencairan hasil akad')";
+    }
+
+    private function paymentDatesSql(): string
+    {
+        return "COALESCE((
+            SELECT GROUP_CONCAT(DISTINCT pay_history.tanggal_cair ORDER BY pay_history.tanggal_cair SEPARATOR ', ')
+            FROM pencairan_akad_payment pay_history
+            WHERE pay_history.id_pengajuan = pg.id
+              AND pay_history.total_cair > 0
+        ), '')";
+    }
+
+    private function itemLabelSql(string $itemAlias, string $jaminanAlias): string
+    {
+        return "CASE WHEN {$itemAlias}.jenis = 'retensi'
+            THEN CONCAT('Retensi — ', COALESCE(NULLIF({$jaminanAlias}.nama_jaminan, ''), NULLIF(TRIM({$itemAlias}.catatan), ''), 'Retensi'))
+            ELSE CONCAT('Hasil Akad — Termin #', COALESCE({$itemAlias}.urutan_tenor, '-'))
+        END";
     }
 
     private function yearDateRange(array $years): array

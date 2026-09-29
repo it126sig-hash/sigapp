@@ -2074,24 +2074,17 @@ Date.prototype.toDateInputValue = (function() {
     var lastDist = 0;
     stage.on('touchmove', function(e) {
         e.evt.preventDefault();
-        var touch1 = e.evt.touches[0];
-        var touch2 = e.evt.touches[1];
+        stage.setPointersPositions(e.evt);
+        var pointers = stage.getPointersPositions();
+        var p1 = pointers[0];
+        var p2 = pointers[1];
 
-        if (touch1 && touch2) {
+        if (p1 && p2) {
             // if the stage was under Konva's drag&drop
             // we need to stop it, and implement our own pan logic with two pointers
             if (stage.isDragging()) {
                 stage.stopDrag();
             }
-
-            var p1 = {
-                x: touch1.clientX,
-                y: touch1.clientY,
-            };
-            var p2 = {
-                x: touch2.clientX,
-                y: touch2.clientY,
-            };
 
             if (!lastCenter) {
                 lastCenter = getCenter(p1, p2);
@@ -2137,7 +2130,7 @@ Date.prototype.toDateInputValue = (function() {
         }
     });
 
-    stage.on('touchend', function() {
+    stage.on('touchend touchcancel', function() {
         lastDist = 0;
         lastCenter = null;
     });

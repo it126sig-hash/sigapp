@@ -86,7 +86,7 @@
                 <div id="hasil_akad_detail_error" class="alert alert-danger" role="alert" hidden></div>
                 <div class="card mb-0"><div class="card-datatable hasil-akad-detail-table-wrap">
                     <table id="hasil_akad_detail_table" class="table table-bordered table-striped mb-0 w-100">
-                        <thead><tr><th>Jenis Laporan</th><th>Jalan / No. Kavling</th><th>Nama Konsumen</th><th>Tanggal</th><th>Nominal</th><th>Aksi</th></tr></thead>
+                        <thead id="hasil_akad_detail_table_head"><tr><th>Jenis Laporan</th><th>Jalan / No. Kavling</th><th>Nama Konsumen</th><th>Tanggal</th><th>Nominal</th><th>Aksi</th></tr></thead>
                     </table>
                 </div></div>
             </div>

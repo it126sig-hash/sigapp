@@ -78,8 +78,8 @@ final class HasilAkadReportServiceTest extends CIUnitTestCase
             'month' => 2,
             'category' => 'pengajuan',
             'search' => ['value' => ' A-12 '],
-            'columns' => [4 => ['name' => 'nominal']],
-            'order' => [['column' => 4, 'dir' => 'desc']],
+            'columns' => [5 => ['name' => 'nominal']],
+            'order' => [['column' => 5, 'dir' => 'desc']],
         ]);
 
         $this->assertSame(4, $result['draw']);

@@ -20,6 +20,19 @@
   function money(value) { return "Rp " + new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 }).format(Number(value || 0)); }
   function formatDate(value) { var parts = String(value || "").split(" ")[0].split("-"); return parts.length === 3 && parts[0] !== "0000" ? parts[2] + "-" + parts[1] + "-" + parts[0] : "-"; }
   function shortMoney(value) { var n = Number(value || 0); return Math.abs(n) >= 1000000000 ? "Rp " + (n / 1000000000).toLocaleString("id-ID", { maximumFractionDigits: 1 }) + " M" : Math.abs(n) >= 1000000 ? "Rp " + (n / 1000000).toLocaleString("id-ID", { maximumFractionDigits: 1 }) + " Jt" : money(n); }
+  function multiline(value) {
+    return String(value || "-").split(" | ").map(function (line) {
+      return escapeHtml(line).replace(/Rp ([0-9,.]+)/g, function (match, amount) { return money(Number(String(amount).replace(/[,.]/g, ""))); });
+    }).join("<br>");
+  }
+  function actorDate(value, label, username) { return '<div class="hasil-akad-detail-date">' + escapeHtml(formatDate(value)) + '<small>' + escapeHtml(label) + ': ' + escapeHtml(username || "-") + "</small></div>"; }
+  function paymentStatus(status, dates) {
+    var labels = { active: "Belum cair", partial: "Cair sebagian", paid: "Sudah cair" };
+    var label = labels[status] || "-";
+    var formattedDates = String(dates || "").split(", ").filter(Boolean).map(formatDate);
+    var dateText = formattedDates.length ? '<small>Tanggal cair: ' + escapeHtml(formattedDates.join(", ")) + "</small>" : "";
+    return '<div class="hasil-akad-payment-status"><span class="badge badge-' + (status === "paid" ? "success" : status === "partial" ? "warning" : "secondary") + '">' + escapeHtml(label) + "</span>" + dateText + "</div>";
+  }
 
   function showError(message) { $("#hasil_akad_error").text(message || "Terjadi kesalahan saat memuat laporan.").prop("hidden", false); }
   function clearError() { $("#hasil_akad_error").prop("hidden", true).empty(); }
@@ -142,14 +155,28 @@
     $("#hasil_akad_detail_subtitle").text(monthLabel + " " + year + " · " + config.projectName);
     clearDetailError(); $("#hasil_akad_detail_modal").modal("show");
     if (detailTable) { detailTable.destroy(); $("#hasil_akad_detail_table tbody").empty(); }
+    var isPengajuan = category === "pengajuan", isCair = category === "cair";
+    var headers = isPengajuan
+      ? ["Rincian Pengajuan", "Jalan / No. Kavling", "Nama Konsumen", "Tanggal Pengajuan", "Status Cair", "Nominal", "Aksi"]
+      : isCair
+        ? ["Rincian Pencairan", "Jalan / No. Kavling", "Nama Konsumen", "Tanggal Pencairan", "Nominal", "Aksi"]
+        : ["Jenis Laporan", "Jalan / No. Kavling", "Nama Konsumen", "Tanggal", "Nominal", "Aksi"];
+    $("#hasil_akad_detail_table_head").html("<tr>" + headers.map(function (header) { return "<th>" + escapeHtml(header) + "</th>"; }).join("") + "</tr>");
+    var columns = [
+      { data: "jenis_laporan", name: "jenis_laporan", render: function (data) { return (isPengajuan || isCair) ? multiline(data) : escapeHtml(data); } },
+      { data: "alamat_kavling", name: "alamat_kavling", render: escapeHtml },
+      { data: "nama_konsumen", name: "nama_konsumen", render: escapeHtml },
+      { data: "tanggal_transaksi", name: "tanggal_transaksi", render: function (data, type, row) { if (type !== "display") return data; if (isPengajuan) return actorDate(data, "Diajukan oleh", row.pengaju_username); if (isCair) return actorDate(data, "Dicairkan oleh", row.pencair_username); return formatDate(data); } },
+    ];
+    if (isPengajuan) columns.push({ data: "status_pengajuan", name: "status_pengajuan", orderable: false, render: function (data, type, row) { return type === "display" ? paymentStatus(data, row.tanggal_pencairan) : data; } });
+    columns.push(
+      { data: "nominal", name: "nominal", className: "text-right font-weight-bold", render: money },
+      { data: null, orderable: false, searchable: false, className: "text-center", render: function (data, type, row) { if (!row.id_kavling) return "-"; return '<button type="button" class="btn btn-info btn-sm hasil-akad-view-kavling" data-id-kavling="' + escapeHtml(row.id_kavling) + '" data-id-mkdt="' + escapeHtml(row.id_mkdt || "") + '" data-nama-jalan="' + escapeHtml(row.nama_jalan || "") + '" data-no-kavling="' + escapeHtml(row.no_kavling || "") + '" title="Lihat Detail Kavling"><i class="fa fa-eye"></i></button>'; } }
+    );
     detailTable = $("#hasil_akad_detail_table").DataTable({
       processing: true, serverSide: true, searching: true, lengthChange: true, pageLength: 10, order: [[3, "asc"]], scrollX: true, autoWidth: false,
       ajax: { url: config.detailUrl, type: "POST", data: function (request) { request.year = year; request.month = month; request.category = category; if (config.csrfName) request[config.csrfName] = config.csrfHash; }, dataSrc: function (response) { updateToken(response); return response.data || []; }, error: function (xhr) { var response = xhr.responseJSON || {}; updateToken(response); $("#hasil_akad_detail_table_processing").hide(); showDetailError(response.messages || "Detail Hasil Akad gagal dimuat."); } },
-      columns: [
-        { data: "jenis_laporan", name: "jenis_laporan" }, { data: "alamat_kavling", name: "alamat_kavling" }, { data: "nama_konsumen", name: "nama_konsumen" },
-        { data: "tanggal_transaksi", name: "tanggal_transaksi", render: formatDate }, { data: "nominal", name: "nominal", className: "text-right font-weight-bold", render: money },
-        { data: null, orderable: false, searchable: false, className: "text-center", render: function (data, type, row) { if (!row.id_kavling) return "-"; return '<button type="button" class="btn btn-info btn-sm hasil-akad-view-kavling" data-id-kavling="' + escapeHtml(row.id_kavling) + '" data-id-mkdt="' + escapeHtml(row.id_mkdt || "") + '" data-nama-jalan="' + escapeHtml(row.nama_jalan || "") + '" data-no-kavling="' + escapeHtml(row.no_kavling || "") + '" title="Lihat Detail Kavling"><i class="fa fa-eye"></i></button>'; } },
-      ],
+      columns: columns,
       language: { emptyTable: "Tidak ada transaksi pada periode ini.", info: "Menampilkan _START_–_END_ dari _TOTAL_ transaksi", infoEmpty: "Tidak ada transaksi", lengthMenu: "Tampilkan _MENU_", processing: "Memuat detail...", search: "Cari:", zeroRecords: "Transaksi tidak ditemukan.", paginate: { previous: "Sebelumnya", next: "Berikutnya" } },
     });
   }
