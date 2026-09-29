@@ -1,0 +1,51 @@
+.hasil-akad-report-page { --hasil-akad-primary: #2057a3; --hasil-akad-border: #e5e7eb; --hasil-akad-muted: #6b7280; }
+.hasil-akad-report-page [hidden] { display: none !important; }
+.hasil-akad-filter-card, .hasil-akad-matrix-card, .hasil-akad-chart-card { border: 1px solid var(--hasil-akad-border); border-radius: 8px; box-shadow: none; }
+.hasil-akad-report-page .divider.divider-left { justify-content: flex-start; margin: 0; }
+.hasil-akad-report-page .divider.divider-left::before { display: none; }
+.hasil-akad-report-page .divider.divider-left::after { background: var(--hasil-akad-primary); content: ""; flex: 0 0 42px; height: 2px; margin-left: .75rem; }
+.hasil-akad-report-page .divider-text { color: #111827; font-size: 1.1rem; font-weight: 700; }
+.hasil-akad-heading-row { gap: 1rem; }
+.hasil-akad-filter-controls, .hasil-akad-comparison-controls { align-items: flex-end; display: flex; flex-wrap: wrap; gap: .65rem; }
+.hasil-akad-filter-controls label { color: var(--hasil-akad-muted); font-size: .75rem; font-weight: 700; margin-bottom: .35rem; }
+.hasil-akad-filter-controls select { min-width: 112px; }
+.hasil-akad-versus { color: var(--hasil-akad-muted); font-size: .78rem; font-weight: 700; padding-bottom: .75rem; text-transform: uppercase; }
+.hasil-akad-remove-comparison { min-width: 40px; padding-left: .75rem; padding-right: .75rem; }
+.hasil-akad-matrix-card .card-header, .hasil-akad-chart-card .card-header { align-items: center; border-bottom: 1px solid var(--hasil-akad-border); padding: 1rem 1.25rem; }
+.hasil-akad-loading { color: var(--hasil-akad-primary); font-size: .8rem; font-weight: 600; }
+.hasil-akad-report-actions { gap: .75rem; }
+.hasil-akad-table-wrap, .hasil-akad-detail-table-wrap { overflow-x: auto; }
+#hasil_akad_matrix { min-width: 980px; }
+#hasil_akad_matrix.is-comparison { min-width: 1680px; }
+#hasil_akad_matrix th, #hasil_akad_matrix td { padding: .7rem .75rem; vertical-align: middle; white-space: nowrap; }
+#hasil_akad_matrix thead th { background: #f8fafc; color: #374151; font-size: .75rem; letter-spacing: .01em; text-align: right; }
+#hasil_akad_matrix thead .hasil-akad-year-heading { background: var(--hasil-akad-primary); color: #fff; font-size: .9rem; }
+#hasil_akad_matrix thead .hasil-akad-year-heading-b { background: #1f7a8c; }
+#hasil_akad_matrix thead .hasil-akad-year-subheading-a { background: #edf3fb; }
+#hasil_akad_matrix thead .hasil-akad-year-subheading-b { background: #e8f4f5; }
+#hasil_akad_matrix .hasil-akad-month-column, #hasil_akad_matrix td:first-child { left: 0; position: sticky; text-align: left; z-index: 2; }
+#hasil_akad_matrix .hasil-akad-month-column, #hasil_akad_matrix tfoot td:first-child { background: #eef3f9; }
+#hasil_akad_matrix tbody td:first-child { background: #fff; font-weight: 600; }
+#hasil_akad_matrix tfoot td { background: #f3f6fa; border-top: 2px solid var(--hasil-akad-primary); font-weight: 700; text-align: right; }
+.hasil-akad-value-button { background: transparent; border: 0; color: var(--hasil-akad-primary); cursor: pointer; display: block; font: inherit; font-weight: 600; padding: .15rem 0; text-align: right; text-decoration: underline; text-decoration-color: rgba(32, 87, 163, .28); text-underline-offset: 3px; width: 100%; }
+.hasil-akad-value-button:hover, .hasil-akad-value-button:focus { color: #163f78; outline: none; text-decoration-color: currentColor; }
+.hasil-akad-kavling-count { color: var(--hasil-akad-muted); display: block; font-size: .72rem; font-weight: 600; margin-top: .15rem; text-decoration: none; }
+#hasil_akad_detail_modal .modal-dialog { margin: 1rem auto; max-width: min(1200px, calc(100vw - 32px)); }
+#hasil_akad_detail_modal .modal-content { border: 1px solid var(--hasil-akad-border); border-radius: 10px; box-shadow: none; overflow: hidden; }
+#hasil_akad_detail_modal .modal-header { align-items: center; background: #fff; border-bottom: 1px solid var(--hasil-akad-border); padding: 1rem 1.25rem; }
+#hasil_akad_detail_modal .modal-title { color: #111827; font-size: 1.05rem; font-weight: 700; }
+#hasil_akad_detail_modal .modal-body { background: #f3f5f7; max-height: calc(100vh - 8rem); overflow-y: auto; padding: 1rem; }
+#hasil_akad_detail_modal .card { border: 1px solid var(--hasil-akad-border); border-radius: 8px; box-shadow: none; }
+#hasil_akad_detail_table th, #hasil_akad_detail_table td { font-size: .82rem; vertical-align: middle; }
+.hasil-akad-chart-body { height: 420px; min-height: 320px; position: relative; }
+@media (max-width: 767.98px) {
+  .hasil-akad-filter-controls { align-items: stretch; flex-direction: column; width: 100%; }
+  .hasil-akad-filter-controls > .btn, .hasil-akad-filter-controls > .form-group { width: 100%; }
+  .hasil-akad-comparison-controls { align-items: flex-end; display: grid; grid-template-columns: auto 1fr auto; width: 100%; }
+  .hasil-akad-filter-controls select { min-width: 0; }
+  .hasil-akad-report-actions { margin-top: .75rem; width: 100%; }
+  #hasil_akad_toggle_chart { margin-left: auto; }
+  .hasil-akad-chart-body { height: 340px; padding: .75rem; }
+  #hasil_akad_detail_modal .modal-dialog { margin: .5rem auto; max-width: calc(100vw - 16px); }
+  #hasil_akad_detail_modal .modal-body { max-height: calc(100vh - 6rem); padding: .65rem; }
+}

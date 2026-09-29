@@ -1121,6 +1121,26 @@ class Siteplan extends BaseController
             ->where('id_mkdt', $id_mkdt)
             ->where('is_void', 0)
             ->get()->getResult();
+
+        $today = date('Y-m-d');
+        $tagihanJatuhTempo = array_filter($tg, static function ($row) use ($today) {
+            return (int) ($row->sudah_dibayar ?? 0) === 0
+                && (int) ($row->is_void ?? 0) === 0
+                && ! empty($row->jatuh_tempo_tgl)
+                && $row->jatuh_tempo_tgl !== '0000-00-00'
+                && $row->jatuh_tempo_tgl <= $today;
+        });
+        usort($tagihanJatuhTempo, static function ($a, $b) {
+            return strcmp((string) $a->jatuh_tempo_tgl, (string) $b->jatuh_tempo_tgl);
+        });
+        $d['tagihan_jatuh_tempo'] = array_map(static function ($row) {
+            return [
+                'berita_acara' => (string) ($row->berita_acara ?? ''),
+                'jatuh_tempo_tgl' => (string) ($row->jatuh_tempo_tgl ?? ''),
+                'nominal' => (float) ($row->nominal ?? 0),
+            ];
+        }, $tagihanJatuhTempo);
+
         $tg_um = 0;
         $tg_um_ll = 0;
         $tg_bb = 0;

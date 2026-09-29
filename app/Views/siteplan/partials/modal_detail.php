@@ -367,6 +367,15 @@
                                                     <div class="detail-status-card-title">Keuangan</div>
                                                 </div>
 
+                                                <div class="detail-section-divider detail-section-divider-compact">
+                                                    <span class="detail-section-title detail-section-title-dot">
+                                                        Piutang <span class="detail-status-badge badge-success">Cash In</span>
+                                                    </span>
+                                                </div>
+                                                <p class="text-muted small mb-1">
+                                                    Diagram membandingkan Cash In yang telah diterima dengan sisa piutang.
+                                                </p>
+
                                                 <div class="detail-chart-summary">
                                                     <div class="detail-chart-wrap">
                                                         <canvas id="keuanganChart"></canvas>
@@ -376,14 +385,21 @@
                                                     </div>
                                                     <div class="detail-chart-metrics">
                                                         <div class="detail-chart-metric">
-                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Telah Dibayar</span>
+                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Cash In / Telah Dibayar</span>
                                                             <span class="detail-info-value detail-text-success" id="s-total_dibayar">Rp 0</span>
                                                         </div>
                                                         <div class="detail-chart-metric">
-                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-danger"></span>Sisa Tagihan</span>
+                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-danger"></span>Sisa Piutang</span>
                                                             <span class="detail-info-value detail-text-danger" id="s-sisa_tagihan">Rp 0</span>
                                                         </div>
                                                     </div>
+                                                </div>
+
+                                                <div id="s-jatuh-tempo-wrap" class="d-none">
+                                                    <div class="detail-section-divider detail-section-divider-compact">
+                                                        <span class="detail-section-title detail-section-title-dot">Tagihan Jatuh Tempo</span>
+                                                    </div>
+                                                    <div id="s-jatuh-tempo"></div>
                                                 </div>
 
                                                 <div class="info-row row no-gutters hidden">
@@ -415,7 +431,9 @@
                                                 </div>
 
                                                 <div class="detail-section-divider detail-section-divider-compact">
-                                                    <span class="detail-section-title detail-section-title-dot">Cashout Status</span>
+                                                    <span class="detail-section-title detail-section-title-dot">
+                                                        Pengeluaran <span class="detail-status-badge badge-danger">Cash Out</span>
+                                                    </span>
                                                 </div>
                                                 <div id="s-co"></div>
 

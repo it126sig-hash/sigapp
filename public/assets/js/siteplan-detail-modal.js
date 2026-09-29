@@ -462,6 +462,34 @@ function lihat_detail() {
         setText("#s-persentase_bayar_tagihan_um_ll", tg.ldp_semua)
         setText("#s-persentase_bayar_tagihan_bb", tg.ldp_bb)
 
+        const tagihanJatuhTempo = Array.isArray(r.tagihan_jatuh_tempo) ? r.tagihan_jatuh_tempo : []
+        const $tagihanJatuhTempoWrap = $("#s-jatuh-tempo-wrap")
+        const $tagihanJatuhTempo = $("#s-jatuh-tempo")
+
+        $tagihanJatuhTempo.empty()
+        $tagihanJatuhTempoWrap.addClass("d-none")
+
+        if (tagihanJatuhTempo.length > 0) {
+            const items = tagihanJatuhTempo.map(function(v) {
+                return `
+                    <div class="detail-summary-list-item">
+                        <div class="detail-info-row">
+                            <div class="detail-info-col">
+                                <span class="detail-info-label">${detailEscapeHtml(v.berita_acara || '-')}</span>
+                                <span class="detail-info-value">${detailEscapeHtml(v.jatuh_tempo_tgl ? format_date(v.jatuh_tempo_tgl) : '-')}</span>
+                            </div>
+                            <div class="detail-info-col text-right">
+                                <span class="detail-status-badge badge-danger">Jatuh Tempo</span>
+                                <span class="detail-info-value detail-text-danger">${detailRupiah(v.nominal)}</span>
+                            </div>
+                        </div>
+                    </div>`
+            }).join('')
+
+            $tagihanJatuhTempo.html(`<div class="detail-summary-list">${items}</div>`)
+            $tagihanJatuhTempoWrap.removeClass("d-none")
+        }
+
         if (r.produksi) {
             let pr = r.produksi
             let p_bangunan = parseInt(pr.progres_bangunan) || 0;
@@ -606,7 +634,7 @@ function lihat_detail() {
                 modalKeuanganChart = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Telah Dibayar', 'Sisa Tagihan'],
+                        labels: ['Cash In / Telah Dibayar', 'Sisa Piutang'],
                         datasets: [{
                             data: [totalBayar, sisaTagihan],
                             backgroundColor: ['#28c76f', '#ea5455'], // Success green and Danger red

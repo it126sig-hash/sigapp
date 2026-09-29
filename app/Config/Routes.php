@@ -220,11 +220,17 @@ $routes->post("/keuangan/hasil-akad/import", 'PencairanAkad::import');
 
 $routes->group('laporan', ['namespace' => 'App\Controllers\Web', 'filter' => 'login'], function ($routes) {
     $routes->get('cash-in', 'CashInReportController::index');
+    $routes->get('hasil-akad', 'HasilAkadReportController::index');
 });
 
 $routes->group('api/laporan/cash-in', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
     $routes->post('summary', 'CashInReportController::summary');
     $routes->post('detail', 'CashInReportController::detail');
+});
+
+$routes->group('api/laporan/hasil-akad', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+    $routes->post('summary', 'HasilAkadReportController::summary');
+    $routes->post('detail', 'HasilAkadReportController::detail');
 });
 
 
