@@ -1729,7 +1729,7 @@ function lihat_detail() {
         }
         // console.log(files)
         if (files)
-            showFoto(files, 'dt-', "false");
+            showFoto(files, 'dt-', "false", { embedGpsMetadata: true });
 
 
         /************************ end of produksi ***************************/

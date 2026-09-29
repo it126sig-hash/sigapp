@@ -1734,7 +1734,7 @@ function readSelectedPhotoCoordinate(file, callback) {
   img.src = objectUrl;
 }
 
-function showFoto(data, imbuhan = "", del = true) {
+function showFoto(data, imbuhan = "", del = true, options = {}) {
   data.forEach((item) => {
     const containerElement = document.getElementById(
       `${imbuhan}list_${item.kategori}`,
@@ -1743,6 +1743,9 @@ function showFoto(data, imbuhan = "", del = true) {
       const isDocument = item.file_name.endsWith(".pdf") || item.file_name.endsWith(".xlsx");
       const fileHref = item.access_url || file_url('file_produksi', item.id);
       const downloadHref = item.download_url || file_url('file_produksi', item.id, true);
+      const gpsDownloadHref = !isDocument && options.embedGpsMetadata
+        ? `${downloadHref}${downloadHref.includes("?") ? "&" : "?"}gps=1`
+        : downloadHref;
       const imgDiv = document.createElement("div");
       imgDiv.id = `${imbuhan}foto_produksi_${item.id}`;
       imgDiv.style.position = "relative";
@@ -1799,7 +1802,7 @@ function showFoto(data, imbuhan = "", del = true) {
       downloadButton.addEventListener("click", function (event) {
         event.preventDefault();
         const link = document.createElement("a");
-        link.href = downloadHref;
+        link.href = gpsDownloadHref;
         link.innerText = "Lihat File";
         link.target = "_blank";
         link.click();

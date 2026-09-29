@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Libraries\StreamFileResponse;
 use App\Services\FileAccessService;
 use App\Services\ImageThumbnailService;
+use App\Services\PhotoGpsMetadataService;
 use CodeIgniter\Files\File;
 use RuntimeException;
 
@@ -12,11 +13,13 @@ class FileController extends BaseController
 {
     protected FileAccessService $fileAccessService;
     protected ImageThumbnailService $thumbnailService;
+    protected PhotoGpsMetadataService $photoGpsMetadataService;
 
     public function __construct()
     {
         $this->fileAccessService = new FileAccessService();
         $this->thumbnailService = new ImageThumbnailService();
+        $this->photoGpsMetadataService = new PhotoGpsMetadataService();
     }
 
     public function show(string $source, int $id)
@@ -61,6 +64,13 @@ class FileController extends BaseController
         return $this->streamFile($file);
     }
 
+    private function shouldEmbedGps(string $source): bool
+    {
+        return $source === 'file_produksi'
+            && (string) $this->request->getGet('download') === '1'
+            && (string) $this->request->getGet('gps') === '1';
+    }
+
     public function pathThumbnail(string $source)
     {
         try {
@@ -86,6 +96,23 @@ class FileController extends BaseController
             }
 
             return $this->response->setStatusCode(404)->setBody('File tidak ditemukan');
+        }
+
+        if ($this->shouldEmbedGps($source)) {
+            try {
+                $prepared = $this->photoGpsMetadataService->prepareDownload($file);
+                if ($prepared !== null) {
+                    $file = $prepared;
+                    $temporaryPath = (string) ($file['temporary_path'] ?? '');
+                    register_shutdown_function(function () use ($temporaryPath) {
+                        $this->photoGpsMetadataService->cleanup($temporaryPath);
+                    });
+                }
+            } catch (\Throwable $e) {
+                log_message('error', 'Gagal menyiapkan metadata GPS foto produksi: ' . $e->getMessage());
+
+                return $this->response->setStatusCode(500)->setBody('Gagal menyiapkan metadata GPS foto.');
+            }
         }
 
         return $this->streamFile($file);
