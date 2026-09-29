@@ -1121,6 +1121,41 @@
         padding: .75rem 1rem;
     }
 
+    #modal_detail .detail-finance-label {
+        min-width: 140px;
+        white-space: normal;
+    }
+
+    #modal_detail .detail-finance-label-main {
+        color: #1f2937;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    #modal_detail .detail-finance-breakdown {
+        border-top: 1px solid #edf0f2;
+        display: grid;
+        gap: .2rem;
+        margin-top: .35rem;
+        padding-top: .3rem;
+    }
+
+    #modal_detail .detail-finance-breakdown-item {
+        align-items: baseline;
+        color: #6b7280;
+        display: flex;
+        flex-wrap: wrap;
+        font-size: .72rem;
+        gap: .25rem;
+        line-height: 1.35;
+    }
+
+    #modal_detail .detail-finance-breakdown-amount {
+        color: #2057a3;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
     #modal_detail .detail-production-dashboard {
         display: grid;
         gap: 1rem;
@@ -1458,6 +1493,22 @@
     .dark-layout #modal_detail .detail-price-value,
     .dark-layout #modal_detail .detail-note-content {
         color: #f8fafc;
+    }
+
+    .dark-layout #modal_detail .detail-finance-label-main {
+        color: #f8fafc;
+    }
+
+    .dark-layout #modal_detail .detail-finance-breakdown {
+        border-top-color: rgba(255, 255, 255, .08);
+    }
+
+    .dark-layout #modal_detail .detail-finance-breakdown-item {
+        color: #b4bfd1;
+    }
+
+    .dark-layout #modal_detail .detail-finance-breakdown-amount {
+        color: #7db0f2;
     }
 
     .dark-layout #modal_detail .detail-highlight-box {

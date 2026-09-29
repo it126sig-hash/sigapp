@@ -39,6 +39,7 @@ class TransaksiService
     protected $fileAccessService;
     protected $mkdtHistoryService;
     protected BookingPaymentService $bookingPaymentService;
+    protected MkdtFinancialBreakdownService $financialBreakdownService;
 
     // $kavlingRepo,
     //         $hargaRepo,
@@ -66,6 +67,7 @@ class TransaksiService
         $this->fileAccessService = new FileAccessService();
         $this->mkdtHistoryService = new MkdtHistoryService();
         $this->bookingPaymentService = new BookingPaymentService($this->db);
+        $this->financialBreakdownService = new MkdtFinancialBreakdownService($this->db);
 
         $this->mkdt = new MkdtModel();
         $this->kavling = new KavlingModel();
@@ -235,6 +237,18 @@ class TransaksiService
             : null;
         $isNewMkdt = empty($kons['id_mkdt']) || $isDataBaru;
         $activatedMgmBonusIds = [];
+
+        if ($isNewMkdt || $this->financialBreakdownService->hasFinancialChanges($oldMkdt, $mk)) {
+            try {
+                $this->financialBreakdownService->validateContractAndSchedule($mk, $um);
+            } catch (\DomainException $e) {
+                return [
+                    'token' => csrf_hash(),
+                    'success' => false,
+                    'messages' => $e->getMessage(),
+                ];
+            }
+        }
 
         // Transisi ke Akad hanya boleh lewat saveStatus() (modal status), bukan form data konsumen.
         $oldStatusMkdt = $oldMkdt->status_mkdt ?? null;
@@ -603,7 +617,7 @@ class TransaksiService
         $accKpr = (float) ($data['harga_kpr_acc'] ?? 0);
         $data['harga_kpr']           = $hargaKprDb;
         $data['harga_kpr_acc']       = $accKpr;
-        $data['harga_penambahan_um'] = max(0, $hargaKprDb - $accKpr);
+        $data['harga_penambahan_um'] = $accKpr > 0 ? max(0, $hargaKprDb - $accKpr) : 0;
 
         // Sinkronisasi dua arah status_mkdt <-> akad
         if ($data['status_mkdt'] === 'Akad' || (int) ($data['akad'] ?? 0) === 1) {

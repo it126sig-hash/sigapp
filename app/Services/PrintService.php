@@ -37,6 +37,7 @@ class PrintService
     protected $posisiKonsumen;
     protected $fileAccessService;
     protected $mkdtHistoryService;
+    protected MkdtFinancialBreakdownService $financialBreakdownService;
     public function __construct()
     {
         $this->comproModel = new ProfilePerusahaanModel();
@@ -52,6 +53,7 @@ class PrintService
         $this->posisiKonsumen = new PosisiKonsumenRepository();
         $this->fileAccessService = new FileAccessService();
         $this->mkdtHistoryService = new MkdtHistoryService();
+        $this->financialBreakdownService = new MkdtFinancialBreakdownService();
     }
 
     public function printSpptb(int $idKavling, int $idMkdt, int $idProyek): void
@@ -542,15 +544,11 @@ class PrintService
                 $um = "-";
                 $adm = "-";
                 $bb = "-";
-                if ($bayar <= 0) {
-                    $persen_tunai = '0%';
-                } else {
-                    $persen_tunai = round(($bayar / $total) * 100) . "%";
-                }
+                $persen_tunai = $this->financialBreakdownService->progress((float) $total, (float) $bayar)['label'];
             } else {
-                $um = $row->total_um <= 0 ? "0%" : round(($row->total_um / $row->um) * 100) . "%";
-                $adm = $row->total_adm <= 0 ? "0%" : round(($row->total_adm / $row->adm) * 100) . "%";
-                $bb = $row->total_bb <= 0 ? "0%" : round(($row->total_bb / $row->bb) * 100) . "%";
+                $um = $this->financialBreakdownService->progress((float) $row->um, (float) $row->total_um)['label'];
+                $adm = $this->financialBreakdownService->progress((float) $row->adm, (float) $row->total_adm)['label'];
+                $bb = $this->financialBreakdownService->progress((float) $row->bb, (float) $row->total_bb)['label'];
             }
 
             $sheet->setCellValue('A' . $column, $no++);

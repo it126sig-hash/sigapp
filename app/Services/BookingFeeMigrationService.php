@@ -87,21 +87,18 @@ class BookingFeeMigrationService
 
     private function seedExistingLinks(): void
     {
-        $known = [163=>88,170=>116,199=>297,202=>154,279=>576,356=>1002];
         $rows = $this->db->table('mkdt')->select('id_mkdt,booking_fee,booking_tgl')->where('booking_fee >', 0)->orderBy('id_mkdt')->get()->getResultArray();
         foreach ($rows as $mkdt) {
             $id = (int) $mkdt['id_mkdt'];
             if ($this->repo->link($id)) continue;
-            $candidate = isset($known[$id]) ? $this->repo->payment($known[$id]) : null;
-            if (! $candidate || (int) ($candidate['is_deleted'] ?? 1) === 1) {
-                $candidates = $this->repo->bookingRows($id);
-                usort($candidates, function ($a, $b) use ($mkdt) {
-                    $sa = ((float)$a['nominal'] === (float)$mkdt['booking_fee'] ? 2 : 0) + (substr((string)$a['tanggal_bayar'],0,10) === substr((string)$mkdt['booking_tgl'],0,10) ? 1 : 0);
-                    $sb = ((float)$b['nominal'] === (float)$mkdt['booking_fee'] ? 2 : 0) + (substr((string)$b['tanggal_bayar'],0,10) === substr((string)$mkdt['booking_tgl'],0,10) ? 1 : 0);
-                    return $sb <=> $sa;
-                });
-                $candidate = $candidates[0] ?? null;
-            }
+            $candidates = $this->repo->bookingRows($id);
+            usort($candidates, function ($a, $b) use ($mkdt) {
+                $sa = ((float)$a['nominal'] === (float)$mkdt['booking_fee'] ? 2 : 0) + (substr((string)$a['tanggal_bayar'],0,10) === substr((string)$mkdt['booking_tgl'],0,10) ? 1 : 0);
+                $sb = ((float)$b['nominal'] === (float)$mkdt['booking_fee'] ? 2 : 0) + (substr((string)$b['tanggal_bayar'],0,10) === substr((string)$mkdt['booking_tgl'],0,10) ? 1 : 0);
+                if ($sa !== $sb) return $sb <=> $sa;
+                return (int) $a['id_pembayaran'] <=> (int) $b['id_pembayaran'];
+            });
+            $candidate = $candidates[0] ?? null;
             if ($candidate) {
                 $paymentId = (int) $candidate['id_pembayaran'];
                 if (! $this->repo->owners($paymentId)) $this->repo->saveLink($id, $paymentId);
@@ -128,9 +125,23 @@ class BookingFeeMigrationService
     {
         $payment = $this->repo->payment(1001);
         if (! $payment) throw new \RuntimeException('Pembayaran 1001 tidak ditemukan.');
-        $bo = array_values(array_filter($this->repo->details(1001), static fn($d) => ($d['kategori'] ?? '') === 'BO'));
+        $details = $this->repo->details(1001);
+        $bo = array_values(array_filter($details, static fn($d) => ($d['kategori'] ?? '') === 'BO'));
         if (! $bo) return; // Already split on an earlier run.
-        $before = ['payment'=>$payment,'details'=>$this->repo->details(1001)];
+        if ((int) ($payment['id_mkdt'] ?? 0) !== 404) {
+            throw new \RuntimeException('Pemisahan pembayaran 1001 ditolak: diharapkan milik MKDT 404, ditemukan MKDT ' . (int) ($payment['id_mkdt'] ?? 0) . '.');
+        }
+        $boTotal = round(array_sum(array_map(static fn($detail) => (float) $detail['nominal'], $bo)), 2);
+        if ((int) ($payment['is_deleted'] ?? 1) !== 0 || count($bo) !== 1
+            || round((float) ($payment['nominal'] ?? 0), 2) !== 2500000.0 || $boTotal !== 1500000.0) {
+            throw new \RuntimeException(
+                'Pemisahan pembayaran 1001 ditolak untuk MKDT 404: diharapkan pembayaran aktif Rp2500000 '
+                . 'dengan 1 detail BO Rp1500000; ditemukan status hapus ' . (int) ($payment['is_deleted'] ?? 1)
+                . ', nominal Rp' . round((float) ($payment['nominal'] ?? 0), 2)
+                . ', ' . count($details) . ' detail, ' . count($bo) . ' detail BO senilai Rp' . $boTotal . '.'
+            );
+        }
+        $before = ['payment'=>$payment,'details'=>$details];
         $this->repo->write('log_pembayaran', [
             'nominal'=>1000000,'tanggal_bayar'=>'2026-09-01','payment_type'=>'Uang Muka',
             'keterangan'=>'Uang Muka - hasil pemisahan pembayaran 1001','updated_at'=>date('Y-m-d H:i:s')
@@ -154,8 +165,23 @@ class BookingFeeMigrationService
 
     private function correctAllocation(int $paymentId, string $category, ?string $name, int $idMkdt): void
     {
-        $details = array_values(array_filter($this->repo->details($paymentId), static fn($d) => ($d['kategori'] ?? '') === 'BO'));
-        if (! $details) return;
+        $payment = $this->repo->payment($paymentId);
+        $allDetails = $this->repo->details($paymentId);
+        $details = array_values(array_filter($allDetails, static fn($d) => ($d['kategori'] ?? '') === 'BO'));
+        if (! $details) return; // Already corrected on an earlier run.
+        if (! $payment || (int) ($payment['id_mkdt'] ?? 0) !== $idMkdt) {
+            throw new \RuntimeException("Koreksi pembayaran {$paymentId} ditolak: diharapkan milik MKDT {$idMkdt}, ditemukan MKDT " . (int) ($payment['id_mkdt'] ?? 0) . '.');
+        }
+        $detailTotal = round(array_sum(array_map(static fn($detail) => (float) $detail['nominal'], $details)), 2);
+        if ((int) ($payment['is_deleted'] ?? 1) !== 0 || count($allDetails) !== 1 || count($details) !== 1
+            || $detailTotal !== round((float) ($payment['nominal'] ?? 0), 2)) {
+            throw new \RuntimeException(
+                "Koreksi pembayaran {$paymentId} untuk MKDT {$idMkdt} ditolak: diharapkan pembayaran aktif "
+                . 'dengan tepat 1 detail BO senilai header; ditemukan status hapus ' . (int) ($payment['is_deleted'] ?? 1)
+                . ', ' . count($allDetails) . ' detail, ' . count($details) . ' detail BO senilai Rp' . $detailTotal
+                . ', dan header Rp' . round((float) ($payment['nominal'] ?? 0), 2) . '.'
+            );
+        }
         $item = $this->repo->item($category, $name);
         foreach ($details as $detail) {
             $before = $detail;

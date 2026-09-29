@@ -23,6 +23,7 @@ class PembayaranService
     protected $ledgerService;
     protected BookingPaymentService $bookingService;
     protected MkdtSettlementService $settlementService;
+    protected MkdtFinancialBreakdownService $financialBreakdownService;
 
     public function __construct()
     {
@@ -36,6 +37,7 @@ class PembayaranService
         $this->db = \Config\Database::connect();
         $this->bookingService = new BookingPaymentService($this->db);
         $this->settlementService = new MkdtSettlementService($this->db);
+        $this->financialBreakdownService = new MkdtFinancialBreakdownService($this->db);
     }
 
 
@@ -98,6 +100,11 @@ class PembayaranService
             $db->transException(true)->transBegin();
 
             $this->bookingService->assertManualAllocationAllowed((int) $form['id_mkdt'], $pembayaran);
+            $this->financialBreakdownService->validatePaymentAllocation(
+                (int) $form['id_mkdt'],
+                $pembayaran,
+                (float) $form['nominal']
+            );
 
             //insert log pembayaran
             $id_pembayaran = $this->lpModel->insert($form);

@@ -1,6 +1,7 @@
 <?php
 
 use App\Repositories\BookingPaymentRepository;
+use App\Services\BookingFeeMigrationService;
 use App\Services\BookingPaymentService;
 use CodeIgniter\Test\CIUnitTestCase;
 use Config\Database;
@@ -134,5 +135,139 @@ final class BookingInstallmentSeparationTest extends CIUnitTestCase
         }
         $this->expectException(DomainException::class);
         $service->assertMayDelete(40);
+    }
+
+    public function testMigrationSeedsCanonicalBookingFromTheSameMkdt(): void
+    {
+        $this->db->table('mkdt')->insertBatch([
+            ['id_mkdt'=>356,'booking_fee'=>1500000,'booking_tgl'=>'2026-04-07','is_lunas'=>0],
+            ['id_mkdt'=>371,'booking_fee'=>2000000,'booking_tgl'=>'2026-06-07','is_lunas'=>0],
+        ]);
+        $this->db->table('log_pembayaran')->insertBatch([
+            ['id_pembayaran'=>639,'id_mkdt'=>356,'nominal'=>1500000,'tanggal_bayar'=>'2026-04-07','payment_type'=>'Booking'],
+            ['id_pembayaran'=>1002,'id_mkdt'=>371,'nominal'=>2000000,'tanggal_bayar'=>'2026-09-13','payment_type'=>'Angsuran 1;'],
+        ]);
+        $this->db->table('log_pembayaran_detail')->insertBatch([
+            ['id_pembayaran_detail'=>1011,'id_pembayaran'=>639,'id_keuangan_item_list'=>1,'nominal'=>1500000,'booking_is_installment'=>0],
+            ['id_pembayaran_detail'=>1375,'id_pembayaran'=>1002,'id_keuangan_item_list'=>2,'nominal'=>2000000,'booking_is_installment'=>0],
+        ]);
+
+        $service = new BookingFeeMigrationService($this->db);
+        $this->invokePrivate($service, 'seedExistingLinks');
+
+        $link = $this->db->table('mkdt_booking_payment')->where('id_mkdt', 356)->get()->getRowArray();
+        $unrelatedPayment = $this->db->table('log_pembayaran')->where('id_pembayaran', 1002)->get()->getRowArray();
+        $this->assertSame(639, (int) $link['id_pembayaran']);
+        $this->assertSame(371, (int) $unrelatedPayment['id_mkdt']);
+        $this->assertSame('Angsuran 1;', $unrelatedPayment['payment_type']);
+        $this->assertSame(0, $this->db->table('mkdt_booking_payment')->where('id_pembayaran', 1002)->countAllResults());
+    }
+
+    public function testMigrationKeepsLegacyBookingCandidateOwnedByTheSameMkdt(): void
+    {
+        $this->db->table('mkdt')->insert(['id_mkdt'=>163,'booking_fee'=>1000000,'booking_tgl'=>'2025-01-07','is_lunas'=>0]);
+        $this->db->table('log_pembayaran')->insert([
+            'id_pembayaran'=>88,'id_mkdt'=>163,'nominal'=>0,'tanggal_bayar'=>'2025-03-27','payment_type'=>'Booking',
+        ]);
+        $this->db->table('log_pembayaran_detail')->insert([
+            'id_pembayaran_detail'=>525,'id_pembayaran'=>88,'id_keuangan_item_list'=>1,'nominal'=>0,'booking_is_installment'=>0,
+        ]);
+
+        $service = new BookingFeeMigrationService($this->db);
+        $this->invokePrivate($service, 'seedExistingLinks');
+
+        $link = $this->db->table('mkdt_booking_payment')->where('id_mkdt', 163)->get()->getRowArray();
+        $this->assertSame(88, (int) $link['id_pembayaran']);
+    }
+
+    public function testSpecialAllocationCorrectionRejectsAReusedPaymentId(): void
+    {
+        $this->db->table('log_pembayaran')->insert([
+            'id_pembayaran'=>987,'id_mkdt'=>999,'nominal'=>1000000,'tanggal_bayar'=>'2024-02-03','payment_type'=>'Booking',
+        ]);
+        $this->db->table('log_pembayaran_detail')->insert([
+            'id_pembayaran_detail'=>1359,'id_pembayaran'=>987,'id_keuangan_item_list'=>1,'nominal'=>1000000,'booking_is_installment'=>0,
+        ]);
+
+        $service = new BookingFeeMigrationService($this->db);
+
+        try {
+            $this->invokePrivate($service, 'correctAllocation', [987, 'BB', 'Biaya Proses', 202]);
+            $this->fail('Koreksi khusus harus ditolak ketika ID pembayaran dimiliki MKDT lain.');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('diharapkan milik MKDT 202', $e->getMessage());
+        }
+
+        $detail = $this->db->table('log_pembayaran_detail')->where('id_pembayaran_detail', 1359)->get()->getRowArray();
+        $this->assertSame(1, (int) $detail['id_keuangan_item_list']);
+    }
+
+    public function testSpecialPaymentSplitRejectsAReusedPaymentId(): void
+    {
+        $this->db->table('log_pembayaran')->insert([
+            'id_pembayaran'=>1001,'id_mkdt'=>362,'nominal'=>2500000,'tanggal_bayar'=>'2026-09-20','payment_type'=>'Booking',
+        ]);
+        $this->db->table('log_pembayaran_detail')->insert([
+            'id_pembayaran_detail'=>1374,'id_pembayaran'=>1001,'id_keuangan_item_list'=>1,'nominal'=>1500000,'booking_is_installment'=>0,
+        ]);
+
+        $service = new BookingFeeMigrationService($this->db);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('diharapkan milik MKDT 404');
+        $this->invokePrivate($service, 'splitPayment1001');
+    }
+
+    public function testSpecialAllocationCorrectionRejectsUnexpectedDetailShape(): void
+    {
+        $this->db->table('log_pembayaran')->insert([
+            'id_pembayaran'=>863,'id_mkdt'=>279,'nominal'=>1000000,'tanggal_bayar'=>'2020-12-07','payment_type'=>'Booking',
+        ]);
+        $this->db->table('log_pembayaran_detail')->insertBatch([
+            ['id_pembayaran_detail'=>1235,'id_pembayaran'=>863,'id_keuangan_item_list'=>1,'nominal'=>750000,'booking_is_installment'=>0],
+            ['id_pembayaran_detail'=>1236,'id_pembayaran'=>863,'id_keuangan_item_list'=>1,'nominal'=>250000,'booking_is_installment'=>0],
+        ]);
+
+        $service = new BookingFeeMigrationService($this->db);
+
+        try {
+            $this->invokePrivate($service, 'correctAllocation', [863, 'UM', null, 279]);
+            $this->fail('Koreksi khusus harus ditolak ketika bentuk detail tidak sesuai asumsi.');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('2 detail, 2 detail BO', $e->getMessage());
+        }
+
+        $unchanged = $this->db->table('log_pembayaran_detail')->where('id_pembayaran', 863)
+            ->where('id_keuangan_item_list', 1)->countAllResults();
+        $this->assertSame(2, $unchanged);
+    }
+
+    public function testMixedBookingErrorContainsMkdtAndPaymentContext(): void
+    {
+        $this->db->table('mkdt')->insert(['id_mkdt'=>6,'booking_fee'=>1500000,'booking_tgl'=>'2025-07-09','is_lunas'=>0]);
+        $this->db->table('log_pembayaran')->insert([
+            'id_pembayaran'=>60,'id_mkdt'=>6,'nominal'=>1500000,'tanggal_bayar'=>'2025-07-09','payment_type'=>'Booking',
+        ]);
+        $this->db->table('log_pembayaran_detail')->insertBatch([
+            ['id_pembayaran_detail'=>60,'id_pembayaran'=>60,'id_keuangan_item_list'=>1,'nominal'=>1000000,'booking_is_installment'=>0],
+            ['id_pembayaran_detail'=>61,'id_pembayaran'=>60,'id_keuangan_item_list'=>2,'nominal'=>500000,'booking_is_installment'=>0],
+        ]);
+        $this->db->table('mkdt_booking_payment')->insert(['id_mkdt'=>6,'id_pembayaran'=>60]);
+
+        try {
+            (new BookingPaymentService($this->db))->synchronize(6);
+            $this->fail('Pembayaran booking campuran harus ditolak.');
+        } catch (DomainException $e) {
+            $this->assertStringContainsString('MKDT 6', $e->getMessage());
+            $this->assertStringContainsString('ID pembayaran 60', $e->getMessage());
+            $this->assertStringContainsString('2 detail dan 1 detail BO', $e->getMessage());
+        }
+    }
+
+    private function invokePrivate(object $service, string $method, array $arguments = []): mixed
+    {
+        $reflection = new ReflectionMethod($service, $method);
+        $reflection->setAccessible(true);
+        return $reflection->invokeArgs($service, $arguments);
     }
 }

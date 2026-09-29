@@ -13,6 +13,7 @@ class MkdtHistoryService
     public const ACTION_STANDING_INSTRUCTION  = 'standing_instruction';
     public const ACTION_BATAL_BOOKING         = 'batal_booking';
     public const ACTION_GANTI_KONSUMEN        = 'ganti_konsumen';
+    public const ACTION_RECONCILE_FINANCIAL   = 'reconcile_financial_breakdown';
 
     private const ACTION_LABELS = [
         self::ACTION_SET_HARGA_JUAL       => 'Set Harga Jual',
@@ -22,6 +23,7 @@ class MkdtHistoryService
         self::ACTION_STANDING_INSTRUCTION => 'Standing Instruction',
         self::ACTION_BATAL_BOOKING        => 'Batal Booking',
         self::ACTION_GANTI_KONSUMEN       => 'Pindah Konsumen',
+        self::ACTION_RECONCILE_FINANCIAL  => 'Rekonsiliasi Keuangan MKDT',
     ];
 
     public function __construct(

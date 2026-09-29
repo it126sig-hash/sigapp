@@ -90,3 +90,31 @@ Fitur ini mencakup redesain halaman `list-kavling.php` yang menampilkan data pos
 2. THE List_Kavling_Page SHALL memuat variabel global yang dibutuhkan Siteplan_Modal, termasuk `rolename`, `roleid`, `has_akses`, `pph`, `ppn`, `conf`, dan `li_keu`.
 3. IF variabel global yang dibutuhkan Siteplan_Modal tidak tersedia, THEN THE List_Kavling_Page SHALL menginisialisasi variabel tersebut dengan nilai default yang aman sebelum modal dimuat.
 4. THE List_Kavling_Page SHALL mempertahankan semua fungsionalitas yang sudah ada, termasuk filter proyek/cluster/blok, export Excel/PDF, dan tab riwayat eksport.
+
+---
+
+### Requirement 6: Identitas dan Keterangan Status
+
+1. WHEN `akad_indent = 1`, THE List_Kavling_Page SHALL menampilkan badge **Akad Indent** pada baris kedua di bawah nama jalan.
+2. THE List_Kavling_Page SHALL menampilkan kode referral/aksi QR pada baris kedua di bawah nama konsumen dan SHALL NOT memakai kolom referral terpisah.
+3. THE DataTable SHALL membekukan enam kolom kiri pada desktop setelah kolom referral digabung.
+4. THE `Keterangan Status` column SHALL memiliki lebar minimum 280px dan membungkus teks.
+5. Ordering dan visibilitas kolom SHALL memakai indeks setelah penggabungan referral.
+
+### Requirement 7: Progress Pembayaran
+
+1. Target UM SHALL dihitung sebagai `max(uang_muka - diskon_uang_muka - SBUM, 0)`.
+2. Target B. Adm SHALL menggunakan `harga_administrasi`.
+3. Target Biaya-biaya SHALL berisi BPHTB, Biaya Proses, PPN, Kavling Strategis, Kelebihan Tanah, dan Turun KPR valid. Booking Fee SHALL dikecualikan.
+4. Realisasi SHALL menggunakan `mkdt_payment_summary.total_um`, `total_adm`, dan `total_bb`, yang berasal dari breakdown Finance, bukan label tagihan.
+5. Target dan realisasi nol SHALL ditampilkan sebagai `0%`; realisasi dengan target nol SHALL ditampilkan sebagai **Perlu Rekonsiliasi**.
+6. Persentase lebih dari 100% SHALL tetap ditampilkan tanpa dipotong.
+7. Rumus dan status SHALL sama pada DataTable, PDF, dan Excel Posisi Konsumen.
+
+### Requirement 8: Rekonsiliasi MKDT
+
+1. Command audit SHALL menghasilkan JSON tanpa mengubah database.
+2. Transaksi belum lunas atau pembayaran tanpa detail/tidak seimbang SHALL NOT diusulkan untuk backfill.
+3. Perubahan hanya boleh diterapkan dari manifest eksplisit yang lolos pemeriksaan `updated_at` dan nilai awal.
+4. Selisih UM SHALL tetap unresolved sampai bisnis memilih diskon UM atau SBUM.
+5. Apply SHALL bersifat idempotent, transaksional per MKDT, dan mencatat before/after ke `history_log`.

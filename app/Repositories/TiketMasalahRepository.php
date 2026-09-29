@@ -78,7 +78,8 @@ class TiketMasalahRepository
     {
         $builder = $this->db->table('tiket_masalah tm')
             ->select('
-                tm.id, tm.ref_type, tm.ref_id, tm.id_proyek, tm.tanggal_masalah, 
+                tm.id, tm.ref_type, tm.ref_id, tm.id_proyek, tm.tanggal_masalah,
+                COALESCE(jk.id_cluster, jo.id_cluster) as target_cluster_id,
                 tm.keterangan, tm.prioritas, tm.status, tm.created_at,
                 u.username as pic_username,
                 IF(tm.ref_type = "kavling", CONCAT_WS(" - ", jk.nama_jalan, k.no_kavling), CONCAT_WS(" - ", jo.nama_jalan, o.nama)) as lokasi,

@@ -39,6 +39,32 @@ Objek detail tagihan menyediakan:
 
 Field respons lama tetap tersedia untuk kompatibilitas. Pada modal tagihan, nilainya mengikuti perhitungan angsuran. Laporan Cash In memakai aturan kategori efektif yang sama: BO dengan `booking_is_installment = 0` masuk Booking Fee; BO dengan flag `1` masuk Uang Muka.
 
+Aturan kategori efektif tersebut wajib dipakai identik pada summary bulanan dan detail Cash In. Perubahan label tagihan MKDT (misalnya semua tagihan diberi label `Angsuran`) tidak mengubah kategori realisasi; kategori berasal dari breakdown `log_pembayaran_detail` yang dibuat Keuangan.
+
+## Integritas target dan breakdown pembayaran
+
+- MKDT adalah sumber target kontrak per item. Target UM adalah `max(harga_uang_muka - harga_diskon_uang_muka - harga_sbum, 0)`; target administrasi adalah `harga_administrasi`; biaya-biaya mencakup BPHTB, Biaya Proses, PPN, Kavling Strategis, Kelebihan Tanah, dan Turun KPR valid.
+- Turun KPR hanya ada bila ACC KPR lebih dari nol, dengan rumus `max(harga_kpr - harga_kpr_acc, 0)`.
+- Booking Fee tidak masuk target UM/administrasi/biaya-biaya. BO cicilan (`booking_is_installment = 1`) menjadi realisasi UM.
+- Backend pembayaran mewajibkan jumlah breakdown sama dengan header, item dikenal, dan pembayaran tidak melampaui sisa target item maupun sisa tagihan. Target yang belum tersedia harus direkonsiliasi sebelum pembayaran disimpan.
+- Tagihan boleh menggunakan label umum `Angsuran` dan satu pembayaran boleh dibreakdown ke beberapa item.
+
+Audit historis dijalankan tanpa write dengan:
+
+```powershell
+php spark finance:reconcile-mkdt --report "C:\path\audit.json" [--id-mkdt 354]
+```
+
+Operator meninjau `suggested_manifest`, memutuskan selisih UM sebagai diskon atau SBUM bila ada bukti bisnis, lalu membuat manifest `rows` yang disetujui. Penerapan dilakukan dengan:
+
+```powershell
+php spark finance:reconcile-mkdt --apply "C:\path\approved.json" --report "C:\path\apply-result.json"
+```
+
+Apply menolak snapshot `updated_at`/nilai awal yang sudah berubah, idempotent, transaksional per MKDT, dan mencatat before/after pada `history_log`. Command tidak mengubah tagihan, pembayaran, Booking Fee, ledger, atau `mkdt_payment_summary`.
+
+Keputusan bisnis khusus MKDT 354 ditetapkan melalui migration `2026-09-25-000001_ReconcileMkdt354Sbum`: selisih UM Rp4.000.000 menjadi SBUM, Biaya Proses menjadi Rp3.000.000, dan Turun KPR menjadi Rp0. Migration memeriksa baseline agar tidak menimpa perubahan baru, idempotent, serta mencatat perubahan pada `history_log`.
+
 ## Migrasi historis
 
 Command berikut wajib diarahkan dahulu ke database salinan:
@@ -50,7 +76,9 @@ php spark booking:migrate --database nama_database_clone --report "C:\path\clone
 
 Bandingkan hasil keuangan kedua laporan. Jumlah pembayaran, detail, ledger, mapping, nominal, tanggal, kategori, dan sisa tagihan harus identik. Setelah itu jalankan migrasi schema biasa dan command tanpa `--database` pada database tujuan.
 
-Migrator menangani koreksi 163/170/199, mempertahankan 154 dan 576 sebagai booking, memindahkan 987 ke Biaya Proses dan 863 ke UM, menormalkan 1002, serta memisahkan 1001 menjadi UM Rp1.000.000 tanggal 1 September 2026 dan booking Rp1.500.000 tanggal 9 Juli 2025. Sebelas pembayaran terhapus dibuat ulang dan ID lama disimpan pada `replaces_payment_ids`. Pasangan 71→72, 74→75, dan 318→319 berbagi satu penerimaan.
+Pemilihan penerimaan Booking historis selalu dibatasi pada pembayaran aktif milik ID MKDT yang sedang diproses. Kandidat diprioritaskan berdasarkan kecocokan nominal dan tanggal, lalu ID pembayaran terkecil sebagai penentu urutan yang konsisten. ID pembayaran historis tidak boleh dipakai lintas database tanpa validasi kepemilikan; koreksi khusus akan berhenti sebelum write jika ID tersebut sudah dipakai MKDT lain.
+
+Migrator menangani koreksi 163/170/199, mempertahankan 154 dan 576 sebagai booking, memindahkan 987 ke Biaya Proses dan 863 ke UM, memilih penerimaan Booking berdasarkan kepemilikan MKDT, serta memisahkan 1001 menjadi UM Rp1.000.000 tanggal 1 September 2026 dan booking Rp1.500.000 tanggal 9 Juli 2025. Sebelas pembayaran terhapus dibuat ulang dan ID lama disimpan pada `replaces_payment_ids`. Pasangan 71→72, 74→75, dan 318→319 berbagi satu penerimaan.
 
 Relasi 63→304 dan riwayat 293 tidak digabung otomatis. MKDT 142 tetap ditandai karena identitas/kavling belum terhubung. Status batal dan refund tidak diubah.
 

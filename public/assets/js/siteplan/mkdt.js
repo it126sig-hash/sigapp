@@ -1280,12 +1280,10 @@ function tambah(e = '') {
 
 function removeFromTable(x, y = null) {
     const bucket = y == '_bb' ? 'data_bb' : 'data_um';
-    const row = state[bucket] && state[bucket][x];
-    const idKeuangan = row && row.id_keuangan;
 
     Swal.fire({
         title: 'Hapus Data?',
-        text: "Data tidak bisa dipulihkan!",
+        text: "Perubahan diterapkan setelah data disimpan.",
         type: 'danger',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
@@ -1297,35 +1295,9 @@ function removeFromTable(x, y = null) {
     }).then(function(t) {
         if (!t.value) return;
 
-        // Baris baru yang belum tersimpan (belum ada id_keuangan) cukup dihapus dari state.
-        if (!idKeuangan) {
-            delete state[bucket][x];
-            tambah_ketagihan();
-            return;
-        }
-
-        $.ajax({
-            url: base_url + 'tagihan/hapus',
-            type: 'post',
-            dataType: 'json',
-            data: {
-                id_keuangan: idKeuangan,
-                [csrfName]: csrfHash
-            },
-            success: function(r) {
-                if (r.token) csrfHash = r.token;
-
-                if (!r.success) {
-                    return swal('error', r.message);
-                }
-
-                delete state[bucket][x];
-                tambah_ketagihan();
-            },
-            error: function() {
-                return swal('error', 'Terjadi kesalahan')
-            }
-        });
+        // Penghapusan DB dilakukan oleh syncTagihan() dalam transaksi simpan.
+        delete state[bucket][x];
+        tambah_ketagihan();
     })
 
 }

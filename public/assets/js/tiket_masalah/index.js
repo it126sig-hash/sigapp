@@ -99,6 +99,7 @@ $(document).ready(function() {
                                 data-ref-type="${row.ref_type}" 
                                 data-ref-id="${row.ref_id}" 
                                 data-id-proyek="${row.id_proyek}"
+                                data-target-cluster-id="${row.target_cluster_id || ''}"
                                 title="Lihat Lokasi">
                                 <i class="fas fa-map-marker-alt"></i>
                             </button>
@@ -275,8 +276,17 @@ $(document).ready(function() {
         let refType = $(this).data('ref-type');
         let refId = $(this).data('ref-id');
         let idTiket = $(this).data('id');
+        let targetClusterId = $(this).data('target-cluster-id');
 
-        let url = base_url + 'siteplan/' + idProyek + '?show_tiket=' + idTiket + '&ref_type=' + refType + '&ref_id=' + refId;
-        window.open(url, '_blank');
+        const url = new URL(base_url + 'siteplan/view', window.location.origin);
+        url.searchParams.set('id_proyek', idProyek);
+        url.searchParams.set('show_tiket', idTiket);
+        url.searchParams.set('ref_type', refType);
+        url.searchParams.set('ref_id', refId);
+        if (targetClusterId) {
+            url.searchParams.set('target_cluster_id', targetClusterId);
+        }
+
+        window.open(url.toString(), '_blank');
     });
 });

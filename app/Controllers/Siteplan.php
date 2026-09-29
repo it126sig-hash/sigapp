@@ -116,7 +116,10 @@ class Siteplan extends BaseController
     }
     public function view_siteplan()
     {
-        $idProyek = $this->activeProyekService->getActiveId();
+        $requestedIdProyek = (int) $this->request->getGet('id_proyek');
+        $idProyek = $requestedIdProyek > 0
+            ? $requestedIdProyek
+            : $this->activeProyekService->getActiveId();
 
         if ($idProyek === null) {
             return redirect()->to(base_url('dashboard'))->with('error', 'Silahkan pilih proyek terlebih dahulu');
@@ -1167,23 +1170,41 @@ class Siteplan extends BaseController
         $sb_um_ll = 0;
         $sb_bb = 0;
         $sb_detail = $this->db->table('log_pembayaran_detail lpd')
-            ->select('lpd.id_pembayaran, lpd.id_keuangan_item_list, kl.item, kl.kategori, COALESCE(SUM(lpd.nominal), 0) AS nominal')
+            ->select('lpd.id_pembayaran, lpd.id_keuangan_item_list, lpd.booking_is_installment, kl.item, kl.kategori, COALESCE(SUM(lpd.nominal), 0) AS nominal')
             ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
             ->join('keuangan_item_list kl', 'kl.id_keuangan_item_list = lpd.id_keuangan_item_list')
             ->where('lp.id_mkdt', $id_mkdt)
             ->where('lp.is_deleted', 0)
-            ->groupBy(['lpd.id_pembayaran', 'lpd.id_keuangan_item_list', 'kl.item', 'kl.kategori'])
+            ->groupBy(['lpd.id_pembayaran', 'lpd.id_keuangan_item_list', 'lpd.booking_is_installment', 'kl.item', 'kl.kategori'])
+            ->orderBy('lpd.id_pembayaran', 'ASC')
+            ->orderBy('lpd.id_keuangan_item_list', 'ASC')
             ->get()
             ->getResult();
 
         $detailPaymentIds = [];
+        $breakdownByPaymentId = [];
         if (count($sb_detail) > 0) {
             foreach ($sb_detail as $v) {
-                $detailPaymentIds[(int) $v->id_pembayaran] = true;
+                $idPembayaran = (int) $v->id_pembayaran;
+                $detailPaymentIds[$idPembayaran] = true;
                 $itemId = (int) ($v->id_keuangan_item_list ?? 0);
                 $item = strtolower(trim((string) ($v->item ?? '')));
                 $kategori = strtoupper(trim((string) ($v->kategori ?? '')));
                 $nominal = (float) $v->nominal;
+                $itemLabel = trim((string) ($v->item ?? ''));
+
+                if ($kategori === 'BO' && (int) ($v->booking_is_installment ?? 0) === 1) {
+                    $itemLabel = 'Uang Muka';
+                }
+
+                if ($itemLabel === '') {
+                    $itemLabel = $kategori !== '' ? $kategori : 'Pembayaran';
+                }
+
+                $breakdownByPaymentId[$idPembayaran][] = [
+                    'label' => $itemLabel,
+                    'nominal' => $nominal,
+                ];
 
                 if ($kategori === 'BO' || $itemId === 1 || str_contains($item, 'booking')) {
                     continue;
@@ -1404,7 +1425,7 @@ class Siteplan extends BaseController
         $ledgerExpenseRows = [];
         if ($this->db->tableExists('finance_ledger')) {
             $incomeBuilder = $this->db->table('finance_ledger')
-                ->select('tanggal_transaksi, label, nominal, keterangan, source_type')
+                ->select('tanggal_transaksi, label, nominal, keterangan, source_type, source_id')
                 ->where('direction', 'income')
                 ->where('status', 'active')
                 ->where('is_deleted', 0);
@@ -1426,6 +1447,17 @@ class Siteplan extends BaseController
                 ->orderBy('id', 'desc')
                 ->get()
                 ->getResult();
+
+            foreach ($incomeRows as $row) {
+                if (($row->source_type ?? '') === 'log_pembayaran') {
+                    $breakdown = $breakdownByPaymentId[(int) ($row->source_id ?? 0)] ?? [];
+                    if ($breakdown !== []) {
+                        $row->breakdown = $breakdown;
+                    }
+                }
+
+                unset($row->source_id);
+            }
 
             $expenseBuilder = $this->db->table('finance_ledger')
                 ->select('tanggal_transaksi, label, nominal, keterangan, source_type')

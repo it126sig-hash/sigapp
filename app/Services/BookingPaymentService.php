@@ -128,7 +128,11 @@ class BookingPaymentService
             $details = $this->repo->details($paymentId);
             $bookingDetails = array_values(array_filter($details, static fn ($d) => ($d['kategori'] ?? '') === 'BO'));
             if (count($bookingDetails) !== 1 || count($details) !== 1) {
-                throw new \DomainException('Pembayaran booking masih bercampur dengan alokasi lain dan harus direkonsiliasi.');
+                throw new \DomainException(
+                    "Pembayaran booking MKDT {$idMkdt} (ID pembayaran {$paymentId}) memiliki "
+                    . count($details) . ' detail dan ' . count($bookingDetails)
+                    . ' detail BO; pembayaran harus direkonsiliasi.'
+                );
             }
             if ($this->money($bookingDetails[0]['nominal']) !== $nominal || (int)($bookingDetails[0]['booking_is_installment'] ?? 0) !== 0) {
                 $this->repo->write('log_pembayaran_detail', [

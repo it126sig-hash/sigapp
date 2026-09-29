@@ -113,7 +113,7 @@
             </tr>
         </thead>
         <tbody>
-            <?php $no = 1; ?>
+            <?php $no = 1; $financialProgress = new \App\Services\MkdtFinancialBreakdownService(); ?>
             <?php foreach ($poskon as $row): ?>
                 <?php
                 $total = $row->um + $row->adm + $row->bb;
@@ -130,15 +130,11 @@
                     $um = "-";
                     $adm = "-";
                     $bb = "-";
-                    if ($bayar <= 0) {
-                        $persen_tunai = '0%';
-                    } else {
-                        $persen_tunai = ($bayar / $total) * 100;
-                    }
+                    $persen_tunai = $financialProgress->progress((float) $total, (float) $bayar)['label'];
                 } else {
-                    $um = $row->total_um <= 0 ? "0%" : round(($row->total_um / $row->um) * 100) . "%";
-                    $adm = $row->total_adm <= 0 ? "0%" : round(($row->total_adm / $row->adm) * 100) . "%";
-                    $bb = $row->total_bb <= 0 ? "0%" : round(($row->total_bb / $row->bb) * 100) . "%";
+                    $um = $financialProgress->progress((float) $row->um, (float) $row->total_um)['label'];
+                    $adm = $financialProgress->progress((float) $row->adm, (float) $row->total_adm)['label'];
+                    $bb = $financialProgress->progress((float) $row->bb, (float) $row->total_bb)['label'];
                 }
                 ?>
                 <tr>

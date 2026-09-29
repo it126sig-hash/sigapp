@@ -37,9 +37,13 @@ class PosisiKonsumenRepository
             mkdt.sp3k_tgl_exp,
             "" as sikasep,
             "" as tunai,
-            (mkdt.harga_uang_muka - mkdt.harga_diskon_uang_muka - mkdt.harga_sbum) as um,
-            (mkdt.harga_administrasi) as adm,
-            (mkdt.harga_bphtb + mkdt.harga_biaya_proses + mkdt.harga_ppn + mkdt.harga_penambahan_um +mkdt.harga_penambahan +mkdt.harga_penambahan_tanah) as bb,
+            GREATEST(COALESCE(mkdt.harga_uang_muka, 0) - COALESCE(mkdt.harga_diskon_uang_muka, 0) - COALESCE(mkdt.harga_sbum, 0), 0) as um,
+            COALESCE(mkdt.harga_administrasi, 0) as adm,
+            (COALESCE(mkdt.harga_bphtb, 0) + COALESCE(mkdt.harga_biaya_proses, 0) + COALESCE(mkdt.harga_ppn, 0)
+                + COALESCE(mkdt.harga_penambahan, 0) + COALESCE(mkdt.harga_penambahan_tanah, 0)
+                + CASE WHEN COALESCE(mkdt.harga_kpr_acc, 0) > 0
+                    THEN GREATEST(COALESCE(mkdt.harga_kpr, 0) - COALESCE(mkdt.harga_kpr_acc, 0), 0)
+                    ELSE 0 END) as bb,
             produksi.progres_bangunan,
             produksi.lpa,
             produksi.st_jalan as st_listrik,
@@ -50,9 +54,9 @@ class PosisiKonsumenRepository
             "" as sikumbang,
             mkdt.keterangan_status,
             mkdt.akad_indent,
-            mps.total_um,
-            mps.total_adm,
-            mps.total_bb,
+            COALESCE(mps.total_um, 0) as total_um,
+            COALESCE(mps.total_adm, 0) as total_adm,
+            COALESCE(mps.total_bb, 0) as total_bb,
 
             mkdt.id_mkdt,
 
@@ -112,13 +116,17 @@ class PosisiKonsumenRepository
             "" as action,
             kavling.id_kavling,
 
-            (mkdt.harga_uang_muka - mkdt.harga_diskon_uang_muka - mkdt.harga_sbum) as um,
-            (mkdt.harga_administrasi) as adm,
-            (mkdt.harga_bphtb + mkdt.harga_biaya_proses + mkdt.harga_ppn + mkdt.harga_penambahan_um +mkdt.harga_penambahan +mkdt.harga_penambahan_tanah) as bb,
+            GREATEST(COALESCE(mkdt.harga_uang_muka, 0) - COALESCE(mkdt.harga_diskon_uang_muka, 0) - COALESCE(mkdt.harga_sbum, 0), 0) as um,
+            COALESCE(mkdt.harga_administrasi, 0) as adm,
+            (COALESCE(mkdt.harga_bphtb, 0) + COALESCE(mkdt.harga_biaya_proses, 0) + COALESCE(mkdt.harga_ppn, 0)
+                + COALESCE(mkdt.harga_penambahan, 0) + COALESCE(mkdt.harga_penambahan_tanah, 0)
+                + CASE WHEN COALESCE(mkdt.harga_kpr_acc, 0) > 0
+                    THEN GREATEST(COALESCE(mkdt.harga_kpr, 0) - COALESCE(mkdt.harga_kpr_acc, 0), 0)
+                    ELSE 0 END) as bb,
 
-            mps.total_um,
-            mps.total_adm,
-            mps.total_bb,
+            COALESCE(mps.total_um, 0) as total_um,
+            COALESCE(mps.total_adm, 0) as total_adm,
+            COALESCE(mps.total_bb, 0) as total_bb,
 
             mkdt.id_mkdt,
             mkdt.mkdt_batal_tgl,

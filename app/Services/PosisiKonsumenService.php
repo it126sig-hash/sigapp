@@ -12,6 +12,7 @@ class PosisiKonsumenService
     protected $posisiKonsumenRepo;
     protected FileAccessService $fileAccessService;
     protected SiteplanMenuService $siteplanMenuService;
+    protected MkdtFinancialBreakdownService $financialBreakdownService;
     protected ?array $actionMenuItems = null;
     protected int $actionMenuRoleId = 0;
 
@@ -21,6 +22,7 @@ class PosisiKonsumenService
         $this->posisiKonsumenRepo = new PosisiKonsumenRepository();
         $this->fileAccessService = new FileAccessService();
         $this->siteplanMenuService = new SiteplanMenuService();
+        $this->financialBreakdownService = new MkdtFinancialBreakdownService();
     }
 
     private function resolveCurrentRoleId(): int
@@ -125,6 +127,19 @@ class PosisiKonsumenService
             . '</a>';
     }
 
+    private function renderProgress(float $target, float $paid): string
+    {
+        $progress = $this->financialBreakdownService->progress($target, $paid);
+        if ($progress['status'] === 'reconcile') {
+            return '<span class="badge badge-warning text-wrap">Perlu Rekonsiliasi</span>';
+        }
+        if ($progress['status'] === 'overpaid') {
+            return '<span class="badge badge-warning" title="Pembayaran melebihi target MKDT">'
+                . esc($progress['label']) . '</span>';
+        }
+        return esc($progress['label']);
+    }
+
     public function getDataTable($request, $status = null)
     {
         $status = $status ?? "Booking";
@@ -187,9 +202,13 @@ class PosisiKonsumenService
             ->edit('nama_jalan', function ($v) {
                 $html = esc($v->nama_jalan);
                 if ((int) ($v->akad_indent ?? 0) === 1) {
-                    $html .= ' <span class="badge badge-info">Akad Indent</span>';
+                    $html .= '<div class="mt-25"><span class="badge badge-primary poskon-akad-indent">Akad Indent</span></div>';
                 }
                 return $html;
+            })
+            ->edit('nama_konsumen', function ($v) {
+                return '<div>' . esc($v->nama_konsumen ?: '-') . '</div>'
+                    . '<div class="mt-25 poskon-referral">' . $this->renderReferralQrHtml($v) . '</div>';
             })
             ->edit('booking_tgl', function ($value) {
                 return $this->format_tgl($value->booking_tgl);
@@ -229,53 +248,33 @@ class PosisiKonsumenService
                     return '-';
                 }
 
-                $total = $v->um + $v->adm + $v->bb;
-                $bayar = $v->total_um + $v->total_adm + $v->total_bb;
-
-                if ($bayar <= 0) {
-                    return '0%';
-                }
-
-                $persen = ($bayar / $total) * 100;
-
-                return round($persen) . '%'; // tanpa desimal
+                return $this->renderProgress(
+                    (float) $v->um + (float) $v->adm + (float) $v->bb,
+                    (float) $v->total_um + (float) $v->total_adm + (float) $v->total_bb
+                );
             })
             ->edit('um', function ($v) {
                 if ($v->is_kpr == 0) {
                     return '-';
                 }
-                if ($v->total_um <= 0) {
-                    return '0%';
-                }
-                $persen = ($v->total_um / $v->um) * 100;
-                return round($persen) . '%'; // tanpa desimal
+                return $this->renderProgress((float) $v->um, (float) $v->total_um);
             })
             ->edit('adm', function ($v) {
                 if ($v->is_kpr == 0) {
                     return '-';
                 }
-                if ($v->total_adm <= 0) {
-                    return '0%';
-                }
-                $persen = ($v->total_adm / $v->adm) * 100;
-                return round($persen) . '%'; // tanpa desimal
+                return $this->renderProgress((float) $v->adm, (float) $v->total_adm);
             })
             ->edit('bb', function ($v) {
                 if ($v->is_kpr == 0) {
                     return '-';
                 }
-                if ($v->total_bb <= 0) {
-                    return '0%';
-                }
-                $persen = ($v->total_bb / $v->bb) * 100;
-                return round($persen) . '%'; // tanpa desimal
+                return $this->renderProgress((float) $v->bb, (float) $v->total_bb);
             })
             ->edit('action', function ($value) {
                 return $this->renderPoskonActionHtml($value);
             })
-            ->edit('kode_referal', function ($value) {
-                return $this->renderReferralQrHtml($value);
-            })
+            ->hide('kode_referal')
             ->edit('keterangan_status', function ($v) {
                 return $v->keterangan_status ?: '-';
             })

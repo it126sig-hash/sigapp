@@ -45,11 +45,13 @@ class CashInReportRepository
     public function getMonthlyPaymentTotals(int $idProyek, array $years): array
     {
         [$startDate, $endDate] = $this->yearDateRange($years);
+        $separateBooking = BookingPaymentRepository::separateBookingSql();
+        $effectiveCategory = BookingPaymentRepository::effectiveCategorySql();
 
         return $this->baseLogPaymentDetailQuery($idProyek)
             ->select("YEAR(lp.tanggal_bayar) AS tahun, MONTH(lp.tanggal_bayar) AS bulan")
-            ->select("SUM(CASE WHEN kl.kategori = 'BO' THEN lpd.nominal ELSE 0 END) AS booking_fee", false)
-            ->select("SUM(CASE WHEN kl.kategori = 'UM' THEN lpd.nominal ELSE 0 END) AS uang_muka", false)
+            ->select("SUM(CASE WHEN {$separateBooking} THEN lpd.nominal ELSE 0 END) AS booking_fee", false)
+            ->select("SUM(CASE WHEN {$effectiveCategory} = 'UM' THEN lpd.nominal ELSE 0 END) AS uang_muka", false)
             ->where('lp.tanggal_bayar >=', $startDate)
             ->where('lp.tanggal_bayar <', $endDate)
             ->groupBy('YEAR(lp.tanggal_bayar), MONTH(lp.tanggal_bayar)', false)
@@ -163,9 +165,9 @@ class CashInReportRepository
             ->where('lp.tanggal_bayar <', $endDate);
 
         if ($category === 'booking_fee') {
-            $builder->where('kl.kategori', 'BO');
+            $builder->where(BookingPaymentRepository::separateBookingSql(), null, false);
         } else {
-            $builder->where('kl.kategori', 'UM');
+            $builder->where(BookingPaymentRepository::effectiveCategorySql() . " = 'UM'", null, false);
         }
 
         return $builder->getCompiledSelect();

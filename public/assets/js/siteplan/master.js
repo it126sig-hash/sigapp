@@ -1730,6 +1730,7 @@ Date.prototype.toDateInputValue = (function() {
                 if (activeKategori.includes('Masalah')) {
                     set_keterangan_warna();
                 }
+                handlePendingSiteplanTiketAction();
             },
             error: function(xhr, st) {
                 if (st === 'abort' || loadSequence !== siteplanLoadSequence) {
@@ -2592,9 +2593,17 @@ Date.prototype.toDateInputValue = (function() {
         dt_proyek.id_proyek,
         siteplanClusterSelectData.map(function(item) { return item.id; })
     );
-    $('#filter-id_cluster').val(restoredClusterIds).trigger('change.select2');
-    $('#filter-id_jalan').prop('disabled', restoredClusterIds.length === 0);
-    filter.id_cluster = restoredClusterIds;
+    const availableClusterIds = siteplanClusterSelectData.map(function(item) { return item.id; });
+    const pendingTiketAction = getPendingSiteplanTiketAction();
+    const targetClusterIds = SiteplanFilterState.normalizeIds(
+        pendingTiketAction ? pendingTiketAction.targetClusterId : null
+    ).filter(function(id) {
+        return availableClusterIds.includes(id);
+    });
+    const initialClusterIds = SiteplanFilterState.normalizeIds(restoredClusterIds.concat(targetClusterIds));
+    $('#filter-id_cluster').val(initialClusterIds).trigger('change.select2');
+    $('#filter-id_jalan').prop('disabled', initialClusterIds.length === 0);
+    filter.id_cluster = initialClusterIds;
     filter.id_jalan = '';
     siteplanFilterReady = true;
     renderActiveFilterTags();
@@ -3253,18 +3262,65 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     function findSiteplanKavlingAttrs(id_kavling) {
-        if (!id_kavling || typeof siteplan === 'undefined') {
+        const node = findSiteplanLocationNode('kavling', id_kavling);
+        return node && node.attrs ? node.attrs : null;
+    }
+
+    function findSiteplanLocationNode(refType, refId) {
+        if (!refId || typeof siteplan === 'undefined') {
             return null;
         }
 
+        const nodeId = refType === 'others' ? '#others' + refId : '#kav' + refId;
         try {
-            const node = typeof siteplan.findOne === 'function' ?
-                siteplan.findOne('#kav' + id_kavling) :
-                (siteplan.find('#kav' + id_kavling)[0] || null);
-            return node && node.attrs ? node.attrs : null;
+            return typeof siteplan.findOne === 'function' ?
+                siteplan.findOne(nodeId) :
+                (siteplan.find(nodeId)[0] || null);
         } catch (error) {
             return null;
         }
+    }
+
+    function focusSiteplanLocation(node) {
+        if (!node || typeof node.getClientRect !== 'function') {
+            return false;
+        }
+
+        const bounds = node.getClientRect({
+            relativeTo: siteplan,
+            skipShadow: true
+        });
+        if (!bounds || bounds.width <= 0 || bounds.height <= 0) {
+            return false;
+        }
+
+        const viewportWidth = stage.width();
+        const viewportHeight = stage.height();
+        const currentScale = stage.scaleX() || 1;
+        const targetScale = Math.max(currentScale, Math.min(
+            viewportWidth / Math.max(bounds.width * 4, 1),
+            viewportHeight / Math.max(bounds.height * 4, 1),
+            3
+        ));
+        const centerX = bounds.x + (bounds.width / 2);
+        const centerY = bounds.y + (bounds.height / 2);
+
+        group.scale({
+            x: 1 / targetScale,
+            y: 1 / targetScale
+        });
+
+        new Konva.Tween({
+            node: stage,
+            duration: 0.45,
+            scaleX: targetScale,
+            scaleY: targetScale,
+            x: (viewportWidth / 2) - (centerX * targetScale),
+            y: (viewportHeight / 2) - (centerY * targetScale),
+            easing: Konva.Easings.EaseInOut
+        }).play();
+
+        return true;
     }
 
     function buildMinimalSiteplanShape(item) {
@@ -3397,57 +3453,56 @@ Date.prototype.toDateInputValue = (function() {
         }, 300);
     }
 
+    function getPendingSiteplanTiketAction() {
+        const params = new URLSearchParams(window.location.search || '');
+        const idTiket = params.get('show_tiket');
+        const refType = params.get('ref_type');
+        const refId = params.get('ref_id');
+
+        if (!idTiket || !['kavling', 'others'].includes(refType) || !refId) {
+            return null;
+        }
+
+        return {
+            idTiket: idTiket,
+            refType: refType,
+            refId: refId,
+            targetClusterId: params.get('target_cluster_id')
+        };
+    }
+
     let pendingSiteplanTiketActionConsumed = false;
     function handlePendingSiteplanTiketAction() {
         if (pendingSiteplanTiketActionConsumed) {
             return;
         }
 
-        const params = new URLSearchParams(window.location.search || '');
-        const idTiket = params.get('show_tiket');
-        const refType = params.get('ref_type');
-        const refId = params.get('ref_id');
-
-        if (!idTiket || !refType || !refId) {
+        const action = getPendingSiteplanTiketAction();
+        if (!action) {
             return;
         }
 
-        pendingSiteplanTiketActionConsumed = true;
         setTimeout(function() {
-            let sh = null;
-            if (refType === 'kavling') {
-                sh = findSiteplanKavlingAttrs(refId);
-            } else if (refType === 'others') {
-                try {
-                    const node = typeof siteplan.findOne === 'function' ?
-                        siteplan.findOne('#others' + refId) :
-                        (siteplan.find('#others' + refId)[0] || null);
-                    sh = node && node.attrs ? node.attrs : null;
-                } catch (error) {}
+            if (pendingSiteplanTiketActionConsumed) {
+                return;
             }
 
+            const node = findSiteplanLocationNode(action.refType, action.refId);
+            const sh = node && node.attrs ? node.attrs : null;
+            if (!sh) {
+                return;
+            }
+
+            pendingSiteplanTiketActionConsumed = true;
             if (sh) {
                 if (typeof hapus_seleksi === 'function') hapus_seleksi();
                 editdtt.push(sh);
                 if (typeof drawBorderEdit === 'function') drawBorderEdit(sh);
-            } else if (refType === 'others') {
-                // Alternatif cari di array data jika node belum ter-render
-                if (typeof dtt_jalan !== 'undefined') {
-                    dtt_jalan.forEach(function(sh_jalan) {
-                        if (sh_jalan.id == refId || sh_jalan.id_others == refId) {
-                            sh = sh_jalan;
-                        }
-                    });
-                    if (sh) {
-                        if (typeof hapus_seleksi === 'function') hapus_seleksi();
-                        editdtt.push(sh);
-                        if (typeof drawBorderEdit === 'function') drawBorderEdit(sh);
-                    }
-                }
+                focusSiteplanLocation(node);
             }
 
             if (typeof window.tm_open_detail === 'function') {
-                window.tm_open_detail(idTiket, refType, refId);
+                window.tm_open_detail(action.idTiket, action.refType, action.refId);
             }
         }, 600);
     }

@@ -1810,10 +1810,30 @@ function lihat_detail() {
         rows.slice(0, 10).forEach(function(row) {
             const date = row.tanggal_transaksi || row.tanggal_bayar;
             const label = row.label || row.item;
+            const breakdown = type === 'income' && Array.isArray(row.breakdown)
+                ? row.breakdown
+                : [];
+            const breakdownHtml = breakdown.map(function(item) {
+                return `
+                    <div class="detail-finance-breakdown-item">
+                        <span class="detail-finance-breakdown-amount">${detailRupiah(item.nominal)}</span>
+                        <span aria-hidden="true">&middot;</span>
+                        <span>${detailEscapeHtml(item.label)}</span>
+                    </div>
+                `;
+            }).join('');
+            const labelHtml = type === 'income'
+                ? `
+                    <div class="detail-finance-label">
+                        <div class="detail-finance-label-main">${detailEscapeHtml(label)}</div>
+                        ${breakdownHtml ? `<div class="detail-finance-breakdown">${breakdownHtml}</div>` : ''}
+                    </div>
+                `
+                : detailEscapeHtml(label);
             $tbody.append(`
                 <tr>
                     <td>${date ? format_date(date) : '-'}</td>
-                    <td>${detailEscapeHtml(label)}</td>
+                    <td>${labelHtml}</td>
                     <td class="text-right">${detailRupiah(row.nominal)}</td>
                 </tr>
             `);

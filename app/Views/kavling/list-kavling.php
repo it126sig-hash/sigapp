@@ -278,6 +278,16 @@
       font-size: .82rem;
     }
   }
+  #data_tables .poskon-akad-indent { background-color: #2057a3; }
+  #data_tables .poskon-referral { font-size: .76rem; line-height: 1.25; }
+  #data_tables th.poskon-keterangan-status,
+  #data_tables td.poskon-keterangan-status {
+    min-width: 280px !important;
+    width: 280px !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    vertical-align: top;
+  }
 </style>
 <style>
   <?= view('siteplan/partials/modal_detail_styles') ?>
@@ -421,7 +431,6 @@
                       <th colspan="2" id="tb-KAVLING">KAVLING</th>
                       <th rowspan="3" id="tb-TYPE">TYPE</th>
                       <th rowspan="3" id="tb-NAMA_KONSUMEN">NAMA KONSUMEN</th>
-                      <th rowspan="3" id="tb-KODE_REFERAL">KODE REFERAL</th>
                       <th rowspan="3" id="tb-SALES">SALES</th>
                       <th rowspan="3" id="tb-TGL_BOOKING">TGL BOOKING</th>
                       <th rowspan="3" id="tb-TGL_WAWANCARA">TGL WAWANCARA</th>
@@ -967,7 +976,7 @@ if (!empty($roles)) {
         scrollX: true,
         scrollCollapse: true,
         fixedColumns: {
-          leftColumns: isMobileTable ? 0 : 7
+          leftColumns: isMobileTable ? 0 : 6
         },
         processing: true,
         serverSide: true,
@@ -984,12 +993,17 @@ if (!empty($roles)) {
             orderable: false
           },
           {
-            targets: [8, 10],
+            targets: [7, 9],
             orderable: true
           },
           {
-            targets: [10, 16],
+            targets: [9, 15],
             visible: false
+          },
+          {
+            targets: 28,
+            className: 'poskon-keterangan-status',
+            width: '280px'
           }
         ],
         paging: true,
@@ -1238,7 +1252,7 @@ if (!empty($roles)) {
     function applyPoskonFilters() {
       if (table) {
         var filterVal = $("#filter_status_kavling").val();
-        table.columns([10, 16]).visible(filterVal !== 'booking');
+        table.columns([9, 15]).visible(filterVal !== 'booking');
         var url = (filterVal === 'akad' || filterVal === 'indent') ?
           base_url + 'list-kavling/akad/ambil' :
           base_url + 'list-kavling/ambil';
