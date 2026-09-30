@@ -24,6 +24,9 @@ foreach (user()->getRoles() as $key => $val) {
     let dt_proyek = '<?php echo json_encode($data['proyek']) ?>';
     dt_proyek = JSON.parse(dt_proyek);
 
+    const siteplanCurrentUserId = <?= (int) user_id() ?>;
+    const siteplanClusterOptions = <?= json_encode($data['siteplan_cluster_options'] ?? [], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
+
     const conf = JSON.parse('<?= $conf ?>')
 
     const li_keu = JSON.parse('<?= $li_keu ?>')
@@ -626,9 +629,9 @@ foreach (user()->getRoles() as $key => $val) {
         position: absolute;
         min-width: 175px;
         background-color: white;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
         border-radius: 5px;
-        border: 1px solid rgba(0,0,0,0.08);
+        border: 1px solid rgba(0, 0, 0, 0.08);
         z-index: 9999;
         overflow: hidden;
         padding: 3px 0;
@@ -1169,6 +1172,54 @@ foreach (user()->getRoles() as $key => $val) {
             box-shadow: 0 0 0 0 rgba(255, 200, 0, 0);
         }
     }
+
+    #keterangan-warna-here .siteplan-legend-item {
+        display: grid;
+        grid-template-columns: 18px 38px minmax(0, 1fr);
+        align-items: center;
+        gap: .5rem;
+        min-height: 30px;
+        margin: 0 0 .35rem;
+        padding: .25rem .4rem;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    #keterangan-warna-here .siteplan-legend-item:hover,
+    #keterangan-warna-here .siteplan-legend-item:focus-within {
+        background: rgba(32, 87, 163, .08);
+    }
+
+    #keterangan-warna-here .siteplan-shape-filter-checkbox {
+        margin: 0;
+        accent-color: #2057a3;
+    }
+
+    #keterangan-warna-here .siteplan-legend-swatch {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 20px;
+        overflow: hidden;
+        border: 1px solid #9ca3af;
+        border-radius: 4px;
+        background-color: #fff;
+    }
+
+    #keterangan-warna-here .siteplan-legend-marker-line {
+        display: block;
+        width: calc(100% - 6px);
+        min-height: 2px;
+        border-radius: 999px;
+    }
+
+    #keterangan-warna-here .siteplan-legend-label {
+        min-width: 0;
+        color: #111827;
+        line-height: 1.25;
+    }
 </style>
 <!-- END: Vendor CSS-->
 
@@ -1202,11 +1253,41 @@ foreach (user()->getRoles() as $key => $val) {
                                 <div>
                                     <button id="menu-btn-lihat_detail">Detail</button>
                                 </div>
+                                <?php if ($k != 6): ?>
+                                    <div>
+                                        <button id="menu-btn-request-kavling" type="button" onclick="handleContextRequestKavling()">Request Ubah Tipe</button>
+                                    </div>
+                                <?php endif; ?>
                                 <div id="menu-dynamic-items"></div>
                             </div>
                         </div>
                         <div class="col-md-3 d-md-block" style="overflow-y:auto" id="filter-side">
+                            <?php if ($k != 6): ?>
+                                <div class="mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm btn-block" onclick="openModalRequestKavling()">
+                                        <i class="fa fa-plus-circle mr-1"></i> Request Kavling / Tipe
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($k == 6 || $k == 1): ?>
+                                <div class="mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm btn-block" onclick="openModalListRequestKavling()">
+                                        <i class="fa fa-list-alt mr-1"></i> List Request Kavling
+                                    </button>
+                                </div>
+                            <?php endif; ?>
                             <form id="form-filter-kategori">
+
+                                <div class="row mt-1 mb-1">
+                                    <div class="col-6">
+                                        <button type="button" onclick="apply_server_filter()" class="btn btn-sm w-100 btn-primary">
+                                            <i class="fa fa-filter"></i> Terapkan</button>
+                                    </div>
+                                    <div class="col-6 pl-0">
+                                        <button type="button" onclick="reset_server_filter()" class="btn btn-sm w-100 btn-outline-warning">
+                                            <i class="fa fa-times"></i> Reset</button>
+                                    </div>
+                                </div>
                                 <div class="form-group">
                                     <select id="pilih-divisi" class="form-control-sm select2">
                                         <optgroup label="Departemen">
@@ -1224,7 +1305,10 @@ foreach (user()->getRoles() as $key => $val) {
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <select id="filter-id_cluster" name="id_cluster" class="select2 select-sm form-control-sm"></select>
+                                    <select id="filter-id_cluster" name="id_cluster[]" multiple class="select2 select-sm form-control-sm"></select>
+                                    <small id="siteplan-cluster-hint" class="form-text text-muted">
+                                        Pilih minimal satu cluster untuk menampilkan data siteplan.
+                                    </small>
                                 </div>
                                 <div class="form-group">
                                     <select disabled id="filter-id_jalan" name="id_jalan" class="select-sm form-control-sm select2"></select>
@@ -1267,16 +1351,6 @@ foreach (user()->getRoles() as $key => $val) {
                                     </select>
                                 </div>
 
-                                <div class="row mt-1">
-                                    <div class="col-6">
-                                        <button type="button" onclick="apply_server_filter()" class="btn btn-sm w-100 btn-primary">
-                                            <i class="fa fa-filter"></i> Terapkan</button>
-                                    </div>
-                                    <div class="col-6 pl-0">
-                                        <button type="button" onclick="reset_server_filter()" class="btn btn-sm w-100 btn-outline-warning">
-                                            <i class="fa fa-times"></i> Reset</button>
-                                    </div>
-                                </div>
                             </form>
 
                             <div class="divider divider-left mt-2">
@@ -1318,7 +1392,12 @@ foreach (user()->getRoles() as $key => $val) {
 <script src="<?= base_url() ?>app-assets/js/scripts/charts/chart.js"></script>
 <!-- <script src="<?= base_url() ?>assets/js/scripts.js"></script> -->
 <!-- END: Page Vendor JS-->
-<script src="<?= base_url() ?>assets/js/siteplan/master.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/master.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/polygon-clip.js?v=999<?= time() ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/composite-shape.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/composite-shape.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/interaction-highlight.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/interaction-highlight.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/filter-state.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/filter-state.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/shape-filter.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/shape-filter.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/master.js?v=999<?= time() ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
 
 
@@ -1326,6 +1405,11 @@ foreach (user()->getRoles() as $key => $val) {
 <!-- Modal to add new record -->
 <?php if ($k == 1 || $k == 6): ?>
     <?php echo view('siteplan/planning'); ?>
+    <?php echo view('siteplan/modal_list_request_kavling', isset($data) ? ['data' => $data] : []); ?>
+<?php endif; ?>
+
+<?php if ($k != 6): ?>
+    <?php echo view('siteplan/request_kavling_modal', isset($data) ? ['data' => $data] : []); ?>
 <?php endif; ?>
 
 <?php if ($k == 1 || $k == 11): ?>
@@ -1764,7 +1848,7 @@ foreach (user()->getRoles() as $key => $val) {
     </div>
 </div>
 <div class="modal fade" id="modal-list-jatuh-tempo">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="add-new-record modal-content pt-0">
             <div class="modal-header mb-1">
                 <h1 class="modal-title" id="exampleModalLabel">Konsumen Jatuh Tempo</h1>
@@ -1850,3 +1934,24 @@ foreach (user()->getRoles() as $key => $val) {
 <?php echo view('siteplan/partials/modal_tiket_masalah'); ?>
 <script src="<?= base_url() ?>assets/js/vendor/browser-image-compression.js"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/tiket-masalah.js?v=<?= time() ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/request-kavling.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/request-kavling.js') ?>"></script>
+<?php if ($k != 6): ?>
+    <script>
+        function handleContextRequestKavling() {
+            if (typeof currentShape !== 'undefined' && currentShape && currentShape.target && currentShape.target.attrs) {
+                let shapeId = currentShape.target.attrs.id;
+                if (shapeId && shapeId.startsWith('kav')) {
+                    let kavId = shapeId.substring(3);
+                    openModalRequestKavling(kavId);
+                    let $select = $('#req-id_kavling');
+                    let kavData = currentShape.target.attrs.data || {};
+                    let kavText = (kavData.nama_jalan ? kavData.nama_jalan + ' ' : '') + 'No. ' + (kavData.no_kavling || kavId);
+                    let option = new Option(kavText, kavId, true, true);
+                    $select.append(option).trigger('change');
+                    return;
+                }
+            }
+            openModalRequestKavling();
+        }
+    </script>
+<?php endif; ?>

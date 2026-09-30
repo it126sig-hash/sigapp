@@ -31,11 +31,14 @@
             <table id="data_table" class="datatables-basic table">
               <thead>
                 <tr>
+                  <th>No</th>
                   <th>Id jalan</th>
-                  <th>Id cluster</th>
                   <th>Nama Cluster</th>
                   <th>Nama jalan</th>
-
+                  <th>Total Kavling</th>
+                  <th>Akad</th>
+                  <th>Booking</th>
+                  <th>Belum Terjual</th>
                   <th></th>
                 </tr>
               </thead>
@@ -292,6 +295,7 @@
         $("#add-form")[0].reset();
         $(".form-control").removeClass('is-invalid').removeClass('is-valid');
         $('#add-modal').modal('show');
+        initModalListener('#add-modal');
         $("#addIdCluster").val(null).trigger('change')
         $('#add-form-btn').html('Simpan').prop("disabled", false);
         // submit the add from
@@ -347,6 +351,7 @@
                     timer: 1500
                   }).then(function() {
                     $('#data_table').DataTable().ajax.reload(null, false).draw(false);
+                    removeModalListener('#add-modal');
                     $('#add-modal').modal('hide');
                   })
 
@@ -412,6 +417,7 @@
             $("#edit-form")[0].reset();
             $(".form-control").removeClass('is-invalid').removeClass('is-valid');
             $('#edit-modal').modal('show');
+            initModalListener('#edit-modal');
 
             $("#edit-form #editIdJalan").val(response.id_jalan);
             if ($("#edit-form #editIdCluster").find("option[value='" + response.id_cluster + "']").length) {
@@ -472,6 +478,7 @@
                         timer: 1500
                       }).then(function() {
                         $('#data_table').DataTable().ajax.reload(null, false).draw(false);
+                        removeModalListener('#edit-modal');
                         $('#edit-modal').modal('hide');
                       })
 

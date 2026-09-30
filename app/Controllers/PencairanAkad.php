@@ -52,6 +52,24 @@ class PencairanAkad extends BaseController
         );
     }
 
+    public function listPayment()
+    {
+        return $this->response->setJSON(
+            $this->service->listPayment((int) $this->request->getPost('id_pengajuan'))
+        );
+    }
+
+    public function voidPayment()
+    {
+        return $this->response->setJSON(
+            $this->service->voidPayment(
+                (int) $this->request->getPost('id_payment'),
+                (string) $this->request->getPost('reason'),
+                (int) user_id()
+            )
+        );
+    }
+
     public function void()
     {
         return $this->response->setJSON(

@@ -25,10 +25,23 @@ class Profil extends BaseController
         $profile = $this->currentUserRow();
         $photoUrl = $this->profilePhotoUrl($profile->profile_photo ?? null);
 
+        // Ambil data departemen (group)
+        $department = 'Belum Ada Departemen';
+        $groupRow = $this->db->table('auth_groups_users')
+            ->select('auth_groups.description, auth_groups.name')
+            ->join('auth_groups', 'auth_groups.id = auth_groups_users.group_id')
+            ->where('auth_groups_users.user_id', $profile->id)
+            ->get()->getRow();
+            
+        if ($groupRow) {
+            $department = $groupRow->description ?: strtoupper($groupRow->name);
+        }
+
         $data['content'] = 'user/profil';
         $data['data'] = [
             'title' => 'Ubah Profil',
             'profile' => $profile,
+            'department' => $department,
             'photoUrl' => $photoUrl,
             'defaultPhotoUrl' => base_url('app-assets/images/portrait/small/avatar-s-11.jpg'),
             'googleCalendarStatus' => $this->googleCalendarService->getStatus((int) $profile->id),
@@ -57,6 +70,17 @@ class Profil extends BaseController
                 'errors' => [
                     'required' => '{field} harus diisi',
                     'valid_email' => '{field} tidak valid',
+                    'is_unique' => '{field} sudah terdaftar',
+                ],
+            ],
+            'username' => [
+                'label' => 'Username',
+                'rules' => "required|alpha_numeric_punct|min_length[3]|max_length[30]|is_unique[users.username,id,{$userId}]",
+                'errors' => [
+                    'required' => '{field} harus diisi',
+                    'alpha_numeric_punct' => '{field} memuat karakter tidak valid',
+                    'min_length' => '{field} minimal 3 karakter',
+                    'max_length' => '{field} maksimal 30 karakter',
                     'is_unique' => '{field} sudah terdaftar',
                 ],
             ],
@@ -100,6 +124,7 @@ class Profil extends BaseController
 
         $fields = [
             'name' => trim((string) $this->request->getPost('name')),
+            'username' => trim((string) $this->request->getPost('username')),
             'email' => trim((string) $this->request->getPost('email')),
             'email_notif_enabled' => $this->request->getPost('email_notif_enabled') ? 1 : 0,
             'updated_at' => date('Y-m-d H:i:s'),

@@ -85,6 +85,21 @@ class HistoryRepository
         return (int) $builder->countAllResults();
     }
 
+    public function getByReferenceAction(string $module, int $referenceId, string $action): array
+    {
+        if (! $this->hasTable()) {
+            return [];
+        }
+
+        return $this->baseListQuery()
+            ->where('h.module', $module)
+            ->where('h.reference_id', $referenceId)
+            ->where('h.action', $action)
+            ->orderBy('h.created_at', 'ASC')
+            ->orderBy('h.id', 'ASC')
+            ->get()->getResultArray();
+    }
+
     private function baseListQuery()
     {
         return $this->db->table('history_log h')

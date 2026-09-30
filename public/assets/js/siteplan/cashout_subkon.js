@@ -1046,3 +1046,16 @@ $("#fm-cashout-subkon-id_subkon")
       load_subkon([]);
     }
   });
+
+$(document).ready(function() {
+    const params = new URLSearchParams(window.location.search);
+    const openKavling = params.get('open_kavling');
+    
+    if (openKavling) {
+        setTimeout(function() {
+            if (typeof openCOSubkon === 'function') {
+                openCOSubkon({ id_kavlings: [String(openKavling)] });
+            }
+        }, 500);
+    }
+});

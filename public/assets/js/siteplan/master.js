@@ -5,7 +5,7 @@ let sv_url,
     wr_pembangunan = [],
     list_jatuhtempo = [],
     filter = {
-        id_cluster: '',
+        id_cluster: [],
         id_jalan: ''
     },
     filterwarna = {
@@ -16,6 +16,9 @@ let sv_url,
         Legal: null,
         Pajak: null,
         Target: null,
+        MKDT: null,
+        Produksi: null,
+        Keuangan: null,
         'Lain-lain': null
     };
 
@@ -139,13 +142,40 @@ Date.prototype.toDateInputValue = (function() {
     masked.add(shape_ket);
     masked.add(group);
 
+    var hoverHighlight = SiteplanInteractionHighlight.createHoverHighlight(Konva);
+    masked.add(hoverHighlight);
+
     var siteplanImageReady = false,
         siteplanStageReady = false,
         siteplanCanvasInitialized = false,
-        siteplanFitDone = false;
+        siteplanFitDone = false,
+        siteplanFilterReady = false,
+        siteplanInitialDataRequested = false;
     var siteplanKavlingRequest = null,
         siteplanOthersRequest = null,
         siteplanLoadSequence = 0;
+
+    function updateSiteplanRenderStats() {
+        const kavlingNodes = Array.from(siteplan.find('.siteplan-kavling'));
+        const stats = {
+            kavlingNodes: kavlingNodes.length,
+            compositeNodes: kavlingNodes.filter((node) => node.getClassName() === 'Shape').length,
+            legacyLineNodes: kavlingNodes.filter((node) => node.getClassName() === 'Line').length,
+            subShapeNodes: siteplan.find('.subShape').length,
+            dataShapeNodes: siteplan.find('.siteplan-data-shape').length
+        };
+
+        const holder = document.getElementById('konva-holder');
+        if (holder) {
+            holder.dataset.renderStats = JSON.stringify(stats);
+        }
+
+        return stats;
+    }
+
+    window.getSiteplanRenderStats = function() {
+        return updateSiteplanRenderStats();
+    };
 
     function syncSiteplanMainHeight(konva_h) {
         const $card = $('.siteplan-main-card');
@@ -156,17 +186,31 @@ Date.prototype.toDateInputValue = (function() {
             return fallbackHeight;
         }
 
-        if ($(window).width() < 768) {
-            $card.css({
-                '--siteplan-main-card-height': 'auto',
-                '--siteplan-main-content-height': 'auto'
-            });
-            $('#filter-side').css('height', 'auto');
-            return fallbackHeight;
-        }
-
         const paddingY = (parseFloat($cardBody.css('padding-top')) || 0) +
             (parseFloat($cardBody.css('padding-bottom')) || 0);
+
+        if ($(window).width() < 768) {
+            const mobileNav = document.getElementById('sigapp-mobile-bottom-nav');
+            const mobileNavRect = mobileNav ? mobileNav.getBoundingClientRect() : null;
+            const mobileNavStyle = mobileNav ? getComputedStyle(mobileNav) : null;
+            const mobileNavVisible = mobileNavRect && mobileNavStyle &&
+                mobileNavStyle.display !== 'none' && mobileNavRect.height > 0;
+            const bottomGap = mobileNavVisible
+                ? Math.max(12, window.innerHeight - mobileNavRect.top + 12)
+                : 88;
+            const cardRect = $card[0].getBoundingClientRect();
+            const availableCardHeight = Math.max(0, window.innerHeight - cardRect.top - bottomGap);
+            const availableContentHeight = Math.max(0, availableCardHeight - paddingY);
+            const contentHeight = Math.ceil(Math.max(fallbackHeight, availableContentHeight));
+
+            $card.css({
+                '--siteplan-main-card-height': Math.ceil(contentHeight + paddingY) + 'px',
+                '--siteplan-main-content-height': contentHeight + 'px'
+            });
+            $('#filter-side').css('height', 'auto');
+            return contentHeight;
+        }
+
         const cardRect = $card[0].getBoundingClientRect();
         const viewportGap = 16;
         const availableCardHeight = Math.max(0, window.innerHeight - cardRect.top - viewportGap);
@@ -189,6 +233,99 @@ Date.prototype.toDateInputValue = (function() {
 
         siteplanCanvasInitialized = true;
         initSiteplanCanvas();
+    }
+
+    function selectedClusterIds() {
+        if (typeof SiteplanFilterState === 'undefined') {
+            return Array.isArray(filter.id_cluster) ? filter.id_cluster : [];
+        }
+
+        return SiteplanFilterState.normalizeIds($('#filter-id_cluster').val());
+    }
+
+    function setSiteplanClusterHint(show, message) {
+        const $hint = $('#siteplan-cluster-hint');
+        if (!$hint.length) return;
+
+        if (message) $hint.text(message);
+        $hint.toggle(Boolean(show));
+        $hint.toggleClass('text-primary', Boolean(show));
+    }
+
+    function showSiteplanClusterRequiredAlert() {
+        if (typeof Swal === 'undefined') return;
+        if (typeof Swal.isVisible === 'function' && Swal.isVisible()) return;
+
+        Swal.fire({
+            icon: 'warning',
+            title: 'Cluster belum dipilih',
+            text: 'Silakan pilih minimal satu cluster terlebih dahulu.',
+            confirmButtonText: 'Pilih Cluster'
+        }).then(function(result) {
+            if (!result || !result.isConfirmed) return;
+
+            const focusClusterSelect = function() {
+                const select = document.getElementById('filter-id_cluster');
+                if (!select) return;
+
+                const selection = select.nextElementSibling
+                    ? select.nextElementSibling.querySelector('.select2-selection')
+                    : null;
+                const target = selection
+                    ? (selection.querySelector('.select2-search__field') || selection)
+                    : select;
+
+                target.focus({ preventScroll: true });
+                if (window.matchMedia('(max-width: 767.98px)').matches) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            };
+
+            if (window.matchMedia('(max-width: 767.98px)').matches) {
+                if (window.SIGAPPMobileBottomNav &&
+                    typeof window.SIGAPPMobileBottomNav.open === 'function') {
+                    window.SIGAPPMobileBottomNav.open('filter');
+                } else {
+                    $('#sigapp-mobile-bottom-nav [data-sigapp-mobile-nav="filter"]').trigger('click');
+                }
+
+                window.setTimeout(focusClusterSelect, 100);
+                return;
+            }
+
+            focusClusterSelect();
+        });
+    }
+
+    function clearSiteplanDataShapes() {
+        clearShapeFilterSelection();
+        siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
+        if (typeof hoverHighlight !== 'undefined' && hoverHighlight) {
+            hoverHighlight.hide();
+        }
+        filterwarnahitung = {};
+        $('#keterangan-warna-here').empty();
+        updateSiteplanRenderStats();
+        siteplan.batchDraw();
+        masked.batchDraw();
+    }
+
+    function tryLoadInitialSiteplanData() {
+        if (!siteplanCanvasInitialized || !siteplanFilterReady || siteplanInitialDataRequested) {
+            return;
+        }
+
+        siteplanInitialDataRequested = true;
+        filter.id_cluster = selectedClusterIds();
+        if (filter.id_cluster.length === 0) {
+            clearSiteplanDataShapes();
+            setSiteplanClusterHint(true, 'Pilih minimal satu cluster untuk menampilkan data siteplan.');
+            showSiteplanClusterRequiredAlert();
+            return;
+        }
+
+        setSiteplanClusterHint(false);
+        load_kavling(roleid == 1 || roleid == 7);
     }
 
     // siteplan img object :
@@ -256,8 +393,8 @@ Date.prototype.toDateInputValue = (function() {
         tempCtx.drawImage(img, 0, 0);
         imageInfo.data = tempCtx.getImageData(0, 0, imageInfo.width, imageInfo.height);
 
-        //load kavling dari database
-        load_kavling(roleid == 1 || roleid == 7);
+        // Data baru dimuat setelah riwayat cluster selesai dipulihkan.
+        tryLoadInitialSiteplanData();
 
         // $("#pilih-divisi").select2("val", roleid)
         // change_div();
@@ -408,6 +545,7 @@ Date.prototype.toDateInputValue = (function() {
 
     var stroke, fill, strokeWidth, dashed;
     let filterwarnahitung = {};
+    const selectedShapeLegendKeys = new Set();
 
     function set_fill2(e) { //test set fill dengan config dari db
         if (!conf[e]) {
@@ -459,6 +597,11 @@ Date.prototype.toDateInputValue = (function() {
             return colors[Math.abs(year || 0) % colors.length];
         }
         return '#d1d5db';
+    }
+
+    function get_kategori_stroke_width(kategori) {
+        const configured = conf[kategori] ? Number(conf[kategori].strokeWidth) : 0;
+        return Number.isFinite(configured) ? Math.max(0, configured) : 0;
     }
 
     function legalHasValue(value) {
@@ -618,27 +761,113 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     function hitung_kavling(fill) {
-        let e = fill.fill
-        let p = filterwarnahitung[e] ? filterwarnahitung[e] : 0;
-        filterwarnahitung[e] = p + 1;
+        const groupName = fill.tipe || 'Status';
+        const countKey = groupName + ':' + fill.fill;
+        const count = filterwarnahitung[countKey] || 0;
+        filterwarnahitung[countKey] = count + 1;
 
     }
 
+    function createLegendEntry(groupName, configName, item, kind) {
+        const colorConfigName = item.color_config_name || configName;
+        const background = typeof SiteplanCompositeShape !== 'undefined'
+            && typeof SiteplanCompositeShape.legendBackground === 'function'
+            ? SiteplanCompositeShape.legendBackground(item, get_kategori_color)
+            : get_kategori_color(colorConfigName);
+
+        return {
+            key: SiteplanShapeFilter.key(groupName, configName),
+            background: background,
+            kind: kind,
+            strokeWidth: kind === 'marker' ? get_kategori_stroke_width(colorConfigName) : 0
+        };
+    }
+
+    function registerLegendItem(groupName, item, kind, counted) {
+        const configName = item.config_name || 'Def';
+        filterwarna[groupName][configName] = createLegendEntry(groupName, configName, item, kind);
+
+        const countKey = groupName + ':' + configName;
+        if (!counted[countKey]) {
+            filterwarnahitung[countKey] = (filterwarnahitung[countKey] || 0) + 1;
+            counted[countKey] = true;
+        }
+    }
+
+    function registerCompositeLegend(rows) {
+        const counted = {};
+
+        (rows || []).forEach(function(row) {
+            const groupName = row.label || row.key || 'Status';
+            filterwarna[groupName] = filterwarna[groupName] || {};
+
+            (row.segments || []).forEach(function(item) {
+                registerLegendItem(groupName, item, 'fill', counted);
+            });
+            (row.markers || []).forEach(function(item) {
+                registerLegendItem(groupName, item, 'marker', counted);
+            });
+        });
+    }
+
+    function compositeRowSummary(row) {
+        const segments = row.segments || [];
+        const showRatio = segments.length > 1;
+        const labels = segments.map(function(segment) {
+            const ratio = Math.round((Number(segment.ratio) || 0) * 100);
+            return segment.config_name + (showRatio ? ' ' + ratio + '%' : '');
+        });
+        const markers = (row.markers || []).map(function(marker) {
+            return marker.config_name;
+        });
+
+        return labels.concat(markers.map(function(marker) { return 'Penanda ' + marker; })).join(' / ');
+    }
+
+    function compositeTooltipLines(row) {
+        if (typeof SiteplanCompositeShape !== 'undefined' && typeof SiteplanCompositeShape.tooltipLines === 'function') {
+            return SiteplanCompositeShape.tooltipLines(row);
+        }
+
+        return [(row.label || row.key) + ': ' + compositeRowSummary(row)];
+    }
+
+    function setSiteplanTooltip(attrs) {
+        if (!attrs.data || !attrs.data.nama_jalan || !attrs.data.no_kavling) {
+            return false;
+        }
+
+        const lines = [
+            attrs.data.nama_jalan + ' No. ' + attrs.data.no_kavling,
+            attrs.data2.no_tipe_rumah,
+            attrs.data2.tipe_rumah + ' ( ' + attrs.data.luas_tanah + ' / ' + attrs.data.status_tanah + ')',
+            'HJ: Rp. ' + attrs.data2.harga_akhir
+        ];
+
+        (attrs.tooltipRows || attrs.visualRows || []).forEach(function(row) {
+            compositeTooltipLines(row).forEach(function(line) {
+                lines.push(line);
+            });
+        });
+
+        tooltip.text(lines.join('\n'));
+        tooltipbg.height(Math.max(57, tooltip.height() + 10));
+        return true;
+    }
+
     function set_keterangan_warna() {
-        $("#keterangan-warna-here").html(" ")
+        const $legend = $("#keterangan-warna-here").empty();
 
         //filter
         $("#filter-kategori option").remove()
         $("#filter-kategori").append(`<option value="">Semua</option>`);
-        let div = "",
-            kv
-        console.log(filterwarna)
         $.each(filterwarna, function(i, v) {
             if (v) {
-                div += `
-                <div class="divider">
-                    <div class="divider-text">${i} ${i == 'Subsidi' || i == 'Komersil' ? 'Dipasarkan' : ''}</div>
-                </div>`;
+                const groupLabel = i + (i == 'Subsidi' || i == 'Komersil' ? ' Dipasarkan' : '');
+                const $divider = $('<div>', { class: 'divider divider-left' })
+                    .append($('<div>', { class: 'divider-text' }).text(groupLabel));
+                $legend.append($divider);
+
                 const statusOrder = i === 'Legal' ? legalStatusOrder : (i === 'Pajak' ? pajakStatusOrder : null);
                 const sortedKeys = statusOrder ?
                     statusOrder.filter(key => Object.prototype.hasOwnProperty.call(v, key)).concat(Object.keys(v).filter(key => !statusOrder.includes(key)).sort()) :
@@ -650,20 +879,80 @@ Date.prototype.toDateInputValue = (function() {
                     sortedObj[key] = v[key];
                 });
 
-                $.each(sortedObj, function(x, y) {
+                $.each(sortedObj, function(x, rawEntry) {
                     //untuk tambah option di filter
-                    $("#filter-kategori").append(`<option value="${x}">${x}</option>`);
-                    kv = (x == "Def") ? "Data yang bisa diolah" : x;
+                    $("#filter-kategori").append($('<option>').val(x).text(x));
 
-                    div += `<div class="form-group row">
-                                <div class="btn col-2 ml-1" style="background-color:${y}"></div>
-                                <div class="col-9"> ${kv} (${filterwarnahitung[x]})</div>
-                            </div>`;
+                    const entry = typeof rawEntry === 'string' ? {
+                        key: SiteplanShapeFilter.key(i, x),
+                        background: rawEntry,
+                        kind: 'fill',
+                        strokeWidth: 0
+                    } : rawEntry;
+                    const label = (x == "Def") ? "Data yang bisa diolah" : x;
+                    const count = filterwarnahitung[i + ':' + x] ?? filterwarnahitung[x] ?? 0;
+                    const $item = $('<label>', { class: 'siteplan-legend-item' });
+                    const $checkbox = $('<input>', {
+                        type: 'checkbox',
+                        class: 'siteplan-shape-filter-checkbox',
+                        'aria-label': 'Filter shape ' + groupLabel + ' ' + label
+                    }).prop('checked', selectedShapeLegendKeys.has(entry.key));
+                    $checkbox.data('shapeKey', entry.key);
+
+                    const $swatch = $('<span>', { class: 'siteplan-legend-swatch' });
+                    if (entry.kind === 'marker') {
+                        const markerWidth = Math.min(6, Math.max(2, Number(entry.strokeWidth) || 3));
+                        $swatch.addClass('siteplan-legend-swatch-marker').append(
+                            $('<span>', { class: 'siteplan-legend-marker-line' }).css({
+                                background: entry.background,
+                                height: markerWidth + 'px'
+                            })
+                        );
+                    } else {
+                        $swatch.css('background', entry.background);
+                    }
+
+                    $item.append(
+                        $checkbox,
+                        $swatch,
+                        $('<span>', { class: 'siteplan-legend-label' }).text(label + ' (' + count + ')')
+                    );
+                    $legend.append($item);
                 })
             }
         })
-        $("#keterangan-warna-here").html(div)
     }
+
+    function clearShapeFilterSelection() {
+        selectedShapeLegendKeys.clear();
+        $('#keterangan-warna-here .siteplan-shape-filter-checkbox').prop('checked', false);
+    }
+
+    function applyShapeVisibilityFilter() {
+        hapus_seleksi();
+        hideKavlingHover();
+        group.hide();
+
+        siteplan.find('.siteplan-data-shape').forEach(function(node) {
+            const filterable = typeof node.hasName === 'function' && node.hasName('siteplan-kavling');
+            const legendKeys = typeof node.getAttr === 'function' ? node.getAttr('legendKeys') : [];
+            node.visible(SiteplanShapeFilter.shouldShow(filterable, legendKeys, selectedShapeLegendKeys));
+        });
+
+        siteplan.batchDraw();
+        masked.batchDraw();
+    }
+
+    $(document).on('change', '#keterangan-warna-here .siteplan-shape-filter-checkbox', function() {
+        const shapeKey = $(this).data('shapeKey');
+        if (this.checked) {
+            selectedShapeLegendKeys.add(shapeKey);
+        } else {
+            selectedShapeLegendKeys.delete(shapeKey);
+        }
+
+        applyShapeVisibilityFilter();
+    });
     function getHitForFilter(filterKey, row, subsidi) {
         if (filterKey === 'Masalah') {
             const prio = row.prioritas_masalah ? row.prioritas_masalah.toLowerCase() : 'normal';
@@ -766,6 +1055,8 @@ Date.prototype.toDateInputValue = (function() {
     //load shape kavling
     function load_kavling(refresh = false) {
         const loadSequence = ++siteplanLoadSequence;
+        clearShapeFilterSelection();
+        filter.id_cluster = selectedClusterIds();
 
         if (siteplanKavlingRequest && siteplanKavlingRequest.readyState !== 4) {
             siteplanKavlingRequest.abort();
@@ -773,6 +1064,18 @@ Date.prototype.toDateInputValue = (function() {
         if (siteplanOthersRequest && siteplanOthersRequest.readyState !== 4) {
             siteplanOthersRequest.abort();
         }
+
+        if (filter.id_cluster.length === 0) {
+            filter.id_jalan = '';
+            $('#filter-id_jalan').val(null).trigger('change.select2').prop('disabled', true);
+            clearSiteplanDataShapes();
+            setSiteplanClusterHint(true, 'Pilih minimal satu cluster untuk menampilkan data siteplan.');
+            showSiteplanClusterRequiredAlert();
+            $('#loading').addClass('hidden');
+            return;
+        }
+
+        setSiteplanClusterHint(false);
 
         hapus_seleksi();
         filterwarna = {
@@ -783,6 +1086,9 @@ Date.prototype.toDateInputValue = (function() {
             Legal: null,
             Pajak: null,
             Target: null,
+            MKDT: null,
+            Produksi: null,
+            Keuangan: null,
             'Lain-lain': null
         };
         filterwarnahitung = {};
@@ -807,7 +1113,7 @@ Date.prototype.toDateInputValue = (function() {
             return typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val) && !isNaN(new Date(val).getTime()) && val !== "0000-00-00";
         };
 
-        siteplan.find('Line').forEach(line => line.destroy());
+        siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
 
         let va = $("#pilih-divisi option:selected").val();
         wr_pembangunan = [];
@@ -948,7 +1254,15 @@ Date.prototype.toDateInputValue = (function() {
                                         const totalCair = parseFloat(r[p].pa_total_cair_sum || 0);
                                         if (hasilAkad - totalCair > 0.01)
                                             hit = set_fill2('Pengajuan Pencairan Hasil Akad')
-                                        else
+                                        else if (hasilAkad > 0) {
+                                            const marketColor = 'Akad ' + subsidi;
+                                            set_fill2(marketColor);
+                                            hit = {
+                                                fill: 'Pencairan Hasil Akad 100%',
+                                                color_fill: marketColor,
+                                                tipe: 'Status'
+                                            };
+                                        } else
                                             hit = set_fill2('Akad ' + subsidi)
                                     }
                                 } else {
@@ -1084,6 +1398,19 @@ Date.prototype.toDateInputValue = (function() {
                             }
                         }
 
+                        if (
+                            parseFloat(r[p].progres_bangunan || 0) >= 100
+                            && (r[p].is_subsidi == 0 || r[p].is_subsidi == 1)
+                        ) {
+                            const marketColor = 'Akad ' + subsidi;
+                            set_fill2(marketColor);
+                            hit = {
+                                fill: 'Bangunan 100%',
+                                color_fill: marketColor,
+                                tipe: 'Status'
+                            };
+                        }
+
                         //jika ada komplain (dari sales)
                         if (r[p].status_komplain == 1 || r[p].status_komplain == 2 || r[p].status_komplain == 3)
                             hit = set_fill2("Komplain")
@@ -1185,6 +1512,17 @@ Date.prototype.toDateInputValue = (function() {
                         }
                     }
 
+                    const visualRows = Array.isArray(r[p].visual_rows) ? r[p].visual_rows : [];
+                    const visualFill = r[p].visual_fill && r[p].visual_fill.config_name ? r[p].visual_fill : null;
+                    const useUnifiedFill = String(va) === '0' && visualFill !== null;
+
+                    if (useUnifiedFill) {
+                        hit = {
+                            fill: visualFill.config_name,
+                            tipe: visualFill.tipe || 'Status'
+                        };
+                    }
+
                     // Override warna jika filter kategori aktif
                     const filterOverride = getFilterColorOverride(r[p], subsidi);
                     if (filterOverride) {
@@ -1192,71 +1530,115 @@ Date.prototype.toDateInputValue = (function() {
                         hit = filterOverride;
                     }
 
-                    // return;
+                    const useCompositeShape = String(va) === '0'
+                        && !filterOverride
+                        && visualRows.length > 0
+                        && typeof SiteplanCompositeShape !== 'undefined';
+                    const hitColorConfig = hit.color_fill || hit.fill;
 
-                    //set untuk filter warna
-                    filterwarna[hit.tipe] = {
-                        ...filterwarna[hit.tipe],
-                        [hit.fill]: get_kategori_color(hit.fill)
+                    if (useCompositeShape) {
+                        registerCompositeLegend(visualRows);
+                    } else {
+                        //set untuk filter warna
+                        filterwarna[hit.tipe] = {
+                            ...filterwarna[hit.tipe],
+                            [hit.fill]: createLegendEntry(hit.tipe, hit.fill, {
+                                config_name: hit.fill,
+                                color_config_name: hitColorConfig
+                            }, 'fill')
+                        }
+
+                        hitung_kavling(hit)
                     }
+                    
+                    const dataObj = {
+                        nama_jalan: r[p].nama_jalan,
+                        no_kavling: r[p].no_kavling,
+                        id_produksi: r[p].id_produksi,
+                        id_legal: r[p].id_legal,
+                        id_keuangan: r[p].id_keuangan,
+                        id_sales: r[p].id_sales,
+                        id_planning: r[p].id_planning,
+                        id_mkdt: r[p].id_mkdt,
+                        id_umum: r[p].id_umum,
+                        id_direksi: r[p].id_direksi,
+                        tipe: 'kavling',
+                        status_tanah: r[p].status_tanah,
+                        rotation: r[p].rotation,
+                        luas_tanah: r[p].luas_tanah,
+                        is_batal: r[p].is_batal,
+                    };
+                    const data2Obj = {
+                        id_hargajual: id_hargajual,
+                        status_mkdt: r[p].status_mkdt,
+                        id_tipe: r[p].id_tipe,
+                        tipe_rumah: tp_rumah,
+                        no_tipe_rumah: no_tp_rumah,
+                        id_gambar_kerja: r[p].id_gambar_kerja,
+                        harga_akhir: r[p].harga_akhir,
+                        harga_akhir_tgl: r[p].harga_akhir_tgl,
+                        harga_akhir_oleh: r[p].harga_akhir_oleh_username,
+                        id_serah_terima: r[p].id_serah_terima,
+                        id_komplain: r[p].id_komplain,
+                        target: targetInfo,
+                    };
 
+                    const pointsArr = JSON.parse("[" + r[p].points + "]");
+                    const legendKeys = useCompositeShape
+                        ? SiteplanShapeFilter.keysFromRows(visualRows)
+                        : [SiteplanShapeFilter.key(hit.tipe, hit.fill)];
 
-                    // console.log(hit.fill, conf[hit.fill].fill);
+                    if (useCompositeShape) {
+                        const paintRows = useUnifiedFill ? [{
+                            key: 'status',
+                            label: 'Status',
+                            segments: [{ config_name: hit.fill, ratio: 1 }],
+                            markers: []
+                        }] : visualRows;
 
-                    hitung_kavling(hit)
-                    //data di tiap kavling harus disesuaikan dengan divisi yang dipilih
-                    kav = new Konva.Line({
-                        points: JSON.parse("[" + r[p].points + "]"),
-                        // lineCap: 'round',
-                        // lineJoin: 'round',
-                        // stroke: stroke,
-                        fill: get_kategori_color(hit.fill),
-                        // strokeWidth: strokeWidth,
-                        dash: dashed,
-                        opacity: 1,
-                        closed: true,
-                        globalCompositeOperation: 'multiply',
-                        kategori: hit.fill,
-                        data: {
-                            nama_jalan: r[p].nama_jalan,
-                            no_kavling: r[p].no_kavling,
-                            id_produksi: r[p].id_produksi,
-                            id_legal: r[p].id_legal,
-                            id_keuangan: r[p].id_keuangan,
-                            id_sales: r[p].id_sales,
-                            id_planning: r[p].id_planning,
-                            id_mkdt: r[p].id_mkdt,
-                            id_umum: r[p].id_umum,
-                            id_direksi: r[p].id_direksi,
-                            tipe: 'kavling',
-                            status_tanah: r[p].status_tanah,
-                            luas_tanah: r[p].luas_tanah,
-                            is_batal: r[p].is_batal,
-                            // total_biaya: ktotal_biaya,
-                            // sudah_bayar: ksudah_bayar
-                        },
-                        data2: {
-                            id_hargajual: id_hargajual,
-                            status_mkdt: r[p].status_mkdt,
-                            id_tipe: r[p].id_tipe,
-                            tipe_rumah: tp_rumah,
-                            no_tipe_rumah: no_tp_rumah,
-                            id_gambar_kerja: r[p].id_gambar_kerja,
-                            harga_akhir: r[p].harga_akhir,
-                            harga_akhir_tgl: r[p].harga_akhir_tgl,
-                            harga_akhir_oleh: r[p].harga_akhir_oleh_username,
-                            id_serah_terima: r[p].id_serah_terima,
-                            id_komplain: r[p].id_komplain,
-                            target: targetInfo,
-                        },
-                        id: 'kav' + r[p].id_kavling
-                    });
+                        kav = SiteplanCompositeShape.createKonvaShape(Konva, {
+                            id: 'kav' + r[p].id_kavling,
+                            kategori: hit.fill,
+                            data: dataObj,
+                            data2: data2Obj,
+                            points: pointsArr,
+                            facadeRotation: r[p].rotation,
+                            visualRows: paintRows,
+                            tooltipRows: visualRows,
+                            legendKeys: legendKeys,
+                            strokeWidthResolver: get_kategori_stroke_width,
+                            stroke: '#000',
+                            strokeWidth: 0,
+                            opacity: 1,
+                            globalCompositeOperation: 'source-over'
+                        }, get_kategori_color);
+                    } else {
+                        // Rendering standar
+                        kav = new Konva.Line({
+                            points: pointsArr,
+                            fill: get_kategori_color(hitColorConfig),
+                            dash: dashed,
+                            opacity: 1,
+                            closed: true,
+                            globalCompositeOperation: 'multiply',
+                            kategori: hit.fill,
+                            data: dataObj,
+                            data2: data2Obj,
+                            visualRows: visualRows,
+                            legendKeys: legendKeys,
+                            id: 'kav' + r[p].id_kavling,
+                            name: 'siteplan-kavling siteplan-data-shape'
+                        });
+                    }
+                    
                     siteplan.add(kav);
                 }
+                updateSiteplanRenderStats();
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
                 handlePendingSiteplanUrgentAction()
                 handlePendingSiteplanTiketAction()
+                if (typeof handlePendingNotificationDeepLink === 'function') handlePendingNotificationDeepLink();
                 scheduleSiteplanUrgentPanelLoad();
             },
             error: function(xhr, st, err) {
@@ -1280,6 +1662,7 @@ Date.prototype.toDateInputValue = (function() {
             data: Object.assign({
                 [csrfName]: csrfHash,
                 id_proyek: dt_proyek.id_proyek,
+                id_cluster: filter.id_cluster,
                 id_role: va
             }, getServerFilterData()),
             dataType: 'json',
@@ -1306,7 +1689,9 @@ Date.prototype.toDateInputValue = (function() {
                         set_fill("#9000ff", "#000", "0", null) // warna ungu
                     else if (r[p].tipe == "rth")
                         set_fill("#0f0", "#000", "0", null) // warna merah
-                    
+                    else if (r[p].tipe == "ruko")
+                        set_fill("#2057a3", "#000", "0", null) // warna biru utama SIGAPP
+
                     if (activeKategori.includes('Masalah')) {
                         const prio = r[p].prioritas_masalah ? r[p].prioritas_masalah.toLowerCase() : 'normal';
                         let hitFill = 'Masalah Normal';
@@ -1316,8 +1701,10 @@ Date.prototype.toDateInputValue = (function() {
 
                         set_fill2(hitFill);
                         filterwarna['Filter'] = filterwarna['Filter'] || {};
-                        filterwarna['Filter'][hitFill] = get_kategori_color(hitFill);
-                        hitung_kavling({fill: hitFill});
+                        filterwarna['Filter'][hitFill] = createLegendEntry('Filter', hitFill, {
+                            config_name: hitFill
+                        }, 'fill');
+                        hitung_kavling({fill: hitFill, tipe: 'Filter'});
                     }
 
                     kav = new Konva.Line({
@@ -1332,14 +1719,18 @@ Date.prototype.toDateInputValue = (function() {
                             nama_jalan: r[p].nama_jalan,
                         },
                         data2: {},
-                        id: 'others' + r[p].id
+                        id: 'others' + r[p].id,
+                        name: 'siteplan-other siteplan-data-shape'
                     });
                     siteplan.add(kav);
                 }
+
+                updateSiteplanRenderStats();
                 
                 if (activeKategori.includes('Masalah')) {
                     set_keterangan_warna();
                 }
+                handlePendingSiteplanTiketAction();
             },
             error: function(xhr, st) {
                 if (st === 'abort' || loadSequence !== siteplanLoadSequence) {
@@ -1441,6 +1832,10 @@ Date.prototype.toDateInputValue = (function() {
     }
     //destroy multiple selection
     function hapus_seleksi_batch() {
+        stage.find('#siteplan-selection').forEach(function(selectionHighlight) {
+            selectionHighlight.destroy();
+        });
+
         idsb = stage.find('#sel'); //find selection line
         idstb = stage.find('#tsel'); //find selection text
 
@@ -1459,6 +1854,34 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     var editdtt = [];
+
+    function getSiteplanKavlingNode(target) {
+        if (!target || typeof target.hasName !== 'function') return null;
+        if (target.hasName('siteplan-kavling')) return target;
+        if (target.hasName('subShape') && target.parent && target.parent.hasName('siteplan-kavling')) {
+            return target.parent;
+        }
+
+        return null;
+    }
+
+    function isSelectedKavling(node) {
+        const nodeId = node && typeof node.id === 'function' ? node.id() : '';
+        return editdtt.some(function(selected) {
+            return selected && selected.id === nodeId;
+        });
+    }
+
+    function getSiteplanKavlingPoints(node) {
+        if (node && typeof node.points === 'function') return node.points();
+        return node && typeof node.getAttr === 'function' ? (node.getAttr('points') || []) : [];
+    }
+
+    function hideKavlingHover() {
+        if (!hoverHighlight.isVisible()) return;
+        hoverHighlight.hide();
+        masked.batchDraw();
+    }
 
     //event klik kavling (dblclick dihapus agar ditangani stage)
 
@@ -1479,25 +1902,22 @@ Date.prototype.toDateInputValue = (function() {
         });
 
         //text tooltip
-        if (data.data) {
-            if (!data.data.nama_jalan || !data.data.no_kavling)
-                return;
-            tooltip.text(
-                data.data.nama_jalan +
-                " No. " + data.data.no_kavling + "\n" +
-                data.data2.no_tipe_rumah + "\n" +
-                data.data2.tipe_rumah + " ( " + data.data.luas_tanah + " / " + data.data.status_tanah + ") \n" +
-                "HJ: Rp. " + data.data2.harga_akhir +
-                ""
-            );
+        if (setSiteplanTooltip(data)) {
             group.moveToTop();
             group.show(); //show tooltip
         }
     })
 
     siteplan.on('click tap', function(e) {
-        var k = e.target, //get shape
-            sh = k.attrs, //get attribut shape
+        if (typeof isFacadeArrowActive !== 'undefined' && isFacadeArrowActive) return;
+
+        var k = e.target; //get shape
+        // Jika shape adalah bagian dari Konva.Group (multi-color mode), gunakan group-nya
+        if (k.hasName('subShape') && k.parent) {
+            k = k.parent;
+        }
+
+        var sh = k.attrs, //get attribut shape
             role = $('#pilih-divisi option:selected').val(),
             id_kavling = ''
 
@@ -1527,6 +1947,8 @@ Date.prototype.toDateInputValue = (function() {
                 editdtt.push(sh)
                 drawBorderEdit(sh)
             }
+
+            hideKavlingHover();
         }
     })
 
@@ -1568,6 +1990,7 @@ Date.prototype.toDateInputValue = (function() {
     });
 
     stage.on('click tap', function(e) {
+        if (typeof isFacadeArrowActive !== 'undefined' && isFacadeArrowActive) return;
         if (isManualSelectionActive()) {
             var pos = this.getRelativePointerPosition();
 
@@ -1593,7 +2016,9 @@ Date.prototype.toDateInputValue = (function() {
     //even mouse move data kavling
     var data, mousePos, persentase;
     siteplan.on('mousemove', function(e) {
-        data = e.target.attrs;
+        var k = e.target;
+        if (k.hasName('subShape') && k.parent) k = k.parent;
+        data = k.attrs;
         // console.log(data);
 
         //posisi tooltip
@@ -1603,65 +2028,34 @@ Date.prototype.toDateInputValue = (function() {
             y: mousePos.y + 5,
         });
         //text tooltip
-        if (data.data) {
-            if (!data.data.nama_jalan || !data.data.no_kavling)
-                return;
-            tooltip.text(
-                data.data.nama_jalan +
-                " No. " + data.data.no_kavling + "\n" +
-                data.data2.no_tipe_rumah + "\n" +
-                data.data2.tipe_rumah + " ( " + data.data.luas_tanah + " / " + data.data.status_tanah + ") \n" +
-                "HJ: Rp. " + data.data2.harga_akhir
-            );
-            // }
+        if (setSiteplanTooltip(data)) {
             group.moveToTop();
             group.show(); //show tooltip
 
         }
 
     })
-    //even mouse move data kavling
-    var data, mousePos, persentase;
-    siteplan.on('mousemove', function(e) {
-        data = e.target.attrs;
-        // console.log(data);
-
-        //posisi tooltip
-        mousePos = stage.getRelativePointerPosition();
-        group.position({
-            x: mousePos.x + 20,
-            y: mousePos.y + 5,
-        });
-        //text tooltip
-        if (data.data) {
-            if (!data.data.nama_jalan || !data.data.no_kavling)
-                return;
-            tooltip.text(
-                data.data.nama_jalan +
-                " No. " + data.data.no_kavling + "\n" +
-                data.data2.no_tipe_rumah + "\n" +
-                data.data2.tipe_rumah + " ( " + data.data.luas_tanah + " / " + data.data.status_tanah + ") \n" +
-                "HJ: Rp. " + data.data2.harga_akhir
-            );
-            // }
-            group.moveToTop();
-            group.show(); //show tooltip
-
-        }
-
-    })
-
-    //highligh kavling
+    //highlight kavling tanpa menggambar ulang seluruh layer siteplan
     siteplan.on('mouseover', function(e) {
-        var sh = e.target;
-        sh.setAttr("strokeWidth", 4);
-        sh.setAttr("stroke", "black");
+        var node = getSiteplanKavlingNode(e.target);
+        if (!node || isManualSelectionActive() || isSelectedKavling(node)) {
+            hideKavlingHover();
+            return;
+        }
+
+        hoverHighlight.setHighlightPoints(getSiteplanKavlingPoints(node));
+        hoverHighlight.show();
+        hoverHighlight.moveToTop();
+        stage.container().style.cursor = 'pointer';
+        masked.batchDraw();
     })
 
     //hide tooltip
     siteplan.on('mouseout', function(e) {
-        var sh = e.target;
-        sh.setAttr("strokeWidth", 0);
+        if (getSiteplanKavlingNode(e.target)) {
+            hideKavlingHover();
+            stage.container().style.cursor = 'default';
+        }
         group.hide();
     })
 
@@ -1680,24 +2074,17 @@ Date.prototype.toDateInputValue = (function() {
     var lastDist = 0;
     stage.on('touchmove', function(e) {
         e.evt.preventDefault();
-        var touch1 = e.evt.touches[0];
-        var touch2 = e.evt.touches[1];
+        stage.setPointersPositions(e.evt);
+        var pointers = stage.getPointersPositions();
+        var p1 = pointers[0];
+        var p2 = pointers[1];
 
-        if (touch1 && touch2) {
+        if (p1 && p2) {
             // if the stage was under Konva's drag&drop
             // we need to stop it, and implement our own pan logic with two pointers
             if (stage.isDragging()) {
                 stage.stopDrag();
             }
-
-            var p1 = {
-                x: touch1.clientX,
-                y: touch1.clientY,
-            };
-            var p2 = {
-                x: touch2.clientX,
-                y: touch2.clientY,
-            };
 
             if (!lastCenter) {
                 lastCenter = getCenter(p1, p2);
@@ -1743,7 +2130,7 @@ Date.prototype.toDateInputValue = (function() {
         }
     });
 
-    stage.on('touchend', function() {
+    stage.on('touchend touchcancel', function() {
         lastDist = 0;
         lastCenter = null;
     });
@@ -1862,7 +2249,19 @@ Date.prototype.toDateInputValue = (function() {
                     }
                     
                     $('#pilih-divisi').append(html);
-                    $('#pilih-divisi').trigger('change');
+                    const pendingTiketAction = getPendingSiteplanTiketAction();
+                    if (pendingTiketAction && $('#pilih-divisi option[value="Masalah"]').length) {
+                        $('#pilih-divisi').val('Masalah');
+                    }
+                    $('#pilih-divisi').trigger('change.select2');
+                    checkMasalahOptions();
+                    checkPeriodeOptions();
+
+                    // Jika siteplan telanjur memuat sebelum opsi dinamis selesai,
+                    // muat ulang agar deep-link tiket memakai filter Masalah.
+                    if (pendingTiketAction && siteplanInitialDataRequested && siteplanCanvasInitialized) {
+                        load_kavling();
+                    }
                     
                     $('#pilih-divisi').on('change', function() {
                         checkMasalahOptions();
@@ -1900,18 +2299,21 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     window.apply_server_filter = function() {
-        filter.id_cluster = $("#filter-id_cluster").val();
+        filter.id_cluster = selectedClusterIds();
         filter.id_jalan = $("#filter-id_jalan").val();
+        SiteplanFilterState.save(getSiteplanStorage(), siteplanCurrentUserId, dt_proyek.id_proyek, filter.id_cluster);
         load_kavling();
         renderActiveFilterTags();
     }
 
     window.reset_server_filter = function() {
+        const preservedClusters = selectedClusterIds();
         $('#form-filter-kategori')[0].reset();
-        $('#filter-id_cluster').val(null).trigger('change');
-        $('#filter-id_jalan').val(null).trigger('change');
-        $('#pilih-divisi').val('0').trigger('change');
-        filter.id_cluster = '';
+        $('#filter-id_cluster').val(preservedClusters).trigger('change.select2');
+        $('#filter-id_jalan').val(null).trigger('change.select2');
+        $('#pilih-divisi').val('0').trigger('change.select2');
+        $('#filter-id_jalan').prop('disabled', preservedClusters.length === 0);
+        filter.id_cluster = preservedClusters;
         filter.id_jalan = '';
         checkMasalahOptions();
         checkPeriodeOptions();
@@ -1938,15 +2340,31 @@ Date.prototype.toDateInputValue = (function() {
         return data;
     }
 
+    function getSiteplanStorage() {
+        try {
+            return window.localStorage;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function escapeSiteplanHtml(value) {
+        return $('<div>').text(value == null ? '' : String(value)).html();
+    }
+
     function renderActiveFilterTags() {
         let html = '';
-        if (filter.id_cluster) {
-            const clusterText = $("#filter-id_cluster option:selected").text();
-            html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('cluster')">Cluster: ${clusterText} &times;</span>`;
-        }
+        const selectedClusters = new Set(selectedClusterIds());
+        $('#filter-id_cluster option:selected').each(function() {
+            const clusterId = String($(this).val());
+            if (!selectedClusters.has(clusterId)) return;
+
+            const clusterText = escapeSiteplanHtml($(this).text());
+            html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('cluster', '${clusterId}')">Cluster: ${clusterText} &times;</span>`;
+        });
         
         if (filter.id_jalan) {
-            const jalanText = $("#filter-id_jalan option:selected").text();
+            const jalanText = escapeSiteplanHtml($("#filter-id_jalan option:selected").text());
             html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('jalan')">Blok: ${jalanText} &times;</span>`;
         }
         
@@ -1967,15 +2385,19 @@ Date.prototype.toDateInputValue = (function() {
 
     window.removeFilterTag = function(type, val = null) {
         if (type === 'cluster') {
-            $('#filter-id_cluster').val(null).trigger('change');
-            filter.id_cluster = '';
-            $('#filter-id_jalan').val(null).trigger('change');
+            const remaining = selectedClusterIds().filter(function(id) {
+                return id !== String(val);
+            });
+            $('#filter-id_cluster').val(remaining).trigger('change.select2');
+            filter.id_cluster = remaining;
+            $('#filter-id_jalan').val(null).trigger('change.select2');
             filter.id_jalan = '';
+            $('#filter-id_jalan').prop('disabled', remaining.length === 0);
         } else if (type === 'jalan') {
             $('#filter-id_jalan').val(null).trigger('change');
             filter.id_jalan = '';
         } else if (type === 'kategori') {
-            $('#pilih-divisi').val('0').trigger('change');
+            $('#pilih-divisi').val('0').trigger('change.select2');
         } else if (type === 'periode') {
             $('#filter-periode-mulai').val('');
             $('#filter-periode-selesai').val('');
@@ -2096,57 +2518,44 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     function filter_option() {
-        filter.id_cluster = $("#filter-id_cluster").val()
+        filter.id_cluster = selectedClusterIds()
         filter.id_jalan = $("#filter-id_jalan").val()
         load_kavling()
     }
 
     function hapus_filter_option() {
-        $('#filter-id_cluster').val(null).trigger('change');
-        filter_option()
+        $('#filter-id_jalan').val(null).trigger('change.select2');
+        filter.id_jalan = '';
+        load_kavling()
     }
 
     //select2 cluster
+    const siteplanClusterSelectData = (siteplanClusterOptions || []).map(function(item) {
+        return {
+            id: String(item.id_cluster),
+            text: item.nama_cluster
+        };
+    });
+
     $("#filter-id_cluster").select2({
         placeholder: "Pilih Cluster",
         allowClear: true,
-        ajax: {
-            url: base_url + "/cluster/getAll",
-            dataType: 'json',
-            delay: 250,
-            method: 'post',
-            data: function(params) {
-                return {
-                    [csrfName]: csrfHash,
-                    search: params.term,
-                    id_proyek: dt_proyek.id_proyek
-                };
-            },
-            processResults: function(r) {
-                csrfHash = r.token
-
-                let results = [];
-                $.each(r.data, function(index, item) {
-                    results.push({
-                        id: item[0],
-                        text: item[3]
-                    });
-                });
-
-                return {
-                    results: results
-                };
-            },
-            cache: true
-        },
+        closeOnSelect: false,
+        data: siteplanClusterSelectData,
+        width: '100%'
     })
     // on select cluster
     $("#filter-id_cluster").on("change", function(e) {
-        $('#filter-id_jalan').val(null).trigger('change');
-        if (this.value)
-            $("#filter-id_jalan").prop("disabled", false)
-        else
-            $("#filter-id_jalan").prop("disabled", true)
+        const clusterIds = selectedClusterIds();
+        $('#filter-id_jalan').val(null).trigger('change.select2');
+        filter.id_jalan = '';
+        $("#filter-id_jalan").prop("disabled", clusterIds.length === 0);
+        setSiteplanClusterHint(true, clusterIds.length === 0
+            ? 'Pilih minimal satu cluster untuk menampilkan data siteplan.'
+            : 'Klik Terapkan untuk memuat cluster terpilih.');
+        if (clusterIds.length === 0) {
+            showSiteplanClusterRequiredAlert();
+        }
     });
     $("#filter-id_jalan").select2({
         placeholder: "Pilih Blok",
@@ -2171,7 +2580,7 @@ Date.prototype.toDateInputValue = (function() {
                 $.each(r.data, function(index, item) {
                     results.push({
                         id: item[0],
-                        text: item[3]
+                        text: item[2] + ' — ' + item[3]
                     });
                 });
 
@@ -2182,6 +2591,28 @@ Date.prototype.toDateInputValue = (function() {
             cache: true
         },
     })
+
+    const restoredClusterIds = SiteplanFilterState.restore(
+        getSiteplanStorage(),
+        siteplanCurrentUserId,
+        dt_proyek.id_proyek,
+        siteplanClusterSelectData.map(function(item) { return item.id; })
+    );
+    const availableClusterIds = siteplanClusterSelectData.map(function(item) { return item.id; });
+    const pendingTiketAction = getPendingSiteplanTiketAction();
+    const targetClusterIds = SiteplanFilterState.normalizeIds(
+        pendingTiketAction ? pendingTiketAction.targetClusterId : null
+    ).filter(function(id) {
+        return availableClusterIds.includes(id);
+    });
+    const initialClusterIds = SiteplanFilterState.normalizeIds(restoredClusterIds.concat(targetClusterIds));
+    $('#filter-id_cluster').val(initialClusterIds).trigger('change.select2');
+    $('#filter-id_jalan').prop('disabled', initialClusterIds.length === 0);
+    filter.id_cluster = initialClusterIds;
+    filter.id_jalan = '';
+    siteplanFilterReady = true;
+    renderActiveFilterTags();
+    tryLoadInitialSiteplanData();
 
     //remove bug arrow select2
     $(".select2-selection__arrow").css("pointer-events", "none")
@@ -2836,18 +3267,65 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     function findSiteplanKavlingAttrs(id_kavling) {
-        if (!id_kavling || typeof siteplan === 'undefined') {
+        const node = findSiteplanLocationNode('kavling', id_kavling);
+        return node && node.attrs ? node.attrs : null;
+    }
+
+    function findSiteplanLocationNode(refType, refId) {
+        if (!refId || typeof siteplan === 'undefined') {
             return null;
         }
 
+        const nodeId = refType === 'others' ? '#others' + refId : '#kav' + refId;
         try {
-            const node = typeof siteplan.findOne === 'function' ?
-                siteplan.findOne('#kav' + id_kavling) :
-                (siteplan.find('#kav' + id_kavling)[0] || null);
-            return node && node.attrs ? node.attrs : null;
+            return typeof siteplan.findOne === 'function' ?
+                siteplan.findOne(nodeId) :
+                (siteplan.find(nodeId)[0] || null);
         } catch (error) {
             return null;
         }
+    }
+
+    function focusSiteplanLocation(node) {
+        if (!node || typeof node.getClientRect !== 'function') {
+            return false;
+        }
+
+        const bounds = node.getClientRect({
+            relativeTo: siteplan,
+            skipShadow: true
+        });
+        if (!bounds || bounds.width <= 0 || bounds.height <= 0) {
+            return false;
+        }
+
+        const viewportWidth = stage.width();
+        const viewportHeight = stage.height();
+        const currentScale = Math.min(stage.scaleX() || 1, 1.5);
+        const targetScale = Math.max(currentScale, Math.min(
+            viewportWidth / Math.max(bounds.width * 6, 1),
+            viewportHeight / Math.max(bounds.height * 6, 1),
+            1.5
+        ));
+        const centerX = bounds.x + (bounds.width / 2);
+        const centerY = bounds.y + (bounds.height / 2);
+
+        group.scale({
+            x: 1 / targetScale,
+            y: 1 / targetScale
+        });
+
+        new Konva.Tween({
+            node: stage,
+            duration: 0.45,
+            scaleX: targetScale,
+            scaleY: targetScale,
+            x: (viewportWidth / 2) - (centerX * targetScale),
+            y: (viewportHeight / 2) - (centerY * targetScale),
+            easing: Konva.Easings.EaseInOut
+        }).play();
+
+        return true;
     }
 
     function buildMinimalSiteplanShape(item) {
@@ -2980,58 +3458,54 @@ Date.prototype.toDateInputValue = (function() {
         }, 300);
     }
 
+    function getPendingSiteplanTiketAction() {
+        const params = new URLSearchParams(window.location.search || '');
+        const idTiket = params.get('show_tiket');
+        const refType = params.get('ref_type');
+        const refId = params.get('ref_id');
+
+        if (!idTiket || !['kavling', 'others'].includes(refType) || !refId) {
+            return null;
+        }
+
+        return {
+            idTiket: idTiket,
+            refType: refType,
+            refId: refId,
+            targetClusterId: params.get('target_cluster_id')
+        };
+    }
+
     let pendingSiteplanTiketActionConsumed = false;
     function handlePendingSiteplanTiketAction() {
         if (pendingSiteplanTiketActionConsumed) {
             return;
         }
 
-        const params = new URLSearchParams(window.location.search || '');
-        const idTiket = params.get('show_tiket');
-        const refType = params.get('ref_type');
-        const refId = params.get('ref_id');
-
-        if (!idTiket || !refType || !refId) {
+        const action = getPendingSiteplanTiketAction();
+        if (!action) {
             return;
         }
 
-        pendingSiteplanTiketActionConsumed = true;
         setTimeout(function() {
-            let sh = null;
-            if (refType === 'kavling') {
-                sh = findSiteplanKavlingAttrs(refId);
-            } else if (refType === 'others') {
-                try {
-                    const node = typeof siteplan.findOne === 'function' ?
-                        siteplan.findOne('#others' + refId) :
-                        (siteplan.find('#others' + refId)[0] || null);
-                    sh = node && node.attrs ? node.attrs : null;
-                } catch (error) {}
+            if (pendingSiteplanTiketActionConsumed) {
+                return;
             }
 
+            const node = findSiteplanLocationNode(action.refType, action.refId);
+            const sh = node && node.attrs ? node.attrs : null;
+            if (!sh) {
+                return;
+            }
+
+            pendingSiteplanTiketActionConsumed = true;
             if (sh) {
                 if (typeof hapus_seleksi === 'function') hapus_seleksi();
                 editdtt.push(sh);
                 if (typeof drawBorderEdit === 'function') drawBorderEdit(sh);
-            } else if (refType === 'others') {
-                // Alternatif cari di array data jika node belum ter-render
-                if (typeof dtt_jalan !== 'undefined') {
-                    dtt_jalan.forEach(function(sh_jalan) {
-                        if (sh_jalan.id == refId || sh_jalan.id_others == refId) {
-                            sh = sh_jalan;
-                        }
-                    });
-                    if (sh) {
-                        if (typeof hapus_seleksi === 'function') hapus_seleksi();
-                        editdtt.push(sh);
-                        if (typeof drawBorderEdit === 'function') drawBorderEdit(sh);
-                    }
-                }
+                focusSiteplanLocation(node);
             }
 
-            if (typeof window.tm_open_detail === 'function') {
-                window.tm_open_detail(idTiket, refType, refId);
-            }
         }, 600);
     }
 
@@ -3078,6 +3552,8 @@ Date.prototype.toDateInputValue = (function() {
                                 nama_jalan: v.nama_jalan,
                                 nama_proyek: v.nama_proyek,
                                 id_tipe: v.id_tipe,
+                                status_mkdt: v.status_mkdt,
+                                is_lunas: v.is_lunas,
                                 tagihan_list: [] // Tempat menampung banyak tagihan
                             };
                         }
@@ -3127,7 +3603,10 @@ Date.prototype.toDateInputValue = (function() {
                             <tr>
                                 <td class="text-center">${no++}</td>
                                 <td>
-                                    <strong>${item.nama_konsumen}</strong><br>
+                                    <strong>${item.nama_konsumen}</strong>
+                                    ${item.status_mkdt == 'Batal' ? '<span class="badge badge-danger">Batal</span>' : ''}
+                                    ${item.is_lunas == '1' ? '<span class="badge badge-success">Lunas</span>' : ''}
+                                    <br>
                                     <small>${item.nama_jalan} No. ${item.no_kavling}: Tipe ${item.id_tipe}</small>
                                 </td>
                                 <td>${tagihanHtml}</td>
@@ -3298,3 +3777,34 @@ Date.prototype.toDateInputValue = (function() {
             $("#dt-air_pdam-input_form").removeClass("hidden");
         }
     });
+
+    let pendingNotificationDeepLinkConsumed = false;
+    window.handlePendingNotificationDeepLink = function() {
+        if (pendingNotificationDeepLinkConsumed) return;
+        pendingNotificationDeepLinkConsumed = true;
+        
+        const params = new URLSearchParams(window.location.search);
+        const id_kavling = params.get('id_kavling');
+        const tab = params.get('tab');
+        
+        if (id_kavling) {
+            setTimeout(function() {
+                const sh = findSiteplanKavlingAttrs(id_kavling);
+                if (sh && typeof detail_kavling === 'function') {
+                    hapus_seleksi();
+                    editdtt.push(sh);
+                    drawBorderEdit(sh);
+                    detail_kavling(sh, id_kavling);
+                    
+                    if (tab) {
+                        setTimeout(function() {
+                            const tabTarget = $('#modal_detail .nav-tabs a[href="#detail-panel-' + tab + '"]');
+                            if (tabTarget.length) {
+                                tabTarget.tab('show');
+                            }
+                        }, 500); // Wait for modal and content to render
+                    }
+                }
+            }, 300);
+        }
+    };

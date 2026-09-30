@@ -81,11 +81,11 @@ class TiketMasalahService
             1 => null, // no
             2 => 'lokasi',
             3 => 'tm.keterangan',
-            4 => 'tm.status',
-            5 => 'tm.prioritas',
-            6 => 'u.username',
-            7 => null, // assigned users
-            8 => 'tm.created_at'
+            4 => 'tm.tanggal_masalah',
+            5 => 'u.username',
+            6 => null, // assigned users
+            7 => 'tm.status',
+            8 => 'tm.prioritas'
         ];
 
         if ($orderColIdx !== null && isset($columns[$orderColIdx])) {
@@ -183,6 +183,8 @@ class TiketMasalahService
         }
 
         // Notifikasi ke departemen user pembuat (hanya jika bukan draft)
+        $actionUrl = ($data['ref_type'] == 'kavling') ? 'siteplan/view?id_kavling=' . $data['ref_id'] . '&filter=Masalah&tiket_ref_type=kavling' : null;
+
         $userGroupId = session()->get('group_id');
         if ($userGroupId && $data['status'] !== 'draft') {
             $this->notifikasiService->tambah_notif(
@@ -192,7 +194,9 @@ class TiketMasalahService
                 $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                 null,                           // id_konsumen
                 $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket), // type
-                $data['id_proyek'] ?? null      // id_proyek
+                $data['id_proyek'] ?? null,     // id_proyek
+                $actionUrl,
+                \App\Enums\NotificationEvent::TIKET_MASALAH_BARU
             );
         }
 
@@ -224,7 +228,9 @@ class TiketMasalahService
                     $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                     null,
                     $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
-                    $data['id_proyek'] ?? null
+                    $data['id_proyek'] ?? null,
+                    $actionUrl,
+                    \App\Enums\NotificationEvent::TIKET_MASALAH_ASSIGN
                 );
             }
         }
@@ -253,8 +259,8 @@ class TiketMasalahService
             return ['success' => false, 'message' => 'Tiket tidak ditemukan'];
         }
 
-        if ($tiket->status !== 'draft') {
-            return ['success' => false, 'message' => 'Hanya tiket dalam status draft yang bisa diedit'];
+        if (in_array($tiket->status, ['selesai', 'batal'])) {
+            return ['success' => false, 'message' => 'Tiket sudah selesai atau dibatalkan, tidak dapat diedit'];
         }
 
         $userId = user_id();
@@ -267,7 +273,13 @@ class TiketMasalahService
 
         $this->db->transStart();
 
-        $data['status'] = !empty($data['is_draft']) ? 'draft' : 'dibuat';
+        $isDraftSebelum = ($tiket->status === 'draft');
+        
+        if ($isDraftSebelum) {
+            $data['status'] = !empty($data['is_draft']) ? 'draft' : 'dibuat';
+        } else {
+            $data['status'] = $tiket->status; // pertahankan status tiket
+        }
         unset($data['is_draft']);
         
         // Update user PIC to the one who takes over (or keeps it if creator)
@@ -283,6 +295,23 @@ class TiketMasalahService
             $data['tanggal_kunjungan'] = null;
         }
         
+        // Hapus foto jika ada
+        $deletedIds = [];
+        if (!empty($data['deleted_foto_ids'])) {
+            $deletedIds = $data['deleted_foto_ids'];
+            if (!is_array($deletedIds)) {
+                $deletedIds = explode(',', $deletedIds);
+            }
+            
+            foreach ($deletedIds as $fid) {
+                $foto = $this->tiketFotoModel->find($fid);
+                if ($foto && $foto->id_tiket_masalah == $idTiket) {
+                    $this->tiketFotoModel->delete($fid);
+                }
+            }
+            unset($data['deleted_foto_ids']);
+        }
+
         // Remove 'id_tiket_masalah' and 'ref_type' / 'ref_id' from update data if not changing
         unset($data['id_tiket_masalah']);
 
@@ -303,6 +332,35 @@ class TiketMasalahService
                     'file_path' => $path,
                     'file_name' => $img->getClientName(),
                     'uploaded_by' => $userId
+                ]);
+            }
+        }
+
+        // Log history (progress) if it was NOT a draft
+        if (!$isDraftSebelum) {
+            $changes = [];
+            if (isset($data['keterangan']) && $data['keterangan'] != $tiket->keterangan) {
+                $changes[] = 'keterangan masalah';
+            }
+            if (isset($data['prioritas']) && $data['prioritas'] != $tiket->prioritas) {
+                $prioSebelum = strtoupper($tiket->prioritas);
+                $prioSesudah = strtoupper($data['prioritas']);
+                $changes[] = "prioritas ($prioSebelum &rarr; $prioSesudah)";
+            }
+            if (!empty($files) || !empty($deletedIds)) {
+                $changes[] = 'lampiran foto';
+            }
+            
+            if (!empty($changes)) {
+                $ketProgress = "Tiket diperbarui (perubahan pada: " . implode(', ', $changes) . ").";
+                $this->tiketProgressModel->insert([
+                    'id_tiket_masalah' => $idTiket,
+                    'user_id' => $userId,
+                    'keterangan' => $ketProgress,
+                    'status_sebelum' => $tiket->status,
+                    'status_sesudah' => $tiket->status,
+                    'is_pin_requested' => 0,
+                    'foto_paths' => null
                 ]);
             }
         }
@@ -328,18 +386,23 @@ class TiketMasalahService
             }
         }
 
-        // Notifikasi jika tiket tidak lagi draft
-        if ($data['status'] === 'dibuat') {
+        // Notifikasi jika tiket aktif (bukan draft)
+        if ($data['status'] !== 'draft') {
+            $actionUrl = ($data['ref_type'] == 'kavling') ? 'siteplan/view?id_kavling=' . $data['ref_id'] . '&filter=Masalah&tiket_ref_type=kavling' : null;
+            $msgNotif = $isDraftSebelum ? "Tiket masalah baru (dari draft): " : "Pembaruan tiket masalah: ";
+
             $userGroupId = session()->get('group_id');
             if ($userGroupId) {
                 $this->notifikasiService->tambah_notif(
                     $userGroupId,
-                    "Tiket masalah baru (dari draft): " . substr($data['keterangan'], 0, 80),
+                    $msgNotif . substr($data['keterangan'] ?? $tiket->keterangan, 0, 80),
                     $userId,
                     $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                     null,
                     $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
-                    $data['id_proyek'] ?? null
+                    $data['id_proyek'] ?? null,
+                    $actionUrl,
+                    \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE
                 );
             }
             
@@ -354,12 +417,14 @@ class TiketMasalahService
                     }
                     $this->notifikasiService->tambah_notif_user(
                         $uid,
-                        "Tiket masalah baru ditugaskan ke Anda: " . substr($data['keterangan'], 0, 50),
+                        "Tiket masalah ditugaskan ke Anda: " . substr($data['keterangan'] ?? $tiket->keterangan, 0, 50),
                         $userId,
                         $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                         null,
                         $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
-                        $data['id_proyek'] ?? null
+                        $data['id_proyek'] ?? null,
+                        $actionUrl,
+                        \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE
                     );
                 }
             }
@@ -448,6 +513,8 @@ class TiketMasalahService
             $notifyUids[] = $tiket->pic_user_id;
         }
 
+        $actionUrl = ($tiket->ref_type == 'kavling') ? 'siteplan/view?id_kavling=' . $tiket->ref_id . '&filter=Masalah&tiket_ref_type=kavling' : null;
+
         foreach ($notifyUids as $uid) {
             if ($uid != $userId) {
                 $this->notifikasiService->tambah_notif_user(
@@ -457,7 +524,9 @@ class TiketMasalahService
                     $tiket->ref_type == 'kavling' ? $tiket->ref_id : null,
                     null,
                     $this->notificationType($tiket->ref_type, (int) $tiket->ref_id, (int) $idTiket),
-                    $tiket->id_proyek ?? null
+                    $tiket->id_proyek ?? null,
+                    $actionUrl,
+                    \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE
                 );
             }
         }
@@ -570,6 +639,19 @@ class TiketMasalahService
             ->where('active', 1)
             ->where('deleted_at IS NULL', null, false)
             ->orderBy('username', 'ASC')
+            ->get()
+            ->getResult();
+    }
+
+    public function getCreatorList(): array
+    {
+        return $this->db->table('users u')
+            ->select('u.id, u.username, u.name')
+            ->join('tiket_masalah tm', 'tm.pic_user_id = u.id')
+            ->where('u.active', 1)
+            ->where('u.deleted_at IS NULL', null, false)
+            ->groupBy('u.id')
+            ->orderBy('u.username', 'ASC')
             ->get()
             ->getResult();
     }

@@ -36,6 +36,8 @@ class PrintService
     protected $keuRepo;
     protected $posisiKonsumen;
     protected $fileAccessService;
+    protected $mkdtHistoryService;
+    protected MkdtFinancialBreakdownService $financialBreakdownService;
     public function __construct()
     {
         $this->comproModel = new ProfilePerusahaanModel();
@@ -50,38 +52,97 @@ class PrintService
         $this->keuRepo = new KeuanganRepository();
         $this->posisiKonsumen = new PosisiKonsumenRepository();
         $this->fileAccessService = new FileAccessService();
+        $this->mkdtHistoryService = new MkdtHistoryService();
+        $this->financialBreakdownService = new MkdtFinancialBreakdownService();
     }
 
     public function printSpptb(int $idKavling, int $idMkdt, int $idProyek): void
     {
         $data['proyek']       = $this->proyek->find($idProyek);
-        $data['data']         = $this->transaksi->getKonsumenByIdKavling($idKavling);
+        $data['data']         = $this->transaksi->getSpptbData($idKavling, $idMkdt);
+        if (!$data['proyek'] || !$data['data'] || (int) $data['data']->id_proyek !== $idProyek) {
+            throw new \DomainException('Data SPPTB tidak sesuai dengan MKDT, kavling, atau proyek yang diminta.');
+        }
         $data['list_tagihan'] = $this->keuanganModel
             ->where('id_mkdt', $idMkdt)
             ->orderBy('jatuh_tempo_tgl')
             ->find();
 
-        $html[] = view('pdf/spptb-new',       $data);
-        $html[] = view('pdf/spptb-new-page2', $data);
-        $html[] = view('pdf/spptb-new-page3', $data);
+        $sections = [[
+            'data' => $data['data'],
+            'list_tagihan' => $data['list_tagihan'],
+            'sort_at' => PHP_INT_MIN,
+        ]];
 
-        if ($data['data']->is_allin) {
-            $html[] = view('pdf/spptb-memo', $data);
+        foreach ($this->mkdtHistoryService->getConsumerReplacementSnapshots($idMkdt) as $history) {
+            $snapshot = $history->old_data ?? [];
+            if (empty($snapshot['spptb_data'])) {
+                continue;
+            }
+            $sections[] = [
+                'data' => (object) $snapshot['spptb_data'],
+                'list_tagihan' => array_map(static fn ($row) => (object) $row, $snapshot['list_tagihan'] ?? []),
+                'sort_at' => strtotime((string) ($history->created_at ?? '')) ?: 0,
+            ];
         }
 
-        $ktpPath  = !empty($data['data']->file_ktp)  ? $this->fileAccessService->existingPath($data['data']->file_ktp)  : null;
-        $npwpPath = !empty($data['data']->file_npwp) ? $this->fileAccessService->existingPath($data['data']->file_npwp) : null;
+        foreach ($this->transaksi->getLegacyReplacementSpptbData($idKavling, $idMkdt) as $legacy) {
+            $legacyTagihan = $this->keuanganModel
+                ->where('id_mkdt', (int) $legacy->id_mkdt)
+                ->orderBy('jatuh_tempo_tgl')
+                ->find();
+            $sections[] = [
+                'data' => $legacy,
+                'list_tagihan' => $legacyTagihan ?: $data['list_tagihan'],
+                'sort_at' => strtotime((string) ($legacy->created_at ?? '')) ?: 0,
+            ];
+        }
 
-        if ($ktpPath || $npwpPath) {
-            $ktpImg  = $ktpPath  ? "<img src='{$ktpPath}'  width='85mm' height='54mm'>" : '';
-            $npwpImg = $npwpPath ? "<img src='{$npwpPath}' width='85mm' height='54mm'>" : '';
-            $footer  = "<div style='text-align:center;'>{$ktpImg}{$npwpImg}</div>";
-        } else {
-            $footer = "<div style='text-align:center;'><span style='font-size:12px;color:red;'>Belum melampirkan KTP atau NPWP</span></div>";
+        $active = array_shift($sections);
+        usort($sections, static fn (array $a, array $b) => $a['sort_at'] <=> $b['sort_at']);
+        array_unshift($sections, $active);
+
+        $html = [];
+        $seenConsumers = [];
+        foreach ($sections as $section) {
+            $sectionData = $section['data'];
+            $consumerKey = (int) ($sectionData->id_konsumen ?? 0);
+            if ($consumerKey > 0 && isset($seenConsumers[$consumerKey])) {
+                continue;
+            }
+            if ($consumerKey > 0) {
+                $seenConsumers[$consumerKey] = true;
+            }
+
+            $viewData = [
+                'proyek' => $data['proyek'],
+                'data' => $sectionData,
+                'list_tagihan' => $section['list_tagihan'],
+            ];
+            $footer = $this->spptbConsumerFooter($sectionData);
+            $html[] = ['html' => view('pdf/spptb-new', $viewData), 'footer' => $footer];
+            $html[] = ['html' => view('pdf/spptb-new-page2', $viewData), 'footer' => ''];
+            $html[] = ['html' => view('pdf/spptb-new-page3', $viewData), 'footer' => ''];
+            if (!empty($sectionData->is_allin)) {
+                $html[] = ['html' => view('pdf/spptb-memo', $viewData), 'footer' => ''];
+            }
         }
 
         $filename = 'SPPTB - ' . $data['data']->nama_konsumen . ' - ' . date('Ymd') . '.pdf';
-        $this->mpdf->generate($html, $filename, '', [15, 15, 10, 25], 'F4', true, $footer);
+        $this->mpdf->generate($html, $filename, '', [15, 15, 10, 25], 'F4', true);
+    }
+
+    private function spptbConsumerFooter(object $consumer): string
+    {
+        $ktpPath = !empty($consumer->file_ktp) ? $this->fileAccessService->existingPath($consumer->file_ktp) : null;
+        $npwpPath = !empty($consumer->file_npwp) ? $this->fileAccessService->existingPath($consumer->file_npwp) : null;
+        if (!$ktpPath && !$npwpPath) {
+            return "<div style='text-align:center;'><span style='font-size:12px;color:red;'>Belum melampirkan KTP atau NPWP</span></div>";
+        }
+
+        $ktpImg = $ktpPath ? "<img src='" . htmlspecialchars($ktpPath, ENT_QUOTES, 'UTF-8') . "' width='85mm' height='54mm'>" : '';
+        $npwpImg = $npwpPath ? "<img src='" . htmlspecialchars($npwpPath, ENT_QUOTES, 'UTF-8') . "' width='85mm' height='54mm'>" : '';
+        return "<div style='text-align:center;'>{$ktpImg}{$npwpImg}</div>";
     }
 
     public function printKuitansi($var)
@@ -91,6 +152,7 @@ class PrintService
         $id_poryek = $this->kavling->getIdProyekByIdMkdt((int) $id_mkdt);
 
         $data['pembayaran'] = $this->lpModel->getRiwayatBayarByIdPembayran($id);
+        $this->assertPaymentOwnership((int) $id, (int) $id_mkdt, $data['pembayaran']);
         $data['detail'] = $this->lpModel->getDetailRiwayatBayarById($id);
         $data['list'] = $this->keuRepo->getLIKeu();
         $data['konsumen'] = $this->konsumen->getKonsumenTransaksi($id_mkdt);
@@ -116,6 +178,18 @@ class PrintService
         $id_poryek = $this->kavling->getIdProyekByIdMkdt((int) $id_mkdt);
 
         $data['pembayaran'] = $this->lpModel->getRiwayatBayarByIdPembayran($id);
+        $this->assertPaymentOwnership((int) $id, (int) $id_mkdt, $data['pembayaran']);
+        $details = $this->lpModel->getDetailRiwayatBayarById((int) $id);
+        $installmentAmount = 0.0;
+        foreach ($details as $detail) {
+            $isSeparateBooking = ($detail['kategori'] ?? '') === 'BO'
+                && (int) ($detail['booking_is_installment'] ?? 0) === 0;
+            if (! $isSeparateBooking) $installmentAmount += (float) ($detail['nominal'] ?? 0);
+        }
+        if ($installmentAmount <= 0) {
+            throw new \DomainException('Pembayaran booking tersendiri tidak dapat dicetak sebagai kuitansi uang muka.');
+        }
+        $data['pembayaran']->nominal = $installmentAmount;
         $data['list'] = $this->keuRepo->getLIKeu();
         $data['konsumen'] = $this->konsumen->getKonsumenTransaksi($id_mkdt);
         $data['proyek'] = $this->proyek->find($id_poryek);
@@ -132,6 +206,16 @@ class PrintService
         $this->mpdf->generate($html, $filename, $header = '', $mg, [210, 148]);
 
         exit();
+    }
+
+    private function assertPaymentOwnership(int $idPembayaran, int $idMkdt, mixed $payment): void
+    {
+        if (! $payment) throw new \DomainException('Pembayaran tidak ditemukan.');
+        if ((int) ($payment->is_deleted ?? 0) === 1) throw new \DomainException('Pembayaran sudah dihapus.');
+        if ((int) ($payment->id_mkdt ?? 0) === $idMkdt) return;
+        $linked = $this->db->table('mkdt_booking_payment')
+            ->where('id_mkdt', $idMkdt)->where('id_pembayaran', $idPembayaran)->countAllResults();
+        if ($linked === 0) throw new \DomainException('Pembayaran tidak terkait dengan transaksi MKDT ini.');
     }
     function exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)
     {
@@ -403,13 +487,14 @@ class PrintService
         $sheet->mergeCells('U2:U3')->setCellValue('U2', 'LISTRIK');
 
         // Legal & GA
-        $sheet->mergeCells('V1:X1')->setCellValue('V1', 'LEGAL');
+        $sheet->mergeCells('V1:Y1')->setCellValue('V1', 'LEGAL');
         $sheet->mergeCells('V2:V3')->setCellValue('V2', 'HGB');
-        $sheet->mergeCells('W2:W3')->setCellValue('W2', 'IMB');
-        $sheet->mergeCells('X2:X3')->setCellValue('X2', 'PBB');
+        $sheet->mergeCells('W2:W3')->setCellValue('W2', 'NIB ELEKTRONIK');
+        $sheet->mergeCells('X2:X3')->setCellValue('X2', 'IMB');
+        $sheet->mergeCells('Y2:Y3')->setCellValue('Y2', 'PBB');
 
-        $sheet->mergeCells('Y1:Y1')->setCellValue('Y1', 'GA');
-        $sheet->mergeCells('Y2:Y3')->setCellValue('Y2', 'SIKUMBANG');
+        $sheet->mergeCells('Z1:Z1')->setCellValue('Z1', 'GA');
+        $sheet->mergeCells('Z2:Z3')->setCellValue('Z2', 'SIKUMBANG');
 
         // --- 2. STYLING HEADER ---
         $headerStyle = [
@@ -427,7 +512,7 @@ class PrintService
                 'startColor' => ['rgb' => 'F2F2F2'],
             ],
         ];
-        $sheet->getStyle('A1:Y3')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:Z3')->applyFromArray($headerStyle);
 
         //query data
         $dataRumah = $this->posisiKonsumen->getBaseQuery($st);
@@ -460,15 +545,11 @@ class PrintService
                 $um = "-";
                 $adm = "-";
                 $bb = "-";
-                if ($bayar <= 0) {
-                    $persen_tunai = '0%';
-                } else {
-                    $persen_tunai = round(($bayar / $total) * 100) . "%";
-                }
+                $persen_tunai = $this->financialBreakdownService->progress((float) $total, (float) $bayar)['label'];
             } else {
-                $um = $row->total_um <= 0 ? "0%" : round(($row->total_um / $row->um) * 100) . "%";
-                $adm = $row->total_adm <= 0 ? "0%" : round(($row->total_adm / $row->adm) * 100) . "%";
-                $bb = $row->total_bb <= 0 ? "0%" : round(($row->total_bb / $row->bb) * 100) . "%";
+                $um = $this->financialBreakdownService->progress((float) $row->um, (float) $row->total_um)['label'];
+                $adm = $this->financialBreakdownService->progress((float) $row->adm, (float) $row->total_adm)['label'];
+                $bb = $this->financialBreakdownService->progress((float) $row->bb, (float) $row->total_bb)['label'];
             }
 
             $sheet->setCellValue('A' . $column, $no++);
@@ -493,17 +574,18 @@ class PrintService
             $sheet->setCellValue('T' . $column, $row->lpa ? '✓' : '');
             $sheet->setCellValue('U' . $column, $row->st_listrik ? '✓' : '');
             $sheet->setCellValue('V' . $column, $row->sertifikat_split_no_hgb);
-            $sheet->setCellValue('W' . $column, $row->pbg_no);
-            $sheet->setCellValue('X' . $column, $row->pbb_pecah_nop);
-            $sheet->setCellValue('Y' . $column, $row->sikumbang);
+            $sheet->setCellValue('W' . $column, $row->sertifikat_split_nib);
+            $sheet->setCellValue('X' . $column, $row->pbg_no);
+            $sheet->setCellValue('Y' . $column, $row->pbb_pecah_nop);
+            $sheet->setCellValue('Z' . $column, $row->sikumbang);
 
             // Beri border untuk baris data
-            $sheet->getStyle('A' . $column . ':Y' . $column)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle('A' . $column . ':Z' . $column)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $column++;
         }
 
         // Auto size kolom agar rapi
-        foreach (range('A', 'Y') as $col) {
+        foreach (range('A', 'Z') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 

@@ -43,6 +43,8 @@ class KeuanganRepository extends Model
             j.nama_jalan,
             cl.nama_cluster,
             m.id_mkdt,
+            m.status_mkdt,
+            m.is_lunas,
             nama_proyek
         ')
             ->join('mkdt m', 'm.id_mkdt = keuangan.id_mkdt')
@@ -100,9 +102,10 @@ class KeuanganRepository extends Model
             (m.harga_administrasi) as adm,
             (m.harga_bphtb + m.harga_biaya_proses + m.harga_ppn + m.harga_penambahan_um +m.harga_penambahan +m.harga_penambahan_tanah) as bb,
 
-            mps.total_um,
-            mps.total_adm,
-            mps.total_bb,
+            COALESCE(mps.total_um, 0) as total_um,
+            COALESCE(mps.total_adm, 0) as total_adm,
+            COALESCE(mps.total_bb, 0) as total_bb,
+            COALESCE(mps.total_booking, 0) as total_booking,
 
             a.username as uadd_by,
             b.username as uedit_by,
@@ -202,16 +205,19 @@ class KeuanganRepository extends Model
         $paidDetailSubQuery = $this->db->table('log_pembayaran_detail lpd')
             ->select('lp.id_mkdt, COALESCE(SUM(lpd.nominal), 0) AS total_sudah_bayar_detail')
             ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
+            ->join('keuangan_item_list kil', 'kil.id_keuangan_item_list = lpd.id_keuangan_item_list')
             ->where('lp.is_deleted', 0)
-            ->where('lp.payment_type !=', 'Booking')
+            ->where("NOT (kil.kategori = 'BO' AND COALESCE(lpd.booking_is_installment, 0) = 0)", null, false)
+            ->where("LOWER(REPLACE(TRIM(COALESCE(lp.payment_type,'')), ';', '')) != 'refund'", null, false)
             ->groupBy('lp.id_mkdt')
             ->getCompiledSelect();
 
-        $paidLogSubQuery = $this->db->table('log_pembayaran')
-            ->select('id_mkdt, COALESCE(SUM(nominal), 0) AS total_sudah_bayar_log')
-            ->where('is_deleted', 0)
-            ->where('payment_type !=', 'Booking')
-            ->groupBy('id_mkdt')
+        $paidLogSubQuery = $this->db->table('log_pembayaran lp')
+            ->select('lp.id_mkdt, COALESCE(SUM(lp.nominal), 0) AS total_sudah_bayar_log')
+            ->join('log_pembayaran_detail lpd', 'lpd.id_pembayaran = lp.id_pembayaran', 'left')
+            ->where('lp.is_deleted', 0)->where('lpd.id_pembayaran', null)
+            ->where("LOWER(REPLACE(TRIM(COALESCE(lp.payment_type,'')), ';', '')) NOT IN ('booking','refund')", null, false)
+            ->groupBy('lp.id_mkdt')
             ->getCompiledSelect();
 
         return $this->db->table("mkdt m")
@@ -225,10 +231,10 @@ class KeuanganRepository extends Model
                 keu_agg.jatuh_tempo_tgl,
                 keu_agg.jumlah_tagihan,
                 COALESCE(tagihan_agg.total_tagihan, 0) AS total_tagihan,
-                COALESCE(NULLIF(paid_detail_agg.total_sudah_bayar_detail, 0), paid_log_agg.total_sudah_bayar_log, 0) AS sudah_bayar,
+                (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)) AS sudah_bayar,
                 GREATEST(
                     COALESCE(tagihan_agg.total_tagihan, 0) -
-                    COALESCE(NULLIF(paid_detail_agg.total_sudah_bayar_detail, 0), paid_log_agg.total_sudah_bayar_log, 0),
+                    (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)),
                     0
                 ) AS sisa_tagihan,
                 (m.harga_uang_muka - m.harga_diskon_uang_muka - m.harga_sbum) as um,
@@ -237,6 +243,7 @@ class KeuanganRepository extends Model
                 tipe.no_tipe_rumah,
                 tipe.tipe_rumah,
                 m.id_mkdt,
+                CASE WHEN m.is_lunas = 1 AND COALESCE(tagihan_agg.total_tagihan, 0) > (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)) THEN 1 ELSE 0 END AS perlu_rekonsiliasi,
                 p.nama_proyek
             ')
             ->join("({$unpaidSubQuery}) keu_agg", 'keu_agg.id_mkdt = m.id_mkdt', 'inner')
@@ -254,6 +261,11 @@ class KeuanganRepository extends Model
             ->join('users b', 'b.id = m.edit_by', 'left')
             ->where('m.status_mkdt !=', 'Batal')
             ->where('m.is_lunas', '0')
+            ->where(
+                'COALESCE(tagihan_agg.total_tagihan, 0) > (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0))',
+                null,
+                false
+            )
             ->where('
                 (m.harga_uang_muka - m.harga_diskon_uang_muka - m.harga_sbum) +
                 (m.harga_administrasi) +
@@ -279,16 +291,19 @@ class KeuanganRepository extends Model
         $paidDetailSubQuery = $this->db->table('log_pembayaran_detail lpd')
             ->select('lp.id_mkdt, COALESCE(SUM(lpd.nominal), 0) AS total_sudah_bayar_detail')
             ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
+            ->join('keuangan_item_list kil', 'kil.id_keuangan_item_list = lpd.id_keuangan_item_list')
             ->where('lp.is_deleted', 0)
-            ->where('lp.payment_type !=', 'Booking')
+            ->where("NOT (kil.kategori = 'BO' AND COALESCE(lpd.booking_is_installment, 0) = 0)", null, false)
+            ->where("LOWER(REPLACE(TRIM(COALESCE(lp.payment_type,'')), ';', '')) != 'refund'", null, false)
             ->groupBy('lp.id_mkdt')
             ->getCompiledSelect();
 
-        $paidLogSubQuery = $this->db->table('log_pembayaran')
-            ->select('id_mkdt, COALESCE(SUM(nominal), 0) AS total_sudah_bayar_log')
-            ->where('is_deleted', 0)
-            ->where('payment_type !=', 'Booking')
-            ->groupBy('id_mkdt')
+        $paidLogSubQuery = $this->db->table('log_pembayaran lp')
+            ->select('lp.id_mkdt, COALESCE(SUM(lp.nominal), 0) AS total_sudah_bayar_log')
+            ->join('log_pembayaran_detail lpd', 'lpd.id_pembayaran = lp.id_pembayaran', 'left')
+            ->where('lp.is_deleted', 0)->where('lpd.id_pembayaran', null)
+            ->where("LOWER(REPLACE(TRIM(COALESCE(lp.payment_type,'')), ';', '')) NOT IN ('booking','refund')", null, false)
+            ->groupBy('lp.id_mkdt')
             ->getCompiledSelect();
 
         return $this->db->table("mkdt m")
@@ -302,10 +317,10 @@ class KeuanganRepository extends Model
                 keu_agg.jatuh_tempo_tgl,
                 keu_agg.jumlah_tagihan,
                 COALESCE(tagihan_agg.total_tagihan, 0) AS total_tagihan,
-                COALESCE(NULLIF(paid_detail_agg.total_sudah_bayar_detail, 0), paid_log_agg.total_sudah_bayar_log, 0) AS sudah_bayar,
+                (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)) AS sudah_bayar,
                 GREATEST(
                     COALESCE(tagihan_agg.total_tagihan, 0) -
-                    COALESCE(NULLIF(paid_detail_agg.total_sudah_bayar_detail, 0), paid_log_agg.total_sudah_bayar_log, 0),
+                    (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)),
                     0
                 ) AS sisa_tagihan,
                 (m.harga_uang_muka - m.harga_diskon_uang_muka - m.harga_sbum) as um,
@@ -314,6 +329,7 @@ class KeuanganRepository extends Model
                 tipe.no_tipe_rumah,
                 tipe.tipe_rumah,
                 m.id_mkdt,
+                CASE WHEN m.is_lunas = 1 AND COALESCE(tagihan_agg.total_tagihan, 0) > (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)) THEN 1 ELSE 0 END AS perlu_rekonsiliasi,
                 p.nama_proyek
             ')
             ->join("({$tagihanAggSubQuery}) keu_agg", 'keu_agg.id_mkdt = m.id_mkdt', 'left')
@@ -333,7 +349,7 @@ class KeuanganRepository extends Model
             ->groupStart()
                 ->where('m.is_lunas', '1')
                 ->orWhere(
-                    'COALESCE(tagihan_agg.total_tagihan, 0) > 0 AND COALESCE(tagihan_agg.total_tagihan, 0) <= COALESCE(NULLIF(paid_detail_agg.total_sudah_bayar_detail, 0), paid_log_agg.total_sudah_bayar_log, 0)',
+                    'COALESCE(tagihan_agg.total_tagihan, 0) > 0 AND COALESCE(tagihan_agg.total_tagihan, 0) <= (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0))',
                     null,
                     false
                 )

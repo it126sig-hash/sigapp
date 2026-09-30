@@ -175,6 +175,131 @@
   .hasil-akad-child-error {
     color: #b91c1c;
   }
+
+  #modal-filter .flatpickr-wrapper {
+    width: 100%;
+  }
+
+  .hasil-akad-summary {
+    border-top: 1px solid #e5e7eb;
+    padding: .5rem .75rem .8rem;
+  }
+
+  .hasil-akad-summary .divider {
+    margin: .25rem 0 .65rem;
+  }
+
+  .hasil-akad-summary-grid {
+    display: grid;
+    gap: .65rem;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .hasil-akad-summary-card {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    display: flex;
+    gap: .65rem;
+    min-width: 0;
+    padding: .7rem;
+  }
+
+  .hasil-akad-summary-card>span:last-child {
+    min-width: 0;
+  }
+
+  .hasil-akad-summary-icon {
+    align-items: center;
+    background: #eef5ff;
+    border-radius: 7px;
+    color: #2057a3;
+    display: inline-flex;
+    flex: 0 0 34px;
+    height: 34px;
+    justify-content: center;
+  }
+
+  .hasil-akad-summary-label {
+    color: #6b7280;
+    display: block;
+    font-size: .65rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: .2rem;
+  }
+
+  .hasil-akad-summary-value {
+    color: #111827;
+    display: block;
+    font-size: .8rem;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 1199.98px) {
+    .hasil-akad-summary-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .hasil-akad-summary-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .flatpickr-calendar.multiMonth {
+      background: #fff;
+      max-width: 100%;
+      width: 100% !important;
+    }
+
+    .flatpickr-calendar.multiMonth .flatpickr-months,
+    .flatpickr-calendar.multiMonth .flatpickr-innerContainer,
+    .flatpickr-calendar.multiMonth .flatpickr-rContainer,
+    .flatpickr-calendar.multiMonth .flatpickr-weekdays,
+    .flatpickr-calendar.multiMonth .flatpickr-days,
+    .flatpickr-calendar.multiMonth .dayContainer {
+      background: #fff;
+    }
+
+    .flatpickr-calendar.multiMonth .flatpickr-rContainer,
+    .flatpickr-calendar.multiMonth .flatpickr-days,
+    .flatpickr-calendar.multiMonth .flatpickr-weekdays {
+      max-width: 100%;
+      width: 100%;
+    }
+
+    .flatpickr-calendar.multiMonth .flatpickr-month,
+    .flatpickr-calendar.multiMonth .flatpickr-weekdaycontainer,
+    .flatpickr-calendar.multiMonth .dayContainer {
+      flex: 0 0 50%;
+      max-width: 50% !important;
+      min-width: 0 !important;
+      width: 50% !important;
+    }
+
+    .flatpickr-calendar.multiMonth .flatpickr-weekday {
+      font-size: .65rem;
+    }
+
+    .flatpickr-calendar.multiMonth .flatpickr-day {
+      font-size: .7rem;
+      height: 30px;
+      line-height: 30px;
+      max-width: none;
+      width: 14.2857143%;
+    }
+  }
+
+  @media (max-width: 479.98px) {
+    .hasil-akad-summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 <!-- /.card-header -->
 <div class="app-content content list-hasil-akad-page">
@@ -188,28 +313,25 @@
             <h5 class="list-hasil-akad-title"><?= $data['title'] ?></h5>
             <div class="list-hasil-akad-divider"></div>
             <div class="list-hasil-akad-filter">
-              <div class="filter-field">
-                <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
-              </div>
-              <div class="filter-field">
-                <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
-              </div>
-              <div class="filter-field filter-field-sm">
-                <select id="status_cair" name="status_cair" class="form-control">
-                  <option value="">Semua</option>
-                  <option value="belum_cair">Belum Cair</option>
-                  <option value="sudah_cair">Sudah Cair</option>
-                </select>
+              <div class="filter-action">
+                <button type="button" class="btn btn-primary waves-effect btn-sm text-uppercase" data-toggle="modal" data-target="#modal-filter">
+                  <i class="fas fa-filter mr-25"></i> Filter Data
+                </button>
               </div>
               <div class="filter-action">
-                <button type="button" id="btn_draw" class="btn btn-primary waves-effect btn-sm text-uppercase">
-                  <i class="fas fa-filter mr-25"></i> Filter Data
+                <button type="button" class="btn btn-outline-secondary waves-effect btn-sm text-uppercase btn-clear-filter">
+                  <i class="fas fa-times mr-25"></i> Clear Filter
                 </button>
               </div>
               <div class="filter-action">
                 <a href="<?= base_url('keuangan/hasil-akad/import') ?>" class="btn btn-outline-primary waves-effect btn-sm text-uppercase">
                   <i class="fas fa-upload mr-25"></i> Import Tanggal Cair
                 </a>
+              </div>
+            </div>
+            <div class="w-100 mt-50" id="active_filter_container" style="display: none;">
+              <div class="text-muted" style="font-size: 0.8rem;">
+                <i class="fas fa-info-circle mr-25"></i> <strong>Filter Aktif:</strong> <span id="active_filter_text"></span>
               </div>
             </div>
           </div>
@@ -236,10 +358,107 @@
               </thead>
             </table>
           </div>
+          <div class="hasil-akad-summary" id="hasil_akad_summary" aria-live="polite">
+            <div class="divider divider-left">
+              <div class="divider-text">Ringkasan Hasil Filter</div>
+            </div>
+            <div class="hasil-akad-summary-grid">
+              <div class="hasil-akad-summary-card">
+                <span class="hasil-akad-summary-icon"><i class="fas fa-home"></i></span>
+                <span class="min-width-0">
+                  <span class="hasil-akad-summary-label">Jumlah Kavling</span>
+                  <span class="hasil-akad-summary-value" id="summary_jumlah_kavling">0</span>
+                </span>
+              </div>
+              <div class="hasil-akad-summary-card">
+                <span class="hasil-akad-summary-icon"><i class="fas fa-tag"></i></span>
+                <span class="min-width-0">
+                  <span class="hasil-akad-summary-label">Total Harga Jual</span>
+                  <span class="hasil-akad-summary-value" id="summary_total_harga_jual">Rp 0</span>
+                </span>
+              </div>
+              <div class="hasil-akad-summary-card">
+                <span class="hasil-akad-summary-icon"><i class="fas fa-university"></i></span>
+                <span class="min-width-0">
+                  <span class="hasil-akad-summary-label">Total ACC KPR</span>
+                  <span class="hasil-akad-summary-value" id="summary_total_acc_kpr">Rp 0</span>
+                </span>
+              </div>
+              <div class="hasil-akad-summary-card">
+                <span class="hasil-akad-summary-icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                <span class="min-width-0">
+                  <span class="hasil-akad-summary-label">Pengajuan Outstanding</span>
+                  <span class="hasil-akad-summary-value text-warning" id="summary_total_pengajuan_outstanding">Rp 0</span>
+                </span>
+              </div>
+              <div class="hasil-akad-summary-card">
+                <span class="hasil-akad-summary-icon"><i class="fas fa-check-circle"></i></span>
+                <span class="min-width-0">
+                  <span class="hasil-akad-summary-label">Sudah Cair</span>
+                  <span class="hasil-akad-summary-value text-success" id="summary_total_sudah_cair">Rp 0</span>
+                </span>
+              </div>
+              <div class="hasil-akad-summary-card">
+                <span class="hasil-akad-summary-icon"><i class="fas fa-wallet"></i></span>
+                <span class="min-width-0">
+                  <span class="hasil-akad-summary-label">Sisa</span>
+                  <span class="hasil-akad-summary-value text-danger" id="summary_total_sisa">Rp 0</span>
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
+</div>
+
+<!-- Modal Filter -->
+<div class="modal modal-slide-in fade" id="modal-filter">
+  <div class="modal-dialog sidebar-sm">
+    <form class="add-new-record modal-content pt-0">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
+      <div class="modal-header mb-1">
+        <h5 class="modal-title" id="exampleModalLabel">Filter Data</h5>
+      </div>
+      <div class="modal-body flex-grow-1">
+        <div class="form-group">
+          <label class="form-label">Jenis Tanggal</label>
+          <select id="jenis_tanggal" name="jenis_tanggal" class="form-control">
+            <option value="tanggal_pengajuan">Tanggal Pengajuan Pencairan</option>
+            <option value="tanggal_akad" selected>Tanggal Akad</option>
+            <option value="tanggal_pencairan">Tanggal Pencairan Hasil Akad &amp; Retensi</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Periode Tanggal</label>
+          <input type="text" id="periode_tanggal" class="form-control" placeholder="Pilih Periode" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cluster</label>
+          <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Blok / Jalan</label>
+          <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status Pencairan</label>
+          <select id="status_cair" name="status_cair" class="form-control">
+            <option value="belum_cair" selected>Belum Cair</option>
+            <option value="sudah_cair">Sudah Cair</option>
+            <option value="">Semua</option>
+          </select>
+        </div>
+        <button type="button" id="btn_draw" class="btn btn-primary btn-block waves-effect text-uppercase mt-2" data-dismiss="modal">
+          <i class="fas fa-filter mr-25"></i> Terapkan Filter
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-block waves-effect text-uppercase mt-1 btn-clear-filter" data-dismiss="modal">
+          <i class="fas fa-times mr-25"></i> Clear Filter
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <?= view('keuangan/partials/modal_pencairan_akad') ?>
@@ -263,6 +482,25 @@
 <script>
   let hasilAkadTable = null;
   let hasilAkadDetailCache = {};
+  let periodeTanggalPicker = null;
+
+  function hasilAkadSummaryMoney(value) {
+    const nominal = parseFloat(value || 0);
+    return "Rp " + num_format(Number.isFinite(nominal) ? nominal : 0);
+  }
+
+  function renderHasilAkadSummary(summary) {
+    const data = summary || {};
+    const jumlahKavling = parseInt(data.jumlah_kavling || 0, 10);
+
+    $("#summary_jumlah_kavling").text(num_format(Number.isFinite(jumlahKavling) ? jumlahKavling : 0));
+    $("#summary_total_harga_jual").text(hasilAkadSummaryMoney(data.total_harga_jual));
+    $("#summary_total_acc_kpr").text(hasilAkadSummaryMoney(data.total_acc_kpr));
+    $("#summary_total_pengajuan_outstanding").text(hasilAkadSummaryMoney(data.total_pengajuan_outstanding));
+    $("#summary_total_sudah_cair").text(hasilAkadSummaryMoney(data.total_sudah_cair));
+    $("#summary_total_sisa").text(hasilAkadSummaryMoney(data.total_sisa));
+    $("#hasil_akad_summary").attr("aria-busy", "false");
+  }
 
   function paChildEscape(value) {
     return $("<div>").text(value === null || value === undefined ? "" : value).html();
@@ -329,11 +567,9 @@
       return `
         <tr>
           <td>${row.tanggal_pengajuan ? format_date(row.tanggal_pengajuan) : "-"}</td>
-          <td>${row.tanggal_rencana_cair ? format_date(row.tanggal_rencana_cair) : "-"}</td>
           <td class="text-right">Rp ${num_format(parseFloat(row.total_pengajuan || 0))}</td>
           <td class="text-right">Rp ${num_format(parseFloat(row.total_cair || 0))}</td>
           <td>${paChildStatusBadge(row.status)}</td>
-          <td>${lampiran}</td>
         </tr>`;
     }).join("");
 
@@ -342,11 +578,9 @@
         <thead>
           <tr>
             <th>Tgl Pengajuan</th>
-            <th>Rencana Cair</th>
             <th class="text-right">Total Pengajuan</th>
             <th class="text-right">Total Cair</th>
             <th>Status</th>
-            <th>Lampiran</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -498,14 +732,25 @@
           data.id_cluster = $("#id_cluster").val()
           data.id_jalan = $("#id_jalan").val()
           data.status_cair = $("#status_cair").val()
+          data.jenis_tanggal = $("#jenis_tanggal").val()
+          data.periode_tanggal = $("#periode_tanggal").val()
         },
         dataSrc: function(r) {
           if (r.token) csrfHash = r.token
+          renderHasilAkadSummary(r.summary)
           return r.data;
         },
         async: "true"
       }
     });
+
+    $('#data_table_hasil_akad')
+      .on('preXhr.dt', function() {
+        $("#hasil_akad_summary").attr("aria-busy", "true");
+      })
+      .on('error.dt', function() {
+        renderHasilAkadSummary({});
+      });
 
     $('#data_table_hasil_akad tbody').on('click', '.hasil-akad-detail-toggle', function() {
       const tr = $(this).closest('tr');
@@ -531,6 +776,7 @@
 
     if (activeProyekId()) {
       $("#id_cluster").prop("disabled", false);
+      updateActiveFilterText();
       hasilAkadTable.draw();
     }
 
@@ -609,13 +855,66 @@
         cache: true
       },
     })
+    
+    $("#modal-filter").on("shown.bs.modal", function() {
+      if (!periodeTanggalPicker) {
+        periodeTanggalPicker = $("#periode_tanggal").flatpickr({
+          mode: "range",
+          dateFormat: "Y-m-d",
+          altInput: true,
+          altFormat: "d-m-Y",
+          showMonths: 2,
+          static: window.matchMedia("(max-width: 767.98px)").matches,
+        });
+      }
+    });
+
+    function updateActiveFilterText() {
+      let activeFilters = [];
+      
+      let tgl = $("#periode_tanggal").val();
+      let jenisTanggal = $("#jenis_tanggal").find("option:selected").text();
+      if (tgl) activeFilters.push(jenisTanggal + ": " + tgl.replace(" to ", " s/d "));
+      
+      let cluster = $("#id_cluster").find("option:selected").text();
+      if ($("#id_cluster").val() && cluster) activeFilters.push("Cluster: " + cluster);
+      
+      let jalan = $("#id_jalan").find("option:selected").text();
+      if ($("#id_jalan").val() && jalan) activeFilters.push("Blok/Jalan: " + jalan);
+      
+      let status = $("#status_cair").find("option:selected").text();
+      if ($("#status_cair").val() && status && status !== "Semua") activeFilters.push("Status Pencairan: " + status);
+      
+      if (activeFilters.length > 0) {
+        $("#active_filter_text").text(activeFilters.join(" | "));
+        $("#active_filter_container").show();
+      } else {
+        $("#active_filter_container").hide();
+        $("#active_filter_text").text("");
+      }
+    }
+
+    $(".btn-clear-filter").on("click", function(e) {
+      if (periodeTanggalPicker) periodeTanggalPicker.clear();
+      $("#jenis_tanggal").val("tanggal_akad");
+      $("#id_cluster").val(null).trigger("change");
+      $("#id_jalan").val(null).trigger("change");
+      $("#status_cair").val("belum_cair");
+      
+      updateActiveFilterText();
+      hasilAkadDetailCache = {};
+      renderHasilAkadSummary({});
+      hasilAkadTable.draw();
+    });
 
     $("#btn_draw").on("click", function(e) {
+      updateActiveFilterText();
       hasilAkadDetailCache = {};
       hasilAkadTable.draw();
     })
 
     $("#status_cair").on("change", function(e) {
+      updateActiveFilterText();
       hasilAkadDetailCache = {};
       hasilAkadTable.draw();
     })

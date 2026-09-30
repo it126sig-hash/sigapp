@@ -30,4 +30,28 @@ class MkdtController extends BaseApiController
 
         return $this->response->setJSON($result);
     }
+
+    public function consumerReplacementHistory(): ResponseInterface
+    {
+        $rules = [
+            'id_mkdt' => 'required|is_natural_no_zero',
+            'id_kavling' => 'required|is_natural_no_zero',
+        ];
+
+        if (!$this->validate($rules)) {
+            return $this->failValidationErrors($this->validator->getErrors());
+        }
+
+        $history = $this->historyService->getConsumerReplacementHistory(
+            (int) $this->request->getVar('id_mkdt'),
+            (int) $this->request->getVar('id_kavling')
+        );
+
+        return $this->response->setJSON([
+            'success' => true,
+            'history' => $history,
+            'has_history' => count($history) > 0,
+            'token' => csrf_hash(),
+        ]);
+    }
 }

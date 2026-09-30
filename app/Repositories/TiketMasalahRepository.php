@@ -68,7 +68,7 @@ class TiketMasalahRepository
             ->join('users u', 'u.id = tmp.user_id', 'left')
             ->where('tmp.id_tiket_masalah', $idTiket)
             ->orderBy('tmp.is_pinned', 'DESC')
-            ->orderBy('tmp.created_at', 'ASC')
+            ->orderBy('tmp.created_at', 'DESC')
             ->limit($limit, $offset)
             ->get()
             ->getResult();
@@ -78,7 +78,8 @@ class TiketMasalahRepository
     {
         $builder = $this->db->table('tiket_masalah tm')
             ->select('
-                tm.id, tm.ref_type, tm.ref_id, tm.id_proyek, tm.tanggal_masalah, 
+                tm.id, tm.ref_type, tm.ref_id, tm.id_proyek, tm.tanggal_masalah,
+                COALESCE(jk.id_cluster, jo.id_cluster) as target_cluster_id,
                 tm.keterangan, tm.prioritas, tm.status, tm.created_at,
                 u.username as pic_username,
                 IF(tm.ref_type = "kavling", CONCAT_WS(" - ", jk.nama_jalan, k.no_kavling), CONCAT_WS(" - ", jo.nama_jalan, o.nama)) as lokasi,
@@ -135,10 +136,10 @@ class TiketMasalahRepository
         if (!empty($params['filter_periode'])) {
             $dates = explode(' to ', $params['filter_periode']);
             if (count($dates) == 2) {
-                $builder->where('DATE(tm.created_at) >=', trim($dates[0]))
-                        ->where('DATE(tm.created_at) <=', trim($dates[1]));
+                $builder->where('DATE(tm.tanggal_masalah) >=', trim($dates[0]))
+                        ->where('DATE(tm.tanggal_masalah) <=', trim($dates[1]));
             } else {
-                $builder->where('DATE(tm.created_at)', trim($dates[0]));
+                $builder->where('DATE(tm.tanggal_masalah)', trim($dates[0]));
             }
         }
 

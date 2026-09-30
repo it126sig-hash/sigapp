@@ -61,7 +61,7 @@
 	.dz-preview {
 		display: none;
 		height: 100%;
-		max-width: 90px;
+		max-width: 100%;
 	}
 
 	.dz-preview .thumb-wrap {
@@ -76,7 +76,9 @@
 	.dz-preview img {
 		display: block;
 		max-height: 90px;
+		max-width: 100%;
 		width: auto;
+		margin: 0 auto;
 	}
 
 	.dz-remove {
@@ -113,7 +115,7 @@
 						<table id="data_table" class="datatables-basic table">
 							<thead>
 								<tr>
-									<th>Id proyek</th>
+									<th>No</th>
 									<th>Nama proyek</th>
 									<th>Alamat proyek</th>
 									<th>Logo</th>
@@ -184,6 +186,10 @@
 								<div class="form-group">
 									<label for="atasNama"> Atas nama: </label>
 									<input type="text" id="atasNama" name="atasNama" class="form-control" placeholder="Atas nama" maxlength="255">
+								</div>
+								<div class="form-group">
+									<label for="addOrderBy"> Sort / Urutan: </label>
+									<input type="number" id="addOrderBy" name="orderBy" class="form-control" placeholder="Sort / Urutan (contoh: 1)">
 								</div>
 							</div>
 							<div class="col-md-5">
@@ -307,6 +313,10 @@
 											<label for="atasNama"> Atas nama: </label>
 											<input type="text" id="atasNama" name="atasNama" class="form-control" placeholder="Atas nama" maxlength="255">
 										</div>
+										<div class="form-group">
+											<label for="editOrderBy"> Sort / Urutan: </label>
+											<input type="number" id="editOrderBy" name="orderBy" class="form-control" placeholder="Sort / Urutan (contoh: 1)">
+										</div>
 									</div>
 									<div class="col-md-5">
 										<div class="divider divider-left">
@@ -396,6 +406,292 @@
 				</form>
 			</div>
 		</div>
+	
+		<!-- Modal View -->
+		<div class="modal fade" id="view-modal">
+			<div class="modal-dialog modal-dialog-scrollable modal-xl">
+				<div class="modal-content" style="background-color: #f8f8f8;">
+					<!-- Header -->
+					<div class="modal-header d-flex justify-content-between align-items-center bg-white pb-0" style="border-bottom: none; border-radius: .357rem .357rem 0 0;">
+						<div class="d-flex align-items-center">
+							<div class="p-1 rounded mr-1" style="background-color: #eaf4ff;">
+								<i class="fas fa-building text-primary font-medium-5"></i>
+							</div>
+							<div>
+								<h4 class="modal-title mb-0 font-weight-bolder text-dark">
+									Detail Data Proyek 
+									<span class="badge badge-light-success ml-1 badge-pill"><i class="fas fa-circle font-small-1 mr-25"></i> Proyek Aktif</span>
+									<span class="badge badge-light-secondary ml-50 badge-pill bg-transparent border border-secondary text-secondary">Urutan: <span id="view_label_urutan">0</span></span>
+								</h4>
+								<small class="text-muted">Informasi lengkap entitas perumahan, legalitas PT pengembang, rekening perbankan, dan dokumen siteplan.</small>
+							</div>
+						</div>
+						<div>
+							<button type="button" class="btn btn-outline-secondary btn-sm mr-1"><i class="fas fa-print mr-25"></i> Cetak</button>
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: relative; margin: 0; padding: 0;"><span aria-hidden="true">&times;</span></button>
+						</div>
+					</div>
+
+					<!-- Body -->
+					<div class="modal-body pt-2 pb-0">
+						
+						<!-- NAMA RESMI PROYEK -->
+						<div class="card shadow-sm mb-2" style="border-radius: .5rem;">
+							<div class="card-body d-flex justify-content-between align-items-center p-2">
+								<div>
+									<div class="text-primary font-weight-bold mb-50" style="font-size: 0.75rem; letter-spacing: 1px;">NAMA RESMI PROYEK</div>
+									<h3 class="font-weight-bolder text-dark mb-50" id="view_label_nama_proyek" style="letter-spacing: -0.5px;">-</h3>
+									<div class="text-muted"><i class="fas fa-map-marker-alt mr-50 text-secondary"></i> <span id="view_label_alamat_proyek">-</span></div>
+								</div>
+								<div>
+									<a href="#" id="view_btn_landing_page" target="_blank" class="btn btn-outline-primary"><i class="fas fa-external-link-alt mr-50"></i> Buka sigapp.site</a>
+								</div>
+							</div>
+						</div>
+
+						<div class="row">
+							<!-- Left Column -->
+							<div class="col-md-7">
+								
+								<!-- WILAYAH ADMINISTRASI PROYEK -->
+								<div class="card shadow-sm mb-2" style="border-radius: .5rem;">
+									<div class="card-body p-2">
+										<div class="d-flex align-items-center mb-1">
+											<div class="bg-light-primary rounded p-50 mr-1"><i class="fas fa-map text-primary"></i></div>
+											<h6 class="font-weight-bolder mb-0 text-dark">WILAYAH ADMINISTRASI PROYEK</h6>
+										</div>
+										<div class="row mb-1">
+											<div class="col-6 mb-1">
+												<div class="p-1 rounded" style="background-color: #fcfcfc; border: 1px solid #f0f0f0;">
+													<small class="text-muted d-block">Kelurahan</small>
+													<span class="font-weight-bold text-dark" id="view_label_kelurahan">-</span>
+												</div>
+											</div>
+											<div class="col-6 mb-1">
+												<div class="p-1 rounded" style="background-color: #fcfcfc; border: 1px solid #f0f0f0;">
+													<small class="text-muted d-block">Kecamatan</small>
+													<span class="font-weight-bold text-dark" id="view_label_kecamatan">-</span>
+												</div>
+											</div>
+											<div class="col-6">
+												<div class="p-1 rounded" style="background-color: #fcfcfc; border: 1px solid #f0f0f0;">
+													<small class="text-muted d-block">Kota / Kabupaten</small>
+													<span class="font-weight-bold text-dark" id="view_label_kota">-</span>
+												</div>
+											</div>
+											<div class="col-6">
+												<div class="p-1 rounded" style="background-color: #fcfcfc; border: 1px solid #f0f0f0;">
+													<small class="text-muted d-block">Provinsi</small>
+													<span class="font-weight-bold text-dark" id="view_label_provinsi">-</span>
+												</div>
+											</div>
+										</div>
+										<div class="d-flex justify-content-between align-items-center mt-2 border-top pt-1">
+											<small class="text-muted">Alamat Lengkap Presisi:</small>
+											<span class="font-weight-bold text-dark" style="font-size: 0.9rem;" id="view_label_alamat_presisi">-</span>
+										</div>
+									</div>
+								</div>
+
+								<!-- ENTITAS PENGEMBANG & REKENING RESMI -->
+								<div class="card shadow-sm mb-2" style="border-radius: .5rem;">
+									<div class="card-body p-2">
+										<div class="d-flex align-items-center mb-1">
+											<div class="bg-light-primary rounded p-50 mr-1"><i class="fas fa-building text-primary"></i></div>
+											<h6 class="font-weight-bolder mb-0 text-dark">ENTITAS PENGEMBANG & REKENING RESMI</h6>
+										</div>
+										
+										<div class="mb-1">
+											<small class="text-muted d-block mb-25">Perusahaan Pengembang (PT)</small>
+											<div class="d-flex align-items-center">
+												<h5 class="font-weight-bolder text-dark mb-0 mr-1" id="view_label_nama_pt">-</h5>
+												<span class="badge badge-light-primary badge-pill" style="font-size: 0.6rem; letter-spacing: 0.5px;">DEVELOPER RESMI</span>
+											</div>
+										</div>
+
+										<!-- Rekening Card -->
+										<div class="rounded p-2 text-white mt-2" style="background-color: #0d2136; box-shadow: 0 4px 12px rgba(13,33,54,0.15);">
+											<div class="d-flex justify-content-between align-items-center mb-1">
+												<small style="color: #6a8ba8; letter-spacing: 1px; font-size: 0.7rem;">BANK TRANSFER OPERASIONAL</small>
+												<span class="badge badge-secondary" id="view_label_bank" style="background-color: #435b71;">-</span>
+											</div>
+											<div class="mb-1">
+												<small class="d-block mb-25" style="color: #6a8ba8; letter-spacing: 1px; font-size: 0.7rem;">NOMOR REKENING</small>
+												<h3 class="text-white font-weight-bolder mb-0 d-flex align-items-center" style="letter-spacing: 1px;">
+													<span id="view_label_norek">-</span> 
+													<i class="far fa-copy ml-1 font-medium-1 cursor-pointer" style="color: #6a8ba8;" onclick="navigator.clipboard.writeText(document.getElementById('view_label_norek').innerText); Swal.fire({toast:true, position:'top-end', icon:'success', title:'Tersalin!', showConfirmButton:false, timer:1500})"></i>
+												</h3>
+											</div>
+											<div class="d-flex justify-content-between align-items-end mt-2 pt-1 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
+												<div>
+													<small class="d-block mb-25" style="color: #6a8ba8; letter-spacing: 1px; font-size: 0.7rem;">ATAS NAMA</small>
+													<span class="font-weight-bold" id="view_label_atas_nama" style="letter-spacing: 0.5px;">-</span>
+												</div>
+												<div class="text-right">
+													<small class="d-block mb-25" style="color: #6a8ba8; letter-spacing: 1px; font-size: 0.7rem;">STATUS AKUN</small>
+													<span class="text-success font-weight-bold" style="letter-spacing: 0.5px;"><i class="fas fa-circle font-small-1 mr-25"></i> Terverifikasi</span>
+												</div>
+											</div>
+										</div>
+
+									</div>
+								</div>
+
+							</div>
+
+							<!-- Right Column -->
+							<div class="col-md-5">
+								
+								<!-- BERKAS & MEDIA LAMPIRAN -->
+								<div class="d-flex justify-content-between align-items-center mb-1 mt-50">
+									<div class="d-flex align-items-center">
+										<i class="fas fa-images text-primary mr-50"></i>
+										<h6 class="font-weight-bolder mb-0 text-dark">BERKAS & MEDIA LAMPIRAN</h6>
+									</div>
+									<small class="text-muted">3 Berkas</small>
+								</div>
+
+								<!-- Siteplan -->
+								<div class="card shadow-sm mb-2" style="border-radius: .5rem;">
+									<div class="card-body p-1">
+										<div class="d-flex justify-content-between align-items-center mb-1">
+											<span class="font-weight-bold text-dark font-small-3">Masterplan / Siteplan</span>
+											<span class="badge badge-light-success badge-pill" style="border: 1px solid #28c76f2b;"><i class="fas fa-check mr-25"></i> Terverifikasi</span>
+										</div>
+										<div class="rounded mb-1 d-flex justify-content-center align-items-center" style="height: 180px; overflow: hidden; border: 1px dashed #d1d5db; background-color: #fcfcfc;">
+											<img id="view_img_siteplan" src="" alt="Siteplan" style="max-height: 100%; max-width: 100%; object-fit: contain; display:none;">
+											<div id="view_placeholder_siteplan" class="text-muted"><i class="fas fa-image font-large-1 mb-50 d-block text-center text-light"></i>Kosong</div>
+										</div>
+										<div class="d-flex">
+											<a href="#" id="view_btn_siteplan" target="_blank" class="btn btn-light-primary flex-grow-1 mr-50 disabled"><i class="fas fa-eye mr-50"></i> Lihat Siteplan</a>
+											<a href="#" id="view_btn_siteplan_dl" target="_blank" download class="btn btn-outline-secondary px-1 disabled"><i class="fas fa-download"></i></a>
+										</div>
+									</div>
+								</div>
+
+								<!-- Logos -->
+								<div class="row">
+									<div class="col-6 pr-50">
+										<div class="card shadow-sm mb-2" style="border-radius: .5rem;">
+											<div class="card-body p-1 text-center">
+												<small class="text-muted d-block mb-1 font-weight-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">LOGO PROYEK</small>
+												<div class="rounded mb-1 d-flex justify-content-center align-items-center" style="height: 100px; border: 1px dashed #d1d5db; background-color: #fcfcfc;">
+													<img id="view_img_logo" src="" alt="Logo Proyek" style="max-height: 80px; max-width: 100%; display:none;">
+													<div id="view_placeholder_logo" class="text-muted font-small-2"><i class="fas fa-image mb-25 d-block text-light"></i>Kosong</div>
+												</div>
+												<a href="#" id="view_btn_logo" target="_blank" class="btn btn-outline-secondary btn-sm btn-block disabled">Lihat Logo</a>
+											</div>
+										</div>
+									</div>
+									<div class="col-6 pl-50">
+										<div class="card shadow-sm mb-2" style="border-radius: .5rem;">
+											<div class="card-body p-1 text-center">
+												<small class="text-muted d-block mb-1 font-weight-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">LOGO PENGEMBANG</small>
+												<div class="rounded mb-1 d-flex justify-content-center align-items-center" style="height: 100px; border: 1px dashed #d1d5db; background-color: #fcfcfc;">
+													<img id="view_img_logo_pt" src="" alt="Logo PT" style="max-height: 80px; max-width: 100%; display:none;">
+													<div id="view_placeholder_logo_pt" class="text-muted font-small-2"><i class="fas fa-image mb-25 d-block text-light"></i>Kosong</div>
+												</div>
+												<a href="#" id="view_btn_logo_pt" target="_blank" class="btn btn-outline-secondary btn-sm btn-block disabled">Lihat Logo PT</a>
+											</div>
+										</div>
+									</div>
+								</div>
+
+							</div>
+						</div>
+
+					</div>
+					
+					<!-- Footer -->
+					<div class="modal-footer d-flex justify-content-between bg-white mt-0 py-1" style="border-top: 1px solid #ebe9f1; border-radius: 0 0 .357rem .357rem;">
+						<div>
+							<span class="text-success mr-25"><i class="fas fa-circle font-small-1"></i></span>
+							<small class="text-muted">Terakhir disinkronisasi: <span class="font-weight-bold text-dark" id="view_label_sync">Hari ini</span></small>
+						</div>
+						<div>
+							<button type="button" class="btn btn-outline-secondary mr-50" data-dismiss="modal">Tutup</button>
+							<button type="button" class="btn btn-primary" id="view_btn_perbaharui"><i class="fas fa-edit"></i> Perbaharui Data</button>
+						</div>
+					</div>
+					<input type="hidden" id="view_hidden_id">
+
+				</div>
+			</div>
+		</div>
+											</div>
+											<input disabled type="hidden" name="no_up" id="no_up" />
+											<input disabled type="hidden" id="siteplan" name="siteplan" class="form-control" maxlength="255">
+											<a id="link_view_siteplan" href="javascript:void(0)" target="_blank" class="btn btn-outline-primary btn-block waves-effect mt-1">Lihat / Unduh Siteplan</a>
+										</div>
+										<div class="form-group">
+											<label class="font-weight-bold" for="edit_logo">Logo Proyek</label>
+											<div class="dropzone dropzone-lg custom-file">
+												<input type="hidden" id="view_logo" />
+												<div class="dz-inner">
+													<div class="dz-preview" id="prev_view_logo"></div>
+													<div class="dz-placeholder">
+														<div class="h5 mb-1">Gambar tidak tersedia</div>
+														<div class="text-muted"></div>
+													</div>
+												</div>
+											</div>
+											<input disabled type="hidden" name="no_up_logo" id="no_up_logo" />
+											<input disabled type="hidden" id="logo" name="logo" class="form-control" maxlength="255">
+											<a id="link_view_logo" href="javascript:void(0)" target="_blank" class="btn btn-outline-primary btn-block waves-effect mt-1">Lihat / Unduh Logo Proyek</a>
+										</div>
+										<div class="form-group">
+											<label class="font-weight-bold" for="edit_logo_pt">Logo PT</label>
+											<div class="dropzone dropzone-lg custom-file">
+												<input type="hidden" id="view_logo_pt" />
+												<div class="dz-inner">
+													<div class="dz-preview" id="prev_view_logo_pt"></div>
+													<div class="dz-placeholder">
+														<div class="h5 mb-1">Gambar tidak tersedia</div>
+														<div class="text-muted"></div>
+													</div>
+												</div>
+											</div>
+											<input disabled type="hidden" name="no_up_logo_pt" id="no_up_logo_pt" />
+											<input disabled type="hidden" id="logo_pt_old" name="logo_pt_old" class="form-control" maxlength="255">
+											<a id="link_view_logo_pt" href="javascript:void(0)" target="_blank" class="btn btn-outline-primary btn-block waves-effect mt-1">Lihat / Unduh Logo PT</a>
+										</div>
+									</div>
+								</div>
+
+								
+								<button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Tutup</button>
+							</div>
+							<div class="tab-pane" id="upload-siteplan" aria-labelledby="upload-siteplan-tab" role="tabpanel">
+								<div class="table-responsive">
+									<table class="table mb-0">
+										<thead>
+											<tr>
+												<th scope="col" class="text-nowrap">No</th>
+												<th scope="col" class="text-nowrap">Nama File</th>
+												<th scope="col" class="text-nowrap">Panjang</th>
+												<th scope="col" class="text-nowrap">Lebar</th>
+												<th scope="col" class="text-nowrap">Tipe File</th>
+												<th scope="col" class="text-nowrap">Link</th>
+												<th scope="col" class="text-nowrap">Oleh</th>
+												<th scope="col" class="text-nowrap">Tanggal Upload</th>
+											</tr>
+										</thead>
+										<tbody id="tb-view-upload_siteplan">
+											<tr>
+												<td colspan="8" class="text-center">Tidak ada data</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+
+						<input disabled type="hidden" id="view_idProyek" name="idProyek" class="form-control" placeholder="Id proyek" maxlength="255" required>
+					</div>
+				</form>
+			</div>
+		</div>
+	
 	</section>
 </div>
 </div>
@@ -446,6 +742,93 @@
 		initProyekUploadInputs();
 	});
 
+	function viewProyek(id_proyek) {
+		$.ajax({
+			url: '<?php echo base_url($controller . '/getOne') ?>',
+			type: 'post',
+			data: {
+				[csrfName]: csrfHash,
+				id_proyek: id_proyek
+			},
+			dataType: 'json',
+			success: function(response) {
+				csrfHash = response.token;
+				
+				$('#view-modal').modal('show');
+
+				$("#view_label_urutan").text(response.order_by);
+				$("#view_label_nama_proyek").text(response.nama_proyek || '-');
+				$("#view_label_alamat_proyek").text(response.alamat_proyek || '-');
+				$("#view_label_kelurahan").text(response.kelurahan || '-');
+				$("#view_label_kecamatan").text(response.kecamatan || '-');
+				$("#view_label_kota").text(response.kota || '-');
+				$("#view_label_provinsi").text(response.provinsi || '-');
+				$("#view_label_alamat_presisi").text(response.alamat_proyek || '-');
+				
+				let landingPage = response.landing_page_url || 'https://sigapp.site';
+				$("#view_btn_landing_page").attr('href', landingPage);
+
+				$("#view_label_nama_pt").text(response.nama_pt || '-');
+				$("#view_label_bank").text(response.bank || '-');
+				$("#view_label_norek").text(response.no_rek || '-');
+				$("#view_label_atas_nama").text(response.atas_nama || '-');
+
+				const siteplanUrl = response.siteplan ? (response.siteplan_access_url || file_url('proyek_siteplan', response.id_proyek)) : '';
+				const logoUrl = response.logo ? (response.logo_access_url || file_url('proyek_logo', response.id_proyek)) : '';
+				const logoPtUrl = response.logo_pt ? (response.logo_pt_access_url || file_url('proyek_logo_pt', response.id_proyek)) : '';
+
+				if(siteplanUrl) {
+					$("#view_img_siteplan").attr('src', siteplanUrl).show();
+					$("#view_placeholder_siteplan").hide();
+					$("#view_btn_siteplan").attr('href', siteplanUrl).removeClass('disabled');
+					$("#view_btn_siteplan_dl").attr('href', siteplanUrl).removeClass('disabled');
+				} else {
+					$("#view_img_siteplan").hide();
+					$("#view_placeholder_siteplan").show();
+					$("#view_btn_siteplan").attr('href', '#').addClass('disabled');
+					$("#view_btn_siteplan_dl").attr('href', '#').addClass('disabled');
+				}
+
+				if(logoUrl) {
+					$("#view_img_logo").attr('src', logoUrl).show();
+					$("#view_placeholder_logo").hide();
+					$("#view_btn_logo").attr('href', logoUrl).removeClass('disabled');
+				} else {
+					$("#view_img_logo").hide();
+					$("#view_placeholder_logo").show();
+					$("#view_btn_logo").attr('href', '#').addClass('disabled');
+				}
+
+				if(logoPtUrl) {
+					$("#view_img_logo_pt").attr('src', logoPtUrl).show();
+					$("#view_placeholder_logo_pt").hide();
+					$("#view_btn_logo_pt").attr('href', logoPtUrl).removeClass('disabled');
+				} else {
+					$("#view_img_logo_pt").hide();
+					$("#view_placeholder_logo_pt").show();
+					$("#view_btn_logo_pt").attr('href', '#').addClass('disabled');
+				}
+
+				$("#view_hidden_id").val(response.id_proyek);
+				
+				// Bind Perbaharui Data button
+				$("#view_btn_perbaharui").off('click').on('click', function() {
+					$('#view-modal').modal('hide');
+					setTimeout(function() {
+						edit(response.id_proyek);
+					}, 400); // wait for modal to hide
+				});
+
+				// Set sync time
+				let syncTime = response.updated_at || response.created_at || '';
+				if(syncTime) {
+					$("#view_label_sync").text(format_datetime(syncTime));
+				} else {
+					$("#view_label_sync").text('Hari ini');
+				}
+			}
+		});
+	}
 	const proyekUploadInputs = [
 		'add_siteplan', 'add_logo', 'add_logo_pt',
 		'edit_siteplan', 'edit_logo', 'edit_logo_pt',
@@ -515,6 +898,7 @@
 		$("#add-form")[0].reset();
 		$(".form-control").removeClass('is-invalid').removeClass('is-valid');
 		resetUploadPreviews('#add-form');
+		initModalListener('#add-modal');
 		$('#add-modal').modal('show');
 
 		// submit the add from 
@@ -576,6 +960,7 @@
 
 							}).then(function() {
 								$('#data_table').DataTable().ajax.reload(null, false).draw(false);
+								removeModalListener('#add-modal');
 								$('#add-modal').modal('hide');
 							})
 
@@ -639,6 +1024,7 @@
 				$("#edit-form")[0].reset();
 				$(".form-control").removeClass('is-invalid').removeClass('is-valid');
 				resetUploadPreviews('#edit-form');
+				initModalListener('#edit-modal');
 				$('#edit-modal').modal('show');
 
 				$("#edit-form #idProyek").val(response.id_proyek);
@@ -653,6 +1039,7 @@
 				$("#edit-form #bank").val(response.bank);
 				$("#edit-form #noRek").val(response.no_rek);
 				$("#edit-form #atasNama").val(response.atas_nama);
+				$("#edit-form #editOrderBy").val(response.order_by);
 				$("#edit-form #siteplan").val(response.siteplan);
 				$("#edit-form #logo").val(response.logo);
 				$("#edit-form #logo_pt_old").val(response.logo_pt);
@@ -766,6 +1153,7 @@
 
 									}).then(function() {
 										$('#data_table').DataTable().ajax.reload(null, false).draw(false);
+										removeModalListener('#edit-modal');
 										$('#edit-modal').modal('hide');
 									})
 

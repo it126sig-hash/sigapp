@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\NotificationEvent;
+use App\Repositories\PencairanAkadListRepository;
 use Hermawan\DataTables\DataTable;
 
 class PencairanAkadService
@@ -10,6 +12,8 @@ class PencairanAkadService
     protected FileAccessService $fileAccessService;
     protected FinanceLedgerService $ledgerService;
     protected HistoryService $historyService;
+    protected NotifikasiService $notifikasiService;
+    protected PencairanAkadListRepository $listRepository;
 
     public function __construct()
     {
@@ -17,6 +21,8 @@ class PencairanAkadService
         $this->fileAccessService = new FileAccessService();
         $this->ledgerService = new FinanceLedgerService();
         $this->historyService = new HistoryService();
+        $this->notifikasiService = new NotifikasiService();
+        $this->listRepository = new PencairanAkadListRepository($this->db);
     }
 
     public function getData(int $idMkdt, int $idKavling): array
@@ -505,6 +511,30 @@ class PencairanAkadService
             $plan = $this->getPlanById((int) $pengajuan->id_plan);
             $this->saveHistory((int) $plan->id_kavling, (int) $plan->id_mkdt, (int) $plan->id, $idPengajuan, 'pencairan', 'Pencairan akad dicatat', $details, $actorId);
 
+            $kavData = $db->table('kavling k')
+                ->select('k.no_kavling, cl.id_proyek, m.id_konsumen')
+                ->join('jalan j', 'j.id_jalan = k.id_jalan')
+                ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+                ->join('mkdt m', 'm.id_mkdt = k.id_mkdt', 'left')
+                ->where('k.id_kavling', (int) $plan->id_kavling)
+                ->get()
+                ->getRow();
+
+            if ($kavData) {
+                $notifText = 'Pencairan hasil akad untuk kavling ' . $kavData->no_kavling . ' telah berhasil diproses sebesar Rp ' . number_format($totalCairBaru, 0, ',', '.');
+                $this->notifikasiService->tambah_notif(
+                    '3;4;9',
+                    $notifText,
+                    $actorId,
+                    (int) $plan->id_kavling,
+                    (int) ($kavData->id_konsumen ?? 0),
+                    'keuangan',
+                    (int) $kavData->id_proyek,
+                    'keuangan/hasil-akad/list',
+                    NotificationEvent::PENCAIRAN_HASIL_AKAD
+                );
+            }
+
             $db->transComplete();
             if ($db->transStatus() === false) {
                 throw new \RuntimeException('Transaksi gagal');
@@ -518,6 +548,98 @@ class PencairanAkadService
             }
             log_message('error', '[PencairanAkadService::cairkan] {message}', ['message' => $e->getMessage()]);
             return $this->response(false, 'Gagal menyimpan pencairan: ' . $e->getMessage());
+        }
+    }
+
+    public function listPayment(int $idPengajuan): array
+    {
+        $payments = $this->db->table('pencairan_akad_payment')
+            ->where('id_pengajuan', $idPengajuan)
+            ->where('total_cair >', 0)
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->getResult();
+
+        return $this->response(true, 'Daftar pembayaran', ['payments' => $payments]);
+    }
+
+    public function voidPayment(int $idPayment, string $reason, int $actorId): array
+    {
+        $payment = $this->db->table('pencairan_akad_payment')->where('id', $idPayment)->get()->getRow();
+        if (! $payment) {
+            return $this->response(false, 'Data pencairan tidak ditemukan');
+        }
+        if ((float) $payment->total_cair <= 0) {
+            return $this->response(false, 'Pencairan ini sudah dibatalkan atau bernilai 0');
+        }
+
+        $pengajuan = $this->db->table('pencairan_akad_pengajuan')->where('id', $payment->id_pengajuan)->get()->getRow();
+        if (! $pengajuan) {
+            return $this->response(false, 'Pengajuan tidak ditemukan');
+        }
+
+        $db = $this->db;
+        $db->transException(true);
+
+        try {
+            $db->transStart();
+
+            $details = $db->table('pencairan_akad_payment_detail')->where('id_payment', $idPayment)->get()->getResult();
+
+            foreach ($details as $detail) {
+                // Rollback Ledger
+                $this->ledgerService->voidByPencairanAkadPaymentDetail((int) $detail->id, $actorId);
+
+                // Reduce nominal_cair on pengajuan_detail
+                $pd = $db->table('pencairan_akad_pengajuan_detail')->where('id', $detail->id_pengajuan_detail)->get()->getRow();
+                if ($pd) {
+                    $newCair = $this->num($pd->nominal_cair) - $this->num($detail->nominal_cair);
+                    $db->table('pencairan_akad_pengajuan_detail')
+                        ->where('id', $detail->id_pengajuan_detail)
+                        ->update(['nominal_cair' => max(0, $newCair), 'updated_at' => date('Y-m-d H:i:s')]);
+                }
+            }
+
+            // Set payment to 0 and add note
+            $db->table('pencairan_akad_payment')->where('id', $idPayment)->update([
+                'total_cair' => 0,
+                'catatan' => trim($payment->catatan . ' (Void: ' . $reason . ')')
+            ]);
+
+            // Recalculate total_cair on pengajuan
+            $totalCairPengajuan = (float) $this->db->table('pencairan_akad_pengajuan_detail')
+                ->selectSum('nominal_cair')
+                ->where('id_pengajuan', $pengajuan->id)
+                ->get()
+                ->getRow()->nominal_cair;
+
+            $statusBaru = $totalCairPengajuan >= (float) $pengajuan->total_pengajuan - 0.01 ? 'paid' : ($totalCairPengajuan > 0.01 ? 'partial' : 'active');
+
+            $db->table('pencairan_akad_pengajuan')->where('id', $pengajuan->id)->update([
+                'total_cair' => $totalCairPengajuan,
+                'status' => $statusBaru,
+                'edit_by' => $actorId,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            $plan = $this->getPlanById((int) $pengajuan->id_plan);
+            if ($plan) {
+                $this->saveHistory((int) $plan->id_kavling, (int) $plan->id_mkdt, (int) $plan->id, $pengajuan->id, 'void', 'Pencairan dibatalkan: ' . $reason . ' (-Rp ' . number_format($payment->total_cair, 0, ',', '.') . ')', [], $actorId);
+            }
+
+            $db->transComplete();
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            return $this->response(true, 'Pencairan berhasil dibatalkan', ['id_pengajuan' => $pengajuan->id]);
+        } catch (\Throwable $e) {
+            try {
+                $db->transRollback();
+            } catch (\Throwable $rollback) {
+            }
+            log_message('error', '[PencairanAkadService::voidPayment] {message}', ['message' => $e->getMessage()]);
+            return $this->response(false, 'Gagal membatalkan pencairan: ' . $e->getMessage());
         }
     }
 
@@ -789,56 +911,16 @@ class PencairanAkadService
 
     public function getListGrouped($request)
     {
-        $pengajuanAgg = $this->db->table('pencairan_akad_pengajuan')
-            ->select("id_plan,
-                      SUM(CASE WHEN status IN ('active','partial') THEN total_pengajuan - total_cair ELSE 0 END) AS outstanding,
-                      SUM(CASE WHEN status != 'void' THEN total_cair ELSE 0 END) AS total_cair")
-            ->groupBy('id_plan')
-            ->getCompiledSelect();
+        $filters = $this->listFilters($request);
+        $builder = $this->listRepository->buildListQuery($filters);
 
-        $builder = $this->db->table('mkdt m')
-            ->select('
-                m.id_mkdt, m.id_kavling, m.akad_tgl, m.harga_kpr_acc, m.is_kpr,
-                c.nama_konsumen, j.nama_jalan, k.no_kavling, tipe.tipe_rumah,
-                hj.hargajual, p.nama_proyek,
-                pap.id AS id_plan,
-                COALESCE(pap.total_hasil_akad, m.harga_kpr_acc) AS total_hasil_akad,
-                COALESCE(pg.outstanding, 0) AS pengajuan_outstanding,
-                COALESCE(pg.total_cair, 0) AS sudah_cair
-            ')
-            ->join('kavling k', 'k.id_mkdt = m.id_mkdt')
-            ->join('jalan j', 'j.id_jalan = k.id_jalan')
-            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
-            ->join('proyek p', 'p.id_proyek = cl.id_proyek')
-            ->join('konsumen c', 'c.id_konsumen = m.id_konsumen')
-            ->join('hargajual hj', 'hj.id = k.harga_akhir', 'left')
-            ->join('tipe', 'tipe.id_tipe = k.id_tipe', 'left')
-            ->join('pencairan_akad_plan pap', 'pap.id_mkdt = m.id_mkdt', 'left')
-            ->join("({$pengajuanAgg}) pg", 'pg.id_plan = pap.id', 'left')
-            ->where('m.status_mkdt', 'Akad')
-            ->where('m.is_kpr', 1);
-
-        $idProyek = resolve_active_proyek_id($request->getVar('id_proyek'));
-        if ($idProyek) {
-            $builder->where('p.id_proyek', $idProyek);
-        }
-        if ($request->getVar('id_cluster')) {
-            $builder->where('cl.id_cluster', $request->getVar('id_cluster'));
-        }
-        if ($request->getVar('id_jalan')) {
-            $builder->where('j.id_jalan', $request->getVar('id_jalan'));
-        }
-
-        $statusCair = $request->getVar('status_cair');
-        if ($statusCair === 'belum_cair') {
-            $builder->where("m.harga_kpr_acc - COALESCE(pg.total_cair, 0) > 0.01", null, false);
-        } elseif ($statusCair === 'sudah_cair') {
-            $builder->where("m.harga_kpr_acc - COALESCE(pg.total_cair, 0) <= 0.01", null, false);
-        }
-
-        return DataTable::of($builder)
+        $response = DataTable::of($builder)
             ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
             ->add('Aksi', function ($v) {
+                if (!function_exists('in_groups') || !in_groups(['1', '3'])) {
+                    return '-';
+                }
+
                 $sh = htmlspecialchars(json_encode([
                     'id_kavling' => $v->id_kavling,
                     'id_mkdt' => $v->id_mkdt,
@@ -859,6 +941,79 @@ class PencairanAkadService
             ->edit('sudah_cair', fn ($v) => '<span class="text-success font-weight-bold">Rp ' . number_format((float) $v->sudah_cair) . '</span>')
             ->add('sisa', fn ($v) => '<span class="text-danger font-weight-bold">Rp ' . number_format((float) $v->harga_kpr_acc - (float) $v->sudah_cair) . '</span>')
             ->toJson(true);
+
+        $payload = json_decode($response->getBody(), true);
+        if (!is_array($payload)) {
+            return $response;
+        }
+
+        $search = $request->getVar('search');
+        $searchValue = is_array($search) ? trim((string) ($search['value'] ?? '')) : '';
+        $payload['summary'] = $this->listRepository->getSummary($filters, $searchValue);
+        $payload['token'] = csrf_hash();
+
+        return $response->setJSON($payload);
+    }
+
+    protected function listFilters($request): array
+    {
+        $jenisTanggal = (string) $request->getVar('jenis_tanggal');
+        $periodeTanggal = trim((string) $request->getVar('periode_tanggal'));
+        $legacyTanggalAkad = trim((string) $request->getVar('tanggal_akad'));
+
+        if ($periodeTanggal === '' && $legacyTanggalAkad !== '') {
+            $periodeTanggal = $legacyTanggalAkad;
+            $jenisTanggal = 'tanggal_akad';
+        }
+
+        $allowedJenisTanggal = ['tanggal_pengajuan', 'tanggal_akad', 'tanggal_pencairan'];
+        if (!in_array($jenisTanggal, $allowedJenisTanggal, true)) {
+            $jenisTanggal = 'tanggal_akad';
+        }
+
+        [$tanggalMulai, $tanggalSelesai] = $this->normalizeListDateRange($periodeTanggal);
+        $statusCair = (string) $request->getVar('status_cair');
+        if (!in_array($statusCair, ['belum_cair', 'sudah_cair'], true)) {
+            $statusCair = '';
+        }
+
+        return [
+            'id_proyek' => resolve_active_proyek_id($request->getVar('id_proyek')),
+            'id_cluster' => (int) $request->getVar('id_cluster'),
+            'id_jalan' => (int) $request->getVar('id_jalan'),
+            'status_cair' => $statusCair,
+            'jenis_tanggal' => $jenisTanggal,
+            'tanggal_mulai' => $tanggalMulai,
+            'tanggal_selesai' => $tanggalSelesai,
+        ];
+    }
+
+    protected function normalizeListDateRange(string $dateRange): array
+    {
+        if ($dateRange === '') {
+            return [null, null];
+        }
+
+        $parts = preg_split('/\s+to\s+/i', $dateRange, 2) ?: [];
+        $start = trim((string) ($parts[0] ?? ''));
+        $end = trim((string) ($parts[1] ?? $start));
+
+        if (!$this->isListDate($start) || !$this->isListDate($end)) {
+            return [null, null];
+        }
+
+        if ($start > $end) {
+            [$start, $end] = [$end, $start];
+        }
+
+        return [$start, $end];
+    }
+
+    protected function isListDate(string $date): bool
+    {
+        $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+
+        return $parsed !== false && $parsed->format('Y-m-d') === $date;
     }
 
     public function getListDetail(int $idMkdt): array

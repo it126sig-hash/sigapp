@@ -29,9 +29,12 @@
                 return swal('error', 'Terjadi Kesalahan', 'Seleksi kavling kosong terlebih dahulu')
             }
         }
+        planning_reset_simplify_state();
         $("#fm-add_kavling")[0].reset()
-
         $("#fm-add_kavling .select2").val(null).trigger('change')
+        $("#rotation").val("");
+        $("#ui-rotation").val("");
+        $("#rotation-icon").css("transform", "rotate(0deg)");
 
 
         $(".t_luas_legal, .t_luas_produksi, .r_progres").html('-')
@@ -45,12 +48,26 @@
 
         $('#status_tanah').val("Standar").trigger('change');
 
-
-        $('#modals-slide-in').modal({
-            backdrop: 'static',
-            keyboard: false
-        });
-        $("#points").val(dtt);
+        if (batchdtt && batchdtt.length > 0 && typeof PolygonClip !== 'undefined' && PolygonClip.computeMABR) {
+            interactiveFacadeArrow(batchdtt[0], function(selectedAngle) {
+                if (selectedAngle !== null) {
+                    $("#rotation").val(selectedAngle.toFixed(1));
+                    $("#ui-rotation").val(selectedAngle.toFixed(1));
+                    $("#rotation-icon").css("transform", "rotate(" + selectedAngle.toFixed(1) + "deg)");
+                }
+                $('#modals-slide-in').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+                $("#fm-add_kavling #planning_points").val(dtt);
+            });
+        } else {
+            $('#modals-slide-in').modal({
+                backdrop: 'static',
+                keyboard: false
+            });
+            $("#fm-add_kavling #planning_points").val(dtt);
+        }
     }
 
     function batal_tambah_kavling() {
@@ -148,10 +165,70 @@ function planning_is_kavling_selection() {
   });
 }
 
+var planningSimplifyState = {
+  initialized: false,
+  active: false,
+  originalPoints: "",
+  originalBatchDtt: [],
+  originalRotation: "",
+};
+
+function planning_reset_simplify_state() {
+  planningSimplifyState = {
+    initialized: false,
+    active: false,
+    originalPoints: "",
+    originalBatchDtt: [],
+    originalRotation: "",
+  };
+
+  $("#btn-simplify-rect")
+    .text("Sederhanakan ke Rect")
+    .removeClass("btn-warning")
+    .addClass("btn-outline-primary");
+}
+
+function planning_capture_simplify_state() {
+  planningSimplifyState.initialized = true;
+  planningSimplifyState.originalPoints = $("#fm-add_kavling #planning_points").val() || "";
+  planningSimplifyState.originalBatchDtt = JSON.parse(
+    JSON.stringify(typeof batchdtt !== "undefined" ? batchdtt : []),
+  );
+  planningSimplifyState.originalRotation = $("#rotation").val() || "";
+}
+
+function planning_get_working_points(isEditMode) {
+  if (isEditMode) {
+    return planning_split_semicolon($("#fm-add_kavling #planning_points").val());
+  }
+
+  const batchPoints = (typeof batchdtt !== "undefined" ? batchdtt : [])
+    .map(planning_normalize_points)
+    .filter((item) => item !== "");
+
+  return batchPoints.length
+    ? batchPoints
+    : planning_split_semicolon($("#fm-add_kavling #planning_points").val());
+}
+
+function planning_set_working_points(points, isEditMode) {
+  const normalizedPoints = points
+    .map(planning_normalize_points)
+    .filter((item) => item !== "");
+
+  if (isEditMode) {
+    $("#fm-add_kavling #planning_points").val(normalizedPoints.join(";"));
+    return;
+  }
+
+  batchdtt = normalizedPoints.slice();
+  $("#fm-add_kavling #planning_points").val(normalizedPoints[0] || "");
+}
+
 function edit_kavling_batch() {
   if (editdtt.length == 0) return;
-  $("#pindah_lokasi_btn").hide();
-  if (planning_is_kavling_selection()) $("#pindah_lokasi_btn").show();
+  $("#pindah_lokasi_btn").show();
+  planning_reset_simplify_state();
 
   $(".t_luas_legal, .t_luas_produksi, .r_progres").html("-");
 
@@ -171,7 +248,10 @@ function edit_kavling_batch() {
   }
 
   $("#fm-add_kavling")[0].reset();
-  $(".select2").not("#pilih-divisi").val(null).trigger("change");
+  $("#fm-add_kavling .select2").val(null).trigger("change");
+  $("#rotation").val("");
+  $("#ui-rotation").val("");
+  $("#rotation-icon").css("transform", "rotate(0deg)");
 
   $.ajax({
     url: url,
@@ -186,7 +266,12 @@ function edit_kavling_batch() {
     },
     success: function (res) {
       csrfHash = res.token;
-      $("#fm-add_kavling #id_jenis").val(tipe).change();
+      
+      let form_jenis = tipe;
+      if (tipe === "kavling" && editdtt[0].data && editdtt[0].data.jenis) {
+          form_jenis = editdtt[0].data.jenis;
+      }
+      $("#fm-add_kavling #id_jenis").val(form_jenis).change();
 
       let r = res.data,
         id_kavling = "",
@@ -231,12 +316,20 @@ function edit_kavling_batch() {
           $("#status_tanah").val(r[0].status_tanah).change();
           $(".id_kavling").val(id_kavling);
           $("#no_kavling").val(no);
-          $("#points").val(points);
+          $("#fm-add_kavling #planning_points").val(points);
           $("#f_luas").val(r[0].luas_tanah);
+          
+          let rotVal = r[0].rotation;
+          if (rotVal !== null && rotVal !== undefined && rotVal !== '') {
+              $("#rotation").val(rotVal);
+              $("#ui-rotation").val(rotVal);
+              $("#rotation-icon").css("transform", "rotate(" + rotVal + "deg)");
+          }
         }
       } else {
         if (r.length > 0) {
           $(".id_kavling").val(r[0].id);
+          $("#fm-add_kavling #planning_points").val(r[0].points);
           $("#f_luas").val(r[0].planning_luas);
           $("#f_nama").val(r[0].nama);
           $("#f_planning_keterangan").val(r[0].planning_keterangan);
@@ -339,10 +432,19 @@ function open_planning(sh, role, id_kavling) {
 }
 
 function edit_kavling() {
+  if (!editdtt.length || !editdtt[0] || !editdtt[0].data) {
+    return Swal.fire({
+      icon: "error",
+      title: "Pilih data yang akan diubah terlebih dahulu",
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  }
+
   let no_kav = $("#fm-add_kavling #no_kavling").val().split(";"),
     no_kavlen =
       no_kav[no_kav.length - 1] == "" ? no_kav.length - 1 : no_kav.length,
-    points_len = planning_split_semicolon($("#points").val()).length,
+    points_len = planning_split_semicolon($("#fm-add_kavling #planning_points").val()).length,
     tipe = editdtt[0].data.tipe,
     url = base_url + "/siteplan/edit_others";
 
@@ -385,6 +487,8 @@ function edit_kavling() {
     success: function (response) {
       csrfHash = response.token;
       if (response.success === true) {
+        $("#tambah_jalan").prop("checked", false).trigger('change');
+        planning_forget_hidden_move_nodes();
         Swal.fire({
           //position: 'bottom-end',
           icon: "success",
@@ -396,6 +500,8 @@ function edit_kavling() {
           $("#add-form-btn").html("Simpan");
           $("#add-form-btn").removeClass("disabled");
         });
+        load_kavling();
+        hapus_seleksi();
       } else {
         Swal.fire({
           //position: 'bottom-end',
@@ -408,8 +514,6 @@ function edit_kavling() {
           $("#add-form-btn").removeClass("disabled");
         });
       }
-      load_kavling();
-      hapus_seleksi();
     },
     error: function () {
       Swal.fire({
@@ -473,7 +577,7 @@ function add_kavling() {
     no_kavlen =
       no_kav[no_kav.length - 1] == "" ? no_kav.length - 1 : no_kav.length;
 
-  if ($("#fm-add_kavling #id_jenis").val() == "kavling") {
+  if ($("#fm-add_kavling #id_jenis").val() == "kavling" || $("#fm-add_kavling #id_jenis").val() == "ruko") {
     //jika no kavling dan selection tidak sesuai
     if (batchdtt.length != no_kavlen) {
       Swal.fire({
@@ -517,6 +621,7 @@ function add_kavling() {
           timer: 1500,
         }).then(function () {
           $("#modals-slide-in").modal("hide");
+          $("#tambah_jalan").prop("checked", false).trigger('change');
           load_kavling();
           hapus_seleksi();
         });
@@ -554,12 +659,70 @@ var planningMoveState = {
   selected: [],
   previousPoints: "",
 };
+var planningHiddenMoveNodes = [];
+
+function planning_redraw_move_nodes(nodes) {
+  const layers = [];
+
+  nodes.forEach(function (node) {
+    const nodeLayer = node.getLayer();
+    if (nodeLayer && layers.indexOf(nodeLayer) === -1) layers.push(nodeLayer);
+  });
+
+  layers.forEach(function (nodeLayer) {
+    nodeLayer.batchDraw();
+  });
+}
+
+function planning_find_move_node(item) {
+  if (!item || !item.id || typeof siteplan === "undefined") return null;
+
+  if (typeof siteplan.findOne === "function") {
+    return siteplan.findOne("#" + item.id);
+  }
+
+  const nodes = siteplan.find("#" + item.id);
+  return nodes.length ? nodes[0] : null;
+}
+
+function planning_hide_move_nodes(selectedItems) {
+  planningHiddenMoveNodes = selectedItems
+    .map(planning_find_move_node)
+    .filter(function (node, index, nodes) {
+      return node && nodes.indexOf(node) === index;
+    });
+
+  planningHiddenMoveNodes.forEach(function (node) {
+    node.hide();
+  });
+  planning_redraw_move_nodes(planningHiddenMoveNodes);
+}
+
+function planning_restore_hidden_move_nodes() {
+  planningHiddenMoveNodes.forEach(function (node) {
+    node.show();
+  });
+  planning_redraw_move_nodes(planningHiddenMoveNodes);
+  planningHiddenMoveNodes = [];
+}
+
+function planning_forget_hidden_move_nodes() {
+  planningHiddenMoveNodes = [];
+}
+
+function planning_reset_move_state() {
+  planningMoveState = {
+    active: false,
+    selected: [],
+    previousPoints: "",
+  };
+}
 
 function pindah_kavling() {
-  if (!planning_is_kavling_selection()) {
+  if (!editdtt.length) {
     return Swal.fire({
       icon: "error",
-      title: "Pilih kavling terlebih dahulu",
+      title: "Pilih objek terlebih dahulu",
       showConfirmButton: false,
       timer: 1500,
     });
@@ -569,23 +732,27 @@ function pindah_kavling() {
   planningMoveState = {
     active: true,
     selected: editdtt.slice(),
-    previousPoints: $("#points").val(),
+    previousPoints: $("#fm-add_kavling #planning_points").val(),
   };
+  planning_hide_move_nodes(planningMoveState.selected);
 
   $("#modals-slide-in").modal("hide");
-  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn, #planning_undo_manual_selection").hide();
-  $("#selesai_pindah_btn, #batal_pindah_btn").show();
+  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").hide();
+  $("#selesai_pindah_btn, #batal_pindah_btn, #planning_undo_manual_selection, #container_tambah_jalan").removeClass('d-none').show();
   hapus_seleksi();
+  $("#tambah_jalan").prop("checked", true).trigger('change');
 }
 
 function selesai_selection(e) {
+  let destinationPoints = [];
+  const wasMoveActive = planningMoveState.active;
+  const selectedForEdit = wasMoveActive ? planningMoveState.selected.slice() : editdtt_tmp.slice();
   if (e == 1) {
-    const destinationPoints = planning_collect_selection_points();
+    destinationPoints = planning_collect_selection_points();
     const expectedCount = planningMoveState.active ? planningMoveState.selected.length : 1;
 
     if (!destinationPoints.length) {
       Swal.fire({
-        //position: 'bottom-end',
         icon: "error",
         title: "Tidak ada lokasi yang dipilih",
         showConfirmButton: false,
@@ -609,21 +776,59 @@ function selesai_selection(e) {
       return;
     }
 
-    $("#points").val(planning_join_semicolon(destinationPoints));
-  } else if (planningMoveState.active) {
-    $("#points").val(planningMoveState.previousPoints);
+    $("#fm-add_kavling #planning_points").val(planning_join_semicolon(destinationPoints));
+  } else if (wasMoveActive) {
+    $("#fm-add_kavling #planning_points").val(planningMoveState.previousPoints);
+    planning_restore_hidden_move_nodes();
   }
-  editdtt = planningMoveState.active ? planningMoveState.selected.slice() : editdtt_tmp.slice();
-  planningMoveState = {
-    active: false,
-    selected: [],
-    previousPoints: "",
+
+  let openModal = function() {
+    $("#modals-slide-in").modal("show");
+    $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn").show();
+    $("#selesai_pindah_btn, #batal_pindah_btn, #planning_undo_manual_selection, #container_tambah_jalan").hide();
   };
 
-  $("#modals-slide-in").modal("show");
-  $("#add_kavling, #edit_kavling_batch, #planning_toggle_btn, #planning_undo_manual_selection").show();
-  $("#selesai_pindah_btn, #batal_pindah_btn").hide();
+  let completeSelection = function(keepPreview) {
+    if (!keepPreview) {
+      $("#tambah_jalan").prop("checked", false).trigger('change');
+    }
+    editdtt = selectedForEdit;
+    planning_reset_move_state();
+    planning_reset_simplify_state();
+    openModal();
+  };
+
+  if (!wasMoveActive && selectedForEdit.length === 0) {
+    $("#fm-add_kavling")[0].reset();
+    $("#fm-add_kavling .select2").val(null).trigger("change");
+    $("#rotation").val("");
+    $("#ui-rotation").val("");
+    $("#rotation-icon").css("transform", "rotate(0deg)");
+  }
+  if (e == 1 && typeof interactiveFacadeArrow !== 'undefined') {
+    let ptsArr = typeof destinationPoints !== 'undefined' && destinationPoints.length > 0 ? destinationPoints[0] : (typeof dtt !== 'undefined' ? dtt : []);
+    interactiveFacadeArrow(ptsArr, function(selectedAngle) {
+      if (selectedAngle !== null) {
+          $("#rotation").val(selectedAngle.toFixed(1));
+          $("#ui-rotation").val(selectedAngle.toFixed(1));
+          $("#rotation-icon").css("transform", "rotate(" + selectedAngle.toFixed(1) + "deg)");
+      }
+      completeSelection(true);
+    });
+  } else {
+    completeSelection(false);
+  }
 }
+
+$(document).on("click", "#modals-slide-in [data-planning-cancel-edit]", function () {
+  if (planningMoveState.active) {
+    $("#fm-add_kavling #planning_points").val(planningMoveState.previousPoints);
+  }
+  $("#tambah_jalan").prop("checked", false).trigger('change');
+  planning_restore_hidden_move_nodes();
+  planning_reset_move_state();
+  planning_reset_simplify_state();
+});
 
 (function () {
   const $planningForm = $("#fm-add_kavling");
@@ -760,7 +965,7 @@ function selesai_selection(e) {
   $planningJenis.change(function () {
   if (this.value == "") {
     $(".h").hide();
-  } else if (this.value == "kavling") {
+  } else if (this.value == "kavling" || this.value == "ruko") {
     $(".h").hide();
     $("#div_kavling").show();
   } else if (this.value == "jalan") {
@@ -786,3 +991,260 @@ document.addEventListener("DOMContentLoaded", function() {
     if (namaProyek) namaProyek.value = pl_nama_proyek;
     if (idProyek) idProyek.value = pl_id_proyek;
 });
+
+
+var isFacadeArrowActive = false;
+
+$(document).ready(function() {
+
+    // 4. Klik luar shape otomatis deselect
+    if (typeof stage !== 'undefined') {
+        stage.on('click.planningDeselect tap.planningDeselect', function(e) {
+            if (typeof isFacadeArrowActive !== 'undefined' && isFacadeArrowActive) return;
+            if (typeof isManualSelectionActive === 'function' && isManualSelectionActive()) return;
+            if ($("#tambah_jalan").prop("checked")) return; 
+            
+            let targetData = e.target.attrs && e.target.attrs.data;
+            let isShape = targetData && targetData.tipe;
+            let isSubShape = e.target.hasName && e.target.hasName('subShape');
+            
+            if (!isShape && !isSubShape && typeof editdtt !== 'undefined' && editdtt.length > 0) {
+                if (typeof hapus_seleksi === 'function') {
+                    hapus_seleksi();
+                    $("#add_kavling, #edit_kavling_batch").show();
+                    if (typeof layer !== 'undefined') layer.batchDraw();
+                }
+            }
+        });
+    }
+    $('#modals-slide-in').on('shown.bs.modal', function () {
+        let isEditMode = act === "edit" && typeof editdtt !== "undefined" && editdtt.length > 0;
+        let workingPoints = planning_get_working_points(isEditMode);
+        let firstPts = workingPoints.length > 0 ? workingPoints[0] : null;
+
+        if (!planningSimplifyState.initialized) {
+            planning_capture_simplify_state();
+        }
+
+        let hasManyPoints = false;
+        if (firstPts) {
+            let len = typeof firstPts === 'string' ? firstPts.split(',').length : firstPts.length;
+            if (len >= 6) hasManyPoints = true;
+        }
+
+        // Tampilkan container jika banyak titik (magic wand) ATAU sedang mode edit
+        if (hasManyPoints || isEditMode) {
+            $("#simplify-rect-container").show();
+            $("#btn-simplify-rect")
+                .text(planningSimplifyState.active ? "Batal Menyederhanakan" : "Sederhanakan ke Rect")
+                .toggleClass("btn-warning", planningSimplifyState.active)
+                .toggleClass("btn-outline-primary", !planningSimplifyState.active);
+            
+            // Cek apakah ada value rotation dari database (Edit Mode)
+            if (isEditMode && editdtt[0] && editdtt[0].data && editdtt[0].data.rotation !== null && editdtt[0].data.rotation !== undefined) {
+                // Jika belum diset oleh arrow, set dari DB
+                if (!$("#rotation").val()) {
+                    $("#rotation").val(editdtt[0].data.rotation);
+                }
+            }
+            
+            let existingRot = $("#rotation").val();
+            if (existingRot !== "" && existingRot !== null && existingRot !== undefined) {
+                $("#ui-rotation").val(existingRot);
+                $("#rotation-icon").css("transform", "rotate(" + existingRot + "deg)");
+            } else {
+                $("#ui-rotation").val("");
+                $("#rotation-icon").css("transform", "rotate(0deg)");
+            }
+        } else {
+            $("#simplify-rect-container").hide();
+        }
+    });
+
+    $("#ui-rotation").on("input", function() {
+        let val = $(this).val();
+        $("#rotation").val(val);
+        if (val !== "") {
+            $("#rotation-icon").css("transform", "rotate(" + val + "deg)");
+        } else {
+            $("#rotation-icon").css("transform", "rotate(0deg)");
+        }
+    });
+
+    $("#btn-ubah-fasad").on("click", function() {
+        $('#modals-slide-in').modal('hide');
+        let targetPoints = (typeof batchdtt !== 'undefined' && batchdtt.length > 0) ? batchdtt[0] : (typeof editdtt !== 'undefined' && editdtt.length > 0 ? editdtt[0].points : (typeof dtt !== 'undefined' ? dtt : []));
+        
+        interactiveFacadeArrow(targetPoints, function(selectedAngle) {
+            if (selectedAngle !== null) {
+                $("#rotation").val(selectedAngle.toFixed(1));
+                $("#ui-rotation").val(selectedAngle.toFixed(1));
+                $("#rotation-icon").css("transform", "rotate(" + selectedAngle.toFixed(1) + "deg)");
+            }
+            $('#modals-slide-in').modal('show');
+        });
+    });
+
+    $("#btn-simplify-rect").on("click", function() {
+        let isEditMode = act === "edit" && typeof editdtt !== "undefined" && editdtt.length > 0;
+        
+        if (!planningSimplifyState.active) {
+            if (typeof PolygonClip !== 'undefined' && PolygonClip.computeMABR) {
+                let targetArray = planning_get_working_points(isEditMode);
+                let allPointsStr = [];
+                
+                for (let i = 0; i < targetArray.length; i++) {
+                    const currentItem = targetArray[i];
+                    const currentPoints = typeof currentItem === 'string' ? currentItem.split(',').map(Number) : currentItem;
+                    if (currentPoints.length < 6) {
+                        allPointsStr.push(planning_normalize_points(currentItem));
+                        continue;
+                    }
+
+                    const mabr = PolygonClip.computeMABR(currentPoints);
+                    let newPointsStr = mabr.points.join(',');
+                    allPointsStr.push(newPointsStr);
+                    
+                    if (i === 0) {
+                        if (!$("#rotation").val()) {
+                            let angle = mabr.angle;
+                            $("#ui-rotation").val(angle.toFixed(1));
+                            $("#rotation-icon").css("transform", "rotate(" + angle.toFixed(1) + "deg)");
+                            $("#rotation").val(angle.toFixed(1));
+                        }
+                    }
+                }
+
+                planning_set_working_points(allPointsStr, isEditMode);
+                planningSimplifyState.active = true;
+                
+                $(this).text("Batal Menyederhanakan");
+                $(this).removeClass("btn-outline-primary").addClass("btn-warning");
+                
+                updateSelectionPreview(allPointsStr);
+            }
+        } else {
+            if (isEditMode) {
+                const originalPoints = planning_split_semicolon(planningSimplifyState.originalPoints);
+                planning_set_working_points(originalPoints, true);
+                updateSelectionPreview(originalPoints);
+            } else {
+                const originalBatchDtt = JSON.parse(JSON.stringify(planningSimplifyState.originalBatchDtt));
+                planning_set_working_points(originalBatchDtt, false);
+                updateSelectionPreview(originalBatchDtt);
+            }
+
+            const originalRotation = planningSimplifyState.originalRotation;
+            $("#rotation").val(originalRotation);
+            $("#ui-rotation").val(originalRotation);
+            $("#rotation-icon").css("transform", "rotate(" + (originalRotation || 0) + "deg)");
+            planningSimplifyState.active = false;
+            $(this).text("Sederhanakan ke Rect");
+            $(this).removeClass("btn-warning").addClass("btn-outline-primary");
+        }
+    });
+
+    function updateSelectionPreview(targetArray) {
+        if (typeof stage === 'undefined') return;
+        let lines = stage.find("#sel");
+        for (let i = 0; i < lines.length; i++) {
+            let item = targetArray[i];
+            if (item) {
+                let pts = item && item.points ? item.points : item;
+                pts = typeof pts === 'string' ? pts.split(',').map(Number) : pts;
+                if (lines[i]) lines[i].points(pts);
+            }
+        }
+        stage.batchDraw();
+    }
+});
+
+function interactiveFacadeArrow(pointsArr, callback) {
+    isFacadeArrowActive = true;
+    if (typeof pointsArr === 'string') pointsArr = pointsArr.split(',').map(Number);
+    if (pointsArr.length < 6) {
+        isFacadeArrowActive = false;
+        callback(null); return;
+    }
+
+    let cx = 0, cy = 0;
+    for(let i=0; i<pointsArr.length; i+=2) {
+        cx += pointsArr[i];
+        cy += pointsArr[i+1];
+    }
+    cx /= (pointsArr.length/2);
+    cy /= (pointsArr.length/2);
+
+    let selLine = stage.find('#sel')[0];
+    let layer = selLine ? selLine.getLayer() : stage.getLayers()[0];
+    
+    let arrow = new Konva.Arrow({
+        points: [cx, cy, cx, cy - 50],
+        pointerLength: 10,
+        pointerWidth: 10,
+        fill: 'black',
+        stroke: 'black',
+        strokeWidth: 4,
+        id: 'facade_arrow'
+    });
+    
+    layer.add(arrow);
+    layer.batchDraw();
+
+    let arrowAngle = 0;
+
+    let moveHandler = function() {
+        let pos = stage.getPointerPosition();
+        if (!pos) return;
+        
+        let t = stage.getAbsoluteTransform().copy();
+        t.invert();
+        let localPos = t.point(pos);
+        
+        let dx = localPos.x - cx;
+        let dy = localPos.y - cy;
+        arrowAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+        
+        let len = Math.sqrt(dx*dx + dy*dy);
+        if (len < 20) len = 20; 
+        
+        arrow.points([cx, cy, cx + Math.cos(arrowAngle * Math.PI/180)*len, cy + Math.sin(arrowAngle * Math.PI/180)*len]);
+        layer.batchDraw();
+    };
+
+    stage.on('mousemove.facade', moveHandler);
+    stage.on('touchmove.facade', moveHandler);
+
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'bottom',
+        showConfirmButton: false,
+        timer: 10000,
+        timerProgressBar: true,
+    });
+    Toast.fire({
+        icon: 'warning',
+        title: 'Arahkan panah ke arah jalan, lalu KLIK KIRI pada peta.'
+    });
+
+    let clickHandler = function(e) {
+        isFacadeArrowActive = false;
+        if (e.evt) e.evt.preventDefault();
+        
+        stage.off('mousemove.facade');
+        stage.off('touchmove.facade');
+        stage.off('click.facade');
+        stage.off('tap.facade');
+        
+        arrow.destroy();
+        layer.batchDraw();
+        Swal.close();
+        
+        callback(arrowAngle);
+    };
+
+    setTimeout(() => {
+        stage.on('click.facade', clickHandler);
+        stage.on('tap.facade', clickHandler);
+    }, 100);
+}

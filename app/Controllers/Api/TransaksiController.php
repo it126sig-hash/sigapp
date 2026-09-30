@@ -168,6 +168,84 @@ class TransaksiController extends BaseApiController
         return $this->response->setJSON($resp);
     }
 
+    public function replaceConsumer(): ResponseInterface
+    {
+        if (! in_groups(['1', '4'])) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'success' => false,
+                'messages' => 'Akses Pindah Konsumen hanya untuk MKDT atau administrator.',
+                'token' => csrf_hash(),
+            ]);
+        }
+
+        $req = $this->request;
+        $ids = [
+            'id_mkdt' => (int) ($req->getPost('id_mkdt') ?? 0),
+            'id_kavling' => (int) ($req->getPost('id_kavling') ?? 0),
+            'id_konsumen_lama' => (int) ($req->getPost('id_konsumen_lama') ?? 0),
+        ];
+        if (min($ids) <= 0) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'success' => false,
+                'messages' => 'Data MKDT, kavling, atau konsumen lama tidak valid.',
+                'token' => csrf_hash(),
+            ]);
+        }
+
+        $consumer = [
+            'nama_konsumen' => trim((string) ($req->getPost('nama_konsumen') ?? '')),
+            'nik' => trim((string) ($req->getPost('nik_konsumen') ?? '')),
+            'alamat_konsumen' => trim((string) ($req->getPost('alamat_konsumen') ?? '')),
+            'npwp' => trim((string) ($req->getPost('npwp_konsumen') ?? '')),
+            'hp_konsumen' => trim((string) ($req->getPost('hp_konsumen') ?? '')),
+            'status_konsumen' => trim((string) ($req->getPost('status_konsumen') ?? '')),
+            'email_konsumen' => trim((string) ($req->getPost('email_konsumen') ?? '')),
+            'nama_instansi' => trim((string) ($req->getPost('nama_instansi') ?? '')),
+            'alamat_instansi' => trim((string) ($req->getPost('alamat_instansi') ?? '')),
+            'tel_instansi' => trim((string) ($req->getPost('tel_instansi') ?? '')),
+            'email_instansi' => trim((string) ($req->getPost('email_instansi') ?? '')),
+            'alamat_surat' => trim((string) ($req->getPost('alamat_surat') ?? '')),
+            'pekerjaan' => trim((string) ($req->getPost('pekerjaan') ?? '')),
+            'lama_bekerja' => trim((string) ($req->getPost('lama_bekerja') ?? '')),
+            'bidang_pekerjaan' => trim((string) ($req->getPost('bidang_pekerjaan') ?? '')),
+            'status_pernikahan' => trim((string) ($req->getPost('status_pernikahan') ?? '')),
+            'nama_pasangan' => trim((string) ($req->getPost('nama_pasangan') ?? '')),
+            'nik_pasangan' => trim((string) ($req->getPost('nik_pasangan') ?? '')),
+            'hp_pasangan' => trim((string) ($req->getPost('hp_pasangan') ?? '')),
+            'status_pekerjaan_pasangan' => trim((string) ($req->getPost('status_pekerjaan_pasangan') ?? '')),
+            'instansi_pasangan' => trim((string) ($req->getPost('instansi_pasangan') ?? '')),
+            'sales' => trim((string) ($req->getPost('sales') ?? '')),
+        ];
+        if ($consumer['nama_konsumen'] === '') {
+            return $this->response->setStatusCode(422)->setJSON([
+                'success' => false,
+                'messages' => 'Nama konsumen baru wajib diisi.',
+                'token' => csrf_hash(),
+            ]);
+        }
+
+        $files = [];
+        foreach (['file_ktp', 'file_npwp', 'file_data_diri'] as $field) {
+            $files[$field] = $req->getFile($field);
+        }
+
+        $resp = $this->mkdtService->replaceConsumer(
+            $ids['id_mkdt'],
+            $ids['id_kavling'],
+            $ids['id_konsumen_lama'],
+            $consumer,
+            $files,
+            trim((string) ($req->getPost('kode_referal') ?? '')),
+            (int) user_id(),
+            (int) ($req->getPost('allow_duplicate_nik') ?? 0) === 1
+        );
+        $status = (int) ($resp['status_code'] ?? 200);
+        unset($resp['status_code']);
+        $resp['token'] = csrf_hash();
+
+        return $this->response->setStatusCode($status)->setJSON($resp);
+    }
+
     public function saveStatus(): ResponseInterface
     {
         $p = $this->request->getPost();

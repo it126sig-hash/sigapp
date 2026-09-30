@@ -63,7 +63,16 @@ class Cluster extends BaseController
 		$condition = [];
 
 		$query = $this->db->table('cluster')
-			->select('id_cluster, cluster.id_proyek, nama_proyek, nama_cluster, is_active')
+			->select('id_cluster, cluster.id_proyek, nama_proyek, nama_cluster, is_active, 
+                (SELECT COUNT(kavling.id_kavling) 
+                 FROM kavling 
+                 JOIN jalan ON jalan.id_jalan = kavling.id_jalan 
+                 JOIN produksi ON produksi.id_produksi = kavling.id_produksi 
+                 WHERE jalan.id_cluster = cluster.id_cluster 
+                 AND produksi.progres_bangunan = 100) as jumlah_bangun,
+                (SELECT COUNT(kavling.id_kavling) FROM kavling JOIN jalan ON jalan.id_jalan = kavling.id_jalan JOIN mkdt ON mkdt.id_mkdt = kavling.id_mkdt WHERE jalan.id_cluster = cluster.id_cluster AND mkdt.status_mkdt = \'Akad\' AND mkdt.is_batal = 0) as total_akad,
+                (SELECT COUNT(kavling.id_kavling) FROM kavling JOIN jalan ON jalan.id_jalan = kavling.id_jalan JOIN mkdt ON mkdt.id_mkdt = kavling.id_mkdt WHERE jalan.id_cluster = cluster.id_cluster AND mkdt.status_mkdt = \'Booking\' AND mkdt.is_batal = 0) as total_booking,
+                (SELECT COUNT(kavling.id_kavling) FROM kavling JOIN jalan ON jalan.id_jalan = kavling.id_jalan LEFT JOIN mkdt ON mkdt.id_mkdt = kavling.id_mkdt WHERE jalan.id_cluster = cluster.id_cluster AND (kavling.id_mkdt IS NULL OR mkdt.status_mkdt = \'Batal\' OR mkdt.is_batal = 1)) as total_belum_terjual')
 			->join('proyek', 'proyek.id_proyek = cluster.id_proyek');
 
 		if ($id_proyek)
@@ -105,6 +114,10 @@ class Cluster extends BaseController
 				$value->id_proyek,
 				$value->nama_proyek,
 				$value->nama_cluster,
+				$value->jumlah_bangun,
+                '<span class="badge badge-light-success badge-pill">' . $value->total_akad . '</span>',
+                '<span class="badge badge-light-warning badge-pill">' . $value->total_booking . '</span>',
+                '<span class="badge badge-light-secondary badge-pill">' . $value->total_belum_terjual . '</span>',
 				$this->is_active($value->is_active, "Aktif", "Tidak"),
 
 				$ops,
@@ -204,7 +217,7 @@ class Cluster extends BaseController
 					'action' => 'insert',
 					'new_data' => $fields
 				]);
-				$this->notif->tambah_notif("6", "Menambahkan Master Cluster: " . ($fields['nama_cluster'] ?? ''), user_id(), null, null, null, $fields['id_proyek']);
+				$this->notif->tambah_notif("6", "Menambahkan Master Cluster: " . ($fields['nama_cluster'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_CLUSTER, $fields['id_proyek']);
 
 				$response['success'] = true;
 				$response['messages'] = 'Data has been inserted successfully';
@@ -253,7 +266,7 @@ class Cluster extends BaseController
 					'old_data' => $oldData,
 					'new_data' => $fields
 				]);
-				$this->notif->tambah_notif("6", "Mengubah Master Cluster: " . ($fields['nama_cluster'] ?? ''), user_id(), null, null, null, $fields['id_proyek']);
+				$this->notif->tambah_notif("6", "Mengubah Master Cluster: " . ($fields['nama_cluster'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_CLUSTER, $fields['id_proyek']);
 
 				$response['success'] = true;
 				$response['messages'] = 'Successfully updated';
@@ -278,6 +291,18 @@ class Cluster extends BaseController
 
 			throw new \CodeIgniter\Exceptions\PageNotFoundException();
 		} else {
+
+            $jalanCount = $this->db->table('jalan')->where('id_cluster', $id)->countAllResults();
+            if ($jalanCount > 0) {
+                $kavlingCount = $this->db->table('kavling')
+                                        ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+                                        ->where('jalan.id_cluster', $id)
+                                        ->countAllResults();
+
+                $response['success'] = false;
+                $response['messages'] = "Tidak dapat menghapus cluster karena sudah memiliki $jalanCount jalan dan $kavlingCount kavling terdaftar.";
+                return $this->response->setJSON($response);
+            }
 
 			if ($this->clusterModel->where('id_cluster', $id)->delete()) {
 

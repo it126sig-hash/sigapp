@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="<?= base_url() ?>assets/css/booking-fee.css?v=<?= filemtime(FCPATH . 'assets/css/booking-fee.css') ?>">
 <style>
     #modal_divisi3 .modal-dialog {
         max-width: min(1440px, calc(100vw - 32px));
@@ -446,7 +447,6 @@
             white-space: normal;
         }
     }
-
 </style>
 
 <!--#################################### Modal Keuangan #########################################-->
@@ -625,6 +625,8 @@
                                                     </div>
                                                 </div>
 
+
+                                                <div id="keu-booking-fee-section"></div>
 
                                                 <div class="divider divider-left">
                                                     <div class="divider-text font-weight-bold">List Tagihan</div>

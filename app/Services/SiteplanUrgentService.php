@@ -57,10 +57,6 @@ class SiteplanUrgentService
             'pembangunan_telat' => 0,
         ];
 
-        if ($idProyek <= 0) {
-            return $counts;
-        }
-
         $today = date('Y-m-d');
         $limitDate = date('Y-m-d', strtotime('+7 days'));
 
@@ -135,10 +131,6 @@ class SiteplanUrgentService
 
     protected function buildUrgentSections(int $idProyek, int $groupId, ?int $userId): array
     {
-        if ($idProyek <= 0) {
-            return [];
-        }
-
         $today = date('Y-m-d');
         $limitDate = date('Y-m-d', strtotime('+7 days'));
         $sections = [];
@@ -292,13 +284,18 @@ class SiteplanUrgentService
 
     protected function tagihanBaseBuilder(int $idProyek)
     {
-        return $this->db->table('keuangan')
+        $builder = $this->db->table('keuangan')
             ->join('mkdt m', 'm.id_mkdt = keuangan.id_mkdt')
             ->join('kavling k', 'k.id_kavling = m.id_kavling')
             ->join('jalan j', 'j.id_jalan = k.id_jalan')
             ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
-            ->join('proyek p', 'p.id_proyek = cl.id_proyek')
-            ->where('p.id_proyek', $idProyek)
+            ->join('proyek p', 'p.id_proyek = cl.id_proyek');
+
+        if ($idProyek > 0) {
+            $builder->where('p.id_proyek', $idProyek);
+        }
+
+        return $builder
             ->where('keuangan.sudah_dibayar', 0)
             ->where('keuangan.is_void', 0)
             ->where('keuangan.jatuh_tempo_tgl IS NOT NULL', null, false)
@@ -340,14 +337,19 @@ class SiteplanUrgentService
 
     protected function cashoutSubkonBaseBuilder(int $idProyek, string $limitDate)
     {
-        return $this->db->table('cashout_subkon_detail csd')
+        $builder = $this->db->table('cashout_subkon_detail csd')
             ->join('cashout_subkon cs', 'cs.id_cashout_subkon = csd.id_cashout_subkon')
             ->join('cashout_subkon_kavling csk', 'csk.id_cashout_subkon = cs.id_cashout_subkon')
             ->join('kavling k', 'k.id_kavling = csk.id_kavling')
             ->join('jalan j', 'j.id_jalan = k.id_jalan')
             ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
-            ->join('proyek p', 'p.id_proyek = cl.id_proyek')
-            ->where('p.id_proyek', $idProyek)
+            ->join('proyek p', 'p.id_proyek = cl.id_proyek');
+
+        if ($idProyek > 0) {
+            $builder->where('p.id_proyek', $idProyek);
+        }
+
+        return $builder
             ->where('COALESCE(csd.status, 0) < 4', null, false)
             ->groupStart()
             ->where('csd.is_paid', 0)
@@ -425,7 +427,7 @@ class SiteplanUrgentService
             return [];
         }
 
-        return $this->db->table('mkdt m')
+        $builder = $this->db->table('mkdt m')
             ->select("
                 m.id_mkdt,
                 m.id_konsumen,
@@ -448,8 +450,13 @@ class SiteplanUrgentService
             ->join('jalan j', 'j.id_jalan = k.id_jalan')
             ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
             ->join('proyek p', 'p.id_proyek = cl.id_proyek')
-            ->join('tipe t', 't.id_tipe = k.id_tipe', 'left')
-            ->where('p.id_proyek', $idProyek)
+            ->join('tipe t', 't.id_tipe = k.id_tipe', 'left');
+
+        if ($idProyek > 0) {
+            $builder->where('p.id_proyek', $idProyek);
+        }
+
+        return $builder
             ->where("m.{$field} IS NOT NULL", null, false)
             ->where("m.{$field} >", '1000-01-01')
             ->where("m.{$field} <=", $limitDate)
@@ -469,13 +476,18 @@ class SiteplanUrgentService
 
     protected function pembangunanTelatBaseBuilder(int $idProyek, string $today)
     {
-        return $this->db->table('produksi pr')
+        $builder = $this->db->table('produksi pr')
             ->join('kavling k', 'k.id_produksi = pr.id_produksi')
             ->join('jalan j', 'j.id_jalan = k.id_jalan')
             ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
             ->join('proyek p', 'p.id_proyek = cl.id_proyek')
-            ->join('mkdt m', 'm.id_kavling = k.id_kavling', 'left')
-            ->where('p.id_proyek', $idProyek)
+            ->join('mkdt m', 'm.id_kavling = k.id_kavling', 'left');
+
+        if ($idProyek > 0) {
+            $builder->where('p.id_proyek', $idProyek);
+        }
+
+        return $builder
             ->where('pr.tanggal_rencana_selesai_pembangunan IS NOT NULL', null, false)
             ->where('pr.tanggal_rencana_selesai_pembangunan >', '1000-01-01')
             ->where('pr.tanggal_rencana_selesai_pembangunan <', $today)

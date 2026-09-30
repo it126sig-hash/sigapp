@@ -4,9 +4,7 @@
 
 Dokumen ini adalah panduan implementasi lengkap untuk redesain halaman `app/Views/kavling/list-kavling.php`. Tujuan utama: (1) memindahkan kolom aksi ke posisi paling kiri tabel, (2) menyesuaikan freeze column agar action column ikut ter-freeze, (3) mengintegrasikan modal siteplan per departemen langsung di halaman list, dan (4) memastikan semua variabel global yang dibutuhkan modal tersedia.
 
-**File yang diubah:** Hanya satu file — `app/Views/kavling/list-kavling.php`
-
-**File yang TIDAK diubah:** Semua file di `app/Views/siteplan/` tidak dimodifikasi sama sekali.
+**Catatan evolusi:** Implementasi terbaru juga mengubah repository/service Posisi Konsumen, export PDF/Excel, validasi Finance/MKDT, dan command rekonsiliasi. View siteplan tetap tidak perlu dimodifikasi.
 
 ---
 
@@ -34,6 +32,10 @@ User membuka list-kavling.php
                   └─ Panggil detail_kavling_list(id_kavling)
                         └─ Buka #modal_detail
 ```
+
+### Sumber data progress keuangan
+
+Target kontrak dihitung dari field MKDT melalui `MkdtFinancialBreakdownService`; realisasi berasal dari `mkdt_payment_summary`, yang direkalkulasi dari breakdown Finance. Label tagihan tidak dipakai untuk menentukan UM/ADM/BB. Helper yang sama menangani status `0%`, `Perlu Rekonsiliasi`, dan persentase di atas 100% pada tabel serta export.
 
 ### Mapping Role → Modal ID → Fungsi Pembuka
 

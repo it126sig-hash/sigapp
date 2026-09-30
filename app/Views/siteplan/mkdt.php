@@ -1113,6 +1113,10 @@
     }
 
     @media (max-width: 1199.98px) {
+        #modal_divisi4 .modal-body {
+            overflow-y: auto;
+        }
+
         #modal_divisi4 .mkdt-layout {
             flex-wrap: wrap;
         }
@@ -1130,7 +1134,12 @@
         }
 
         #modal_divisi4 .mkdt-main-content {
-            max-height: calc(100vh - 12rem);
+            max-height: none;
+            overflow: visible;
+        }
+
+        #modal_divisi4 .mkdt-scroll-content {
+            overflow-y: visible;
         }
     }
 
@@ -1147,10 +1156,6 @@
 
         #modal_divisi4 .card-body {
             padding: .85rem;
-        }
-
-        #modal_divisi4 .mkdt-main-content {
-            max-height: calc(100vh - 14rem);
         }
 
         #modal_divisi4 .nav-tabs {
@@ -2036,7 +2041,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="booking_tgl">Tanggal Booking</label>
-                                    <input type="text" id="booking_tgl" name="booking_tgl" class="form-control flatpickr-human-friendly" placeholder="-" readonly />
+                                    <input type="text" id="booking_tgl" name="booking_tgl" class="form-control flatpickr-human-friendly" placeholder="-" disabled />
                                 </div>
                                 <div class="form-group">
                                     <label for="booking_fee">Booking Fee</label>
@@ -2244,6 +2249,7 @@
                     <div class="sticky-button-wrapper">
                         <div class="d-flex flex-wrap justify-content-end" style="gap: .5rem;">
                             <button type="button" class="btn btn-outline-secondary" data-dismiss="modal"><i class="fas fa-times mr-1"></i> Cancel</button>
+                            <button type="button" id="btn-pindah-konsumen" class="btn btn-outline-warning"><i class="fas fa-user-edit mr-1"></i> Pindah Konsumen</button>
                             <button type="button" id="add-form-btn-mkdt" class="btn btn-primary" onclick="save_mkdt(this)"><i class="fas fa-save mr-1"></i> Simpan Data</button>
                         </div>
                     </div>

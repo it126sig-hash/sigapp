@@ -213,23 +213,20 @@
             <h5 class="list-tagihan-title"><?= $data['title'] ?></h5>
             <div class="list-tagihan-divider"></div>
             <div class="list-tagihan-filter">
-              <div class="filter-field">
-                <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
-              </div>
-              <div class="filter-field">
-                <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
-              </div>
-              <div class="filter-field filter-field-sm">
-                <select id="status_lunas" name="status_lunas" class="form-control">
-                  <option value="0">Belum Lunas</option>
-                  <option value="1">Sudah Lunas</option>
-                </select>
-              </div>
               <div class="filter-action">
-                <button type="button" id="btn_draw" class="btn btn-primary waves-effect btn-sm text-uppercase">
+                <button type="button" class="btn btn-outline-secondary waves-effect btn-sm text-uppercase mr-50" id="btn_clear_filter_main">
+                  <i class="fas fa-times mr-25"></i> Clear
+                </button>
+                <button type="button" class="btn btn-primary waves-effect btn-sm text-uppercase" data-toggle="modal" data-target="#filterModal">
                   <i class="fas fa-filter mr-25"></i> Filter Data
                 </button>
               </div>
+            </div>
+          </div>
+          <div class="card-body py-1 border-top" id="active_filter_container" style="display: none;">
+            <div class="d-flex flex-wrap align-items-center" style="gap: .5rem;">
+                <span class="font-weight-bold text-muted font-small-3 mr-50">Filter Aktif:</span>
+                <div id="active_filter_tags" class="d-flex flex-wrap" style="gap: .5rem;"></div>
             </div>
           </div>
         </div>
@@ -255,6 +252,61 @@
               </thead>
             </table>
 
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <!-- Modal Filter -->
+    <div class="modal modal-slide-in fade" id="filterModal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog sidebar-sm" role="document">
+        <div class="modal-content pt-0">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
+          <div class="modal-header mb-1">
+            <h5 class="modal-title"><span class="align-middle"><i class="fas fa-filter text-primary mr-50"></i> Filter Tagihan</span></h5>
+          </div>
+          <div class="modal-body flex-grow-1">
+            <div class="form-group">
+              <label><i class="fas fa-map-marker-alt text-muted mr-50"></i> Cluster</label>
+              <select disabled id="id_cluster" name="id_cluster" class="select2 form-control w-100"></select>
+            </div>
+            <div class="form-group">
+              <label><i class="fas fa-home text-muted mr-50"></i> Blok</label>
+              <select disabled id="id_jalan" name="id_jalan" class="select2 form-control w-100"></select>
+            </div>
+            <div class="form-group">
+              <label><i class="fas fa-check-circle text-muted mr-50"></i> Status Tagihan</label>
+              <select id="status_lunas" name="status_lunas" class="form-control">
+                <option value="0">Belum Lunas</option>
+                <option value="1">Sudah Lunas</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label><i class="fas fa-money-bill-wave text-muted mr-50"></i> Tunai / KPR</label>
+              <select id="is_kpr" name="is_kpr" class="form-control">
+                <option value="">Semua</option>
+                <option value="0">Tunai</option>
+                <option value="1">KPR</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label><i class="fas fa-calendar-plus text-muted mr-50"></i> Periode Tanggal Booking</label>
+              <input type="text" id="booking_tgl_range" class="form-control flatpickr-range bg-white" placeholder="Pilih Range Tanggal">
+            </div>
+            <div class="form-group">
+              <label><i class="fas fa-calendar-times text-muted mr-50"></i> Periode Jatuh Tempo</label>
+              <input type="text" id="jatuh_tempo_tgl_range" class="form-control flatpickr-range bg-white" placeholder="Pilih Range Tanggal">
+            </div>
+            <div class="d-flex justify-content-between mt-2 border-top pt-2">
+              <button type="button" class="btn btn-outline-secondary" id="btn_clear_filter_modal">
+                 <i class="fas fa-times mr-25"></i> Clear Filter
+              </button>
+              <button type="button" class="btn btn-primary" id="btn_terapkan_filter">
+                 <i class="fas fa-check mr-25"></i> Terapkan Filter
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -288,6 +340,13 @@
     altInput: true,
     altFormat: 'F j, Y',
     dateFormat: 'Y-m-d'
+  });
+
+  let fpRange = flatpickr(".flatpickr-range", {
+    mode: "range",
+    dateFormat: "Y-m-d",
+    altInput: true,
+    altFormat: "j F Y",
   });
 
   let listTagihanTable = null;
@@ -504,6 +563,9 @@
           data.id_cluster = $("#id_cluster").val()
           data.id_jalan = $("#id_jalan").val()
           data.status_lunas = $("#status_lunas").val()
+          data.is_kpr = $("#is_kpr").val()
+          data.booking_tgl_range = $("#booking_tgl_range").val()
+          data.jatuh_tempo_tgl_range = $("#jatuh_tempo_tgl_range").val()
         },
         dataSrc: function(r) {
           if (r.token) csrfHash = r.token
@@ -627,11 +689,68 @@
       },
     })
 
-    //on click btn filter
-    $("#btn_draw").on("click", function(e) {
+    $("#btn_terapkan_filter").on("click", function(e) {
       tagihanDetailCache = {};
       listTagihanTable.draw();
-    })
+      $("#filterModal").modal("hide");
+    });
+
+    function updateActiveFilterTags() {
+        let tags = [];
+        
+        let cluster = $("#id_cluster").select2('data');
+        if (cluster && cluster.length > 0 && cluster[0].id) {
+            tags.push(`<span class="badge badge-light-primary">Cluster: ${cluster[0].text}</span>`);
+        }
+        let jalan = $("#id_jalan").select2('data');
+        if (jalan && jalan.length > 0 && jalan[0].id) {
+            tags.push(`<span class="badge badge-light-primary">Blok: ${jalan[0].text}</span>`);
+        }
+        let lunas = $("#status_lunas option:selected").text();
+        if ($("#status_lunas").val() != "0") {
+            tags.push(`<span class="badge badge-light-info">Status: ${lunas}</span>`);
+        }
+        let isKpr = $("#is_kpr").val();
+        if (isKpr !== "") {
+            tags.push(`<span class="badge badge-light-warning">Tipe: ${isKpr == '1' ? 'KPR' : 'Tunai'}</span>`);
+        }
+        let booking = $("#booking_tgl_range").val();
+        if (booking) {
+            tags.push(`<span class="badge badge-light-success">Booking: ${booking}</span>`);
+        }
+        let jt = $("#jatuh_tempo_tgl_range").val();
+        if (jt) {
+            tags.push(`<span class="badge badge-light-danger">Jatuh Tempo: ${jt}</span>`);
+        }
+
+        if (tags.length > 0) {
+            $("#active_filter_container").show();
+            $("#active_filter_tags").html(tags.join(""));
+        } else {
+            $("#active_filter_container").hide();
+            $("#active_filter_tags").html("");
+        }
+    }
+
+    listTagihanTable.on('draw', function () {
+        updateActiveFilterTags();
+    });
+
+    $("#btn_clear_filter_main, #btn_clear_filter_modal").on("click", function() {
+        $("#id_cluster").val(null).trigger("change");
+        $("#status_lunas").val("0");
+        $("#is_kpr").val("");
+        if (document.querySelector("#booking_tgl_range")._flatpickr) {
+            document.querySelector("#booking_tgl_range")._flatpickr.clear();
+        }
+        if (document.querySelector("#jatuh_tempo_tgl_range")._flatpickr) {
+            document.querySelector("#jatuh_tempo_tgl_range")._flatpickr.clear();
+        }
+        
+        tagihanDetailCache = {};
+        listTagihanTable.draw();
+        $("#filterModal").modal("hide");
+    });
 
     //remove bug arrow select2
     $(".select2-selection__arrow").css("pointer-events", "none")

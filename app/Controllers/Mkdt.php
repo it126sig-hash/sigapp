@@ -14,6 +14,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Controllers\Notif;
 use App\Services\FileAccessService;
 use App\Services\MkdtHistoryService;
+use App\Services\BookingPaymentService;
 
 class Mkdt extends BaseController
 {
@@ -28,6 +29,7 @@ class Mkdt extends BaseController
     protected $username;
     protected $fileAccessService;
     protected $mkdtHistoryService;
+    protected BookingPaymentService $bookingPaymentService;
 
     public function __construct()
     {
@@ -42,6 +44,7 @@ class Mkdt extends BaseController
         $this->username = $this->db->table('users')->select('username')->get()->getRow();
         $this->fileAccessService = new FileAccessService();
         $this->mkdtHistoryService = new MkdtHistoryService();
+        $this->bookingPaymentService = new BookingPaymentService($this->db);
     }
     function get_data_by_id($st = null)
     {
@@ -203,7 +206,7 @@ class Mkdt extends BaseController
         if ($q) {
             //insert ke log
             $notif = 'Membatalkan booking';
-            $this->notif->tambah_notif("3;4;9", $notif, user_id(), $id_kavling, $id_konsumen); //4 mkdt 9 direksi
+            $this->notif->tambah_notif("3;4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::BATAL_BOOKING, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi
 
             $this->mkdtHistoryService->log(
                 (int) $id_kavling,
@@ -334,6 +337,18 @@ class Mkdt extends BaseController
 
         $f['id_mkdt'] = $this->request->getPost('id_mkdt');
 
+        if (! empty($f['id_mkdt'])) {
+            try {
+                $this->bookingPaymentService->assertEditable(
+                    (int) $f['id_mkdt'],
+                    (float) $this->num($this->request->getPost('booking_fee')),
+                    $this->request->getPost('booking_tgl')
+                );
+            } catch (\DomainException $e) {
+                return $this->response->setJSON(['token'=>csrf_hash(),'success'=>false,'messages'=>$e->getMessage()]);
+            }
+        }
+
         $uniqid = uniqid('', true);
 
 
@@ -434,7 +449,7 @@ class Mkdt extends BaseController
 
                 //insert ke log
                 $notif = 'Menambahkan konsumen baru';
-                $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen); //4 mkdt 9 direksi
+                $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::KONSUMEN_BARU, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi
             } else {
                 $response['success'] = false;
                 $response['messages'] = 'Terjadi kesaahan saat melakukan penambahan konsumen';
@@ -451,7 +466,7 @@ class Mkdt extends BaseController
             // else{
             //     //insert ke log
             //     $notif = 'Melakukan perubahan pada data konsumen';
-            //     $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen); //4 mkdt 9 direksi
+            //     $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, null, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi
             // }
         }
 
@@ -464,7 +479,7 @@ class Mkdt extends BaseController
             if ($before_upadte_pb->perintah_bangun == 0) {
                 //insert log
                 $notif = 'Terbit perintah bangun pada : ' . date_format(date_create($this->request->getVar('perintah_bangun_tgl')), "d-M-Y");
-                $this->notif->tambah_notif("7;4;9", $notif, user_id(), $id_kavling, $id_konsumen); //4 mkdt 9 direksi 7 produksi
+                $this->notif->tambah_notif("7;4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::PERINTAH_BANGUN, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi 7 produksi
             }
 
             /************************ upload perintah bangun *****************************/
@@ -497,7 +512,7 @@ class Mkdt extends BaseController
 
             if ($before_upadte && $before_upadte->wawancara == 0) {
                 $notif = 'Telah melakukan wawancara pada : ' . date_format(date_create($this->request->getVar('wawancara_tgl')), "d-M-Y");
-                $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen);
+                $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::WAWANCARA, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen");
             }
 
             $f2['wawancara'] = 1;
@@ -515,7 +530,7 @@ class Mkdt extends BaseController
             if ($before_upadte && $before_upadte->akad == 0) {
                 //insert log
                 $notif = 'Telah melakukan akad pada : ' . date_format(date_create($this->request->getVar('wawancara_tgl')), "d-M-Y");
-                $this->notif->tambah_notif("3;5;8;4;9", $notif, user_id(), $id_kavling, $id_konsumen); //4 mkdt 9 direksi 7 produksi 3 keuangan 8 sales
+                $this->notif->tambah_notif("3;5;8;4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::AKAD, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi 7 produksi 3 keuangan 8 sales
             }
             /************************ upload bast *****************************/
             if ($this->request->getFile('bast_file')->getSize() > 0) {
@@ -607,6 +622,8 @@ class Mkdt extends BaseController
 
         $id_mkdt = $f2['id_mkdt'];
 
+        $this->db->transException(true)->transBegin();
+        try {
         if ($f2['id_mkdt'] == null) {
             $f2['add_by'] = user_id();
             $f2['edit_by'] = user_id();
@@ -628,7 +645,7 @@ class Mkdt extends BaseController
 
                 if ($f2['sp3k'] == 1) {
                     $notif = 'Melakukan perubahan pada tanggal terbit SP3K (' . date_format(date_create($f2['sp3k_tgl']), "d-M-Y") . ') dan exp (' . date_format(date_create($f2['sp3k_tgl_exp']), "d-M-Y") . ') ';
-                    $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen); //4 mkdt 9 direksi
+                    $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::DATA_KONSUMEN_UPDATE, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi
                 }
 
                 //update id_mkdt di tbl kav
@@ -650,7 +667,7 @@ class Mkdt extends BaseController
                 if ($f2['sp3k'] == 1) {
                     if ($old_data->sp3k_tgl != $f2['sp3k_tgl']) {
                         $notif = 'Melakukan perubahan pada tanggal terbit SP3K (' . date_format(date_create($f2['sp3k_tgl']), "d-M-Y") . ') dan exp (' . date_format(date_create($f2['sp3k_tgl_exp']), "d-M-Y") . ') ';
-                        $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen);
+                        $this->notif->tambah_notif("4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::DATA_KONSUMEN_UPDATE, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen");
                     }
                 }
 
@@ -660,6 +677,15 @@ class Mkdt extends BaseController
                 $response['success'] = false;
                 $response['messages'] = 'Terjadi Kesalahan';
             }
+        }
+
+        if (! empty($id_mkdt)) $this->bookingPaymentService->synchronize((int) $id_mkdt, (int) user_id());
+        if ($this->db->transStatus() === false) throw new \RuntimeException('Transaksi database gagal.');
+        $this->db->transCommit();
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            $response['success'] = false;
+            $response['messages'] = 'Gagal menyimpan booking: ' . $e->getMessage();
         }
 
         return $this->response->setJSON($response);
@@ -1521,6 +1547,8 @@ class Mkdt extends BaseController
                 mkdt.status_mkdt,
 
                 produksi.progres_bangunan,
+                produksi.tanggal_pembangunan,
+                produksi.tanggal_selesai_pembangunan,
                 
                 jalan.id_jalan,
                 jalan.nama_jalan,
@@ -1557,6 +1585,26 @@ class Mkdt extends BaseController
         else
             $query->where(["proyek.id_proyek" => $var['id_proyek']]);
 
+        if (!empty($var['tgl_pembangunan'])) {
+            $dates = explode(' to ', $var['tgl_pembangunan']);
+            if (count($dates) == 2) {
+                $query->where('produksi.tanggal_pembangunan >=', $dates[0]);
+                $query->where('produksi.tanggal_pembangunan <=', $dates[1]);
+            } else {
+                $query->where('produksi.tanggal_pembangunan', $dates[0]);
+            }
+        }
+
+        if (!empty($var['tgl_selesai'])) {
+            $dates = explode(' to ', $var['tgl_selesai']);
+            if (count($dates) == 2) {
+                $query->where('produksi.tanggal_selesai_pembangunan >=', $dates[0]);
+                $query->where('produksi.tanggal_selesai_pembangunan <=', $dates[1]);
+            } else {
+                $query->where('produksi.tanggal_selesai_pembangunan', $dates[0]);
+            }
+        }
+
         $query->where('produksi.progres_bangunan', 100);
         $query->groupStart()
             ->where('mkdt.status_mkdt', 'Batal')
@@ -1564,7 +1612,7 @@ class Mkdt extends BaseController
             ->groupEnd();
 
         // Jika ada parameter pencarian
-        $search = ''; // Ganti dengan input pencarian jika ada
+        $search = isset($var['search']['value']) ? $var['search']['value'] : '';
         if (!empty($search)) {
             $query->groupStart()
                 ->like('nama_konsumen', $search)
@@ -1610,6 +1658,26 @@ class Mkdt extends BaseController
         else
             $countfiltered->where(["proyek.id_proyek" => $var['id_proyek']]);
 
+        if (!empty($var['tgl_pembangunan'])) {
+            $dates = explode(' to ', $var['tgl_pembangunan']);
+            if (count($dates) == 2) {
+                $countfiltered->where('produksi.tanggal_pembangunan >=', $dates[0]);
+                $countfiltered->where('produksi.tanggal_pembangunan <=', $dates[1]);
+            } else {
+                $countfiltered->where('produksi.tanggal_pembangunan', $dates[0]);
+            }
+        }
+
+        if (!empty($var['tgl_selesai'])) {
+            $dates = explode(' to ', $var['tgl_selesai']);
+            if (count($dates) == 2) {
+                $countfiltered->where('produksi.tanggal_selesai_pembangunan >=', $dates[0]);
+                $countfiltered->where('produksi.tanggal_selesai_pembangunan <=', $dates[1]);
+            } else {
+                $countfiltered->where('produksi.tanggal_selesai_pembangunan', $dates[0]);
+            }
+        }
+
         $countfiltered->where('produksi.progres_bangunan', 100);
         $countfiltered->groupStart()
             ->where('mkdt.status_mkdt', 'Batal')
@@ -1617,7 +1685,7 @@ class Mkdt extends BaseController
             ->groupEnd();
 
         // Jika ada parameter pencarian
-        // $search = ''; // Ganti dengan input pencarian jika ada
+        $search = isset($var['search']['value']) ? $var['search']['value'] : '';
         if (!empty($search)) {
             $countfiltered->groupStart()
                 ->like('nama_konsumen', $search)
@@ -1660,6 +1728,26 @@ class Mkdt extends BaseController
         else
             $countTotal->where(["proyek.id_proyek" => $var['id_proyek']]);
 
+        if (!empty($var['tgl_pembangunan'])) {
+            $dates = explode(' to ', $var['tgl_pembangunan']);
+            if (count($dates) == 2) {
+                $countTotal->where('produksi.tanggal_pembangunan >=', $dates[0]);
+                $countTotal->where('produksi.tanggal_pembangunan <=', $dates[1]);
+            } else {
+                $countTotal->where('produksi.tanggal_pembangunan', $dates[0]);
+            }
+        }
+
+        if (!empty($var['tgl_selesai'])) {
+            $dates = explode(' to ', $var['tgl_selesai']);
+            if (count($dates) == 2) {
+                $countTotal->where('produksi.tanggal_selesai_pembangunan >=', $dates[0]);
+                $countTotal->where('produksi.tanggal_selesai_pembangunan <=', $dates[1]);
+            } else {
+                $countTotal->where('produksi.tanggal_selesai_pembangunan', $dates[0]);
+            }
+        }
+
         $countTotal->where('produksi.progres_bangunan', 100);
         $countTotal->groupStart()
             ->where('mkdt.status_mkdt', 'Batal')
@@ -1667,7 +1755,7 @@ class Mkdt extends BaseController
             ->groupEnd();
 
         // Jika ada parameter pencarian
-        // $search = ''; // Ganti dengan input pencarian jika ada
+        $search = isset($var['search']['value']) ? $var['search']['value'] : '';
         if (!empty($search)) {
             $countTotal->groupStart()
                 ->like('nama_konsumen', $search)
@@ -1687,30 +1775,14 @@ class Mkdt extends BaseController
         //looping data untuk datatable
         $no = $var['start'];
         foreach ($x->getResult() as $key => $v) {
-            $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-sm btn-info" onclick="edit(' . $v->id_mkdt . ')"><i class="fa fa-edit"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-sm btn-danger" onclick="remove(' . $v->id_mkdt . ')"><i class="fa ' . $no . '"></i></button>';
-            $ops .= '</div>';
             $no++;
-            $nama_konsumen = ($v->nama_konsumen != null) ? $v->nama_konsumen . "(" . $v->status_mkdt . ")" : "";
-            $data['data'][] = array(
-
-                $no,
-
-                $v->nama_jalan,
-                $v->no_kavling,
-                $v->tipe_rumah,
-                $v->progres_bangunan . "%",
-                $nama_konsumen,
-                $v->hp_konsumen,
-                $v->keterangan_batal,
-
-                $v->uadd_by,
-                date_format(date_create($v->created_at), "d-M-Y H:i"),
-                $v->uedit_by,
-                date_format(date_create($v->updated_at), "d-M-Y H:i"),
-                $ops
-            );
+            $row_data = (array) $v;
+            $row_data['no_index'] = $no;
+            $row_data['tanggal_pembangunan_formatted'] = $this->format_tgl($v->tanggal_pembangunan);
+            $row_data['tanggal_selesai_pembangunan_formatted'] = $this->format_tgl($v->tanggal_selesai_pembangunan);
+            $row_data['terakhir_diperbarui'] = $v->uedit_by . '<br>' . date_format(date_create($v->updated_at), "d-M-Y H:i");
+            
+            $data['data'][] = $row_data;
         }
 
         return $this->response->setJSON($data);

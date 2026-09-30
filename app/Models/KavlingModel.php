@@ -25,6 +25,7 @@ class KavlingModel extends Model
 			'harga_akhir_tgl',
 			'harga_akhir_oleh',
 			'points',
+			'rotation',
 			'status_kavling',
 			'add_by',
 			'edit_by',

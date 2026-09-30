@@ -719,37 +719,6 @@ $("#berita_acara_bb").change(function () {
 //         }
 //     })
 // }
-function ganti_nama() {
-  if ($("#spptb_ttd_file").html() == "Tidak ada data") {
-    return swal(
-      "error",
-      "Kamu harus mengunggah file SPPTB yang sudah ditandatangani",
-    );
-  }
-  Swal.fire({
-    title: "Ganti nama konsumen?",
-    text: "Apakah anda yakin akan mengganti nama konsumen?",
-    // type: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Ya!",
-    confirmButtonClass: "btn btn-primary",
-    cancelButtonClass: "btn btn-danger ml-1",
-    buttonsStyling: !1,
-  }).then(function (t) {
-    if (t.isConfirmed) {
-      id_mkdt_old = $("#idk-id_mkdt").val();
-      id_konsumen_old = $("#idk-id_konsumen").val();
-      is_ganti_nama = "Ganti Nama";
-
-      $("#btn-print_spptb").prop("href", "#");
-      $(".gn, #idk-id_konsumen, #idk-id_mkdt").val("");
-      $("#idk_data_konsumen-tab").click();
-    }
-  });
-}
-
 //sudah t  idak dipakai
 // function isi_tagihan() {
 //     var sh = editdtt[0],
@@ -1949,82 +1918,9 @@ function pencairan_akad() {
   loadPencairanAkadData(true);
 }
 
-function getRiwayatGantinama() {
-  if (!editdtt[0]) {
-    return swal("error", "Tidak ada kavling yang dipilih");
-  }
-  let sh = editdtt[0];
-
-  $.ajax({
-    url: base_url + "keuangan/get_riwayat_gantinama",
-    type: "post",
-    data: {
-      [csrfName]: csrfHash,
-      id_mkdt: sh.data.id_mkdt,
-    },
-    dataType: "json",
-    beforeSend: function () {
-      simpanBtn(
-        "#btn-refresh-ganti_nama",
-        true,
-        'Sedang Memuat <i class="fa fa-spinner fa-spin"></i>',
-        "Muat ulang riwayat",
-      );
-    },
-    success: function (x) {
-      csrfHash = x.token;
-
-      let tb = "<tr><td colspan = 2> Tidak Ada Data</td></tr>";
-      if (x.riwayat) {
-        tb = "";
-        let n = 1;
-        x.riwayat.forEach((e) => {
-          tb += `
-                    <tr>
-                            <td>${n}</td>
-                            <td>
-                                ${
-                                  e.file_spptb_access_url
-                                    ? `<a href="${e.file_spptb_access_url}" target=_blank class="btn btn-outline-primary">Klik untuk melihat file SPPTB Seblumnya</a>`
-                                    : "-"
-                                }
-                            </td>
-                            <td>
-                                -
-                            </td>
-                        </tr>"`;
-          n++;
-        });
-      }
-
-      $("#riwayat_ganti_nama-here").html(tb);
-
-      simpanBtn(
-        "#btn-refresh-ganti_nama",
-        false,
-        'Sedang Memuat <i class="fa fa-spinner fa-spin"></i>',
-        "Muat ulang riwayat",
-      );
-    },
-    error: function (xhr, st, err) {
-      simpanBtn(
-        "#btn-refresh-ganti_nama",
-        false,
-        'Sedang Memuat <i class="fa fa-spinner fa-spin"></i>',
-        "Muat ulang riwayat",
-      );
-      return swal("error", err);
-    },
-  });
-}
-
 $(".modal").on("hidden.bs.modal", function () {
   data_um = {};
   data_bb = {};
-});
-
-$("#idk_riwayat-tab").click(function () {
-  getRiwayatGantinama();
 });
 
 $("#form-pencairan").on("submit", function (e) {

@@ -12,6 +12,7 @@ class PosisiKonsumenService
     protected $posisiKonsumenRepo;
     protected FileAccessService $fileAccessService;
     protected SiteplanMenuService $siteplanMenuService;
+    protected MkdtFinancialBreakdownService $financialBreakdownService;
     protected ?array $actionMenuItems = null;
     protected int $actionMenuRoleId = 0;
 
@@ -21,6 +22,7 @@ class PosisiKonsumenService
         $this->posisiKonsumenRepo = new PosisiKonsumenRepository();
         $this->fileAccessService = new FileAccessService();
         $this->siteplanMenuService = new SiteplanMenuService();
+        $this->financialBreakdownService = new MkdtFinancialBreakdownService();
     }
 
     private function resolveCurrentRoleId(): int
@@ -125,6 +127,35 @@ class PosisiKonsumenService
             . '</a>';
     }
 
+    private function renderPercentageLabel(string $label, ?int $percentage, bool $colorize = false): string
+    {
+        $escapedLabel = esc($label);
+        if (!$colorize || $percentage === null) {
+            return $escapedLabel;
+        }
+        if ($percentage === 100) {
+            return '<span class="text-success font-weight-bold">' . $escapedLabel . '</span>';
+        }
+        if ($percentage > 0 && $percentage < 100) {
+            return '<span class="text-warning poskon-progress-partial font-weight-bold">' . $escapedLabel . '</span>';
+        }
+
+        return $escapedLabel;
+    }
+
+    private function renderProgress(float $target, float $paid, bool $colorize = false): string
+    {
+        $progress = $this->financialBreakdownService->progress($target, $paid);
+        if ($progress['status'] === 'reconcile') {
+            return '<span class="badge badge-warning text-wrap">Perlu Rekonsiliasi</span>';
+        }
+        if ($progress['status'] === 'overpaid') {
+            return '<span class="badge badge-warning" title="Pembayaran melebihi target MKDT">'
+                . esc($progress['label']) . '</span>';
+        }
+        return $this->renderPercentageLabel($progress['label'], $progress['percentage'], $colorize);
+    }
+
     public function getDataTable($request, $status = null)
     {
         $status = $status ?? "Booking";
@@ -177,6 +208,7 @@ class PosisiKonsumenService
                 'produksi.lpa',
                 'produksi.st_jalan',
                 'legal.sertifikat_split_no_hgb',
+                'legal.sertifikat_split_nib',
                 'legal.pbg_no',
                 'legal.pbb_pecah_nop',
                 'mkdt.keterangan_status',
@@ -187,9 +219,13 @@ class PosisiKonsumenService
             ->edit('nama_jalan', function ($v) {
                 $html = esc($v->nama_jalan);
                 if ((int) ($v->akad_indent ?? 0) === 1) {
-                    $html .= ' <span class="badge badge-info">Akad Indent</span>';
+                    $html .= '<div class="mt-25"><span class="badge badge-primary poskon-akad-indent">Akad Indent</span></div>';
                 }
                 return $html;
+            })
+            ->edit('nama_konsumen', function ($v) {
+                return '<div>' . esc($v->nama_konsumen ?: '-') . '</div>'
+                    . '<div class="mt-25 poskon-referral">' . $this->renderReferralQrHtml($v) . '</div>';
             })
             ->edit('booking_tgl', function ($value) {
                 return $this->format_tgl($value->booking_tgl);
@@ -207,7 +243,8 @@ class PosisiKonsumenService
                 return $this->format_tgl($value->sp3k_tgl_exp);
             })
             ->edit('progres_bangunan', function ($v) {
-                return $v->progres_bangunan ?? 0 . "%";
+                $percentage = (int) ($v->progres_bangunan ?? 0);
+                return $this->renderPercentageLabel($percentage . '%', $percentage, true);
             })
             ->edit('is_kpr', function ($value) {
                 return $this->is_active($value->is_kpr, 'KPR', 'TUNAI');
@@ -229,53 +266,33 @@ class PosisiKonsumenService
                     return '-';
                 }
 
-                $total = $v->um + $v->adm + $v->bb;
-                $bayar = $v->total_um + $v->total_adm + $v->total_bb;
-
-                if ($bayar <= 0) {
-                    return '0%';
-                }
-
-                $persen = ($bayar / $total) * 100;
-
-                return round($persen) . '%'; // tanpa desimal
+                return $this->renderProgress(
+                    (float) $v->um + (float) $v->adm + (float) $v->bb,
+                    (float) $v->total_um + (float) $v->total_adm + (float) $v->total_bb
+                );
             })
             ->edit('um', function ($v) {
                 if ($v->is_kpr == 0) {
                     return '-';
                 }
-                if ($v->total_um <= 0) {
-                    return '0%';
-                }
-                $persen = ($v->total_um / $v->um) * 100;
-                return round($persen) . '%'; // tanpa desimal
+                return $this->renderProgress((float) $v->um, (float) $v->total_um, true);
             })
             ->edit('adm', function ($v) {
                 if ($v->is_kpr == 0) {
                     return '-';
                 }
-                if ($v->total_adm <= 0) {
-                    return '0%';
-                }
-                $persen = ($v->total_adm / $v->adm) * 100;
-                return round($persen) . '%'; // tanpa desimal
+                return $this->renderProgress((float) $v->adm, (float) $v->total_adm, true);
             })
             ->edit('bb', function ($v) {
                 if ($v->is_kpr == 0) {
                     return '-';
                 }
-                if ($v->total_bb <= 0) {
-                    return '0%';
-                }
-                $persen = ($v->total_bb / $v->bb) * 100;
-                return round($persen) . '%'; // tanpa desimal
+                return $this->renderProgress((float) $v->bb, (float) $v->total_bb, true);
             })
             ->edit('action', function ($value) {
                 return $this->renderPoskonActionHtml($value);
             })
-            ->edit('kode_referal', function ($value) {
-                return $this->renderReferralQrHtml($value);
-            })
+            ->hide('kode_referal')
             ->edit('keterangan_status', function ($v) {
                 return $v->keterangan_status ?: '-';
             })
@@ -291,6 +308,26 @@ class PosisiKonsumenService
             $builder->where('cluster.id_cluster', $request->getVar('id_cluster'));
         if ($request->getVar('id_jalan'))
             $builder->where('jalan.id_jalan', $request->getVar('id_jalan'));
+
+        if ($request->getVar('periode_booking')) {
+            $dates = explode(' to ', $request->getVar('periode_booking'));
+            if (count($dates) == 2) {
+                $builder->where('mkdt.booking_tgl >=', $dates[0]);
+                $builder->where('mkdt.booking_tgl <=', $dates[1]);
+            } else if (count($dates) == 1 && $dates[0] != '') {
+                $builder->where('mkdt.booking_tgl', $dates[0]);
+            }
+        }
+
+        if ($request->getVar('periode_batal')) {
+            $dates = explode(' to ', $request->getVar('periode_batal'));
+            if (count($dates) == 2) {
+                $builder->where('mkdt.mkdt_batal_tgl >=', $dates[0]);
+                $builder->where('mkdt.mkdt_batal_tgl <=', $dates[1]);
+            } else if (count($dates) == 1 && $dates[0] != '') {
+                $builder->where('mkdt.mkdt_batal_tgl', $dates[0]);
+            }
+        }
 
         return DataTable::of($builder)
             ->setSearchableColumns([
@@ -310,9 +347,12 @@ class PosisiKonsumenService
                 return $this->is_active($value->is_kpr, 'KPR', 'TUNAI');
             })
             ->edit('keterangan_batal', function ($value) {
+                return $value->keterangan_batal;
+            })
+            ->edit('tanggal_batal', function ($value) {
                 $tanggal_batal = $this->format_tgl($value->mkdt_batal_tgl);
-                $keterangan_batal = $value->keterangan_batal;
-                return $keterangan_batal . "<br> <span class='text-muted'>Dibatalkan pada: " . $tanggal_batal . "</span>";
+                $oleh = $value->nama_pembatal ?? '-';
+                return $tanggal_batal . "<br><span class='text-muted'>Oleh: " . $oleh . "</span>";
             })
             ->edit('perlu_refund', function ($value) {
                 if ((int) ($value->perlu_refund ?? 0) === 1) {

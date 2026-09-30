@@ -210,6 +210,104 @@ $("#idk-kode_referal").select2({
 
 const containerIsiKonsumen = $("#tab-isi-konsumen");
 let latestIsiDataKonsumenRequestId = 0;
+const consumerReplacementState = {
+  active: false,
+  idMkdt: null,
+  idKavling: null,
+  oldConsumerId: null,
+  printHref: null,
+};
+
+const consumerIdentityFields = [
+  "#idk-nama_konsumen", "#idk-nik_konsumen", "#idk-alamat_konsumen",
+  "#idk-npwp_konsumen", "#idk-hp_konsumen", "#idk-email_konsumen",
+  "#idk-status_konsumen", "#idk-nama_instansi", "#idk-alamat_instansi",
+  "#idk-tel_instansi", "#idk-email_instansi", "#idk-alamat_surat",
+  "#idk-pekerjaan", "#idk-lama_bekerja", "#idk-bidang_pekerjaan",
+  "#idk-status_pernikahan", "#idk-nama_pasangan", "#idk-nik_pasangan",
+  "#idk-hp_pasangan", "#idk-status_pekerjaan_pasangan", "#idk-instansi_pasangan",
+  "#idk-sales",
+];
+
+function resetConsumerReplacementMode() {
+  consumerReplacementState.active = false;
+  consumerReplacementState.idMkdt = null;
+  consumerReplacementState.idKavling = null;
+  consumerReplacementState.oldConsumerId = null;
+  $("#modal-isi_data_konsumen .modal-header .modal-title").first().text("Isi Data Konsumen");
+  $("#modal-isi_data_konsumen .replacement-locked")
+    .prop("disabled", false)
+    .removeClass("replacement-locked bg-light");
+  $("#st-mkdt-no_spptb").prop("readonly", false);
+  if (consumerReplacementState.printHref) {
+    $("#btn-print_spptb").attr("href", consumerReplacementState.printHref).attr("target", "_blank");
+  }
+  consumerReplacementState.printHref = null;
+}
+
+function prepareConsumerReplacementForm() {
+  if (!consumerReplacementState.active) return;
+
+  consumerReplacementState.printHref = $("#btn-print_spptb").attr("href");
+  $("#modal-isi_data_konsumen .modal-header .modal-title").first().text("Isi Data Konsumen Baru");
+  $("#idk-id_mkdt").val(consumerReplacementState.idMkdt);
+  $("#idk-id_konsumen").val("");
+  $("#idk_data_baru").val(1);
+
+  $(consumerIdentityFields.join(",")).val("").trigger("change");
+  $("#idk-kode_referal").val(null).trigger("change");
+  $("#file_ktp, #file_npwp, #file_data_diri, #file_spptb, #file_surat_kuasa").val("");
+  $("#idk-file_ktp-here, #idk-file_npwp-here, #idk-file_data_diri-here")
+    .html("Tidak ada data")
+    .removeAttr("href target");
+  $("#spptb_ttd_file").html("Tidak ada data");
+  $("#prev_file_ktp, #prev_file_npwp, #prev_file_data_diri, #prev_file_spptb, #prev_file_surat_kuasa").empty();
+
+  const $formControls = $("#fm-idk_keu").find("input, select, textarea");
+  $formControls.not(consumerIdentityFields.join(","))
+    .not("#idk-id_mkdt, #idk-id_kavling, #idk-id_konsumen, #st-mkdt-no_spptb")
+    .not("#file_ktp, #file_npwp, #file_data_diri, #idk-kode_referal")
+    .prop("disabled", true)
+    .addClass("replacement-locked bg-light");
+  $("#st-mkdt-no_spptb").prop("readonly", true).addClass("replacement-locked bg-light");
+  $("#btn-print_spptb").attr("href", "#").removeAttr("target");
+  $("#idk_data_konsumen-tab").tab("show");
+}
+
+$(document).off("click.mkdtPindahKonsumen", "#btn-pindah-konsumen")
+  .on("click.mkdtPindahKonsumen", "#btn-pindah-konsumen", function () {
+    const idMkdt = Number($("#id_mkdt").val() || 0);
+    const idKavling = Number($(".id_kavling").first().val() || 0);
+    const oldConsumerId = Number($("#id_konsumen").val() || 0);
+    if (!idMkdt || !idKavling || !oldConsumerId) {
+      return swal("error", "Data konsumen aktif tidak lengkap. Muat ulang modal Ubah Status.");
+    }
+
+    Swal.fire({
+      icon: "warning",
+      title: "Pindah konsumen?",
+      text: "Identitas konsumen baru akan dibuat. Kavling, nomor SPPTB, biaya, tagihan, dan pembayaran tetap sama.",
+      showCancelButton: true,
+      confirmButtonText: "Ya, lanjutkan",
+      cancelButtonText: "Batal",
+    }).then(function (result) {
+      if (!result.isConfirmed) return;
+      consumerReplacementState.active = true;
+      consumerReplacementState.idMkdt = idMkdt;
+      consumerReplacementState.idKavling = idKavling;
+      consumerReplacementState.oldConsumerId = oldConsumerId;
+      removeModalListener("#modal_divisi4");
+      $("#modal_divisi4").one("hidden.bs.modal.mkdtPindahKonsumen", function () {
+        isi_data_konsumen();
+      }).modal("hide");
+    });
+  });
+
+$("#modal-isi_data_konsumen").off("hidden.bs.modal.mkdtPindahKonsumen")
+  .on("hidden.bs.modal.mkdtPindahKonsumen", function () {
+    resetConsumerReplacementMode();
+    resetConsumerReplacementHistory();
+  });
 
 function isValidKonsumen(i) {
   let isValid = true;
@@ -244,6 +342,7 @@ function isValidKonsumen(i) {
 
     return isValid;
   } else if (i == "save") {
+    if (consumerReplacementState.active) return true;
     if (parseFloat(removeComma($("#mk-total_tot").val() || 0)) > 0) {
       if ($("#mk-total_tot").val() != $("#mk-total_cicilan_um").val()) {
         showToast(
@@ -258,6 +357,9 @@ function isValidKonsumen(i) {
 }
 // Klik NEXT/SIMPAN
 function btnNext(next) {
+  if (window.idkIsSubmitting) {
+    return;
+  }
   let isValid = isValidKonsumen(next);
   if (next === "save" && isValid) {
     Swal.fire({
@@ -932,6 +1034,26 @@ function fillMkdt(v) {
   $("#spptb_ttd_file").html(spptbLink);
 }
 
+function applyBookingVerificationLock(booking) {
+  const locked = Boolean(booking?.locked);
+  const fee = document.querySelector("#idk-booking_fee");
+  const date = document.querySelector("#idk-booking_tgl");
+  if (fee) {
+    fee.readOnly = locked;
+    fee.classList.toggle("bg-light", locked);
+    fee.title = locked ? "Booking fee sudah diverifikasi Keuangan" : "";
+  }
+  if (date) {
+    date.readOnly = locked;
+    date.classList.toggle("bg-light", locked);
+    date.title = locked ? "Tanggal booking sudah diverifikasi Keuangan" : "";
+    if (date._flatpickr) {
+      date._flatpickr.set("clickOpens", !locked);
+      if (date._flatpickr.altInput) date._flatpickr.altInput.readOnly = locked;
+    }
+  }
+}
+
 $("#idk-status_mkdt").change(updateIdkBatalSection);
 
 function fillSpptbList(list) {
@@ -950,6 +1072,84 @@ function fillSpptbList(list) {
       : '<tr><td colspan="3">Tidak ada data</td></tr>';
   $("#spptb_ttd_file-here").html(html);
 }
+
+function resetConsumerReplacementHistory() {
+  $("#idk-riwayat-ganti-nama-section").addClass("d-none");
+  $("#idk-riwayat-ganti-nama-title").text("Riwayat Ganti Nama");
+  $("#riwayat_ganti_nama-here").empty();
+}
+
+function renderConsumerReplacementHistory(history) {
+  const rows = Array.isArray(history) ? history : [];
+  const $section = $("#idk-riwayat-ganti-nama-section");
+
+  if (rows.length === 0) {
+    resetConsumerReplacementHistory();
+    return;
+  }
+
+  const html = rows.map((item, index) => {
+    const consumerName = escapeHtml(item.nama_konsumen || "-");
+    const spptbNumber = escapeHtml(item.no_spptb || "-");
+    const changedBy = escapeHtml(item.changed_by || "-");
+    const changedAt = item.changed_at ? escapeHtml(format_datetime(item.changed_at)) : "-";
+    const fileLink = item.file_spptb_access_url
+      ? `<a href="${escapeHtml(item.file_spptb_access_url)}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary mt-50">Lihat SPPTB lama</a>`
+      : '<small class="text-muted d-block mt-50">Belum ada file SPPTB</small>';
+
+    return `<tr>
+      <td>${index + 1}</td>
+      <td><strong>${consumerName}</strong><br><small>No. SPPTB: ${spptbNumber}</small>${fileLink}</td>
+      <td>${changedBy}<br><small>${changedAt}</small></td>
+    </tr>`;
+  }).join("");
+
+  $("#riwayat_ganti_nama-here").html(html);
+  $("#idk-riwayat-ganti-nama-title").text(`Riwayat Ganti Nama (${rows.length})`);
+  $section.removeClass("d-none");
+}
+
+function getRiwayatGantinama(showError = true) {
+  const idMkdt = Number($("#idk-id_mkdt").val() || 0);
+  const idKavling = Number($("#modal-isi_data_konsumen .id_kavling").first().val() || state.id_kavling || 0);
+  if (!idMkdt || !idKavling) {
+    resetConsumerReplacementHistory();
+    return $.Deferred().resolve().promise();
+  }
+
+  return $.ajax({
+    url: base_url + "api/mkdt/consumer-replacement-history",
+    type: "post",
+    dataType: "json",
+    data: {
+      [csrfName]: csrfHash,
+      id_mkdt: idMkdt,
+      id_kavling: idKavling,
+    },
+    beforeSend: function () {
+      simpanBtn("#btn-refresh-ganti_nama", true, 'Memuat <i class="fa fa-spinner fa-spin"></i>', "Muat Ulang Riwayat");
+    },
+    success: function (response) {
+      if (response.token) csrfHash = response.token;
+      renderConsumerReplacementHistory(response.history || []);
+    },
+    error: function (xhr) {
+      resetConsumerReplacementHistory();
+      if (xhr.responseJSON?.token) csrfHash = xhr.responseJSON.token;
+      if (showError) {
+        swal("error", xhr.responseJSON?.messages || "Gagal memuat riwayat ganti nama");
+      }
+    },
+    complete: function () {
+      simpanBtn("#btn-refresh-ganti_nama", false, 'Memuat <i class="fa fa-spinner fa-spin"></i>', "Muat Ulang Riwayat");
+    },
+  });
+}
+
+$(document).off("shown.bs.tab.mkdtGantiNama", "#idk_riwayat-tab")
+  .on("shown.bs.tab.mkdtGantiNama", "#idk_riwayat-tab", function () {
+    getRiwayatGantinama(false);
+  });
 
 function fillTagihan(tg) {
   state.data_um = {};
@@ -1080,12 +1280,10 @@ function tambah(e = '') {
 
 function removeFromTable(x, y = null) {
     const bucket = y == '_bb' ? 'data_bb' : 'data_um';
-    const row = state[bucket] && state[bucket][x];
-    const idKeuangan = row && row.id_keuangan;
 
     Swal.fire({
         title: 'Hapus Data?',
-        text: "Data tidak bisa dipulihkan!",
+        text: "Perubahan diterapkan setelah data disimpan.",
         type: 'danger',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
@@ -1097,35 +1295,9 @@ function removeFromTable(x, y = null) {
     }).then(function(t) {
         if (!t.value) return;
 
-        // Baris baru yang belum tersimpan (belum ada id_keuangan) cukup dihapus dari state.
-        if (!idKeuangan) {
-            delete state[bucket][x];
-            tambah_ketagihan();
-            return;
-        }
-
-        $.ajax({
-            url: base_url + 'tagihan/hapus',
-            type: 'post',
-            dataType: 'json',
-            data: {
-                id_keuangan: idKeuangan,
-                [csrfName]: csrfHash
-            },
-            success: function(r) {
-                if (r.token) csrfHash = r.token;
-
-                if (!r.success) {
-                    return swal('error', r.message);
-                }
-
-                delete state[bucket][x];
-                tambah_ketagihan();
-            },
-            error: function() {
-                return swal('error', 'Terjadi kesalahan')
-            }
-        });
+        // Penghapusan DB dilakukan oleh syncTagihan() dalam transaksi simpan.
+        delete state[bucket][x];
+        tambah_ketagihan();
     })
 
 }
@@ -1458,6 +1630,7 @@ async function isi_data_konsumen() {
   ui.btn.delKons.addClass("hidden");
   $("#idk-show_keterangan_batal, .refresh_fmmkdt_div").addClass("hidden");
   setIdkPerluRefund(0);
+  resetConsumerReplacementHistory();
 
   ui.form.kons.find("#idk-id_konsumen").val("");
   // Siapkan konteks UI & state
@@ -1498,16 +1671,19 @@ async function isi_data_konsumen() {
 
       // MKDT fields
       fillMkdt(v);
+      applyBookingVerificationLock(res.booking);
 
       // SPPTB list
       fillSpptbList(res.list_spptb || []);
 
       // Tagihan + render
       fillTagihan(tg);
-      $("#idk-total_sudah_dibayar").val(res.total_sudah_bayar || 0).keyup();
+      $("#idk-total_sudah_dibayar").val(res.angsuran?.sudah_bayar || 0).keyup();
 
       // Hitung total & label alamat sekali saja
       sum_mktotal();
+
+      prepareConsumerReplacementForm();
 
       let label_alamat = setLabelAlamat(
         dt_proyek.nama_proyek,
@@ -1525,6 +1701,7 @@ async function isi_data_konsumen() {
       });
       initModalListener("#modal-isi_data_konsumen");
       state.status.tab.isClosed = false;
+      getRiwayatGantinama(false);
     });
   } catch (e) {
     console.log(e);
@@ -1585,10 +1762,13 @@ function renderNikUsageWarning(rows) {
 }
 
 function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
-  const btnSave = "#add-form-btn-idk_keu";
-  // updateButtons(btnSave, "#prev-form-btn-idk_keu");
+  if (window.idkIsSubmitting) {
+    return;
+  }
 
-  if (parseFloat(removeComma($("#mk-total_cicilan_um").val() || 0)) > 0) {
+  const btnSave = "#modal-isi_data_konsumen .btn-save-idk, #add-form-btn-idk_keu";
+
+  if (!consumerReplacementState.active && parseFloat(removeComma($("#mk-total_cicilan_um").val() || 0)) > 0) {
     if (parseFloat(removeComma($("#mk-total_tot").val())) != parseFloat(removeComma($("#mk-total_cicilan_um").val()))) {
       return swal(
         "error",
@@ -1613,28 +1793,58 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
   if (allowDuplicateNik) {
     fd.append("allow_duplicate_nik", "1");
   }
-  let is_ganti_nama = false;
-
-  if (is_ganti_nama) {
-    fd.append("id_mkdt_old", id_mkdt_old);
-    fd.append("id_konsumen_old", id_konsumen_old);
-    fd.append("is_ganti_nama", is_ganti_nama);
+  if (consumerReplacementState.active) {
+    fd.set("id_mkdt", consumerReplacementState.idMkdt);
+    fd.set("id_kavling", consumerReplacementState.idKavling);
+    fd.set("id_konsumen_lama", consumerReplacementState.oldConsumerId);
   }
 
-  appendCollectionToFormData(fd, state.data_um);
+  if (!consumerReplacementState.active) {
+    appendCollectionToFormData(fd, state.data_um);
+  }
+
+  const fileInfo = typeof getIdkFilesInfo === "function" ? getIdkFilesInfo() : { hasFiles: false, text: "" };
 
   $.ajax({
-    url: base_url + "api/transaksi/simpan",
+    url: base_url + (consumerReplacementState.active ? "api/transaksi/konsumen/ganti" : "api/transaksi/simpan"),
     type: "post",
     contentType: false,
     processData: false,
     data: fd,
     dataType: "json",
+    xhr: function () {
+      let xhr = new window.XMLHttpRequest();
+      if (xhr.upload) {
+        xhr.upload.addEventListener(
+          "progress",
+          function (evt) {
+            if (evt.lengthComputable) {
+              let percentComplete = Math.round((evt.loaded / evt.total) * 100);
+              if (typeof updateIdkUploadProgress === "function") {
+                updateIdkUploadProgress(percentComplete, fileInfo.hasFiles);
+              }
+            }
+          },
+          false,
+        );
+      }
+      return xhr;
+    },
     beforeSend: function () {
-      simpanBtn(btnSave, true);
+      if (typeof startIdkLoading === "function") {
+        startIdkLoading(fileInfo.hasFiles, fileInfo.text);
+      } else {
+        simpanBtn(btnSave, true);
+      }
     },
     success: function (r) {
       csrfHash = r.token;
+      if (typeof stopIdkLoading === "function") {
+        stopIdkLoading();
+      } else {
+        simpanBtn(btnSave, false);
+      }
+
       if (r.success === true) {
         Swal.fire({
           //position: 'bottom-end',
@@ -1643,15 +1853,14 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
           showConfirmButton: false,
           timer: 1500,
         }).then(function () {
+          resetConsumerReplacementMode();
           removeModalListener("#modal-isi_data_konsumen");
           $(".modal").modal("hide");
-          simpanBtn(btnSave, false);
 
           load_kavling();
           hapus_seleksi();
         });
       } else if (r.require_nik_confirmation === true) {
-        simpanBtn(btnSave, false);
         Swal.fire({
           icon: "warning",
           title: "NIK sudah digunakan",
@@ -1672,20 +1881,40 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
           title: r.messages,
           showConfirmButton: false,
           timer: 1500,
-        }).then(function () {
-          simpanBtn(btnSave, false);
         });
       }
     },
     error: function (e) {
-      Swal.fire({
-        //position: 'bottom-end',
-        icon: "error",
-        title: "Terjadi kesalahan",
-        showConfirmButton: true,
-        // timer: 1500
-      }).then(function () {
+      if (typeof stopIdkLoading === "function") {
+        stopIdkLoading();
+      } else {
         simpanBtn(btnSave, false);
+      }
+
+      const r = e.responseJSON || {};
+      if (r.token) csrfHash = r.token;
+      if (r.require_nik_confirmation === true) {
+        Swal.fire({
+          icon: "warning",
+          title: "NIK sudah digunakan",
+          html: renderNikUsageWarning(r.nik_usage),
+          showDenyButton: true,
+          confirmButtonText: "Ya, tetap simpan",
+          denyButtonText: "Batal",
+          allowOutsideClick: false,
+        }).then(function (result) {
+          if (result.isConfirmed) simpan_dt_konsumen_keuangan(true);
+        });
+        return;
+      }
+
+      const wasReplacement = consumerReplacementState.active;
+      resetConsumerReplacementMode();
+      if (wasReplacement) $("#modal-isi_data_konsumen").modal("hide");
+      Swal.fire({
+        icon: "error",
+        title: r.messages || "Terjadi kesalahan saat menyimpan data",
+        showConfirmButton: true,
       });
     },
   });
@@ -1830,6 +2059,7 @@ function open_mkdt(sh, role, id_kavling) {
   }
   $("#lb-st-no_spptb").html("-");
   $("#lb-st-nama_konsumen").html("-");
+  $("#btn-pindah-konsumen").hide();
 
   // $("#label-file_ktp").html("Upload file KTP");
   // $("#label-file_npwp").html("Upload file KTP");
@@ -1957,6 +2187,7 @@ function open_mkdt(sh, role, id_kavling) {
 
         setBtnHref("#list-upload_sp3k_file", r.sp3k_access_url);
       }
+      $("#btn-pindah-konsumen").toggle(Boolean(r && r.id_konsumen));
 
       if (pb.perintah_bangun == 1) {
         $("#perintah_bangun").prop("checked", true);

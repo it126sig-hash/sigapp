@@ -10,6 +10,10 @@
 <link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.css">
 <link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/fixed-columns/bootstrap-table-fixed-columns.min.css"> -->
 
+<style>
+  #data_tables .poskon-progress-partial { color: #ff9f43 !important; }
+</style>
+
 <script>
   // var csrfName = '<?= csrf_token() ?>';
   // var csrfHash = '<?= csrf_hash() ?>';
@@ -113,7 +117,7 @@
                       <th colspan="6" id="tb-MARKETING_DATA">MARKETING DATA</th>
                       <th colspan="4" id="tb-KEUANGAN">KEUANGAN</th>
                       <th colspan="4" id="tb-PRODUKSI">PRODUKSI</th>
-                      <th colspan="3" id="tb-LEGAL">LEGAL</th>
+                      <th colspan="4" id="tb-LEGAL">LEGAL</th>
                       <th id="tb-GA">GA</th>
                       <th rowspan="3" id="tb-action"></th>
                     </tr>
@@ -137,6 +141,7 @@
                       <th rowspan="2" id="tb-JALAN">JALAN</th>
 
                       <th rowspan="2" id="tb-HGB">HGB</th>
+                      <th rowspan="2" id="tb-NIB_ELEKTRONIK">NIB ELEKTRONIK</th>
                       <th rowspan="2" id="tb-IMB">IMB</th>
                       <th rowspan="2" id="tb-PBB">PBB</th>
 

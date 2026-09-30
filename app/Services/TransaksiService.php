@@ -38,6 +38,8 @@ class TransaksiService
     protected $storageService;
     protected $fileAccessService;
     protected $mkdtHistoryService;
+    protected BookingPaymentService $bookingPaymentService;
+    protected MkdtFinancialBreakdownService $financialBreakdownService;
 
     // $kavlingRepo,
     //         $hargaRepo,
@@ -64,6 +66,8 @@ class TransaksiService
         $this->storageService = new StorageService();
         $this->fileAccessService = new FileAccessService();
         $this->mkdtHistoryService = new MkdtHistoryService();
+        $this->bookingPaymentService = new BookingPaymentService($this->db);
+        $this->financialBreakdownService = new MkdtFinancialBreakdownService($this->db);
 
         $this->mkdt = new MkdtModel();
         $this->kavling = new KavlingModel();
@@ -139,6 +143,8 @@ class TransaksiService
                 $resp['log_pembayaran'] = $this->logRepo->getRiwayatBayarById($idMkdt);
                 $resp['list_spptb'] = $this->fileAccessService->addAccessUrlsToRows($this->spptbRepo->getLatestByMkdtId($idMkdt, 3), 'file_spptb');
                 $resp['total_sudah_bayar'] = $this->logRepo->getTotalBayarByIdMkdt($idMkdt);
+                $resp['booking'] = $this->bookingPaymentService->getBooking((int) $idMkdt);
+                $resp['angsuran'] = $this->bookingPaymentService->getInstallment((int) $idMkdt);
             }
         }
 
@@ -232,6 +238,18 @@ class TransaksiService
         $isNewMkdt = empty($kons['id_mkdt']) || $isDataBaru;
         $activatedMgmBonusIds = [];
 
+        if ($isNewMkdt || $this->financialBreakdownService->hasFinancialChanges($oldMkdt, $mk)) {
+            try {
+                $this->financialBreakdownService->validateContractAndSchedule($mk, $um);
+            } catch (\DomainException $e) {
+                return [
+                    'token' => csrf_hash(),
+                    'success' => false,
+                    'messages' => $e->getMessage(),
+                ];
+            }
+        }
+
         // Transisi ke Akad hanya boleh lewat saveStatus() (modal status), bukan form data konsumen.
         $oldStatusMkdt = $oldMkdt->status_mkdt ?? null;
         if (($mk['status_mkdt'] ?? null) === 'Akad' && $oldStatusMkdt !== 'Akad') {
@@ -285,6 +303,10 @@ class TransaksiService
             $idMkdt = $mkResult['id_mkdt'];
             $uniqId = $mkResult['uniq_id'];
 
+            // MKDT is the source of truth for booking. This executes in the same
+            // transaction so a failed payment/ledger sync also rolls MKDT back.
+            $this->bookingPaymentService->synchronize($idMkdt, user_id());
+
             // Process input, change, or removal of referral code.
             $idProyek = $this->kavlingRepo->getIdProyekByKavling($idKavling);
             if ($idProyek) {
@@ -334,7 +356,7 @@ class TransaksiService
             $pesanNotif = $kons['id_mkdt']
                 ? ('Melakukan perubahan data konsumen : ' . $kons['nama_konsumen'])
                 : ('Booking kavling atas nama : ' . $kons['nama_konsumen']);
-            $this->notif->tambah_notif('3;4;9', $pesanNotif, user_id(), $idKavling, $idKonsumen, 'mkdt_konsumen');
+            $this->notif->tambah_notif('3;4;9', $pesanNotif, user_id(), $idKavling, $idKonsumen, $isNewMkdt ? \App\Enums\NotificationEvent::BOOKING_BARU : \App\Enums\NotificationEvent::DATA_KONSUMEN_UPDATE, null, "siteplan/view?id_kavling=" . $idKavling . "&tab=konsumen");
 
             $summary = $this->mkdtHistoryService->buildKonsumenSummary($oldMkdt, $kons, $mk, $isNewMkdt);
             $this->mkdtHistoryService->log(
@@ -373,6 +395,180 @@ class TransaksiService
                 'token'    => csrf_hash(),
                 'success'  => false,
                 'messages' => 'Gagal menyimpan data: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    public function replaceConsumer(
+        int $idMkdt,
+        int $idKavling,
+        int $oldConsumerId,
+        array $consumer,
+        array $files,
+        string $referralCode,
+        int $actorId,
+        bool $allowDuplicateNik = false
+    ): array {
+        if (trim((string) ($consumer['nama_konsumen'] ?? '')) === '') {
+            return ['success' => false, 'messages' => 'Nama konsumen baru wajib diisi.', 'status_code' => 422];
+        }
+
+        if (!$allowDuplicateNik && !empty($consumer['nik'])) {
+            $nikUsage = $this->transaksiRepo->findNikUsage((string) $consumer['nik'], $idMkdt, $oldConsumerId);
+            if ($nikUsage) {
+                return [
+                    'success' => false,
+                    'require_nik_confirmation' => true,
+                    'messages' => 'NIK tersebut sudah digunakan di kavling/blok/proyek lain.',
+                    'nik_usage' => $nikUsage,
+                    'status_code' => 409,
+                ];
+            }
+        }
+
+        $storedPaths = [];
+        $activatedMgmBonusIds = [];
+        $this->db->transException(true)->transBegin();
+        try {
+            $context = $this->transaksiRepo->lockConsumerReplacementContext($idMkdt, $idKavling);
+            if (!$context || (int) $context->id_konsumen !== $oldConsumerId || (int) $context->kavling_id_mkdt !== $idMkdt) {
+                throw new \DomainException('Konsumen aktif sudah berubah. Muat ulang data sebelum mencoba lagi.', 409);
+            }
+            if (strcasecmp(trim((string) ($context->konsumen_status ?? '')), 'Ganti Nama') === 0) {
+                throw new \DomainException('Konsumen lama sudah tidak aktif. Muat ulang data sebelum mencoba lagi.', 409);
+            }
+
+            $spptbData = $this->transaksiRepo->getSpptbData($idKavling, $idMkdt);
+            if (!$spptbData) {
+                throw new \RuntimeException('Data SPPTB lama tidak ditemukan.');
+            }
+            $tagihanSnapshot = $this->keuRepo->getTagihanOnlyByID($idMkdt);
+
+            foreach (['file_ktp', 'file_npwp', 'file_data_diri'] as $fieldName) {
+                $file = $files[$fieldName] ?? null;
+                if (!$file || $file->getError() === UPLOAD_ERR_NO_FILE) {
+                    continue;
+                }
+                if (!$file->isValid() || $file->hasMoved()) {
+                    throw new \RuntimeException('Berkas konsumen baru tidak valid: ' . $fieldName);
+                }
+                $pathMap = [
+                    'file_ktp' => 'uploads/konsumen/k/',
+                    'file_npwp' => 'uploads/konsumen/n/',
+                    'file_data_diri' => 'uploads/konsumen/d/',
+                ];
+                $stored = $this->storageService->store($file, $pathMap[$fieldName] . date('Ymd'));
+                $consumer[$fieldName] = $stored;
+                $storedPaths[] = $stored;
+            }
+
+            $consumer = array_merge($consumer, [
+                'id_kavling' => $idKavling,
+                'no_spptb' => (string) ($context->no_spptb ?? ''),
+                'status' => 'Normal',
+                'uniq_id' => $context->uniq_id,
+                'add_by' => $actorId,
+                'edit_by' => $actorId,
+            ]);
+            $newConsumerId = $this->konsumenService->upsert(null, $consumer);
+            if (!$newConsumerId) {
+                throw new \RuntimeException('Gagal menyimpan konsumen baru.');
+            }
+            $this->referralService->generateKodeReferal($newConsumerId);
+
+            if (!$this->db->table('konsumen')->where('id_konsumen', $oldConsumerId)->update([
+                'status' => 'Ganti Nama',
+                'uniq_id' => $context->uniq_id,
+                'edit_by' => $actorId,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ])) {
+                throw new \RuntimeException('Gagal menandai konsumen lama.');
+            }
+
+            if (!$this->mkdt->update($idMkdt, [
+                'id_konsumen' => $newConsumerId,
+                'file_spptb' => null,
+                'file_surat_kuasa' => null,
+                'edit_by' => $actorId,
+            ])) {
+                throw new \RuntimeException('Gagal memindahkan konsumen aktif pada MKDT.');
+            }
+
+            $idProyek = $this->kavlingRepo->getIdProyekByKavling($idKavling);
+            if (!$idProyek) {
+                throw new \RuntimeException('Proyek kavling tidak ditemukan untuk validasi kode referal.');
+            }
+            $referralResult = $this->referralService->syncReferralForMkdt(
+                $idMkdt,
+                $referralCode,
+                (int) $idProyek,
+                (string) ($context->status_mkdt ?? '')
+            );
+            if (!$referralResult['success']) {
+                throw new \RuntimeException($referralResult['message']);
+            }
+            $activatedMgmBonusIds = $referralResult['activated_bonus_ids'] ?? [];
+
+            $historySaved = $this->mkdtHistoryService->log(
+                $idKavling,
+                $idMkdt,
+                MkdtHistoryService::ACTION_GANTI_KONSUMEN,
+                'Konsumen dipindahkan dari ' . ($context->nama_konsumen ?? '-') . ' ke ' . $consumer['nama_konsumen'],
+                [
+                    'spptb_data' => (array) $spptbData,
+                    'list_tagihan' => array_map(static fn ($row) => (array) $row, $tagihanSnapshot),
+                ],
+                [
+                    'id_mkdt' => $idMkdt,
+                    'id_konsumen_lama' => $oldConsumerId,
+                    'id_konsumen_baru' => $newConsumerId,
+                    'nama_konsumen' => $consumer['nama_konsumen'],
+                ],
+                $actorId,
+                ['id_konsumen_lama' => $oldConsumerId, 'id_konsumen_baru' => $newConsumerId]
+            );
+            if (!$historySaved) {
+                throw new \RuntimeException('Gagal mencatat riwayat pindah konsumen.');
+            }
+
+            $this->db->transCommit();
+
+            foreach (array_unique(array_map('intval', $activatedMgmBonusIds)) as $idBonus) {
+                if ($idBonus > 0) {
+                    $this->referralService->notifyMgmBonusEligible($idBonus);
+                }
+            }
+            $this->notif->tambah_notif(
+                '3;4;9',
+                'Pindah konsumen dari ' . ($context->nama_konsumen ?? '-') . ' ke ' . $consumer['nama_konsumen'],
+                $actorId,
+                $idKavling,
+                $newConsumerId,
+                \App\Enums\NotificationEvent::DATA_KONSUMEN_UPDATE,
+                null,
+                'siteplan/view?id_kavling=' . $idKavling . '&tab=konsumen'
+            );
+
+            return [
+                'success' => true,
+                'messages' => 'Pindah konsumen berhasil disimpan.',
+                'id_mkdt' => $idMkdt,
+                'id_konsumen_lama' => $oldConsumerId,
+                'id_konsumen_baru' => $newConsumerId,
+            ];
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            foreach ($storedPaths as $storedPath) {
+                $absolutePath = $this->fileAccessService->existingPath($storedPath);
+                if ($absolutePath && is_file($absolutePath)) {
+                    @unlink($absolutePath);
+                }
+            }
+            $status = $e instanceof \DomainException && $e->getCode() === 409 ? 409 : 422;
+            return [
+                'success' => false,
+                'messages' => $e->getMessage(),
+                'status_code' => $status,
             ];
         }
     }
@@ -416,11 +612,12 @@ class TransaksiService
 
         // Kalkulasi Turun KPR dari DB — abaikan nilai dari frontend
         $oldData = $this->transaksiRepo->getKonsumenTransaksi((int) $idMkdt);
+        $idKonsumen = $oldData ? $oldData->id_konsumen : null;
         $hargaKprDb = $oldData ? (float) $oldData->harga_kpr : 0;
         $accKpr = (float) ($data['harga_kpr_acc'] ?? 0);
         $data['harga_kpr']           = $hargaKprDb;
         $data['harga_kpr_acc']       = $accKpr;
-        $data['harga_penambahan_um'] = max(0, $hargaKprDb - $accKpr);
+        $data['harga_penambahan_um'] = $accKpr > 0 ? max(0, $hargaKprDb - $accKpr) : 0;
 
         // Sinkronisasi dua arah status_mkdt <-> akad
         if ($data['status_mkdt'] === 'Akad' || (int) ($data['akad'] ?? 0) === 1) {
@@ -465,11 +662,14 @@ class TransaksiService
 
             if ($data['status_mkdt'] === 'Akad' && !$wasAkad) {
                 $this->notif->tambah_notif(
-                    '3;5;8;4;9',
+                    "3;5;8;4;9",
                     'Telah melakukan akad pada kavling ini',
                     user_id(),
                     $idKavling,
-                    $oldData->id_konsumen ?? null
+                    $idKonsumen,
+                    \App\Enums\NotificationEvent::AKAD,
+                    null,
+                    "siteplan/view?id_kavling=" . $idKavling . "&tab=konsumen"
                 );
             }
             
@@ -555,6 +755,14 @@ class TransaksiService
         }
 
         // update
+        if (array_key_exists('booking_fee', $data) || array_key_exists('booking_tgl', $data)) {
+            $current = $this->bookingPaymentService->getBooking((int) $idMkdtExisting);
+            $this->bookingPaymentService->assertEditable(
+                (int) $idMkdtExisting,
+                (float) ($data['booking_fee'] ?? $current['nominal_mkdt']),
+                $data['booking_tgl'] ?? $current['tanggal_mkdt']
+            );
+        }
         $data['edit_by'] = $opt['actor_id'] ?? $data['edit_by'] ?? null;
         if (!$this->mkdt->update($idMkdtExisting, $data)) {
             throw new \RuntimeException('Gagal memperbaharui data booking (mkdt).');
@@ -569,7 +777,24 @@ class TransaksiService
 
     function update($id, $data)
     {
-        return $this->mkdt->update($id, $data);
+        $this->db->transException(true)->transBegin();
+        try {
+            if (array_key_exists('booking_fee', $data) || array_key_exists('booking_tgl', $data)) {
+                $current = $this->bookingPaymentService->getBooking((int) $id);
+                $this->bookingPaymentService->assertEditable((int) $id,
+                    (float) ($data['booking_fee'] ?? $current['nominal_mkdt']),
+                    $data['booking_tgl'] ?? $current['tanggal_mkdt']);
+            }
+            if (! $this->mkdt->update($id, $data)) throw new \RuntimeException('Gagal memperbarui MKDT.');
+            if (array_key_exists('booking_fee', $data) || array_key_exists('booking_tgl', $data)) {
+                $this->bookingPaymentService->synchronize((int) $id, user_id());
+            }
+            $this->db->transCommit();
+            return true;
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            throw $e;
+        }
     }
 
     protected function num($d)

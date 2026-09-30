@@ -22,11 +22,11 @@ class FinanceLedgerRepository extends FinanceLedgerModel
         if ($existing) {
             $id = (int) $existing[$this->primaryKey];
             unset($payload['created_at'], $payload['add_by']);
-            $this->update($id, $payload);
+            if (! $this->update($id, $payload)) throw new \RuntimeException('Gagal memperbarui ledger keuangan');
             return $id;
         }
 
-        $this->insert($payload);
+        if (! $this->insert($payload)) throw new \RuntimeException('Gagal menambahkan ledger keuangan');
         return (int) $this->getInsertID();
     }
 

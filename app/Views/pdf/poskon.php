@@ -73,7 +73,7 @@
                 <th colspan="6" id="tb-MARKETING_DATA">MARKETING DATA</th>
                 <th colspan="4" id="tb-KEUANGAN">KEUANGAN</th>
                 <th colspan="4" id="tb-PRODUKSI">PRODUKSI</th>
-                <th colspan="3" id="tb-LEGAL">LEGAL</th>
+                <th colspan="4" id="tb-LEGAL">LEGAL</th>
                 <th id="tb-GA">GA</th>
             </tr>
 
@@ -96,6 +96,7 @@
                 <th rowspan="2" id="tb-JALAN">JALAN</th>
 
                 <th rowspan="2" id="tb-HGB">HGB</th>
+                <th rowspan="2" id="tb-NIB_ELEKTRONIK">NIB ELEKTRONIK</th>
                 <th rowspan="2" id="tb-IMB">IMB</th>
                 <th rowspan="2" id="tb-PBB">PBB</th>
 
@@ -113,7 +114,7 @@
             </tr>
         </thead>
         <tbody>
-            <?php $no = 1; ?>
+            <?php $no = 1; $financialProgress = new \App\Services\MkdtFinancialBreakdownService(); ?>
             <?php foreach ($poskon as $row): ?>
                 <?php
                 $total = $row->um + $row->adm + $row->bb;
@@ -130,15 +131,11 @@
                     $um = "-";
                     $adm = "-";
                     $bb = "-";
-                    if ($bayar <= 0) {
-                        $persen_tunai = '0%';
-                    } else {
-                        $persen_tunai = ($bayar / $total) * 100;
-                    }
+                    $persen_tunai = $financialProgress->progress((float) $total, (float) $bayar)['label'];
                 } else {
-                    $um = $row->total_um <= 0 ? "0%" : round(($row->total_um / $row->um) * 100) . "%";
-                    $adm = $row->total_adm <= 0 ? "0%" : round(($row->total_adm / $row->adm) * 100) . "%";
-                    $bb = $row->total_bb <= 0 ? "0%" : round(($row->total_bb / $row->bb) * 100) . "%";
+                    $um = $financialProgress->progress((float) $row->um, (float) $row->total_um)['label'];
+                    $adm = $financialProgress->progress((float) $row->adm, (float) $row->total_adm)['label'];
+                    $bb = $financialProgress->progress((float) $row->bb, (float) $row->total_bb)['label'];
                 }
                 ?>
                 <tr>
@@ -165,6 +162,7 @@
                     <td class="center"><?= $row->st_listrik ? '✓' : ''; ?></td>
                     <td class="center"><?= ''; ?></td>
                     <td class="center"><?= $row->sertifikat_split_no_hgb ? '✓' : ''; ?></td>
+                    <td><?= esc($row->sertifikat_split_nib ?? ''); ?></td>
                     <td class="center"><?= $row->pbg_no ? '✓' : ''; ?></td>
                     <td class="center"><?= $row->pbb_pecah_nop ? '✓' : ''; ?></td>
                     <td class="center"><?= $row->sikumbang ? '✓' : ''; ?></td>
