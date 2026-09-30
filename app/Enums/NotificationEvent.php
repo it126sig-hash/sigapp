@@ -51,4 +51,11 @@ final class NotificationEvent
     const MGM_REFERRAL_CREATED = 'mgm_referral_created';
     const MGM_SPP_SUBMITTED    = 'mgm_spp_submitted';
     const MGM_SPP_CAIR         = 'mgm_spp_cair';
+
+    // ── Bon Permintaan Barang ──
+    const BPB_SIGNATURE_REQUESTED = 'bpb_signature_requested';
+    const BPB_SIGNATURE_COMPLETED = 'bpb_signature_completed';
+    const BPB_REJECTED            = 'bpb_rejected';
+    const BPB_APPROVED            = 'bpb_approved';
+    const BPB_STATUS_CHANGED      = 'bpb_status_changed';
 }

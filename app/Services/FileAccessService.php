@@ -51,6 +51,7 @@ class FileAccessService
         'profile_photo'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'poskon_export'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'tiket_masalah'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
+        'bpb_file'          => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
     ];
 
     private array $projectAssetRoles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -378,6 +379,17 @@ class FileAccessService
                 $row = $this->db->table('tiket_masalah_foto')->where('id', $id)->get()->getRow();
                 $this->assertRow($row);
                 return $this->fileMeta($row->file_path, basename((string) $row->file_name), $this->sourceRoles[$source], $row);
+
+            case 'bpb_file':
+                $row = $this->db->table('bpb_files f')
+                    ->select('f.*, b.status AS bpb_status, b.applicant_user_id')
+                    ->join('bpb_requests b', 'b.id=f.bpb_id')
+                    ->where('f.id', $id)->get()->getRow();
+                $this->assertRow($row);
+                if ($row->bpb_status === 'draft' && (! function_exists('user_id') || (int) user_id() !== (int) $row->applicant_user_id)) {
+                    throw new RuntimeException('FORBIDDEN');
+                }
+                return $this->fileMeta($row->logical_path, $row->original_name, $this->sourceRoles[$source], $row);
         }
 
         throw new RuntimeException('NOT_FOUND');

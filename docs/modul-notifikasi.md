@@ -2,7 +2,7 @@
 
 Dokumen ini adalah acuan teknis modul notifikasi SIGAPP. Update file ini setiap ada perubahan alur notifikasi, endpoint, tabel, service, command, konfigurasi delivery, atau side effect.
 
-Terakhir dicek: 2026-09-09
+Terakhir dicek: 2026-09-29
 
 ## Ringkasan
 
@@ -87,8 +87,8 @@ Behavior service:
 - Semua operasi event, recipient, delivery, dan queue legacy dilakukan dalam satu transaksi.
 - Target multi-group seperti `3;4;9` diurai menjadi recipient user unik.
 - Target global `0` menjadi semua user aktif.
-- Admin group `1` ditambahkan sebagai recipient semua event.
-- Actor tetap menjadi recipient in-app agar melihat aktivitasnya sendiri.
+- Audience eksplisit `NotificationAudience::forUser()` / `forUsers()` tetap dibatasi ke user target meskipun event sudah terdaftar di registry; preferensi channel target tetap diterapkan.
+- Admin group `1` dan actor ditambahkan untuk audience group/global. Keduanya tidak otomatis ditambahkan untuk audience user eksplisit agar notifikasi personal tidak bocor ke penerima lain.
 - Delivery `email` dan `web_push` untuk actor ditandai `skipped`.
 - Recipient menyimpan `in_app_visible`: jika channel In-App dimatikan untuk event tersebut, notifikasi tidak muncul di badge, dropdown, notification center, atau load-more akun itu.
 - Preferensi Email dan Web Push dihitung per user per channel; channel yang dimatikan tidak menjadi delivery `pending`, tetapi dicatat sebagai `preference_blocked`.
@@ -105,6 +105,20 @@ NOTIF_EMAIL_USE_DELIVERY_OUTBOX=true
 ```
 
 Semua flag default `true` jika tidak diisi. Saat rollback sementara, matikan read path baru dulu dengan `NOTIF_USE_RECIPIENT_READ_PATH=false`; legacy column tetap tersedia satu rilis.
+
+## Event Bon Permintaan Barang
+
+Modul BPB mengirim event personal dengan deep-link `/bpb?open={id}`:
+
+| Event | Pemicu | Target | Kebijakan |
+|---|---|---|---|
+| `bpb_signature_requested` | Submit atau CC selesai | CC/Mengetahui aktif | Mandatory; In-App, Email, Web Push default aktif |
+| `bpb_signature_completed` | Tahap tanda tangan selesai | Pemohon | Mengikuti preferensi |
+| `bpb_rejected` | CC/Mengetahui menolak | Pemohon | Mengikuti preferensi |
+| `bpb_approved` | Mengetahui selesai | Pemohon | Mengikuti preferensi |
+| `bpb_status_changed` | Diproses/Cair/Pending/Dibeli | Pemohon | Mengikuti preferensi |
+
+Definisi event berada di `NotificationEventTypeSeeder`, enum `NotificationEvent`, dan migration BPB. Pemanggilan memakai `NotifikasiService::tambah_notif_user()` sehingga recipient, delivery outbox, email queue, badge, dan web-push tetap melewati pipeline notifikasi utama.
 
 ## Read Path
 

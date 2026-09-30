@@ -58,6 +58,13 @@ class NotificationEventTypeSeeder extends Seeder
             ['mgm_referral_created', 'referral', 'Referral Baru (MGM)', 'Pendaftaran agen / referral baru', 1, 1, 1, 0, '8;3', 80],
             ['mgm_spp_submitted', 'referral', 'Pengajuan SPP Referral', 'Request pembayaran bonus referral diajukan ke finance', 1, 1, 1, 0, '3', 81],
             ['mgm_spp_cair', 'referral', 'Pencairan Bonus Referral', 'Bonus referral berhasil dibayarkan', 1, 1, 1, 0, '8', 82],
+
+            // Kategori: Bon Permintaan Barang
+            ['bpb_signature_requested', 'bpb', 'Permintaan Tanda Tangan BPB', 'Saat pengguna perlu menandatangani BPB', 1, 1, 1, 1, null, 90],
+            ['bpb_signature_completed', 'bpb', 'Tanda Tangan BPB Selesai', 'Saat salah satu tahap tanda tangan BPB selesai', 1, 0, 0, 0, null, 91],
+            ['bpb_rejected', 'bpb', 'BPB Ditolak', 'Saat BPB ditolak oleh pemberi paraf atau Mengetahui', 1, 1, 1, 0, null, 92],
+            ['bpb_approved', 'bpb', 'BPB Disetujui', 'Saat seluruh approval BPB selesai', 1, 1, 1, 0, null, 93],
+            ['bpb_status_changed', 'bpb', 'Perubahan Status BPB', 'Saat status operasional BPB berubah', 1, 0, 0, 0, null, 94],
         ];
 
         $data = [];

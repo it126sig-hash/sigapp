@@ -44,6 +44,34 @@ $routes->get('/loadaktivitas', 'Home::loadAktivitas');
 
 $routes->get('/profil', 'Profil::index');
 $routes->post('/profil/update', 'Profil::update');
+
+// Bon Permintaan Barang (BPB)
+$routes->group('bpb', ['namespace' => 'App\Controllers\Web'], function ($routes) {
+    $routes->get('', 'BpbController::index', ['filter' => 'login']);
+    $routes->get('(:num)/pdf', 'BpbController::pdf/$1', ['filter' => 'login']);
+    $routes->get('signature/(:num)', 'BpbController::signature/$1', ['filter' => 'login']);
+    $routes->get('verify/(:segment)', 'BpbController::verify/$1', ['filter' => 'throttle:20,60']);
+});
+
+$routes->group('api/bpb', ['namespace' => 'App\Controllers\Api', 'filter' => 'csrf'], function ($routes) {
+    $routes->post('list', 'BpbController::list');
+    $routes->get('options', 'BpbController::options');
+    $routes->get('detail/(:num)', 'BpbController::detail/$1');
+    $routes->post('draft', 'BpbController::draft');
+    $routes->post('submit', 'BpbController::submit', ['filter' => 'throttle:10,60']);
+    $routes->post('(:num)/update', 'BpbController::update/$1', ['filter' => 'throttle:10,60']);
+    $routes->post('(:num)/sign', 'BpbController::sign/$1', ['filter' => 'throttle:5,60']);
+    $routes->post('(:num)/reject', 'BpbController::reject/$1', ['filter' => 'throttle:10,60']);
+    $routes->post('(:num)/cancel', 'BpbController::cancel/$1');
+    $routes->post('(:num)/status', 'BpbController::status/$1', ['filter' => 'throttle:10,60']);
+});
+
+$routes->group('api/profile/signature', ['namespace' => 'App\Controllers\Api', 'filter' => 'csrf'], function ($routes) {
+    $routes->get('', 'ProfileSignatureController::show');
+    $routes->get('image', 'ProfileSignatureController::image');
+    $routes->put('', 'ProfileSignatureController::save', ['filter' => 'throttle:5,60']);
+    $routes->delete('', 'ProfileSignatureController::delete', ['filter' => 'throttle:5,60']);
+});
 $routes->group('google-calendar', ['filter' => 'login'], function ($routes) {
     $routes->get('connect', 'GoogleCalendar::connect');
     $routes->get('callback', 'GoogleCalendar::callback');

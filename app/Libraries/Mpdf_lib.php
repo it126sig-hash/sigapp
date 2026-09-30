@@ -12,6 +12,41 @@ class Mpdf_lib
 
     public function generate($html, $filename = '', $header = '', $mg = [15, 15, 25, 45], $format = 'A4', $stream = true, $footer = "")
     {
+        $mpdf = $this->createDocument($html, $header, $mg, $format, $footer);
+
+        if ($stream) {
+            $mpdf->Output($filename, \Mpdf\Output\Destination::INLINE);
+        } else {
+            $mpdf->Output($filename, \Mpdf\Output\Destination::FILE);
+        }
+    }
+
+    /**
+     * Render a PDF to bytes without sending headers or writing to the output buffer.
+     *
+     * @param mixed $html
+     * @param string $header
+     * @param array<int, int|float> $mg
+     * @param string|array<int, int|float> $format
+     * @param string $footer
+     */
+    public function renderBinary(
+        $html,
+        $header = '',
+        $mg = [15, 15, 25, 45],
+        $format = 'A4',
+        $footer = '',
+        ?callable $configure = null,
+        ?callable $beforeOutput = null
+    ): string
+    {
+        $mpdf = $this->createDocument($html, $header, $mg, $format, $footer, $configure, $beforeOutput);
+
+        return $mpdf->Output('', \Mpdf\Output\Destination::STRING_RETURN);
+    }
+
+    private function createDocument($html, $header, $mg, $format, $footer, ?callable $configure = null, ?callable $beforeOutput = null): Mpdf
+    {
         $paper = $format;
         if ($format == 'F4' || $format == 'Folio') {
             $paper = [210, 330];
@@ -26,6 +61,10 @@ class Mpdf_lib
             ]
         );
         $mpdf->SetHTMLHeader($header);
+
+        if ($configure !== null) {
+            $configure($mpdf);
+        }
 
 
         if (is_array($html)) {
@@ -51,10 +90,10 @@ class Mpdf_lib
             $mpdf->WriteHTML($html);
         }
 
-        if ($stream) {
-            $mpdf->Output($filename, \Mpdf\Output\Destination::INLINE);
-        } else {
-            $mpdf->Output($filename, \Mpdf\Output\Destination::FILE);
+        if ($beforeOutput !== null) {
+            $beforeOutput($mpdf);
         }
+
+        return $mpdf;
     }
 }

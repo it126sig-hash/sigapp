@@ -6,6 +6,7 @@ if ($displayName === '') {
 ?>
 
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/extensions/sweetalert2.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/profile-signature.css?v=<?= time() ?>">
 
 <style>
     /* Profile Summary Sidebar */
@@ -125,6 +126,11 @@ if ($displayName === '') {
                     <li class="nav-item">
                         <a class="nav-link" id="notif-tab" data-toggle="tab" href="#notif-tab-content" role="tab">
                             <i class="fa fa-bell mr-50"></i> Pengaturan Notifikasi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="signature-tab" data-toggle="tab" href="#signature-tab-content" role="tab">
+                            <i class="fa fa-pen-nib mr-50"></i> Tanda Tangan
                         </a>
                     </li>
                 </ul>
@@ -350,6 +356,20 @@ if ($displayName === '') {
                         </div>
                     </div>
                 </div>
+
+                <div class="tab-pane" id="signature-tab-content" role="tabpanel">
+                    <div class="card shadow-sm"><div class="card-body">
+                        <div class="divider divider-left"><div class="divider-text">Tanda Tangan Elektronik Internal</div></div>
+                        <p class="text-muted">Tanda tangan ini dapat dipakai saat menyetujui BPB. Setiap penggunaan tetap mewajibkan password dan salinannya disimpan per transaksi.</p>
+                        <div id="profile-signature-preview" class="profile-signature-preview mb-1"><span class="text-muted">Belum ada tanda tangan profil.</span></div>
+                        <div class="profile-signature-canvas"><canvas id="profile-signature-canvas"></canvas><button type="button" class="btn btn-sm btn-outline-secondary" id="profile-signature-clear">Hapus goresan</button></div>
+                        <div class="form-group mt-1"><label>Password saat ini</label><input type="password" autocomplete="current-password" class="form-control" id="profile-signature-password" maxlength="100"></div>
+                        <div class="d-flex flex-wrap justify-content-end">
+                            <button type="button" class="btn btn-outline-danger mr-1" id="profile-signature-delete">Hapus TTD Profil</button>
+                            <button type="button" class="btn btn-primary" id="profile-signature-save">Simpan TTD Profil</button>
+                        </div>
+                    </div></div>
+                </div>
             </div>
         </div>
     </div>
@@ -571,3 +591,5 @@ if ($displayName === '') {
         loadPreferences();
     });
 </script>
+<script>window.SIGAPP=window.SIGAPP||{};window.SIGAPP.profileSignature={baseUrl:<?= json_encode(rtrim(base_url(), '/')) ?>,csrfName:<?= json_encode(csrf_token()) ?>,csrfHash:<?= json_encode(csrf_hash()) ?>};</script>
+<script src="<?= base_url() ?>assets/js/profile-signature.js?v=<?= time() ?>"></script>

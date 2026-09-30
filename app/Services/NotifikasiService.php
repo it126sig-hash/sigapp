@@ -130,6 +130,7 @@ class NotifikasiService
     {
         $recipients = [];
         $useLegacy = true;
+        $hasExplicitUsers = $audience->userIds() !== [];
 
         // 1. DYNAMIC RESOLUTION (Semua departemen bisa dapat asalkan aktif di preferensi/default)
         if ($eventType !== null) {
@@ -156,8 +157,17 @@ class NotifikasiService
                     $userPrefs[$p->user_id] = $p;
                 }
 
-                // Loop semua user aktif untuk cek siapa yang berhak menerima
-                foreach ($this->activeUsersQuery()->get()->getResult() as $user) {
+                $candidateQuery = $this->activeUsersQuery();
+                if ($hasExplicitUsers) {
+                    $candidateQuery->whereIn('users.id', $audience->userIds());
+                } elseif ($audience->groupIds() !== []) {
+                    $candidateQuery->join('auth_groups_users notification_target_group', 'notification_target_group.user_id = users.id')
+                        ->whereIn('notification_target_group.group_id', $audience->groupIds())
+                        ->groupBy('users.id');
+                }
+
+                // Audience eksplisit tetap dibatasi ke target pemanggil, lalu preferensi channel diterapkan.
+                foreach ($candidateQuery->get()->getResult() as $user) {
                     $userId = (int) $user->id;
                     $isAllowed = true;
 
@@ -210,12 +220,14 @@ class NotifikasiService
             }
         }
 
-        foreach ($this->adminUserIds() as $adminId) {
-            $recipients[$adminId] = $adminId;
-        }
+        if (! $hasExplicitUsers) {
+            foreach ($this->adminUserIds() as $adminId) {
+                $recipients[$adminId] = $adminId;
+            }
 
-        if ($actorUserId > 0 && $this->isActiveUser($actorUserId)) {
-            $recipients[$actorUserId] = $actorUserId;
+            if ($actorUserId > 0 && $this->isActiveUser($actorUserId)) {
+                $recipients[$actorUserId] = $actorUserId;
+            }
         }
 
         ksort($recipients);
