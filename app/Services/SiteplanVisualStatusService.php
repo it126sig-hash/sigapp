@@ -149,6 +149,17 @@ class SiteplanVisualStatusService
             return $this->row('keuangan', 'Keuangan', [$this->segment('Belum Lunas', 1)], $markers);
         }
 
+        $isKpr = $this->truthy($this->value($row, 'is_kpr'));
+        if (!$isKpr) {
+            return $this->row(
+                'keuangan',
+                'Keuangan',
+                [$this->segment('Lunas', 1)],
+                [],
+                $this->financeMeta(1, 0)
+            );
+        }
+
         $outstandingCount = max(0, (int) ($this->value($row, 'pa_pengajuan_outstanding_count') ?? 0));
         $submissionCount = max(
             $outstandingCount,

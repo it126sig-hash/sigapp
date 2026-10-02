@@ -1244,9 +1244,11 @@ Date.prototype.toDateInputValue = (function() {
                                 hit = set_fill2('SPPTB Belum Lengkap')
                             }
                         } else if (r[p].is_lunas == 1) {
-                            hit = set_fill2('Lunas')
-                            if (r[p].status_mkdt == 'Akad') {
-                                if (r[p].is_kpr == 1) {
+                            if (r[p].is_kpr != 1) {
+                                hit = set_fill2('Akad ' + subsidi);
+                            } else {
+                                hit = set_fill2('Lunas')
+                                if (r[p].status_mkdt == 'Akad') {
                                     if (r[p].pa_plan_id == null || r[p].pa_pengajuan_count == null || r[p].pa_pengajuan_count == 0) {
                                         hit = set_fill2('Hasil Akad Belum Cair')
                                     } else {
@@ -1265,8 +1267,6 @@ Date.prototype.toDateInputValue = (function() {
                                         } else
                                             hit = set_fill2('Akad ' + subsidi)
                                     }
-                                } else {
-                                    hit = set_fill2('Akad ' + subsidi)
                                 }
                             }
                         }
@@ -2580,7 +2580,7 @@ Date.prototype.toDateInputValue = (function() {
                 $.each(r.data, function(index, item) {
                     results.push({
                         id: item[0],
-                        text: item[2] + ' — ' + item[3]
+                        text: item[2] + ' â€” ' + item[3]
                     });
                 });
 
@@ -2621,7 +2621,7 @@ Date.prototype.toDateInputValue = (function() {
     //context menu
     let currentShape;
 
-    // ── Dynamic context menu dari home/getMenuItemsJson ──────────────────────
+    // â”€â”€ Dynamic context menu dari home/getMenuItemsJson â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function loadSiteplanMenuItems() {
         return $.ajax({
             url: base_url + 'home/getMenuItemsJson',
@@ -2712,7 +2712,7 @@ Date.prototype.toDateInputValue = (function() {
             });
         }
     }
-    // ─────────────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     document.getElementById('menu-btn-lihat_detail').addEventListener('click', () => {
         if (currentShape.target.attrs.id) {
