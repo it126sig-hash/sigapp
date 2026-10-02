@@ -26,6 +26,12 @@ function decodeCkPayload(el) {
   }
 }
 
+function escapeCkHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, function (char) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char];
+  });
+}
+
 $(document).ready(function () {
   const table = $("#cashout-kavling-table").DataTable({
     processing: true,
@@ -48,6 +54,7 @@ $(document).ready(function () {
       { orderable: false, searchable: false },
       { orderable: false },
       { orderable: false },
+      { orderable: false, searchable: false, className: "text-right" },
       { orderable: false, searchable: false, className: "text-right" },
       { orderable: false, searchable: false, className: "text-right" },
       { orderable: false, searchable: false, className: "text-right" },
@@ -88,7 +95,7 @@ $(document).ready(function () {
 
         let html = '<div class="ck-detail-wrap"><table class="table table-sm ck-detail-table"><thead><tr><th>Tanggal</th><th>Departemen</th><th>Item</th><th class="text-right">Nominal</th><th>Keterangan</th></tr></thead><tbody>';
         items.forEach(function (item) {
-          html += "<tr><td>" + (item.tanggal || "-") + "</td><td><span class='badge badge-light-primary'>" + item.departemen + "</span></td><td>" + (item.item || "-") + "</td><td class='text-right'>" + Number(item.nominal || 0).toLocaleString("id-ID") + "</td><td>" + (item.keterangan || "-") + "</td></tr>";
+          html += "<tr><td>" + escapeCkHtml(item.tanggal || "-") + "</td><td><span class='badge badge-light-primary'>" + escapeCkHtml(item.departemen) + "</span></td><td>" + escapeCkHtml(item.item || "-") + "</td><td class='text-right'>" + Number(item.nominal || 0).toLocaleString("id-ID") + "</td><td>" + escapeCkHtml(item.keterangan || "-") + "</td></tr>";
         });
         html += "</tbody></table></div>";
         row.child(html).show();

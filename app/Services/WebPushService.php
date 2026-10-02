@@ -66,9 +66,9 @@ class WebPushService
         VAPID::validate($this->auth['VAPID']);
     }
 
-    public function subscribe(int $userId, array $subscriptionData, ?string $userAgent = null): bool
+    public function subscribe(int $userId, array $subscriptionData, ?string $userAgent = null, ?int $deviceSessionId = null): bool
     {
-        return $this->pushModel->saveSubscription($userId, $subscriptionData, $userAgent);
+        return $this->pushModel->saveSubscription($userId, $subscriptionData, $userAgent, $deviceSessionId);
     }
 
     public function unsubscribe(int $userId, string $endpoint): bool

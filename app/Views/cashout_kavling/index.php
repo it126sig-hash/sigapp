@@ -65,8 +65,9 @@
                                     <th>Cashout Keuangan</th>
                                     <th>Pembayaran Produksi</th>
                                     <th>Cashout Subkon</th>
+                                    <th>Member Get Member</th>
                                     <th>Pajak</th>
-                                    <th>Total</th>
+                                    <th>Total Cashout</th>
                                 </tr>
                             </thead>
                         </table>

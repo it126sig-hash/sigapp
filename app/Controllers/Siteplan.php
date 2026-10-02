@@ -30,6 +30,7 @@ use App\Services\PencairanAkadService;
 use App\Services\HistoryService;
 
 use App\Repositories\CashOutRepository;
+use App\Repositories\Keuangan\Cashout\CashoutKavlingRepo;
 
 class Siteplan extends BaseController
 {
@@ -53,6 +54,7 @@ class Siteplan extends BaseController
     protected $keuRepo;
 
     protected $cashoutRepo;
+    protected $cashoutKavlingRepo;
     protected $fileAccessService;
     protected $mkdtHistoryService;
     protected $siteplanUrgentService;
@@ -82,6 +84,7 @@ class Siteplan extends BaseController
         $this->db = \Config\Database::connect();
         $this->keuRepo = new KeuanganRepository();
         $this->cashoutRepo = new CashOutRepository();
+        $this->cashoutKavlingRepo = new CashoutKavlingRepo($this->db);
         $this->fileAccessService = new FileAccessService();
         $this->mkdtHistoryService = new MkdtHistoryService();
         $this->siteplanUrgentService = new SiteplanUrgentService();
@@ -1442,7 +1445,6 @@ class Siteplan extends BaseController
             ->getResult();
 
         $incomeRows = [];
-        $ledgerExpenseRows = [];
         if ($this->db->tableExists('finance_ledger')) {
             $incomeBuilder = $this->db->table('finance_ledger')
                 ->select('tanggal_transaksi, label, nominal, keterangan, source_type, source_id')
@@ -1479,21 +1481,6 @@ class Siteplan extends BaseController
                 unset($row->source_id);
             }
 
-            $expenseBuilder = $this->db->table('finance_ledger')
-                ->select('tanggal_transaksi, label, nominal, keterangan, source_type')
-                ->where('direction', 'expense')
-                ->where('status', 'active')
-                ->where('is_deleted', 0);
-
-            if ($id_kavling) {
-                $expenseBuilder->where('id_kavling', $id_kavling);
-            }
-
-            $ledgerExpenseRows = $expenseBuilder
-                ->orderBy('tanggal_transaksi', 'desc')
-                ->orderBy('id', 'desc')
-                ->get()
-                ->getResult();
         }
 
         $incomeTotal = 0;
@@ -1501,12 +1488,7 @@ class Siteplan extends BaseController
             $incomeTotal += (float) ($row->nominal ?? 0);
         }
 
-        $expenseRows = array_merge($d['cashout'], $ledgerExpenseRows);
-        usort($expenseRows, function ($a, $b) {
-            $dateA = $a->tanggal_transaksi ?? $a->tanggal_bayar ?? null;
-            $dateB = $b->tanggal_transaksi ?? $b->tanggal_bayar ?? null;
-            return strcmp((string) $dateB, (string) $dateA);
-        });
+        $expenseRows = $this->cashoutKavlingRepo->getCashoutRowsByKavling((int) $id_kavling);
         $expenseTotal = 0;
         foreach ($expenseRows as $row) {
             $expenseTotal += (float) ($row->nominal ?? 0);

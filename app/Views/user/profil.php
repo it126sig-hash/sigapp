@@ -28,6 +28,10 @@ if ($displayName === '') {
     /* Navigation Tabs */
     .profile-page .nav-tabs {
         border-bottom: 1px solid #e5e7eb;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
     }
     .profile-page .nav-tabs .nav-link {
         font-weight: 600;
@@ -126,6 +130,11 @@ if ($displayName === '') {
                     <li class="nav-item">
                         <a class="nav-link" id="notif-tab" data-toggle="tab" href="#notif-tab-content" role="tab">
                             <i class="fa fa-bell mr-50"></i> Pengaturan Notifikasi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="devices-tab" data-toggle="tab" href="#devices-tab-content" role="tab">
+                            <i class="fa fa-laptop mr-50"></i> Perangkat Login
                         </a>
                     </li>
                     <li class="nav-item">
@@ -353,6 +362,23 @@ if ($displayName === '') {
                                     <i class="fa fa-save mr-50"></i> Simpan Preferensi
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane" id="devices-tab-content" role="tabpanel">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2">
+                                <div>
+                                    <div class="divider divider-left"><div class="divider-text">Perangkat yang Login</div></div>
+                                    <p class="text-muted text-sm mb-0">Cabut sesi dari perangkat tertentu. Perangkat ini menggunakan sesi jangka panjang hingga 365 hari.</p>
+                                </div>
+                                <button type="button" class="btn btn-outline-danger btn-sm mt-1 mt-md-0" id="btn-revoke-other-devices">
+                                    <i class="fa fa-sign-out mr-50"></i> Logout dari perangkat lain
+                                </button>
+                            </div>
+                            <div id="auth-devices-list" aria-live="polite"><div class="text-muted">Memuat daftar perangkat…</div></div>
                         </div>
                     </div>
                 </div>
@@ -593,3 +619,5 @@ if ($displayName === '') {
 </script>
 <script>window.SIGAPP=window.SIGAPP||{};window.SIGAPP.profileSignature={baseUrl:<?= json_encode(rtrim(base_url(), '/')) ?>,csrfName:<?= json_encode(csrf_token()) ?>,csrfHash:<?= json_encode(csrf_hash()) ?>};</script>
 <script src="<?= base_url() ?>assets/js/profile-signature.js?v=<?= time() ?>"></script>
+<script>window.SIGAPP.authDevices={baseUrl:<?= json_encode(rtrim(base_url(), '/')) ?>,csrfName:<?= json_encode(csrf_token()) ?>,csrfHash:<?= json_encode(csrf_hash()) ?>};</script>
+<script src="<?= base_url() ?>assets/js/auth-devices.js?v=<?= time() ?>"></script>

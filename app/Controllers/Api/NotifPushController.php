@@ -33,7 +33,8 @@ class NotifPushController extends BaseApiController
         }
 
         $userAgent = $this->request->getUserAgent()->getAgentString();
-        $saved = $this->webPushService->subscribe((int) user_id(), $json, $userAgent);
+        $deviceSessionId = (int) session()->get('sigapp_device_id');
+        $saved = $this->webPushService->subscribe((int) user_id(), $json, $userAgent, $deviceSessionId > 0 ? $deviceSessionId : null);
         if (! $saved) {
             return $this->error('Gagal menyimpan subscription.', 500);
         }

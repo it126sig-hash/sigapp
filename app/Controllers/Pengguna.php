@@ -77,6 +77,7 @@ class Pengguna extends BaseController
             $st = ($value->active == true) ? 1 : 0;
 
             $ops = '<div class="btn-group">';
+            $ops .= '<button type="button" class="btn btn-sm btn-warning" onclick="manageDevices(' . (int) $value->id . ')" title="Kelola sesi perangkat"><i class="fa fa-laptop"></i></button>';
             $ops .= '	<button type="button" class="btn btn-sm btn-info" onclick="edit(' . $value->id . ')"><i class="fa fa-edit"></i></button>';
 
             if ($value->active == 1) {

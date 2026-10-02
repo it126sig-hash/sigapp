@@ -19,6 +19,7 @@ class PushSubscriptionModel extends Model
         'p256dh_key',
         'auth_token',
         'user_agent',
+        'device_session_id',
         'last_seen_at',
         'disabled_at',
         'failure_count',
@@ -29,7 +30,7 @@ class PushSubscriptionModel extends Model
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
-    public function saveSubscription(int $userId, array $subscriptionData, ?string $userAgent = null): bool
+    public function saveSubscription(int $userId, array $subscriptionData, ?string $userAgent = null, ?int $deviceSessionId = null): bool
     {
         $endpoint = trim((string) ($subscriptionData['endpoint'] ?? ''));
         $keys = $subscriptionData['keys'] ?? [];
@@ -41,7 +42,7 @@ class PushSubscriptionModel extends Model
         }
 
         if (! $this->hasEndpointHashColumn()) {
-            return $this->saveLegacySubscription($userId, $endpoint, $p256dh, $auth, $userAgent);
+            return $this->saveLegacySubscription($userId, $endpoint, $p256dh, $auth, $userAgent, $deviceSessionId);
         }
 
         $hash = $this->endpointHash($endpoint);
@@ -63,6 +64,9 @@ class PushSubscriptionModel extends Model
             'disabled_at' => null,
             'failure_count' => 0,
         ];
+        if ($this->hasDeviceSessionColumn()) {
+            $data['device_session_id'] = $deviceSessionId;
+        }
 
         if ($existing) {
             $data['id'] = (int) $existing->id;
@@ -95,11 +99,25 @@ class PushSubscriptionModel extends Model
 
     public function activeForUser(int $userId): array
     {
+        if ($this->hasDeviceSessionColumn()) {
+            $builder = $this->db->table('push_subscriptions')
+                ->select('push_subscriptions.*')
+                ->join('auth_device_sessions', 'auth_device_sessions.id = push_subscriptions.device_session_id')
+                ->where('push_subscriptions.user_id', $userId)
+                ->where('auth_device_sessions.user_id', $userId)
+                ->where('auth_device_sessions.revoked_at', null)
+                ->where('auth_device_sessions.expires_at >', date('Y-m-d H:i:s'));
+            if ($this->hasDisabledAtColumn()) {
+                $builder->where('push_subscriptions.disabled_at', null);
+            }
+
+            return $builder->get()->getResult();
+        }
+
         $query = $this->where('user_id', $userId);
         if ($this->hasDisabledAtColumn()) {
             $query->where('disabled_at IS NULL', null, false);
         }
-
         return $query->findAll();
     }
 
@@ -155,7 +173,7 @@ class PushSubscriptionModel extends Model
         return hash('sha256', $endpoint);
     }
 
-    private function saveLegacySubscription(int $userId, string $endpoint, string $p256dh, string $auth, ?string $userAgent): bool
+    private function saveLegacySubscription(int $userId, string $endpoint, string $p256dh, string $auth, ?string $userAgent, ?int $deviceSessionId): bool
     {
         $existing = $this->where('user_id', $userId)
             ->where('endpoint', $endpoint)
@@ -168,6 +186,9 @@ class PushSubscriptionModel extends Model
             'auth_token' => $auth,
             'user_agent' => $userAgent,
         ];
+        if ($this->hasDeviceSessionColumn()) {
+            $data['device_session_id'] = $deviceSessionId;
+        }
 
         if ($existing) {
             $data['id'] = (int) $existing->id;
@@ -189,5 +210,10 @@ class PushSubscriptionModel extends Model
     private function hasFailureCountColumn(): bool
     {
         return $this->db->fieldExists('failure_count', $this->table);
+    }
+
+    private function hasDeviceSessionColumn(): bool
+    {
+        return $this->db->fieldExists('device_session_id', $this->table);
     }
 }

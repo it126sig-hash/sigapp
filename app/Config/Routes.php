@@ -8,6 +8,23 @@ use CodeIgniter\Router\RouteCollection;
 
 $routes->setAutoRoute(true);
 
+// Override Myth/Auth routes so successful login records a device session.
+$routes->get('login', '\\App\\Controllers\\Web\\DeviceAuthController::login', ['as' => 'login']);
+$routes->post('login', '\\App\\Controllers\\Web\\DeviceAuthController::attemptLogin');
+$routes->get('logout', '\\App\\Controllers\\Web\\DeviceAuthController::logout', ['filter' => []]);
+
+$routes->group('api/auth/devices', ['namespace' => 'App\\Controllers\\Api', 'filter' => 'login'], static function ($routes): void {
+    $routes->get('', 'AuthDeviceController::index');
+    $routes->post('(:num)/revoke', 'AuthDeviceController::revoke/$1', ['filter' => 'csrf']);
+    $routes->post('revoke-others', 'AuthDeviceController::revokeOthers', ['filter' => 'csrf']);
+});
+
+$routes->group('api/admin/users/(:num)/devices', ['namespace' => 'App\\Controllers\\Api', 'filter' => 'login'], static function ($routes): void {
+    $routes->get('', 'AdminAuthDeviceController::index/$1');
+    $routes->post('(:num)/revoke', 'AdminAuthDeviceController::revoke/$1/$2', ['filter' => 'csrf']);
+    $routes->post('revoke-all', 'AdminAuthDeviceController::revokeAll/$1', ['filter' => 'csrf']);
+});
+
 $routes->get('privacy-policy', '\App\Controllers\Web\LegalPageController::privacyPolicy');
 $routes->get('toc', '\App\Controllers\Web\LegalPageController::termsOfService');
 

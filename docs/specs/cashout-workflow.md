@@ -3,6 +3,12 @@
 ## Konteks
 Cashout saat ini hanya mencatat pembayaran biaya per kavling (PPH, BPHTB, dll) langsung — tidak ada alur *pengajuan → approval → pencairan*. Rencana ini menambahkan **lifecycle/workflow** pengajuan pencairan dana dari berbagai departemen (Pajak, Legal, Produksi, MKDT) ke departemen Keuangan.
 
+## Aturan Laporan Cashout Saat Ini
+
+Modal detail kavling pada tab Keuangan dan halaman `cashout/kavling` menghitung Cashout Keuangan (`cashout` yang belum dihapus), Pembayaran Produksi serta Cashout Subkon yang aktif di `finance_ledger`, dan bonus MGM dengan `cair_keuangan_at` serta `nominal_cair_keuangan > 0`. MGM dialokasikan ke kavling pembeli yang direferensikan melalui `referrals.id_mkdt_referred`. Pengajuan MGM dan pembayaran oleh Promosi belum menjadi Cashout sampai Keuangan mencairkan dana.
+
+PPh/PPN yang dicatat modul Pajak di `finance_ledger` tetap terlihat pada kolom dan detail Pajak halaman rekap, tetapi tidak menambah Total Cashout, saldo, atau margin pada modal detail. Baris BPHTB/PPh lama yang dicatat melalui form Cashout Keuangan tetap dihitung sebagai Cashout Keuangan. Kolom Produksi, Subkon, MGM, dan Pajak ditampilkan terpisah pada rekap; Total Cashout menjumlah Keuangan + Produksi + Subkon + MGM.
+
 ## Persyaratan Utama
 1. **Satu Level Proses**: Saat ini hanya ada 1 level di keuangan saja. Hanya perlu tahu kalau keuangan sudah mengajukan/memproses dana tersebut.
 2. **Konteks Kavling**: Semua pengeluaran untuk saat ini terkait pada kavling (di luar biaya overhead).

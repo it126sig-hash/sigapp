@@ -28,6 +28,7 @@ final class BpbPdfService
 
         try {
             foreach ($detail['signatures'] as &$signature) {
+                $signature['signed_date_label'] = $this->formatSignatureDate((string) ($signature['signed_at'] ?? ''));
                 try {
                     $path = $this->bpbService->signaturePath((int) $signature['id'], $userId);
                     if (is_file($path)) {
@@ -313,6 +314,15 @@ final class BpbPdfService
             return 'Bandung, -';
         }
 
+        return 'Bandung, ' . $this->formatSignatureDate($date);
+    }
+
+    private function formatSignatureDate(string $date): string
+    {
+        if ($date === '') {
+            return '-';
+        }
+
         $value = new DateTimeImmutable($date, new DateTimeZone('Asia/Jakarta'));
         $formatter = new IntlDateFormatter(
             'id_ID',
@@ -322,6 +332,6 @@ final class BpbPdfService
             IntlDateFormatter::GREGORIAN,
             'd MMMM yyyy'
         );
-        return 'Bandung, ' . ($formatter->format($value) ?: $value->format('d-m-Y'));
+        return $formatter->format($value) ?: $value->format('d-m-Y');
     }
 }

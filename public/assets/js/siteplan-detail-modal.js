@@ -524,8 +524,7 @@ function lihat_detail() {
         const financeFlowTypeTag = {
             'cashout_subkon_allocation': { label: 'Subkon', cls: 'badge-warning' },
             'bayar_produksi': { label: 'Produksi', cls: 'badge-secondary' },
-            'pajak_pph42': { label: 'PPh', cls: 'badge-danger' },
-            'pajak_ppn': { label: 'PPN', cls: 'badge-danger' },
+            'member_get_member': { label: 'MGM', cls: 'badge-info' },
             'pencairan_akad_payment_detail': { label: 'Retensi Akad', cls: 'badge-success' },
             'dana_jaminan': { label: 'Dana Jaminan', cls: 'badge-success' },
             'bank_kpr_disbursement': { label: 'Retensi Bank', cls: 'badge-success' },
@@ -552,11 +551,11 @@ function lihat_detail() {
                 <div class="detail-cashout-timeline-item">
                     <div class="detail-info-row">
                         <div class="detail-info-col">
-                            <span class="detail-info-label">${label} ${tag ? `<span class="detail-status-badge ${tag.cls}">${tag.label}</span>` : ''}</span>
+                            <span class="detail-info-label">${detailEscapeHtml(label)} ${tag ? `<span class="detail-status-badge ${tag.cls}">${tag.label}</span>` : ''}</span>
                             <span class="detail-info-value">${tanggal ? format_date(tanggal) : '-'}</span>
                         </div>
                     </div>
-                    ${v.keterangan ? `<div class="text-muted" style="font-size:.76rem; margin-top:-.35rem; margin-bottom:.5rem;">${v.keterangan}</div>` : ''}
+                    ${v.keterangan ? `<div class="text-muted" style="font-size:.76rem; margin-top:-.35rem; margin-bottom:.5rem;">${detailEscapeHtml(v.keterangan)}</div>` : ''}
                 </div>`
                 });
                 cashout = `<div class="detail-cashout-timeline">${items}</div>`
