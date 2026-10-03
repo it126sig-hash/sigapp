@@ -126,6 +126,33 @@
     white-space: nowrap;
   }
 
+    #data_table tbody td:nth-child(1),
+  #data_table thead th:nth-child(1),
+  #data_table tbody td:nth-child(3),
+  #data_table thead th:nth-child(3),
+  #data_table tbody td:nth-child(4),
+  #data_table thead th:nth-child(4),
+  #data_table tbody td:nth-child(5),
+  #data_table thead th:nth-child(5),
+  #data_table tbody td:nth-child(9),
+  #data_table thead th:nth-child(9) {
+    text-align: center !important;
+  }
+
+  #data_table tbody td:nth-child(6),
+  #data_table thead th:nth-child(6),
+  #data_table tbody td:nth-child(7),
+  #data_table thead th:nth-child(7),
+  #data_table tbody td:nth-child(8),
+  #data_table thead th:nth-child(8) {
+    text-align: right !important;
+  }
+
+  #data_table tbody td:nth-child(2),
+  #data_table thead th:nth-child(2) {
+    text-align: left !important;
+  }
+
   #data_table tbody td {
     border-color: #edf0f2;
     color: #111827;
@@ -138,7 +165,6 @@
     background: #f8fbff;
   }
 
-  .tagihan-pay-btn,
   .tagihan-detail-toggle {
     border-radius: 6px;
     font-size: .72rem;
@@ -217,6 +243,9 @@
                 <button type="button" class="btn btn-outline-secondary waves-effect btn-sm text-uppercase mr-50" id="btn_clear_filter_main">
                   <i class="fas fa-times mr-25"></i> Clear
                 </button>
+                <button type="button" class="btn btn-success waves-effect btn-sm text-uppercase mr-50" id="btn_export_excel" data-old-text="<i class='fa fa-file-excel mr-25'></i> Export Excel">
+                  <i class="fas fa-file-excel mr-25"></i> Export Excel
+                </button>
                 <button type="button" class="btn btn-primary waves-effect btn-sm text-uppercase" data-toggle="modal" data-target="#filterModal">
                   <i class="fas fa-filter mr-25"></i> Filter Data
                 </button>
@@ -235,21 +264,26 @@
             <table id="data_table" class="datatables-basic table compact">
               <thead>
                 <tr>
-                  <th></th>
-                  <th id="tb-AKSI">Aksi</th>
-                  <th id="tb-NO">No</th>
-                  <th id="tb-BLOK">BLOK</th>
-                  <th id="tb-NO_KAVLING">NO KAVLING</th>
-                  <th id="tb-TYPE">TYPE</th>
-                  <th>NAMA KONSUMEN</th>
-                  <th>TANGGAL BOOKING</th>
-                  <th>TUNAI/KPR</th>
-                  <th id="tb-JATUH_TEMPO">JATUH TEMPO TERDEKAT</th>
-                  <th id="tb-TOTAL_TAGIHAN">TOTAL TAGIHAN</th>
-                  <th id="tb-SUDAH_BAYAR">SUDAH BAYAR</th>
-                  <th id="tb-SISA_TAGIHAN">SISA TAGIHAN</th>
+                  <th class="text-center" id="tb-NO" width="5%">No</th>
+                  <th class="text-left" style="text-align: left !important;" width="20%">KONSUMEN</th>
+                  <th class="text-center" id="tb-TYPE" width="10%">TYPE</th>
+                  <th class="text-center" width="10%">SKEMA</th>
+                  <th class="text-center" id="tb-JATUH_TEMPO" width="15%">JATUH TEMPO</th>
+                  <th class="text-right" id="tb-TOTAL_TAGIHAN" width="10%">TOTAL</th>
+                  <th class="text-right" id="tb-SUDAH_BAYAR" width="10%">SUDAH BAYAR</th>
+                  <th class="text-right font-weight-bolder" style="font-weight: 800 !important; color: #000;" id="tb-SISA_TAGIHAN" width="10%">SISA</th>
+                  <th class="text-center" id="tb-AKSI" width="10%">AKSI</th>
                 </tr>
-              </thead>
+                            </thead>
+              <tfoot>
+                <tr>
+                  <th colspan="5" class="text-right align-middle" style="text-align: right !important; font-weight: bold;">Total (Halaman Ini):</th>
+                  <th class="text-right align-middle" style="text-align: right !important; font-weight: bold;" id="footer-total">0</th>
+                  <th class="text-right align-middle" style="text-align: right !important; font-weight: bold;" id="footer-sudah-bayar">0</th>
+                  <th class="text-right align-middle" style="text-align: right !important; font-weight: bold;" id="footer-sisa">0</th>
+                  <th></th>
+                </tr>
+              </tfoot>
             </table>
 
           </div>
@@ -263,7 +297,7 @@
     <div class="modal modal-slide-in fade" id="filterModal" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog sidebar-sm" role="document">
         <div class="modal-content pt-0">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
           <div class="modal-header mb-1">
             <h5 class="modal-title"><span class="align-middle"><i class="fas fa-filter text-primary mr-50"></i> Filter Tagihan</span></h5>
           </div>
@@ -280,7 +314,8 @@
               <label><i class="fas fa-check-circle text-muted mr-50"></i> Status Tagihan</label>
               <select id="status_lunas" name="status_lunas" class="form-control">
                 <option value="0">Belum Lunas</option>
-                <option value="1">Sudah Lunas</option>
+                <option value="all">Semua</option>
+                <option value="jatuh_tempo">Jatuh Tempo</option>
               </select>
             </div>
             <div class="form-group">
@@ -315,6 +350,24 @@
 
   <section>
     <?= view('keuangan/partials/modal_bayar_tagihan') ?>
+  
+    <!-- Modal Detail Drawer -->
+    <div class="modal modal-slide-in fade" id="detailDrawerModal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog sidebar-sm" role="document">
+        <div class="modal-content pt-0">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
+          <div class="modal-header mb-1">
+            <h5 class="modal-title"><span class="align-middle"><i class="fas fa-file-invoice-dollar text-primary mr-50"></i> Detail Jatuh Tempo</span></h5>
+          </div>
+          <div class="modal-body flex-grow-1" id="detailDrawerBody">
+            <div class="text-center text-muted py-2">Memuat data...</div>
+          </div>
+          <div class="modal-footer p-1" id="detailDrawerFooter">
+            <!-- Button will be injected here -->
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </div>
 
@@ -394,15 +447,18 @@
         <div class="table-responsive">
           <table class="table table-sm table-bordered tagihan-child-table">
             <thead>
-              <tr>
-                <th>No</th>
-                <th>Berita Acara</th>
-                <th>Jatuh Tempo</th>
-                <th>Status</th>
-                <th class="text-right">Nominal</th>
-                <th>Pembayaran</th>
-              </tr>
-            </thead>
+                <tr>
+                  <th class="text-center" id="tb-NO" width="5%">No</th>
+                  <th class="text-left" style="text-align: left !important;" width="20%">KONSUMEN</th>
+                  <th class="text-center" id="tb-TYPE" width="10%">TYPE</th>
+                  <th class="text-center" width="10%">SKEMA</th>
+                  <th class="text-center" id="tb-JATUH_TEMPO" width="15%">JATUH TEMPO</th>
+                  <th class="text-right" id="tb-TOTAL_TAGIHAN" width="10%">TOTAL</th>
+                  <th class="text-right" id="tb-SUDAH_BAYAR" width="10%">SUDAH BAYAR</th>
+                  <th class="text-right font-weight-bolder" style="font-weight: 800 !important; color: #000;" id="tb-SISA_TAGIHAN" width="10%">SISA</th>
+                  <th class="text-center" id="tb-AKSI" width="10%">AKSI</th>
+                </tr>
+              </thead>
             <tbody>${rows}</tbody>
             <tfoot>
               <tr>
@@ -432,6 +488,7 @@
       data: {
         [csrfName]: csrfHash,
         id_mkdt: idMkdt,
+        status_lunas: $("#status_lunas").val(),
       },
       success: function(r) {
         if (r.token) csrfHash = r.token;
@@ -464,7 +521,7 @@
         $('[data-toggle="popover"]').popover();
         var api = this.api();
         setTimeout(function() {
-          api.columns().adjust();
+          api.columns.adjust();
           fitTagihanTableHeight();
         }, 10);
       },
@@ -479,22 +536,38 @@
       searching: true,
       ordering: true,
       paging: true,
-      order: [
-        [9, "asc"]
+      footerCallback: function (row, data, start, end, display) {
+          var api = this.api();
+          var intVal = function (i) {
+              if (typeof i === 'string') {
+                  // extract numeric part, which might be in HTML or just a number string
+                  // Sisa is rendered as: '<span class="font-weight-bolder text-dark" style="font-size: 1.05rem;">' + data + '</span>'
+                  var stripped = i.replace(/(<([^>]+)>)/gi, ""); 
+                  return stripped.replace(/[^\d]/g, '') * 1;
+              }
+              return typeof i === 'number' ? i : 0;
+          };
+
+          var total_tagihan = api.column(5, { page: 'current' }).data().reduce(function (a, b) {
+              return intVal(a) + intVal(b);
+          }, 0);
+          
+          var sudah_bayar = api.column(6, { page: 'current' }).data().reduce(function (a, b) {
+              return intVal(a) + intVal(b);
+          }, 0);
+          
+          var sisa = api.column(7, { page: 'current' }).data().reduce(function (a, b) {
+              return intVal(a) + intVal(b);
+          }, 0);
+
+          $(api.column(5).footer()).html('Rp ' + num_format(total_tagihan));
+          $(api.column(6).footer()).html('Rp ' + num_format(sudah_bayar));
+          $(api.column(7).footer()).html('Rp ' + num_format(sisa));
+      },
+            order: [
+        [4, "asc"]
       ],
-      columns: [{
-          data: null,
-          orderable: false,
-          searchable: false,
-          className: "text-center",
-          defaultContent: '<button type="button" class="btn btn-outline-primary btn-sm tagihan-detail-toggle"><i class="fas fa-chevron-down"></i></button>'
-        },
-        {
-          data: "Aksi",
-          orderable: false,
-          searchable: false,
-          className: "text-center"
-        },
+      columns: [
         {
           data: "no",
           orderable: false,
@@ -502,37 +575,66 @@
           className: "text-center"
         },
         {
-          data: "nama_jalan",
-          name: "j.nama_jalan"
-        },
-        {
-          data: "no_kavling",
-          name: "k.no_kavling",
-          className: "text-center"
+          data: "nama_konsumen",
+          name: "c.nama_konsumen",
+          className: "text-left",
+          render: function(data, type, row) {
+            return '<div class="font-weight-bold text-dark" style="text-align: left !important;">' + data + '</div>' +
+                   '<div class="small text-muted mt-25" style="text-align: left !important;">' + row.nama_jalan + ' &bull; No. ' + row.no_kavling + '</div>';
+          }
         },
         {
           data: "tipe_pricelist",
           name: "hj.id_tipe",
-          orderable: false
-        },
-        {
-          data: "nama_konsumen",
-          name: "c.nama_konsumen"
-        },
-        {
-          data: "booking_tgl",
-          name: "m.booking_tgl",
+          className: "text-center",
           orderable: false
         },
         {
           data: "is_kpr",
           name: "m.is_kpr",
+          className: "text-center",
           orderable: false,
-          className: "text-center"
+                              render: function(data) {
+            let isKpr = false;
+            if (data == 1 || data === '1' || data === 'KPR' || data === true) {
+                isKpr = true;
+            } else if (typeof data === 'string' && data.indexOf('KPR') !== -1) {
+                isKpr = true;
+            }
+            return isKpr ? '<span class="badge badge-success">KPR</span>' : '<span class="badge badge-primary">TUNAI</span>';
+          }
         },
         {
           data: "jatuh_tempo_tgl",
-          name: "keu_agg.jatuh_tempo_tgl"
+          name: "keu_agg.jatuh_tempo_tgl",
+          className: "text-center",
+                    render: function(data, type, row) {
+            if (type === 'display') {
+              let rawData = row.jatuh_tempo_tgl_raw || data;
+              if (!rawData) return '-';
+              if (typeof rawData === 'string' && rawData.indexOf('<') !== -1) return data;
+              
+              let jtParts = rawData.split('-');
+              let jtDate = new Date(jtParts[0], jtParts[1] - 1, jtParts[2]);
+              let today = new Date();
+              today.setHours(0,0,0,0);
+              jtDate.setHours(0,0,0,0);
+              
+              let diffTime = today.getTime() - jtDate.getTime();
+              let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+              
+              let html = '<div class="font-weight-bold">' + format_date(rawData) + '</div>';
+              if (diffDays > 0) {
+                html += '<div class="mt-25"><span class="badge badge-light-danger">' + diffDays + ' HARI TERLAMBAT</span></div>';
+              } else if (diffDays === 0) {
+                html += '<div class="mt-25"><span class="badge badge-light-warning">JATUH TEMPO HARI INI</span></div>';
+              }
+              
+              html += '<div class="small text-muted mt-25">' + (row.jumlah_tagihan || 0) + ' item tagihan</div>';
+              return html;
+            }
+            return data;
+          }
         },
         {
           data: "total_tagihan",
@@ -550,7 +652,24 @@
           data: "sisa_tagihan",
           orderable: false,
           searchable: false,
-          className: "text-right font-weight-bold"
+          className: "text-right",
+          render: function(data) {
+            return '<span class="font-weight-bolder text-dark" style="font-size: 1.05rem;">' + data + '</span>';
+          }
+        },
+        {
+          data: "Aksi",
+          orderable: false,
+          searchable: false,
+          className: "text-center",
+          render: function(data, type, row) {
+            return '<div class="d-flex align-items-center justify-content-center" style="gap: .35rem;">' +
+                      (data !== '-' ? data : '') + 
+                      '<button type="button" class="btn btn-outline-info btn-sm tagihan-detail-drawer" data-id="' + row.id_mkdt + '">' +
+                        '<i class="fas fa-info-circle"></i> Detail' +
+                      '</button>' +
+                    '</div>';
+          }
         }
       ],
       ajax: {
@@ -582,20 +701,149 @@
     });
     $(window).on('load', fitTagihanTableHeight);
 
-    $('#data_table tbody').on('click', '.tagihan-detail-toggle', function() {
+    // Open Detail Drawer
+    $('#data_table tbody').on('click', '.tagihan-detail-drawer', function() {
       const tr = $(this).closest('tr');
-      const row = listTagihanTable.row(tr);
+      const row = listTagihanTable.row(tr).data();
+      const idMkdt = row.id_mkdt || $(this).data('id');
+      
+      $('#detailDrawerModal').modal('show');
+      $('#detailDrawerBody').html('<div class="text-center text-muted py-2"><i class="fas fa-spinner fa-spin mr-50"></i> Memuat detail...</div>');
+      
+      // Tambahkan tombol Bayar
+      let sh = {
+        data: {
+          id_mkdt: row.id_mkdt,
+          nama_proyek: row.nama_proyek,
+          nama_jalan: row.nama_jalan,
+          no_kavling: row.no_kavling
+        },
+        data2: {
+          no_tipe_rumah: row.no_tipe_rumah,
+          tipe_rumah: row.tipe_pricelist
+        }
+      };
+      
+      // we need to encode object into HTML string properly
+      // using single quotes for the attribute and double quotes for JSON
+      let shStr = JSON.stringify(sh).replace(/"/g, '&quot;');
+      
+      let bayarBtn = '<button type="button" class="btn btn-primary btn-block text-uppercase" style="font-weight: 800; letter-spacing: 0.5px;" onclick="open_keuangan(' + shStr + ', 3, 0); $(\'#detailDrawerModal\').modal(\'hide\');"><i class="fas fa-receipt mr-50"></i> Bayar Tagihan</button>';
+      
+      $('#detailDrawerFooter').html(bayarBtn);
 
-      if (row.child.isShown()) {
-        row.child.hide();
-        tr.removeClass('shown');
-        $(this).find('i').removeClass('fa-chevron-up').addClass('fa-chevron-down');
-        return;
+      // Hitung selisih hari terdekat
+      let badgeHtml = '';
+      let rawDate = row.jatuh_tempo_tgl_raw || row.jatuh_tempo_tgl;
+      if (rawDate && typeof rawDate === 'string' && rawDate.indexOf('<') === -1) {
+          let jtParts = rawDate.split('-');
+          let jtDate = new Date(jtParts[0], jtParts[1] - 1, jtParts[2]);
+          let today = new Date();
+          today.setHours(0,0,0,0);
+          jtDate.setHours(0,0,0,0);
+          let diffTime = today.getTime() - jtDate.getTime();
+          let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays > 0) {
+            badgeHtml = `<span class="badge badge-light-danger mt-50">${diffDays} HARI TERLAMBAT</span>`;
+          } else if (diffDays === 0) {
+            badgeHtml = `<span class="badge badge-light-warning mt-50">JATUH TEMPO HARI INI</span>`;
+          }
       }
 
-      tr.addClass('shown');
-      $(this).find('i').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-      loadChildTagihan(row, row.data());
+      let headerHtml = `
+        <div class="mb-2 pb-1 border-bottom">
+          <h6 class="font-weight-bolder mb-25 text-dark">${row.nama_konsumen}</h6>
+          <div class="small text-muted">${row.nama_jalan} &bull; No. ${row.no_kavling} &bull; Type ${row.tipe_pricelist}</div>
+        </div>
+        
+        <div class="mb-2 pb-1 border-bottom">
+          <div class="text-uppercase font-weight-bold text-muted font-small-2 mb-1">Summary</div>
+          <div class="mb-50">
+            <div class="font-small-2 text-muted">Sisa Tagihan</div>
+            <div class="font-weight-bolder text-danger" style="font-size: 1.1rem;">Rp ${row.sisa_tagihan}</div>
+            <div>${badgeHtml}</div>
+          </div>
+          
+          <div class="d-flex justify-content-between font-small-3 mt-1">
+            <span class="text-muted">Total Tagihan</span>
+            <span class="font-weight-bold">Rp ${row.total_tagihan}</span>
+          </div>
+          <div class="d-flex justify-content-between font-small-3 mt-25">
+            <span class="text-muted">Sudah Bayar</span>
+            <span class="font-weight-bold">Rp ${row.sudah_bayar}</span>
+          </div>
+          <div class="d-flex justify-content-between font-small-3 mt-25">
+            <span class="text-muted">Skema</span>
+            <span class="font-weight-bold">${(row.is_kpr == 1 || row.is_kpr === '1' || row.is_kpr === 'KPR' || row.is_kpr === true || (typeof row.is_kpr === 'string' && row.is_kpr.indexOf('KPR') !== -1)) ? '<span class="badge badge-success">KPR</span>' : '<span class="badge badge-primary">TUNAI</span>'}</span>
+          </div>
+        </div>
+        
+        <div class="text-uppercase font-weight-bold text-muted font-small-2 mb-75">Detail Item</div>
+      `;
+      
+      $.ajax({
+        url: base_url + "tagihan/list/detail",
+        type: "post",
+        dataType: "json",
+        data: {
+          [csrfName]: csrfHash,
+          id_mkdt: idMkdt,
+          status_lunas: $("#status_lunas").val(),
+        },
+        success: function(r) {
+          if (r.token) csrfHash = r.token;
+          
+          let itemsHtml = '';
+          if (r.success === true && Array.isArray(r.data) && r.data.length > 0) {
+            r.data.forEach(function(item) {
+              const isVoid = parseInt(item.is_void || 0) === 1;
+              const isPaid = parseInt(item.sudah_dibayar || 0) === 1;
+              
+              let statusBadge = '';
+              if (isVoid) {
+                statusBadge = '<span class="badge badge-light-secondary">VOID</span>';
+              } else if (isPaid) {
+                statusBadge = '<span class="badge badge-light-success">LUNAS</span>';
+              } else {
+                statusBadge = '<span class="badge badge-light-warning">BELUM LUNAS</span>';
+              }
+              
+              itemsHtml += `
+                <div class="card border shadow-none mb-1">
+                  <div class="card-body p-1">
+                    <div class="d-flex justify-content-between align-items-start mb-50">
+                      <div>
+                        <div class="font-weight-bold text-dark font-small-3">${item.berita_acara || '-'}</div>
+                        <div class="text-muted font-small-2 mt-25"><i class="fas fa-calendar-alt mr-25"></i> ${format_date(item.jatuh_tempo_tgl) || '-'}</div>
+                      </div>
+                      ${statusBadge}
+                    </div>
+                    
+                    <div class="row mt-75 font-small-3">
+                      <div class="col-6">
+                        <div class="text-muted font-small-2">Status</div>
+                        <div class="font-weight-bold mt-25">${item.status || '-'}</div>
+                      </div>
+                      <div class="col-6 text-right">
+                        <div class="text-muted font-small-2">Nominal</div>
+                        <div class="font-weight-bold mt-25">Rp ${num_format(item.nominal)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            });
+          } else {
+            itemsHtml = '<div class="text-center text-muted font-small-3 py-1 bg-light rounded">Tidak ada detail tagihan yang belum lunas.</div>';
+          }
+          
+          $('#detailDrawerBody').html(headerHtml + '<div class="detail-items-container">' + itemsHtml + '</div>');
+        },
+        error: function() {
+          $('#detailDrawerBody').html('<div class="alert alert-danger p-1 font-small-3">Gagal memuat detail tagihan. Terjadi kesalahan jaringan.</div>');
+        }
+      });
     });
 
     //on chnage search
@@ -752,8 +1000,68 @@
         $("#filterModal").modal("hide");
     });
 
+    $("#btn_export_excel").on('click', function(e) {
+      let $btn = $(this);
+      $.ajax({
+        type: "post",
+        url: base_url + "tagihan/list/export-excel",
+        data: {
+          [csrfName]: csrfHash,
+          id_proyek: activeProyekId(),
+          id_cluster: $("#id_cluster").val(),
+          id_jalan: $("#id_jalan").val(),
+          status_lunas: $("#status_lunas").val(),
+          is_kpr: $("#is_kpr").val(),
+          booking_tgl_range: $("#booking_tgl_range").val(),
+          jatuh_tempo_tgl_range: $("#jatuh_tempo_tgl_range").val(),
+          search_value: $('.dataTables_filter input').val()
+        },
+        dataType: "json",
+        beforeSend: function() {
+          $btn.html("<i class='fa fa-spinner fa-spin mr-25'></i> Mengeksport...");
+          $btn.prop("disabled", true);
+        },
+        success: function(data) {
+          if (data.status) {
+              var d = new Date()
+              d = format_date(d.getFullYear() + "-" + (parseInt(d.getMonth()) + 1) + "-" + d.getDate());
+
+              var $a = $("<a>");
+              $a.attr("href", data.file);
+              $("body").append($a);
+              $a.attr("download", "Laporan_Tagihan_" + d + ".xlsx");
+              $a[0].click();
+              $a.remove();
+          } else {
+              alert("Gagal mengeksport data");
+          }
+          $btn.html($btn.data("old-text"));
+          $btn.prop("disabled", false);
+        },
+        error: function() {
+          alert("Terjadi kesalahan sistem saat eksport");
+          $btn.html($btn.data("old-text"));
+          $btn.prop("disabled", false);
+        }
+      });
+    });
+
     //remove bug arrow select2
     $(".select2-selection__arrow").css("pointer-events", "none")
 
   });
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

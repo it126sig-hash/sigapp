@@ -442,55 +442,23 @@ class Tagihan extends BaseController
         return $datatbel;
     }
 
-    public 
-    function listTagihanJatuhTempo()
-    {
-        $data['content'] = 'keuangan/list-tagihan-jatuh-tempo';
-        $data['data']['controller'] = 'Keuangan';
-        $data['data']['title'] = 'Tagihan Jatuh Tempo';
-        $data['data']['li_keu'] = json_encode($this->keuRepo->getLIKeu());
+    
 
-        return view('template', $data);
-    }
-
-        public function exportExcelJatuhTempo(): ResponseInterface
+        public function exportExcelTagihan(): ResponseInterface
     {
-        $response = $this->keuanganService->exportExcelJatuhTempo($this->request);
+        $response = $this->keuanganService->exportExcelTagihan($this->request);
         return $this->response->setJSON($response);
     }
 
-    function getListTagihanJatuhTempoGrouped()
-    {
-        $request   = $this->request;
-        $datatbel = $this->keuanganService->getListTagihanJatuhTempoGrouped($request);
-
-        return $datatbel;
-    }
+    
 
     
-    public function getListTagihanJatuhTempoDetail(): ResponseInterface
-    {
-        $idMkdt = (int) $this->request->getPost('id_mkdt');
-
-        if ($idMkdt <= 0) {
-            return $this->response->setJSON([
-                'token'   => csrf_hash(),
-                'success' => false,
-                'message' => 'Data MKDT tidak valid',
-                'data'    => [],
-            ]);
-        }
-
-        return $this->response->setJSON([
-            'token'   => csrf_hash(),
-            'success' => true,
-            'data'    => $this->keuanganService->getListTagihanJatuhTempoDetail($idMkdt),
-        ]);
-    }
+    
 
     public function getListTagihanDetail(): ResponseInterface
     {
         $idMkdt = (int) $this->request->getPost('id_mkdt');
+        $statusLunas = $this->request->getPost('status_lunas');
 
         if ($idMkdt <= 0) {
             return $this->response->setJSON([
@@ -504,7 +472,7 @@ class Tagihan extends BaseController
         return $this->response->setJSON([
             'token'   => csrf_hash(),
             'success' => true,
-            'data'    => $this->keuanganService->getListTagihanDetail($idMkdt),
+            'data'    => $this->keuanganService->getListTagihanDetail($idMkdt, $statusLunas),
         ]);
     }
     ################################## end of untuk list tagihan ##########################

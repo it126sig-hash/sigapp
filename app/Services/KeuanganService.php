@@ -553,7 +553,7 @@ class KeuanganService
                         'tipe_rumah'    => $value->tipe_pricelist,
                     ]
                 ]);
-                return '<button type="button" class="btn btn-primary btn-sm tagihan-pay-btn text-uppercase" onclick="open_keuangan(' . htmlspecialchars($sh, ENT_QUOTES, 'UTF-8') . ', 3, 0)"><i class="fas fa-receipt mr-25"></i> Bayar</button>';
+                return '<button type="button" class="btn btn-primary btn-sm" onclick="open_keuangan(' . htmlspecialchars($sh, ENT_QUOTES, 'UTF-8') . ', 3, 0)"><i class="fas fa-receipt mr-25"></i> Bayar</button>';
             }, 'first')
             ->addNumbering('no')
             ->edit('booking_tgl', function ($value) {
@@ -581,9 +581,17 @@ class KeuanganService
 
     public function getListTagihanGrouped($request)
     {
-        $builder = $request->getVar('status_lunas') === '1'
-            ? $this->keuRepo->getLunasGroupedQuery()
-            : $this->keuRepo->getBelumLunasGroupedQuery();
+        $status_lunas = $request->getVar('status_lunas');
+        
+        if ($status_lunas === 'all') {
+            $builder = $this->keuRepo->getAllGroupedQuery();
+        } else if ($status_lunas === 'jatuh_tempo') {
+            $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+            $builder->where('keu_agg.jatuh_tempo_tgl <=', date('Y-m-d'));
+        } else {
+            // default to belum lunas (0)
+            $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+        }
 
         $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
         if ($id_proyek)
@@ -638,14 +646,42 @@ class KeuanganService
                         'tipe_rumah'    => $value->tipe_pricelist,
                     ]
                 ]);
-                return '<button type="button" class="btn btn-primary btn-sm tagihan-pay-btn text-uppercase" onclick="open_keuangan(' . htmlspecialchars($sh, ENT_QUOTES, 'UTF-8') . ', 3, 0)"><i class="fas fa-receipt mr-25"></i> Bayar</button>';
+                return '<button type="button" class="btn btn-primary btn-sm" onclick="open_keuangan(' . htmlspecialchars($sh, ENT_QUOTES, 'UTF-8') . ', 3, 0)"><i class="fas fa-receipt mr-25"></i> Bayar</button>';
             }, 'first')
             ->addNumbering('no')
             ->edit('booking_tgl', function ($value) {
                 return $this->format_tgl($value->booking_tgl);
             })
+            ->add('jatuh_tempo_tgl_raw', function ($value) {
+                return $value->jatuh_tempo_tgl;
+            })
             ->edit('jatuh_tempo_tgl', function ($value) {
-                return $this->format_tgl($value->jatuh_tempo_tgl);
+                if (!$value->jatuh_tempo_tgl) return '-';
+                
+                $months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                $ts = strtotime($value->jatuh_tempo_tgl);
+                $dateStr = date('d', $ts) . ' ' . $months[date('n', $ts) - 1] . ' ' . date('Y', $ts);
+                
+                $today = new \DateTime(date('Y-m-d'));
+                $jtDate = new \DateTime($value->jatuh_tempo_tgl);
+                
+                $diff = $today->diff($jtDate);
+                $diffDays = (int) $diff->format('%r%a'); // positive if jtDate > today, negative if today > jtDate
+                
+                $sisa = $value->jumlah_tagihan ?? 0;
+                
+                if ($diffDays >= 0) {
+                    return '<div class="d-flex flex-column">
+                                <span class="">' . $dateStr . '</span>
+                                <span class="text-muted font-small-2">Sisa ' . $sisa . ' Tagihan</span>
+                            </div>';
+                } else {
+                    $telat = abs($diffDays);
+                    return '<div class="d-flex flex-column">
+                                <span class="">' . $dateStr . '</span>
+                                <span class="text-danger font-small-2 font-weight-bold">Sisa ' . $sisa . ' Tagihan terlambat ' . $telat . ' hari</span>
+                            </div>';
+                }
             })
             ->edit('is_kpr', function ($value) {
                 return $this->is_active($value->is_kpr, 'KPR', 'TUNAI');
@@ -682,8 +718,12 @@ class KeuanganService
         }, $this->keuRepo->getListTagihanJatuhTempoDetailById($idMkdt));
     }
 
-    public function getListTagihanDetail(int $idMkdt): array
+    public function getListTagihanDetail(int $idMkdt, $statusLunas = null): array
     {
+        $data = $statusLunas === 'jatuh_tempo' 
+            ? $this->keuRepo->getListTagihanJatuhTempoDetailById($idMkdt)
+            : $this->keuRepo->getListTagihanDetailById($idMkdt);
+
         return array_map(static function ($row) {
             return [
                 'berita_acara'  => $row->berita_acara ?? '',
@@ -694,7 +734,7 @@ class KeuanganService
                 'is_void'       => (int) ($row->is_void ?? 0),
                 'void_reason'   => $row->void_reason ?? '',
             ];
-        }, $this->keuRepo->getListTagihanDetailById($idMkdt));
+        }, $data);
     }
 
     public function getTagihanById($id_mkdt, $isTurunKPR = false)
@@ -1152,12 +1192,20 @@ class KeuanganService
         return $r;
     }
 
-    public function exportExcelJatuhTempo($request)
+    public function exportExcelTagihan($request)
     {
-        $builder = $this->keuRepo->getBelumLunasGroupedQuery();
-        
+        $status_lunas = $request->getVar('status_lunas');
         $today = date('Y-m-d');
-        $builder->where('keu_agg.jatuh_tempo_tgl <=', $today);
+        
+        if ($status_lunas === 'all') {
+            $builder = $this->keuRepo->getAllGroupedQuery();
+        } else if ($status_lunas === 'jatuh_tempo') {
+            $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+            $builder->where('keu_agg.jatuh_tempo_tgl <=', date('Y-m-d'));
+        } else {
+            // default to belum lunas (0)
+            $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+        }
 
         $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
         if ($id_proyek)
@@ -1256,6 +1304,18 @@ class KeuanganService
             $sheetRekap->setCellValue('L' . $rowNum, (int)$row->jumlah_tagihan);
             
             $rowNum++;
+        }
+        
+        // Add Total Row
+        if ($rowNum > 2) {
+            $sheetRekap->setCellValue('A' . $rowNum, 'TOTAL');
+            $sheetRekap->mergeCells('A' . $rowNum . ':H' . $rowNum);
+            $sheetRekap->getStyle('A' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheetRekap->setCellValue('I' . $rowNum, '=SUM(I2:I' . ($rowNum - 1) . ')');
+            $sheetRekap->setCellValue('J' . $rowNum, '=SUM(J2:J' . ($rowNum - 1) . ')');
+            $sheetRekap->setCellValue('K' . $rowNum, '=SUM(K2:K' . ($rowNum - 1) . ')');
+            $sheetRekap->getStyle('A' . $rowNum . ':L' . $rowNum)->getFont()->setBold(true);
+            $sheetRekap->getStyle('I' . $rowNum . ':K' . $rowNum)->getNumberFormat()->setFormatCode('#,##0');
         }
         
         // Header styling
