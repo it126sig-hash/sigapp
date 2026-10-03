@@ -272,7 +272,7 @@
                   <th class="text-center" id="tb-JATUH_TEMPO" width="15%">JATUH TEMPO</th>
                   <th class="text-right" id="tb-TOTAL_TAGIHAN" width="10%">TOTAL</th>
                   <th class="text-right" id="tb-SUDAH_BAYAR" width="10%">SUDAH BAYAR</th>
-                  <th class="text-right" id="tb-SISA_TAGIHAN" width="10%">SISA</th>
+                  <th class="text-right font-weight-bolder" style="font-weight: 800 !important; color: #000;" id="tb-SISA_TAGIHAN" width="10%">SISA</th>
                   <th class="text-center" id="tb-AKSI" width="10%">AKSI</th>
                 </tr>
               </thead>
@@ -289,7 +289,7 @@
     <div class="modal modal-slide-in fade" id="filterModal" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog sidebar-sm" role="document">
         <div class="modal-content pt-0">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">Ãƒâ€”</button>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">ÃƒÆ’Ã¢â‚¬â€</button>
           <div class="modal-header mb-1">
             <h5 class="modal-title"><span class="align-middle"><i class="fas fa-filter text-primary mr-50"></i> Filter Tagihan</span></h5>
           </div>
@@ -346,7 +346,7 @@
     <div class="modal modal-slide-in fade" id="detailDrawerModal" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog sidebar-sm" role="document">
         <div class="modal-content pt-0">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">Ã—</button>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">Ãƒâ€”</button>
           <div class="modal-header mb-1">
             <h5 class="modal-title"><span class="align-middle"><i class="fas fa-file-invoice-dollar text-primary mr-50"></i> Detail Jatuh Tempo</span></h5>
           </div>
@@ -443,7 +443,7 @@
                   <th class="text-center" id="tb-JATUH_TEMPO" width="15%">JATUH TEMPO</th>
                   <th class="text-right" id="tb-TOTAL_TAGIHAN" width="10%">TOTAL</th>
                   <th class="text-right" id="tb-SUDAH_BAYAR" width="10%">SUDAH BAYAR</th>
-                  <th class="text-right" id="tb-SISA_TAGIHAN" width="10%">SISA</th>
+                  <th class="text-right font-weight-bolder" style="font-weight: 800 !important; color: #000;" id="tb-SISA_TAGIHAN" width="10%">SISA</th>
                   <th class="text-center" id="tb-AKSI" width="10%">AKSI</th>
                 </tr>
               </thead>
@@ -539,7 +539,7 @@
           className: "text-left",
           render: function(data, type, row) {
             return '<div class="font-weight-bold text-dark" style="text-align: left !important;">' + data + '</div>' +
-                   '<div class="small text-muted mt-25" style="text-align: left !important;">' + row.nama_jalan + ' &bull; Kav. ' + row.no_kavling + '</div>';
+                   '<div class="small text-muted mt-25" style="text-align: left !important;">' + row.nama_jalan + ' &bull; No. ' + row.no_kavling + '</div>';
           }
         },
         {
@@ -553,8 +553,14 @@
           name: "m.is_kpr",
           className: "text-center",
           orderable: false,
-          render: function(data) {
-            return data === 'KPR' ? '<span class="badge badge-light-success">KPR</span>' : '<span class="badge badge-light-info">TUNAI</span>';
+                              render: function(data) {
+            let isKpr = false;
+            if (data == 1 || data === '1' || data === 'KPR' || data === true) {
+                isKpr = true;
+            } else if (typeof data === 'string' && data.indexOf('KPR') !== -1) {
+                isKpr = true;
+            }
+            return isKpr ? '<span class="badge badge-success">KPR</span>' : '<span class="badge badge-primary">TUNAI</span>';
           }
         },
         {
@@ -601,7 +607,10 @@
           data: "sisa_tagihan",
           orderable: false,
           searchable: false,
-          className: "text-right font-weight-bold"
+          className: "text-right",
+          render: function(data) {
+            return '<span class="font-weight-bolder text-dark" style="font-size: 1.05rem;">' + data + '</span>';
+          }
         },
         {
           data: "Aksi",
@@ -675,7 +684,7 @@
       let headerHtml = `
         <div class="mb-2 pb-1 border-bottom">
           <h6 class="font-weight-bolder mb-25 text-dark">${row.nama_konsumen}</h6>
-          <div class="small text-muted">${row.nama_jalan} &bull; Kav. ${row.no_kavling} &bull; Type ${row.tipe_pricelist}</div>
+          <div class="small text-muted">${row.nama_jalan} &bull; No. ${row.no_kavling} &bull; Type ${row.tipe_pricelist}</div>
         </div>
         
         <div class="mb-2 pb-1 border-bottom">
@@ -696,7 +705,7 @@
           </div>
           <div class="d-flex justify-content-between font-small-3 mt-25">
             <span class="text-muted">Skema</span>
-            <span class="font-weight-bold">${row.is_kpr === '1' || row.is_kpr === 'KPR' ? '<span class="badge badge-light-success">KPR</span>' : '<span class="badge badge-light-info">TUNAI</span>'}</span>
+            <span class="font-weight-bold">${(row.is_kpr == 1 || row.is_kpr === '1' || row.is_kpr === 'KPR' || row.is_kpr === true || (typeof row.is_kpr === 'string' && row.is_kpr.indexOf('KPR') !== -1)) ? '<span class="badge badge-success">KPR</span>' : '<span class="badge badge-primary">TUNAI</span>'}</span>
           </div>
         </div>
         
@@ -971,6 +980,7 @@
 
   });
 </script>
+
 
 
 

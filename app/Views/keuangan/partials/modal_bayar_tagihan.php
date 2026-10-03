@@ -609,9 +609,6 @@
                                     <div class="col-md-4 col-sm-12 col-lg-4">
                                         <div class="card">
                                             <div class="card-body">
-                                                <div class="divider divider-left hidden">
-                                                    <div class="divider-text font-weight-bold">Status Konsumen</div>
-                                                </div>
                                                 <div class="row hidden">
                                                     <div class="col-9">
                                                         <h5 class="text-primary">Tandai Sebagai Sudah Lunas</h5>
