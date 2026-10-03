@@ -228,6 +228,9 @@ $routes->get("/tagihan/list", 'Tagihan::listTagihan');
 $routes->post("/tagihan/list/ambil", 'Tagihan::getListTagihan');
 $routes->post("/tagihan/list/ambil-grouped", 'Tagihan::getListTagihanGrouped');
 $routes->post("/tagihan/list/detail", 'Tagihan::getListTagihanDetail');
+$routes->get("/tagihan/jatuh-tempo", 'Tagihan::listTagihanJatuhTempo');
+$routes->post("/tagihan/jatuh-tempo/ambil-grouped", 'Tagihan::getListTagihanJatuhTempoGrouped');
+$routes->post("/tagihan/jatuh-tempo/detail", 'Tagihan::getListTagihanJatuhTempoDetail');
 
 //dana akad
 $routes->post("/danaakad/list/ambilsatu", 'Tagihan::getListTagihan');
@@ -453,3 +456,5 @@ $routes->group('api/public', [
         throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     });
 });
+
+

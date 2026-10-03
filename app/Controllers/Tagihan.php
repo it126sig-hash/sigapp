@@ -442,6 +442,46 @@ class Tagihan extends BaseController
         return $datatbel;
     }
 
+    public 
+    function listTagihanJatuhTempo()
+    {
+        $data['content'] = 'keuangan/list-tagihan-jatuh-tempo';
+        $data['data']['controller'] = 'Keuangan';
+        $data['data']['title'] = 'Tagihan Jatuh Tempo';
+        $data['data']['li_keu'] = json_encode($this->keuRepo->getLIKeu());
+
+        return view('template', $data);
+    }
+
+    function getListTagihanJatuhTempoGrouped()
+    {
+        $request   = $this->request;
+        $datatbel = $this->keuanganService->getListTagihanJatuhTempoGrouped($request);
+
+        return $datatbel;
+    }
+
+    
+    public function getListTagihanJatuhTempoDetail(): ResponseInterface
+    {
+        $idMkdt = (int) $this->request->getPost('id_mkdt');
+
+        if ($idMkdt <= 0) {
+            return $this->response->setJSON([
+                'token'   => csrf_hash(),
+                'success' => false,
+                'message' => 'Data MKDT tidak valid',
+                'data'    => [],
+            ]);
+        }
+
+        return $this->response->setJSON([
+            'token'   => csrf_hash(),
+            'success' => true,
+            'data'    => $this->keuanganService->getListTagihanJatuhTempoDetail($idMkdt),
+        ]);
+    }
+
     public function getListTagihanDetail(): ResponseInterface
     {
         $idMkdt = (int) $this->request->getPost('id_mkdt');
@@ -495,3 +535,5 @@ class Tagihan extends BaseController
         return $d;
     }
 }
+
+

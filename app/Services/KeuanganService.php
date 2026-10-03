@@ -487,6 +487,93 @@ class KeuanganService
             // })
             ->toJson();
     }
+    
+    public function getListTagihanJatuhTempoGrouped($request)
+    {
+        $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+        
+        $today = date('Y-m-d');
+        $builder->where('keu_agg.jatuh_tempo_tgl <=', $today);
+
+        $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
+        if ($id_proyek)
+            $builder->where('p.id_proyek', $id_proyek);
+        if ($request->getVar('id_cluster'))
+            $builder->where('cl.id_cluster', $request->getVar('id_cluster'));
+        if ($request->getVar('id_jalan'))
+            $builder->where('j.id_jalan', $request->getVar('id_jalan'));
+
+        $isKpr = $request->getVar('is_kpr');
+        if ($isKpr !== null && $isKpr !== '') {
+            $builder->where('m.is_kpr', $isKpr);
+        }
+
+        $bookingRange = $request->getVar('booking_tgl_range');
+        if (!empty($bookingRange)) {
+            $dates = explode(' to ', $bookingRange);
+            if (count($dates) === 2) {
+                $builder->where('m.booking_tgl >=', $dates[0]);
+                $builder->where('m.booking_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('m.booking_tgl', $dates[0]);
+            }
+        }
+
+        $jatuhTempoRange = $request->getVar('jatuh_tempo_tgl_range');
+        if (!empty($jatuhTempoRange)) {
+            $dates = explode(' to ', $jatuhTempoRange);
+            if (count($dates) === 2) {
+                $builder->where('keu_agg.jatuh_tempo_tgl >=', $dates[0]);
+                $builder->where('keu_agg.jatuh_tempo_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('keu_agg.jatuh_tempo_tgl', $dates[0]);
+            }
+        }
+
+        return DataTable::of($builder)
+            ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
+            ->add('Aksi', function ($value) {
+                if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+                    return '-';
+                }
+                $sh = json_encode([
+                    'data' => [
+                        'id_mkdt'     => $value->id_mkdt,
+                        'nama_proyek' => $value->nama_proyek,
+                        'nama_jalan'  => $value->nama_jalan,
+                        'no_kavling'  => $value->no_kavling,
+                    ],
+                    'data2' => [
+                        'no_tipe_rumah' => $value->no_tipe_rumah,
+                        'tipe_rumah'    => $value->tipe_pricelist,
+                    ]
+                ]);
+                return '<button type="button" class="btn btn-primary btn-sm tagihan-pay-btn text-uppercase" onclick="open_keuangan(' . htmlspecialchars($sh, ENT_QUOTES, 'UTF-8') . ', 3, 0)"><i class="fas fa-receipt mr-25"></i> Bayar</button>';
+            }, 'first')
+            ->addNumbering('no')
+            ->edit('booking_tgl', function ($value) {
+                return $this->format_tgl($value->booking_tgl);
+            })
+            // NOTE: Do NOT edit jatuh_tempo_tgl here so the frontend can parse Y-m-d
+            ->edit('is_kpr', function ($value) {
+                return $this->is_active($value->is_kpr, 'KPR', 'TUNAI');
+            })
+            ->edit('total_tagihan', function ($v) {
+                return number_format((float) $v->total_tagihan);
+            })
+            ->edit('sudah_bayar', function ($v) {
+                return number_format((float) $v->sudah_bayar);
+            })
+            ->edit('sisa_tagihan', function ($v) {
+                $value = number_format((float) $v->sisa_tagihan);
+                if ((int) ($v->perlu_rekonsiliasi ?? 0) === 1) {
+                    $value .= ' <span class="badge badge-warning">Perlu rekonsiliasi</span>';
+                }
+                return $value;
+            })
+            ->toJson(true);
+    }
+
     public function getListTagihanGrouped($request)
     {
         $builder = $request->getVar('status_lunas') === '1'
@@ -572,6 +659,22 @@ class KeuanganService
                 return $value;
             })
             ->toJson(true);
+    }
+
+    
+    public function getListTagihanJatuhTempoDetail(int $idMkdt): array
+    {
+        return array_map(static function ($row) {
+            return [
+                'berita_acara'  => $row->berita_acara ?? '',
+                'jatuh_tempo_tgl' => $row->jatuh_tempo_tgl ?? null,
+                'nominal'       => (float) ($row->nominal ?? 0),
+                'sudah_dibayar' => (int) ($row->sudah_dibayar ?? 0),
+                'status'        => $row->status ?? '',
+                'is_void'       => (int) ($row->is_void ?? 0),
+                'void_reason'   => $row->void_reason ?? '',
+            ];
+        }, $this->keuRepo->getListTagihanJatuhTempoDetailById($idMkdt));
     }
 
     public function getListTagihanDetail(int $idMkdt): array
@@ -1044,3 +1147,4 @@ class KeuanganService
         return $r;
     }
 }
+

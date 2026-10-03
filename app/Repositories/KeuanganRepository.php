@@ -356,6 +356,26 @@ class KeuanganRepository extends Model
             ->groupEnd();
     }
 
+    
+    public function getListTagihanJatuhTempoDetailById(int $idMkdt): array
+    {
+        return $this->select([
+                'keuangan.berita_acara',
+                'keuangan.jatuh_tempo_tgl',
+                'keuangan.nominal',
+                'keuangan.sudah_dibayar',
+                'keuangan.status',
+                'keuangan.is_void',
+                'keuangan.void_reason',
+            ])
+            ->where('keuangan.id_mkdt', $idMkdt)
+            ->where('keuangan.sudah_dibayar', 0)
+            ->where('keuangan.jatuh_tempo_tgl <=', date('Y-m-d'))
+            ->orderBy('keuangan.jatuh_tempo_tgl', 'ASC')
+            ->orderBy('keuangan.id_keuangan', 'ASC')
+            ->findAll();
+    }
+
     public function getListTagihanDetailById(int $idMkdt): array
     {
         return $this->select([
@@ -384,3 +404,4 @@ class KeuanganRepository extends Model
             ->findAll();
     }
 }
+
