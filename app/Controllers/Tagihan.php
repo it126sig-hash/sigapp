@@ -453,6 +453,12 @@ class Tagihan extends BaseController
         return view('template', $data);
     }
 
+        public function exportExcelJatuhTempo(): ResponseInterface
+    {
+        $response = $this->keuanganService->exportExcelJatuhTempo($this->request);
+        return $this->response->setJSON($response);
+    }
+
     function getListTagihanJatuhTempoGrouped()
     {
         $request   = $this->request;
@@ -535,5 +541,6 @@ class Tagihan extends BaseController
         return $d;
     }
 }
+
 
 

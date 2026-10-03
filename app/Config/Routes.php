@@ -230,6 +230,7 @@ $routes->post("/tagihan/list/ambil-grouped", 'Tagihan::getListTagihanGrouped');
 $routes->post("/tagihan/list/detail", 'Tagihan::getListTagihanDetail');
 $routes->get("/tagihan/jatuh-tempo", 'Tagihan::listTagihanJatuhTempo');
 $routes->post("/tagihan/jatuh-tempo/ambil-grouped", 'Tagihan::getListTagihanJatuhTempoGrouped');
+$routes->post("/tagihan/jatuh-tempo/export-excel", 'Tagihan::exportExcelJatuhTempo');
 $routes->post("/tagihan/jatuh-tempo/detail", 'Tagihan::getListTagihanJatuhTempoDetail');
 
 //dana akad
@@ -435,10 +436,10 @@ $routes->group('api/kavling-request', ['namespace' => 'App\Controllers\Api', 'fi
     $routes->post('update-status', 'KavlingRequestController::updateStatus');
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Public API — No authentication required
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Public API â€” No authentication required
 // Throttle: 20 requests / 60 seconds per IP
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $routes->group('api/public', [
     'namespace' => 'App\Controllers\Api',
     'filter'    => ['throttle:20,60', 'cors'],
@@ -448,7 +449,7 @@ $routes->group('api/public', [
         return response()->setStatusCode(204);
     });
 
-    // Validasi kode referral — POST only
+    // Validasi kode referral â€” POST only
     $routes->post('check-referral', 'PublicController::checkReferral');
 
     // Blok akses GET agar tidak bisa dibuka langsung di browser
@@ -456,5 +457,6 @@ $routes->group('api/public', [
         throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     });
 });
+
 
 
