@@ -18,6 +18,9 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use App\Services\Bpb\ProfileSignatureService;
+use App\Services\Bpb\BpbFileService;
+use Myth\Auth\Password;
 
 
 class KeuanganService
@@ -1429,7 +1432,247 @@ class KeuanganService
         ];
     }
 
+
+    // ---- Fitur Penagihan Baru ----
+    
+    public function getRiwayatTagihan($request): array
+    {
+        $id_mkdt = $request->getVar('id_mkdt');
+        
+        $riwayat = $this->db->table('invoice_log i')
+            ->select('i.*, u.nama_karyawan as pembuat')
+            ->join('karyawan u', 'u.id_user = i.add_by', 'left')
+            ->where('i.id_mkdt', $id_mkdt)
+            ->orderBy('i.date_add', 'DESC')
+            ->get()->getResultArray();
+            
+        return [
+            'token' => csrf_hash(),
+            'success' => true,
+            'data' => $riwayat
+        ];
+    }
+    
+    public function simpanPenagihan($request, int $actorId): array
+    {
+        $response = [
+            'token' => csrf_hash(),
+            'success' => false,
+            'messages' => 'Terjadi kesalahan saat menyimpan invoice',
+        ];
+
+        $id_mkdt = $request->getVar('id_mkdt');
+        $id_konsumen = $request->getVar('id_konsumen');
+        $id_kavling = $request->getVar('id_kavling');
+        $id_kopsurat = $request->getVar('id_kopsurat');
+        $tanggal_invoice = $request->getVar('tanggal_invoice');
+        $tanggal_jatuh_tempo = $request->getVar('tanggal_jatuh_tempo');
+        $terms = $request->getVar('terms');
+        $tagihan = $request->getVar('tagihan'); // JSON array of items
+
+        // Pastikan id_konsumen dan id_kavling selalu valid dengan auto-lookup dari mkdt jika kosong
+        if (empty($id_konsumen) || empty($id_kavling)) {
+            $mkdtRow = $this->db->table('mkdt')->where('id_mkdt', $id_mkdt)->get()->getRow();
+            if ($mkdtRow) {
+                if (empty($id_konsumen)) $id_konsumen = $mkdtRow->id_konsumen;
+                if (empty($id_kavling)) $id_kavling = $mkdtRow->id_kavling;
+            }
+        }
+        
+        // Signature & input verification
+        $password = $request->getVar('password');
+        $sign_method = $request->getVar('sign_method');
+        $ttd_img = $request->getVar('ttd_img');
+        
+        if (empty($id_mkdt)) {
+            $response['messages'] = 'Data transaksi/konsumen (MKDT) tidak ditemukan.';
+            return $response;
+        }
+
+        // 1. Validasi Kop Surat
+        if (empty($id_kopsurat)) {
+            $response['messages'] = 'Silakan pilih Kop Surat terlebih dahulu.';
+            return $response;
+        }
+
+        $kop = $this->db->table('kopsurat')->where('id', $id_kopsurat)->get()->getRow();
+        if (!$kop) {
+            $response['messages'] = 'Kop Surat yang dipilih tidak valid atau sudah dihapus.';
+            return $response;
+        }
+
+        // 2. Validasi Item Tagihan
+        if (empty($tagihan) || $tagihan === '[]') {
+            $response['messages'] = 'Tidak ada item tagihan untuk dibuatkan invoice.';
+            return $response;
+        }
+        
+        // 3. Validasi Password
+        if (empty($password) || trim((string) $password) === '') {
+            $response['messages'] = 'Password akun wajib diisi untuk verifikasi tanda tangan.';
+            return $response;
+        }
+        
+        // Verify password with user account
+        $user = $this->db->table('users')->select('password_hash')->where('id', $actorId)->get()->getRow();
+        if (!$user || empty($user->password_hash)) {
+            $response['messages'] = 'Akun pengguna Anda tidak valid.';
+            return $response;
+        }
+
+        $passwordValid = Password::verify((string) $password, (string) $user->password_hash)
+            || password_verify((string) $password, (string) $user->password_hash);
+
+        if (!$passwordValid) {
+            $response['messages'] = 'Password yang Anda masukkan salah.';
+            return $response;
+        }
+        
+        // 4. Validasi Tanda Tangan
+        if ($sign_method === 'profile') {
+            // Ambil path TTD dari user_signature_profiles
+            try {
+                $profileRow = db_connect()->table('user_signature_profiles')
+                    ->where('user_id', $actorId)->get()->getRowArray();
+                if (!$profileRow || empty($profileRow['signature_path'])) {
+                    $response['messages'] = 'Anda belum mengatur tanda tangan di profil.';
+                    return $response;
+                }
+
+                $fileAccess = new \App\Services\FileAccessService();
+                $absPath = $fileAccess->existingPath($profileRow['signature_path']);
+                if (!$absPath || !is_file($absPath)) {
+                    $response['messages'] = 'File tanda tangan profil tidak ditemukan di server.';
+                    return $response;
+                }
+
+                $ttd_img = $profileRow['signature_path']; // logical path, dikonversi saat download PDF
+            } catch (\Throwable $e) {
+                $response['messages'] = 'Tanda tangan profil belum tersedia: ' . $e->getMessage();
+                return $response;
+            }
+        } else {
+            // Canvas: simpan base64 sebagai file PNG agar tidak menyimpan base64 besar di DB
+            if (empty($ttd_img) || $ttd_img === 'empty' || !str_starts_with(trim((string) $ttd_img), 'data:image')) {
+                $response['messages'] = 'Tanda tangan pada canvas wajib dibubuhkan.';
+                return $response;
+            }
+            try {
+                $bpbFileService = new BpbFileService();
+                $ttd_img = $bpbFileService->storeCanvas($ttd_img, 'invoice-signatures/' . date('Ym'));
+            } catch (\Throwable $e) {
+                $response['messages'] = 'Gagal menyimpan tanda tangan canvas: ' . $e->getMessage();
+                return $response;
+            }
+        }
+        
+        // Generate No Invoice auto
+        // e.g., INV/2026/10/0001
+        $y = date('Y');
+        $m = date('m');
+        $prefix = "INV/$y/$m/";
+        
+        $lastInv = $this->db->table('invoice_log')
+            ->where("no_inv LIKE '$prefix%'")
+            ->orderBy('no_inv', 'DESC')
+            ->get()->getRow();
+            
+        if ($lastInv) {
+            $lastNum = (int) substr($lastInv->no_inv, -4);
+            $newNum = str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
+        } else {
+            $newNum = '0001';
+        }
+        $no_inv = $prefix . $newNum;
+
+        $db = $this->db;
+        $db->transException(true);
+
+        try {
+            $db->transStart();
+
+            $saved = $db->table('invoice_log')->insert([
+                'no_inv' => $no_inv,
+                'id_mkdt' => $id_mkdt,
+                'id_konsumen' => $id_konsumen,
+                'id_kavling' => $id_kavling,
+                'id_kopsurat' => $id_kopsurat,
+                'tanggal_invoice' => $tanggal_invoice,
+                'tanggal_jatuh_tempo' => $tanggal_jatuh_tempo,
+                'tagihan' => $tagihan,
+                'terms' => $terms,
+                'status_tagihan' => 'dibuat',
+                'ttd_img' => $ttd_img,
+                'add_by' => $actorId,
+                'date_add' => date('Y-m-d H:i:s'),
+            ]);
+
+            if (! $saved) {
+                throw new \RuntimeException('Gagal menambahkan invoice');
+            }
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            return [
+                'token' => csrf_hash(),
+                'success' => true,
+                'messages' => 'Tagihan berhasil dibuat',
+            ];
+        } catch (\Throwable $e) {
+            try {
+                $db->transRollback();
+            } catch (\Throwable $rollbackError) {
+                // Ignore rollback error
+            }
+            $response['messages'] = $e->getMessage();
+            return $response;
+        }
+    }
+    
+    public function updateStatusPenagihan($request, int $actorId): array
+    {
+        $response = [
+            'token' => csrf_hash(),
+            'success' => false,
+            'messages' => 'Terjadi kesalahan',
+        ];
+
+        $no_inv = $request->getVar('no_inv');
+        $status_tagihan = $request->getVar('status_tagihan');
+        $tanggal_ubah_status = $request->getVar('tanggal_ubah_status');
+        $keterangan_status = $request->getVar('keterangan_status');
+        
+        if (empty($no_inv) || empty($status_tagihan)) {
+            $response['messages'] = 'Data tidak lengkap';
+            return $response;
+        }
+        
+        $this->db->table('invoice_log')
+            ->where('no_inv', $no_inv)
+            ->update([
+                'status_tagihan' => $status_tagihan,
+                'tanggal_ubah_status' => $tanggal_ubah_status,
+                'keterangan_status' => $keterangan_status,
+                'date_edit' => date('Y-m-d H:i:s'),
+                'edit_by' => $actorId
+            ]);
+            
+        return [
+            'token' => csrf_hash(),
+            'success' => true,
+            'messages' => 'Status berhasil diubah',
+        ];
+    }
+    
+    public function setTanggalKirim($no_inv): void
+    {
+        $inv = $this->db->table('invoice_log')->select('tanggal_kirim')->where('no_inv', $no_inv)->get()->getRow();
+        if ($inv && empty($inv->tanggal_kirim)) {
+            $this->db->table('invoice_log')->where('no_inv', $no_inv)->update(['tanggal_kirim' => date('Y-m-d H:i:s')]);
+        }
+    }
 }
-
-
-

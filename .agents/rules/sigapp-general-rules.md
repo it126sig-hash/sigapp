@@ -1,8 +1,6 @@
 ---
-name: sigapp-general-rules
+trigger: always_on
 description: >
-  Aturan umum dan prinsip pengembangan yang WAJIB diikuti saat melakukan modifikasi kode, penambahan fitur, atau refactor di project SIGAPP.
-  Triggers: "selalu aktif", "aturan umum", "saat ngoding", "development rules".
 ---
 
 # Aturan Pengembangan SIGAPP
@@ -25,6 +23,14 @@ Dalam setiap penyelesaian masalah atau penambahan fitur, selalu utamakan hal-hal
 
 ## 3. Aturan Pengujian (Testing)
 - **Selalu Testing**: Kamu WAJIB selalu melakukan test (pengujian) setelah selesai melakukan suatu perubahan pada kode dengan menggunakan tool/skill **Playwright**. Pastikan UI atau fitur yang berubah tidak mengalami regresi.
+- **credential**:
+   - Url: http://localhost/sigapp.dev
+   - Users:
+      - MKDT: u: citra, p: citra123
+      - keuangan : u: nisalis, p: nisalis123
+      - promosi: u: benny, p: benny123
+      - produksi: u:alika, p:alikas123
+      - legal: u: marlina, p: marlina123
 
 ## 4. Aturan Notifikasi
 Jika sebuah perubahan atau penambahan fitur mengharuskan untuk **menambah atau merubah notifikasi**, kamu WAJIB:

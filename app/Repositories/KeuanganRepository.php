@@ -43,6 +43,8 @@ class KeuanganRepository extends Model
             j.nama_jalan,
             cl.nama_cluster,
             m.id_mkdt,
+                k.id_kavling,
+                m.id_konsumen,
             m.status_mkdt,
             m.is_lunas,
             nama_proyek
@@ -111,6 +113,8 @@ class KeuanganRepository extends Model
             b.username as uedit_by,
             tipe.no_tipe_rumah,
             m.id_mkdt,
+                k.id_kavling,
+                m.id_konsumen,
             p.nama_proyek,
         ')
             ->join('mkdt m', 'm.id_mkdt = keuangan.id_mkdt')
@@ -243,6 +247,8 @@ class KeuanganRepository extends Model
                 tipe.no_tipe_rumah,
                 tipe.tipe_rumah,
                 m.id_mkdt,
+                k.id_kavling,
+                m.id_konsumen,
                 CASE WHEN m.is_lunas = 1 AND COALESCE(tagihan_agg.total_tagihan, 0) > (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)) THEN 1 ELSE 0 END AS perlu_rekonsiliasi,
                 p.nama_proyek
             ')
@@ -329,6 +335,8 @@ class KeuanganRepository extends Model
                 tipe.no_tipe_rumah,
                 tipe.tipe_rumah,
                 m.id_mkdt,
+                k.id_kavling,
+                m.id_konsumen,
                 CASE WHEN m.is_lunas = 1 AND COALESCE(tagihan_agg.total_tagihan, 0) > (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)) THEN 1 ELSE 0 END AS perlu_rekonsiliasi,
                 p.nama_proyek
             ')
@@ -403,6 +411,8 @@ class KeuanganRepository extends Model
                 tipe.no_tipe_rumah,
                 tipe.tipe_rumah,
                 m.id_mkdt,
+                k.id_kavling,
+                m.id_konsumen,
                 CASE WHEN m.is_lunas = 1 AND COALESCE(tagihan_agg.total_tagihan, 0) > (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)) THEN 1 ELSE 0 END AS perlu_rekonsiliasi,
                 p.nama_proyek
             ')

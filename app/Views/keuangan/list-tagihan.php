@@ -226,6 +226,51 @@
     color: #b91c1c;
   }
 
+  #data_table tbody tr {
+    cursor: pointer;
+  }
+
+  #data_table tbody tr.selected td {
+    background-color: #e8f0fe !important;
+    border-color: #c9ddf5 !important;
+  }
+
+  #detailDrawerModal .modal-dialog .modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  #detailDrawerModal .modal-header {
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #ffffff;
+    border-bottom: 1px solid #ebe9f1;
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 0 !important;
+  }
+
+  #detailDrawerModal .modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto !important;
+    padding: 1.25rem !important;
+    margin: 0 !important;
+  }
+
+  #detailDrawerModal .modal-footer {
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: #ffffff;
+    border-top: 1px solid #ebe9f1;
+    padding: .85rem 1.25rem;
+  }
 </style>
 <!-- /.card-header -->
 <div class="app-content content list-tagihan-page">
@@ -350,6 +395,7 @@
 
   <section>
     <?= view('keuangan/partials/modal_bayar_tagihan') ?>
+    <?= view('keuangan/partials/modal_penagihan') ?>
   
     <!-- Modal Detail Drawer -->
     <div class="modal modal-slide-in fade" id="detailDrawerModal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -388,6 +434,7 @@
 
 <script src="<?= base_url() ?>assets/js/jquery.richtext.min.js"></script>
 <script src="<?= base_url() ?>assets/js/tagihan-bayar-modal.js?v=<?= filemtime(FCPATH.'assets/js/tagihan-bayar-modal.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/keuangan/penagihan.js?v=<?= time() ?>"></script>
 <script>
   let fp = flatpickr(".flatpickr-human-friendly", {
     altInput: true,
@@ -663,12 +710,35 @@
           searchable: false,
           className: "text-center",
           render: function(data, type, row) {
+            let rowJson = JSON.stringify(row).replace(/"/g, '&quot;');
+            let bayarBtn = (data !== '-' ? data : '');
+
+            let detailItem = `
+              <a class="dropdown-item tagihan-action-detail" href="javascript:void(0);" data-row="${rowJson}">
+                <i class="fas fa-info-circle mr-50 text-info"></i> Lihat Detail
+              </a>`;
+
+            let buatTagihanItem = `
+              <a class="dropdown-item tagihan-action-penagihan" href="javascript:void(0);" data-row="${rowJson}">
+                <i class="fas fa-file-invoice mr-50 text-primary"></i> Buat Tagihan
+              </a>`;
+
+            let dropdownHtml = `
+              <div class="dropdown d-inline-block">
+                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle hide-arrow py-25 px-50" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false" title="Menu Lainnya">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                  ${detailItem}
+                  ${buatTagihanItem}
+                </div>
+              </div>
+            `;
+
             return '<div class="d-flex align-items-center justify-content-center" style="gap: .35rem;">' +
-                      (data !== '-' ? data : '') + 
-                      '<button type="button" class="btn btn-outline-info btn-sm tagihan-detail-drawer" data-id="' + row.id_mkdt + '">' +
-                        '<i class="fas fa-info-circle"></i> Detail' +
-                      '</button>' +
-                    '</div>';
+                      bayarBtn +
+                      dropdownHtml +
+                   '</div>';
           }
         }
       ],
@@ -701,16 +771,21 @@
     });
     $(window).on('load', fitTagihanTableHeight);
 
-    // Open Detail Drawer
-    $('#data_table tbody').on('click', '.tagihan-detail-drawer', function() {
-      const tr = $(this).closest('tr');
-      const row = listTagihanTable.row(tr).data();
-      const idMkdt = row.id_mkdt || $(this).data('id');
+    function openDetailDrawer(row, $tr) {
+      if (!row) return;
+      window.currentTagihanRow = row;
+
+      if ($tr && $tr.length) {
+        $('#data_table tbody tr.selected').removeClass('selected');
+        $tr.addClass('selected');
+      }
+
+      const idMkdt = row.id_mkdt;
       
       $('#detailDrawerModal').modal('show');
       $('#detailDrawerBody').html('<div class="text-center text-muted py-2"><i class="fas fa-spinner fa-spin mr-50"></i> Memuat detail...</div>');
       
-      // Tambahkan tombol Bayar
+      // Footer buttons: Buat Tagihan + Bayar
       let sh = {
         data: {
           id_mkdt: row.id_mkdt,
@@ -723,14 +798,25 @@
           tipe_rumah: row.tipe_pricelist
         }
       };
-      
-      // we need to encode object into HTML string properly
-      // using single quotes for the attribute and double quotes for JSON
       let shStr = JSON.stringify(sh).replace(/"/g, '&quot;');
       
-      let bayarBtn = '<button type="button" class="btn btn-primary btn-block text-uppercase" style="font-weight: 800; letter-spacing: 0.5px;" onclick="open_keuangan(' + shStr + ', 3, 0); $(\'#detailDrawerModal\').modal(\'hide\');"><i class="fas fa-receipt mr-50"></i> Bayar Tagihan</button>';
-      
-      $('#detailDrawerFooter').html(bayarBtn);
+      let bayarBtn = (row.Aksi !== '-') ? `
+        <button type="button" class="btn btn-primary flex-fill text-uppercase font-small-3 font-weight-bold btn-drawer-bayar" onclick="open_keuangan(${shStr}, 3, 0); $('#detailDrawerModal').modal('hide');">
+          <i class="fas fa-receipt mr-25"></i> Bayar
+        </button>` : '';
+
+      let buatTagihanBtn = `
+        <button type="button" class="btn btn-outline-primary flex-fill text-uppercase font-small-3 font-weight-bold btn-drawer-buat-tagihan" data-id="${row.id_mkdt}">
+          <i class="fas fa-file-invoice mr-25"></i> Buat Tagihan
+        </button>
+      `;
+
+      $('#detailDrawerFooter').html(`
+        <div class="d-flex w-100" style="gap: .5rem;">
+          ${buatTagihanBtn}
+          ${bayarBtn}
+        </div>
+      `);
 
       // Hitung selisih hari terdekat
       let badgeHtml = '';
@@ -753,8 +839,8 @@
 
       let headerHtml = `
         <div class="mb-2 pb-1 border-bottom">
-          <h6 class="font-weight-bolder mb-25 text-dark">${row.nama_konsumen}</h6>
-          <div class="small text-muted">${row.nama_jalan} &bull; No. ${row.no_kavling} &bull; Type ${row.tipe_pricelist}</div>
+          <h6 class="font-weight-bolder mb-25 text-dark">${keuEscapeHtml(row.nama_konsumen || '-')}</h6>
+          <div class="small text-muted">${keuEscapeHtml(row.nama_jalan || '-')} &bull; No. ${keuEscapeHtml(row.no_kavling || '-')} &bull; Type ${keuEscapeHtml(row.tipe_pricelist || '-')}</div>
         </div>
         
         <div class="mb-2 pb-1 border-bottom">
@@ -802,33 +888,34 @@
               
               let statusBadge = '';
               if (isVoid) {
-                statusBadge = '<span class="badge badge-light-secondary">VOID</span>';
+                statusBadge = '<span class="badge badge-light-secondary" title="' + keuEscapeAttribute(item.void_reason || "") + '">VOID</span>';
               } else if (isPaid) {
                 statusBadge = '<span class="badge badge-light-success">LUNAS</span>';
               } else {
                 statusBadge = '<span class="badge badge-light-warning">BELUM LUNAS</span>';
               }
               
+              let voidReasonHtml = (isVoid && item.void_reason)
+                ? `<div class="small text-danger mt-25">Alasan void: ${keuEscapeHtml(item.void_reason)}</div>`
+                : '';
+
               itemsHtml += `
                 <div class="card border shadow-none mb-1">
                   <div class="card-body p-1">
-                    <div class="d-flex justify-content-between align-items-start mb-50">
-                      <div>
-                        <div class="font-weight-bold text-dark font-small-3">${item.berita_acara || '-'}</div>
-                        <div class="text-muted font-small-2 mt-25"><i class="fas fa-calendar-alt mr-25"></i> ${format_date(item.jatuh_tempo_tgl) || '-'}</div>
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="mr-1">
+                        <div class="font-weight-bold text-dark font-small-3 mb-25">${keuEscapeHtml(item.berita_acara || '-')}</div>
+                        <div class="text-muted font-small-2"><i class="fas fa-calendar-alt mr-25"></i> ${format_date(item.jatuh_tempo_tgl) || '-'}</div>
+                        ${voidReasonHtml}
                       </div>
-                      ${statusBadge}
+                      <div>
+                        ${statusBadge}
+                      </div>
                     </div>
                     
-                    <div class="row mt-75 font-small-3">
-                      <div class="col-6">
-                        <div class="text-muted font-small-2">Status</div>
-                        <div class="font-weight-bold mt-25">${item.status || '-'}</div>
-                      </div>
-                      <div class="col-6 text-right">
-                        <div class="text-muted font-small-2">Nominal</div>
-                        <div class="font-weight-bold mt-25">Rp ${num_format(item.nominal)}</div>
-                      </div>
+                    <div class="d-flex justify-content-between align-items-center mt-75 pt-50 border-top">
+                      <span class="text-muted font-small-2">Nominal</span>
+                      <span class="font-weight-bolder text-dark font-small-3">Rp ${num_format(item.nominal)}</span>
                     </div>
                   </div>
                 </div>
@@ -842,6 +929,50 @@
         },
         error: function() {
           $('#detailDrawerBody').html('<div class="alert alert-danger p-1 font-small-3">Gagal memuat detail tagihan. Terjadi kesalahan jaringan.</div>');
+        }
+      });
+    }
+
+    // Row click to select and open detail drawer
+    $('#data_table tbody').on('click', 'tr', function(e) {
+      if ($(e.target).closest('.dropdown, .dropdown-menu, button, a, input, select, .custom-control').length) {
+        return;
+      }
+      const row = listTagihanTable.row(this).data();
+      if (!row) return;
+
+      openDetailDrawer(row, $(this));
+    });
+
+    // Action Dropdown: Lihat Detail
+    $('#data_table tbody').on('click', '.tagihan-action-detail', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const $tr = $(this).closest('tr');
+      const row = $(this).data('row') || listTagihanTable.row($tr).data();
+      if (!row) return;
+      openDetailDrawer(row, $tr);
+    });
+
+    // Action Dropdown: Buat Tagihan
+    $('#data_table tbody').on('click', '.tagihan-action-penagihan', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const $tr = $(this).closest('tr');
+      const row = $(this).data('row') || listTagihanTable.row($tr).data();
+      if (!row) return;
+      if (typeof window.openModalPenagihan === 'function') {
+        window.openModalPenagihan(row, 'tab_buat_tagihan');
+      }
+    });
+
+    // Drawer Footer: Buat Tagihan
+    $('#detailDrawerFooter').on('click', '.btn-drawer-buat-tagihan', function() {
+      const row = window.currentTagihanRow;
+      $('#detailDrawerModal').modal('hide');
+      $('#detailDrawerModal').one('hidden.bs.modal', function() {
+        if (row && typeof window.openModalPenagihan === 'function') {
+          window.openModalPenagihan(row, 'tab_buat_tagihan');
         }
       });
     });

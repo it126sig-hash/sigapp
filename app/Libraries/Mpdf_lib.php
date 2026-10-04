@@ -87,7 +87,7 @@ class Mpdf_lib
                 }
             }
         } else {
-            $mpdf->WriteHTML($html);
+            $this->writeHtmlChunked($mpdf, $html);
         }
 
         if ($beforeOutput !== null) {
@@ -95,5 +95,49 @@ class Mpdf_lib
         }
 
         return $mpdf;
+    }
+
+    /**
+     * Pisahkan CSS dan body HTML lalu kirim via WriteHTML() terpisah
+     * agar masing-masing chunk berada di bawah pcre.backtrack_limit.
+     */
+    private function writeHtmlChunked(Mpdf $mpdf, string $html): void
+    {
+        // 1. Ekstrak semua blok <style>...</style>
+        $css = '';
+        $html = (string) preg_replace_callback(
+            '/<style[^>]*>(.*?)<\/style>/si',
+            function (array $m) use (&$css): string {
+                $css .= $m[1];
+                return '';
+            },
+            $html
+        );
+
+        // 2. Kirim CSS terpisah (mode HEADER_CSS = 2)
+        if ($css !== '') {
+            $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
+        }
+
+        // 3. Kirim body — jika masih besar, pecah di batas tag
+        $chunkSize = 500_000; // 500 KB per chunk
+        if (strlen($html) <= $chunkSize) {
+            $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
+        } else {
+            $offset = 0;
+            $len    = strlen($html);
+            while ($offset < $len) {
+                $chunk = substr($html, $offset, $chunkSize);
+                // Mundur ke batas penutup tag agar tidak memotong di tengah tag
+                if ($offset + $chunkSize < $len) {
+                    $lastClose = strrpos($chunk, '>');
+                    if ($lastClose !== false) {
+                        $chunk = substr($chunk, 0, $lastClose + 1);
+                    }
+                }
+                $mpdf->WriteHTML($chunk, \Mpdf\HTMLParserMode::HTML_BODY);
+                $offset += strlen($chunk);
+            }
+        }
     }
 }

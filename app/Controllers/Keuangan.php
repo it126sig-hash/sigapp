@@ -650,12 +650,7 @@ class Keuangan extends BaseController
             $this->keuanganService->simpanIsiTagihan($this->request, user_id())
         );
     }
-    function save_inv()
-    {
-        return $this->response->setJSON(
-            $this->keuanganService->simpanInvoice($this->request, user_id())
-        );
-    }
+    
     function save_sb()
     {
         return $this->response->setJSON(
@@ -1239,6 +1234,7 @@ class Keuangan extends BaseController
                 ->join('users', 'users.id = invoice_log.add_by')
                 ->where('id_mkdt', $this->request->getVar('id_mkdt'))
                 ->get()->getResult();
+            $r['kop_surat'] = $this->db->table('kopsurat')->orderBy('nama', 'ASC')->get()->getResult();
         }
 
 
@@ -1536,5 +1532,357 @@ class Keuangan extends BaseController
         if ($id == "1")
             $r = '<span class="badge badge-pill badge-light-success" text-capitalized="">' . $texts . '</span>';
         return $r;
+    }
+
+    // ---- Fitur Penagihan Baru ----
+    
+    public function get_riwayat_tagihan()
+    {
+        return $this->response->setJSON(
+            $this->keuanganService->getRiwayatTagihan($this->request)
+        );
+    }
+    
+    public function simpan_penagihan()
+    {
+        return $this->response->setJSON(
+            $this->keuanganService->simpanPenagihan($this->request, user_id())
+        );
+    }
+    
+    public function update_status_penagihan()
+    {
+        return $this->response->setJSON(
+            $this->keuanganService->updateStatusPenagihan($this->request, user_id())
+        );
+    }
+    
+    public function download_penagihan()
+    {
+        @ini_set('pcre.backtrack_limit', 5_000_000);
+
+        $id = $this->request->getVar('id');
+        if (!$id) return false;
+        
+        // Update tanggal_kirim jika belum diset
+        $this->keuanganService->setTanggalKirim($id);
+        
+        $inv = $this->db->table("invoice_log")
+            ->where('no_inv', $id)
+            ->get()->getRow();
+        if (!$inv) return false;
+
+        // Konversi ttd_img: jika logical path (file PNG), load ke data URI
+        if (!empty($inv->ttd_img) && strpos($inv->ttd_img, 'data:image') !== 0) {
+            // Bisa berupa logical path (profile/canvas disimpan sebagai file)
+            $fileAccess = new \App\Services\FileAccessService();
+            $absolutePath = $fileAccess->existingPath($inv->ttd_img);
+            if ($absolutePath && file_exists($absolutePath)) {
+                $ext  = strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION));
+                $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
+                $inv->ttd_img = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($absolutePath));
+            } else {
+                // Fallback: coba sebagai path publik (legacy)
+                $publicPath = FCPATH . ltrim($inv->ttd_img, '/');
+                if (file_exists($publicPath)) {
+                    $ext  = strtolower(pathinfo($publicPath, PATHINFO_EXTENSION));
+                    $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
+                    $inv->ttd_img = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($publicPath));
+                }
+            }
+        }
+
+        $data['inv'] = $inv;
+
+        // Auto-fix id_kavling / id_konsumen if missing or 0
+        $idKavling = (int) $inv->id_kavling;
+        $idKonsumen = (int) $inv->id_konsumen;
+        if ($idKavling <= 0 || $idKonsumen <= 0) {
+            $mkdt = $this->db->table('mkdt')->where('id_mkdt', $inv->id_mkdt)->get()->getRow();
+            if ($mkdt) {
+                if ($idKavling <= 0 && !empty($mkdt->id_kavling)) {
+                    $idKavling = (int) $mkdt->id_kavling;
+                    $this->db->table('invoice_log')->where('no_inv', $id)->update(['id_kavling' => $idKavling]);
+                }
+                if ($idKonsumen <= 0 && !empty($mkdt->id_konsumen)) {
+                    $idKonsumen = (int) $mkdt->id_konsumen;
+                    $this->db->table('invoice_log')->where('no_inv', $id)->update(['id_konsumen' => $idKonsumen]);
+                }
+            }
+        }
+
+        // Konsumen
+        $data['konsumen'] = $this->db->table('konsumen')
+            ->select('konsumen.nama_konsumen, konsumen.alamat_konsumen, konsumen.hp_konsumen')
+            ->where('id_konsumen', $idKonsumen)
+            ->get()->getRow();
+        if (!$data['konsumen']) {
+            $data['konsumen'] = (object)[
+                'nama_konsumen'   => '-',
+                'alamat_konsumen' => '-',
+                'hp_konsumen'     => '-'
+            ];
+        }
+
+        // Kavling
+        $data['kavling'] = $this->db->table('kavling')
+            ->select('proyek.nama_proyek, jalan.nama_jalan, kavling.no_kavling')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster', 'left')
+            ->join('proyek', 'cluster.id_proyek = proyek.id_proyek', 'left')
+            ->where('kavling.id_kavling', $idKavling)
+            ->get()->getRow();
+        if (!$data['kavling']) {
+            $data['kavling'] = (object)[
+                'nama_proyek' => '-',
+                'nama_jalan'  => '-',
+                'no_kavling'  => '-'
+            ];
+        }
+
+        $kop = $this->db->table('kopsurat')
+            ->where('id', $inv->id_kopsurat)
+            ->get()->getRow();
+
+        $data['nama'] = $this->db->table('karyawan b')
+            ->select('nama_karyawan')
+            ->where('b.id_user', $inv->add_by)
+            ->get()->getRow();
+
+        $koplok = $kop ? $kop->lokasi : '';
+        $data['kop'] = $koplok;
+        $data['kop2'] = $kop;
+
+        $html = view('pdf/penagihan', $data);
+        $filename = 'Tagihan_' . str_replace('/', '_', $id) . '.pdf';
+
+        $localKop = $this->fileAccessService->existingPath($kop->lokasi);
+        if ($localKop && file_exists($localKop)) {
+            $ext = strtolower(pathinfo($localKop, PATHINFO_EXTENSION));
+            $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
+            $bgUrl = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($localKop));
+        } else {
+            $bgUrl = base_url($koplok);
+        }
+
+        $header = '
+        <div style="
+            background-image: url(' . $bgUrl . '); 
+            background-size: cover; 
+            width: ' . $kop->w . '; 
+            height: ' . $kop->h . '; 
+            position: fixed; 
+            top: ' . $kop->mt . '; 
+            bottom: ' . $kop->mb . '; 
+            left: ' . $kop->ml . ';
+            z-index:0;
+            ">
+        </div>';
+
+        $mg = [$kop->pml, $kop->pmr, $kop->pmt, $kop->pmb];
+        $paperFormat = ($kop->ukuran === 'F4' || $kop->ukuran === 'Folio') ? 'F4' : 'A4';
+
+        $this->mpdf->generate($html, $filename, $header, $mg, $paperFormat);
+        exit;
+    }
+
+    // ---- CRUD Kop Surat ----
+
+    public function get_kopsurat_list()
+    {
+        $list = $this->db->table('kopsurat')->orderBy('nama', 'ASC')->get()->getResultArray();
+        foreach ($list as &$item) {
+            $item['preview_url'] = $this->fileAccessService->accessUrl('kop_surat', (int)$item['id']);
+        }
+        return $this->response->setJSON([
+            'token'   => csrf_hash(),
+            'success' => true,
+            'data'    => $list,
+        ]);
+    }
+
+    public function get_kopsurat_detail()
+    {
+        $id = $this->request->getVar('id');
+        $kop = $this->db->table('kopsurat')->where('id', $id)->get()->getRowArray();
+        if ($kop) {
+            $kop['preview_url'] = $this->fileAccessService->accessUrl('kop_surat', (int)$kop['id']);
+        }
+        return $this->response->setJSON([
+            'token'   => csrf_hash(),
+            'success' => $kop ? true : false,
+            'data'    => $kop,
+        ]);
+    }
+
+    public function simpan_kopsurat()
+    {
+        // Permission untuk membuat/mengubah kop surat untuk semua departemen (role id 1 s/d 10)
+        $allDepartments = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        if (function_exists('logged_in') && !logged_in()) {
+            return $this->response->setJSON([
+                'token'   => csrf_hash(),
+                'success' => false,
+                'message' => 'Silakan login terlebih dahulu.'
+            ]);
+        }
+        if (function_exists('in_groups') && !in_groups($allDepartments)) {
+            return $this->response->setJSON([
+                'token'   => csrf_hash(),
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak akses.'
+            ]);
+        }
+
+        $id = $this->request->getPost('id');
+        $nama = trim((string)$this->request->getPost('nama'));
+        $ukuran = strtoupper(trim((string)$this->request->getPost('ukuran')));
+        if ($ukuran !== 'F4') {
+            $ukuran = 'A4';
+        }
+
+        if (empty($nama)) {
+            return $this->response->setJSON([
+                'token'   => csrf_hash(),
+                'success' => false,
+                'message' => 'Nama kop surat wajib diisi.'
+            ]);
+        }
+
+        // Ukuran otomatis terisi pada database untuk ukuran kop surat
+        if ($ukuran === 'F4') {
+            $w = '21.5cm';
+            $h = '33cm';
+        } else {
+            $w = '21cm';
+            $h = '29.7cm';
+        }
+
+        // Margins dengan default otomatis
+        $mt  = $this->request->getPost('mt') !== null && $this->request->getPost('mt') !== '' ? (float)$this->request->getPost('mt') : 0;
+        $mb  = $this->request->getPost('mb') !== null && $this->request->getPost('mb') !== '' ? (float)$this->request->getPost('mb') : 0;
+        $ml  = $this->request->getPost('ml') !== null && $this->request->getPost('ml') !== '' ? (float)$this->request->getPost('ml') : 0;
+        $mr  = $this->request->getPost('mr') !== null && $this->request->getPost('mr') !== '' ? (float)$this->request->getPost('mr') : 0;
+        $pmt = $this->request->getPost('pmt') !== null && $this->request->getPost('pmt') !== '' ? (float)$this->request->getPost('pmt') : 30;
+        $pmb = $this->request->getPost('pmb') !== null && $this->request->getPost('pmb') !== '' ? (float)$this->request->getPost('pmb') : 25;
+        $pml = $this->request->getPost('pml') !== null && $this->request->getPost('pml') !== '' ? (float)$this->request->getPost('pml') : 15;
+        $pmr = $this->request->getPost('pmr') !== null && $this->request->getPost('pmr') !== '' ? (float)$this->request->getPost('pmr') : 15;
+
+        $saveData = [
+            'nama'   => $nama,
+            'ukuran' => $ukuran,
+            'w'      => $w,
+            'h'      => $h,
+            'mt'     => $mt,
+            'mb'     => $mb,
+            'ml'     => $ml,
+            'mr'     => $mr,
+            'pmt'    => $pmt,
+            'pmb'    => $pmb,
+            'pml'    => $pml,
+            'pmr'    => $pmr,
+        ];
+
+        // Handle upload file background kop surat menggunakan FileAccessService
+        $file = $this->request->getFile('file_kop');
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+            $allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            if (!in_array($file->getMimeType(), $allowedTypes)) {
+                return $this->response->setJSON([
+                    'token'   => csrf_hash(),
+                    'success' => false,
+                    'message' => 'Format file background harus JPG atau PNG.'
+                ]);
+            }
+
+            // Gunakan FileAccessService::store() untuk penyimpanan privat dan terstruktur
+            $saveData['lokasi'] = $this->fileAccessService->store($file, 'uploads/kop');
+
+            // Hapus file lama jika ada saat update
+            if (!empty($id)) {
+                $oldKop = $this->db->table('kopsurat')->where('id', $id)->get()->getRow();
+                if ($oldKop && !empty($oldKop->lokasi)) {
+                    $oldPath = $this->fileAccessService->existingPath($oldKop->lokasi);
+                    if ($oldPath && is_file($oldPath)) {
+                        @unlink($oldPath);
+                    }
+                }
+            }
+        } elseif (empty($id)) {
+            return $this->response->setJSON([
+                'token'   => csrf_hash(),
+                'success' => false,
+                'message' => 'Background kop surat wajib diunggah.'
+            ]);
+        }
+
+        if (!empty($id)) {
+            $this->db->table('kopsurat')->where('id', $id)->update($saveData);
+            $msg = 'Kop surat berhasil diperbarui.';
+        } else {
+            $this->db->table('kopsurat')->insert($saveData);
+            $msg = 'Kop surat berhasil ditambahkan.';
+        }
+
+        return $this->response->setJSON([
+            'token'   => csrf_hash(),
+            'success' => true,
+            'message' => $msg
+        ]);
+    }
+
+    public function hapus_kopsurat()
+    {
+        // Permission untuk menghapus kop surat untuk semua departemen
+        $allDepartments = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        if (function_exists('logged_in') && !logged_in()) {
+            return $this->response->setJSON([
+                'token'   => csrf_hash(),
+                'success' => false,
+                'message' => 'Silakan login terlebih dahulu.'
+            ]);
+        }
+        if (function_exists('in_groups') && !in_groups($allDepartments)) {
+            return $this->response->setJSON([
+                'token'   => csrf_hash(),
+                'success' => false,
+                'message' => 'Anda tidak memiliki hak akses.'
+            ]);
+        }
+
+        $id = $this->request->getPost('id');
+        if (empty($id)) {
+            return $this->response->setJSON([
+                'token'   => csrf_hash(),
+                'success' => false,
+                'message' => 'ID kop surat tidak valid.'
+            ]);
+        }
+
+        $usedCount = $this->db->table('invoice_log')->where('id_kopsurat', $id)->countAllResults();
+        if ($usedCount > 0) {
+            return $this->response->setJSON([
+                'token'   => csrf_hash(),
+                'success' => false,
+                'message' => "Kop surat tidak dapat dihapus karena telah digunakan pada {$usedCount} data tagihan."
+            ]);
+        }
+
+        $kop = $this->db->table('kopsurat')->where('id', $id)->get()->getRow();
+        if ($kop) {
+            if (!empty($kop->lokasi)) {
+                $filePath = $this->fileAccessService->existingPath($kop->lokasi);
+                if ($filePath && is_file($filePath)) {
+                    @unlink($filePath);
+                }
+            }
+            $this->db->table('kopsurat')->where('id', $id)->delete();
+        }
+
+        return $this->response->setJSON([
+            'token'   => csrf_hash(),
+            'success' => true,
+            'message' => 'Kop surat berhasil dihapus.'
+        ]);
     }
 }
