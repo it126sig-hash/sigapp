@@ -1,8 +1,28 @@
 <!-- ################################## Modal Penagihan ##########################################-->
 <style>
+  #modal_penagihan .modal-content {
+      border: 0;
+      border-radius: 12px !important;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+      overflow: hidden !important;
+  }
+  #modal_penagihan .modal-header {
+      border-top-left-radius: 12px !important;
+      border-top-right-radius: 12px !important;
+  }
+  #modal_penagihan .modal-footer {
+      border-bottom-left-radius: 12px !important;
+      border-bottom-right-radius: 12px !important;
+  }
+  #modal_ubah_status_tagihan .modal-content,
+  #modal_kelola_kopsurat .modal-content {
+      border: 0;
+      border-radius: 12px !important;
+      overflow: hidden !important;
+  }
   .signature-canvas-wrap {
       border: 1px solid #ced4da;
-      border-radius: .25rem;
+      border-radius: 8px;
       background-color: #f8f9fa;
       position: relative;
       width: 100%;

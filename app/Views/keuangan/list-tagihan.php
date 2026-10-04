@@ -242,6 +242,8 @@
     overflow: hidden !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
+    border-top-left-radius: 14px !important;
+    border-bottom-left-radius: 14px !important;
   }
 
   #detailDrawerModal .modal-header {
@@ -253,6 +255,7 @@
     border-bottom: 1px solid #ebe9f1;
     padding: 1.1rem 1.25rem;
     margin-bottom: 0 !important;
+    border-top-left-radius: 14px !important;
   }
 
   #detailDrawerModal .modal-body {
@@ -270,6 +273,27 @@
     background: #ffffff;
     border-top: 1px solid #ebe9f1;
     padding: .85rem 1.25rem;
+    border-bottom-left-radius: 14px !important;
+  }
+
+  #detailDrawerFooter .btn {
+    border-radius: 8px !important;
+  }
+
+  .tagihan-action-dropdown .dropdown-toggle {
+    border-radius: 50% !important;
+    width: 28px;
+    height: 28px;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tagihan-action-dropdown .dropdown-menu {
+    border-radius: 8px !important;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, .12);
   }
 </style>
 <!-- /.card-header -->
@@ -724,8 +748,8 @@
               </a>`;
 
             let dropdownHtml = `
-              <div class="dropdown d-inline-block">
-                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle hide-arrow py-25 px-50" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false" title="Menu Lainnya">
+              <div class="dropdown d-inline-block tagihan-action-dropdown">
+                <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle hide-arrow rounded-circle" data-toggle="dropdown" data-boundary="viewport" aria-haspopup="true" aria-expanded="false" title="Menu Lainnya">
                   <i class="fas fa-ellipsis-v"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right">
