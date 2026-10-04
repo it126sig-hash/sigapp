@@ -714,12 +714,12 @@
             let bayarBtn = (data !== '-' ? data : '');
 
             let detailItem = `
-              <a class="dropdown-item tagihan-action-detail" href="javascript:void(0);" data-row="${rowJson}">
+              <a class="dropdown-item tagihan-action-detail" href="javascript:void(0);">
                 <i class="fas fa-info-circle mr-50 text-info"></i> Lihat Detail
               </a>`;
 
             let buatTagihanItem = `
-              <a class="dropdown-item tagihan-action-penagihan" href="javascript:void(0);" data-row="${rowJson}">
+              <a class="dropdown-item tagihan-action-penagihan" href="javascript:void(0);">
                 <i class="fas fa-file-invoice mr-50 text-primary"></i> Buat Tagihan
               </a>`;
 
@@ -949,7 +949,7 @@
       e.preventDefault();
       e.stopPropagation();
       const $tr = $(this).closest('tr');
-      const row = $(this).data('row') || listTagihanTable.row($tr).data();
+      const row = listTagihanTable.row($tr).data();
       if (!row) return;
       openDetailDrawer(row, $tr);
     });
@@ -959,7 +959,7 @@
       e.preventDefault();
       e.stopPropagation();
       const $tr = $(this).closest('tr');
-      const row = $(this).data('row') || listTagihanTable.row($tr).data();
+      const row = listTagihanTable.row($tr).data();
       if (!row) return;
       if (typeof window.openModalPenagihan === 'function') {
         window.openModalPenagihan(row, 'tab_buat_tagihan');
