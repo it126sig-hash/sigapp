@@ -1733,8 +1733,8 @@ class Keuangan extends BaseController
 
     public function simpan_kopsurat()
     {
-        // Permission untuk membuat/mengubah kop surat untuk semua departemen (role id 1 s/d 10)
-        $allDepartments = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        // Permission untuk membuat/mengubah kop surat untuk semua departemen
+        $allDepartments = ['Admin', 'Umum', 'Keuangan', 'MKDT', 'Legal', 'Planning', 'Produksi', 'Sales', 'Direksi', 'Pajak'];
         if (function_exists('logged_in') && !logged_in()) {
             return $this->response->setJSON([
                 'token'   => csrf_hash(),
@@ -1850,7 +1850,7 @@ class Keuangan extends BaseController
     public function hapus_kopsurat()
     {
         // Permission untuk menghapus kop surat untuk semua departemen
-        $allDepartments = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        $allDepartments = ['Admin', 'Umum', 'Keuangan', 'MKDT', 'Legal', 'Planning', 'Produksi', 'Sales', 'Direksi', 'Pajak'];
         if (function_exists('logged_in') && !logged_in()) {
             return $this->response->setJSON([
                 'token'   => csrf_hash(),

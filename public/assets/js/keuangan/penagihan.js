@@ -10,14 +10,18 @@ $(document).ready(function() {
     }
 
     // Toggle footer buttons based on active tab
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-        if ($(e.target).attr('href') === '#tab_buat_tagihan') {
-            $('#footer-action-riwayat-tagihan').addClass('d-none');
-            $('#footer-action-buat-tagihan').removeClass('d-none');
+    function syncModalFooter(targetHref) {
+        if (targetHref === '#tab_buat_tagihan') {
+            $('#footer-penagihan').removeClass('d-none').show();
+            $('#footer-action-buat-tagihan').removeClass('d-none').show();
         } else {
-            $('#footer-action-buat-tagihan').addClass('d-none');
-            $('#footer-action-riwayat-tagihan').removeClass('d-none');
+            $('#footer-penagihan').addClass('d-none').hide();
+            $('#footer-action-buat-tagihan').addClass('d-none').hide();
         }
+    }
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        syncModalFooter($(e.target).attr('href'));
     });
 
     window.openModalPenagihan = function(rowData, targetTab = 'tab_riwayat_tagihan') {
@@ -74,6 +78,7 @@ $(document).ready(function() {
 
         let activeTab = targetTab || 'tab_riwayat_tagihan';
         $(`#${activeTab}-tab`).tab('show');
+        syncModalFooter('#' + activeTab);
 
         $('#modal_penagihan').modal('show');
     };
@@ -118,16 +123,24 @@ $(document).ready(function() {
         
         let statusBadge = '';
         let st = (v.status_tagihan || '').toLowerCase();
-        if (st === 'dibuat') statusBadge = '<span class="badge badge-secondary font-weight-bold">DIBUAT</span>';
+        if (st === 'draft') statusBadge = '<span class="badge badge-secondary font-weight-bold">DRAFT</span>';
+        else if (st === 'publish') statusBadge = '<span class="badge badge-primary font-weight-bold">PUBLISH</span>';
+        else if (st === 'dibuat') statusBadge = '<span class="badge badge-secondary font-weight-bold">DIBUAT</span>';
         else if (st === 'dikirim') statusBadge = '<span class="badge badge-info font-weight-bold">DIKIRIM</span>';
         else if (st === 'respon') statusBadge = '<span class="badge badge-success font-weight-bold">RESPON</span>';
         else if (st === 'tidak respon') statusBadge = '<span class="badge badge-danger font-weight-bold">TIDAK RESPON</span>';
+        else if (st === 'batal') statusBadge = '<span class="badge badge-dark font-weight-bold">BATAL</span>';
         else statusBadge = `<span class="badge badge-light-primary font-weight-bold text-uppercase">${v.status_tagihan}</span>`;
         $('#dtl_status_badge').html(statusBadge);
         
-        let actionsHtml = `
+        let actionsHtml = '';
+        if (st === 'draft') {
+            actionsHtml += `<button type="button" class="btn btn-sm btn-outline-warning mr-50 btn-edit-tagihan" data-inv='${JSON.stringify(v).replace(/'/g, "&#39;")}'>Edit Surat</button>`;
+        }
+        
+        actionsHtml += `
             <a href="${base_url}keuangan/download_penagihan?id=${encodeURIComponent(v.no_inv)}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-download mr-50"></i> Download</a>
-            <button type="button" class="btn btn-sm btn-outline-info btn-ubah-status-tagihan" data-no="${v.no_inv}" data-status="${v.status_tagihan}" data-tgl="${v.tanggal_ubah_status || ''}" data-ket="${v.keterangan_status || ''}">Ubah Status</button>
+            <button type="button" class="btn btn-sm btn-outline-info ml-50 btn-ubah-status-tagihan" data-no="${v.no_inv}" data-status="${v.status_tagihan}" data-tgl="${v.tanggal_ubah_status || ''}" data-ket="${v.keterangan_status || ''}" data-nomorsurat="${v.nomor_surat || ''}">Ubah Status</button>
         `;
         $('#dtl_actions').html(actionsHtml);
         
@@ -232,10 +245,13 @@ $(document).ready(function() {
                         $.each(r.data, function(i, v) {
                             let statusBadge = '';
                             let stLower = (v.status_tagihan || '').toLowerCase();
-                            if (stLower === 'dibuat') statusBadge = '<span class="badge badge-light-secondary font-weight-bold">DIBUAT</span>';
+                            if (stLower === 'draft') statusBadge = '<span class="badge badge-light-secondary font-weight-bold">DRAFT</span>';
+                            else if (stLower === 'publish') statusBadge = '<span class="badge badge-light-primary font-weight-bold">PUBLISH</span>';
+                            else if (stLower === 'dibuat') statusBadge = '<span class="badge badge-light-secondary font-weight-bold">DIBUAT</span>';
                             else if (stLower === 'dikirim') statusBadge = '<span class="badge badge-light-info font-weight-bold">DIKIRIM</span>';
                             else if (stLower === 'respon') statusBadge = '<span class="badge badge-light-success font-weight-bold">RESPON</span>';
                             else if (stLower === 'tidak respon') statusBadge = '<span class="badge badge-light-danger font-weight-bold">TIDAK RESPON</span>';
+                            else if (stLower === 'batal') statusBadge = '<span class="badge badge-light-dark font-weight-bold">BATAL</span>';
                             else statusBadge = `<span class="badge badge-light-primary font-weight-bold text-uppercase">${v.status_tagihan}</span>`;
                             
                             let rowDataJson = JSON.stringify(v).replace(/"/g, '&quot;');
@@ -313,57 +329,77 @@ $(document).ready(function() {
               
               // Load Items
               let itemsHtml = '';
-              let total = 0;
+              let totalTagihan = 0;
+              let totalSudahBayar = 0;
+              let closestDate = null;
+              
               $.each(r.list_tagihan, function(i, a) {
-                  let nominal = parseInt(a.nominal);
-                  total += nominal;
+                  let nominal = parseInt(a.nominal) || 0;
+                  let isPaid = parseInt(a.sudah_dibayar || 0) === 1;
+                  let isVoid = parseInt(a.is_void || 0) === 1;
+                  
+                  if (!isVoid) {
+                      totalTagihan += nominal;
+                      if (isPaid) {
+                          totalSudahBayar += nominal;
+                      } else {
+                          // Find closest unpaid due date
+                          if (a.jatuh_tempo_tgl) {
+                              let jtDate = new Date(a.jatuh_tempo_tgl);
+                              if (!closestDate || jtDate < closestDate) {
+                                  closestDate = jtDate;
+                              }
+                          }
+                      }
+                  }
+                  
+                  let badge = isVoid 
+                      ? `<span class="badge badge-secondary">VOID</span>`
+                      : (isPaid ? '<span class="badge badge-success">LUNAS</span>' : '<span class="badge badge-warning">BELUM LUNAS</span>');
                   
                   itemsHtml += `
-                    <tr>
-                        <td class="text-center">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input tagihan-item-check" id="checkTagihan_${i}" data-ba="${a.berita_acara}" data-jt="${a.jatuh_tempo_tgl}" data-nom="${a.nominal}" checked>
-                                <label class="custom-control-label" for="checkTagihan_${i}"></label>
-                            </div>
-                        </td>
+                    <tr${isVoid ? ' class="text-muted"' : ""}>
                         <td class="text-center">${i + 1}</td>
                         <td>${a.berita_acara}</td>
-                        <td>${format_date(a.jatuh_tempo_tgl)}</td>
-                        <td class="text-right">Rp <span class="tagihan-item-nominal-text">${num_format(nominal)}</span></td>
+                        <td class="text-center">${format_date(a.jatuh_tempo_tgl)}</td>
+                        <td class="text-center">${badge}</td>
+                        <td class="text-right">Rp ${num_format(nominal)}</td>
                     </tr>
                   `;
               });
-              itemsHtml += `
-                <tr class="bg-light font-weight-bold">
-                    <td colspan="4" class="text-right">Total Tagihan</td>
-                    <td class="text-right" id="tagihan-total-nominal">Rp ${num_format(total)}</td>
-                </tr>
-              `;
+              
+              let sisaTagihan = totalTagihan - totalSudahBayar;
+              if (sisaTagihan < 0) sisaTagihan = 0;
+              
               $('#tb-tagihan-items-here').html(itemsHtml);
+              $('#tagihan-total-nominal').text('Rp ' + num_format(totalTagihan));
+              $('#tagihan-total-bayar').text('Rp ' + num_format(totalSudahBayar));
+              $('#tagihan-total-sisa').text('Rp ' + num_format(sisaTagihan));
 
-              // Check all behavior
-              $('#checkAllTagihan').prop('checked', true);
-              $('#checkAllTagihan').off('change').on('change', function() {
-                  $('.tagihan-item-check').prop('checked', $(this).is(':checked'));
-                  updateTotalTagihan();
+              // Set default Nominal Ditagihkan and Tanggal Jatuh Tempo
+              let formatSisa = num_format(sisaTagihan);
+              $('#tagihan_nominal_ditagihkan').val(formatSisa);
+              
+              // Formatting input for nominal
+              $('#tagihan_nominal_ditagihkan').off('input').on('input', function() {
+                  let val = $(this).val().replace(/[^0-9]/g, '');
+                  if (val === '') val = '0';
+                  $(this).val(num_format(parseInt(val, 10)));
               });
 
-              $('.tagihan-item-check').off('change').on('change', function() {
-                  if ($('.tagihan-item-check:not(:checked)').length > 0) {
-                      $('#checkAllTagihan').prop('checked', false);
-                  } else {
-                      $('#checkAllTagihan').prop('checked', true);
-                  }
-                  updateTotalTagihan();
-              });
-
-              function updateTotalTagihan() {
-                  let tempTotal = 0;
-                  $('.tagihan-item-check:checked').each(function() {
-                      tempTotal += parseInt($(this).data('nom'));
-                  });
-                  $('#tagihan-total-nominal').text('Rp ' + num_format(tempTotal));
+              if (closestDate) {
+                  let yy = closestDate.getFullYear();
+                  let mm = String(closestDate.getMonth() + 1).padStart(2, '0');
+                  let dd = String(closestDate.getDate()).padStart(2, '0');
+                  $('#tagihan_jatuh_tempo').val(`${yy}-${mm}-${dd}`);
+              } else {
+                  // Default to today if no unpaid items found
+                  let todayStr = new Date().toISOString().split('T')[0];
+                  $('#tagihan_jatuh_tempo').val(todayStr);
               }
+              
+              // Default tanggal surat is today
+              $('#tagihan_tanggal').val(new Date().toISOString().split('T')[0]);
             }
         });
     }
@@ -377,23 +413,27 @@ $(document).ready(function() {
         
         let formData = $(this).serializeArray();
         
-        // build json tagihan only from checked items
+        // build json tagihan (single item for the summary invoice)
+        let nominalRaw = $('#tagihan_nominal_ditagihkan').val().replace(/[^0-9]/g, '');
+        let nominalVal = parseInt(nominalRaw, 10) || 0;
+
         let tagihanArray = [];
-        $('.tagihan-item-check:checked').each(function() {
+        if (nominalVal > 0) {
             tagihanArray.push({
-                berita_acara: $(this).data('ba'),
-                jatuh_tempo_tgl: $(this).data('jt'),
-                nominal: $(this).data('nom')
+                berita_acara: "Pembayaran Tagihan",
+                jatuh_tempo_tgl: $('#tagihan_jatuh_tempo').val(),
+                nominal: nominalVal
             });
-        });
+        }
         
-        // 1. Validasi Item Tagihan
-        if (tagihanArray.length === 0) {
+        // 1. Validasi Nominal Tagihan
+        if (tagihanArray.length === 0 || nominalVal <= 0) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Item Tagihan Kosong',
-                text: 'Silakan pilih (ceklis) minimal 1 item tagihan.'
+                title: 'Nominal Kosong',
+                text: 'Silakan isi nominal yang akan ditagihkan (lebih dari 0).'
             });
+            $('#tagihan_nominal_ditagihkan').focus();
             return;
         }
 
@@ -423,6 +463,8 @@ $(document).ready(function() {
         
         let submitData = {
             [csrfName]: csrfHash,
+            no_inv: $('#tagihan_no_inv').val() || '',
+            status_tagihan: $('#form_submit_status').val(),
             id_mkdt: $('#tagihan_id_mkdt').val(),
             id_kavling: $('#tagihan_id_kavling').val(),
             id_konsumen: $('#tagihan_id_konsumen').val(),
@@ -434,7 +476,10 @@ $(document).ready(function() {
             tagihan: JSON.stringify(tagihanArray)
         };
         
-        $('#btn-simpan-tagihan').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Memproses...');
+        let draftBtn = $('#btn-simpan-draft');
+        let publishBtn = $('#btn-simpan-publish');
+        draftBtn.prop('disabled', true);
+        publishBtn.prop('disabled', true);
         
         $.ajax({
             url: base_url + "keuangan/simpan_penagihan",
@@ -442,11 +487,13 @@ $(document).ready(function() {
             dataType: "json",
             data: submitData,
             success: function(r) {
-                $('#btn-simpan-tagihan').prop('disabled', false).html('Buat Invoice Tagihan');
+                draftBtn.prop('disabled', false);
+                publishBtn.prop('disabled', false);
                 if (r.token) csrfHash = r.token;
                 if (r.success) {
                     Swal.fire('Berhasil', r.messages, 'success');
                     $('#form-buat-tagihan')[0].reset();
+                    $('#tagihan_no_inv').val('');
         
                     // Setup Date
                     let today = new Date();
@@ -467,21 +514,76 @@ $(document).ready(function() {
                 }
             },
             error: function() {
-                $('#btn-simpan-tagihan').prop('disabled', false).html('Buat Invoice Tagihan');
+                draftBtn.prop('disabled', false);
+                publishBtn.prop('disabled', false);
                 Swal.fire('Error', 'Terjadi kesalahan pada server.', 'error');
             }
         });
     });
     
     // Ubah Status
+    $(document).on('click', '.btn-edit-tagihan', function() {
+        let v = $(this).data('inv');
+        // populate form
+        $('#tagihan_no_inv').val(v.no_inv); // Wait, I need to add this input if not exists
+        if ($('#tagihan_no_inv').length === 0) {
+            $('#form-buat-tagihan').append(`<input type="hidden" id="tagihan_no_inv" name="no_inv" value="${v.no_inv}">`);
+        } else {
+            $('#tagihan_no_inv').val(v.no_inv);
+        }
+        
+        $('#tagihan_kopsurat').val(v.id_kopsurat);
+        $('#tagihan_nomor_surat').val(v.nomor_surat);
+        $('#tagihan_tanggal').val((v.tanggal_invoice || '').split(' ')[0]);
+        $('#tagihan_jatuh_tempo').val((v.tanggal_jatuh_tempo || '').split(' ')[0]);
+        
+        if (v.terms) {
+            $('#tagihan_snk').val(v.terms);
+            if ($('.richText-editor').length) {
+                $('.richText-editor').html(v.terms);
+            }
+        }
+        
+        try {
+            let parsedTagihan = JSON.parse(v.tagihan);
+            if (Array.isArray(parsedTagihan) && parsedTagihan.length > 0) {
+                let nominal = parsedTagihan[0].nominal;
+                $('#tagihan_nominal_ditagihkan').val(num_format(nominal));
+            }
+        } catch(e) {}
+        
+        // switch tab back to buat tagihan
+        $('#tab_buat_tagihan-tab').tab('show');
+    });
+
     $(document).on('click', '.btn-ubah-status-tagihan', function() {
         let no_inv = $(this).data('no');
-        let status = $(this).data('status');
+        let status = ($(this).data('status') || '').toLowerCase();
         let tgl = $(this).data('tgl');
         let ket = $(this).data('ket');
+        let nomorsurat = $(this).data('nomorsurat');
         
         $('#us_no_inv').val(no_inv);
-        $('#us_status_tagihan').val(status);
+        $('#us_current_status').val(status);
+        
+        let selectHtml = '';
+        if (status === 'draft') {
+            selectHtml = `
+                <option value="publish">Publish</option>
+                <option value="batal">Batal</option>
+            `;
+            $('#us_status_tagihan').html(selectHtml);
+            $('#us_status_tagihan').val('publish').trigger('change');
+        } else {
+            selectHtml = `
+                <option value="dikirim">Dikirim</option>
+                <option value="respon">Respon</option>
+                <option value="tidak respon">Tidak Respon</option>
+            `;
+            $('#us_status_tagihan').html(selectHtml);
+            $('#us_status_tagihan').val(status);
+        }
+
         if (tgl) {
             // keep only date part for input type=date
             $('#us_tanggal_ubah_status').val(tgl.split(' ')[0]);
@@ -494,8 +596,21 @@ $(document).ready(function() {
             $('#us_tanggal_ubah_status').val(yyyy + '-' + mm + '-' + dd);
         }
         $('#us_keterangan_status').val(ket);
+        $('#us_nomor_surat').val(nomorsurat || '');
         
         $('#modal_ubah_status_tagihan').modal('show');
+    });
+
+    $('#us_status_tagihan').on('change', function() {
+        let val = $(this).val();
+        let cur = $('#us_current_status').val();
+        if (cur === 'draft' && val === 'publish') {
+            $('#us_group_nomor_surat').removeClass('d-none');
+            $('#us_nomor_surat').attr('required', true);
+        } else {
+            $('#us_group_nomor_surat').addClass('d-none');
+            $('#us_nomor_surat').removeAttr('required');
+        }
     });
     
     $('#form-ubah-status-tagihan').on('submit', function(e) {
@@ -506,7 +621,8 @@ $(document).ready(function() {
             no_inv: $('#us_no_inv').val(),
             status_tagihan: $('#us_status_tagihan').val(),
             tanggal_ubah_status: $('#us_tanggal_ubah_status').val(),
-            keterangan_status: $('#us_keterangan_status').val()
+            keterangan_status: $('#us_keterangan_status').val(),
+            nomor_surat: $('#us_nomor_surat').val()
         };
         
         let btn = $(this).find('button[type="submit"]');

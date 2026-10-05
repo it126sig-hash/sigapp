@@ -104,7 +104,29 @@ function format_date($d)
                     </tr>
                 </thead>
                 <tbody id="tb-print-data-tagihan">
-                    <?= $inv->tagihan ?>
+                    <?php
+                    $items = json_decode($inv->tagihan, true);
+                    if (is_array($items)) {
+                        $total = 0;
+                        $no = 1;
+                        foreach($items as $item) {
+                            $total += (float) $item['nominal'];
+                            echo "<tr>
+                                    <td style='text-align:center;'>{$no}</td>
+                                    <td>{$item['berita_acara']}</td>
+                                    <td style='text-align:center;'>".format_date($item['jatuh_tempo_tgl'])."</td>
+                                    <td style='text-align:right;'>Rp " . number_format($item['nominal'], 0, ',', '.') . "</td>
+                                  </tr>";
+                            $no++;
+                        }
+                        echo "<tr>
+                                <td colspan='3' class='foot' style='text-align:right;'>Total</td>
+                                <td class='foot' style='text-align:right;'>Rp " . number_format($total, 0, ',', '.') . "</td>
+                              </tr>";
+                    } else {
+                        echo $inv->tagihan;
+                    }
+                    ?>
                 </tbody>
             </table>
             <div class="">

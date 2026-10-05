@@ -1514,6 +1514,8 @@ class KeuanganService
         
         // Signature & input verification are removed
         $nomor_surat = $request->getVar('nomor_surat');
+        $status_tagihan = $request->getVar('status_tagihan') ?? 'draft'; // draft or publish
+        $no_inv = $request->getVar('no_inv'); // if editing
         
         if (empty($id_mkdt)) {
             $response['messages'] = 'Data transaksi/konsumen (MKDT) tidak ditemukan.';
@@ -1538,41 +1540,59 @@ class KeuanganService
             return $response;
         }
         
-        // 3. Validasi Nomor Surat
+        // 3. Validasi Nomor Surat (Wajib Beda Jika Publish)
         if (empty($nomor_surat) || trim((string)$nomor_surat) === '') {
             $response['messages'] = 'Nomor Surat wajib diisi.';
             return $response;
         }
         
-        // Cek duplikat Nomor Surat
-        $cekDuplikat = $this->db->table('invoice_log')
-            ->where('nomor_surat', trim((string)$nomor_surat))
-            ->get()->getRow();
-            
-        if ($cekDuplikat) {
-            $response['messages'] = 'Nomor Surat ini sudah digunakan. Silakan masukkan nomor surat yang lain.';
-            return $response;
+        if ($status_tagihan === 'publish') {
+            $cekQuery = $this->db->table('invoice_log')
+                ->where('nomor_surat', trim((string)$nomor_surat))
+                ->where('status_tagihan !=', 'draft')
+                ->where('status_tagihan !=', 'batal');
+            if (!empty($no_inv)) {
+                $cekQuery->where('no_inv !=', $no_inv);
+            }
+            $cekDuplikat = $cekQuery->get()->getRow();
+                
+            if ($cekDuplikat) {
+                $response['messages'] = 'Nomor Surat ini sudah digunakan oleh surat yang ter-publish. Silakan masukkan nomor surat yang lain.';
+                return $response;
+            }
         }
         
+        // Cek Invoice Lama jika Edit
+        $isEdit = false;
+        if (!empty($no_inv)) {
+            $oldInv = $this->db->table('invoice_log')->where('no_inv', $no_inv)->get()->getRow();
+            if ($oldInv && $oldInv->status_tagihan === 'draft') {
+                $isEdit = true;
+            } else if ($oldInv) {
+                $response['messages'] = 'Hanya tagihan berstatus DRAFT yang dapat diedit.';
+                return $response;
+            }
+        }
 
-        // Generate No Invoice auto
-        // e.g., INV/2026/10/0001
-        $y = date('Y');
-        $m = date('m');
-        $prefix = "INV/$y/$m/";
-        
-        $lastInv = $this->db->table('invoice_log')
-            ->where("no_inv LIKE '$prefix%'")
-            ->orderBy('no_inv', 'DESC')
-            ->get()->getRow();
+        if (!$isEdit) {
+            // Generate No Invoice auto
+            $y = date('Y');
+            $m = date('m');
+            $prefix = "INV/$y/$m/";
             
-        if ($lastInv) {
-            $lastNum = (int) substr($lastInv->no_inv, -4);
-            $newNum = str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
-        } else {
-            $newNum = '0001';
+            $lastInv = $this->db->table('invoice_log')
+                ->where("no_inv LIKE '$prefix%'")
+                ->orderBy('no_inv', 'DESC')
+                ->get()->getRow();
+                
+            if ($lastInv) {
+                $lastNum = (int) substr($lastInv->no_inv, -4);
+                $newNum = str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
+            } else {
+                $newNum = '0001';
+            }
+            $no_inv = $prefix . $newNum;
         }
-        $no_inv = $prefix . $newNum;
 
         $db = $this->db;
         $db->transException(true);
@@ -1580,8 +1600,7 @@ class KeuanganService
         try {
             $db->transStart();
 
-            $saved = $db->table('invoice_log')->insert([
-                'no_inv' => $no_inv,
+            $saveData = [
                 'nomor_surat' => trim((string)$nomor_surat),
                 'id_mkdt' => $id_mkdt,
                 'id_konsumen' => $id_konsumen,
@@ -1591,20 +1610,29 @@ class KeuanganService
                 'tanggal_jatuh_tempo' => $tanggal_jatuh_tempo,
                 'tagihan' => $tagihan,
                 'terms' => $terms,
-                'status_tagihan' => 'dibuat',
-                'add_by' => $actorId,
-                'date_add' => date('Y-m-d H:i:s'),
-            ]);
+                'status_tagihan' => $status_tagihan,
+                'edit_by' => $actorId,
+                'date_edit' => date('Y-m-d H:i:s'),
+            ];
+
+            if ($isEdit) {
+                $saved = $db->table('invoice_log')->where('no_inv', $no_inv)->update($saveData);
+            } else {
+                $saveData['no_inv'] = $no_inv;
+                $saveData['add_by'] = $actorId;
+                $saveData['date_add'] = date('Y-m-d H:i:s');
+                $saved = $db->table('invoice_log')->insert($saveData);
+            }
 
             if (! $saved) {
-                throw new \RuntimeException('Gagal menambahkan invoice');
+                throw new \RuntimeException('Gagal menyimpan invoice');
             }
             
             $db->table('invoice_status_log')->insert([
                 'no_inv' => $no_inv,
-                'status' => 'dibuat',
+                'status' => $status_tagihan,
                 'tanggal' => date('Y-m-d'),
-                'keterangan' => 'Surat penagihan berhasil dibuat.',
+                'keterangan' => 'Surat penagihan ' . ($isEdit ? 'diedit' : 'dibuat') . ' sebagai ' . strtoupper($status_tagihan) . '.',
                 'add_by' => $actorId,
                 'date_add' => date('Y-m-d H:i:s')
             ]);
@@ -1618,7 +1646,7 @@ class KeuanganService
             return [
                 'token' => csrf_hash(),
                 'success' => true,
-                'messages' => 'Tagihan berhasil dibuat',
+                'messages' => 'Tagihan berhasil ' . ($isEdit ? 'diperbarui' : 'dibuat'),
             ];
         } catch (\Throwable $e) {
             try {
@@ -1648,16 +1676,41 @@ class KeuanganService
             $response['messages'] = 'Data tidak lengkap';
             return $response;
         }
+
+        $nomor_surat = $request->getVar('nomor_surat');
         
+        $updateData = [
+            'status_tagihan' => $status_tagihan,
+            'tanggal_ubah_status' => $tanggal_ubah_status,
+            'keterangan_status' => $keterangan_status,
+            'date_edit' => date('Y-m-d H:i:s'),
+            'edit_by' => $actorId
+        ];
+        
+        if ($status_tagihan === 'publish') {
+            if (empty($nomor_surat) || trim((string)$nomor_surat) === '') {
+                $response['messages'] = 'Nomor Surat wajib diisi saat Publish.';
+                return $response;
+            }
+            
+            // Cek duplikat
+            $cekDuplikat = $this->db->table('invoice_log')
+                ->where('nomor_surat', trim((string)$nomor_surat))
+                ->where('no_inv !=', $no_inv)
+                ->where('status_tagihan !=', 'draft')
+                ->where('status_tagihan !=', 'batal')
+                ->get()->getRow();
+                
+            if ($cekDuplikat) {
+                $response['messages'] = 'Nomor Surat ini sudah digunakan. Silakan masukkan nomor surat yang lain.';
+                return $response;
+            }
+            $updateData['nomor_surat'] = trim((string)$nomor_surat);
+        }
+
         $this->db->table('invoice_log')
             ->where('no_inv', $no_inv)
-            ->update([
-                'status_tagihan' => $status_tagihan,
-                'tanggal_ubah_status' => $tanggal_ubah_status,
-                'keterangan_status' => $keterangan_status,
-                'date_edit' => date('Y-m-d H:i:s'),
-                'edit_by' => $actorId
-            ]);
+            ->update($updateData);
             
         $this->db->table('invoice_status_log')->insert([
             'no_inv' => $no_inv,

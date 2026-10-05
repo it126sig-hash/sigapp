@@ -223,34 +223,58 @@
                                 </div>
 
                                 <div class="card-body p-1 invoice-product-details">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered mb-0" id="tbl-tagihan-items">
+                                    <h6 class="mb-1 text-dark font-weight-bold">Daftar Tagihan (Belum Lunas):</h6>
+                                    <div class="table-responsive mb-1">
+                                        <table class="table table-bordered mb-0 table-sm" id="tbl-tagihan-items">
                                             <thead class="thead-light">
                                                 <tr>
-                                                    <th scope="col" width="5%" class="text-center">
-                                                        <div class="custom-control custom-checkbox">
-                                                            <input type="checkbox" class="custom-control-input" id="checkAllTagihan">
-                                                            <label class="custom-control-label" for="checkAllTagihan"></label>
-                                                        </div>
-                                                    </th>
                                                     <th scope="col" width="5%" class="text-center">No</th>
                                                     <th scope="col">Berita Acara</th>
-                                                    <th scope="col" width="20%">Jatuh Tempo</th>
-                                                    <th scope="col" width="20%" class="text-right">Nominal</th>
+                                                    <th scope="col" width="15%" class="text-center">Jatuh Tempo</th>
+                                                    <th scope="col" width="15%" class="text-center">Status</th>
+                                                    <th scope="col" width="15%" class="text-right">Nominal</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="tb-tagihan-items-here">
                                                 <!-- Populated by JS -->
                                             </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th colspan="4" class="text-right align-middle">Total Tagihan</th>
+                                                    <th class="text-right align-middle" id="tagihan-total-nominal">Rp 0</th>
+                                                </tr>
+                                                <tr>
+                                                    <th colspan="4" class="text-right align-middle">Total Sudah Bayar</th>
+                                                    <th class="text-right align-middle text-success" id="tagihan-total-bayar">Rp 0</th>
+                                                </tr>
+                                                <tr>
+                                                    <th colspan="4" class="text-right align-middle">Sisa Tagihan Keseluruhan</th>
+                                                    <th class="text-right align-middle text-danger font-weight-bolder" id="tagihan-total-sisa">Rp 0</th>
+                                                </tr>
+                                            </tfoot>
                                         </table>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-6 offset-md-6">
+                                            <div class="form-group mb-0 p-1 border rounded bg-light-primary">
+                                                <label class="font-weight-bolder text-primary mb-50" style="font-size: 1.1rem;">NOMINAL YANG DITAGIHKAN DI SURAT <span class="text-danger">*</span></label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text font-weight-bold">Rp</span>
+                                                    </div>
+                                                    <input type="text" id="tagihan_nominal_ditagihkan" class="form-control font-weight-bolder text-dark" style="font-size: 1.25rem;" required>
+                                                </div>
+                                                <small class="text-muted mt-25 d-block">Ubah manual jika tagihan hanya sebagian dari sisa tagihan.</small>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <hr class="invoice-spacing m-0" />
 
-                                <div class="card-body p-1">
+                                <div class="card-body p-1 d-none">
                                     <div class="row">
-                                        <!-- Syarat Ketentuan -->
+                                        <!-- Syarat Ketentuan (Hidden as requested) -->
                                         <div class="col-12 mb-2">
                                             <div class="form-group mb-0">
                                                 <label for="tagihan_snk" class="form-label font-weight-bold">Syarat & Ketentuan:</label>
@@ -267,15 +291,12 @@
             </div>
             
             <!-- Sticky Footer -->
-            <div class="modal-footer p-1" id="footer-penagihan">
+            <div class="modal-footer p-1 d-none" id="footer-penagihan" style="display: none;">
                 <!-- Only visible when 'Buat Tagihan' tab is active -->
-                <div id="footer-action-buat-tagihan" class="d-none w-100 text-right">
-                    <button type="submit" form="form-buat-tagihan" class="btn btn-primary" id="btn-simpan-tagihan">Buat Invoice Tagihan</button>
-                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
-                </div>
-                <!-- Only visible when 'Riwayat Tagihan' tab is active -->
-                <div id="footer-action-riwayat-tagihan" class="w-100 text-right">
-                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Tutup</button>
+                <div id="footer-action-buat-tagihan" class="w-100 text-right d-none" style="display: none;">
+                    <input type="hidden" id="form_submit_status" name="status_tagihan" value="draft" form="form-buat-tagihan">
+                    <button type="submit" form="form-buat-tagihan" class="btn btn-primary mr-50" id="btn-simpan-draft" onclick="document.getElementById('form_submit_status').value='draft'">Simpan Draft</button>
+                    <button type="button" class="btn btn-outline-secondary ml-50" data-dismiss="modal">Batal</button>
                 </div>
             </div>
 
@@ -295,14 +316,16 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" name="no_inv" id="us_no_inv">
+                <input type="hidden" id="us_current_status">
                 <div class="form-group">
                     <label>Status Tagihan</label>
                     <select class="form-control" name="status_tagihan" id="us_status_tagihan" required>
-                        <option value="dibuat">Dibuat</option>
-                        <option value="dikirim">Dikirim</option>
-                        <option value="respon">Respon</option>
-                        <option value="tidak respon">Tidak Respon</option>
+                        <!-- Populated dynamically by JS based on current status -->
                     </select>
+                </div>
+                <div class="form-group d-none" id="us_group_nomor_surat">
+                    <label>Nomor Surat Baru <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="nomor_surat" id="us_nomor_surat" placeholder="Wajib jika di-publish">
                 </div>
                 <div class="form-group">
                     <label>Tanggal Ubah Status</label>
