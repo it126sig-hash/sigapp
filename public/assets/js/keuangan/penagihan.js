@@ -20,166 +20,6 @@ $(document).ready(function() {
         }
     });
 
-    let canvas = document.getElementById("tagihan-canvas");
-    let ctx = canvas.getContext("2d");
-    let isDrawing = false;
-    let hasDrawn = false;
-    let canvasRect;
-    let hasProfileSignature = false;
-    let isCheckingProfileSignature = false;
-    
-    function resizeCanvas() {
-        if (!canvas) return;
-        let parent = canvas.parentElement;
-        canvas.width = parent.clientWidth - 2; // -2 for border
-        canvas.height = 200;
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.lineJoin = "round";
-        ctx.lineCap = "round";
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "#000000";
-        hasDrawn = false;
-    }
-    
-    // When modal shown, resize canvas properly
-    $('#modal_penagihan').on('shown.bs.modal', function () {
-        if ($('#tagihan-sign-method').val() === 'canvas') {
-            resizeCanvas();
-        }
-    });
-    
-    // Drawing logic
-    function getPointerPos(e) {
-        canvasRect = canvas.getBoundingClientRect();
-        if (e.touches) {
-            return {
-                x: e.touches[0].clientX - canvasRect.left,
-                y: e.touches[0].clientY - canvasRect.top
-            };
-        }
-        return {
-            x: e.clientX - canvasRect.left,
-            y: e.clientY - canvasRect.top
-        };
-    }
-    
-    function startDraw(e) {
-        e.preventDefault();
-        isDrawing = true;
-        let pos = getPointerPos(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-    }
-    
-    function draw(e) {
-        if (!isDrawing) return;
-        e.preventDefault();
-        hasDrawn = true;
-        let pos = getPointerPos(e);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-    }
-    
-    function stopDraw() {
-        if (!isDrawing) return;
-        isDrawing = false;
-        ctx.closePath();
-        // save to hidden input only if something was drawn
-        if (hasDrawn) {
-            $('#tagihan_ttd_img').val(canvas.toDataURL("image/png"));
-        } else {
-            $('#tagihan_ttd_img').val('empty');
-        }
-    }
-    
-    if (canvas) {
-        canvas.addEventListener("mousedown", startDraw);
-        canvas.addEventListener("mousemove", draw);
-        canvas.addEventListener("mouseup", stopDraw);
-        canvas.addEventListener("mouseout", stopDraw);
-        
-        canvas.addEventListener("touchstart", startDraw, {passive: false});
-        canvas.addEventListener("touchmove", draw, {passive: false});
-        canvas.addEventListener("touchend", stopDraw);
-    }
-    
-    $('#btn-clear-tagihan-canvas').on('click', function() {
-        resizeCanvas();
-        hasDrawn = false;
-        $('#tagihan_ttd_img').val('empty');
-    });
-
-    function checkProfileSignature() {
-        $('#tagihan-profile-preview-wrap').removeClass('d-none');
-        $('#tagihan-profile-preview-content').html('<i class="fas fa-spinner fa-spin mr-50"></i> Memeriksa tanda tangan profil...');
-        isCheckingProfileSignature = true;
-
-        $.ajax({
-            url: base_url + "api/profile/signature",
-            type: "GET",
-            dataType: "json",
-            success: function(r) {
-                isCheckingProfileSignature = false;
-                if (r && r.token) csrfHash = r.token;
-
-                // CI4 BaseApiController::success returns { success: true, messages: '...', data: { has_signature: true, ... } }
-                let isSuccess = Boolean(r && (r.success === true || r.status === 'success' || r.status === 200));
-                let sigData = r ? (r.data || r) : null;
-                let hasSig = Boolean(sigData && (sigData.has_signature === true || sigData.has_signature === 1 || sigData.has_signature === '1'));
-
-                if (isSuccess && hasSig) {
-                    hasProfileSignature = true;
-                    let imgUrl = base_url + "api/profile/signature/image?t=" + Date.now();
-                    $('#tagihan-profile-preview-content').html(`
-                        <div class="py-1">
-                            <img src="${imgUrl}" style="max-height: 80px; max-width: 250px; border: 1px dashed #ced4da; padding: 4px; background: #fff;" alt="TTD Profil" class="mb-50" onerror="this.style.display='none'">
-                            <div><span class="badge badge-light-success"><i class="fas fa-check-circle mr-25"></i> TTD Profil Aktif</span></div>
-                            <small class="text-muted">Terakhir diperbarui: ${sigData.updated_at || '-'}</small>
-                        </div>
-                    `);
-                } else {
-                    hasProfileSignature = false;
-                    $('#tagihan-profile-preview-content').html(`
-                        <div class="alert alert-warning mb-0 py-1 text-left">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-exclamation-triangle fa-2x mr-75 text-warning"></i>
-                                <div>
-                                    <div class="font-weight-bold">Tanda Tangan Profil Belum Diatur</div>
-                                    <div class="small">Anda belum memiliki tanda tangan di profil akun Anda. Silakan pilih metode <strong>"Gambar Sekarang"</strong> untuk menandatangani langsung pada canvas.</div>
-                                </div>
-                            </div>
-                        </div>
-                    `);
-                }
-            },
-            error: function(xhr) {
-                isCheckingProfileSignature = false;
-                hasProfileSignature = false;
-                let errMsg = 'Gagal memeriksa tanda tangan profil.';
-                if (xhr && xhr.responseJSON && xhr.responseJSON.messages) {
-                    errMsg += ' (' + xhr.responseJSON.messages + ')';
-                }
-                $('#tagihan-profile-preview-content').html(`
-                    <div class="alert alert-danger mb-0 py-1 text-left">
-                        <i class="fas fa-exclamation-circle mr-50"></i> ${errMsg} Silakan gunakan metode "Gambar Sekarang".
-                    </div>
-                `);
-            }
-        });
-    }
-    
-    $('#tagihan-sign-method').on('change', function() {
-        if ($(this).val() === 'canvas') {
-            $('#tagihan-canvas-wrap').show();
-            $('#tagihan-profile-preview-wrap').addClass('d-none');
-            setTimeout(resizeCanvas, 50);
-        } else {
-            $('#tagihan-canvas-wrap').hide();
-            checkProfileSignature();
-        }
-    });
-
     window.openModalPenagihan = function(rowData, targetTab = 'tab_riwayat_tagihan') {
         if (!rowData) return;
         let id_mkdt = rowData.id_mkdt;
@@ -225,15 +65,6 @@ $(document).ready(function() {
         $('#tagihan_kopsurat').empty();
         $('#tb-tagihan-items-here').empty();
 
-        // Reset Signature State
-        hasDrawn = false;
-        hasProfileSignature = false;
-        $('#tagihan-sign-method').val('canvas');
-        $('#tagihan-password').val('');
-        $('#tagihan_ttd_img').val('empty');
-        $('#tagihan-canvas-wrap').show();
-        $('#tagihan-profile-preview-wrap').addClass('d-none');
-        resizeCanvas();
 
         // Load riwayat
         loadRiwayatTagihan(id_mkdt);
@@ -470,6 +301,15 @@ $(document).ready(function() {
                   });
               }
               $('#tagihan_kopsurat').html(kopHtml);
+
+              // Suggest Nomor Surat
+              let kode_keu = r.kode_keuangan ? r.kode_keuangan : 'XXX';
+              let romanMonths = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+              let today = new Date();
+              let month = romanMonths[today.getMonth()];
+              let year = today.getFullYear();
+              let suggestedNomor = `/KEU-${kode_keu}/EX/PRS/DIR/${month}/${year}`;
+              $('#tagihan_nomor_surat').val(suggestedNomor);
               
               // Load Items
               let itemsHtml = '';
@@ -477,27 +317,53 @@ $(document).ready(function() {
               $.each(r.list_tagihan, function(i, a) {
                   let nominal = parseInt(a.nominal);
                   total += nominal;
-                  // We add a hidden input to store the JSON string to be submitted
+                  
                   itemsHtml += `
                     <tr>
-                        <td class="text-center">${i + 1}
-                            <input type="hidden" name="item_ba[]" value="${a.berita_acara}">
-                            <input type="hidden" name="item_jt[]" value="${a.jatuh_tempo_tgl}">
-                            <input type="hidden" name="item_nominal[]" value="${a.nominal}">
+                        <td class="text-center">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input tagihan-item-check" id="checkTagihan_${i}" data-ba="${a.berita_acara}" data-jt="${a.jatuh_tempo_tgl}" data-nom="${a.nominal}" checked>
+                                <label class="custom-control-label" for="checkTagihan_${i}"></label>
+                            </div>
                         </td>
+                        <td class="text-center">${i + 1}</td>
                         <td>${a.berita_acara}</td>
                         <td>${format_date(a.jatuh_tempo_tgl)}</td>
-                        <td class="text-right">Rp ${num_format(nominal)}</td>
+                        <td class="text-right">Rp <span class="tagihan-item-nominal-text">${num_format(nominal)}</span></td>
                     </tr>
                   `;
               });
               itemsHtml += `
                 <tr class="bg-light font-weight-bold">
-                    <td colspan="3" class="text-right">Total Tagihan</td>
-                    <td class="text-right">Rp ${num_format(total)}</td>
+                    <td colspan="4" class="text-right">Total Tagihan</td>
+                    <td class="text-right" id="tagihan-total-nominal">Rp ${num_format(total)}</td>
                 </tr>
               `;
               $('#tb-tagihan-items-here').html(itemsHtml);
+
+              // Check all behavior
+              $('#checkAllTagihan').prop('checked', true);
+              $('#checkAllTagihan').off('change').on('change', function() {
+                  $('.tagihan-item-check').prop('checked', $(this).is(':checked'));
+                  updateTotalTagihan();
+              });
+
+              $('.tagihan-item-check').off('change').on('change', function() {
+                  if ($('.tagihan-item-check:not(:checked)').length > 0) {
+                      $('#checkAllTagihan').prop('checked', false);
+                  } else {
+                      $('#checkAllTagihan').prop('checked', true);
+                  }
+                  updateTotalTagihan();
+              });
+
+              function updateTotalTagihan() {
+                  let tempTotal = 0;
+                  $('.tagihan-item-check:checked').each(function() {
+                      tempTotal += parseInt($(this).data('nom'));
+                  });
+                  $('#tagihan-total-nominal').text('Rp ' + num_format(tempTotal));
+              }
             }
         });
     }
@@ -511,32 +377,22 @@ $(document).ready(function() {
         
         let formData = $(this).serializeArray();
         
-        // build json tagihan
+        // build json tagihan only from checked items
         let tagihanArray = [];
-        let items_ba = [];
-        let items_jt = [];
-        let items_nom = [];
-        
-        $.each(formData, function(i, field) {
-            if (field.name === 'item_ba[]') items_ba.push(field.value);
-            else if (field.name === 'item_jt[]') items_jt.push(field.value);
-            else if (field.name === 'item_nominal[]') items_nom.push(field.value);
-        });
-        
-        for (let i = 0; i < items_ba.length; i++) {
+        $('.tagihan-item-check:checked').each(function() {
             tagihanArray.push({
-                berita_acara: items_ba[i],
-                jatuh_tempo_tgl: items_jt[i],
-                nominal: items_nom[i]
+                berita_acara: $(this).data('ba'),
+                jatuh_tempo_tgl: $(this).data('jt'),
+                nominal: $(this).data('nom')
             });
-        }
+        });
         
         // 1. Validasi Item Tagihan
         if (tagihanArray.length === 0) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Item Tagihan Kosong',
-                text: 'Tidak ada item tagihan untuk dibuatkan invoice.'
+                text: 'Silakan pilih (ceklis) minimal 1 item tagihan.'
             });
             return;
         }
@@ -553,48 +409,16 @@ $(document).ready(function() {
             return;
         }
 
-        // 3. Validasi Password
-        let password = $('#tagihan-password').val();
-        if (!password || password.trim() === '') {
+        // 3. Validasi Nomor Surat
+        let nomor_surat = $('#tagihan_nomor_surat').val();
+        if (!nomor_surat || nomor_surat.trim() === '') {
             Swal.fire({
                 icon: 'warning',
-                title: 'Password Belum Diisi',
-                text: 'Silakan masukkan password akun Anda untuk verifikasi tanda tangan.'
+                title: 'Nomor Surat Kosong',
+                text: 'Silakan masukkan nomor surat.'
             });
-            $('#tagihan-password').focus();
+            $('#tagihan_nomor_surat').focus();
             return;
-        }
-
-        // 4. Validasi Tanda Tangan
-        let sign_method = $('#tagihan-sign-method').val();
-        let ttd_img = $('#tagihan_ttd_img').val();
-
-        if (sign_method === 'canvas') {
-            if (!hasDrawn || !ttd_img || ttd_img === 'empty' || !ttd_img.startsWith('data:image')) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Tanda Tangan Belum Ada',
-                    text: 'Silakan bubuhkan tanda tangan pada canvas terlebih dahulu.'
-                });
-                return;
-            }
-        } else if (sign_method === 'profile') {
-            if (isCheckingProfileSignature) {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Memeriksa TTD...',
-                    text: 'Sedang memeriksa tanda tangan profil, silakan tunggu sebentar.'
-                });
-                return;
-            }
-            if (!hasProfileSignature) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Tanda Tangan Profil Tidak Ada',
-                    text: 'Anda belum memiliki tanda tangan profil. Silakan gunakan metode "Gambar Sekarang" atau atur tanda tangan profil Anda terlebih dahulu.'
-                });
-                return;
-            }
         }
         
         let submitData = {
@@ -603,12 +427,10 @@ $(document).ready(function() {
             id_kavling: $('#tagihan_id_kavling').val(),
             id_konsumen: $('#tagihan_id_konsumen').val(),
             id_kopsurat: id_kopsurat,
+            nomor_surat: nomor_surat,
             tanggal_invoice: $('#tagihan_tanggal').val(),
             tanggal_jatuh_tempo: $('#tagihan_jatuh_tempo').val(),
             terms: $('#tagihan_snk').val(),
-            sign_method: sign_method,
-            password: password,
-            ttd_img: ttd_img,
             tagihan: JSON.stringify(tagihanArray)
         };
         
@@ -637,18 +459,11 @@ $(document).ready(function() {
                     if ($('.richText-editor').length) {
                         $('.richText-editor').html($('#tagihan_snk').val());
                     }
-                    hasDrawn = false;
-                    hasProfileSignature = false;
-                    resizeCanvas();
-                    $('#tagihan_ttd_img').val('empty');
-                    $('#tagihan-password').val('');
+                    
                     $('#tab_riwayat_tagihan-tab').tab('show');
                     loadRiwayatTagihan(submitData.id_mkdt);
                 } else {
                     Swal.fire('Gagal', r.messages, 'error');
-                    if (r.messages && r.messages.toLowerCase().includes('password')) {
-                        $('#tagihan-password').val('').focus();
-                    }
                 }
             },
             error: function() {

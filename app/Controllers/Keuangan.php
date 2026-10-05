@@ -650,7 +650,7 @@ class Keuangan extends BaseController
             $this->keuanganService->simpanIsiTagihan($this->request, user_id())
         );
     }
-    
+
     function save_sb()
     {
         return $this->response->setJSON(
@@ -708,137 +708,137 @@ class Keuangan extends BaseController
         $this->db->transException(true)->transBegin();
         try {
 
-        if ($this->request->getVar('status_mkdt') == "Batal") {
-            $nominal_refund = $this->num($this->request->getVar("nominal_refund"));
-            $tgl_refund = $this->request->getVar("tanggal_refund");
-            //jika refund sudah dibayar
-            $d['refund_paid'] = ($refund_paid == 1) ? 1 : 0;
-            $d['refund'] = $nominal_refund;
-            $d['refund_tgl'] = $tgl_refund;
+            if ($this->request->getVar('status_mkdt') == "Batal") {
+                $nominal_refund = $this->num($this->request->getVar("nominal_refund"));
+                $tgl_refund = $this->request->getVar("tanggal_refund");
+                //jika refund sudah dibayar
+                $d['refund_paid'] = ($refund_paid == 1) ? 1 : 0;
+                $d['refund'] = $nominal_refund;
+                $d['refund_tgl'] = $tgl_refund;
 
 
-            if (! $this->mkdtModel->update($id_mkdt, $d)) {
-                throw new \RuntimeException('Gagal memperbarui data refund');
-            }
-            // insert into log_pembayaran
-            $data = array(
-                "id_mkdt" => $id_mkdt,
-                "nominal" => $nominal_refund,
-                "payment_type" => "Refund",
-                "tanggal_bayar" => $tgl_refund,
-                "keterangan" => "Refund: " . $this->request->getVar("keterangan_refund") . " - " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
-                "add_by" => user_id(),
-                "edit_by" => user_id()
-            );
-
-            if (! $this->lpModel->insert($data)) {
-                throw new \RuntimeException('Gagal menyimpan pembayaran refund');
-            }
-            $response['success'] = true;
-            $response['messages'] = 'Data berhasil ditambah';
-        } else {
-            $f['id_keuangan'] = $this->request->getPost('b-for');
-
-            $f['booking_fee_paid'] = '';
-            $f['id_mkdt'] = $id_mkdt;
-
-            //input booking disabled jika booking_fee_paid == 1 
-            if ($this->request->getPost('booking_fee_paid')) {
-                $f['booking_fee_paid'] = $this->request->getPost('booking_fee_paid');
-                $f['booking_fee'] = $this->num($this->request->getPost('keu_booking_fee'));
-                $f['booking_fee_tgl'] = $this->request->getPost('keu_booking_tgl');
-            }
-
-            // //jika input bayar tagihan diisi lebih dari nol
-            // if ($bayar_tagihan != "0") {
-            //     $f['terakhir_bayar_berita_acara'] = $berita_acara;
-            //     $f['terakhir_bayar_nominal'] = $bayar_tagihan;
-            //     $f['terakhir_bayar_tgl'] = $tanggal_bayar;
-            // }
-
-            $f['keterangan'] = $this->request->getPost('keuangan_keterangan');
-
-            // bayar booking
-            //cek apakah booking fee sudah di bayar
-            $is_paid = $this->mkdtModel->select('booking_paid')->where('id_mkdt', $id_mkdt)->first();
-            $is_paid = ($is_paid) ? $is_paid->booking_paid : 0;
-
-            //jika booking fee belum di bayar, maka insert ke table log pembayaran
-            if (!$is_paid && $f['booking_fee_paid']) {
+                if (! $this->mkdtModel->update($id_mkdt, $d)) {
+                    throw new \RuntimeException('Gagal memperbarui data refund');
+                }
+                // insert into log_pembayaran
                 $data = array(
                     "id_mkdt" => $id_mkdt,
-                    "nominal" => $f['booking_fee'],
-                    "tanggal_bayar" => $f['booking_fee_tgl'],
-                    "payment_type" => "Booking",
-                    "keterangan" => "Booking: " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
+                    "nominal" => $nominal_refund,
+                    "payment_type" => "Refund",
+                    "tanggal_bayar" => $tgl_refund,
+                    "keterangan" => "Refund: " . $this->request->getVar("keterangan_refund") . " - " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
                     "add_by" => user_id(),
                     "edit_by" => user_id()
                 );
 
                 if (! $this->lpModel->insert($data)) {
-                    throw new \RuntimeException('Gagal menyimpan pembayaran booking');
+                    throw new \RuntimeException('Gagal menyimpan pembayaran refund');
+                }
+                $response['success'] = true;
+                $response['messages'] = 'Data berhasil ditambah';
+            } else {
+                $f['id_keuangan'] = $this->request->getPost('b-for');
+
+                $f['booking_fee_paid'] = '';
+                $f['id_mkdt'] = $id_mkdt;
+
+                //input booking disabled jika booking_fee_paid == 1 
+                if ($this->request->getPost('booking_fee_paid')) {
+                    $f['booking_fee_paid'] = $this->request->getPost('booking_fee_paid');
+                    $f['booking_fee'] = $this->num($this->request->getPost('keu_booking_fee'));
+                    $f['booking_fee_tgl'] = $this->request->getPost('keu_booking_tgl');
                 }
 
-                //update table mkdt set booking fee sudah dibayar
-                if (! $this->mkdtModel->update(
-                    $id_mkdt,
-                    array(
-                        'booking_paid' => $f['booking_fee_paid']
-                    )
-                )) {
-                    throw new \RuntimeException('Gagal memperbarui status pembayaran booking');
-                }
-            }
-            //end of bayar booking
+                // //jika input bayar tagihan diisi lebih dari nol
+                // if ($bayar_tagihan != "0") {
+                //     $f['terakhir_bayar_berita_acara'] = $berita_acara;
+                //     $f['terakhir_bayar_nominal'] = $bayar_tagihan;
+                //     $f['terakhir_bayar_tgl'] = $tanggal_bayar;
+                // }
 
-            //insert into log_pembayaran
-            if ($e == '') {
-                if ($bayar_tagihan > 0) {
+                $f['keterangan'] = $this->request->getPost('keuangan_keterangan');
+
+                // bayar booking
+                //cek apakah booking fee sudah di bayar
+                $is_paid = $this->mkdtModel->select('booking_paid')->where('id_mkdt', $id_mkdt)->first();
+                $is_paid = ($is_paid) ? $is_paid->booking_paid : 0;
+
+                //jika booking fee belum di bayar, maka insert ke table log pembayaran
+                if (!$is_paid && $f['booking_fee_paid']) {
                     $data = array(
                         "id_mkdt" => $id_mkdt,
-                        "id_keuangan" => $id_keu,
-                        "nominal" => $bayar_tagihan,
-                        "payment_type" => $text_keu,
-                        "tanggal_bayar" => $tanggal_bayar,
-                        "keterangan" => "(" . $berita_acara . ") Pembayaran: " . $text_keu . " - " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
+                        "nominal" => $f['booking_fee'],
+                        "tanggal_bayar" => $f['booking_fee_tgl'],
+                        "payment_type" => "Booking",
+                        "keterangan" => "Booking: " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
                         "add_by" => user_id(),
                         "edit_by" => user_id()
                     );
+
                     if (! $this->lpModel->insert($data)) {
-                        throw new \RuntimeException('Gagal menyimpan pembayaran UM');
+                        throw new \RuntimeException('Gagal menyimpan pembayaran booking');
+                    }
+
+                    //update table mkdt set booking fee sudah dibayar
+                    if (! $this->mkdtModel->update(
+                        $id_mkdt,
+                        array(
+                            'booking_paid' => $f['booking_fee_paid']
+                        )
+                    )) {
+                        throw new \RuntimeException('Gagal memperbarui status pembayaran booking');
                     }
                 }
-            } elseif ($e == 'bb') {
-                if ($bayar_tagihan_bb > 0) {
-                    $data = array(
-                        "id_mkdt" => $id_mkdt,
-                        "id_keuangan" => $id_keu_bb,
-                        "nominal" => $bayar_tagihan_bb,
-                        "payment_type" => $text_keu_bb,
-                        "tanggal_bayar" => $tanggal_bayar_bb,
-                        "keterangan" => "(" . $berita_acara_bb . ")Pembayaran: " . $text_keu_bb . " - " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
-                        "add_by" => user_id(),
-                        "edit_by" => user_id()
-                    );
-                    if (! $this->lpModel->insert($data)) {
-                        throw new \RuntimeException('Gagal menyimpan pembayaran BB');
+                //end of bayar booking
+
+                //insert into log_pembayaran
+                if ($e == '') {
+                    if ($bayar_tagihan > 0) {
+                        $data = array(
+                            "id_mkdt" => $id_mkdt,
+                            "id_keuangan" => $id_keu,
+                            "nominal" => $bayar_tagihan,
+                            "payment_type" => $text_keu,
+                            "tanggal_bayar" => $tanggal_bayar,
+                            "keterangan" => "(" . $berita_acara . ") Pembayaran: " . $text_keu . " - " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
+                            "add_by" => user_id(),
+                            "edit_by" => user_id()
+                        );
+                        if (! $this->lpModel->insert($data)) {
+                            throw new \RuntimeException('Gagal menyimpan pembayaran UM');
+                        }
+                    }
+                } elseif ($e == 'bb') {
+                    if ($bayar_tagihan_bb > 0) {
+                        $data = array(
+                            "id_mkdt" => $id_mkdt,
+                            "id_keuangan" => $id_keu_bb,
+                            "nominal" => $bayar_tagihan_bb,
+                            "payment_type" => $text_keu_bb,
+                            "tanggal_bayar" => $tanggal_bayar_bb,
+                            "keterangan" => "(" . $berita_acara_bb . ")Pembayaran: " . $text_keu_bb . " - " . $kav->nama_konsumen . " - " . $kav->nama_jalan . " No. " . $kav->no_kavling . "",
+                            "add_by" => user_id(),
+                            "edit_by" => user_id()
+                        );
+                        if (! $this->lpModel->insert($data)) {
+                            throw new \RuntimeException('Gagal menyimpan pembayaran BB');
+                        }
                     }
                 }
+
+                $response['success'] = true;
+                $response['messages'] = "Data berhasil diinput";
             }
 
-            $response['success'] = true;
-            $response['messages'] = "Data berhasil diinput";
-        }
+            if (empty($response['success'])) {
+                throw new \RuntimeException($response['messages'] ?? 'Gagal menyimpan pembayaran');
+            }
 
-        if (empty($response['success'])) {
-            throw new \RuntimeException($response['messages'] ?? 'Gagal menyimpan pembayaran');
-        }
-
-        $this->keuanganService->synchronizeLunasStatus((int) $id_mkdt);
-        if ($this->db->transStatus() === false) {
-            throw new \RuntimeException('Transaksi gagal');
-        }
-        $this->db->transCommit();
+            $this->keuanganService->synchronizeLunasStatus((int) $id_mkdt);
+            if ($this->db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+            $this->db->transCommit();
         } catch (\Throwable $e) {
             $this->db->transRollback();
             log_message('error', '[Keuangan::save] {message}', ['message' => $e->getMessage()]);
@@ -1235,6 +1235,17 @@ class Keuangan extends BaseController
                 ->where('id_mkdt', $this->request->getVar('id_mkdt'))
                 ->get()->getResult();
             $r['kop_surat'] = $this->db->table('kopsurat')->orderBy('nama', 'ASC')->get()->getResult();
+
+            // Get kode_keuangan from proyek
+            $proyek = $this->db->table('kavling')
+                ->select('proyek.kode_keuangan')
+                ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+                ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+                ->join('proyek', 'cluster.id_proyek = proyek.id_proyek')
+                ->join('mkdt', 'mkdt.id_kavling = kavling.id_kavling')
+                ->where('mkdt.id_mkdt', $this->request->getVar('id_mkdt'))
+                ->get()->getRow();
+            $r['kode_keuangan'] = $proyek ? $proyek->kode_keuangan : 'XXX';
         }
 
 
@@ -1535,60 +1546,65 @@ class Keuangan extends BaseController
     }
 
     // ---- Fitur Penagihan Baru ----
-    
+
     public function get_riwayat_tagihan()
     {
         return $this->response->setJSON(
             $this->keuanganService->getRiwayatTagihan($this->request)
         );
     }
-    
+
     public function simpan_penagihan()
     {
         return $this->response->setJSON(
             $this->keuanganService->simpanPenagihan($this->request, user_id())
         );
     }
-    
+
     public function update_status_penagihan()
     {
         return $this->response->setJSON(
             $this->keuanganService->updateStatusPenagihan($this->request, user_id())
         );
     }
-    
+
     public function download_penagihan()
     {
         @ini_set('pcre.backtrack_limit', 5_000_000);
 
         $id = $this->request->getVar('id');
         if (!$id) return false;
-        
+
         // Update tanggal_kirim jika belum diset
         $this->keuanganService->setTanggalKirim($id);
-        
+
         $inv = $this->db->table("invoice_log")
             ->where('no_inv', $id)
             ->get()->getRow();
         if (!$inv) return false;
 
-        // Konversi ttd_img: jika logical path (file PNG), load ke data URI
-        if (!empty($inv->ttd_img) && strpos($inv->ttd_img, 'data:image') !== 0) {
-            // Bisa berupa logical path (profile/canvas disimpan sebagai file)
+        // Fetch Proyek to get Direktur and No Telepon
+        $proyekInfo = $this->db->table('kavling')
+            ->select('proyek.no_rek, proyek.bank, proyek.atas_nama, proyek.nama_proyek, proyek.no_telepon, proyek.direktur_id, proyek.nama_pt, users.name as nama_direktur, user_signature_profiles.signature_path')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster', 'left')
+            ->join('proyek', 'cluster.id_proyek = proyek.id_proyek', 'left')
+            ->join('users', 'users.id = proyek.direktur_id', 'left')
+            ->join('user_signature_profiles', 'user_signature_profiles.user_id = users.id', 'left')
+            ->where('kavling.id_kavling', $inv->id_kavling)
+            ->get()->getRow();
+
+        $data['proyek_info'] = $proyekInfo;
+
+        // Cek apakah direktur sudah tanda tangan
+        $inv->ttd_img = null;
+        if ($inv->is_signed_direktur && $proyekInfo && !empty($proyekInfo->signature_path)) {
             $fileAccess = new \App\Services\FileAccessService();
-            $absolutePath = $fileAccess->existingPath($inv->ttd_img);
+            $absolutePath = $fileAccess->existingPath($proyekInfo->signature_path);
             if ($absolutePath && file_exists($absolutePath)) {
                 $ext  = strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION));
                 $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
                 $inv->ttd_img = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($absolutePath));
-            } else {
-                // Fallback: coba sebagai path publik (legacy)
-                $publicPath = FCPATH . ltrim($inv->ttd_img, '/');
-                if (file_exists($publicPath)) {
-                    $ext  = strtolower(pathinfo($publicPath, PATHINFO_EXTENSION));
-                    $mime = ($ext === 'png') ? 'image/png' : 'image/jpeg';
-                    $inv->ttd_img = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($publicPath));
-                }
             }
         }
 

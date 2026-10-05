@@ -192,8 +192,8 @@
                                         </div>
                                         <div class="invoice-number-date mt-md-0 mt-4 col-md-7 pr-0 text-right">
                                             <div class="d-flex align-items-center justify-content-end mb-1">
-                                                <span class="title mr-1">No Invoice:</span>
-                                                <input type="text" id="tagihan_no_inv" name="no_inv" class="form-control invoice-edit-input" placeholder="Auto Generate" disabled style="width: 200px;">
+                                                <span class="title mr-1">Nomor Surat:</span>
+                                                <input type="text" id="tagihan_nomor_surat" name="nomor_surat" class="form-control invoice-edit-input" placeholder="Manual atau Auto" style="width: 200px;" required>
                                             </div>
                                             <div class="d-flex align-items-center justify-content-end mb-1">
                                                 <span class="title mr-1">Tanggal:</span>
@@ -227,6 +227,12 @@
                                         <table class="table table-bordered mb-0" id="tbl-tagihan-items">
                                             <thead class="thead-light">
                                                 <tr>
+                                                    <th scope="col" width="5%" class="text-center">
+                                                        <div class="custom-control custom-checkbox">
+                                                            <input type="checkbox" class="custom-control-input" id="checkAllTagihan">
+                                                            <label class="custom-control-label" for="checkAllTagihan"></label>
+                                                        </div>
+                                                    </th>
                                                     <th scope="col" width="5%" class="text-center">No</th>
                                                     <th scope="col">Berita Acara</th>
                                                     <th scope="col" width="20%">Jatuh Tempo</th>
@@ -245,41 +251,11 @@
                                 <div class="card-body p-1">
                                     <div class="row">
                                         <!-- Syarat Ketentuan -->
-                                        <div class="col-lg-6 mb-2">
+                                        <div class="col-12 mb-2">
                                             <div class="form-group mb-0">
                                                 <label for="tagihan_snk" class="form-label font-weight-bold">Syarat & Ketentuan:</label>
                                                 <!-- We'll attach rich text editor to this textarea -->
                                                 <textarea class="form-control" id="tagihan_snk" name="terms" required><ol><li><span style="font-size: 1rem; letter-spacing: 0.01rem;">Lakukan pembayaran sebelum tanggal jatuh tempo untuk menghindari denda&nbsp;</span></li><li><span style="font-size: 1rem; letter-spacing: 0.01rem;">Pembayaran yang sah hanya melalui transfer ke rekening atas nama <br><b>PT. Sanggarindah Karya Sentosa</b> <b>Raya</b> BCA KC Setiabudi - Bandung, Nomor Rekening :<b>2337 887 887</b>&nbsp;</span></li><li>Konfirmasi pembayaran ke bagian keuangan kami dan lampirkan bukti transfer.</li></ol></textarea>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Tanda Tangan -->
-                                        <div class="col-lg-6 mb-2">
-                                            <h6 class="mb-1 font-weight-bold text-uppercase">Tanda Tangan Pembuat Tagihan</h6>
-                                            <div class="row">
-                                                <div class="col-md-6 form-group">
-                                                    <label>Metode Tanda Tangan</label>
-                                                    <select class="form-control" id="tagihan-sign-method" name="sign_method">
-                                                        <option value="canvas">Gambar Sekarang</option>
-                                                        <option value="profile">TTD Profil Saya</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-6 form-group">
-                                                    <label>Password Akun <span class="text-danger">*</span></label>
-                                                    <input type="password" autocomplete="current-password" class="form-control" id="tagihan-password" name="password" required placeholder="Masukkan password">
-                                                </div>
-                                            </div>
-                                            <div class="signature-canvas-wrap" id="tagihan-canvas-wrap">
-                                                <canvas id="tagihan-canvas"></canvas>
-                                                <button type="button" class="btn btn-sm btn-outline-secondary signature-clear-btn" id="btn-clear-tagihan-canvas">Hapus</button>
-                                                <input type="hidden" name="ttd_img" id="tagihan_ttd_img">
-                                            </div>
-                                            <div id="tagihan-profile-preview-wrap" class="d-none mt-50">
-                                                <div class="border rounded p-1 text-center bg-light" style="min-height: 120px;">
-                                                    <div id="tagihan-profile-preview-content">
-                                                        <i class="fas fa-spinner fa-spin mr-50"></i> Memeriksa tanda tangan profil...
-                                                    </div>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>

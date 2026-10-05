@@ -1512,10 +1512,8 @@ class KeuanganService
             }
         }
         
-        // Signature & input verification
-        $password = $request->getVar('password');
-        $sign_method = $request->getVar('sign_method');
-        $ttd_img = $request->getVar('ttd_img');
+        // Signature & input verification are removed
+        $nomor_surat = $request->getVar('nomor_surat');
         
         if (empty($id_mkdt)) {
             $response['messages'] = 'Data transaksi/konsumen (MKDT) tidak ditemukan.';
@@ -1540,65 +1538,23 @@ class KeuanganService
             return $response;
         }
         
-        // 3. Validasi Password
-        if (empty($password) || trim((string) $password) === '') {
-            $response['messages'] = 'Password akun wajib diisi untuk verifikasi tanda tangan.';
+        // 3. Validasi Nomor Surat
+        if (empty($nomor_surat) || trim((string)$nomor_surat) === '') {
+            $response['messages'] = 'Nomor Surat wajib diisi.';
             return $response;
         }
         
-        // Verify password with user account
-        $user = $this->db->table('users')->select('password_hash')->where('id', $actorId)->get()->getRow();
-        if (!$user || empty($user->password_hash)) {
-            $response['messages'] = 'Akun pengguna Anda tidak valid.';
-            return $response;
-        }
-
-        $passwordValid = Password::verify((string) $password, (string) $user->password_hash)
-            || password_verify((string) $password, (string) $user->password_hash);
-
-        if (!$passwordValid) {
-            $response['messages'] = 'Password yang Anda masukkan salah.';
+        // Cek duplikat Nomor Surat
+        $cekDuplikat = $this->db->table('invoice_log')
+            ->where('nomor_surat', trim((string)$nomor_surat))
+            ->get()->getRow();
+            
+        if ($cekDuplikat) {
+            $response['messages'] = 'Nomor Surat ini sudah digunakan. Silakan masukkan nomor surat yang lain.';
             return $response;
         }
         
-        // 4. Validasi Tanda Tangan
-        if ($sign_method === 'profile') {
-            // Ambil path TTD dari user_signature_profiles
-            try {
-                $profileRow = db_connect()->table('user_signature_profiles')
-                    ->where('user_id', $actorId)->get()->getRowArray();
-                if (!$profileRow || empty($profileRow['signature_path'])) {
-                    $response['messages'] = 'Anda belum mengatur tanda tangan di profil.';
-                    return $response;
-                }
 
-                $fileAccess = new \App\Services\FileAccessService();
-                $absPath = $fileAccess->existingPath($profileRow['signature_path']);
-                if (!$absPath || !is_file($absPath)) {
-                    $response['messages'] = 'File tanda tangan profil tidak ditemukan di server.';
-                    return $response;
-                }
-
-                $ttd_img = $profileRow['signature_path']; // logical path, dikonversi saat download PDF
-            } catch (\Throwable $e) {
-                $response['messages'] = 'Tanda tangan profil belum tersedia: ' . $e->getMessage();
-                return $response;
-            }
-        } else {
-            // Canvas: simpan base64 sebagai file PNG agar tidak menyimpan base64 besar di DB
-            if (empty($ttd_img) || $ttd_img === 'empty' || !str_starts_with(trim((string) $ttd_img), 'data:image')) {
-                $response['messages'] = 'Tanda tangan pada canvas wajib dibubuhkan.';
-                return $response;
-            }
-            try {
-                $bpbFileService = new BpbFileService();
-                $ttd_img = $bpbFileService->storeCanvas($ttd_img, 'invoice-signatures/' . date('Ym'));
-            } catch (\Throwable $e) {
-                $response['messages'] = 'Gagal menyimpan tanda tangan canvas: ' . $e->getMessage();
-                return $response;
-            }
-        }
-        
         // Generate No Invoice auto
         // e.g., INV/2026/10/0001
         $y = date('Y');
@@ -1626,6 +1582,7 @@ class KeuanganService
 
             $saved = $db->table('invoice_log')->insert([
                 'no_inv' => $no_inv,
+                'nomor_surat' => trim((string)$nomor_surat),
                 'id_mkdt' => $id_mkdt,
                 'id_konsumen' => $id_konsumen,
                 'id_kavling' => $id_kavling,
@@ -1635,7 +1592,6 @@ class KeuanganService
                 'tagihan' => $tagihan,
                 'terms' => $terms,
                 'status_tagihan' => 'dibuat',
-                'ttd_img' => $ttd_img,
                 'add_by' => $actorId,
                 'date_add' => date('Y-m-d H:i:s'),
             ]);
