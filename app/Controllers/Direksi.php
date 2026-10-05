@@ -167,4 +167,58 @@ class Direksi extends BaseController
 
         return $this->response->setJSON($response);
     }
+    
+    // ---- Tanda Tangan Surat Tagihan ----
+    
+    public function tagihan()
+    {
+        $data = [
+            'title' => 'Persetujuan Surat Tagihan'
+        ];
+        return view('direksi/list-tagihan-pending', $data);
+    }
+
+    public function get_pending_tagihan()
+    {
+        $list = $this->db->table('invoice_log')
+            ->select('invoice_log.*, konsumen.nama_konsumen, proyek.nama_proyek, jalan.nama_jalan, kavling.no_kavling')
+            ->join('konsumen', 'konsumen.id_konsumen = invoice_log.id_konsumen', 'left')
+            ->join('kavling', 'kavling.id_kavling = invoice_log.id_kavling', 'left')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster', 'left')
+            ->join('proyek', 'cluster.id_proyek = proyek.id_proyek', 'left')
+            ->where('invoice_log.is_signed_direktur', 0)
+            ->where('invoice_log.nomor_surat IS NOT NULL')
+            ->orderBy('invoice_log.date_add', 'DESC')
+            ->get()->getResult();
+
+        return $this->response->setJSON([
+            'data' => $list
+        ]);
+    }
+
+    public function sign_tagihan()
+    {
+        $no_inv = $this->request->getPost('no_inv');
+        
+        if (empty($no_inv)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID Surat tidak ditemukan.']);
+        }
+
+        $userId = user_id();
+
+        $update = $this->db->table('invoice_log')
+            ->where('no_inv', $no_inv)
+            ->update([
+                'is_signed_direktur' => 1,
+                'signed_at' => date('Y-m-d H:i:s'),
+                'signed_by' => $userId
+            ]);
+
+        if ($update) {
+            return $this->response->setJSON(['success' => true, 'message' => 'Surat tagihan berhasil ditandatangani.', 'token' => csrf_hash()]);
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'Gagal menandatangani surat.', 'token' => csrf_hash()]);
+    }
 }

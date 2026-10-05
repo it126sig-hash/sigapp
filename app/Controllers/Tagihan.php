@@ -442,9 +442,23 @@ class Tagihan extends BaseController
         return $datatbel;
     }
 
+    
+
+        public function exportExcelTagihan(): ResponseInterface
+    {
+        $response = $this->keuanganService->exportExcelTagihan($this->request);
+        return $this->response->setJSON($response);
+    }
+
+    
+
+    
+    
+
     public function getListTagihanDetail(): ResponseInterface
     {
         $idMkdt = (int) $this->request->getPost('id_mkdt');
+        $statusLunas = $this->request->getPost('status_lunas');
 
         if ($idMkdt <= 0) {
             return $this->response->setJSON([
@@ -458,7 +472,7 @@ class Tagihan extends BaseController
         return $this->response->setJSON([
             'token'   => csrf_hash(),
             'success' => true,
-            'data'    => $this->keuanganService->getListTagihanDetail($idMkdt),
+            'data'    => $this->keuanganService->getListTagihanDetail($idMkdt, $statusLunas),
         ]);
     }
     ################################## end of untuk list tagihan ##########################
@@ -495,3 +509,6 @@ class Tagihan extends BaseController
         return $d;
     }
 }
+
+
+

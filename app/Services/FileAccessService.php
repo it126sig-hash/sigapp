@@ -52,6 +52,7 @@ class FileAccessService
         'poskon_export'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'tiket_masalah'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'bpb_file'          => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
+        'kop_surat'         => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
     ];
 
     private array $projectAssetRoles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -390,6 +391,12 @@ class FileAccessService
                     throw new RuntimeException('FORBIDDEN');
                 }
                 return $this->fileMeta($row->logical_path, $row->original_name, $this->sourceRoles[$source], $row);
+
+            case 'kop_surat':
+            case 'kopsurat':
+                $row = $this->db->table('kopsurat')->where('id', $id)->get()->getRow();
+                $this->assertRow($row);
+                return $this->fileMeta($row->lokasi, basename((string) $row->lokasi), $this->sourceRoles['kop_surat'], $row);
         }
 
         throw new RuntimeException('NOT_FOUND');

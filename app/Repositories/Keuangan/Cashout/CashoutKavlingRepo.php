@@ -6,11 +6,14 @@ use CodeIgniter\Database\BaseConnection;
 
 class CashoutKavlingRepo
 {
+    private const CASHOUT_LEDGER_SOURCES = ['bayar_produksi', 'cashout_subkon_allocation'];
+    private const PAJAK_LEDGER_SOURCES = ['pajak_pph42', 'pajak_ppn'];
+
     protected BaseConnection $db;
 
-    public function __construct()
+    public function __construct(?BaseConnection $db = null)
     {
-        $this->db = \Config\Database::connect();
+        $this->db = $db ?? \Config\Database::connect();
     }
 
     public function getDataTables(array $var): array
@@ -58,6 +61,7 @@ class CashoutKavlingRepo
                 COALESCE(co.total, 0) AS total_cashout_keu,
                 COALESCE(pr.total, 0) AS total_produksi,
                 COALESCE(sk.total, 0) AS total_subkon,
+                COALESCE(mgm.total, 0) AS total_mgm,
                 COALESCE(pj.total, 0) AS total_pajak
             ", false)
             ->join('jalan j', 'j.id_jalan = k.id_jalan')
@@ -90,6 +94,17 @@ class CashoutKavlingRepo
                 'left',
                 false
             )
+            ->join(
+                '(SELECT kv.id_kavling, SUM(rb.nominal_cair_keuangan) AS total '
+                . 'FROM referral_bonuses rb '
+                . 'JOIN referrals r ON r.id = rb.id_referral '
+                . 'JOIN kavling kv ON kv.id_mkdt = r.id_mkdt_referred '
+                . 'WHERE rb.cair_keuangan_at IS NOT NULL AND rb.nominal_cair_keuangan > 0 '
+                . 'GROUP BY kv.id_kavling) mgm',
+                'mgm.id_kavling = k.id_kavling',
+                'left',
+                false
+            )
             ->where('p.id_proyek', $idProyek);
 
         if ($search !== '') {
@@ -105,23 +120,108 @@ class CashoutKavlingRepo
 
     public function getDetailList(int $idKavling): array
     {
-        $sql = "
-            SELECT tanggal_bayar AS tanggal, cashout.nominal, cashout.keterangan COLLATE utf8mb4_general_ci AS keterangan, 'Keuangan' AS departemen, lc.item COLLATE utf8mb4_general_ci AS item
-                FROM cashout
-                LEFT JOIN list_cashout lc ON lc.id = cashout.id_item_cashout
-                WHERE cashout.id_kavling = ? AND cashout.is_deleted = 0
-            UNION ALL
-            SELECT tanggal_transaksi, nominal, keterangan COLLATE utf8mb4_general_ci, 'Produksi', label COLLATE utf8mb4_general_ci
-                FROM finance_ledger WHERE id_kavling = ? AND direction = 'expense' AND source_type = 'bayar_produksi' AND status = 'active' AND is_deleted = 0
-            UNION ALL
-            SELECT tanggal_transaksi, nominal, keterangan COLLATE utf8mb4_general_ci, 'Subkon', label COLLATE utf8mb4_general_ci
-                FROM finance_ledger WHERE id_kavling = ? AND direction = 'expense' AND source_type = 'cashout_subkon_allocation' AND status = 'active' AND is_deleted = 0
-            UNION ALL
-            SELECT tanggal_transaksi, nominal, keterangan COLLATE utf8mb4_general_ci, 'Pajak', label COLLATE utf8mb4_general_ci
-                FROM finance_ledger WHERE id_kavling = ? AND direction = 'expense' AND source_type IN ('pajak_pph42', 'pajak_ppn') AND status = 'active' AND is_deleted = 0
-            ORDER BY tanggal DESC
-        ";
+        $rows = array_merge($this->getCashoutRowsByKavling($idKavling), $this->getPajakRowsByKavling($idKavling));
+        usort($rows, static fn ($a, $b) => strcmp((string) $b->tanggal_transaksi, (string) $a->tanggal_transaksi));
 
-        return $this->db->query($sql, [$idKavling, $idKavling, $idKavling, $idKavling])->getResult();
+        return array_map(static function ($row) {
+            return (object) [
+                'tanggal' => $row->tanggal_transaksi,
+                'nominal' => $row->nominal,
+                'keterangan' => $row->keterangan,
+                'departemen' => $row->departemen,
+                'item' => $row->label,
+            ];
+        }, $rows);
+    }
+
+    public function getCashoutRowsByKavling(int $idKavling): array
+    {
+        $rows = [];
+        $cashoutRows = $this->db->table('cashout c')
+            ->select('c.id, c.nominal, c.tanggal_bayar, c.keterangan, lc.item')
+            ->join('list_cashout lc', 'lc.id = c.id_item_cashout', 'left')
+            ->where('c.id_kavling', $idKavling)
+            ->where('c.is_deleted', 0)
+            ->get()->getResult();
+
+        foreach ($cashoutRows as $row) {
+            $rows[] = (object) [
+                'nominal' => $row->nominal,
+                'tanggal_transaksi' => $row->tanggal_bayar,
+                'tanggal_bayar' => $row->tanggal_bayar,
+                'label' => $row->item ?: 'Cashout Keuangan',
+                'item' => $row->item ?: 'Cashout Keuangan',
+                'keterangan' => $row->keterangan,
+                'source_type' => 'cashout_keuangan',
+                'departemen' => 'Keuangan',
+            ];
+        }
+
+        if ($this->db->tableExists('finance_ledger')) {
+            $ledgerRows = $this->db->table('finance_ledger')
+                ->select('nominal, tanggal_transaksi, label, keterangan, source_type')
+                ->where('id_kavling', $idKavling)
+                ->where('direction', 'expense')
+                ->whereIn('source_type', self::CASHOUT_LEDGER_SOURCES)
+                ->where('status', 'active')
+                ->where('is_deleted', 0)
+                ->get()->getResult();
+
+            foreach ($ledgerRows as $row) {
+                $row->item = $row->label;
+                $row->departemen = $row->source_type === 'bayar_produksi' ? 'Produksi' : 'Subkon';
+                $rows[] = $row;
+            }
+        }
+
+        if ($this->db->tableExists('referral_bonuses')) {
+            $bonusRows = $this->db->table('referral_bonuses rb')
+                ->select('rb.nominal_cair_keuangan, rb.tanggal_cair_keuangan, rb.cair_keuangan_at, rb.keterangan, st.nama_tahapan')
+                ->join('referrals r', 'r.id = rb.id_referral')
+                ->join('kavling kv', 'kv.id_mkdt = r.id_mkdt_referred')
+                ->join('referral_bonus_stages st', 'st.id = rb.id_stage', 'left')
+                ->where('kv.id_kavling', $idKavling)
+                ->where('rb.cair_keuangan_at IS NOT NULL', null, false)
+                ->where('rb.nominal_cair_keuangan >', 0)
+                ->get()->getResult();
+
+            foreach ($bonusRows as $row) {
+                $label = 'Member Get Member - ' . ($row->nama_tahapan ?: 'Bonus');
+                $rows[] = (object) [
+                    'nominal' => $row->nominal_cair_keuangan,
+                    'tanggal_transaksi' => $row->tanggal_cair_keuangan ?: substr((string) $row->cair_keuangan_at, 0, 10),
+                    'label' => $label,
+                    'item' => $label,
+                    'keterangan' => $row->keterangan,
+                    'source_type' => 'member_get_member',
+                    'departemen' => 'MGM',
+                ];
+            }
+        }
+
+        usort($rows, static fn ($a, $b) => strcmp((string) $b->tanggal_transaksi, (string) $a->tanggal_transaksi));
+        return $rows;
+    }
+
+    private function getPajakRowsByKavling(int $idKavling): array
+    {
+        if (!$this->db->tableExists('finance_ledger')) {
+            return [];
+        }
+
+        $rows = $this->db->table('finance_ledger')
+            ->select('nominal, tanggal_transaksi, label, keterangan, source_type')
+            ->where('id_kavling', $idKavling)
+            ->where('direction', 'expense')
+            ->whereIn('source_type', self::PAJAK_LEDGER_SOURCES)
+            ->where('status', 'active')
+            ->where('is_deleted', 0)
+            ->get()->getResult();
+
+        foreach ($rows as $row) {
+            $row->departemen = 'Pajak';
+        }
+
+        return $rows;
     }
 }

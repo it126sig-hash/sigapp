@@ -7,10 +7,23 @@ use App\Services\Bpb\BpbService;
 use App\Services\FileAccessService;
 use CodeIgniter\Test\CIUnitTestCase;
 use Mpdf\Mpdf;
+use ReflectionClass;
+use ReflectionMethod;
 use setasign\Fpdi\PdfParser\StreamReader;
 
 final class BpbPdfServiceTest extends CIUnitTestCase
 {
+    public function testSignatureDateUsesIndonesianDateInJakartaTime(): void
+    {
+        $service = (new ReflectionClass(BpbPdfService::class))->newInstanceWithoutConstructor();
+
+        $this->assertTrue(method_exists(BpbPdfService::class, 'formatSignatureDate'));
+        $formatter = new ReflectionMethod(BpbPdfService::class, 'formatSignatureDate');
+
+        $this->assertSame('30 September 2026', $formatter->invoke($service, '2026-09-29 17:30:00 UTC'));
+        $this->assertSame('-', $formatter->invoke($service, ''));
+    }
+
     public function testRenderAppendsAspectRatioImagePagesAndPreservesEveryPdfPageSize(): void
     {
         $imagePaths = [

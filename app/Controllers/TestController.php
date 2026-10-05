@@ -1,0 +1,1 @@
+<?php namespace App\Controllers; use CodeIgniter\Controller; class TestController extends Controller { public function index() { $service = new \App\Services\MkdtSettlementService(); $res = $service->synchronize(251); return $this->response->setJSON($res); } }

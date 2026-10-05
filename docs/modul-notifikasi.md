@@ -2,7 +2,7 @@
 
 Dokumen ini adalah acuan teknis modul notifikasi SIGAPP. Update file ini setiap ada perubahan alur notifikasi, endpoint, tabel, service, command, konfigurasi delivery, atau side effect.
 
-Terakhir dicek: 2026-09-29
+Terakhir dicek: 2026-10-01
 
 ## Ringkasan
 
@@ -163,6 +163,8 @@ Frontend:
 - Prompt browser hanya muncul setelah user klik `Aktifkan Notifikasi`.
 - Response endpoint subscribe/unsubscribe wajib dicek `response.ok`; error 400/500 tidak boleh dilaporkan sukses.
 - Endpoint yang sama dipindahkan ke user login terbaru lewat `endpoint_hash`, sehingga browser yang berganti akun tidak menerima push akun lama.
+- Subscription push ditautkan ke `auth_device_sessions.device_session_id`. Setelah registri sesi perangkat tersedia, hanya subscription dengan sesi perangkat yang masih aktif dan belum kedaluwarsa yang ikut pengiriman; subscription lama yang belum tertaut tidak lagi dipakai.
+- Pencabutan/logout perangkat menonaktifkan subscription push terkait di transaksi yang sama, sehingga tidak menunggu browser mengirim unsubscribe.
 - Saat user menekan `Logout`, frontend mencoba memanggil `/api/notif/push/unsubscribe` untuk endpoint browser saat ini sebelum berpindah ke route logout. Logout tetap dilanjutkan walau unsubscribe gagal/timeout.
 - Login SIGAPP dibuat panjang: form login mengirim `remember=1`, `Auth::$allowRemembering = true`, `Auth::$rememberLength = 365 * DAY`, dan `Session::$expiration = 31536000`.
 
@@ -509,3 +511,6 @@ Mulai sekarang, notifikasi mendukung preferensi granular per user per channel (I
    - Save/reset preferensi merekalkulasi `in_app_visible` untuk row recipient user tersebut yang sudah ada.
    - Jika preferensi Email / Web Push dimatikan: row `notification_deliveries` untuk channel tersebut ditandai `preference_blocked` dengan `processed_at` terisi, bukan `pending`.
 5. **Caller Implementation**: Fungsi pembantu `tambah_notif` memilik signature argumen ke-9: `?string $eventType = null`. Pengembang wajib mengirim konstanta `NotificationEvent::NAMA_EVENT` setiap kali memanggil notifikasi dari Controller/Service agar Dynamic Resolution bisa berjalan.
+
+### Event Keuangan Rekonsiliasi
+- **`rekonsiliasi_keuangan`**: Dikirim ketika Keuangan menyimpan alokasi pembayaran yang melebihi tagihan item di MKDT atau item tersebut memiliki target Rp 0. Target default notifikasi ini adalah divisi **Marketing Data (group `4`)** dan `action_url` mengarahkan ke halaman `list-kavling`.

@@ -42,11 +42,11 @@ final class MkdtFinancialPaymentValidationTest extends CIUnitTestCase
 
     public function testGenericInstallmentMayBeBrokenDownIntoMultipleItems(): void
     {
-        $this->service->validatePaymentAllocation(1, [
+        $discrepancies = $this->service->validatePaymentAllocation(1, [
             ['id' => 2, 'nominal' => 3_000_000],
             ['id' => 7, 'nominal' => 2_000_000],
         ], 5_000_000);
-        $this->addToAssertionCount(1);
+        $this->assertEmpty($discrepancies);
     }
 
     public function testHeaderAndDetailMustBalance(): void
@@ -58,9 +58,9 @@ final class MkdtFinancialPaymentValidationTest extends CIUnitTestCase
 
     public function testAllocationCannotExceedItemTarget(): void
     {
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('melebihi sisa target');
-        $this->service->validatePaymentAllocation(1, [['id' => 2, 'nominal' => 3_500_000]], 3_500_000);
+        $discrepancies = $this->service->validatePaymentAllocation(1, [['id' => 2, 'nominal' => 3_500_000]], 3_500_000);
+        $this->assertNotEmpty($discrepancies);
+        $this->assertStringContainsString('melebihi sisa target', $discrepancies[0]);
     }
 
     public function testDeletedAndRefundedPaymentsDoNotConsumeTarget(): void
@@ -74,15 +74,15 @@ final class MkdtFinancialPaymentValidationTest extends CIUnitTestCase
             ['id_pembayaran_detail' => 11, 'id_pembayaran' => 11, 'id_keuangan_item_list' => 2, 'nominal' => 3_000_000],
         ]);
 
-        $this->service->validatePaymentAllocation(1, [['id' => 2, 'nominal' => 3_000_000]], 3_000_000);
-        $this->addToAssertionCount(1);
+        $discrepancies = $this->service->validatePaymentAllocation(1, [['id' => 2, 'nominal' => 3_000_000]], 3_000_000);
+        $this->assertEmpty($discrepancies);
     }
 
     public function testTargetMustExistBeforePayment(): void
     {
         $this->db->table('mkdt')->where('id_mkdt', 1)->update(['harga_biaya_proses' => 0]);
-        $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('rekonsiliasi');
-        $this->service->validatePaymentAllocation(1, [['id' => 7, 'nominal' => 1_000_000]], 1_000_000);
+        $discrepancies = $this->service->validatePaymentAllocation(1, [['id' => 7, 'nominal' => 1_000_000]], 1_000_000);
+        $this->assertNotEmpty($discrepancies);
+        $this->assertStringContainsString('belum tersedia (Rp 0)', $discrepancies[0]);
     }
 }

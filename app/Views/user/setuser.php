@@ -142,6 +142,13 @@
         </form>
       </div>
     </div>
+    <div class="modal fade" id="auth-devices-modal" tabindex="-1" role="dialog" aria-labelledby="auth-devices-title" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="auth-devices-title">Sesi Perangkat</h5><button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button></div>
+        <div class="modal-body"><div class="d-flex justify-content-between align-items-center mb-1"><span id="auth-devices-user" class="text-muted"></span><button type="button" class="btn btn-sm btn-outline-danger" id="admin-revoke-all-devices">Logout semua perangkat</button></div><div id="admin-auth-devices-list" aria-live="polite">Memuat perangkat…</div></div>
+        <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Tutup</button></div>
+      </div></div>
+    </div>
   </section>
 </div>
 </div>
@@ -159,6 +166,8 @@
 <script src="<?= base_url() ?>/app-assets/vendors/js/forms/validation/jquery.validate.min.js"></script>
 <script src="<?= base_url() ?>/app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
 <script src="<?= base_url() ?>/app-assets/vendors/js/extensions/polyfill.min.js"></script>
+<script>window.SIGAPP=window.SIGAPP||{};window.SIGAPP.adminAuthDevices={baseUrl:<?= json_encode(rtrim(base_url(), '/')) ?>,csrfName:<?= json_encode(csrf_token()) ?>,csrfHash:<?= json_encode(csrf_hash()) ?>};</script>
+<script src="<?= base_url() ?>assets/js/admin-auth-devices.js?v=<?= time() ?>"></script>
 <!-- <script src="https://adminlte.io/themes/v3/plugins/jquery-validation/additional-methods.min.js"></script> -->
 <!-- END: Page Vendor JS-->
 <script>

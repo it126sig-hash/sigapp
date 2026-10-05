@@ -205,9 +205,13 @@ class SimpleQrCode
         }
 
         $positions = $this->alignmentPatternPositions();
-        foreach ($positions as $x) {
-            foreach ($positions as $y) {
-                if (! $this->isFunction[$y][$x]) {
+        $lastPosition = count($positions) - 1;
+        foreach ($positions as $xIndex => $x) {
+            foreach ($positions as $yIndex => $y) {
+                $finderCorner = ($xIndex === 0 && $yIndex === 0)
+                    || ($xIndex === $lastPosition && $yIndex === 0)
+                    || ($xIndex === 0 && $yIndex === $lastPosition);
+                if (! $finderCorner) {
                     $this->drawAlignmentPattern($x, $y);
                 }
             }

@@ -8,6 +8,23 @@ use CodeIgniter\Router\RouteCollection;
 
 $routes->setAutoRoute(true);
 
+// Override Myth/Auth routes so successful login records a device session.
+$routes->get('login', '\\App\\Controllers\\Web\\DeviceAuthController::login', ['as' => 'login']);
+$routes->post('login', '\\App\\Controllers\\Web\\DeviceAuthController::attemptLogin');
+$routes->get('logout', '\\App\\Controllers\\Web\\DeviceAuthController::logout', ['filter' => []]);
+
+$routes->group('api/auth/devices', ['namespace' => 'App\\Controllers\\Api', 'filter' => 'login'], static function ($routes): void {
+    $routes->get('', 'AuthDeviceController::index');
+    $routes->post('(:num)/revoke', 'AuthDeviceController::revoke/$1', ['filter' => 'csrf']);
+    $routes->post('revoke-others', 'AuthDeviceController::revokeOthers', ['filter' => 'csrf']);
+});
+
+$routes->group('api/admin/users/(:num)/devices', ['namespace' => 'App\\Controllers\\Api', 'filter' => 'login'], static function ($routes): void {
+    $routes->get('', 'AdminAuthDeviceController::index/$1');
+    $routes->post('(:num)/revoke', 'AdminAuthDeviceController::revoke/$1/$2', ['filter' => 'csrf']);
+    $routes->post('revoke-all', 'AdminAuthDeviceController::revokeAll/$1', ['filter' => 'csrf']);
+});
+
 $routes->get('privacy-policy', '\App\Controllers\Web\LegalPageController::privacyPolicy');
 $routes->get('toc', '\App\Controllers\Web\LegalPageController::termsOfService');
 
@@ -211,6 +228,7 @@ $routes->get("/tagihan/list", 'Tagihan::listTagihan');
 $routes->post("/tagihan/list/ambil", 'Tagihan::getListTagihan');
 $routes->post("/tagihan/list/ambil-grouped", 'Tagihan::getListTagihanGrouped');
 $routes->post("/tagihan/list/detail", 'Tagihan::getListTagihanDetail');
+$routes->post("/tagihan/list/export-excel", 'Tagihan::exportExcelTagihan');
 
 //dana akad
 $routes->post("/danaakad/list/ambilsatu", 'Tagihan::getListTagihan');
@@ -415,10 +433,10 @@ $routes->group('api/kavling-request', ['namespace' => 'App\Controllers\Api', 'fi
     $routes->post('update-status', 'KavlingRequestController::updateStatus');
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Public API — No authentication required
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Public API â€” No authentication required
 // Throttle: 20 requests / 60 seconds per IP
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 $routes->group('api/public', [
     'namespace' => 'App\Controllers\Api',
     'filter'    => ['throttle:20,60', 'cors'],
@@ -428,7 +446,7 @@ $routes->group('api/public', [
         return response()->setStatusCode(204);
     });
 
-    // Validasi kode referral — POST only
+    // Validasi kode referral â€” POST only
     $routes->post('check-referral', 'PublicController::checkReferral');
 
     // Blok akses GET agar tidak bisa dibuka langsung di browser
@@ -436,3 +454,6 @@ $routes->group('api/public', [
         throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     });
 });
+
+
+

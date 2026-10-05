@@ -13,6 +13,14 @@ use App\Repositories\TransaksiRepository;
 use App\Repositories\SpptbRepository;
 use App\Models\MkdtModel;
 use Hermawan\DataTables\DataTable;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use App\Services\Bpb\ProfileSignatureService;
+use App\Services\Bpb\BpbFileService;
+use Myth\Auth\Password;
 
 
 class KeuanganService
@@ -487,11 +495,13 @@ class KeuanganService
             // })
             ->toJson();
     }
-    public function getListTagihanGrouped($request)
+    
+    public function getListTagihanJatuhTempoGrouped($request)
     {
-        $builder = $request->getVar('status_lunas') === '1'
-            ? $this->keuRepo->getLunasGroupedQuery()
-            : $this->keuRepo->getBelumLunasGroupedQuery();
+        $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+        
+        $today = date('Y-m-d');
+        $builder->where('keu_agg.jatuh_tempo_tgl <=', $today);
 
         $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
         if ($id_proyek)
@@ -546,14 +556,135 @@ class KeuanganService
                         'tipe_rumah'    => $value->tipe_pricelist,
                     ]
                 ]);
-                return '<button type="button" class="btn btn-primary btn-sm tagihan-pay-btn text-uppercase" onclick="open_keuangan(' . htmlspecialchars($sh, ENT_QUOTES, 'UTF-8') . ', 3, 0)"><i class="fas fa-receipt mr-25"></i> Bayar</button>';
+                return '<button type="button" class="btn btn-primary btn-sm" onclick="open_keuangan(' . htmlspecialchars($sh, ENT_QUOTES, 'UTF-8') . ', 3, 0)"><i class="fas fa-receipt mr-25"></i> Bayar</button>';
             }, 'first')
             ->addNumbering('no')
             ->edit('booking_tgl', function ($value) {
                 return $this->format_tgl($value->booking_tgl);
             })
+            // NOTE: Do NOT edit jatuh_tempo_tgl here so the frontend can parse Y-m-d
+            ->edit('is_kpr', function ($value) {
+                return $this->is_active($value->is_kpr, 'KPR', 'TUNAI');
+            })
+            ->edit('total_tagihan', function ($v) {
+                return number_format((float) $v->total_tagihan);
+            })
+            ->edit('sudah_bayar', function ($v) {
+                return number_format((float) $v->sudah_bayar);
+            })
+            ->edit('sisa_tagihan', function ($v) {
+                $value = number_format((float) $v->sisa_tagihan);
+                if ((int) ($v->perlu_rekonsiliasi ?? 0) === 1) {
+                    $value .= ' <span class="badge badge-warning">Perlu rekonsiliasi</span>';
+                }
+                return $value;
+            })
+            ->toJson(true);
+    }
+
+    public function getListTagihanGrouped($request)
+    {
+        $status_lunas = $request->getVar('status_lunas');
+        
+        if ($status_lunas === 'all') {
+            $builder = $this->keuRepo->getAllGroupedQuery();
+        } else if ($status_lunas === 'jatuh_tempo') {
+            $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+            $builder->where('keu_agg.jatuh_tempo_tgl <=', date('Y-m-d'));
+        } else {
+            // default to belum lunas (0)
+            $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+        }
+
+        $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
+        if ($id_proyek)
+            $builder->where('p.id_proyek', $id_proyek);
+        if ($request->getVar('id_cluster'))
+            $builder->where('cl.id_cluster', $request->getVar('id_cluster'));
+        if ($request->getVar('id_jalan'))
+            $builder->where('j.id_jalan', $request->getVar('id_jalan'));
+
+        $isKpr = $request->getVar('is_kpr');
+        if ($isKpr !== null && $isKpr !== '') {
+            $builder->where('m.is_kpr', $isKpr);
+        }
+
+        $bookingRange = $request->getVar('booking_tgl_range');
+        if (!empty($bookingRange)) {
+            $dates = explode(' to ', $bookingRange);
+            if (count($dates) === 2) {
+                $builder->where('m.booking_tgl >=', $dates[0]);
+                $builder->where('m.booking_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('m.booking_tgl', $dates[0]);
+            }
+        }
+
+        $jatuhTempoRange = $request->getVar('jatuh_tempo_tgl_range');
+        if (!empty($jatuhTempoRange)) {
+            $dates = explode(' to ', $jatuhTempoRange);
+            if (count($dates) === 2) {
+                $builder->where('keu_agg.jatuh_tempo_tgl >=', $dates[0]);
+                $builder->where('keu_agg.jatuh_tempo_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('keu_agg.jatuh_tempo_tgl', $dates[0]);
+            }
+        }
+
+        return DataTable::of($builder)
+            ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
+            ->add('Aksi', function ($value) {
+                if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+                    return '-';
+                }
+                $sh = json_encode([
+                    'data' => [
+                        'id_mkdt'     => $value->id_mkdt,
+                        'nama_proyek' => $value->nama_proyek,
+                        'nama_jalan'  => $value->nama_jalan,
+                        'no_kavling'  => $value->no_kavling,
+                    ],
+                    'data2' => [
+                        'no_tipe_rumah' => $value->no_tipe_rumah,
+                        'tipe_rumah'    => $value->tipe_pricelist,
+                    ]
+                ]);
+                return '<button type="button" class="btn btn-primary btn-sm" onclick="open_keuangan(' . htmlspecialchars($sh, ENT_QUOTES, 'UTF-8') . ', 3, 0)"><i class="fas fa-receipt mr-25"></i> Bayar</button>';
+            }, 'first')
+            ->addNumbering('no')
+            ->edit('booking_tgl', function ($value) {
+                return $this->format_tgl($value->booking_tgl);
+            })
+            ->add('jatuh_tempo_tgl_raw', function ($value) {
+                return $value->jatuh_tempo_tgl;
+            })
             ->edit('jatuh_tempo_tgl', function ($value) {
-                return $this->format_tgl($value->jatuh_tempo_tgl);
+                if (!$value->jatuh_tempo_tgl) return '-';
+                
+                $months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                $ts = strtotime($value->jatuh_tempo_tgl);
+                $dateStr = date('d', $ts) . ' ' . $months[date('n', $ts) - 1] . ' ' . date('Y', $ts);
+                
+                $today = new \DateTime(date('Y-m-d'));
+                $jtDate = new \DateTime($value->jatuh_tempo_tgl);
+                
+                $diff = $today->diff($jtDate);
+                $diffDays = (int) $diff->format('%r%a'); // positive if jtDate > today, negative if today > jtDate
+                
+                $sisa = $value->jumlah_tagihan ?? 0;
+                
+                if ($diffDays >= 0) {
+                    return '<div class="d-flex flex-column">
+                                <span class="">' . $dateStr . '</span>
+                                <span class="text-muted font-small-2">Sisa ' . $sisa . ' Tagihan</span>
+                            </div>';
+                } else {
+                    $telat = abs($diffDays);
+                    return '<div class="d-flex flex-column">
+                                <span class="">' . $dateStr . '</span>
+                                <span class="text-danger font-small-2 font-weight-bold">Sisa ' . $sisa . ' Tagihan terlambat ' . $telat . ' hari</span>
+                            </div>';
+                }
             })
             ->edit('is_kpr', function ($value) {
                 return $this->is_active($value->is_kpr, 'KPR', 'TUNAI');
@@ -574,7 +705,8 @@ class KeuanganService
             ->toJson(true);
     }
 
-    public function getListTagihanDetail(int $idMkdt): array
+    
+    public function getListTagihanJatuhTempoDetail(int $idMkdt): array
     {
         return array_map(static function ($row) {
             return [
@@ -586,7 +718,26 @@ class KeuanganService
                 'is_void'       => (int) ($row->is_void ?? 0),
                 'void_reason'   => $row->void_reason ?? '',
             ];
-        }, $this->keuRepo->getListTagihanDetailById($idMkdt));
+        }, $this->keuRepo->getListTagihanJatuhTempoDetailById($idMkdt));
+    }
+
+    public function getListTagihanDetail(int $idMkdt, $statusLunas = null): array
+    {
+        $data = $statusLunas === 'jatuh_tempo' 
+            ? $this->keuRepo->getListTagihanJatuhTempoDetailById($idMkdt)
+            : $this->keuRepo->getListTagihanDetailById($idMkdt);
+
+        return array_map(static function ($row) {
+            return [
+                'berita_acara'  => $row->berita_acara ?? '',
+                'jatuh_tempo_tgl' => $row->jatuh_tempo_tgl ?? null,
+                'nominal'       => (float) ($row->nominal ?? 0),
+                'sudah_dibayar' => (int) ($row->sudah_dibayar ?? 0),
+                'status'        => $row->status ?? '',
+                'is_void'       => (int) ($row->is_void ?? 0),
+                'void_reason'   => $row->void_reason ?? '',
+            ];
+        }, $data);
     }
 
     public function getTagihanById($id_mkdt, $isTurunKPR = false)
@@ -1042,5 +1193,493 @@ class KeuanganService
         if ($id == "1")
             $r = '<span class="btn btn-success btn-sm" text-capitalized="">' . $texts . '</span>';
         return $r;
+    }
+
+    public function exportExcelTagihan($request)
+    {
+        $status_lunas = $request->getVar('status_lunas');
+        $today = date('Y-m-d');
+        
+        if ($status_lunas === 'all') {
+            $builder = $this->keuRepo->getAllGroupedQuery();
+        } else if ($status_lunas === 'jatuh_tempo') {
+            $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+            $builder->where('keu_agg.jatuh_tempo_tgl <=', date('Y-m-d'));
+        } else {
+            // default to belum lunas (0)
+            $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+        }
+
+        $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
+        if ($id_proyek)
+            $builder->where('p.id_proyek', $id_proyek);
+        if ($request->getVar('id_cluster'))
+            $builder->where('cl.id_cluster', $request->getVar('id_cluster'));
+        if ($request->getVar('id_jalan'))
+            $builder->where('j.id_jalan', $request->getVar('id_jalan'));
+
+        $isKpr = $request->getVar('is_kpr');
+        if ($isKpr !== null && $isKpr !== '') {
+            $builder->where('m.is_kpr', $isKpr);
+        }
+
+        $bookingRange = $request->getVar('booking_tgl_range');
+        if (!empty($bookingRange)) {
+            $dates = explode(' to ', $bookingRange);
+            if (count($dates) === 2) {
+                $builder->where('m.booking_tgl >=', $dates[0]);
+                $builder->where('m.booking_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('m.booking_tgl', $dates[0]);
+            }
+        }
+
+        $jatuhTempoRange = $request->getVar('jatuh_tempo_tgl_range');
+        if (!empty($jatuhTempoRange)) {
+            $dates = explode(' to ', $jatuhTempoRange);
+            if (count($dates) === 2) {
+                $builder->where('keu_agg.jatuh_tempo_tgl >=', $dates[0]);
+                $builder->where('keu_agg.jatuh_tempo_tgl <=', $dates[1]);
+            } else if (count($dates) === 1) {
+                $builder->where('keu_agg.jatuh_tempo_tgl', $dates[0]);
+            }
+        }
+
+        $searchValue = $request->getVar('search_value');
+        if (!empty($searchValue)) {
+            $builder->groupStart()
+                ->like('c.nama_konsumen', $searchValue)
+                ->orLike('k.no_kavling', $searchValue)
+                ->orLike('j.nama_jalan', $searchValue)
+                ->groupEnd();
+        }
+
+        $builder->orderBy('keu_agg.jatuh_tempo_tgl', 'ASC');
+        $rekapData = $builder->get()->getResult();
+
+        $spreadsheet = new Spreadsheet();
+        
+        // =====================================
+        // SHEET 1: REKAP
+        // =====================================
+        $sheetRekap = $spreadsheet->getActiveSheet();
+        $sheetRekap->setTitle('REKAP');
+
+        $headersRekap = ['NO', 'KONSUMEN', 'BLOK / UNIT', 'NO KAVLING', 'TYPE', 'TUNAI/KPR', 'JATUH TEMPO TERDEKAT', 'KETERLAMBATAN (HARI)', 'TOTAL TAGIHAN', 'SUDAH BAYAR', 'SISA TAGIHAN', 'JUMLAH ITEM'];
+        
+        // Add headers
+        $col = 'A';
+        foreach ($headersRekap as $h) {
+            $sheetRekap->setCellValue($col . '1', $h);
+            $col++;
+        }
+
+        // Add Data
+        $rowNum = 2;
+        $no = 1;
+        $mkdtIds = [];
+        foreach ($rekapData as $row) {
+            $mkdtIds[] = $row->id_mkdt;
+
+            $diffTime = strtotime($today) - strtotime($row->jatuh_tempo_tgl);
+            $diffDays = floor($diffTime / (60 * 60 * 24));
+            
+            $sheetRekap->setCellValue('A' . $rowNum, $no++);
+            $sheetRekap->setCellValue('B' . $rowNum, $row->nama_konsumen);
+            $sheetRekap->setCellValue('C' . $rowNum, $row->nama_jalan);
+            $sheetRekap->setCellValueExplicit('D' . $rowNum, $row->no_kavling, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheetRekap->setCellValueExplicit('E' . $rowNum, $row->tipe_pricelist, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheetRekap->setCellValue('F' . $rowNum, $row->is_kpr === '1' || $row->is_kpr === 'KPR' ? 'KPR' : 'TUNAI');
+            
+            // Excel date formatting
+            $excelDate = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel(strtotime($row->jatuh_tempo_tgl));
+            $sheetRekap->setCellValue('G' . $rowNum, $excelDate);
+            $sheetRekap->getStyle('G' . $rowNum)->getNumberFormat()->setFormatCode('dd-mmm-yyyy');
+
+            $sheetRekap->setCellValue('H' . $rowNum, $diffDays);
+            
+            $sheetRekap->setCellValue('I' . $rowNum, (float)$row->total_tagihan);
+            $sheetRekap->setCellValue('J' . $rowNum, (float)$row->sudah_bayar);
+            $sheetRekap->setCellValue('K' . $rowNum, (float)$row->sisa_tagihan);
+            
+            $sheetRekap->getStyle('I'.$rowNum.':K'.$rowNum)->getNumberFormat()->setFormatCode('#,##0');
+            
+            $sheetRekap->setCellValue('L' . $rowNum, (int)$row->jumlah_tagihan);
+            
+            $rowNum++;
+        }
+        
+        // Add Total Row
+        if ($rowNum > 2) {
+            $sheetRekap->setCellValue('A' . $rowNum, 'TOTAL');
+            $sheetRekap->mergeCells('A' . $rowNum . ':H' . $rowNum);
+            $sheetRekap->getStyle('A' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $sheetRekap->setCellValue('I' . $rowNum, '=SUM(I2:I' . ($rowNum - 1) . ')');
+            $sheetRekap->setCellValue('J' . $rowNum, '=SUM(J2:J' . ($rowNum - 1) . ')');
+            $sheetRekap->setCellValue('K' . $rowNum, '=SUM(K2:K' . ($rowNum - 1) . ')');
+            $sheetRekap->getStyle('A' . $rowNum . ':L' . $rowNum)->getFont()->setBold(true);
+            $sheetRekap->getStyle('I' . $rowNum . ':K' . $rowNum)->getNumberFormat()->setFormatCode('#,##0');
+        }
+        
+        // Header styling
+        $lastColRekap = chr(ord('A') + count($headersRekap) - 1);
+        $sheetRekap->getStyle('A1:' . $lastColRekap . '1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2057a3']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        
+        foreach (range('A', $lastColRekap) as $c) {
+            $sheetRekap->getColumnDimension($c)->setAutoSize(true);
+        }
+        $sheetRekap->freezePane('A2');
+
+        // =====================================
+        // SHEET 2: DETAIL
+        // =====================================
+        $sheetDetail = $spreadsheet->createSheet();
+        $sheetDetail->setTitle('DETAIL');
+
+        $headersDetail = ['NO', 'KONSUMEN', 'BLOK / UNIT', 'NO KAVLING', 'TYPE', 'TUNAI/KPR', 'BERITA ACARA', 'JATUH TEMPO', 'KETERLAMBATAN (HARI)', 'STATUS', 'NOMINAL', 'PEMBAYARAN', 'STATUS PEMBAYARAN'];
+        
+        $col = 'A';
+        foreach ($headersDetail as $h) {
+            $sheetDetail->setCellValue($col . '1', $h);
+            $col++;
+        }
+
+        if (!empty($mkdtIds)) {
+            $detailData = $this->keuRepo->select([
+                'keuangan.id_mkdt', 'keuangan.berita_acara', 'keuangan.jatuh_tempo_tgl',
+                'keuangan.nominal', 'keuangan.sudah_dibayar', 'keuangan.status', 'keuangan.is_void'
+            ])
+            ->whereIn('keuangan.id_mkdt', $mkdtIds)
+            ->where('keuangan.sudah_dibayar', 0)
+            ->where('keuangan.jatuh_tempo_tgl <=', $today)
+            ->orderBy('keuangan.jatuh_tempo_tgl', 'ASC')
+            ->findAll();
+
+            // Group detail by mkdt
+            $groupedDetail = [];
+            foreach ($detailData as $d) {
+                $groupedDetail[$d->id_mkdt][] = $d;
+            }
+
+            $rowNumD = 2;
+            $noD = 1;
+            foreach ($rekapData as $parent) {
+                if (isset($groupedDetail[$parent->id_mkdt])) {
+                    foreach ($groupedDetail[$parent->id_mkdt] as $child) {
+                        $diffTimeD = strtotime($today) - strtotime($child->jatuh_tempo_tgl);
+                        $diffDaysD = floor($diffTimeD / (60 * 60 * 24));
+                        
+                        $statusPembayaran = 'BELUM LUNAS';
+                        if ($child->is_void == 1) $statusPembayaran = 'VOID';
+                        else if ($child->sudah_dibayar == 1) $statusPembayaran = 'LUNAS';
+
+                        $sheetDetail->setCellValue('A' . $rowNumD, $noD++);
+                        $sheetDetail->setCellValue('B' . $rowNumD, $parent->nama_konsumen);
+                        $sheetDetail->setCellValue('C' . $rowNumD, $parent->nama_jalan);
+                        $sheetDetail->setCellValueExplicit('D' . $rowNumD, $parent->no_kavling, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                        $sheetDetail->setCellValueExplicit('E' . $rowNumD, $parent->tipe_pricelist, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                        $sheetDetail->setCellValue('F' . $rowNumD, $parent->is_kpr === '1' || $parent->is_kpr === 'KPR' ? 'KPR' : 'TUNAI');
+                        
+                        $sheetDetail->setCellValue('G' . $rowNumD, $child->berita_acara);
+                        
+                        $excelDateD = \PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel(strtotime($child->jatuh_tempo_tgl));
+                        $sheetDetail->setCellValue('H' . $rowNumD, $excelDateD);
+                        $sheetDetail->getStyle('H' . $rowNumD)->getNumberFormat()->setFormatCode('dd-mmm-yyyy');
+                        
+                        $sheetDetail->setCellValue('I' . $rowNumD, $diffDaysD);
+                        $sheetDetail->setCellValue('J' . $rowNumD, $child->status);
+                        
+                        $sheetDetail->setCellValue('K' . $rowNumD, (float)$child->nominal);
+                        // Note: The detail query doesn't have partial payment amount historically on child row unless mapped. We use 0 as specified in example if not available
+                        $sheetDetail->setCellValue('L' . $rowNumD, (float)($child->sudah_dibayar == 1 ? $child->nominal : 0));
+                        
+                        $sheetDetail->getStyle('K'.$rowNumD.':L'.$rowNumD)->getNumberFormat()->setFormatCode('#,##0');
+                        
+                        $sheetDetail->setCellValue('M' . $rowNumD, $statusPembayaran);
+                        
+                        $rowNumD++;
+                    }
+                }
+            }
+        }
+
+        $lastColDetail = chr(ord('A') + count($headersDetail) - 1);
+        $sheetDetail->getStyle('A1:' . $lastColDetail . '1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2057a3']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        foreach (range('A', $lastColDetail) as $c) {
+            $sheetDetail->getColumnDimension($c)->setAutoSize(true);
+        }
+        $sheetDetail->freezePane('A2');
+        
+        $spreadsheet->setActiveSheetIndex(0);
+
+        ob_start();
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('php://output');
+        $xlsData = ob_get_contents();
+        ob_end_clean();
+
+        return [
+            'status' => true,
+            'file'   => "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," . base64_encode($xlsData)
+        ];
+    }
+
+
+    // ---- Fitur Penagihan Baru ----
+    
+    public function getRiwayatTagihan($request): array
+    {
+        $id_mkdt = $request->getVar('id_mkdt');
+        
+        $riwayat = $this->db->table('invoice_log i')
+            ->select('i.*, u.nama_karyawan as pembuat')
+            ->join('karyawan u', 'u.id_user = i.add_by', 'left')
+            ->where('i.id_mkdt', $id_mkdt)
+            ->orderBy('i.date_add', 'DESC')
+            ->get()->getResultArray();
+            
+        foreach ($riwayat as &$r) {
+            $logs = $this->db->table('invoice_status_log l')
+                ->select('l.*, k.nama_karyawan as pembuat')
+                ->join('karyawan k', 'k.id_user = l.add_by', 'left')
+                ->where('l.no_inv', $r['no_inv'])
+                ->orderBy('l.date_add', 'ASC')
+                ->orderBy('l.id', 'ASC')
+                ->get()->getResultArray();
+
+            $hasDibuat = false;
+            foreach ($logs as $lg) {
+                if (strtolower($lg['status']) === 'dibuat') {
+                    $hasDibuat = true;
+                    break;
+                }
+            }
+
+            if (! $hasDibuat && ! empty($r['no_inv'])) {
+                array_unshift($logs, [
+                    'id' => 0,
+                    'no_inv' => $r['no_inv'],
+                    'status' => 'dibuat',
+                    'tanggal' => $r['tanggal_invoice'] ?: date('Y-m-d', strtotime($r['date_add'])),
+                    'keterangan' => 'Surat penagihan berhasil dibuat.',
+                    'add_by' => $r['add_by'],
+                    'date_add' => $r['date_add'],
+                    'pembuat' => $r['pembuat'] ?: '-'
+                ]);
+            }
+
+            $r['lifecycle'] = $logs;
+        }
+            
+        return [
+            'token' => csrf_hash(),
+            'success' => true,
+            'data' => $riwayat
+        ];
+    }
+    
+    public function simpanPenagihan($request, int $actorId): array
+    {
+        $response = [
+            'token' => csrf_hash(),
+            'success' => false,
+            'messages' => 'Terjadi kesalahan saat menyimpan invoice',
+        ];
+
+        $id_mkdt = $request->getVar('id_mkdt');
+        $id_konsumen = $request->getVar('id_konsumen');
+        $id_kavling = $request->getVar('id_kavling');
+        $id_kopsurat = $request->getVar('id_kopsurat');
+        $tanggal_invoice = $request->getVar('tanggal_invoice');
+        $tanggal_jatuh_tempo = $request->getVar('tanggal_jatuh_tempo');
+        $terms = $request->getVar('terms');
+        $tagihan = $request->getVar('tagihan'); // JSON array of items
+
+        // Pastikan id_konsumen dan id_kavling selalu valid dengan auto-lookup dari mkdt jika kosong
+        if (empty($id_konsumen) || empty($id_kavling)) {
+            $mkdtRow = $this->db->table('mkdt')->where('id_mkdt', $id_mkdt)->get()->getRow();
+            if ($mkdtRow) {
+                if (empty($id_konsumen)) $id_konsumen = $mkdtRow->id_konsumen;
+                if (empty($id_kavling)) $id_kavling = $mkdtRow->id_kavling;
+            }
+        }
+        
+        // Signature & input verification are removed
+        $nomor_surat = $request->getVar('nomor_surat');
+        
+        if (empty($id_mkdt)) {
+            $response['messages'] = 'Data transaksi/konsumen (MKDT) tidak ditemukan.';
+            return $response;
+        }
+
+        // 1. Validasi Kop Surat
+        if (empty($id_kopsurat)) {
+            $response['messages'] = 'Silakan pilih Kop Surat terlebih dahulu.';
+            return $response;
+        }
+
+        $kop = $this->db->table('kopsurat')->where('id', $id_kopsurat)->get()->getRow();
+        if (!$kop) {
+            $response['messages'] = 'Kop Surat yang dipilih tidak valid atau sudah dihapus.';
+            return $response;
+        }
+
+        // 2. Validasi Item Tagihan
+        if (empty($tagihan) || $tagihan === '[]') {
+            $response['messages'] = 'Tidak ada item tagihan untuk dibuatkan invoice.';
+            return $response;
+        }
+        
+        // 3. Validasi Nomor Surat
+        if (empty($nomor_surat) || trim((string)$nomor_surat) === '') {
+            $response['messages'] = 'Nomor Surat wajib diisi.';
+            return $response;
+        }
+        
+        // Cek duplikat Nomor Surat
+        $cekDuplikat = $this->db->table('invoice_log')
+            ->where('nomor_surat', trim((string)$nomor_surat))
+            ->get()->getRow();
+            
+        if ($cekDuplikat) {
+            $response['messages'] = 'Nomor Surat ini sudah digunakan. Silakan masukkan nomor surat yang lain.';
+            return $response;
+        }
+        
+
+        // Generate No Invoice auto
+        // e.g., INV/2026/10/0001
+        $y = date('Y');
+        $m = date('m');
+        $prefix = "INV/$y/$m/";
+        
+        $lastInv = $this->db->table('invoice_log')
+            ->where("no_inv LIKE '$prefix%'")
+            ->orderBy('no_inv', 'DESC')
+            ->get()->getRow();
+            
+        if ($lastInv) {
+            $lastNum = (int) substr($lastInv->no_inv, -4);
+            $newNum = str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
+        } else {
+            $newNum = '0001';
+        }
+        $no_inv = $prefix . $newNum;
+
+        $db = $this->db;
+        $db->transException(true);
+
+        try {
+            $db->transStart();
+
+            $saved = $db->table('invoice_log')->insert([
+                'no_inv' => $no_inv,
+                'nomor_surat' => trim((string)$nomor_surat),
+                'id_mkdt' => $id_mkdt,
+                'id_konsumen' => $id_konsumen,
+                'id_kavling' => $id_kavling,
+                'id_kopsurat' => $id_kopsurat,
+                'tanggal_invoice' => $tanggal_invoice,
+                'tanggal_jatuh_tempo' => $tanggal_jatuh_tempo,
+                'tagihan' => $tagihan,
+                'terms' => $terms,
+                'status_tagihan' => 'dibuat',
+                'add_by' => $actorId,
+                'date_add' => date('Y-m-d H:i:s'),
+            ]);
+
+            if (! $saved) {
+                throw new \RuntimeException('Gagal menambahkan invoice');
+            }
+            
+            $db->table('invoice_status_log')->insert([
+                'no_inv' => $no_inv,
+                'status' => 'dibuat',
+                'tanggal' => date('Y-m-d'),
+                'keterangan' => 'Surat penagihan berhasil dibuat.',
+                'add_by' => $actorId,
+                'date_add' => date('Y-m-d H:i:s')
+            ]);
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            return [
+                'token' => csrf_hash(),
+                'success' => true,
+                'messages' => 'Tagihan berhasil dibuat',
+            ];
+        } catch (\Throwable $e) {
+            try {
+                $db->transRollback();
+            } catch (\Throwable $rollbackError) {
+                // Ignore rollback error
+            }
+            $response['messages'] = $e->getMessage();
+            return $response;
+        }
+    }
+    
+    public function updateStatusPenagihan($request, int $actorId): array
+    {
+        $response = [
+            'token' => csrf_hash(),
+            'success' => false,
+            'messages' => 'Terjadi kesalahan',
+        ];
+
+        $no_inv = $request->getVar('no_inv');
+        $status_tagihan = $request->getVar('status_tagihan');
+        $tanggal_ubah_status = $request->getVar('tanggal_ubah_status');
+        $keterangan_status = $request->getVar('keterangan_status');
+        
+        if (empty($no_inv) || empty($status_tagihan)) {
+            $response['messages'] = 'Data tidak lengkap';
+            return $response;
+        }
+        
+        $this->db->table('invoice_log')
+            ->where('no_inv', $no_inv)
+            ->update([
+                'status_tagihan' => $status_tagihan,
+                'tanggal_ubah_status' => $tanggal_ubah_status,
+                'keterangan_status' => $keterangan_status,
+                'date_edit' => date('Y-m-d H:i:s'),
+                'edit_by' => $actorId
+            ]);
+            
+        $this->db->table('invoice_status_log')->insert([
+            'no_inv' => $no_inv,
+            'status' => $status_tagihan,
+            'tanggal' => $tanggal_ubah_status,
+            'keterangan' => $keterangan_status,
+            'add_by' => $actorId,
+            'date_add' => date('Y-m-d H:i:s')
+        ]);
+            
+        return [
+            'token' => csrf_hash(),
+            'success' => true,
+            'messages' => 'Status berhasil diubah',
+        ];
+    }
+    
+    public function setTanggalKirim($no_inv): void
+    {
+        $inv = $this->db->table('invoice_log')->select('tanggal_kirim')->where('no_inv', $no_inv)->get()->getRow();
+        if ($inv && empty($inv->tanggal_kirim)) {
+            $this->db->table('invoice_log')->where('no_inv', $no_inv)->update(['tanggal_kirim' => date('Y-m-d H:i:s')]);
+        }
     }
 }

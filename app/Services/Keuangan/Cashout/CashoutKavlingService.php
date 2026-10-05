@@ -40,8 +40,9 @@ class CashoutKavlingService
             $totalCashout = (float) $row->total_cashout_keu;
             $totalProduksi = (float) $row->total_produksi;
             $totalSubkon = (float) $row->total_subkon;
+            $totalMgm = (float) $row->total_mgm;
             $totalPajak = (float) $row->total_pajak;
-            $grandTotal = $totalCashout + $totalProduksi + $totalSubkon + $totalPajak;
+            $grandTotal = $totalCashout + $totalProduksi + $totalSubkon + $totalMgm;
 
             $detailCell = '<button type="button" class="btn btn-sm btn-outline-secondary btn-ck-detail" data-id-kavling="' . (int) $row->id_kavling . '"><i class="fa fa-chevron-down"></i></button>';
             if ($canKeuangan) {
@@ -62,6 +63,7 @@ class CashoutKavlingService
                 $this->nominalButton($totalCashout, 'ck-open-cashout', $payload),
                 $this->nominalButton($totalProduksi, 'ck-open-produksi', $payload, empty($row->id_mkdt)),
                 $this->formatNumber($totalSubkon) . ' <a href="' . base_url('cashout/subkon') . '" target="_blank" class="d-block small">Lihat SPK &rarr;</a>',
+                $this->formatNumber($totalMgm),
                 $this->nominalButton($totalPajak, 'ck-open-pajak', $payload, empty($row->id_mkdt)),
                 '<strong>' . $this->formatNumber($grandTotal) . '</strong>',
             ];
