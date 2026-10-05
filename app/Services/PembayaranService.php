@@ -100,7 +100,7 @@ class PembayaranService
             $db->transException(true)->transBegin();
 
             $this->bookingService->assertManualAllocationAllowed((int) $form['id_mkdt'], $pembayaran);
-            $this->financialBreakdownService->validatePaymentAllocation(
+            $discrepancies = $this->financialBreakdownService->validatePaymentAllocation(
                 (int) $form['id_mkdt'],
                 $pembayaran,
                 (float) $form['nominal']
@@ -144,6 +144,40 @@ class PembayaranService
                 throw new \RuntimeException('Transaksi gagal');
             }
             $db->transCommit();
+            
+            if (!empty($discrepancies)) {
+                $kavlingData = $this->kavRepo->getKavlingByIdMkdt((int) $form['id_mkdt']);
+                if ($kavlingData) {
+                    $itemNames = array_map(function($v) use ($allKategori) {
+                        foreach ($allKategori as $kat) {
+                            if ($kat->id_keuangan_item_list == $v['id']) return $kat->item;
+                        }
+                        return 'Item Tidak Diketahui';
+                    }, $pembayaran);
+                    
+                    $pesan = sprintf(
+                        "Pembayaran Kavling %s No. %s (%s): Alokasi %s tidak sesuai list tagihan MKDT. Perlu rekonsiliasi. Detail: %s",
+                        $kavlingData['nama_jalan'] ?? '-',
+                        $kavlingData['no_kavling'] ?? '-',
+                        $kavlingData['nama_konsumen'] ?? '-',
+                        implode(', ', $itemNames),
+                        implode('; ', $discrepancies)
+                    );
+                    
+                    $actionUrl = 'list-kavling?search=' . urlencode($kavlingData['nama_konsumen'] ?? '');
+                    $this->notif->tambah_notif(
+                        '4', 
+                        $pesan, 
+                        user_id(), 
+                        $kavlingData['id_kavling'] ?? null, 
+                        $kavlingData['id_konsumen'] ?? null, 
+                        \App\Enums\NotificationEvent::REKONSILIASI_KEUANGAN, 
+                        $kavlingData['id_proyek'] ?? null, 
+                        $actionUrl
+                    );
+                }
+            }
+            
             $response = [
                 'status' => true,
                 'message' => 'Pembayaran berhasil',

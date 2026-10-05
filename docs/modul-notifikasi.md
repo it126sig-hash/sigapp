@@ -511,3 +511,6 @@ Mulai sekarang, notifikasi mendukung preferensi granular per user per channel (I
    - Save/reset preferensi merekalkulasi `in_app_visible` untuk row recipient user tersebut yang sudah ada.
    - Jika preferensi Email / Web Push dimatikan: row `notification_deliveries` untuk channel tersebut ditandai `preference_blocked` dengan `processed_at` terisi, bukan `pending`.
 5. **Caller Implementation**: Fungsi pembantu `tambah_notif` memilik signature argumen ke-9: `?string $eventType = null`. Pengembang wajib mengirim konstanta `NotificationEvent::NAMA_EVENT` setiap kali memanggil notifikasi dari Controller/Service agar Dynamic Resolution bisa berjalan.
+
+### Event Keuangan Rekonsiliasi
+- **`rekonsiliasi_keuangan`**: Dikirim ketika Keuangan menyimpan alokasi pembayaran yang melebihi tagihan item di MKDT atau item tersebut memiliki target Rp 0. Target default notifikasi ini adalah divisi **Marketing Data (group `4`)** dan `action_url` mengarahkan ke halaman `list-kavling`.

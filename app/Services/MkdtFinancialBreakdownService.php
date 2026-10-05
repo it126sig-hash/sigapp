@@ -122,7 +122,7 @@ class MkdtFinancialBreakdownService
         }
     }
 
-    public function validatePaymentAllocation(int $idMkdt, array $allocations, float $headerNominal): void
+    public function validatePaymentAllocation(int $idMkdt, array $allocations, float $headerNominal): array
     {
         $db = $this->requireDb();
         if ($headerNominal <= 0 || $allocations === []) {
@@ -151,6 +151,7 @@ class MkdtFinancialBreakdownService
 
         $paid = $this->paidByEffectiveItem($idMkdt, $masters);
         $incoming = [];
+        $discrepancies = [];
         foreach ($allocations as $allocation) {
             $id = (int) ($allocation['id'] ?? 0);
             $nominal = (float) ($allocation['nominal'] ?? 0);
@@ -159,7 +160,8 @@ class MkdtFinancialBreakdownService
             }
             $key = $this->effectiveTargetKey($masters[$id]);
             if ($key === null) {
-                throw new \DomainException('Target MKDT untuk item pembayaran tidak dikenal. Perlu rekonsiliasi.');
+                $discrepancies[] = "Item {$masters[$id]['item']} tidak dikenali target MKDT-nya.";
+                continue;
             }
             $incoming[$key] = ($incoming[$key] ?? 0) + $nominal;
         }
@@ -168,12 +170,13 @@ class MkdtFinancialBreakdownService
             $target = (float) ($targets['components'][$key] ?? 0);
             $remaining = $target - (float) ($paid[$key] ?? 0);
             if ($target <= 0) {
-                throw new \DomainException("Target MKDT untuk {$key} belum tersedia. Lakukan rekonsiliasi terlebih dahulu.");
-            }
-            if ($nominal - $remaining > 0.01) {
-                throw new \DomainException("Pembayaran {$key} melebihi sisa target MKDT.");
+                $discrepancies[] = "Target MKDT untuk {$key} belum tersedia (Rp 0), tapi ada pembayaran.";
+            } elseif ($nominal - $remaining > 0.01) {
+                $discrepancies[] = "Pembayaran {$key} melebihi sisa target MKDT.";
             }
         }
+        
+        return $discrepancies;
     }
 
     private function paidByEffectiveItem(int $idMkdt, array $masters): array
