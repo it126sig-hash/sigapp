@@ -1446,6 +1446,39 @@ class KeuanganService
             ->orderBy('i.date_add', 'DESC')
             ->get()->getResultArray();
             
+        foreach ($riwayat as &$r) {
+            $logs = $this->db->table('invoice_status_log l')
+                ->select('l.*, k.nama_karyawan as pembuat')
+                ->join('karyawan k', 'k.id_user = l.add_by', 'left')
+                ->where('l.no_inv', $r['no_inv'])
+                ->orderBy('l.date_add', 'ASC')
+                ->orderBy('l.id', 'ASC')
+                ->get()->getResultArray();
+
+            $hasDibuat = false;
+            foreach ($logs as $lg) {
+                if (strtolower($lg['status']) === 'dibuat') {
+                    $hasDibuat = true;
+                    break;
+                }
+            }
+
+            if (! $hasDibuat && ! empty($r['no_inv'])) {
+                array_unshift($logs, [
+                    'id' => 0,
+                    'no_inv' => $r['no_inv'],
+                    'status' => 'dibuat',
+                    'tanggal' => $r['tanggal_invoice'] ?: date('Y-m-d', strtotime($r['date_add'])),
+                    'keterangan' => 'Surat penagihan berhasil dibuat.',
+                    'add_by' => $r['add_by'],
+                    'date_add' => $r['date_add'],
+                    'pembuat' => $r['pembuat'] ?: '-'
+                ]);
+            }
+
+            $r['lifecycle'] = $logs;
+        }
+            
         return [
             'token' => csrf_hash(),
             'success' => true,
@@ -1610,6 +1643,15 @@ class KeuanganService
             if (! $saved) {
                 throw new \RuntimeException('Gagal menambahkan invoice');
             }
+            
+            $db->table('invoice_status_log')->insert([
+                'no_inv' => $no_inv,
+                'status' => 'dibuat',
+                'tanggal' => date('Y-m-d'),
+                'keterangan' => 'Surat penagihan berhasil dibuat.',
+                'add_by' => $actorId,
+                'date_add' => date('Y-m-d H:i:s')
+            ]);
 
             $db->transComplete();
 
@@ -1660,6 +1702,15 @@ class KeuanganService
                 'date_edit' => date('Y-m-d H:i:s'),
                 'edit_by' => $actorId
             ]);
+            
+        $this->db->table('invoice_status_log')->insert([
+            'no_inv' => $no_inv,
+            'status' => $status_tagihan,
+            'tanggal' => $tanggal_ubah_status,
+            'keterangan' => $keterangan_status,
+            'add_by' => $actorId,
+            'date_add' => date('Y-m-d H:i:s')
+        ]);
             
         return [
             'token' => csrf_hash(),

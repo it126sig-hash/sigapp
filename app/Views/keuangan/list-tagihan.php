@@ -986,7 +986,7 @@
       const row = listTagihanTable.row($tr).data();
       if (!row) return;
       if (typeof window.openModalPenagihan === 'function') {
-        window.openModalPenagihan(row, 'tab_buat_tagihan');
+        window.openModalPenagihan(row, 'tab_riwayat_tagihan');
       }
     });
 
@@ -996,7 +996,7 @@
       $('#detailDrawerModal').modal('hide');
       $('#detailDrawerModal').one('hidden.bs.modal', function() {
         if (row && typeof window.openModalPenagihan === 'function') {
-          window.openModalPenagihan(row, 'tab_buat_tagihan');
+          window.openModalPenagihan(row, 'tab_riwayat_tagihan');
         }
       });
     });

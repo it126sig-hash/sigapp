@@ -44,21 +44,40 @@
     <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document" style="max-height: 100vh;">
         <div class="modal-content" style="max-height: 95vh;">
             <div class="modal-header d-flex flex-column align-items-start pb-0">
-                <div class="d-flex w-100 justify-content-between align-items-center mb-1">
-                    <h5 class="modal-title" id="modalPenagihanLabel">Penagihan</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="w-100">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h5 class="modal-title text-uppercase font-weight-bolder" id="modalPenagihanLabel" style="letter-spacing: 1px;">Penagihan</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Info box -->
+                    <div class="d-flex justify-content-between align-items-center p-1 rounded mb-1" style="border: 1px solid #e2e8f0; background: #f8fafc;">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar avatar-lg bg-light-primary mr-1">
+                                <span class="avatar-content font-weight-bolder" id="tagihan_avatar_initial">AS</span>
+                            </div>
+                            <div>
+                                <h6 class="mb-25 font-weight-bolder text-dark text-uppercase" id="tagihan_header_konsumen">...</h6>
+                                <small class="text-muted text-uppercase" id="tagihan_header_kavling">...</small>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <small class="text-muted d-block text-uppercase mb-25">Sisa Tagihan</small>
+                            <h5 class="font-weight-bolder text-danger mb-0" id="tagihan_header_sisa">Rp 0</h5>
+                        </div>
+                    </div>
                 </div>
                 <!-- Tabs as part of fixed header -->
                 <ul class="nav nav-tabs mb-0 w-100 border-bottom-0" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" id="tab_riwayat_tagihan-tab" data-toggle="tab" href="#tab_riwayat_tagihan"
-                            aria-controls="tab_riwayat_tagihan" role="tab" aria-selected="true">Riwayat Tagihan</a>
+                        <a class="nav-link active font-weight-bold" id="tab_riwayat_tagihan-tab" data-toggle="tab" href="#tab_riwayat_tagihan"
+                            aria-controls="tab_riwayat_tagihan" role="tab" aria-selected="true">DAFTAR SURAT</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="tab_buat_tagihan-tab" data-toggle="tab" href="#tab_buat_tagihan"
-                            aria-controls="tab_buat_tagihan" role="tab" aria-selected="false">Buat Tagihan</a>
+                        <a class="nav-link font-weight-bold" id="tab_buat_tagihan-tab" data-toggle="tab" href="#tab_buat_tagihan"
+                            aria-controls="tab_buat_tagihan" role="tab" aria-selected="false">BUAT SURAT</a>
                     </li>
                 </ul>
             </div>
@@ -68,26 +87,81 @@
                 <div class="tab-content">
                     <!-- Tab Riwayat Tagihan -->
                     <div class="tab-pane active px-1 py-1" id="tab_riwayat_tagihan" aria-labelledby="tab_riwayat_tagihan-tab" role="tabpanel">
-                        <div class="card invoice-preview-card mb-0 shadow-none border-0">
-                            <div class="card-body p-1">
+                        <div class="row m-0 border rounded" style="background: #fff; min-height: 400px;">
+                            <!-- Left side: Table -->
+                            <div class="col-md-7 p-1 border-right" id="riwayat_left_pane">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div>
+                                        <h6 class="font-weight-bolder mb-25">Daftar Surat Penagihan</h6>
+                                        <small class="text-muted">Pilih salah satu surat untuk melihat riwayat surat.</small>
+                                    </div>
+                                    <button type="button" class="btn btn-primary btn-sm font-weight-bold" onclick="$('#tab_buat_tagihan-tab').tab('show');">
+                                        <i class="fas fa-plus mr-25"></i> Buat Surat
+                                    </button>
+                                </div>
                                 <div class="table-responsive">
-                                    <table class="table table-bordered mb-0" id="tbl-riwayat-tagihan">
-                                        <thead class="thead-light">
+                                    <style>
+                                        #tbl-riwayat-tagihan tbody tr { cursor: pointer; }
+                                        #tbl-riwayat-tagihan tbody tr.selected td { background-color: #f8fbff; border-color: #c9ddf5; }
+                                        #tbl-riwayat-tagihan thead th { background: #f9fafb; border-bottom: 1px solid #e5e7eb; color: #6b7280; font-size: .7rem; font-weight: 700; letter-spacing: 0.05em; padding: .5rem; }
+                                        #tbl-riwayat-tagihan tbody td { padding: .75rem .5rem; vertical-align: middle; border-bottom: 1px solid #f3f4f6; }
+                                    </style>
+                                    <table class="table table-borderless mb-0" id="tbl-riwayat-tagihan">
+                                        <thead>
                                             <tr>
-                                                <th>No Invoice</th>
-                                                <th>Tanggal Terbit</th>
-                                                <th>Jatuh Tempo</th>
-                                                <th>Status</th>
-                                                <th>Tgl Ubah Status</th>
-                                                <th>Keterangan</th>
-                                                <th>Dibuat Oleh</th>
-                                                <th>Aksi</th>
+                                                <th class="text-uppercase">No</th>
+                                                <th class="text-uppercase">Tanggal Terbit</th>
+                                                <th class="text-uppercase">Status</th>
+                                                <th class="text-uppercase">Update Terakhir</th>
+                                                <th class="text-uppercase text-center">Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody id="list_riwayat_tagihan-here">
-                                            <tr><td colspan="8" class="text-center">Memuat riwayat...</td></tr>
+                                            <tr><td colspan="5" class="text-center">Memuat riwayat...</td></tr>
                                         </tbody>
                                     </table>
+                                </div>
+                            </div>
+                            <!-- Right side: Detail -->
+                            <div class="col-md-5 p-1 bg-light d-flex flex-column position-relative" id="riwayat_right_pane">
+                                <div id="riwayat_detail_empty" class="text-center text-muted m-auto py-3">
+                                    <small>Riwayat surat hanya muncul setelah surat dipilih.</small>
+                                </div>
+                                <div id="riwayat_detail_content" class="d-none w-100">
+                                    <!-- Details box -->
+                                    <div class="card shadow-sm border mb-1">
+                                        <div class="card-body p-1">
+                                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                                <div>
+                                                    <small class="text-muted text-uppercase d-block mb-25 font-weight-bold" style="letter-spacing: 1px;">Detail Surat</small>
+                                                    <h5 class="font-weight-bolder text-dark mb-0" id="dtl_no_inv"></h5>
+                                                </div>
+                                                <div id="dtl_status_badge"></div>
+                                            </div>
+                                            
+                                            <div class="d-flex justify-content-between mb-50">
+                                                <small class="text-muted">Tanggal terbit</small>
+                                                <small class="font-weight-bold text-dark" id="dtl_tgl_terbit"></small>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-50">
+                                                <small class="text-muted">Jatuh tempo</small>
+                                                <small class="font-weight-bold text-dark" id="dtl_jatuh_tempo"></small>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <small class="text-muted">Dibuat oleh</small>
+                                                <small class="font-weight-bold text-uppercase text-dark" id="dtl_dibuat_oleh"></small>
+                                            </div>
+                                            
+                                            <div class="d-flex flex-wrap" style="gap: .5rem;" id="dtl_actions">
+                                                <!-- Buttons injected via JS -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h6 class="font-weight-bolder text-dark mb-1">Riwayat Surat</h6>
+                                    <ul class="timeline mb-0 pl-1" id="dtl_riwayat_surat">
+                                        <!-- Timeline items injected via JS -->
+                                    </ul>
                                 </div>
                             </div>
                         </div>
