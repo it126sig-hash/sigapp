@@ -1,43 +1,49 @@
 <!-- ################################## Modal Penagihan ##########################################-->
 <style>
-  #modal_penagihan .modal-content {
-      border: 0;
-      border-radius: 12px !important;
-      box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
-      overflow: hidden !important;
-  }
-  #modal_penagihan .modal-header {
-      border-top-left-radius: 12px !important;
-      border-top-right-radius: 12px !important;
-  }
-  #modal_penagihan .modal-footer {
-      border-bottom-left-radius: 12px !important;
-      border-bottom-right-radius: 12px !important;
-  }
-  #modal_ubah_status_tagihan .modal-content,
-  #modal_kelola_kopsurat .modal-content {
-      border: 0;
-      border-radius: 12px !important;
-      overflow: hidden !important;
-  }
-  .signature-canvas-wrap {
-      border: 1px solid #ced4da;
-      border-radius: 8px;
-      background-color: #f8f9fa;
-      position: relative;
-      width: 100%;
-  }
-  .signature-canvas-wrap canvas {
-      width: 100%;
-      height: 200px;
-      cursor: crosshair;
-  }
-  .signature-clear-btn {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      z-index: 10;
-  }
+    #modal_penagihan .modal-content {
+        border: 0;
+        border-radius: 12px !important;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, .18);
+        overflow: hidden !important;
+    }
+
+    #modal_penagihan .modal-header {
+        border-top-left-radius: 12px !important;
+        border-top-right-radius: 12px !important;
+    }
+
+    #modal_penagihan .modal-footer {
+        border-bottom-left-radius: 12px !important;
+        border-bottom-right-radius: 12px !important;
+    }
+
+    #modal_ubah_status_tagihan .modal-content,
+    #modal_kelola_kopsurat .modal-content {
+        border: 0;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+    }
+
+    .signature-canvas-wrap {
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        position: relative;
+        width: 100%;
+    }
+
+    .signature-canvas-wrap canvas {
+        width: 100%;
+        height: 200px;
+        cursor: crosshair;
+    }
+
+    .signature-clear-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        z-index: 10;
+    }
 </style>
 <div class="modal fade text-left" id="modal_penagihan" tabindex="-1" role="dialog" aria-labelledby="modalPenagihanLabel"
     aria-hidden="true" data-backdrop="static" data-keyboard="false">
@@ -51,7 +57,7 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    
+
                     <!-- Info box -->
                     <div class="d-flex justify-content-between align-items-center p-1 rounded mb-1" style="border: 1px solid #e2e8f0; background: #f8fafc;">
                         <div class="d-flex align-items-center">
@@ -95,29 +101,50 @@
                                         <h6 class="font-weight-bolder mb-25">Daftar Surat Penagihan</h6>
                                         <small class="text-muted">Pilih salah satu surat untuk melihat riwayat surat.</small>
                                     </div>
-                                    <button type="button" class="btn btn-primary btn-sm font-weight-bold" onclick="$('#tab_buat_tagihan-tab').tab('show');">
+                                    <button type="button" class="btn btn-primary btn-sm font-weight-bold" id="btn-pindah-buat-surat">
                                         <i class="fas fa-plus mr-25"></i> Buat Surat
                                     </button>
                                 </div>
                                 <div class="table-responsive">
                                     <style>
-                                        #tbl-riwayat-tagihan tbody tr { cursor: pointer; }
-                                        #tbl-riwayat-tagihan tbody tr.selected td { background-color: #f8fbff; border-color: #c9ddf5; }
-                                        #tbl-riwayat-tagihan thead th { background: #f9fafb; border-bottom: 1px solid #e5e7eb; color: #6b7280; font-size: .7rem; font-weight: 700; letter-spacing: 0.05em; padding: .5rem; }
-                                        #tbl-riwayat-tagihan tbody td { padding: .75rem .5rem; vertical-align: middle; border-bottom: 1px solid #f3f4f6; }
+                                        #tbl-riwayat-tagihan tbody tr {
+                                            cursor: pointer;
+                                        }
+
+                                        #tbl-riwayat-tagihan tbody tr.selected td {
+                                            background-color: #f8fbff;
+                                            border-color: #c9ddf5;
+                                        }
+
+                                        #tbl-riwayat-tagihan thead th {
+                                            background: #f9fafb;
+                                            border-bottom: 1px solid #e5e7eb;
+                                            color: #6b7280;
+                                            font-size: .7rem;
+                                            font-weight: 700;
+                                            letter-spacing: 0.05em;
+                                            padding: .5rem;
+                                        }
+
+                                        #tbl-riwayat-tagihan tbody td {
+                                            padding: .75rem .5rem;
+                                            vertical-align: middle;
+                                            border-bottom: 1px solid #f3f4f6;
+                                        }
                                     </style>
                                     <table class="table table-borderless mb-0" id="tbl-riwayat-tagihan">
                                         <thead>
                                             <tr>
-                                                <th class="text-uppercase">No</th>
-                                                <th class="text-uppercase">Tanggal Terbit</th>
-                                                <th class="text-uppercase">Status</th>
-                                                <th class="text-uppercase">Update Terakhir</th>
-                                                <th class="text-uppercase text-center">Aksi</th>
+                                                <th class="text-uppercase" style="width: 30%;">No. Surat</th>
+                                                <th class="text-uppercase" style="width: 20%;">Tanggal</th>
+                                                <th class="text-uppercase text-center" style="width: 15%;">TTD Direksi</th>
+                                                <th class="text-uppercase" style="width: 35%;">Update Terakhir</th>
                                             </tr>
                                         </thead>
                                         <tbody id="list_riwayat_tagihan-here">
-                                            <tr><td colspan="5" class="text-center">Memuat riwayat...</td></tr>
+                                            <tr>
+                                                <td colspan="4" class="text-center">Memuat riwayat...</td>
+                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -138,7 +165,11 @@
                                                 </div>
                                                 <div id="dtl_status_badge"></div>
                                             </div>
-                                            
+
+                                            <div class="d-flex justify-content-between mb-50">
+                                                <small class="text-muted">Nominal tagihan</small>
+                                                <small class="font-weight-bolder text-primary" style="font-size: 1.05rem;" id="dtl_nominal_tagihan">Rp 0</small>
+                                            </div>
                                             <div class="d-flex justify-content-between mb-50">
                                                 <small class="text-muted">Tanggal terbit</small>
                                                 <small class="font-weight-bold text-dark" id="dtl_tgl_terbit"></small>
@@ -147,17 +178,21 @@
                                                 <small class="text-muted">Jatuh tempo</small>
                                                 <small class="font-weight-bold text-dark" id="dtl_jatuh_tempo"></small>
                                             </div>
+                                            <div class="d-flex justify-content-between mb-50">
+                                                <small class="text-muted">TTD Direksi</small>
+                                                <small class="font-weight-bold" id="dtl_ttd_direksi">-</small>
+                                            </div>
                                             <div class="d-flex justify-content-between mb-1">
                                                 <small class="text-muted">Dibuat oleh</small>
                                                 <small class="font-weight-bold text-uppercase text-dark" id="dtl_dibuat_oleh"></small>
                                             </div>
-                                            
+
                                             <div class="d-flex flex-wrap" style="gap: .5rem;" id="dtl_actions">
                                                 <!-- Buttons injected via JS -->
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <h6 class="font-weight-bolder text-dark mb-1">Riwayat Surat</h6>
                                     <ul class="timeline mb-0 pl-1" id="dtl_riwayat_surat">
                                         <!-- Timeline items injected via JS -->
@@ -173,66 +208,50 @@
                             <input type="hidden" id="tagihan_id_mkdt" name="id_mkdt">
                             <input type="hidden" id="tagihan_id_kavling" name="id_kavling">
                             <input type="hidden" id="tagihan_id_konsumen" name="id_konsumen">
+                            <input type="hidden" id="tagihan_no_inv" name="no_inv">
+                            <!-- Syarat Ketentuan (Hidden) -->
+                            <textarea id="tagihan_snk" name="terms" class="d-none" style="display: none !important;" hidden><ol><li><span style="font-size: 1rem; letter-spacing: 0.01rem;">Lakukan pembayaran sebelum tanggal jatuh tempo untuk menghindari denda&nbsp;</span></li><li><span style="font-size: 1rem; letter-spacing: 0.01rem;">Pembayaran yang sah hanya melalui transfer ke rekening atas nama <br><b>PT. Sanggarindah Karya Sentosa</b> <b>Raya</b> BCA KC Setiabudi - Bandung, Nomor Rekening :<b>2337 887 887</b>&nbsp;</span></li><li>Konfirmasi pembayaran ke bagian keuangan kami dan lampirkan bukti transfer.</li></ol></textarea>
 
-                            <div class="card invoice-preview-card mb-0 shadow-none border-0">
-                                <div class="card-body p-1">
-                                    <div class="d-flex justify-content-between flex-md-row flex-column invoice-spacing mt-0">
-                                        <div class="col-md-5 pl-0">
-                                            <div class="form-group">
-                                                <div class="d-flex justify-content-between align-items-center mb-50">
-                                                    <label for="tagihan_kopsurat" class="mb-0 font-weight-bold">Kop Surat <span class="text-danger">*</span></label>
-                                                    <button type="button" class="btn btn-outline-primary btn-sm py-25 px-50" id="btn-modal-kelola-kopsurat" title="Kelola Kop Surat">
-                                                        <i class="fas fa-cog"></i> Kelola Kop
-                                                    </button>
-                                                </div>
-                                                <select class="custom-select w-100" id="tagihan_kopsurat" name="id_kopsurat" required>
-                                                    <option value="">-- Pilih Kop Surat --</option>
-                                                </select>
-                                            </div>
+                            <div class="row m-0">
+                                <!-- Kolom 1: Form Surat -->
+                                <div class="col-md-5 p-1 border rounded bg-white">
+                                    <h6 class="font-weight-bolder text-dark mb-1">Informasi Surat</h6>
+
+                                    <div class="form-group mb-1">
+                                        <div class="d-flex justify-content-between align-items-center mb-50">
+                                            <label for="tagihan_kopsurat" class="mb-0 font-weight-bold">Kop Surat <span class="text-danger">*</span></label>
+                                            <button type="button" class="btn btn-outline-primary btn-sm py-25 px-50" id="btn-modal-kelola-kopsurat" title="Kelola Kop Surat">
+                                                <i class="fas fa-cog"></i> Kelola Kop
+                                            </button>
                                         </div>
-                                        <div class="invoice-number-date mt-md-0 mt-4 col-md-7 pr-0 text-right">
-                                            <div class="d-flex align-items-center justify-content-end mb-1">
-                                                <span class="title mr-1">Nomor Surat:</span>
-                                                <input type="text" id="tagihan_nomor_surat" name="nomor_surat" class="form-control invoice-edit-input" placeholder="Manual atau Auto" style="width: 200px;" required>
-                                            </div>
-                                            <div class="d-flex align-items-center justify-content-end mb-1">
-                                                <span class="title mr-1">Tanggal:</span>
-                                                <input type="date" id="tagihan_tanggal" name="tanggal_invoice" class="form-control" required style="width: 200px;">
-                                            </div>
-                                            <div class="d-flex align-items-center justify-content-end">
-                                                <span class="title mr-1">Jatuh Tempo:</span>
-                                                <input type="date" id="tagihan_jatuh_tempo" name="tanggal_jatuh_tempo" class="form-control" required style="width: 200px;">
-                                            </div>
-                                        </div>
+                                        <select class="custom-select w-100" id="tagihan_kopsurat" name="id_kopsurat" required>
+                                            <option value="">-- Pilih Kop Surat --</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group mb-1">
+                                        <label for="tagihan_nomor_surat" class="font-weight-bold">Nomor Surat <span class="text-danger">*</span></label>
+                                        <input type="text" id="tagihan_nomor_surat" name="nomor_surat" class="form-control" placeholder="Manual atau Auto" required>
+                                    </div>
+
+                                    <div class="form-group mb-0">
+                                        <label for="tagihan_tanggal" class="font-weight-bold">Tanggal Surat <span class="text-danger">*</span></label>
+                                        <input type="date" id="tagihan_tanggal" name="tanggal_invoice" class="form-control" required>
                                     </div>
                                 </div>
 
-                                <hr class="invoice-spacing m-0" />
-
-                                <div class="card-body p-1 pt-2">
-                                    <div class="row">
-                                        <div class="col-xl-6">
-                                            <h6 class="mb-1 text-muted text-uppercase">Ditagihkan Ke:</h6>
-                                            <h6 class="mb-25 font-weight-bold text-dark" id="tagihan_detail_konsumen"></h6>
-                                        </div>
-                                        <div class="col-xl-6 text-right">
-                                            <h6 class="mb-1 text-muted text-uppercase">Perumahan:</h6>
-                                            <h6 class="mb-25 font-weight-bold text-dark" id="tagihan_detail_kavling"></h6>
-                                        </div>
+                                <!-- Kolom 2: Daftar Tagihan & Nominal -->
+                                <div class="col-md-7 p-1 pl-md-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-50">
+                                        <h6 class="font-weight-bolder text-dark mb-0">Daftar Tagihan (Belum Lunas)</h6>
                                     </div>
-                                </div>
-
-                                <div class="card-body p-1 invoice-product-details">
-                                    <h6 class="mb-1 text-dark font-weight-bold">Daftar Tagihan (Belum Lunas):</h6>
-                                    <div class="table-responsive mb-1">
+                                    <div class="table-responsive mb-1 border rounded">
                                         <table class="table table-bordered mb-0 table-sm" id="tbl-tagihan-items">
                                             <thead class="thead-light">
                                                 <tr>
-                                                    <th scope="col" width="5%" class="text-center">No</th>
                                                     <th scope="col">Berita Acara</th>
-                                                    <th scope="col" width="15%" class="text-center">Jatuh Tempo</th>
-                                                    <th scope="col" width="15%" class="text-center">Status</th>
-                                                    <th scope="col" width="15%" class="text-right">Nominal</th>
+                                                    <th scope="col" width="28%" class="text-center">Jatuh Tempo</th>
+                                                    <th scope="col" width="38%" class="text-right">Nominal</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="tb-tagihan-items-here">
@@ -240,56 +259,59 @@
                                             </tbody>
                                             <tfoot>
                                                 <tr>
-                                                    <th colspan="4" class="text-right align-middle">Total Tagihan</th>
-                                                    <th class="text-right align-middle" id="tagihan-total-nominal">Rp 0</th>
+                                                    <th colspan="2" class="text-right py-25 align-middle">Total Tagihan</th>
+                                                    <th class="text-right py-25 align-middle" id="tagihan-total-nominal">Rp 0</th>
                                                 </tr>
                                                 <tr>
-                                                    <th colspan="4" class="text-right align-middle">Total Sudah Bayar</th>
-                                                    <th class="text-right align-middle text-success" id="tagihan-total-bayar">Rp 0</th>
+                                                    <th colspan="2" class="text-right py-25 align-middle">Total Sudah Bayar</th>
+                                                    <th class="text-right py-25 align-middle text-success" id="tagihan-total-bayar">Rp 0</th>
                                                 </tr>
                                                 <tr>
-                                                    <th colspan="4" class="text-right align-middle">Sisa Tagihan Keseluruhan</th>
-                                                    <th class="text-right align-middle text-danger font-weight-bolder" id="tagihan-total-sisa">Rp 0</th>
+                                                    <th colspan="2" class="text-right py-25 align-middle">Sisa Tagihan</th>
+                                                    <th class="text-right py-25 align-middle text-danger font-weight-bolder" id="tagihan-total-sisa">Rp 0</th>
                                                 </tr>
                                             </tfoot>
                                         </table>
                                     </div>
-                                    <div class="row mt-2">
-                                        <div class="col-md-6 offset-md-6">
-                                            <div class="form-group mb-0 p-1 border rounded bg-light-primary">
-                                                <label class="font-weight-bolder text-primary mb-50" style="font-size: 1.1rem;">NOMINAL YANG DITAGIHKAN DI SURAT <span class="text-danger">*</span></label>
-                                                <div class="input-group">
-                                                    <div class="input-group-prepend">
-                                                        <span class="input-group-text font-weight-bold">Rp</span>
+
+                                    <!-- Nominal Ditagihkan & Tanggal Jatuh Tempo -->
+                                    <div class="card bg-light-primary border-primary mt-1 mb-0 shadow-none">
+                                        <div class="card-body p-1">
+                                            <div class="row">
+                                                <div class="col-sm-7 pr-sm-50">
+                                                    <div class="form-group mb-sm-0 mb-1">
+                                                        <label for="tagihan_nominal_ditagihkan" class="font-weight-bolder text-primary mb-25" style="font-size: 0.95rem;">
+                                                            Nominal Ditagihkan <span class="text-danger">*</span>
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <div class="input-group-prepend">
+                                                                <span class="input-group-text font-weight-bold">Rp</span>
+                                                            </div>
+                                                            <input type="text" id="tagihan_nominal_ditagihkan" class="form-control font-weight-bolder text-dark" style="font-size: 1.1rem;" required>
+                                                        </div>
+                                                        <small class="text-muted d-block mt-25">Dapat disesuaikan manual.</small>
                                                     </div>
-                                                    <input type="text" id="tagihan_nominal_ditagihkan" class="form-control font-weight-bolder text-dark" style="font-size: 1.25rem;" required>
                                                 </div>
-                                                <small class="text-muted mt-25 d-block">Ubah manual jika tagihan hanya sebagian dari sisa tagihan.</small>
+                                                <div class="col-sm-5 pl-sm-50">
+                                                    <div class="form-group mb-0">
+                                                        <label for="tagihan_jatuh_tempo" class="font-weight-bolder text-primary mb-25" style="font-size: 0.95rem;">
+                                                            Jatuh Tempo <span class="text-danger">*</span>
+                                                        </label>
+                                                        <input type="date" id="tagihan_jatuh_tempo" name="tanggal_jatuh_tempo" class="form-control font-weight-bold" required>
+                                                        <small class="text-muted d-block mt-25">Jatuh tempo terdekat.</small>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <hr class="invoice-spacing m-0" />
-
-                                <div class="card-body p-1 d-none">
-                                    <div class="row">
-                                        <!-- Syarat Ketentuan (Hidden as requested) -->
-                                        <div class="col-12 mb-2">
-                                            <div class="form-group mb-0">
-                                                <label for="tagihan_snk" class="form-label font-weight-bold">Syarat & Ketentuan:</label>
-                                                <!-- We'll attach rich text editor to this textarea -->
-                                                <textarea class="form-control" id="tagihan_snk" name="terms" required><ol><li><span style="font-size: 1rem; letter-spacing: 0.01rem;">Lakukan pembayaran sebelum tanggal jatuh tempo untuk menghindari denda&nbsp;</span></li><li><span style="font-size: 1rem; letter-spacing: 0.01rem;">Pembayaran yang sah hanya melalui transfer ke rekening atas nama <br><b>PT. Sanggarindah Karya Sentosa</b> <b>Raya</b> BCA KC Setiabudi - Bandung, Nomor Rekening :<b>2337 887 887</b>&nbsp;</span></li><li>Konfirmasi pembayaran ke bagian keuangan kami dan lampirkan bukti transfer.</li></ol></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Sticky Footer -->
             <div class="modal-footer p-1 d-none" id="footer-penagihan" style="display: none;">
                 <!-- Only visible when 'Buat Tagihan' tab is active -->
@@ -370,7 +392,7 @@
                     </div>
                     <form id="form-kopsurat" enctype="multipart/form-data" class="card-body p-2">
                         <input type="hidden" name="id" id="kop_id">
-                        
+
                         <div class="row">
                             <div class="col-md-6 form-group">
                                 <label for="kop_nama" class="font-weight-bold">Nama Kop Surat <span class="text-danger">*</span></label>
@@ -478,7 +500,9 @@
                             </tr>
                         </thead>
                         <tbody id="tbody-kopsurat-list">
-                            <tr><td colspan="6" class="text-center py-2">Memuat daftar kop surat...</td></tr>
+                            <tr>
+                                <td colspan="6" class="text-center py-2">Memuat daftar kop surat...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

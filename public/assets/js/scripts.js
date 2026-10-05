@@ -289,8 +289,15 @@ function format_date(e) {
   }
 }
 function initModalListener(id) {
-  $(id).on("hide.bs.modal", function (e) {
-    // Panggil fungsi kamu di sini
+  const $modal = $(id);
+  $modal.off("hide.bs.modal");
+
+  $modal.on("hide.bs.modal", function (e) {
+    if ($modal.data("isConfirmedClose")) {
+      $modal.removeData("isConfirmedClose");
+      return true;
+    }
+
     e.preventDefault();
 
     Swal.fire({
@@ -302,10 +309,8 @@ function initModalListener(id) {
     }).then((result) => {
       /* Read more about isConfirmed, isDenied below */
       if (result.isConfirmed) {
-        // lepas listener agar tidak loop
-        removeModalListener(id);
-        // tutup modal manual
-        $(id).modal("hide");
+        $modal.data("isConfirmedClose", true);
+        $modal.modal("hide");
         if (typeof state !== 'undefined') {
           if (state.status && state.status.tab) {
               state.status.tab.isClosed = true;
@@ -325,6 +330,7 @@ function initModalListener(id) {
 }
 function removeModalListener(id) {
   $(id).off("hide.bs.modal");
+  $(id).removeData("isConfirmedClose");
 }
 function applyLoadingEffect(selector) {
   $(selector).addClass("input-loading");

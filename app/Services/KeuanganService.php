@@ -1547,17 +1547,36 @@ class KeuanganService
         }
         
         if ($status_tagihan === 'publish') {
-            $cekQuery = $this->db->table('invoice_log')
-                ->where('nomor_surat', trim((string)$nomor_surat))
-                ->where('status_tagihan !=', 'draft')
-                ->where('status_tagihan !=', 'batal');
+            $cekQuery = $this->db->table('invoice_log i')
+                ->select('i.no_inv, i.nomor_surat, COALESCE(ks.nama_konsumen, mks.nama_konsumen) as nama_konsumen, COALESCE(kv.no_kavling, mkv.no_kavling) as no_kavling, COALESCE(j.nama_jalan, mj.nama_jalan) as nama_jalan, COALESCE(p.nama_proyek, mp.nama_proyek) as nama_proyek')
+                ->join('konsumen ks', 'ks.id_konsumen = i.id_konsumen', 'left')
+                ->join('kavling kv', 'kv.id_kavling = i.id_kavling', 'left')
+                ->join('jalan j', 'j.id_jalan = kv.id_jalan', 'left')
+                ->join('cluster c', 'c.id_cluster = j.id_cluster', 'left')
+                ->join('proyek p', 'p.id_proyek = c.id_proyek', 'left')
+                ->join('mkdt m', 'm.id_mkdt = i.id_mkdt', 'left')
+                ->join('konsumen mks', 'mks.id_konsumen = m.id_konsumen', 'left')
+                ->join('kavling mkv', 'mkv.id_kavling = m.id_kavling', 'left')
+                ->join('jalan mj', 'mj.id_jalan = mkv.id_jalan', 'left')
+                ->join('cluster mc', 'mc.id_cluster = mj.id_cluster', 'left')
+                ->join('proyek mp', 'mp.id_proyek = mc.id_proyek', 'left')
+                ->where('i.nomor_surat', trim((string)$nomor_surat))
+                ->where('i.status_tagihan !=', 'draft')
+                ->where('i.status_tagihan !=', 'batal');
             if (!empty($no_inv)) {
-                $cekQuery->where('no_inv !=', $no_inv);
+                $cekQuery->where('i.no_inv !=', $no_inv);
             }
             $cekDuplikat = $cekQuery->get()->getRow();
                 
             if ($cekDuplikat) {
-                $response['messages'] = 'Nomor Surat ini sudah digunakan oleh surat yang ter-publish. Silakan masukkan nomor surat yang lain.';
+                $konsumenInfo = !empty($cekDuplikat->nama_konsumen) ? $cekDuplikat->nama_konsumen : 'Konsumen lain';
+                $kavlingParts = [];
+                if (!empty($cekDuplikat->nama_proyek)) $kavlingParts[] = $cekDuplikat->nama_proyek;
+                if (!empty($cekDuplikat->nama_jalan)) $kavlingParts[] = $cekDuplikat->nama_jalan;
+                if (!empty($cekDuplikat->no_kavling)) $kavlingParts[] = 'No. ' . $cekDuplikat->no_kavling;
+                $kavlingInfo = !empty($kavlingParts) ? implode(' - ', $kavlingParts) : 'Kavling lain';
+
+                $response['messages'] = "Nomor Surat ini sudah digunakan untuk tagihan konsumen {$konsumenInfo} ({$kavlingInfo}). Silakan gunakan nomor surat yang lain.";
                 return $response;
             }
         }
@@ -1694,15 +1713,34 @@ class KeuanganService
             }
             
             // Cek duplikat
-            $cekDuplikat = $this->db->table('invoice_log')
-                ->where('nomor_surat', trim((string)$nomor_surat))
-                ->where('no_inv !=', $no_inv)
-                ->where('status_tagihan !=', 'draft')
-                ->where('status_tagihan !=', 'batal')
+            $cekDuplikat = $this->db->table('invoice_log i')
+                ->select('i.no_inv, i.nomor_surat, COALESCE(ks.nama_konsumen, mks.nama_konsumen) as nama_konsumen, COALESCE(kv.no_kavling, mkv.no_kavling) as no_kavling, COALESCE(j.nama_jalan, mj.nama_jalan) as nama_jalan, COALESCE(p.nama_proyek, mp.nama_proyek) as nama_proyek')
+                ->join('konsumen ks', 'ks.id_konsumen = i.id_konsumen', 'left')
+                ->join('kavling kv', 'kv.id_kavling = i.id_kavling', 'left')
+                ->join('jalan j', 'j.id_jalan = kv.id_jalan', 'left')
+                ->join('cluster c', 'c.id_cluster = j.id_cluster', 'left')
+                ->join('proyek p', 'p.id_proyek = c.id_proyek', 'left')
+                ->join('mkdt m', 'm.id_mkdt = i.id_mkdt', 'left')
+                ->join('konsumen mks', 'mks.id_konsumen = m.id_konsumen', 'left')
+                ->join('kavling mkv', 'mkv.id_kavling = m.id_kavling', 'left')
+                ->join('jalan mj', 'mj.id_jalan = mkv.id_jalan', 'left')
+                ->join('cluster mc', 'mc.id_cluster = mj.id_cluster', 'left')
+                ->join('proyek mp', 'mp.id_proyek = mc.id_proyek', 'left')
+                ->where('i.nomor_surat', trim((string)$nomor_surat))
+                ->where('i.no_inv !=', $no_inv)
+                ->where('i.status_tagihan !=', 'draft')
+                ->where('i.status_tagihan !=', 'batal')
                 ->get()->getRow();
                 
             if ($cekDuplikat) {
-                $response['messages'] = 'Nomor Surat ini sudah digunakan. Silakan masukkan nomor surat yang lain.';
+                $konsumenInfo = !empty($cekDuplikat->nama_konsumen) ? $cekDuplikat->nama_konsumen : 'Konsumen lain';
+                $kavlingParts = [];
+                if (!empty($cekDuplikat->nama_proyek)) $kavlingParts[] = $cekDuplikat->nama_proyek;
+                if (!empty($cekDuplikat->nama_jalan)) $kavlingParts[] = $cekDuplikat->nama_jalan;
+                if (!empty($cekDuplikat->no_kavling)) $kavlingParts[] = 'No. ' . $cekDuplikat->no_kavling;
+                $kavlingInfo = !empty($kavlingParts) ? implode(' - ', $kavlingParts) : 'Kavling lain';
+
+                $response['messages'] = "Nomor Surat ini sudah digunakan untuk tagihan konsumen {$konsumenInfo} ({$kavlingInfo}). Silakan gunakan nomor surat yang lain.";
                 return $response;
             }
             $updateData['nomor_surat'] = trim((string)$nomor_surat);
