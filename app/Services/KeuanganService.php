@@ -777,11 +777,69 @@ class KeuanganService
         $id_cluster = $request->getVar('id_cluster');
         $id_jalan = $request->getVar('id_jalan');
         if ($id_proyek == null) {
-            return [];
+            return json_encode(['draw' => intval($request->getVar('draw')), 'recordsTotal' => 0, 'recordsFiltered' => 0, 'data' => []]);
         }
         $builder = $this->pembayaranRepo->getRiwayatBayarQuery($id_proyek, $id_cluster, $id_jalan);
         return DataTable::of($builder)
-            ->toJson();
+            ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan', 'lp.payment_type', 'u.username'])
+            ->toJson(true);
+    }
+
+    public function getListRiwayatSurat($request)
+    {
+        $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
+        if ($id_proyek == null) {
+            return json_encode(['draw' => intval($request->getVar('draw')), 'recordsTotal' => 0, 'recordsFiltered' => 0, 'data' => []]);
+        }
+
+        $builder = $this->db->table('invoice_log i')
+            ->select('
+                i.no_inv,
+                i.nomor_surat,
+                i.id_mkdt,
+                i.id_kavling,
+                i.id_konsumen,
+                i.id_kopsurat,
+                i.tanggal_invoice,
+                i.tanggal_jatuh_tempo,
+                i.status_tagihan,
+                i.is_signed_direktur,
+                i.signed_at,
+                i.signed_by,
+                i.date_add,
+                i.date_edit,
+                i.tanggal_ubah_status,
+                i.keterangan_status,
+                i.tagihan,
+                COALESCE(c.nama_konsumen, "") AS nama_konsumen,
+                COALESCE(k.no_kavling, "") AS no_kavling,
+                COALESCE(j.nama_jalan, "") AS nama_jalan,
+                COALESCE(cl.nama_cluster, "") AS nama_cluster,
+                COALESCE(u.nama_karyawan, usr.username, "") AS pembuat
+            ', false)
+            ->join('mkdt m', 'm.id_mkdt = i.id_mkdt', 'left')
+            ->join('konsumen c', 'c.id_konsumen = COALESCE(i.id_konsumen, m.id_konsumen)', 'left')
+            ->join('kavling k', 'k.id_kavling = COALESCE(i.id_kavling, m.id_kavling)', 'left')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster', 'left')
+            ->join('karyawan u', 'u.id_user = i.add_by', 'left')
+            ->join('users usr', 'usr.id = i.add_by', 'left')
+            ->where('cl.id_proyek', $id_proyek);
+
+        $id_cluster = $request->getVar('id_cluster');
+        if (!empty($id_cluster)) {
+            $builder->where('cl.id_cluster', $id_cluster);
+        }
+        $id_jalan = $request->getVar('id_jalan');
+        if (!empty($id_jalan)) {
+            $builder->where('j.id_jalan', $id_jalan);
+        }
+
+        $builder->orderBy('COALESCE(i.tanggal_ubah_status, i.date_edit, i.date_add)', 'DESC', false);
+
+        return DataTable::of($builder)
+            ->setSearchableColumns(['i.no_inv', 'i.nomor_surat', 'c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
+            ->toJson(true);
     }
 
     function getAllJatuhTempo($id_proyek)
@@ -1438,12 +1496,19 @@ class KeuanganService
     public function getRiwayatTagihan($request): array
     {
         $id_mkdt = $request->getVar('id_mkdt');
+        $no_inv = $request->getVar('no_inv');
         
-        $riwayat = $this->db->table('invoice_log i')
+        $builder = $this->db->table('invoice_log i')
             ->select('i.*, u.nama_karyawan as pembuat')
-            ->join('karyawan u', 'u.id_user = i.add_by', 'left')
-            ->where('i.id_mkdt', $id_mkdt)
-            ->orderBy('i.date_add', 'DESC')
+            ->join('karyawan u', 'u.id_user = i.add_by', 'left');
+            
+        if (!empty($no_inv)) {
+            $builder->where('i.no_inv', $no_inv);
+        } else if (!empty($id_mkdt)) {
+            $builder->where('i.id_mkdt', $id_mkdt);
+        }
+        
+        $riwayat = $builder->orderBy('i.date_add', 'DESC')
             ->get()->getResultArray();
             
         foreach ($riwayat as &$r) {

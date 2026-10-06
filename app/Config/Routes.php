@@ -229,6 +229,7 @@ $routes->post("/tagihan/list/ambil", 'Tagihan::getListTagihan');
 $routes->post("/tagihan/list/ambil-grouped", 'Tagihan::getListTagihanGrouped');
 $routes->post("/tagihan/list/detail", 'Tagihan::getListTagihanDetail');
 $routes->post("/tagihan/list/export-excel", 'Tagihan::exportExcelTagihan');
+$routes->post("/tagihan/list/ambil-riwayat-surat", 'Tagihan::getListRiwayatSurat');
 
 //dana akad
 $routes->post("/danaakad/list/ambilsatu", 'Tagihan::getListTagihan');
