@@ -489,9 +489,15 @@ class Tagihan extends BaseController
     function getRiwayatBayar()
     {
         $request = $this->request;
-        $datatbel = $this->keuanganService->getRiwayatBayar($request);;
+        $datatbel = $this->keuanganService->getRiwayatBayar($request);
 
         return $datatbel;
+    }
+
+    function getListRiwayatSurat()
+    {
+        $request = $this->request;
+        return $this->keuanganService->getListRiwayatSurat($request);
     }
     ################################## end of untuk list riwayat bayar ##########################
     ################################## untuk jatuh tempo ##########################

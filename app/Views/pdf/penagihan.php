@@ -34,6 +34,14 @@ if (json_last_error() === JSON_ERROR_NONE && is_array($tagihanData)) {
     </tr>
     ";
 }
+
+if (empty($inv->nomor_surat) || $inv->nomor_surat == "") {
+    $inv->nomor_surat = "No Surat Belum dibuat";
+} else {
+    if (strpos($inv->nomor_surat, '/') === 0) {
+        $inv->nomor_surat = '&nbsp;&nbsp;&nbsp;' . $inv->nomor_surat;
+    }
+}
 ?>
 
 <head>
@@ -86,7 +94,7 @@ if (json_last_error() === JSON_ERROR_NONE && is_array($tagihanData)) {
                 <tr>
                     <td style="width: 100px; vertical-align: top;">Nomor</td>
                     <td style="width: 10px; vertical-align: top;">:</td>
-                    <td style="vertical-align: top;"><?= $inv->nomor_surat ?? $inv->no_inv ?></td>
+                    <td style="vertical-align: top;"><?= $inv->nomor_surat ?? "No Surat Belum dibuat" ?></td>
                 </tr>
                 <tr>
                     <td style="vertical-align: top;">Lamp</td>

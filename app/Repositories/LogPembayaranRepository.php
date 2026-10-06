@@ -34,23 +34,50 @@ class LogPembayaranRepository extends Model
             ->orderBy('log_pembayaran.tanggal_bayar', 'ASC')
             ->findAll();
     }
-    public function getRiwayatBayarQuery($id_proyek, $id_cluster, $id_jalan)
+    public function getRiwayatBayarQuery($id_proyek, $id_cluster = null, $id_jalan = null)
     {
-        $q =  $this->select([
-            'log_pembayaran.*',
-            'users.username',
-            'keuangan.status',
-        ])
-            ->join('users', 'users.id = log_pembayaran.add_by')
-            ->join('keuangan', 'keuangan.id_keuangan = log_pembayaran.id_keuangan', 'left')
-            ->join('mkdt', 'mkdt.id_mkdt = log_pembayaran.id_mkdt')
-            ->join('proyek', 'proyek.id_proyek = mkdt.id_proyek')
-            ->join('cluster', 'cluster.id_cluster = mkdt.id_cluster')
-            ->join('jalan', 'jalan.id_jalan = mkdt.id_jalan')
-            ->where('log_pembayaran.is_deleted', 0);
+        $q = $this->db->table('log_pembayaran lp')
+            ->select('
+                lp.id_pembayaran,
+                lp.id_mkdt,
+                lp.nominal,
+                lp.tanggal_bayar,
+                lp.payment_type,
+                lp.keterangan,
+                lp.created_at,
+                COALESCE(u.username, "-") AS username,
+                COALESCE(c.nama_konsumen, "-") AS nama_konsumen,
+                COALESCE(k.no_kavling, "-") AS no_kavling,
+                COALESCE(k.id_kavling, 0) AS id_kavling,
+                COALESCE(j.nama_jalan, "-") AS nama_jalan,
+                cl.id_proyek,
+                (
+                    SELECT GROUP_CONCAT(CONCAT(kil.item, ": Rp ", FORMAT(lpd.nominal, 0)) SEPARATOR ", ")
+                    FROM log_pembayaran_detail lpd
+                    JOIN keuangan_item_list kil ON kil.id_keuangan_item_list = lpd.id_keuangan_item_list
+                    WHERE lpd.id_pembayaran = lp.id_pembayaran
+                ) AS detail_items
+            ')
+            ->join('mkdt m', 'm.id_mkdt = lp.id_mkdt', 'left')
+            ->join('konsumen c', 'c.id_konsumen = m.id_konsumen', 'left')
+            ->join('kavling k', 'k.id_mkdt = m.id_mkdt', 'left')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster', 'left')
+            ->join('users u', 'u.id = lp.add_by', 'left')
+            ->where('lp.is_deleted', 0);
 
+        if (!empty($id_proyek)) {
+            $q->where('cl.id_proyek', $id_proyek);
+        }
+        if (!empty($id_cluster)) {
+            $q->where('cl.id_cluster', $id_cluster);
+        }
+        if (!empty($id_jalan)) {
+            $q->where('j.id_jalan', $id_jalan);
+        }
 
-        $q->orderBy('log_pembayaran.tanggal_bayar', 'ASC');
+        $q->orderBy('lp.tanggal_bayar', 'DESC');
+        $q->orderBy('lp.id_pembayaran', 'DESC');
 
         return $q;
     }

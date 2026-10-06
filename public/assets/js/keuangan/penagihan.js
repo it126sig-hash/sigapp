@@ -1,32 +1,117 @@
 $(document).ready(function() {
-    // Initialize rich text
-    if ($('#tagihan_snk').length) {
-        $('#tagihan_snk').richText();
-    }
-    
     // Add initModalListener from scripts.js for confirmation
     if (typeof initModalListener === 'function') {
         initModalListener('#modal_penagihan');
     }
 
+    // State tracking for editing draft
+    window.isEditingDraftTagihan = false;
+    window.currentTagihanFormData = null;
+
     // Toggle footer buttons based on active tab
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-        if ($(e.target).attr('href') === '#tab_buat_tagihan') {
-            $('#footer-action-riwayat-tagihan').addClass('d-none');
-            $('#footer-action-buat-tagihan').removeClass('d-none');
+    function syncModalFooter(targetHref) {
+        if (targetHref === '#tab_buat_tagihan') {
+            $('#footer-penagihan').removeClass('d-none').show();
+            $('#footer-action-buat-tagihan').removeClass('d-none').show();
         } else {
-            $('#footer-action-buat-tagihan').addClass('d-none');
-            $('#footer-action-riwayat-tagihan').removeClass('d-none');
+            $('#footer-penagihan').addClass('d-none').hide();
+            $('#footer-action-buat-tagihan').addClass('d-none').hide();
         }
+    }
+
+    // Fully clear and reset modal penagihan content
+    window.clearModalPenagihan = function() {
+        window.isEditingDraftTagihan = false;
+        window.currentTagihanFormData = null;
+
+        // Reset form controls
+        if ($('#form-buat-tagihan').length) {
+            $('#form-buat-tagihan')[0].reset();
+        }
+
+        // Reset hidden fields
+        $('#tagihan_id_mkdt').val('');
+        $('#tagihan_id_kavling').val('');
+        $('#tagihan_id_konsumen').val('');
+        $('#tagihan_no_inv').val('');
+        $('#form_submit_status').val('draft');
+
+        // Reset input fields
+        $('#tagihan_kopsurat').html('<option value="">-- Pilih Kop Surat --</option>');
+        $('#tagihan_nomor_surat').val('');
+        $('#tagihan_nominal_ditagihkan').val('');
+
+        const defaultSnk = '<ol><li><span style="font-size: 1rem; letter-spacing: 0.01rem;">Lakukan pembayaran sebelum tanggal jatuh tempo untuk menghindari denda&nbsp;</span></li><li><span style="font-size: 1rem; letter-spacing: 0.01rem;">Pembayaran yang sah hanya melalui transfer ke rekening atas nama <br><b>PT. Sanggarindah Karya Sentosa</b> <b>Raya</b> BCA KC Setiabudi - Bandung, Nomor Rekening :<b>2337 887 887</b>&nbsp;</span></li><li>Konfirmasi pembayaran ke bagian keuangan kami dan lampirkan bukti transfer.</li></ol>';
+        $('#tagihan_snk').val(defaultSnk);
+
+        // Reset dates
+        let today = new Date();
+        let h7 = new Date();
+        h7.setDate(h7.getDate() + 7);
+        $('#tagihan_tanggal').val(today.toISOString().split('T')[0]);
+        $('#tagihan_jatuh_tempo').val(h7.toISOString().split('T')[0]);
+
+        // Reset items table & totals
+        $('#tb-tagihan-items-here').html('<tr><td colspan="3" class="text-center py-2 text-muted"><i class="fas fa-spinner fa-spin mr-50"></i> Memuat daftar tagihan...</td></tr>');
+        $('#tagihan-total-nominal').text('Rp 0');
+        $('#tagihan-total-bayar').text('Rp 0');
+        $('#tagihan-total-sisa').text('Rp 0');
+
+        // Reset top header card
+        $('#tagihan_avatar_initial').text('-');
+        $('#tagihan_header_konsumen').text('Memuat...');
+        $('#tagihan_header_kavling').text('-');
+        $('#tagihan_header_sisa').text('Rp 0');
+
+        // Reset Daftar Surat (riwayat table)
+        $('#list_riwayat_tagihan-here').html('<tr><td colspan="4" class="text-center py-2"><i class="fas fa-spinner fa-spin mr-50"></i> Memuat riwayat...</td></tr>');
+
+        // Reset right pane detail card
+        $('#riwayat_detail_empty').show().removeClass('d-none');
+        $('#riwayat_detail_content').hide().addClass('d-none');
+        $('#dtl_no_inv').text('');
+        $('#dtl_status_badge').empty();
+        $('#dtl_nominal_tagihan').text('Rp 0');
+        $('#dtl_tgl_terbit').text('-');
+        $('#dtl_jatuh_tempo').text('-');
+        $('#dtl_ttd_direksi').html('-');
+        $('#dtl_dibuat_oleh').text('-');
+        $('#dtl_actions').empty();
+        $('#dtl_riwayat_surat').empty();
+    };
+
+    // Clear modal on hidden
+    $('#modal_penagihan').on('hidden.bs.modal', function() {
+        clearModalPenagihan();
+    });
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        let href = $(e.target).attr('href');
+        syncModalFooter(href);
+        if (href === '#tab_buat_tagihan' && !window.isEditingDraftTagihan) {
+            $('#tagihan_no_inv').val('');
+        }
+    });
+
+    // Button "+ Buat Surat" inside Daftar Surat tab
+    $(document).on('click', '#btn-pindah-buat-surat', function(e) {
+        e.preventDefault();
+        window.isEditingDraftTagihan = false;
+        $('#tagihan_no_inv').val('');
+        if (window.currentTagihanFormData) {
+            renderFormTagihanData(window.currentTagihanFormData);
+        }
+        $('#tab_buat_tagihan-tab').tab('show');
     });
 
     window.openModalPenagihan = function(rowData, targetTab = 'tab_riwayat_tagihan') {
         if (!rowData) return;
         let id_mkdt = rowData.id_mkdt;
 
-        // Reset form FIRST before populating values
-        $('#form-buat-tagihan')[0].reset();
+        // 1. Kosongkan seluruh konten sisa sebelumnya
+        clearModalPenagihan();
 
+        // 2. Set ID konteks konsumen / kavling baru
         $('#tagihan_id_mkdt').val(id_mkdt);
         $('#tagihan_id_kavling').val(rowData.id_kavling || '');
         $('#tagihan_id_konsumen').val(rowData.id_konsumen || '');
@@ -34,10 +119,10 @@ $(document).ready(function() {
         $('#tagihan_detail_konsumen').html(rowData.nama_konsumen || '-');
         $('#tagihan_detail_kavling').html((rowData.nama_jalan || '-') + ' - No. ' + (rowData.no_kavling || '-'));
 
-        // Populate new top header
+        // 3. Populate header info
         let nama = rowData.nama_konsumen || '-';
         let initial = nama.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
-        $('#tagihan_avatar_initial').text(initial);
+        $('#tagihan_avatar_initial').text(initial || '-');
         $('#tagihan_header_konsumen').text(nama);
 
         let tipe = rowData.tipe_pricelist || '';
@@ -51,29 +136,13 @@ $(document).ready(function() {
         }
         $('#tagihan_header_sisa').text('Rp ' + num_format(sisa));
 
-        // Setup Date
-        let today = new Date();
-        let h7 = new Date();
-        h7.setDate(h7.getDate() + 7);
-        $('#tagihan_tanggal').val(today.toISOString().split('T')[0]);
-        $('#tagihan_jatuh_tempo').val(h7.toISOString().split('T')[0]);
-
-        // Reset rich text editor if needed
-        if ($('.richText-editor').length) {
-            $('.richText-editor').html($('#tagihan_snk').val());
-        }
-        $('#tagihan_kopsurat').empty();
-        $('#tb-tagihan-items-here').empty();
-
-
-        // Load riwayat
+        // 4. Load data riwayat & data form
         loadRiwayatTagihan(id_mkdt);
-
-        // Load data untuk form buat tagihan
         loadDataFormTagihan(id_mkdt, rowData.id_kavling, rowData.id_keuangan);
 
         let activeTab = targetTab || 'tab_riwayat_tagihan';
         $(`#${activeTab}-tab`).tab('show');
+        syncModalFooter('#' + activeTab);
 
         $('#modal_penagihan').modal('show');
     };
@@ -111,30 +180,60 @@ $(document).ready(function() {
         $('#riwayat_detail_empty').hide();
         $('#riwayat_detail_content').show().removeClass('d-none');
         
-        $('#dtl_no_inv').text(v.no_inv);
+        let st = (v.status_tagihan || '').toLowerCase();
+        let nomorTampilDtl = (st === 'draft') ? v.no_inv : (v.nomor_surat || v.no_inv);
+        $('#dtl_no_inv').text(nomorTampilDtl);
+
+        // Hitung nominal tagihan surat
+        let totalNominalSurat = 0;
+        try {
+            let parsedTagihan = typeof v.tagihan === 'string' ? JSON.parse(v.tagihan) : v.tagihan;
+            if (Array.isArray(parsedTagihan)) {
+                parsedTagihan.forEach(item => {
+                    totalNominalSurat += parseFloat(item.nominal || 0);
+                });
+            }
+        } catch(e) {}
+        $('#dtl_nominal_tagihan').text('Rp ' + num_format(totalNominalSurat));
+
         $('#dtl_tgl_terbit').text(format_date((v.tanggal_invoice || '').split(' ')[0]));
         $('#dtl_jatuh_tempo').text(format_date((v.tanggal_jatuh_tempo || '').split(' ')[0]));
+
+        // Status TTD Direksi
+        let isSignedDtl = parseInt(v.is_signed_direktur || 0) === 1;
+        let ttdDtlText = isSignedDtl
+            ? `<span class="text-success font-weight-bold"><i class="fas fa-check-circle mr-25"></i> Sudah ${v.signed_at ? '(' + format_date(v.signed_at.split(' ')[0]) + ')' : ''}</span>`
+            : `<span class="text-secondary font-weight-bold"><i class="fas fa-clock mr-25"></i> Belum</span>`;
+        $('#dtl_ttd_direksi').html(ttdDtlText);
+
         $('#dtl_dibuat_oleh').text(v.pembuat || '-');
         
         let statusBadge = '';
-        let st = (v.status_tagihan || '').toLowerCase();
-        if (st === 'dibuat') statusBadge = '<span class="badge badge-secondary font-weight-bold">DIBUAT</span>';
+        if (st === 'draft') statusBadge = '<span class="badge badge-secondary font-weight-bold">DRAFT</span>';
+        else if (st === 'publish') statusBadge = '<span class="badge badge-primary font-weight-bold">PUBLISH</span>';
+        else if (st === 'dibuat') statusBadge = '<span class="badge badge-secondary font-weight-bold">DIBUAT</span>';
         else if (st === 'dikirim') statusBadge = '<span class="badge badge-info font-weight-bold">DIKIRIM</span>';
         else if (st === 'respon') statusBadge = '<span class="badge badge-success font-weight-bold">RESPON</span>';
         else if (st === 'tidak respon') statusBadge = '<span class="badge badge-danger font-weight-bold">TIDAK RESPON</span>';
+        else if (st === 'batal') statusBadge = '<span class="badge badge-dark font-weight-bold">BATAL</span>';
         else statusBadge = `<span class="badge badge-light-primary font-weight-bold text-uppercase">${v.status_tagihan}</span>`;
         $('#dtl_status_badge').html(statusBadge);
         
-        let actionsHtml = `
+        let actionsHtml = '';
+        if (st === 'draft') {
+            actionsHtml += `<button type="button" class="btn btn-sm btn-outline-warning mr-50 btn-edit-tagihan" data-inv='${JSON.stringify(v).replace(/'/g, "&#39;")}'>Edit Surat</button>`;
+        }
+        
+        actionsHtml += `
             <a href="${base_url}keuangan/download_penagihan?id=${encodeURIComponent(v.no_inv)}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-download mr-50"></i> Download</a>
-            <button type="button" class="btn btn-sm btn-outline-info btn-ubah-status-tagihan" data-no="${v.no_inv}" data-status="${v.status_tagihan}" data-tgl="${v.tanggal_ubah_status || ''}" data-ket="${v.keterangan_status || ''}">Ubah Status</button>
+            <button type="button" class="btn btn-sm btn-outline-info ml-50 btn-ubah-status-tagihan" data-no="${v.no_inv}" data-status="${v.status_tagihan}" data-tgl="${v.tanggal_ubah_status || ''}" data-ket="${v.keterangan_status || ''}" data-nomorsurat="${v.nomor_surat || ''}">Ubah Status</button>
         `;
         $('#dtl_actions').html(actionsHtml);
         
         // Build all history entries
         let timelineList = [];
         if (Array.isArray(v.lifecycle) && v.lifecycle.length > 0) {
-            timelineList = v.lifecycle;
+            timelineList = [...v.lifecycle];
         } else {
             timelineList.push({
                 status: 'dibuat',
@@ -153,6 +252,14 @@ $(document).ready(function() {
                 });
             }
         }
+        
+        // Urutkan aktivitas terbaru paling atas
+        timelineList.sort(function(a, b) {
+            let timeA = new Date(a.date_add || a.tanggal || 0).getTime();
+            let timeB = new Date(b.date_add || b.tanggal || 0).getTime();
+            if (timeB !== timeA) return timeB - timeA;
+            return (parseInt(b.id) || 0) - (parseInt(a.id) || 0);
+        });
         
         let timelineHtml = '';
         $.each(timelineList, function(idx, log) {
@@ -215,7 +322,7 @@ $(document).ready(function() {
 
     function loadRiwayatTagihan(id_mkdt, autoSelectNoInv = null) {
         let selectedInv = autoSelectNoInv || $('.riwayat-row.selected').data('no-inv');
-        $('#list_riwayat_tagihan-here').html('<tr><td colspan="5" class="text-center">Memuat riwayat...</td></tr>');
+        $('#list_riwayat_tagihan-here').html('<tr><td colspan="4" class="text-center">Memuat riwayat...</td></tr>');
         $.ajax({
             url: base_url + "keuangan/get_riwayat_tagihan",
             type: "POST",
@@ -232,33 +339,46 @@ $(document).ready(function() {
                         $.each(r.data, function(i, v) {
                             let statusBadge = '';
                             let stLower = (v.status_tagihan || '').toLowerCase();
-                            if (stLower === 'dibuat') statusBadge = '<span class="badge badge-light-secondary font-weight-bold">DIBUAT</span>';
+                            if (stLower === 'draft') statusBadge = '<span class="badge badge-light-secondary font-weight-bold">DRAFT</span>';
+                            else if (stLower === 'publish') statusBadge = '<span class="badge badge-light-primary font-weight-bold">PUBLISH</span>';
+                            else if (stLower === 'dibuat') statusBadge = '<span class="badge badge-light-secondary font-weight-bold">DIBUAT</span>';
                             else if (stLower === 'dikirim') statusBadge = '<span class="badge badge-light-info font-weight-bold">DIKIRIM</span>';
                             else if (stLower === 'respon') statusBadge = '<span class="badge badge-light-success font-weight-bold">RESPON</span>';
                             else if (stLower === 'tidak respon') statusBadge = '<span class="badge badge-light-danger font-weight-bold">TIDAK RESPON</span>';
+                            else if (stLower === 'batal') statusBadge = '<span class="badge badge-light-dark font-weight-bold">BATAL</span>';
                             else statusBadge = `<span class="badge badge-light-primary font-weight-bold text-uppercase">${v.status_tagihan}</span>`;
                             
                             let rowDataJson = JSON.stringify(v).replace(/"/g, '&quot;');
-                            let noSuratHtml = `<div class="font-weight-bolder text-dark">${v.no_inv}</div><div class="small text-muted mt-25 text-uppercase">${v.pembuat || '-'}</div>`;
-                            let tglTerbitHtml = `<div class="text-dark">${format_date((v.tanggal_invoice || '').split(' ')[0])}</div>
-                                                 <div class="small text-danger mt-25 font-weight-bold"><i class="fas fa-calendar-times mr-25"></i>${format_date((v.tanggal_jatuh_tempo || '').split(' ')[0])}</div>`;
-                            let updateTgl = v.tanggal_ubah_status ? format_date(v.tanggal_ubah_status.split(' ')[0]) : '-';
-                            let updateHtml = `<div class="text-dark">${updateTgl}</div><div class="small text-muted mt-25">${v.keterangan_status || '-'}</div>`;
+                            let nomorTampil = (stLower === 'draft') ? v.no_inv : (v.nomor_surat || v.no_inv);
+                            let noSuratHtml = `<div class="font-weight-bolder text-dark">${nomorTampil}</div><div class="small text-muted mt-25 text-uppercase">${v.pembuat || '-'}</div>`;
+                            let tglTerbitHtml = `<div class="text-dark font-weight-bold">${format_date((v.tanggal_invoice || '').split(' ')[0])}</div>`;
+
+                            let isSigned = parseInt(v.is_signed_direktur || 0) === 1;
+                            let ttdIcon = isSigned 
+                                ? `<i class="fas fa-check-circle text-success" style="font-size: 1.15rem;" data-toggle="tooltip" data-placement="top" title="${v.signed_at ? 'Sudah TTD Direksi (' + format_date(v.signed_at.split(' ')[0]) + ')' : 'Sudah TTD Direksi'}"></i>`
+                                : `<i class="fas fa-clock text-muted" style="font-size: 1.15rem;" data-toggle="tooltip" data-placement="top" title="Belum TTD Direksi"></i>`;
+
+                            let updateTgl = v.tanggal_ubah_status ? format_date(v.tanggal_ubah_status.split(' ')[0]) : (v.date_add ? format_date(v.date_add.split(' ')[0]) : '-');
+                            let rawKet = (v.keterangan_status || '').trim();
+                            let ketSnippet = '';
+                            if (rawKet) {
+                                let truncated = rawKet.length > 35 ? rawKet.substring(0, 35) + '...' : rawKet;
+                                ketSnippet = `<div class="small text-muted mt-25" data-toggle="tooltip" data-placement="top" title="${rawKet.replace(/"/g, '&quot;')}">${truncated}</div>`;
+                            }
+                            let updateHtml = `<div>${statusBadge} <small class="text-muted font-weight-bold ml-25">${updateTgl}</small></div>${ketSnippet}`;
                             
                             html += `<tr data-row="${rowDataJson}" data-no-inv="${v.no_inv}" class="riwayat-row" onclick="selectRiwayatRow(this)">
                                 <td>${noSuratHtml}</td>
                                 <td>${tglTerbitHtml}</td>
-                                <td>${statusBadge}</td>
+                                <td class="text-center align-middle">${ttdIcon}</td>
                                 <td>${updateHtml}</td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-outline-primary btn-block px-1 tagihan-detail-btn" onclick="event.stopPropagation(); selectRiwayatRow(this.closest('tr'))">Detail</button>
-                                </td>
                             </tr>`;
                         });
                     } else {
-                        html = '<tr><td colspan="5" class="text-center">Belum ada riwayat tagihan.</td></tr>';
+                        html = '<tr><td colspan="4" class="text-center">Belum ada riwayat tagihan.</td></tr>';
                     }
                     $('#list_riwayat_tagihan-here').html(html);
+                    $('#list_riwayat_tagihan-here [data-toggle="tooltip"]').tooltip();
                     
                     // Re-select row if previously selected or explicitly requested
                     let reselected = false;
@@ -278,8 +398,109 @@ $(document).ready(function() {
         });
     }
     
+    function renderFormTagihanData(r) {
+        if (!r) return;
+
+        // Load Kop Surat
+        let kopHtml = '<option value="">-- Pilih Kop Surat --</option>';
+        if (r.kop_surat && r.kop_surat.length > 0) {
+            $.each(r.kop_surat, function(i, v) {
+                kopHtml += `<option value="${v.id}">${v.nama} (${v.ukuran})</option>`;
+            });
+        }
+        $('#tagihan_kopsurat').html(kopHtml);
+
+        // Suggest Nomor Surat
+        let kode_keu = r.kode_keuangan ? r.kode_keuangan : 'XXX';
+        let romanMonths = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+        let today = new Date();
+        let month = romanMonths[today.getMonth()];
+        let year = today.getFullYear();
+        let suggestedNomor = `/KEU-${kode_keu}/EX/PRS/DIR/${month}/${year}`;
+        $('#tagihan_nomor_surat').val(suggestedNomor);
+        
+        // Load Items
+        let itemsHtml = '';
+        let totalTagihan = 0;
+        let totalSudahBayar = 0;
+        let closestDate = null;
+        
+        if (r.list_tagihan && r.list_tagihan.length > 0) {
+            $.each(r.list_tagihan, function(i, a) {
+                let nominal = parseInt(a.nominal) || 0;
+                let isPaid = parseInt(a.sudah_dibayar || 0) === 1;
+                let isVoid = parseInt(a.is_void || 0) === 1;
+                
+                if (!isVoid) {
+                    totalTagihan += nominal;
+                    if (isPaid) {
+                        totalSudahBayar += nominal;
+                    } else {
+                        // Find closest unpaid due date
+                        if (a.jatuh_tempo_tgl) {
+                            let jtDate = new Date(a.jatuh_tempo_tgl);
+                            if (!closestDate || jtDate < closestDate) {
+                                closestDate = jtDate;
+                            }
+                        }
+                    }
+                }
+                
+                let statusIcon = isVoid 
+                    ? `<i class="fas fa-ban text-secondary mr-50" data-toggle="tooltip" data-placement="top" title="Void"></i>`
+                    : (isPaid 
+                        ? `<i class="fas fa-check-circle text-success mr-50" data-toggle="tooltip" data-placement="top" title="Lunas"></i>` 
+                        : `<i class="fas fa-clock text-warning mr-50" data-toggle="tooltip" data-placement="top" title="Belum Lunas"></i>`
+                    );
+                
+                itemsHtml += `
+                  <tr${isVoid ? ' class="text-muted"' : ""}>
+                      <td class="align-middle">${a.berita_acara}</td>
+                      <td class="text-center align-middle">${format_date(a.jatuh_tempo_tgl)}</td>
+                      <td class="text-right align-middle text-nowrap">${statusIcon}Rp ${num_format(nominal)}</td>
+                  </tr>
+                `;
+            });
+        } else {
+            itemsHtml = '<tr><td colspan="3" class="text-center py-2 text-muted">Belum ada daftar tagihan.</td></tr>';
+        }
+        
+        let sisaTagihan = totalTagihan - totalSudahBayar;
+        if (sisaTagihan < 0) sisaTagihan = 0;
+        
+        $('#tb-tagihan-items-here').html(itemsHtml);
+        $('#tb-tagihan-items-here [data-toggle="tooltip"]').tooltip();
+        $('#tagihan-total-nominal').text('Rp ' + num_format(totalTagihan));
+        $('#tagihan-total-bayar').text('Rp ' + num_format(totalSudahBayar));
+        $('#tagihan-total-sisa').text('Rp ' + num_format(sisaTagihan));
+
+        // Set default Nominal Ditagihkan and Tanggal Jatuh Tempo
+        let formatSisa = num_format(sisaTagihan);
+        $('#tagihan_nominal_ditagihkan').val(formatSisa);
+        
+        // Formatting input for nominal
+        $('#tagihan_nominal_ditagihkan').off('input').on('input', function() {
+            let val = $(this).val().replace(/[^0-9]/g, '');
+            if (val === '') val = '0';
+            $(this).val(num_format(parseInt(val, 10)));
+        });
+
+        if (closestDate) {
+            let yy = closestDate.getFullYear();
+            let mm = String(closestDate.getMonth() + 1).padStart(2, '0');
+            let dd = String(closestDate.getDate()).padStart(2, '0');
+            $('#tagihan_jatuh_tempo').val(`${yy}-${mm}-${dd}`);
+        } else {
+            // Default to today if no unpaid items found
+            let todayStr = new Date().toISOString().split('T')[0];
+            $('#tagihan_jatuh_tempo').val(todayStr);
+        }
+        
+        // Default tanggal surat is today
+        $('#tagihan_tanggal').val(new Date().toISOString().split('T')[0]);
+    }
+
     function loadDataFormTagihan(id_mkdt, id_kavling, id_keuangan) {
-        // We reuse the existing /keuangan/get_tagihan/inv endpoint to get kop surat and items
         $.ajax({
             url: base_url + "keuangan/get_tagihan/inv",
             type: "post",
@@ -292,78 +513,13 @@ $(document).ready(function() {
             dataType: "json",
             success: function (r) {
               csrfHash = r.token;
-              
-              // Load Kop Surat
-              let kopHtml = '<option value="">-- Pilih Kop Surat --</option>';
-              if (r.kop_surat && r.kop_surat.length > 0) {
-                  $.each(r.kop_surat, function(i, v) {
-                      kopHtml += `<option value="${v.id}">${v.nama} (${v.ukuran})</option>`;
-                  });
+              window.currentTagihanFormData = r;
+              if (!window.isEditingDraftTagihan) {
+                  renderFormTagihanData(r);
               }
-              $('#tagihan_kopsurat').html(kopHtml);
-
-              // Suggest Nomor Surat
-              let kode_keu = r.kode_keuangan ? r.kode_keuangan : 'XXX';
-              let romanMonths = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
-              let today = new Date();
-              let month = romanMonths[today.getMonth()];
-              let year = today.getFullYear();
-              let suggestedNomor = `/KEU-${kode_keu}/EX/PRS/DIR/${month}/${year}`;
-              $('#tagihan_nomor_surat').val(suggestedNomor);
-              
-              // Load Items
-              let itemsHtml = '';
-              let total = 0;
-              $.each(r.list_tagihan, function(i, a) {
-                  let nominal = parseInt(a.nominal);
-                  total += nominal;
-                  
-                  itemsHtml += `
-                    <tr>
-                        <td class="text-center">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input tagihan-item-check" id="checkTagihan_${i}" data-ba="${a.berita_acara}" data-jt="${a.jatuh_tempo_tgl}" data-nom="${a.nominal}" checked>
-                                <label class="custom-control-label" for="checkTagihan_${i}"></label>
-                            </div>
-                        </td>
-                        <td class="text-center">${i + 1}</td>
-                        <td>${a.berita_acara}</td>
-                        <td>${format_date(a.jatuh_tempo_tgl)}</td>
-                        <td class="text-right">Rp <span class="tagihan-item-nominal-text">${num_format(nominal)}</span></td>
-                    </tr>
-                  `;
-              });
-              itemsHtml += `
-                <tr class="bg-light font-weight-bold">
-                    <td colspan="4" class="text-right">Total Tagihan</td>
-                    <td class="text-right" id="tagihan-total-nominal">Rp ${num_format(total)}</td>
-                </tr>
-              `;
-              $('#tb-tagihan-items-here').html(itemsHtml);
-
-              // Check all behavior
-              $('#checkAllTagihan').prop('checked', true);
-              $('#checkAllTagihan').off('change').on('change', function() {
-                  $('.tagihan-item-check').prop('checked', $(this).is(':checked'));
-                  updateTotalTagihan();
-              });
-
-              $('.tagihan-item-check').off('change').on('change', function() {
-                  if ($('.tagihan-item-check:not(:checked)').length > 0) {
-                      $('#checkAllTagihan').prop('checked', false);
-                  } else {
-                      $('#checkAllTagihan').prop('checked', true);
-                  }
-                  updateTotalTagihan();
-              });
-
-              function updateTotalTagihan() {
-                  let tempTotal = 0;
-                  $('.tagihan-item-check:checked').each(function() {
-                      tempTotal += parseInt($(this).data('nom'));
-                  });
-                  $('#tagihan-total-nominal').text('Rp ' + num_format(tempTotal));
-              }
+            },
+            error: function() {
+              $('#tb-tagihan-items-here').html('<tr><td colspan="3" class="text-center py-2 text-danger">Gagal memuat data tagihan.</td></tr>');
             }
         });
     }
@@ -371,29 +527,29 @@ $(document).ready(function() {
     $('#form-buat-tagihan').on('submit', function(e) {
         e.preventDefault();
         
-        if ($('.richText-editor').length) {
-            $('#tagihan_snk').val($('.richText-editor').html());
-        }
-        
         let formData = $(this).serializeArray();
         
-        // build json tagihan only from checked items
+        // build json tagihan (single item for the summary invoice)
+        let nominalRaw = $('#tagihan_nominal_ditagihkan').val().replace(/[^0-9]/g, '');
+        let nominalVal = parseInt(nominalRaw, 10) || 0;
+
         let tagihanArray = [];
-        $('.tagihan-item-check:checked').each(function() {
+        if (nominalVal > 0) {
             tagihanArray.push({
-                berita_acara: $(this).data('ba'),
-                jatuh_tempo_tgl: $(this).data('jt'),
-                nominal: $(this).data('nom')
+                berita_acara: "Pembayaran Tagihan",
+                jatuh_tempo_tgl: $('#tagihan_jatuh_tempo').val(),
+                nominal: nominalVal
             });
-        });
+        }
         
-        // 1. Validasi Item Tagihan
-        if (tagihanArray.length === 0) {
+        // 1. Validasi Nominal Tagihan
+        if (tagihanArray.length === 0 || nominalVal <= 0) {
             Swal.fire({
                 icon: 'warning',
-                title: 'Item Tagihan Kosong',
-                text: 'Silakan pilih (ceklis) minimal 1 item tagihan.'
+                title: 'Nominal Kosong',
+                text: 'Silakan isi nominal yang akan ditagihkan (lebih dari 0).'
             });
+            $('#tagihan_nominal_ditagihkan').focus();
             return;
         }
 
@@ -423,6 +579,8 @@ $(document).ready(function() {
         
         let submitData = {
             [csrfName]: csrfHash,
+            no_inv: $('#tagihan_no_inv').val() || '',
+            status_tagihan: $('#form_submit_status').val(),
             id_mkdt: $('#tagihan_id_mkdt').val(),
             id_kavling: $('#tagihan_id_kavling').val(),
             id_konsumen: $('#tagihan_id_konsumen').val(),
@@ -434,7 +592,10 @@ $(document).ready(function() {
             tagihan: JSON.stringify(tagihanArray)
         };
         
-        $('#btn-simpan-tagihan').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Memproses...');
+        let draftBtn = $('#btn-simpan-draft');
+        let publishBtn = $('#btn-simpan-publish');
+        draftBtn.prop('disabled', true);
+        publishBtn.prop('disabled', true);
         
         $.ajax({
             url: base_url + "keuangan/simpan_penagihan",
@@ -442,11 +603,14 @@ $(document).ready(function() {
             dataType: "json",
             data: submitData,
             success: function(r) {
-                $('#btn-simpan-tagihan').prop('disabled', false).html('Buat Invoice Tagihan');
+                draftBtn.prop('disabled', false);
+                publishBtn.prop('disabled', false);
                 if (r.token) csrfHash = r.token;
                 if (r.success) {
                     Swal.fire('Berhasil', r.messages, 'success');
+                    window.isEditingDraftTagihan = false;
                     $('#form-buat-tagihan')[0].reset();
+                    $('#tagihan_no_inv').val('');
         
                     // Setup Date
                     let today = new Date();
@@ -455,11 +619,10 @@ $(document).ready(function() {
                     $('#tagihan_tanggal').val(today.toISOString().split('T')[0]);
                     $('#tagihan_jatuh_tempo').val(h7.toISOString().split('T')[0]);
                     
-                    // Reset rich text editor if needed
-                    if ($('.richText-editor').length) {
-                        $('.richText-editor').html($('#tagihan_snk').val());
+                    if (window.currentTagihanFormData) {
+                        renderFormTagihanData(window.currentTagihanFormData);
                     }
-                    
+
                     $('#tab_riwayat_tagihan-tab').tab('show');
                     loadRiwayatTagihan(submitData.id_mkdt);
                 } else {
@@ -467,21 +630,69 @@ $(document).ready(function() {
                 }
             },
             error: function() {
-                $('#btn-simpan-tagihan').prop('disabled', false).html('Buat Invoice Tagihan');
+                draftBtn.prop('disabled', false);
+                publishBtn.prop('disabled', false);
                 Swal.fire('Error', 'Terjadi kesalahan pada server.', 'error');
             }
         });
     });
     
-    // Ubah Status
+    // Edit Tagihan (Draft)
+    $(document).on('click', '.btn-edit-tagihan', function() {
+        let v = $(this).data('inv');
+        window.isEditingDraftTagihan = true;
+        // populate form
+        $('#tagihan_no_inv').val(v.no_inv);
+        
+        $('#tagihan_kopsurat').val(v.id_kopsurat);
+        $('#tagihan_nomor_surat').val(v.nomor_surat);
+        $('#tagihan_tanggal').val((v.tanggal_invoice || '').split(' ')[0]);
+        $('#tagihan_jatuh_tempo').val((v.tanggal_jatuh_tempo || '').split(' ')[0]);
+        
+        if (v.terms) {
+            $('#tagihan_snk').val(v.terms);
+        }
+        
+        try {
+            let parsedTagihan = typeof v.tagihan === 'string' ? JSON.parse(v.tagihan) : v.tagihan;
+            if (Array.isArray(parsedTagihan) && parsedTagihan.length > 0) {
+                let nominal = parsedTagihan[0].nominal;
+                $('#tagihan_nominal_ditagihkan').val(num_format(nominal));
+            }
+        } catch(e) {}
+        
+        // switch tab back to buat tagihan
+        $('#tab_buat_tagihan-tab').tab('show');
+    });
+
     $(document).on('click', '.btn-ubah-status-tagihan', function() {
         let no_inv = $(this).data('no');
-        let status = $(this).data('status');
+        let status = ($(this).data('status') || '').toLowerCase();
         let tgl = $(this).data('tgl');
         let ket = $(this).data('ket');
+        let nomorsurat = $(this).data('nomorsurat');
         
         $('#us_no_inv').val(no_inv);
-        $('#us_status_tagihan').val(status);
+        $('#us_current_status').val(status);
+        
+        let selectHtml = '';
+        if (status === 'draft') {
+            selectHtml = `
+                <option value="publish">Publish</option>
+                <option value="batal">Batal</option>
+            `;
+            $('#us_status_tagihan').html(selectHtml);
+            $('#us_status_tagihan').val('publish').trigger('change');
+        } else {
+            selectHtml = `
+                <option value="dikirim">Dikirim</option>
+                <option value="respon">Respon</option>
+                <option value="tidak respon">Tidak Respon</option>
+            `;
+            $('#us_status_tagihan').html(selectHtml);
+            $('#us_status_tagihan').val(status);
+        }
+
         if (tgl) {
             // keep only date part for input type=date
             $('#us_tanggal_ubah_status').val(tgl.split(' ')[0]);
@@ -494,8 +705,21 @@ $(document).ready(function() {
             $('#us_tanggal_ubah_status').val(yyyy + '-' + mm + '-' + dd);
         }
         $('#us_keterangan_status').val(ket);
+        $('#us_nomor_surat').val(nomorsurat || '');
         
         $('#modal_ubah_status_tagihan').modal('show');
+    });
+
+    $('#us_status_tagihan').on('change', function() {
+        let val = $(this).val();
+        let cur = $('#us_current_status').val();
+        if (cur === 'draft' && val === 'publish') {
+            $('#us_group_nomor_surat').removeClass('d-none');
+            $('#us_nomor_surat').attr('required', true);
+        } else {
+            $('#us_group_nomor_surat').addClass('d-none');
+            $('#us_nomor_surat').removeAttr('required');
+        }
     });
     
     $('#form-ubah-status-tagihan').on('submit', function(e) {
@@ -506,7 +730,8 @@ $(document).ready(function() {
             no_inv: $('#us_no_inv').val(),
             status_tagihan: $('#us_status_tagihan').val(),
             tanggal_ubah_status: $('#us_tanggal_ubah_status').val(),
-            keterangan_status: $('#us_keterangan_status').val()
+            keterangan_status: $('#us_keterangan_status').val(),
+            nomor_surat: $('#us_nomor_surat').val()
         };
         
         let btn = $(this).find('button[type="submit"]');

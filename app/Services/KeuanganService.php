@@ -777,11 +777,69 @@ class KeuanganService
         $id_cluster = $request->getVar('id_cluster');
         $id_jalan = $request->getVar('id_jalan');
         if ($id_proyek == null) {
-            return [];
+            return json_encode(['draw' => intval($request->getVar('draw')), 'recordsTotal' => 0, 'recordsFiltered' => 0, 'data' => []]);
         }
         $builder = $this->pembayaranRepo->getRiwayatBayarQuery($id_proyek, $id_cluster, $id_jalan);
         return DataTable::of($builder)
-            ->toJson();
+            ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan', 'lp.payment_type', 'u.username'])
+            ->toJson(true);
+    }
+
+    public function getListRiwayatSurat($request)
+    {
+        $id_proyek = resolve_active_proyek_id($request->getVar('id_proyek'));
+        if ($id_proyek == null) {
+            return json_encode(['draw' => intval($request->getVar('draw')), 'recordsTotal' => 0, 'recordsFiltered' => 0, 'data' => []]);
+        }
+
+        $builder = $this->db->table('invoice_log i')
+            ->select('
+                i.no_inv,
+                i.nomor_surat,
+                i.id_mkdt,
+                i.id_kavling,
+                i.id_konsumen,
+                i.id_kopsurat,
+                i.tanggal_invoice,
+                i.tanggal_jatuh_tempo,
+                i.status_tagihan,
+                i.is_signed_direktur,
+                i.signed_at,
+                i.signed_by,
+                i.date_add,
+                i.date_edit,
+                i.tanggal_ubah_status,
+                i.keterangan_status,
+                i.tagihan,
+                COALESCE(c.nama_konsumen, "") AS nama_konsumen,
+                COALESCE(k.no_kavling, "") AS no_kavling,
+                COALESCE(j.nama_jalan, "") AS nama_jalan,
+                COALESCE(cl.nama_cluster, "") AS nama_cluster,
+                COALESCE(u.nama_karyawan, usr.username, "") AS pembuat
+            ', false)
+            ->join('mkdt m', 'm.id_mkdt = i.id_mkdt', 'left')
+            ->join('konsumen c', 'c.id_konsumen = COALESCE(i.id_konsumen, m.id_konsumen)', 'left')
+            ->join('kavling k', 'k.id_kavling = COALESCE(i.id_kavling, m.id_kavling)', 'left')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster', 'left')
+            ->join('karyawan u', 'u.id_user = i.add_by', 'left')
+            ->join('users usr', 'usr.id = i.add_by', 'left')
+            ->where('cl.id_proyek', $id_proyek);
+
+        $id_cluster = $request->getVar('id_cluster');
+        if (!empty($id_cluster)) {
+            $builder->where('cl.id_cluster', $id_cluster);
+        }
+        $id_jalan = $request->getVar('id_jalan');
+        if (!empty($id_jalan)) {
+            $builder->where('j.id_jalan', $id_jalan);
+        }
+
+        $builder->orderBy('COALESCE(i.tanggal_ubah_status, i.date_edit, i.date_add)', 'DESC', false);
+
+        return DataTable::of($builder)
+            ->setSearchableColumns(['i.no_inv', 'i.nomor_surat', 'c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
+            ->toJson(true);
     }
 
     function getAllJatuhTempo($id_proyek)
@@ -1438,12 +1496,19 @@ class KeuanganService
     public function getRiwayatTagihan($request): array
     {
         $id_mkdt = $request->getVar('id_mkdt');
+        $no_inv = $request->getVar('no_inv');
         
-        $riwayat = $this->db->table('invoice_log i')
+        $builder = $this->db->table('invoice_log i')
             ->select('i.*, u.nama_karyawan as pembuat')
-            ->join('karyawan u', 'u.id_user = i.add_by', 'left')
-            ->where('i.id_mkdt', $id_mkdt)
-            ->orderBy('i.date_add', 'DESC')
+            ->join('karyawan u', 'u.id_user = i.add_by', 'left');
+            
+        if (!empty($no_inv)) {
+            $builder->where('i.no_inv', $no_inv);
+        } else if (!empty($id_mkdt)) {
+            $builder->where('i.id_mkdt', $id_mkdt);
+        }
+        
+        $riwayat = $builder->orderBy('i.date_add', 'DESC')
             ->get()->getResultArray();
             
         foreach ($riwayat as &$r) {
@@ -1514,6 +1579,8 @@ class KeuanganService
         
         // Signature & input verification are removed
         $nomor_surat = $request->getVar('nomor_surat');
+        $status_tagihan = $request->getVar('status_tagihan') ?? 'draft'; // draft or publish
+        $no_inv = $request->getVar('no_inv'); // if editing
         
         if (empty($id_mkdt)) {
             $response['messages'] = 'Data transaksi/konsumen (MKDT) tidak ditemukan.';
@@ -1538,41 +1605,78 @@ class KeuanganService
             return $response;
         }
         
-        // 3. Validasi Nomor Surat
+        // 3. Validasi Nomor Surat (Wajib Beda Jika Publish)
         if (empty($nomor_surat) || trim((string)$nomor_surat) === '') {
             $response['messages'] = 'Nomor Surat wajib diisi.';
             return $response;
         }
         
-        // Cek duplikat Nomor Surat
-        $cekDuplikat = $this->db->table('invoice_log')
-            ->where('nomor_surat', trim((string)$nomor_surat))
-            ->get()->getRow();
-            
-        if ($cekDuplikat) {
-            $response['messages'] = 'Nomor Surat ini sudah digunakan. Silakan masukkan nomor surat yang lain.';
-            return $response;
-        }
-        
+        if ($status_tagihan === 'publish') {
+            $cekQuery = $this->db->table('invoice_log i')
+                ->select('i.no_inv, i.nomor_surat, COALESCE(ks.nama_konsumen, mks.nama_konsumen) as nama_konsumen, COALESCE(kv.no_kavling, mkv.no_kavling) as no_kavling, COALESCE(j.nama_jalan, mj.nama_jalan) as nama_jalan, COALESCE(p.nama_proyek, mp.nama_proyek) as nama_proyek')
+                ->join('konsumen ks', 'ks.id_konsumen = i.id_konsumen', 'left')
+                ->join('kavling kv', 'kv.id_kavling = i.id_kavling', 'left')
+                ->join('jalan j', 'j.id_jalan = kv.id_jalan', 'left')
+                ->join('cluster c', 'c.id_cluster = j.id_cluster', 'left')
+                ->join('proyek p', 'p.id_proyek = c.id_proyek', 'left')
+                ->join('mkdt m', 'm.id_mkdt = i.id_mkdt', 'left')
+                ->join('konsumen mks', 'mks.id_konsumen = m.id_konsumen', 'left')
+                ->join('kavling mkv', 'mkv.id_kavling = m.id_kavling', 'left')
+                ->join('jalan mj', 'mj.id_jalan = mkv.id_jalan', 'left')
+                ->join('cluster mc', 'mc.id_cluster = mj.id_cluster', 'left')
+                ->join('proyek mp', 'mp.id_proyek = mc.id_proyek', 'left')
+                ->where('i.nomor_surat', trim((string)$nomor_surat))
+                ->where('i.status_tagihan !=', 'draft')
+                ->where('i.status_tagihan !=', 'batal');
+            if (!empty($no_inv)) {
+                $cekQuery->where('i.no_inv !=', $no_inv);
+            }
+            $cekDuplikat = $cekQuery->get()->getRow();
+                
+            if ($cekDuplikat) {
+                $konsumenInfo = !empty($cekDuplikat->nama_konsumen) ? $cekDuplikat->nama_konsumen : 'Konsumen lain';
+                $kavlingParts = [];
+                if (!empty($cekDuplikat->nama_proyek)) $kavlingParts[] = $cekDuplikat->nama_proyek;
+                if (!empty($cekDuplikat->nama_jalan)) $kavlingParts[] = $cekDuplikat->nama_jalan;
+                if (!empty($cekDuplikat->no_kavling)) $kavlingParts[] = 'No. ' . $cekDuplikat->no_kavling;
+                $kavlingInfo = !empty($kavlingParts) ? implode(' - ', $kavlingParts) : 'Kavling lain';
 
-        // Generate No Invoice auto
-        // e.g., INV/2026/10/0001
-        $y = date('Y');
-        $m = date('m');
-        $prefix = "INV/$y/$m/";
-        
-        $lastInv = $this->db->table('invoice_log')
-            ->where("no_inv LIKE '$prefix%'")
-            ->orderBy('no_inv', 'DESC')
-            ->get()->getRow();
-            
-        if ($lastInv) {
-            $lastNum = (int) substr($lastInv->no_inv, -4);
-            $newNum = str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
-        } else {
-            $newNum = '0001';
+                $response['messages'] = "Nomor Surat ini sudah digunakan untuk tagihan konsumen {$konsumenInfo} ({$kavlingInfo}). Silakan gunakan nomor surat yang lain.";
+                return $response;
+            }
         }
-        $no_inv = $prefix . $newNum;
+        
+        // Cek Invoice Lama jika Edit
+        $isEdit = false;
+        if (!empty($no_inv)) {
+            $oldInv = $this->db->table('invoice_log')->where('no_inv', $no_inv)->get()->getRow();
+            if ($oldInv && $oldInv->status_tagihan === 'draft') {
+                $isEdit = true;
+            } else if ($oldInv) {
+                $response['messages'] = 'Hanya tagihan berstatus DRAFT yang dapat diedit.';
+                return $response;
+            }
+        }
+
+        if (!$isEdit) {
+            // Generate No Invoice auto
+            $y = date('Y');
+            $m = date('m');
+            $prefix = "INV/$y/$m/";
+            
+            $lastInv = $this->db->table('invoice_log')
+                ->where("no_inv LIKE '$prefix%'")
+                ->orderBy('no_inv', 'DESC')
+                ->get()->getRow();
+                
+            if ($lastInv) {
+                $lastNum = (int) substr($lastInv->no_inv, -4);
+                $newNum = str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
+            } else {
+                $newNum = '0001';
+            }
+            $no_inv = $prefix . $newNum;
+        }
 
         $db = $this->db;
         $db->transException(true);
@@ -1580,8 +1684,7 @@ class KeuanganService
         try {
             $db->transStart();
 
-            $saved = $db->table('invoice_log')->insert([
-                'no_inv' => $no_inv,
+            $saveData = [
                 'nomor_surat' => trim((string)$nomor_surat),
                 'id_mkdt' => $id_mkdt,
                 'id_konsumen' => $id_konsumen,
@@ -1591,20 +1694,29 @@ class KeuanganService
                 'tanggal_jatuh_tempo' => $tanggal_jatuh_tempo,
                 'tagihan' => $tagihan,
                 'terms' => $terms,
-                'status_tagihan' => 'dibuat',
-                'add_by' => $actorId,
-                'date_add' => date('Y-m-d H:i:s'),
-            ]);
+                'status_tagihan' => $status_tagihan,
+                'edit_by' => $actorId,
+                'date_edit' => date('Y-m-d H:i:s'),
+            ];
+
+            if ($isEdit) {
+                $saved = $db->table('invoice_log')->where('no_inv', $no_inv)->update($saveData);
+            } else {
+                $saveData['no_inv'] = $no_inv;
+                $saveData['add_by'] = $actorId;
+                $saveData['date_add'] = date('Y-m-d H:i:s');
+                $saved = $db->table('invoice_log')->insert($saveData);
+            }
 
             if (! $saved) {
-                throw new \RuntimeException('Gagal menambahkan invoice');
+                throw new \RuntimeException('Gagal menyimpan invoice');
             }
             
             $db->table('invoice_status_log')->insert([
                 'no_inv' => $no_inv,
-                'status' => 'dibuat',
+                'status' => $status_tagihan,
                 'tanggal' => date('Y-m-d'),
-                'keterangan' => 'Surat penagihan berhasil dibuat.',
+                'keterangan' => 'Surat penagihan ' . ($isEdit ? 'diedit' : 'dibuat') . ' sebagai ' . strtoupper($status_tagihan) . '.',
                 'add_by' => $actorId,
                 'date_add' => date('Y-m-d H:i:s')
             ]);
@@ -1618,7 +1730,7 @@ class KeuanganService
             return [
                 'token' => csrf_hash(),
                 'success' => true,
-                'messages' => 'Tagihan berhasil dibuat',
+                'messages' => 'Tagihan berhasil ' . ($isEdit ? 'diperbarui' : 'dibuat'),
             ];
         } catch (\Throwable $e) {
             try {
@@ -1648,16 +1760,60 @@ class KeuanganService
             $response['messages'] = 'Data tidak lengkap';
             return $response;
         }
+
+        $nomor_surat = $request->getVar('nomor_surat');
         
+        $updateData = [
+            'status_tagihan' => $status_tagihan,
+            'tanggal_ubah_status' => $tanggal_ubah_status,
+            'keterangan_status' => $keterangan_status,
+            'date_edit' => date('Y-m-d H:i:s'),
+            'edit_by' => $actorId
+        ];
+        
+        if ($status_tagihan === 'publish') {
+            if (empty($nomor_surat) || trim((string)$nomor_surat) === '') {
+                $response['messages'] = 'Nomor Surat wajib diisi saat Publish.';
+                return $response;
+            }
+            
+            // Cek duplikat
+            $cekDuplikat = $this->db->table('invoice_log i')
+                ->select('i.no_inv, i.nomor_surat, COALESCE(ks.nama_konsumen, mks.nama_konsumen) as nama_konsumen, COALESCE(kv.no_kavling, mkv.no_kavling) as no_kavling, COALESCE(j.nama_jalan, mj.nama_jalan) as nama_jalan, COALESCE(p.nama_proyek, mp.nama_proyek) as nama_proyek')
+                ->join('konsumen ks', 'ks.id_konsumen = i.id_konsumen', 'left')
+                ->join('kavling kv', 'kv.id_kavling = i.id_kavling', 'left')
+                ->join('jalan j', 'j.id_jalan = kv.id_jalan', 'left')
+                ->join('cluster c', 'c.id_cluster = j.id_cluster', 'left')
+                ->join('proyek p', 'p.id_proyek = c.id_proyek', 'left')
+                ->join('mkdt m', 'm.id_mkdt = i.id_mkdt', 'left')
+                ->join('konsumen mks', 'mks.id_konsumen = m.id_konsumen', 'left')
+                ->join('kavling mkv', 'mkv.id_kavling = m.id_kavling', 'left')
+                ->join('jalan mj', 'mj.id_jalan = mkv.id_jalan', 'left')
+                ->join('cluster mc', 'mc.id_cluster = mj.id_cluster', 'left')
+                ->join('proyek mp', 'mp.id_proyek = mc.id_proyek', 'left')
+                ->where('i.nomor_surat', trim((string)$nomor_surat))
+                ->where('i.no_inv !=', $no_inv)
+                ->where('i.status_tagihan !=', 'draft')
+                ->where('i.status_tagihan !=', 'batal')
+                ->get()->getRow();
+                
+            if ($cekDuplikat) {
+                $konsumenInfo = !empty($cekDuplikat->nama_konsumen) ? $cekDuplikat->nama_konsumen : 'Konsumen lain';
+                $kavlingParts = [];
+                if (!empty($cekDuplikat->nama_proyek)) $kavlingParts[] = $cekDuplikat->nama_proyek;
+                if (!empty($cekDuplikat->nama_jalan)) $kavlingParts[] = $cekDuplikat->nama_jalan;
+                if (!empty($cekDuplikat->no_kavling)) $kavlingParts[] = 'No. ' . $cekDuplikat->no_kavling;
+                $kavlingInfo = !empty($kavlingParts) ? implode(' - ', $kavlingParts) : 'Kavling lain';
+
+                $response['messages'] = "Nomor Surat ini sudah digunakan untuk tagihan konsumen {$konsumenInfo} ({$kavlingInfo}). Silakan gunakan nomor surat yang lain.";
+                return $response;
+            }
+            $updateData['nomor_surat'] = trim((string)$nomor_surat);
+        }
+
         $this->db->table('invoice_log')
             ->where('no_inv', $no_inv)
-            ->update([
-                'status_tagihan' => $status_tagihan,
-                'tanggal_ubah_status' => $tanggal_ubah_status,
-                'keterangan_status' => $keterangan_status,
-                'date_edit' => date('Y-m-d H:i:s'),
-                'edit_by' => $actorId
-            ]);
+            ->update($updateData);
             
         $this->db->table('invoice_status_log')->insert([
             'no_inv' => $no_inv,

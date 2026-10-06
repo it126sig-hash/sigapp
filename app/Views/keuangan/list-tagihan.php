@@ -295,6 +295,50 @@
     overflow: hidden;
     box-shadow: 0 4px 16px rgba(15, 23, 42, .12);
   }
+
+  .list-tagihan-nav-tabs .nav-link {
+    border-radius: 8px !important;
+    font-size: .82rem;
+    font-weight: 700;
+    padding: .6rem 1.1rem;
+    color: #4b5563;
+    transition: all .2s ease;
+  }
+  .list-tagihan-nav-tabs .nav-link.active {
+    background-color: #2057a3 !important;
+    color: #ffffff !important;
+    border-color: #2057a3 !important;
+    box-shadow: 0 4px 12px rgba(32, 87, 163, 0.25);
+  }
+  #table_riwayat_pembayaran thead th,
+  #table_riwayat_surat_tagihan thead th {
+    background: #eef5ff;
+    border-bottom: 1px solid #c9ddf5;
+    color: #2057a3;
+    font-size: .68rem;
+    font-weight: 800;
+    padding: .55rem .5rem;
+    white-space: nowrap;
+  }
+  #table_riwayat_pembayaran tbody td,
+  #table_riwayat_surat_tagihan tbody td {
+    border-color: #edf0f2;
+    color: #111827;
+    padding: .5rem .5rem;
+    vertical-align: middle !important;
+    font-size: .78rem;
+  }
+  #table_riwayat_pembayaran tbody tr:hover td,
+  #table_riwayat_surat_tagihan tbody tr:hover td {
+    background: #f8fbff;
+  }
+  #table_riwayat_surat_tagihan tbody tr {
+    cursor: pointer;
+  }
+  #table_riwayat_surat_tagihan tbody tr.selected td {
+    background: #e8f0fe !important;
+    border-color: #c9ddf5 !important;
+  }
 </style>
 <!-- /.card-header -->
 <div class="app-content content list-tagihan-page">
@@ -303,6 +347,32 @@
   <section id="basic-datatable">
     <div class="row">
       <div class="col-12">
+        <!-- Navigation Tabs -->
+        <div class="card mb-1">
+          <div class="card-body p-50">
+            <ul class="nav nav-tabs list-tagihan-nav-tabs mb-0 border-bottom-0" role="tablist">
+              <li class="nav-item">
+                <a class="nav-link active font-weight-bold" id="tab_tagihan-tab" data-toggle="tab" href="#tab_tagihan" role="tab" aria-selected="true">
+                  <i class="fas fa-file-invoice mr-50"></i> DAFTAR TAGIHAN
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link font-weight-bold" id="tab_riwayat_bayar-tab" data-toggle="tab" href="#tab_riwayat_bayar" role="tab" aria-selected="false">
+                  <i class="fas fa-receipt mr-50"></i> RIWAYAT PEMBAYARAN
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link font-weight-bold" id="tab_riwayat_surat-tab" data-toggle="tab" href="#tab_riwayat_surat" role="tab" aria-selected="false">
+                  <i class="fas fa-envelope-open-text mr-50"></i> RIWAYAT SURAT TAGIHAN
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="tab-content">
+          <!-- TAB 1: DAFTAR TAGIHAN -->
+          <div class="tab-pane active" id="tab_tagihan" role="tabpanel" aria-labelledby="tab_tagihan-tab">
         <div class="card">
           <div class="card-header">
             <h5 class="list-tagihan-title"><?= $data['title'] ?></h5>
@@ -356,6 +426,134 @@
             </table>
 
           </div>
+        </div>
+          </div>
+          <!-- END TAB 1 -->
+
+          <!-- TAB 2: RIWAYAT PEMBAYARAN -->
+          <div class="tab-pane" id="tab_riwayat_bayar" role="tabpanel" aria-labelledby="tab_riwayat_bayar-tab">
+            <div class="card mb-1">
+              <div class="card-header d-flex justify-content-between align-items-center py-75 px-1">
+                <h5 class="list-tagihan-title mb-0"><i class="fas fa-history text-primary mr-50"></i> Riwayat Pembayaran</h5>
+                <button type="button" class="btn btn-outline-primary btn-sm waves-effect" id="btn_refresh_riwayat_bayar" title="Refresh Data">
+                  <i class="fas fa-sync-alt mr-25"></i> Refresh
+                </button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-datatable p-50">
+                <table id="table_riwayat_pembayaran" class="table compact w-100">
+                  <thead>
+                    <tr>
+                      <th class="text-center" width="5%">No</th>
+                      <th class="text-left" width="23%">Konsumen &amp; Kavling</th>
+                      <th class="text-center" width="12%">Tanggal Pembayaran</th>
+                      <th class="text-left" width="28%">Untuk Pembayaran</th>
+                      <th class="text-left" width="17%">Tanggal Input + User</th>
+                      <th class="text-center" width="15%">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <!-- END TAB 2 -->
+
+          <!-- TAB 3: RIWAYAT SURAT TAGIHAN -->
+          <div class="tab-pane" id="tab_riwayat_surat" role="tabpanel" aria-labelledby="tab_riwayat_surat-tab">
+            <div class="card mb-1">
+              <div class="card-header d-flex justify-content-between align-items-center py-75 px-1">
+                <h5 class="list-tagihan-title mb-0"><i class="fas fa-envelope-open-text text-primary mr-50"></i> Riwayat Surat Tagihan</h5>
+                <button type="button" class="btn btn-outline-primary btn-sm waves-effect" id="btn_refresh_riwayat_surat" title="Refresh Data">
+                  <i class="fas fa-sync-alt mr-25"></i> Refresh
+                </button>
+              </div>
+            </div>
+            <div class="row m-0">
+              <!-- Left side: Table Surat Tagihan -->
+              <div class="col-lg-7 p-0 pr-lg-50 mb-1">
+                <div class="card h-100 mb-0">
+                  <div class="card-datatable p-50">
+                    <table id="table_riwayat_surat_tagihan" class="table compact w-100">
+                      <thead>
+                        <tr>
+                          <th class="text-left" width="35%">No Surat &amp; Kavling</th>
+                          <th class="text-left" width="25%">Tanggal &amp; Pembuat</th>
+                          <th class="text-center" width="15%">TTD Direksi</th>
+                          <th class="text-left" width="25%">Update Terakhir</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right side: Detail Surat Panel -->
+              <div class="col-lg-5 p-0 pl-lg-50 mb-1">
+                <div class="card h-100 mb-0 shadow-none border" style="background: #fafbfe;">
+                  <div class="card-body p-1" id="tab_surat_right_pane">
+                    <!-- Empty state -->
+                    <div id="tab_surat_detail_empty" class="text-center text-muted py-4">
+                      <div class="mb-1"><i class="fas fa-file-invoice text-muted" style="font-size: 2.5rem; opacity: 0.5;"></i></div>
+                      <h6 class="font-weight-bold text-muted">Belum Ada Surat Dipilih</h6>
+                      <small>Pilih salah satu surat pada tabel di samping untuk melihat detail dan riwayat status surat.</small>
+                    </div>
+
+                    <!-- Detail content -->
+                    <div id="tab_surat_detail_content" class="d-none">
+                      <!-- Detail Box -->
+                      <div class="card shadow-sm border mb-1 bg-white">
+                        <div class="card-body p-1">
+                          <div class="d-flex justify-content-between align-items-start mb-1">
+                            <div>
+                              <small class="text-muted text-uppercase d-block mb-25 font-weight-bold" style="letter-spacing: 0.5px;">Detail Surat</small>
+                              <h5 class="font-weight-bolder text-dark mb-0" id="tab_dtl_no_inv">-</h5>
+                              <div class="font-weight-bold text-primary font-small-3 mt-25" id="tab_dtl_konsumen">-</div>
+                              <div class="small text-muted" id="tab_dtl_kavling">-</div>
+                            </div>
+                            <div id="tab_dtl_status_badge"></div>
+                          </div>
+
+                          <div class="d-flex justify-content-between mb-50 border-top pt-50">
+                            <small class="text-muted">Nominal tagihan</small>
+                            <small class="font-weight-bolder text-primary font-medium-1" id="tab_dtl_nominal">Rp 0</small>
+                          </div>
+                          <div class="d-flex justify-content-between mb-50">
+                            <small class="text-muted">Tanggal terbit</small>
+                            <small class="font-weight-bold text-dark" id="tab_dtl_tgl_terbit">-</small>
+                          </div>
+                          <div class="d-flex justify-content-between mb-50">
+                            <small class="text-muted">Jatuh tempo</small>
+                            <small class="font-weight-bold text-dark" id="tab_dtl_jatuh_tempo">-</small>
+                          </div>
+                          <div class="d-flex justify-content-between mb-50">
+                            <small class="text-muted">TTD Direksi</small>
+                            <small class="font-weight-bold" id="tab_dtl_ttd_direksi">-</small>
+                          </div>
+                          <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Dibuat oleh</small>
+                            <small class="font-weight-bold text-uppercase text-dark" id="tab_dtl_pembuat">-</small>
+                          </div>
+
+                          <div class="d-flex flex-wrap mt-1 border-top pt-1" style="gap: .5rem;" id="tab_dtl_actions">
+                            <!-- Action buttons: Download, Ubah Status, Edit Surat -->
+                          </div>
+                        </div>
+                      </div>
+
+                      <h6 class="font-weight-bolder text-dark mb-1"><i class="fas fa-stream mr-50 text-primary"></i> Riwayat Surat</h6>
+                      <ul class="timeline mb-0 pl-1" id="tab_dtl_riwayat_timeline">
+                        <!-- Timeline items loaded dynamically -->
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- END TAB 3 -->
         </div>
       </div>
     </div>
@@ -1202,7 +1400,438 @@
     });
 
     //remove bug arrow select2
-    $(".select2-selection__arrow").css("pointer-events", "none")
+    $(".select2-selection__arrow").css("pointer-events", "none");
+
+    // ========================================================
+    // TABS LAZY LOADING & RIWAYAT PEMBAYARAN / SURAT HANDLERS
+    // ========================================================
+    let riwayatBayarTableLoaded = false;
+    let riwayatSuratTableLoaded = false;
+    let riwayatBayarTable = null;
+    let riwayatSuratTable = null;
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+      let target = $(e.target).attr('href');
+      if (target === '#tab_riwayat_bayar') {
+        if (!riwayatBayarTableLoaded) {
+          initRiwayatBayarTable();
+          riwayatBayarTableLoaded = true;
+        } else if (riwayatBayarTable) {
+          riwayatBayarTable.columns.adjust();
+        }
+      } else if (target === '#tab_riwayat_surat') {
+        if (!riwayatSuratTableLoaded) {
+          initRiwayatSuratTable();
+          riwayatSuratTableLoaded = true;
+        } else if (riwayatSuratTable) {
+          riwayatSuratTable.columns.adjust();
+        }
+      } else if (target === '#tab_tagihan') {
+        if (listTagihanTable) {
+          listTagihanTable.columns.adjust();
+        }
+      }
+    });
+
+    function initRiwayatBayarTable() {
+      riwayatBayarTable = $('#table_riwayat_pembayaran').DataTable({
+        scrollY: "55vh",
+        scrollX: true,
+        scrollCollapse: true,
+        autoWidth: false,
+        processing: true,
+        serverSide: true,
+        lengthChange: true,
+        pageLength: 25,
+        searching: true,
+        ordering: false,
+        paging: true,
+        ajax: {
+          url: base_url + "tagihan/riwayat-bayar/ambil",
+          type: "POST",
+          dataType: "json",
+          data: function(d) {
+            d[csrfName] = csrfHash;
+            d.id_proyek = activeProyekId();
+            d.id_cluster = $("#id_cluster").val();
+            d.id_jalan = $("#id_jalan").val();
+          },
+          dataSrc: function(r) {
+            if (r.token) csrfHash = r.token;
+            return r.data;
+          }
+        },
+        columns: [
+          {
+            data: "no",
+            className: "text-center",
+            orderable: false,
+            searchable: false,
+            render: function(data, type, row, meta) {
+              return meta.row + meta.settings._iDisplayStart + 1;
+            }
+          },
+          {
+            data: "nama_konsumen",
+            className: "text-left",
+            render: function(data, type, row) {
+              return '<div class="font-weight-bold text-dark">' + keuEscapeHtml(data || '-') + '</div>' +
+                     '<div class="small text-muted mt-25">' + keuEscapeHtml(row.nama_jalan || '-') + ' &bull; No. ' + keuEscapeHtml(row.no_kavling || '-') + '</div>';
+            }
+          },
+          {
+            data: "tanggal_bayar",
+            className: "text-center",
+            render: function(data) {
+              return '<div class="font-weight-bold">' + (data ? format_date(data.split(' ')[0]) : '-') + '</div>';
+            }
+          },
+          {
+            data: "nominal",
+            className: "text-left",
+            render: function(data, type, row) {
+              let nomHtml = '<div class="font-weight-bolder text-primary font-small-3">Rp ' + num_format(data) + '</div>';
+              let typeBadge = row.payment_type ? '<span class="badge badge-light-secondary font-weight-bold mt-25 mr-25">' + keuEscapeHtml(row.payment_type) + '</span>' : '';
+              let detail = row.detail_items ? '<div class="small text-muted mt-25">' + row.detail_items + '</div>' : '';
+              let ket = (row.keterangan && row.keterangan !== row.payment_type) ? '<div class="small text-muted font-italic mt-25">' + keuEscapeHtml(row.keterangan) + '</div>' : '';
+              return nomHtml + typeBadge + detail + ket;
+            }
+          },
+          {
+            data: "created_at",
+            className: "text-left",
+            render: function(data, type, row) {
+              let tglStr = data ? format_datetime(data) : '-';
+              let userStr = row.username ? '<div class="small text-muted font-weight-bold text-uppercase mt-25"><i class="fas fa-user mr-25"></i> ' + keuEscapeHtml(row.username) + '</div>' : '';
+              return '<div>' + tglStr + '</div>' + userStr;
+            }
+          },
+          {
+            data: null,
+            className: "text-center",
+            orderable: false,
+            searchable: false,
+            render: function(data, type, row) {
+              let proyId = row.id_proyek || activeProyekId() || '';
+              let btnPrint = '<button type="button" class="btn btn-outline-primary btn-sm mr-50" title="Cetak Kuitansi" onclick="printRiwayatBayar(\'' + row.id_pembayaran + '\', \'' + row.id_mkdt + '\', \'' + proyId + '\')"><i class="fas fa-print"></i></button>';
+              let btnHapus = '<button type="button" class="btn btn-outline-danger btn-sm" title="Hapus Pembayaran" onclick="hapusRiwayatBayarCustom(\'' + row.id_pembayaran + '\')"><i class="fas fa-trash"></i></button>';
+              return '<div class="btn-group">' + btnPrint + btnHapus + '</div>';
+            }
+          }
+        ]
+      });
+    }
+
+    window.hapusRiwayatBayarCustom = function(id) {
+      Swal.fire({
+        title: "Hapus Data?",
+        text: "Apakah anda yakin akan menghapus data pembayaran ini?",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ya, Hapus!",
+        cancelButtonText: "Batal",
+        confirmButtonClass: "btn btn-primary",
+        cancelButtonClass: "btn btn-danger ml-1",
+        buttonsStyling: false
+      }).then(function(t) {
+        if (t.value) {
+          $.ajax({
+            url: base_url + "pembayaran/hapus",
+            type: "post",
+            data: {
+              [csrfName]: csrfHash,
+              id_pembayaran: id
+            },
+            dataType: "json",
+            success: function(r) {
+              if (r.token) csrfHash = r.token;
+              if (r.success) {
+                Swal.fire({
+                  icon: "success",
+                  title: r.messages,
+                  showConfirmButton: false,
+                  timer: 1500
+                });
+                if (riwayatBayarTable) riwayatBayarTable.ajax.reload(null, false);
+                if (listTagihanTable) listTagihanTable.ajax.reload(null, false);
+              } else {
+                Swal.fire({
+                  icon: "error",
+                  title: r.messages || "Gagal menghapus data"
+                });
+              }
+            },
+            error: function() {
+              Swal.fire({
+                icon: "error",
+                title: "Terjadi kesalahan sistem saat menghapus data"
+              });
+            }
+          });
+        }
+      });
+    };
+
+    function initRiwayatSuratTable() {
+      riwayatSuratTable = $('#table_riwayat_surat_tagihan').DataTable({
+        scrollY: "55vh",
+        scrollX: true,
+        scrollCollapse: true,
+        autoWidth: false,
+        processing: true,
+        serverSide: true,
+        lengthChange: true,
+        pageLength: 25,
+        searching: true,
+        ordering: false,
+        paging: true,
+        ajax: {
+          url: base_url + "tagihan/list/ambil-riwayat-surat",
+          type: "POST",
+          dataType: "json",
+          data: function(d) {
+            d[csrfName] = csrfHash;
+            d.id_proyek = activeProyekId();
+            d.id_cluster = $("#id_cluster").val();
+            d.id_jalan = $("#id_jalan").val();
+          },
+          dataSrc: function(r) {
+            if (r.token) csrfHash = r.token;
+            return r.data;
+          }
+        },
+        columns: [
+          {
+            data: "nomor_surat",
+            className: "text-left",
+            render: function(data, type, row) {
+              let st = (row.status_tagihan || '').toLowerCase();
+              let nomorTampil = (st === 'draft') ? (row.no_inv || '-') : (data || row.no_inv || '-');
+              return '<div class="font-weight-bolder text-dark font-small-3">' + keuEscapeHtml(nomorTampil) + '</div>' +
+                     '<div class="font-weight-bold text-primary font-small-2">' + keuEscapeHtml(row.nama_konsumen || '-') + '</div>' +
+                     '<div class="small text-muted">' + keuEscapeHtml(row.nama_jalan || '-') + ' &bull; No. ' + keuEscapeHtml(row.no_kavling || '-') + '</div>';
+            }
+          },
+          {
+            data: "tanggal_invoice",
+            className: "text-left",
+            render: function(data, type, row) {
+              let tgl = data ? format_date(data.split(' ')[0]) : '-';
+              let pembuat = row.pembuat ? '<div class="small text-muted font-weight-bold text-uppercase mt-25"><i class="fas fa-user-edit mr-25"></i> ' + keuEscapeHtml(row.pembuat) + '</div>' : '';
+              return '<div class="font-weight-bold">' + tgl + '</div>' + pembuat;
+            }
+          },
+          {
+            data: "is_signed_direktur",
+            className: "text-center",
+            render: function(data, type, row) {
+              let isSigned = parseInt(data || 0) === 1;
+              if (isSigned) {
+                let tglSign = row.signed_at ? format_date(row.signed_at.split(' ')[0]) : '';
+                return '<span class="badge badge-light-success font-weight-bold"><i class="fas fa-check-circle mr-25"></i> Sudah' + (tglSign ? '<br><small>' + tglSign + '</small>' : '') + '</span>';
+              }
+              return '<span class="badge badge-light-secondary font-weight-bold"><i class="fas fa-clock mr-25"></i> Belum</span>';
+            }
+          },
+          {
+            data: "status_tagihan",
+            className: "text-left",
+            render: function(data, type, row) {
+              let st = (data || '').toLowerCase();
+              let statusBadge = '';
+              if (st === 'draft') statusBadge = '<span class="badge badge-light-secondary font-weight-bold">DRAFT</span>';
+              else if (st === 'publish') statusBadge = '<span class="badge badge-light-primary font-weight-bold">PUBLISH</span>';
+              else if (st === 'dibuat') statusBadge = '<span class="badge badge-light-secondary font-weight-bold">DIBUAT</span>';
+              else if (st === 'dikirim') statusBadge = '<span class="badge badge-light-info font-weight-bold">DIKIRIM</span>';
+              else if (st === 'respon') statusBadge = '<span class="badge badge-light-success font-weight-bold">RESPON</span>';
+              else if (st === 'tidak respon') statusBadge = '<span class="badge badge-light-danger font-weight-bold">TIDAK RESPON</span>';
+              else if (st === 'batal') statusBadge = '<span class="badge badge-light-dark font-weight-bold">BATAL</span>';
+              else statusBadge = '<span class="badge badge-light-primary font-weight-bold text-uppercase">' + keuEscapeHtml(data || '-') + '</span>';
+
+              let updateTgl = row.tanggal_ubah_status ? format_date(row.tanggal_ubah_status.split(' ')[0]) : (row.date_edit ? format_date(row.date_edit.split(' ')[0]) : (row.date_add ? format_date(row.date_add.split(' ')[0]) : '-'));
+              let rawKet = (row.keterangan_status || '').trim();
+              let ketSnippet = '';
+              if (rawKet) {
+                let truncated = rawKet.length > 30 ? rawKet.substring(0, 30) + '...' : rawKet;
+                ketSnippet = '<div class="small text-muted mt-25" title="' + keuEscapeAttribute(rawKet) + '">' + keuEscapeHtml(truncated) + '</div>';
+              }
+              return '<div>' + statusBadge + ' <small class="text-muted font-weight-bold ml-25">' + updateTgl + '</small></div>' + ketSnippet;
+            }
+          }
+        ]
+      });
+
+      $('#table_riwayat_surat_tagihan tbody').on('click', 'tr', function(e) {
+        if ($(e.target).closest('button, a, input').length) return;
+        $('#table_riwayat_surat_tagihan tbody tr').removeClass('selected');
+        $(this).addClass('selected');
+        let rowData = riwayatSuratTable.row(this).data();
+        if (rowData) {
+          showTabSuratDetail(rowData);
+        }
+      });
+    }
+
+    function showTabSuratDetail(v) {
+      if (!v) return;
+      $('#tab_surat_detail_empty').addClass('d-none');
+      $('#tab_surat_detail_content').removeClass('d-none');
+
+      let st = (v.status_tagihan || '').toLowerCase();
+      let nomorTampilDtl = (st === 'draft') ? (v.no_inv || '-') : (v.nomor_surat || v.no_inv || '-');
+      $('#tab_dtl_no_inv').text(nomorTampilDtl);
+      $('#tab_dtl_konsumen').text(v.nama_konsumen || '-');
+      $('#tab_dtl_kavling').text((v.nama_jalan || '-') + ' • No. ' + (v.no_kavling || '-'));
+
+      let totalNominalSurat = 0;
+      try {
+        let rawTg = v.tagihan;
+        if (typeof rawTg === 'string') {
+          rawTg = rawTg.replace(/&quot;/g, '"');
+          rawTg = JSON.parse(rawTg);
+        }
+        if (Array.isArray(rawTg)) {
+          rawTg.forEach(function(item) {
+            totalNominalSurat += parseFloat(item.nominal || 0);
+          });
+        }
+      } catch(e) {}
+      $('#tab_dtl_nominal').text('Rp ' + num_format(totalNominalSurat));
+      $('#tab_dtl_tgl_terbit').text(v.tanggal_invoice ? format_date(v.tanggal_invoice.split(' ')[0]) : '-');
+      $('#tab_dtl_jatuh_tempo').text(v.tanggal_jatuh_tempo ? format_date(v.tanggal_jatuh_tempo.split(' ')[0]) : '-');
+
+      let isSignedDtl = parseInt(v.is_signed_direktur || 0) === 1;
+      let ttdDtlText = isSignedDtl
+        ? '<span class="text-success font-weight-bold"><i class="fas fa-check-circle mr-25"></i> Sudah ' + (v.signed_at ? '(' + format_date(v.signed_at.split(' ')[0]) + ')' : '') + '</span>'
+        : '<span class="text-secondary font-weight-bold"><i class="fas fa-clock mr-25"></i> Belum</span>';
+      $('#tab_dtl_ttd_direksi').html(ttdDtlText);
+      $('#tab_dtl_pembuat').text(v.pembuat || '-');
+
+      let statusBadge = '';
+      if (st === 'draft') statusBadge = '<span class="badge badge-secondary font-weight-bold">DRAFT</span>';
+      else if (st === 'publish') statusBadge = '<span class="badge badge-primary font-weight-bold">PUBLISH</span>';
+      else if (st === 'dibuat') statusBadge = '<span class="badge badge-secondary font-weight-bold">DIBUAT</span>';
+      else if (st === 'dikirim') statusBadge = '<span class="badge badge-info font-weight-bold">DIKIRIM</span>';
+      else if (st === 'respon') statusBadge = '<span class="badge badge-success font-weight-bold">RESPON</span>';
+      else if (st === 'tidak respon') statusBadge = '<span class="badge badge-danger font-weight-bold">TIDAK RESPON</span>';
+      else if (st === 'batal') statusBadge = '<span class="badge badge-dark font-weight-bold">BATAL</span>';
+      else statusBadge = '<span class="badge badge-light-primary font-weight-bold text-uppercase">' + keuEscapeHtml(v.status_tagihan || '-') + '</span>';
+      $('#tab_dtl_status_badge').html(statusBadge);
+
+      let actionsHtml = '';
+      if (st === 'draft') {
+        actionsHtml += '<button type="button" class="btn btn-sm btn-outline-warning mr-50 btn-edit-tagihan" data-inv=\'' + JSON.stringify(v).replace(/'/g, "&#39;") + '\'><i class="fas fa-edit mr-25"></i> Edit Surat</button>';
+      }
+      actionsHtml += '<a href="' + base_url + 'keuangan/download_penagihan?id=' + encodeURIComponent(v.no_inv) + '" target="_blank" class="btn btn-sm btn-outline-primary mr-50"><i class="fas fa-download mr-25"></i> Download</a>';
+      actionsHtml += '<button type="button" class="btn btn-sm btn-outline-info btn-ubah-status-tagihan" data-no="' + v.no_inv + '" data-status="' + (v.status_tagihan || '') + '" data-tgl="' + (v.tanggal_ubah_status || '') + '" data-ket="' + (v.keterangan_status || '') + '" data-nomorsurat="' + (v.nomor_surat || '') + '"><i class="fas fa-exchange-alt mr-25"></i> Ubah Status</button>';
+      $('#tab_dtl_actions').html(actionsHtml);
+
+      loadTabSuratTimeline(v);
+    }
+
+    function loadTabSuratTimeline(v) {
+      $('#tab_dtl_riwayat_timeline').html('<li class="text-muted small py-1"><i class="fas fa-spinner fa-spin mr-50"></i> Memuat riwayat status...</li>');
+      $.ajax({
+        url: base_url + "keuangan/get_riwayat_tagihan",
+        type: "POST",
+        dataType: "json",
+        data: {
+          [csrfName]: csrfHash,
+          id_mkdt: v.id_mkdt,
+          no_inv: v.no_inv
+        },
+        success: function(r) {
+          if (r.token) csrfHash = r.token;
+          if (r.success && r.data && r.data.length > 0) {
+            let invData = r.data[0];
+            let timelineList = Array.isArray(invData.lifecycle) ? [...invData.lifecycle] : [];
+
+            timelineList.sort(function(a, b) {
+              let timeA = new Date(a.date_add || a.tanggal || 0).getTime();
+              let timeB = new Date(b.date_add || b.tanggal || 0).getTime();
+              if (timeB !== timeA) return timeB - timeA;
+              return (parseInt(b.id) || 0) - (parseInt(a.id) || 0);
+            });
+
+            let timelineHtml = '';
+            $.each(timelineList, function(idx, log) {
+              let logStatus = (log.status || '').toLowerCase();
+              let pointColor = 'timeline-point-primary';
+              let titleText = 'Surat dibuat';
+
+              if (logStatus === 'dibuat') {
+                pointColor = 'timeline-point-primary';
+                titleText = 'Surat dibuat';
+              } else if (logStatus === 'dikirim') {
+                pointColor = 'timeline-point-info';
+                titleText = 'Surat dikirim';
+              } else if (logStatus === 'respon') {
+                pointColor = 'timeline-point-success';
+                titleText = 'Surat direspon';
+              } else if (logStatus === 'tidak respon') {
+                pointColor = 'timeline-point-danger';
+                titleText = 'Tidak ada respon';
+              } else {
+                pointColor = 'timeline-point-secondary';
+                titleText = 'Status: ' + (log.status || '-');
+              }
+
+              let dateOnly = (log.tanggal || log.date_add || '').split(' ')[0];
+              let timeStr = format_date(dateOnly);
+              if (log.date_add && log.date_add.indexOf(' ') !== -1) {
+                let timePart = log.date_add.split(' ')[1];
+                if (timePart) timeStr += ' - ' + timePart.substring(0, 5);
+              }
+              if (log.pembuat) timeStr += ' - ' + log.pembuat;
+
+              let ketText = log.keterangan || (logStatus === 'dibuat' ? 'Surat penagihan berhasil dibuat.' : '-');
+              let safeKet = $('<div>').text(ketText).html();
+
+              timelineHtml += `
+                <li class="timeline-item">
+                  <span class="timeline-point timeline-point-indicator ${pointColor}"></span>
+                  <div class="timeline-event">
+                    <div class="d-flex justify-content-between flex-sm-row flex-column mb-sm-0 mb-25">
+                      <h6 class="font-weight-bolder text-dark mb-0">${titleText}</h6>
+                    </div>
+                    <span class="timeline-event-time small text-muted d-block mb-50">${timeStr}</span>
+                    <div class="card shadow-none border bg-white mb-0">
+                      <div class="card-body p-75 small text-dark">
+                        ${safeKet}
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              `;
+            });
+            $('#tab_dtl_riwayat_timeline').html(timelineHtml || '<li class="text-muted small py-1">Tidak ada riwayat.</li>');
+          } else {
+            $('#tab_dtl_riwayat_timeline').html('<li class="text-muted small py-1">Tidak ada riwayat.</li>');
+          }
+        },
+        error: function() {
+          $('#tab_dtl_riwayat_timeline').html('<li class="text-danger small py-1">Gagal memuat riwayat status.</li>');
+        }
+      });
+    }
+
+    $('#btn_refresh_riwayat_bayar').on('click', function() {
+      if (riwayatBayarTable) riwayatBayarTable.ajax.reload(null, false);
+    });
+
+    $('#btn_refresh_riwayat_surat').on('click', function() {
+      if (riwayatSuratTable) riwayatSuratTable.ajax.reload(null, false);
+    });
+
+    $('#modal_ubah_status_tagihan').on('hidden.bs.modal', function() {
+      if (riwayatSuratTable) riwayatSuratTable.ajax.reload(null, false);
+      let selectedRow = $('#table_riwayat_surat_tagihan tbody tr.selected');
+      if (selectedRow.length && riwayatSuratTable) {
+        let rowData = riwayatSuratTable.row(selectedRow).data();
+        if (rowData) showTabSuratDetail(rowData);
+      }
+    });
 
   });
 </script>
