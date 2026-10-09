@@ -34,6 +34,7 @@
         background: #fff;
         padding: 0 4px;
     }
+
     /* Loading overlay and upload progress styles */
     #fm-idk_keu {
         position: relative;
@@ -580,6 +581,7 @@
                                                                 <select required class="form-control"
                                                                     id="idk-status_pekerjaan_pasangan"
                                                                     name="status_pekerjaan_pasangan">
+                                                                    <option value="">Pilih Status</option>
                                                                     <option value="Bekerja">Bekerja</option>
                                                                     <option value="Tidak Bekerja">Tidak Bekerja</option>
                                                                     <option value="Ibu Rumah Tangga">Ibu Rumah Tangga
@@ -1369,19 +1371,33 @@
 <script>
     window.idkIsSubmitting = false;
 
-    window.getIdkFilesInfo = function () {
-        var fileInputs = [
-            { id: "file_ktp", label: "KTP" },
-            { id: "file_npwp", label: "NPWP" },
-            { id: "file_data_diri", label: "Data Diri" },
-            { id: "idk_file_spptb", label: "SPPTB" },
-            { id: "idk_file_surat_kuasa", label: "Surat Kuasa" }
+    window.getIdkFilesInfo = function() {
+        var fileInputs = [{
+                id: "file_ktp",
+                label: "KTP"
+            },
+            {
+                id: "file_npwp",
+                label: "NPWP"
+            },
+            {
+                id: "file_data_diri",
+                label: "Data Diri"
+            },
+            {
+                id: "idk_file_spptb",
+                label: "SPPTB"
+            },
+            {
+                id: "idk_file_surat_kuasa",
+                label: "Surat Kuasa"
+            }
         ];
         var totalBytes = 0;
         var count = 0;
         var names = [];
 
-        fileInputs.forEach(function (item) {
+        fileInputs.forEach(function(item) {
             var el = document.getElementById(item.id);
             if (el && el.files && el.files[0] && el.files[0].size > 0) {
                 totalBytes += el.files[0].size;
@@ -1408,15 +1424,15 @@
         };
     };
 
-    window.startIdkLoading = function (hasFiles, fileInfoText) {
+    window.startIdkLoading = function(hasFiles, fileInfoText) {
         window.idkIsSubmitting = true;
 
         // 1. Disable all Simpan buttons & change text with spinner
         var $saveBtns = $("#modal-isi_data_konsumen .btn-save-idk, #add-form-btn-idk_keu");
         $saveBtns.prop("disabled", true)
-                 .addClass("disabled")
-                 .css("pointer-events", "none")
-                 .html('<i class="fa fa-spinner fa-spin mr-50"></i> Menyimpan...');
+            .addClass("disabled")
+            .css("pointer-events", "none")
+            .html('<i class="fa fa-spinner fa-spin mr-50"></i> Menyimpan...');
 
         // 2. Disable other buttons in modal (close, nav)
         $("#modal-isi_data_konsumen .sticky-button-wrapper button, #modal-isi_data_konsumen .sticky-button-wrapper a, #modal-isi_data_konsumen .close")
@@ -1449,7 +1465,7 @@
         $("#idk-loading-overlay").fadeIn(200);
     };
 
-    window.updateIdkUploadProgress = function (percent, hasFiles) {
+    window.updateIdkUploadProgress = function(percent, hasFiles) {
         percent = Math.min(100, Math.max(0, percent));
         if (hasFiles) {
             $("#idk-upload-progress-bar, .idk-inline-bar")
@@ -1466,7 +1482,7 @@
         }
     };
 
-    window.stopIdkLoading = function () {
+    window.stopIdkLoading = function() {
         window.idkIsSubmitting = false;
 
         // 1. Hide overlay & inline progress
@@ -1476,9 +1492,9 @@
         // 2. Re-enable Simpan buttons & restore text
         var $saveBtns = $("#modal-isi_data_konsumen .btn-save-idk, #add-form-btn-idk_keu");
         $saveBtns.prop("disabled", false)
-                 .removeClass("disabled")
-                 .css("pointer-events", "")
-                 .html('Simpan <i class="fa fa-save" aria-hidden="true"></i>');
+            .removeClass("disabled")
+            .css("pointer-events", "")
+            .html('Simpan <i class="fa fa-save" aria-hidden="true"></i>');
 
         // 3. Re-enable other modal buttons
         $("#modal-isi_data_konsumen .sticky-button-wrapper button, #modal-isi_data_konsumen .sticky-button-wrapper a, #modal-isi_data_konsumen .close")
@@ -1487,8 +1503,8 @@
             .css("pointer-events", "");
     };
 
-    $(document).ready(function () {
-        $("#modal-isi_data_konsumen").on("hidden.bs.modal", function () {
+    $(document).ready(function() {
+        $("#modal-isi_data_konsumen").on("hidden.bs.modal", function() {
             stopIdkLoading();
         });
     });

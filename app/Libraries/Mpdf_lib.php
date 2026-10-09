@@ -38,8 +38,7 @@ class Mpdf_lib
         $footer = '',
         ?callable $configure = null,
         ?callable $beforeOutput = null
-    ): string
-    {
+    ): string {
         $mpdf = $this->createDocument($html, $header, $mg, $format, $footer, $configure, $beforeOutput);
 
         return $mpdf->Output('', \Mpdf\Output\Destination::STRING_RETURN);
@@ -49,7 +48,7 @@ class Mpdf_lib
     {
         $paper = $format;
         if ($format == 'F4' || $format == 'Folio') {
-            $paper = [210, 330];
+            $paper = [215.9, 330];
         }
         $mpdf = new Mpdf(
             [
