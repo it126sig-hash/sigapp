@@ -1222,10 +1222,12 @@ class Keuangan extends BaseController
             ->join('users', 'users.id = log_pembayaran.add_by')
             ->where('id_mkdt', $this->request->getVar('id_mkdt'))
             ->find();
-        $r['sudah_bayar'] = $this->db->table('log_pembayaran')
-            ->select("sum(nominal) as sudah_bayar")
-            ->where('id_mkdt', $this->request->getVar('id_mkdt'))
-            ->get()->getResult()[0]->sudah_bayar;
+        $idMkdt = (int) $this->request->getVar('id_mkdt');
+        $bookingRepo = new \App\Repositories\BookingPaymentRepository($this->db);
+        $summary = $bookingRepo->installmentSummary($idMkdt);
+        $r['sudah_bayar'] = (float) ($summary['sudah_bayar'] ?? 0);
+        $r['total_tagihan'] = (float) ($summary['total_tagihan'] ?? 0);
+        $r['sisa_tagihan'] = (float) ($summary['sisa_tagihan'] ?? 0);
 
 
         if ($id == 'inv') {
@@ -1556,6 +1558,14 @@ class Keuangan extends BaseController
 
     public function simpan_penagihan()
     {
+        if (! function_exists('in_groups') || ! in_groups(['1', '3'])) {
+            return $this->response->setJSON([
+                'token' => csrf_hash(),
+                'success' => false,
+                'messages' => 'Akses ditolak. Hanya user Keuangan yang berhak membuat surat tagihan.'
+            ]);
+        }
+
         return $this->response->setJSON(
             $this->keuanganService->simpanPenagihan($this->request, user_id())
         );
@@ -1563,6 +1573,14 @@ class Keuangan extends BaseController
 
     public function update_status_penagihan()
     {
+        if (! function_exists('in_groups') || ! in_groups(['1', '3'])) {
+            return $this->response->setJSON([
+                'token' => csrf_hash(),
+                'success' => false,
+                'messages' => 'Akses ditolak. Hanya user Keuangan yang berhak mengubah status surat tagihan.'
+            ]);
+        }
+
         return $this->response->setJSON(
             $this->keuanganService->updateStatusPenagihan($this->request, user_id())
         );

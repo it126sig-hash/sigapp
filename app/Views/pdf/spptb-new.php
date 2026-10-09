@@ -237,6 +237,15 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
         </tr>
         <tr>
             <td class="td-width" valign="top">
+                No HP/telp
+            </td>
+            <td valign="top">
+                : <?= strtoupper($data->hp_konsumen) ?>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="td-width" valign="top">
 
                 Email
 
@@ -274,7 +283,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
                 No HP/telp
             </td>
             <td valign="top">
-                : <?= strtoupper($data->hp_konsumen) ?>
+                : <?= strtoupper($data->tel_instansi) ?>
             </td>
         </tr>
         <tr>

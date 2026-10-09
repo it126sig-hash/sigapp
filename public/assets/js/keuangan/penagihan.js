@@ -219,15 +219,20 @@ $(document).ready(function() {
         else statusBadge = `<span class="badge badge-light-primary font-weight-bold text-uppercase">${v.status_tagihan}</span>`;
         $('#dtl_status_badge').html(statusBadge);
         
+        let canCreate = typeof window.canCreateTagihan !== 'undefined' ? window.canCreateTagihan : true;
         let actionsHtml = '';
-        if (st === 'draft') {
+        if (st === 'draft' && canCreate) {
             actionsHtml += `<button type="button" class="btn btn-sm btn-outline-warning mr-50 btn-edit-tagihan" data-inv='${JSON.stringify(v).replace(/'/g, "&#39;")}'>Edit Surat</button>`;
         }
         
         actionsHtml += `
             <a href="${base_url}keuangan/download_penagihan?id=${encodeURIComponent(v.no_inv)}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-download mr-50"></i> Download</a>
-            <button type="button" class="btn btn-sm btn-outline-info ml-50 btn-ubah-status-tagihan" data-no="${v.no_inv}" data-status="${v.status_tagihan}" data-tgl="${v.tanggal_ubah_status || ''}" data-ket="${v.keterangan_status || ''}" data-nomorsurat="${v.nomor_surat || ''}">Ubah Status</button>
         `;
+        if (canCreate) {
+            actionsHtml += `
+                <button type="button" class="btn btn-sm btn-outline-info ml-50 btn-ubah-status-tagihan" data-no="${v.no_inv}" data-status="${v.status_tagihan}" data-tgl="${v.tanggal_ubah_status || ''}" data-ket="${v.keterangan_status || ''}" data-nomorsurat="${v.nomor_surat || ''}">Ubah Status</button>
+            `;
+        }
         $('#dtl_actions').html(actionsHtml);
         
         // Build all history entries
@@ -422,7 +427,7 @@ $(document).ready(function() {
         // Load Items
         let itemsHtml = '';
         let totalTagihan = 0;
-        let totalSudahBayar = 0;
+        let totalSudahBayar = parseFloat(r.sudah_bayar || 0);
         let closestDate = null;
         
         if (r.list_tagihan && r.list_tagihan.length > 0) {
@@ -433,9 +438,7 @@ $(document).ready(function() {
                 
                 if (!isVoid) {
                     totalTagihan += nominal;
-                    if (isPaid) {
-                        totalSudahBayar += nominal;
-                    } else {
+                    if (!isPaid) {
                         // Find closest unpaid due date
                         if (a.jatuh_tempo_tgl) {
                             let jtDate = new Date(a.jatuh_tempo_tgl);
@@ -473,6 +476,7 @@ $(document).ready(function() {
         $('#tagihan-total-nominal').text('Rp ' + num_format(totalTagihan));
         $('#tagihan-total-bayar').text('Rp ' + num_format(totalSudahBayar));
         $('#tagihan-total-sisa').text('Rp ' + num_format(sisaTagihan));
+        $('#tagihan_header_sisa').text('Rp ' + num_format(sisaTagihan));
 
         // Set default Nominal Ditagihkan and Tanggal Jatuh Tempo
         let formatSisa = num_format(sisaTagihan);
