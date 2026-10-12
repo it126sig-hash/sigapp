@@ -104,7 +104,73 @@ $routes->post("/keuangan/jatuhtempo/get", 'Keuangan::getJatuhTempo');
 
 
 $routes->post("/getAkases", 'AksesProyek::getAkses');
-$routes->get("/aksesproyek", 'AksesProyek::index');
+$routes->get("/aksesproyek", '\App\Controllers\Web\AksesProyekController::index');
+
+// ── Modul Proyek (Web Routes) ──
+$routes->group('', ['namespace' => 'App\Controllers\Web', 'filter' => 'login'], function ($routes) {
+    $routes->get('proyek', 'ProyekController::index');
+    $routes->get('cluster', 'ClusterController::index');
+    $routes->get('tipe', 'TipeController::index');
+    $routes->get('jalan', 'JalanController::index');
+});
+
+// ── Modul Proyek (API Routes) ──
+$routes->group('api/proyek', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+    $routes->post('all', 'ProyekController::getAll');
+    $routes->post('getall', 'ProyekController::getAll');
+    $routes->post('getone', 'ProyekController::getOne');
+    $routes->post('add', 'ProyekController::add');
+    $routes->post('edit', 'ProyekController::edit');
+    $routes->post('remove', 'ProyekController::remove');
+    $routes->get('siteplan-list', 'ProyekController::getSiteplanList');
+    $routes->post('siteplan-list', 'ProyekController::getSiteplanList');
+    $routes->get('accessible', 'ProyekController::getAccessible');
+    $routes->post('accessible', 'ProyekController::getAccessible');
+    $routes->post('set-active', 'ProyekController::setActive');
+});
+
+$routes->group('api/cluster', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+    $routes->post('datatable', 'ClusterController::getDataTable');
+    $routes->post('getdatatable', 'ClusterController::getDataTable');
+    $routes->post('all', 'ClusterController::getAll');
+    $routes->post('getall', 'ClusterController::getAll');
+    $routes->post('getone', 'ClusterController::getOne');
+    $routes->post('add', 'ClusterController::add');
+    $routes->post('edit', 'ClusterController::edit');
+    $routes->post('remove', 'ClusterController::remove');
+});
+
+$routes->group('api/tipe', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+    $routes->post('datatables', 'TipeController::getDataTables');
+    $routes->post('getdatatables', 'TipeController::getDataTables');
+    $routes->post('all', 'TipeController::getAll');
+    $routes->post('getall', 'TipeController::getAll');
+    $routes->post('getone', 'TipeController::getOne');
+    $routes->post('add', 'TipeController::add');
+    $routes->post('edit', 'TipeController::edit');
+    $routes->post('remove', 'TipeController::remove');
+    $routes->post('list-kavling', 'TipeController::getListKavling');
+    $routes->post('getlistkavling', 'TipeController::getListKavling');
+});
+
+$routes->group('api/jalan', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+    $routes->post('datatable', 'JalanController::getDatatable');
+    $routes->post('getdatatable', 'JalanController::getDatatable');
+    $routes->post('all', 'JalanController::getAll');
+    $routes->post('getall', 'JalanController::getAll');
+    $routes->post('getone', 'JalanController::getOne');
+    $routes->post('add', 'JalanController::add');
+    $routes->post('edit', 'JalanController::edit');
+    $routes->post('remove', 'JalanController::remove');
+});
+
+$routes->group('api/aksesproyek', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+    $routes->post('all', 'AksesProyekController::getAll');
+    $routes->post('getone', 'AksesProyekController::getOne');
+    $routes->post('search-users', 'AksesProyekController::getAkses');
+    $routes->post('edit', 'AksesProyekController::edit');
+});
+
 
 
 // $routes->get("bank", 'ListBank::index');

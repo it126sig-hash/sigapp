@@ -350,4 +350,69 @@ class ProyekService
         $file = $request->getFile($fieldName);
         return $file && $file->getError() !== UPLOAD_ERR_NO_FILE;
     }
+
+
+    public function getAksesList(): array
+    {
+        $rows = $this->proyekRepository->getAksesProyekList();
+        $data = [];
+
+        foreach ($rows as $key => $value) {
+            $ops = '<div class="btn-group">';
+            $ops .= '	<button type="button" class="btn btn-sm btn-info" onclick="edit(\'' . $value->id_proyek . '\')"><i class="fa fa-edit"></i></button>';
+            $ops .= '</div>';
+
+            $data[$key] = [
+                $value->nama_proyek,
+                $value->kumpulan_username,
+                $ops,
+            ];
+        }
+
+        return $data;
+    }
+
+    public function getAksesOne(int $idProyek): ?object
+    {
+        if ($idProyek <= 0) {
+            return null;
+        }
+
+        return $this->proyekRepository->getAksesProyekById($idProyek);
+    }
+
+    public function searchAksesUsers(string $keyword): array
+    {
+        return $this->proyekRepository->searchUsers($keyword);
+    }
+
+    public function updateAkses(array $postData): array
+    {
+        $idProyek = (int) ($postData['id_proyek'] ?? 0);
+        $userIds  = $postData['id_users'] ?? [];
+
+        if ($idProyek <= 0) {
+            return [
+                'success'  => false,
+                'messages' => 'Tidak ada proyek yang dipilih',
+            ];
+        }
+
+        $userIdsList = is_array($userIds) ? $userIds : explode(',', (string) $userIds);
+        $cleanedIds  = array_filter(array_map('trim', $userIdsList), static fn($val) => $val !== '');
+        $csv         = !empty($cleanedIds) ? implode(',', $cleanedIds) . ',' : '';
+
+        if ($this->proyekRepository->updateUserAccess($idProyek, $csv)) {
+            return [
+                'success'  => true,
+                'messages' => 'Berhasil diperbaharui',
+            ];
+        }
+
+        return [
+            'success'  => false,
+            'messages' => 'Terjadi kesalahan!',
+        ];
+    }
 }
+

@@ -1,8 +1,8 @@
 # Module: Proyek
 
 **Status:** `REFACTORED`  
-**Readiness Score:** `80/100`  
-**Last Synced:** `2026-10-12 14:38:40` @ `be98758`  
+**Readiness Score:** `100/100`  
+**Last Synced:** `2026-10-12 15:33:40` @ `e8e5ef5`  
 
 ## Purpose
 Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akses.
@@ -28,44 +28,108 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `POST` | `/getAkases` | `Explicit` | `AksesProyek::getAkses` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `/aksesproyek` | `Explicit` | `AksesProyek::index` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `proyek/get/all` | `Explicit` | `Proyek::getAll` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `tipe/get/all` | `Explicit` | `Tipe::getAll` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `add_jalan` | `Explicit` | `ProduksiController::add_jalan` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `ANY` | `/proyek/getone` | `AutoRoute` | `Proyek::getOne` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/proyek/add` | `AutoRoute` | `Proyek::add` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/proyek/edit` | `AutoRoute` | `Proyek::edit` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/proyek/getsiteplanlist` | `AutoRoute` | `Proyek::getSiteplanList` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/proyek/remove` | `AutoRoute` | `Proyek::remove` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/proyek/getaccessible` | `AutoRoute` | `Proyek::getAccessible` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/proyek/setactive` | `AutoRoute` | `Proyek::setActive` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/proyek/json` | `AutoRoute` | `Proyek::json` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/cluster/index` | `AutoRoute` | `Cluster::index` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/cluster/getdatatable` | `AutoRoute` | `Cluster::getDataTable` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/cluster/getall` | `AutoRoute` | `Cluster::getAll` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/cluster/getone` | `AutoRoute` | `Cluster::getOne` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/cluster/add` | `AutoRoute` | `Cluster::add` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/cluster/edit` | `AutoRoute` | `Cluster::edit` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/cluster/remove` | `AutoRoute` | `Cluster::remove` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/cluster/if_where` | `AutoRoute` | `Cluster::if_where` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/cluster/is_active` | `AutoRoute` | `Cluster::is_active` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/tipe/index` | `AutoRoute` | `Tipe::index` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/tipe/getdatatables` | `AutoRoute` | `Tipe::getDataTables` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/tipe/getone` | `AutoRoute` | `Tipe::getOne` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/tipe/add` | `AutoRoute` | `Tipe::add` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/tipe/edit` | `AutoRoute` | `Tipe::edit` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/tipe/remove` | `AutoRoute` | `Tipe::remove` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/tipe/getlistkavling` | `AutoRoute` | `Tipe::getListKavling` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/tipe/json` | `AutoRoute` | `Tipe::json` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/jalan/index` | `AutoRoute` | `Jalan::index` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/jalan/getall` | `AutoRoute` | `Jalan::getAll` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/jalan/getdatatable` | `AutoRoute` | `Jalan::getDatatable` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/jalan/getone` | `AutoRoute` | `Jalan::getOne` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/jalan/add` | `AutoRoute` | `Jalan::add` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/jalan/edit` | `AutoRoute` | `Jalan::edit` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/jalan/remove` | `AutoRoute` | `Jalan::remove` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/jalan/json` | `AutoRoute` | `Jalan::json` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `proyek` | `Explicit` | `ProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `ProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `ProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `ProyekController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `ProyekController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `ProyekController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `ProyekController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `siteplan-list` | `Explicit` | `ProyekController::getSiteplanList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-list` | `Explicit` | `ProyekController::getSiteplanList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `accessible` | `Explicit` | `ProyekController::getAccessible` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `accessible` | `Explicit` | `ProyekController::getAccessible` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `set-active` | `Explicit` | `ProyekController::setActive` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `AksesProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `AksesProyekController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `search-users` | `Explicit` | `AksesProyekController::getAkses` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `AksesProyekController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `proyek` | `Explicit` | `ProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `ProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `ProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `ProyekController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `ProyekController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `ProyekController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `ProyekController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `siteplan-list` | `Explicit` | `ProyekController::getSiteplanList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-list` | `Explicit` | `ProyekController::getSiteplanList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `accessible` | `Explicit` | `ProyekController::getAccessible` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `accessible` | `Explicit` | `ProyekController::getAccessible` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `set-active` | `Explicit` | `ProyekController::setActive` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `AksesProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `AksesProyekController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `search-users` | `Explicit` | `AksesProyekController::getAkses` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `AksesProyekController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `cluster` | `Explicit` | `ClusterController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `datatable` | `Explicit` | `ClusterController::getDataTable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getdatatable` | `Explicit` | `ClusterController::getDataTable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `ClusterController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `ClusterController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `ClusterController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `ClusterController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `ClusterController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `ClusterController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `cluster` | `Explicit` | `ClusterController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `datatable` | `Explicit` | `ClusterController::getDataTable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getdatatable` | `Explicit` | `ClusterController::getDataTable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `ClusterController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `ClusterController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `ClusterController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `ClusterController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `ClusterController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `ClusterController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `tipe` | `Explicit` | `TipeController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `datatables` | `Explicit` | `TipeController::getDataTables` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getdatatables` | `Explicit` | `TipeController::getDataTables` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `TipeController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `TipeController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `TipeController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `TipeController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `TipeController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `TipeController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `list-kavling` | `Explicit` | `TipeController::getListKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getlistkavling` | `Explicit` | `TipeController::getListKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `tipe` | `Explicit` | `TipeController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `datatables` | `Explicit` | `TipeController::getDataTables` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getdatatables` | `Explicit` | `TipeController::getDataTables` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `TipeController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `TipeController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `TipeController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `TipeController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `TipeController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `TipeController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `list-kavling` | `Explicit` | `TipeController::getListKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getlistkavling` | `Explicit` | `TipeController::getListKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `jalan` | `Explicit` | `JalanController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `datatable` | `Explicit` | `JalanController::getDatatable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getdatatable` | `Explicit` | `JalanController::getDatatable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `JalanController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `JalanController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `JalanController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `JalanController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `JalanController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `JalanController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `jalan` | `Explicit` | `JalanController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `datatable` | `Explicit` | `JalanController::getDatatable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getdatatable` | `Explicit` | `JalanController::getDatatable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `JalanController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `JalanController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `JalanController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `JalanController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `JalanController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `JalanController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `AksesProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `AksesProyekController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `search-users` | `Explicit` | `AksesProyekController::getAkses` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `AksesProyekController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `AksesProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `AksesProyekController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `search-users` | `Explicit` | `AksesProyekController::getAkses` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `AksesProyekController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
 #### `ProyekService.php`
@@ -83,6 +147,16 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 - `storeImage(IncomingRequest $request, string $fieldName, string $logicalDir)`
 - `shouldUpload(IncomingRequest $request, string $fieldName, string $flagName)`
 - `hasUploadedFile(IncomingRequest $request, string $fieldName)`
+- `getAksesList()`
+- _dan 3 method lainnya..._
+#### `ClusterService.php`
+- `getDataTables(array $params)`
+- `getAll(array $params)`
+- `getOne(int $idCluster)`
+- `add(array $postData)`
+- `edit(array $postData)`
+- `remove(int $idCluster)`
+- `isActiveBadge($id, string $texts, string $textf)`
 #### `TipeService.php`
 - `getAll(array $params)`
 - `getDataTables(array $params)`
@@ -126,20 +200,28 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 - `enrichProyek(?object $proyek)`
 
 ## File Inventory
-### Controllers (4)
-- `app/Controllers/Proyek.php` (118 baris, 10 public methods)
-- `app/Controllers/Cluster.php` (341 baris, 9 public methods)
-- `app/Controllers/Tipe.php` (103 baris, 9 public methods)
-- `app/Controllers/Jalan.php` (89 baris, 8 public methods)
+### Controllers (10)
+- `app/Controllers/Web/ProyekController.php` (18 baris, 1 public methods)
+- `app/Controllers/Api/ProyekController.php` (106 baris, 8 public methods)
+- `app/Controllers/Web/ClusterController.php` (27 baris, 1 public methods)
+- `app/Controllers/Api/ClusterController.php` (86 baris, 6 public methods)
+- `app/Controllers/Web/TipeController.php` (30 baris, 1 public methods)
+- `app/Controllers/Api/TipeController.php` (99 baris, 7 public methods)
+- `app/Controllers/Web/JalanController.php` (26 baris, 1 public methods)
+- `app/Controllers/Api/JalanController.php` (87 baris, 6 public methods)
+- `app/Controllers/Web/AksesProyekController.php` (20 baris, 1 public methods)
+- `app/Controllers/Api/AksesProyekController.php` (68 baris, 4 public methods)
 
-### Services (4)
-- `app/Services/ProyekService.php` (354 baris)
+### Services (5)
+- `app/Services/ProyekService.php` (419 baris)
+- `app/Services/ClusterService.php` (247 baris)
 - `app/Services/TipeService.php` (426 baris)
 - `app/Services/JalanService.php` (210 baris)
 - `app/Services/ActiveProyekService.php` (189 baris)
 
-### Repositories (3)
-- `app/Repositories/ProyekRepository.php` (72 baris)
+### Repositories (4)
+- `app/Repositories/ProyekRepository.php` (126 baris)
+- `app/Repositories/ClusterRepository.php` (137 baris)
 - `app/Repositories/TipeRepository.php` (107 baris)
 - `app/Repositories/JalanRepository.php` (132 baris)
 
@@ -160,7 +242,7 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 ## Readiness Checklist
 - [x] Has Service Layer
 - [x] Has Repository Layer
-- [ ] Web & API Controllers Separated
+- [x] Web & API Controllers Separated
 - [x] Explicit Routes Defined
 - [x] MODULE.md Initialized
 

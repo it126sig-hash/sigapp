@@ -68,4 +68,58 @@ class ProyekRepository
             ->get()
             ->getResult();
     }
+
+    public function getAksesProyekList(): array
+    {
+        $sql = "
+            SELECT 
+                proyek.id_proyek,
+                proyek.nama_proyek,
+                proyek.id_users,
+                GROUP_CONCAT(users.username SEPARATOR ',') AS kumpulan_username
+            FROM proyek
+            LEFT JOIN users
+            ON FIND_IN_SET(users.id, proyek.id_users)
+            GROUP BY proyek.id_proyek, proyek.nama_proyek, proyek.id_users
+        ";
+
+        return $this->db->query($sql)->getResult();
+    }
+
+    public function getAksesProyekById(int $idProyek): ?object
+    {
+        $sql = "
+            SELECT 
+                proyek.id_proyek,
+                proyek.nama_proyek,
+                proyek.id_users,
+                GROUP_CONCAT(users.username SEPARATOR ',') AS kumpulan_username
+            FROM proyek
+            LEFT JOIN users
+            ON FIND_IN_SET(users.id, proyek.id_users)
+            WHERE id_proyek = ?
+            GROUP BY proyek.id_proyek, proyek.nama_proyek, proyek.id_users
+        ";
+
+        $rows = $this->db->query($sql, [$idProyek])->getResult();
+
+        return !empty($rows) ? $rows[0] : null;
+    }
+
+    public function searchUsers(string $keyword): array
+    {
+        return $this->db->table('users')
+            ->select('id, username')
+            ->like('username', $keyword)
+            ->get()
+            ->getResult();
+    }
+
+    public function updateUserAccess(int $idProyek, string $userIdsCsv): bool
+    {
+        return $this->db->table('proyek')
+            ->where('id_proyek', $idProyek)
+            ->update(['id_users' => $userIdsCsv]);
+    }
 }
+
