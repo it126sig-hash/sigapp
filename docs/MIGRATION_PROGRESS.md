@@ -27,7 +27,7 @@ Urutan di bawah ini disusun dari **Modul Daun (Leaf/Paling Terisolasi)** menuju 
 | 6 | **AuditTrail** | Intermediate | Rendah | `PENDING` | - | - |
 | 7 | **Auth** | Infrastructure | Sedang | `PENDING` | - | - |
 | 8 | **Notifikasi** | Infrastructure | Sedang | `PENDING` | - | - |
-| 9 | **Proyek** | Core Master Data | Sedang | `COMPLETED` | `42ac39d` (100% Score) | 2026-10-12 |
+| 9 | **Proyek** | Core Master Data | Sedang | `COMPLETED` | `65c937d` (100% Score) | 2026-10-12 |
 | 10 | **Produksi** | Core Construction | Sedang - Tinggi | `PENDING` | - | - |
 | 11 | **UserManagement** | Core Master Data | Sedang | `PENDING` | - | - |
 | 12 | **Settings** | Core System | Sedang | `PENDING` | - | - |
