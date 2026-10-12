@@ -406,7 +406,7 @@
 				</form>
 			</div>
 		</div>
-	
+
 		<!-- Modal View -->
 		<div class="modal fade" id="view-modal">
 			<div class="modal-dialog modal-dialog-scrollable modal-xl">
@@ -419,7 +419,7 @@
 							</div>
 							<div>
 								<h4 class="modal-title mb-0 font-weight-bolder text-dark">
-									Detail Data Proyek 
+									Detail Data Proyek
 									<span class="badge badge-light-success ml-1 badge-pill"><i class="fas fa-circle font-small-1 mr-25"></i> Proyek Aktif</span>
 									<span class="badge badge-light-secondary ml-50 badge-pill bg-transparent border border-secondary text-secondary">Urutan: <span id="view_label_urutan">0</span></span>
 								</h4>
@@ -434,7 +434,7 @@
 
 					<!-- Body -->
 					<div class="modal-body pt-2 pb-0">
-						
+
 						<!-- NAMA RESMI PROYEK -->
 						<div class="card shadow-sm mb-2" style="border-radius: .5rem;">
 							<div class="card-body d-flex justify-content-between align-items-center p-2">
@@ -452,7 +452,7 @@
 						<div class="row">
 							<!-- Left Column -->
 							<div class="col-md-7">
-								
+
 								<!-- WILAYAH ADMINISTRASI PROYEK -->
 								<div class="card shadow-sm mb-2" style="border-radius: .5rem;">
 									<div class="card-body p-2">
@@ -500,7 +500,7 @@
 											<div class="bg-light-primary rounded p-50 mr-1"><i class="fas fa-building text-primary"></i></div>
 											<h6 class="font-weight-bolder mb-0 text-dark">ENTITAS PENGEMBANG & REKENING RESMI</h6>
 										</div>
-										
+
 										<div class="mb-1">
 											<small class="text-muted d-block mb-25">Perusahaan Pengembang (PT)</small>
 											<div class="d-flex align-items-center">
@@ -518,7 +518,7 @@
 											<div class="mb-1">
 												<small class="d-block mb-25" style="color: #6a8ba8; letter-spacing: 1px; font-size: 0.7rem;">NOMOR REKENING</small>
 												<h3 class="text-white font-weight-bolder mb-0 d-flex align-items-center" style="letter-spacing: 1px;">
-													<span id="view_label_norek">-</span> 
+													<span id="view_label_norek">-</span>
 													<i class="far fa-copy ml-1 font-medium-1 cursor-pointer" style="color: #6a8ba8;" onclick="navigator.clipboard.writeText(document.getElementById('view_label_norek').innerText); Swal.fire({toast:true, position:'top-end', icon:'success', title:'Tersalin!', showConfirmButton:false, timer:1500})"></i>
 												</h3>
 											</div>
@@ -541,7 +541,7 @@
 
 							<!-- Right Column -->
 							<div class="col-md-5">
-								
+
 								<!-- BERKAS & MEDIA LAMPIRAN -->
 								<div class="d-flex justify-content-between align-items-center mb-1 mt-50">
 									<div class="d-flex align-items-center">
@@ -601,7 +601,7 @@
 						</div>
 
 					</div>
-					
+
 					<!-- Footer -->
 					<div class="modal-footer d-flex justify-content-between bg-white mt-0 py-1" style="border-top: 1px solid #ebe9f1; border-radius: 0 0 .357rem .357rem;">
 						<div>
@@ -618,81 +618,81 @@
 				</div>
 			</div>
 		</div>
-											</div>
-											<input disabled type="hidden" name="no_up" id="no_up" />
-											<input disabled type="hidden" id="siteplan" name="siteplan" class="form-control" maxlength="255">
-											<a id="link_view_siteplan" href="javascript:void(0)" target="_blank" class="btn btn-outline-primary btn-block waves-effect mt-1">Lihat / Unduh Siteplan</a>
-										</div>
-										<div class="form-group">
-											<label class="font-weight-bold" for="edit_logo">Logo Proyek</label>
-											<div class="dropzone dropzone-lg custom-file">
-												<input type="hidden" id="view_logo" />
-												<div class="dz-inner">
-													<div class="dz-preview" id="prev_view_logo"></div>
-													<div class="dz-placeholder">
-														<div class="h5 mb-1">Gambar tidak tersedia</div>
-														<div class="text-muted"></div>
-													</div>
-												</div>
-											</div>
-											<input disabled type="hidden" name="no_up_logo" id="no_up_logo" />
-											<input disabled type="hidden" id="logo" name="logo" class="form-control" maxlength="255">
-											<a id="link_view_logo" href="javascript:void(0)" target="_blank" class="btn btn-outline-primary btn-block waves-effect mt-1">Lihat / Unduh Logo Proyek</a>
-										</div>
-										<div class="form-group">
-											<label class="font-weight-bold" for="edit_logo_pt">Logo PT</label>
-											<div class="dropzone dropzone-lg custom-file">
-												<input type="hidden" id="view_logo_pt" />
-												<div class="dz-inner">
-													<div class="dz-preview" id="prev_view_logo_pt"></div>
-													<div class="dz-placeholder">
-														<div class="h5 mb-1">Gambar tidak tersedia</div>
-														<div class="text-muted"></div>
-													</div>
-												</div>
-											</div>
-											<input disabled type="hidden" name="no_up_logo_pt" id="no_up_logo_pt" />
-											<input disabled type="hidden" id="logo_pt_old" name="logo_pt_old" class="form-control" maxlength="255">
-											<a id="link_view_logo_pt" href="javascript:void(0)" target="_blank" class="btn btn-outline-primary btn-block waves-effect mt-1">Lihat / Unduh Logo PT</a>
-										</div>
-									</div>
-								</div>
-
-								
-								<button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Tutup</button>
-							</div>
-							<div class="tab-pane" id="upload-siteplan" aria-labelledby="upload-siteplan-tab" role="tabpanel">
-								<div class="table-responsive">
-									<table class="table mb-0">
-										<thead>
-											<tr>
-												<th scope="col" class="text-nowrap">No</th>
-												<th scope="col" class="text-nowrap">Nama File</th>
-												<th scope="col" class="text-nowrap">Panjang</th>
-												<th scope="col" class="text-nowrap">Lebar</th>
-												<th scope="col" class="text-nowrap">Tipe File</th>
-												<th scope="col" class="text-nowrap">Link</th>
-												<th scope="col" class="text-nowrap">Oleh</th>
-												<th scope="col" class="text-nowrap">Tanggal Upload</th>
-											</tr>
-										</thead>
-										<tbody id="tb-view-upload_siteplan">
-											<tr>
-												<td colspan="8" class="text-center">Tidak ada data</td>
-											</tr>
-										</tbody>
-									</table>
-								</div>
-							</div>
-						</div>
-
-						<input disabled type="hidden" id="view_idProyek" name="idProyek" class="form-control" placeholder="Id proyek" maxlength="255" required>
-					</div>
-				</form>
+</div>
+<input disabled type="hidden" name="no_up" id="no_up" />
+<input disabled type="hidden" id="siteplan" name="siteplan" class="form-control" maxlength="255">
+<a id="link_view_siteplan" href="javascript:void(0)" target="_blank" class="btn btn-outline-primary btn-block waves-effect mt-1">Lihat / Unduh Siteplan</a>
+</div>
+<div class="form-group">
+	<label class="font-weight-bold" for="edit_logo">Logo Proyek</label>
+	<div class="dropzone dropzone-lg custom-file">
+		<input type="hidden" id="view_logo" />
+		<div class="dz-inner">
+			<div class="dz-preview" id="prev_view_logo"></div>
+			<div class="dz-placeholder">
+				<div class="h5 mb-1">Gambar tidak tersedia</div>
+				<div class="text-muted"></div>
 			</div>
 		</div>
-	
-	</section>
+	</div>
+	<input disabled type="hidden" name="no_up_logo" id="no_up_logo" />
+	<input disabled type="hidden" id="logo" name="logo" class="form-control" maxlength="255">
+	<a id="link_view_logo" href="javascript:void(0)" target="_blank" class="btn btn-outline-primary btn-block waves-effect mt-1">Lihat / Unduh Logo Proyek</a>
+</div>
+<div class="form-group">
+	<label class="font-weight-bold" for="edit_logo_pt">Logo PT</label>
+	<div class="dropzone dropzone-lg custom-file">
+		<input type="hidden" id="view_logo_pt" />
+		<div class="dz-inner">
+			<div class="dz-preview" id="prev_view_logo_pt"></div>
+			<div class="dz-placeholder">
+				<div class="h5 mb-1">Gambar tidak tersedia</div>
+				<div class="text-muted"></div>
+			</div>
+		</div>
+	</div>
+	<input disabled type="hidden" name="no_up_logo_pt" id="no_up_logo_pt" />
+	<input disabled type="hidden" id="logo_pt_old" name="logo_pt_old" class="form-control" maxlength="255">
+	<a id="link_view_logo_pt" href="javascript:void(0)" target="_blank" class="btn btn-outline-primary btn-block waves-effect mt-1">Lihat / Unduh Logo PT</a>
+</div>
+</div>
+</div>
+
+
+<button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Tutup</button>
+</div>
+<div class="tab-pane" id="upload-siteplan" aria-labelledby="upload-siteplan-tab" role="tabpanel">
+	<div class="table-responsive">
+		<table class="table mb-0">
+			<thead>
+				<tr>
+					<th scope="col" class="text-nowrap">No</th>
+					<th scope="col" class="text-nowrap">Nama File</th>
+					<th scope="col" class="text-nowrap">Panjang</th>
+					<th scope="col" class="text-nowrap">Lebar</th>
+					<th scope="col" class="text-nowrap">Tipe File</th>
+					<th scope="col" class="text-nowrap">Link</th>
+					<th scope="col" class="text-nowrap">Oleh</th>
+					<th scope="col" class="text-nowrap">Tanggal Upload</th>
+				</tr>
+			</thead>
+			<tbody id="tb-view-upload_siteplan">
+				<tr>
+					<td colspan="8" class="text-center">Tidak ada data</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+</div>
+
+<input disabled type="hidden" id="view_idProyek" name="idProyek" class="form-control" placeholder="Id proyek" maxlength="255" required>
+</div>
+</form>
+</div>
+</div>
+
+</section>
 </div>
 </div>
 </div>
@@ -722,7 +722,7 @@
 			"autoWidth": false,
 			"responsive": true,
 			"ajax": {
-				"url": '<?php echo base_url($controller . '/getAll') ?>',
+				"url": base_url + '/proyek/getall',
 				"type": "POST",
 				"dataType": "json",
 				data: {
@@ -744,7 +744,7 @@
 
 	function viewProyek(id_proyek) {
 		$.ajax({
-			url: '<?php echo base_url($controller . '/getOne') ?>',
+			url: base_url + '/proyek/getone',
 			type: 'post',
 			data: {
 				[csrfName]: csrfHash,
@@ -753,7 +753,7 @@
 			dataType: 'json',
 			success: function(response) {
 				csrfHash = response.token;
-				
+
 				$('#view-modal').modal('show');
 
 				$("#view_label_urutan").text(response.order_by);
@@ -764,7 +764,7 @@
 				$("#view_label_kota").text(response.kota || '-');
 				$("#view_label_provinsi").text(response.provinsi || '-');
 				$("#view_label_alamat_presisi").text(response.alamat_proyek || '-');
-				
+
 				let landingPage = response.landing_page_url || 'https://sigapp.site';
 				$("#view_btn_landing_page").attr('href', landingPage);
 
@@ -777,7 +777,7 @@
 				const logoUrl = response.logo ? (response.logo_access_url || file_url('proyek_logo', response.id_proyek)) : '';
 				const logoPtUrl = response.logo_pt ? (response.logo_pt_access_url || file_url('proyek_logo_pt', response.id_proyek)) : '';
 
-				if(siteplanUrl) {
+				if (siteplanUrl) {
 					$("#view_img_siteplan").attr('src', siteplanUrl).show();
 					$("#view_placeholder_siteplan").hide();
 					$("#view_btn_siteplan").attr('href', siteplanUrl).removeClass('disabled');
@@ -789,7 +789,7 @@
 					$("#view_btn_siteplan_dl").attr('href', '#').addClass('disabled');
 				}
 
-				if(logoUrl) {
+				if (logoUrl) {
 					$("#view_img_logo").attr('src', logoUrl).show();
 					$("#view_placeholder_logo").hide();
 					$("#view_btn_logo").attr('href', logoUrl).removeClass('disabled');
@@ -799,7 +799,7 @@
 					$("#view_btn_logo").attr('href', '#').addClass('disabled');
 				}
 
-				if(logoPtUrl) {
+				if (logoPtUrl) {
 					$("#view_img_logo_pt").attr('src', logoPtUrl).show();
 					$("#view_placeholder_logo_pt").hide();
 					$("#view_btn_logo_pt").attr('href', logoPtUrl).removeClass('disabled');
@@ -810,7 +810,7 @@
 				}
 
 				$("#view_hidden_id").val(response.id_proyek);
-				
+
 				// Bind Perbaharui Data button
 				$("#view_btn_perbaharui").off('click').on('click', function() {
 					$('#view-modal').modal('hide');
@@ -821,7 +821,7 @@
 
 				// Set sync time
 				let syncTime = response.updated_at || response.created_at || '';
-				if(syncTime) {
+				if (syncTime) {
 					$("#view_label_sync").text(format_datetime(syncTime));
 				} else {
 					$("#view_label_sync").text('Hari ini');
@@ -937,7 +937,7 @@
 				$(".text-danger").remove();
 
 				$.ajax({
-					url: '<?php echo base_url($controller . '/add') ?>',
+					url: base_url + '/proyek/add',
 					type: 'POST',
 					contentType: false,
 					processData: false,
@@ -1011,7 +1011,7 @@
 
 	function edit(id_proyek) {
 		$.ajax({
-			url: '<?php echo base_url($controller . '/getOne') ?>',
+			url: base_url + '/proyek/getone',
 			type: 'post',
 			data: {
 				[csrfName]: csrfHash,
@@ -1131,7 +1131,7 @@
 
 						$(".text-danger").remove();
 						$.ajax({
-							url: '<?php echo base_url($controller . '/edit') ?>',
+							url: base_url + '/proyek/edit',
 							type: 'POST',
 							contentType: false,
 							processData: false,
@@ -1217,7 +1217,7 @@
 
 			if (result.value) {
 				$.ajax({
-					url: '<?php echo base_url($controller . '/remove') ?>',
+					url: base_url + '/proyek/remove',
 					type: 'post',
 					data: {
 						[csrfName]: csrfHash,

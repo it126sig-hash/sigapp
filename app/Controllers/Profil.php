@@ -2,195 +2,45 @@
 
 namespace App\Controllers;
 
-use App\Services\FileAccessService;
-use App\Services\GoogleCalendarService;
-use Myth\Auth\Password;
-use RuntimeException;
+use App\Services\UserManagement\ProfilService;
 
+/**
+ * Backward compatibility shim.
+ * Canonical implementation located in:
+ * - Web: App\Controllers\Web\UserManagement\ProfilController
+ * - Api: App\Controllers\Api\UserManagement\ProfilController
+ * - Service: App\Services\UserManagement\ProfilService
+ */
 class Profil extends BaseController
 {
-    protected $db;
-    protected FileAccessService $fileAccessService;
-    protected GoogleCalendarService $googleCalendarService;
+    protected ProfilService $profilService;
 
     public function __construct()
     {
-        $this->db = db_connect();
-        $this->fileAccessService = new FileAccessService();
-        $this->googleCalendarService = new GoogleCalendarService();
+        $this->profilService = new ProfilService();
     }
 
     public function index()
     {
-        $profile = $this->currentUserRow();
-        $photoUrl = $this->profilePhotoUrl($profile->profile_photo ?? null);
-
-        // Ambil data departemen (group)
-        $department = 'Belum Ada Departemen';
-        $groupRow = $this->db->table('auth_groups_users')
-            ->select('auth_groups.description, auth_groups.name')
-            ->join('auth_groups', 'auth_groups.id = auth_groups_users.group_id')
-            ->where('auth_groups_users.user_id', $profile->id)
-            ->get()->getRow();
-            
-        if ($groupRow) {
-            $department = $groupRow->description ?: strtoupper($groupRow->name);
-        }
-
+        $userId          = (int) user_id();
         $data['content'] = 'user/profil';
-        $data['data'] = [
-            'title' => 'Ubah Profil',
-            'profile' => $profile,
-            'department' => $department,
-            'photoUrl' => $photoUrl,
-            'defaultPhotoUrl' => base_url('app-assets/images/portrait/small/avatar-s-11.jpg'),
-            'googleCalendarStatus' => $this->googleCalendarService->getStatus((int) $profile->id),
-        ];
+        $data['data']    = $this->profilService->getIndexData($userId);
 
         return view('template', $data);
     }
 
     public function update()
     {
-        $profile = $this->currentUserRow();
-        $userId = (int) $profile->id;
-        $rules = [
-            'name' => [
-                'label' => 'Nama',
-                'rules' => 'required|min_length[3]|max_length[120]',
-                'errors' => [
-                    'required' => '{field} harus diisi',
-                    'min_length' => '{field} minimal 3 karakter',
-                    'max_length' => '{field} maksimal 120 karakter',
-                ],
-            ],
-            'email' => [
-                'label' => 'Email',
-                'rules' => "required|valid_email|is_unique[users.email,id,{$userId}]",
-                'errors' => [
-                    'required' => '{field} harus diisi',
-                    'valid_email' => '{field} tidak valid',
-                    'is_unique' => '{field} sudah terdaftar',
-                ],
-            ],
-            'username' => [
-                'label' => 'Username',
-                'rules' => "required|alpha_numeric_punct|min_length[3]|max_length[30]|is_unique[users.username,id,{$userId}]",
-                'errors' => [
-                    'required' => '{field} harus diisi',
-                    'alpha_numeric_punct' => '{field} memuat karakter tidak valid',
-                    'min_length' => '{field} minimal 3 karakter',
-                    'max_length' => '{field} maksimal 30 karakter',
-                    'is_unique' => '{field} sudah terdaftar',
-                ],
-            ],
-            'password' => [
-                'label' => 'Password',
-                'rules' => 'permit_empty|min_length[4]|max_length[50]',
-                'errors' => [
-                    'min_length' => '{field} minimal 4 karakter',
-                    'max_length' => '{field} maksimal 50 karakter',
-                ],
-            ],
-            'password_confirm' => [
-                'label' => 'Konfirmasi password',
-                'rules' => 'matches[password]',
-                'errors' => [
-                    'matches' => '{field} tidak sama dengan password baru',
-                ],
-            ],
-        ];
+        $userId   = (int) user_id();
+        $postData = (array) $this->request->getPost();
+        $photo    = $this->request->getFile('profile_photo');
 
-        $photo = $this->request->getFile('profile_photo');
-        if ($photo && $photo->getError() !== UPLOAD_ERR_NO_FILE) {
-            $rules['profile_photo'] = [
-                'label' => 'Foto profil',
-                'rules' => 'uploaded[profile_photo]'
-                    . '|mime_in[profile_photo,image/jpg,image/jpeg,image/png,image/webp]'
-                    . '|max_size[profile_photo,2048]'
-                    . '|max_dims[profile_photo,3000,3000]',
-                'errors' => [
-                    'uploaded' => '{field} gagal diupload',
-                    'mime_in' => '{field} harus berupa JPG, PNG, atau WEBP',
-                    'max_size' => '{field} maksimal 2MB',
-                    'max_dims' => 'Dimensi {field} maksimal 3000x3000 px',
-                ],
-            ];
+        $result = $this->profilService->updateProfile($userId, $postData, $photo);
+
+        if (!$result['success']) {
+            return redirect()->back()->withInput()->with('errors', $result['messages']);
         }
 
-        if (! $this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-
-        $fields = [
-            'name' => trim((string) $this->request->getPost('name')),
-            'username' => trim((string) $this->request->getPost('username')),
-            'email' => trim((string) $this->request->getPost('email')),
-            'email_notif_enabled' => $this->request->getPost('email_notif_enabled') ? 1 : 0,
-            'updated_at' => date('Y-m-d H:i:s'),
-        ];
-
-        $password = (string) $this->request->getPost('password');
-        if ($password !== '') {
-            $fields['password_hash'] = Password::hash($password);
-            $fields['reset_hash'] = null;
-            $fields['reset_at'] = null;
-            $fields['reset_expires'] = null;
-        }
-
-        if ($photo && $photo->isValid() && ! $photo->hasMoved()) {
-            try {
-                $storedPath = $this->fileAccessService->store($photo, 'uploads/profile/' . date('Ymd'));
-                $fields['profile_photo'] = $storedPath;
-
-                $absolutePath = $this->fileAccessService->privatePath($storedPath);
-                if (is_file($absolutePath)) {
-                    try {
-                        $image = \Config\Services::image()->withFile($absolutePath);
-                        $info = $image->getFile()->getProperties(true);
-                        $width = $info['width'] ?? 0;
-                        $height = $info['height'] ?? 0;
-
-                        if ($width > 400 || $height > 400) {
-                            $image->resize(400, 400, true, 'auto');
-                        }
-                        $image->save($absolutePath, 85);
-                    } catch (\Throwable $e) {
-                        log_message('warning', 'Gagal kompres foto profil: ' . $e->getMessage());
-                    }
-                }
-            } catch (RuntimeException $e) {
-                return redirect()->back()->withInput()->with('error', 'Foto profil gagal disimpan.');
-            }
-        }
-
-        $this->db->table('users')->where('id', $userId)->update($fields);
-        $this->db->table('karyawan')->where('id_user', $userId)->update(['nama_karyawan' => $fields['name']]);
-
-        return redirect()->to(base_url('profil'))->with('message', 'Profil berhasil diperbaharui.');
-    }
-
-    private function currentUserRow(): object
-    {
-        $row = $this->db->table('users')->where('id', user_id())->get()->getRow();
-
-        if (! $row) {
-            throw new \CodeIgniter\Exceptions\PageNotFoundException('User tidak ditemukan');
-        }
-
-        return $row;
-    }
-
-    private function profilePhotoUrl(?string $path): string
-    {
-        if (empty($path)) {
-            return base_url('app-assets/images/portrait/small/avatar-s-11.jpg');
-        }
-
-        try {
-            return $this->fileAccessService->pathUrl('profile_photo', $path);
-        } catch (RuntimeException) {
-            return base_url('app-assets/images/portrait/small/avatar-s-11.jpg');
-        }
+        return redirect()->to(base_url('profil'))->with('message', $result['messages']);
     }
 }

@@ -1,8 +1,8 @@
 # Module: UserManagement
 
 **Status:** `REFACTORED`  
-**Readiness Score:** `80/100`  
-**Last Synced:** `2026-10-12 14:38:40` @ `be98758`  
+**Readiness Score:** `100/100`  
+**Last Synced:** `2026-10-12 23:34:07` @ `ba4df49`  
 
 ## Purpose
 Manajemen kepegawaian, struktur divisi, hak akses menu, akun pengguna, dan profil perusahaan.
@@ -29,58 +29,119 @@ Manajemen kepegawaian, struktur divisi, hak akses menu, akun pengguna, dan profi
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `POST` | `/getAkases` | `Explicit` | `AksesProyek::getAkses` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `/aksesproyek` | `Explicit` | `AksesProyek::index` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `/profil` | `Explicit` | `Profil::index` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/profil/update` | `Explicit` | `Profil::update` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `image` | `Explicit` | `ProfileSignatureController::image` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `ANY` | `/pengguna/index` | `AutoRoute` | `Pengguna::index` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengguna/setuser` | `AutoRoute` | `Pengguna::setuser` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengguna/getall` | `AutoRoute` | `Pengguna::getAll` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengguna/changegroup` | `AutoRoute` | `Pengguna::changeGroup` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengguna/chnagepermission` | `AutoRoute` | `Pengguna::chnagePermission` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengguna/getone` | `AutoRoute` | `Pengguna::getOne` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengguna/edit_user` | `AutoRoute` | `Pengguna::edit_user` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengguna/add` | `AutoRoute` | `Pengguna::add` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengguna/remove` | `AutoRoute` | `Pengguna::remove` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/karyawan/index` | `AutoRoute` | `Karyawan::index` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/karyawan/getall` | `AutoRoute` | `Karyawan::getAll` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/karyawan/getone` | `AutoRoute` | `Karyawan::getOne` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/karyawan/add` | `AutoRoute` | `Karyawan::add` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/karyawan/changegroup` | `AutoRoute` | `Karyawan::changeGroup` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/karyawan/chnagepermission` | `AutoRoute` | `Karyawan::chnagePermission` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/karyawan/edit` | `AutoRoute` | `Karyawan::edit` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/karyawan/remove` | `AutoRoute` | `Karyawan::remove` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/akses_proyek/getall` | `AutoRoute` | `AksesProyek::getAll` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/akses_proyek/getone` | `AutoRoute` | `AksesProyek::getOne` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/akses_proyek/edit` | `AutoRoute` | `AksesProyek::edit` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/profil/currentuserrow` | `AutoRoute` | `Profil::currentUserRow` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/profil/profilephotourl` | `AutoRoute` | `Profil::profilePhotoUrl` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `GET` | `pengguna/setuser` | `Explicit` | `PenggunaController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `PenggunaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getAll` | `Explicit` | `PenggunaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `PenggunaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getOne` | `Explicit` | `PenggunaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `PenggunaController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `PenggunaController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit_user` | `Explicit` | `PenggunaController::edit_user` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `PenggunaController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `setuser` | `Explicit` | `\App\Controllers\Web\UserManagement\PenggunaController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getAll` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getOne` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit_user` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::edit_user` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `pengguna/setuser` | `Explicit` | `PenggunaController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `PenggunaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getAll` | `Explicit` | `PenggunaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `PenggunaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getOne` | `Explicit` | `PenggunaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `PenggunaController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `PenggunaController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit_user` | `Explicit` | `PenggunaController::edit_user` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `PenggunaController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `setuser` | `Explicit` | `\App\Controllers\Web\UserManagement\PenggunaController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getAll` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getOne` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit_user` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::edit_user` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `\App\Controllers\Api\UserManagement\PenggunaController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `karyawan` | `Explicit` | `KaryawanController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `KaryawanController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getAll` | `Explicit` | `KaryawanController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `KaryawanController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getOne` | `Explicit` | `KaryawanController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `KaryawanController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `KaryawanController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `KaryawanController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/` | `Explicit` | `\App\Controllers\Web\UserManagement\KaryawanController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getAll` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getOne` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `karyawan` | `Explicit` | `KaryawanController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `KaryawanController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getAll` | `Explicit` | `KaryawanController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `KaryawanController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getOne` | `Explicit` | `KaryawanController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `KaryawanController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `KaryawanController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `KaryawanController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/` | `Explicit` | `\App\Controllers\Web\UserManagement\KaryawanController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getAll` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getOne` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `\App\Controllers\Api\UserManagement\KaryawanController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/profil` | `Explicit` | `\App\Controllers\Web\UserManagement\ProfilController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/profil/update` | `Explicit` | `\App\Controllers\Web\UserManagement\ProfilController::update` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `update` | `Explicit` | `ProfilController::update` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/profil` | `Explicit` | `\App\Controllers\Web\UserManagement\ProfilController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/profil/update` | `Explicit` | `\App\Controllers\Web\UserManagement\ProfilController::update` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `update` | `Explicit` | `ProfilController::update` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
 #### `PenggunaService.php`
-- `setuser()`
-- `getAll()`
-- `changeGroup($userId, $groupId)`
-- `chnagePermission($userId, $permissionId)`
-- `getOne()`
-- `edit_user()`
-- `add()`
-- `remove()`
+- `getSetuserData()`
+- `getDatatable()`
+- `getOne(int $id)`
+- `addUser(array $postData)`
+- `editUser(array $postData)`
+- `toggleStatus(int $id, int $currentStatus)`
+#### `KaryawanService.php`
+- `getIndexData()`
+- `getDatatable()`
+- `getOne(string $nik)`
+- `addKaryawan(array $postData)`
+- `editKaryawan(array $postData)`
+- `toggleStatus(string $nik, int $currentStatus)`
+#### `ProfilService.php`
+- `getIndexData(int $userId)`
+- `updateProfile(int $userId, array $postData, ?UploadedFile $photo = null)`
+- `profilePhotoUrl(?string $path)`
 
 ## File Inventory
-### Controllers (4)
-- `app/Controllers/Pengguna.php` (371 baris, 9 public methods)
-- `app/Controllers/Karyawan.php` (229 baris, 8 public methods)
-- `app/Controllers/AksesProyek.php` (153 baris, 5 public methods)
-- `app/Controllers/Profil.php` (197 baris, 4 public methods)
+### Controllers (6)
+- `app/Controllers/Web/UserManagement/PenggunaController.php` (25 baris, 1 public methods)
+- `app/Controllers/Api/UserManagement/PenggunaController.php` (71 baris, 6 public methods)
+- `app/Controllers/Web/UserManagement/KaryawanController.php` (25 baris, 1 public methods)
+- `app/Controllers/Api/UserManagement/KaryawanController.php` (66 baris, 5 public methods)
+- `app/Controllers/Web/UserManagement/ProfilController.php` (41 baris, 2 public methods)
+- `app/Controllers/Api/UserManagement/ProfilController.php` (31 baris, 1 public methods)
 
-### Services (1)
-- `app/Services/PenggunaService.php` (174 baris)
+### Services (3)
+- `app/Services/UserManagement/PenggunaService.php` (346 baris)
+- `app/Services/UserManagement/KaryawanService.php` (242 baris)
+- `app/Services/UserManagement/ProfilService.php` (230 baris)
 
-### Repositories (2)
-- `app/Repositories/KaryawanRepository.php` (236 baris)
-- `app/Repositories/DivisiRepository.php` (236 baris)
+### Repositories (3)
+- `app/Repositories/UserManagement/PenggunaRepository.php` (107 baris)
+- `app/Repositories/UserManagement/KaryawanRepository.php` (110 baris)
+- `app/Repositories/UserManagement/ProfilRepository.php` (58 baris)
 
 ### Models (5)
 - `app/Models/KaryawanModel.php`
@@ -89,15 +150,16 @@ Manajemen kepegawaian, struktur divisi, hak akses menu, akun pengguna, dan profi
 - `app/Models/UserModel.php`
 - `app/Models/ProfilePerusahaanModel.php`
 
-### Views (1 folder)
+### Views (2 folder)
 - `app/Views/user` (4 file)
+- `app/Views/master` (9 file)
 
 ### JavaScript (0 file)
 
 ## Readiness Checklist
 - [x] Has Service Layer
 - [x] Has Repository Layer
-- [ ] Web & API Controllers Separated
+- [x] Web & API Controllers Separated
 - [x] Explicit Routes Defined
 - [x] MODULE.md Initialized
 

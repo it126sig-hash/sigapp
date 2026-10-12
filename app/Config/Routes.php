@@ -59,8 +59,8 @@ $routes->get('/notif/icon/(:num)', 'Notif::icon/$1');
 $routes->get('/notif/open/(:num)', 'Notif::open/$1', ['filter' => 'login']);
 $routes->get('/loadaktivitas', 'Home::loadAktivitas');
 
-$routes->get('/profil', 'Profil::index');
-$routes->post('/profil/update', 'Profil::update');
+$routes->get('/profil', '\App\Controllers\Web\UserManagement\ProfilController::index');
+$routes->post('/profil/update', '\App\Controllers\Web\UserManagement\ProfilController::update');
 
 // Bon Permintaan Barang (BPB)
 $routes->group('bpb', ['namespace' => 'App\Controllers\Web'], function ($routes) {
@@ -275,6 +275,62 @@ $routes->group('pengaturan_warna', ['filter' => 'login'], function ($routes) {
     $routes->post('add', '\App\Controllers\Api\Settings\PengaturanWarnaController::add');
     $routes->post('edit', '\App\Controllers\Api\Settings\PengaturanWarnaController::edit');
     $routes->post('remove', '\App\Controllers\Api\Settings\PengaturanWarnaController::remove');
+});
+
+// ── Modul UserManagement (Web Routes) ──
+$routes->group('', ['namespace' => 'App\Controllers\Web\UserManagement', 'filter' => 'login'], function ($routes) {
+    $routes->get('pengguna/setuser', 'PenggunaController::index');
+    $routes->get('karyawan', 'KaryawanController::index');
+});
+
+// ── Modul UserManagement (API Routes Modern) ──
+$routes->group('api/pengguna', ['namespace' => 'App\Controllers\Api\UserManagement', 'filter' => 'login'], function ($routes) {
+    $routes->post('getall', 'PenggunaController::getAll');
+    $routes->post('getAll', 'PenggunaController::getAll');
+    $routes->post('getone', 'PenggunaController::getOne');
+    $routes->post('getOne', 'PenggunaController::getOne');
+    $routes->post('add', 'PenggunaController::add');
+    $routes->post('edit', 'PenggunaController::edit');
+    $routes->post('edit_user', 'PenggunaController::edit_user');
+    $routes->post('remove', 'PenggunaController::remove');
+});
+
+$routes->group('api/karyawan', ['namespace' => 'App\Controllers\Api\UserManagement', 'filter' => 'login'], function ($routes) {
+    $routes->post('getall', 'KaryawanController::getAll');
+    $routes->post('getAll', 'KaryawanController::getAll');
+    $routes->post('getone', 'KaryawanController::getOne');
+    $routes->post('getOne', 'KaryawanController::getOne');
+    $routes->post('add', 'KaryawanController::add');
+    $routes->post('edit', 'KaryawanController::edit');
+    $routes->post('remove', 'KaryawanController::remove');
+});
+
+$routes->group('api/profil', ['namespace' => 'App\Controllers\Api\UserManagement', 'filter' => 'login'], function ($routes) {
+    $routes->post('update', 'ProfilController::update');
+});
+
+// ── Modul UserManagement (Legacy Routes Zero-Downtime Aliases) ──
+$routes->group('pengguna', ['filter' => 'login'], function ($routes) {
+    $routes->get('setuser', '\App\Controllers\Web\UserManagement\PenggunaController::index');
+    $routes->post('getAll', '\App\Controllers\Api\UserManagement\PenggunaController::getAll');
+    $routes->post('getall', '\App\Controllers\Api\UserManagement\PenggunaController::getAll');
+    $routes->post('getOne', '\App\Controllers\Api\UserManagement\PenggunaController::getOne');
+    $routes->post('getone', '\App\Controllers\Api\UserManagement\PenggunaController::getOne');
+    $routes->post('add', '\App\Controllers\Api\UserManagement\PenggunaController::add');
+    $routes->post('edit', '\App\Controllers\Api\UserManagement\PenggunaController::edit');
+    $routes->post('edit_user', '\App\Controllers\Api\UserManagement\PenggunaController::edit_user');
+    $routes->post('remove', '\App\Controllers\Api\UserManagement\PenggunaController::remove');
+});
+
+$routes->group('karyawan', ['filter' => 'login'], function ($routes) {
+    $routes->get('/', '\App\Controllers\Web\UserManagement\KaryawanController::index');
+    $routes->post('getAll', '\App\Controllers\Api\UserManagement\KaryawanController::getAll');
+    $routes->post('getall', '\App\Controllers\Api\UserManagement\KaryawanController::getAll');
+    $routes->post('getOne', '\App\Controllers\Api\UserManagement\KaryawanController::getOne');
+    $routes->post('getone', '\App\Controllers\Api\UserManagement\KaryawanController::getOne');
+    $routes->post('add', '\App\Controllers\Api\UserManagement\KaryawanController::add');
+    $routes->post('edit', '\App\Controllers\Api\UserManagement\KaryawanController::edit');
+    $routes->post('remove', '\App\Controllers\Api\UserManagement\KaryawanController::remove');
 });
 
 $routes->get("getmodal", 'Modal::index');

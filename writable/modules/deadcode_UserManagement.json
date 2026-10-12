@@ -1,0 +1,52 @@
+[
+    {
+        "layer": "Service",
+        "file": "PenggunaService.php",
+        "name": "getDatatable"
+    },
+    {
+        "layer": "Service",
+        "file": "PenggunaService.php",
+        "name": "editUser"
+    },
+    {
+        "layer": "Service",
+        "file": "PenggunaService.php",
+        "name": "toggleStatus"
+    },
+    {
+        "layer": "Service",
+        "file": "KaryawanService.php",
+        "name": "getDatatable"
+    },
+    {
+        "layer": "Service",
+        "file": "KaryawanService.php",
+        "name": "toggleStatus"
+    },
+    {
+        "layer": "Repository",
+        "file": "PenggunaRepository.php",
+        "name": "findById"
+    },
+    {
+        "layer": "Repository",
+        "file": "PenggunaRepository.php",
+        "name": "insertUser"
+    },
+    {
+        "layer": "Repository",
+        "file": "PenggunaRepository.php",
+        "name": "toggleActive"
+    },
+    {
+        "layer": "Repository",
+        "file": "KaryawanRepository.php",
+        "name": "findByNik"
+    },
+    {
+        "layer": "Repository",
+        "file": "KaryawanRepository.php",
+        "name": "update"
+    }
+]

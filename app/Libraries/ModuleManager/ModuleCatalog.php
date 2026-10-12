@@ -424,9 +424,24 @@ class ModuleCatalog
             'UserManagement' => [
                 'name' => 'UserManagement',
                 'description' => 'Manajemen kepegawaian, struktur divisi, hak akses menu, akun pengguna, dan profil perusahaan.',
-                'controllers' => ['Pengguna.php', 'Karyawan.php', 'AksesProyek.php', 'Profil.php'],
-                'services' => ['PenggunaService.php'],
-                'repositories' => ['KaryawanRepository.php', 'DivisiRepository.php'],
+                'controllers' => [
+                    'Web/UserManagement/PenggunaController.php',
+                    'Api/UserManagement/PenggunaController.php',
+                    'Web/UserManagement/KaryawanController.php',
+                    'Api/UserManagement/KaryawanController.php',
+                    'Web/UserManagement/ProfilController.php',
+                    'Api/UserManagement/ProfilController.php',
+                ],
+                'services' => [
+                    'UserManagement/PenggunaService.php',
+                    'UserManagement/KaryawanService.php',
+                    'UserManagement/ProfilService.php',
+                ],
+                'repositories' => [
+                    'UserManagement/PenggunaRepository.php',
+                    'UserManagement/KaryawanRepository.php',
+                    'UserManagement/ProfilRepository.php',
+                ],
                 'models' => [
                     'KaryawanModel.php',
                     'DivisiModel.php',
@@ -434,7 +449,7 @@ class ModuleCatalog
                     'UserModel.php',
                     'ProfilePerusahaanModel.php',
                 ],
-                'views' => ['user'],
+                'views' => ['user', 'master'],
                 'assets_js' => [],
                 'owner_tables' => ['karyawan', 'divisi', 'level', 'users', 'profile_perusahaan'],
                 'shared_tables' => ['proyek'],
