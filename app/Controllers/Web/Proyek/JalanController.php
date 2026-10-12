@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Controllers\Web;
+namespace App\Controllers\Web\Proyek;
 
 use App\Controllers\BaseController;
-use App\Services\JalanService;
+use App\Services\Proyek\JalanService;
 
 class JalanController extends BaseController
 {

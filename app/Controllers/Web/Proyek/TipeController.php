@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers\Web;
+namespace App\Controllers\Web\Proyek;
 
 use App\Controllers\BaseController;
 use App\Models\ProyekModel;

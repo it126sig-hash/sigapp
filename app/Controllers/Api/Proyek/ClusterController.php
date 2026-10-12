@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Controllers\Api;
+namespace App\Controllers\Api\Proyek;
 
-use App\Services\ClusterService;
+use App\Controllers\Api\BaseApiController;
+use App\Services\Proyek\ClusterService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class ClusterController extends BaseApiController

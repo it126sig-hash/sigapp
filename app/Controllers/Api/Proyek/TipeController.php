@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Controllers\Api;
+namespace App\Controllers\Api\Proyek;
 
+use App\Controllers\Api\BaseApiController;
 use App\Models\KavlingModel;
-use App\Services\TipeService;
+use App\Services\Proyek\TipeService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class TipeController extends BaseApiController

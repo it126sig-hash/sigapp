@@ -34,6 +34,14 @@ Setiap modul bisnis memiliki wilayah kepemilikan yang didefinisikan dalam `docs/
    * Dilarang melakukan loopback HTTP call (`curl` ke localhost). Panggil method Service resmi dari modul pemilik.
    * Tetap jaga transaksi atomik database (`$db->transStart()` / `$db->transComplete()`).
 
+### C. Standar Struktur Folder Modul (Namespace & Path)
+Setiap modul diorganisir ke dalam subfolder modul tersendiri:
+* **Web Controllers**: `app/Controllers/Web/<Modul>/` (Namespace: `App\Controllers\Web\<Modul>`)
+* **API Controllers**: `app/Controllers/Api/<Modul>/` (Namespace: `App\Controllers\Api\<Modul>`)
+* **Services**: `app/Services/<Modul>/` (Namespace: `App\Services\<Modul>`)
+* **Repositories**: `app/Repositories/<Modul>/` (Namespace: `App\Repositories\<Modul>`)
+* **Backward-Compatibility Shims**: Untuk service atau repository yang dipanggil oleh modul lain atau legacy AutoRoute, sediakan shim class tipis di `app/Services/` atau `app/Repositories/` yang meng-`extends` class modular baru.
+
 ---
 
 ## 3. SOP Alur Migrasi Satu Modul (Step-by-Step)
@@ -47,13 +55,13 @@ Ketika diperintahkan untuk merefaktor suatu modul (misal: `"refaktor modul X"`),
 
 ### Langkah 2: Audit & Pemisahan Controller
 1. Jika controller masih campuran View + JSON:
-   * Buat `App\Controllers\Web\<Modul>Controller` untuk render view.
-   * Buat `App\Controllers\Api\<Modul>Controller` untuk endpoint JSON.
+   * Buat `App\Controllers\Web\<Modul>\<Modul>Controller` untuk render view.
+   * Buat `App\Controllers\Api\<Modul>\<Modul>Controller` untuk endpoint JSON.
 2. Pertahankan route lama di `app/Config/Routes.php` yang mendelegasikan ke controller baru (Zero-Downtime alias).
 
 ### Langkah 3: Ekstraksi Logika Bisnis ke Service
-1. Pindahkan kalkulasi bisnis, validasi finansial, dan manipulasi data dari Controller ke `App\Services\<Modul>Service`.
-2. Jika ada query multi-tabel / JOIN kompleks, tempatkan di `App\Repositories\<Modul>Repository`.
+1. Pindahkan kalkulasi bisnis, validasi finansial, dan manipulasi data dari Controller ke `App\Services\<Modul>\<Modul>Service`.
+2. Jika ada query multi-tabel / JOIN kompleks, tempatkan di `App\Repositories\<Modul>\<Modul>Repository`.
 
 ### Langkah 4: Pembersihan Dead Code Terkonfirmasi
 1. Hapus method yang terbukti tidak memiliki pemanggil (0 callers) dan bukan route aktif.

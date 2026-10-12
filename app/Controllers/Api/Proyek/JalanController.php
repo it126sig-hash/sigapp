@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Controllers\Api;
+namespace App\Controllers\Api\Proyek;
 
-use App\Services\JalanService;
+use App\Controllers\Api\BaseApiController;
+use App\Services\Proyek\JalanService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class JalanController extends BaseApiController

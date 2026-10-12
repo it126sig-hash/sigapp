@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-12 15:33:40` @ `e8e5ef5`  
+**Last Synced:** `2026-10-12 16:26:07` @ `c717d6c`  
 
 ## Purpose
 Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akses.
@@ -28,8 +28,9 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\Proyek\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `proyek` | `Explicit` | `ProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `aksesproyek` | `Explicit` | `AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `all` | `Explicit` | `ProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `getall` | `Explicit` | `ProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `getone` | `Explicit` | `ProyekController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -45,8 +46,9 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 | `POST` | `getone` | `Explicit` | `AksesProyekController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `search-users` | `Explicit` | `AksesProyekController::getAkses` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `edit` | `Explicit` | `AksesProyekController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\Proyek\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `proyek` | `Explicit` | `ProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `aksesproyek` | `Explicit` | `AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `all` | `Explicit` | `ProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `getall` | `Explicit` | `ProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `getone` | `Explicit` | `ProyekController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -120,12 +122,14 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 | `POST` | `add` | `Explicit` | `JalanController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `edit` | `Explicit` | `JalanController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `remove` | `Explicit` | `JalanController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\Proyek\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `aksesproyek` | `Explicit` | `AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `all` | `Explicit` | `AksesProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `getone` | `Explicit` | `AksesProyekController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `search-users` | `Explicit` | `AksesProyekController::getAkses` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `edit` | `Explicit` | `AksesProyekController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\Proyek\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `aksesproyek` | `Explicit` | `AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `all` | `Explicit` | `AksesProyekController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `getone` | `Explicit` | `AksesProyekController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `search-users` | `Explicit` | `AksesProyekController::getAkses` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -201,29 +205,29 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 
 ## File Inventory
 ### Controllers (10)
-- `app/Controllers/Web/ProyekController.php` (18 baris, 1 public methods)
-- `app/Controllers/Api/ProyekController.php` (106 baris, 8 public methods)
-- `app/Controllers/Web/ClusterController.php` (27 baris, 1 public methods)
-- `app/Controllers/Api/ClusterController.php` (86 baris, 6 public methods)
-- `app/Controllers/Web/TipeController.php` (30 baris, 1 public methods)
-- `app/Controllers/Api/TipeController.php` (99 baris, 7 public methods)
-- `app/Controllers/Web/JalanController.php` (26 baris, 1 public methods)
-- `app/Controllers/Api/JalanController.php` (87 baris, 6 public methods)
-- `app/Controllers/Web/AksesProyekController.php` (20 baris, 1 public methods)
-- `app/Controllers/Api/AksesProyekController.php` (68 baris, 4 public methods)
+- `app/Controllers/Web/Proyek/ProyekController.php` (18 baris, 1 public methods)
+- `app/Controllers/Api/Proyek/ProyekController.php` (107 baris, 8 public methods)
+- `app/Controllers/Web/Proyek/ClusterController.php` (27 baris, 1 public methods)
+- `app/Controllers/Api/Proyek/ClusterController.php` (87 baris, 6 public methods)
+- `app/Controllers/Web/Proyek/TipeController.php` (30 baris, 1 public methods)
+- `app/Controllers/Api/Proyek/TipeController.php` (100 baris, 7 public methods)
+- `app/Controllers/Web/Proyek/JalanController.php` (26 baris, 1 public methods)
+- `app/Controllers/Api/Proyek/JalanController.php` (88 baris, 6 public methods)
+- `app/Controllers/Web/Proyek/AksesProyekController.php` (20 baris, 1 public methods)
+- `app/Controllers/Api/Proyek/AksesProyekController.php` (69 baris, 4 public methods)
 
 ### Services (5)
-- `app/Services/ProyekService.php` (419 baris)
-- `app/Services/ClusterService.php` (247 baris)
-- `app/Services/TipeService.php` (426 baris)
-- `app/Services/JalanService.php` (210 baris)
-- `app/Services/ActiveProyekService.php` (189 baris)
+- `app/Services/Proyek/ProyekService.php` (418 baris)
+- `app/Services/Proyek/ClusterService.php` (248 baris)
+- `app/Services/Proyek/TipeService.php` (428 baris)
+- `app/Services/Proyek/JalanService.php` (210 baris)
+- `app/Services/Proyek/ActiveProyekService.php` (190 baris)
 
 ### Repositories (4)
-- `app/Repositories/ProyekRepository.php` (126 baris)
-- `app/Repositories/ClusterRepository.php` (137 baris)
-- `app/Repositories/TipeRepository.php` (107 baris)
-- `app/Repositories/JalanRepository.php` (132 baris)
+- `app/Repositories/Proyek/ProyekRepository.php` (125 baris)
+- `app/Repositories/Proyek/ClusterRepository.php` (137 baris)
+- `app/Repositories/Proyek/TipeRepository.php` (107 baris)
+- `app/Repositories/Proyek/JalanRepository.php` (132 baris)
 
 ### Models (4)
 - `app/Models/ProyekModel.php`

@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Controllers\Api;
+namespace App\Controllers\Api\Proyek;
 
-use App\Services\ProyekService;
+use App\Controllers\Api\BaseApiController;
+use App\Services\Proyek\ProyekService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class AksesProyekController extends BaseApiController
