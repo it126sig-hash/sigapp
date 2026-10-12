@@ -1,0 +1,22 @@
+[
+    {
+        "layer": "Controller",
+        "file": "Hargajual.php",
+        "name": "index"
+    },
+    {
+        "layer": "Controller",
+        "file": "Hargajual.php",
+        "name": "add"
+    },
+    {
+        "layer": "Controller",
+        "file": "Hargajual.php",
+        "name": "remove"
+    },
+    {
+        "layer": "Repository",
+        "file": "TransaksiRepository.php",
+        "name": "getKonsumenByIdKavling"
+    }
+]
