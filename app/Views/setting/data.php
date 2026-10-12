@@ -91,14 +91,16 @@
 <script src="<?= base_url() ?>/app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
 
 <script>
-  const settingControllerUrl = base_url + '<?= $controller ?>';
+  const settingControllerUrl = '<?= base_url($controller) ?>';
   const settingConfigs = <?= json_encode($tables) ?>;
   const settingTables = {};
 
   $(function() {
-    $('.setting-data-table').each(function() {
-      const key = $(this).data('key');
-      settingTables[key] = $(this).DataTable({
+    function initDataTable(key) {
+      if (settingTables[key]) return;
+      const $el = $('#setting-table-' + key);
+      if (!$el.length) return;
+      settingTables[key] = $el.DataTable({
         paging: true,
         lengthChange: false,
         searching: true,
@@ -119,6 +121,22 @@
           }
         }
       });
+    }
+
+    // Inisialisasi tab pertama yang aktif
+    const activeTab = $('.nav-tabs .nav-link.active').attr('id');
+    if (activeTab) {
+      const activeKey = activeTab.replace('-tab', '');
+      initDataTable(activeKey);
+    }
+
+    // Inisialisasi tab lainnya saat tab diklik
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+      const targetId = $(e.target).attr('id');
+      if (targetId) {
+        const key = targetId.replace('-tab', '');
+        initDataTable(key);
+      }
     });
 
     bindSettingDataForm();

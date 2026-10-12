@@ -1,8 +1,8 @@
 # Module: Settings
 
-**Status:** `MAPPED`  
-**Readiness Score:** `60/100`  
-**Last Synced:** `2026-10-12 14:38:40` @ `be98758`  
+**Status:** `REFACTORED`  
+**Readiness Score:** `100/100`  
+**Last Synced:** `2026-10-12 20:21:12` @ `6e70679`  
 
 ## Purpose
 Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaan siteplan.
@@ -28,53 +28,112 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `GET` | `/` | `Explicit` | `MenuSetting::index` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `menu/list` | `Explicit` | `MenuSetting::menuList` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `menu/get` | `Explicit` | `MenuSetting::menuGet` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `menu/save` | `Explicit` | `MenuSetting::menuSave` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `menu/toggle` | `Explicit` | `MenuSetting::menuToggle` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `access/group` | `Explicit` | `MenuSetting::groupAccess` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `access/group/save` | `Explicit` | `MenuSetting::groupSave` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `access/user` | `Explicit` | `MenuSetting::userAccess` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `access/user/save` | `Explicit` | `MenuSetting::userSave` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `siteplan-menu/list` | `Explicit` | `MenuSetting::siteplanMenuList` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `siteplan-menu/get` | `Explicit` | `MenuSetting::siteplanMenuGet` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `siteplan-menu/save` | `Explicit` | `MenuSetting::siteplanMenuSave` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `siteplan-menu/toggle` | `Explicit` | `MenuSetting::siteplanMenuToggle` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `/` | `Explicit` | `SettingData::index` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `list/(:segment)` | `Explicit` | `SettingData::list/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `get/(:segment)` | `Explicit` | `SettingData::get/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `save/(:segment)` | `Explicit` | `SettingData::save/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `delete/(:segment)` | `Explicit` | `SettingData::delete/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `/configcolor` | `Explicit` | `PengaturanWarna::index` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `ANY` | `/menu_setting/guardadmin` | `AutoRoute` | `MenuSetting::guardAdmin` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/menu_setting/jsonerror` | `AutoRoute` | `MenuSetting::jsonError` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/menu_setting/getgroups` | `AutoRoute` | `MenuSetting::getGroups` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/menu_setting/getusers` | `AutoRoute` | `MenuSetting::getUsers` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/menu_setting/getparentoptions` | `AutoRoute` | `MenuSetting::getParentOptions` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/menu_setting/getflatmenus` | `AutoRoute` | `MenuSetting::getFlatMenus` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/menu_setting/groupexists` | `AutoRoute` | `MenuSetting::groupExists` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/menu_setting/userexists` | `AutoRoute` | `MenuSetting::userExists` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/menu_setting/isdescendant` | `AutoRoute` | `MenuSetting::isDescendant` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/menu_setting/makeslug` | `AutoRoute` | `MenuSetting::makeSlug` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/setting_data/collectfields` | `AutoRoute` | `SettingData::collectFields` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/setting_data/validationrules` | `AutoRoute` | `SettingData::validationRules` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/setting_data/findactiverow` | `AutoRoute` | `SettingData::findActiveRow` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/setting_data/nextmanualid` | `AutoRoute` | `SettingData::nextManualId` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/setting_data/getconfig` | `AutoRoute` | `SettingData::getConfig` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/setting_data/guardadmin` | `AutoRoute` | `SettingData::guardAdmin` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/setting_data/jsonerror` | `AutoRoute` | `SettingData::jsonError` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/setting_data/jsonsuccess` | `AutoRoute` | `SettingData::jsonSuccess` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/setting_data/tableconfigs` | `AutoRoute` | `SettingData::tableConfigs` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengaturan_warna/getall` | `AutoRoute` | `PengaturanWarna::getAll` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengaturan_warna/getone` | `AutoRoute` | `PengaturanWarna::getOne` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengaturan_warna/add` | `AutoRoute` | `PengaturanWarna::add` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengaturan_warna/edit` | `AutoRoute` | `PengaturanWarna::edit` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengaturan_warna/remove` | `AutoRoute` | `PengaturanWarna::remove` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/pengaturan_warna/normalizestrokewidth` | `AutoRoute` | `PengaturanWarna::normalizeStrokeWidth` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/config_color/index` | `AutoRoute` | `ConfigColor::index` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/config/index` | `AutoRoute` | `Config::index` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/config/get_shape` | `AutoRoute` | `Config::get_shape` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `GET` | `menu-setting` | `Explicit` | `MenuSettingController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/list` | `Explicit` | `MenuSettingController::menuList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/get` | `Explicit` | `MenuSettingController::menuGet` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/save` | `Explicit` | `MenuSettingController::menuSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/toggle` | `Explicit` | `MenuSettingController::menuToggle` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/group` | `Explicit` | `MenuSettingController::groupAccess` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/group/save` | `Explicit` | `MenuSettingController::groupSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/user` | `Explicit` | `MenuSettingController::userAccess` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/user/save` | `Explicit` | `MenuSettingController::userSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/list` | `Explicit` | `MenuSettingController::siteplanMenuList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/get` | `Explicit` | `MenuSettingController::siteplanMenuGet` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/save` | `Explicit` | `MenuSettingController::siteplanMenuSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/toggle` | `Explicit` | `MenuSettingController::siteplanMenuToggle` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/` | `Explicit` | `\App\Controllers\Web\Settings\MenuSettingController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/list` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::menuList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/get` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::menuGet` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/save` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::menuSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/toggle` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::menuToggle` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/group` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::groupAccess` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/group/save` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::groupSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/user` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::userAccess` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/user/save` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::userSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/list` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/get` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuGet` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/save` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/toggle` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuToggle` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `menu-setting` | `Explicit` | `MenuSettingController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/list` | `Explicit` | `MenuSettingController::menuList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/get` | `Explicit` | `MenuSettingController::menuGet` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/save` | `Explicit` | `MenuSettingController::menuSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/toggle` | `Explicit` | `MenuSettingController::menuToggle` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/group` | `Explicit` | `MenuSettingController::groupAccess` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/group/save` | `Explicit` | `MenuSettingController::groupSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/user` | `Explicit` | `MenuSettingController::userAccess` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/user/save` | `Explicit` | `MenuSettingController::userSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/list` | `Explicit` | `MenuSettingController::siteplanMenuList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/get` | `Explicit` | `MenuSettingController::siteplanMenuGet` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/save` | `Explicit` | `MenuSettingController::siteplanMenuSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/toggle` | `Explicit` | `MenuSettingController::siteplanMenuToggle` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/` | `Explicit` | `\App\Controllers\Web\Settings\MenuSettingController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/list` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::menuList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/get` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::menuGet` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/save` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::menuSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `menu/toggle` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::menuToggle` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/group` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::groupAccess` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/group/save` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::groupSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/user` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::userAccess` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `access/user/save` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::userSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/list` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/get` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuGet` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/save` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `siteplan-menu/toggle` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuToggle` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `setting-data` | `Explicit` | `SettingDataController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `list/(:segment)` | `Explicit` | `SettingDataController::list/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `get/(:segment)` | `Explicit` | `SettingDataController::get/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `save/(:segment)` | `Explicit` | `SettingDataController::save/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `delete/(:segment)` | `Explicit` | `SettingDataController::delete/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/` | `Explicit` | `\App\Controllers\Web\Settings\SettingDataController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `list/(:segment)` | `Explicit` | `\App\Controllers\Api\Settings\SettingDataController::list/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `get/(:segment)` | `Explicit` | `\App\Controllers\Api\Settings\SettingDataController::get/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `save/(:segment)` | `Explicit` | `\App\Controllers\Api\Settings\SettingDataController::save/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `delete/(:segment)` | `Explicit` | `\App\Controllers\Api\Settings\SettingDataController::delete/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `setting-data` | `Explicit` | `SettingDataController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `list/(:segment)` | `Explicit` | `SettingDataController::list/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `get/(:segment)` | `Explicit` | `SettingDataController::get/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `save/(:segment)` | `Explicit` | `SettingDataController::save/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `delete/(:segment)` | `Explicit` | `SettingDataController::delete/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/` | `Explicit` | `\App\Controllers\Web\Settings\SettingDataController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `list/(:segment)` | `Explicit` | `\App\Controllers\Api\Settings\SettingDataController::list/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `get/(:segment)` | `Explicit` | `\App\Controllers\Api\Settings\SettingDataController::get/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `save/(:segment)` | `Explicit` | `\App\Controllers\Api\Settings\SettingDataController::save/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `delete/(:segment)` | `Explicit` | `\App\Controllers\Api\Settings\SettingDataController::delete/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/configcolor` | `Explicit` | `\App\Controllers\Web\Settings\PengaturanWarnaController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `PengaturanWarnaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `PengaturanWarnaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `PengaturanWarnaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `PengaturanWarnaController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `PengaturanWarnaController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `PengaturanWarnaController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getAll` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getOne` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/configcolor` | `Explicit` | `\App\Controllers\Web\Settings\PengaturanWarnaController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `all` | `Explicit` | `PengaturanWarnaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `PengaturanWarnaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `PengaturanWarnaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `PengaturanWarnaController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `PengaturanWarnaController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `PengaturanWarnaController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getAll` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getOne` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getall` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `getone` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `add` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `edit` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `remove` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
 #### `MenuAccessService.php`
@@ -107,20 +166,54 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 - `renderGroupMenu(int $groupId, array $items, bool $hidden)`
 - `renderItem($item)`
 - `tablesReady()`
+#### `SettingDataService.php`
+- `getAllConfigs()`
+- `getConfig(string $key)`
+- `list(string $key)`
+- `get(string $key, int $id)`
+- `save(string $key, array $postData, int $userId)`
+- `delete(string $key, int $id, int $userId)`
+- `collectFields(array $config, array $postData)`
+- `validationRules(array $config)`
+#### `PengaturanWarnaService.php`
+- `getAll()`
+- `getOne(string $configName)`
+- `add(array $postData, ?string $userName = null)`
+- `edit(array $postData, ?string $userName = null)`
+- `remove(string $configName)`
+- `normalizeStrokeWidth($value)`
+#### `MenuSettingService.php`
+- `getIndexData()`
+- `getMenuList()`
+- `getMenu(int $id)`
+- `saveMenu(array $postData)`
+- `toggleMenu(int $id)`
+- `getSiteplanMenuList()`
+- `getSiteplanMenu(int $id)`
+- `saveSiteplanMenu(array $postData)`
+- `toggleSiteplanMenu(int $id)`
+- `makeSlug(string $name)`
 
 ## File Inventory
-### Controllers (5)
-- `app/Controllers/MenuSetting.php` (545 baris, 23 public methods)
-- `app/Controllers/SettingData.php` (363 baris, 14 public methods)
-- `app/Controllers/PengaturanWarna.php` (237 baris, 7 public methods)
-- `app/Controllers/ConfigColor.php` (28 baris, 1 public methods)
-- `app/Controllers/Config.php` (15 baris, 2 public methods)
+### Controllers (6)
+- `app/Controllers/Web/Settings/MenuSettingController.php` (28 baris, 1 public methods)
+- `app/Controllers/Api/Settings/MenuSettingController.php` (180 baris, 12 public methods)
+- `app/Controllers/Web/Settings/SettingDataController.php` (29 baris, 1 public methods)
+- `app/Controllers/Api/Settings/SettingDataController.php` (55 baris, 4 public methods)
+- `app/Controllers/Web/Settings/PengaturanWarnaController.php` (20 baris, 1 public methods)
+- `app/Controllers/Api/Settings/PengaturanWarnaController.php` (62 baris, 5 public methods)
 
-### Services (2)
-- `app/Services/MenuAccessService.php` (266 baris)
-- `app/Services/SiteplanMenuService.php` (373 baris)
+### Services (5)
+- `app/Services/Settings/MenuAccessService.php` (266 baris)
+- `app/Services/Settings/SiteplanMenuService.php` (373 baris)
+- `app/Services/Settings/SettingDataService.php` (195 baris)
+- `app/Services/Settings/PengaturanWarnaService.php` (205 baris)
+- `app/Services/Settings/MenuSettingService.php` (324 baris)
 
-### Repositories (0)
+### Repositories (3)
+- `app/Repositories/Settings/MenuRepository.php` (150 baris)
+- `app/Repositories/Settings/SettingDataRepository.php` (191 baris)
+- `app/Repositories/Settings/PengaturanWarnaRepository.php` (43 baris)
 
 ### Models (5)
 - `app/Models/MenuModel.php`
@@ -129,16 +222,17 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 - `app/Models/ConfigModel.php`
 - `app/Models/PengaturanWarnaModel.php`
 
-### Views (2 folder)
+### Views (3 folder)
 - `app/Views/setting` (1 file)
 - `app/Views/menu` (1 file)
+- `app/Views/master` (9 file)
 
 ### JavaScript (0 file)
 
 ## Readiness Checklist
 - [x] Has Service Layer
-- [ ] Has Repository Layer
-- [ ] Web & API Controllers Separated
+- [x] Has Repository Layer
+- [x] Web & API Controllers Separated
 - [x] Explicit Routes Defined
 - [x] MODULE.md Initialized
 

@@ -8,7 +8,7 @@
 ## 1. Rangkuman Progres Global
 
 * **Total Modul:** 16
-* **Status:** `1 Selesai` | `0 Sedang Dikerjakan` | `15 Antre (Pending)`
+* **Status:** `2 Selesai` | `0 Sedang Dikerjakan` | `14 Antre (Pending)`
 * **Strategi:** Migrasi modular bertahap (1 modul per sesi *fresh chat*) dengan jaminan **Zero-Downtime**.
 
 ---
@@ -30,7 +30,7 @@ Urutan di bawah ini disusun dari **Modul Daun (Leaf/Paling Terisolasi)** menuju 
 | 9 | **Proyek** | Core Master Data | Sedang | `COMPLETED` | `65c937d` (100% Score) | 2026-10-12 |
 | 10 | **Produksi** | Core Construction | Sedang - Tinggi | `PENDING` | - | - |
 | 11 | **UserManagement** | Core Master Data | Sedang | `PENDING` | - | - |
-| 12 | **Settings** | Core System | Sedang | `PENDING` | - | - |
+| 12 | **Settings** | Core System | Sedang | `COMPLETED` | `pending-commit` (100% Score) | 2026-10-12 |
 | 13 | **Siteplan** | Core Spasial UI | Tinggi (Multi-dept JS) | `PENDING` | - | - |
 | 14 | **Transaksi** | Core Domain | Tinggi | `PENDING` | - | - |
 | 15 | **MKDT** | Core Domain | Sangat Tinggi (Fat Controller) | `PENDING` | - | - |

@@ -95,7 +95,7 @@ $routes->group('google-calendar', ['filter' => 'login'], function ($routes) {
     $routes->post('disconnect', 'GoogleCalendar::disconnect');
 });
 
-$routes->get('/configcolor', 'PengaturanWarna::index');
+$routes->get('/configcolor', '\App\Controllers\Web\Settings\PengaturanWarnaController::index');
 
 $routes->post("/get-dashboard", 'Home::getDashboard');
 $routes->post("/home/getMenuItemsJson", 'Home::getMenuItemsJson');
@@ -198,28 +198,83 @@ $routes->group('api/notif', ['namespace' => 'App\Controllers\Api', 'filter' => '
 });
 
 
+// ── Modul Settings (Web Routes) ──
+$routes->group('', ['namespace' => 'App\Controllers\Web\Settings', 'filter' => 'login'], function ($routes) {
+    $routes->get('menu-setting', 'MenuSettingController::index');
+    $routes->get('setting-data', 'SettingDataController::index');
+});
+
+// ── Modul Settings (API Routes Modern) ──
+$routes->group('api/menu-setting', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
+    $routes->post('menu/list', 'MenuSettingController::menuList');
+    $routes->post('menu/get', 'MenuSettingController::menuGet');
+    $routes->post('menu/save', 'MenuSettingController::menuSave');
+    $routes->post('menu/toggle', 'MenuSettingController::menuToggle');
+    $routes->post('access/group', 'MenuSettingController::groupAccess');
+    $routes->post('access/group/save', 'MenuSettingController::groupSave');
+    $routes->post('access/user', 'MenuSettingController::userAccess');
+    $routes->post('access/user/save', 'MenuSettingController::userSave');
+    $routes->post('siteplan-menu/list', 'MenuSettingController::siteplanMenuList');
+    $routes->post('siteplan-menu/get', 'MenuSettingController::siteplanMenuGet');
+    $routes->post('siteplan-menu/save', 'MenuSettingController::siteplanMenuSave');
+    $routes->post('siteplan-menu/toggle', 'MenuSettingController::siteplanMenuToggle');
+});
+
+$routes->group('api/setting-data', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
+    $routes->post('list/(:segment)', 'SettingDataController::list/$1');
+    $routes->post('get/(:segment)', 'SettingDataController::get/$1');
+    $routes->post('save/(:segment)', 'SettingDataController::save/$1');
+    $routes->post('delete/(:segment)', 'SettingDataController::delete/$1');
+});
+
+$routes->group('api/pengaturan-warna', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
+    $routes->post('all', 'PengaturanWarnaController::getAll');
+    $routes->post('getall', 'PengaturanWarnaController::getAll');
+    $routes->post('getone', 'PengaturanWarnaController::getOne');
+    $routes->post('add', 'PengaturanWarnaController::add');
+    $routes->post('edit', 'PengaturanWarnaController::edit');
+    $routes->post('remove', 'PengaturanWarnaController::remove');
+});
+
+// ── Modul Settings (Legacy Routes Zero-Downtime Aliases) ──
 $routes->group('menu-setting', ['filter' => 'login'], function ($routes) {
-    $routes->get('/', 'MenuSetting::index');
-    $routes->post('menu/list', 'MenuSetting::menuList');
-    $routes->post('menu/get', 'MenuSetting::menuGet');
-    $routes->post('menu/save', 'MenuSetting::menuSave');
-    $routes->post('menu/toggle', 'MenuSetting::menuToggle');
-    $routes->post('access/group', 'MenuSetting::groupAccess');
-    $routes->post('access/group/save', 'MenuSetting::groupSave');
-    $routes->post('access/user', 'MenuSetting::userAccess');
-    $routes->post('access/user/save', 'MenuSetting::userSave');
-    $routes->post('siteplan-menu/list', 'MenuSetting::siteplanMenuList');
-    $routes->post('siteplan-menu/get', 'MenuSetting::siteplanMenuGet');
-    $routes->post('siteplan-menu/save', 'MenuSetting::siteplanMenuSave');
-    $routes->post('siteplan-menu/toggle', 'MenuSetting::siteplanMenuToggle');
+    $routes->get('/', '\App\Controllers\Web\Settings\MenuSettingController::index');
+    $routes->post('menu/list', '\App\Controllers\Api\Settings\MenuSettingController::menuList');
+    $routes->post('menu/get', '\App\Controllers\Api\Settings\MenuSettingController::menuGet');
+    $routes->post('menu/save', '\App\Controllers\Api\Settings\MenuSettingController::menuSave');
+    $routes->post('menu/toggle', '\App\Controllers\Api\Settings\MenuSettingController::menuToggle');
+    $routes->post('access/group', '\App\Controllers\Api\Settings\MenuSettingController::groupAccess');
+    $routes->post('access/group/save', '\App\Controllers\Api\Settings\MenuSettingController::groupSave');
+    $routes->post('access/user', '\App\Controllers\Api\Settings\MenuSettingController::userAccess');
+    $routes->post('access/user/save', '\App\Controllers\Api\Settings\MenuSettingController::userSave');
+    $routes->post('siteplan-menu/list', '\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuList');
+    $routes->post('siteplan-menu/get', '\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuGet');
+    $routes->post('siteplan-menu/save', '\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuSave');
+    $routes->post('siteplan-menu/toggle', '\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuToggle');
 });
 
 $routes->group('setting-data', ['filter' => 'login'], function ($routes) {
-    $routes->get('/', 'SettingData::index');
-    $routes->post('list/(:segment)', 'SettingData::list/$1');
-    $routes->post('get/(:segment)', 'SettingData::get/$1');
-    $routes->post('save/(:segment)', 'SettingData::save/$1');
-    $routes->post('delete/(:segment)', 'SettingData::delete/$1');
+    $routes->get('/', '\App\Controllers\Web\Settings\SettingDataController::index');
+    $routes->post('list/(:segment)', '\App\Controllers\Api\Settings\SettingDataController::list/$1');
+    $routes->post('get/(:segment)', '\App\Controllers\Api\Settings\SettingDataController::get/$1');
+    $routes->post('save/(:segment)', '\App\Controllers\Api\Settings\SettingDataController::save/$1');
+    $routes->post('delete/(:segment)', '\App\Controllers\Api\Settings\SettingDataController::delete/$1');
+});
+
+$routes->group('pengaturanWarna', ['filter' => 'login'], function ($routes) {
+    $routes->post('getAll', '\App\Controllers\Api\Settings\PengaturanWarnaController::getAll');
+    $routes->post('getOne', '\App\Controllers\Api\Settings\PengaturanWarnaController::getOne');
+    $routes->post('add', '\App\Controllers\Api\Settings\PengaturanWarnaController::add');
+    $routes->post('edit', '\App\Controllers\Api\Settings\PengaturanWarnaController::edit');
+    $routes->post('remove', '\App\Controllers\Api\Settings\PengaturanWarnaController::remove');
+});
+
+$routes->group('pengaturan_warna', ['filter' => 'login'], function ($routes) {
+    $routes->post('getall', '\App\Controllers\Api\Settings\PengaturanWarnaController::getAll');
+    $routes->post('getone', '\App\Controllers\Api\Settings\PengaturanWarnaController::getOne');
+    $routes->post('add', '\App\Controllers\Api\Settings\PengaturanWarnaController::add');
+    $routes->post('edit', '\App\Controllers\Api\Settings\PengaturanWarnaController::edit');
+    $routes->post('remove', '\App\Controllers\Api\Settings\PengaturanWarnaController::remove');
 });
 
 $routes->get("getmodal", 'Modal::index');
