@@ -1552,6 +1552,7 @@ Date.prototype.toDateInputValue = (function() {
                     }
                     
                     const dataObj = {
+                        id_kavling: r[p].id_kavling,
                         nama_jalan: r[p].nama_jalan,
                         no_kavling: r[p].no_kavling,
                         id_produksi: r[p].id_produksi,

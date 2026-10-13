@@ -1296,20 +1296,22 @@
                                         <div class="col-sm-12 col-md-6 col-lg-6">
                                             <div class="card file-container">
                                                 <div class="card-body">
-                                                    <button class="btn btn-outline-primary" id="btn-ganti_kavling"
-                                                        onclick="ganti_kavling()">Klik Untuk Ganti Kavling</button>
-                                                    <button class="btn btn-outline-warning"
+                                                    <button type="button" class="btn btn-outline-primary mb-25" id="btn-ganti_kavling"
+                                                        onclick="openPindahKavlingModal()"><i class="fas fa-exchange-alt mr-25"></i> Pindah Kavling</button>
+                                                    <button type="button" class="btn btn-outline-danger mb-25" id="btn-tarik_ke_nup"
+                                                        onclick="openTarikKeNupModal()"><i class="fas fa-undo-alt mr-25"></i> Tarik ke NUP</button>
+                                                    <button type="button" class="btn btn-outline-warning mb-25"
                                                         id="btn-refresh-ganti_kavling"
                                                         onclick="getRiwayatGantiKavling()">Muat Ulang Data </button>
                                                     <div class="divider">
-                                                        <div class="divider-text">Riwayat Ganti Nama </div>
+                                                        <div class="divider-text">Riwayat Kavling & NUP </div>
                                                     </div>
                                                     <div class="table-responsive">
                                                         <table class="table mb-0">
                                                             <thead>
                                                                 <tr>
                                                                     <th>No</th>
-                                                                    <th>File</th>
+                                                                    <th>Aksi & Perpindahan Kavling</th>
                                                                     <th>Oleh</th>
                                                                 </tr>
                                                             </thead>

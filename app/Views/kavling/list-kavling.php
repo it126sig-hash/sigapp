@@ -399,6 +399,11 @@
                     aria-controls="list_poskon" role="tab" aria-selected="true">List Posisi Konsumen Aktif</a>
                 </li>
                 <li class="nav-item">
+                  <a class="nav-link" id="list_nup-tab" data-toggle="tab"
+                    href="#list_nup" aria-controls="list_nup" role="tab"
+                    aria-selected="false"><i class="fa fa-ticket-alt mr-25"></i> Daftar NUP <span id="badge-nup-count" class="badge badge-pill badge-primary ml-50">0</span></a>
+                </li>
+                <li class="nav-item">
                   <a class="nav-link" id="riwayat_eksport-tab" data-toggle="tab"
                     href="#riwayat_eksport" aria-controls="riwayat_eksport" role="tab"
                     aria-selected="true">Riwayat Eksport</a>
@@ -407,6 +412,7 @@
               <div class="poskon-filter-actions">
                 <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm" title="Filter Data"><i class="fa fa-filter"></i> Filter</button>
                 <button type="button" id="btn_open_add_modal" class="btn btn-primary waves-effect btn-sm" title="Tambah Data"><i class="fa fa-plus"></i> Tambah</button>
+                <button type="button" id="btn_open_input_nup" class="btn btn-success waves-effect btn-sm" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.openFormModal(0)" title="Input Konsumen NUP Baru"><i class="fa fa-user-plus"></i> Input NUP</button>
                 <div class="btn-group">
                   <button type="button" id="btn_export_toggle" class="btn btn-outline-primary waves-effect btn-sm dropdown-toggle" data-toggle="dropdown" title="Export Data"><i class="fa fa-file-export"></i> Export</button>
                   <div class="dropdown-menu dropdown-menu-right">
@@ -485,6 +491,53 @@
                     </tr>
                   </thead>
                 </table>
+              </div>
+              <div class="tab-pane fade" id="list_nup"
+                aria-labelledby="list_nup-tab" role="tabpanel">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-1" style="gap:.75rem;">
+                  <div class="d-flex align-items-center flex-grow-1" style="max-width:440px;gap:.5rem;">
+                    <div class="input-group input-group-sm">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fa fa-search"></i></span>
+                      </div>
+                      <input type="text" id="tab-nup-search" class="form-control" placeholder="Cari nama konsumen, NIK, HP, sales, atau catatan NUP...">
+                      <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-primary" id="btn-refresh-tab-nup" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.reloadAll()" title="Refresh Data NUP">
+                          <i class="fa fa-sync-alt"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <button type="button" class="btn btn-success btn-sm" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.openFormModal(0)">
+                      <i class="fa fa-user-plus mr-25"></i> Input Konsumen NUP Baru
+                    </button>
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-bordered table-hover compact" id="table-tab-daftar-nup">
+                    <thead>
+                      <tr>
+                        <th style="width:45px;">No</th>
+                        <th style="width:110px;">No NUP</th>
+                        <th style="width:170px;">Aksi</th>
+                        <th>Tgl Booking</th>
+                        <th>Nama Konsumen &amp; NIK/NPWP</th>
+                        <th>Kontak &amp; Sales</th>
+                        <th>Sumber / Eks Kavling</th>
+                        <th>Booking Fee</th>
+                        <th>Total Sudah Bayar</th>
+                        <th>Catatan NUP</th>
+                        <th>Berkas</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbody-tab-daftar-nup">
+                      <tr>
+                        <td colspan="11" class="text-center text-muted">Memuat data NUP...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
               <div class="tab-pane show" id="riwayat_eksport"
                 aria-labelledby="riwayat_eksport-tab" role="tabpanel">
@@ -760,6 +813,14 @@ if (!empty($roles)) {
         icon + $('<div>').text(item.label || '').html() + '</button>';
     });
 
+    if (row && row.id_mkdt && [1, 4].includes(parseInt(roleid, 10))) {
+      menuHtml += '<div class="dropdown-divider"></div>';
+      menuHtml += '<button type="button" class="' + itemClass + ' poskon-menu-action" data-onclick="' +
+        encodeURIComponent('openPindahKavlingModal()') + '" data-row="' + rowEncoded + '"><i class="fa fa-exchange-alt text-info mr-50"></i> Pindah Kavling</button>';
+      menuHtml += '<button type="button" class="' + itemClass + ' poskon-menu-action" data-onclick="' +
+        encodeURIComponent('openTarikKeNupModal()') + '" data-row="' + rowEncoded + '"><i class="fa fa-undo text-warning mr-50"></i> Tarik ke NUP</button>';
+    }
+
     return menuHtml;
   }
 
@@ -888,7 +949,7 @@ if (!empty($roles)) {
 
   window.load_kavling = function() {
     if ($.fn.DataTable.isDataTable('#data_tables')) {
-      $('#data_tables').DataTable().draw(false);
+      $('#data_tables').DataTable().ajax.reload(null, false);
     }
   };
 
@@ -1490,12 +1551,30 @@ if (!empty($roles)) {
         }
       });
     }
+    $('#list_poskon-tab').on('click', function() {
+      if ($.fn.DataTable && $.fn.DataTable.isDataTable('#data_tables')) {
+        var dtApi = $('#data_tables').DataTable();
+        dtApi.ajax.reload(function() {
+          dtApi.columns.adjust();
+          if (dtApi.fixedColumns) dtApi.fixedColumns().relayout();
+          applyPoskonTableHeight();
+        }, false);
+      }
+    });
+
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
       // e.target adalah tab yang baru saja aktif
       var target = $(e.target).attr("href");
 
       if (target === '#riwayat_eksport') {
         load_riwayat();
+      } else if ((target === '#list_poskon' || target === '#list_kavling') && $.fn.DataTable.isDataTable('#data_tables')) {
+        var dtApi = $('#data_tables').DataTable();
+        dtApi.ajax.reload(function() {
+          dtApi.columns.adjust();
+          if (dtApi.fixedColumns) dtApi.fixedColumns().relayout();
+          applyPoskonTableHeight();
+        }, false);
       }
     });
     // Hindari arrow select2 menutupi area klik (regresi dari style.css global)
@@ -1553,3 +1632,5 @@ if (in_array($role_id, [1, 7, 3])) {
 ?>
 <?= view('siteplan/partials/modal_detail', ['data' => $data['data'] ?? []]) ?>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
+<?= view('siteplan/modal/nup-modals') ?>
+<script src="<?= base_url() ?>assets/js/siteplan/nup.js?<?= filemtime(FCPATH . 'assets/js/siteplan/nup.js') ?>"></script>

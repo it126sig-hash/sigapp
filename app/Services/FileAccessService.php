@@ -41,6 +41,9 @@ class FileAccessService
         'mkdt_sp3k'         => [1, 2,  3, 4, 9],
         'mkdt_bast'         => [1, 2,  3, 4, 9],
         'mkdt_surat_batal'  => [1, 2,  3, 4, 5, 8, 9],
+        'mkdt_file_nup'     => [1, 2,  3, 4, 5, 8, 9],
+        'mkdt_surat_pindah' => [1, 2,  3, 4, 5, 8, 9],
+        'mkdt_kavling_history' => [1, 2, 3, 4, 5, 8, 9],
         'konsumen_ktp'      => [1, 2,  3, 4, 5, 8, 9],
         'konsumen_npwp'     => [1, 2,  3, 4, 5, 8, 9],
         'konsumen_data'     => [1, 2,  3, 4, 5, 8, 9],
@@ -348,16 +351,25 @@ class FileAccessService
             case 'mkdt_sp3k':
             case 'mkdt_bast':
             case 'mkdt_surat_batal':
+            case 'mkdt_file_nup':
+            case 'mkdt_surat_pindah':
                 $field = [
-                    'mkdt_perintah'   => 'perintah_bangun_file',
-                    'mkdt_file_spptb' => 'file_spptb',
-                    'mkdt_sp3k'       => 'sp3k_file',
-                    'mkdt_bast'       => 'bast_file',
-                    'mkdt_surat_batal' => 'surat_batal',
+                    'mkdt_perintah'     => 'perintah_bangun_file',
+                    'mkdt_file_spptb'   => 'file_spptb',
+                    'mkdt_sp3k'         => 'sp3k_file',
+                    'mkdt_bast'         => 'bast_file',
+                    'mkdt_surat_batal'  => 'surat_batal',
+                    'mkdt_file_nup'     => 'file_nup',
+                    'mkdt_surat_pindah' => 'file_surat_pindah',
                 ][$source];
                 $row = $this->db->table('mkdt')->select("id_mkdt, {$field}")->where('id_mkdt', $id)->get()->getRow();
                 $this->assertRow($row);
                 return $this->fileMeta($row->{$field}, basename((string) $row->{$field}), $this->sourceRoles[$source], $row);
+
+            case 'mkdt_kavling_history':
+                $row = $this->db->table('mkdt_kavling_history')->select('id, file_lampiran')->where('id', $id)->get()->getRow();
+                $this->assertRow($row);
+                return $this->fileMeta($row->file_lampiran, basename((string) $row->file_lampiran), $this->sourceRoles[$source], $row);
 
             case 'konsumen_ktp':
             case 'konsumen_npwp':

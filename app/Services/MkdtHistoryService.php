@@ -11,6 +11,9 @@ class MkdtHistoryService
     public const ACTION_UBAH_STATUS_KAVLING   = 'ubah_status_kavling';
     public const ACTION_TURUN_PEMBANGUNAN     = 'turun_pembangunan';
     public const ACTION_STANDING_INSTRUCTION  = 'standing_instruction';
+    public const ACTION_TARIK_KE_NUP          = 'tarik_ke_nup';
+    public const ACTION_AKTIFKAN_NUP          = 'aktifkan_nup';
+    public const ACTION_PINDAH_KAVLING        = 'pindah_kavling';
     public const ACTION_BATAL_BOOKING         = 'batal_booking';
     public const ACTION_GANTI_KONSUMEN        = 'ganti_konsumen';
     public const ACTION_RECONCILE_FINANCIAL   = 'reconcile_financial_breakdown';
@@ -21,6 +24,9 @@ class MkdtHistoryService
         self::ACTION_UBAH_STATUS_KAVLING  => 'Ubah Status Kavling',
         self::ACTION_TURUN_PEMBANGUNAN    => 'Turun Pembangunan',
         self::ACTION_STANDING_INSTRUCTION => 'Standing Instruction',
+        self::ACTION_TARIK_KE_NUP         => 'Penarikan Konsumen ke NUP',
+        self::ACTION_AKTIFKAN_NUP         => 'Aktivasi NUP ke Kavling',
+        self::ACTION_PINDAH_KAVLING       => 'Pindah Kavling',
         self::ACTION_BATAL_BOOKING        => 'Batal Booking',
         self::ACTION_GANTI_KONSUMEN       => 'Pindah Konsumen',
         self::ACTION_RECONCILE_FINANCIAL  => 'Rekonsiliasi Keuangan MKDT',

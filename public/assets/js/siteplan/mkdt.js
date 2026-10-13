@@ -955,7 +955,7 @@ function fillMkdt(v) {
 
   setVal("#mk-harga_allin", v.harga_allin);
 
-  setVal("#idk-status_mkdt", v.status_mkdt);
+  setVal("#idk-status_mkdt", v.status_mkdt === "NUP" ? "Booking" : v.status_mkdt);
   setVal("#idk-keterangan_batal", v.keterangan_batal);
   setIdkPerluRefund(v.perlu_refund);
   setDate(v.booking_tgl, "#idk-booking_tgl");
@@ -970,7 +970,7 @@ function fillMkdt(v) {
   setVal("#idk-npwp_konsumen", v.npwp_konsumen);
   setVal("#idk-hp_konsumen", v.hp_konsumen);
   setVal("#idk-email_konsumen", v.email_konsumen);
-  setVal("#idk-status_konsumen", v.status_konsumen);
+  setVal("#idk-status_konsumen", v.status_konsumen === "NUP" ? "Normal" : v.status_konsumen);
 
   setVal("#idk-nama_instansi", v.nama_instansi);
   setVal("#idk-alamat_instansi", v.alamat_instansi);
@@ -1003,7 +1003,7 @@ function fillMkdt(v) {
 
   setRichText(v.rincian);
 
-  // if (v.keuangan_saved_by) {
+  if (Number(v.harga_jual || 0) > 0 || Number(v.harga_allin || 0) > 0) {
   setVal("#mk-hargajual", v.harga_jual);
   setVal("#mk-hargajual_net", v.harga_jual_net);
   setVal("#mk-kpr", v.harga_kpr);
@@ -1016,7 +1016,7 @@ function fillMkdt(v) {
   setVal("#mk-harga_penambahan", v.harga_penambahan);
   setVal("#mk-harga_penambahan_tanah", v.harga_penambahan_tanah);
   setVal("#mk-diskon_uang_muka", v.harga_diskon_uang_muka);
-  // }
+  }
 
   setVal("#idk-promo", v.promo);
 
@@ -1702,6 +1702,9 @@ async function isi_data_konsumen() {
       initModalListener("#modal-isi_data_konsumen");
       state.status.tab.isClosed = false;
       getRiwayatGantinama(false);
+      if (window.SIGAPP_NUP && typeof window.SIGAPP_NUP.renderKavlingHistoryTable === "function") {
+        window.SIGAPP_NUP.renderKavlingHistoryTable(res.kavling_history || []);
+      }
     });
   } catch (e) {
     console.log(e);
@@ -1801,6 +1804,9 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
 
   if (!consumerReplacementState.active) {
     appendCollectionToFormData(fd, state.data_um);
+    if (window.SIGAPP_NUP && typeof window.SIGAPP_NUP.appendPendingTransferToFormData === "function") {
+      window.SIGAPP_NUP.appendPendingTransferToFormData(fd);
+    }
   }
 
   const fileInfo = typeof getIdkFilesInfo === "function" ? getIdkFilesInfo() : { hasFiles: false, text: "" };
@@ -1846,6 +1852,17 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
       }
 
       if (r.success === true) {
+        resetConsumerReplacementMode();
+        removeModalListener("#modal-isi_data_konsumen");
+        removeModalListener("#modal_divisi4");
+        $(".modal").modal("hide");
+        if (window.SIGAPP_NUP) {
+          window.SIGAPP_NUP.pendingTransferContext = null;
+          window.SIGAPP_NUP.clearPendingTransferBanner();
+          window.SIGAPP_NUP.reloadAll();
+        }
+        load_kavling();
+        hapus_seleksi();
         Swal.fire({
           //position: 'bottom-end',
           icon: "success",
@@ -1853,7 +1870,6 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
           showConfirmButton: false,
           timer: 1500,
         }).then(function () {
-          resetConsumerReplacementMode();
           removeModalListener("#modal-isi_data_konsumen");
           $(".modal").modal("hide");
 
@@ -2220,7 +2236,7 @@ function open_mkdt(sh, role, id_kavling) {
         backdrop: "static",
         keyboard: false,
       });
-      initModalListener("#modal_divisi" + role);
+      removeModalListener("#modal_divisi" + role);
     },
     error: function (xhr, st, err) {
       $("#loading").addClass("hidden");

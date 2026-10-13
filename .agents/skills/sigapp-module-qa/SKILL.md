@@ -1,36 +1,36 @@
 ---
 name: sigapp-module-qa
 description: >
-  Sistem penjamin mutu, validasi plan, verifikasi pasca-pengerjaan modul, sinkronisasi dokumentasi,
-  dan remediasi bug terencana untuk arsitektur CodeIgniter 4 SIGAPP.
-  Gunakan skill ini ketika: (1) mereview/memvalidasi implementation plan agar sesuai best practice CI4 dan Karpathy,
-  (2) melakukan pengecekan/audit kembali setelah selesai mengerjakan atau merefaktor suatu modul,
-  (3) memastikan sinkronisasi docs/modules/<Modul>/MODULE.md dan docs/MIGRATION_PROGRESS.md,
-  (4) menemukan bug/error dan perlu menyusun bugfix plan berbasis codegraph,
-  (5) mengeksekusi fix bug secara bedah (surgical) dan memverifikasi hingga tuntas.
-  Triggers: "selesai modul X", "cek modul X", "verifikasi modul X", "audit modul X", "review plan",
+  Sistem penjamin mutu, validasi plan, verifikasi pasca-implementasi, sinkronisasi dokumentasi adaptif,
+  dan remediasi bug terencana untuk seluruh alur pengembangan CodeIgniter 4 di SIGAPP (Fitur, Bugfix, Refaktor, UI/Laporan).
+  Gunakan skill ini ketika: (1) mereview/memvalidasi implementation plan atau bugfix plan agar sesuai best practice,
+  (2) melakukan audit pasca-implementasi (Playwright E2E, Codegraph callers, spark verification),
+  (3) memastikan sinkronisasi docs/modules/<Modul>/MODULE.md dan docs/MIGRATION_PROGRESS.md secara adaptif,
+  (4) menemukan bug/error runtime dan perlu menyusun RCA serta bugfix plan berbasis codegraph,
+  (5) mengeksekusi surgical fix dan memverifikasi hingga tuntas.
+  Triggers: "selesai tugas X", "cek modul X", "verifikasi tugas X", "audit modul X", "review plan",
   "apakah plan sudah sesuai", "ada bug di modul X", "fix error modul X", "update docs modul X".
 ---
 
-# SIGAPP Module QA, Plan Validation & Remediation Playbook
+# SIGAPP Quality Assurance, Plan Validation & Remediation Playbook
 
-Skill ini memandu agen AI untuk menjalankan proses penjaminan mutu menyeluruh dalam **satu alur tertutup (Unified Closed-Loop)**: dari validasi rencana awal, audit pasca pengerjaan modul, pelacakan akar masalah dengan `codegraph`, eksekusi perbaikan bedah (*surgical fix*), hingga sinkronisasi dokumen ledger.
+Skill ini memandu agen AI untuk menjalankan proses penjaminan mutu menyeluruh dalam **satu alur tertutup adaptif (Adaptive Closed-Loop)**: dari validasi rencana awal, audit pasca pengerjaan tugas, pelacakan akar masalah dengan `codegraph`, eksekusi perbaikan bedah (*surgical fix*), hingga sinkronisasi dokumen ledger yang relevan.
 
 ---
 
 ## Ringkasan Alur Kerja Terpadu (The Closed-Loop Cycle)
 
 ```
-[Tahap 1: Validasi Plan] ──(Sesuai Best Practice?)──► [Eksekusi Pengerjaan Modul]
+[Tahap 1: Validasi Plan] ──(Sesuai Best Practice?)──► [Eksekusi Pengerjaan Tugas]
                                                                 │
                                                                 ▼
-                                                    [Tahap 2: Verifikasi Pasca-Modul]
+                                                    [Tahap 2: Verifikasi Pasca-Tugas (Adaptif)]
                                                                 │
                                         ┌───────────────────────┴───────────────────────┐
                                   (Ada Error/Bug?)                                (Semua Hijau)
                                         │                                               │
                                         ▼                                               ▼
-                         [Tahap 3: Susun Bugfix Plan]                     [Tahap 5: Sinkronisasi Docs]
+                         [Tahap 3: Susun Bugfix Plan]                     [Tahap 5: Sinkronisasi Docs Adaptif]
                          (RCA via Codegraph & Grep)                       (module:sync & Ledger Update)
                                         │                                               │
                                         ▼                                               ▼
@@ -47,44 +47,37 @@ Skill ini memandu agen AI untuk menjalankan proses penjaminan mutu menyeluruh da
 *Gunakan tahap ini saat membuat atau meninjau implementation plan sebelum kode disentuh.*
 
 1. Buka dan bandingkan draf plan dengan checklist di [references/plan-validation-checklist.md](references/plan-validation-checklist.md).
-2. Periksa apakah plan mematuhi:
-   - **Prinsip Karpathy**: Tidak ada kode spekulatif, perubahan seminimal mungkin, kriteria sukses terukur.
-   - **CI4 Layering**: Thin Web/Api Controller, Rich Service, Dedicated Repository.
-   - **Financial Safety**: Backend selalu menghitung ulang tagihan/cicilan dari DB; jangan percaya frontend.
-   - **Zero-Downtime**: Route lama tetap aktif sebagai delegator/shim.
-   - **Testing Plan**: Mencantumkan pengujian Playwright dan role departemen terkait.
+2. Periksa apakah plan mematuhi kriteria yang sesuai dengan mode tugas:
+   - **Prinsip Karpathy (Wajib Semua Mode)**: Tidak ada kode spekulatif, perubahan seminimal mungkin, kriteria sukses terukur.
+   - **Pola CI4 Layering (Wajib Fitur Baru & Refaktor)**: Thin Web/Api Controller, Rich Service, Dedicated Repository.
+   - **Keamanan Finansial (Wajib Finansial/Mutasi DB)**: Backend selalu menghitung ulang tagihan/cicilan dari DB via `cleanNumeric()`; lindungi dengan transaksi `$db->transStart()`.
+   - **Zero-Downtime Shims (Wajib Refaktor/Perubahan Route)**: Route lama tetap aktif sebagai delegator/shim.
+   - **Testing Plan (Wajib Semua Mode)**: Mencantumkan pengujian Playwright E2E, role departemen terkait, dan pemanggilan `$sigapp-local-testing`.
 3. Jika ada poin yang belum terpenuhi, perbaiki dokumen plan terlebih dahulu sebelum meminta konfirmasi user.
 
 ---
 
-### TAHAP 2 — Pengecekan Kembali Pasca Pengerjaan Modul (Post-Module Verification)
-*Gunakan tahap ini segera setelah pengerjaan atau refaktor modul selesai.*
+### TAHAP 2 — Verifikasi Pasca-Pekerjaan (Post-Execution Verification)
+*Gunakan tahap ini segera setelah pengerjaan fitur, bugfix, UI, atau refaktor modul selesai.*
 
-Ikuti panduan lengkap di [references/post-module-verification.md](references/post-module-verification.md) untuk mengeksekusi 5 pilar verifikasi:
+Ikuti panduan lengkap di [references/post-module-verification.md](references/post-module-verification.md) untuk mengeksekusi verifikasi kualitas adaptif:
 
-1. **Status & Skor Kesiapan**:
-   ```bash
-   php spark module:status
-   ```
-   *Target: Status `REFACTORED`, skor kesiapan $\ge 80\%$.*
-2. **Integritas Rute & Shims**:
-   Periksa apakah rute lama dan baru merespons dengan benar tanpa Controller Not Found.
-3. **Audit Dead Code & Callers**:
-   Jalankan deteksi dead code:
-   ```bash
-   php spark module:deadcode <NamaModul>
-   ```
-   Gunakan MCP `codegraph_explore` untuk memastikan tidak ada simbol putus.
-4. **Isolasi Batas Modul**:
-   Pastikan tidak ada query langsung yang memanipulasi tabel milik modul lain.
-5. **Pengujian Antarmuka Playwright (Wajib)**:
-   Buka `http://localhost/sigapp.dev` via Playwright MCP dan login menggunakan akun departemen terkait:
-   - **Keuangan**: `nisalis` / `nisalis123`
-   - **MKDT**: `citra` / `citra123`
-   - **Produksi**: `alika` / `alikas123`
-   - **Legal**: `marlina` / `marlina123`
-   - **Promosi**: `benny` / `benny123`
-   *Target: 0 console errors (500/404), halaman render sempurna, aksi utama berhasil.*
+1. **Audit Callers & Integritas Simbol (`codegraph`) — [Wajib Mutlak Semua Mode]:**
+   Gunakan MCP `codegraph_explore` atau grep untuk memastikan seluruh pemanggil (*callers*) di JavaScript, View, maupun Service lain sesuai dengan definisi metode/endpoint baru.
+2. **Pengujian Antarmuka Playwright E2E (Wajib Mutlak Semua Mode):**
+   - **WAJIB:** Buka dan aktifkan skill `$sigapp-local-testing`.
+   - Buka `http://localhost/sigapp.dev` via Playwright MCP dan login menggunakan akun departemen terkait:
+     - **Keuangan**: `nisalis` / `nisalis123`
+     - **MKDT**: `citra` / `citra123`
+     - **Produksi**: `alika` / `alikas123`
+     - **Legal**: `marlina` / `marlina123`
+     - **Promosi**: `benny` / `benny123`
+   - *Target: 0 console errors (500/404), halaman render sempurna, aksi utama berhasil.*
+3. **Pemeriksaan Kondisional Sesuai Elemen yang Disentuh:**
+   - **Integritas Rute**: Jalankan `php spark routes` jika ada penambahan/perubahan rute.
+   - **Audit Dead Code**: Jalankan `php spark module:deadcode <NamaModul>` jika ada metode yang dipindah atau dihapus.
+   - **Skor Kesiapan Modular**: Jalankan `php spark module:status` khusus jika menyelesaikan refaktor modul (target status `REFACTORED`, skor $\ge 80\%$).
+   - **Isolasi Batas Modul**: Pastikan tidak ada query langsung yang memanipulasi tabel pemilik modul lain.
 
 ---
 
@@ -121,33 +114,34 @@ Ikuti panduan lengkap di [references/post-module-verification.md](references/pos
 1. Ubah **hanya baris yang bermasalah**. Jangan merombak kode di sekitarnya.
 2. Ikuti konvensi penamaan dan arsitektur yang sudah ada di modul tersebut.
 3. Bersihkan sisa variabel atau helper yang tidak terpakai akibat perubahan.
-4. **Looping Verifikasi**: Uji kembali skenario yang tadinya gagal, lalu ulangi **TAHAP 2** secara utuh hingga kelima pilar berstatus hijau.
+4. **Looping Verifikasi**: Uji kembali skenario yang tadinya gagal, lalu ulangi **TAHAP 2** secara utuh hingga seluruh indikator hijau.
 
 ---
 
-### TAHAP 5 — Sinkronisasi Dokumentasi & Ledger
+### TAHAP 5 — Sinkronisasi Dokumentasi & Ledger Adaptif
 *Gunakan tahap ini setelah Tahap 2 lolos 100% tanpa error.*
 
 Ikuti petunjuk di [references/docs-sync-guide.md](references/docs-sync-guide.md):
 
-1. **Perbarui Dokumen Modul**:
+1. **Perbarui Dokumen Modul (`MODULE.md`) [Kondisional]:**
    ```bash
    php spark module:sync <NamaModul>
    ```
-   Pastikan file [docs/modules/<NamaModul>/MODULE.md](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/modules/Proyek/MODULE.md) ter-update dengan timestamp dan daftar rute terbaru.
-2. **Perbarui Global Ledger**:
-   Buka [docs/MIGRATION_PROGRESS.md](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/MIGRATION_PROGRESS.md):
+   *Jalankan jika ada penambahan/perubahan file controller, service, repo, rute, view, JS, atau tabel.*
+2. **Perbarui Global Migration Ledger (`MIGRATION_PROGRESS.md`) [Khusus Refaktor Modul]:**
+   Jika tugas adalah penyelesaian migrasi modul (`REFACTOR`), buka [docs/MIGRATION_PROGRESS.md](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/MIGRATION_PROGRESS.md):
    - Ubah status modul menjadi `COMPLETED`.
    - Catat commit hash atau penanda sesi.
    - Perbarui tanggal verifikasi terakhir dan ringkasan global.
-3. **Dokumen Notifikasi**: Jika ada perubahan notifikasi, perbarui [docs/modul-notifikasi.md](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/modul-notifikasi.md).
+   *(Jika tugas berupa penambahan fitur biasa atau bugfix, file ini TIDAK perlu diubah).*
+3. **Dokumen Notifikasi [Kondisional]:** Jika ada perubahan notifikasi, perbarui [docs/modul-notifikasi.md](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/modul-notifikasi.md).
 4. **Periksa Status Git**: Pastikan perubahan siap di-commit secara mandiri dan terisolasi.
 
 ---
 
 ## Delegasi ke Subagent (Background QA Runner)
 
-Jika pengguna menginginkan proses audit ini dikerjakan di latar belakang sementara sesi utama mengerjakan hal lain, Anda dapat meluncurkan subagent menggunakan tool `invoke_subagent`:
+Jika proses verifikasi didelegasikan ke latar belakang melalui `invoke_subagent`:
 
 ```json
 {
@@ -156,7 +150,7 @@ Jika pengguna menginginkan proses audit ini dikerjakan di latar belakang sementa
       "TypeName": "self",
       "Role": "Module QA Specialist",
       "Model": "inherit",
-      "Prompt": "Jalankan protokol verifikasi sigapp-module-qa untuk modul [NamaModul]. Ikuti langkah di .agents/skills/sigapp-module-qa/SKILL.md: jalankan module:status, periksa rute, cek deadcode via codegraph, dan uji UI dengan Playwright role terkait. Jika ada bug, susun bugfix plan dan perbaiki. Terakhir, jalankan module:sync dan update docs/MIGRATION_PROGRESS.md. Berikan laporan sertifikat verifikasi akhir."
+      "Prompt": "Jalankan protokol verifikasi sigapp-module-qa untuk tugas di modul [NamaModul] (Mode: [FEATURE/BUGFIX/REFACTOR/UI_REPORT]). Ikuti langkah di .agents/skills/sigapp-module-qa/SKILL.md: buka $sigapp-local-testing, uji UI via Playwright role terkait (0 console errors), cek callers via codegraph, dan jalankan pengecekan spark yang relevan. Jika ada bug, susun bugfix plan dan perbaiki. Lakukan sync docs yang relevan jika seluruh tes hijau."
     }
   ]
 }
@@ -166,7 +160,7 @@ Jika pengguna menginginkan proses audit ini dikerjakan di latar belakang sementa
 
 ## File Referensi Terkait
 - [Checklist Validasi Plan](references/plan-validation-checklist.md)
-- [Panduan Verifikasi Pasca-Modul](references/post-module-verification.md)
+- [Panduan Verifikasi Pasca-Tugas](references/post-module-verification.md)
 - [Playbook Penanganan Bug](references/bugfix-playbook.md)
-- [Panduan Sinkronisasi Dokumentasi](references/docs-sync-guide.md)
-- [Aturan Utama Modul QA](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/.agents/rules/sigapp-module-qa.md)
+- [Panduan Sinkronisasi Dokumentasi Adaptif](references/docs-sync-guide.md)
+- [Aturan Utama QA Modul](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/.agents/rules/sigapp-module-qa.md)
