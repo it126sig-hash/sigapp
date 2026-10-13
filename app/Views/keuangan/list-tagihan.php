@@ -656,6 +656,9 @@
 
 <script src="<?= base_url() ?>assets/js/jquery.richtext.min.js"></script>
 <script src="<?= base_url() ?>assets/js/tagihan-bayar-modal.js?v=<?= filemtime(FCPATH.'assets/js/tagihan-bayar-modal.js') ?>"></script>
+<script>
+  window.canCreateTagihan = <?= (function_exists('in_groups') && in_groups(['1', '3'])) ? 'true' : 'false' ?>;
+</script>
 <script src="<?= base_url() ?>assets/js/keuangan/penagihan.js?v=<?= time() ?>"></script>
 <script>
   let fp = flatpickr(".flatpickr-human-friendly", {
@@ -940,9 +943,10 @@
                 <i class="fas fa-info-circle mr-50 text-info"></i> Lihat Detail
               </a>`;
 
+            let buatTagihanLabel = window.canCreateTagihan ? 'Buat Tagihan' : 'Lihat Surat Tagihan';
             let buatTagihanItem = `
               <a class="dropdown-item tagihan-action-penagihan" href="javascript:void(0);">
-                <i class="fas fa-file-invoice mr-50 text-primary"></i> Buat Tagihan
+                <i class="fas fa-file-invoice mr-50 ${window.canCreateTagihan ? 'text-primary' : 'text-secondary'}"></i> ${buatTagihanLabel}
               </a>`;
 
             let dropdownHtml = `
@@ -1027,9 +1031,10 @@
           <i class="fas fa-receipt mr-25"></i> Bayar
         </button>` : '';
 
+      let buatTagihanText = window.canCreateTagihan ? 'Buat Tagihan' : 'Lihat Surat';
       let buatTagihanBtn = `
         <button type="button" class="btn btn-outline-primary flex-fill text-uppercase font-small-3 font-weight-bold btn-drawer-buat-tagihan" data-id="${row.id_mkdt}">
-          <i class="fas fa-file-invoice mr-25"></i> Buat Tagihan
+          <i class="fas fa-file-invoice mr-25"></i> ${buatTagihanText}
         </button>
       `;
 
@@ -1720,11 +1725,13 @@
       $('#tab_dtl_status_badge').html(statusBadge);
 
       let actionsHtml = '';
-      if (st === 'draft') {
+      if (st === 'draft' && window.canCreateTagihan) {
         actionsHtml += '<button type="button" class="btn btn-sm btn-outline-warning mr-50 btn-edit-tagihan" data-inv=\'' + JSON.stringify(v).replace(/'/g, "&#39;") + '\'><i class="fas fa-edit mr-25"></i> Edit Surat</button>';
       }
       actionsHtml += '<a href="' + base_url + 'keuangan/download_penagihan?id=' + encodeURIComponent(v.no_inv) + '" target="_blank" class="btn btn-sm btn-outline-primary mr-50"><i class="fas fa-download mr-25"></i> Download</a>';
-      actionsHtml += '<button type="button" class="btn btn-sm btn-outline-info btn-ubah-status-tagihan" data-no="' + v.no_inv + '" data-status="' + (v.status_tagihan || '') + '" data-tgl="' + (v.tanggal_ubah_status || '') + '" data-ket="' + (v.keterangan_status || '') + '" data-nomorsurat="' + (v.nomor_surat || '') + '"><i class="fas fa-exchange-alt mr-25"></i> Ubah Status</button>';
+      if (window.canCreateTagihan) {
+        actionsHtml += '<button type="button" class="btn btn-sm btn-outline-info btn-ubah-status-tagihan" data-no="' + v.no_inv + '" data-status="' + (v.status_tagihan || '') + '" data-tgl="' + (v.tanggal_ubah_status || '') + '" data-ket="' + (v.keterangan_status || '') + '" data-nomorsurat="' + (v.nomor_surat || '') + '"><i class="fas fa-exchange-alt mr-25"></i> Ubah Status</button>';
+      }
       $('#tab_dtl_actions').html(actionsHtml);
 
       loadTabSuratTimeline(v);

@@ -4,6 +4,7 @@ namespace App\Services\Bpb;
 
 use App\Libraries\Mpdf_lib;
 use App\Libraries\SimpleQrCode;
+use App\Repositories\Bpb\BpbRepository;
 use App\Services\FileAccessService;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -15,11 +16,13 @@ final class BpbPdfService
 {
     private FileAccessService $fileAccess;
     private BpbService $bpbService;
+    private BpbRepository $repository;
 
-    public function __construct(?FileAccessService $fileAccess = null, ?BpbService $bpbService = null)
+    public function __construct(?FileAccessService $fileAccess = null, ?BpbService $bpbService = null, ?BpbRepository $repository = null)
     {
         $this->fileAccess = $fileAccess ?? new FileAccessService();
         $this->bpbService = $bpbService ?? new BpbService();
+        $this->repository = $repository ?? new BpbRepository();
     }
 
     public function render(array $detail, int $userId): string
@@ -90,34 +93,16 @@ final class BpbPdfService
     /** @return array{valid: bool, bpb: ?array, signatures: array} */
     public function verify(string $token): array
     {
-        $db = db_connect();
-        $request = $db->table('bpb_requests')
-            ->select('id,nomor,status,current_document_hash,applicant_user_id,applicant_name,applicant_department,cc_user_id,approver_user_id')
-            ->where('verification_token', $token)
-            ->get()
-            ->getRowArray();
+        $request = $this->repository->findForVerification($token);
 
         if (! $request) {
             return ['valid' => false, 'bpb' => null, 'signatures' => []];
         }
 
-        $signatures = $db->table('bpb_signatures')
-            ->select('role,signer_name,signed_at,document_hash')
-            ->where(['bpb_id' => $request['id'], 'revoked_at' => null])
-            ->orderBy('signed_at')
-            ->get()
-            ->getResultArray();
-        $items = $db->table('bpb_items')
-            ->where('bpb_id', $request['id'])
-            ->orderBy('item_order')
-            ->get()
-            ->getResultArray();
-        $files = $db->table('bpb_files')
-            ->where('bpb_id', $request['id'])
-            ->whereIn('category', ['request', 'purchase'])
-            ->orderBy('id')
-            ->get()
-            ->getResultArray();
+        $signatures = $request['signatures'];
+        $items = $request['items'];
+        $files = $request['files'];
+        unset($request['signatures'], $request['items'], $request['files']);
         $requestFiles = array_values(array_filter(
             $files,
             static fn (array $file): bool => $file['category'] === 'request'

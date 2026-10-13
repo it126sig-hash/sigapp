@@ -1559,6 +1559,11 @@ class KeuanganService
             'messages' => 'Terjadi kesalahan saat menyimpan invoice',
         ];
 
+        if (function_exists('in_groups') && ! in_groups(['1', '3'])) {
+            $response['messages'] = 'Akses ditolak. Hanya user Keuangan yang berhak membuat surat tagihan.';
+            return $response;
+        }
+
         $id_mkdt = $request->getVar('id_mkdt');
         $id_konsumen = $request->getVar('id_konsumen');
         $id_kavling = $request->getVar('id_kavling');
@@ -1750,6 +1755,11 @@ class KeuanganService
             'success' => false,
             'messages' => 'Terjadi kesalahan',
         ];
+
+        if (function_exists('in_groups') && ! in_groups(['1', '3'])) {
+            $response['messages'] = 'Akses ditolak. Hanya user Keuangan yang berhak mengubah status surat tagihan.';
+            return $response;
+        }
 
         $no_inv = $request->getVar('no_inv');
         $status_tagihan = $request->getVar('status_tagihan');

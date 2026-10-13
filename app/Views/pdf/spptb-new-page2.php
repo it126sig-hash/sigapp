@@ -52,6 +52,18 @@
     .terms li {
         margin-bottom: 8px;
     }
+
+    .terms ol.sub-terms {
+        margin-left: 20px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+        padding-left: 0px;
+    }
+
+    .terms ol.sub-terms li,
+    .terms li.mb-0 {
+        margin-bottom: 0px;
+    }
 </style>
 <br><br>
 <p class="ml-17">
@@ -300,8 +312,10 @@
 
             <li>Apabila saya membatalkan pembelian tanah dan rumah atau perjanjian ini batal dengan sendirinya, maka
                 saya bersedia membayar denda pembatalan sebesar:
-                <br>a. Booking Fee hangus.
-                <br>b. Denda 5 % dari harga jual yang disepakati.
+                <ol class="sub-terms" type="a">
+                    <li>Booking Fee hangus.</li>
+                    <li>Denda 5 % dari harga jual yang disepakati.</li>
+                </ol>
             </li>
 
             <li>Persyaratan data-data untuk pengajuan KPR dan semua data lain yang diperlukan atau saya serahkan
@@ -323,12 +337,14 @@
 
             <li>Ukuran kelebihan tanah mengacu kepada hasil ukur Kantor Pertanahan (BPN), apabila terjadi kekurangan
                 atau kelebihan ukuran tanah maka saya bersedia:
-                <br>a. Membayar kekurangan pembayaran tersebut paling lambat 1 bulan setelah tanggal surat
-                pemberitahuan
-                dari <?= strtoupper($proyek->nama_pt) ?>.
-                <br>b. Menerima kelebihan pembayaran tersebut paling lambat 1 bulan setelah tanggal surat
-                pemberitahuan
-                dari <?= strtoupper($proyek->nama_pt) ?>.
+                <ol class="sub-terms" type="a">
+                    <li>Membayar kekurangan pembayaran tersebut paling lambat 1 bulan setelah tanggal surat
+                        pemberitahuan
+                        dari <?= strtoupper($proyek->nama_pt) ?>.</li>
+                    <li>Menerima kelebihan pembayaran tersebut paling lambat 1 bulan setelah tanggal surat
+                        pemberitahuan
+                        dari <?= strtoupper($proyek->nama_pt) ?>.</li>
+                </ol>
             </li>
 
             <li>Jika semua persyaratan untuk akad kredit sudah terpenuhi maka selambat- lambatnya 30 hari sejak

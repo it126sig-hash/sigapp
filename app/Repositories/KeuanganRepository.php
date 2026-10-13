@@ -193,9 +193,19 @@ class KeuanganRepository extends Model
 
     public function getBelumLunasGroupedQuery()
     {
-        $unpaidSubQuery = $this->db->table('keuangan')
-            ->select('id_mkdt, MIN(jatuh_tempo_tgl) AS jatuh_tempo_tgl, COUNT(*) AS jumlah_tagihan')
-            ->where('sudah_dibayar', 0)
+        $keuAggSubQuery = $this->db->table('keuangan')
+            ->select('
+                id_mkdt,
+                COALESCE(
+                    MIN(CASE WHEN sudah_dibayar = 0 THEN jatuh_tempo_tgl END),
+                    MAX(jatuh_tempo_tgl)
+                ) AS jatuh_tempo_tgl,
+                CASE 
+                    WHEN SUM(CASE WHEN sudah_dibayar = 0 THEN 1 ELSE 0 END) > 0 
+                    THEN SUM(CASE WHEN sudah_dibayar = 0 THEN 1 ELSE 0 END)
+                    ELSE COUNT(*)
+                END AS jumlah_tagihan
+            ')
             ->where('is_void', 0)
             ->groupBy('id_mkdt')
             ->getCompiledSelect();
@@ -252,7 +262,7 @@ class KeuanganRepository extends Model
                 CASE WHEN m.is_lunas = 1 AND COALESCE(tagihan_agg.total_tagihan, 0) > (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)) THEN 1 ELSE 0 END AS perlu_rekonsiliasi,
                 p.nama_proyek
             ')
-            ->join("({$unpaidSubQuery}) keu_agg", 'keu_agg.id_mkdt = m.id_mkdt', 'inner')
+            ->join("({$keuAggSubQuery}) keu_agg", 'keu_agg.id_mkdt = m.id_mkdt', 'left')
             ->join("({$totalTagihanSubQuery}) tagihan_agg", 'tagihan_agg.id_mkdt = m.id_mkdt', 'left')
             ->join("({$paidDetailSubQuery}) paid_detail_agg", 'paid_detail_agg.id_mkdt = m.id_mkdt', 'left')
             ->join("({$paidLogSubQuery}) paid_log_agg", 'paid_log_agg.id_mkdt = m.id_mkdt', 'left')
@@ -266,18 +276,11 @@ class KeuanganRepository extends Model
             ->join('users a', 'a.id = m.add_by', 'left')
             ->join('users b', 'b.id = m.edit_by', 'left')
             ->where('m.status_mkdt !=', 'Batal')
-            ->where('m.is_lunas', '0')
             ->where(
-                '(COALESCE(tagihan_agg.total_tagihan, 0) > (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)) OR COALESCE(tagihan_agg.total_tagihan, 0) = 0)',
+                'COALESCE(tagihan_agg.total_tagihan, 0) > (COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0))',
                 null,
                 false
-            )
-            ->where('
-                (m.harga_uang_muka - m.harga_diskon_uang_muka - m.harga_sbum) +
-                (m.harga_administrasi) +
-                (m.harga_bphtb + m.harga_biaya_proses + m.harga_ppn + m.harga_penambahan_um + m.harga_penambahan + m.harga_penambahan_tanah)
-                >
-            ', 0);
+            );
     }
 
     public function getAllGroupedQuery()

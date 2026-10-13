@@ -59,18 +59,19 @@ $routes->get('/notif/icon/(:num)', 'Notif::icon/$1');
 $routes->get('/notif/open/(:num)', 'Notif::open/$1', ['filter' => 'login']);
 $routes->get('/loadaktivitas', 'Home::loadAktivitas');
 
-$routes->get('/profil', 'Profil::index');
-$routes->post('/profil/update', 'Profil::update');
+$routes->get('/profil', '\App\Controllers\Web\UserManagement\ProfilController::index');
+$routes->post('/profil/update', '\App\Controllers\Web\UserManagement\ProfilController::update');
 
-// Bon Permintaan Barang (BPB)
-$routes->group('bpb', ['namespace' => 'App\Controllers\Web'], function ($routes) {
+// ── Modul BPB (Web Routes) ──
+$routes->group('bpb', ['namespace' => 'App\Controllers\Web\Bpb'], function ($routes) {
     $routes->get('', 'BpbController::index', ['filter' => 'login']);
     $routes->get('(:num)/pdf', 'BpbController::pdf/$1', ['filter' => 'login']);
     $routes->get('signature/(:num)', 'BpbController::signature/$1', ['filter' => 'login']);
     $routes->get('verify/(:segment)', 'BpbController::verify/$1', ['filter' => 'throttle:20,60']);
 });
 
-$routes->group('api/bpb', ['namespace' => 'App\Controllers\Api', 'filter' => 'csrf'], function ($routes) {
+// ── Modul BPB (API Routes) ──
+$routes->group('api/bpb', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' => 'csrf'], function ($routes) {
     $routes->post('list', 'BpbController::list');
     $routes->get('options', 'BpbController::options');
     $routes->get('detail/(:num)', 'BpbController::detail/$1');
@@ -83,7 +84,7 @@ $routes->group('api/bpb', ['namespace' => 'App\Controllers\Api', 'filter' => 'cs
     $routes->post('(:num)/status', 'BpbController::status/$1', ['filter' => 'throttle:10,60']);
 });
 
-$routes->group('api/profile/signature', ['namespace' => 'App\Controllers\Api', 'filter' => 'csrf'], function ($routes) {
+$routes->group('api/profile/signature', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' => 'csrf'], function ($routes) {
     $routes->get('', 'ProfileSignatureController::show');
     $routes->get('image', 'ProfileSignatureController::image');
     $routes->put('', 'ProfileSignatureController::save', ['filter' => 'throttle:5,60']);
@@ -95,7 +96,7 @@ $routes->group('google-calendar', ['filter' => 'login'], function ($routes) {
     $routes->post('disconnect', 'GoogleCalendar::disconnect');
 });
 
-$routes->get('/configcolor', 'PengaturanWarna::index');
+$routes->get('/configcolor', '\App\Controllers\Web\Settings\PengaturanWarnaController::index');
 
 $routes->post("/get-dashboard", 'Home::getDashboard');
 $routes->post("/home/getMenuItemsJson", 'Home::getMenuItemsJson');
@@ -104,7 +105,74 @@ $routes->post("/keuangan/jatuhtempo/get", 'Keuangan::getJatuhTempo');
 
 
 $routes->post("/getAkases", 'AksesProyek::getAkses');
-$routes->get("/aksesproyek", 'AksesProyek::index');
+$routes->get("/aksesproyek", '\App\Controllers\Web\Proyek\AksesProyekController::index');
+
+// ── Modul Proyek (Web Routes) ──
+$routes->group('', ['namespace' => 'App\Controllers\Web\Proyek', 'filter' => 'login'], function ($routes) {
+    $routes->get('proyek', 'ProyekController::index');
+    $routes->get('cluster', 'ClusterController::index');
+    $routes->get('tipe', 'TipeController::index');
+    $routes->get('jalan', 'JalanController::index');
+    $routes->get('aksesproyek', 'AksesProyekController::index');
+});
+
+// ── Modul Proyek (API Routes) ──
+$routes->group('api/proyek', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
+    $routes->post('all', 'ProyekController::getAll');
+    $routes->post('getall', 'ProyekController::getAll');
+    $routes->post('getone', 'ProyekController::getOne');
+    $routes->post('add', 'ProyekController::add');
+    $routes->post('edit', 'ProyekController::edit');
+    $routes->post('remove', 'ProyekController::remove');
+    $routes->get('siteplan-list', 'ProyekController::getSiteplanList');
+    $routes->post('siteplan-list', 'ProyekController::getSiteplanList');
+    $routes->get('accessible', 'ProyekController::getAccessible');
+    $routes->post('accessible', 'ProyekController::getAccessible');
+    $routes->post('set-active', 'ProyekController::setActive');
+});
+
+$routes->group('api/cluster', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
+    $routes->post('datatable', 'ClusterController::getDataTable');
+    $routes->post('getdatatable', 'ClusterController::getDataTable');
+    $routes->post('all', 'ClusterController::getAll');
+    $routes->post('getall', 'ClusterController::getAll');
+    $routes->post('getone', 'ClusterController::getOne');
+    $routes->post('add', 'ClusterController::add');
+    $routes->post('edit', 'ClusterController::edit');
+    $routes->post('remove', 'ClusterController::remove');
+});
+
+$routes->group('api/tipe', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
+    $routes->post('datatables', 'TipeController::getDataTables');
+    $routes->post('getdatatables', 'TipeController::getDataTables');
+    $routes->post('all', 'TipeController::getAll');
+    $routes->post('getall', 'TipeController::getAll');
+    $routes->post('getone', 'TipeController::getOne');
+    $routes->post('add', 'TipeController::add');
+    $routes->post('edit', 'TipeController::edit');
+    $routes->post('remove', 'TipeController::remove');
+    $routes->post('list-kavling', 'TipeController::getListKavling');
+    $routes->post('getlistkavling', 'TipeController::getListKavling');
+});
+
+$routes->group('api/jalan', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
+    $routes->post('datatable', 'JalanController::getDatatable');
+    $routes->post('getdatatable', 'JalanController::getDatatable');
+    $routes->post('all', 'JalanController::getAll');
+    $routes->post('getall', 'JalanController::getAll');
+    $routes->post('getone', 'JalanController::getOne');
+    $routes->post('add', 'JalanController::add');
+    $routes->post('edit', 'JalanController::edit');
+    $routes->post('remove', 'JalanController::remove');
+});
+
+$routes->group('api/aksesproyek', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
+    $routes->post('all', 'AksesProyekController::getAll');
+    $routes->post('getone', 'AksesProyekController::getOne');
+    $routes->post('search-users', 'AksesProyekController::getAkses');
+    $routes->post('edit', 'AksesProyekController::edit');
+});
+
 
 
 // $routes->get("bank", 'ListBank::index');
@@ -131,28 +199,139 @@ $routes->group('api/notif', ['namespace' => 'App\Controllers\Api', 'filter' => '
 });
 
 
+// ── Modul Settings (Web Routes) ──
+$routes->group('', ['namespace' => 'App\Controllers\Web\Settings', 'filter' => 'login'], function ($routes) {
+    $routes->get('menu-setting', 'MenuSettingController::index');
+    $routes->get('setting-data', 'SettingDataController::index');
+});
+
+// ── Modul Settings (API Routes Modern) ──
+$routes->group('api/menu-setting', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
+    $routes->post('menu/list', 'MenuSettingController::menuList');
+    $routes->post('menu/get', 'MenuSettingController::menuGet');
+    $routes->post('menu/save', 'MenuSettingController::menuSave');
+    $routes->post('menu/toggle', 'MenuSettingController::menuToggle');
+    $routes->post('access/group', 'MenuSettingController::groupAccess');
+    $routes->post('access/group/save', 'MenuSettingController::groupSave');
+    $routes->post('access/user', 'MenuSettingController::userAccess');
+    $routes->post('access/user/save', 'MenuSettingController::userSave');
+    $routes->post('siteplan-menu/list', 'MenuSettingController::siteplanMenuList');
+    $routes->post('siteplan-menu/get', 'MenuSettingController::siteplanMenuGet');
+    $routes->post('siteplan-menu/save', 'MenuSettingController::siteplanMenuSave');
+    $routes->post('siteplan-menu/toggle', 'MenuSettingController::siteplanMenuToggle');
+});
+
+$routes->group('api/setting-data', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
+    $routes->post('list/(:segment)', 'SettingDataController::list/$1');
+    $routes->post('get/(:segment)', 'SettingDataController::get/$1');
+    $routes->post('save/(:segment)', 'SettingDataController::save/$1');
+    $routes->post('delete/(:segment)', 'SettingDataController::delete/$1');
+});
+
+$routes->group('api/pengaturan-warna', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
+    $routes->post('all', 'PengaturanWarnaController::getAll');
+    $routes->post('getall', 'PengaturanWarnaController::getAll');
+    $routes->post('getone', 'PengaturanWarnaController::getOne');
+    $routes->post('add', 'PengaturanWarnaController::add');
+    $routes->post('edit', 'PengaturanWarnaController::edit');
+    $routes->post('remove', 'PengaturanWarnaController::remove');
+});
+
+// ── Modul Settings (Legacy Routes Zero-Downtime Aliases) ──
 $routes->group('menu-setting', ['filter' => 'login'], function ($routes) {
-    $routes->get('/', 'MenuSetting::index');
-    $routes->post('menu/list', 'MenuSetting::menuList');
-    $routes->post('menu/get', 'MenuSetting::menuGet');
-    $routes->post('menu/save', 'MenuSetting::menuSave');
-    $routes->post('menu/toggle', 'MenuSetting::menuToggle');
-    $routes->post('access/group', 'MenuSetting::groupAccess');
-    $routes->post('access/group/save', 'MenuSetting::groupSave');
-    $routes->post('access/user', 'MenuSetting::userAccess');
-    $routes->post('access/user/save', 'MenuSetting::userSave');
-    $routes->post('siteplan-menu/list', 'MenuSetting::siteplanMenuList');
-    $routes->post('siteplan-menu/get', 'MenuSetting::siteplanMenuGet');
-    $routes->post('siteplan-menu/save', 'MenuSetting::siteplanMenuSave');
-    $routes->post('siteplan-menu/toggle', 'MenuSetting::siteplanMenuToggle');
+    $routes->get('/', '\App\Controllers\Web\Settings\MenuSettingController::index');
+    $routes->post('menu/list', '\App\Controllers\Api\Settings\MenuSettingController::menuList');
+    $routes->post('menu/get', '\App\Controllers\Api\Settings\MenuSettingController::menuGet');
+    $routes->post('menu/save', '\App\Controllers\Api\Settings\MenuSettingController::menuSave');
+    $routes->post('menu/toggle', '\App\Controllers\Api\Settings\MenuSettingController::menuToggle');
+    $routes->post('access/group', '\App\Controllers\Api\Settings\MenuSettingController::groupAccess');
+    $routes->post('access/group/save', '\App\Controllers\Api\Settings\MenuSettingController::groupSave');
+    $routes->post('access/user', '\App\Controllers\Api\Settings\MenuSettingController::userAccess');
+    $routes->post('access/user/save', '\App\Controllers\Api\Settings\MenuSettingController::userSave');
+    $routes->post('siteplan-menu/list', '\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuList');
+    $routes->post('siteplan-menu/get', '\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuGet');
+    $routes->post('siteplan-menu/save', '\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuSave');
+    $routes->post('siteplan-menu/toggle', '\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuToggle');
 });
 
 $routes->group('setting-data', ['filter' => 'login'], function ($routes) {
-    $routes->get('/', 'SettingData::index');
-    $routes->post('list/(:segment)', 'SettingData::list/$1');
-    $routes->post('get/(:segment)', 'SettingData::get/$1');
-    $routes->post('save/(:segment)', 'SettingData::save/$1');
-    $routes->post('delete/(:segment)', 'SettingData::delete/$1');
+    $routes->get('/', '\App\Controllers\Web\Settings\SettingDataController::index');
+    $routes->post('list/(:segment)', '\App\Controllers\Api\Settings\SettingDataController::list/$1');
+    $routes->post('get/(:segment)', '\App\Controllers\Api\Settings\SettingDataController::get/$1');
+    $routes->post('save/(:segment)', '\App\Controllers\Api\Settings\SettingDataController::save/$1');
+    $routes->post('delete/(:segment)', '\App\Controllers\Api\Settings\SettingDataController::delete/$1');
+});
+
+$routes->group('pengaturanWarna', ['filter' => 'login'], function ($routes) {
+    $routes->post('getAll', '\App\Controllers\Api\Settings\PengaturanWarnaController::getAll');
+    $routes->post('getOne', '\App\Controllers\Api\Settings\PengaturanWarnaController::getOne');
+    $routes->post('add', '\App\Controllers\Api\Settings\PengaturanWarnaController::add');
+    $routes->post('edit', '\App\Controllers\Api\Settings\PengaturanWarnaController::edit');
+    $routes->post('remove', '\App\Controllers\Api\Settings\PengaturanWarnaController::remove');
+});
+
+$routes->group('pengaturan_warna', ['filter' => 'login'], function ($routes) {
+    $routes->post('getall', '\App\Controllers\Api\Settings\PengaturanWarnaController::getAll');
+    $routes->post('getone', '\App\Controllers\Api\Settings\PengaturanWarnaController::getOne');
+    $routes->post('add', '\App\Controllers\Api\Settings\PengaturanWarnaController::add');
+    $routes->post('edit', '\App\Controllers\Api\Settings\PengaturanWarnaController::edit');
+    $routes->post('remove', '\App\Controllers\Api\Settings\PengaturanWarnaController::remove');
+});
+
+// ── Modul UserManagement (Web Routes) ──
+$routes->group('', ['namespace' => 'App\Controllers\Web\UserManagement', 'filter' => 'login'], function ($routes) {
+    $routes->get('pengguna/setuser', 'PenggunaController::index');
+    $routes->get('karyawan', 'KaryawanController::index');
+});
+
+// ── Modul UserManagement (API Routes Modern) ──
+$routes->group('api/pengguna', ['namespace' => 'App\Controllers\Api\UserManagement', 'filter' => 'login'], function ($routes) {
+    $routes->post('getall', 'PenggunaController::getAll');
+    $routes->post('getAll', 'PenggunaController::getAll');
+    $routes->post('getone', 'PenggunaController::getOne');
+    $routes->post('getOne', 'PenggunaController::getOne');
+    $routes->post('add', 'PenggunaController::add');
+    $routes->post('edit', 'PenggunaController::edit');
+    $routes->post('edit_user', 'PenggunaController::edit_user');
+    $routes->post('remove', 'PenggunaController::remove');
+});
+
+$routes->group('api/karyawan', ['namespace' => 'App\Controllers\Api\UserManagement', 'filter' => 'login'], function ($routes) {
+    $routes->post('getall', 'KaryawanController::getAll');
+    $routes->post('getAll', 'KaryawanController::getAll');
+    $routes->post('getone', 'KaryawanController::getOne');
+    $routes->post('getOne', 'KaryawanController::getOne');
+    $routes->post('add', 'KaryawanController::add');
+    $routes->post('edit', 'KaryawanController::edit');
+    $routes->post('remove', 'KaryawanController::remove');
+});
+
+$routes->group('api/profil', ['namespace' => 'App\Controllers\Api\UserManagement', 'filter' => 'login'], function ($routes) {
+    $routes->post('update', 'ProfilController::update');
+});
+
+// ── Modul UserManagement (Legacy Routes Zero-Downtime Aliases) ──
+$routes->group('pengguna', ['filter' => 'login'], function ($routes) {
+    $routes->get('setuser', '\App\Controllers\Web\UserManagement\PenggunaController::index');
+    $routes->post('getAll', '\App\Controllers\Api\UserManagement\PenggunaController::getAll');
+    $routes->post('getall', '\App\Controllers\Api\UserManagement\PenggunaController::getAll');
+    $routes->post('getOne', '\App\Controllers\Api\UserManagement\PenggunaController::getOne');
+    $routes->post('getone', '\App\Controllers\Api\UserManagement\PenggunaController::getOne');
+    $routes->post('add', '\App\Controllers\Api\UserManagement\PenggunaController::add');
+    $routes->post('edit', '\App\Controllers\Api\UserManagement\PenggunaController::edit');
+    $routes->post('edit_user', '\App\Controllers\Api\UserManagement\PenggunaController::edit_user');
+    $routes->post('remove', '\App\Controllers\Api\UserManagement\PenggunaController::remove');
+});
+
+$routes->group('karyawan', ['filter' => 'login'], function ($routes) {
+    $routes->get('/', '\App\Controllers\Web\UserManagement\KaryawanController::index');
+    $routes->post('getAll', '\App\Controllers\Api\UserManagement\KaryawanController::getAll');
+    $routes->post('getall', '\App\Controllers\Api\UserManagement\KaryawanController::getAll');
+    $routes->post('getOne', '\App\Controllers\Api\UserManagement\KaryawanController::getOne');
+    $routes->post('getone', '\App\Controllers\Api\UserManagement\KaryawanController::getOne');
+    $routes->post('add', '\App\Controllers\Api\UserManagement\KaryawanController::add');
+    $routes->post('edit', '\App\Controllers\Api\UserManagement\KaryawanController::edit');
+    $routes->post('remove', '\App\Controllers\Api\UserManagement\KaryawanController::remove');
 });
 
 $routes->get("getmodal", 'Modal::index');
@@ -312,6 +491,8 @@ $routes->group('cashout', ['filter' => 'login', 'namespace' => 'App\Controllers\
 
 
 
+// DEPRECATED: Rute legacy untuk PencairanJaminan, dijadwalkan untuk dihapus saat refaktor Keuangan.
+// Seluruh fitur pencairan telah dialihkan ke rute /keuangan/pencairan-akad/*
 $routes->group('pencairan', ['filter' => 'login'], function ($routes) {
     $routes->get('/', 'PencairanJaminan::index');
     $routes->get('list/(:num)', 'PencairanJaminan::list/$1');

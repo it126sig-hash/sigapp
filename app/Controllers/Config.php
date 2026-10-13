@@ -2,13 +2,18 @@
 
 namespace App\Controllers;
 
+/**
+ * Backward compatibility stub.
+ */
 class Config extends BaseController
 {
     public function index()
     {
-        return redirect('login');
+        return redirect()->to('login');
     }
-    function get_shape(){
-       
+
+    public function get_shape()
+    {
+        return $this->response->setJSON([]);
     }
 }

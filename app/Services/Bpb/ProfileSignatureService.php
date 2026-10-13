@@ -3,7 +3,7 @@
 namespace App\Services\Bpb;
 
 use App\Models\UserSignatureProfileModel;
-use App\Repositories\BpbRepository;
+use App\Repositories\Bpb\BpbRepository;
 use App\Services\FileAccessService;
 use Myth\Auth\Password;
 use RuntimeException;

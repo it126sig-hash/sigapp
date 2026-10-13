@@ -1,3 +1,4 @@
+<?php $canCreateTagihan = function_exists('in_groups') && in_groups(['1', '3']); ?>
 <!-- ################################## Modal Penagihan ##########################################-->
 <style>
     #modal_penagihan .modal-content {
@@ -81,10 +82,12 @@
                         <a class="nav-link active font-weight-bold" id="tab_riwayat_tagihan-tab" data-toggle="tab" href="#tab_riwayat_tagihan"
                             aria-controls="tab_riwayat_tagihan" role="tab" aria-selected="true">DAFTAR SURAT</a>
                     </li>
+                    <?php if ($canCreateTagihan): ?>
                     <li class="nav-item">
                         <a class="nav-link font-weight-bold" id="tab_buat_tagihan-tab" data-toggle="tab" href="#tab_buat_tagihan"
                             aria-controls="tab_buat_tagihan" role="tab" aria-selected="false">BUAT SURAT</a>
                     </li>
+                    <?php endif; ?>
                 </ul>
             </div>
 
@@ -101,9 +104,11 @@
                                         <h6 class="font-weight-bolder mb-25">Daftar Surat Penagihan</h6>
                                         <small class="text-muted">Pilih salah satu surat untuk melihat riwayat surat.</small>
                                     </div>
+                                    <?php if ($canCreateTagihan): ?>
                                     <button type="button" class="btn btn-primary btn-sm font-weight-bold" id="btn-pindah-buat-surat">
                                         <i class="fas fa-plus mr-25"></i> Buat Surat
                                     </button>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="table-responsive">
                                     <style>
@@ -316,8 +321,10 @@
             <div class="modal-footer p-1 d-none" id="footer-penagihan" style="display: none;">
                 <!-- Only visible when 'Buat Tagihan' tab is active -->
                 <div id="footer-action-buat-tagihan" class="w-100 text-right d-none" style="display: none;">
+                    <?php if ($canCreateTagihan): ?>
                     <input type="hidden" id="form_submit_status" name="status_tagihan" value="draft" form="form-buat-tagihan">
                     <button type="submit" form="form-buat-tagihan" class="btn btn-primary mr-50" id="btn-simpan-draft" onclick="document.getElementById('form_submit_status').value='draft'">Simpan Draft</button>
+                    <?php endif; ?>
                     <button type="button" class="btn btn-outline-secondary ml-50" data-dismiss="modal">Batal</button>
                 </div>
             </div>

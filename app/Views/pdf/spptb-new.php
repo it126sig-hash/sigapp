@@ -1,6 +1,8 @@
 <style>
     body {
         font-size: 10pt;
+        line-height: 1.15;
+        /* Menambahkan line-height agar teks lebih padat */
     }
 
     .button-green {
@@ -137,10 +139,10 @@ if (!function_exists('title_case')) {
     }
 }
 
-// Logo dirender sebagai background-image (bukan <img>): beberapa file logo punya
-// metadata dimensi tidak konsisten (mis. EXIF vs data JPEG beda), yang bikin mPDF
-// salah hitung lebar float:right di sebelahnya walau <img> sudah diberi width/height
-// eksplisit. background-image tidak dibaca dimensi aslinya oleh mPDF, jadi float aman.
+// Menggunakan <table> layout karena jika menggunakan <img> dengan float, mPDF terkadang 
+// salah hitung lebar ruang di sebelahnya akibat metadata dimensi (EXIF).
+// Sebelumnya menggunakan background-image, tetapi itu menyebabkan logo terpotong
+// saat user melakukan print scale di PDF Viewer.
 $logoSrc = (new \App\Services\FileAccessService())->existingPath($proyek->logo) ?: base_url($proyek->logo);
 $logoHeight = 130;
 $logoWidth = $logoHeight;
@@ -156,26 +158,36 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
 </htmlpageheader>
 <sethtmlpageheader name="header_pages" value="on" />
 
-<div style="overflow: hidden;">
-    <div style="float: left; width: <?= $logoWidth ?>px; height: <?= $logoHeight ?>px; background-image: url('<?= $logoSrc ?>'); background-size: contain; background-repeat: no-repeat; background-position: left top;"></div>
-    <div style="float: right; width: 60mm;">
-        <div style="border: 1px solid #111; padding: 4px 8px; font-size: 8pt;">
-            Asli : Keuangan Pusat<br>
-            Copy 1 : Konsumen<br>
-            Copy 2 : Keuangan Proyek<br>
-            Copy 3 : Marketing
-        </div>
-        <div style="margin-top: 8px;">
-            Proyek: <?= title_case($proyek->nama_proyek) ?>
-        </div>
-        <div style="font-size: 12pt;">
-            <strong>No. SPPTB : <?= strtoupper($data->no_spptb) ?></strong>
-        </div>
-        <div style="font-size: 10pt; margin-top: 4px;">
-            <strong>Kode Referal: <?= empty($data->kode_referal) ? '-' : strtoupper($data->kode_referal) ?></strong>
-        </div>
-    </div>
-</div>
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td width="<?= $logoWidth ?>" valign="top">
+            <img src="<?= $logoSrc ?>" width="<?= $logoWidth ?>" height="<?= $logoHeight ?>" style="display:block;" />
+        </td>
+        <td valign="top" align="right">
+            <div style="width: 60mm; text-align: left;">
+                <table style="border-collapse: collapse; width: 40%;" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="border: 1px solid #111; padding: 4px 8px; font-size: 8pt; line-height: 1.3;">
+                            Asli : Keuangan Pusat<br>
+                            Copy 1 : Konsumen<br>
+                            Copy 2 : Keuangan Proyek<br>
+                            Copy 3 : Marketing
+                        </td>
+                    </tr>
+                </table>
+                <div style="margin-top: 8px;">
+                    Proyek: <?= title_case($proyek->nama_proyek) ?>
+                </div>
+                <div style="font-size: 12pt;">
+                    <strong>No. SPPTB : <?= strtoupper($data->no_spptb) ?></strong>
+                </div>
+                <div style="font-size: 10pt; margin-top: 4px;">
+                    <strong>Kode Referal: <?= empty($data->kode_referal) ? '-' : strtoupper($data->kode_referal) ?></strong>
+                </div>
+            </div>
+        </td>
+    </tr>
+</table>
 <div style="padding-bottom: -30px;">
     <p align="center">
         <strong>SURAT PERNYATAAN <br />
@@ -187,7 +199,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
     Yang bertanda tangan dibawah ini: <br />
     (Wajib diisi lengkap dan jelas)
 </p>
-<table border="0" id="tb-identitas" cellspacing="10" cellpadding="0">
+<table border="0" id="tb-identitas" cellspacing="5" cellpadding="0">
     <tbody>
         <tr>
             <td class="td-width" valign="top">
@@ -237,6 +249,15 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
         </tr>
         <tr>
             <td class="td-width" valign="top">
+                No HP/telp
+            </td>
+            <td valign="top">
+                : <?= strtoupper($data->hp_konsumen) ?>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="td-width" valign="top">
 
                 Email
 
@@ -274,7 +295,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
                 No HP/telp
             </td>
             <td valign="top">
-                : <?= strtoupper($data->hp_konsumen) ?>
+                : <?= strtoupper($data->tel_instansi) ?>
             </td>
         </tr>
         <tr>
@@ -330,14 +351,24 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
 <p style="margin-bottom:20px; margin-top: - 200px">
     <strong>Selaku pemohon</strong>
 </p>
-<table border="0" id="tb-identitas" cellspacing="10" cellpadding="0">
+<table border="0" id="tb-identitas" cellspacing="5" cellpadding="0">
     <tbody>
+        <?php
+        $isBelumKawin = isset($data->status_pernikahan) && strtolower($data->status_pernikahan) == 'belum kawin';
+        $namaPasanganEmpty = empty(trim((string)$data->nama_pasangan));
+        $showPasanganData = !$isBelumKawin && !$namaPasanganEmpty;
+
+        $nama_pasangan_display = $isBelumKawin ? '-' : title_case($data->nama_pasangan);
+        $nik_pasangan_display = $isBelumKawin ? '-' : strtoupper($data->nik_pasangan);
+        $hp_pasangan_display = $isBelumKawin ? '-' : strtoupper($data->hp_pasangan);
+        $instansi_pasangan_display = $isBelumKawin ? '-' : $data->instansi_pasangan;
+        ?>
         <tr>
             <td class="td-width" valign="top">
                 Nama
             </td>
             <td valign="top">
-                : <?= title_case($data->nama_pasangan) ?>
+                : <?= $nama_pasangan_display ?>
             </td>
         </tr>
         <tr>
@@ -345,7 +376,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
                 No. KTP
             </td>
             <td valign="top">
-                : <?= strtoupper($data->nik_pasangan) ?>
+                : <?= $nik_pasangan_display ?>
             </td>
         </tr>
         <tr>
@@ -354,7 +385,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
             </td>
             <td>
 
-                : <?= strtoupper($data->hp_pasangan) ?>
+                : <?= $hp_pasangan_display ?>
 
             </td>
         </tr>
@@ -365,12 +396,14 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
                 $bek = "";
                 $tbek = "";
                 $irt = "";
-                if ($data->status_pekerjaan_pasangan == "Bekerja")
-                    $bek = "checked='true'";
-                elseif ($data->status_pekerjaan_pasangan == "Tidak Bekerja")
-                    $tbek = "checked='true'";
-                elseif ($data->status_pekerjaan_pasangan == "Ibu Rumah Tangga")
-                    $irt = "checked='true'";
+                if ($showPasanganData) {
+                    if ($data->status_pekerjaan_pasangan == "Bekerja")
+                        $bek = "checked='true'";
+                    elseif ($data->status_pekerjaan_pasangan == "Tidak Bekerja")
+                        $tbek = "checked='true'";
+                    elseif ($data->status_pekerjaan_pasangan == "Ibu Rumah Tangga")
+                        $irt = "checked='true'";
+                }
                 ?>
                 <input type="checkbox" <?= $bek ?> /> Bekerja
                 &nbsp;&nbsp;
@@ -381,7 +414,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
         </tr>
         <tr>
             <td></td>
-            <td>Instansi: <b><?= $data->instansi_pasangan ?></b></td>
+            <td>Instansi: <b><?= $instansi_pasangan_display ?></b></td>
         </tr>
     </tbody>
 </table>
