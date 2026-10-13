@@ -7,6 +7,10 @@ use App\Models\RiwayatPencairanJaminanModel;
 use App\Services\DanaJaminanService;
 use App\Services\FileAccessService;
 
+/**
+ * @deprecated Modul ini deprecated dan dijadwalkan untuk dihapus.
+ * Seluruh fungsi pencairan retensi/dana jaminan telah digantikan oleh PencairanAkad pada modul Keuangan.
+ */
 class PencairanJaminan extends BaseController
 {
     protected $model;

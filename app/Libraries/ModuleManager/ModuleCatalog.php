@@ -5,7 +5,7 @@ namespace App\Libraries\ModuleManager;
 /**
  * ModuleCatalog
  * 
- * Definisi resmi 16 Modul Bisnis SIGAPP.
+ * Definisi resmi 15 Modul Bisnis SIGAPP.
  * Digunakan sebagai sumber kebenaran (source of truth) oleh module:map, module:sync, module:status.
  */
 class ModuleCatalog
@@ -145,6 +145,7 @@ class ModuleCatalog
                     'Web/HasilAkadReportController.php',
                     'Api/HasilAkadReportController.php',
                     'PrintController.php',
+                    'PencairanJaminan.php',
                 ],
                 'services' => [
                     'KeuanganService.php',
@@ -162,6 +163,7 @@ class ModuleCatalog
                     'CashInReportService.php',
                     'HasilAkadReportService.php',
                     'PrintService.php',
+                    'DanaJaminanService.php',
                 ],
                 'repositories' => [
                     'KeuanganRepository.php',
@@ -192,6 +194,9 @@ class ModuleCatalog
                     'CashoutSubkonKavlingModel.php',
                     'CashoutSubkonPaymentModel.php',
                     'ListCashoutModel.php',
+                    'RiwayatPencairanJaminanModel.php',
+                    'RiwayatPencairanJaminanDetailModel.php',
+                    'DanaJaminanHistoryModel.php',
                 ],
                 'views' => [
                     'keuangan',
@@ -225,28 +230,18 @@ class ModuleCatalog
                     'cashout_subkon_kavling',
                     'cashout_subkon_payment',
                     'list_cashout',
-                ],
-                'shared_tables' => ['mkdt', 'kavling'],
-            ],
-            'PencairanJaminan' => [
-                'name' => 'PencairanJaminan',
-                'description' => 'Pengelolaan dan pelacakan riwayat pencairan dana jaminan / retensi perbankan.',
-                'controllers' => ['PencairanJaminan.php'],
-                'services' => ['DanaJaminanService.php'],
-                'repositories' => ['PartialRepository.php'],
-                'models' => [
-                    'RiwayatPencairanJaminanModel.php',
-                    'RiwayatPencairanJaminanDetailModel.php',
-                    'DanaJaminanHistoryModel.php',
-                ],
-                'views' => [],
-                'assets_js' => [],
-                'owner_tables' => [
                     'riwayat_pencairan_jaminan',
                     'riwayat_pencairan_jaminan_detail',
                     'dana_jaminan_history',
+                    'dana_akad',
+                    'pencairan_akad_plan',
+                    'pencairan_akad_item',
+                    'pencairan_akad_pengajuan',
+                    'pencairan_akad_pengajuan_detail',
+                    'pencairan_akad_payment',
+                    'pencairan_akad_payment_detail',
                 ],
-                'shared_tables' => ['keuangan', 'proyek'],
+                'shared_tables' => ['mkdt', 'kavling'],
             ],
             'Legal' => [
                 'name' => 'Legal',
@@ -303,9 +298,9 @@ class ModuleCatalog
                 'name' => 'BPB',
                 'description' => 'Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, dan tanda tangan digital.',
                 'controllers' => [
-                    'Web/BpbController.php',
-                    'Api/BpbController.php',
-                    'Api/ProfileSignatureController.php',
+                    'Web/Bpb/BpbController.php',
+                    'Api/Bpb/BpbController.php',
+                    'Api/Bpb/ProfileSignatureController.php',
                 ],
                 'services' => [
                     'Bpb/BpbService.php',
@@ -316,7 +311,7 @@ class ModuleCatalog
                     'Bpb/BpbDocumentHasher.php',
                     'Bpb/ProfileSignatureService.php',
                 ],
-                'repositories' => ['BpbRepository.php'],
+                'repositories' => ['Bpb/BpbRepository.php'],
                 'models' => [
                     'BpbRequestModel.php',
                     'BpbItemModel.php',

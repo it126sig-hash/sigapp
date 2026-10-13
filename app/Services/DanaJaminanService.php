@@ -2,6 +2,10 @@
 
 namespace App\Services;
 
+/**
+ * @deprecated Service ini deprecated dan dijadwalkan untuk dihapus.
+ * Seluruh fungsionalitas retensi jaminan telah digantikan oleh PencairanAkadService.
+ */
 class DanaJaminanService
 {
     protected $db;

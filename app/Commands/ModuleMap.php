@@ -12,7 +12,7 @@ class ModuleMap extends BaseCommand
 
     protected $name = 'module:map';
 
-    protected $description = 'Memetakan seluruh file dan rute aplikasi ke dalam 16 Modul Bisnis SIGAPP.';
+    protected $description = 'Memetakan seluruh file dan rute aplikasi ke dalam 15 Modul Bisnis SIGAPP.';
 
     protected $usage = 'module:map [--output=<path>]';
 

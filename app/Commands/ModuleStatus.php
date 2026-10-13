@@ -12,7 +12,7 @@ class ModuleStatus extends BaseCommand
 
     protected $name = 'module:status';
 
-    protected $description = 'Menampilkan tabel dashboard status dan skor kesiapan 16 Modul Bisnis SIGAPP.';
+    protected $description = 'Menampilkan tabel dashboard status dan skor kesiapan 15 Modul Bisnis SIGAPP.';
 
     protected $usage = 'module:status';
 

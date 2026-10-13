@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-12 14:38:40` @ `be98758`  
+**Last Synced:** `2026-10-13 00:21:45` @ `3b94cd9`  
 
 ## Purpose
 Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operasional, SPP, bank KPR, pajak, dan ledger kas.
@@ -29,6 +29,16 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `cashout_subkon_kavling` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 - `cashout_subkon_payment` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 - `list_cashout` *(akses tulis eksklusif hanya untuk modul Keuangan)*
+- `riwayat_pencairan_jaminan` *(akses tulis eksklusif hanya untuk modul Keuangan)*
+- `riwayat_pencairan_jaminan_detail` *(akses tulis eksklusif hanya untuk modul Keuangan)*
+- `dana_jaminan_history` *(akses tulis eksklusif hanya untuk modul Keuangan)*
+- `dana_akad` *(akses tulis eksklusif hanya untuk modul Keuangan)*
+- `pencairan_akad_plan` *(akses tulis eksklusif hanya untuk modul Keuangan)*
+- `pencairan_akad_item` *(akses tulis eksklusif hanya untuk modul Keuangan)*
+- `pencairan_akad_pengajuan` *(akses tulis eksklusif hanya untuk modul Keuangan)*
+- `pencairan_akad_pengajuan_detail` *(akses tulis eksklusif hanya untuk modul Keuangan)*
+- `pencairan_akad_payment` *(akses tulis eksklusif hanya untuk modul Keuangan)*
+- `pencairan_akad_payment_detail` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 
 ### Shared Tables (Dibaca dari modul lain)
 - `mkdt`
@@ -140,6 +150,13 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 | `POST` | `detail` | `Explicit` | `HasilAkadReportController::detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `spptb` | `Explicit` | `PrintController::printSpptb` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `GET` | `kuitansi` | `Explicit` | `PrintController::printKuitansi` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `GET` | `/` | `Explicit` | `PencairanJaminan::index` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `GET` | `list/(:num)` | `Explicit` | `PencairanJaminan::list/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `store` | `Explicit` | `PencairanJaminan::store` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `cairkan/(:num)` | `Explicit` | `PencairanJaminan::cairkan/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `GET` | `history/(:num)` | `Explicit` | `PencairanJaminan::history/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `toggle/(:num)` | `Explicit` | `PencairanJaminan::toggleStatus/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `GET` | `download/(:num)` | `Explicit` | `PencairanJaminan::download/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `ANY` | `/keuangan/getdanaakad` | `AutoRoute` | `Keuangan::getDanaAkad` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/keuangan/getcashout` | `AutoRoute` | `Keuangan::getCashOut` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/keuangan/savecashout` | `AutoRoute` | `Keuangan::saveCashOut` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
@@ -362,9 +379,26 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status)`
 - `exportBatalPoskonXlsx($id_proyek, $id_cluster, $id_jalan)`
 - `exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status)`
+#### `DanaJaminanService.php`
+- `getData(int $idMkdt, int $idKavling)`
+- `saveDanaAkad($request, int $actorId)`
+- `listPengajuan(int $idKavling)`
+- `storePengajuan($request, int $actorId)`
+- `cairkanPengajuan(int $idPengajuan, $request, int $actorId)`
+- `getHistory(int $idKavling)`
+- `rejectLegacyToggle()`
+- `getDanaJaminanRows(int $idKavling)`
+- `getPengajuanDetailMap(array $ids)`
+- `getPengajuanDetail(int $idDetail, int $idPengajuan)`
+- `findDanaAkad(string $key, int $idKavling, int $idListDajam)`
+- `getDanaAkadById(int $idDanaAkad, int $idKavling)`
+- `buildCairPayload(array $row, float $nominal, int $actorId)`
+- `getAkadContext(int $idMkdt, int $idKavling, bool $akadOnly = true)`
+- `getContextByKavling(int $idKavling)`
+- _dan 3 method lainnya..._
 
 ## File Inventory
-### Controllers (17)
+### Controllers (18)
 - `app/Controllers/Keuangan.php` (1923 baris, 38 public methods)
 - `app/Controllers/Tagihan.php` (521 baris, 19 public methods)
 - `app/Controllers/Pembayaran.php` (89 baris, 6 public methods)
@@ -382,8 +416,9 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Controllers/Web/HasilAkadReportController.php` (49 baris, 1 public methods)
 - `app/Controllers/Api/HasilAkadReportController.php` (80 baris, 3 public methods)
 - `app/Controllers/PrintController.php` (133 baris, 2 public methods)
+- `app/Controllers/PencairanJaminan.php` (71 baris, 7 public methods)
 
-### Services (15)
+### Services (16)
 - `app/Services/KeuanganService.php` (1851 baris)
 - `app/Services/PembayaranService.php` (256 baris)
 - `app/Services/PajakService.php` (45 baris)
@@ -399,6 +434,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Services/CashInReportService.php` (212 baris)
 - `app/Services/HasilAkadReportService.php` (187 baris)
 - `app/Services/PrintService.php` (634 baris)
+- `app/Services/DanaJaminanService.php` (633 baris)
 
 ### Repositories (13)
 - `app/Repositories/KeuanganRepository.php` (495 baris)
@@ -415,7 +451,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Repositories/HasilAkadReportRepository.php` (310 baris)
 - `app/Repositories/SpptbRepository.php` (23 baris)
 
-### Models (13)
+### Models (16)
 - `app/Models/KeuanganModel.php`
 - `app/Models/LogPembayaranModel.php`
 - `app/Models/FinanceLedgerModel.php`
@@ -429,6 +465,9 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Models/CashoutSubkonKavlingModel.php`
 - `app/Models/CashoutSubkonPaymentModel.php`
 - `app/Models/ListCashoutModel.php`
+- `app/Models/RiwayatPencairanJaminanModel.php`
+- `app/Models/RiwayatPencairanJaminanDetailModel.php`
+- `app/Models/DanaJaminanHistoryModel.php`
 
 ### Views (5 folder)
 - `app/Views/keuangan` (4 file)
@@ -460,3 +499,7 @@ _Jalankan `php spark module:deadcode Keuangan` untuk mengaudit dead code kandida
 
 ## Notes
 - Modul diinisialisasi melalui tooling otomatis.
+- **Deprecation Notice (PencairanJaminan & DanaJaminanService):**
+  - Komponen legacy `PencairanJaminan.php`, `DanaJaminanService.php`, dan rute `/pencairan/*` berstatus **DEPRECATED** dan dijadwalkan untuk dihapus tuntas saat sesi refaktor Modul Keuangan.
+  - Seluruh fungsionalitas retensi jaminan perbankan telah digantikan sepenuhnya oleh sub-modul terpadu `PencairanAkad` (`pencairan_akad_*`) dengan rute `/keuangan/pencairan-akad/*`.
+  - Tidak ada modul lain (MKDT, Legal, Produksi, Promosi, dsb.) yang mengakses controller maupun service ini.

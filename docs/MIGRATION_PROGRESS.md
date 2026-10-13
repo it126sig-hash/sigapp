@@ -7,8 +7,8 @@
 
 ## 1. Rangkuman Progres Global
 
-* **Total Modul:** 16
-* **Status:** `3 Selesai` | `0 Sedang Dikerjakan` | `13 Antre (Pending)`
+* **Total Modul:** 15
+* **Status:** `4 Selesai` | `0 Sedang Dikerjakan` | `11 Antre (Pending)`
 * **Strategi:** Migrasi modular bertahap (1 modul per sesi *fresh chat*) dengan jaminan **Zero-Downtime**.
 
 ---
@@ -17,24 +17,25 @@
 
 Urutan di bawah ini disusun dari **Modul Daun (Leaf/Paling Terisolasi)** menuju **Modul Inti (Core/Tinggi Keterikatan)** untuk meminimalisasi risiko breaking changes.
 
+> *Catatan Konsolidasi:* Fitur Pencairan Jaminan (Retensi Perbankan) telah dikonsolidasikan langsung ke dalam sub-domain Pencairan Bank / Akad pada modul **Keuangan** sebagai bagian utuh dari Cash-In.
+
 | No | Modul | Kategori | Tingkat Kesulitan | Status | Sesi / Commit Hash | Terakhir Diverifikasi |
 |---|---|---|---|---|---|---|
-| 1 | **BPB** | Leaf Module | Rendah (Sudah modern Web/Api) | `PENDING` | - | - |
+| 1 | **BPB** | Leaf Module | Rendah (Sudah modern Web/Api) | `COMPLETED` | Session Refactor (100% Score) | 2026-10-13 |
 | 2 | **TiketMasalah** | Leaf Module | Rendah (Sudah Web/Api) | `PENDING` | - | - |
 | 3 | **MGM** | Leaf Module | Rendah (Sudah Web/Api) | `PENDING` | - | - |
-| 4 | **PencairanJaminan** | Leaf Module | Rendah | `PENDING` | - | - |
-| 5 | **Legal** | Intermediate | Sedang | `PENDING` | - | - |
-| 6 | **AuditTrail** | Intermediate | Rendah | `PENDING` | - | - |
-| 7 | **Auth** | Infrastructure | Sedang | `PENDING` | - | - |
-| 8 | **Notifikasi** | Infrastructure | Sedang | `PENDING` | - | - |
-| 9 | **Proyek** | Core Master Data | Sedang | `COMPLETED` | `65c937d` (100% Score) | 2026-10-12 |
-| 10 | **Produksi** | Core Construction | Sedang - Tinggi | `PENDING` | - | - |
-| 11 | **UserManagement** | Core Master Data | Sedang | `COMPLETED` | Session Refactor (100% Score) | 2026-10-12 |
-| 12 | **Settings** | Core System | Sedang | `COMPLETED` | `8442c4e` (100% Score) | 2026-10-12 |
-| 13 | **Siteplan** | Core Spasial UI | Tinggi (Multi-dept JS) | `PENDING` | - | - |
-| 14 | **Transaksi** | Core Domain | Tinggi | `PENDING` | - | - |
-| 15 | **MKDT** | Core Domain | Sangat Tinggi (Fat Controller) | `PENDING` | - | - |
-| 16 | **Keuangan** | Core Financial | Sangat Tinggi (Terbesar) | `PENDING` | - | - |
+| 4 | **Legal** | Intermediate | Sedang | `PENDING` | - | - |
+| 5 | **AuditTrail** | Intermediate | Rendah | `PENDING` | - | - |
+| 6 | **Auth** | Infrastructure | Sedang | `PENDING` | - | - |
+| 7 | **Notifikasi** | Infrastructure | Sedang | `PENDING` | - | - |
+| 8 | **Proyek** | Core Master Data | Sedang | `COMPLETED` | `65c937d` (100% Score) | 2026-10-12 |
+| 9 | **Produksi** | Core Construction | Sedang - Tinggi | `PENDING` | - | - |
+| 10 | **UserManagement** | Core Master Data | Sedang | `COMPLETED` | Session Refactor (100% Score) | 2026-10-12 |
+| 11 | **Settings** | Core System | Sedang | `COMPLETED` | `8442c4e` (100% Score) | 2026-10-12 |
+| 12 | **Siteplan** | Core Spasial UI | Tinggi (Multi-dept JS) | `PENDING` | - | - |
+| 13 | **Transaksi** | Core Domain | Tinggi | `PENDING` | - | - |
+| 14 | **MKDT** | Core Domain | Sangat Tinggi (Fat Controller) | `PENDING` | - | - |
+| 15 | **Keuangan** | Core Financial | Sangat Tinggi (Terbesar + Pencairan Akad/Jaminan) | `PENDING` | - | - |
 
 ---
 

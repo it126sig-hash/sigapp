@@ -1,6 +1,6 @@
 {
-    "scanned_at": "2026-10-12T16:44:09+07:00",
-    "total_modules": 16,
+    "scanned_at": "2026-10-13T09:20:01+07:00",
+    "total_modules": 15,
     "modules": {
         "Proyek": {
             "name": "Proyek",
@@ -1357,24 +1357,8 @@
                 {
                     "relative_path": "app/Services/SiteplanMenuService.php",
                     "filename": "SiteplanMenuService.php",
-                    "line_count": 373,
-                    "public_methods": [
-                        "renderForRole(int $roleId)",
-                        "getFlatItems(bool $activeOnly = false)",
-                        "findItem(int $id)",
-                        "saveItem(array $fields, int $id = 0)",
-                        "toggleItem(int $id)",
-                        "syncRoles(int $itemId, array $groupIds)",
-                        "getItemRoleIds(int $itemId)",
-                        "groupOptions()",
-                        "groupLabel(int $groupId)",
-                        "getActionItemsForList(int $roleId)",
-                        "renderAllGroupMenus()",
-                        "getItemsForAccessGroup(int $groupId)",
-                        "renderGroupMenu(int $groupId, array $items, bool $hidden)",
-                        "renderItem($item)",
-                        "tablesReady()"
-                    ]
+                    "line_count": 12,
+                    "public_methods": []
                 },
                 {
                     "relative_path": "app/Services/SiteplanUrgentService.php",
@@ -1573,7 +1557,7 @@
                     "http_method": "POST",
                     "uri": "siteplan-menu/list",
                     "type": "Explicit",
-                    "handler": "MenuSetting::siteplanMenuList",
+                    "handler": "MenuSettingController::siteplanMenuList",
                     "status": "\ud83d\udfe1 LEGACY",
                     "notes": "Rute eksplisit ke flat controller lama"
                 },
@@ -1581,7 +1565,7 @@
                     "http_method": "POST",
                     "uri": "siteplan-menu/get",
                     "type": "Explicit",
-                    "handler": "MenuSetting::siteplanMenuGet",
+                    "handler": "MenuSettingController::siteplanMenuGet",
                     "status": "\ud83d\udfe1 LEGACY",
                     "notes": "Rute eksplisit ke flat controller lama"
                 },
@@ -1589,7 +1573,7 @@
                     "http_method": "POST",
                     "uri": "siteplan-menu/save",
                     "type": "Explicit",
-                    "handler": "MenuSetting::siteplanMenuSave",
+                    "handler": "MenuSettingController::siteplanMenuSave",
                     "status": "\ud83d\udfe1 LEGACY",
                     "notes": "Rute eksplisit ke flat controller lama"
                 },
@@ -1597,7 +1581,39 @@
                     "http_method": "POST",
                     "uri": "siteplan-menu/toggle",
                     "type": "Explicit",
-                    "handler": "MenuSetting::siteplanMenuToggle",
+                    "handler": "MenuSettingController::siteplanMenuToggle",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/list",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::siteplanMenuList",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/get",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::siteplanMenuGet",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::siteplanMenuSave",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/toggle",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::siteplanMenuToggle",
                     "status": "\ud83d\udfe1 LEGACY",
                     "notes": "Rute eksplisit ke flat controller lama"
                 },
@@ -1858,23 +1874,7 @@
                     "normalizeOptionalId($value)",
                     "categoryFilters(array $params)"
                 ],
-                "SiteplanMenuService.php": [
-                    "renderForRole(int $roleId)",
-                    "getFlatItems(bool $activeOnly = false)",
-                    "findItem(int $id)",
-                    "saveItem(array $fields, int $id = 0)",
-                    "toggleItem(int $id)",
-                    "syncRoles(int $itemId, array $groupIds)",
-                    "getItemRoleIds(int $itemId)",
-                    "groupOptions()",
-                    "groupLabel(int $groupId)",
-                    "getActionItemsForList(int $roleId)",
-                    "renderAllGroupMenus()",
-                    "getItemsForAccessGroup(int $groupId)",
-                    "renderGroupMenu(int $groupId, array $items, bool $hidden)",
-                    "renderItem($item)",
-                    "tablesReady()"
-                ],
+                "SiteplanMenuService.php": [],
                 "SiteplanUrgentService.php": [
                     "getSummary(int $idProyek, int $groupId, ?int $userId = null)",
                     "getUrgentSummary(int $idProyek, int $groupId, ?int $userId = null)",
@@ -3072,7 +3072,17 @@
                 "cashout_subkon_history",
                 "cashout_subkon_kavling",
                 "cashout_subkon_payment",
-                "list_cashout"
+                "list_cashout",
+                "riwayat_pencairan_jaminan",
+                "riwayat_pencairan_jaminan_detail",
+                "dana_jaminan_history",
+                "dana_akad",
+                "pencairan_akad_plan",
+                "pencairan_akad_item",
+                "pencairan_akad_pengajuan",
+                "pencairan_akad_pengajuan_detail",
+                "pencairan_akad_payment",
+                "pencairan_akad_payment_detail"
             ],
             "shared_tables": [
                 "mkdt",
@@ -3327,6 +3337,20 @@
                     "public_methods": [
                         "printSpptb()",
                         "printKuitansi()"
+                    ]
+                },
+                {
+                    "relative_path": "app/Controllers/PencairanJaminan.php",
+                    "filename": "PencairanJaminan.php",
+                    "line_count": 75,
+                    "public_methods": [
+                        "index()",
+                        "list($id_kavling)",
+                        "store()",
+                        "toggleStatus($id)",
+                        "cairkan($id)",
+                        "history($id_kavling)",
+                        "download($id)"
                     ]
                 }
             ],
@@ -3654,6 +3678,31 @@
                         "exportBatalPoskonXlsx($id_proyek, $id_cluster, $id_jalan)",
                         "exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status)"
                     ]
+                },
+                {
+                    "relative_path": "app/Services/DanaJaminanService.php",
+                    "filename": "DanaJaminanService.php",
+                    "line_count": 637,
+                    "public_methods": [
+                        "getData(int $idMkdt, int $idKavling)",
+                        "saveDanaAkad($request, int $actorId)",
+                        "listPengajuan(int $idKavling)",
+                        "storePengajuan($request, int $actorId)",
+                        "cairkanPengajuan(int $idPengajuan, $request, int $actorId)",
+                        "getHistory(int $idKavling)",
+                        "rejectLegacyToggle()",
+                        "getDanaJaminanRows(int $idKavling)",
+                        "getPengajuanDetailMap(array $ids)",
+                        "getPengajuanDetail(int $idDetail, int $idPengajuan)",
+                        "findDanaAkad(string $key, int $idKavling, int $idListDajam)",
+                        "getDanaAkadById(int $idDanaAkad, int $idKavling)",
+                        "buildCairPayload(array $row, float $nominal, int $actorId)",
+                        "getAkadContext(int $idMkdt, int $idKavling, bool $akadOnly = true)",
+                        "getContextByKavling(int $idKavling)",
+                        "saveHistory(int $idKavling, int $idMkdt, ?int $idDanaAkad, ?int $idPengajuan, string $aksi, string $deskripsi, $snapshot, int $actorId)",
+                        "response(bool $success, string $message, array $extra = [])",
+                        "num($value)"
+                    ]
                 }
             ],
             "repositories": [
@@ -3942,6 +3991,24 @@
                     "relative_path": "app/Models/ListCashoutModel.php",
                     "filename": "ListCashoutModel.php",
                     "line_count": 17,
+                    "public_methods": []
+                },
+                {
+                    "relative_path": "app/Models/RiwayatPencairanJaminanModel.php",
+                    "filename": "RiwayatPencairanJaminanModel.php",
+                    "line_count": 18,
+                    "public_methods": []
+                },
+                {
+                    "relative_path": "app/Models/RiwayatPencairanJaminanDetailModel.php",
+                    "filename": "RiwayatPencairanJaminanDetailModel.php",
+                    "line_count": 28,
+                    "public_methods": []
+                },
+                {
+                    "relative_path": "app/Models/DanaJaminanHistoryModel.php",
+                    "filename": "DanaJaminanHistoryModel.php",
+                    "line_count": 25,
                     "public_methods": []
                 }
             ],
@@ -4832,6 +4899,62 @@
                     "notes": "Rute eksplisit ke flat controller lama"
                 },
                 {
+                    "http_method": "GET",
+                    "uri": "/",
+                    "type": "Explicit",
+                    "handler": "PencairanJaminan::index",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "list/(:num)",
+                    "type": "Explicit",
+                    "handler": "PencairanJaminan::list/$1",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "store",
+                    "type": "Explicit",
+                    "handler": "PencairanJaminan::store",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "cairkan/(:num)",
+                    "type": "Explicit",
+                    "handler": "PencairanJaminan::cairkan/$1",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "history/(:num)",
+                    "type": "Explicit",
+                    "handler": "PencairanJaminan::history/$1",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "toggle/(:num)",
+                    "type": "Explicit",
+                    "handler": "PencairanJaminan::toggleStatus/$1",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "download/(:num)",
+                    "type": "Explicit",
+                    "handler": "PencairanJaminan::download/$1",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
                     "http_method": "ANY",
                     "uri": "/keuangan/getdanaakad",
                     "type": "AutoRoute",
@@ -5545,163 +5668,7 @@
                     "exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status)",
                     "exportBatalPoskonXlsx($id_proyek, $id_cluster, $id_jalan)",
                     "exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status)"
-                ]
-            },
-            "doc_path": "docs/modules/Keuangan/MODULE.md"
-        },
-        "PencairanJaminan": {
-            "name": "PencairanJaminan",
-            "description": "Pengelolaan dan pelacakan riwayat pencairan dana jaminan / retensi perbankan.",
-            "status": "REFACTORED",
-            "readiness_score": 80,
-            "readiness_checklist": {
-                "has_service": true,
-                "has_repository": true,
-                "has_web_api_split": false,
-                "has_explicit_routes": true,
-                "has_documentation": true
-            },
-            "owner_tables": [
-                "riwayat_pencairan_jaminan",
-                "riwayat_pencairan_jaminan_detail",
-                "dana_jaminan_history"
-            ],
-            "shared_tables": [
-                "keuangan",
-                "proyek"
-            ],
-            "controllers": [
-                {
-                    "relative_path": "app/Controllers/PencairanJaminan.php",
-                    "filename": "PencairanJaminan.php",
-                    "line_count": 71,
-                    "public_methods": [
-                        "index()",
-                        "list($id_kavling)",
-                        "store()",
-                        "toggleStatus($id)",
-                        "cairkan($id)",
-                        "history($id_kavling)",
-                        "download($id)"
-                    ]
-                }
-            ],
-            "services": [
-                {
-                    "relative_path": "app/Services/DanaJaminanService.php",
-                    "filename": "DanaJaminanService.php",
-                    "line_count": 633,
-                    "public_methods": [
-                        "getData(int $idMkdt, int $idKavling)",
-                        "saveDanaAkad($request, int $actorId)",
-                        "listPengajuan(int $idKavling)",
-                        "storePengajuan($request, int $actorId)",
-                        "cairkanPengajuan(int $idPengajuan, $request, int $actorId)",
-                        "getHistory(int $idKavling)",
-                        "rejectLegacyToggle()",
-                        "getDanaJaminanRows(int $idKavling)",
-                        "getPengajuanDetailMap(array $ids)",
-                        "getPengajuanDetail(int $idDetail, int $idPengajuan)",
-                        "findDanaAkad(string $key, int $idKavling, int $idListDajam)",
-                        "getDanaAkadById(int $idDanaAkad, int $idKavling)",
-                        "buildCairPayload(array $row, float $nominal, int $actorId)",
-                        "getAkadContext(int $idMkdt, int $idKavling, bool $akadOnly = true)",
-                        "getContextByKavling(int $idKavling)",
-                        "saveHistory(int $idKavling, int $idMkdt, ?int $idDanaAkad, ?int $idPengajuan, string $aksi, string $deskripsi, $snapshot, int $actorId)",
-                        "response(bool $success, string $message, array $extra = [])",
-                        "num($value)"
-                    ]
-                }
-            ],
-            "repositories": [
-                {
-                    "relative_path": "app/Repositories/PartialRepository.php",
-                    "filename": "PartialRepository.php",
-                    "line_count": 1,
-                    "public_methods": []
-                }
-            ],
-            "models": [
-                {
-                    "relative_path": "app/Models/RiwayatPencairanJaminanModel.php",
-                    "filename": "RiwayatPencairanJaminanModel.php",
-                    "line_count": 18,
-                    "public_methods": []
-                },
-                {
-                    "relative_path": "app/Models/RiwayatPencairanJaminanDetailModel.php",
-                    "filename": "RiwayatPencairanJaminanDetailModel.php",
-                    "line_count": 28,
-                    "public_methods": []
-                },
-                {
-                    "relative_path": "app/Models/DanaJaminanHistoryModel.php",
-                    "filename": "DanaJaminanHistoryModel.php",
-                    "line_count": 25,
-                    "public_methods": []
-                }
-            ],
-            "views": [],
-            "assets_js": [],
-            "routes": [
-                {
-                    "http_method": "GET",
-                    "uri": "/",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "list/(:num)",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::list/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "store",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::store",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "cairkan/(:num)",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::cairkan/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "history/(:num)",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::history/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "toggle/(:num)",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::toggleStatus/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "download/(:num)",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::download/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                }
-            ],
-            "service_contracts": {
+                ],
                 "DanaJaminanService.php": [
                     "getData(int $idMkdt, int $idKavling)",
                     "saveDanaAkad($request, int $actorId)",
@@ -5723,7 +5690,7 @@
                     "num($value)"
                 ]
             },
-            "doc_path": "docs/modules/PencairanJaminan/MODULE.md"
+            "doc_path": "docs/modules/Keuangan/MODULE.md"
         },
         "Legal": {
             "name": "Legal",
@@ -6921,7 +6888,7 @@
             ],
             "controllers": [
                 {
-                    "relative_path": "app/Controllers/Web/BpbController.php",
+                    "relative_path": "app/Controllers/Web/Bpb/BpbController.php",
                     "filename": "BpbController.php",
                     "line_count": 77,
                     "public_methods": [
@@ -6932,9 +6899,9 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Controllers/Api/BpbController.php",
+                    "relative_path": "app/Controllers/Api/Bpb/BpbController.php",
                     "filename": "BpbController.php",
-                    "line_count": 122,
+                    "line_count": 123,
                     "public_methods": [
                         "list()",
                         "options()",
@@ -6952,9 +6919,9 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Controllers/Api/ProfileSignatureController.php",
+                    "relative_path": "app/Controllers/Api/Bpb/ProfileSignatureController.php",
                     "filename": "ProfileSignatureController.php",
-                    "line_count": 53,
+                    "line_count": 54,
                     "public_methods": [
                         "show($id = null)",
                         "image()",
@@ -6967,7 +6934,7 @@
                 {
                     "relative_path": "app/Services/Bpb/BpbService.php",
                     "filename": "BpbService.php",
-                    "line_count": 653,
+                    "line_count": 664,
                     "public_methods": [
                         "list(array $input, int $userId)",
                         "options(int $userId)",
@@ -6995,6 +6962,7 @@
                         "canView(array $request, int $userId)",
                         "assertOwner(array $request, int $userId)",
                         "nullableInt(mixed $value)",
+                        "cleanNumeric(mixed $value)",
                         "validDate(string $date)",
                         "sendNotifications(array $notifications, int $actorUserId, int $bpbId)"
                     ]
@@ -7015,7 +6983,7 @@
                 {
                     "relative_path": "app/Services/Bpb/BpbPdfService.php",
                     "filename": "BpbPdfService.php",
-                    "line_count": 338,
+                    "line_count": 323,
                     "public_methods": [
                         "render(array $detail, int $userId)",
                         "verify(string $token)",
@@ -7069,12 +7037,13 @@
             ],
             "repositories": [
                 {
-                    "relative_path": "app/Repositories/BpbRepository.php",
+                    "relative_path": "app/Repositories/Bpb/BpbRepository.php",
                     "filename": "BpbRepository.php",
-                    "line_count": 173,
+                    "line_count": 206,
                     "public_methods": [
                         "list(array $input, int $userId)",
                         "detail(int $id)",
+                        "findForVerification(string $token)",
                         "lock(int $id)",
                         "findBySubmissionKey(string $key)",
                         "options(int $excludeUserId)",
@@ -7446,6 +7415,7 @@
                     "canView(array $request, int $userId)",
                     "assertOwner(array $request, int $userId)",
                     "nullableInt(mixed $value)",
+                    "cleanNumeric(mixed $value)",
                     "validDate(string $date)",
                     "sendNotifications(array $notifications, int $actorUserId, int $bpbId)"
                 ],
@@ -8912,11 +8882,11 @@
             "name": "UserManagement",
             "description": "Manajemen kepegawaian, struktur divisi, hak akses menu, akun pengguna, dan profil perusahaan.",
             "status": "REFACTORED",
-            "readiness_score": 80,
+            "readiness_score": 100,
             "readiness_checklist": {
                 "has_service": true,
                 "has_repository": true,
-                "has_web_api_split": false,
+                "has_web_api_split": true,
                 "has_explicit_routes": true,
                 "has_documentation": true
             },
@@ -8932,112 +8902,144 @@
             ],
             "controllers": [
                 {
-                    "relative_path": "app/Controllers/Pengguna.php",
-                    "filename": "Pengguna.php",
-                    "line_count": 371,
+                    "relative_path": "app/Controllers/Web/UserManagement/PenggunaController.php",
+                    "filename": "PenggunaController.php",
+                    "line_count": 25,
                     "public_methods": [
-                        "index()",
-                        "setuser()",
+                        "index()"
+                    ]
+                },
+                {
+                    "relative_path": "app/Controllers/Api/UserManagement/PenggunaController.php",
+                    "filename": "PenggunaController.php",
+                    "line_count": 71,
+                    "public_methods": [
                         "getAll()",
-                        "changeGroup($userId, $groupId)",
-                        "chnagePermission($userId, $permissionId)",
                         "getOne()",
+                        "add()",
+                        "edit($id = null)",
                         "edit_user()",
-                        "add()",
                         "remove()"
                     ]
                 },
                 {
-                    "relative_path": "app/Controllers/Karyawan.php",
-                    "filename": "Karyawan.php",
-                    "line_count": 229,
+                    "relative_path": "app/Controllers/Web/UserManagement/KaryawanController.php",
+                    "filename": "KaryawanController.php",
+                    "line_count": 25,
                     "public_methods": [
-                        "index()",
+                        "index()"
+                    ]
+                },
+                {
+                    "relative_path": "app/Controllers/Api/UserManagement/KaryawanController.php",
+                    "filename": "KaryawanController.php",
+                    "line_count": 66,
+                    "public_methods": [
                         "getAll()",
                         "getOne()",
                         "add()",
-                        "changeGroup($userId, $groupId)",
-                        "chnagePermission($userId, $permissionId)",
-                        "edit()",
+                        "edit($id = null)",
                         "remove()"
                     ]
                 },
                 {
-                    "relative_path": "app/Controllers/AksesProyek.php",
-                    "filename": "AksesProyek.php",
-                    "line_count": 75,
+                    "relative_path": "app/Controllers/Web/UserManagement/ProfilController.php",
+                    "filename": "ProfilController.php",
+                    "line_count": 41,
                     "public_methods": [
                         "index()",
-                        "getAll()",
-                        "getOne()",
-                        "getAkses()",
-                        "edit()"
+                        "update()"
                     ]
                 },
                 {
-                    "relative_path": "app/Controllers/Profil.php",
-                    "filename": "Profil.php",
-                    "line_count": 197,
+                    "relative_path": "app/Controllers/Api/UserManagement/ProfilController.php",
+                    "filename": "ProfilController.php",
+                    "line_count": 31,
                     "public_methods": [
-                        "index()",
-                        "update()",
-                        "currentUserRow()",
-                        "profilePhotoUrl(?string $path)"
+                        "update($id = null)"
                     ]
                 }
             ],
             "services": [
                 {
-                    "relative_path": "app/Services/PenggunaService.php",
+                    "relative_path": "app/Services/UserManagement/PenggunaService.php",
                     "filename": "PenggunaService.php",
-                    "line_count": 174,
+                    "line_count": 346,
                     "public_methods": [
-                        "setuser()",
-                        "getAll()",
-                        "changeGroup($userId, $groupId)",
-                        "chnagePermission($userId, $permissionId)",
-                        "getOne()",
-                        "edit_user()",
-                        "add()",
-                        "remove()"
+                        "getSetuserData()",
+                        "getDatatable()",
+                        "getOne(int $id)",
+                        "addUser(array $postData)",
+                        "editUser(array $postData)",
+                        "toggleStatus(int $id, int $currentStatus)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Services/UserManagement/KaryawanService.php",
+                    "filename": "KaryawanService.php",
+                    "line_count": 242,
+                    "public_methods": [
+                        "getIndexData()",
+                        "getDatatable()",
+                        "getOne(string $nik)",
+                        "addKaryawan(array $postData)",
+                        "editKaryawan(array $postData)",
+                        "toggleStatus(string $nik, int $currentStatus)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Services/UserManagement/ProfilService.php",
+                    "filename": "ProfilService.php",
+                    "line_count": 230,
+                    "public_methods": [
+                        "getIndexData(int $userId)",
+                        "updateProfile(int $userId, array $postData, ?UploadedFile $photo = null)",
+                        "profilePhotoUrl(?string $path)"
                     ]
                 }
             ],
             "repositories": [
                 {
-                    "relative_path": "app/Repositories/KaryawanRepository.php",
-                    "filename": "KaryawanRepository.php",
-                    "line_count": 236,
+                    "relative_path": "app/Repositories/UserManagement/PenggunaRepository.php",
+                    "filename": "PenggunaRepository.php",
+                    "line_count": 107,
                     "public_methods": [
-                        "findAll(int $limit = null, int $offset = 0)",
-                        "findById(int|string $id)",
-                        "findBy(array $criteria, int $limit = null, int $offset = 0)",
-                        "findOneBy(array $criteria)",
-                        "create(array $data)",
-                        "update(int|string $id, array $data)",
-                        "updateBy(array $criteria, array $data)",
-                        "delete(int|string $id)",
-                        "deleteBy(array $criteria)",
-                        "count(array $criteria = [])",
-                        "exists(int|string $id)"
+                        "getAll()",
+                        "findById(int $id)",
+                        "findRawUser(int $id)",
+                        "insertUser(array $data)",
+                        "updateUser(int $id, array $data)",
+                        "syncGroup(int $userId, int $groupId)",
+                        "syncPermission(int $userId, int $permissionId)",
+                        "toggleActive(int $id, int $newActiveStatus)"
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/DivisiRepository.php",
-                    "filename": "DivisiRepository.php",
-                    "line_count": 236,
+                    "relative_path": "app/Repositories/UserManagement/KaryawanRepository.php",
+                    "filename": "KaryawanRepository.php",
+                    "line_count": 110,
                     "public_methods": [
-                        "findAll(int $limit = null, int $offset = 0)",
-                        "findById(int|string $id)",
-                        "findBy(array $criteria, int $limit = null, int $offset = 0)",
-                        "findOneBy(array $criteria)",
-                        "create(array $data)",
-                        "update(int|string $id, array $data)",
-                        "updateBy(array $criteria, array $data)",
-                        "delete(int|string $id)",
-                        "deleteBy(array $criteria)",
-                        "count(array $criteria = [])",
-                        "exists(int|string $id)"
+                        "getAll()",
+                        "getUnlinkedKaryawan()",
+                        "findByNik(string $nik)",
+                        "findByUserId(int $userId)",
+                        "insert(array $data)",
+                        "update(string $nik, array $data)",
+                        "linkUser(string $nik, int $userId)",
+                        "toggleStatus(string $nik, int $newStatus)",
+                        "getDivisiList()",
+                        "getLevelList()"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/UserManagement/ProfilRepository.php",
+                    "filename": "ProfilRepository.php",
+                    "line_count": 58,
+                    "public_methods": [
+                        "getUserRow(int $userId)",
+                        "getDepartmentName(int $userId)",
+                        "updateUser(int $userId, array $fields)",
+                        "syncKaryawanName(int $userId, string $name)"
                     ]
                 }
             ],
@@ -9077,253 +9079,628 @@
                 {
                     "folder": "app/Views/user",
                     "file_count": 4
+                },
+                {
+                    "folder": "app/Views/master",
+                    "file_count": 9
                 }
             ],
             "assets_js": [],
             "routes": [
                 {
-                    "http_method": "POST",
-                    "uri": "/getAkases",
-                    "type": "Explicit",
-                    "handler": "AksesProyek::getAkses",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
                     "http_method": "GET",
-                    "uri": "/aksesproyek",
+                    "uri": "pengguna/setuser",
                     "type": "Explicit",
-                    "handler": "\\App\\Controllers\\Web\\Proyek\\AksesProyekController::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "aksesproyek",
-                    "type": "Explicit",
-                    "handler": "AksesProyekController::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "PenggunaController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
-                    "uri": "all",
+                    "uri": "getall",
                     "type": "Explicit",
-                    "handler": "AksesProyekController::getAll",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "PenggunaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getAll",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "getone",
                     "type": "Explicit",
-                    "handler": "AksesProyekController::getOne",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "PenggunaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
-                    "uri": "search-users",
+                    "uri": "getOne",
                     "type": "Explicit",
-                    "handler": "AksesProyekController::getAkses",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "PenggunaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "edit",
                     "type": "Explicit",
-                    "handler": "AksesProyekController::edit",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "PenggunaController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "edit_user",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::edit_user",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "setuser",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\UserManagement\\PenggunaController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getAll",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getall",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getOne",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getone",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "edit_user",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::edit_user",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "pengguna/setuser",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getall",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getAll",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getone",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getOne",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "edit_user",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::edit_user",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "PenggunaController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "setuser",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\UserManagement\\PenggunaController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getAll",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getall",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getOne",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getone",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "edit_user",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::edit_user",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\PenggunaController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "karyawan",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getall",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getAll",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getone",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getOne",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\UserManagement\\KaryawanController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getAll",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getall",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getOne",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getone",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "karyawan",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getall",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getAll",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getone",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getOne",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "KaryawanController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\UserManagement\\KaryawanController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getAll",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getall",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getOne",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getone",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\UserManagement\\KaryawanController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
                     "uri": "/profil",
                     "type": "Explicit",
-                    "handler": "Profil::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Web\\UserManagement\\ProfilController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/profil/update",
                     "type": "Explicit",
-                    "handler": "Profil::update",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Web\\UserManagement\\ProfilController::update",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "update",
+                    "type": "Explicit",
+                    "handler": "ProfilController::update",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
-                    "uri": "image",
+                    "uri": "/profil",
                     "type": "Explicit",
-                    "handler": "ProfileSignatureController::image",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Web\\UserManagement\\ProfilController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/pengguna/index",
-                    "type": "AutoRoute",
-                    "handler": "Pengguna::index",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/profil/update",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\UserManagement\\ProfilController::update",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/pengguna/setuser",
-                    "type": "AutoRoute",
-                    "handler": "Pengguna::setuser",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/pengguna/getall",
-                    "type": "AutoRoute",
-                    "handler": "Pengguna::getAll",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/pengguna/changegroup",
-                    "type": "AutoRoute",
-                    "handler": "Pengguna::changeGroup",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/pengguna/chnagepermission",
-                    "type": "AutoRoute",
-                    "handler": "Pengguna::chnagePermission",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/pengguna/getone",
-                    "type": "AutoRoute",
-                    "handler": "Pengguna::getOne",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/pengguna/edit_user",
-                    "type": "AutoRoute",
-                    "handler": "Pengguna::edit_user",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/pengguna/add",
-                    "type": "AutoRoute",
-                    "handler": "Pengguna::add",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/pengguna/remove",
-                    "type": "AutoRoute",
-                    "handler": "Pengguna::remove",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/karyawan/index",
-                    "type": "AutoRoute",
-                    "handler": "Karyawan::index",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/karyawan/getall",
-                    "type": "AutoRoute",
-                    "handler": "Karyawan::getAll",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/karyawan/getone",
-                    "type": "AutoRoute",
-                    "handler": "Karyawan::getOne",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/karyawan/add",
-                    "type": "AutoRoute",
-                    "handler": "Karyawan::add",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/karyawan/changegroup",
-                    "type": "AutoRoute",
-                    "handler": "Karyawan::changeGroup",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/karyawan/chnagepermission",
-                    "type": "AutoRoute",
-                    "handler": "Karyawan::chnagePermission",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/karyawan/edit",
-                    "type": "AutoRoute",
-                    "handler": "Karyawan::edit",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/karyawan/remove",
-                    "type": "AutoRoute",
-                    "handler": "Karyawan::remove",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/profil/currentuserrow",
-                    "type": "AutoRoute",
-                    "handler": "Profil::currentUserRow",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/profil/profilephotourl",
-                    "type": "AutoRoute",
-                    "handler": "Profil::profilePhotoUrl",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "update",
+                    "type": "Explicit",
+                    "handler": "ProfilController::update",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 }
             ],
             "service_contracts": {
                 "PenggunaService.php": [
-                    "setuser()",
-                    "getAll()",
-                    "changeGroup($userId, $groupId)",
-                    "chnagePermission($userId, $permissionId)",
-                    "getOne()",
-                    "edit_user()",
-                    "add()",
-                    "remove()"
+                    "getSetuserData()",
+                    "getDatatable()",
+                    "getOne(int $id)",
+                    "addUser(array $postData)",
+                    "editUser(array $postData)",
+                    "toggleStatus(int $id, int $currentStatus)"
+                ],
+                "KaryawanService.php": [
+                    "getIndexData()",
+                    "getDatatable()",
+                    "getOne(string $nik)",
+                    "addKaryawan(array $postData)",
+                    "editKaryawan(array $postData)",
+                    "toggleStatus(string $nik, int $currentStatus)"
+                ],
+                "ProfilService.php": [
+                    "getIndexData(int $userId)",
+                    "updateProfile(int $userId, array $postData, ?UploadedFile $photo = null)",
+                    "profilePhotoUrl(?string $path)"
                 ]
             },
             "doc_path": "docs/modules/UserManagement/MODULE.md"
@@ -9331,12 +9708,12 @@
         "Settings": {
             "name": "Settings",
             "description": "Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaan siteplan.",
-            "status": "MAPPED",
-            "readiness_score": 60,
+            "status": "REFACTORED",
+            "readiness_score": 100,
             "readiness_checklist": {
                 "has_service": true,
-                "has_repository": false,
-                "has_web_api_split": false,
+                "has_repository": true,
+                "has_web_api_split": true,
                 "has_explicit_routes": true,
                 "has_documentation": true
             },
@@ -9351,11 +9728,18 @@
             ],
             "controllers": [
                 {
-                    "relative_path": "app/Controllers/MenuSetting.php",
-                    "filename": "MenuSetting.php",
-                    "line_count": 545,
+                    "relative_path": "app/Controllers/Web/Settings/MenuSettingController.php",
+                    "filename": "MenuSettingController.php",
+                    "line_count": 28,
                     "public_methods": [
-                        "index()",
+                        "index()"
+                    ]
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Settings/MenuSettingController.php",
+                    "filename": "MenuSettingController.php",
+                    "line_count": 180,
+                    "public_methods": [
                         "menuList()",
                         "menuGet()",
                         "menuSave()",
@@ -9367,75 +9751,52 @@
                         "siteplanMenuList()",
                         "siteplanMenuGet()",
                         "siteplanMenuSave()",
-                        "siteplanMenuToggle()",
-                        "guardAdmin(bool $json = false)",
-                        "jsonError($messages)",
-                        "getGroups()",
-                        "getUsers()",
-                        "getParentOptions()",
-                        "getFlatMenus(bool $activeOnly)",
-                        "groupExists(int $groupId)",
-                        "userExists(int $userId)",
-                        "isDescendant(int $menuId, int $parentId)",
-                        "makeSlug(string $name)"
+                        "siteplanMenuToggle()"
                     ]
                 },
                 {
-                    "relative_path": "app/Controllers/SettingData.php",
-                    "filename": "SettingData.php",
-                    "line_count": 363,
-                    "public_methods": [
-                        "index()",
-                        "list(string $key)",
-                        "get(string $key)",
-                        "save(string $key)",
-                        "delete(string $key)",
-                        "collectFields(array $config)",
-                        "validationRules(array $config)",
-                        "findActiveRow(array $config, int $id)",
-                        "nextManualId(array $config)",
-                        "getConfig(string $key)",
-                        "guardAdmin(bool $json = false)",
-                        "jsonError($messages)",
-                        "jsonSuccess(string $message)",
-                        "tableConfigs()"
-                    ]
-                },
-                {
-                    "relative_path": "app/Controllers/PengaturanWarna.php",
-                    "filename": "PengaturanWarna.php",
-                    "line_count": 237,
-                    "public_methods": [
-                        "index()",
-                        "getAll()",
-                        "getOne()",
-                        "add()",
-                        "edit()",
-                        "remove()",
-                        "normalizeStrokeWidth($value)"
-                    ]
-                },
-                {
-                    "relative_path": "app/Controllers/ConfigColor.php",
-                    "filename": "ConfigColor.php",
-                    "line_count": 28,
+                    "relative_path": "app/Controllers/Web/Settings/SettingDataController.php",
+                    "filename": "SettingDataController.php",
+                    "line_count": 29,
                     "public_methods": [
                         "index()"
                     ]
                 },
                 {
-                    "relative_path": "app/Controllers/Config.php",
-                    "filename": "Config.php",
-                    "line_count": 15,
+                    "relative_path": "app/Controllers/Api/Settings/SettingDataController.php",
+                    "filename": "SettingDataController.php",
+                    "line_count": 56,
                     "public_methods": [
-                        "index()",
-                        "get_shape()"
+                        "list(string $key)",
+                        "get(string $key)",
+                        "save(string $key)",
+                        "delete($key = null)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Controllers/Web/Settings/PengaturanWarnaController.php",
+                    "filename": "PengaturanWarnaController.php",
+                    "line_count": 20,
+                    "public_methods": [
+                        "index()"
+                    ]
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Settings/PengaturanWarnaController.php",
+                    "filename": "PengaturanWarnaController.php",
+                    "line_count": 62,
+                    "public_methods": [
+                        "getAll()",
+                        "getOne()",
+                        "add()",
+                        "edit($id = null)",
+                        "remove()"
                     ]
                 }
             ],
             "services": [
                 {
-                    "relative_path": "app/Services/MenuAccessService.php",
+                    "relative_path": "app/Services/Settings/MenuAccessService.php",
                     "filename": "MenuAccessService.php",
                     "line_count": 266,
                     "public_methods": [
@@ -9455,7 +9816,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/SiteplanMenuService.php",
+                    "relative_path": "app/Services/Settings/SiteplanMenuService.php",
                     "filename": "SiteplanMenuService.php",
                     "line_count": 373,
                     "public_methods": [
@@ -9475,9 +9836,102 @@
                         "renderItem($item)",
                         "tablesReady()"
                     ]
+                },
+                {
+                    "relative_path": "app/Services/Settings/SettingDataService.php",
+                    "filename": "SettingDataService.php",
+                    "line_count": 195,
+                    "public_methods": [
+                        "getAllConfigs()",
+                        "getConfig(string $key)",
+                        "list(string $key)",
+                        "get(string $key, int $id)",
+                        "save(string $key, array $postData, int $userId)",
+                        "delete(string $key, int $id, int $userId)",
+                        "collectFields(array $config, array $postData)",
+                        "validationRules(array $config)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Services/Settings/PengaturanWarnaService.php",
+                    "filename": "PengaturanWarnaService.php",
+                    "line_count": 205,
+                    "public_methods": [
+                        "getAll()",
+                        "getOne(string $configName)",
+                        "add(array $postData, ?string $userName = null)",
+                        "edit(array $postData, ?string $userName = null)",
+                        "remove(string $configName)",
+                        "normalizeStrokeWidth($value)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Services/Settings/MenuSettingService.php",
+                    "filename": "MenuSettingService.php",
+                    "line_count": 324,
+                    "public_methods": [
+                        "getIndexData()",
+                        "getMenuList()",
+                        "getMenu(int $id)",
+                        "saveMenu(array $postData)",
+                        "toggleMenu(int $id)",
+                        "getSiteplanMenuList()",
+                        "getSiteplanMenu(int $id)",
+                        "saveSiteplanMenu(array $postData)",
+                        "toggleSiteplanMenu(int $id)",
+                        "makeSlug(string $name)"
+                    ]
                 }
             ],
-            "repositories": [],
+            "repositories": [
+                {
+                    "relative_path": "app/Repositories/Settings/MenuRepository.php",
+                    "filename": "MenuRepository.php",
+                    "line_count": 150,
+                    "public_methods": [
+                        "getGroups()",
+                        "getUsers()",
+                        "getParentOptions()",
+                        "getFlatMenus(bool $activeOnly = false)",
+                        "findMenuById(int $id)",
+                        "insertMenu(array $data)",
+                        "updateMenu(int $id, array $data)",
+                        "groupExists(int $groupId)",
+                        "userExists(int $userId)",
+                        "isDescendant(int $menuId, int $parentId)",
+                        "checkDuplicateSiteplanItemKey(string $itemKey, int $excludeId = 0)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Settings/SettingDataRepository.php",
+                    "filename": "SettingDataRepository.php",
+                    "line_count": 191,
+                    "public_methods": [
+                        "getAllConfigs()",
+                        "getConfig(string $key)",
+                        "listRows(array $config)",
+                        "findActiveRow(array $config, int $id)",
+                        "nextManualId(array $config)",
+                        "getFieldNames(string $table)",
+                        "insertRow(string $table, array $fields)",
+                        "updateRow(string $table, string $primaryKey, int $id, array $fields)",
+                        "softDeleteRow(array $config, int $id, int $userId)",
+                        "tableConfigs()"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Settings/PengaturanWarnaRepository.php",
+                    "filename": "PengaturanWarnaRepository.php",
+                    "line_count": 43,
+                    "public_methods": [
+                        "getAll()",
+                        "getByConfigName(string $configName)",
+                        "insert(array $fields)",
+                        "update(string $configName, array $fields)",
+                        "delete(string $configName)"
+                    ]
+                }
+            ],
             "models": [
                 {
                     "relative_path": "app/Models/MenuModel.php",
@@ -9518,385 +9972,861 @@
                 {
                     "folder": "app/Views/menu",
                     "file_count": 1
+                },
+                {
+                    "folder": "app/Views/master",
+                    "file_count": 9
                 }
             ],
             "assets_js": [],
             "routes": [
                 {
                     "http_method": "GET",
-                    "uri": "/",
+                    "uri": "menu-setting",
                     "type": "Explicit",
-                    "handler": "MenuSetting::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "menu/list",
                     "type": "Explicit",
-                    "handler": "MenuSetting::menuList",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::menuList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "menu/get",
                     "type": "Explicit",
-                    "handler": "MenuSetting::menuGet",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::menuGet",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "menu/save",
                     "type": "Explicit",
-                    "handler": "MenuSetting::menuSave",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::menuSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "menu/toggle",
                     "type": "Explicit",
-                    "handler": "MenuSetting::menuToggle",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::menuToggle",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "access/group",
                     "type": "Explicit",
-                    "handler": "MenuSetting::groupAccess",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::groupAccess",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "access/group/save",
                     "type": "Explicit",
-                    "handler": "MenuSetting::groupSave",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::groupSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "access/user",
                     "type": "Explicit",
-                    "handler": "MenuSetting::userAccess",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::userAccess",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "access/user/save",
                     "type": "Explicit",
-                    "handler": "MenuSetting::userSave",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::userSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "siteplan-menu/list",
                     "type": "Explicit",
-                    "handler": "MenuSetting::siteplanMenuList",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::siteplanMenuList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "siteplan-menu/get",
                     "type": "Explicit",
-                    "handler": "MenuSetting::siteplanMenuGet",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::siteplanMenuGet",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "siteplan-menu/save",
                     "type": "Explicit",
-                    "handler": "MenuSetting::siteplanMenuSave",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::siteplanMenuSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "siteplan-menu/toggle",
                     "type": "Explicit",
-                    "handler": "MenuSetting::siteplanMenuToggle",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "MenuSettingController::siteplanMenuToggle",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
                     "uri": "/",
                     "type": "Explicit",
-                    "handler": "SettingData::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Web\\Settings\\MenuSettingController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "menu/list",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::menuList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "menu/get",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::menuGet",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "menu/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::menuSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "menu/toggle",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::menuToggle",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "access/group",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::groupAccess",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "access/group/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::groupSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "access/user",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::userAccess",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "access/user/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::userSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/list",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::siteplanMenuList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/get",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::siteplanMenuGet",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::siteplanMenuSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/toggle",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::siteplanMenuToggle",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "menu-setting",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "menu/list",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::menuList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "menu/get",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::menuGet",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "menu/save",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::menuSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "menu/toggle",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::menuToggle",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "access/group",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::groupAccess",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "access/group/save",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::groupSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "access/user",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::userAccess",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "access/user/save",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::userSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/list",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::siteplanMenuList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/get",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::siteplanMenuGet",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/save",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::siteplanMenuSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/toggle",
+                    "type": "Explicit",
+                    "handler": "MenuSettingController::siteplanMenuToggle",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Settings\\MenuSettingController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "menu/list",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::menuList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "menu/get",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::menuGet",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "menu/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::menuSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "menu/toggle",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::menuToggle",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "access/group",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::groupAccess",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "access/group/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::groupSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "access/user",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::userAccess",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "access/user/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::userSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/list",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::siteplanMenuList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/get",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::siteplanMenuGet",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::siteplanMenuSave",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "siteplan-menu/toggle",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\MenuSettingController::siteplanMenuToggle",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "setting-data",
+                    "type": "Explicit",
+                    "handler": "SettingDataController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "list/(:segment)",
                     "type": "Explicit",
-                    "handler": "SettingData::list/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "SettingDataController::list/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "get/(:segment)",
                     "type": "Explicit",
-                    "handler": "SettingData::get/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "SettingDataController::get/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "save/(:segment)",
                     "type": "Explicit",
-                    "handler": "SettingData::save/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "SettingDataController::save/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "delete/(:segment)",
                     "type": "Explicit",
-                    "handler": "SettingData::delete/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "SettingDataController::delete/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Settings\\SettingDataController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "list/(:segment)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\SettingDataController::list/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "get/(:segment)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\SettingDataController::get/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "save/(:segment)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\SettingDataController::save/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "delete/(:segment)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\SettingDataController::delete/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "setting-data",
+                    "type": "Explicit",
+                    "handler": "SettingDataController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "list/(:segment)",
+                    "type": "Explicit",
+                    "handler": "SettingDataController::list/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "get/(:segment)",
+                    "type": "Explicit",
+                    "handler": "SettingDataController::get/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "save/(:segment)",
+                    "type": "Explicit",
+                    "handler": "SettingDataController::save/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "delete/(:segment)",
+                    "type": "Explicit",
+                    "handler": "SettingDataController::delete/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Settings\\SettingDataController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "list/(:segment)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\SettingDataController::list/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "get/(:segment)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\SettingDataController::get/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "save/(:segment)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\SettingDataController::save/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "delete/(:segment)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\SettingDataController::delete/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
                     "uri": "/configcolor",
                     "type": "Explicit",
-                    "handler": "PengaturanWarna::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Web\\Settings\\PengaturanWarnaController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/menu_setting/guardadmin",
-                    "type": "AutoRoute",
-                    "handler": "MenuSetting::guardAdmin",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "all",
+                    "type": "Explicit",
+                    "handler": "PengaturanWarnaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/menu_setting/jsonerror",
-                    "type": "AutoRoute",
-                    "handler": "MenuSetting::jsonError",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "getall",
+                    "type": "Explicit",
+                    "handler": "PengaturanWarnaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/menu_setting/getgroups",
-                    "type": "AutoRoute",
-                    "handler": "MenuSetting::getGroups",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "getone",
+                    "type": "Explicit",
+                    "handler": "PengaturanWarnaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/menu_setting/getusers",
-                    "type": "AutoRoute",
-                    "handler": "MenuSetting::getUsers",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "PengaturanWarnaController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/menu_setting/getparentoptions",
-                    "type": "AutoRoute",
-                    "handler": "MenuSetting::getParentOptions",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "PengaturanWarnaController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/menu_setting/getflatmenus",
-                    "type": "AutoRoute",
-                    "handler": "MenuSetting::getFlatMenus",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "PengaturanWarnaController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/menu_setting/groupexists",
-                    "type": "AutoRoute",
-                    "handler": "MenuSetting::groupExists",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "getAll",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/menu_setting/userexists",
-                    "type": "AutoRoute",
-                    "handler": "MenuSetting::userExists",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "getOne",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/menu_setting/isdescendant",
-                    "type": "AutoRoute",
-                    "handler": "MenuSetting::isDescendant",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/menu_setting/makeslug",
-                    "type": "AutoRoute",
-                    "handler": "MenuSetting::makeSlug",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/setting_data/collectfields",
-                    "type": "AutoRoute",
-                    "handler": "SettingData::collectFields",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/setting_data/validationrules",
-                    "type": "AutoRoute",
-                    "handler": "SettingData::validationRules",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "getall",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/setting_data/findactiverow",
-                    "type": "AutoRoute",
-                    "handler": "SettingData::findActiveRow",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "getone",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/setting_data/nextmanualid",
-                    "type": "AutoRoute",
-                    "handler": "SettingData::nextManualId",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/setting_data/getconfig",
-                    "type": "AutoRoute",
-                    "handler": "SettingData::getConfig",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/setting_data/guardadmin",
-                    "type": "AutoRoute",
-                    "handler": "SettingData::guardAdmin",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/setting_data/jsonerror",
-                    "type": "AutoRoute",
-                    "handler": "SettingData::jsonError",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "GET",
+                    "uri": "/configcolor",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Settings\\PengaturanWarnaController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/setting_data/jsonsuccess",
-                    "type": "AutoRoute",
-                    "handler": "SettingData::jsonSuccess",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "all",
+                    "type": "Explicit",
+                    "handler": "PengaturanWarnaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/setting_data/tableconfigs",
-                    "type": "AutoRoute",
-                    "handler": "SettingData::tableConfigs",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "getall",
+                    "type": "Explicit",
+                    "handler": "PengaturanWarnaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/pengaturan_warna/getall",
-                    "type": "AutoRoute",
-                    "handler": "PengaturanWarna::getAll",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "getone",
+                    "type": "Explicit",
+                    "handler": "PengaturanWarnaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/pengaturan_warna/getone",
-                    "type": "AutoRoute",
-                    "handler": "PengaturanWarna::getOne",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "PengaturanWarnaController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/pengaturan_warna/add",
-                    "type": "AutoRoute",
-                    "handler": "PengaturanWarna::add",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "PengaturanWarnaController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/pengaturan_warna/edit",
-                    "type": "AutoRoute",
-                    "handler": "PengaturanWarna::edit",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "PengaturanWarnaController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/pengaturan_warna/remove",
-                    "type": "AutoRoute",
-                    "handler": "PengaturanWarna::remove",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "getAll",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/pengaturan_warna/normalizestrokewidth",
-                    "type": "AutoRoute",
-                    "handler": "PengaturanWarna::normalizeStrokeWidth",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "getOne",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/config_color/index",
-                    "type": "AutoRoute",
-                    "handler": "ConfigColor::index",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/config/index",
-                    "type": "AutoRoute",
-                    "handler": "Config::index",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/config/get_shape",
-                    "type": "AutoRoute",
-                    "handler": "Config::get_shape",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getall",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "getone",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "add",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "edit",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "remove",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Settings\\PengaturanWarnaController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 }
             ],
             "service_contracts": {
@@ -9931,6 +10861,36 @@
                     "renderGroupMenu(int $groupId, array $items, bool $hidden)",
                     "renderItem($item)",
                     "tablesReady()"
+                ],
+                "SettingDataService.php": [
+                    "getAllConfigs()",
+                    "getConfig(string $key)",
+                    "list(string $key)",
+                    "get(string $key, int $id)",
+                    "save(string $key, array $postData, int $userId)",
+                    "delete(string $key, int $id, int $userId)",
+                    "collectFields(array $config, array $postData)",
+                    "validationRules(array $config)"
+                ],
+                "PengaturanWarnaService.php": [
+                    "getAll()",
+                    "getOne(string $configName)",
+                    "add(array $postData, ?string $userName = null)",
+                    "edit(array $postData, ?string $userName = null)",
+                    "remove(string $configName)",
+                    "normalizeStrokeWidth($value)"
+                ],
+                "MenuSettingService.php": [
+                    "getIndexData()",
+                    "getMenuList()",
+                    "getMenu(int $id)",
+                    "saveMenu(array $postData)",
+                    "toggleMenu(int $id)",
+                    "getSiteplanMenuList()",
+                    "getSiteplanMenu(int $id)",
+                    "saveSiteplanMenu(array $postData)",
+                    "toggleSiteplanMenu(int $id)",
+                    "makeSlug(string $name)"
                 ]
             },
             "doc_path": "docs/modules/Settings/MODULE.md"
@@ -10420,20 +11380,32 @@
     },
     "unmapped_files": {
         "controllers": [
+            "app/Controllers/AksesProyek.php",
             "app/Controllers/Api/BaseApiController.php",
+            "app/Controllers/Api/BpbController.php",
+            "app/Controllers/Api/ProfileSignatureController.php",
             "app/Controllers/Cluster.php",
+            "app/Controllers/Config.php",
+            "app/Controllers/ConfigColor.php",
             "app/Controllers/Direksi.php",
             "app/Controllers/FileController.php",
             "app/Controllers/GoogleCalendar.php",
             "app/Controllers/Home.php",
             "app/Controllers/Jalan.php",
             "app/Controllers/Kalendar.php",
+            "app/Controllers/Karyawan.php",
             "app/Controllers/Kavling.php",
+            "app/Controllers/MenuSetting.php",
+            "app/Controllers/PengaturanWarna.php",
+            "app/Controllers/Pengguna.php",
+            "app/Controllers/Profil.php",
             "app/Controllers/Promo.php",
             "app/Controllers/Proyek.php",
             "app/Controllers/Sales.php",
+            "app/Controllers/SettingData.php",
             "app/Controllers/TestController.php",
             "app/Controllers/Tipe.php",
+            "app/Controllers/Web/BpbController.php",
             "app/Controllers/Web/LandingController.php"
         ],
         "services": [
@@ -10445,17 +11417,22 @@
             "app/Services/ImageThumbnailService.php",
             "app/Services/JalanService.php",
             "app/Services/KalendarService.php",
+            "app/Services/MenuAccessService.php",
             "app/Services/MinService.php",
+            "app/Services/PenggunaService.php",
             "app/Services/ProyekService.php",
             "app/Services/StorageService.php",
             "app/Services/TestService.php",
             "app/Services/TipeService.php"
         ],
         "repositories": [
+            "app/Repositories/BpbRepository.php",
             "app/Repositories/ClusterRepository.php",
+            "app/Repositories/DivisiRepository.php",
             "app/Repositories/ExcRepository.php",
             "app/Repositories/JalanRepository.php",
             "app/Repositories/KalendarRepository.php",
+            "app/Repositories/KaryawanRepository.php",
             "app/Repositories/ProyekRepository.php",
             "app/Repositories/TestRepository.php",
             "app/Repositories/TipeRepository.php"

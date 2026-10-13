@@ -9,7 +9,7 @@ use App\Models\BpbItemModel;
 use App\Models\BpbRequestModel;
 use App\Models\BpbSignatureModel;
 use App\Models\UserSignatureProfileModel;
-use App\Repositories\BpbRepository;
+use App\Repositories\Bpb\BpbRepository;
 use App\Services\FileAccessService;
 use App\Services\NotifikasiService;
 use Myth\Auth\Password;
@@ -286,7 +286,7 @@ class BpbService
                 $createdPaths[] = $this->createSignature($request, 'expense_verifier', $user, $data, (string) $request['current_document_hash'], $ip, $agent);
                 $update['processed_at'] = date('Y-m-d H:i:s');
             } elseif ($target === BpbWorkflow::DISBURSED) {
-                $amount = (float) ($data['actual_amount'] ?? 0);
+                $amount = $this->cleanNumeric($data['actual_amount'] ?? 0);
                 if ($amount <= 0 || trim((string) ($data['recipient_name'] ?? '')) === '' || trim((string) ($data['account_number'] ?? '')) === '') {
                     throw new RuntimeException('Nominal, nama penerima, dan nomor rekening wajib diisi.');
                 }
@@ -488,7 +488,7 @@ class BpbService
         $normalized = [];
         foreach ($items as $item) {
             $name = trim((string) ($item['nama_barang'] ?? ''));
-            $qty = (float) ($item['jumlah'] ?? 0);
+            $qty = $this->cleanNumeric($item['jumlah'] ?? 0);
             $unit = trim((string) ($item['satuan'] ?? ''));
             if ($name === '' && ! $required) {
                 continue;
@@ -628,6 +628,17 @@ class BpbService
     {
         $value = (int) $value;
         return $value > 0 ? $value : null;
+    }
+
+    private function cleanNumeric(mixed $value): float
+    {
+        if ($value === null || $value === '') {
+            return 0.0;
+        }
+        if (is_int($value) || is_float($value)) {
+            return (float) $value;
+        }
+        return (float) preg_replace('/[^\d.\-]/', '', str_replace(',', '', (string) $value));
     }
 
     private function validDate(string $date): bool

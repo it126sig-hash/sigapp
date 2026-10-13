@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-12 14:38:40` @ `be98758`  
+**Last Synced:** `2026-10-13 09:19:59` @ `3b94cd9`  
 
 ## Purpose
 Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, dan tanda tangan digital.
@@ -84,7 +84,7 @@ Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, 
 - `isSubmissionKeyConflict(\Throwable $error)`
 - `createSignature(array $request, string $role, array $user, array $data, string $hash, string $ip, string $agent)`
 - `normalizeItems(mixed $items, bool $required)`
-- _dan 13 method lainnya..._
+- _dan 14 method lainnya..._
 #### `BpbWorkflow.php`
 - `labels()`
 - `label(string $status)`
@@ -119,21 +119,21 @@ Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, 
 
 ## File Inventory
 ### Controllers (3)
-- `app/Controllers/Web/BpbController.php` (77 baris, 4 public methods)
-- `app/Controllers/Api/BpbController.php` (122 baris, 13 public methods)
-- `app/Controllers/Api/ProfileSignatureController.php` (53 baris, 4 public methods)
+- `app/Controllers/Web/Bpb/BpbController.php` (77 baris, 4 public methods)
+- `app/Controllers/Api/Bpb/BpbController.php` (123 baris, 13 public methods)
+- `app/Controllers/Api/Bpb/ProfileSignatureController.php` (54 baris, 4 public methods)
 
 ### Services (7)
-- `app/Services/Bpb/BpbService.php` (653 baris)
+- `app/Services/Bpb/BpbService.php` (664 baris)
 - `app/Services/Bpb/BpbWorkflow.php` (63 baris)
-- `app/Services/Bpb/BpbPdfService.php` (338 baris)
+- `app/Services/Bpb/BpbPdfService.php` (323 baris)
 - `app/Services/Bpb/BpbFileService.php` (119 baris)
 - `app/Services/Bpb/BpbNumberFormatter.php` (17 baris)
 - `app/Services/Bpb/BpbDocumentHasher.php` (44 baris)
 - `app/Services/Bpb/ProfileSignatureService.php` (89 baris)
 
 ### Repositories (1)
-- `app/Repositories/BpbRepository.php` (173 baris)
+- `app/Repositories/Bpb/BpbRepository.php` (206 baris)
 
 ### Models (6)
 - `app/Models/BpbRequestModel.php`
