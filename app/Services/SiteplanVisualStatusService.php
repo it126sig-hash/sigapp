@@ -62,24 +62,34 @@ class SiteplanVisualStatusService
         $visualRows = $visualRows ?? $this->buildRows($row);
         $marketFinalStatus = $this->marketFinalStatus($row);
 
-        if ($marketFinalStatus === null || count($visualRows) !== 3) {
-            return null;
-        }
+        if ($marketFinalStatus !== null && count($visualRows) === 3) {
+            $allFinal = true;
+            foreach ($visualRows as $visualRow) {
+                $segments = $visualRow['segments'] ?? [];
+                $paintConfigName = $segments[0]['color_config_name'] ?? $segments[0]['config_name'] ?? null;
+                if (
+                    count($segments) !== 1
+                    || $paintConfigName !== $marketFinalStatus
+                    || !empty($visualRow['markers'])
+                ) {
+                    $allFinal = false;
+                    break;
+                }
+            }
 
-        foreach ($visualRows as $visualRow) {
-            $segments = $visualRow['segments'] ?? [];
-            $paintConfigName = $segments[0]['color_config_name'] ?? $segments[0]['config_name'] ?? null;
-            if (
-                count($segments) !== 1
-                || !empty($segments[0]['legend_color_config_names'])
-                || $paintConfigName !== $marketFinalStatus
-                || !empty($visualRow['markers'])
-            ) {
-                return null;
+            if ($allFinal) {
+                return $this->fill($marketFinalStatus, 'Status');
             }
         }
 
-        return $this->fill($marketFinalStatus);
+        if ($this->isNoProgress($visualRows) && $this->hasPrice($row)) {
+            $tipeRumah = $this->value($row, 'tipe_rumah');
+            if (is_string($tipeRumah) && trim($tipeRumah) !== '') {
+                return $this->fill(trim($tipeRumah), 'Tipe');
+            }
+        }
+
+        return null;
     }
 
     private function mkdtRow($row): array
@@ -250,11 +260,46 @@ class SiteplanVisualStatusService
         ];
     }
 
-    private function fill(string $configName): array
+    private function isNoProgress(array $visualRows): bool
+    {
+        if (count($visualRows) !== 3) {
+            return false;
+        }
+
+        foreach ($visualRows as $visualRow) {
+            $segments = $visualRow['segments'] ?? [];
+            if (
+                count($segments) !== 1
+                || ($segments[0]['config_name'] ?? null) !== 'Def'
+                || !empty($visualRow['markers'])
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function hasPrice($row): bool
+    {
+        $hasHargaAkhir = $this->value($row, 'harga_akhir');
+        if ($hasHargaAkhir !== null && $hasHargaAkhir !== '' && $hasHargaAkhir !== 0 && $hasHargaAkhir !== '0') {
+            return true;
+        }
+
+        $hargaJual = $this->value($row, 'hargajual');
+        if (is_numeric($hargaJual) && (float) $hargaJual > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function fill(string $configName, string $tipe = 'Status'): array
     {
         return [
             'config_name' => $configName,
-            'tipe' => 'Status',
+            'tipe' => $tipe,
         ];
     }
 

@@ -287,6 +287,7 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 'visual_id_konsumen' => 1,
                 'tagihan_aktif_count' => 1,
                 'is_lunas' => 1,
+                'is_kpr' => 1,
                 'pa_pengajuan_count' => 1,
                 'pa_total_hasil_akad' => 100,
                 'pa_total_cair_sum' => 100,
@@ -306,6 +307,7 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 'visual_id_konsumen' => 1,
                 'tagihan_aktif_count' => 1,
                 'is_lunas' => 0,
+                'is_kpr' => 1,
                 'pa_pengajuan_count' => 1,
                 'pa_total_hasil_akad' => 100,
                 'pa_total_cair_sum' => 100,
@@ -325,6 +327,7 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 'visual_id_konsumen' => 1,
                 'tagihan_aktif_count' => 1,
                 'is_lunas' => 1,
+                'is_kpr' => 1,
                 'pa_pengajuan_count' => 1,
                 'pa_pengajuan_outstanding_count' => 1,
                 'pa_total_hasil_akad' => 100,
@@ -338,13 +341,14 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 ['Pembangunan'],
                 ['Pencairan Hasil Akad', 'Lunas'],
             ], null],
-            'semua fase final subsidi tetap tiga segmen' => [[
+            'semua fase final subsidi menyatu satu segmen' => [[
                 'is_subsidi' => 1,
                 'status_mkdt' => 'Akad',
                 'progres_bangunan' => 100,
                 'visual_id_konsumen' => 1,
                 'tagihan_aktif_count' => 1,
                 'is_lunas' => 1,
+                'is_kpr' => 1,
                 'pa_pengajuan_count' => 1,
                 'pa_total_hasil_akad' => 100,
                 'pa_total_cair_sum' => 100,
@@ -356,14 +360,15 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 ['Akad Subsidi'],
                 ['Akad Subsidi'],
                 ['Akad Subsidi'],
-            ], null],
-            'semua fase final komersil tetap tiga segmen' => [[
+            ], 'Akad Subsidi'],
+            'semua fase final komersil menyatu satu segmen' => [[
                 'is_subsidi' => 0,
                 'status_mkdt' => 'Akad',
                 'progres_bangunan' => 100,
                 'visual_id_konsumen' => 1,
                 'tagihan_aktif_count' => 1,
                 'is_lunas' => 1,
+                'is_kpr' => 1,
                 'pa_pengajuan_count' => 1,
                 'pa_total_hasil_akad' => 100,
                 'pa_total_cair_sum' => 100,
@@ -375,7 +380,7 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 ['Akad Komersil'],
                 ['Akad Komersil'],
                 ['Akad Komersil'],
-            ], null],
+            ], 'Akad Komersil'],
             'pembatalan mencegah penyatuan walau fase lain final' => [[
                 'is_subsidi' => 1,
                 'status_mkdt' => 'Batal',
@@ -384,6 +389,7 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 'visual_id_konsumen' => 1,
                 'tagihan_aktif_count' => 1,
                 'is_lunas' => 1,
+                'is_kpr' => 1,
                 'pa_pengajuan_count' => 1,
                 'pa_total_hasil_akad' => 100,
                 'pa_total_cair_sum' => 100,
@@ -403,6 +409,7 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
                 'visual_id_konsumen' => 1,
                 'tagihan_aktif_count' => 1,
                 'is_lunas' => 1,
+                'is_kpr' => 1,
                 'pa_pengajuan_count' => 1,
                 'pa_total_hasil_akad' => 100,
                 'pa_total_cair_sum' => 100,
@@ -667,11 +674,61 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
         ];
     }
 
+    public function testKavlingWithoutProgressWithPriceReturnsTipeFill(): void
+    {
+        $row = (object) [
+            'tipe_rumah' => '36/72',
+            'harga_akhir' => 10,
+            'hargajual' => 350000000,
+        ];
+        $rows = $this->service->buildRows($row);
+        $fill = $this->service->buildFill($row, $rows);
+
+        $this->assertSame([
+            ['Def'],
+            ['Def'],
+            ['Def'],
+        ], array_map(static fn (array $visualRow): array => array_column($visualRow['segments'], 'config_name'), $rows));
+
+        $this->assertSame([
+            'config_name' => '36/72',
+            'tipe' => 'Tipe',
+        ], $fill);
+    }
+
+    public function testKavlingWithoutProgressWithoutPriceRemainsMultiSegmentDef(): void
+    {
+        $row = (object) [
+            'tipe_rumah' => '36/72',
+            'harga_akhir' => null,
+            'hargajual' => 0,
+        ];
+        $rows = $this->service->buildRows($row);
+        $fill = $this->service->buildFill($row, $rows);
+
+        $this->assertNull($fill);
+    }
+
+    public function testKavlingWithProgressAndPriceDoesNotReturnTipeFill(): void
+    {
+        $row = (object) [
+            'tipe_rumah' => '36/72',
+            'harga_akhir' => 10,
+            'hargajual' => 350000000,
+            'status_mkdt' => 'Booking',
+        ];
+        $rows = $this->service->buildRows($row);
+        $fill = $this->service->buildFill($row, $rows);
+
+        $this->assertNull($fill);
+    }
+
     private function activeFinance(array $data): object
     {
         return (object) array_merge([
             'visual_id_konsumen' => 1,
             'tagihan_aktif_count' => 1,
+            'is_kpr' => 1,
         ], $data);
     }
 }

@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-12 14:38:40` @ `be98758`  
+**Last Synced:** `2026-10-14 10:07:46` @ `bb751f9`  
 
 ## Purpose
 Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial visual.
@@ -32,10 +32,16 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `POST` | `siteplan-menu/list` | `Explicit` | `MenuSetting::siteplanMenuList` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `siteplan-menu/get` | `Explicit` | `MenuSetting::siteplanMenuGet` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `siteplan-menu/save` | `Explicit` | `MenuSetting::siteplanMenuSave` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `siteplan-menu/toggle` | `Explicit` | `MenuSetting::siteplanMenuToggle` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `GET` | `siteplan-list` | `Explicit` | `ProyekController::getSiteplanList` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `siteplan-list` | `Explicit` | `ProyekController::getSiteplanList` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `siteplan-menu/list` | `Explicit` | `MenuSettingController::siteplanMenuList` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `siteplan-menu/get` | `Explicit` | `MenuSettingController::siteplanMenuGet` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `siteplan-menu/save` | `Explicit` | `MenuSettingController::siteplanMenuSave` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `siteplan-menu/toggle` | `Explicit` | `MenuSettingController::siteplanMenuToggle` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `siteplan-menu/list` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuList` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `siteplan-menu/get` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuGet` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `siteplan-menu/save` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuSave` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `siteplan-menu/toggle` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuToggle` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `POST` | `siteplan/get/all` | `Explicit` | `Siteplan::getAllKavling` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `POST` | `siteplan/get/detail` | `Explicit` | `Siteplan::get_detail` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `POST` | `siteplan/getKategoriOptions` | `Explicit` | `Siteplan::getKategoriOptions` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
@@ -76,21 +82,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - `normalizeOptionalId($value)`
 - `categoryFilters(array $params)`
 #### `SiteplanMenuService.php`
-- `renderForRole(int $roleId)`
-- `getFlatItems(bool $activeOnly = false)`
-- `findItem(int $id)`
-- `saveItem(array $fields, int $id = 0)`
-- `toggleItem(int $id)`
-- `syncRoles(int $itemId, array $groupIds)`
-- `getItemRoleIds(int $itemId)`
-- `groupOptions()`
-- `groupLabel(int $groupId)`
-- `getActionItemsForList(int $roleId)`
-- `renderAllGroupMenus()`
-- `getItemsForAccessGroup(int $groupId)`
-- `renderGroupMenu(int $groupId, array $items, bool $hidden)`
-- `renderItem($item)`
-- `tablesReady()`
+- _Tidak ada public method terdeteksi._
 #### `SiteplanUrgentService.php`
 - `getSummary(int $idProyek, int $groupId, ?int $userId = null)`
 - `getUrgentSummary(int $idProyek, int $groupId, ?int $userId = null)`
@@ -118,13 +110,13 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - `row(string $key, string $label, array $segments, array $markers = [], array $meta = [])`
 - `segment(string $configName, float $ratio)`
 - `marker(string $configName, float $position = 0.5)`
-- `fill(string $configName)`
+- `isNoProgress(array $visualRows)`
+- `hasPrice($row)`
+- `fill(string $configName, string $tipe = 'Status')`
 - `rowWithFinalMarketColors(array $row, ?string $marketFinalStatus)`
 - `marketFinalStatus($row)`
 - `submissionMarkers(int $outstandingCount)`
-- `financeMeta(?float $disbursementRatio, int $outstandingCount)`
-- `isDue($value, DateTimeInterface $today)`
-- _dan 4 method lainnya..._
+- _dan 6 method lainnya..._
 #### `TargetSiteplanService.php`
 - `listByProject(int $idProyek)`
 - `get(int $idTarget)`
@@ -144,9 +136,9 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 
 ### Services (5)
 - `app/Services/SiteplanDataService.php` (124 baris)
-- `app/Services/SiteplanMenuService.php` (373 baris)
+- `app/Services/SiteplanMenuService.php` (12 baris)
 - `app/Services/SiteplanUrgentService.php` (743 baris)
-- `app/Services/SiteplanVisualStatusService.php` (367 baris)
+- `app/Services/SiteplanVisualStatusService.php` (412 baris)
 - `app/Services/TargetSiteplanService.php` (202 baris)
 
 ### Repositories (2)
@@ -163,7 +155,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - `app/Views/siteplan` (16 file)
 
 ### JavaScript (7 file)
-- `public/assets/js/siteplan/master.js` (3811 baris)
+- `public/assets/js/siteplan/master.js` (3824 baris)
 - `public/assets/js/siteplan/composite-shape.js` (420 baris)
 - `public/assets/js/siteplan/interaction-highlight.js` (143 baris)
 - `public/assets/js/siteplan/shape-filter.js` (65 baris)
