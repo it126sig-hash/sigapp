@@ -128,7 +128,9 @@ class TransaksiService
                         'file_spptb'           => 'mkdt_file_spptb',
                         'sp3k_file'            => 'mkdt_sp3k',
                         'bast_file'            => 'mkdt_bast',
-                        'surat_batal'          => 'mkdt_surat_batal'
+                        'surat_batal'          => 'mkdt_surat_batal',
+                        'file_nup'             => 'mkdt_file_nup',
+                        'file_surat_pindah'    => 'mkdt_surat_pindah',
                     ];
 
                     foreach ($mkdtFiles as $field => $source) {
@@ -147,6 +149,10 @@ class TransaksiService
                 $resp['angsuran'] = $this->bookingPaymentService->getInstallment((int) $idMkdt);
             }
         }
+
+        $resp['kavling_history'] = (!empty($idMkdt) || !empty($idKavling))
+            ? (new NupService($this->db))->getFormattedKavlingHistory((int) ($idMkdt ?? 0), (int) ($idKavling ?? 0))
+            : [];
 
         return $resp;
     }
@@ -266,6 +272,53 @@ class TransaksiService
         try {
             $db->transStart();
 
+            $nupRepo = new \App\Repositories\NupRepository($db);
+            $wasNup = $oldMkdt && strcasecmp(trim((string) ($oldMkdt->status_mkdt ?? '')), 'NUP') === 0;
+            $oldIdKavling = (int) ($oldMkdt->id_kavling ?? ($opt['from_id_kavling'] ?? 0));
+            $isPindahKavling = !$wasNup && $oldMkdt && $oldIdKavling > 0 && (int) $idKavling > 0 && $oldIdKavling !== (int) $idKavling;
+
+            if ($isNewMkdt || $wasNup || $isPindahKavling) {
+                $targetKavRow = $nupRepo->getKavlingRow((int) $idKavling, true);
+                if (!$targetKavRow) {
+                    throw new \RuntimeException('Data kavling tujuan tidak ditemukan.');
+                }
+                $existingKavMkdtId = (int) ($targetKavRow['id_mkdt'] ?? 0);
+                if ($existingKavMkdtId > 0 && $existingKavMkdtId !== (int) ($kons['id_mkdt'] ?: 0)) {
+                    $occupant = $db->table('mkdt')->select('status_mkdt, is_batal')->where('id_mkdt', $existingKavMkdtId)->get()->getRowArray();
+                    $occStatus = strtolower(trim((string) ($occupant['status_mkdt'] ?? '')));
+                    $occBatal = (int) ($occupant['is_batal'] ?? 0) === 1;
+                    if ($occupant && !$occBatal && !in_array($occStatus, ['', 'batal', 'nup'], true)) {
+                        throw new \RuntimeException('Kavling tujuan masih terisi oleh konsumen aktif lain.');
+                    }
+                }
+            }
+
+            if ($wasNup) {
+                if (empty($mk['status_mkdt']) || strcasecmp(trim((string) $mk['status_mkdt']), 'NUP') === 0) {
+                    $mk['status_mkdt'] = 'Booking';
+                }
+                if (empty($kons['status_konsumen']) || strcasecmp(trim((string) $kons['status_konsumen']), 'NUP') === 0) {
+                    $kons['status_konsumen'] = 'Normal';
+                }
+            }
+
+            $storedSuratPindah = null;
+            $fileSuratPindah = $files['file_surat_pindah'] ?? null;
+            if ($fileSuratPindah && $fileSuratPindah->isValid() && !$fileSuratPindah->hasMoved()) {
+                $storedSuratPindah = $this->storageService->store($fileSuratPindah, 'uploads/mkdt/surat_pindah/' . date('Ymd'));
+                $mk['file_surat_pindah'] = $storedSuratPindah;
+            }
+
+            $targetProyekId = (int) ($this->kavlingRepo->getIdProyekByKavling($idKavling) ?: ($oldMkdt->id_proyek ?? 0));
+            if ($targetProyekId > 0) {
+                $mk['id_proyek'] = $targetProyekId;
+            }
+
+            if ($isPindahKavling) {
+                $mk['last_id_kavling'] = $oldIdKavling;
+                $mk['is_ganti_kavling'] = 'Ganti Kavling';
+            }
+
             // Upload berkas konsumen
             foreach (['file_ktp', 'file_npwp', 'file_data_diri'] as $fieldName) {
                 $file = $files[$fieldName] ?? null;
@@ -306,6 +359,80 @@ class TransaksiService
             // MKDT is the source of truth for booking. This executes in the same
             // transaction so a failed payment/ledger sync also rolls MKDT back.
             $this->bookingPaymentService->synchronize($idMkdt, user_id());
+
+            if ($wasNup || $isPindahKavling) {
+                $nowTs = date('Y-m-d H:i:s');
+                if ($isPindahKavling && $oldIdKavling > 0) {
+                    $db->table('kavling')
+                        ->where('id_kavling', $oldIdKavling)
+                        ->where('id_mkdt', $idMkdt)
+                        ->update([
+                            'id_mkdt'    => null,
+                            'edit_by'    => user_id(),
+                            'updated_at' => $nowTs,
+                        ]);
+                }
+
+                $this->kavling->update((int) $idKavling, [
+                    'id_mkdt' => $idMkdt,
+                    'edit_by' => user_id(),
+                ]);
+
+                if ($db->tableExists('finance_ledger')) {
+                    $db->table('finance_ledger')
+                        ->where('id_mkdt', $idMkdt)
+                        ->update([
+                            'id_kavling' => (int) $idKavling,
+                            'edit_by'    => user_id(),
+                            'updated_at' => $nowTs,
+                        ]);
+                }
+
+                $toLabel = $nupRepo->getKavlingLabel((int) $idKavling) ?? ('Kavling #' . $idKavling);
+                $fromIdHist = $isPindahKavling ? $oldIdKavling : ((int) ($oldMkdt->last_id_kavling ?? 0) ?: null);
+                $fromLabelHist = $isPindahKavling
+                    ? ($nupRepo->getKavlingLabel($oldIdKavling) ?? ('Kavling #' . $oldIdKavling))
+                    : ($fromIdHist ? ('NUP (Eks ' . ($nupRepo->getKavlingLabel($fromIdHist) ?? ('Kavling #' . $fromIdHist)) . ')') : 'NUP (Belum Pilih Kavling)');
+
+                $totalSudahBayarNow = (float) $this->logRepo->getTotalBayarByIdMkdt($idMkdt);
+                $catatanTransfer = trim((string) ($opt['catatan_pindah_kavling'] ?? ''));
+                if ($catatanTransfer === '') {
+                    $catatanTransfer = $wasNup
+                        ? ('Aktivasi konsumen NUP ke ' . $toLabel . (!empty($oldMkdt->catatan_nup) ? ' (' . $oldMkdt->catatan_nup . ')' : ''))
+                        : ('Pindah kavling dari ' . $fromLabelHist . ' ke ' . $toLabel);
+                }
+
+                $nupRepo->insertKavlingHistory([
+                    'id_mkdt'                      => $idMkdt,
+                    'id_konsumen'                  => (int) $idKonsumen,
+                    'id_proyek'                    => $targetProyekId > 0 ? $targetProyekId : null,
+                    'action_type'                  => $wasNup ? 'AKTIFKAN_NUP' : 'PINDAH_KAVLING',
+                    'from_id_kavling'              => $fromIdHist,
+                    'to_id_kavling'                => (int) $idKavling,
+                    'from_kavling_label'           => $fromLabelHist,
+                    'to_kavling_label'             => $toLabel,
+                    'status_sebelum'               => (string) ($oldMkdt->status_mkdt ?? 'Booking'),
+                    'status_sesudah'               => (string) ($mk['status_mkdt'] ?? 'Booking'),
+                    'nominal_booking_snapshot'     => (float) ($mk['booking_fee'] ?? 0),
+                    'nominal_sudah_bayar_snapshot' => $totalSudahBayarNow,
+                    'catatan'                      => $catatanTransfer,
+                    'file_lampiran'                => $storedSuratPindah ?: ($oldMkdt->file_nup ?? null),
+                    'created_by'                   => user_id(),
+                    'created_at'                   => $nowTs,
+                ]);
+
+                if ($isPindahKavling && $oldIdKavling > 0) {
+                    $this->mkdtHistoryService->log(
+                        $oldIdKavling,
+                        $idMkdt,
+                        MkdtHistoryService::ACTION_PINDAH_KAVLING,
+                        'Konsumen ' . ($kons['nama_konsumen'] ?? '-') . ' pindah kavling dari ' . $fromLabelHist . ' ke ' . $toLabel . ($catatanTransfer !== '' ? '. Catatan: ' . $catatanTransfer : ''),
+                        $oldMkdt ? (array) $oldMkdt : null,
+                        ['id_kavling_baru' => (int) $idKavling, 'kavling_baru' => $toLabel, 'catatan' => $catatanTransfer],
+                        user_id()
+                    );
+                }
+            }
 
             // Process input, change, or removal of referral code.
             $idProyek = $this->kavlingRepo->getIdProyekByKavling($idKavling);

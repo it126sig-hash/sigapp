@@ -98,7 +98,16 @@ class MkdtModel extends Model
 		'harga_diskon_hargajual',
 		'harga_diskon_uang_muka',
 		'dajam_selesai',
-		'promo'
+		'promo',
+		'id_proyek',
+		'catatan_nup',
+		'file_nup',
+		'file_surat_pindah',
+		'nup_source',
+		'last_id_kavling',
+		'nup_at',
+		'nup_by',
+		'no_nup'
 	];
 	protected $useTimestamps = true;
 	protected $createdField  = 'created_at';

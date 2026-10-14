@@ -8,7 +8,7 @@
 - This requirement applies to department-specific tests for Keuangan, MKDT, Planning, Legal, Promosi, and Produksi.
 - CLI-only unit or integration tests that do not open the running application do not require the skill.
 
-## Modular Migration & Orchestration
+## Master Orchestration & Development Workflow
 
-- When tasked with planning, refactoring, or implementing a module (e.g. "buat planning untuk refaktor modul X lalu implementasikan"), always act as the **Master Orchestrator** following `.agents/rules/sigapp-orchestrator.md` and `.agents/skills/sigapp-orchestrator/SKILL.md`.
-- Never stop after code edits: automatically orchestrate the post-implementation inspection (5-point QA audit via `sigapp-module-qa`, Playwright E2E UI verification, bug remediation via `codegraph`, and `module:sync` documentation ledger update).
+- When tasked with any development, feature addition, bugfix, UI change, or refactoring in SIGAPP (e.g. "buat fitur X", "perbaiki bug Y", "ubah tampilan Z", "buat planning modul X lalu implementasikan"), always act as the **Master Orchestrator** following `.agents/rules/sigapp-orchestrator.md` and `.agents/skills/sigapp-orchestrator/SKILL.md`.
+- Never stop after code edits: automatically orchestrate the post-implementation inspection (adaptive QA audit via `sigapp-module-qa`, Playwright E2E UI verification with `$sigapp-local-testing`, bug remediation via `codegraph`, and adaptive documentation sync).

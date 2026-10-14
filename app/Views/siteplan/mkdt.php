@@ -2249,6 +2249,8 @@
                     <div class="sticky-button-wrapper">
                         <div class="d-flex flex-wrap justify-content-end" style="gap: .5rem;">
                             <button type="button" class="btn btn-outline-secondary" data-dismiss="modal"><i class="fas fa-times mr-1"></i> Cancel</button>
+                            <button type="button" id="btn-tarik-nup-status" class="btn btn-outline-danger" onclick="openTarikKeNupModal()"><i class="fas fa-undo-alt mr-1"></i> Tarik ke NUP</button>
+                            <button type="button" id="btn-pindah-kavling-status" class="btn btn-outline-info" onclick="openPindahKavlingModal()"><i class="fas fa-exchange-alt mr-1"></i> Pindah Kavling</button>
                             <button type="button" id="btn-pindah-konsumen" class="btn btn-outline-warning"><i class="fas fa-user-edit mr-1"></i> Pindah Konsumen</button>
                             <button type="button" id="add-form-btn-mkdt" class="btn btn-primary" onclick="save_mkdt(this)"><i class="fas fa-save mr-1"></i> Simpan Data</button>
                         </div>

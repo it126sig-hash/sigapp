@@ -148,7 +148,7 @@ class TransaksiController extends BaseApiController
 
         // --- Files ---
         $files = [];
-        foreach (['file_ktp', 'file_npwp', 'file_data_diri', 'file_spptb', 'file_surat_kuasa'] as $f) {
+        foreach (['file_ktp', 'file_npwp', 'file_data_diri', 'file_spptb', 'file_surat_kuasa', 'file_surat_pindah'] as $f) {
             $files[$f] = $this->request->getFile($f);
         }
 
@@ -160,7 +160,9 @@ class TransaksiController extends BaseApiController
             'id_konsumen'     => $req->getPost('id_konsumen') ?: null,
             'is_data_baru'    => (int) ($req->getPost('mkdt_data_baru') ?? 0) === 1,
             'allow_duplicate_nik' => (int) ($req->getPost('allow_duplicate_nik') ?? 0) === 1,
-            'kode_referal'    => trim((string) ($req->getPost('kode_referal') ?? '')),
+            'kode_referal'           => trim((string) ($req->getPost('kode_referal') ?? '')),
+            'from_id_kavling'        => (int) ($req->getPost('from_id_kavling') ?? 0),
+            'catatan_pindah_kavling' => trim((string) ($req->getPost('catatan_pindah_kavling') ?? '')),
         ];
 
         $resp = $this->mkdtService->saveTransaksi($kons, $mk, $um, $files, $opt);

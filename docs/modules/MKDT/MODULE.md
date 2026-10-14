@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `80/100`  
-**Last Synced:** `2026-10-12 14:38:40` @ `be98758`  
+**Last Synced:** `2026-10-13 15:48:18` @ `3a8b1f5`  
 
 ## Purpose
 Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, dan posisi kavling.
@@ -128,7 +128,7 @@ Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, da
 - `app/Controllers/PosisiKonsumen.php` (304 baris, 13 public methods)
 
 ### Services (6)
-- `app/Services/MkdtHistoryService.php` (307 baris)
+- `app/Services/MkdtHistoryService.php` (313 baris)
 - `app/Services/MkdtSettlementService.php` (48 baris)
 - `app/Services/MkdtFinancialBreakdownService.php` (254 baris)
 - `app/Services/MkdtFinancialReconciliationService.php` (275 baris)
@@ -148,7 +148,7 @@ Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, da
 - `app/Views/kavling` (4 file)
 
 ### JavaScript (1 file)
-- `public/assets/js/siteplan/mkdt.js` (3200 baris)
+- `public/assets/js/siteplan/mkdt.js` (3216 baris)
 
 ## Readiness Checklist
 - [x] Has Service Layer

@@ -528,6 +528,15 @@ $routes->group('api/mkdt', ['namespace' => 'App\Controllers\Api', 'filter' => 'l
     $routes->post('consumer-replacement-history', 'MkdtController::consumerReplacementHistory');
 });
 
+$routes->group('api/nup', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+    $routes->post('list', 'NupController::list');
+    $routes->post('detail', 'NupController::detail');
+    $routes->post('save', 'NupController::save');
+    $routes->post('pull', 'NupController::pull');
+    $routes->post('kavling-options', 'NupController::kavlingOptions');
+    $routes->post('kavling-history', 'NupController::kavlingHistory');
+});
+
 $routes->group('api/tagihan/booking', ['namespace' => 'App\Controllers\Api', 'filter' => ['login', 'csrf']], function ($routes) {
     $routes->post('verifikasi', 'BookingPaymentController::verify');
 });

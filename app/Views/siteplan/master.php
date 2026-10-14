@@ -1276,6 +1276,16 @@ foreach (user()->getRoles() as $key => $val) {
                                     </button>
                                 </div>
                             <?php endif; ?>
+                            <?php if (in_array($k, [1, 3, 4, 8])): ?>
+                                <div class="mb-2 d-flex" style="gap:.4rem;">
+                                    <button type="button" class="btn btn-primary btn-sm flex-grow-1" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.openListModal()">
+                                        <i class="fa fa-ticket-alt mr-50"></i> Daftar NUP <span class="badge badge-light badge-nup-count ml-25">0</span>
+                                    </button>
+                                    <button type="button" class="btn btn-success btn-sm" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.openFormModal(0)" title="Input Konsumen NUP Baru">
+                                        <i class="fa fa-user-plus"></i> Input NUP
+                                    </button>
+                                </div>
+                            <?php endif; ?>
                             <form id="form-filter-kategori">
 
                                 <div class="row mt-1 mb-1">
@@ -1935,6 +1945,8 @@ foreach (user()->getRoles() as $key => $val) {
 <script src="<?= base_url() ?>assets/js/vendor/browser-image-compression.js"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/tiket-masalah.js?v=<?= time() ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/request-kavling.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/request-kavling.js') ?>"></script>
+<?= view('siteplan/modal/nup-modals') ?>
+<script src="<?= base_url() ?>assets/js/siteplan/nup.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/nup.js') ?>"></script>
 <?php if ($k != 6): ?>
     <script>
         function handleContextRequestKavling() {

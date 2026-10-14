@@ -522,12 +522,12 @@
     }
 
     const rows = items.map(function(item) {
-      const label = item.jenis === "retensi"
-        ? "Retensi - " + paChildEscape(item.nama_jaminan || "-")
-        : "Termin #" + item.urutan_tenor;
-      const locked = item.is_locked
-        ? '<span class="badge badge-light-secondary">Sudah diajukan pencairan</span>'
-        : '<span class="badge badge-light-primary">Belum Diajukan</span>';
+      const label = item.jenis === "retensi" ?
+        "Retensi - " + paChildEscape(item.nama_jaminan || "-") :
+        "Termin #" + item.urutan_tenor;
+      const locked = item.is_locked ?
+        '<span class="badge badge-light-secondary">Sudah diajukan pencairan</span>' :
+        '<span class="badge badge-light-primary">Belum Diajukan</span>';
 
       return `
         <tr>
@@ -560,9 +560,9 @@
     }
 
     const rows = pengajuan.map(function(row) {
-      const lampiran = row.access_url
-        ? `<a href="${row.access_url}" target="_blank">Lihat</a>`
-        : "-";
+      const lampiran = row.access_url ?
+        `<a href="${row.access_url}" target="_blank">Lihat</a>` :
+        "-";
 
       return `
         <tr>
@@ -617,7 +617,10 @@
       success: function(r) {
         if (r.token) csrfHash = r.token;
         if (r.success === true) {
-          hasilAkadDetailCache[idMkdt] = { items: r.items || [], pengajuan: r.pengajuan || [] };
+          hasilAkadDetailCache[idMkdt] = {
+            items: r.items || [],
+            pengajuan: r.pengajuan || []
+          };
           row.child(formatHasilAkadChild(hasilAkadDetailCache[idMkdt])).show();
         } else {
           row.child('<div class="hasil-akad-child-wrap"><div class="hasil-akad-child-error">' + paChildEscape(r.message || "Gagal memuat detail") + '</div></div>').show();
@@ -855,7 +858,7 @@
         cache: true
       },
     })
-    
+
     $("#modal-filter").on("shown.bs.modal", function() {
       if (!periodeTanggalPicker) {
         periodeTanggalPicker = $("#periode_tanggal").flatpickr({
@@ -871,20 +874,20 @@
 
     function updateActiveFilterText() {
       let activeFilters = [];
-      
+
       let tgl = $("#periode_tanggal").val();
       let jenisTanggal = $("#jenis_tanggal").find("option:selected").text();
       if (tgl) activeFilters.push(jenisTanggal + ": " + tgl.replace(" to ", " s/d "));
-      
+
       let cluster = $("#id_cluster").find("option:selected").text();
       if ($("#id_cluster").val() && cluster) activeFilters.push("Cluster: " + cluster);
-      
+
       let jalan = $("#id_jalan").find("option:selected").text();
       if ($("#id_jalan").val() && jalan) activeFilters.push("Blok/Jalan: " + jalan);
-      
+
       let status = $("#status_cair").find("option:selected").text();
       if ($("#status_cair").val() && status && status !== "Semua") activeFilters.push("Status Pencairan: " + status);
-      
+
       if (activeFilters.length > 0) {
         $("#active_filter_text").text(activeFilters.join(" | "));
         $("#active_filter_container").show();
@@ -900,7 +903,7 @@
       $("#id_cluster").val(null).trigger("change");
       $("#id_jalan").val(null).trigger("change");
       $("#status_cair").val("belum_cair");
-      
+
       updateActiveFilterText();
       hasilAkadDetailCache = {};
       renderHasilAkadSummary({});

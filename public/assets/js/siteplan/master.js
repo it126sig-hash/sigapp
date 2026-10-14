@@ -1536,8 +1536,30 @@ Date.prototype.toDateInputValue = (function() {
                         && typeof SiteplanCompositeShape !== 'undefined';
                     const hitColorConfig = hit.color_fill || hit.fill;
 
+                    const paintRows = useUnifiedFill ? [{
+                        key: hit.tipe ? hit.tipe.toLowerCase() : 'status',
+                        label: hit.tipe || 'Status',
+                        segments: [{
+                            config_name: hit.fill,
+                            color_config_name: hitColorConfig,
+                            ratio: 1
+                        }],
+                        markers: []
+                    }] : visualRows;
+
+                    const legendRows = (useUnifiedFill && hit.tipe === 'Tipe') ? paintRows : visualRows;
+                    const legendKeys = useCompositeShape
+                        ? (useUnifiedFill
+                            ? (hit.tipe === 'Tipe'
+                                ? SiteplanShapeFilter.keysFromRows(paintRows)
+                                : SiteplanShapeFilter.keysFromRows(visualRows).concat(SiteplanShapeFilter.keysFromRows(paintRows)))
+                            : SiteplanShapeFilter.keysFromRows(visualRows))
+                        : [SiteplanShapeFilter.key(hit.tipe, hit.fill)];
+
+                    const tooltipRows = (useUnifiedFill && hit.tipe === 'Tipe') ? paintRows : visualRows;
+
                     if (useCompositeShape) {
-                        registerCompositeLegend(visualRows);
+                        registerCompositeLegend(legendRows);
                     } else {
                         //set untuk filter warna
                         filterwarna[hit.tipe] = {
@@ -1552,6 +1574,7 @@ Date.prototype.toDateInputValue = (function() {
                     }
                     
                     const dataObj = {
+                        id_kavling: r[p].id_kavling,
                         nama_jalan: r[p].nama_jalan,
                         no_kavling: r[p].no_kavling,
                         id_produksi: r[p].id_produksi,
@@ -1584,18 +1607,8 @@ Date.prototype.toDateInputValue = (function() {
                     };
 
                     const pointsArr = JSON.parse("[" + r[p].points + "]");
-                    const legendKeys = useCompositeShape
-                        ? SiteplanShapeFilter.keysFromRows(visualRows)
-                        : [SiteplanShapeFilter.key(hit.tipe, hit.fill)];
 
                     if (useCompositeShape) {
-                        const paintRows = useUnifiedFill ? [{
-                            key: 'status',
-                            label: 'Status',
-                            segments: [{ config_name: hit.fill, ratio: 1 }],
-                            markers: []
-                        }] : visualRows;
-
                         kav = SiteplanCompositeShape.createKonvaShape(Konva, {
                             id: 'kav' + r[p].id_kavling,
                             kategori: hit.fill,
@@ -1604,7 +1617,7 @@ Date.prototype.toDateInputValue = (function() {
                             points: pointsArr,
                             facadeRotation: r[p].rotation,
                             visualRows: paintRows,
-                            tooltipRows: visualRows,
+                            tooltipRows: tooltipRows,
                             legendKeys: legendKeys,
                             strokeWidthResolver: get_kategori_stroke_width,
                             stroke: '#000',
