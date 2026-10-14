@@ -590,7 +590,7 @@
                                                     <div class="col-md-8">
                                                         <div class="form-group">
                                                             <label>Catatan</label>
-                                                            <input type="text" class="form-control" name="catatan">
+                                                            <textarea class="form-control" name="catatan" rows="2" placeholder="Catatan pencairan..."></textarea>
                                                         </div>
                                                     </div>
                                                 </div>

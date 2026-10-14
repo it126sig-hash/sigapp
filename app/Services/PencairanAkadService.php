@@ -365,7 +365,33 @@ class PencairanAkadService
                 $total += $sisa;
             }
 
+            $idBatch = (int) ($data['id_batch'] ?? 0);
+            if ($idBatch <= 0) {
+                $nomorBatch = $this->generateBatchNumber();
+                $db->table('pencairan_akad_batch')->insert([
+                    'nomor_batch'          => $nomorBatch,
+                    'tanggal_pengajuan'    => $tanggalPengajuan,
+                    'tanggal_rencana_cair' => $tanggalRencanaCair ?: null,
+                    'catatan'              => $data['catatan'] ?? null,
+                    'lampiran_surat'       => $lampiranSurat,
+                    'total_pengajuan'      => $total,
+                    'total_cair'           => 0,
+                    'status'               => 'active',
+                    'add_by'               => $actorId,
+                    'created_at'           => date('Y-m-d H:i:s'),
+                    'updated_at'           => date('Y-m-d H:i:s'),
+                ]);
+                $idBatch = (int) $db->insertID();
+
+                $this->saveBatchHistory($idBatch, 'buat_pengajuan_single', 'Pengajuan pencairan ' . $nomorBatch . ' dibuat sebesar Rp ' . number_format($total, 0, ',', '.'), [
+                    'nomor_batch'     => $nomorBatch,
+                    'total_pengajuan' => $total,
+                    'id_plan'         => $idPlan,
+                ], $actorId);
+            }
+
             $db->table('pencairan_akad_pengajuan')->insert([
+                'id_batch' => $idBatch,
                 'id_plan' => $idPlan,
                 'tanggal_pengajuan' => $tanggalPengajuan,
                 'tanggal_rencana_cair' => $tanggalRencanaCair ?: null,
@@ -425,6 +451,10 @@ class PencairanAkadService
 
     protected function cairkanCore(int $idPengajuan, string $tanggalCair, array $details, ?string $catatan, int $actorId): array
     {
+        if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+            return $this->response(false, 'Akses ditolak: Hanya user Keuangan atau Administrator yang dapat memproses pencairan.');
+        }
+
         if ($idPengajuan <= 0 || empty($details)) {
             return $this->response(false, 'Data pencairan tidak lengkap');
         }
@@ -518,6 +548,8 @@ class PencairanAkadService
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
 
+            $this->syncBatchStatus((int) ($pengajuan->id_batch ?? 0), $actorId);
+
             $plan = $this->getPlanById((int) $pengajuan->id_plan);
             $this->saveHistory((int) $plan->id_kavling, (int) $plan->id_mkdt, (int) $plan->id, $idPengajuan, 'pencairan', 'Pencairan akad dicatat', $details, $actorId);
 
@@ -575,6 +607,10 @@ class PencairanAkadService
 
     public function voidPayment(int $idPayment, string $reason, int $actorId): array
     {
+        if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+            return $this->response(false, 'Akses ditolak: Hanya user Keuangan atau Administrator yang dapat membatalkan pencairan.');
+        }
+
         $payment = $this->db->table('pencairan_akad_payment')->where('id', $idPayment)->get()->getRow();
         if (! $payment) {
             return $this->response(false, 'Data pencairan tidak ditemukan');
@@ -632,6 +668,8 @@ class PencairanAkadService
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
 
+            $this->syncBatchStatus((int) ($pengajuan->id_batch ?? 0), $actorId);
+
             $plan = $this->getPlanById((int) $pengajuan->id_plan);
             if ($plan) {
                 $this->saveHistory((int) $plan->id_kavling, (int) $plan->id_mkdt, (int) $plan->id, $pengajuan->id, 'void', 'Pencairan dibatalkan: ' . $reason . ' (-Rp ' . number_format($payment->total_cair, 0, ',', '.') . ')', [], $actorId);
@@ -669,6 +707,8 @@ class PencairanAkadService
             'edit_by' => $actorId,
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
+
+        $this->syncBatchStatus((int) ($pengajuan->id_batch ?? 0), $actorId);
 
         $plan = $this->getPlanById((int) $pengajuan->id_plan);
         if ($plan) {
@@ -756,6 +796,10 @@ class PencairanAkadService
      */
     public function importTanggalCair(string $csvPath, $lampiranFile, int $actorId): array
     {
+        if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+            return $this->response(false, 'Akses ditolak: Hanya user Keuangan atau Administrator yang dapat mengimpor tanggal pencairan.');
+        }
+
         if (! is_file($csvPath)) {
             return $this->response(false, 'File CSV tidak ditemukan');
         }
@@ -950,6 +994,8 @@ class PencairanAkadService
             ->edit('pengajuan_outstanding', fn ($v) => '<span class="text-warning font-weight-bold">Rp ' . number_format((float) $v->pengajuan_outstanding) . '</span>')
             ->edit('sudah_cair', fn ($v) => '<span class="text-success font-weight-bold">Rp ' . number_format((float) $v->sudah_cair) . '</span>')
             ->add('sisa', fn ($v) => '<span class="text-danger font-weight-bold">Rp ' . number_format((float) $v->harga_kpr_acc - (float) $v->sudah_cair) . '</span>')
+            ->add('raw_sisa', fn ($v) => (float) $v->harga_kpr_acc - (float) $v->sudah_cair)
+            ->add('can_batch', fn ($v) => ((float) $v->harga_kpr_acc - (float) $v->sudah_cair - (float) $v->pengajuan_outstanding) > 0.01 ? 1 : 0)
             ->toJson(true);
 
         $payload = json_decode($response->getBody(), true);
@@ -1344,5 +1390,734 @@ class PencairanAkadService
         }
 
         return (float) str_replace(',', '', (string) $value);
+    }
+
+    public function generateBatchNumber(): string
+    {
+        $prefix = 'PA-' . date('Ym') . '-';
+        $last = $this->db->table('pencairan_akad_batch')
+            ->like('nomor_batch', $prefix, 'after')
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->getRow();
+
+        $seq = 1;
+        if ($last && !empty($last->nomor_batch)) {
+            $parts = explode('-', $last->nomor_batch);
+            $lastNum = (int) end($parts);
+            if ($lastNum > 0) {
+                $seq = $lastNum + 1;
+            }
+        }
+
+        return $prefix . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function syncBatchStatus(?int $idBatch, int $actorId): void
+    {
+        if (!$idBatch || $idBatch <= 0) {
+            return;
+        }
+
+        $summary = $this->db->table('pencairan_akad_pengajuan')
+            ->selectSum('total_pengajuan')
+            ->selectSum('total_cair')
+            ->where('id_batch', $idBatch)
+            ->where('status !=', 'void')
+            ->get()
+            ->getRow();
+
+        $totalPengajuan = (float) ($summary->total_pengajuan ?? 0);
+        $totalCair = (float) ($summary->total_cair ?? 0);
+
+        $countTotal = $this->db->table('pencairan_akad_pengajuan')->where('id_batch', $idBatch)->countAllResults();
+        $countVoid = $this->db->table('pencairan_akad_pengajuan')->where('id_batch', $idBatch)->where('status', 'void')->countAllResults();
+
+        if ($countTotal > 0 && $countTotal === $countVoid) {
+            $statusBaru = 'void';
+        } elseif ($totalCair >= $totalPengajuan - 0.01 && $totalPengajuan > 0) {
+            $statusBaru = 'paid';
+        } elseif ($totalCair > 0) {
+            $statusBaru = 'partial';
+        } else {
+            $statusBaru = 'active';
+        }
+
+        $this->db->table('pencairan_akad_batch')->where('id', $idBatch)->update([
+            'total_pengajuan' => $totalPengajuan,
+            'total_cair'      => $totalCair,
+            'status'          => $statusBaru,
+            'edit_by'         => $actorId,
+            'updated_at'      => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function getEligibleBatchKavling(array $idKavlings = [], int $idProyek = 0): array
+    {
+        $idKavlings = array_values(array_unique(array_filter(array_map('intval', $idKavlings))));
+
+        $builder = $this->db->table('kavling k')
+            ->select('
+                k.id_kavling, k.no_kavling, k.id_mkdt,
+                m.status_mkdt, m.is_kpr, m.harga_kpr_acc, m.bank,
+                c.nama_konsumen, j.nama_jalan, p.nama_proyek
+            ')
+            ->join('mkdt m', 'm.id_mkdt = k.id_mkdt')
+            ->join('konsumen c', 'c.id_konsumen = m.id_konsumen')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+            ->join('proyek p', 'p.id_proyek = cl.id_proyek')
+            ->where('m.status_mkdt', 'Akad')
+            ->where('m.is_kpr', 1);
+
+        if (!empty($idKavlings)) {
+            $builder->whereIn('k.id_kavling', $idKavlings);
+        }
+
+        if ($idProyek > 0) {
+            $builder->where('p.id_proyek', $idProyek);
+        }
+
+        $kavlings = $builder->get()->getResult();
+
+        if (empty($kavlings)) {
+            return $this->response(false, 'Tidak ada kavling yang memenuhi syarat Akad KPR');
+        }
+
+        $result = [];
+        $grandTotalAvailable = 0;
+
+        foreach ($kavlings as $kav) {
+            $idMkdt = (int) $kav->id_mkdt;
+            $idKavling = (int) $kav->id_kavling;
+            $hargaKprAcc = (float) $kav->harga_kpr_acc;
+
+            // Pastikan plan ada
+            $idPlan = $this->ensurePlan($idMkdt, $idKavling, $hargaKprAcc, (int) (function_exists('user_id') ? user_id() : 0));
+
+            $lockedIds = $this->getLockedItemIds($idPlan);
+            $items = $this->getItems($idPlan, $lockedIds);
+
+            // Cek apakah ada item tenor (dana akad bersih)
+            $hasTenor = false;
+            foreach ($items as $it) {
+                if ($it->jenis === 'tenor') {
+                    $hasTenor = true;
+                    break;
+                }
+            }
+
+            // Jika belum ada item tenor sama sekali, inisialisasi default Termin 1 dari sisa hasil akad
+            if (!$hasTenor) {
+                $plan = $this->getPlanById($idPlan);
+                $totalRetensi = (float) ($plan->total_retensi ?? 0);
+                $sisaHasilAkad = max(0, $hargaKprAcc - $totalRetensi);
+                if ($sisaHasilAkad > 0.01) {
+                    $this->db->table('pencairan_akad_item')->insert([
+                        'id_plan'      => $idPlan,
+                        'jenis'        => 'tenor',
+                        'urutan_tenor' => 1,
+                        'nominal'      => $sisaHasilAkad,
+                        'catatan'      => 'Pencairan Dana Akad Bersih',
+                        'add_by'       => (int) (function_exists('user_id') ? user_id() : 0),
+                        'created_at'   => date('Y-m-d H:i:s'),
+                        'updated_at'   => date('Y-m-d H:i:s'),
+                    ]);
+                    $items = $this->getItems($idPlan, $lockedIds);
+                }
+            }
+
+            // Filter item yang masih bisa diajukan (sisa > 0)
+            $availableItems = [];
+            $totalKavlingAvailable = 0;
+            foreach ($items as $item) {
+                $sisa = (float) $item->sisa;
+                if ($sisa > 0.01) {
+                    $label = $item->jenis === 'retensi'
+                        ? ('Retensi - ' . ($item->nama_jaminan ?: '-'))
+                        : ('Hasil Akad' . ($item->urutan_tenor > 1 ? ' (Termin #' . $item->urutan_tenor . ')' : ''));
+
+                    $availableItems[] = [
+                        'id'           => (int) $item->id,
+                        'id_item'      => (int) $item->id,
+                        'jenis'        => $item->jenis,
+                        'urutan_tenor' => $item->urutan_tenor,
+                        'nama_jaminan' => $item->nama_jaminan,
+                        'label'        => $label,
+                        'catatan'      => (string) ($item->catatan ?: ''),
+                        'nominal'      => (float) $item->nominal,
+                        'sisa'         => $sisa,
+                    ];
+                    $totalKavlingAvailable += $sisa;
+                }
+            }
+
+            if ($totalKavlingAvailable > 0.01) {
+                $result[] = [
+                    'id_kavling'      => $idKavling,
+                    'id_mkdt'         => $idMkdt,
+                    'id_plan'         => $idPlan,
+                    'no_kavling'      => $kav->no_kavling,
+                    'nama_konsumen'   => $kav->nama_konsumen,
+                    'nama_jalan'      => $kav->nama_jalan,
+                    'nama_proyek'     => $kav->nama_proyek,
+                    'bank'            => $kav->bank ?: '-',
+                    'harga_kpr_acc'   => $hargaKprAcc,
+                    'total_available' => $totalKavlingAvailable,
+                    'items'           => $availableItems,
+                ];
+                $grandTotalAvailable += $totalKavlingAvailable;
+            }
+        }
+
+        if (empty($result)) {
+            return $this->response(false, 'Semua kavling yang dipilih sudah pernah diajukan penuh');
+        }
+
+        return $this->response(true, 'Data kavling eligible', [
+            'kavlings'        => $result,
+            'total_nominal'   => $grandTotalAvailable,
+            'total_kavling'   => count($result),
+            'nomor_pengajuan' => $this->generateBatchNumber(),
+        ]);
+    }
+
+    public function storeBatchPengajuan(array $data, $lampiranFile, int $actorId): array
+    {
+        $kavlingsData = $data['kavlings'] ?? [];
+        if (!is_array($kavlingsData) || empty($kavlingsData)) {
+            return $this->response(false, 'Pilih minimal satu kavling untuk diajukan');
+        }
+
+        $tanggalPengajuan = trim((string) ($data['tanggal_pengajuan'] ?? ''));
+        if ($tanggalPengajuan === '') {
+            return $this->response(false, 'Tanggal pengajuan harus diisi');
+        }
+
+        $tanggalRencanaCair = trim((string) ($data['tanggal_rencana_cair'] ?? '')) ?: null;
+        $catatan = trim((string) ($data['catatan'] ?? '')) ?: null;
+
+        $lampiranSurat = null;
+        if ($lampiranFile && $lampiranFile->getError() !== UPLOAD_ERR_NO_FILE) {
+            if (!$lampiranFile->isValid()) {
+                return $this->response(false, 'Lampiran surat tidak valid');
+            }
+            $lampiranSurat = $this->resolveLampiranSurat($lampiranFile);
+        }
+
+        $nomorBatch = !empty($data['nomor_batch']) ? trim((string) $data['nomor_batch']) : $this->generateBatchNumber();
+
+        $db = $this->db;
+        $db->transException(true);
+
+        try {
+            $db->transStart();
+
+            // Insert Batch Header
+            $db->table('pencairan_akad_batch')->insert([
+                'nomor_batch'          => $nomorBatch,
+                'tanggal_pengajuan'    => $tanggalPengajuan,
+                'tanggal_rencana_cair' => $tanggalRencanaCair,
+                'catatan'              => $catatan,
+                'lampiran_surat'       => $lampiranSurat,
+                'total_pengajuan'      => 0,
+                'total_cair'           => 0,
+                'status'               => 'active',
+                'add_by'               => $actorId,
+                'created_at'           => date('Y-m-d H:i:s'),
+                'updated_at'           => date('Y-m-d H:i:s'),
+            ]);
+            $idBatch = (int) $db->insertID();
+
+            $grandTotalPengajuan = 0;
+            $processedKavlings = [];
+
+            foreach ($kavlingsData as $itemData) {
+                $idPlan = (int) ($itemData['id_plan'] ?? 0);
+                $selectedItemIds = $itemData['items'] ?? [];
+                if ($idPlan <= 0 || !is_array($selectedItemIds) || empty($selectedItemIds)) {
+                    continue;
+                }
+
+                $plan = $this->getPlanById($idPlan);
+                if (!$plan) {
+                    continue;
+                }
+
+                $kavTotal = 0;
+                $detailRows = [];
+
+                foreach ($selectedItemIds as $idItem) {
+                    $item = $this->getItemById((int) $idItem, $idPlan);
+                    if (!$item) {
+                        continue;
+                    }
+                    $sisa = $this->getSisaItem((int) $item->id, $this->num($item->nominal));
+                    if ($sisa <= 0) {
+                        continue;
+                    }
+
+                    $detailRows[] = [
+                        'id_item' => (int) $item->id,
+                        'nominal' => $sisa,
+                    ];
+                    $kavTotal += $sisa;
+                }
+
+                if ($kavTotal <= 0) {
+                    continue;
+                }
+
+                // Insert pencairan_akad_pengajuan
+                $db->table('pencairan_akad_pengajuan')->insert([
+                    'id_batch'             => $idBatch,
+                    'id_plan'              => $idPlan,
+                    'tanggal_pengajuan'    => $tanggalPengajuan,
+                    'tanggal_rencana_cair' => $tanggalRencanaCair,
+                    'catatan'              => $catatan,
+                    'lampiran_surat'       => $lampiranSurat,
+                    'total_pengajuan'      => $kavTotal,
+                    'total_cair'           => 0,
+                    'status'               => 'active',
+                    'add_by'               => $actorId,
+                    'created_at'           => date('Y-m-d H:i:s'),
+                    'updated_at'           => date('Y-m-d H:i:s'),
+                ]);
+                $idPengajuan = (int) $db->insertID();
+
+                foreach ($detailRows as $dr) {
+                    $db->table('pencairan_akad_pengajuan_detail')->insert([
+                        'id_pengajuan'      => $idPengajuan,
+                        'id_item'           => $dr['id_item'],
+                        'nominal_pengajuan' => $dr['nominal'],
+                        'nominal_cair'      => 0,
+                        'created_at'        => date('Y-m-d H:i:s'),
+                        'updated_at'        => date('Y-m-d H:i:s'),
+                    ]);
+                }
+
+                $db->table('pencairan_akad_plan')->where('id', $idPlan)->update([
+                    'status'     => 'diajukan',
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+
+                $this->saveHistory((int) $plan->id_kavling, (int) $plan->id_mkdt, $idPlan, $idPengajuan, 'pengajuan_batch', 'Pengajuan batch pencairan dibuat (' . $nomorBatch . ')', $detailRows, $actorId);
+
+                $grandTotalPengajuan += $kavTotal;
+                $processedKavlings[] = (int) $plan->id_kavling;
+            }
+
+            if ($grandTotalPengajuan <= 0) {
+                throw new \RuntimeException('Tidak ada nominal pengajuan yang valid');
+            }
+
+            // Update total batch
+            $db->table('pencairan_akad_batch')->where('id', $idBatch)->update([
+                'total_pengajuan' => $grandTotalPengajuan,
+            ]);
+
+            // Save batch history
+            $this->saveBatchHistory($idBatch, 'buat_pengajuan_batch', 'Pengajuan pencairan batch ' . $nomorBatch . ' dibuat untuk ' . count($processedKavlings) . ' kavling sebesar Rp ' . number_format($grandTotalPengajuan, 0, ',', '.'), [
+                'nomor_batch'     => $nomorBatch,
+                'total_pengajuan' => $grandTotalPengajuan,
+                'jumlah_kavling'  => count($processedKavlings),
+            ], $actorId);
+
+            $db->transComplete();
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            return $this->response(true, 'Pengajuan batch berhasil dibuat', [
+                'id_batch'    => $idBatch,
+                'nomor_batch' => $nomorBatch,
+            ]);
+        } catch (\Throwable $e) {
+            try {
+                $db->transRollback();
+            } catch (\Throwable $rb) {}
+            log_message('error', '[PencairanAkadService::storeBatchPengajuan] {message}', ['message' => $e->getMessage()]);
+            return $this->response(false, 'Gagal menyimpan pengajuan batch: ' . $e->getMessage());
+        }
+    }
+
+    public function getBatchList($request)
+    {
+        $builder = $this->db->table('pencairan_akad_batch b')
+            ->select('
+                b.id,
+                b.nomor_batch,
+                b.tanggal_pengajuan,
+                b.tanggal_rencana_cair,
+                b.total_pengajuan,
+                b.total_cair,
+                (b.total_pengajuan - b.total_cair) AS sisa,
+                b.status,
+                b.catatan,
+                b.lampiran_surat,
+                b.created_at,
+                COALESCE(u.name, u.username, "-") AS pic_nama,
+                COUNT(DISTINCT pap.id_kavling) AS jumlah_kavling,
+                GROUP_CONCAT(
+                    DISTINCT CONCAT(
+                        j.nama_jalan, \', No \', k.no_kavling, \' - \',
+                        IF(pai.jenis = \'tenor\', 
+                            IF(pai.urutan_tenor = 1, \'Hasil Akad\', CONCAT(\'Hasil Akad (Termin \', pai.urutan_tenor, \')\')), 
+                            CONCAT(\'Retensi - \', COALESCE(pld.nama_jaminan, \'Retensi\'))
+                        ),
+                        IF(pai.catatan IS NOT NULL AND pai.catatan != \'\', CONCAT(\' (\', pai.catatan, \')\'), \'\')
+                    )
+                    ORDER BY j.nama_jalan, k.no_kavling
+                    SEPARATOR \'<br>\'
+                ) AS daftar_kavling_item
+            ')
+            ->join('users u', 'u.id = b.add_by', 'left')
+            ->join('pencairan_akad_pengajuan papg', 'papg.id_batch = b.id', 'left')
+            ->join('pencairan_akad_pengajuan_detail pgd', 'pgd.id_pengajuan = papg.id', 'left')
+            ->join('pencairan_akad_item pai', 'pai.id = pgd.id_item', 'left')
+            ->join('list_dajam pld', 'pld.id = pai.id_list_dajam', 'left')
+            ->join('pencairan_akad_plan pap', 'pap.id = papg.id_plan', 'left')
+            ->join('kavling k', 'k.id_kavling = pap.id_kavling', 'left')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster', 'left')
+            ->groupBy('b.id');
+
+        $idProyek = (int) $request->getVar('id_proyek');
+        if ($idProyek > 0) {
+            $builder->where('cl.id_proyek', $idProyek);
+        }
+
+        $statusFilter = (string) $request->getVar('status');
+        if ($statusFilter !== '') {
+            $builder->where('b.status', $statusFilter);
+        }
+
+        $periodeTanggal = trim((string) $request->getVar('periode_tanggal'));
+        if ($periodeTanggal !== '') {
+            $dates = explode(' to ', $periodeTanggal);
+            if (count($dates) === 2) {
+                $builder->where('b.tanggal_pengajuan >=', trim($dates[0]));
+                $builder->where('b.tanggal_pengajuan <=', trim($dates[1]));
+            } elseif (count($dates) === 1) {
+                $builder->where('b.tanggal_pengajuan', trim($dates[0]));
+            }
+        }
+
+        return DataTable::of($builder)
+            ->setSearchableColumns(['b.nomor_batch', 'b.catatan', 'k.no_kavling'])
+            ->addNumbering('no')
+            ->edit('nomor_batch', fn ($v) => '<div class="text-left font-weight-bold font-small-3 text-dark">' . htmlspecialchars($v->nomor_batch) . '</div><div class="text-left small text-muted mt-25"><i class="far fa-calendar-alt mr-25"></i>' . $this->format_tgl($v->tanggal_pengajuan) . ' &bull; <i class="far fa-user mr-25"></i>' . htmlspecialchars($v->pic_nama) . '</div>')
+            ->edit('tanggal_pengajuan', fn ($v) => $this->format_tgl($v->tanggal_pengajuan))
+            ->edit('total_pengajuan', fn ($v) => 'Rp ' . number_format((float) $v->total_pengajuan))
+            ->edit('total_cair', fn ($v) => '<span class="text-success font-weight-bold">Rp ' . number_format((float) $v->total_cair) . '</span>')
+            ->edit('sisa', fn ($v) => '<span class="text-danger font-weight-bold">Rp ' . number_format((float) $v->sisa) . '</span>')
+            ->edit('jumlah_kavling', fn ($v) => '<div class="text-left font-small-2">' . str_replace('`', '', $v->daftar_kavling_item ?: '-') . '</div>')
+            ->edit('status', function ($v) {
+                $badges = [
+                    'active'  => '<span class="badge badge-warning">Aktif / Belum Cair</span>',
+                    'partial' => '<span class="badge badge-info">Partial</span>',
+                    'paid'    => '<span class="badge badge-success">Lunas</span>',
+                    'void'    => '<span class="badge badge-danger">Void</span>',
+                ];
+                return $badges[$v->status] ?? $v->status;
+            })
+            ->add('Aksi', function ($v) {
+                $isKeuangan = (!function_exists('in_groups') || in_groups(['1', '3']));
+                $canCair = ($isKeuangan && in_array($v->status, ['active', 'partial']) && (float) $v->sisa > 0);
+
+                $btnCair = $canCair
+                    ? '<button type="button" class="btn btn-success btn-sm mr-25" title="Pencairan Dana" onclick="openBatchPencairanModal(' . $v->id . ')"><i class="fas fa-hand-holding-usd mr-25"></i> Cairkan</button>'
+                    : '';
+                $btnDetail = '<button type="button" class="btn btn-outline-primary btn-sm" title="Detail Pengajuan" onclick="openBatchDetailModal(' . $v->id . ')"><i class="fas fa-eye mr-25"></i> Detail</button>';
+
+                return '<div class="d-inline-flex align-items-center justify-content-center text-nowrap">' . $btnCair . $btnDetail . '</div>';
+            }, 'last')
+            ->toJson(true);
+    }
+
+    public function getBatchDetail(int $idBatch): array
+    {
+        $batch = $this->db->table('pencairan_akad_batch b')
+            ->select('b.*, COALESCE(u.name, u.username, "-") AS pic_nama')
+            ->join('users u', 'u.id = b.add_by', 'left')
+            ->where('b.id', $idBatch)
+            ->get()
+            ->getRow();
+
+        if (!$batch) {
+            return $this->response(false, 'Batch pengajuan tidak ditemukan');
+        }
+
+        $pengajuans = $this->db->table('pencairan_akad_pengajuan papg')
+            ->select('
+                papg.id AS id_pengajuan, papg.total_pengajuan, papg.total_cair, papg.status,
+                pap.id AS id_plan, pap.id_kavling, pap.harga_kpr_acc,
+                k.no_kavling, j.nama_jalan, c.nama_konsumen, m.bank
+            ')
+            ->join('pencairan_akad_plan pap', 'pap.id = papg.id_plan')
+            ->join('kavling k', 'k.id_kavling = pap.id_kavling')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan')
+            ->join('mkdt m', 'm.id_mkdt = pap.id_mkdt')
+            ->join('konsumen c', 'c.id_konsumen = m.id_konsumen')
+            ->where('papg.id_batch', $idBatch)
+            ->get()
+            ->getResult();
+
+        $kavlingDetails = [];
+        foreach ($pengajuans as $pg) {
+            $details = $this->db->table('pencairan_akad_pengajuan_detail pgd')
+                ->select('
+                    pgd.id AS id_pengajuan_detail, pgd.id_item, pgd.nominal_pengajuan, pgd.nominal_cair,
+                    (pgd.nominal_pengajuan - pgd.nominal_cair) AS sisa,
+                    pi.jenis, pi.urutan_tenor, pi.catatan AS item_catatan,
+                    ld.nama_jaminan
+                ')
+                ->join('pencairan_akad_item pi', 'pi.id = pgd.id_item')
+                ->join('list_dajam ld', 'ld.id = pi.id_list_dajam', 'left')
+                ->where('pgd.id_pengajuan', (int) $pg->id_pengajuan)
+                ->get()
+                ->getResult();
+
+            $kavlingDetails[] = [
+                'id_pengajuan'    => (int) $pg->id_pengajuan,
+                'id_plan'         => (int) $pg->id_plan,
+                'id_kavling'      => (int) $pg->id_kavling,
+                'no_kavling'      => $pg->no_kavling,
+                'nama_jalan'      => $pg->nama_jalan,
+                'nama_konsumen'   => $pg->nama_konsumen,
+                'bank'            => $pg->bank ?: '-',
+                'harga_kpr_acc'   => (float) $pg->harga_kpr_acc,
+                'total_pengajuan' => (float) $pg->total_pengajuan,
+                'total_cair'      => (float) $pg->total_cair,
+                'sisa'            => (float) ($pg->total_pengajuan - $pg->total_cair),
+                'status'          => $pg->status,
+                'items'           => array_map(function ($d) {
+                    return [
+                        'id_pengajuan_detail' => (int) $d->id_pengajuan_detail,
+                        'id_item'             => (int) $d->id_item,
+                        'jenis'               => $d->jenis,
+                        'label'               => $d->jenis === 'retensi' ? ('Retensi - ' . ($d->nama_jaminan ?: '-')) : ('Termin #' . $d->urutan_tenor),
+                        'nominal_pengajuan'   => (float) $d->nominal_pengajuan,
+                        'nominal_cair'        => (float) $d->nominal_cair,
+                        'sisa'                => (float) $d->sisa,
+                        'catatan'             => $d->item_catatan,
+                    ];
+                }, $details),
+            ];
+        }
+
+        $batch->sisa = (float) $batch->total_pengajuan - (float) $batch->total_cair;
+
+        return $this->response(true, 'Detail batch', [
+            'batch'    => $batch,
+            'kavlings' => $kavlingDetails,
+        ]);
+    }
+
+    public function cairkanBatch(array $post, int $actorId): array
+    {
+        if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+            return $this->response(false, 'Akses ditolak: Hanya user Keuangan atau Administrator yang dapat memproses pencairan batch.');
+        }
+
+        $idBatch = (int) ($post['id_batch'] ?? 0);
+        $tanggalCair = trim((string) ($post['tanggal_cair'] ?? ''));
+        $catatan = trim((string) ($post['catatan'] ?? '')) ?: null;
+        $mode = $post['mode'] ?? 'all'; // 'all' | 'partial'
+
+        if ($idBatch <= 0) {
+            return $this->response(false, 'Batch pengajuan tidak valid');
+        }
+        if ($tanggalCair === '') {
+            return $this->response(false, 'Tanggal cair harus diisi');
+        }
+
+        $batch = $this->db->table('pencairan_akad_batch')->where('id', $idBatch)->get()->getRow();
+        if (!$batch) {
+            return $this->response(false, 'Batch pengajuan tidak ditemukan');
+        }
+        if (in_array($batch->status, ['paid', 'void'], true)) {
+            return $this->response(false, 'Batch pengajuan ini sudah ' . $batch->status);
+        }
+
+        $pengajuans = $this->db->table('pencairan_akad_pengajuan')
+            ->where('id_batch', $idBatch)
+            ->where('status !=', 'void')
+            ->where('total_pengajuan > total_cair', null, false)
+            ->get()
+            ->getResult();
+
+        if (empty($pengajuans)) {
+            return $this->response(false, 'Tidak ada pengajuan yang dapat dicairkan dalam batch ini');
+        }
+
+        $db = $this->db;
+        $db->transException(true);
+
+        try {
+            $db->transStart();
+
+            $grandTotalCairBaru = 0;
+            $cairPerKavlingCount = 0;
+
+            foreach ($pengajuans as $pg) {
+                $idPengajuan = (int) $pg->id;
+                $details = $db->table('pencairan_akad_pengajuan_detail')
+                    ->where('id_pengajuan', $idPengajuan)
+                    ->where('nominal_pengajuan > nominal_cair', null, false)
+                    ->get()
+                    ->getResult();
+
+                $detailsToProcess = [];
+
+                if ($mode === 'all') {
+                    foreach ($details as $d) {
+                        $sisa = (float) $d->nominal_pengajuan - (float) $d->nominal_cair;
+                        if ($sisa > 0.01) {
+                            $detailsToProcess[$d->id] = ['nominal_cair' => $sisa];
+                        }
+                    }
+                } else {
+                    $submittedDetails = $post['details'] ?? [];
+                    foreach ($details as $d) {
+                        if (isset($submittedDetails[$d->id])) {
+                            $nom = $this->num($submittedDetails[$d->id]['nominal_cair'] ?? 0);
+                            if ($nom > 0.01) {
+                                $detailsToProcess[$d->id] = ['nominal_cair' => $nom];
+                            }
+                        }
+                    }
+                }
+
+                if (!empty($detailsToProcess)) {
+                    $res = $this->cairkanCore($idPengajuan, $tanggalCair, $detailsToProcess, $catatan, $actorId);
+                    if (!$res['success']) {
+                        throw new \RuntimeException($res['message'] ?? 'Gagal mencairkan pengajuan kavling #' . $idPengajuan);
+                    }
+                    $cairPerKavlingCount++;
+
+                    $kavCair = array_sum(array_column($detailsToProcess, 'nominal_cair'));
+                    $grandTotalCairBaru += $kavCair;
+                }
+            }
+
+            if ($grandTotalCairBaru <= 0) {
+                throw new \RuntimeException('Tidak ada nominal pencairan yang diproses');
+            }
+
+            $this->syncBatchStatus($idBatch, $actorId);
+
+            $this->saveBatchHistory($idBatch, 'pencairan_batch', 'Pencairan batch dicatat sebesar Rp ' . number_format($grandTotalCairBaru, 0, ',', '.') . ' (' . ($mode === 'all' ? 'Semua Kavling Sekaligus' : $cairPerKavlingCount . ' Kavling') . ')', [
+                'tanggal_cair' => $tanggalCair,
+                'total_cair'   => $grandTotalCairBaru,
+                'mode'         => $mode,
+            ], $actorId);
+
+            $db->transComplete();
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            return $this->response(true, 'Pencairan batch berhasil disimpan sebesar Rp ' . number_format($grandTotalCairBaru, 0, ',', '.'), [
+                'id_batch'   => $idBatch,
+                'total_cair' => $grandTotalCairBaru,
+            ]);
+        } catch (\Throwable $e) {
+            try {
+                $db->transRollback();
+            } catch (\Throwable $rb) {}
+            log_message('error', '[PencairanAkadService::cairkanBatch] {message}', ['message' => $e->getMessage()]);
+            return $this->response(false, 'Gagal mencairkan batch: ' . $e->getMessage());
+        }
+    }
+
+    public function voidBatch(int $idBatch, string $reason, int $actorId): array
+    {
+        if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+            return $this->response(false, 'Akses ditolak: Hanya user Keuangan atau Administrator yang dapat membatalkan batch pengajuan.');
+        }
+
+        $batch = $this->db->table('pencairan_akad_batch')->where('id', $idBatch)->get()->getRow();
+        if (!$batch) {
+            return $this->response(false, 'Batch pengajuan tidak ditemukan');
+        }
+        if ((float) $batch->total_cair > 0) {
+            return $this->response(false, 'Batch yang sudah memiliki dana cair tidak bisa dibatalkan');
+        }
+        if ($batch->status === 'void') {
+            return $this->response(false, 'Batch ini sudah dibatalkan sebelumnya');
+        }
+
+        $pengajuans = $this->db->table('pencairan_akad_pengajuan')->where('id_batch', $idBatch)->get()->getResult();
+
+        $db = $this->db;
+        $db->transException(true);
+
+        try {
+            $db->transStart();
+
+            foreach ($pengajuans as $pg) {
+                $res = $this->void((int) $pg->id, $reason, $actorId);
+                if (!$res['success']) {
+                    throw new \RuntimeException($res['message'] ?? 'Gagal membatalkan pengajuan');
+                }
+            }
+
+            $db->table('pencairan_akad_batch')->where('id', $idBatch)->update([
+                'status'      => 'void',
+                'void_reason' => $reason,
+                'edit_by'     => $actorId,
+                'updated_at'  => date('Y-m-d H:i:s'),
+            ]);
+
+            $this->saveBatchHistory($idBatch, 'void_batch', 'Pengajuan batch dibatalkan: ' . $reason, [
+                'reason' => $reason,
+            ], $actorId);
+
+            $db->transComplete();
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            return $this->response(true, 'Pengajuan batch berhasil dibatalkan');
+        } catch (\Throwable $e) {
+            try {
+                $db->transRollback();
+            } catch (\Throwable $rb) {}
+            log_message('error', '[PencairanAkadService::voidBatch] {message}', ['message' => $e->getMessage()]);
+            return $this->response(false, 'Gagal membatalkan batch: ' . $e->getMessage());
+        }
+    }
+
+    protected function saveBatchHistory(int $idBatch, string $aksi, string $deskripsi, $snapshot, int $actorId): void
+    {
+        $this->historyService->log('pencairan_akad', [
+            'reference_type' => 'batch_pengajuan',
+            'reference_id'   => $idBatch,
+            'id_kavling'     => 0,
+            'action'         => $aksi,
+            'summary'        => $deskripsi,
+            'new_data'       => $snapshot,
+            'metadata'       => [
+                'id_batch' => $idBatch,
+            ],
+            'add_by'         => $actorId,
+            'created_at'     => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function getBatchHistory(int $idBatch): array
+    {
+        $result = $this->historyService->getList([
+            'module'         => 'pencairan_akad',
+            'reference_type' => 'batch_pengajuan',
+            'reference_id'   => $idBatch,
+        ], 1000, 0);
+
+        return [
+            'token'   => csrf_hash(),
+            'success' => true,
+            'data'    => $result['data'],
+        ];
     }
 }

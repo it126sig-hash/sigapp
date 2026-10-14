@@ -16,12 +16,13 @@ Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, da
 
 ## Database Tables
 ### Owner Table(s)
-- `mkdt` *(akses tulis eksklusif hanya untuk modul MKDT)*
-- `konsumen` *(akses tulis eksklusif hanya untuk modul MKDT)*
+- `mkdt` *(termasuk kolom `harga_net_ajb` untuk acuan komisi AJB)*
+- `konsumen` *(termasuk kolom `keterangan_sales` dan `id_sales` relasi ke master sales external)*
 
 ### Shared Tables (Dibaca dari modul lain)
 - `kavling`
 - `keuangan`
+- `sales` *(relasi master sales external)*
 
 ## Contracts
 ### A. Public HTTP Endpoints & Routes Inventory

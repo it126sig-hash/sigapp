@@ -437,6 +437,14 @@ $routes->post("/keuangan/pencairan-akad/payment/void", 'PencairanAkad::voidPayme
 $routes->post("/keuangan/pencairan-akad/void", 'PencairanAkad::void');
 $routes->get("/keuangan/pencairan-akad/history/(:num)", 'PencairanAkad::history/$1');
 
+$routes->post("/keuangan/pencairan-akad/batch/list", 'PencairanAkad::postBatchList');
+$routes->post("/keuangan/pencairan-akad/batch/eligible-kavling", 'PencairanAkad::postEligibleKavling');
+$routes->post("/keuangan/pencairan-akad/batch/pengajuan/store", 'PencairanAkad::postStoreBatchPengajuan');
+$routes->post("/keuangan/pencairan-akad/batch/detail", 'PencairanAkad::postBatchDetail');
+$routes->post("/keuangan/pencairan-akad/batch/pencairan/store", 'PencairanAkad::postCairkanBatch');
+$routes->post("/keuangan/pencairan-akad/batch/void", 'PencairanAkad::postVoidBatch');
+$routes->get("/keuangan/pencairan-akad/batch/history/(:num)", 'PencairanAkad::getBatchHistory/$1');
+
 $routes->get("/keuangan/hasil-akad/list", 'PencairanAkad::listHasilAkad');
 $routes->post("/keuangan/hasil-akad/list/ambil-grouped", 'PencairanAkad::getListGrouped');
 $routes->post("/keuangan/hasil-akad/list/detail", 'PencairanAkad::getListDetail');
@@ -644,6 +652,24 @@ $routes->group('api/public', [
     $routes->get('check-referral', function () {
         throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     });
+});
+
+// ── Master Sales External & Fee Sales ──────────────────────────────
+$routes->get('master-sales', '\App\Controllers\Web\SalesExternalController::index', ['filter' => ['login', 'role:Admin,MKDT']]);
+$routes->get('fee-sales', '\App\Controllers\Web\SalesExternalController::feeSales', ['filter' => ['login', 'role:Admin,Umum,Keuangan,MKDT']]);
+
+$routes->group('api/sales-external', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+    $routes->post('list-master', 'SalesExternalController::listMasterSales');
+    $routes->get('get/(:num)', 'SalesExternalController::getSales/$1');
+    $routes->post('save', 'SalesExternalController::saveMasterSales');
+    $routes->get('history/(:num)', 'SalesExternalController::getSalesHistory/$1');
+    $routes->get('list-active', 'SalesExternalController::getActiveSalesList');
+
+    $routes->post('list-fee', 'SalesExternalController::listFeeSales');
+    $routes->get('fee-detail/(:num)', 'SalesExternalController::getFeeDetail/$1');
+    $routes->post('save-fee-header', 'SalesExternalController::saveFeeHeader');
+    $routes->post('submit-spp', 'SalesExternalController::submitPengajuanSpp');
+    $routes->post('konfirmasi-cair', 'SalesExternalController::konfirmasiCair');
 });
 
 

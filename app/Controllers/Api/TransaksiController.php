@@ -83,6 +83,8 @@ class TransaksiController extends BaseApiController
             'status_pekerjaan_pasangan'=> trim((string) ($req->getPost('status_pekerjaan_pasangan') ?? '')),
             'instansi_pasangan'        => trim((string) ($req->getPost('instansi_pasangan') ?? '')),
             'sales'                    => trim((string) ($req->getPost('sales') ?? '')),
+            'keterangan_sales'         => trim((string) ($req->getPost('keterangan_sales') ?? $req->getPost('idk-keterangan_sales') ?? '')),
+            'id_sales'                 => ($req->getPost('id_sales') ? (int) $req->getPost('id_sales') : ($req->getPost('idk-sales_select') ? (int) $req->getPost('idk-sales_select') : null)),
             'add_by'                   => user_id(),
             'edit_by'                  => user_id(),
         ];
@@ -115,6 +117,7 @@ class TransaksiController extends BaseApiController
             'harga_uang_muka'       => $this->cleanNum($req->getPost('mk-uang_muka') ?? $req->getPost('mk_uang_muka') ?? 0),
             'harga_jual'            => $this->cleanNum($req->getPost('mk-hargajual') ?? $req->getPost('mk_hargajual') ?? 0),
             'harga_jual_net'        => $this->cleanNum($req->getPost('mk-hargajual_net') ?? $req->getPost('mk_hargajual_net') ?? 0),
+            'harga_net_ajb'         => $this->cleanNum($req->getPost('mk-harga_net_ajb') ?? $req->getPost('mk_harga_net_ajb') ?? 0),
             'harga_administrasi'    => $this->cleanNum($req->getPost('mk-biaya_adm') ?? $req->getPost('mk_biaya_adm') ?? 0),
             'harga_bphtb'           => $this->cleanNum($req->getPost('mk-bphtb') ?? $req->getPost('mk_bphtb') ?? 0),
             'harga_biaya_proses'    => $this->cleanNum($req->getPost('mk-biaya_proses') ?? $req->getPost('mk_biaya_proses') ?? 0),
@@ -217,6 +220,8 @@ class TransaksiController extends BaseApiController
             'status_pekerjaan_pasangan' => trim((string) ($req->getPost('status_pekerjaan_pasangan') ?? '')),
             'instansi_pasangan' => trim((string) ($req->getPost('instansi_pasangan') ?? '')),
             'sales' => trim((string) ($req->getPost('sales') ?? '')),
+            'keterangan_sales' => trim((string) ($req->getPost('keterangan_sales') ?? $req->getPost('idk-keterangan_sales') ?? '')),
+            'id_sales' => ($req->getPost('id_sales') ? (int) $req->getPost('id_sales') : ($req->getPost('idk-sales_select') ? (int) $req->getPost('idk-sales_select') : null)),
         ];
         if ($consumer['nama_konsumen'] === '') {
             return $this->response->setStatusCode(422)->setJSON([

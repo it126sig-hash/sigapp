@@ -36,6 +36,7 @@ class MkdtModel extends Model
 		'id_hargajual',
 		'harga_jual',
 		'harga_jual_net',
+		'harga_net_ajb',
 		'harga_diskon',
 		'harga_penambahan',
 		'harga_penambahan_tanah',

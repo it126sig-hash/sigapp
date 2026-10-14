@@ -48,6 +48,8 @@ class TransaksiRepository extends Model
             'konsumen.instansi_pasangan',
 
             'konsumen.sales',
+            'konsumen.keterangan_sales',
+            'konsumen.id_sales',
 
             'konsumen.status_konsumen',
             'u_pb.username AS perintah_bangun_user',

@@ -208,6 +208,52 @@ $("#idk-kode_referal").select2({
 });
 
 
+let activeSalesData = [];
+function loadActiveSalesSelect(selectedId, selectedText) {
+  $.get(base_url + "api/sales-external/list-active", function(r) {
+    if (r && r.data) {
+      activeSalesData = r.data;
+      let $sel = $("#idk-sales_select");
+      $sel.empty().append('<option value="">-- Pilih Sales External --</option>');
+      r.data.forEach(function(s) {
+        let opt = new Option(s.nama, s.id, false, false);
+        $(opt).data('sales', s);
+        $sel.append(opt);
+      });
+      if (selectedId) {
+        $sel.val(selectedId).trigger('change');
+      } else if (selectedText) {
+        let found = r.data.find(function(item) {
+          return item.nama.toLowerCase() === selectedText.toLowerCase();
+        });
+        if (found) {
+          $sel.val(found.id).trigger('change');
+        } else {
+          let customOpt = new Option(selectedText, selectedText, true, true);
+          $sel.append(customOpt).trigger('change');
+          $("#idk-sales").val(selectedText);
+        }
+      }
+    }
+  });
+}
+
+$("#idk-sales_select").select2({
+  placeholder: "Pilih Sales External",
+  allowClear: true,
+  dropdownParent: $('#modal-isi_data_konsumen')
+}).on('change', function() {
+  let val = $(this).val();
+  let selText = $(this).find('option:selected').text();
+  if (val && !isNaN(val)) {
+    $("#idk-id_sales").val(val);
+    $("#idk-sales").val(selText);
+  } else {
+    $("#idk-id_sales").val('');
+    $("#idk-sales").val(val || '');
+  }
+});
+
 const containerIsiKonsumen = $("#tab-isi-konsumen");
 let latestIsiDataKonsumenRequestId = 0;
 const consumerReplacementState = {
@@ -226,7 +272,7 @@ const consumerIdentityFields = [
   "#idk-pekerjaan", "#idk-lama_bekerja", "#idk-bidang_pekerjaan",
   "#idk-status_pernikahan", "#idk-nama_pasangan", "#idk-nik_pasangan",
   "#idk-hp_pasangan", "#idk-status_pekerjaan_pasangan", "#idk-instansi_pasangan",
-  "#idk-sales",
+  "#idk-sales", "#idk-keterangan_sales", "#idk-sales_select", "#idk-id_sales",
 ];
 
 function resetConsumerReplacementMode() {
@@ -256,6 +302,7 @@ function prepareConsumerReplacementForm() {
 
   $(consumerIdentityFields.join(",")).val("").trigger("change");
   $("#idk-kode_referal").val(null).trigger("change");
+  $("#idk-sales_select").val(null).trigger("change");
   $("#file_ktp, #file_npwp, #file_data_diri, #file_spptb, #file_surat_kuasa").val("");
   $("#idk-file_ktp-here, #idk-file_npwp-here, #idk-file_data_diri-here")
     .html("Tidak ada data")
@@ -989,6 +1036,9 @@ function fillMkdt(v) {
   setVal("#idk-instansi_pasangan", v.instansi_pasangan);
 
   setVal("#idk-sales", v.sales);
+  setVal("#idk-id_sales", v.id_sales);
+  setVal("#idk-keterangan_sales", v.keterangan_sales);
+  loadActiveSalesSelect(v.id_sales, v.sales);
 
   if (v.referred_by_kode) {
     let option = new Option(v.referred_by_kode + ' - ' + v.referred_by_nama, v.referred_by_kode, true, true);
@@ -1006,6 +1056,7 @@ function fillMkdt(v) {
   if (Number(v.harga_jual || 0) > 0 || Number(v.harga_allin || 0) > 0) {
   setVal("#mk-hargajual", v.harga_jual);
   setVal("#mk-hargajual_net", v.harga_jual_net);
+  setVal("#mk-harga_net_ajb", (v.harga_net_ajb && Number(v.harga_net_ajb) > 0) ? v.harga_net_ajb : v.harga_jual_net);
   setVal("#mk-kpr", v.harga_kpr);
   setVal("#mk-uang_muka", v.harga_uang_muka);
   setVal("#mk-biaya_adm", v.harga_administrasi);

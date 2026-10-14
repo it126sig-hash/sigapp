@@ -608,10 +608,18 @@
                                                                 </select>
                                                                 <label for="idk-kode_referal">Kode Referal (Opsional)</label>
                                                             </div>
+                                                            <div class="form-group floating-label floating-label-select">
+                                                                <select class="form-control" id="idk-sales_select" name="idk-sales_select">
+                                                                    <option value=""></option>
+                                                                </select>
+                                                                <input type="hidden" id="idk-sales" name="sales">
+                                                                <input type="hidden" id="idk-id_sales" name="id_sales">
+                                                                <label for="idk-sales_select">Sales External</label>
+                                                            </div>
                                                             <div class="form-group floating-label">
-                                                                <input type="text" class="form-control" id="idk-sales"
-                                                                    name="sales" placeholder=" ">
-                                                                <label for="idk-sales">Sales</label>
+                                                                <input type="text" class="form-control" id="idk-keterangan_sales"
+                                                                    name="keterangan_sales" placeholder=" ">
+                                                                <label for="idk-keterangan_sales">Keterangan Sales (cth: DEVOY)</label>
                                                             </div>
                                                             <div class="form-group floating-label">
                                                                 <input type="text" class="form-control" id="idk-promo"
@@ -726,6 +734,14 @@
                                                                 <label class="form-label" for="mk-hargajual_net">Harga
                                                                     Jual
                                                                     Net</label>
+                                                            </div>
+                                                            <div class="form-group floating-label">
+                                                                <input type="text" class="form-control num mk-fm "
+                                                                    id="mk-harga_net_ajb" name="mk-harga_net_ajb"
+                                                                    value="" placeholder=" " />
+                                                                <label class="form-label" for="mk-harga_net_ajb">Harga
+                                                                    Net Sesuai
+                                                                    AJB</label>
                                                             </div>
                                                             <div class="form-group floating-label">
                                                                 <input type="text" class="form-control num mk-fm"

@@ -14,6 +14,18 @@ class PencairanAkad extends BaseController
         $this->service = new PencairanAkadService();
     }
 
+    protected function checkKeuanganAccess(): ?\CodeIgniter\HTTP\ResponseInterface
+    {
+        if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'token' => csrf_hash(),
+                'success' => false,
+                'message' => 'Akses ditolak: Hanya user Keuangan atau Administrator yang dapat memproses atau memperbarui pencairan dana.'
+            ]);
+        }
+        return null;
+    }
+
     public function get()
     {
         return $this->response->setJSON(
@@ -26,6 +38,8 @@ class PencairanAkad extends BaseController
 
     public function saveRetensi()
     {
+        if ($denied = $this->checkKeuanganAccess()) return $denied;
+
         return $this->response->setJSON(
             $this->service->saveRetensi($this->request->getPost(), (int) user_id())
         );
@@ -33,6 +47,8 @@ class PencairanAkad extends BaseController
 
     public function saveTenor()
     {
+        if ($denied = $this->checkKeuanganAccess()) return $denied;
+
         return $this->response->setJSON(
             $this->service->saveTenor($this->request->getPost(), (int) user_id())
         );
@@ -40,6 +56,8 @@ class PencairanAkad extends BaseController
 
     public function storePengajuan()
     {
+        if ($denied = $this->checkKeuanganAccess()) return $denied;
+
         return $this->response->setJSON(
             $this->service->storePengajuan($this->request, (int) user_id())
         );
@@ -47,6 +65,8 @@ class PencairanAkad extends BaseController
 
     public function cairkan()
     {
+        if ($denied = $this->checkKeuanganAccess()) return $denied;
+
         return $this->response->setJSON(
             $this->service->cairkan($this->request, (int) user_id())
         );
@@ -61,6 +81,8 @@ class PencairanAkad extends BaseController
 
     public function voidPayment()
     {
+        if ($denied = $this->checkKeuanganAccess()) return $denied;
+
         return $this->response->setJSON(
             $this->service->voidPayment(
                 (int) $this->request->getPost('id_payment'),
@@ -72,6 +94,8 @@ class PencairanAkad extends BaseController
 
     public function void()
     {
+        if ($denied = $this->checkKeuanganAccess()) return $denied;
+
         return $this->response->setJSON(
             $this->service->void(
                 (int) $this->request->getPost('id_pengajuan'),
@@ -132,6 +156,10 @@ class PencairanAkad extends BaseController
 
     public function importForm()
     {
+        if (function_exists('in_groups') && !in_groups(['1', '3'])) {
+            return redirect()->to(base_url('keuangan/hasil-akad/list'))->with('error', 'Akses ditolak: Hanya user Keuangan yang dapat mengakses import pencairan.');
+        }
+
         $data['content'] = 'keuangan/pencairan-akad-import';
         $data['data']['controller'] = 'Keuangan';
         $data['data']['title'] = 'Import Tanggal Cair Pencairan Akad';
@@ -141,6 +169,8 @@ class PencairanAkad extends BaseController
 
     public function import()
     {
+        if ($denied = $this->checkKeuanganAccess()) return $denied;
+
         $file = $this->request->getFile('csv_file');
         if (! $file || ! $file->isValid()) {
             return $this->response->setJSON(['token' => csrf_hash(), 'success' => false, 'message' => 'File CSV tidak valid']);
@@ -150,4 +180,67 @@ class PencairanAkad extends BaseController
             $this->service->importTanggalCair($file->getTempName(), $this->request->getFile('lampiran_surat'), (int) user_id())
         );
     }
+
+    public function postBatchList()
+    {
+        return $this->service->getBatchList($this->request);
+    }
+
+    public function postEligibleKavling()
+    {
+        $idKavlings = (array) $this->request->getPost('id_kavlings');
+        $idProyek = (int) $this->request->getPost('id_proyek');
+        return $this->response->setJSON(
+            $this->service->getEligibleBatchKavling($idKavlings, $idProyek)
+        );
+    }
+
+    public function postStoreBatchPengajuan()
+    {
+        if ($denied = $this->checkKeuanganAccess()) return $denied;
+
+        return $this->response->setJSON(
+            $this->service->storeBatchPengajuan(
+                $this->request->getPost(),
+                $this->request->getFile('lampiran_surat'),
+                (int) user_id()
+            )
+        );
+    }
+
+    public function postBatchDetail()
+    {
+        $idBatch = (int) $this->request->getPost('id_batch');
+        return $this->response->setJSON(
+            $this->service->getBatchDetail($idBatch)
+        );
+    }
+
+    public function postCairkanBatch()
+    {
+        if ($denied = $this->checkKeuanganAccess()) return $denied;
+
+        return $this->response->setJSON(
+            $this->service->cairkanBatch($this->request->getPost(), (int) user_id())
+        );
+    }
+
+    public function postVoidBatch()
+    {
+        if ($denied = $this->checkKeuanganAccess()) return $denied;
+
+        $idBatch = (int) $this->request->getPost('id_batch');
+        $reason = (string) $this->request->getPost('reason');
+        return $this->response->setJSON(
+            $this->service->voidBatch($idBatch, $reason, (int) user_id())
+        );
+    }
+
+    public function getBatchHistory($id)
+    {
+        return $this->response->setJSON(
+            $this->service->getBatchHistory((int) $id)
+        );
+    }
 }
+

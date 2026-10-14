@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-13 00:21:45` @ `3b94cd9`  
+**Last Synced:** `2026-10-14 16:33:37` @ `87dee08`  
 
 ## Purpose
 Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operasional, SPP, bank KPR, pajak, dan ledger kas.
@@ -129,6 +129,13 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 | `POST` | `/keuangan/pencairan-akad/payment/void` | `Explicit` | `PencairanAkad::voidPayment` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `POST` | `/keuangan/pencairan-akad/void` | `Explicit` | `PencairanAkad::void` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `GET` | `/keuangan/pencairan-akad/history/(:num)` | `Explicit` | `PencairanAkad::history/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `/keuangan/pencairan-akad/batch/list` | `Explicit` | `PencairanAkad::postBatchList` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `/keuangan/pencairan-akad/batch/eligible-kavling` | `Explicit` | `PencairanAkad::postEligibleKavling` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `/keuangan/pencairan-akad/batch/pengajuan/store` | `Explicit` | `PencairanAkad::postStoreBatchPengajuan` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `/keuangan/pencairan-akad/batch/detail` | `Explicit` | `PencairanAkad::postBatchDetail` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `/keuangan/pencairan-akad/batch/pencairan/store` | `Explicit` | `PencairanAkad::postCairkanBatch` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `/keuangan/pencairan-akad/batch/void` | `Explicit` | `PencairanAkad::postVoidBatch` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `GET` | `/keuangan/pencairan-akad/batch/history/(:num)` | `Explicit` | `PencairanAkad::getBatchHistory/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `GET` | `/keuangan/hasil-akad/list` | `Explicit` | `PencairanAkad::listHasilAkad` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `POST` | `/keuangan/hasil-akad/list/ambil-grouped` | `Explicit` | `PencairanAkad::getListGrouped` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `POST` | `/keuangan/hasil-akad/list/detail` | `Explicit` | `PencairanAkad::getListDetail` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
@@ -213,6 +220,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 | `ANY` | `/cash_out/num` | `AutoRoute` | `CashOut::num` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/cashout_kavling/json` | `AutoRoute` | `CashoutKavling::json` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/cashout_subkon/json` | `AutoRoute` | `CashoutSubkon::json` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/pencairan_akad/checkkeuanganaccess` | `AutoRoute` | `PencairanAkad::checkKeuanganAccess` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/cash_in_report_controller/canaccessreport` | `AutoRoute` | `CashInReportController::canAccessReport` | 🟢 MIGRATED | Rute method aktif |
 | `ANY` | `/hasil_akad_report_controller/canaccessreport` | `AutoRoute` | `HasilAkadReportController::canAccessReport` | 🟢 MIGRATED | Rute method aktif |
 
@@ -317,7 +325,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `importTanggalCair(string $csvPath, $lampiranFile, int $actorId)`
 - `getListGrouped($request)`
 - `listFilters($request)`
-- _dan 24 method lainnya..._
+- _dan 34 method lainnya..._
 #### `CashOutService.php`
 - `insert($data)`
 - `delete($id)`
@@ -409,14 +417,14 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Controllers/Keuangan/Cashout/CashoutSubkon.php` (111 baris, 11 public methods)
 - `app/Controllers/ListBank.php` (27 baris, 1 public methods)
 - `app/Controllers/Api/BankController.php` (132 baris, 5 public methods)
-- `app/Controllers/PencairanAkad.php` (154 baris, 15 public methods)
+- `app/Controllers/PencairanAkad.php` (247 baris, 23 public methods)
 - `app/Controllers/Api/BookingPaymentController.php` (54 baris, 1 public methods)
 - `app/Controllers/Web/CashInReportController.php` (51 baris, 1 public methods)
 - `app/Controllers/Api/CashInReportController.php` (85 baris, 3 public methods)
 - `app/Controllers/Web/HasilAkadReportController.php` (49 baris, 1 public methods)
 - `app/Controllers/Api/HasilAkadReportController.php` (80 baris, 3 public methods)
 - `app/Controllers/PrintController.php` (133 baris, 2 public methods)
-- `app/Controllers/PencairanJaminan.php` (71 baris, 7 public methods)
+- `app/Controllers/PencairanJaminan.php` (75 baris, 7 public methods)
 
 ### Services (16)
 - `app/Services/KeuanganService.php` (1851 baris)
@@ -427,14 +435,14 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Services/BankService.php` (37 baris)
 - `app/Services/BookingPaymentService.php` (326 baris)
 - `app/Services/BookingFeeMigrationService.php` (234 baris)
-- `app/Services/PencairanAkadService.php` (1339 baris)
+- `app/Services/PencairanAkadService.php` (2124 baris)
 - `app/Services/CashOutService.php` (84 baris)
 - `app/Services/Keuangan/Cashout/CashoutKavlingService.php` (132 baris)
 - `app/Services/Keuangan/Cashout/CashoutSubkonService.php` (822 baris)
 - `app/Services/CashInReportService.php` (212 baris)
 - `app/Services/HasilAkadReportService.php` (187 baris)
 - `app/Services/PrintService.php` (634 baris)
-- `app/Services/DanaJaminanService.php` (633 baris)
+- `app/Services/DanaJaminanService.php` (637 baris)
 
 ### Repositories (13)
 - `app/Repositories/KeuanganRepository.php` (495 baris)
@@ -481,11 +489,11 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `public/assets/js/siteplan/pajak.js` (240 baris)
 - `public/assets/js/siteplan/cashout_subkon.js` (1062 baris)
 - `public/assets/js/tagihan-bayar-modal.js` (1407 baris)
-- `public/assets/js/pencairan-akad-modal.js` (828 baris)
+- `public/assets/js/pencairan-akad-modal.js` (1266 baris)
 - `public/assets/js/keuangan/penagihan.js` (1041 baris)
 - `public/assets/js/cashout_kavling/index.js` (128 baris)
 - `public/assets/js/laporan-cash-in.js` (473 baris)
-- `public/assets/js/laporan-hasil-akad.js` (201 baris)
+- `public/assets/js/laporan-hasil-akad.js` (228 baris)
 
 ## Readiness Checklist
 - [x] Has Service Layer
