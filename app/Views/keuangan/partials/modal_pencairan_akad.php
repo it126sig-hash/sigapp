@@ -1,4 +1,8 @@
 <style>
+    .swal2-container {
+        z-index: 2000 !important;
+    }
+
     #pencairan_akad_modal .keu-pa-layout {
         display: flex;
         flex-wrap: nowrap;
@@ -449,7 +453,20 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <div id="pa-retensi_here"></div>
+                                        <div class="table-responsive mb-1">
+                                            <table class="table table-bordered table-striped mb-0" id="pa-retensi-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 25%;">Item Jaminan</th>
+                                                        <th style="width: 25%;">Nominal</th>
+                                                        <th style="width: 25%;">Catatan</th>
+                                                        <th style="width: 13%;">Status</th>
+                                                        <th style="width: 12%;" class="text-center">Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="pa-retensi_here"></tbody>
+                                            </table>
+                                        </div>
                                         <button type="button" class="btn btn-primary mt-1" onclick="savePencairanAkadRetensi(); return false;">
                                             Simpan Retensi
                                         </button>
@@ -465,7 +482,19 @@
                                         <div class="alert alert-light-primary py-1 mb-1" id="pa-tenor-sisa-box">
                                             Sisa Dana Akad Bersih: <strong id="pa-tenor-sisa-label">Rp 0</strong>
                                         </div>
-                                        <div id="pa-tenor_here"></div>
+                                        <div class="table-responsive mb-1">
+                                            <table class="table table-bordered table-striped mb-0" id="pa-tenor-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 28%;">Nominal</th>
+                                                        <th style="width: 32%;">Catatan</th>
+                                                        <th style="width: 22%;">Status</th>
+                                                        <th style="width: 18%;" class="text-center">Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="pa-tenor_here"></tbody>
+                                            </table>
+                                        </div>
                                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="addPencairanAkadTenorRow()">
                                             <i class="fas fa-plus"></i> Tambah Termin
                                         </button>

@@ -146,6 +146,16 @@ class PencairanAkadService
                 throw new \RuntimeException('Total retensi tidak boleh melebihi ACC KPR');
             }
 
+            $existingTenorTotal = (float) $this->db->table('pencairan_akad_item')
+                ->selectSum('nominal')
+                ->where('id_plan', $idPlan)
+                ->where('jenis', 'tenor')
+                ->get()->getRow()->nominal;
+
+            if ($totalRetensi + $existingTenorTotal > $hargaKprAcc + 0.01) {
+                throw new \RuntimeException('Total retensi dan pencairan dana akad bersih melebihi total plafon ACC KPR (Rp ' . number_format($hargaKprAcc, 0, ',', '.') . ')');
+            }
+
             $db->table('pencairan_akad_plan')->where('id', $idPlan)->update([
                 'total_retensi' => $totalRetensi,
                 'total_hasil_akad' => $hargaKprAcc - $totalRetensi,

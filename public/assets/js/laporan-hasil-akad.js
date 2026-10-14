@@ -171,7 +171,21 @@
     if (isPengajuan) columns.push({ data: "status_pengajuan", name: "status_pengajuan", orderable: false, render: function (data, type, row) { return type === "display" ? paymentStatus(data, row.tanggal_pencairan) : data; } });
     columns.push(
       { data: "nominal", name: "nominal", className: "text-right font-weight-bold", render: money },
-      { data: null, orderable: false, searchable: false, className: "text-center", render: function (data, type, row) { if (!row.id_kavling) return "-"; return '<button type="button" class="btn btn-info btn-sm hasil-akad-view-kavling" data-id-kavling="' + escapeHtml(row.id_kavling) + '" data-id-mkdt="' + escapeHtml(row.id_mkdt || "") + '" data-nama-jalan="' + escapeHtml(row.nama_jalan || "") + '" data-no-kavling="' + escapeHtml(row.no_kavling || "") + '" title="Lihat Detail Kavling"><i class="fa fa-eye"></i></button>'; } }
+      {
+        data: null,
+        orderable: false,
+        searchable: false,
+        className: "text-center",
+        render: function (data, type, row) {
+          if (!row.id_kavling) return "-";
+          var btnDetail = '<button type="button" class="btn btn-info btn-sm hasil-akad-view-kavling" data-id-kavling="' + escapeHtml(row.id_kavling) + '" data-id-mkdt="' + escapeHtml(row.id_mkdt || "") + '" data-nama-jalan="' + escapeHtml(row.nama_jalan || "") + '" data-no-kavling="' + escapeHtml(row.no_kavling || "") + '" title="Lihat Detail Kavling"><i class="fa fa-eye"></i></button>';
+          var btnKelola = "";
+          if (config.canManagePencairan && row.id_mkdt) {
+            btnKelola = '<button type="button" class="btn btn-primary btn-sm ml-50 hasil-akad-manage-pencairan" data-id-kavling="' + escapeHtml(row.id_kavling) + '" data-id-mkdt="' + escapeHtml(row.id_mkdt || "") + '" data-nama-jalan="' + escapeHtml(row.nama_jalan || "") + '" data-no-kavling="' + escapeHtml(row.no_kavling || "") + '" title="Kelola Pencairan Akad"><i class="fas fa-hand-holding-usd mr-25"></i> Kelola</button>';
+          }
+          return '<div class="d-inline-flex align-items-center">' + btnDetail + btnKelola + '</div>';
+        }
+      }
     );
     detailTable = $("#hasil_akad_detail_table").DataTable({
       processing: true, serverSide: true, searching: true, lengthChange: true, pageLength: 10, order: [[3, "asc"]], scrollX: true, autoWidth: false,
@@ -193,6 +207,19 @@
       var button = $(this), idKavling = button.data("id-kavling"); if (!idKavling) return;
       var sh = { id: "kav" + idKavling, data: { tipe: "kavling", id_kavling: idKavling, id_mkdt: button.data("id-mkdt") || null, id_keuangan: null, id_legal: null, id_produksi: null, nama_jalan: button.data("nama-jalan") || "", no_kavling: button.data("no-kavling") || "" }, data2: { harga_akhir: "-", id_hargajual: "", id_komplain: null, no_tipe_rumah: "", tipe_rumah: "", harga_akhir_tgl: "", harga_akhir_oleh: "" } };
       window.editdtt = [sh]; if (typeof detail_kavling === "function") detail_kavling(sh, idKavling);
+    });
+    $(document).on("click", ".hasil-akad-manage-pencairan", function () {
+      var button = $(this);
+      var sh = {
+        id_kavling: button.data("id-kavling"),
+        id_mkdt: button.data("id-mkdt"),
+        nama_jalan: button.data("nama-jalan"),
+        no_kavling: button.data("no-kavling"),
+        nama_proyek: config.projectName || ""
+      };
+      if (typeof openPencairanAkadModal === "function") {
+        openPencairanAkadModal(sh);
+      }
     });
     if (config.hasProject) loadSummary();
     else $("#hasil_akad_year_a, #hasil_akad_year_b, #hasil_akad_apply, #hasil_akad_add_comparison, #hasil_akad_remove_comparison, #hasil_akad_toggle_chart").prop("disabled", true);

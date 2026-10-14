@@ -104,12 +104,14 @@
 <script src="<?= base_url('app-assets/vendors/js/charts/chart.min.js') ?>"></script>
 
 <?= view('siteplan/partials/modal_detail', ['data' => []]) ?>
+<?= view('keuangan/partials/modal_pencairan_akad') ?>
 <script>
 window.HASIL_AKAD_REPORT = <?= json_encode([
     'summaryUrl' => base_url('api/laporan/hasil-akad/summary'),
     'detailUrl' => base_url('api/laporan/hasil-akad/detail'),
     'hasProject' => (bool) $activeProyek,
     'projectName' => (string) ($activeProyek->nama_proyek ?? ''),
+    'canManagePencairan' => function_exists('in_groups') ? in_groups(['1', '3']) : false,
     'csrfName' => csrf_token(),
     'csrfHash' => csrf_hash(),
 ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
@@ -121,4 +123,5 @@ if (typeof editdtt === 'undefined') var editdtt = [];
 if (typeof roleid === 'undefined') var roleid = '<?= user_id() ? (session()->get('role_id') ?? 0) : 0 ?>';
 </script>
 <script src="<?= base_url('assets/js/siteplan-detail-modal.js') ?>?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
+<script src="<?= base_url('assets/js/pencairan-akad-modal.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/pencairan-akad-modal.js') ?>"></script>
 <script src="<?= base_url('assets/js/laporan-hasil-akad.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/laporan-hasil-akad.js') ?>"></script>
