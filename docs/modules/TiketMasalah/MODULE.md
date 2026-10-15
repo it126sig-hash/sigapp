@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-12 14:38:40` @ `be98758`  
+**Last Synced:** `2026-10-15 15:35:46` @ `f6e637e`  
 
 ## Purpose
 Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, dan tracking progres penyelesaian.
@@ -43,7 +43,7 @@ Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, da
 | `POST` | `create-others-area` | `Explicit` | `TiketMasalahController::createOthersArea` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `datatable` | `Explicit` | `TiketMasalahController::datatable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `toggle-pin` | `Explicit` | `TiketMasalahController::togglePin` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `tiket-masalah` | `Explicit` | `\App\Controllers\Web\TiketMasalahController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `tiket-masalah` | `Explicit` | `\App\Controllers\Web\TiketMasalah\TiketMasalahController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `list` | `Explicit` | `TiketMasalahController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `detail` | `Explicit` | `TiketMasalahController::detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `progress` | `Explicit` | `TiketMasalahController::progress` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -57,7 +57,7 @@ Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, da
 | `POST` | `create-others-area` | `Explicit` | `TiketMasalahController::createOthersArea` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `datatable` | `Explicit` | `TiketMasalahController::datatable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `toggle-pin` | `Explicit` | `TiketMasalahController::togglePin` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `tiket-masalah` | `Explicit` | `\App\Controllers\Web\TiketMasalahController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `tiket-masalah` | `Explicit` | `\App\Controllers\Web\TiketMasalah\TiketMasalahController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
 #### `TiketMasalahService.php`
@@ -74,18 +74,19 @@ Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, da
 - `getUserList()`
 - `getCreatorList()`
 - `getDivisionList()`
+- `createOthersArea(array $params, int $userId)`
 - `compressImageIfPossible(string $absolutePath)`
 
 ## File Inventory
 ### Controllers (2)
-- `app/Controllers/Web/TiketMasalahController.php` (19 baris, 1 public methods)
-- `app/Controllers/Api/TiketMasalahController.php` (253 baris, 13 public methods)
+- `app/Controllers/Web/TiketMasalah/TiketMasalahController.php` (19 baris, 1 public methods)
+- `app/Controllers/Api/TiketMasalah/TiketMasalahController.php` (218 baris, 13 public methods)
 
 ### Services (1)
-- `app/Services/TiketMasalahService.php` (693 baris)
+- `app/Services/TiketMasalah/TiketMasalahService.php` (740 baris)
 
 ### Repositories (1)
-- `app/Repositories/TiketMasalahRepository.php` (174 baris)
+- `app/Repositories/TiketMasalah/TiketMasalahRepository.php` (179 baris)
 
 ### Models (4)
 - `app/Models/TiketMasalahModel.php`

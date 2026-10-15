@@ -587,7 +587,7 @@ $routes->group('api/riwayat-perubahan', ['namespace' => 'App\Controllers\Api', '
     $routes->post('list', 'HistoryController::list');
 });
 
-$routes->group('api/tiket-masalah', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/tiket-masalah', ['namespace' => 'App\Controllers\Api\TiketMasalah', 'filter' => 'login'], function ($routes) {
     $routes->post('list',               'TiketMasalahController::list');
     $routes->post('detail',             'TiketMasalahController::detail');
     $routes->post('progress',           'TiketMasalahController::progress');
@@ -604,7 +604,7 @@ $routes->group('api/tiket-masalah', ['namespace' => 'App\Controllers\Api', 'filt
 });
 
 $routes->group('', ['filter' => 'login'], function ($routes) {
-    $routes->get('tiket-masalah', '\App\Controllers\Web\TiketMasalahController::index');
+    $routes->get('tiket-masalah', '\App\Controllers\Web\TiketMasalah\TiketMasalahController::index');
     $routes->get('member-get-member', '\App\Controllers\Web\MemberGetMemberController::index');
 });
 

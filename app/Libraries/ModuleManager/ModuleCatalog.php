@@ -336,11 +336,11 @@ class ModuleCatalog
                 'name' => 'TiketMasalah',
                 'description' => 'Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, dan tracking progres penyelesaian.',
                 'controllers' => [
-                    'Web/TiketMasalahController.php',
-                    'Api/TiketMasalahController.php',
+                    'Web/TiketMasalah/TiketMasalahController.php',
+                    'Api/TiketMasalah/TiketMasalahController.php',
                 ],
-                'services' => ['TiketMasalahService.php'],
-                'repositories' => ['TiketMasalahRepository.php'],
+                'services' => ['TiketMasalah/TiketMasalahService.php'],
+                'repositories' => ['TiketMasalah/TiketMasalahRepository.php'],
                 'models' => [
                     'TiketMasalahModel.php',
                     'TiketMasalahProgressModel.php',
