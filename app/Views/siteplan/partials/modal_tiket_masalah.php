@@ -3,85 +3,79 @@
     window.is_supervisor_manager = <?= (function_exists('in_groups') && in_groups(['Admin', 'Direksi', 'Manager', 'Supervisor'])) ? 'true' : 'false' ?>;
 </script>
 
-<style>
-    #modal_tiket_masalah .modal-dialog {
-        max-width: 100%;
-        margin: 0;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 100vh;
-        display: flex;
-    }
-
-    #modal_tiket_masalah .modal-content {
-        height: 100vh;
-        border-radius: 0;
-    }
-
-    #modal_tiket_masalah .detail-kavling-sidebar,
-    #modal_tiket_masalah .detail-hero-card {
-        position: static !important;
-
-        #modal_tiket_masalah .badge-prio-laporan {
-            background-color: #00cfe8;
-            color: #fff;
-        }
-</style>
 <div class="modal fade" id="modal_tiket_masalah" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-xl p-1" role="document">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
         <div class="modal-content border-0">
 
-            <div class="modal-header bg-white border-bottom-0 pb-0">
-                <h5 class="modal-title font-weight-bold text-dark">
-                    <i class="feather icon-alert-circle text-warning mr-1"></i> Tiket Masalah
-                </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+            <!-- 1. SYSTEM TOP BAR -->
+            <div class="tm-system-bar">
+                <div class="d-flex align-items-center">
+                    <span class="font-weight-bold text-white" style="font-size: 13px; letter-spacing: 0.3px;">Tiket Masalah</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <button type="button" class="tm-btn-close-system" data-dismiss="modal" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
 
-            <div class="modal-body p-2" style="background-color: #e2e4e6;">
+            <!-- 2. SUB-HEADER NAVIGATION (Populated dynamically in detail view) -->
+            <div id="tm_subheader_nav" class="tm-subheader-nav d-none">
+                <!-- Injected via renderTiketDetail() -->
+            </div>
 
-                <div class="row">
-                    <!-- LEFT SIDEBAR (col-md-3 Sticky Hero Card) -->
-                    <div class="col-md-3 detail-kavling-sidebar mb-3 mb-md-0">
-                        <div class="card detail-hero-card">
-                            <div class="card-body p-3">
-                                <h4 class="hero-project-title mb-2" id="tm_hero_project_title">SANGGAR INDAH PALASTRI</h4>
+            <!-- 3. MAIN BODY 2-COLUMN LAYOUT -->
+            <div class="modal-body p-0" style="background-color: #f8fafc; overflow: hidden;">
+                <div class="row no-gutters h-100">
+                    <!-- LEFT SIDEBAR: Gradient Hero Blue (col-12 col-md-3) -->
+                    <div class="col-12 col-md-3 p-0">
+                        <div class="tm-hero-sidebar">
+                            <div>
+                                <span class="tm-sidebar-label">KAVLING &amp; UNIT TERPILIH</span>
+                                <h4 class="tm-sidebar-project-title" id="tm_hero_project_title">SANGGAR INDAH PALASTRI</h4>
 
-                                <div class="hero-meta-item mb-2" id="tm_hero_location_container">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span id="tm_hero_location_text">CALYA DALAM, No.8</span>
-                                </div>
-
-                                <div class="hero-meta-item mb-3" id="tm_hero_tipe_container">
-                                    <i class="fas fa-home"></i>
-                                    <span id="tm_hero_tipe_text">Tipe 31/72 DESAIN BARU</span>
-                                </div>
-
-                                <div class="mt-3 pt-2 border-top border-white-50">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span class="text-xs text-white-50 font-weight-bold">PROGRES PEMBANGUNAN</span>
-                                        <span class="text-sm font-weight-bold text-white" id="tm_hero_progress_text">0%</span>
+                                <div class="tm-sidebar-meta-item" id="tm_hero_location_container">
+                                    <div class="tm-sidebar-icon-box">
+                                        <i class="fas fa-map-marker-alt"></i>
                                     </div>
-                                    <div class="progress-track">
-                                        <div class="progress-fill" id="tm_hero_progress_bar" style="width: 0%;"></div>
+                                    <div>
+                                        <div class="tm-sidebar-meta-val" id="tm_hero_location_text">CALYA DALAM, No.8</div>
+                                        <span class="tm-sidebar-meta-sub">Alamat / Posisi Unit</span>
                                     </div>
                                 </div>
+
+                                <div class="tm-sidebar-meta-item" id="tm_hero_tipe_container">
+                                    <div class="tm-sidebar-icon-box">
+                                        <i class="fas fa-home"></i>
+                                    </div>
+                                    <div>
+                                        <div class="tm-sidebar-meta-val" id="tm_hero_tipe_text">Tipe 31/72 DESAIN BARU</div>
+                                        <span class="tm-sidebar-meta-sub">Spesifikasi Desain</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tm-sidebar-progress-box">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="tm-sidebar-label mb-0">PROGRES FISIK</span>
+                                    <span class="font-weight-bold text-white text-sm" id="tm_hero_progress_text">0%</span>
+                                </div>
+                                <div class="tm-progress-track">
+                                    <div class="tm-progress-fill" id="tm_hero_progress_bar" style="width: 0%;"></div>
+                                </div>
+                                <span class="tm-sidebar-meta-sub mt-2">Terakhir diverifikasi dari opname lapangan</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- RIGHT CONTENT AREA (col-md-9) -->
-                    <div class="col-md-9">
+                    <!-- RIGHT CONTENT AREA (col-12 col-md-9) -->
+                    <div class="col-12 col-md-9 p-0 tm-main-content-scroll">
 
                         <!-- VIEW 1: LIST TIKET -->
-                        <div id="view_list_tiket">
+                        <div id="view_list_tiket" class="p-3 p-md-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0 font-weight-bold text-slate-700">Daftar Tiket Kendala</h6>
-                                <button class="btn btn-primary btn-sm rounded-pill px-3" id="btn_show_buat_tiket">
+                                <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm font-weight-bold" id="btn_show_buat_tiket">
                                     <i class="fas fa-plus mr-1"></i> Buat Laporan
                                 </button>
                             </div>
@@ -91,14 +85,14 @@
                         </div>
 
                         <!-- VIEW 2: DETAIL TIKET & HISTORY -->
-                        <div id="view_detail_tiket" class="d-none">
+                        <div id="view_detail_tiket" class="d-none p-3 p-md-4">
                             <div id="tm_detail_content">
                                 <!-- Rendered via JS -->
                             </div>
                         </div>
 
                         <!-- VIEW 3: FORM BUAT TIKET -->
-                        <div id="form_buat_tiket" class="d-none">
+                        <div id="form_buat_tiket" class="d-none p-3 p-md-4">
                             <div class="card border-0 shadow-sm rounded-12 mb-0">
                                 <div class="card-header bg-white p-3 border-bottom">
                                     <h6 class="mb-0 font-weight-bold">Buat Laporan</h6>
@@ -213,6 +207,11 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- 4. AUDIT FOOTER (Populated dynamically in detail view) -->
+            <div id="tm_audit_footer" class="tm-audit-footer d-none">
+                <!-- Injected via renderTiketDetail() -->
             </div>
         </div>
     </div>

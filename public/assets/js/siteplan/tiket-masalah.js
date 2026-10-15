@@ -1,6 +1,9 @@
 $(document).ready(function() {
     // Inisialisasi elemen
     const modalMasalah = $('#modal_tiket_masalah');
+    modalMasalah.on('hidden.bs.modal', function() {
+        $('#tm_subheader_nav, #tm_audit_footer').addClass('d-none');
+    });
     let currentRefType = '';
     let currentRefId = 0;
     let currentRefData = null;
@@ -108,8 +111,9 @@ $(document).ready(function() {
         selectedFiles = [];
         progressSelectedFiles = [];
 
-        // Reset view
+        // Reset view & navigation
         $('#list_tiket_masalah').html('<div class="text-center p-4"><span class="spinner-border text-primary"></span></div>');
+        $('#tm_subheader_nav, #tm_audit_footer').addClass('d-none');
         
         // Modal listener untuk konfirmasi tutup jika sedang mengisi form
         if (typeof removeModalListener === 'function') {
@@ -313,6 +317,7 @@ $(document).ready(function() {
         window.currentEditTiketId = data.id;
         
         // Beralih view dari detail ke form
+        $('#tm_subheader_nav, #tm_audit_footer').addClass('d-none');
         $('#view_detail_tiket').addClass('d-none');
         $('#form_buat_tiket').removeClass('d-none');
         
@@ -411,6 +416,7 @@ $(document).ready(function() {
     };
 
     function loadTiketList() {
+        $('#tm_subheader_nav, #tm_audit_footer').addClass('d-none');
         $.ajax({
             url: base_url + 'api/tiket-masalah/list',
             type: 'POST',
@@ -522,6 +528,7 @@ $(document).ready(function() {
     }
 
         $('#btn_show_buat_tiket').click(function() {
+        $('#tm_subheader_nav, #tm_audit_footer').addClass('d-none');
         $('#view_list_tiket').addClass('d-none');
         $('#form_buat_tiket').removeClass('d-none');
 
@@ -569,7 +576,7 @@ $(document).ready(function() {
         }
     });
 
-    $('#btn_batal_buat_tiket').click(function() {
+    $('#btn_batal_buat_tiket, #btn_batal_buat_tiket_top').click(function() {
         Swal.fire({
             title: 'Batalkan Perubahan?',
             text: "Semua data yang belum disimpan akan hilang.",
@@ -583,6 +590,7 @@ $(document).ready(function() {
                 if (typeof removeModalListener === 'function') {
                     removeModalListener('#modal_tiket_masalah');
                 }
+                $('#tm_subheader_nav, #tm_audit_footer').addClass('d-none');
                 $('#form_buat_tiket').addClass('d-none');
                 $('#view_list_tiket').removeClass('d-none');
                 window.currentEditTiketId = null; // Clear edit ID on cancel
@@ -971,30 +979,54 @@ $(document).ready(function() {
         loadTiketList();
     });
 
-    function renderTiketDetail(data) {
-        let styleHtml = `
-        <style>
-            .tm-btn-action { width: 100%; }
-            .transition-all { transition: all 0.3s ease; }
-            @media (min-width: 768px) {
-                .tm-btn-action { width: auto; min-width: 150px; }
+    function parseIssueDescription(text) {
+        if (!text) return { count: 1, items: ['-'] };
+        
+        // Convert block elements and line breaks to \n before stripping tags
+        let formatted = text
+            .replace(/<br\s*[\/]?>/gi, '\n')
+            .replace(/<\/(p|div|li|h\d)>/gi, '\n')
+            .replace(/<[^>]+>/g, ' ');
+
+        let tempDiv = document.createElement('div');
+        tempDiv.innerHTML = formatted;
+        let plain = tempDiv.textContent || tempDiv.innerText || '';
+        plain = plain.trim();
+        
+        let items = [];
+        // Split on either: start/whitespace followed by number+dot/paren, OR non-digit followed by number+dot/paren
+        let numberSplits = plain.split(/(?=(?:^|\s)\d+[\.\)])|(?<=\D)(?=\d+[\.\)])/).map(s => s.trim()).filter(s => s.length > 0);
+        
+        if (numberSplits.length > 1) {
+            numberSplits.forEach(s => {
+                let cleaned = s.replace(/^\d+[\.\)]\s*/, '').trim();
+                if (cleaned) items.push(cleaned);
+            });
+        } else {
+            let lines = plain.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+            if (lines.length > 1) {
+                lines.forEach(l => {
+                    let cleaned = l.replace(/^\d+[\.\)]\s*/, '').trim();
+                    if (cleaned) items.push(cleaned);
+                });
+            } else if (plain) {
+                items.push(plain);
             }
-        </style>
-        `;
+        }
+        
+        if (items.length === 0) {
+            items.push(text);
+        }
+        
+        return {
+            count: items.length,
+            items: items
+        };
+    }
+
+    function renderTiketDetail(data) {
         let tglDetail = new Date(data.created_at);
         let formattedDate = tglDetail.toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'});
-
-        let photos = '';
-        if(data.foto && data.foto.length > 0) {
-            photos = '<div class="d-flex flex-wrap gap-2 mt-2">';
-            let allUrlsStr = encodeURIComponent(JSON.stringify(data.foto.map(f => f.url)));
-            data.foto.forEach((f, index) => {
-                photos += `<a href="javascript:void(0)" onclick="window.openLightbox('${allUrlsStr}', ${index})"><img src="${f.url}" class="img-thumb-grid"></a>`;
-            });
-            photos += '</div>';
-        } else {
-            photos = '<div class="text-muted text-xs">Tidak ada lampiran foto awal.</div>';
-        }
 
         let isCreator = (window.current_user_id == data.pic_user_id);
         let isSupervisor = (typeof window.is_supervisor_manager !== 'undefined' && window.is_supervisor_manager);
@@ -1005,19 +1037,19 @@ $(document).ready(function() {
         let actionBtnHtml = '';
         if (isClosed) {
             actionBtnHtml = `
-                <div class="alert alert-secondary text-center text-xs mb-0 rounded-12 tm-btn-action d-flex align-items-center justify-content-center">
-                    <i class="fas fa-lock mr-1"></i> Tiket sudah ${data.status.toUpperCase()} (Terkunci)
-                </div>
+                <span class="badge badge-light text-muted border px-3 py-2 text-xs">
+                    <i class="fas fa-lock mr-1"></i> Terkunci
+                </span>
             `;
         } else if (!hasAccess) {
             actionBtnHtml = `
-                <div class="alert alert-warning text-center text-xs mb-0 rounded-12 tm-btn-action d-flex align-items-center justify-content-center" title="Hanya pihak yang dilibatkan yang dapat menambah progres">
+                <span class="badge badge-light-warning border border-warning text-xs px-3 py-2" title="Hanya pihak yang dilibatkan yang dapat menambah progres">
                     <i class="fas fa-ban mr-1"></i> Tidak Punya Akses
-                </div>
+                </span>
             `;
         } else {
             actionBtnHtml = `
-                <button class="btn btn-primary font-weight-bold py-1 px-1 shadow-sm rounded-12 tm-btn-action transition-all" id="btn_toggle_add_progress">
+                <button type="button" class="btn btn-primary font-weight-bold btn-sm rounded-pill px-3 shadow-sm transition-all" id="btn_toggle_add_progress">
                     <i class="fas fa-plus mr-1"></i> <span class="btn-text">Tambah Progres Laporan</span>
                 </button>
             `;
@@ -1028,184 +1060,450 @@ $(document).ready(function() {
         if (data.status !== 'selesai' && data.status !== 'batal' && (isCreator || isSupervisor)) {
             let labelEdit = data.status === 'draft' ? (isCreator ? "Edit Draft" : "Edit & Ambil Alih") : "Edit Tiket";
             editBtnTopHtml = `
-                <button class="btn btn-sm btn-light border rounded-pill px-3 font-weight-bold shadow-sm transition-all btn_edit_draft_tiket" data-id="${data.id}">
+                <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 font-weight-bold shadow-sm transition-all btn_edit_draft_tiket" data-id="${data.id}">
                     <i class="fas fa-edit mr-1"></i> ${labelEdit}
                 </button>
             `;
             editBtnHtml = `
-                <button class="btn btn-warning font-weight-bold py-2 px-4 shadow-sm rounded-12 tm-btn-action transition-all btn_edit_draft_tiket" data-id="${data.id}">
+                <button type="button" class="btn btn-warning font-weight-bold btn-sm rounded-pill px-3 shadow-sm transition-all btn_edit_draft_tiket mr-2" data-id="${data.id}">
                     <i class="fas fa-edit mr-1"></i> ${labelEdit}
                 </button>
             `;
         }
 
+        // 1. RENDER SUB-HEADER NAVIGATION (1 Baris Rapi: Kembali, No Tiket, Prioritas, Status. Share & Print Dihilangkan)
+        let subheaderHtml = `
+            <div class="d-flex align-items-center justify-content-between w-100 flex-nowrap" style="gap: 8px;">
+                <div class="d-flex align-items-center gap-1 gap-sm-2 flex-nowrap" style="min-width: 0; overflow-x: auto;">
+                    <a href="javascript:void(0)" class="tm-btn-back flex-shrink-0" id="btn_back_to_list_custom">
+                        <i class="fas fa-arrow-left"></i> <span class="d-none d-md-inline">Kembali ke </span>Daftar
+                    </a>
+                    <div class="tm-divider-vertical d-none d-sm-block flex-shrink-0"></div>
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        <span class="text-muted font-weight-medium d-none d-md-inline" style="font-size: 0.85rem;">Tiket Masalah /</span>
+                        <span class="tm-tkt-id">#TKT-${data.id}</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0 ml-1">
+                        ${getPriorityBadgeHtml(data.prioritas)}
+                        ${getStatusBadgeHtml(data.status)}
+                    </div>
+                </div>
+                ${editBtnTopHtml ? `<div class="d-none d-md-block flex-shrink-0">${editBtnTopHtml}</div>` : ''}
+            </div>
+        `;
+        $('#tm_subheader_nav').html(subheaderHtml).removeClass('d-none');
+
+        // 1.5. MOBILE HERO CARD (Dark Navy - Shown exclusively on mobile view)
+        let refInfo = currentRefData || {};
+        let locVal = '';
+        if (currentRefType === 'kavling') {
+            locVal = `${refInfo.nama_jalan || ''}, No. ${refInfo.no_kavling || ''}`;
+        } else {
+            locVal = `${refInfo.nama_jalan ? refInfo.nama_jalan + ', ' : ''}${refInfo.no_kavling || 'Area Umum'}`;
+        }
+        locVal = locVal.replace(/^,\s*/, '').trim() || 'Unit Lapangan';
+
+        let tipeVal = '';
+        if (currentRefType === 'kavling') {
+            let tRumah = refInfo.tipe_rumah ? `Tipe ${refInfo.tipe_rumah}` : '';
+            let dim = (refInfo.lb || refInfo.lt) ? `(${refInfo.lb || 0}/${refInfo.lt || 0})` : '';
+            let ket = refInfo.tipe_keterangan ? ` ${refInfo.tipe_keterangan}` : '';
+            tipeVal = `${tRumah} ${dim} ${ket}`.trim() || 'Kavling Standar';
+        } else {
+            tipeVal = refInfo.tipe ? `Fasilitas: ${refInfo.tipe.toUpperCase()}` : 'Fasilitas Umum';
+        }
+
+        let progVal = parseInt(refInfo.progres_bangunan) || 0;
+        let mobileHeroCardHtml = `
+            <div class="tm-mobile-hero-card d-block d-md-none">
+                <div class="tm-mobile-hero-header">
+                    <span class="tm-mobile-meta-label">NAMA PROYEK KONSTRUKSI</span>
+                    <span class="tm-mobile-hero-badge">Mode Mandor</span>
+                </div>
+                <h4 class="tm-mobile-hero-title">${refInfo.nama_proyek || 'SANGGAR INDAH PALASTRI'}</h4>
+
+                <div class="tm-mobile-meta-item">
+                    <div class="tm-mobile-meta-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <div>
+                        <div class="tm-mobile-meta-label">LOKASI / KAVLING</div>
+                        <div class="tm-mobile-meta-val">${locVal}</div>
+                    </div>
+                </div>
+
+                <div class="tm-mobile-meta-item">
+                    <div class="tm-mobile-meta-icon"><i class="fas fa-home"></i></div>
+                    <div>
+                        <div class="tm-mobile-meta-label">TIPE BANGUNAN</div>
+                        <div class="tm-mobile-meta-val">${tipeVal}</div>
+                    </div>
+                </div>
+
+                <div class="tm-mobile-hero-progress">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="tm-mobile-meta-label mb-0" style="color: #cbd5e1;">Progres Perbaikan Masalah</span>
+                        <span class="badge badge-primary px-2 py-1 font-weight-bold" style="font-size: 11px;">${progVal}%</span>
+                    </div>
+                    <div class="tm-progress-track">
+                        <div class="tm-progress-fill" style="width: ${progVal}%;"></div>
+                    </div>
+                    <div class="tm-mobile-meta-sub font-italic mt-2">Unit masih dalam inspeksi awal temuan belum ada penutupan progres.</div>
+                </div>
+            </div>
+        `;
+
+        // 2. PARSE DESKRIPSI MASALAH (INTERACTIVE CHECKLIST IN ROSE CARD)
+        let issueData = parseIssueDescription(data.keterangan);
+        let checkedKey = `sigapp_tm_checks_${data.id}`;
+        let checkedItems = [];
+        try {
+            checkedItems = JSON.parse(localStorage.getItem(checkedKey) || '[]');
+        } catch(e) { checkedItems = []; }
+
+        let issueItemsHtml = issueData.items.map((item, idx) => {
+            let isChecked = checkedItems.includes(idx);
+            return `
+                <li class="tm-issue-item ${isChecked ? 'is-checked' : ''}" data-item-idx="${idx}">
+                    <input type="checkbox" class="tm-issue-check" data-tiket-id="${data.id}" data-idx="${idx}" ${isChecked ? 'checked' : ''}>
+                    <span class="tm-issue-num">${idx + 1}</span>
+                    <span class="tm-issue-text">${item}</span>
+                </li>
+            `;
+        }).join('');
+
+        let issueCardHtml = `
+            <div class="tm-card-rose">
+                <div class="d-flex align-items-start gap-3 mb-2">
+                    <div class="tm-icon-rose-box mr-3">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div>
+                                <h6 class="tm-title-rose mb-0">DESKRIPSI MASALAH</h6>
+                                <span class="tm-subtitle-rose d-block">Harus segera diperbaiki kontraktor</span>
+                            </div>
+                            <span class="tm-badge-points">${issueData.count} Poin Temuan</span>
+                        </div>
+
+                        <div class="tm-notice-banner mt-2">
+                            <i class="fas fa-info-circle mr-1"></i> Centang nomor saat pengecekan fisik di lapangan:
+                        </div>
+
+                        <ul class="tm-issue-list">
+                            ${issueItemsHtml}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // 3. LAMPIRAN DOKUMEN (AMBER PILL CARD)
         let mainPhoto = (data.foto && data.foto.length > 0) ? data.foto[0].url : base_url + 'assets/images/placeholder.jpg';
         let allUrlsStr = (data.foto && data.foto.length > 0) ? encodeURIComponent(JSON.stringify(data.foto.map(f => f.url))) : '[]';
-        
-        let photosHtml = '';
-        if(data.foto && data.foto.length > 0) {
-            data.foto.forEach((f, index) => {
-                photosHtml += `
-                <a href="javascript:void(0)" onclick="window.openLightbox('${allUrlsStr}', ${index})" class="border rounded-12 d-flex align-items-center justify-content-center bg-white p-1 mr-2 mb-2" style="width: 60px; height: 60px;">
-                    <img src="${f.url}" class="w-100 h-100 rounded" style="object-fit: cover;">
-                </a>`;
-            });
-        }
 
-        let assignedHtml = '';
-        if (data.assigned_users && data.assigned_users.length > 0) {
-            assignedHtml = data.assigned_users.map(u => `<span class="badge bg-light text-primary border-0 rounded-pill px-2 py-1 text-xs" style="background-color: #f3e8ff !important; color: #7e22ce !important;"><i class="far fa-user mr-1"></i>${u.username}</span>`).join('');
-        } else {
-            assignedHtml = '-';
-        }
-
-        let html = `
-            <!-- Custom Top Navbar-like Header -->
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 px-1">
-                <div class="d-flex flex-wrap align-items-center mb-2 mb-md-0 w-100 w-md-auto">
-                    <button class="btn btn-sm btn-light border rounded-pill py-1 px-3 mr-3 mb-2" id="btn_back_to_list_custom">
-                        <i class="fas fa-arrow-left mr-1"></i> Kembali ke Daftar
-                    </button>
-                    <div class="mr-3 text-muted d-none d-md-block mb-2" style="font-size: 1.2rem;">|</div>
-                    <h5 class="mb-2 mr-3 font-weight-bold text-muted d-none d-md-block">Tiket Masalah <span class="mx-1">/</span> <span class="text-dark">#TKT-${data.id}</span></h5>
-                    <div class="d-flex flex-wrap align-items-center mb-2">
-                        <div class="mr-2">${getPriorityBadgeHtml(data.prioritas)}</div>
-                        <div>${getStatusBadgeHtml(data.status)}</div>
+        let docCardHtml = `
+            <div class="tm-card-amber">
+                <div class="d-flex align-items-center">
+                    <div class="tm-doc-icon-amber mr-3">
+                        <i class="far fa-file-alt"></i>
+                    </div>
+                    <div>
+                        <span class="tm-doc-amber-label">LAMPIRAN DOKUMEN</span>
+                        <h6 class="tm-doc-amber-title">LAPORAN #${data.id} (Berkas Pengesahan)</h6>
                     </div>
                 </div>
-                <div class="d-flex w-100 w-md-auto justify-content-start justify-content-md-end">
-                    <button class="btn btn-sm btn-light border rounded-circle shadow-sm mr-2" style="width: 32px; height: 32px; padding: 0;"><i class="fas fa-print text-muted"></i></button>
-                    ${editBtnTopHtml}
+                <div class="d-flex align-items-center gap-1">
+                    <button type="button" class="tm-doc-amber-action mr-1" onclick="window.openLightbox('${allUrlsStr}', 0)" title="Zoom Lampiran">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button type="button" class="tm-doc-amber-action" onclick="window.printTiket(${data.id})" title="Cetak / Unduh Berkas">
+                        <i class="fas fa-download"></i>
+                    </button>
                 </div>
             </div>
+        `;
 
-            <div class="row">
-                <!-- KOLOM KIRI: Visual & Tombol -->
-                <div class="col-md-5 mb-4 mb-md-0">
-                    <div class="card border-0 shadow-sm rounded-12 mb-0">
-                        <div class="card-header bg-white border-bottom p-2 p-md-3 d-flex justify-content-between align-items-center rounded-top-12">
-                            <div class="d-flex align-items-center">
-                                <div class="mr-2" style="background: #fff8e6; color: #f59e0b; padding: 6px 10px; border-radius: 8px;">
-                                    <i class="far fa-file-alt"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0 font-weight-bold text-dark" style="font-size: 0.9rem;">Lampiran Dokumen</h6>
-                                    <div class="text-muted text-xs text-uppercase font-weight-bold mt-1">Laporan #${data.id}</div>
-                                </div>
-                            </div>
-                            <div class="d-flex text-muted">
-                                <i class="fas fa-search-plus cursor-pointer p-1 mr-2"></i>
-                                <i class="fas fa-download cursor-pointer p-1"></i>
-                            </div>
-                        </div>
-                        <div class="card-body p-2 p-md-3" style="background-color: #f8fafc; border-radius: 0 0 12px 12px;">
-                            <div class="position-relative mb-3 rounded-12 overflow-hidden border bg-white d-flex align-items-center justify-content-center shadow-sm" style="height: 350px;">
-                                <img src="${mainPhoto}" class="mw-100 mh-100 p-2" style="object-fit: contain;">
-                                ${(data.foto && data.foto.length > 0) ? `
-                                <button class="btn btn-dark btn-sm position-absolute rounded-pill px-4 py-2 shadow" onclick="window.openLightbox('${allUrlsStr}', 0)" style="bottom: 15px; right: 15px; background: rgba(30,41,59,0.85); border: none; font-weight: 600;">
-                                    <i class="fas fa-search mr-2"></i> Lihat Penuh
-                                </button>
-                                ` : ''}
-                            </div>
-                            <div class="d-flex flex-wrap">
-                                ${photosHtml}
-                            </div>
-                        </div>
+        // 4. GALERI TEMUAN LAPANGAN (WHITE CARD WITH FOCUS PREVIEW & 4 THUMBNAILS)
+        let thumbsHtml = '';
+        if (data.foto && data.foto.length > 0) {
+            let maxVisible = 4;
+            let totalPhotos = data.foto.length;
+            let showMoreBtn = totalPhotos > maxVisible;
+            let limit = showMoreBtn ? 3 : totalPhotos;
+
+            for (let i = 0; i < limit; i++) {
+                let f = data.foto[i];
+                let activeClass = (i === 0) ? 'active-thumb' : '';
+                thumbsHtml += `
+                    <button type="button" class="tm-thumb-btn ${activeClass}" data-index="${i}" data-url="${f.url}" title="Foto ${i + 1}">
+                        <img src="${f.url}" alt="Thumbnail ${i + 1}">
+                    </button>
+                `;
+            }
+
+            if (showMoreBtn) {
+                let remaining = totalPhotos - limit;
+                thumbsHtml += `
+                    <button type="button" class="tm-thumb-btn tm-thumb-more" onclick="window.openLightbox('${allUrlsStr}', ${limit})" title="Lihat semua foto">
+                        <span>+${remaining} LAINNYA</span>
+                    </button>
+                `;
+            }
+        } else {
+            thumbsHtml = '<div class="text-muted text-xs p-2">Tidak ada foto lampiran awal.</div>';
+        }
+
+        let photoCardHtml = `
+            <div class="tm-card-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <span class="font-weight-bold text-slate-800 text-xs text-uppercase d-block" style="letter-spacing: 0.5px;">GALERI TEMUAN LAPANGAN</span>
+                        <span class="text-muted text-xs">${data.foto ? data.foto.length : 0} Foto Bukti Audit Tersimpan</span>
                     </div>
+                    <button type="button" class="btn btn-link btn-sm p-0 font-weight-bold text-primary text-xs" onclick="window.openLightbox('${allUrlsStr}', 0)">
+                        Tampilkan Semua
+                    </button>
                 </div>
 
-                <!-- KOLOM KANAN: Detail Info & History -->
-                <div class="col-md-7">
-                    
-                    <!-- Alert Deskripsi -->
-                    <div class="alert alert-danger d-flex p-2 p-md-3 rounded-12 mb-3 shadow-sm border-0" style="background-color: #fff1f1;">
-                        <div class="mr-3 mt-1">
-                            <div style="background: #fecdd3; color: #e11d48; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-exclamation-triangle" style="font-size: 1rem;"></i>
-                            </div>
+                <!-- Main Focus Photo Box -->
+                <div class="tm-focus-photo-box mb-2">
+                    <img id="tm_focus_photo" src="${mainPhoto}" class="tm-focus-img" alt="Foto Utama">
+                    <div class="tm-focus-badge">
+                        <span class="badge-dot"></span>
+                        <span id="tm_focus_label">Foto #1: ${data.foto && data.foto.length > 0 ? (data.foto[0].keterangan || 'Temuan Lapangan') : 'Bukti Utama'}</span>
+                    </div>
+                    ${(data.foto && data.foto.length > 0) ? `
+                    <button type="button" class="tm-btn-see-full" id="btn_see_full_photo">
+                        <i class="fas fa-search-plus mr-1"></i> Lihat Penuh
+                    </button>
+                    ` : ''}
+                </div>
+
+                <!-- 4-Column Thumbnail Grid -->
+                <div class="tm-thumb-grid">
+                    ${thumbsHtml}
+                </div>
+
+                <!-- Shortcut Ambil Foto Tambahan di Mobile -->
+                <button type="button" class="tm-btn-add-photo-mobile" id="btn_mobile_quick_camera">
+                    <i class="fas fa-camera text-primary"></i> Ambil Foto Tambahan / Progres
+                </button>
+
+                <div class="tm-gallery-tip mt-2">
+                    <i class="fas fa-info-circle text-primary"></i>
+                    <span>Klik salah satu foto untuk melihat perbesaran resolusi tinggi serta riwayat audit.</span>
+                </div>
+            </div>
+        `;
+
+        // 5. INFORMASI TIKET & PIC (2-COLUMN COMPACT GRID)
+        let metadataGridHtml = `
+            <div class="tm-metadata-grid">
+                <!-- Card 1: Penanggung Jawab -->
+                <div class="tm-meta-card">
+                    <span class="tm-meta-card-label">PENANGGUNG JAWAB</span>
+                    <div class="d-flex align-items-center">
+                        <div class="tm-avatar-circle mr-2">
+                            ${(data.pic_username || 'U').charAt(0).toUpperCase()}
                         </div>
                         <div>
-                            <div class="font-weight-bold text-danger mb-1 text-xs text-uppercase" style="letter-spacing: 0.5px;">Deskripsi Masalah</div>
-                            <div class="text-dark" style="font-size: 0.95rem; font-weight: 500;">${data.keterangan}</div>
+                            <div class="font-weight-bold text-dark text-truncate" style="font-size: 0.88rem; max-width: 130px;">${data.pic_username}</div>
+                            <span class="text-muted text-xs d-block">Pelapor &amp; Pengawas</span>
                         </div>
                     </div>
+                </div>
 
-                    <!-- 3 Columns Info -->
-                    <div class="row mb-4">
-                        <div class="col-12 col-md-4 mb-2 mb-md-0 pr-md-1">
-                            <div class="card bg-white shadow-sm border-0 rounded-12 p-2 p-md-3 h-100">
-                                <div class="tm-detail-label mb-2" style="font-size: 0.65rem; color: #94a3b8;">PENANGGUNG JAWAB</div>
-                                <div class="d-flex align-items-center mt-auto">
-                                    <div class="avatar-circle mr-2" style="width:28px; height:28px; font-size:12px; background: #2b5cbe;">${data.pic_username.charAt(0).toUpperCase()}</div>
-                                    <span class="font-weight-bold text-dark text-sm">${data.pic_username}</span>
-                                </div>
-                            </div>
+                <!-- Card 2: Tanggal Dibuat -->
+                <div class="tm-meta-card">
+                    <span class="tm-meta-card-label">TANGGAL DIBUAT</span>
+                    <div class="d-flex align-items-center">
+                        <div class="tm-avatar-circle mr-2" style="background: #e2e8f0; color: #475569;">
+                            <i class="far fa-calendar-alt"></i>
                         </div>
-                        <div class="col-12 col-md-4 mb-2 mb-md-0 px-md-1">
-                            <div class="card bg-white shadow-sm border-0 rounded-12 p-2 p-md-3 h-100">
-                                <div class="tm-detail-label mb-2" style="font-size: 0.65rem; color: #94a3b8;">TANGGAL DIBUAT</div>
-                                <div class="d-flex align-items-center text-dark font-weight-bold text-sm mt-auto">
-                                    <i class="far fa-calendar-alt text-muted mr-2" style="font-size: 1.1rem;"></i> ${formattedDate}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12 col-md-4 pl-md-1">
-                            <div class="card bg-white shadow-sm border-0 rounded-12 p-2 p-md-3 h-100">
-                                <div class="tm-detail-label mb-2" style="font-size: 0.65rem; color: #94a3b8;">USER DILIBATKAN</div>
-                                <div class="d-flex flex-wrap mt-auto">
-                                    ${assignedHtml}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- History Progress Card -->
-                    <div class="card border-0 shadow-sm rounded-12 mb-4">
-                        <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center rounded-top-12">
-                            <div class="d-flex align-items-center">
-                                <div style="width: 4px; height: 20px; background: #2057a3; border-radius: 2px;" class="mr-2"></div>
-                                <h5 class="mb-0 font-weight-bold text-dark">History Progress</h5>
-                            </div>
-                            <div class="text-muted text-xs font-weight-bold" id="tm_progress_count">0 Catatan Aktivitas</div>
-                        </div>
-                        <div class="card-body p-3 p-md-4" style="background-color: #f8fafc; border-radius: 0 0 12px 12px;">
-                            <div id="tm_form_progress_container" class="mb-4 d-none"></div>
-                            <div id="tm_progress_list"></div>
+                        <div>
+                            <div class="font-weight-bold text-dark" style="font-size: 0.88rem;">${formattedDate}</div>
+                            <span class="text-muted text-xs d-block">Waktu Pembuatan</span>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Sticky Footer Tombol -->
-            <div class="position-sticky bg-white p-2 px-md-4 border-top shadow-lg d-flex flex-column flex-md-row justify-content-between align-items-center" style="bottom: 0; margin: 0 -16px -16px -16px; z-index: 1020; border-radius: 0 0 0.3rem 0.3rem;">
-                <div class="text-muted text-xs mb-2 mb-md-0">
-                    Terakhir diubah: <strong>${formattedDate} WIB</strong> oleh <strong>${data.pic_username}</strong>
+        `;
+
+        // 6. HISTORY PROGRESS SECTION
+        let progressSectionHtml = `
+            <div class="tm-progress-section">
+                <div class="d-flex justify-content-between align-items-center pb-3 border-bottom mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="tm-progress-accent-bar"></div>
+                        <h6 class="mb-0 font-weight-bold text-slate-800" style="font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;">
+                            History Progress
+                        </h6>
+                    </div>
+                    <span class="text-xs font-weight-bold text-muted" id="tm_progress_count">0 Catatan Aktivitas</span>
                 </div>
-                <div class="d-flex gap-2 w-100 w-md-auto justify-content-end">
+
+                <div id="tm_form_progress_container" class="mb-4 d-none"></div>
+                <div id="tm_progress_list"></div>
+            </div>
+        `;
+
+        // Assemble All Detail Blocks
+        $('#tm_detail_content').html(mobileHeroCardHtml + issueCardHtml + docCardHtml + photoCardHtml + metadataGridHtml + progressSectionHtml);
+
+        // 7. RENDER AUDIT FOOTER (DESKTOP & MOBILE STICKY BAR)
+        let auditStatusHtml = '';
+        if (isClosed) {
+            auditStatusHtml = `
+                <div class="tm-pill-warning" style="background: #f1f5f9; color: #475569; border-color: #cbd5e1;">
+                    <i class="fas fa-lock"></i>
+                    <span>Tiket ${data.status.toUpperCase()} (Terkunci)</span>
+                </div>
+            `;
+        } else if (!hasAccess) {
+            auditStatusHtml = `
+                <div class="tm-pill-warning">
+                    <i class="fas fa-ban"></i>
+                    <span>Tidak Punya Akses Edit / Progress</span>
+                </div>
+            `;
+        } else {
+            auditStatusHtml = `
+                <div class="tm-pill-warning" style="background: #ecfdf5; color: #047857; border-color: #a7f3d0;">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Akses Diberikan (PIC / Tim Konstruksi)</span>
+                </div>
+            `;
+        }
+
+        let footerHtml = `
+            <!-- Mobile Footer Layout -->
+            <div class="d-flex d-md-none flex-column w-100">
+                <div class="tm-audit-footer-status-row mb-1">
+                    <div class="text-muted" style="font-size: 11px;">
+                        <i class="far fa-clock mr-1"></i> Diubah: <strong>${formattedDate}</strong> (${data.pic_username})
+                    </div>
+                    <span class="badge badge-warning text-dark border px-2 py-1 font-weight-bold" style="font-size: 10px; background: #fef3c7; border-color: #fde68a;">
+                        <i class="fas fa-lock mr-1"></i> Tinjau Lapangan
+                    </span>
+                </div>
+                <div class="tm-mobile-bottom-actions">
+                    <button type="button" class="tm-btn-mobile-secondary" id="btn_mobile_catat_temuan">
+                        <i class="fas fa-edit mr-1"></i> Catat Temuan
+                    </button>
+                    <button type="button" class="tm-btn-mobile-primary" id="btn_mobile_mulai_perbaikan">
+                        <i class="fas fa-check-circle mr-1"></i> Mulai Perbaikan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Desktop Footer Layout -->
+            <div class="d-none d-md-flex align-items-center justify-content-between w-100">
+                <div class="d-flex align-items-center gap-2 text-muted">
+                    <i class="far fa-clock text-slate-400"></i>
+                    <span>Terakhir diubah: <strong class="text-dark">${formattedDate} WIB</strong> oleh <strong class="text-dark">${data.pic_username}</strong></span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    ${auditStatusHtml}
                     ${editBtnHtml}
                     ${actionBtnHtml}
                 </div>
             </div>
         `;
+        $('#tm_audit_footer').html(footerHtml).removeClass('d-none');
 
-        $('#tm_detail_content').html(styleHtml + html);
+        // Checklist Change Handler
+        $('.tm-issue-check').off('change').on('change', function() {
+            let tId = $(this).data('tiket-id');
+            let idx = $(this).data('idx');
+            let isChecked = $(this).is(':checked');
+            let $item = $(this).closest('.tm-issue-item');
+            if (isChecked) {
+                $item.addClass('is-checked');
+            } else {
+                $item.removeClass('is-checked');
+            }
+            let key = `sigapp_tm_checks_${tId}`;
+            let currentList = [];
+            try { currentList = JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { currentList = []; }
+            if (isChecked && !currentList.includes(idx)) {
+                currentList.push(idx);
+            } else if (!isChecked) {
+                currentList = currentList.filter(i => i !== idx);
+            }
+            localStorage.setItem(key, JSON.stringify(currentList));
+        });
 
-        $('#btn_back_to_list_custom').click(function() {
+        // Event bindings for interactions
+        window.currentActivePhotoIndex = 0;
+        $('.tm-thumb-btn[data-index]').off('click').on('click', function() {
+            let idx = parseInt($(this).data('index'));
+            let url = $(this).data('url');
+            $('.tm-thumb-btn').removeClass('active-thumb');
+            $(this).addClass('active-thumb');
+            $('#tm_focus_photo').attr('src', url);
+            let photoLabel = (data.foto && data.foto[idx]) ? (data.foto[idx].keterangan || `Foto #${idx + 1}`) : `Foto #${idx + 1}`;
+            $('#tm_focus_label').text(`Foto #${idx + 1}: ${photoLabel}`);
+            window.currentActivePhotoIndex = idx;
+        });
+
+        $('#btn_see_full_photo').off('click').on('click', function() {
+            window.openLightbox(allUrlsStr, window.currentActivePhotoIndex || 0);
+        });
+
+        $('#btn_back_to_list_custom').off('click').on('click', function() {
             $('#view_detail_tiket').addClass('d-none');
+            $('#tm_subheader_nav').addClass('d-none');
+            $('#tm_audit_footer').addClass('d-none');
             $('#view_list_tiket').removeClass('d-none');
             loadTiketList();
         });
 
-        // Setup Form Progress logic
+        // Mobile Action Buttons Handlers
+        $('#btn_mobile_quick_camera, #btn_mobile_mulai_perbaikan').off('click').on('click', function() {
+            if (isClosed) {
+                toastr.warning('Tiket telah selesai/ditutup dan tidak dapat ditambah progres.');
+                return;
+            }
+            if (!hasAccess) {
+                toastr.warning('Anda tidak memiliki akses untuk menambah progres pada tiket ini.');
+                return;
+            }
+            let $container = $('#tm_form_progress_container');
+            let isHidden = $container.hasClass('d-none') || $container.is(':hidden');
+            if (isHidden) {
+                $container.hide().removeClass('d-none').slideDown(300, function() {
+                    $container[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Trigger camera input if clicked from quick camera button
+                    if ($(this).attr('id') === 'btn_mobile_quick_camera') {
+                        $('#tm_progress_foto_camera').click();
+                    }
+                });
+                $('#btn_toggle_add_progress').addClass('btn-secondary').removeClass('btn-primary').find('.btn-text').text('Tutup Form Progres');
+            } else {
+                $container[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+        $('#btn_mobile_catat_temuan').off('click').on('click', function() {
+            if ($('.btn_edit_draft_tiket').length > 0) {
+                $('.btn_edit_draft_tiket').first().click();
+            } else {
+                // Focus to checklist or scroll to form
+                $('#btn_mobile_mulai_perbaikan').click();
+            }
+        });
+
         if(!isClosed) {
             setupProgressForm(data);
-            $('#btn_toggle_add_progress').click(function() {
+            $('#btn_toggle_add_progress').off('click').on('click', function() {
                 let $container = $('#tm_form_progress_container');
                 let isHidden = $container.hasClass('d-none') || $container.is(':hidden');
                 
                 if (isHidden) {
-                    $container.hide().removeClass('d-none').slideDown(300);
-                    $(this).html('<i class="fas fa-times mr-1"></i> <span class="btn-text">Batal</span>');
+                    $container.hide().removeClass('d-none').slideDown(300, function() {
+                        $container[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    });
+                    $(this).html('<i class="fas fa-times mr-1"></i> <span class="btn-text">Batal Tambah Progress</span>');
                     $(this).removeClass('btn-primary').addClass('btn-secondary');
                 } else {
                     $container.slideUp(300, function() {
@@ -1216,9 +1514,8 @@ $(document).ready(function() {
                 }
             });
         }
-        
-        // Setup Edit Draft logic
-        $('#btn_edit_draft_tiket').click(function() {
+
+        $('.btn_edit_draft_tiket').off('click').on('click', function() {
             window.editTiket(data);
         });
     }
@@ -1411,16 +1708,28 @@ $(document).ready(function() {
                     $('#tm_progress_count').text(res.data.length + ' Catatan Aktivitas');
                     let html = '';
                     if(res.data.length === 0) {
-                        html = '<div class="text-muted text-center p-4">Belum ada riwayat progress.</div>';
+                        html = `
+                            <div class="tm-empty-progress">
+                                <div class="tm-empty-icon-circle">
+                                    <i class="far fa-clock"></i>
+                                </div>
+                                <p class="text-xs font-weight-bold text-slate-700 mb-1">Belum ada pembaruan aktivitas perbaikan pada tiket ini.</p>
+                                <p class="text-xs text-muted mb-0">Catatan revisi kontraktor dan verifikasi mandor akan tercatat otomatis di sini.</p>
+                            </div>
+                        `;
                     } else {
                         html = '<div class="tm-timeline">';
                         res.data.forEach(function(p, idx) {
                             let photos = '';
                             if(p.foto_urls && p.foto_urls.length > 0) {
-                                photos = '<div class="d-flex flex-wrap mt-2">';
+                                photos = '<div class="tm-timeline-photos">';
                                 let allUrlsStr = encodeURIComponent(JSON.stringify(p.foto_urls));
                                 p.foto_urls.forEach((url, index) => {
-                                    photos += `<a href="javascript:void(0)" onclick="window.openLightbox('${allUrlsStr}', ${index})" class="mr-2 mb-2"><img src="${url}" class="img-thumb-grid shadow-sm"></a>`;
+                                    photos += `
+                                        <a href="javascript:void(0)" onclick="window.openLightbox('${allUrlsStr}', ${index})" class="tm-timeline-thumb" title="Lampiran Foto ${index + 1}">
+                                            <img src="${url}">
+                                        </a>
+                                    `;
                                 });
                                 photos += '</div>';
                             }
@@ -1428,60 +1737,55 @@ $(document).ready(function() {
                             let statusChange = '';
                             if(p.status_sesudah && p.status_sesudah !== p.status_sebelum) {
                                 statusChange = `
-                                    <div class="mt-2 text-xs text-muted">
-                                        <i class="feather icon-check-circle text-success mr-1"></i> Ubah status: <strong>${p.status_sebelum}</strong> &rarr; <strong>${p.status_sesudah}</strong>
+                                    <div>
+                                        <span class="tm-status-change-pill">
+                                            <i class="fas fa-sync-alt text-[9px]"></i> Status: <strong>${p.status_sebelum}</strong> &rarr; <strong>${p.status_sesudah}</strong>
+                                        </span>
                                     </div>
                                 `;
                             }
                             
-                            let pinHtml = '';
+                            let pinBadgeHtml = '';
                             if (p.is_pinned == 1) {
-                                pinHtml = `<span class="badge badge-light-warning border border-warning text-xs font-weight-bold ml-2 shadow-sm rounded-pill px-2"><i class="fas fa-thumbtack mr-1"></i> Pinned</span>`;
+                                pinBadgeHtml = `<span class="tm-badge-pinned"><i class="fas fa-thumbtack text-xs"></i> Pinned</span>`;
                             } else if (p.is_pin_requested == 1) {
-                                pinHtml = `<span class="badge badge-light-info border border-info text-xs font-weight-bold ml-2 shadow-sm rounded-pill px-2"><i class="fas fa-hand-paper mr-1"></i> Req Pin</span>`;
+                                pinBadgeHtml = `<span class="tm-badge-req-pin"><i class="fas fa-hand-paper text-xs"></i> Req Pin</span>`;
                             } else if (idx === 0) {
-                                pinHtml = `<span class="badge bg-white border border-warning text-warning text-xs font-weight-bold ml-2 shadow-sm rounded-pill px-2" style="font-size: 0.65rem;">Terbaru</span>`;
+                                pinBadgeHtml = `<span class="tm-badge-newest">Terbaru</span>`;
                             }
                             
                             let pinActionHtml = '';
                             if (isPic) {
                                 if (p.is_pinned == 1) {
-                                    pinActionHtml = `<button type="button" class="btn btn-sm btn-light border text-danger ml-2 rounded-pill px-3 shadow-sm" onclick="window.togglePinProgress(${p.id}, ${id})"><i class="fas fa-thumbtack" style="transform: rotate(45deg);"></i> Unpin</button>`;
+                                    pinActionHtml = `<button type="button" class="tm-btn-pin-action is-pinned" onclick="window.togglePinProgress(${p.id}, ${id})" title="Lepas Sematan"><i class="fas fa-thumbtack" style="transform: rotate(45deg);"></i> <span>Unpin</span></button>`;
                                 } else {
-                                    pinActionHtml = `<button type="button" class="btn btn-sm btn-light border text-warning ml-2 rounded-pill px-3 shadow-sm" onclick="window.togglePinProgress(${p.id}, ${id})"><i class="fas fa-thumbtack"></i> Pin</button>`;
+                                    pinActionHtml = `<button type="button" class="tm-btn-pin-action" onclick="window.togglePinProgress(${p.id}, ${id})" title="Sematkan ke Atas"><i class="fas fa-thumbtack"></i> <span>Pin</span></button>`;
                                 }
                             }
                             
-                            let bgClass = p.is_pinned == 1 ? 'bg-light-warning' : 'bg-white';
-
                             let tglProgress = new Date(p.created_at);
-                            let formattedDate = tglProgress.toLocaleDateString('id-ID', {day: '2-digit', month: '2-digit'}) + ', ' + tglProgress.toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'});
+                            let formattedDate = tglProgress.toLocaleDateString('id-ID', {day: '2-digit', month: 'short'}) + ' • ' + tglProgress.toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'});
 
                             html += `
-                            <div class="tm-timeline-item">
-                                <div class="tm-timeline-dot bg-white" style="width: 14px; height: 14px; left: -24px; top: 4px; border: 2px solid #10b981 !important; box-shadow: none;"></div>
-                                <div class="tm-timeline-header mb-2">
-                                    <div class="d-flex justify-content-between align-items-center w-100">
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar-circle mr-2" style="width:20px; height:20px; font-size:9px; background: #2057a3;">${p.user_username.charAt(0).toUpperCase()}</div>
-                                            <span class="tm-timeline-user text-dark" style="font-size: 0.85rem;">${p.user_username}</span>
-                                            <span class="text-muted mx-2" style="font-size: 0.6rem;">•</span>
+                            <div class="tm-timeline-item ${p.is_pinned == 1 ? 'is-pinned-item' : ''}">
+                                <div class="tm-timeline-node">
+                                    ${(p.user_username || 'U').charAt(0).toUpperCase()}
+                                </div>
+                                <div class="tm-timeline-card ${p.is_pinned == 1 ? 'card-pinned' : ''}">
+                                    <div class="tm-timeline-header-bar">
+                                        <div class="d-flex align-items-center flex-wrap gap-2">
+                                            <span class="tm-timeline-user">${p.user_username}</span>
+                                            <span class="text-muted" style="font-size: 10px;">•</span>
                                             <span class="tm-timeline-time">${formattedDate}</span>
+                                            ${pinBadgeHtml}
                                         </div>
                                         <div>
-                                            ${pinHtml}
+                                            ${pinActionHtml}
                                         </div>
                                     </div>
-                                </div>
-                                <div class="tm-timeline-card ${bgClass} shadow-sm border rounded-12 p-3 d-flex justify-content-between align-items-center" style="background-color: #f8fafc !important;">
-                                    <div class="flex-grow-1">
-                                        <p class="mb-0 text-dark" style="font-size: 0.9rem; line-height: 1.5;">${p.keterangan}</p>
-                                        ${statusChange}
-                                        ${photos}
-                                    </div>
-                                    <div class="ml-3">
-                                        ${pinActionHtml}
-                                    </div>
+                                    <p class="tm-timeline-text">${p.keterangan}</p>
+                                    ${statusChange}
+                                    ${photos}
                                 </div>
                             </div>
                             `;
@@ -1495,27 +1799,36 @@ $(document).ready(function() {
     }
 
     // --- UTILS & BADGE HELPERS ---
-    function getPriorityBadgeHtml(prio) {
-        let cls = 'badge-prio-normal';
-        if (prio === 'urgent') cls = 'badge-prio-urgent';
-        else if (prio === 'medium') cls = 'badge-prio-medium';
-        else if (prio === 'low') cls = 'badge-prio-low';
-        else if (prio === 'laporan') cls = 'badge-prio-laporan';
+    window.printTiket = function(id) {
+        window.print();
+    };
 
-        return `<span class="badge-prio ${cls}">${prio.toUpperCase()}</span>`;
+    function getPriorityBadgeHtml(prio) {
+        prio = (prio || 'normal').toLowerCase();
+        if (prio === 'urgent') {
+            return `<span class="tm-badge-urgent"><span class="dot-ping"></span> URGENT</span>`;
+        } else if (prio === 'medium') {
+            return `<span class="tm-badge-medium"><i class="fas fa-exclamation-circle text-xs"></i> MEDIUM</span>`;
+        } else if (prio === 'low') {
+            return `<span class="tm-badge-low"><i class="fas fa-arrow-down text-xs"></i> LOW</span>`;
+        } else if (prio === 'laporan') {
+            return `<span class="badge badge-prio-laporan" style="background-color: #00cfe8; color: #fff; padding: 4px 10px; border-radius: 9999px; font-weight: 700; font-size: 11px;">LAPORAN</span>`;
+        }
+        return `<span class="tm-badge-normal"><i class="fas fa-info-circle text-xs"></i> NORMAL</span>`;
     }
 
     function getStatusBadgeHtml(status) {
-        let cls = 'badge-status-dibuat';
+        status = (status || 'dibuat').toLowerCase();
         let label = status.replace('_', ' ').toUpperCase();
+        let cls = 'tm-status-dibuat';
 
-        if (status === 'selesai') cls = 'badge-status-selesai';
-        else if (status === 'dalam_proses') cls = 'badge-status-proses';
-        else if (status === 'hold') cls = 'badge-status-hold';
-        else if (status === 'batal') cls = 'badge-status-batal';
-        else if (status === 'draft') cls = 'badge-status-draft';
+        if (status === 'selesai') cls = 'tm-status-selesai';
+        else if (status === 'dalam_proses') cls = 'tm-status-proses';
+        else if (status === 'hold') cls = 'tm-status-hold';
+        else if (status === 'batal') cls = 'tm-status-batal';
+        else if (status === 'draft') cls = 'tm-status-dibuat';
 
-        return `<span class="badge-status-pill ${cls}"><span class="dot"></span> ${label}</span>`;
+        return `<span class="tm-badge-status ${cls}"><span class="tm-status-dot"></span> ${label}</span>`;
     }
 
     function getSelectedProyekId() {
