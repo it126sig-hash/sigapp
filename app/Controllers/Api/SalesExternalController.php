@@ -91,11 +91,14 @@ class SalesExternalController extends BaseApiController
      */
     public function listFeeSales(): ResponseInterface
     {
+        $idProyek = $this->request->getVar('id_proyek') ?: session()->get('id_proyek');
+
         $params = [
             'start'      => (int) ($this->request->getVar('start') ?? 0),
             'length'     => (int) ($this->request->getVar('length') ?? 10),
             'search'     => trim((string) ($this->request->getVar('search')['value'] ?? $this->request->getVar('search') ?? '')),
-            'id_proyek'  => $this->request->getVar('id_proyek'),
+            'id_proyek'  => $idProyek ? (int) $idProyek : null,
+            'id_sales'   => $this->request->getVar('id_sales'),
             'status_fee' => $this->request->getVar('status_fee') ?? 'all',
             'is_ajb'     => $this->request->getVar('is_ajb'),
         ];

@@ -53,13 +53,8 @@
                         <h4 class="card-title mb-0"><i class="fas fa-hand-holding-usd mr-50 text-primary"></i> Daftar Fee Sales Konsumen Akad</h4>
                     </div>
                     <div class="fee-filter-bar">
-                        <select id="filter-fee-proyek" class="form-control form-control-sm" style="width: 170px;">
-                            <option value="">Semua Proyek</option>
-                            <?php if (! empty($proyekList)) : ?>
-                                <?php foreach ($proyekList as $p) : ?>
-                                    <option value="<?= $p->id_proyek ?>"><?= esc($p->nama_proyek) ?></option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                        <select id="filter-fee-sales" class="form-control form-control-sm" style="width: 170px;">
+                            <option value="">Semua Sales</option>
                         </select>
 
                         <select id="filter-fee-status" class="form-control form-control-sm" style="width: 160px;">
@@ -87,7 +82,7 @@
                             <thead class="thead-light">
                                 <tr>
                                     <th style="width: 40px;">No</th>
-                                    <th>Konsumen & Unit</th>
+                                    <th class="text-left" style="min-width: 180px;">Konsumen & Unit</th>
                                     <th>Harga Net AJB</th>
                                     <th>Sales External</th>
                                     <th>Akad</th>

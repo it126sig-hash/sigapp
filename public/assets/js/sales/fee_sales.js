@@ -52,6 +52,15 @@ $(function () {
     const cleanNum = parseMoney;
     const cleanCurrency = parseMoney;
 
+    function formatShortDate(d) {
+        if (!d || d === "0000-00-00") return "";
+        let parts = String(d).split("-");
+        if (parts.length === 3) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+        return d;
+    }
+
     $(".flatpickr-basic").flatpickr({
         dateFormat: "Y-m-d",
         allowInput: true,
@@ -72,6 +81,16 @@ $(function () {
 
     let currentDetailData = null;
 
+    // Load active sales for filter dropdown
+    $.get(base_url + "api/sales-external/list-active", function (res) {
+        if (res && res.data) {
+            let $select = $("#filter-fee-sales");
+            res.data.forEach(function (s) {
+                $select.append(new Option(s.nama, s.id));
+            });
+        }
+    });
+
     const dtFee = $("#table-fee-sales").DataTable({
         processing: true,
         serverSide: true,
@@ -80,7 +99,8 @@ $(function () {
             type: "POST",
             data: function (d) {
                 d[csrfName] = csrfHash;
-                d.id_proyek = $("#filter-fee-proyek").val();
+                d.id_proyek = (typeof activeProyekId === "function" ? activeProyekId() : (window.SIGAPP && window.SIGAPP.activeProyekId ? window.SIGAPP.activeProyekId : "")) || "";
+                d.id_sales = $("#filter-fee-sales").val();
                 d.status_fee = $("#filter-fee-status").val();
                 d.is_ajb = $("#filter-fee-ajb").val();
             },
@@ -99,13 +119,14 @@ $(function () {
             },
             {
                 data: null,
+                className: "text-left",
                 render: function (data, type, row) {
                     let jalan = row.nama_jalan || "-";
                     let kav = row.no_kavling || "-";
                     let tipe = row.tipe_rumah ? `(${row.tipe_rumah})` : "";
                     return `
-                        <div>
-                            <span class="font-weight-bold text-dark">${row.nama_konsumen || "-"}</span>
+                        <div class="text-left">
+                            <span class="font-weight-bold text-dark d-block">${row.nama_konsumen || "-"}</span>
                             <small class="text-muted d-block font-small-2">${jalan} • No. ${kav} ${tipe}</small>
                         </div>
                     `;
@@ -140,11 +161,14 @@ $(function () {
             {
                 data: null,
                 render: function (data, type, row) {
-                    let tgl = row.akad_tgl || "-";
-                    let badge = (parseInt(row.is_ajb) === 1)
+                    let tgl = row.akad_tgl ? formatShortDate(row.akad_tgl) : "-";
+                    let badgeKpr = (parseInt(row.is_kpr) === 1)
+                        ? '<span class="badge badge-light-primary font-small-1 mr-25">KPR</span>'
+                        : '<span class="badge badge-light-secondary font-small-1 mr-25">TUNAI</span>';
+                    let badgeAjb = (parseInt(row.is_ajb) === 1)
                         ? '<span class="badge badge-light-success font-small-1">AJB</span>'
                         : '<span class="badge badge-light-warning font-small-1">PPJB</span>';
-                    return `<div><small class="d-block text-secondary">${tgl}</small>${badge}</div>`;
+                    return `<div><small class="d-block text-secondary mb-25">${tgl}</small><div>${badgeKpr}${badgeAjb}</div></div>`;
                 },
             },
             {
@@ -189,20 +213,38 @@ $(function () {
                     let totalT = parseInt(row.total_termin || 0);
                     let cairT = parseInt(row.termin_cair || 0);
                     let sppT = parseInt(row.termin_spp || 0);
+                    let tglPengajuan = formatShortDate(row.tgl_pengajuan_spp);
+                    let tglCair = formatShortDate(row.tgl_cair_terakhir);
+
+                    let badgeHtml = "";
+                    let dateHtml = "";
 
                     if (st === "selesai" || (totalT > 0 && totalT === cairT)) {
-                        return '<span class="badge badge-success">Lunas (100%)</span>';
+                        badgeHtml = '<span class="badge badge-success">Lunas (100%)</span>';
+                        if (tglCair) {
+                            dateHtml = `<small class="d-block text-muted font-small-1 mt-25"><i class="fas fa-check-circle mr-25"></i> ${tglCair}</small>`;
+                        }
+                    } else if (sppT > 0) {
+                        if (cairT > 0) {
+                            badgeHtml = `<span class="badge badge-primary">Cair ${cairT}/${totalT}</span> <span class="badge badge-warning">SPP (${sppT})</span>`;
+                        } else {
+                            badgeHtml = `<span class="badge badge-warning">Proses SPP (${sppT})</span>`;
+                        }
+                        if (tglPengajuan) {
+                            dateHtml = `<small class="d-block text-warning font-small-1 mt-25"><i class="fas fa-clock mr-25"></i> Pengajuan: ${tglPengajuan}</small>`;
+                        }
+                    } else if (cairT > 0) {
+                        badgeHtml = `<span class="badge badge-primary">Cair ${cairT}/${totalT} Termin</span>`;
+                        if (tglCair) {
+                            dateHtml = `<small class="d-block text-muted font-small-1 mt-25"><i class="fas fa-calendar-check mr-25"></i> Cair: ${tglCair}</small>`;
+                        }
+                    } else if (row.id_fee_sales) {
+                        badgeHtml = '<span class="badge badge-info">Termin Siap</span>';
+                    } else {
+                        badgeHtml = '<span class="badge badge-secondary">Belum Diproses</span>';
                     }
-                    if (cairT > 0) {
-                        return `<span class="badge badge-primary">Cair ${cairT}/${totalT} Termin</span>`;
-                    }
-                    if (sppT > 0) {
-                        return `<span class="badge badge-warning">Proses SPP (${sppT})</span>`;
-                    }
-                    if (row.id_fee_sales) {
-                        return '<span class="badge badge-info">Termin Siap</span>';
-                    }
-                    return '<span class="badge badge-secondary">Belum Diproses</span>';
+
+                    return `<div>${badgeHtml}${dateHtml}</div>`;
                 },
             },
             {
@@ -233,7 +275,7 @@ $(function () {
         },
     });
 
-    $("#filter-fee-proyek, #filter-fee-status, #filter-fee-ajb").on("change", function () {
+    $("#filter-fee-sales, #filter-fee-status, #filter-fee-ajb").on("change", function () {
         dtFee.ajax.reload();
     });
 

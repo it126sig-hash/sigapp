@@ -96,6 +96,7 @@ class SalesExternalRepository
                 'm.id_kavling',
                 'm.id_konsumen',
                 'm.status_mkdt',
+                'm.is_kpr',
                 'm.is_ajb',
                 'm.is_subsidi',
                 'm.akad_tgl',
@@ -139,6 +140,8 @@ class SalesExternalRepository
                 't_stat.termin_cair',
                 't_stat.termin_spp',
                 't_stat.nominal_cair',
+                't_stat.tgl_pengajuan_spp',
+                't_stat.tgl_cair_terakhir',
             ])
             ->join('konsumen k', 'k.id_konsumen = m.id_konsumen')
             ->join('kavling kv', 'kv.id_kavling = m.id_kavling')
@@ -159,7 +162,9 @@ class SalesExternalRepository
                        COUNT(*) AS total_termin,
                        SUM(CASE WHEN fst.status = "sudah_cair" THEN 1 ELSE 0 END) AS termin_cair,
                        SUM(CASE WHEN fst.status = "pengajuan_spp" THEN 1 ELSE 0 END) AS termin_spp,
-                       SUM(CASE WHEN fst.status = "sudah_cair" THEN fst.nominal ELSE 0 END) AS nominal_cair
+                       SUM(CASE WHEN fst.status = "sudah_cair" THEN fst.nominal ELSE 0 END) AS nominal_cair,
+                       MAX(CASE WHEN fst.status = "pengajuan_spp" THEN fst.tanggal_pengajuan_spp ELSE NULL END) AS tgl_pengajuan_spp,
+                       MAX(CASE WHEN fst.status = "sudah_cair" THEN fst.tanggal_cair ELSE NULL END) AS tgl_cair_terakhir
                 FROM fee_sales_termin fst
                 GROUP BY fst.id_fee_sales
             ) t_stat', 't_stat.id_fee_sales = fs.id', 'left')
@@ -169,6 +174,17 @@ class SalesExternalRepository
         // Filter Proyek
         if (! empty($params['id_proyek'])) {
             $builder->where('p.id_proyek', (int) $params['id_proyek']);
+        }
+
+        // Filter Sales External
+        if (! empty($params['id_sales'])) {
+            $idSales = (int) $params['id_sales'];
+            $salesRow = $this->db->table('sales')->select('nama')->where('id', $idSales)->get()->getRow();
+            if ($salesRow && ! empty($salesRow->nama)) {
+                $builder->where('(k.id_sales = ' . $idSales . ' OR k.sales = ' . $this->db->escape($salesRow->nama) . ')');
+            } else {
+                $builder->where('k.id_sales', $idSales);
+            }
         }
 
         // Filter Status Fee
@@ -228,6 +244,7 @@ class SalesExternalRepository
                 'm.id_kavling',
                 'm.id_konsumen',
                 'm.status_mkdt',
+                'm.is_kpr',
                 'm.is_ajb',
                 'm.is_subsidi',
                 'm.akad_tgl',

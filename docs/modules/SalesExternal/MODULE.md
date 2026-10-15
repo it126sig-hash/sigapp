@@ -2,10 +2,17 @@
 
 **Status:** `ACTIVE / COMPLETED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-14`
+**Last Synced:** `2026-10-15`
 
 ## Purpose
 Pengelolaan Master Data Sales External (agen/broker properti independen), perjanjian kerjasama (PKS), tarif komisi (subsidi & komersil), riwayat audit tarif, integrasi transaksi konsumen MKDT, serta tracking dan pencairan Fee Sales bertahap (skema 100% atau termin 30%-60%-10%) dengan pengajuan SPP Umum dan konfirmasi pencairan.
+
+### UI & Filtering Enhancements (2026-10-15)
+- **Badge KPR vs Tunai:** Membedakan metode pembayaran (`m.is_kpr = 1` badge KPR, `0 / 2` badge TUNAI) berdampingan dengan badge status Akad (AJB / PPJB).
+- **Status & Tanggal Dinamis:** Kolom status termin menampilkan tanggal pencairan terakhir (`tgl_cair_terakhir`) jika tidak ada pengajuan tertunda, atau tanggal pengajuan SPP (`tgl_pengajuan_spp`) jika sedang ada pengajuan aktif.
+- **Rata Kiri & Penegasan Konsumen:** Kolom nama konsumen dan kavling dibuat rata kiri (`text-left`) dengan nama konsumen bercetak tebal (`font-weight-bold`).
+- **Filter Otomatis Proyek Aktif:** Filter manual proyek dihilangkan, sistem otomatis memfilter berdasarkan proyek aktif dari navbar/session (`id_proyek`).
+- **Filter Sales External:** Dropdown filter dinamis untuk menyaring daftar fee berdasarkan sales external tertentu (data dimuat dari `api/sales-external/list-active`).
 
 ## Out of scope
 - Komisi/gaji sales internal/in-house (dikelola oleh payroll/SDM).
