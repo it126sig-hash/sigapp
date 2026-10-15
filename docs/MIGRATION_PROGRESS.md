@@ -22,7 +22,7 @@ Urutan di bawah ini disusun dari **Modul Daun (Leaf/Paling Terisolasi)** menuju 
 | No | Modul | Kategori | Tingkat Kesulitan | Status | Sesi / Commit Hash | Terakhir Diverifikasi |
 |---|---|---|---|---|---|---|
 | 1 | **BPB** | Leaf Module | Rendah (Sudah modern Web/Api) | `COMPLETED` | Session Refactor (100% Score) | 2026-10-13 |
-| 2 | **TiketMasalah** | Leaf Module | Rendah (Sudah modular Web/Api) | `COMPLETED` | Session Refactor (100% Score) | 2026-10-15 |
+| 2 | **TiketMasalah** | Leaf Module | Rendah (Sudah modular Web/Api) | `COMPLETED` | `80a0180` (100% Score) | 2026-10-15 |
 | 3 | **MGM** | Leaf Module | Rendah (Sudah Web/Api) | `PENDING` | - | - |
 | 4 | **Legal** | Intermediate | Sedang | `PENDING` | - | - |
 | 5 | **AuditTrail** | Intermediate | Rendah | `PENDING` | - | - |
