@@ -1098,6 +1098,34 @@
     border-color: #1e293b;
 }
 
+/* --- LIST TIKET CARDS --- */
+.tm-list-card {
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+    background: #ffffff;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+    overflow: hidden;
+}
+.tm-list-card:hover {
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    border-color: #cbd5e1;
+    transform: translateY(-2px);
+}
+.tm-list-card.prio-urgent {
+    border-left: 4px solid #e11d48 !important;
+}
+.tm-list-card.prio-tinggi {
+    border-left: 4px solid #ea580c !important;
+}
+.tm-list-card.prio-sedang {
+    border-left: 4px solid #f59e0b !important;
+}
+.tm-list-card.prio-rendah {
+    border-left: 4px solid #3b82f6 !important;
+}
+
 /* ==========================================================================
    RESPONSIVE MEDIA QUERIES (@media max-width: 767.98px)
    ========================================================================== */

@@ -145,22 +145,31 @@ $(document).ready(function() {
             {
                 data: 'keterangan',
                 name: 'tm.keterangan',
-                className: 'text-left',
+                className: 'text-left td-keterangan',
                 render: function(data, type, row) {
-                    let ket = data ? data.replace(/^Laporan\s*/i, '') : '';
-                    let html = `<div class="m-ket">
+                    let ket = data ? data.replace(/^Laporan\s*/i, '').trim() : '';
+                    let html = `<div class="m-ket text-left">
                         <span class="m-ket-label">Keterangan</span>
-                        <div class="m-ket-text">${ket}</div>`;
+                        <div class="m-ket-text text-left">${ket}</div>`;
                         
                     if (row.last_progress_keterangan) {
-                        html += `<div class="m-ket-update">
-                            <div class="m-ket-update-title">Update Terakhir:</div>
-                            <div class="m-ket-update-text">${row.last_progress_keterangan}</div>`;
+                        let dateStr = '';
                         if (row.last_progress_date) {
                             let d = new Date(row.last_progress_date);
-                            html += `<div class="m-ket-update-date"><i class="fas fa-clock"></i> ${d.toLocaleDateString('id-ID')}, ${d.toLocaleTimeString('id-ID').replace(/\./g,':')}</div>`;
+                            dateStr = `${d.toLocaleDateString('id-ID', {day: '2-digit', month: 'short'})} ${d.toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'}).replace(/\./g,':')}`;
                         }
-                        html += `</div>`;
+                        html += `
+                        <div class="m-ket-update mt-1 p-2 rounded text-left" style="background: #f0f7ff; border-left: 3px solid #1e5da6; border-radius: 6px;">
+                            <div class="d-flex align-items-center flex-wrap gap-1 mb-1">
+                                <span class="badge badge-primary px-2 py-1 font-weight-bold mr-1" style="font-size: 9px; letter-spacing: 0.5px; border-radius: 4px;">
+                                    <i class="fas fa-history mr-1"></i> UPDATE TERAKHIR
+                                </span>
+                                ${dateStr ? `<span class="text-muted" style="font-size: 10px;"><i class="far fa-clock mr-1"></i> ${dateStr}</span>` : ''}
+                            </div>
+                            <div class="text-dark font-italic" style="font-size: 0.84rem; line-height: 1.4;">
+                                "${row.last_progress_keterangan}"
+                            </div>
+                        </div>`;
                     }
                     html += `</div>`;
                     html += `<div class="m-divider"></div>`;
@@ -170,6 +179,7 @@ $(document).ready(function() {
             {
                 data: 'tanggal_masalah',
                 name: 'tm.tanggal_masalah',
+                className: 'text-center',
                 render: function(data, type, row) {
                     let d = data ? new Date(data).toLocaleDateString('id-ID') : '-';
                     return `<div class="m-tgl"><span class="m-lbl">Tgl Laporan</span><span class="m-val">${d}</span></div>`;
@@ -202,30 +212,40 @@ $(document).ready(function() {
             {
                 data: 'status',
                 name: 'tm.status',
+                className: 'text-center',
                 render: function(data, type, row) {
-                    let cls = 'badge-status-dibuat';
+                    let dotCls = 'tm-status-dibuat';
                     let label = data ? data.replace('_', ' ').toUpperCase() : '';
 
-                    if (data === 'selesai') cls = 'badge-status-selesai';
-                    else if (data === 'dalam_proses') cls = 'badge-status-proses';
-                    else if (data === 'hold') cls = 'badge-status-hold';
-                    else if (data === 'batal') cls = 'badge-status-batal';
+                    if (data === 'selesai') dotCls = 'tm-status-selesai';
+                    else if (data === 'dalam_proses') dotCls = 'tm-status-proses';
+                    else if (data === 'hold') dotCls = 'tm-status-hold';
+                    else if (data === 'batal') dotCls = 'tm-status-batal';
 
-                    return `<div class="m-status"><span class="badge-status-pill ${cls}">${label}</span></div>`;
+                    return `<div class="m-status d-inline-block"><span class="tm-badge-status ${dotCls}"><span class="tm-status-dot"></span> ${label}</span></div>`;
                 }
             },
             {
                 data: 'prioritas',
                 name: 'tm.prioritas',
+                className: 'text-center',
                 render: function(data, type, row) {
-                    let cls = 'badge-prio-normal';
-                    let label = data ? data.toUpperCase() : '';
-                    if (data === 'urgent') cls = 'badge-prio-urgent';
-                    else if (data === 'medium') cls = 'badge-prio-medium';
-                    else if (data === 'low') cls = 'badge-prio-low';
-                    else if (data === 'laporan') cls = 'badge-prio-laporan';
+                    let prio = data ? data.toLowerCase() : 'normal';
+                    let label = prio.toUpperCase();
+                    let badgeCls = 'tm-badge-normal';
+                    let dotHtml = '';
+                    if (prio === 'urgent') {
+                        badgeCls = 'tm-badge-urgent';
+                        dotHtml = '<span class="dot-ping"></span> ';
+                    } else if (prio === 'medium') {
+                        badgeCls = 'tm-badge-medium';
+                    } else if (prio === 'low') {
+                        badgeCls = 'tm-badge-low';
+                    } else if (prio === 'laporan') {
+                        badgeCls = 'tm-badge-normal';
+                    }
                     
-                    return `<div class="m-prio"><span class="badge-prio ${cls}">${label}</span></div>`;
+                    return `<div class="m-prio d-inline-block"><span class="${badgeCls}">${dotHtml}${label}</span></div>`;
                 }
             }
         ],
