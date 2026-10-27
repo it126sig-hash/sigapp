@@ -195,7 +195,7 @@ class TiketMasalahService
                 $userId,                        // add_by
                 $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                 null,                           // id_konsumen
-                $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket), // type
+                $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket, \App\Enums\NotificationEvent::TIKET_MASALAH_BARU), // type
                 $data['id_proyek'] ?? null,     // id_proyek
                 $actionUrl,
                 \App\Enums\NotificationEvent::TIKET_MASALAH_BARU
@@ -229,7 +229,7 @@ class TiketMasalahService
                     $userId,
                     $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                     null,
-                    $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
+                    $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket, \App\Enums\NotificationEvent::TIKET_MASALAH_ASSIGN),
                     $data['id_proyek'] ?? null,
                     $actionUrl,
                     \App\Enums\NotificationEvent::TIKET_MASALAH_ASSIGN
@@ -401,7 +401,7 @@ class TiketMasalahService
                     $userId,
                     $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                     null,
-                    $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
+                    $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket, \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE),
                     $data['id_proyek'] ?? null,
                     $actionUrl,
                     \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE
@@ -423,7 +423,7 @@ class TiketMasalahService
                         $userId,
                         $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
                         null,
-                        $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket),
+                        $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket, \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE),
                         $data['id_proyek'] ?? null,
                         $actionUrl,
                         \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE
@@ -525,7 +525,7 @@ class TiketMasalahService
                     $userId,
                     $tiket->ref_type == 'kavling' ? $tiket->ref_id : null,
                     null,
-                    $this->notificationType($tiket->ref_type, (int) $tiket->ref_id, (int) $idTiket),
+                    $this->notificationType($tiket->ref_type, (int) $tiket->ref_id, (int) $idTiket, \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE),
                     $tiket->id_proyek ?? null,
                     $actionUrl,
                     \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE
@@ -582,9 +582,10 @@ class TiketMasalahService
         return ['success' => true, 'is_pinned' => $newStatus];
     }
 
-    private function notificationType(string $refType, int $refId, int $idTiket): string
+    private function notificationType(string $refType, int $refId, int $idTiket, ?string $eventType = null): string
     {
-        return 'tiket_masalah|' . $refType . '|' . $refId . '|' . $idTiket;
+        $base = 'tiket_masalah|' . $refType . '|' . $refId . '|' . $idTiket;
+        return $eventType ? $base . '|' . $eventType : $base;
     }
 
     public function getRefInfo(string $refType, int $refId): ?object

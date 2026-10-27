@@ -5,7 +5,7 @@ namespace App\Libraries\ModuleManager;
 /**
  * ModuleCatalog
  * 
- * Definisi resmi 15 Modul Bisnis SIGAPP.
+ * Definisi resmi 16 Modul Bisnis SIGAPP.
  * Digunakan sebagai sumber kebenaran (source of truth) oleh module:map, module:sync, module:status.
  */
 class ModuleCatalog
@@ -42,6 +42,22 @@ class ModuleCatalog
                     'Proyek/JalanRepository.php',
                 ],
                 'models' => ['ProyekModel.php', 'ClusterModel.php', 'TipeModel.php', 'JalanModel.php'],
+                'shims' => [
+                    'app/Controllers/Proyek.php',
+                    'app/Controllers/Cluster.php',
+                    'app/Controllers/Tipe.php',
+                    'app/Controllers/Jalan.php',
+                    'app/Controllers/AksesProyek.php',
+                    'app/Services/ProyekService.php',
+                    'app/Services/ClusterService.php',
+                    'app/Services/TipeService.php',
+                    'app/Services/JalanService.php',
+                    'app/Services/ActiveProyekService.php',
+                    'app/Repositories/ProyekRepository.php',
+                    'app/Repositories/ClusterRepository.php',
+                    'app/Repositories/TipeRepository.php',
+                    'app/Repositories/JalanRepository.php',
+                ],
                 'views' => ['proyek', 'master'],
                 'assets_js' => ['siteplan/planning.js', 'active-proyek.js'],
                 'owner_tables' => ['proyek', 'cluster', 'tipe', 'jalan'],
@@ -50,22 +66,23 @@ class ModuleCatalog
             'Siteplan' => [
                 'name' => 'Siteplan',
                 'description' => 'Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial visual.',
-                'controllers' => ['Siteplan.php', 'Modal.php', 'Api/TargetController.php'],
+                'controllers' => ['Siteplan.php', 'Modal.php', 'Api/TargetController.php', 'Kalendar.php'],
                 'services' => [
                     'SiteplanDataService.php',
                     'SiteplanMenuService.php',
                     'SiteplanUrgentService.php',
                     'SiteplanVisualStatusService.php',
                     'TargetSiteplanService.php',
+                    'KalendarService.php',
                 ],
-                'repositories' => ['TargetSiteplanRepository.php', 'OthersRepository.php'],
+                'repositories' => ['TargetSiteplanRepository.php', 'OthersRepository.php', 'KalendarRepository.php'],
                 'models' => [
                     'SiteplanuploadModel.php',
                     'TargetSiteplanModel.php',
                     'TargetSiteplanKavlingModel.php',
                     'TargetSiteplanHistoryModel.php',
                 ],
-                'views' => ['siteplan'],
+                'views' => ['siteplan', 'misc'],
                 'assets_js' => [
                     'siteplan/master.js',
                     'siteplan/composite-shape.js',
@@ -86,7 +103,7 @@ class ModuleCatalog
             'MKDT' => [
                 'name' => 'MKDT',
                 'description' => 'Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, dan posisi kavling.',
-                'controllers' => ['Mkdt.php', 'PosisiKonsumen.php'],
+                'controllers' => ['Mkdt.php', 'PosisiKonsumen.php', 'Api/NupController.php', 'Promo.php'],
                 'services' => [
                     'MkdtHistoryService.php',
                     'MkdtSettlementService.php',
@@ -94,16 +111,18 @@ class ModuleCatalog
                     'MkdtFinancialReconciliationService.php',
                     'PosisiKonsumenService.php',
                     'KonsumenService.php',
+                    'NupService.php',
                 ],
                 'repositories' => [
                     'MkdtHistoryRepository.php',
                     'PosisiKonsumenRepository.php',
                     'KonsumenRepository.php',
+                    'NupRepository.php',
                 ],
-                'models' => ['MkdtModel.php', 'KonsumenModel.php'],
-                'views' => ['kavling'],
+                'models' => ['MkdtModel.php', 'KonsumenModel.php', 'MkdtKavlingHistoryModel.php'],
+                'views' => ['kavling', 'promo'],
                 'assets_js' => ['siteplan/mkdt.js'],
-                'owner_tables' => ['mkdt', 'konsumen'],
+                'owner_tables' => ['mkdt', 'konsumen', 'mkdt_kavling_history', 'promo'],
                 'shared_tables' => ['kavling', 'keuangan'],
             ],
             'Transaksi' => [
@@ -115,6 +134,7 @@ class ModuleCatalog
                     'Api/MkdtController.php',
                     'Api/KavlingRequestController.php',
                     'Hargajual.php',
+                    'Kavling.php',
                 ],
                 'services' => ['TransaksiService.php', 'KavlingRequestService.php'],
                 'repositories' => ['TransaksiRepository.php', 'HargaJualRepository.php', 'KavlingRepository.php'],
@@ -146,6 +166,7 @@ class ModuleCatalog
                     'Api/HasilAkadReportController.php',
                     'PrintController.php',
                     'PencairanJaminan.php',
+                    'Direksi.php',
                 ],
                 'services' => [
                     'KeuanganService.php',
@@ -240,6 +261,8 @@ class ModuleCatalog
                     'pencairan_akad_pengajuan_detail',
                     'pencairan_akad_payment',
                     'pencairan_akad_payment_detail',
+                    'invoice_log',
+                    'invoice_status_log',
                 ],
                 'shared_tables' => ['mkdt', 'kavling'],
             ],
@@ -265,6 +288,7 @@ class ModuleCatalog
                     'ChecklistGroup.php',
                     'ChecklistItem.php',
                     'ChecklistSubItem.php',
+                    'Sales.php',
                 ],
                 'services' => ['ProduksiService.php', 'ProduksiFileService.php', 'PhotoGpsMetadataService.php'],
                 'repositories' => ['ProduksiRepository.php'],
@@ -320,6 +344,12 @@ class ModuleCatalog
                     'BpbSignatureModel.php',
                     'UserSignatureProfileModel.php',
                 ],
+                'shims' => [
+                    'app/Controllers/Web/BpbController.php',
+                    'app/Controllers/Api/BpbController.php',
+                    'app/Controllers/Api/ProfileSignatureController.php',
+                    'app/Repositories/BpbRepository.php',
+                ],
                 'views' => ['bpb'],
                 'assets_js' => ['bpb.js', 'profile-signature.js'],
                 'owner_tables' => [
@@ -347,6 +377,12 @@ class ModuleCatalog
                     'TiketMasalahFotoModel.php',
                     'TiketMasalahUserModel.php',
                 ],
+                'shims' => [
+                    'app/Controllers/Web/TiketMasalahController.php',
+                    'app/Controllers/Api/TiketMasalahController.php',
+                    'app/Services/TiketMasalahService.php',
+                    'app/Repositories/TiketMasalahRepository.php',
+                ],
                 'views' => ['tiket_masalah'],
                 'assets_js' => ['tiket_masalah/index.js', 'siteplan/tiket-masalah.js'],
                 'owner_tables' => [
@@ -361,19 +397,29 @@ class ModuleCatalog
                 'name' => 'MGM',
                 'description' => 'Member Get Member: program referral konsumen, pembuatan link/QR publik, serta approval dan pencairan komisi.',
                 'controllers' => [
-                    'Web/MemberGetMemberController.php',
-                    'Api/ReferralController.php',
-                    'Api/ReferralSettingController.php',
-                    'Api/ReferralQrController.php',
-                    'Api/PublicController.php',
+                    'Web/MGM/MemberGetMemberController.php',
+                    'Api/MGM/ReferralController.php',
+                    'Api/MGM/ReferralSettingController.php',
+                    'Api/MGM/ReferralQrController.php',
+                    'Api/MGM/PublicReferralController.php',
                 ],
-                'services' => ['ReferralService.php', 'ReferralQrService.php'],
-                'repositories' => ['ReferralRepository.php'],
+                'services' => ['MGM/ReferralService.php', 'MGM/ReferralQrService.php'],
+                'repositories' => ['MGM/ReferralRepository.php'],
                 'models' => [
                     'ReferralModel.php',
                     'ReferralBonusModel.php',
                     'ReferralBonusStageModel.php',
                     'ReferralBonusHistoryModel.php',
+                ],
+                'shims' => [
+                    'app/Controllers/Web/MemberGetMemberController.php',
+                    'app/Controllers/Api/ReferralController.php',
+                    'app/Controllers/Api/ReferralQrController.php',
+                    'app/Controllers/Api/ReferralSettingController.php',
+                    'app/Controllers/Api/PublicController.php',
+                    'app/Services/ReferralService.php',
+                    'app/Services/ReferralQrService.php',
+                    'app/Repositories/ReferralRepository.php',
                 ],
                 'views' => ['mgm'],
                 'assets_js' => ['mgm.js'],
@@ -385,6 +431,44 @@ class ModuleCatalog
                 ],
                 'shared_tables' => ['konsumen', 'mkdt', 'keuangan'],
             ],
+            'SalesExternal' => [
+                'name' => 'SalesExternal',
+                'description' => 'Pengelolaan Master Data Sales External, PKS, tarif komisi, serta pengajuan, verifikasi tanda tangan, dan pencairan Fee Sales bertahap/batch.',
+                'controllers' => [
+                    'Web/SalesExternalController.php',
+                    'Api/SalesExternalController.php',
+                    'Web/Settings/FeeSalesSettingController.php',
+                    'Api/Settings/FeeSalesSettingController.php',
+                ],
+                'services' => [
+                    'SalesExternalService.php',
+                    'FeeSalesPdfService.php',
+                    'Settings/FeeSalesSettingService.php',
+                ],
+                'repositories' => [
+                    'SalesExternalRepository.php',
+                ],
+                'models' => [
+                    'SalesModel.php',
+                    'SalesHistoryModel.php',
+                    'FeeSalesModel.php',
+                    'FeeSalesTerminModel.php',
+                    'FeeSalesPengajuanModel.php',
+                    'FeeSalesPengajuanItemModel.php',
+                ],
+                'views' => ['sales', 'setting'],
+                'assets_js' => ['sales/master_sales.js', 'sales/fee_sales.js'],
+                'owner_tables' => [
+                    'sales',
+                    'sales_history',
+                    'fee_sales',
+                    'fee_sales_termin',
+                    'fee_sales_pengajuan',
+                    'fee_sales_pengajuan_item',
+                    'fee_sales_setting_akses',
+                ],
+                'shared_tables' => ['mkdt', 'konsumen', 'kavling', 'proyek', 'keuangan'],
+            ],
             'Notifikasi' => [
                 'name' => 'Notifikasi',
                 'description' => 'Pemberitahuan terpusat: navbar in-app alerts, queue email digest, browser Web Push, dan pengaturan preferensi user.',
@@ -392,6 +476,7 @@ class ModuleCatalog
                     'Notif.php',
                     'Api/NotifPushController.php',
                     'Api/NotificationPreferenceController.php',
+                    'GoogleCalendar.php',
                 ],
                 'services' => [
                     'NotifikasiService.php',
@@ -401,6 +486,7 @@ class ModuleCatalog
                     'NotificationIconService.php',
                     'WebPushService.php',
                     'EmailDigestService.php',
+                    'GoogleCalendarService.php',
                 ],
                 'repositories' => ['NotifRepository.php', 'NotificationRepository.php'],
                 'models' => ['PushSubscriptionModel.php'],
@@ -408,11 +494,15 @@ class ModuleCatalog
                 'assets_js' => ['push-subscription.js'],
                 'owner_tables' => [
                     'push_subscriptions',
-                    'notifications',
+                    'notification',
+                    'notification_recipients',
+                    'notification_deliveries',
                     'notification_email_queue',
                     'user_notification_preferences',
                     'notification_event_types',
                     'notification_snoozes',
+                    'google_calendar_connections',
+                    'google_calendar_event_syncs',
                 ],
                 'shared_tables' => ['users'],
             ],
@@ -436,6 +526,7 @@ class ModuleCatalog
                     'UserManagement/PenggunaRepository.php',
                     'UserManagement/KaryawanRepository.php',
                     'UserManagement/ProfilRepository.php',
+                    'DivisiRepository.php',
                 ],
                 'models' => [
                     'KaryawanModel.php',
@@ -443,6 +534,13 @@ class ModuleCatalog
                     'LevelModel.php',
                     'UserModel.php',
                     'ProfilePerusahaanModel.php',
+                ],
+                'shims' => [
+                    'app/Controllers/Pengguna.php',
+                    'app/Controllers/Karyawan.php',
+                    'app/Controllers/Profil.php',
+                    'app/Services/PenggunaService.php',
+                    'app/Repositories/KaryawanRepository.php',
                 ],
                 'views' => ['user', 'master'],
                 'assets_js' => [],
@@ -479,6 +577,14 @@ class ModuleCatalog
                     'ConfigModel.php',
                     'PengaturanWarnaModel.php',
                 ],
+                'shims' => [
+                    'app/Controllers/MenuSetting.php',
+                    'app/Controllers/SettingData.php',
+                    'app/Controllers/PengaturanWarna.php',
+                    'app/Controllers/Config.php',
+                    'app/Controllers/ConfigColor.php',
+                    'app/Services/MenuAccessService.php',
+                ],
                 'views' => ['setting', 'menu', 'master'],
                 'assets_js' => [],
                 'owner_tables' => ['menus', 'menu_roles', 'menu_user_access', 'config_shape'],
@@ -491,11 +597,13 @@ class ModuleCatalog
                     'Web/DeviceAuthController.php',
                     'Api/AuthDeviceController.php',
                     'Api/AdminAuthDeviceController.php',
+                    'Web/LandingController.php',
                 ],
                 'services' => [
                     'DeviceSessionService.php',
                     'DeviceManagementService.php',
                     'UserAgentDeviceParser.php',
+                    'DeviceManagementException.php',
                 ],
                 'repositories' => ['DeviceSessionRepository.php'],
                 'models' => ['DeviceSessionModel.php'],
@@ -516,6 +624,31 @@ class ModuleCatalog
                 'owner_tables' => ['history_log'],
                 'shared_tables' => ['users'],
             ],
+        ];
+    }
+
+    public static function getSharedInfrastructure(): array
+    {
+        return [
+            'controllers' => [
+                'app/Controllers/BaseController.php',
+                'app/Controllers/Api/BaseApiController.php',
+                'app/Controllers/FileController.php',
+                'app/Controllers/Home.php',
+                'app/Controllers/TestController.php',
+            ],
+            'services' => [
+                'app/Services/FileAccessService.php',
+                'app/Services/StorageService.php',
+                'app/Services/ImageThumbnailService.php',
+                'app/Services/TestService.php',
+                'app/Services/MinService.php',
+            ],
+            'repositories' => [
+                'app/Repositories/TestRepository.php',
+                'app/Repositories/ExcRepository.php',
+            ],
+            'models' => [],
         ];
     }
 }

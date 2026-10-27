@@ -1,8 +1,8 @@
 # Module: AuditTrail
 
-**Status:** `REFACTORED`  
-**Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-12 14:38:40` @ `be98758`  
+**Status:** `MAPPED`  
+**Readiness Score:** `70/100`  
+**Last Synced:** `2026-10-23 13:52:13` @ `ad0c900`  
 
 ## Purpose
 Pencatatan riwayat perubahan data krusial, log transaksi, dan jejak aktivitas user.
@@ -25,8 +25,9 @@ Pencatatan riwayat perubahan data krusial, log transaksi, dan jejak aktivitas us
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `GET` | `riwayat-perubahan` | `Explicit` | `RiwayatPerubahan::index` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `list` | `Explicit` | `HistoryController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/riwayat-perubahan` | `Explicit` | `RiwayatPerubahan::index` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `/api/riwayat-perubahan/list` | `Explicit` | `HistoryController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/riwayat-perubahan/kavling` | `Explicit` | `HistoryController::kavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
 #### `HistoryService.php`
@@ -36,21 +37,16 @@ Pencatatan riwayat perubahan data krusial, log transaksi, dan jejak aktivitas us
 - `getByKavling(int $idKavling, array $modules, int $limit, int $offset)`
 - `getByReferenceAction(string $module, int $referenceId, string $action)`
 - `moduleLabels()`
-- `decodeRows(array $rows)`
-- `encodeJsonValue($value)`
-- `decodeJsonValue(?string $value)`
-- `resolveProyekId(string $module, array $fields)`
+- `formatActionLabel(string $action)`
 - `getProyekIdByKavling(int $idKavling)`
-- `enrichCashoutMetadata(array $fields)`
-- `getCashoutProyekIds(int $idCashoutSubkon)`
 
 ## File Inventory
 ### Controllers (2)
 - `app/Controllers/RiwayatPerubahan.php` (28 baris, 1 public methods)
-- `app/Controllers/Api/HistoryController.php` (71 baris, 1 public methods)
+- `app/Controllers/Api/HistoryController.php` (120 baris, 2 public methods)
 
 ### Services (1)
-- `app/Services/HistoryService.php` (218 baris)
+- `app/Services/HistoryService.php` (242 baris)
 
 ### Repositories (1)
 - `app/Repositories/HistoryRepository.php` (164 baris)
@@ -64,10 +60,11 @@ Pencatatan riwayat perubahan data krusial, log transaksi, dan jejak aktivitas us
 ### JavaScript (0 file)
 
 ## Readiness Checklist
-- [x] Has Service Layer
-- [x] Has Repository Layer
-- [x] Web & API Controllers Separated
+- [ ] Has Service Layer
+- [ ] Has Repository Layer
+- [ ] Web & API Controllers Separated
 - [x] Explicit Routes Defined
+- [x] Zero Controller Layer Violations
 - [x] MODULE.md Initialized
 
 ## Dead Code Candidates

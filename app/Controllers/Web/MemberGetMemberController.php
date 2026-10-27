@@ -2,20 +2,12 @@
 
 namespace App\Controllers\Web;
 
-use App\Controllers\BaseController;
+use App\Controllers\Web\MGM\MemberGetMemberController as ModularMemberGetMemberController;
 
-class MemberGetMemberController extends BaseController
+/**
+ * Backward compatibility shim for MemberGetMemberController.
+ * Extends App\Controllers\Web\MGM\MemberGetMemberController.
+ */
+class MemberGetMemberController extends ModularMemberGetMemberController
 {
-    protected string $activeMenu = 'member-get-member';
-
-    public function index()
-    {
-        $data = [
-            'title' => 'Member Get Member',
-        ];
-        return view('template', [
-            'content' => 'mgm/index',
-            'data' => $data,
-        ]);
-    }
 }

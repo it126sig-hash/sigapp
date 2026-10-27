@@ -67,4 +67,53 @@ class HistoryController extends BaseApiController
             'offset' => $result['offset'],
         ]);
     }
+
+    public function kavling(): ResponseInterface
+    {
+        $rules = [
+            'id_kavling' => 'required|is_natural_no_zero',
+        ];
+
+        if (! $this->validate($rules)) {
+            return $this->failValidationErrors($this->validator->getErrors());
+        }
+
+        $idKavling = (int) $this->request->getPost('id_kavling');
+        $module = $this->request->getPost('module');
+        $modules = [];
+        if (is_array($module)) {
+            $modules = array_values(array_filter(array_map('strval', $module)));
+        } elseif ((string) $module !== '') {
+            $modules = [(string) $module];
+        }
+
+        $limit = (int) ($this->request->getPost('limit') ?? $this->request->getPost('history_limit') ?? 15);
+        $offset = max(0, (int) ($this->request->getPost('offset') ?? $this->request->getPost('history_offset') ?? 0));
+
+        if (! in_groups(['1'])) {
+            $proyekId = $this->historyService->getProyekIdByKavling($idKavling);
+            if ($proyekId && ! $this->activeProyekService->userCanAccess($proyekId, (int) user_id())) {
+                return $this->respond([
+                    'success'  => false,
+                    'messages' => 'Anda tidak memiliki akses ke proyek kavling ini.',
+                    'token'    => csrf_hash(),
+                    'history'  => [],
+                    'total'    => 0,
+                ], 403);
+            }
+        }
+
+        $result = $this->historyService->getByKavling($idKavling, $modules, $limit, $offset);
+
+        return $this->respond([
+            'success'             => true,
+            'token'               => csrf_hash(),
+            'history'             => $result['history'],
+            'history_total'       => $result['history_total'],
+            'history_limit'       => $result['history_limit'],
+            'history_offset'      => $result['history_offset'],
+            'history_next_offset' => $result['history_next_offset'],
+            'history_has_more'    => $result['history_has_more'],
+        ]);
+    }
 }

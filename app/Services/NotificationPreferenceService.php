@@ -8,9 +8,9 @@ class NotificationPreferenceService
 {
     protected BaseConnection $db;
 
-    public function __construct()
+    public function __construct(?BaseConnection $db = null)
     {
-        $this->db = db_connect();
+        $this->db = $db ?? db_connect();
     }
 
     /**
@@ -22,6 +22,8 @@ class NotificationPreferenceService
         if (!in_array($channel, ['in_app', 'email', 'web_push'])) {
             return true; // Default fallback if unknown channel
         }
+
+        $eventType = \App\Enums\NotificationEvent::fromLegacyType($eventType) ?? $eventType;
 
         // Ambil data event dari registry
         $eventDef = $this->db->table('notification_event_types')
@@ -60,13 +62,14 @@ class NotificationPreferenceService
     /**
      * Ambil seluruh preferensi user digabung dengan nilai default event registry.
      */
-    public function getUserPreferences(int $userId, ?int $groupId = null): array
+    public function getUserPreferences(int $userId, ?int $userGroupId = null): array
     {
         // Auto-seed if empty (berguna untuk shared hosting yang sulit akses CLI)
         if ($this->db->table('notification_event_types')->countAllResults() === 0) {
-            $seeder = \Config\Database::seeder();
-            $seeder->call('NotificationEventTypeSeeder');
+            (new \App\Database\Seeds\NotificationEventTypeSeeder(new \Config\Database(), $this->db))->run();
         }
+
+        $userGroups = $this->resolveUserGroups($userId, $userGroupId);
 
         $builder = $this->db->table('notification_event_types e')
             ->select('e.*, p.in_app, p.email, p.web_push, p.is_locked')
@@ -79,20 +82,72 @@ class NotificationPreferenceService
         $result = [];
         foreach ($rows as $row) {
             $isMandatory = (int) $row->is_mandatory === 1;
+            $isRelevantGroup = $this->isRelevantForGroups($row->relevant_groups ?? null, $userGroups);
+
+            $defaultInApp   = $isRelevantGroup && (bool) $row->default_in_app;
+            $defaultEmail   = $isRelevantGroup && (bool) $row->default_email;
+            $defaultWebPush = $isRelevantGroup && (bool) $row->default_web_push;
+
             $result[] = [
                 'event_type' => $row->event_type,
                 'category' => $row->category,
                 'label' => $row->label,
                 'description' => $row->description,
+                'relevant_groups' => $row->relevant_groups ?? null,
                 'is_mandatory' => $isMandatory,
                 'is_locked' => $isMandatory || (bool)$row->is_locked,
-                'in_app' => $isMandatory ? true : ($row->in_app !== null ? (bool)$row->in_app : (bool)$row->default_in_app),
-                'email' => $isMandatory ? true : ($row->email !== null ? (bool)$row->email : (bool)$row->default_email),
-                'web_push' => $isMandatory ? true : ($row->web_push !== null ? (bool)$row->web_push : (bool)$row->default_web_push),
+                'in_app' => $isMandatory ? true : ($row->in_app !== null ? (bool)$row->in_app : $defaultInApp),
+                'email' => $isMandatory ? true : ($row->email !== null ? (bool)$row->email : $defaultEmail),
+                'web_push' => $isMandatory ? true : ($row->web_push !== null ? (bool)$row->web_push : $defaultWebPush),
             ];
         }
 
         return $result;
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function resolveUserGroups(int $userId, ?int $userGroupId = null): array
+    {
+        $userGroups = [];
+        if ($userGroupId !== null && $userGroupId > 0) {
+            $userGroups[] = $userGroupId;
+        }
+        if ($userId > 0 && $this->db->tableExists('auth_groups_users')) {
+            $groupRows = $this->db->table('auth_groups_users')
+                ->select('group_id')
+                ->where('user_id', $userId)
+                ->get()
+                ->getResult();
+            foreach ($groupRows as $gr) {
+                $gid = (int) $gr->group_id;
+                if ($gid > 0) {
+                    $userGroups[] = $gid;
+                }
+            }
+        }
+
+        return array_values(array_unique($userGroups));
+    }
+
+    private function isRelevantForGroups(?string $relevantGroups, array $userGroups): bool
+    {
+        $raw = trim((string) ($relevantGroups ?? ''));
+        if ($raw === '' || $raw === '0') {
+            return true;
+        }
+
+        $allowedGroups = array_values(array_filter(array_map('intval', preg_split('/[;,]+/', $raw))));
+        if ($allowedGroups === []) {
+            return true;
+        }
+
+        if ($userGroups === []) {
+            return false;
+        }
+
+        return count(array_intersect($userGroups, $allowedGroups)) > 0;
     }
 
     /**
@@ -178,23 +233,45 @@ class NotificationPreferenceService
 
         $now ??= date('Y-m-d H:i:s');
 
+        $events = [];
+        foreach ($this->db->table('notification_event_types')->get()->getResult() as $eventRow) {
+            $events[$eventRow->event_type] = $eventRow;
+        }
+        if ($events === []) {
+            return;
+        }
+
+        $prefs = [];
+        foreach ($this->db->table('user_notification_preferences')->where('user_id', $userId)->get()->getResult() as $prefRow) {
+            $prefs[$prefRow->event_type] = (int) $prefRow->in_app;
+        }
+
+        $userGroups = $this->resolveUserGroups($userId);
+
         $rows = $this->db->table('notification_recipients nr')
-            ->select('nr.id, e.is_mandatory, e.default_in_app, p.in_app')
+            ->select('nr.id, n.type, n.notif')
             ->join('notification n', 'n.id = nr.notification_id')
-            ->join('notification_event_types e', 'e.event_type = n.type')
-            ->join('user_notification_preferences p', 'p.user_id = nr.user_id AND p.event_type = e.event_type', 'left')
             ->where('nr.user_id', $userId)
             ->get()
             ->getResult();
 
         $updates = [];
         foreach ($rows as $row) {
-            if ((int) $row->is_mandatory === 1) {
+            $eventType = $this->resolveEventTypeFromNotification((string) ($row->type ?? ''), (string) ($row->notif ?? ''));
+            if ($eventType === null || ! isset($events[$eventType])) {
+                continue;
+            }
+
+            $eventDef = $events[$eventType];
+            if ((int) $eventDef->is_mandatory === 1) {
                 $visible = 1;
-            } elseif ($row->in_app !== null) {
-                $visible = (int) $row->in_app === 1 ? 1 : 0;
+            } elseif (array_key_exists($eventType, $prefs)) {
+                $visible = $prefs[$eventType] === 1 ? 1 : 0;
             } else {
-                $visible = (int) $row->default_in_app === 1 ? 1 : 0;
+                $isRelevant = $userGroups === []
+                    || in_array(1, $userGroups, true)
+                    || $this->isRelevantForGroups($eventDef->relevant_groups ?? null, $userGroups);
+                $visible = ($isRelevant && (int) $eventDef->default_in_app === 1) ? 1 : 0;
             }
 
             $updates[] = [
@@ -207,5 +284,34 @@ class NotificationPreferenceService
         foreach (array_chunk($updates, 100) as $chunk) {
             $this->db->table('notification_recipients')->updateBatch($chunk, 'id');
         }
+    }
+
+    private function resolveEventTypeFromNotification(string $rawType, string $notifText): ?string
+    {
+        $rawType = trim($rawType);
+        if ($rawType === '') {
+            return null;
+        }
+
+        if ($rawType === 'keuangan') {
+            return 'pencairan_hasil_akad';
+        }
+
+        if (str_starts_with($rawType, 'tiket_masalah|')) {
+            $parts = explode('|', $rawType);
+            if (! empty($parts[4])) {
+                return $parts[4];
+            }
+            if (str_starts_with($notifText, 'Tiket masalah baru ditugaskan')) {
+                return 'tiket_masalah_assign';
+            }
+            if (str_starts_with($notifText, 'Tiket masalah baru:')) {
+                return 'tiket_masalah_baru';
+            }
+
+            return 'tiket_masalah_update';
+        }
+
+        return \App\Enums\NotificationEvent::fromLegacyType($rawType) ?? $rawType;
     }
 }

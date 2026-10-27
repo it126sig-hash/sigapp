@@ -26,11 +26,12 @@ Pastikan tidak ada fungsi yang patah, parameter yang tidak cocok, atau pemanggil
 ### B. Pengujian Antarmuka E2E dengan Playwright
 Gunakan tool browser Playwright (`browser_navigate`, `browser_click`, `browser_fill_form`, dll.) untuk menguji modul secara langsung di environment lokal:
 
-- **ATURAN WAJIB**: Muat dan ikuti panduan `$sigapp-local-testing` sebelum membuka browser.
+- **ATURAN WAJIB**: Muat dan ikuti panduan `.agents/skills/sigapp-local-testing/SKILL.md` sebelum membuka browser. Sebagai auditor independen (`sigapp-qa`), kamu **DILARANG KERAS** mengubah file kode apapun.
 - **Target URL**: `http://localhost/sigapp.dev`
 - **Kredensial Login Berdasarkan Hak Akses Modul:**
   - **Keuangan** (Keuangan, Pajak, CashOut, PencairanJaminan): User `nisalis`, Password `nisalis123`
   - **MKDT** (MKDT, Konsumen, Transaksi): User `citra`, Password `citra123`
+  - **Planning** (Proyek, Cluster, Jalan, Tipe, Kavling, Siteplan): User `purnama`, Password `purnama123`
   - **Produksi** (Produksi, BPB, SPK, Gudang, TiketMasalah): User `alika`, Password `alikas123`
   - **Legal** (Legal, HGB, PBB, PBG, AJB): User `marlina`, Password `marlina123`
   - **Promosi** (MGM, Promosi, Event): User `benny`, Password `benny123`
@@ -81,13 +82,15 @@ php spark module:status
 Setelah seluruh tahap lolos, tampilkan sertifikat verifikasi dalam ringkasan respon:
 
 ```markdown
-### 🛡️ Sertifikat Verifikasi Tugas: [Judul Tugas]
-- **Modul:** [Nama Modul]
-- **Mode Tugas:** [FEATURE / BUGFIX / REFACTOR / UI_REPORT]
-- **Tanggal/Waktu:** [YYYY-MM-DD HH:mm]
-- **Audit Callers (Codegraph):** Bersih (0 broken callers)
-- **Playwright E2E UI Test:** LULUS (Role: [Nama User], 0 Console Errors)
-- **Integritas Rute / Shims:** [OK / N/A]
-- **Database Safety & Transaksi:** [Aman / N/A]
-- **Skor Kesiapan Modular:** [X% REFACTORED / N/A]
+### 🛡️ Sertifikat Verifikasi QA (`sigapp-qa`): [Judul Tugas]
+- **Status Sertifikat:** `[PASS | FAIL]`
+- **Modul:** `[Nama Modul]` | **Mode Tugas:** `[FEATURE | BUGFIX | REFACTOR | UI_REPORT]`
+- **Tanggal/Waktu:** `[YYYY-MM-DD HH:mm]`
+- **Audit Callers (Codegraph):** `[Bersih (0 broken callers) / Ditemukan X broken callers]`
+- **Playwright E2E UI Test:** `[LULUS / GAGAL] (Departemen: [Nama Departemen], Console Errors: [0 / X])`
+- **Kepatuhan UI (`sigapp-ui-acuan`):** `[OK (CSS/JS eksternal filemtime, scoping, #2057a3) / Bermasalah / N/A]`
+- **Integritas Rute / Shims:** `[OK / GAGAL / N/A]`
+- **Database Safety & Transaksi:** `[Aman / Bermasalah / N/A]`
+- **Skor Kesiapan Modular:** `[X% REFACTORED / N/A]`
+- **Detail Kegagalan & RCA Awal (Jika FAIL):** `[Kosong jika PASS / Stack trace, titik baris penyebab, & penunjukan agen perbaikan: sigapp-engineer (Backend) atau sigapp-frontend (Frontend/UI)]`
 ```

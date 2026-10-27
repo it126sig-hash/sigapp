@@ -2,12 +2,12 @@
 
 namespace App\Services\Proyek;
 
-use App\Controllers\Notif;
 use App\Models\ProyekModel;
 use App\Models\SiteplanuploadModel;
 use App\Repositories\Proyek\ProyekRepository;
 use App\Services\FileAccessService;
 use App\Services\HistoryService;
+use App\Services\NotifikasiService;
 use CodeIgniter\HTTP\IncomingRequest;
 use RuntimeException;
 
@@ -20,7 +20,7 @@ class ProyekService
     private $validation;
     private $db;
     private HistoryService $historyService;
-    private Notif $notif;
+    private NotifikasiService $notif;
 
     public function __construct()
     {
@@ -31,7 +31,7 @@ class ProyekService
         $this->validation          = \Config\Services::validation();
         $this->db                  = db_connect();
         $this->historyService      = new HistoryService();
-        $this->notif               = new Notif();
+        $this->notif               = new NotifikasiService();
     }
 
     public function getAll(array $params = []): array

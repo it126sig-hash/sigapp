@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-13 09:19:59` @ `3b94cd9`  
+**Last Synced:** `2026-10-23 13:52:12` @ `ad0c900`  
 
 ## Purpose
 Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, dan tanda tangan digital.
@@ -32,40 +32,24 @@ Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, 
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `GET` | `(:num)/pdf` | `Explicit` | `BpbController::pdf/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `signature/(:num)` | `Explicit` | `BpbController::signature/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `verify/(:segment)` | `Explicit` | `BpbController::verify/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `list` | `Explicit` | `BpbController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `options` | `Explicit` | `BpbController::options` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `detail/(:num)` | `Explicit` | `BpbController::detail/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `draft` | `Explicit` | `BpbController::draft` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `submit` | `Explicit` | `BpbController::submit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `(:num)/update` | `Explicit` | `BpbController::update/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `(:num)/sign` | `Explicit` | `BpbController::sign/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `(:num)/reject` | `Explicit` | `BpbController::reject/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `(:num)/cancel` | `Explicit` | `BpbController::cancel/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `(:num)/status` | `Explicit` | `BpbController::status/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `(:num)/pdf` | `Explicit` | `BpbController::pdf/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `signature/(:num)` | `Explicit` | `BpbController::signature/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `verify/(:segment)` | `Explicit` | `BpbController::verify/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `list` | `Explicit` | `BpbController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `options` | `Explicit` | `BpbController::options` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `detail/(:num)` | `Explicit` | `BpbController::detail/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `draft` | `Explicit` | `BpbController::draft` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `submit` | `Explicit` | `BpbController::submit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `(:num)/update` | `Explicit` | `BpbController::update/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `(:num)/sign` | `Explicit` | `BpbController::sign/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `(:num)/reject` | `Explicit` | `BpbController::reject/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `(:num)/cancel` | `Explicit` | `BpbController::cancel/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `(:num)/status` | `Explicit` | `BpbController::status/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `image` | `Explicit` | `ProfileSignatureController::image` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `ANY` | `/bpb_controller/index` | `AutoRoute` | `BpbController::index` | 🟢 MIGRATED | Rute method aktif |
-| `ANY` | `/bpb_controller/run` | `AutoRoute` | `BpbController::run` | 🟢 MIGRATED | Rute method aktif |
-| `ANY` | `/bpb_controller/payload` | `AutoRoute` | `BpbController::payload` | 🟢 MIGRATED | Rute method aktif |
-| `ANY` | `/bpb_controller/uploads` | `AutoRoute` | `BpbController::uploads` | 🟢 MIGRATED | Rute method aktif |
-| `ANY` | `/profile_signature_controller/show` | `AutoRoute` | `ProfileSignatureController::show` | 🟢 MIGRATED | Rute method aktif |
-| `ANY` | `/profile_signature_controller/save` | `AutoRoute` | `ProfileSignatureController::save` | 🟢 MIGRATED | Rute method aktif |
-| `ANY` | `/profile_signature_controller/delete` | `AutoRoute` | `ProfileSignatureController::delete` | 🟢 MIGRATED | Rute method aktif |
+| `GET` | `/bpb` | `Explicit` | `BpbController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/bpb/(:num)/pdf` | `Explicit` | `BpbController::pdf/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/bpb/signature/(:num)` | `Explicit` | `BpbController::signature/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/bpb/verify/(:segment)` | `Explicit` | `BpbController::verify/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/bpb/list` | `Explicit` | `BpbController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/bpb/options` | `Explicit` | `BpbController::options` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/bpb/detail/(:num)` | `Explicit` | `BpbController::detail/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/bpb/draft` | `Explicit` | `BpbController::draft` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/bpb/submit` | `Explicit` | `BpbController::submit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/bpb/(:num)/update` | `Explicit` | `BpbController::update/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/bpb/(:num)/sign` | `Explicit` | `BpbController::sign/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/bpb/(:num)/reject` | `Explicit` | `BpbController::reject/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/bpb/(:num)/cancel` | `Explicit` | `BpbController::cancel/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/bpb/(:num)/status` | `Explicit` | `BpbController::status/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/profile/signature` | `Explicit` | `ProfileSignatureController::show` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/profile/signature/image` | `Explicit` | `ProfileSignatureController::image` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `PUT` | `/api/profile/signature` | `Explicit` | `ProfileSignatureController::save` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `DELETE` | `/api/profile/signature` | `Explicit` | `ProfileSignatureController::delete` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
 #### `BpbService.php`
@@ -80,11 +64,6 @@ Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, 
 - `cancel(int $id, string $reason, int $userId)`
 - `changeStatus(int $id, array $data, array $uploads, int $userId, string $ip, string $agent)`
 - `signaturePath(int $signatureId, int $userId)`
-- `saveSubmitted(int $id, array $data, array $uploads, int $userId, string $ip, string $agent, bool $editing)`
-- `isSubmissionKeyConflict(\Throwable $error)`
-- `createSignature(array $request, string $role, array $user, array $data, string $hash, string $ip, string $agent)`
-- `normalizeItems(mixed $items, bool $required)`
-- _dan 14 method lainnya..._
 #### `BpbWorkflow.php`
 - `labels()`
 - `label(string $status)`
@@ -95,17 +74,11 @@ Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, 
 #### `BpbPdfService.php`
 - `render(array $detail, int $userId)`
 - `verify(string $token)`
-- `prepareAttachments(array $files, array &$temporaryFiles)`
-- `appendAttachments(Mpdf $mpdf, array $attachments)`
-- `addImportedPage(Mpdf $mpdf, string $template, float $sourceWidth, float $sourceHeight)`
-- `formatIndonesianDate(string $date)`
-- `formatSignatureDate(string $date)`
 #### `BpbFileService.php`
 - `storeUploads(array $uploads, int $bpbId, string $category, int $userId, int $existingCount = 0)`
 - `storeCanvas(string $dataUrl, string $logicalDir)`
 - `copyPrivate(string $sourceLogicalPath, string $logicalDir)`
 - `cleanup(array $logicalPaths)`
-- `compressImage(string $logicalPath)`
 #### `BpbNumberFormatter.php`
 - `format(int $sequence, int $month, int $year)`
 #### `BpbDocumentHasher.php`
@@ -115,12 +88,11 @@ Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, 
 - `save(int $userId, string $password, string $dataUrl)`
 - `delete(int $userId, string $password)`
 - `absolutePath(int $userId)`
-- `verifyPassword(int $userId, string $password)`
 
 ## File Inventory
 ### Controllers (3)
 - `app/Controllers/Web/Bpb/BpbController.php` (77 baris, 4 public methods)
-- `app/Controllers/Api/Bpb/BpbController.php` (123 baris, 13 public methods)
+- `app/Controllers/Api/Bpb/BpbController.php` (123 baris, 10 public methods)
 - `app/Controllers/Api/Bpb/ProfileSignatureController.php` (54 baris, 4 public methods)
 
 ### Services (7)
@@ -150,11 +122,18 @@ Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, 
 - `public/assets/js/bpb.js` (628 baris)
 - `public/assets/js/profile-signature.js` (23 baris)
 
+### Zero-Downtime Shims (4 file)
+- `app/Controllers/Web/BpbController.php`
+- `app/Controllers/Api/BpbController.php`
+- `app/Controllers/Api/ProfileSignatureController.php`
+- `app/Repositories/BpbRepository.php`
+
 ## Readiness Checklist
 - [x] Has Service Layer
 - [x] Has Repository Layer
 - [x] Web & API Controllers Separated
 - [x] Explicit Routes Defined
+- [x] Zero Controller Layer Violations
 - [x] MODULE.md Initialized
 
 ## Dead Code Candidates

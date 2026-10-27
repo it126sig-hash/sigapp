@@ -237,6 +237,10 @@
                                             aria-controls="pajak" role="tab" aria-selected="false">Bukti Bayar
                                             PPH/PPN</a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="dt-riwayat-tab" data-toggle="tab" href="#dt-riwayat"
+                                            aria-controls="dt-riwayat" role="tab" aria-selected="false">Riwayat Perubahan</a>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -2125,6 +2129,36 @@
                                                     <div class="divider-text">Bukti Pembayaran PPn</div>
                                                 </div>
                                                 <div id="dt-file_ppn-here"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane" id="dt-riwayat" aria-labelledby="dt-riwayat-tab" role="tabpanel">
+                                        <div class="card detail-summary-card mb-0">
+                                            <div class="card-header pb-1 pt-1 d-flex flex-wrap align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="detail-card-icon mr-1"><i class="fas fa-history"></i></div>
+                                                    <div>
+                                                        <h5 class="mb-0 font-weight-bold">Riwayat Perubahan Kavling</h5>
+                                                        <small class="text-muted" id="dt-riwayat-total-info">Memuat riwayat...</small>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex align-items-center mt-50 mt-sm-0" style="gap: .5rem;">
+                                                    <select id="dt-riwayat-module-filter" class="form-control form-control-sm" style="min-width: 170px;">
+                                                        <option value="">Semua Modul</option>
+                                                        <option value="mkdt">MKDT / Kavling</option>
+                                                        <option value="produksi">Produksi</option>
+                                                        <option value="dana_jaminan">Dana Jaminan</option>
+                                                        <option value="cashout_subkon">Cashout Subkon</option>
+                                                    </select>
+                                                    <button type="button" class="btn btn-outline-primary btn-sm" id="dt-riwayat-refresh-btn" title="Muat Ulang">
+                                                        <i class="fas fa-sync-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body pt-1">
+                                                <div id="dt-riwayat-timeline" class="detail-kavling-history-wrap">
+                                                    <div class="text-muted text-center py-2">Memuat riwayat...</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

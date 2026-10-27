@@ -2,7 +2,7 @@
 
 Dokumen ini adalah acuan teknis modul notifikasi SIGAPP. Update file ini setiap ada perubahan alur notifikasi, endpoint, tabel, service, command, konfigurasi delivery, atau side effect.
 
-Terakhir dicek: 2026-10-01
+Terakhir dicek: 2026-10-22
 
 ## Ringkasan
 
@@ -119,6 +119,24 @@ Modul BPB mengirim event personal dengan deep-link `/bpb?open={id}`:
 | `bpb_status_changed` | Diproses/Cair/Pending/Dibeli | Pemohon | Mengikuti preferensi |
 
 Definisi event berada di `NotificationEventTypeSeeder`, enum `NotificationEvent`, dan migration BPB. Pemanggilan memakai `NotifikasiService::tambah_notif_user()` sehingga recipient, delivery outbox, email queue, badge, dan web-push tetap melewati pipeline notifikasi utama.
+
+## Event Fee Sales
+
+Modul Fee Sales (`SalesExternalService`) mengirim event ke grup Keuangan (`3`) dan MKDT (`4`) menggunakan `NotifikasiService::tambah_notif('3;4', ...)` dengan deep-link `fee-sales?open_mkdt={id_mkdt}` (untuk alur per-unit/per-termin) atau `fee-sales/pengajuan/{share_token}` (fallback `fee-sales/pengajuan/{id_pengajuan}` untuk alur pengajuan grup):
+
+| Event | Pemicu | Target Group | Default Preferensi |
+|---|---|---|---|
+| `fee_sales_pengajuan_created` | Pengajuan SPP per-termin dibuat (`submitPengajuanSpp`) atau pengajuan grup dibuat (`createPengajuanGroup`) | `3;4` (Keuangan, MKDT) | `default_in_app=1, default_email=1, default_web_push=1`, `relevant_groups='3;4'` (non-mandatory; otomatis nonaktif default-nya untuk grup selain `3` dan `4` di `NotificationPreferenceService`) |
+| `fee_sales_pengajuan_rejected` | Pengajuan fee sales ditolak oleh pihak MKDT atau Keuangan dengan alasan/saran revisi harga (`rejectPengajuanGroup`) | `3;4` (Keuangan, MKDT) | `default_in_app=1, default_email=0, default_web_push=0`, `is_mandatory=1`, `relevant_groups='3;4'` |
+| `fee_sales_termin_generated` | Termin fee sales baru di-generate (`saveFeeHeader` ketika `$generateTermin && $totalGeneratedTerminCount > 0` dan `$sendNotification = true`) | `3;4` (Keuangan, MKDT) | `default_in_app=1, default_email=1, default_web_push=1`, `relevant_groups='3;4'` |
+| `fee_sales_harga_net_updated` | Harga Net AJB diperbarui (`saveFeeHeader` ketika `$isHargaChanged` bernilai `true` dan `$sendNotification = true`) | `3;4` (Keuangan, MKDT) | `default_in_app=1, default_email=1, default_web_push=1`, `relevant_groups='3;4'` |
+| `fee_sales_ttd_signed` | Tanda tangan pengajuan grup disimpan (`signPengajuanGroup` untuk role `mkdt` atau `keuangan`) | `3;4` (Keuangan, MKDT) | `default_in_app=1, default_email=1, default_web_push=1`, `relevant_groups='3;4'` |
+| `fee_sales_pencairan` | Pencairan fee sales dikonfirmasi (`confirmPencairan` per-termin atau `confirmPencairanGroup` grup) | `3;4` (Keuangan, MKDT) | `default_in_app=1, default_email=1, default_web_push=1`, `relevant_groups='3;4'` |
+
+Catatan implementasi:
+- Saat `createPengajuanGroup()` memanggil `saveFeeHeader(..., false)` untuk auto-inisialisasi fee header yang belum ada, parameter `$sendNotification = false` diteruskan agar hanya 1 notifikasi `fee_sales_pengajuan_created` yang dikirim (tidak menduplikasi `fee_sales_harga_net_updated` atau `fee_sales_termin_generated`).
+- `NotificationPreferenceService::getUserPreferences()` dan `syncInAppVisibility()` mengevaluasi `relevant_groups` (`3;4`) terhadap seluruh grup user (`resolveUserGroups()` menggabungkan `$userGroupId` dan seluruh baris `auth_groups_users`) sehingga user di luar Keuangan/MKDT secara default mendapatkan `in_app = false`, `email = false`, `web_push = false` kecuali di-override secara eksplisit di `user_notification_preferences`.
+- Klik notifikasi di dropdown navbar (`public/assets/js/scripts.js`) untuk `type && type.startsWith("fee_sales")` mengarahkan ke `/notif/open/{id_notif}` yang me-redirect ke `action_url` (`fee-sales?open_mkdt={id_mkdt}` atau `fee-sales/pengajuan/{share_token}`), dan `public/assets/js/sales/fee_sales.js` membaca query string `?open_mkdt=` saat halaman dimuat untuk otomatis membuka `openDetailModal(openMkdt)`.
 
 ## Read Path
 
@@ -514,3 +532,41 @@ Mulai sekarang, notifikasi mendukung preferensi granular per user per channel (I
 
 ### Event Keuangan Rekonsiliasi
 - **`rekonsiliasi_keuangan`**: Dikirim ketika Keuangan menyimpan alokasi pembayaran yang melebihi tagihan item di MKDT atau item tersebut memiliki target Rp 0. Target default notifikasi ini adalah divisi **Marketing Data (group `4`)** dan `action_url` mengarahkan ke halaman `list-kavling`.
+
+## Catatan Teknis, Debugging & Audit Pemeliharaan (Oktober 2026)
+
+Bagian ini merekam riwayat perbaikan bug (RCA), pembersihan dead code, dan inventaris fungsi kompatibilitas ke belakang (*backward-compatibility shims*) untuk kebutuhan debugging dan panduan pembaruan/refactoring di kemudian hari.
+
+### 1. Riwayat Perbaikan Bug & Debugging RCA (2026-10-22)
+
+1. **Validasi Sesi Perangkat pada Web Push Dispatch (`NotificationDispatchService::dispatchWebPush`)**:
+   - **Isu**: Pengiriman Web Push cron sebelumnya dapat mencoba mengirim ke langganan push yang tidak valid/stale jika tidak diverifikasi dengan status user aktif.
+   - **Perbaikan**: Mengintegrasikan `PushSubscriptionModel::activeForUser($userId)` untuk memvalidasi perangkat aktif sebelum payload dikirimkan via `WebPushService`, mencegah pengiriman mubazir ke perangkat yang sudah tidak aktif atau logout.
+2. **Normalisasi `notification.type` pada Sinkronisasi Visibilitas In-App (`NotificationPreferenceService::syncInAppVisibility`)**:
+   - **Isu**: Event tiket masalah (`tiket_masalah_dibuat`, `tiket_masalah_dibalas`, `tiket_masalah_selesai`) dan pencairan hasil akad (`pencairan_hasil_akad`) memiliki format penamaan tipe/event yang bervariasi antara format legacy dan `NotificationEvent`. Pada `syncInAppVisibility()`, ketiadaan pemetaan yang tepat menyebabkan inkonsistensi penentuan `in_app_visible` saat pengguna menyimpan atau mereset preferensi notifikasi.
+   - **Perbaikan**: Menambahkan normalisasi pemetaan tipe event (`mapNotificationTypeToEventType`) pada query pembaruan `notification_recipients` agar status `in_app_visible` terefleksi secara akurat sesuai preferensi pengguna untuk tiket masalah dan pencairan hasil akad.
+3. **Resolusi Opt-In Lintas Grup (`NotifikasiService::resolveRecipientIds`)**:
+   - **Isu**: Ketika user di luar grup target bawaan secara eksplisit melakukan *opt-in* pada event tertentu di pengaturan preferensinya, resolusi penerima sebelumnya berisiko mengabaikan user tersebut jika filter awal terlalu restriktif pada target grup legacy.
+   - **Perbaikan**: `NotifikasiService::resolveRecipientIds()` kini memeriksa preferensi seluruh user aktif yang menyalakan channel terkait, sehingga mekanisme preferensi dinamis (*opt-in* lintas departemen/grup) berjalan konsisten.
+
+### 2. Dead Code yang Telah Dibersihkan
+
+Pembersihan kode mati yang tidak lagi memiliki pemanggil aktif atau redundan:
+- **`NotificationDispatchService::urlForNotification()`**: Dihapus karena penentuan `action_url` sudah sepenuhnya dilakukan saat pembuatan notifikasi (`NotifikasiService::create` / `tambah_notif`), disimpan pada kolom `notification.action_url`, dan ditangani secara terpusat oleh endpoint deep-linking `/notif/open/{id}`.
+- **`Notif::applyGroupTargetFilter()`**: Dihapus dari controller `Notif.php` karena filtering akses grup dan visibilitas pengguna kini sepenuhnya ditangani pada layer data (`NotificationRepository` dan `NotificationPreferenceService`) melalui relasi `notification_recipients`.
+
+### 3. Inventaris Fungsi Kompatibilitas, Rute Pengganti, dan Deprekasi (Backward-Compatibility Shims)
+
+Komponen berikut sengaja dipertahankan untuk menjamin *zero-breaking change* pada pemanggil legacy, namun **wajib diperbarui dan dibersihkan di kemudian hari** setelah seluruh modul pemanggil selesai dimigrasikan:
+
+| Komponen / Method / Rute | Lokasi | Alasan Dipertahankan (Shim) | Rencana Pembaruan / Deprekasi |
+| --- | --- | --- | --- |
+| `Notif::tambah_notif()` | `app/Controllers/Notif.php` | Controller method shim yang membungkus `NotifikasiService::tambah_notif()`. Masih dapat diakses via rute legacy/AutoRoute. | Hapus method controller ini setelah semua pemanggil internal beralih langsung ke dependency injection `NotifikasiService`. |
+| `Notif::getActivity()` | `app/Controllers/Notif.php` | Controller method shim untuk endpoint legacy `/notif/getactivity`. | Tandai deprecated; alihkan konsumsi activity feed sepenuhnya ke endpoint REST API terstruktur. |
+| `NotifRepository::tambah_notif()` | `app/Repositories/NotifRepository.php` | Method insert langsung ke tabel `notification` model lama. Sudah tidak dipanggil oleh alur baru aktif. | Hapus method ini sepenuhnya saat `NotifRepository` didepresiasi dan digantikan penuh oleh `NotificationRepository`. |
+| Legacy Target Format String `"3;4;9"` | Controller legacy (`Direksi`, `Mkdt`, `Pajak`, `Siteplan`, `Tagihan`) | Parameter target grup berupa string *semicolon-separated* (contoh: `"3;4;9"`) yang diteruskan ke `tambah_notif()`. | Refaktor caller di controller-controller lama tersebut agar mengadopsi DTO `NotificationData` + `NotificationAudience::forGroups(...)` dan konstanta resmi `NotificationEvent::*`. |
+| Alias Event Legacy Fee Sales (`fee_sales_pengajuan`, `fee_sales_pengajuan_rejected`, `fee_sales_reject`, `fee_sales_rejection`, `fee_sales_termin`, `fee_sales_harga_net`, `fee_sales_ttd`, `fee_sales_cair`) | `NotificationEvent::fromLegacyType()` (`app/Enums/NotificationEvent.php`) | Pemetaan kompatibilitas mundur ke kode kanonik (`fee_sales_pengajuan_created`, `fee_sales_pengajuan_rejected`, `fee_sales_termin_generated`, `fee_sales_harga_net_updated`, `fee_sales_ttd_signed`, `fee_sales_pencairan`). | Gunakan hanya konstanta resmi `NotificationEvent::FEE_SALES_*` pada seluruh kode baru; hapus pemetaan alias pendek setelah dipastikan tidak ada baris historis yang memakainya. |
+| Deep-Link Pengajuan Grup Berbasis ID (`fee-sales/pengajuan/{id}`) | `SalesExternalController::pengajuanDetail()`, `SalesExternalService` | Fallback untuk pengajuan grup lama yang belum memiliki `share_token`. | Seluruh notifikasi dan tautan baru wajib memakai `fee-sales/pengajuan/{share_token}`; fallback berbasis `{id}` numerik dipertahankan hanya untuk data historis. |
+| Alur Pengajuan SPP Per-Termin (`POST /api/sales-external/fee/termin/(:num)/spp` / `submitPengajuanSpp`) | `SalesExternalApiController`, `SalesExternalService` | Alur legacy pengajuan SPP satu per satu per termin (`action_url => fee-sales?open_mkdt={id_mkdt}`). | Diarahkan secara bertahap ke alur Pengajuan Pencairan Grup (`POST /api/sales-external/fee/pengajuan` / `createPengajuanGroup`) dengan tanda tangan digital multi-pihak dan `share_token`. |
+
+

@@ -48,13 +48,13 @@ $routes->get('/list-stock', 'Mkdt::list_stock');
 
 $routes->get('/legalitas', 'Legal::list_legalitas');
 
-$routes->get('/getnotif', 'Notif::getNotif');
-$routes->get('/loadnotif', 'Notif::loadNotif');
-$routes->get('/notif/summary', 'Notif::getSummary');
-$routes->get('/notif/center', 'Notif::getCenter');
-$routes->post('/notif/snooze', 'Notif::snooze');
-$routes->post('/notif/mark-as-read/(:num)', 'Notif::markAsRead/$1');
-$routes->post('/notif/mark-all-as-read', 'Notif::markAllAsRead');
+$routes->get('/getnotif', 'Notif::getNotif', ['filter' => 'login']);
+$routes->get('/loadnotif', 'Notif::loadNotif', ['filter' => 'login']);
+$routes->get('/notif/summary', 'Notif::getSummary', ['filter' => 'login']);
+$routes->get('/notif/center', 'Notif::getCenter', ['filter' => 'login']);
+$routes->post('/notif/snooze', 'Notif::snooze', ['filter' => 'login']);
+$routes->post('/notif/mark-as-read/(:num)', 'Notif::markAsRead/$1', ['filter' => 'login']);
+$routes->post('/notif/mark-all-as-read', 'Notif::markAllAsRead', ['filter' => 'login']);
 $routes->get('/notif/icon/(:num)', 'Notif::icon/$1');
 $routes->get('/notif/open/(:num)', 'Notif::open/$1', ['filter' => 'login']);
 $routes->get('/loadaktivitas', 'Home::loadAktivitas');
@@ -203,6 +203,13 @@ $routes->group('api/notif', ['namespace' => 'App\Controllers\Api', 'filter' => '
 $routes->group('', ['namespace' => 'App\Controllers\Web\Settings', 'filter' => 'login'], function ($routes) {
     $routes->get('menu-setting', 'MenuSettingController::index');
     $routes->get('setting-data', 'SettingDataController::index');
+    $routes->get('setting-fee-sales', 'FeeSalesSettingController::index');
+});
+
+// Setting Akses Fee Sales API
+$routes->group('api/setting-fee-sales', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
+    $routes->post('list', 'FeeSalesSettingController::listPermissions');
+    $routes->post('save', 'FeeSalesSettingController::savePermissions');
 });
 
 // ── Modul Settings (API Routes Modern) ──
@@ -549,7 +556,7 @@ $routes->group('api/tagihan/booking', ['namespace' => 'App\Controllers\Api', 'fi
     $routes->post('verifikasi', 'BookingPaymentController::verify');
 });
 
-$routes->group('api/referral-qr', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/referral-qr', ['namespace' => 'App\Controllers\Api\MGM', 'filter' => 'login'], function ($routes) {
     $routes->post('preview', 'ReferralQrController::preview');
     $routes->get('download', 'ReferralQrController::download');
 });
@@ -585,6 +592,7 @@ $routes->group('api/target', ['namespace' => 'App\Controllers\Api', 'filter' => 
 
 $routes->group('api/riwayat-perubahan', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
     $routes->post('list', 'HistoryController::list');
+    $routes->post('kavling', 'HistoryController::kavling');
 });
 
 $routes->group('api/tiket-masalah', ['namespace' => 'App\Controllers\Api\TiketMasalah', 'filter' => 'login'], function ($routes) {
@@ -605,10 +613,10 @@ $routes->group('api/tiket-masalah', ['namespace' => 'App\Controllers\Api\TiketMa
 
 $routes->group('', ['filter' => 'login'], function ($routes) {
     $routes->get('tiket-masalah', '\App\Controllers\Web\TiketMasalah\TiketMasalahController::index');
-    $routes->get('member-get-member', '\App\Controllers\Web\MemberGetMemberController::index');
+    $routes->get('member-get-member', '\App\Controllers\Web\MGM\MemberGetMemberController::index');
 });
 
-$routes->group('api/mgm', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/mgm', ['namespace' => 'App\Controllers\Api\MGM', 'filter' => 'login'], function ($routes) {
     $routes->post('list', 'ReferralController::list');
     $routes->post('subrows', 'ReferralController::subRows');
     $routes->post('confirm-bonus', 'ReferralController::confirmBonus');
@@ -632,12 +640,12 @@ $routes->group('api/kavling-request', ['namespace' => 'App\Controllers\Api', 'fi
     $routes->post('update-status', 'KavlingRequestController::updateStatus');
 });
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Public API â€” No authentication required
+// ─────────────────────────────────────────────────────────────────────────────
+// Public API — No authentication required
 // Throttle: 20 requests / 60 seconds per IP
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 $routes->group('api/public', [
-    'namespace' => 'App\Controllers\Api',
+    'namespace' => 'App\Controllers\Api\MGM',
     'filter'    => ['throttle:20,60', 'cors'],
 ], function ($routes) {
     // Handle OPTIONS request untuk CORS preflight
@@ -645,8 +653,8 @@ $routes->group('api/public', [
         return response()->setStatusCode(204);
     });
 
-    // Validasi kode referral â€” POST only
-    $routes->post('check-referral', 'PublicController::checkReferral');
+    // Validasi kode referral — POST only
+    $routes->post('check-referral', 'PublicReferralController::checkReferral');
 
     // Blok akses GET agar tidak bisa dibuka langsung di browser
     $routes->get('check-referral', function () {
@@ -656,7 +664,11 @@ $routes->group('api/public', [
 
 // ── Master Sales External & Fee Sales ──────────────────────────────
 $routes->get('master-sales', '\App\Controllers\Web\SalesExternalController::index', ['filter' => ['login', 'role:Admin,MKDT']]);
-$routes->get('fee-sales', '\App\Controllers\Web\SalesExternalController::feeSales', ['filter' => ['login', 'role:Admin,Umum,Keuangan,MKDT']]);
+$routes->get('fee-sales', '\App\Controllers\Web\SalesExternalController::feeSales', ['filter' => 'login']);
+$routes->get('fee-sales/pengajuan-pdf/(:num)', '\App\Controllers\Web\SalesExternalController::pengajuanPdf/$1', ['filter' => 'login']);
+$routes->get('fee-sales/export-pdf-pengajuan/(:num)', '\App\Controllers\Web\SalesExternalController::pengajuanPdf/$1', ['filter' => 'login']);
+$routes->get('fee-sales/pengajuan-signature/(:num)/(:segment)', '\App\Controllers\Web\SalesExternalController::pengajuanSignature/$1/$2', ['filter' => 'login']);
+$routes->get('fee-sales/pengajuan/(:segment)', '\App\Controllers\Web\SalesExternalController::pengajuanShared/$1', ['filter' => 'login']);
 
 $routes->group('api/sales-external', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
     $routes->post('list-master', 'SalesExternalController::listMasterSales');
@@ -670,6 +682,21 @@ $routes->group('api/sales-external', ['namespace' => 'App\Controllers\Api', 'fil
     $routes->post('save-fee-header', 'SalesExternalController::saveFeeHeader');
     $routes->post('submit-spp', 'SalesExternalController::submitPengajuanSpp');
     $routes->post('konfirmasi-cair', 'SalesExternalController::konfirmasiCair');
+    $routes->post('edit-pengajuan', 'SalesExternalController::editPengajuan');
+    $routes->post('edit-cair', 'SalesExternalController::editCair');
+    $routes->delete('fee-entry/(:num)', 'SalesExternalController::deleteFeeEntry/$1');
+    $routes->post('delete-fee-entry/(:num)', 'SalesExternalController::deleteFeeEntry/$1');
+
+    // Batch Pengajuan Pencairan
+    $routes->post('prepare-group', 'SalesExternalController::preparePengajuanGroup');
+    $routes->post('create-group', 'SalesExternalController::createPengajuanGroup');
+    $routes->post('list-group', 'SalesExternalController::listPengajuanGroup');
+    $routes->get('group-detail/(:num)', 'SalesExternalController::getPengajuanGroupDetail/$1');
+    $routes->post('konfirmasi-cair-group', 'SalesExternalController::konfirmasiCairGroup');
+    $routes->post('void-group', 'SalesExternalController::voidPengajuanGroup');
+    $routes->post('sign-group', 'SalesExternalController::signPengajuanGroup');
+    $routes->post('reject-group', 'SalesExternalController::rejectPengajuanGroup');
+    $routes->post('recalculate-termin', 'SalesExternalController::recalculateTermin');
 });
 
 

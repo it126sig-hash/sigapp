@@ -2,7 +2,6 @@
 
 namespace App\Services\Proyek;
 
-use App\Controllers\Notif;
 use App\Models\GambarkerjaModel;
 use App\Models\KavlingModel;
 use App\Models\ProyekModel;
@@ -10,6 +9,7 @@ use App\Models\TipeModel;
 use App\Repositories\Proyek\TipeRepository;
 use App\Services\FileAccessService;
 use App\Services\HistoryService;
+use App\Services\NotifikasiService;
 use CodeIgniter\HTTP\IncomingRequest;
 use RuntimeException;
 
@@ -47,7 +47,7 @@ class TipeService
     private $validation;
     private $db;
     private HistoryService $historyService;
-    private Notif $notif;
+    private NotifikasiService $notif;
 
     public function __construct()
     {
@@ -59,7 +59,7 @@ class TipeService
         $this->validation = \Config\Services::validation();
         $this->db = db_connect();
         $this->historyService = new HistoryService();
-        $this->notif = new Notif();
+        $this->notif = new NotifikasiService();
     }
 
     public function getAll(array $params): array

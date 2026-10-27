@@ -23,6 +23,7 @@ class FeeSalesTerminModel extends Model
         'nomor_spp',
         'tanggal_pengajuan_spp',
         'tanggal_cair',
+        'no_cek',
         'keterangan',
         'lampiran_spp',
         'lampiran_bukti_cair',

@@ -1,0 +1,7 @@
+[
+    {
+        "layer": "Service",
+        "file": "FeeSalesPdfService.php",
+        "name": "render"
+    }
+]

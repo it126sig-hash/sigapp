@@ -116,11 +116,7 @@ class NotificationDispatchService
 
     private function dispatchWebPush(object $delivery): string
     {
-        $subscriptions = $this->db->table('push_subscriptions')
-            ->where('user_id', (int) $delivery->user_id)
-            ->where('disabled_at IS NULL', null, false)
-            ->get()
-            ->getResult();
+        $subscriptions = (new \App\Models\PushSubscriptionModel())->activeForUser((int) $delivery->user_id);
 
         if ($subscriptions === []) {
             $this->finishDelivery((int) $delivery->id, 'skipped', (int) $delivery->attempts, 'Tidak ada subscription push aktif.');
@@ -223,15 +219,6 @@ class NotificationDispatchService
             3 => 15,
             default => 60,
         };
-    }
-
-    private function urlForNotification(object $delivery): string
-    {
-        if (! empty($delivery->id_kavling)) {
-            return site_url('siteplan/view') . '?id_kavling=' . rawurlencode((string) $delivery->id_kavling);
-        }
-
-        return site_url('/');
     }
 
     private function claimToken(): string

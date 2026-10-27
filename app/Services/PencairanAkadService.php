@@ -570,7 +570,7 @@ class PencairanAkadService
                     $actorId,
                     (int) $plan->id_kavling,
                     (int) ($kavData->id_konsumen ?? 0),
-                    'keuangan',
+                    NotificationEvent::PENCAIRAN_HASIL_AKAD,
                     (int) $kavData->id_proyek,
                     'keuangan/hasil-akad/list',
                     NotificationEvent::PENCAIRAN_HASIL_AKAD

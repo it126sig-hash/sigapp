@@ -153,16 +153,26 @@ class NotifikasiService
                     ->getResult();
 
                 $userPrefs = [];
+                $optedInUserIds = [];
                 foreach ($prefsRaw as $p) {
-                    $userPrefs[$p->user_id] = $p;
+                    $uid = (int) $p->user_id;
+                    $userPrefs[$uid] = $p;
+                    if ((int) $p->in_app === 1 || (int) $p->email === 1 || (int) $p->web_push === 1) {
+                        $optedInUserIds[] = $uid;
+                    }
                 }
 
                 $candidateQuery = $this->activeUsersQuery();
                 if ($hasExplicitUsers) {
                     $candidateQuery->whereIn('users.id', $audience->userIds());
                 } elseif ($audience->groupIds() !== []) {
-                    $candidateQuery->join('auth_groups_users notification_target_group', 'notification_target_group.user_id = users.id')
-                        ->whereIn('notification_target_group.group_id', $audience->groupIds())
+                    $candidateQuery->join('auth_groups_users notification_target_group', 'notification_target_group.user_id = users.id', 'left')
+                        ->groupStart()
+                            ->whereIn('notification_target_group.group_id', $audience->groupIds());
+                    if ($optedInUserIds !== []) {
+                        $candidateQuery->orWhereIn('users.id', $optedInUserIds);
+                    }
+                    $candidateQuery->groupEnd()
                         ->groupBy('users.id');
                 }
 

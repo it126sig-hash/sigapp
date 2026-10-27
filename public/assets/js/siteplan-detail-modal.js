@@ -210,6 +210,186 @@ function lihat_detail() {
             }
         });
     }
+    const KAVLING_HISTORY_LIMIT = 15;
+
+    function escapeKavlingHistoryValue(value) {
+        return $("<div>").text(value === null || value === undefined ? "" : value).html();
+    }
+
+    function resetKavlingHistoryTimeline(idKavling) {
+        const $target = $("#dt-riwayat-timeline");
+        $target
+            .data("id-kavling", idKavling || "")
+            .data("next-offset", 0)
+            .data("loaded", false)
+            .data("history-limit", KAVLING_HISTORY_LIMIT)
+            .html('<div class="text-muted text-center py-2">Memuat riwayat...</div>');
+        $("#dt-riwayat-total-info").text("Klik tab untuk memuat riwayat...");
+    }
+
+    function loadKavlingHistory(idKavling, moduleFilter, append) {
+        const $target = $("#dt-riwayat-timeline");
+        const currentKavling = idKavling || $target.data("id-kavling");
+        if (!currentKavling) {
+            $target.html('<div class="text-muted text-center py-2">Pilih kavling terlebih dahulu.</div>');
+            return;
+        }
+
+        const offset = append ? ($target.data("next-offset") || 0) : 0;
+        const limit = $target.data("history-limit") || KAVLING_HISTORY_LIMIT;
+        const selectedModule = moduleFilter !== undefined ? moduleFilter : ($("#dt-riwayat-module-filter").val() || "");
+
+        if (!append) {
+            $target.data("id-kavling", currentKavling).data("next-offset", 0);
+            $target.html('<div class="text-muted text-center py-2"><i class="fa fa-spinner fa-spin mr-50"></i>Memuat riwayat perubahan...</div>');
+            $("#dt-riwayat-total-info").text("Memuat...");
+        } else {
+            $target.find(".detail-kavling-history-action .btn").prop("disabled", true).html('Memuat <i class="fa fa-spinner fa-spin"></i>');
+        }
+
+        $.ajax({
+            url: base_url + "api/riwayat-perubahan/kavling",
+            type: "post",
+            data: {
+                [csrfName]: csrfHash,
+                id_kavling: currentKavling,
+                module: selectedModule,
+                history_limit: limit,
+                history_offset: offset,
+            },
+            dataType: "json",
+            success: function(res) {
+                if (res.token) {
+                    csrfHash = res.token;
+                    $('input[name="' + csrfName + '"]').val(csrfHash);
+                }
+                $target.data("loaded", true);
+                renderKavlingHistoryTimeline(res.history || [], res, append);
+            },
+            error: function(xhr) {
+                const response = xhr.responseJSON || {};
+                if (!append) {
+                    $target.html('<div class="text-danger text-center py-2"><i class="fas fa-exclamation-circle mr-50"></i>' + escapeKavlingHistoryValue(response.messages || response.message || "Gagal memuat riwayat perubahan.") + '</div>');
+                    $("#dt-riwayat-total-info").text("Gagal memuat");
+                } else {
+                    $target.find(".detail-kavling-history-action .btn").prop("disabled", false).text("Muat lagi");
+                }
+            }
+        });
+    }
+
+    function renderKavlingHistoryTimeline(history, meta, append) {
+        const $target = $("#dt-riwayat-timeline");
+        const nextOffset = meta ? (meta.history_next_offset || 0) : 0;
+        const limit = meta ? (meta.history_limit || KAVLING_HISTORY_LIMIT) : KAVLING_HISTORY_LIMIT;
+        const hasMore = !!(meta && meta.history_has_more);
+        const total = meta ? (meta.history_total || 0) : 0;
+
+        $target
+            .data("next-offset", nextOffset)
+            .data("history-limit", limit);
+
+        $("#dt-riwayat-total-info").text("Total " + total + " catatan riwayat");
+
+        if (!append) {
+            $target.html('<div class="detail-kavling-history-list"></div><div class="detail-kavling-history-action text-center mt-2 mb-1"></div>');
+        }
+
+        const $list = $target.find(".detail-kavling-history-list");
+        if (!history.length && !append) {
+            $list.html('<div class="text-muted text-center py-3"><i class="fas fa-info-circle mr-50"></i>Belum ada catatan riwayat untuk kavling ini.</div>');
+            return;
+        }
+
+        const offsetIndex = append ? ($list.children().length) : 0;
+
+        $.each(history, function(index, item) {
+            const itemIdx = offsetIndex + index;
+            const moduleKey = item.module || "mkdt";
+            const moduleClass = "module-" + moduleKey;
+            const badgeClass = "badge-module-" + moduleKey;
+            const moduleLabel = item.module_label || moduleKey.toUpperCase();
+            const actionTitle = item.action_label || item.action || "Perubahan Data";
+            const createdAt = typeof format_datetime === 'function' ? format_datetime(item.created_at) : item.created_at;
+            const actorName = item.username || item.add_by_username || "-";
+            const summary = item.summary || "-";
+
+            const hasOldData = item.old_data && typeof item.old_data === 'object' && Object.keys(item.old_data).length > 0;
+            const hasNewData = item.new_data && typeof item.new_data === 'object' && Object.keys(item.new_data).length > 0;
+            const hasMetadata = item.metadata && typeof item.metadata === 'object' && Object.keys(item.metadata).length > 0;
+            const hasDetail = hasOldData || hasNewData || hasMetadata;
+
+            let detailHtml = "";
+            if (hasDetail) {
+                const collapseId = "kavling-hist-detail-" + itemIdx;
+                detailHtml = `
+                    <div class="mt-1">
+                        <button type="button" class="btn btn-outline-secondary btn-sm py-25 px-50" data-toggle="collapse" data-target="#${collapseId}" aria-expanded="false">
+                            <i class="fas fa-code mr-50"></i>Lihat Detail Perubahan <i class="fas fa-chevron-down ml-50"></i>
+                        </button>
+                        <div class="collapse mt-1" id="${collapseId}">
+                            <div class="card card-body p-1 mb-0 border">
+                                ${hasOldData ? '<div class="font-weight-bold text-muted small mb-25">Data Sebelum:</div><pre class="detail-kavling-json-view mb-1">' + escapeKavlingHistoryValue(JSON.stringify(item.old_data, null, 2)) + '</pre>' : ''}
+                                ${hasNewData ? '<div class="font-weight-bold text-muted small mb-25">Data Sesudah:</div><pre class="detail-kavling-json-view mb-1">' + escapeKavlingHistoryValue(JSON.stringify(item.new_data, null, 2)) + '</pre>' : ''}
+                                ${hasMetadata ? '<div class="font-weight-bold text-muted small mb-25">Metadata:</div><pre class="detail-kavling-json-view mb-0">' + escapeKavlingHistoryValue(JSON.stringify(item.metadata, null, 2)) + '</pre>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            $list.append(`
+                <div class="detail-kavling-history-item ${moduleClass}">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap mb-25">
+                        <div class="d-flex align-items-center flex-wrap">
+                            <span class="badge ${badgeClass} mr-50 mb-25">${escapeKavlingHistoryValue(moduleLabel)}</span>
+                            <span class="detail-kavling-history-title mr-1 mb-25">${escapeKavlingHistoryValue(actionTitle)}</span>
+                        </div>
+                        <span class="detail-kavling-history-meta mb-25"><i class="far fa-clock mr-25"></i>${escapeKavlingHistoryValue(createdAt)}</span>
+                    </div>
+                    <div class="detail-kavling-history-meta mb-50">
+                        <i class="far fa-user mr-25"></i>Oleh: <strong>${escapeKavlingHistoryValue(actorName)}</strong>
+                    </div>
+                    <div class="detail-kavling-history-summary">${escapeKavlingHistoryValue(summary)}</div>
+                    ${detailHtml}
+                </div>
+            `);
+        });
+
+        const $action = $target.find(".detail-kavling-history-action");
+        if (hasMore) {
+            $action.html(
+                '<button type="button" class="btn btn-outline-primary btn-sm dt-riwayat-load-more"><i class="fas fa-chevron-down mr-50"></i>Muat lagi</button>'
+            );
+        } else {
+            $action.empty();
+        }
+    }
+
+    $(document).off("click", ".dt-riwayat-load-more").on("click", ".dt-riwayat-load-more", function() {
+        const idKavling = $("#dt-riwayat-timeline").data("id-kavling");
+        const moduleFilter = $("#dt-riwayat-module-filter").val();
+        loadKavlingHistory(idKavling, moduleFilter, true);
+    });
+
+    $(document).off("change", "#dt-riwayat-module-filter").on("change", "#dt-riwayat-module-filter", function() {
+        const idKavling = $("#dt-riwayat-timeline").data("id-kavling");
+        loadKavlingHistory(idKavling, $(this).val(), false);
+    });
+
+    $(document).off("click", "#dt-riwayat-refresh-btn").on("click", "#dt-riwayat-refresh-btn", function() {
+        const idKavling = $("#dt-riwayat-timeline").data("id-kavling");
+        loadKavlingHistory(idKavling, $("#dt-riwayat-module-filter").val(), false);
+    });
+
+    $(document).off("shown.bs.tab", "#dt-riwayat-tab").on("shown.bs.tab", "#dt-riwayat-tab", function() {
+        const $timeline = $("#dt-riwayat-timeline");
+        const idKavling = $timeline.data("id-kavling");
+        if (!$timeline.data("loaded")) {
+            loadKavlingHistory(idKavling, $("#dt-riwayat-module-filter").val(), false);
+        }
+    });
+
     const isSubsidi = ['Non-Subsidi', 'Subsidi'],
         isKPR = ['Tunai/Cash Keras', 'KPR', 'Tunai/Bertahap']
 
@@ -223,6 +403,7 @@ function lihat_detail() {
 
     function detail_kavling(sh, id_kavling) {
         prepareDetailModalRedesign();
+        resetKavlingHistoryTimeline(id_kavling);
         $(".id_sikumbang").html("Memuat data sikumbang...");
         let src = not_found
         $("#fm-detail input, #fm-detail select, #fm-detail textarea").prop("disabled", true)

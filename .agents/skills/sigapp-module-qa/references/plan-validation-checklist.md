@@ -27,6 +27,7 @@ Setiap rencana harus memenuhi kriteria yang relevan dengan mode tugasnya (`FEATU
 | **Backend Financial Re-calculation** | [ ] | **KRITIS [Jika Sentuh Uang]:** Untuk modul finansial (Keuangan, MKDT, BPB, dll.), backend WAJIB menghitung ulang total tagihan/sisa pembayaran dari database menggunakan helper `cleanNumeric()`. Dilarang mempercayai angka kalkulasi dari input POST frontend. |
 | **Dedicated Repository Layer** | [ ] | Query database kompleks (JOIN multi-tabel, subquery, agregasi report) ditempatkan di `App\Repositories\<Modul>`. Bukan query mentah di Controller/Service. *(Khusus Fitur & Refaktor)* |
 | **Database Transactions** | [ ] | **KRITIS [Jika Mutasi Multi-Tabel]:** Setiap method yang mengeksekusi 2+ query mutasi (INSERT/UPDATE/DELETE) wajib dibungkus `$db->transStart()` dan `$db->transComplete()`. |
+| **UI Baseline Compliance (`sigapp-ui-acuan`)** | [ ] | **[Jika Sentuh View/CSS/JS/Modal]:** Didelegasikan ke `sigapp-frontend` dengan kepatuhan 3-Tier CSS eksternal (`public/assets/css/<modul>.css` + `filemtime`), CSS scoping, `#2057a3`, `#modal_detail` baseline, `divider divider-left`, mobile tab 1 baris, dan `FileAccessService`. |
 
 ---
 

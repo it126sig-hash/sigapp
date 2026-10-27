@@ -90,6 +90,7 @@ class Hargajual extends BaseController
 				proyek.nama_proyek,
 				file_hargajual.lokasi,
 				file_hargajual.file_name,
+			file_hargajual.default_filename,
 				users.username as uadd_by,
 				c.username as uedit_by,
 				')
@@ -316,6 +317,7 @@ class Hargajual extends BaseController
 			hargajual.*,
 			file_hargajual.lokasi,
 			file_hargajual.file_name,
+			file_hargajual.default_filename,
 			proyek.nama_proyek,
 			tipe.tipe_rumah,
 			users.username as uadd_by,
@@ -346,9 +348,8 @@ class Hargajual extends BaseController
 		if ($id)
 			return $this->edit();
 
-		if ($this->request->getFile('id_filehj')->getSize() > 0) {
-			$img = $this->request->getFile('id_filehj');
-
+		$img = $this->request->getFile('id_filehj');
+		if ($img && $img->isValid() && !$img->hasMoved() && $img->getSize() > 0) {
 			$name = $img->getRandomName();
 			$originalname = $img->getClientName();
 			$lok = 'uploads/pricelist/' . date('Ymd') . '/';
@@ -367,21 +368,32 @@ class Hargajual extends BaseController
 		}
 
 
+		$hargajual = (float) $this->num($this->request->getPost('hargajual'));
+		$rawHjNet = $this->request->getPost('hargajual_net');
+		$isSubsidi = (int) $this->num($this->request->getPost('is_subsidi'));
+		if ($isSubsidi === 1) {
+			$hargajualNet = $hargajual;
+		} elseif ($rawHjNet !== null && trim((string)$rawHjNet) !== '') {
+			$hargajualNet = (float) $this->num($rawHjNet);
+		} else {
+			$hargajualNet = $hargajual;
+		}
+
 		$fields['id_proyek'] = $this->request->getPost('idProyek');
 		$fields['tgl_harga'] = $this->request->getPost('tgl_harga');
 		$fields['row'] = $this->request->getPost('row');
 		$fields['id_tipe'] = $this->request->getPost('id_tipe');
 		$fields['lb'] = $this->request->getPost('lb');
 		$fields['lt'] = $this->request->getPost('lt');
-		$fields['hargajual'] = $this->num($this->request->getPost('hargajual'));
-		$fields['hargajual_net'] = $this->num($this->request->getPost('hargajual_net'));
-		$fields['kpr'] = $this->num($this->request->getPost('kpr'));
-		$fields['bphtb'] = $this->num($this->request->getPost('bphtb'));
-		$fields['uang_muka'] = $this->num($this->request->getPost('uang_muka'));
-		$fields['biaya_adm'] = $this->num($this->request->getPost('biaya_adm'));
-		$fields['ppn'] = $this->num($this->request->getPost('ppn'));
-		$fields['is_subsidi'] = $this->num($this->request->getPost('is_subsidi'));
-		$fields['biaya_proses'] = $this->num($this->request->getPost('biaya_proses'));
+		$fields['hargajual'] = $hargajual;
+		$fields['hargajual_net'] = $hargajualNet;
+		$fields['kpr'] = (float) $this->num($this->request->getPost('kpr'));
+		$fields['bphtb'] = (float) $this->num($this->request->getPost('bphtb'));
+		$fields['uang_muka'] = (float) $this->num($this->request->getPost('uang_muka'));
+		$fields['biaya_adm'] = (float) $this->num($this->request->getPost('biaya_adm'));
+		$fields['ppn'] = (float) $this->num($this->request->getPost('ppn'));
+		$fields['is_subsidi'] = $isSubsidi;
+		$fields['biaya_proses'] = (float) $this->num($this->request->getPost('biaya_proses'));
 		$fields['keterangan'] = $this->request->getPost('keterangan');
 
 		$fields['add_by'] = user_id();
@@ -415,9 +427,8 @@ class Hargajual extends BaseController
 
 	public function edit()
 	{
-		if ($this->request->getFile('id_filehj')->getSize() > 0) {
-			$img = $this->request->getFile('id_filehj');
-
+		$img = $this->request->getFile('id_filehj');
+		if ($img && $img->isValid() && !$img->hasMoved() && $img->getSize() > 0) {
 			$name = $img->getRandomName();
 			$originalname = $img->getClientName();
 			$lok = 'uploads/pricelist/' . date('Ymd') . '/';
@@ -433,10 +444,23 @@ class Hargajual extends BaseController
 
 			$this->hjfile->insert($sp);
 			$fields['id_filehj'] = $this->hjfile->getInsertID();
+		} elseif ($this->request->getPost('remove_filehj') === '1') {
+			$fields['id_filehj'] = null;
 		}
 
 		$response = array();
 		$response['token'] = csrf_hash();
+
+		$hargajual = (float) $this->num($this->request->getPost('hargajual'));
+		$rawHjNet = $this->request->getPost('hargajual_net');
+		$isSubsidi = (int) $this->num($this->request->getPost('is_subsidi'));
+		if ($isSubsidi === 1) {
+			$hargajualNet = $hargajual;
+		} elseif ($rawHjNet !== null && trim((string)$rawHjNet) !== '') {
+			$hargajualNet = (float) $this->num($rawHjNet);
+		} else {
+			$hargajualNet = $hargajual;
+		}
 
 		$fields['id_proyek'] = $this->request->getPost('idProyek');
 		$fields['tgl_harga'] = $this->request->getPost('tgl_harga');
@@ -444,15 +468,15 @@ class Hargajual extends BaseController
 		$fields['id_tipe'] = $this->request->getPost('id_tipe');
 		$fields['lb'] = $this->request->getPost('lb');
 		$fields['lt'] = $this->request->getPost('lt');
-		$fields['hargajual'] = $this->num($this->request->getPost('hargajual'));
-		$fields['hargajual_net'] = $this->num($this->request->getPost('hargajual_net'));
-		$fields['kpr'] = $this->num($this->request->getPost('kpr'));
-		$fields['ppn'] = $this->num($this->request->getPost('ppn'));
-		$fields['bphtb'] = $this->num($this->request->getPost('bphtb'));
-		$fields['uang_muka'] = $this->num($this->request->getPost('uang_muka'));
-		$fields['biaya_adm'] = $this->num($this->request->getPost('biaya_adm'));
-		$fields['biaya_proses'] = $this->num($this->request->getPost('biaya_proses'));
-		$fields['is_subsidi'] = $this->num($this->request->getPost('is_subsidi'));
+		$fields['hargajual'] = $hargajual;
+		$fields['hargajual_net'] = $hargajualNet;
+		$fields['kpr'] = (float) $this->num($this->request->getPost('kpr'));
+		$fields['ppn'] = (float) $this->num($this->request->getPost('ppn'));
+		$fields['bphtb'] = (float) $this->num($this->request->getPost('bphtb'));
+		$fields['uang_muka'] = (float) $this->num($this->request->getPost('uang_muka'));
+		$fields['biaya_adm'] = (float) $this->num($this->request->getPost('biaya_adm'));
+		$fields['biaya_proses'] = (float) $this->num($this->request->getPost('biaya_proses'));
+		$fields['is_subsidi'] = $isSubsidi;
 		$fields['keterangan'] = $this->request->getPost('keterangan');
 
 		$fields['edit_by'] = user_id();

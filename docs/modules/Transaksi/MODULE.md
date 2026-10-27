@@ -1,8 +1,8 @@
 # Module: Transaksi
 
-**Status:** `REFACTORED`  
-**Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-12 14:38:40` @ `be98758`  
+**Status:** `MAPPED`  
+**Readiness Score:** `60/100`  
+**Last Synced:** `2026-10-23 13:52:12` @ `ad0c900`  
 
 ## Purpose
 Eksekusi transaksi jual-beli kavling, penetapan harga jual, ganti konsumen, dan request kavling.
@@ -29,33 +29,26 @@ Eksekusi transaksi jual-beli kavling, penetapan harga jual, ganti konsumen, dan 
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `POST` | `/transaksi/simpan` | `Explicit` | `Transaksi::saveTransaksi` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/transaksi/ambilsatu` | `Explicit` | `Transaksi::getByID` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/transaksi/status/ambilsatu` | `Explicit` | `Transaksi::getStatusById` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/transaksi/status/simpan` | `Explicit` | `Transaksi::saveStatus` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `simpan` | `Explicit` | `TransaksiController::saveTransaksi` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `ambilsatu` | `Explicit` | `TransaksiController::getByID` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `status/ambilsatu` | `Explicit` | `TransaksiController::getStatusById` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `status/simpan` | `Explicit` | `TransaksiController::saveStatus` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `konsumen/ganti` | `Explicit` | `TransaksiController::replaceConsumer` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `simpan` | `Explicit` | `TransaksiController::saveTransaksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `ambilsatu` | `Explicit` | `TransaksiController::getByID` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `status/ambilsatu` | `Explicit` | `TransaksiController::getStatusById` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `status/simpan` | `Explicit` | `TransaksiController::saveStatus` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `konsumen/ganti` | `Explicit` | `TransaksiController::replaceConsumer` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `history` | `Explicit` | `MkdtController::history` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `consumer-replacement-history` | `Explicit` | `MkdtController::consumerReplacementHistory` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `submit` | `Explicit` | `KavlingRequestController::submit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `kavling-list` | `Explicit` | `KavlingRequestController::kavlingList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `list` | `Explicit` | `KavlingRequestController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `update-status` | `Explicit` | `KavlingRequestController::updateStatus` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `hargajual/get/all` | `Explicit` | `Hargajual::getDataTable` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `hargajual/get` | `Explicit` | `Hargajual::getAll` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `ANY` | `/transaksi/num` | `AutoRoute` | `Transaksi::num` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/transaksi_controller/cleannum` | `AutoRoute` | `TransaksiController::cleanNum` | 🟢 MIGRATED | Rute method aktif |
+| `POST` | `/api/transaksi/simpan` | `Explicit` | `TransaksiController::saveTransaksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/transaksi/ambilsatu` | `Explicit` | `TransaksiController::getByID` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/transaksi/status/ambilsatu` | `Explicit` | `TransaksiController::getStatusById` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/transaksi/status/simpan` | `Explicit` | `TransaksiController::saveStatus` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/transaksi/konsumen/ganti` | `Explicit` | `TransaksiController::replaceConsumer` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/mkdt/history` | `Explicit` | `MkdtController::history` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/mkdt/consumer-replacement-history` | `Explicit` | `MkdtController::consumerReplacementHistory` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/kavling-request/submit` | `Explicit` | `KavlingRequestController::submit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/kavling-request/kavling-list` | `Explicit` | `KavlingRequestController::kavlingList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/kavling-request/list` | `Explicit` | `KavlingRequestController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/kavling-request/update-status` | `Explicit` | `KavlingRequestController::updateStatus` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/hargajual/get/all` | `Explicit` | `Hargajual::getDataTable` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `/hargajual/get` | `Explicit` | `Hargajual::getAll` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `POST` | `/kavling/list/ambil` | `Explicit` | `Kavling::getList` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `ANY` | `/transaksi/getbyid` | `AutoRoute` | `Transaksi::getByID` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/transaksi/getstatusbyid` | `AutoRoute` | `Transaksi::getStatusByID` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/transaksi/savetransaksi` | `AutoRoute` | `Transaksi::saveTransaksi` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/transaksi/savestatus` | `AutoRoute` | `Transaksi::saveStatus` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/hargajual/index` | `AutoRoute` | `Hargajual::index` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/hargajual/set_harga` | `AutoRoute` | `Hargajual::set_harga` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/hargajual/applysetharga` | `AutoRoute` | `Hargajual::applySetHarga` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/hargajual/getone` | `AutoRoute` | `Hargajual::getOne` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/hargajual/add` | `AutoRoute` | `Hargajual::add` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/hargajual/edit` | `AutoRoute` | `Hargajual::edit` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
@@ -63,7 +56,6 @@ Eksekusi transaksi jual-beli kavling, penetapan harga jual, ganti konsumen, dan 
 | `ANY` | `/hargajual/if_where` | `AutoRoute` | `Hargajual::if_where` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/hargajual/is_active` | `AutoRoute` | `Hargajual::is_active` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/hargajual/format_tgl` | `AutoRoute` | `Hargajual::format_tgl` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/hargajual/num` | `AutoRoute` | `Hargajual::num` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
 #### `TransaksiService.php`
@@ -74,26 +66,26 @@ Eksekusi transaksi jual-beli kavling, penetapan harga jual, ganti konsumen, dan 
 - `saveStatus(array $data, array $perintahBangun, array $files = [])`
 - `createOrUpdate(?int $idMkdtExisting, array $data, array $opt = [])`
 - `update($id, $data)`
-- `num($d)`
 #### `KavlingRequestService.php`
 - `submitRequest(array $data, int $userId)`
 - `getList(int $idProyek, ?string $status = null)`
 - `updateStatus(int $idRequest, string $newStatus, int $userId)`
 
 ## File Inventory
-### Controllers (5)
-- `app/Controllers/Transaksi.php` (253 baris, 5 public methods)
-- `app/Controllers/Api/TransaksiController.php` (304 baris, 6 public methods)
+### Controllers (6)
+- `app/Controllers/Transaksi.php` (253 baris, 4 public methods)
+- `app/Controllers/Api/TransaksiController.php` (311 baris, 5 public methods)
 - `app/Controllers/Api/MkdtController.php` (58 baris, 2 public methods)
 - `app/Controllers/Api/KavlingRequestController.php` (128 baris, 4 public methods)
-- `app/Controllers/Hargajual.php` (557 baris, 13 public methods)
+- `app/Controllers/Hargajual.php` (581 baris, 11 public methods)
+- `app/Controllers/Kavling.php` (34 baris, 1 public methods)
 
 ### Services (2)
-- `app/Services/TransaksiService.php` (808 baris)
+- `app/Services/TransaksiService.php` (935 baris)
 - `app/Services/KavlingRequestService.php` (217 baris)
 
 ### Repositories (3)
-- `app/Repositories/TransaksiRepository.php` (230 baris)
+- `app/Repositories/TransaksiRepository.php` (232 baris)
 - `app/Repositories/HargaJualRepository.php` (37 baris)
 - `app/Repositories/KavlingRepository.php` (686 baris)
 
@@ -110,11 +102,17 @@ Eksekusi transaksi jual-beli kavling, penetapan harga jual, ganti konsumen, dan 
 - `public/assets/js/siteplan/request-kavling.js` (571 baris)
 
 ## Readiness Checklist
-- [x] Has Service Layer
-- [x] Has Repository Layer
-- [x] Web & API Controllers Separated
-- [x] Explicit Routes Defined
+- [ ] Has Service Layer
+- [ ] Has Repository Layer
+- [ ] Web & API Controllers Separated
+- [ ] Explicit Routes Defined
+- [ ] Zero Controller Layer Violations
 - [x] MODULE.md Initialized
+
+> **Layer Violations Detected:**
+> - `app/Controllers/Transaksi.php`: db_connect(), new KeuanganModel(), new MkdtModel(), new KavlingModel(), new KonsumenModel(), new ProfilePerusahaanModel()
+> - `app/Controllers/Hargajual.php`: db_connect(), $this->db->table(), new ClusterModel(), new ProyekModel(), new KavlingModel(), new FileHargajualModel()
+> - `app/Controllers/Kavling.php`: db_connect()
 
 ## Dead Code Candidates
 _Jalankan `php spark module:deadcode Transaksi` untuk mengaudit dead code kandidat._

@@ -3,5 +3,20 @@
         "layer": "Service",
         "file": "BpbService.php",
         "name": "update"
+    },
+    {
+        "layer": "Service",
+        "file": "BpbWorkflow.php",
+        "name": "isTerminal"
+    },
+    {
+        "layer": "Service",
+        "file": "BpbPdfService.php",
+        "name": "render"
+    },
+    {
+        "layer": "Service",
+        "file": "BpbPdfService.php",
+        "name": "verify"
     }
 ]

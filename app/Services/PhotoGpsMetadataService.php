@@ -52,7 +52,20 @@ class PhotoGpsMetadataService
                 $this->convertToJpeg($sourcePath, $temporaryPath);
             }
 
-            $this->embedGps($temporaryPath, $coordinates['latitude'], $coordinates['longitude']);
+            try {
+                $this->embedGps($temporaryPath, $coordinates['latitude'], $coordinates['longitude']);
+            } catch (\Throwable $embedError) {
+                if (in_array($mimeType, self::JPEG_MIME_TYPES, true)) {
+                    try {
+                        $this->convertToJpeg($sourcePath, $temporaryPath);
+                        $this->embedGps($temporaryPath, $coordinates['latitude'], $coordinates['longitude']);
+                    } catch (\Throwable) {
+                        throw $embedError;
+                    }
+                } else {
+                    throw $embedError;
+                }
+            }
 
             $prepared = $file;
             $prepared['absolute_path'] = $temporaryPath;

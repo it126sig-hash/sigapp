@@ -1,36 +1,85 @@
-# Panduan Sinkronisasi Dokumentasi & Ledger Adaptif (Docs Sync Guide)
+# Panduan Perekaman Perubahan & Sinkronisasi Dokumentasi Modul (`sigapp-docs`)
 
-Dokumentasi dalam SIGAPP bukan sekadar catatan pasif, melainkan **kontrak batas wilayah yang dibaca oleh sistem dan agen AI lain**.
+Dokumentasi dalam SIGAPP bukan sekadar catatan pasif, melainkan **kontrak batas wilayah dan sumber kebenaran hidup (*Living Source of Truth*) yang dibaca oleh sistem dan agen AI lain**.
 
-Panduan ini mengatur cara memperbarui dokumentasi secara adaptif setelah suatu tugas selesai diverifikasi dan dinyatakan bebas dari bug/regresi.
+Panduan ini mengatur cara subagent **`sigapp-docs`** merekam setiap perubahan dan memperbarui status modul pada `docs/modules/<NamaModul>/MODULE.md` setelah suatu tugas selesai diverifikasi (`PASS` oleh `sigapp-qa`).
 
 ---
 
-## 1. Sinkronisasi Dokumen Spesifik Modul (`MODULE.md`) [Kondisional]
+## 1. Perekaman Perubahan & Sinkronisasi `docs/modules/<NamaModul>/MODULE.md` [WAJIB SEMUA MODE]
 
-Setiap modul memiliki dokumen spesifik di `docs/modules/<NamaModul>/MODULE.md`.
+Setiap kali tugas (`FEATURE`, `BUGFIX`, `REFACTOR`, maupun `UI_REPORT`) selesai dan lulus QA, `sigapp-docs` **WAJIB SELALU** memperbarui `docs/modules/<NamaModul>/MODULE.md`.
 
-### Kapan Perlu Dijalankan?
-Jalankan sinkronisasi ini jika tugas yang baru dikerjakan menyebabkan perubahan pada:
-- File controller baru atau method baru
-- Service atau Repository baru / method public baru
-- Rute baru di `app/Config/Routes.php`
-- Penambahan/perubahan tabel pemilik (*Owner Tables*)
-- Penambahan view atau aset JS baru
+### Langkah 1A — Sinkronisasi Otomatis via `module:sync`
+Jika tugas menambahkan file Controller, Service, Repository, Model, View, CSS, atau JS baru pada modul terkait:
+1. Pastikan path file baru telah terdaftar pada array modul terkait di `app/Libraries/ModuleManager/ModuleCatalog.php`.
+2. Jalankan perintah sinkronisasi:
+   ```bash
+   php spark module:sync <NamaModul>
+   ```
+   Perintah ini otomatis memindai ulang kode aktual untuk memperbarui:
+   - **Status & Readiness Score** (`REFACTORED` / `MAPPED`)
+   - **Database Tables** (`Owner Table(s)` dan `Shared Tables`)
+   - **Contracts**:
+     - *A. Public HTTP Endpoints & Routes Inventory* (`Routes.php`: Method, URI, Tipe, Handler, Status Migrasi)
+     - *B. Public PHP Services (Backend Contract Antar-Modul)* (Seluruh public method pada Service modul)
+   - **File Inventory Lengkap per Layer**:
+     - `Controllers` (beserta jumlah baris & daftar public methods)
+     - `Services` (beserta jumlah baris & daftar public methods)
+     - `Repositories` (beserta jumlah baris & daftar public methods)
+     - `Models`
+     - `Views` (beserta daftar file `.php` di dalamnya)
+     - `CSS & JavaScript` (`public/assets/css/...` dan `public/assets/js/...`)
+     - `Zero-Downtime Shims`
 
-### Perintah Sinkronisasi:
-```bash
-php spark module:sync <NamaModul>
+### Langkah 1B — Perekaman Kurasi & Kontrak Modul di `MODULE.md`
+`ModuleDocGenerator` menjaga agar bagian kurasi (`## Purpose`, `## Out of scope`, `## Invariants`, `## Key Functions`, `## Deprecated & Legacy Shims`, `## Change Log`, dan `## Notes`) **tidak tertimpa** saat `php spark module:sync` dijalankan.
+
+Setelah menjalankan `module:sync`, `sigapp-docs` **WAJIB** membuka dan memperbarui bagian-bagian berikut di `docs/modules/<NamaModul>/MODULE.md`:
+
+#### 1. `## Key Functions` (Fungsi-Fungsi Penting per Layer)
+Dokumentasikan fungsi/method krusial di Controller, Service, Repository, Model, maupun JS beserta tanggung jawab bisnisnya:
+```markdown
+## Key Functions
+- **Controller (`App\Controllers\Api\<Modul>\<Modul>Controller`):**
+  - `save()` / `store()`: Validasi input request dan delegasi penyimpanan ke Service.
+- **Service (`App\Services\<Modul>\<Modul>Service`):**
+  - `namaMethodPenting(array $data)`: Logika bisnis utama, kalkulasi ulang finansial dari DB via `cleanNumeric()`, dan transaksi DB (`transStart`/`transComplete`).
+- **Repository (`App\Repositories\<Modul>\<Modul>Repository`):**
+  - `getDatatableData(array $params)`: Query JOIN kompleks dan filter server-side DataTables.
+- **Model (`App\Models\<Modul>Model`):**
+  - Definisi entitas dan akses tulis eksklusif ke tabel pemilik (`owner_tables`).
 ```
 
-**Perilaku Perintah:**
-- Memindai file controller, service, repository, model, view, dan aset JS aktual.
-- Memetakan ulang rute eksplisit maupun AutoRoutes.
-- Menghitung ulang skor kesiapan (*Readiness Score*).
-- Memperbarui daftar *Provides (Contracts)* dan *Owner Tables*.
+#### 2. `## Deprecated & Legacy Shims` (Fungsi / Endpoint / Shim Deprecated)
+Catat seluruh fungsi, method, route lama, atau class shim yang sudah *deprecated* (dipertahankan hanya demi Zero-Downtime) beserta acuan kontrak baru penggantinya:
+```markdown
+## Deprecated & Legacy Shims
+- **Deprecated Routes / Endpoints:**
+  - `ANY /<legacy_controller>/<method>` -> **DEPRECATED**, gunakan rute eksplisit `POST /api/<modul>/<endpoint>`.
+- **Deprecated Classes / Shims:**
+  - `app/Services/<Modul>Service.php` (Root Namespace Shim) -> **DEPRECATED**, gunakan `App\Services\<Modul>\<Modul>Service`.
+- **Deprecated Methods:**
+  - `namaMethodLama()` -> **DEPRECATED**, digantikan oleh `namaMethodBaru()`.
+```
+*(Jika tidak ada fungsi/route deprecated selain shim standar, tuliskan secara eksplisit statusnya).*
+
+#### 3. `## Notes` (Termasuk Cross-Module Callers / Public Contract Consumers)
+Pastikan daftar pemanggil lintas modul (*Cross-Module Callers*) yang mengonsumsi *Public Contracts* modul ini (baik via PHP Service maupun REST API `/api/...`) tercatat dengan akurat.
+
+#### 4. `## Change Log` (Riwayat Perubahan Modul)
+Tambahkan baris/poin baru di urutan paling atas pada bagian `## Change Log` setiap kali tugas selesai:
+```markdown
+## Change Log
+- **`YYYY-MM-DD` [`FEATURE` | `BUGFIX` | `REFACTOR` | `UI_REPORT`] — [Judul Singkat Tugas]:**
+  - **Routes & Public Contracts:** [Rute/kontrak yang ditambah/diubah, atau Tidak berubah]
+  - **Controller / Service / Repo / Model:** [File & fungsi backend yang ditambah/diubah]
+  - **View / CSS / JS:** [File view/asset yang ditambah/diubah]
+  - **Deprecations:** [Fungsi/route yang di-deprecate jika ada, atau Tidak ada]
+```
 
 ### Opsi `--check-only`:
-Gunakan opsi ini jika hanya ingin memastikan apakah dokumentasi sudah sinkron atau belum tanpa menimpa file:
+Gunakan opsi ini jika hanya ingin memeriksa apakah `MODULE.md` sudah ada:
 ```bash
 php spark module:sync <NamaModul> --check-only
 ```

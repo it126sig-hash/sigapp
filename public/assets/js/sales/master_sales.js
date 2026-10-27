@@ -71,6 +71,15 @@ $(function () {
                 },
             },
             {
+                data: "has_pks",
+                className: "text-center",
+                render: function (data) {
+                    return parseInt(data) === 1
+                        ? '<span class="badge badge-light-success font-weight-bold"><i class="fas fa-file-contract mr-25"></i> PKS</span>'
+                        : '<span class="badge badge-light-secondary font-weight-bold">Non-PKS</span>';
+                },
+            },
+            {
                 data: null,
                 render: function (data, type, row) {
                     if (!row.tanggal_pks) return '<span class="text-muted">-</span>';
@@ -138,6 +147,7 @@ $(function () {
         $(".custom-file-label").html("Pilih file");
         $("#modal-sales-title").text("Tambah Sales External");
         $("#sales-status").val("active");
+        $("#sales-has_pks").val("1");
         $("#modal-sales").modal("show");
     });
 
@@ -157,6 +167,7 @@ $(function () {
                 $("#sales-tanggal_pks").val(d.tanggal_pks);
                 $("#sales-tanggal_exp_pks").val(d.tanggal_exp_pks);
                 $("#sales-status").val(d.status);
+                $("#sales-has_pks").val(d.has_pks !== undefined && d.has_pks !== null ? String(d.has_pks) : "0");
                 $("#sales-catatan").val(d.catatan);
 
                 if (d.lampiran_pks) {

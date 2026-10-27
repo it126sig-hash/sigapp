@@ -64,6 +64,7 @@
                                     <th>Bank & Rekening</th>
                                     <th>Fee Subsidi (%)</th>
                                     <th>Fee Komersil (%)</th>
+                                    <th style="width: 90px;" class="text-center">Tipe Sales</th>
                                     <th>Periode PKS</th>
                                     <th>Berkas PKS</th>
                                     <th>Status</th>
@@ -142,7 +143,14 @@
                         </div>
                         <small id="sales-lampiran_pks-preview" class="text-muted d-block mt-50"></small>
                     </div>
-                    <div class="col-md-6 form-group">
+                    <div class="col-md-3 form-group">
+                        <label class="font-weight-bold">Tipe Kontrak <span class="text-danger">*</span></label>
+                        <select name="has_pks" id="sales-has_pks" class="form-control font-weight-bold">
+                            <option value="1">Dengan PKS (Kontrak)</option>
+                            <option value="0">Tanpa PKS (Non-Kontrak)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 form-group">
                         <label class="font-weight-bold">Status Keaktifan</label>
                         <select name="status" id="sales-status" class="form-control">
                             <option value="active">Aktif</option>

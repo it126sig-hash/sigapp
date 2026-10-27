@@ -27,6 +27,7 @@ class SalesModel extends Model
         'tanggal_exp_pks',
         'lampiran_pks',
         'status',
+        'has_pks',
         'catatan',
         'created_by',
         'updated_by',

@@ -108,12 +108,36 @@ class HistoryService
     {
         foreach ($rows as &$row) {
             $row['module_label'] = self::MODULE_LABELS[$row['module']] ?? $row['module'];
+            $row['action_label'] = $this->formatActionLabel((string) ($row['action'] ?? ''));
             $row['old_data'] = $this->decodeJsonValue($row['old_data'] ?? null);
             $row['new_data'] = $this->decodeJsonValue($row['new_data'] ?? null);
             $row['metadata'] = $this->decodeJsonValue($row['metadata'] ?? null);
         }
 
         return $rows;
+    }
+
+    public function formatActionLabel(string $action): string
+    {
+        $labels = [
+            'set_harga_jual'                => 'Set Harga Jual',
+            'isi_data_konsumen'             => 'Isi Data Konsumen',
+            'ubah_status_kavling'           => 'Ubah Status Kavling',
+            'turun_pembangunan'             => 'Turun Pembangunan',
+            'standing_instruction'          => 'Standing Instruction',
+            'tarik_ke_nup'                  => 'Penarikan ke NUP',
+            'aktifkan_nup'                  => 'Aktivasi NUP',
+            'pindah_kavling'                => 'Pindah Kavling',
+            'batal_booking'                 => 'Batal Booking',
+            'ganti_konsumen'                => 'Pindah Konsumen',
+            'reconcile_financial_breakdown' => 'Rekonsiliasi Keuangan MKDT',
+            'update_progres'                => 'Update Progres Bangunan',
+            'pengajuan'                     => 'Pengajuan Pencairan',
+            'pencairan'                     => 'Pencairan Jaminan',
+            'update'                        => 'Pembaruan Data',
+        ];
+
+        return $labels[$action] ?? ucwords(str_replace('_', ' ', $action));
     }
 
     private function encodeJsonValue($value): ?string
@@ -168,7 +192,7 @@ class HistoryService
         return null;
     }
 
-    private function getProyekIdByKavling(int $idKavling): ?int
+    public function getProyekIdByKavling(int $idKavling): ?int
     {
         $row = $this->db->table('kavling k')
             ->select('c.id_proyek')

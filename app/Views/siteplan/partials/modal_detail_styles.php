@@ -1720,3 +1720,116 @@
             text-align: left;
         }
     }
+
+    /* Riwayat Perubahan Kavling */
+    #modal_detail .detail-kavling-history-wrap {
+        max-height: calc(100vh - 22rem);
+        min-height: 200px;
+        overflow-y: auto;
+        padding-right: .35rem;
+    }
+
+    #modal_detail .detail-kavling-history-item {
+        border-left: 4px solid #2057a3;
+        margin-bottom: .85rem;
+        padding: .75rem 1rem;
+        background: #f8fafc;
+        border-radius: 0 .5rem .5rem 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,.05);
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    #modal_detail .detail-kavling-history-item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(0,0,0,.08);
+    }
+
+    #modal_detail .detail-kavling-history-item.module-mkdt {
+        border-left-color: #2057a3;
+    }
+
+    #modal_detail .detail-kavling-history-item.module-produksi {
+        border-left-color: #f59e0b;
+    }
+
+    #modal_detail .detail-kavling-history-item.module-dana_jaminan,
+    #modal_detail .detail-kavling-history-item.module-pencairan_akad {
+        border-left-color: #10b981;
+    }
+
+    #modal_detail .detail-kavling-history-item.module-cashout_subkon {
+        border-left-color: #06b6d4;
+    }
+
+    #modal_detail .detail-kavling-history-title {
+        color: #1e293b;
+        font-size: .95rem;
+        font-weight: 700;
+    }
+
+    #modal_detail .detail-kavling-history-meta {
+        color: #64748b;
+        font-size: .8rem;
+    }
+
+    #modal_detail .detail-kavling-history-summary {
+        color: #334155;
+        font-size: .875rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    #modal_detail .badge-module-mkdt {
+        background-color: #e0e7ff;
+        color: #3730a3;
+    }
+
+    #modal_detail .badge-module-produksi {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    #modal_detail .badge-module-dana_jaminan,
+    #modal_detail .badge-module-pencairan_akad {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    #modal_detail .badge-module-cashout_subkon {
+        background-color: #cffafe;
+        color: #155e75;
+    }
+
+    #modal_detail .detail-kavling-json-view {
+        max-height: 200px;
+        overflow-y: auto;
+        font-size: .75rem;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: .5rem;
+        color: #0f172a;
+    }
+
+    .dark-layout #modal_detail .detail-kavling-history-item {
+        background: #1e293b;
+        box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    }
+
+    .dark-layout #modal_detail .detail-kavling-history-title {
+        color: #e2e8f0;
+    }
+
+    .dark-layout #modal_detail .detail-kavling-history-meta {
+        color: #94a3b8;
+    }
+
+    .dark-layout #modal_detail .detail-kavling-history-summary {
+        color: #cbd5e1;
+    }
+
+    .dark-layout #modal_detail .detail-kavling-json-view {
+        background: #0f172a;
+        border-color: #334155;
+        color: #e2e8f0;
+    }

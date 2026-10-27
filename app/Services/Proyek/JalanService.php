@@ -2,11 +2,11 @@
 
 namespace App\Services\Proyek;
 
-use App\Controllers\Notif;
 use App\Models\JalanModel;
 use App\Models\ProyekModel;
 use App\Repositories\Proyek\JalanRepository;
 use App\Services\HistoryService;
+use App\Services\NotifikasiService;
 use CodeIgniter\HTTP\IncomingRequest;
 
 class JalanService
@@ -16,7 +16,7 @@ class JalanService
     private JalanRepository $jalanRepository;
     private $validation;
     private HistoryService $historyService;
-    private Notif $notif;
+    private NotifikasiService $notif;
 
     public function __construct()
     {
@@ -25,7 +25,7 @@ class JalanService
         $this->jalanRepository = new JalanRepository();
         $this->validation = \Config\Services::validation();
         $this->historyService = new HistoryService();
-        $this->notif = new Notif();
+        $this->notif = new NotifikasiService();
     }
 
     public function getIndexData(): array

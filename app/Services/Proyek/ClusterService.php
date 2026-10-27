@@ -2,17 +2,17 @@
 
 namespace App\Services\Proyek;
 
-use App\Controllers\Notif;
 use App\Models\ClusterModel;
 use App\Repositories\Proyek\ClusterRepository;
 use App\Services\HistoryService;
+use App\Services\NotifikasiService;
 
 class ClusterService
 {
     protected ClusterModel $clusterModel;
     protected ClusterRepository $clusterRepository;
     protected HistoryService $historyService;
-    protected Notif $notif;
+    protected NotifikasiService $notif;
     protected $validation;
 
     public function __construct()
@@ -20,7 +20,7 @@ class ClusterService
         $this->clusterModel      = new ClusterModel();
         $this->clusterRepository = new ClusterRepository();
         $this->historyService    = new HistoryService();
-        $this->notif             = new Notif();
+        $this->notif             = new NotifikasiService();
         $this->validation        = \Config\Services::validation();
     }
 

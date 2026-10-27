@@ -1,0 +1,504 @@
+/**
+ * fee-sales.css
+ * Styling untuk Modul Fee Sales & Modal Kelola Fee Sales
+ * Scoped to .fee-page & #modal-fee-sales
+ * Sesuai panduan sigapp-ui-acuan
+ */
+
+/* -------------------------------------------------------------
+ * 1. Base Page Styles (.fee-page)
+ * ----------------------------------------------------------- */
+.fee-page .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.fee-page .fee-filter-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.fee-page .table-fee th,
+.fee-page .table-fee td {
+  vertical-align: middle !important;
+}
+
+.fee-page .termin-progress-mini {
+  height: 6px;
+  border-radius: 3px;
+}
+
+.fee-page .card-body .table-responsive {
+  max-height: calc(100vh - 310px);
+  overflow-y: auto;
+  position: relative;
+}
+
+.fee-page .table-fee thead th,
+.fee-page #table-pengajuan-group thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #f3f2f7;
+  box-shadow: inset 0 -2px 0 #dce5f0;
+}
+
+.fee-page .table-fee tbody tr {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.fee-page .table-fee tbody tr.row-restricted {
+  cursor: not-allowed;
+  opacity: 0.70;
+}
+
+.fee-page .table-fee tbody tr.row-restricted:hover {
+  background-color: transparent !important;
+}
+
+.fee-page .table-fee tbody tr.table-active {
+  background-color: rgba(32, 87, 163, 0.08) !important;
+}
+
+/* -------------------------------------------------------------
+ * 2. Modal Kelola Fee Sales (#modal-fee-sales)
+ * ----------------------------------------------------------- */
+
+#modal-fee-sales .modal-dialog-scrollable .modal-content {
+  max-height: calc(100vh - 3.5rem);
+  overflow: hidden;
+}
+
+#modal-fee-sales .modal-dialog-scrollable .modal-body {
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Sticky Header Info Kavling & Konsumen */
+#modal-fee-sales .modal-sticky-header {
+  position: -webkit-sticky;
+  position: sticky;
+  top: -1rem;
+  z-index: 1020;
+  background-color: #f8f9fa !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+}
+
+/* Accent Card untuk Masing-masing Sales */
+#modal-fee-sales .sales-fee-card-accent {
+  border: 1px solid #c9d8ec !important;
+  border-left: 4px solid #2057a3 !important;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(32, 87, 163, 0.06);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+#modal-fee-sales .sales-fee-card-accent:hover {
+  box-shadow: 0 4px 12px rgba(32, 87, 163, 0.1);
+}
+
+#modal-fee-sales .sales-fee-card-accent .card-header {
+  background: linear-gradient(to right, #f1f5fa, #ffffff) !important;
+  border-bottom: 1px solid #dce5f0;
+}
+
+/* Checkbox Override Total Fee */
+#modal-fee-sales .override-checkbox-wrap {
+  display: inline-flex;
+  align-items: center;
+  min-height: auto;
+  padding-left: 1.5rem;
+  margin-bottom: 0;
+}
+
+#modal-fee-sales .override-checkbox-wrap .custom-control-label {
+  user-select: none;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+#modal-fee-sales .override-checkbox-wrap .custom-control-label::before,
+#modal-fee-sales .override-checkbox-wrap .custom-control-label::after {
+  top: 0.1rem;
+}
+
+/* Tabel Termin Aksen */
+#modal-fee-sales .table-termin-accent {
+  border: 1px solid #dce5f0 !important;
+}
+
+#modal-fee-sales .table-termin-accent thead.thead-light th {
+  background-color: #f1f5fa;
+  color: #2057a3;
+  font-weight: 700;
+  border-bottom: 2px solid #c9d8ec;
+  border-top: none;
+}
+
+#modal-fee-sales .table-termin-accent td {
+  vertical-align: middle;
+}
+
+/* Form Fee Entry Aligned Row & Inputs */
+#modal-fee-sales .form-fee-row-aligned {
+  display: flex;
+  align-items: flex-start;
+}
+
+#modal-fee-sales .form-fee-row-aligned .form-header-slot {
+  min-height: 24px;
+  max-height: 24px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+#modal-fee-sales .form-fee-row-aligned .form-group {
+  margin-bottom: 0.5rem;
+}
+
+#modal-fee-sales .form-fee-row-aligned .input-group-sm,
+#modal-fee-sales .form-fee-row-aligned .form-control-sm,
+#modal-fee-sales .form-fee-row-aligned .btn-sm {
+  height: 34px !important;
+}
+
+#modal-fee-sales .form-fee-row-aligned .input-group-sm > .form-control,
+#modal-fee-sales .form-fee-row-aligned .input-group-sm > .input-group-append > .input-group-text,
+#modal-fee-sales .form-fee-row-aligned .input-group-sm > .input-group-prepend > .input-group-text {
+  height: 34px !important;
+}
+
+/* -------------------------------------------------------------
+ * 3. Signature Canvas & Cards (.fee-canvas-wrap & .fee-signature-card)
+ * ----------------------------------------------------------- */
+.fee-canvas-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  min-height: 200px;
+  border: 1px dashed #9aa6b2;
+  border-radius: 0.5rem;
+  background: #fff;
+  touch-action: none;
+  overflow: hidden;
+  margin-top: 0.35rem;
+}
+
+.fee-canvas-wrap canvas {
+  width: 100%;
+  height: 200px;
+  display: block;
+  touch-action: none;
+}
+
+.fee-clear-canvas {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+  z-index: 5;
+}
+
+.fee-signature-card {
+  height: 100%;
+  min-height: 140px;
+  padding: 0.75rem;
+  background: #fbfcfe;
+  border: 1px solid #e4ebf4;
+  border-radius: 0.6rem;
+  text-align: center;
+}
+
+.fee-signature-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  color: #6c7f9b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.fee-signature-image {
+  position: relative;
+  display: flex;
+  height: 4.8rem;
+  align-items: center;
+  justify-content: center;
+  margin: 0.4rem 0 0.5rem;
+  overflow: hidden;
+  background: #fff;
+  border: 1px dashed #dce5f1;
+  border-radius: 0.45rem;
+}
+
+.fee-signature-image img {
+  max-width: 90%;
+  max-height: 4.2rem;
+  object-fit: contain;
+}
+
+.fee-signature-name {
+  display: block;
+  color: #263b5b;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.fee-signature-date {
+  display: block;
+  margin-top: 0.1rem;
+  color: #8b9bb2;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.68rem;
+}
+
+/* -------------------------------------------------------------
+ * 4. Rejection Alert & Suggested Price Styles
+ * ----------------------------------------------------------- */
+.fee-page #table-pengajuan-group tbody tr.row-rejected-creator {
+  background-color: #fff5f5 !important;
+  border-left: 3px solid #dc2626 !important;
+}
+
+.fee-page #table-pengajuan-group tbody tr.row-rejected-creator:hover {
+  background-color: #fee2e2 !important;
+}
+
+.fee-page .fee-reject-banner {
+  border: 1px solid #fca5a5;
+  background-color: #fff1f2;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.08);
+}
+
+.badge-suggested-price {
+  display: inline-block;
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fdba74;
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+#detail-group-reject-alert {
+  border: 1px solid #fca5a5;
+  background-color: #fff5f5;
+  border-radius: 8px;
+}
+
+#detail-group-reject-alert .reject-meta-box {
+  background-color: #ffffff;
+  border: 1px solid #fed7aa;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+}
+
+#modal-reject-pengajuan .reject-unit-row {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.65rem;
+  transition: border-color 0.15s ease-in-out;
+}
+
+#modal-reject-pengajuan .reject-unit-row:hover {
+  border-color: #2057a3;
+}
+
+#modal-unit-rejection-hint {
+  border-left: 3px solid #f97316;
+  background-color: #fffbeb;
+  color: #92400e;
+}
+
+/* -------------------------------------------------------------
+ * 5. Tab 2 Pengajuan & Modal Group Detail Interactive Styles
+ * ----------------------------------------------------------- */
+#table-pengajuan-group tbody tr {
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+#table-pengajuan-group tbody tr:hover {
+  background-color: #f1f5fa !important;
+}
+
+#table-group-items .group-header-row td,
+.fee-shared-page .group-header-row td {
+  background-color: #eef4fc !important;
+  border-top: 2px solid #2057a3 !important;
+  font-size: 0.88rem;
+  padding: 8px 12px !important;
+}
+
+#table-group-items .tenor-status-box,
+.fee-shared-page .tenor-status-box {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  margin-top: 3px;
+}
+
+#table-group-items .tenor-cair-badge,
+.tenor-cair-badge {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 1px 4px;
+  display: inline-block;
+}
+
+#table-group-items .tenor-diajukan-other-badge,
+.tenor-diajukan-other-badge {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 1px 4px;
+  display: inline-block;
+}
+
+#table-group-items .tenor-highlight-yellow,
+.tenor-highlight-yellow {
+  background-color: #fff3cd !important;
+  border-left: 2px solid #ffc107 !important;
+  border-right: 2px solid #ffc107 !important;
+  font-weight: bold !important;
+  color: #856404 !important;
+}
+
+/* -------------------------------------------------------------
+ * 6. Shared Pengajuan View (.fee-shared-page)
+ * ----------------------------------------------------------- */
+.fee-shared-page .card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.fee-shared-item-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  margin-bottom: 0.75rem;
+  padding: 0.85rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.fee-shared-item-card.is-cair {
+  border-left: 4px solid #28c76f;
+}
+
+.fee-shared-item-card.is-pending {
+  border-left: 4px solid #ff9f43;
+}
+
+.fee-shared-item-card.is-void {
+  border-left: 4px solid #ea5455;
+  opacity: 0.75;
+}
+
+.fee-mobile-sticky-bar {
+  z-index: 1030;
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+@media (max-width: 767.98px) {
+  .fee-shared-page {
+    padding-bottom: 70px;
+  }
+}
+
+.fee-shared-finance-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  background: #f8fafc;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.fee-finance-item {
+  font-size: 0.78rem;
+}
+
+.fee-finance-item.fee-finance-full {
+  grid-column: span 2;
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 6px;
+  margin-top: 2px;
+}
+
+.fee-finance-item .finance-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.fee-finance-item .finance-value {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.fee-shared-tenor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.fee-tenor-box {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: #fff;
+  font-size: 0.75rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.fee-tenor-box.active-target {
+  background-color: #fff3cd !important;
+  border: 2px solid #ffc107 !important;
+  color: #856404 !important;
+}
+
+.fee-tenor-box .tenor-title {
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.fee-tenor-box .tenor-nominal {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+

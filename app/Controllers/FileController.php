@@ -110,8 +110,6 @@ class FileController extends BaseController
                 }
             } catch (\Throwable $e) {
                 log_message('error', 'Gagal menyiapkan metadata GPS foto produksi: ' . $e->getMessage());
-
-                return $this->response->setStatusCode(500)->setBody('Gagal menyiapkan metadata GPS foto.');
             }
         }
 

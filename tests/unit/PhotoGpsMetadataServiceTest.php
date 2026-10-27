@@ -88,6 +88,26 @@ final class PhotoGpsMetadataServiceTest extends CIUnitTestCase
         $this->assertNull($result);
     }
 
+    public function testRecoversJpegWithCorruptExifAndEmbedsGps(): void
+    {
+        $source = $this->createImage('jpg');
+        $content = file_get_contents($source);
+        $bogusApp1 = "\xFF\xE1\x00\x08Exif\x00\x00corrupt";
+        $corruptJpeg = substr($content, 0, 2) . $bogusApp1 . substr($content, 2);
+        file_put_contents($source, $corruptJpeg);
+
+        $result = (new PhotoGpsMetadataService())->prepareDownload($this->file($source, 'image/jpeg', -6.917464, 107.619123));
+
+        $this->assertNotNull($result);
+        $this->paths[] = $result['absolute_path'];
+        $this->assertSame('image/jpeg', $result['mime_type']);
+        $gps = exif_read_data($result['absolute_path'], 'GPS', true, false)['GPS'];
+        $this->assertSame('S', $gps['GPSLatitudeRef']);
+        $this->assertSame('E', $gps['GPSLongitudeRef']);
+        $this->assertEqualsWithDelta(6.917464, $this->gpsDecimal($gps['GPSLatitude']), 0.000001);
+        $this->assertEqualsWithDelta(107.619123, $this->gpsDecimal($gps['GPSLongitude']), 0.000001);
+    }
+
     private function file(string $path, string $mimeType, ?float $latitude, ?float $longitude): array
     {
         return [

@@ -1,8 +1,8 @@
 # Module: Produksi
 
-**Status:** `REFACTORED`  
-**Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-12 14:38:40` @ `be98758`  
+**Status:** `MAPPED`  
+**Readiness Score:** `60/100`  
+**Last Synced:** `2026-10-23 13:52:12` @ `ad0c900`  
 
 ## Purpose
 Manajemen konstruksi lapangan, tahapan serah terima fisik (ST 0-100%), komplain, dan pengawasan subkon.
@@ -34,59 +34,42 @@ Manajemen konstruksi lapangan, tahapan serah terima fisik (ST 0-100%), komplain,
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `GET` | `siteplan/produksi-mobile` | `Explicit` | `Siteplan::produksi_mobile` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `get_data_by_id` | `Explicit` | `ProduksiController::get_data_by_id` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `getBayarProduksi` | `Explicit` | `ProduksiController::getBayarProduksi` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `getBayarProduksiListItem` | `Explicit` | `ProduksiController::getBayarProduksiListItem` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `saveBayarProduksi` | `Explicit` | `ProduksiController::saveBayarProduksi` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `deleteBayarProduksi` | `Explicit` | `ProduksiController::deleteBayarProduksi` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `get_data_komplain_by_id` | `Explicit` | `ProduksiController::get_data_komplain_by_id` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `save_komplain_produksi` | `Explicit` | `ProduksiController::save_komplain_produksi` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `save` | `Explicit` | `ProduksiController::save` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `upload-mobile` | `Explicit` | `ProduksiController::uploadMobile` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `history` | `Explicit` | `ProduksiController::history` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `saveSLF` | `Explicit` | `ProduksiController::saveSLf` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `getSlf` | `Explicit` | `ProduksiController::getSlf` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `hapusSLF` | `Explicit` | `ProduksiController::hapusSLF` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `getSLFPDF/(:num)` | `Explicit` | `ProduksiController::getSLFPDF/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `getKavling` | `Explicit` | `ProduksiController::getKavling` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `hapus_foto` | `Explicit` | `ProduksiController::hapus_foto` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `get_gambarkerja` | `Explicit` | `ProduksiController::get_gambarkerja` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `add_jalan` | `Explicit` | `ProduksiController::add_jalan` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `edit_others` | `Explicit` | `ProduksiController::edit_others` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `get_data_by_id` | `Explicit` | `ProduksiController::get_data_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `getBayarProduksi` | `Explicit` | `ProduksiController::getBayarProduksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `getBayarProduksiListItem` | `Explicit` | `ProduksiController::getBayarProduksiListItem` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `saveBayarProduksi` | `Explicit` | `ProduksiController::saveBayarProduksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `deleteBayarProduksi` | `Explicit` | `ProduksiController::deleteBayarProduksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `get_data_komplain_by_id` | `Explicit` | `ProduksiController::get_data_komplain_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `save_komplain_produksi` | `Explicit` | `ProduksiController::save_komplain_produksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `save` | `Explicit` | `ProduksiController::save` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `upload-mobile` | `Explicit` | `ProduksiController::uploadMobile` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `history` | `Explicit` | `ProduksiController::history` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `saveSLF` | `Explicit` | `ProduksiController::saveSLf` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `getSlf` | `Explicit` | `ProduksiController::getSlf` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `hapusSLF` | `Explicit` | `ProduksiController::hapusSLF` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `getSLFPDF/(:num)` | `Explicit` | `ProduksiController::getSLFPDF/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `getKavling` | `Explicit` | `ProduksiController::getKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `hapus_foto` | `Explicit` | `ProduksiController::hapus_foto` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `get_gambarkerja` | `Explicit` | `ProduksiController::get_gambarkerja` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `add_jalan` | `Explicit` | `ProduksiController::add_jalan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `edit_others` | `Explicit` | `ProduksiController::edit_others` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `list/ambil` | `Explicit` | `Subkon::getList` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `subkon` | `Explicit` | `CashoutSubkon::index` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `subkon/list` | `Explicit` | `CashoutSubkon::getDataTables` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `subkon/detail-list` | `Explicit` | `CashoutSubkon::getDetailList` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `subkon/ambil` | `Explicit` | `CashoutSubkon::get` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `subkon/save` | `Explicit` | `CashoutSubkon::save` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `subkon/turun-jatuh-tempo` | `Explicit` | `CashoutSubkon::turunJatuhTempo` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `subkon/ajukan-spp` | `Explicit` | `CashoutSubkon::ajukanSPP` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `subkon/history` | `Explicit` | `CashoutSubkon::getHistory` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `subkon/ajukan-pencairan` | `Explicit` | `CashoutSubkon::ajukanPencairan` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `subkon/pembayaran` | `Explicit` | `CashoutSubkon::pembayaran` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `toggle/(:num)` | `Explicit` | `CashoutSubkon::toggleStatus/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `download/(:num)` | `Explicit` | `CashoutSubkon::download/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `ANY` | `/produksi_controller/storejalanprogressphotos` | `AutoRoute` | `ProduksiController::storeJalanProgressPhotos` | 🟢 MIGRATED | Rute method aktif |
+| `POST` | `/api/produksi/get_data_by_id` | `Explicit` | `ProduksiController::get_data_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/getBayarProduksi` | `Explicit` | `ProduksiController::getBayarProduksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/getBayarProduksiListItem` | `Explicit` | `ProduksiController::getBayarProduksiListItem` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/saveBayarProduksi` | `Explicit` | `ProduksiController::saveBayarProduksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/deleteBayarProduksi` | `Explicit` | `ProduksiController::deleteBayarProduksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/get_data_komplain_by_id` | `Explicit` | `ProduksiController::get_data_komplain_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/save_komplain_produksi` | `Explicit` | `ProduksiController::save_komplain_produksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/save` | `Explicit` | `ProduksiController::save` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/upload-mobile` | `Explicit` | `ProduksiController::uploadMobile` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/history` | `Explicit` | `ProduksiController::history` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/saveSLF` | `Explicit` | `ProduksiController::saveSLf` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/produksi/getSlf` | `Explicit` | `ProduksiController::getSlf` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/hapusSLF` | `Explicit` | `ProduksiController::hapusSLF` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/produksi/getSLFPDF/(:num)` | `Explicit` | `ProduksiController::getSLFPDF/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/getKavling` | `Explicit` | `ProduksiController::getKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/hapus_foto` | `Explicit` | `ProduksiController::hapus_foto` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/get_gambarkerja` | `Explicit` | `ProduksiController::get_gambarkerja` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/add_jalan` | `Explicit` | `ProduksiController::add_jalan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/edit_others` | `Explicit` | `ProduksiController::edit_others` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/subkon/list/ambil` | `Explicit` | `Subkon::getList` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `ANY` | `/produksi/get_data_by_id` | `AutoRoute` | `Produksi::get_data_by_id` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/getbayarproduksilistitem` | `AutoRoute` | `Produksi::getBayarProduksiListItem` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/getbayarproduksi` | `AutoRoute` | `Produksi::getBayarProduksi` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/savebayarproduksi` | `AutoRoute` | `Produksi::saveBayarProduksi` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/deletebayarproduksi` | `AutoRoute` | `Produksi::deleteBayarProduksi` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/get_data_komplain_by_id` | `AutoRoute` | `Produksi::get_data_komplain_by_id` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/save_komplain_produksi` | `AutoRoute` | `Produksi::save_komplain_produksi` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/save` | `AutoRoute` | `Produksi::save` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/saveslf` | `AutoRoute` | `Produksi::saveSLf` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/getslf` | `AutoRoute` | `Produksi::getSlf` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/hapusslf` | `AutoRoute` | `Produksi::hapusSLF` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/getslfpdf` | `AutoRoute` | `Produksi::getSLFPDF` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/getkavling` | `AutoRoute` | `Produksi::getKavling` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/hapus_foto` | `AutoRoute` | `Produksi::hapus_foto` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/get_gambarkerja` | `AutoRoute` | `Produksi::get_gambarkerja` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/produksi/edit_others` | `AutoRoute` | `Produksi::edit_others` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/checklist_group/index` | `AutoRoute` | `ChecklistGroup::index` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/checklist_group/getall` | `AutoRoute` | `ChecklistGroup::getAll` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/checklist_group/getone` | `AutoRoute` | `ChecklistGroup::getOne` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
@@ -105,42 +88,38 @@ Manajemen konstruksi lapangan, tahapan serah terima fisik (ST 0-100%), komplain,
 | `ANY` | `/checklist_sub_item/add` | `AutoRoute` | `ChecklistSubItem::add` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/checklist_sub_item/edit` | `AutoRoute` | `ChecklistSubItem::edit` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/checklist_sub_item/remove` | `AutoRoute` | `ChecklistSubItem::remove` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/sales/get_data_by_id` | `AutoRoute` | `Sales::get_data_by_id` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/sales/save_checklist` | `AutoRoute` | `Sales::save_checklist` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/sales/get_data_komplain_by_id` | `AutoRoute` | `Sales::get_data_komplain_by_id` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/sales/batalkan_komplain` | `AutoRoute` | `Sales::batalkan_komplain` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/sales/save_komplain_sales` | `AutoRoute` | `Sales::save_komplain_sales` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/sales/get_data_serah_terima_by_id` | `AutoRoute` | `Sales::get_data_serah_terima_by_id` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/sales/save_serah_terima` | `AutoRoute` | `Sales::save_serah_terima` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
 #### `ProduksiService.php`
 - `save(array $var, array $uploadedFiles, int $userId)`
-- `buildProduksiData(array $var, int $userId)`
-- `processChecklists(int $idKavling, array $var, int $userId)`
-- `buildHistoryPayload(array $oldProduksi, array $newProduksi, array $var, array $fotoRows)`
-- `shouldWriteHistory(array $payload)`
 #### `ProduksiFileService.php`
 - `uploadFotoGroups(array $requestFiles, array $requestVars, int $idKavling)`
-- `compressImageIfPossible(string $relativePath)`
-- `hasFileProduksiField(string $field)`
-- `nullableDecimal($value)`
 - `moveFotoToTrash(object $file)`
 #### `PhotoGpsMetadataService.php`
 - `prepareDownload(array $file)`
 - `cleanup(?string $temporaryPath)`
-- `coordinates(mixed $record)`
-- `convertToJpeg(string $sourcePath, string $destinationPath)`
-- `embedGps(string $jpegPath, float $latitude, float $longitude)`
-- `degreesMinutesSeconds(float $coordinate)`
-- `jpegFileName(string $fileName)`
 
 ## File Inventory
-### Controllers (6)
+### Controllers (7)
 - `app/Controllers/Produksi.php` (493 baris, 16 public methods)
-- `app/Controllers/Api/ProduksiController.php` (789 baris, 20 public methods)
+- `app/Controllers/Api/ProduksiController.php` (789 baris, 19 public methods)
 - `app/Controllers/Subkon.php` (31 baris, 1 public methods)
 - `app/Controllers/ChecklistGroup.php` (193 baris, 6 public methods)
 - `app/Controllers/ChecklistItem.php` (220 baris, 6 public methods)
 - `app/Controllers/ChecklistSubItem.php` (259 baris, 6 public methods)
+- `app/Controllers/Sales.php` (388 baris, 7 public methods)
 
 ### Services (3)
 - `app/Services/ProduksiService.php` (264 baris)
 - `app/Services/ProduksiFileService.php` (186 baris)
-- `app/Services/PhotoGpsMetadataService.php` (178 baris)
+- `app/Services/PhotoGpsMetadataService.php` (191 baris)
 
 ### Repositories (1)
 - `app/Repositories/ProduksiRepository.php` (379 baris)
@@ -166,11 +145,21 @@ Manajemen konstruksi lapangan, tahapan serah terima fisik (ST 0-100%), komplain,
 - `public/assets/js/siteplan/direksi.js` (131 baris)
 
 ## Readiness Checklist
-- [x] Has Service Layer
-- [x] Has Repository Layer
-- [x] Web & API Controllers Separated
-- [x] Explicit Routes Defined
+- [ ] Has Service Layer
+- [ ] Has Repository Layer
+- [ ] Web & API Controllers Separated
+- [ ] Explicit Routes Defined
+- [ ] Zero Controller Layer Violations
 - [x] MODULE.md Initialized
+
+> **Layer Violations Detected:**
+> - `app/Controllers/Produksi.php`: Database::connect(), new GambarkerjaModel(), new KavlingModel(), new ChecklistWorkModel(), new KomplainModel(), new ProduksiModel()
+> - `app/Controllers/Api/ProduksiController.php`: Database::connect(), new GambarkerjaModel(), new KavlingModel(), new ChecklistWorkModel(), new KomplainModel()
+> - `app/Controllers/Subkon.php`: db_connect(), new SubkonModel()
+> - `app/Controllers/ChecklistGroup.php`: new ChecklistGroupModel()
+> - `app/Controllers/ChecklistItem.php`: new ChecklistItemModel(), new ChecklistGroupModel()
+> - `app/Controllers/ChecklistSubItem.php`: new ChecklistSubItemModel(), new ChecklistItemModel(), new ChecklistGroupModel()
+> - `app/Controllers/Sales.php`: new ProduksiModel(), new GambarkerjaModel(), new KavlingModel(), new ChecklistSubItemModel(), new ChecklistWorkModel(), new SerahTerimaModel(), new KomplainModel()
 
 ## Dead Code Candidates
 _Jalankan `php spark module:deadcode Produksi` untuk mengaudit dead code kandidat._

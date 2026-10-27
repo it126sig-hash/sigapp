@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-15 15:35:46` @ `f6e637e`  
+**Last Synced:** `2026-10-23 13:52:13` @ `ad0c900`  
 
 ## Purpose
 Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, dan tracking progres penyelesaian.
@@ -30,34 +30,20 @@ Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, da
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `POST` | `list` | `Explicit` | `TiketMasalahController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `detail` | `Explicit` | `TiketMasalahController::detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `progress` | `Explicit` | `TiketMasalahController::progress` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `store` | `Explicit` | `TiketMasalahController::store` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `update` | `Explicit` | `TiketMasalahController::update` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `add-progress` | `Explicit` | `TiketMasalahController::addProgress` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `ref-info` | `Explicit` | `TiketMasalahController::refInfo` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `users` | `Explicit` | `TiketMasalahController::users` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `divisions` | `Explicit` | `TiketMasalahController::divisions` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `creators` | `Explicit` | `TiketMasalahController::creators` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `create-others-area` | `Explicit` | `TiketMasalahController::createOthersArea` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `datatable` | `Explicit` | `TiketMasalahController::datatable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `toggle-pin` | `Explicit` | `TiketMasalahController::togglePin` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `tiket-masalah` | `Explicit` | `\App\Controllers\Web\TiketMasalah\TiketMasalahController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `list` | `Explicit` | `TiketMasalahController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `detail` | `Explicit` | `TiketMasalahController::detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `progress` | `Explicit` | `TiketMasalahController::progress` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `store` | `Explicit` | `TiketMasalahController::store` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `update` | `Explicit` | `TiketMasalahController::update` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `add-progress` | `Explicit` | `TiketMasalahController::addProgress` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `ref-info` | `Explicit` | `TiketMasalahController::refInfo` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `users` | `Explicit` | `TiketMasalahController::users` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `divisions` | `Explicit` | `TiketMasalahController::divisions` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `creators` | `Explicit` | `TiketMasalahController::creators` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `create-others-area` | `Explicit` | `TiketMasalahController::createOthersArea` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `datatable` | `Explicit` | `TiketMasalahController::datatable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `toggle-pin` | `Explicit` | `TiketMasalahController::togglePin` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `tiket-masalah` | `Explicit` | `\App\Controllers\Web\TiketMasalah\TiketMasalahController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/tiket-masalah` | `Explicit` | `\App\Controllers\Web\TiketMasalah\TiketMasalahController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tiket-masalah/list` | `Explicit` | `TiketMasalahController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tiket-masalah/detail` | `Explicit` | `TiketMasalahController::detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tiket-masalah/progress` | `Explicit` | `TiketMasalahController::progress` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tiket-masalah/store` | `Explicit` | `TiketMasalahController::store` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tiket-masalah/update` | `Explicit` | `TiketMasalahController::update` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tiket-masalah/add-progress` | `Explicit` | `TiketMasalahController::addProgress` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tiket-masalah/ref-info` | `Explicit` | `TiketMasalahController::refInfo` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/tiket-masalah/users` | `Explicit` | `TiketMasalahController::users` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/tiket-masalah/divisions` | `Explicit` | `TiketMasalahController::divisions` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/tiket-masalah/creators` | `Explicit` | `TiketMasalahController::creators` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tiket-masalah/create-others-area` | `Explicit` | `TiketMasalahController::createOthersArea` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tiket-masalah/datatable` | `Explicit` | `TiketMasalahController::datatable` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tiket-masalah/toggle-pin` | `Explicit` | `TiketMasalahController::togglePin` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
 #### `TiketMasalahService.php`
@@ -69,13 +55,11 @@ Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, da
 - `updateTiket(int $idTiket, array $data, array $files)`
 - `addProgress(int $idTiket, array $data, array $files)`
 - `togglePinProgress(int $idProgress)`
-- `notificationType(string $refType, int $refId, int $idTiket)`
 - `getRefInfo(string $refType, int $refId)`
 - `getUserList()`
 - `getCreatorList()`
 - `getDivisionList()`
 - `createOthersArea(array $params, int $userId)`
-- `compressImageIfPossible(string $absolutePath)`
 
 ## File Inventory
 ### Controllers (2)
@@ -83,7 +67,7 @@ Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, da
 - `app/Controllers/Api/TiketMasalah/TiketMasalahController.php` (218 baris, 13 public methods)
 
 ### Services (1)
-- `app/Services/TiketMasalah/TiketMasalahService.php` (740 baris)
+- `app/Services/TiketMasalah/TiketMasalahService.php` (741 baris)
 
 ### Repositories (1)
 - `app/Repositories/TiketMasalah/TiketMasalahRepository.php` (179 baris)
@@ -98,14 +82,21 @@ Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, da
 - `app/Views/tiket_masalah` (1 file)
 
 ### JavaScript (2 file)
-- `public/assets/js/tiket_masalah/index.js` (293 baris)
-- `public/assets/js/siteplan/tiket-masalah.js` (1607 baris)
+- `public/assets/js/tiket_masalah/index.js` (313 baris)
+- `public/assets/js/siteplan/tiket-masalah.js` (1943 baris)
+
+### Zero-Downtime Shims (4 file)
+- `app/Controllers/Web/TiketMasalahController.php`
+- `app/Controllers/Api/TiketMasalahController.php`
+- `app/Services/TiketMasalahService.php`
+- `app/Repositories/TiketMasalahRepository.php`
 
 ## Readiness Checklist
 - [x] Has Service Layer
 - [x] Has Repository Layer
 - [x] Web & API Controllers Separated
 - [x] Explicit Routes Defined
+- [x] Zero Controller Layer Violations
 - [x] MODULE.md Initialized
 
 ## Dead Code Candidates

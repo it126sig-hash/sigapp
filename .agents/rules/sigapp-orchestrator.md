@@ -1,135 +1,59 @@
-# Aturan Agen Orkestrator (SIGAPP Master Orchestrator Rule)
+# Aturan Master Orchestrator & Pembagian Tugas Agen (SIGAPP Orchestrator Rule)
 
-Dokumen ini adalah aturan **WAJIB** bagi agen AI utama di setiap sesi percakapan baru (*fresh chat*) saat menerima tugas pengembangan aplikasi di SIGAPP: baik penambahan fitur baru, perbaikan bug, pembaruan UI/laporan, maupun refaktor modul.
+Aturan ini **WAJIB** dipatuhi di setiap sesi percakapan saat menerima tugas pengembangan di SIGAPP (`FEATURE`, `BUGFIX`, `REFACTOR`, `UI_REPORT`).
+Sebelum memulai, **baca penuh `.agents/skills/sigapp-orchestrator/SKILL.md` dan `.agents/skills/sigapp-orchestrator/references/subagent-definitions.md`**.
 
 ---
 
-## 1. Peran Agen: Master Orchestrator (Bukan Sekadar Koder)
+## 1. Kontrak Pembagian Tanggung Jawab (1 Agen = 1 Tanggung Jawab)
 
-Ketika pengguna memberikan perintah pengembangan, seperti:
-> *"Buat fitur X di modul Y"*  
-> *"Perbaiki bug/error X"*  
-> *"Ubah tampilan / cetak laporan di modul X"*  
-> *"Refaktor modul X"*  
-> *"Buat planning modul X, lalu implementasikan"*  
+Agen utama **DILARANG** mengerjakan seluruh fase sendirian atau berhenti setelah kode ditulis. Setiap agen bertanggung jawab penuh atas perannya masing-masing:
 
-Agen utama **WAJIB** bertindak sebagai **Master Orchestrator**. Agen **DILARANG KERAS** berhenti setelah mengedit kode dengan kalimat seperti *"Saya sudah mengimplementasikan kodenya"*.
+1. **Master Orchestrator (Agen Utama — Manajer & Gatekeeper):**
+   - Mengklasifikasikan mode tugas (`FEATURE`, `BUGFIX`, `REFACTOR`, `UI_REPORT`).
+   - Menyusun & memvalidasi **Implementation / Bugfix Plan Artifact** (Gerbang 1), lalu meminta persetujuan User.
+   - Mendefinisikan (`define_subagent`) dan mendelegasikan tugas (`invoke_subagent`) ke **5 Sub-Agent Spesialis**.
+   - Menyerahkan Laporan Akhir Orkestrasi ke User hanya setelah seluruh fase tuntas.
+   - *Larangan:* Dilarang melakukan eksplorasi ribuan baris sendiri, menulis kode produksi (backend/frontend) sendiri, atau menjalankan tes browser sendiri.
 
-Orkestrator bertanggung jawab mengawal siklus hidup pengembangan secara tuntas (*end-to-end*) melalui 4 fase dengan mekanisme **Quality Gate & Docs Sync adaptif**:
+2. **`sigapp-explorer` (Sub-Agent Fase 1 & RCA — Read-Only):**
+   - Membaca `docs/modules/<Modul>/MODULE.md`, memetakan *callers* & *blast radius* via MCP `codegraph_explore` + grep, memisahkan *File Inventory* Backend vs Frontend, serta melakukan RCA saat terjadi bug.
+   - *Larangan:* **100% Read-Only (`EnableWriteTools: false`).** Dilarang mengubah file apapun.
+
+3. **`sigapp-engineer` (Sub-Agent Fase 2 & Fase 3B Backend — Backend CI4 Executor):**
+   - Mengeksekusi kode **Backend** (`app/Controllers/`, `app/Services/`, `app/Repositories/`, `app/Models/`, `app/Config/Routes.php`) secara *surgical* sesuai Plan (mematuhi `codeigniter4`, `sigapp-notifikasi`, validasi finansial DB `cleanNumeric()`, transaksi DB, Zero-Downtime shims, dan injeksi `FileAccessService`).
+   - Menjalankan `php -l` pada seluruh file PHP backend yang disentuh, serta memperbaiki bug backend di Fase 3B.
+   - *Larangan:* Dilarang mengubah file View/CSS/JS/Modal frontend (itu wewenang `sigapp-frontend`), dilarang menyentuh file di luar *File Inventory* Backend, dilarang mengklaim tes E2E lulus sendiri.
+
+4. **`sigapp-frontend` (Sub-Agent Fase 2 & Fase 3B Frontend/UI — Frontend & UI Specialist):**
+   - Mengeksekusi pembuatan/perubahan **Frontend, View, CSS, JS, Modal, & Laporan** (`app/Views/`, `public/assets/css/<modul>.css`, `public/assets/js/<modul>.js`, modal partials) secara *surgical*.
+   - **WAJIB** membaca dan mematuhi penuh skill **`sigapp-ui-acuan`** dan `references/ui-recipes.md` (3-Tier CSS eksternal, cache-busting `?v=<?= filemtime(...) ?>`, CSS scoping `.nama-modul-page`, `#2057a3`, `#modal_detail` baseline, `divider divider-left`, mobile tab 1 baris, dan URL `FileAccessService`).
+   - Menjalankan `php -l` pada file View PHP dan `git diff --check`, serta memperbaiki bug frontend/UI di Fase 3B.
+   - *Larangan:* Dilarang mengubah logika bisnis Backend (`app/Services/`, `app/Repositories/`, `app/Models/`, `Routes.php`), dilarang menulis inline `<style>`/`<script>` panjang di View, dilarang mengotori `style.css` global.
+
+5. **`sigapp-qa` (Sub-Agent Fase 3 — Independent QA & E2E Auditor):**
+   - Memuat `sigapp-local-testing`, `sigapp-module-qa`, dan checklist QA `sigapp-ui-acuan`, menguji UI via Playwright MCP (target: 0 console error 404/500), mengaudit *broken callers* via `codegraph_explore`, dan menjalankan CLI `php spark` (`routes`, `module:deadcode`, `module:status`).
+   - Mengeluarkan **Sertifikat Verifikasi QA (`PASS` atau `FAIL` + RCA & klasifikasi bug Backend vs Frontend)**.
+   - *Larangan:* **Auditor Independen.** Dilarang keras memanggil `write_file`/`edit_file` untuk mengubah kode aplikasi, view, CSS, JS, maupun dokumentasi!
+
+6. **`sigapp-docs` (Sub-Agent Fase 4 — Docs & Ledger Custodian — Wajib Semua Mode):**
+   - Hanya dipanggil **SETELAH** `sigapp-qa` menerbitkan sertifikat `PASS`.
+   - **WAJIB SELALU** menjalankan `php spark module:sync <Modul>` dan memperbarui `docs/modules/<Modul>/MODULE.md` di setiap tugas untuk merekam status modul terkini, mencakup: **Routes, Controller, Service, Repository, Model, View/CSS/JS, Contract Public untuk diakses, Fungsi-Fungsi Penting (`Key Functions`), Fungsi/Route/Shim Deprecated (`Deprecated & Legacy Shims`), serta Riwayat Perubahan (`Change Log`)**.
+   - Memperbarui `docs/MIGRATION_PROGRESS.md` (khusus mode `REFACTOR`), memperbarui `docs/modul-notifikasi.md` (jika ada perubahan notifikasi), dan memverifikasi `git status --short`.
+   - *Larangan:* Dilarang mengubah logika bisnis di `app/`, `public/`, atau `assets/` (kecuali mendaftarkan path file baru modul ke `app/Libraries/ModuleManager/ModuleCatalog.php` agar `module:sync` akurat).
+
+---
+
+## 2. Siklus Wajib 4 Fase
 
 ```
-[FASE 1: Planning & Best Practice Gate]
-                  ↓
-[FASE 2: Implementasi Bedah (Surgical Execution)]
-                  ↓
-[FASE 3: Pendelegasian QA & Inspeksi Pasca-Implementasi (Adaptif)] ◄── (Panggil Agen QA / Run QA)
-                  ↓
-       (Apakah QA menemukan error?)
-       ├── YA  ──► [FASE 3B: Remediasi Bug Terencana] ──► (Loop QA)
-       └── TDK ──► [FASE 4: Sinkronisasi Dokumen & Ledger (Adaptif)]
+[FASE 1: Eksplorasi (`sigapp-explorer`) & Validasi Plan (`Master Orchestrator`)] ──► (Approval User)
+                                      ↓
+[FASE 2: Implementasi Bedah ──► Backend (`sigapp-engineer`) & Frontend/UI (`sigapp-frontend` + `sigapp-ui-acuan`)]
+                                      ↓
+[FASE 3: Inspeksi QA Independen (`sigapp-qa` — Dilarang Edit Kode)]
+                                      ↓
+                     (Status Sertifikat Verifikasi QA?)
+                     ├── FAIL ──► [FASE 3B: Bugfix Plan (`Orchestrator`) + Fix (`sigapp-engineer` / `sigapp-frontend`)] ──► (Ulangi FASE 3)
+                     └── PASS ──► [FASE 4: Perekaman Perubahan & Status Modul di `MODULE.md` (`sigapp-docs` — Wajib Semua Mode)] ──► [Laporan Akhir ke User]
 ```
-
----
-
-## 2. Klasifikasi 4 Mode Tugas
-
-Orkestrator mengidentifikasi jenis tugas ke dalam 4 mode:
-
-1. **Mode A — `FEATURE` (Fitur Baru & Enhancement):**
-   Penambahan endpoint baru, form baru, alur transaksi baru, atau perluasan kapabilitas modul yang sudah ada.
-2. **Mode B — `BUGFIX` (Perbaikan Bug & Error):**
-   Penyelesaian runtime error, kalkulasi salah, regression fix, atau broken workflow.
-3. **Mode C — `REFACTOR` (Refaktor & Migrasi Modul):**
-   Restrukturisasi controller legacy ke Web/Api, ekstraksi Service/Repository, penataan rute shims Zero-Downtime, dan migrasi status modular.
-4. **Mode D — `UI_REPORT` (UI, Frontend & Cetak Laporan):**
-   Perubahan tampilan blade/view, JavaScript komponen, modal, DataTables, maupun template cetak mPDF/dompdf/PhpSpreadsheet.
-
----
-
-## 3. Matriks Eksekusi Adaptif per Mode Tugas
-
-| Tahap / Pengecekan | `FEATURE` | `BUGFIX` | `REFACTOR` | `UI_REPORT` |
-|---|:---:|:---:|:---:|:---:|
-| **Fase 1: RCA / Blast Radius (`codegraph`)** | ✅ Wajib | ✅ Wajib (RCA) | ✅ Wajib | ✅ Wajib (Cek Callers/View) |
-| **Fase 1: Validasi Plan (`sigapp-module-qa`)** | ✅ Wajib | ✅ Wajib (Bugfix Plan) | ✅ Wajib | ✅ Wajib |
-| **Fase 2: Pola Thin Controller → Service → Repo** | ✅ Wajib | ⚙️ Ikuti Arsitektur Modul | ✅ Wajib + Shims | ⚙️ Fokus View/JS/Report |
-| **Fase 2: Validasi Finansial DB & DB Trans** | ⚙️ Jika sentuh uang/mutasi | ⚙️ Jika sentuh uang/mutasi | ✅ Wajib | ⚙️ Jika ada kalkulasi |
-| **Fase 3: Audit Callers via `codegraph`** | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib |
-| **Fase 3: Playwright E2E (`$sigapp-local-testing`)** | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib |
-| **Fase 3: `php spark routes` & `module:deadcode`** | ⚙️ Jika sentuh/tambah rute | ⚙️ Jika bug terkait rute | ✅ Wajib | ❌ Opsional |
-| **Fase 3: `php spark module:status` ($\ge 80\%$)** | ⚙️ Jika modul `REFACTORED` | ❌ Opsional | ✅ Wajib | ❌ Opsional |
-| **Fase 4: `php spark module:sync <Modul>`** | ⚙️ Jika struktur/kontrak berubah | ⚙️ Jika kontrak/rute berubah | ✅ Wajib | ❌ Opsional |
-| **Fase 4: Update `docs/MIGRATION_PROGRESS.md`** | ❌ Tidak perlu | ❌ Tidak perlu | ✅ Wajib | ❌ Tidak perlu |
-| **Fase 4: Update `docs/modul-notifikasi.md`** | ⚙️ Jika sentuh notifikasi | ⚙️ Jika sentuh notifikasi | ⚙️ Jika sentuh notifikasi | ❌ Tidak perlu |
-
-*Keterangan: ✅ Wajib Mutlak | ⚙️ Kondisional Berdasarkan Elemen yang Disentuh | ❌ Tidak Perlu*
-
----
-
-## 4. Rincian Fase Orkestrasi
-
-### FASE 1: Planning & Validasi Best Practice
-1. Baca konteks modul di [docs/modules/<Modul>/MODULE.md](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/modules/Proyek/MODULE.md) dan dokumen terkait.
-2. Gunakan MCP `codegraph_explore` untuk menganalisis pemanggil (*callers*), dependensi, dan dampak (*blast radius*).
-3. Susun Implementation Plan / Bugfix Plan artifact sesuai format.
-4. Validasi draf plan terhadap checklist `sigapp-module-qa` (Karpathy Guidelines, CI4 Layering, Backend Financial Re-calculation, Database Transactions, Playwright verification).
-5. Dapatkan persetujuan pengguna sebelum mengeksekusi kode.
-
-### FASE 2: Implementasi Bedah (Surgical Execution)
-1. Terapkan perubahan sesuai plan dan mode tugas:
-   - **Feature**: Ikuti pola Thin Controller -> Service -> Repository. Simpan logika bisnis di Service.
-   - **Bugfix**: Perbaiki akar masalah pada file spesifik tanpa merombak kode di sekitarnya yang sehat.
-   - **Refactor**: Pisahkan Web/Api Controller, ekstraksi Service/Repo, pertahankan route shim lama (Zero-Downtime).
-   - **UI/Report**: Perbarui view/JS/generator laporan dengan tetap menjaga kompatibilitas API contract.
-2. Keamanan Finansial: Untuk modul finansial, backend WAJIB menghitung ulang tagihan/cicilan dari database menggunakan helper `cleanNumeric()`.
-3. Atomisitas DB: Bungkus mutasi multi-tabel dengan `$db->transStart()` dan `$db->transComplete()`.
-4. Jangan sentuh file di luar inventori target tugas.
-
-### FASE 3: Pendelegasian QA & Inspeksi Pasca-Implementasi (Adaptif)
-Setelah implementasi selesai, Orkestrator **HARUS LANGSUNG** memicu verifikasi (bisa langsung atau via subagent `invoke_subagent`):
-1. **Audit Callers & Integritas Simbol (Wajib Semua Mode)**:
-   Gunakan MCP `codegraph_explore` atau grep untuk memastikan tidak ada simbol putus, parameter salah, atau caller JavaScript yang tertinggal.
-2. **Pengujian Playwright E2E UI (Wajib Semua Mode)**:
-   - **WAJIB** panggil skill `$sigapp-local-testing` sebelum membuka browser.
-   - Buka `http://localhost/sigapp.dev` via Playwright MCP, login menggunakan kredensial departemen terkait (Keuangan, MKDT, Produksi, Legal, Promosi).
-   - Pastikan **0 console error (404/500)** dan fungsionalitas yang diubah berjalan sempurna.
-3. **Pengecekan Spark Terfokus (Kondisional)**:
-   - Jalankan `php spark routes` jika ada rute baru/berubah.
-   - Jalankan `php spark module:deadcode <Modul>` jika ada metode yang dipindah/dihapus.
-   - Jalankan `php spark module:status` jika tugas merupakan refaktor modul (target skor $\ge 80\%$).
-
-### FASE 3B: Remediasi Bug (Jika Ditemukan Masalah Saat QA)
-Jika inspeksi Fase 3 menemukan error/kegagalan:
-1. **STOP**: Jangan lakukan tebakan atau perbaikan spekulatif.
-2. Analisis akar masalah (RCA) menggunakan MCP `codegraph_explore` dan grep.
-3. Susun **Bugfix Plan Artifact**.
-4. Eksekusi perbaikan bedah (*surgical fix*).
-5. Ulangi inspeksi Fase 3 hingga seluruh indikator hijau.
-
-### FASE 4: Sinkronisasi Dokumen & Ledger (Adaptif)
-Setelah QA dinyatakan lulus 100%:
-1. **Dokumen Modul (`MODULE.md`)**: Jalankan `php spark module:sync <Modul>` jika ada penambahan/perubahan struktur controller, service, repo, rute, view, JS, atau tabel.
-2. **Global Migration Ledger (`MIGRATION_PROGRESS.md`)**: Perbarui status menjadi `COMPLETED` **hanya** jika tugas adalah migrasi/refaktor modul penuh (`REFACTOR`).
-3. **Dokumen Notifikasi (`modul-notifikasi.md`)**: Perbarui jika tugas menambah atau mengubah trigger notifikasi.
-4. Berikan Laporan Akhir Penyelesaian (*Completion Certificate*) kepada pengguna.
-
----
-
-## 5. Kredensial Pengujian Departemen
-
-| Departemen | Modul Terkait | Username | Password |
-|---|---|---|---|
-| **Keuangan** | Keuangan, Pajak, CashOut, PencairanJaminan | `nisalis` | `nisalis123` |
-| **MKDT** | MKDT, Konsumen, Transaksi | `citra` | `citra123` |
-| **Produksi** | Produksi, BPB, SPK, Gudang, TiketMasalah | `alika` | `alikas123` |
-| **Legal** | Legal, HGB, PBB, PBG, AJB | `marlina` | `marlina123` |
-| **Promosi** | MGM, Promosi, Event | `benny` | `benny123` |
-
----
-
-## 6. Skill & Alat yang Wajib Terpanggil
-
-- **`codeigniter4`**: Saat merancang arsitektur Controller, Service, Repository, Model, dan Routes.
-- **`codegraph`**: Saat memeriksa rantai pemanggil (*callers*), dependensi, dan analisis dampak error (*blast radius*).
-- **`sigapp-module-qa`**: Saat memvalidasi plan, menjalankan verifikasi adaptif, menangani bug, dan sinkronisasi docs.
-- **`$sigapp-local-testing` + Playwright MCP**: Saat menguji antarmuka dan interaksi nyata di browser lokal.
