@@ -462,6 +462,7 @@ $routes->post("/keuangan/hasil-akad/import", 'PencairanAkad::import');
 $routes->group('laporan', ['namespace' => 'App\Controllers\Web', 'filter' => 'login'], function ($routes) {
     $routes->get('cash-in', 'CashInReportController::index');
     $routes->get('hasil-akad', 'HasilAkadReportController::index');
+    $routes->get('booking-akad', 'BookingAkadReportController::index');
 });
 
 $routes->group('api/laporan/cash-in', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
@@ -472,6 +473,11 @@ $routes->group('api/laporan/cash-in', ['namespace' => 'App\Controllers\Api', 'fi
 $routes->group('api/laporan/hasil-akad', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
     $routes->post('summary', 'HasilAkadReportController::summary');
     $routes->post('detail', 'HasilAkadReportController::detail');
+});
+
+$routes->group('api/laporan/booking-akad', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+    $routes->post('summary', 'BookingAkadReportController::summary');
+    $routes->post('detail', 'BookingAkadReportController::detail');
 });
 
 
