@@ -746,6 +746,18 @@ class TransaksiService
         $data['harga_kpr_acc']       = $accKpr;
         $data['harga_penambahan_um'] = $accKpr > 0 ? max(0, $hargaKprDb - $accKpr) : 0;
 
+        $akadIndent = (int) ($data['akad_indent'] ?? 0);
+        $akadIndentTgl = !empty($data['akad_indent_tgl']) ? trim((string) $data['akad_indent_tgl']) : null;
+        if ($akadIndent === 1 && empty($akadIndentTgl)) {
+            return [
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Tanggal Akad Indent wajib diisi jika status Akad Indent diaktifkan',
+            ];
+        }
+        $data['akad_indent'] = $akadIndent;
+        $data['akad_indent_tgl'] = $akadIndent === 1 ? $akadIndentTgl : null;
+
         // Sinkronisasi dua arah status_mkdt <-> akad
         if ($data['status_mkdt'] === 'Akad' || (int) ($data['akad'] ?? 0) === 1) {
             $data['status_mkdt'] = 'Akad';

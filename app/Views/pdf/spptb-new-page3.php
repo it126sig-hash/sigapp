@@ -95,13 +95,15 @@
                     <br>
                     <br>
                     <br>
-                    Materai Rp. 10.0000
+                    Meterai Rp. 10.000
                     <br>
                     <br>
                     <br>
                     <br>
                     <br>
                     (<?= strtoupper($data->nama_konsumen) ?>)
+                    <br>
+                    Pembeli
                 </p>
             </td>
         </tr>

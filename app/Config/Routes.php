@@ -65,6 +65,7 @@ $routes->post('/profil/update', '\App\Controllers\Web\UserManagement\ProfilContr
 // ── Modul BPB (Web Routes) ──
 $routes->group('bpb', ['namespace' => 'App\Controllers\Web\Bpb'], function ($routes) {
     $routes->get('', 'BpbController::index', ['filter' => 'login']);
+    $routes->get('shared/(:segment)', 'BpbController::shared/$1', ['filter' => 'login']);
     $routes->get('(:num)/pdf', 'BpbController::pdf/$1', ['filter' => 'login']);
     $routes->get('signature/(:num)', 'BpbController::signature/$1', ['filter' => 'login']);
     $routes->get('verify/(:segment)', 'BpbController::verify/$1', ['filter' => 'throttle:20,60']);

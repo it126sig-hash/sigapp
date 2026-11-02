@@ -2205,18 +2205,22 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="custom-control custom-switch custom-control-inline">
-                                        <input type="checkbox" class="custom-control-input" id="akad" name="akad" value="1" />
-                                        <label class="custom-control-label" for="akad">Status Akad Rampung</label>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="custom-control custom-switch custom-control-inline">
                                         <input type="checkbox" class="custom-control-input" id="akad_indent" name="akad_indent" value="1" />
                                         <label class="custom-control-label" for="akad_indent">Akad Indent</label>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="akad_tgl">Tanggal Akad</label>
+                                    <label for="akad_indent_tgl">Tanggal Akad Indent</label>
+                                    <input type="text" id="akad_indent_tgl" name="akad_indent_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
+                                </div>
+                                <div class="form-group">
+                                    <div class="custom-control custom-switch custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="akad" name="akad" value="1" />
+                                        <label class="custom-control-label" for="akad">Status Akad AJB</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="akad_tgl">Tanggal Akad (AJB)</label>
                                     <input type="text" id="akad_tgl" name="akad_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
                                 </div>
                                 <div class="form-group">

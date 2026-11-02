@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-10-28 10:17:10` @ `43ba53d`  
+**Last Synced:** `2026-11-02 15:44:31` @ `bc174ee`  
 
 ## Purpose
 Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, dan posisi kavling.
@@ -24,6 +24,7 @@ Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, da
 ### Shared Tables (Dibaca dari modul lain)
 - `kavling`
 - `keuangan`
+- `legal`
 
 ## Contracts
 ### A. Public HTTP Endpoints & Routes Inventory
@@ -133,18 +134,18 @@ Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, da
 - `app/Controllers/Api/BookingAkadReportController.php` (80 baris, 2 public methods: `summary()`, `detail()`)
 
 ### Services (8)
-- `app/Services/MkdtHistoryService.php` (313 baris, 11 public methods)
+- `app/Services/MkdtHistoryService.php` (314 baris, 11 public methods)
 - `app/Services/MkdtSettlementService.php` (48 baris, 1 public methods)
 - `app/Services/MkdtFinancialBreakdownService.php` (254 baris, 6 public methods)
 - `app/Services/MkdtFinancialReconciliationService.php` (275 baris, 2 public methods)
-- `app/Services/PosisiKonsumenService.php` (426 baris, 6 public methods)
+- `app/Services/PosisiKonsumenService.php` (446 baris, 6 public methods)
 - `app/Services/KonsumenService.php` (49 baris, 3 public methods)
 - `app/Services/NupService.php` (532 baris, 6 public methods)
 - `app/Services/BookingAkadReportService.php` (222 baris, 4 public methods)
 
 ### Repositories (5)
 - `app/Repositories/MkdtHistoryRepository.php` (55 baris, 4 public methods: `hasTable()`, `insert(array $fields)`, `countByKavling(int $idKavling)`, `getByKavling(int $idKavling, int $limit, int $offset)`)
-- `app/Repositories/PosisiKonsumenRepository.php` (197 baris, 4 public methods: `getBaseQuery($status = "Booking")`, `getQueryBatal()`, `getRiwayatExport($id_proyek, $status)`, `insertRiwayatExport($data)`)
+- `app/Repositories/PosisiKonsumenRepository.php` (198 baris, 4 public methods: `getBaseQuery($status = "Booking")`, `getQueryBatal()`, `getRiwayatExport($id_proyek, $status)`, `insertRiwayatExport($data)`)
 - `app/Repositories/KonsumenRepository.php` (60 baris, 1 public methods: `getKonsumenTransaksi(int $idMkdt, $select = [])`)
 - `app/Repositories/NupRepository.php` (412 baris, 10 public methods: `getNupListByProyek(int $idProyek, ?string $search = null)`, `getNupDetail(int $idMkdt, bool $lock = false)`, `getKavlingRow(int $idKavling, bool $lock = false)`, `getKavlingLabel(?int $idKavling)`, `getProyekIdByKavling(?int $idKavling)`, `getKavlingOptionsForTransfer(int $idProyek, ?string $search = null, ?int $currentIdKavling = null, ?int $lastIdKavling = null, ?string $filterHargaJual = null)`, `insertKavlingHistory(array $data)`, `getKavlingHistory(int $idMkdt = 0, int $idKavling = 0)`, `isNoNupExists(string $noNup, int $idProyek, int $excludeIdMkdt = 0)`, `generateNextNupNumber(int $idProyek)`)
 - `app/Repositories/BookingAkadReportRepository.php` (239 baris, 4 public methods: `getAvailableYearBounds(int $idProyek)`, `getMonthlyBookingTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`)
@@ -160,7 +161,7 @@ Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, da
 - `app/Views/laporan` (3 file: `booking-akad.php`, `cash-in.php`, `hasil-akad.php`)
 
 ### JavaScript (2 file)
-- `public/assets/js/siteplan/mkdt.js` (3267 baris)
+- `public/assets/js/siteplan/mkdt.js` (3279 baris)
 - `public/assets/js/laporan-booking-akad.js` (613 baris)
 
 ## Key Functions
@@ -180,11 +181,11 @@ Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, da
     - `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`: Agregasi matriks bulanan 12 bulan (Booking Total, Booking Aktif, Booking Batal, Akad, dan Rasio Akad/Booking %) serta total akumulasi tahunan untuk single year maupun komparasi 2 tahun.
     - `getDetail(int $idProyek, array $request)`: Server-side DataTables provider dengan normalisasi parameter, sorting, searching, dan whitelist category (`booking_total`, `booking_aktif`, `booking_batal`, `akad`).
     - `monthLabel(int $month)`: Label nama bulan bahasa Indonesia standar (Januari - Desember).
-  - `App\Services\MkdtHistoryService`: Pencatatan log histori kavling, consumer replacement snapshots, dan build summary status/perubahan.
+  - `App\Services\MkdtHistoryService`: Pencatatan log histori kavling, consumer replacement snapshots, dan build summary status/perubahan (termasuk audit trail perubahan `akad_indent_tgl` serta pembedaan label `Akad AJB` vs `Akad Indent`).
   - `App\Services\MkdtSettlementService`: Sinkronisasi status pelunasan transaksi MKDT.
   - `App\Services\MkdtFinancialBreakdownService`: Validasi breakdown finansial kavling, target, progress pembayaran, dan jadwal angsuran.
   - `App\Services\MkdtFinancialReconciliationService`: Audit dan rekonsiliasi data transaksi finansial MKDT.
-  - `App\Services\PosisiKonsumenService`: Business logic DataTables posisi konsumen (Booking, Akad, Batal) dan riwayat ekspor.
+  - `App\Services\PosisiKonsumenService`: Business logic DataTables posisi konsumen (Booking, Akad, Batal), dukungan filter acuan waktu `bulan_field == 'indent'` (terhadap `mkdt.akad_indent_tgl`), rendering kolom `TGL AKAD` yang eksklusif (jika sudah mencapai tahap Akad AJB hanya menampilkan badge `AJB: <tgl>`, jika baru tahap Akad Indent menampilkan badge `Indent: <tgl>`, atau `-` jika belum keduanya), serta riwayat ekspor.
   - `App\Services\KonsumenService`: Upsert master data konsumen dan query relasi konsumen transaksi.
   - `App\Services\NupService`: Manajemen siklus NUP, transfer kavling, validasi nomor NUP unik per proyek, dan lampiran berkas.
 - **Repositories:**
@@ -194,9 +195,23 @@ Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, da
     - `getMonthlyAkadTotals(int $idProyek, array $years)`: Agregasi bulanan unit akad berdasarkan `akad_tgl` dan `status_transaksi`.
     - `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`: Query detail transaksi unit kavling per bulan & kategori untuk server-side DataTables dengan pagination, sorting, dan filtering.
   - `App\Repositories\MkdtHistoryRepository`: Query dan persistensi tabel histori aktivitas transaksi kavling.
-  - `App\Repositories\PosisiKonsumenRepository`: Query builder DataTables posisi konsumen aktif, akad, batal, dan log ekspor.
+  - `App\Repositories\PosisiKonsumenRepository`: Query builder DataTables posisi konsumen aktif, akad, batal (termasuk seleksi kolom `mkdt.akad_indent_tgl`), dan log ekspor.
   - `App\Repositories\KonsumenRepository`: Query master konsumen terkait transaksi MKDT.
   - `App\Repositories\NupRepository`: Query detail NUP, validasi nomor NUP, histori perpindahan kavling, dan opsi kavling transfer.
+- **Models:**
+  - `App\Models\MkdtModel`: Definisi entitas dan akses data tabel `mkdt`, dengan whitelist `$allowedFields` mencakup `akad_indent_tgl` (DATE, Nullable).
+  - `App\Models\KonsumenModel`: Definisi entitas master data konsumen.
+  - `App\Models\MkdtKavlingHistoryModel`: Definisi entitas riwayat mutasi transaksi kavling.
+- **Interaksi Lintas Modul (Cross-Module Invariants & Key Handlers):**
+  - **Modul Legal (`legal` via `kavling.id_legal`):**
+    - Sumber kebenaran data yuridis resmi: membaca `legal.ppjb_tanggal` untuk penanggalan Akad Indent/PPJB dan `legal.ajb_tanggal` untuk penanggalan Akad AJB. Digunakan dalam proses migrasi backfill pemisahan status transaksi serta sebagai acuan integritas data transaksi MKDT.
+  - **Modul Transaksi (`App\Services\TransaksiService`, `App\Controllers\Api\TransaksiController`, `App\Controllers\Transaksi`):**
+    - Menyimpan pembaruan status transaksi MKDT; memvalidasi mandatory `akad_indent_tgl` saat switch Akad Indent diaktifkan (`akad_indent == 1`), serta mereset menjadi `null` saat switch nonaktif.
+  - **Modul Keuangan (`App\Services\PrintService`):**
+    - `exportPoskonXlsx()`: Mengekspor laporan Posisi Konsumen ke Excel dengan kolom terpisah `TGL AKAD INDENT` (Kolom I) dan `TGL AKAD` (Kolom J).
+  - **Modul Siteplan (`App\Services\SiteplanVisualStatusService` & Asset UI):**
+    - Mendeteksi penanda visual kavling `Akad Indent` pada siteplan jika flag `akad_indent == 1` atau tanggal `akad_indent_tgl` terisi valid.
+    - Menampilkan data `Tgl Akad Indent` dan `Tgl Akad (AJB)` secara terpisah pada summary card & section status Modal Detail kavling (`siteplan-detail-modal.js`, `modal_detail.php`).
 
 ## Deprecated & Legacy Shims
 - **Fitur Baru (Laporan Booking & Akad):** Tidak ada deprecations; seluruh rute baru menggunakan arsitektur modern Web & Api Controller (`App\Controllers\Web\...` dan `App\Controllers\Api\...`).
@@ -256,12 +271,48 @@ _Jalankan `php spark module:deadcode MKDT` untuk mengaudit dead code kandidat._
 ## Notes
 - Modul MKDT bertanggung jawab atas siklus transaksi konsumen dari NUP, booking, akad, hingga pembatalan unit.
 - Subfitur Laporan Perhitungan Booking & Akad (`/laporan/booking-akad`) menggunakan arsitektur modern Thin Controller -> Service -> Repository.
-- **Cross-Module Callers / Consumers:**
-  - Modul Keuangan: sinkronisasi status pembayaran dan pelunasan kavling via `MkdtSettlementService`.
-  - Modul Transaksi: manipulasi status unit kavling dan log pergantian konsumen via `MkdtHistoryService`.
+- **Cross-Module Callers / Consumers & Integration:**
+  - Modul Legal: integrasi pembacaan data akta yuridis resmi (`legal.ppjb_tanggal` dan `legal.ajb_tanggal`) via relasi `kavling.id_legal` untuk sinkronisasi tanggal akta PPJB & AJB serta acuan backfill data historis.
+  - Modul Keuangan: sinkronisasi status pembayaran dan pelunasan kavling via `MkdtSettlementService`, serta ekspor Excel Posisi Konsumen dengan kolom `TGL AKAD INDENT` dan `TGL AKAD` via `PrintService::exportPoskonXlsx()`.
+  - Modul Transaksi: manipulasi status unit kavling, validasi dan persistensi `akad_indent_tgl` & `akad_tgl` via `TransaksiService`, serta log pergantian konsumen via `MkdtHistoryService`.
+  - Modul Siteplan: visual status marker `Akad Indent` pada peta interaktif via `SiteplanVisualStatusService`, serta integrasi summary card dan status Akad Indent pada modal detail kavling (`siteplan-detail-modal.js`, `app/Views/siteplan/partials/modal_detail.php`).
   - Frontend Laporan: mengonsumsi REST API `/api/laporan/booking-akad/summary` dan `/api/laporan/booking-akad/detail`.
 
 ## Change Log
+- **`2026-11-02` [`UI_REPORT`] — Penyesuaian Tampilan Kolom TGL AKAD DataTables Posisi Konsumen (Eksklusif AJB jika sudah AJB, atau Indent jika belum AJB):**
+  - **Backend (Service):**
+    - `App\Services\PosisiKonsumenService`: Memperbarui transformer kolom `akad_tgl` pada `getDataTable()`. Jika unit kavling sudah mencapai tahap Akad AJB (`!empty(akad_tgl)`), kolom secara eksklusif hanya menampilkan badge hijau (`AJB: <tgl>`). Jika unit belum mencapai tahap AJB namun sudah Akad Indent (`!empty(akad_indent_tgl)`), kolom menampilkan badge biru (`Indent: <tgl>`). Jika belum keduanya, kolom menampilkan `-`.
+  - **Deprecations:** Tidak ada fungsi atau rute yang di-deprecate.
+- **`2026-11-02` [`FEATURE / MIGRATION`] — Migrasi Backfill Data Pemisahan State Akad Indent & Akad AJB pada Tabel mkdt Terintegrasi Modul Legal:**
+  - **Database Migration:**
+    - `app/Database/Migrations/2026-11-02-000001_BackfillMkdtAkadIndentAndAjb.php`: Eksekusi backfill pemisahan data transaksi historis pada tabel `mkdt`:
+      - 44 transaksi Akad Indent (`akad_indent = 1`): diset `akad = 0`, `akad_tgl = NULL`, `akad_indent_tgl` terisi dari `legal.ppjb_tanggal` (atau fallback `mkdt.akad_tgl` lama), dan `is_ajb = 'PPJB'`.
+      - 207 transaksi Akad AJB (`(akad_indent = 0 OR akad_indent IS NULL) AND akad = 1`): diset `akad = 1`, `akad_tgl` terisi resmi (diutamakan dari `legal.ajb_tanggal`), `is_ajb = 'AJB'`, dan `akad_indent_tgl` terisi dari `legal.ppjb_tanggal` jika memiliki riwayat PPJB.
+  - **Cross-Module Integration (MKDT <-> Legal):**
+    - Modul MKDT kini mereferensikan tabel `legal` (`legal.ppjb_tanggal` dan `legal.ajb_tanggal`) melalui relasi `kavling.id_legal` sebagai *source of truth* tanggal akta hukum resmi.
+    - Menyiapkan cetak biru integrasi data berkelanjutan antara Modul Legal dan Modul MKDT.
+  - **Deprecations:** Tidak ada fungsi atau rute yang di-deprecate.
+- **`2026-10-29` [`FEATURE`] — Pemisahan Tanggal Akad Indent (akad_indent_tgl) dan Akad AJB (akad_tgl), Penataan Urutan Form MKDT, Modal Detail, List Kavling, & Ekspor Posisi Konsumen:**
+  - **Routes & Public Contracts:**
+    - Perluasan skema data tabel `mkdt` dengan kolom `akad_indent_tgl` (DATE, Nullable).
+    - `PosisiKonsumenService::getDataTable()` mendukung parameter filter `bulan_field = 'indent'` untuk filtering berdasarkan tanggal akad indent.
+  - **Database & Model:**
+    - `app/Database/Migrations/2026-10-28-000002_AddAkadIndentTglToMkdtTable.php`: Migrasi penambahan kolom `akad_indent_tgl` setelah `akad_tgl` pada tabel `mkdt`.
+    - `App\Models\MkdtModel`: Mendaftarkan `akad_indent_tgl` ke dalam `$allowedFields`.
+  - **Backend (Service & Repository):**
+    - `App\Services\MkdtHistoryService`: Penambahan pencatatan audit trail untuk `akad_indent_tgl` ("Tgl Akad Indent") serta pembaruan label `akad` menjadi "Akad AJB".
+    - `App\Repositories\PosisiKonsumenRepository`: Penambahan seleksi kolom `mkdt.akad_indent_tgl` pada `getBaseQuery()`.
+    - `App\Services\PosisiKonsumenService`: Penanganan filter `bulan_field == 'indent'` dan rendering multi-badge pada kolom `akad_tgl` (badge "Indent: <tgl>" dan "AJB: <tgl>").
+    - Modul Transaksi (`App\Services\TransaksiService`, `App\Controllers\Api\TransaksiController`, `App\Controllers\Transaksi`): Validasi mandatory `akad_indent_tgl` saat `akad_indent == 1`, normalisasi payload, dan reset `null` jika nonaktif.
+    - Modul Siteplan (`App\Services\SiteplanVisualStatusService`): Penentuan marker visual kavling `Akad Indent` mendukung pengecekan flag `akad_indent` maupun tanggal `akad_indent_tgl`.
+    - Modul Keuangan (`App\Services\PrintService`): Penyesuaian layout ekspor Excel `exportPoskonXlsx` dengan menyisipkan kolom terpisah `TGL AKAD INDENT` (Kolom I) dan `TGL AKAD` (Kolom J).
+  - **Frontend & UI:**
+    - `app/Views/siteplan/mkdt.php`: Penataan ulang form alur transaksi menjadi sekuensial: Persiapan -> Akad Indent (Switch + Tgl) -> Akad AJB (Switch + Tgl) -> Debitur & BAST.
+    - `app/Views/siteplan/partials/modal_detail.php`: Summary header menampilkan `Tgl Akad Indent` dan `Tgl Akad (AJB)`; section status menampilkan card Akad Indent kemudian Akad AJB.
+    - `app/Views/kavling/list-kavling.php`: Penambahan opsi filter "Tgl. Akad Indent" (`indent`) pada dropdown acuan bulan/tahun posisi konsumen.
+    - `public/assets/js/siteplan/mkdt.js`: Inisialisasi Flatpickr `akad_indent_tgl`, event listener auto-clear saat switch dimatikan, dan validasi client-side mandatory.
+    - `public/assets/js/siteplan-detail-modal.js`: Binding data `s-akad_indent_tgl` serta switch/input detail `dt-st_akad_indent` dan `dt-st_akad_indent_tgl`.
+  - **Deprecations:** Tidak ada fungsi atau rute yang di-deprecate.
 - **`2026-10-28` [`FEATURE`] — Penambahan Laporan Perhitungan Jumlah Booking & Akad Per Bulan Selama 1 Tahun:**
   - **Routes & Public Contracts:**
     - `GET /laporan/booking-akad` -> `App\Controllers\Web\BookingAkadReportController::index`

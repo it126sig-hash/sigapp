@@ -205,6 +205,20 @@ class Transaksi extends BaseController
         $perintah_bangun = ($p['perintah_bangun'] ?? null) !== null ? 1 : 0;
         $sp3k = ($p['sp3k'] ?? null) !== null ? 1 : 0;
         $akad = ($p['akad'] ?? null) !== null ? 1 : 0;
+        $akad_indent = ($p['akad_indent'] ?? null) !== null ? 1 : 0;
+        $akad_indent_tgl = !empty($p['akad_indent_tgl']) ? trim((string) $p['akad_indent_tgl']) : null;
+
+        if ($akad_indent === 1 && empty($akad_indent_tgl)) {
+            return $this->response->setJSON([
+                'token'    => csrf_hash(),
+                'success'  => false,
+                'messages' => 'Tanggal Akad Indent wajib diisi jika status Akad Indent diaktifkan',
+            ]);
+        }
+
+        if ($akad_indent === 0) {
+            $akad_indent_tgl = null;
+        }
 
         $data = [
             'id_mkdt'           => (int) ($p['id_mkdt'] ?? 0),
@@ -219,9 +233,12 @@ class Transaksi extends BaseController
             'notaris'           => $p['notaris'] ?? null,
             'is_ajb'            => $p['is_ajb'] ?? null,
             'akad'              => $akad,
+            'akad_indent'       => $akad_indent,
+            'akad_indent_tgl'   => $akad_indent_tgl,
             'akad_tgl'          => $p['akad_tgl'] ?? null,
             'debitur_no'        => $p['debitur_no'] ?? null,
             'keterangan'        => $p['mkdt_keterangan'] ?? null,
+            'keterangan_status' => $p['status_keterangan'] ?? null,
             'wawancara_tgl'     => $p['wawancara_tgl'] ?? null,
             'wawancara'         => $p['wawancara'] ?? null,
             'id_bank'           => $p['id_bank'] ?? null,

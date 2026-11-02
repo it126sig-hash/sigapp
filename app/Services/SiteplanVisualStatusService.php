@@ -113,7 +113,8 @@ class SiteplanVisualStatusService
         }
 
         $markers = [];
-        if ($status !== 'Batal' && $this->truthy($this->value($row, 'akad_indent'))) {
+        $hasAkadIndent = $this->truthy($this->value($row, 'akad_indent')) || $this->hasDate($this->value($row, 'akad_indent_tgl'));
+        if ($status !== 'Batal' && $hasAkadIndent) {
             $markers[] = $this->marker('Akad Indent');
         }
 

@@ -603,6 +603,7 @@ function lihat_detail() {
             setText("#s-notaris", mkdt.notaris)
             setText("#s-st_sp3k_tgl", format_date(mkdt.sp3k_tgl))
             setText("#s-st_sp3k_tgl_exp", format_date(mkdt.sp3k_tgl_exp))
+            setText("#s-akad_indent_tgl", format_date(mkdt.akad_indent_tgl))
             setText("#s-akad_tgl", format_date(mkdt.akad_tgl))
         } else {
             setText("#dt-promo", '-')
@@ -628,6 +629,7 @@ function lihat_detail() {
             setText("#s-notaris", '-')
             setText("#s-st_sp3k_tgl", '-')
             setText("#s-st_sp3k_tgl_exp", '-')
+            setText("#s-akad_indent_tgl", '-')
             setText("#s-akad_tgl", '-')
         }
 
@@ -1651,6 +1653,8 @@ function lihat_detail() {
 
 
 
+            $("#dt-st_akad_indent").prop('checked', mkdt.akad_indent == "1")
+            setDatePicker(mkdt.akad_indent_tgl, '#dt-st_akad_indent_tgl')
             setDatePicker(mkdt.rencana_akad_tgl, '#dt-st_rencana_akad_tgl')
             $("#dt-st_akad").prop('checked', mkdt.akad == "0" ? 0 : 1)
             setDatePicker(mkdt.akad_tgl, '#dt-st_akad_tgl')

@@ -263,7 +263,11 @@
                                                         <span class="detail-status-badge badge-secondary" id="s-status_mkdt">-</span>
                                                     </div>
                                                     <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label">Tanggal Akad</span>
+                                                        <span class="detail-info-label">Tgl Akad Indent</span>
+                                                        <span class="detail-info-value" id="s-akad_indent_tgl">-</span>
+                                                    </div>
+                                                    <div class="detail-info-col text-right">
+                                                        <span class="detail-info-label">Tgl Akad (AJB)</span>
                                                         <span class="detail-info-value" id="s-akad_tgl">-</span>
                                                     </div>
                                                 </div>
@@ -841,7 +845,26 @@
                                                 </a>
 
                                                 <div class="detail-section-divider">
-                                                    <span class="detail-section-title detail-section-title-dot">Akad</span>
+                                                    <span class="detail-section-title detail-section-title-dot">Akad Indent</span>
+                                                    <div class="custom-control custom-switch">
+                                                        <input type="checkbox" class="custom-control-input"
+                                                            id="dt-st_akad_indent" name="dt-st_akad_indent" value="1" disabled />
+                                                        <label class="custom-control-label" for="dt-st_akad_indent"></label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Tanggal Akad Indent</span>
+                                                        <input type="text" id="dt-st_akad_indent_tgl"
+                                                            name="dt-st_akad_indent_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
+                                                </div>
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title detail-section-title-dot">Akad AJB</span>
                                                     <div class="custom-control custom-switch">
                                                         <input type="checkbox" class="custom-control-input"
                                                             id="dt-st_akad" name="dt-st_akad" value="1" disabled />
@@ -858,7 +881,7 @@
                                                             placeholder="-" disabled />
                                                     </div>
                                                     <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label">Tanggal Akad</span>
+                                                        <span class="detail-info-label">Tanggal Akad (AJB)</span>
                                                         <input type="text" id="dt-st_akad_tgl" name="dt-st_akad_tgl"
                                                             class="detail-info-value flatpickr-human-friendly"
                                                             placeholder="-" disabled />

@@ -296,6 +296,7 @@ class KavlingRepository
             mkdt.sp3k,
             mkdt.sp3k_tgl,
             mkdt.akad_indent,
+            mkdt.akad_indent_tgl,
             mkdt.akad,
             mkdt.akad_tgl,
             mkdt.is_kpr,

@@ -460,41 +460,43 @@ class PrintService
         $sheet->mergeCells('F1:F3')->setCellValue('F1', 'SALES');
         $sheet->mergeCells('G1:G3')->setCellValue('G1', 'TGL BOOKING');
         $sheet->mergeCells('H1:H3')->setCellValue('H1', 'TGL WAWANCARA');
+        $sheet->mergeCells('I1:I3')->setCellValue('I1', 'TGL AKAD INDENT');
+        $sheet->mergeCells('J1:J3')->setCellValue('J1', 'TGL AKAD');
 
         // Marketing Data
-        $sheet->mergeCells('I1:N1')->setCellValue('I1', 'MARKETING DATA');
-        $sheet->mergeCells('I2:J2')->setCellValue('I2', 'PENGAJUAN');
-        $sheet->setCellValue('I3', 'TUNAI/KPR');
-        $sheet->setCellValue('J3', 'BANK');
-        $sheet->mergeCells('K2:K3')->setCellValue('K2', 'STATUS');
-        $sheet->mergeCells('L2:M2')->setCellValue('L2', 'SP3K');
-        $sheet->setCellValue('L3', 'TERBIT');
-        $sheet->setCellValue('M3', 'EXPIRED');
-        $sheet->mergeCells('N2:N3')->setCellValue('N2', 'SIKASEP');
+        $sheet->mergeCells('K1:P1')->setCellValue('K1', 'MARKETING DATA');
+        $sheet->mergeCells('K2:L2')->setCellValue('K2', 'PENGAJUAN');
+        $sheet->setCellValue('K3', 'TUNAI/KPR');
+        $sheet->setCellValue('L3', 'BANK');
+        $sheet->mergeCells('M2:M3')->setCellValue('M2', 'STATUS');
+        $sheet->mergeCells('N2:O2')->setCellValue('N2', 'SP3K');
+        $sheet->setCellValue('N3', 'TERBIT');
+        $sheet->setCellValue('O3', 'EXPIRED');
+        $sheet->mergeCells('P2:P3')->setCellValue('P2', 'SIKASEP');
 
         // Keuangan
-        $sheet->mergeCells('O1:R1')->setCellValue('O1', 'KEUANGAN');
-        $sheet->mergeCells('O2:O3')->setCellValue('O2', 'TUNAI');
-        $sheet->mergeCells('P2:P3')->setCellValue('P2', 'UM');
-        $sheet->mergeCells('Q2:Q3')->setCellValue('Q2', 'B. ADM');
-        $sheet->mergeCells('R2:R3')->setCellValue('R2', 'BIAYA-BIAYA');
+        $sheet->mergeCells('Q1:T1')->setCellValue('Q1', 'KEUANGAN');
+        $sheet->mergeCells('Q2:Q3')->setCellValue('Q2', 'TUNAI');
+        $sheet->mergeCells('R2:R3')->setCellValue('R2', 'UM');
+        $sheet->mergeCells('S2:S3')->setCellValue('S2', 'B. ADM');
+        $sheet->mergeCells('T2:T3')->setCellValue('T2', 'BIAYA-BIAYA');
 
         // Produksi
-        $sheet->mergeCells('S1:U1')->setCellValue('S1', 'PRODUKSI');
-        $sheet->mergeCells('S2:T2')->setCellValue('S2', 'BANGUNAN');
-        $sheet->setCellValue('S3', '%');
-        $sheet->setCellValue('T3', 'LPA');
-        $sheet->mergeCells('U2:U3')->setCellValue('U2', 'LISTRIK');
+        $sheet->mergeCells('U1:W1')->setCellValue('U1', 'PRODUKSI');
+        $sheet->mergeCells('U2:V2')->setCellValue('U2', 'BANGUNAN');
+        $sheet->setCellValue('U3', '%');
+        $sheet->setCellValue('V3', 'LPA');
+        $sheet->mergeCells('W2:W3')->setCellValue('W2', 'LISTRIK');
 
         // Legal & GA
-        $sheet->mergeCells('V1:Y1')->setCellValue('V1', 'LEGAL');
-        $sheet->mergeCells('V2:V3')->setCellValue('V2', 'HGB');
-        $sheet->mergeCells('W2:W3')->setCellValue('W2', 'NIB ELEKTRONIK');
-        $sheet->mergeCells('X2:X3')->setCellValue('X2', 'IMB');
-        $sheet->mergeCells('Y2:Y3')->setCellValue('Y2', 'PBB');
+        $sheet->mergeCells('X1:AA1')->setCellValue('X1', 'LEGAL');
+        $sheet->mergeCells('X2:X3')->setCellValue('X2', 'HGB');
+        $sheet->mergeCells('Y2:Y3')->setCellValue('Y2', 'NIB ELEKTRONIK');
+        $sheet->mergeCells('Z2:Z3')->setCellValue('Z2', 'IMB');
+        $sheet->mergeCells('AA2:AA3')->setCellValue('AA2', 'PBB');
 
-        $sheet->mergeCells('Z1:Z1')->setCellValue('Z1', 'GA');
-        $sheet->mergeCells('Z2:Z3')->setCellValue('Z2', 'SIKUMBANG');
+        $sheet->mergeCells('AB1:AB1')->setCellValue('AB1', 'GA');
+        $sheet->mergeCells('AB2:AB3')->setCellValue('AB2', 'SIKUMBANG');
 
         // --- 2. STYLING HEADER ---
         $headerStyle = [
@@ -512,7 +514,7 @@ class PrintService
                 'startColor' => ['rgb' => 'F2F2F2'],
             ],
         ];
-        $sheet->getStyle('A1:Z3')->applyFromArray($headerStyle);
+        $sheet->getStyle('A1:AB3')->applyFromArray($headerStyle);
 
         //query data
         $dataRumah = $this->posisiKonsumen->getBaseQuery($st);
@@ -560,32 +562,39 @@ class PrintService
             $sheet->setCellValue('F' . $column, $row->sales);
             $sheet->setCellValue('G' . $column, $row->booking_tgl == "0000-00-00" ? "" : $row->booking_tgl);
             $sheet->setCellValue('H' . $column, $row->wawancara_tgl == "0000-00-00" ? "" : $row->wawancara_tgl);
-            $sheet->setCellValue('I' . $column, $kpr);
-            $sheet->setCellValue('J' . $column, $row->bank);
-            $sheet->setCellValue('K' . $column, $row->keterangan);
-            $sheet->setCellValue('L' . $column, $row->sp3k_tgl == "0000-00-00" ? "" : $row->sp3k_tgl);
-            $sheet->setCellValue('M' . $column, $row->sp3k_tgl_exp == "0000-00-00" ? "" : $row->sp3k_tgl_exp);
-            $sheet->setCellValue('N' . $column, $row->sikasep);
-            $sheet->setCellValue('O' . $column, $persen_tunai);
-            $sheet->setCellValue('P' . $column, $um);
-            $sheet->setCellValue('Q' . $column, $adm);
-            $sheet->setCellValue('R' . $column, $bb);
-            $sheet->setCellValue('S' . $column, $row->progres_bangunan);
-            $sheet->setCellValue('T' . $column, $row->lpa ? '✓' : '');
-            $sheet->setCellValue('U' . $column, $row->st_listrik ? '✓' : '');
-            $sheet->setCellValue('V' . $column, $row->sertifikat_split_no_hgb);
-            $sheet->setCellValue('W' . $column, $row->sertifikat_split_nib);
-            $sheet->setCellValue('X' . $column, $row->pbg_no);
-            $sheet->setCellValue('Y' . $column, $row->pbb_pecah_nop);
-            $sheet->setCellValue('Z' . $column, $row->sikumbang);
+            $sheet->setCellValue('I' . $column, (!empty($row->akad_indent_tgl) && $row->akad_indent_tgl != "0000-00-00") ? $row->akad_indent_tgl : "");
+            $sheet->setCellValue('J' . $column, (!empty($row->akad_tgl) && $row->akad_tgl != "0000-00-00") ? $row->akad_tgl : "");
+            $sheet->setCellValue('K' . $column, $kpr);
+            $sheet->setCellValue('L' . $column, $row->bank);
+            $sheet->setCellValue('M' . $column, $row->keterangan);
+            $sheet->setCellValue('N' . $column, $row->sp3k_tgl == "0000-00-00" ? "" : $row->sp3k_tgl);
+            $sheet->setCellValue('O' . $column, $row->sp3k_tgl_exp == "0000-00-00" ? "" : $row->sp3k_tgl_exp);
+            $sheet->setCellValue('P' . $column, $row->sikasep);
+            $sheet->setCellValue('Q' . $column, $persen_tunai);
+            $sheet->setCellValue('R' . $column, $um);
+            $sheet->setCellValue('S' . $column, $adm);
+            $sheet->setCellValue('T' . $column, $bb);
+            $sheet->setCellValue('U' . $column, $row->progres_bangunan);
+            $sheet->setCellValue('V' . $column, $row->lpa ? '✓' : '');
+            $sheet->setCellValue('W' . $column, $row->st_listrik ? '✓' : '');
+            $sheet->setCellValue('X' . $column, $row->sertifikat_split_no_hgb);
+            $sheet->setCellValue('Y' . $column, $row->sertifikat_split_nib);
+            $sheet->setCellValue('Z' . $column, $row->pbg_no);
+            $sheet->setCellValue('AA' . $column, $row->pbb_pecah_nop);
+            $sheet->setCellValue('AB' . $column, $row->sikumbang);
 
             // Beri border untuk baris data
-            $sheet->getStyle('A' . $column . ':Z' . $column)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $sheet->getStyle('A' . $column . ':AB' . $column)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $column++;
         }
 
         // Auto size kolom agar rapi
-        foreach (range('A', 'Z') as $col) {
+        $exportColumns = [
+            'A','B','C','D','E','F','G','H','I','J',
+            'K','L','M','N','O','P','Q','R','S','T',
+            'U','V','W','X','Y','Z','AA','AB'
+        ];
+        foreach ($exportColumns as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 

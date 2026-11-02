@@ -132,7 +132,7 @@ class ModuleCatalog
                 'views' => ['kavling', 'promo', 'laporan'],
                 'assets_js' => ['siteplan/mkdt.js', 'laporan-booking-akad.js'],
                 'owner_tables' => ['mkdt', 'konsumen', 'mkdt_kavling_history', 'promo'],
-                'shared_tables' => ['kavling', 'keuangan'],
+                'shared_tables' => ['kavling', 'keuangan', 'legal'],
             ],
             'Transaksi' => [
                 'name' => 'Transaksi',

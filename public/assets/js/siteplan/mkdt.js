@@ -2081,6 +2081,11 @@ $("#wawancara").change(function () {
     setDatePicker(null, "#wawancara_tgl");
   }
 });
+$("#akad_indent").change(function () {
+  if (!$("#akad_indent").prop("checked")) {
+    setDatePicker(null, "#fm-mkdt #akad_indent_tgl");
+  }
+});
 
 $("#refresh_fmmkdt_btn").click(function () {
   refresh_fmmkdt(false);
@@ -2239,6 +2244,7 @@ function open_mkdt(sh, role, id_kavling) {
         setDatePicker(r.sp3k_tgl, "#fm-mkdt #sp3k_tgl");
         setDatePicker(r.sp3k_tgl_exp, "#fm-mkdt #sp3k_tgl_exp");
         setDatePicker(r.rencana_akad_tgl, "#fm-mkdt #rencana_akad_tgl");
+        setDatePicker(r.akad_indent_tgl, "#fm-mkdt #akad_indent_tgl");
         setDatePicker(r.akad_tgl, "#fm-mkdt #akad_tgl");
 
         // if (r.refund_tgl != "0000-00-00")
@@ -2390,6 +2396,12 @@ function save_mkdt(e) {
   const btn = "#add-form-btn-mkdt";
   if (!palid("fm-mkdt #status_mkdt", "", "Status harus diisi")) return;
   if (!palid("fm-mkdt #id_bank", "", "Bank harus diisi")) return;
+
+  if ($("#akad_indent").prop("checked") && !$("#akad_indent_tgl").val().trim()) {
+    swal("error", "Tanggal Akad Indent wajib diisi jika status Akad Indent diaktifkan");
+    $("#akad_indent_tgl").focus();
+    return;
+  }
 
   if (
     removeComma($("#harga_turun_kpr").val()) > 0 &&

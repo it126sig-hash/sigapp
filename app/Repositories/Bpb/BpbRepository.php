@@ -114,6 +114,21 @@ class BpbRepository
         return $request;
     }
 
+    public function findByShareToken(string $token): ?array
+    {
+        $token = trim($token);
+        if ($token === '') {
+            return null;
+        }
+
+        $row = $this->db->table('bpb_requests')->where('share_token', $token)->get()->getRowArray();
+        if (! $row && ctype_digit($token)) {
+            $row = $this->db->table('bpb_requests')->where('id', (int) $token)->get()->getRowArray();
+        }
+
+        return $row ?: null;
+    }
+
     public function lock(int $id): array
     {
         $row = $this->db->query('SELECT * FROM bpb_requests WHERE id = ? FOR UPDATE', [$id])->getRowArray();

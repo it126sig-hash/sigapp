@@ -55,6 +55,7 @@ class PosisiKonsumenRepository
             "" as sikumbang,
             mkdt.keterangan_status,
             mkdt.akad_indent,
+            mkdt.akad_indent_tgl,
             COALESCE(mps.total_um, 0) as total_um,
             COALESCE(mps.total_adm, 0) as total_adm,
             COALESCE(mps.total_bb, 0) as total_bb,

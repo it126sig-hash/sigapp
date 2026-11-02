@@ -70,6 +70,7 @@ class MkdtModel extends Model
 		'sp3k_tgl_exp',
 		'rencana_akad_tgl',
 		'akad_tgl',
+		'akad_indent_tgl',
 		'rincian',
 		'akad',
 		'akad_indent',

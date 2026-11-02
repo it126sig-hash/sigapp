@@ -612,7 +612,8 @@
             <label>Tanggal Acuan Bulan/Tahun</label>
             <select id="filter_bulan_field" class="select2 self form-control">
               <option value="booking" selected>Tgl. Booking</option>
-              <option value="akad">Tgl. Akad</option>
+              <option value="akad">Tgl. Akad (AJB)</option>
+              <option value="indent">Tgl. Akad Indent</option>
             </select>
           </div>
           <div class="poskon-filter-field">

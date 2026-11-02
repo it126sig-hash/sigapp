@@ -180,7 +180,14 @@ class PosisiKonsumenService
         $bulan = $request->getVar('bulan');
         $tahun = $request->getVar('tahun');
         if ($bulan != "" || $tahun != "") {
-            $col = $request->getVar('bulan_field') === 'akad' ? 'mkdt.akad_tgl' : 'mkdt.booking_tgl';
+            $bulanField = $request->getVar('bulan_field');
+            if ($bulanField === 'akad') {
+                $col = 'mkdt.akad_tgl';
+            } elseif ($bulanField === 'indent') {
+                $col = 'mkdt.akad_indent_tgl';
+            } else {
+                $col = 'mkdt.booking_tgl';
+            }
             if ($bulan != "")
                 $builder->where("MONTH($col)", $bulan);
             if ($tahun != "")
@@ -199,6 +206,7 @@ class PosisiKonsumenService
                 'mkdt.booking_tgl',
                 'mkdt.wawancara_tgl',
                 'mkdt.akad_tgl',
+                'mkdt.akad_indent_tgl',
                 'mkdt.is_kpr',
                 'list_bank.bank',
                 'mkdt.keterangan',
@@ -234,7 +242,19 @@ class PosisiKonsumenService
                 return $this->format_tgl($value->wawancara_tgl);
             })
             ->edit('akad_tgl', function ($value) {
-                return $this->format_tgl($value->akad_tgl);
+                $hasAjb = !empty($value->akad_tgl) && $value->akad_tgl !== '0000-00-00';
+                if ($hasAjb) {
+                    $tglAjb = $this->format_tgl($value->akad_tgl);
+                    return '<span class="badge badge-light-success text-nowrap">AJB: ' . esc($tglAjb) . '</span>';
+                }
+
+                $hasIndent = !empty($value->akad_indent_tgl) && $value->akad_indent_tgl !== '0000-00-00';
+                if ($hasIndent) {
+                    $tglIndent = $this->format_tgl($value->akad_indent_tgl);
+                    return '<span class="badge badge-light-primary text-nowrap">Indent: ' . esc($tglIndent) . '</span>';
+                }
+
+                return '-';
             })
             ->edit('sp3k_tgl', function ($value) {
                 return $this->format_tgl($value->sp3k_tgl);

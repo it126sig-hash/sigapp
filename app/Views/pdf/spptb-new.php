@@ -143,8 +143,9 @@ if (!function_exists('title_case')) {
 // salah hitung lebar ruang di sebelahnya akibat metadata dimensi (EXIF).
 // Sebelumnya menggunakan background-image, tetapi itu menyebabkan logo terpotong
 // saat user melakukan print scale di PDF Viewer.
-$logoSrc = (new \App\Services\FileAccessService())->existingPath($proyek->logo) ?: base_url($proyek->logo);
-$logoHeight = 130;
+$logoTarget = !empty($proyek->logo_pt) ? $proyek->logo_pt : ($proyek->logo ?? '');
+$logoSrc = (new \App\Services\FileAccessService())->existingPath($logoTarget) ?: base_url($logoTarget);
+$logoHeight = 100;
 $logoWidth = $logoHeight;
 if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
     $logoWidth = (int) round($logoHeight * $logoDims[0] / $logoDims[1]);
@@ -160,8 +161,11 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
 
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
     <tr>
-        <td width="<?= $logoWidth ?>" valign="top">
+        <td valign="top">
             <img src="<?= $logoSrc ?>" width="<?= $logoWidth ?>" height="<?= $logoHeight ?>" style="display:block;" />
+            <div style="margin-top: 5px; font-size: 8pt; font-weight: bold; white-space: nowrap;">
+                Proyek : <?= title_case($proyek->nama_proyek) ?>
+            </div>
         </td>
         <td valign="top" align="right">
             <div style="width: 60mm; text-align: left;">
@@ -175,10 +179,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
                         </td>
                     </tr>
                 </table>
-                <div style="margin-top: 8px;">
-                    Proyek: <?= title_case($proyek->nama_proyek) ?>
-                </div>
-                <div style="font-size: 12pt;">
+                <div style="font-size: 12pt; margin-top: 8px;">
                     <strong>No. SPPTB : <?= strtoupper($data->no_spptb) ?></strong>
                 </div>
                 <div style="font-size: 10pt; margin-top: 4px;">
@@ -295,7 +296,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
                 No HP/telp
             </td>
             <td valign="top">
-                : <?= strtoupper($data->tel_instansi) ?>
+                : <?= strtoupper($data->tel_instansi ?? "") ?>
             </td>
         </tr>
         <tr>
