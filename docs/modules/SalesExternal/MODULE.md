@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-10-27 12:46:08` @ `ad0c900`  
+**Last Synced:** `2026-11-03 13:00:20` @ `1b0ebfd`  
 
 ## Purpose
 Pengelolaan Master Data Sales External (agen/broker properti independen), perjanjian kerjasama (PKS), tarif komisi (subsidi & komersil), riwayat audit tarif, integrasi transaksi konsumen MKDT, pengaturan matriks hak akses (`fee_sales_setting_akses`), tracking dan pencairan Fee Sales bertahap (skema 100% atau termin 30%-60%-10%), pengelolaan multi-sales fee per kavling, serta **Pengajuan Pencairan** lintas sales dengan verifikasi tanda tangan digital 3 pihak (Pembuat, MKDT, Keuangan), protokol penolakan (*rejection protocol*) dengan saran revisi harga net AJB, kalkulasi ulang nominal tiap termin in-place, pembatalan (*void*), tautan berbagi (*shareable mobile link*), cetak laporan PDF format Landscape (A4-L), pencatatan nomor cek pencairan, dan integrasi 6 event notifikasi real-time/outbox untuk departemen Keuangan & MKDT.
@@ -220,7 +220,7 @@ _Jalankan `php spark module:deadcode SalesExternal` untuk mengaudit dead code ka
   - Dilengkapi fitur **Void Pengajuan** (`POST /api/sales-external/void-group`) dengan alasan wajib yang mengembalikan status item termin ke `belum_diajukan` (menggantikan fitur edit pengajuan tunggal yang telah dideprekasi).
 - **Halaman Berbagi Responsif & Format Cetak PDF Landscape A4-L:**
   - Halaman shareable (`/fee-sales/pengajuan/{share_token}`) mengadopsi struktur Hierarchical Grouped Rows 12 kolom konsisten dengan modal detail pengajuan di desktop (konsolidasi 1 baris per unit, highlight kuning `.tenor-highlight-yellow` pada termin yang diajukan, badge status termin cair/pengajuan lain, status & no cek terpadu), dan Responsive Card Grid System berbasis 2-kolom Financial Micro-Grid (`.fee-shared-finance-grid`) serta 2x2 Tenor Grid Box (`.fee-shared-tenor-grid`, `.fee-tenor-box.active-target` highlight emas) di mobile (bebas horizontal overflow) beserta sticky bottom action bar. Seluruh aturan CSS dipusatkan di `public/assets/css/fee-sales.css` tanpa inline style.
-  - Ekspor PDF (`/fee-sales/pengajuan-pdf/{id}`) mengelompokkan tabel per sales external, mengonsolidasikan multi-termin pada kavling yang sama menjadi 1 baris per unit (highlight kuning pada termin diajukan), mengurutkan kavling berdasarkan `akad_tgl` ASC, menampilkan No Pengajuan di pojok kiri atas, dan merender 3 kolom tanda tangan (Pembuat, MKDT, Keuangan).
+  - Ekspor PDF (`/fee-sales/pengajuan-pdf/{id}` / `app/Views/sales/pdf_pengajuan_fee.php`) mengelompokkan tabel per sales external (dengan pemisah halaman `page-break-before` per sales), mengonsolidasikan multi-termin pada kavling yang sama menjadi 1 baris per unit (highlight kuning pada termin diajukan), mengurutkan kavling berdasarkan `akad_tgl` ASC, menampilkan `<title>Pengajuan Fee Sales</title>`, header tanggal pengajuan berbasis `tanggal_pengajuan_sales` dalam format bahasa Indonesia, nomor pengajuan bersufiks inisial nama sales per-kelompok sheet (`{nomor_pengajuan}.{INITIALS}` via `getSalesInitialsPdf()`), kolom Sales pada tabel tetap dipertahankan, dan merender 3 kolom tanda tangan digital (Pembuat, MKDT, Keuangan).
 - **Pengaturan Hak Akses Modul (`/setting-fee-sales`):**
   - Dikelola oleh `FeeSalesSettingController` & `FeeSalesSettingService` berbasis tabel `fee_sales_setting_akses` (`can_view`, `can_manage`, `can_submit_spp`, `can_cairkan`, `can_sign_mkdt`, `can_sign_keuangan`), dengan proteksi penuh untuk Role Admin (ID 1).
 - **Integrasi 6 Event Notifikasi Fee Sales (`NotificationEvent` & `SalesExternalService`):**
@@ -231,6 +231,18 @@ _Jalankan `php spark module:deadcode SalesExternal` untuk mengaudit dead code ka
   - Controller dan Service utama (`Web/SalesExternalController.php`, `Api/SalesExternalController.php`, `Services/SalesExternalService.php`, `Repositories/SalesExternalRepository.php`) masih berada di root layer dan menunggu sesi refaktor khusus untuk dipindahkan ke subfolder `Web/SalesExternal/`, `Api/SalesExternal/`, `Services/SalesExternal/`, dan `Repositories/SalesExternal/`.
 
 ## Change Log
+- **`2026-11-03` [`UI_REPORT`] — Penyempurnaan Format Cetak PDF Pengajuan Fee Sales (Title, Tanggal Sales, & Sufiks Inisial Nomor Pengajuan):**
+  - **Routes & Public Contracts:** Tidak berubah (rute `GET /fee-sales/pengajuan-pdf/(:num)` dan aliasnya tetap aktif).
+  - **Controller / Service / Repo / Model:** Tidak berubah.
+  - **View / CSS / JS / Tests:**
+    - `app/Views/sales/pdf_pengajuan_fee.php`:
+      - Mengubah title tag HTML menjadi `<title>Pengajuan Fee Sales</title>` (tanpa nomor pengajuan di tab dokumen).
+      - Menyesuaikan tanggal pada judul header laporan (`header-title`) agar memprioritaskan `tanggal_pengajuan_sales` (fallback ke `tanggal_pengajuan` jika kosong) dan dirender dalam format bahasa Indonesia (contoh: `PENGAJUAN FEE SALES — TANGGAL 3 NOVEMBER 2026`).
+      - Menambahkan helper `getSalesInitialsPdf($name)` untuk mengekstrak inisial nama sales dan menambahkan sufiks inisial tersebut pada nomor pengajuan di header pojok kiri atas per kelompok sales (contoh: `PGJ/FEE/.../0001.Y` atau `...AP`).
+      - Mempertahankan kolom Sales pada tabel rincian unit kavling.
+    - `tests/unit/FeeSalesWorkflowTest.php`:
+      - Memperbarui assertions pada `testPdfPengajuanViewRendersHeaderAndSignatures` untuk memverifikasi title baru, tanggal sales di header laporan, serta penomoran bersufiks inisial.
+  - **Deprecations:** Tidak ada.
 - **`2026-10-27` [`UI_REPORT`] — Penambahan & Penguatan Tombol Modal Tolak & Saran Harga pada Lembar Shared Pengajuan:**
   - **Routes & Public Contracts:** Tidak berubah (rute `POST /api/sales-external/reject-group` dan `GET /fee-sales/pengajuan/(:segment)` tetap aktif).
   - **Controller / Service / Repo / Model:** Tidak berubah.

@@ -180,6 +180,7 @@ final class FeeSalesWorkflowTest extends CIUnitTestCase
             'id' => 12,
             'nomor_pengajuan' => 'PGJ/FEE/KEU-PST/20261022/9999',
             'tanggal_pengajuan' => '2026-10-22',
+            'tanggal_pengajuan_sales' => '2026-10-20',
             'status' => 'diajukan',
             'creator_username' => 'staf1',
         ];
@@ -271,7 +272,10 @@ final class FeeSalesWorkflowTest extends CIUnitTestCase
             'signatures' => $signatures,
         ]);
 
-        $this->assertStringContainsString('No: PGJ/FEE/KEU-PST/20261022/9999', $output);
+        $this->assertStringContainsString('<title>Pengajuan Fee Sales</title>', $output);
+        $this->assertStringNotContainsString('<title>Pengajuan Fee Sales -', $output);
+        $this->assertStringContainsString('PENGAJUAN FEE SALES &mdash; TANGGAL 20 OKTOBER 2026', $output);
+        $this->assertStringContainsString('No: PGJ/FEE/KEU-PST/20261022/9999.AP', $output);
         $this->assertStringContainsString('SALES: AGENT PRO', $output);
         $this->assertStringNotContainsString('PKS (KONTRAK)', $output);
         $this->assertStringNotContainsString('NON-PKS (REGULER)', $output);

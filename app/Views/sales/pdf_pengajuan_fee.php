@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Pengajuan Fee Sales - <?= esc($group->nomor_pengajuan ?? 'SPP') ?></title>
+    <title>Pengajuan Fee Sales</title>
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -112,10 +112,30 @@ if (! function_exists('fmtRupiahPdf')) {
         return number_format((float) $num, 0, ',', '.');
     }
 }
+if (! function_exists('getSalesInitialsPdf')) {
+    function getSalesInitialsPdf($name) {
+        $clean = trim((string) $name);
+        if ($clean === '' || $clean === '-') {
+            return '';
+        }
+        $words = preg_split('/\s+/', $clean);
+        $initials = '';
+        foreach ($words as $w) {
+            if ($w !== '') {
+                $initials .= mb_strtoupper(mb_substr($w, 0, 1));
+            }
+        }
+        return $initials;
+    }
+}
 
-$tglPengajuanLabel = ! empty($group->tanggal_pengajuan)
-    ? date('j F Y', strtotime($group->tanggal_pengajuan))
-    : date('j F Y');
+$tglPengajuanRaw = (! empty($group->tanggal_pengajuan_sales) && $group->tanggal_pengajuan_sales !== '0000-00-00')
+    ? $group->tanggal_pengajuan_sales
+    : (! empty($group->tanggal_pengajuan) && $group->tanggal_pengajuan !== '0000-00-00'
+        ? $group->tanggal_pengajuan
+        : date('Y-m-d'));
+
+$tglPengajuanLabel = date('j F Y', strtotime($tglPengajuanRaw));
 
 // Mapping nama bulan Indonesia
 $bulanIndo = [
@@ -132,10 +152,15 @@ foreach ($bulanIndo as $en => $id) {
 <?php 
 $loopIdx = 0;
 foreach ($salesGroups as $salesName => $items): 
+    $salesInitials = getSalesInitialsPdf($salesName);
+    $baseNomor = $group->nomor_pengajuan ?? '-';
+    $nomorTampil = (! empty($salesInitials) && $baseNomor !== '-')
+        ? "{$baseNomor}.{$salesInitials}"
+        : $baseNomor;
 ?>
     <div style="<?= $loopIdx > 0 ? 'page-break-before: always; margin-top: 15px;' : '' ?>">
         <div style="font-size: 7.5pt; font-weight: bold; text-align: left; margin-bottom: 2px;">
-            No: <?= esc($group->nomor_pengajuan ?? '-') ?>
+            No: <?= esc($nomorTampil) ?>
         </div>
         <div class="header-title">
             PENGAJUAN FEE SALES &mdash; TANGGAL <?= esc(strtoupper($tglPengajuanLabel)) ?><br>
