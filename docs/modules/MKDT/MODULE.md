@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-11-02 15:44:31` @ `bc174ee`  
+**Last Synced:** `2026-11-03 14:27:28` @ `1b0ebfd`  
 
 ## Purpose
 Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, dan posisi kavling.
@@ -138,14 +138,14 @@ Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, da
 - `app/Services/MkdtSettlementService.php` (48 baris, 1 public methods)
 - `app/Services/MkdtFinancialBreakdownService.php` (254 baris, 6 public methods)
 - `app/Services/MkdtFinancialReconciliationService.php` (275 baris, 2 public methods)
-- `app/Services/PosisiKonsumenService.php` (446 baris, 6 public methods)
+- `app/Services/PosisiKonsumenService.php` (452 baris, 6 public methods)
 - `app/Services/KonsumenService.php` (49 baris, 3 public methods)
 - `app/Services/NupService.php` (532 baris, 6 public methods)
 - `app/Services/BookingAkadReportService.php` (222 baris, 4 public methods)
 
 ### Repositories (5)
 - `app/Repositories/MkdtHistoryRepository.php` (55 baris, 4 public methods: `hasTable()`, `insert(array $fields)`, `countByKavling(int $idKavling)`, `getByKavling(int $idKavling, int $limit, int $offset)`)
-- `app/Repositories/PosisiKonsumenRepository.php` (198 baris, 4 public methods: `getBaseQuery($status = "Booking")`, `getQueryBatal()`, `getRiwayatExport($id_proyek, $status)`, `insertRiwayatExport($data)`)
+- `app/Repositories/PosisiKonsumenRepository.php` (199 baris, 4 public methods: `getBaseQuery($status = "Booking")`, `getQueryBatal()`, `getRiwayatExport($id_proyek, $status)`, `insertRiwayatExport($data)`)
 - `app/Repositories/KonsumenRepository.php` (60 baris, 1 public methods: `getKonsumenTransaksi(int $idMkdt, $select = [])`)
 - `app/Repositories/NupRepository.php` (412 baris, 10 public methods: `getNupListByProyek(int $idProyek, ?string $search = null)`, `getNupDetail(int $idMkdt, bool $lock = false)`, `getKavlingRow(int $idKavling, bool $lock = false)`, `getKavlingLabel(?int $idKavling)`, `getProyekIdByKavling(?int $idKavling)`, `getKavlingOptionsForTransfer(int $idProyek, ?string $search = null, ?int $currentIdKavling = null, ?int $lastIdKavling = null, ?string $filterHargaJual = null)`, `insertKavlingHistory(array $data)`, `getKavlingHistory(int $idMkdt = 0, int $idKavling = 0)`, `isNoNupExists(string $noNup, int $idProyek, int $excludeIdMkdt = 0)`, `generateNextNupNumber(int $idProyek)`)
 - `app/Repositories/BookingAkadReportRepository.php` (239 baris, 4 public methods: `getAvailableYearBounds(int $idProyek)`, `getMonthlyBookingTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`)
@@ -161,7 +161,7 @@ Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, da
 - `app/Views/laporan` (3 file: `booking-akad.php`, `cash-in.php`, `hasil-akad.php`)
 
 ### JavaScript (2 file)
-- `public/assets/js/siteplan/mkdt.js` (3279 baris)
+- `public/assets/js/siteplan/mkdt.js` (3299 baris)
 - `public/assets/js/laporan-booking-akad.js` (613 baris)
 
 ## Key Functions
@@ -202,6 +202,12 @@ Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, da
   - `App\Models\MkdtModel`: Definisi entitas dan akses data tabel `mkdt`, dengan whitelist `$allowedFields` mencakup `akad_indent_tgl` (DATE, Nullable).
   - `App\Models\KonsumenModel`: Definisi entitas master data konsumen.
   - `App\Models\MkdtKavlingHistoryModel`: Definisi entitas riwayat mutasi transaksi kavling.
+- **Frontend & Assets JS (`public/assets/js/siteplan/mkdt.js`):**
+  - Event listener switch `#akad_indent` & `#akad` (Status Akad Indent & AJB): Logika sinkronisasi otomatis status akta PPJB / AJB pada modal form MKDT (`#modal_divisi4` / `#fm-mkdt`):
+    - Jika switch `#akad` diaktifkan (`akad == 1`), dropdown `#is_ajb` otomatis diset ke `'AJB'`.
+    - Jika switch `#akad` dinonaktifkan (`akad == 0`): tanggal `#akad_tgl` di-reset, dan jika `#akad_indent` masih aktif (`akad_indent == 1`) maka `#is_ajb` di-fallback ke `'PPJB'`, jika tidak maka `#is_ajb` di-reset ke `''`.
+    - Jika switch `#akad_indent` diaktifkan (`akad_indent == 1`) dan `#akad` belum aktif (`akad == 0`), dropdown `#is_ajb` otomatis diset ke `'PPJB'`.
+    - Jika switch `#akad_indent` dinonaktifkan (`akad_indent == 0`): tanggal `#akad_indent_tgl` di-reset, dan jika `#akad` juga nonaktif (`akad == 0`) maka `#is_ajb` di-reset ke `''`.
 - **Interaksi Lintas Modul (Cross-Module Invariants & Key Handlers):**
   - **Modul Legal (`legal` via `kavling.id_legal`):**
     - Sumber kebenaran data yuridis resmi: membaca `legal.ppjb_tanggal` untuk penanggalan Akad Indent/PPJB dan `legal.ajb_tanggal` untuk penanggalan Akad AJB. Digunakan dalam proses migrasi backfill pemisahan status transaksi serta sebagai acuan integritas data transaksi MKDT.
@@ -279,6 +285,30 @@ _Jalankan `php spark module:deadcode MKDT` untuk mengaudit dead code kandidat._
   - Frontend Laporan: mengonsumsi REST API `/api/laporan/booking-akad/summary` dan `/api/laporan/booking-akad/detail`.
 
 ## Change Log
+- **`2026-11-03` [`UI_REPORT`] — Sinkronisasi Otomatis Switch Akad Indent (`#akad_indent`) dan Akad AJB (`#akad`) dengan Tipe Akad (`#is_ajb` PPJB/AJB) pada Modal Form MKDT:**
+  - **Routes & Public Contracts:** Tidak ada perubahan rute atau kontrak backend (100% frontend interaktivitas).
+  - **Controller / Service / Repo / Model:** Tidak ada perubahan backend.
+  - **View / CSS / JS:**
+    - `public/assets/js/siteplan/mkdt.js`: Memperbarui event listener `change` pada switch `#akad_indent` dan `#akad` di `#modal_divisi4`. Menambahkan sinkronisasi status dua arah untuk `#is_ajb`: jika `#akad_indent` aktif dan `#akad` nonaktif, `#is_ajb` otomatis diset `'PPJB'`; jika `#akad` aktif, `#is_ajb` otomatis diset `'AJB'`; jika `#akad` dinonaktifkan saat `#akad_indent` masih aktif, `#is_ajb` kembali ke `'PPJB'`; jika kedua switch nonaktif, `#is_ajb` di-reset ke string kosong `''`. Serta mereset tanggal `#akad_indent_tgl` atau `#akad_tgl` saat masing-masing switch dinonaktifkan.
+  - **Deprecations:** Tidak ada fungsi atau rute yang di-deprecate.
+- **`2026-11-03` [`UI_REPORT`] — Sinkronisasi Otomatis Switch Status Akad AJB (`#akad`) dengan Dropdown Tipe Akad (`#is_ajb`) dan Reset Tanggal Akad (`#akad_tgl`) pada Modal Form MKDT:**
+  - **Routes & Public Contracts:** Tidak ada perubahan rute atau kontrak backend (100% frontend interaktivitas).
+  - **Controller / Service / Repo / Model:** Tidak ada perubahan backend.
+  - **View / CSS / JS:**
+    - `public/assets/js/siteplan/mkdt.js`: Menambahkan event listener `change` pada switch `#akad` (Status Akad AJB) di modal form MKDT (`#modal_divisi4` / `#fm-mkdt`). Saat `#akad` dicentang (checked), nilai dropdown `#is_ajb` otomatis diubah menjadi `'AJB'`. Saat uncheck, field tanggal `#akad_tgl` dikosongkan via `setDatePicker(null, ...)` dan nilai `#is_ajb` di-reset kembali menjadi string kosong (`''`).
+  - **Deprecations:** Tidak ada fungsi atau rute yang di-deprecate.
+- **`2026-11-03` [`BUGFIX/UI_REPORT`] — Penyaringan Eksklusif Status Akad Indent pada Filter Sidebar Posisi Konsumen (`akad_indent == 1` & `akad == 0`):**
+  - **Frontend:**
+    - `app/Views/kavling/list-kavling.php`: Menambahkan payload AJAX DataTables `data.akad = ($("#filter_status_kavling").val() === 'indent') ? 0 : ''` saat filter status kavling dipilih "Akad Indent".
+  - **Backend (Service):**
+    - `App\Services\PosisiKonsumenService`: Memperbarui query filter `akad` dan `akad_indent` menggunakan pengecekan eksplisit `!== null && !== ''`. Ketika filter `akad_indent == 1` aktif, builder otomatis mengunci kriteria `mkdt.akad = 0` sehingga unit yang sudah mencapai Akad AJB (`akad = 1`) tidak muncul pada list Akad Indent.
+    - `App\Services\TransaksiService`: Memperbarui sinkronisasi status pada `saveStatus` agar penandaan `status_mkdt = 'Akad'` tidak memaksa `akad = 1` bila unit kavling hanya melakukan Akad Indent.
+  - **Deprecations:** Tidak ada fungsi atau rute yang di-deprecate.
+- **`2026-11-03` [`BUGFIX/UI_REPORT`] — Penyesuaian Kondisi Tampilan Badge "Akad Indent" pada Kolom Nama Blok (BLOK) DataTables Posisi Konsumen:**
+  - **Backend (Repository & Service):**
+    - `App\Repositories\PosisiKonsumenRepository`: Menambahkan seleksi `mkdt.akad` pada `getBaseQuery()` SELECT fields agar status Akad AJB tersedia di row data transformer.
+    - `App\Services\PosisiKonsumenService`: Memperbarui transformer kolom `nama_jalan` sehingga badge biru `"Akad Indent"` hanya dirender jika unit berstatus Akad Indent aktif dan belum Akad AJB (`$isAkadIndent && !$isAkadAjb` / `akad_indent == 1 && akad == 0`). Jika unit sudah mencapai tahap Akad AJB (`akad == 1`), badge `"Akad Indent"` otomatis disembunyikan.
+  - **Deprecations:** Tidak ada fungsi atau rute yang di-deprecate.
 - **`2026-11-02` [`UI_REPORT`] — Penyesuaian Tampilan Kolom TGL AKAD DataTables Posisi Konsumen (Eksklusif AJB jika sudah AJB, atau Indent jika belum AJB):**
   - **Backend (Service):**
     - `App\Services\PosisiKonsumenService`: Memperbarui transformer kolom `akad_tgl` pada `getDataTable()`. Jika unit kavling sudah mencapai tahap Akad AJB (`!empty(akad_tgl)`), kolom secara eksklusif hanya menampilkan badge hijau (`AJB: <tgl>`). Jika unit belum mencapai tahap AJB namun sudah Akad Indent (`!empty(akad_indent_tgl)`), kolom menampilkan badge biru (`Indent: <tgl>`). Jika belum keduanya, kolom menampilkan `-`.

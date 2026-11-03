@@ -2084,6 +2084,26 @@ $("#wawancara").change(function () {
 $("#akad_indent").change(function () {
   if (!$("#akad_indent").prop("checked")) {
     setDatePicker(null, "#fm-mkdt #akad_indent_tgl");
+    if (!$("#akad").prop("checked")) {
+      $("#is_ajb").val("").trigger("change");
+    }
+  } else {
+    if (!$("#akad").prop("checked")) {
+      $("#is_ajb").val("PPJB").trigger("change");
+    }
+  }
+});
+
+$("#akad").change(function () {
+  if ($("#akad").prop("checked")) {
+    $("#is_ajb").val("AJB").trigger("change");
+  } else {
+    setDatePicker(null, "#fm-mkdt #akad_tgl");
+    if ($("#akad_indent").prop("checked")) {
+      $("#is_ajb").val("PPJB").trigger("change");
+    } else {
+      $("#is_ajb").val("").trigger("change");
+    }
   }
 });
 
