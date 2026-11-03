@@ -758,11 +758,11 @@ class TransaksiService
         $data['akad_indent'] = $akadIndent;
         $data['akad_indent_tgl'] = $akadIndent === 1 ? $akadIndentTgl : null;
 
-        // Sinkronisasi dua arah status_mkdt <-> akad
-        if ($data['status_mkdt'] === 'Akad' || (int) ($data['akad'] ?? 0) === 1) {
+        // Sinkronisasi status_mkdt <-> akad
+        if ((int) ($data['akad'] ?? 0) === 1 || $akadIndent === 1) {
             $data['status_mkdt'] = 'Akad';
-            $data['akad'] = 1;
         }
+        $data['akad'] = (int) ($data['akad'] ?? 0) === 1 ? 1 : 0;
 
         $wasAkad = ($oldData->akad ?? 0) == 1 || ($oldData->status_mkdt ?? null) === 'Akad';
         if ($data['status_mkdt'] === 'Akad' && !$wasAkad) {

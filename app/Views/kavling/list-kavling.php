@@ -1090,6 +1090,7 @@ if (!empty($roles)) {
             data.sp3k = $("#poskon_filter_sp3k").val()
             data.wawancara = $("#poskon_filter_wawancara").val()
             data.akad_indent = ($("#filter_status_kavling").val() === 'indent') ? 1 : ''
+            data.akad = ($("#filter_status_kavling").val() === 'indent') ? 0 : ''
             data.bulan_field = $("#filter_bulan_field").val()
             data.bulan = $("#filter_bulan").val()
             data.tahun = $("#filter_tahun").val()

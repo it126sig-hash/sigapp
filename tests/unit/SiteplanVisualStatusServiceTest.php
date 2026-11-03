@@ -46,7 +46,7 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
             'booking' => [['booking_tgl' => '2026-01-01'], 'Booking'],
             'wawancara' => [['booking_tgl' => '2026-01-01', 'wawancara' => 1], 'Wawancara'],
             'sp3k' => [['wawancara' => 1, 'sp3k_tgl' => '2026-02-01'], 'SP3K'],
-            'akad indent keeps sp3k milestone' => [['sp3k' => 1, 'akad_indent' => 1], 'SP3K'],
+            'akad indent promotes to akad milestone' => [['sp3k' => 1, 'akad_indent' => 1], 'Akad'],
             'akad' => [['akad_indent' => 1, 'status_mkdt' => 'Akad'], 'Akad'],
         ];
     }
@@ -54,7 +54,7 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
     /**
      * @dataProvider mkdtAkadIndentMarkerProvider
      */
-    public function testMkdtAkadIndentUsesLatestMilestoneAndGenericMarker(array $data, string $expected): void
+    public function testMkdtAkadIndentUsesAkadMilestoneAndMarker(array $data, string $expected): void
     {
         $rows = $this->service->buildRows((object) array_merge($data, ['akad_indent' => 1]));
 
@@ -68,13 +68,49 @@ final class SiteplanVisualStatusServiceTest extends CIUnitTestCase
     public static function mkdtAkadIndentMarkerProvider(): array
     {
         return [
-            'default' => [[], 'Def'],
-            'booking' => [['booking_tgl' => '2026-01-01'], 'Booking'],
-            'wawancara' => [['wawancara' => 1], 'Wawancara'],
-            'sp3k subsidi' => [['sp3k' => 1, 'is_subsidi' => 1], 'SP3K Subsidi'],
-            'sp3k komersil' => [['sp3k' => 1, 'is_subsidi' => 0], 'SP3K Komersil'],
+            'default' => [[], 'Akad'],
+            'booking' => [['booking_tgl' => '2026-01-01'], 'Akad'],
+            'wawancara' => [['wawancara' => 1], 'Akad'],
+            'sp3k subsidi' => [['sp3k' => 1, 'is_subsidi' => 1], 'Akad Subsidi'],
+            'sp3k komersil' => [['sp3k' => 1, 'is_subsidi' => 0], 'Akad Komersil'],
             'akad' => [['status_mkdt' => 'Akad'], 'Akad'],
         ];
+    }
+
+    public function testAkadAjbWithAkadIndentProducesAkadMilestoneWithoutMarker(): void
+    {
+        $rows = $this->service->buildRows((object) [
+            'akad' => 1,
+            'akad_indent' => 1,
+            'is_subsidi' => 1,
+        ]);
+
+        $this->assertSame('Akad Subsidi', $rows[0]['segments'][0]['config_name']);
+        $this->assertSame([], $rows[0]['markers']);
+    }
+
+    public function testAkadAjbWithoutAkadIndentProducesAkadMilestoneWithoutMarker(): void
+    {
+        $rows = $this->service->buildRows((object) [
+            'akad' => 1,
+            'akad_indent' => 0,
+            'is_subsidi' => 0,
+        ]);
+
+        $this->assertSame('Akad Komersil', $rows[0]['segments'][0]['config_name']);
+        $this->assertSame([], $rows[0]['markers']);
+    }
+
+    public function testAkadAjbByDateWithAkadIndentProducesAkadMilestoneWithoutMarker(): void
+    {
+        $rows = $this->service->buildRows((object) [
+            'akad_tgl' => '2026-03-01',
+            'akad_indent' => 1,
+            'is_subsidi' => 1,
+        ]);
+
+        $this->assertSame('Akad Subsidi', $rows[0]['segments'][0]['config_name']);
+        $this->assertSame([], $rows[0]['markers']);
     }
 
     public function testMkdtAkadIndentMarkerIsHiddenForCancelledStatus(): void

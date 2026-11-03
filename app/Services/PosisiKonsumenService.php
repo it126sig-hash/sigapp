@@ -172,10 +172,14 @@ class PosisiKonsumenService
             $builder->where('mkdt.sp3k', $request->getVar('sp3k'));
         if ($request->getVar('wawancara') != "")
             $builder->where('mkdt.wawancara', $request->getVar('wawancara'));
-        if ($request->getVar('akad') != "")
+        if ($request->getVar('akad') !== null && $request->getVar('akad') !== '')
             $builder->where('mkdt.akad', $request->getVar('akad'));
-        if ($request->getVar('akad_indent') != "")
+        if ($request->getVar('akad_indent') !== null && $request->getVar('akad_indent') !== '') {
             $builder->where('mkdt.akad_indent', $request->getVar('akad_indent'));
+            if ((int) $request->getVar('akad_indent') === 1 && ($request->getVar('akad') === null || $request->getVar('akad') === '')) {
+                $builder->where('mkdt.akad', 0);
+            }
+        }
 
         $bulan = $request->getVar('bulan');
         $tahun = $request->getVar('tahun');
@@ -226,7 +230,9 @@ class PosisiKonsumenService
             })
             ->edit('nama_jalan', function ($v) {
                 $html = esc($v->nama_jalan);
-                if ((int) ($v->akad_indent ?? 0) === 1) {
+                $isAkadIndent = (int) ($v->akad_indent ?? 0) === 1;
+                $isAkadAjb    = (int) ($v->akad ?? 0) === 1;
+                if ($isAkadIndent && !$isAkadAjb) {
                     $html .= '<div class="mt-25"><span class="badge badge-primary poskon-akad-indent">Akad Indent</span></div>';
                 }
                 return $html;

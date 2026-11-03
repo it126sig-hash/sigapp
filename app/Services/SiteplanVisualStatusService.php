@@ -94,11 +94,14 @@ class SiteplanVisualStatusService
 
     private function mkdtRow($row): array
     {
+        $hasAkadAjb = $this->truthy($this->value($row, 'akad')) || $this->hasDate($this->value($row, 'akad_tgl'));
+        $hasAkadIndent = $this->truthy($this->value($row, 'akad_indent')) || $this->hasDate($this->value($row, 'akad_indent_tgl'));
+
         $status = 'Def';
 
         if ($this->truthy($this->value($row, 'is_batal')) || $this->value($row, 'status_mkdt') === 'Batal') {
             $status = 'Batal';
-        } elseif ($this->truthy($this->value($row, 'akad')) || $this->value($row, 'status_mkdt') === 'Akad' || $this->hasDate($this->value($row, 'akad_tgl'))) {
+        } elseif ($hasAkadAjb || $hasAkadIndent || $this->value($row, 'status_mkdt') === 'Akad') {
             $status = 'Akad';
         } elseif ($this->truthy($this->value($row, 'sp3k')) || $this->hasDate($this->value($row, 'sp3k_tgl'))) {
             $status = 'SP3K';
@@ -113,8 +116,7 @@ class SiteplanVisualStatusService
         }
 
         $markers = [];
-        $hasAkadIndent = $this->truthy($this->value($row, 'akad_indent')) || $this->hasDate($this->value($row, 'akad_indent_tgl'));
-        if ($status !== 'Batal' && $hasAkadIndent) {
+        if ($status !== 'Batal' && $hasAkadIndent && !$hasAkadAjb) {
             $markers[] = $this->marker('Akad Indent');
         }
 

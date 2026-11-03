@@ -54,6 +54,7 @@ class PosisiKonsumenRepository
             legal.pbb_pecah_nop,
             "" as sikumbang,
             mkdt.keterangan_status,
+            mkdt.akad,
             mkdt.akad_indent,
             mkdt.akad_indent_tgl,
             COALESCE(mps.total_um, 0) as total_um,
