@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\Database\BaseConnection;
 
 class OthersRepository
@@ -30,6 +31,8 @@ class OthersRepository
             ->join('users as e', 'e.id = others.produksi_edit_by', 'left')
             ->join('users as f', 'f.id = others.legal_edit_by', 'left');
 
+        $this->addActiveTiketSelect($builder);
+
         if ($id !== null) {
             return $builder->where('others.id', $id)->get()->getResult();
         }
@@ -51,6 +54,7 @@ class OthersRepository
             $builder->groupStart()
                 ->whereIn('others.scope', $allowedScopes)
                 ->orWhere('others.scope IS NULL', null, false)
+                ->orWhere('act_tm.active_tiket_id IS NOT NULL', null, false)
                 ->groupEnd();
         }
 
@@ -93,6 +97,30 @@ class OthersRepository
             ->limit($limit, $offset)
             ->get()
             ->getResult();
+    }
+
+    private function addActiveTiketSelect(BaseBuilder $builder): void
+    {
+        $builder->join(
+            "(SELECT 
+                tm.ref_id,
+                SUBSTRING_INDEX(GROUP_CONCAT(tm.id ORDER BY CASE tm.prioritas WHEN 'urgent' THEN 1 WHEN 'medium' THEN 2 WHEN 'normal' THEN 3 WHEN 'low' THEN 4 ELSE 5 END ASC, tm.created_at DESC), ',', 1) AS active_tiket_id,
+                SUBSTRING_INDEX(GROUP_CONCAT(tm.prioritas ORDER BY CASE tm.prioritas WHEN 'urgent' THEN 1 WHEN 'medium' THEN 2 WHEN 'normal' THEN 3 WHEN 'low' THEN 4 ELSE 5 END ASC, tm.created_at DESC), ',', 1) AS active_tiket_prioritas,
+                SUBSTRING_INDEX(GROUP_CONCAT(tm.status ORDER BY CASE tm.prioritas WHEN 'urgent' THEN 1 WHEN 'medium' THEN 2 WHEN 'normal' THEN 3 WHEN 'low' THEN 4 ELSE 5 END ASC, tm.created_at DESC), ',', 1) AS active_tiket_status
+            FROM tiket_masalah tm
+            WHERE tm.ref_type = 'others'
+              AND tm.status NOT IN ('selesai', 'batal', 'hold')
+            GROUP BY tm.ref_id) act_tm",
+            'act_tm.ref_id = others.id',
+            'left',
+            false
+        );
+
+        $builder->select('
+            act_tm.active_tiket_id,
+            act_tm.active_tiket_prioritas,
+            act_tm.active_tiket_status
+        ', true);
     }
 
     private function problemSql(array $filters): array

@@ -264,6 +264,25 @@ describe('SiteplanTiketOverlay', () => {
             expect(shapeJson.attrs.fill).toBe('#ff9f43');
             expect(shapeJson.attrs.stroke).toBe('#ffffff');
         });
+
+        test('membuat overlay shape untuk item others dengan targetId others12 dan id tiket-overlay-others12', () => {
+            const shape = SiteplanTiketOverlay.createOverlayShape(Konva, {
+                refType: 'others',
+                id: 12,
+                points: [0, 0, 50, 0, 50, 50, 0, 50],
+                prioritas: 'medium',
+                phaseOffset: 0.8
+            });
+
+            expect(shape.attrs.id).toBe('tiket-overlay-others12');
+            expect(shape.attrs.refType).toBe('others');
+            expect(shape.attrs.refId).toBe(12);
+            expect(shape.attrs.targetId).toBe('others12');
+            expect(shape.targetId).toBe('others12');
+            expect(shape.refType).toBe('others');
+            expect(shape.refId).toBe(12);
+            expect(shape.attrs.fill).toBe('#ff9f43');
+        });
     });
 
     describe('createBadgeShape', () => {
@@ -302,6 +321,27 @@ describe('SiteplanTiketOverlay', () => {
             expect(mockContext.fill).toHaveBeenCalled();
             expect(mockContext.stroke).toHaveBeenCalled();
             expect(mockContext.fillText).toHaveBeenCalledWith('!', 0, 0.5);
+        });
+
+        test('membuat badge shape untuk item others dengan targetId others12 dan id tiket-badge-others12', () => {
+            const points = [0, 0, 40, 0, 40, 40, 0, 40];
+            const badge = SiteplanTiketOverlay.createBadgeShape(Konva, {
+                refType: 'others',
+                id: 12,
+                points: points,
+                prioritas: 'urgent',
+                phaseOffset: 0.2
+            });
+
+            expect(badge.attrs.id).toBe('tiket-badge-others12');
+            expect(badge.attrs.refType).toBe('others');
+            expect(badge.attrs.refId).toBe(12);
+            expect(badge.attrs.targetId).toBe('others12');
+            expect(badge.targetId).toBe('others12');
+            expect(badge.refType).toBe('others');
+            expect(badge.refId).toBe(12);
+            expect(badge.attrs.x).toBe(20);
+            expect(badge.attrs.y).toBe(20);
         });
     });
 
@@ -390,6 +430,32 @@ describe('SiteplanTiketOverlay', () => {
             expect(shape1.visible()).toBe(true);
             expect(badge1.visible()).toBe(true);
         });
+
+        test('memeriksa visibilitas menggunakan targetId untuk kavling (kavX) dan others (othersX)', () => {
+            const layer = new MockLayer();
+            const shapeKav = SiteplanTiketOverlay.createOverlayShape(Konva, {
+                idKavling: 101,
+                points: [0, 0, 10, 10],
+                prioritas: 'urgent'
+            });
+            const shapeOthers = SiteplanTiketOverlay.createOverlayShape(Konva, {
+                refType: 'others',
+                id: 12,
+                points: [20, 20, 30, 30],
+                prioritas: 'normal'
+            });
+            layer.add(shapeKav, shapeOthers);
+
+            const visibleMap = {
+                kav101: true,
+                others12: false
+            };
+            const anim = SiteplanTiketOverlay.createAnimation(Konva, layer, (targetId) => Boolean(visibleMap[targetId]));
+
+            anim._anim.step({ time: 100 });
+            expect(shapeKav.visible()).toBe(true);
+            expect(shapeOthers.visible()).toBe(false);
+        });
     });
 
     describe('buildOverlayShapes', () => {
@@ -424,6 +490,53 @@ describe('SiteplanTiketOverlay', () => {
             expect(badgeShapes[2].phaseOffset).toBeCloseTo((4 * Math.PI) / 3, 4);
 
             // Animasi otomatis berjalan
+            expect(layer._tiketAnimation).toBeDefined();
+            expect(layer._tiketAnimation.isRunning()).toBe(true);
+        });
+
+        test('membuat overlay dan badge untuk campuran item kavling dan others', () => {
+            const layer = new MockLayer();
+            const mixedList = [
+                { id_kavling: 101, points: [0, 0, 10, 10], active_tiket_id: 1, active_tiket_prioritas: 'urgent' },
+                { id: 12, tipe: 'jalan', points: [20, 0, 40, 10], active_tiket_id: 2, active_tiket_prioritas: 'medium' },
+                { id: 13, tipe: 'fasos', points: [40, 0, 60, 10], active_tiket_id: null }, // no active tiket
+                { id_kavling: 102, points: [60, 0, 80, 10], active_tiket_id: 3, active_tiket_prioritas: 'low' }
+            ];
+
+            const shapes = SiteplanTiketOverlay.buildOverlayShapes(Konva, layer, mixedList, null, () => true);
+
+            // 3 problem items (2 kavling + 1 others) x 2 shapes = 6 shapes
+            expect(shapes).toHaveLength(6);
+            expect(layer.children).toHaveLength(6);
+
+            const overlayShapes = layer.find('.siteplan-tiket-overlay-shape');
+            const badgeShapes = layer.find('.siteplan-tiket-badge-shape');
+
+            expect(overlayShapes).toHaveLength(3);
+            expect(badgeShapes).toHaveLength(3);
+
+            // Periksa item kavling pertama
+            expect(overlayShapes[0].attrs.id).toBe('tiket-overlay-kav101');
+            expect(overlayShapes[0].attrs.targetId).toBe('kav101');
+            expect(badgeShapes[0].attrs.id).toBe('tiket-badge-kav101');
+            expect(badgeShapes[0].attrs.targetId).toBe('kav101');
+
+            // Periksa item others
+            expect(overlayShapes[1].attrs.id).toBe('tiket-overlay-others12');
+            expect(overlayShapes[1].attrs.targetId).toBe('others12');
+            expect(overlayShapes[1].attrs.refType).toBe('others');
+            expect(overlayShapes[1].attrs.refId).toBe(12);
+            expect(badgeShapes[1].attrs.id).toBe('tiket-badge-others12');
+            expect(badgeShapes[1].attrs.targetId).toBe('others12');
+            expect(badgeShapes[1].attrs.refType).toBe('others');
+            expect(badgeShapes[1].attrs.refId).toBe(12);
+
+            // Periksa item kavling kedua
+            expect(overlayShapes[2].attrs.id).toBe('tiket-overlay-kav102');
+            expect(overlayShapes[2].attrs.targetId).toBe('kav102');
+            expect(badgeShapes[2].attrs.id).toBe('tiket-badge-kav102');
+            expect(badgeShapes[2].attrs.targetId).toBe('kav102');
+
             expect(layer._tiketAnimation).toBeDefined();
             expect(layer._tiketAnimation.isRunning()).toBe(true);
         });

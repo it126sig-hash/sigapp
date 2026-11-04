@@ -1,6 +1,7 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css') ?>">
 <link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css') ?>">
 <link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/laporan-booking-akad.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/laporan-booking-akad.css') ?>">
+<style><?= view('siteplan/partials/modal_detail_styles') ?></style>
 
 <div class="app-content content booking-akad-report-page">
     <div class="content-overlay"></div>
@@ -120,13 +121,12 @@
                         <table id="booking_akad_detail_table" class="table table-bordered table-striped mb-0 w-100">
                             <thead id="booking_akad_detail_table_head">
                                 <tr>
-                                    <th style="width: 40px;">No</th>
-                                    <th>Jenis Laporan</th>
-                                    <th>Kavling & Cluster</th>
-                                    <th>Konsumen & Tipe</th>
-                                    <th>Tanggal</th>
-                                    <th>Status MKDT</th>
-                                    <th class="text-right">Nominal</th>
+                                    <th class="text-center" style="width: 40px;">No</th>
+                                    <th class="text-left">Kavling</th>
+                                    <th class="text-left">Konsumen</th>
+                                    <th class="text-center">Tanggal Booking</th>
+                                    <th class="text-left">Status Terakhir</th>
+                                    <th class="text-left">Catatan / Keterangan</th>
                                     <th class="text-center" style="width: 70px;">Aksi</th>
                                 </tr>
                             </thead>
@@ -140,16 +140,24 @@
 </div>
 
 <link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/extensions/sweetalert2.min.css') ?>">
-<script src="<?= base_url('app-assets/vendors/js/vendors.min.js') ?>"></script>
+<script>
+if (typeof window.jQuery === 'undefined') {
+    document.write('<script src="<?= base_url('app-assets/vendors/js/vendors.min.js') ?>"><\/script>');
+}
+</script>
 <script src="<?= base_url('app-assets/vendors/js/extensions/sweetalert2.all.min.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/responsive.bootstrap4.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/charts/chart.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js') ?>"></script>
 
 <?= view('siteplan/partials/modal_detail', ['data' => []]) ?>
 <script>
+window.base_url = '<?= base_url() ?>/';
+window.loaded = window.loaded || [];
+
 window.BOOKING_AKAD_REPORT = <?= json_encode([
     'summaryUrl' => base_url('api/laporan/booking-akad/summary'),
     'detailUrl' => base_url('api/laporan/booking-akad/detail'),
@@ -160,6 +168,9 @@ window.BOOKING_AKAD_REPORT = <?= json_encode([
 ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 
 if (typeof dt_proyek === 'undefined') var dt_proyek = <?= json_encode($activeProyek ?? new \stdClass()) ?>;
+if (dt_proyek) {
+    dt_proyek.id_perumahan_sikumbang = dt_proyek.id_perumahan_sikumbang || '';
+}
 if (typeof csrfName === 'undefined') var csrfName = '<?= csrf_token() ?>';
 if (typeof csrfHash === 'undefined') var csrfHash = '<?= csrf_hash() ?>';
 if (typeof not_found === 'undefined') var not_found = '<?= base_url('assets/images/not-found.png') ?>';

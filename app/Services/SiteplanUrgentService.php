@@ -48,40 +48,88 @@ class SiteplanUrgentService
      * Unlimited, ungated counts for the dashboard alert card - every role sees the same
      * accurate numbers here, unlike the role-gated/50-capped urgent panel sections.
      */
-    public function getDashboardAlertCounts(int $idProyek): array
+    public function getDashboardAlertCounts(?int $idProyek = null): array
     {
         $counts = [
             'tagihan_overdue' => 0,
             'tagihan_due' => 0,
             'cashout_subkon' => 0,
             'pembangunan_telat' => 0,
+            'sp3k_expire' => 0,
+            'rencana_akad' => 0,
         ];
 
         $today = date('Y-m-d');
         $limitDate = date('Y-m-d', strtotime('+7 days'));
+        $next7Days = $limitDate;
+        $id = ($idProyek !== null && $idProyek > 0) ? $idProyek : 0;
 
-        $counts['tagihan_overdue'] = $this->tagihanBaseBuilder($idProyek)
+        $counts['tagihan_overdue'] = $this->tagihanBaseBuilder($id)
             ->where('keuangan.jatuh_tempo_tgl <', $today)
             ->countAllResults();
 
-        $counts['tagihan_due'] = $this->tagihanBaseBuilder($idProyek)
+        $counts['tagihan_due'] = $this->tagihanBaseBuilder($id)
             ->where('keuangan.jatuh_tempo_tgl >=', $today)
             ->where('keuangan.jatuh_tempo_tgl <=', $limitDate)
             ->countAllResults();
 
-        $counts['cashout_subkon'] = (int) ($this->cashoutSubkonBaseBuilder($idProyek, $limitDate)
+        $id = ($idProyek !== null && $idProyek > 0) ? $idProyek : 0;
+        $next7Days = $limitDate;
+
+        $counts['cashout_subkon'] = (int) ($this->cashoutSubkonBaseBuilder($id, $limitDate)
             ->select('COUNT(DISTINCT csd.id_cashout_subkon_detail) AS cnt', false)
             ->get()
             ->getRow()
             ->cnt ?? 0);
 
-        $counts['pembangunan_telat'] = (int) ($this->pembangunanTelatBaseBuilder($idProyek, $today)
+        $counts['pembangunan_telat'] = (int) ($this->pembangunanTelatBaseBuilder($id, $today)
             ->select('COUNT(DISTINCT pr.id_produksi) AS cnt', false)
             ->get()
             ->getRow()
             ->cnt ?? 0);
 
+        $counts['sp3k_expire'] = $this->countMkdtDateAlerts('sp3k_tgl_exp', $idProyek, null, $next7Days);
+        $counts['rencana_akad'] = $this->countMkdtDateAlerts('rencana_akad_tgl', $idProyek, null, $next7Days);
+
         return $counts;
+    }
+
+    public function countMkdtDateAlerts(string $field, ?int $idProyek = null, ?string $fromDate = null, ?string $toDate = null): int
+    {
+        if (!in_array($field, ['sp3k_tgl_exp', 'rencana_akad_tgl'], true)) {
+            return 0;
+        }
+
+        $builder = $this->db->table('mkdt m')
+            ->join('kavling k', 'k.id_kavling = m.id_kavling')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+            ->join('proyek p', 'p.id_proyek = cl.id_proyek');
+
+        if ($idProyek !== null && $idProyek > 0) {
+            $builder->where('p.id_proyek', $idProyek);
+        }
+
+        $builder->where("m.{$field} IS NOT NULL", null, false)
+            ->where("m.{$field} >", '1000-01-01');
+
+        if ($fromDate !== null) {
+            $builder->where("m.{$field} >=", $fromDate);
+        }
+        if ($toDate !== null) {
+            $builder->where("m.{$field} <=", $toDate);
+        }
+
+        return (int) $builder
+            ->groupStart()
+                ->where('m.akad_tgl IS NULL', null, false)
+                ->orWhere('m.akad_tgl <=', '1000-01-01')
+            ->groupEnd()
+            ->groupStart()
+                ->where('m.is_batal', 0)
+                ->orWhere('m.is_batal IS NULL', null, false)
+            ->groupEnd()
+            ->countAllResults();
     }
 
     public function emptySummary(): array

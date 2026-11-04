@@ -16,17 +16,18 @@
   var comparisonEnabled = false;
 
   var categories = [
-    { key: "booking", field: "jumlah_booking", label: "Jumlah Booking", shortLabel: "Booking", isDrilldown: true },
-    { key: "booking_aktif", field: "booking_aktif", label: "Booking Aktif", shortLabel: "Aktif", isDrilldown: true },
-    { key: "booking_batal", field: "booking_batal", label: "Booking Batal", shortLabel: "Batal", isDrilldown: true },
-    { key: "akad", field: "jumlah_akad", label: "Jumlah Akad", shortLabel: "Akad", isDrilldown: true },
-    { key: "rasio_akad", field: "rasio_akad", label: "Rasio Akad (%)", shortLabel: "Rasio (%)", isDrilldown: false }
+    { key: "booking", field: "booking", label: "Booking", shortLabel: "Booking", isDrilldown: true },
+    { key: "wawancara", field: "wawancara", label: "Wawancara", shortLabel: "Wawancara", isDrilldown: true },
+    { key: "sp3k", field: "sp3k", label: "SP3K", shortLabel: "SP3K", isDrilldown: true },
+    { key: "batal", field: "batal", label: "Batal", shortLabel: "Batal", isDrilldown: true },
+    { key: "akad_indent", field: "akad_indent", label: "Akad Indent", shortLabel: "Akad Indent", isDrilldown: true },
+    { key: "akad_ajb", field: "akad_ajb", label: "Akad AJB", shortLabel: "Akad AJB", isDrilldown: true }
   ];
 
   // Palet warna chart [Tahun A, Tahun B]
   var chartColors = [
-    { booking: "#2057a3", aktif: "#2a9d8f", batal: "#e76f51", akad: "#5b21b6" },
-    { booking: "#1f7a8c", aktif: "#48cae4", batal: "#f4a261", akad: "#8338ec" }
+    { booking: "#2057a3", wawancara: "#e9c46a", sp3k: "#2a9d8f", batal: "#e76f51", akad_indent: "#8338ec", akad_ajb: "#15803d" },
+    { booking: "#1f7a8c", wawancara: "#f4a261", sp3k: "#48cae4", batal: "#d62828", akad_indent: "#9b5de5", akad_ajb: "#2b9348" }
   ];
 
   function csrfData() {
@@ -109,28 +110,39 @@
     );
   }
 
-  function statusBadge(status, isBatal) {
-    var s = String(status || "").trim();
-    if (isBatal || s.toLowerCase() === "batal") {
-      return '<span class="booking-akad-badge-status booking-akad-badge-batal">Batal</span>';
+  function statusBadge(status, badgeType) {
+    var s = String(status || "Booking").trim();
+    var lower = s.toLowerCase();
+    var type = badgeType;
+
+    if (!type) {
+      if (lower === "batal") {
+        type = "danger";
+      } else if (lower === "akad ajb" || lower === "akad") {
+        type = "success";
+      } else if (lower === "akad indent" || lower === "indent") {
+        type = "info";
+      } else if (lower === "sp3k") {
+        type = "primary";
+      } else if (lower === "wawancara") {
+        type = "warning";
+      } else {
+        type = "secondary";
+      }
     }
-    if (s.toLowerCase() === "akad") {
-      return '<span class="booking-akad-badge-status booking-akad-badge-akad">Akad</span>';
-    }
-    if (s.toLowerCase() === "booking") {
-      return '<span class="booking-akad-badge-status booking-akad-badge-booking">Booking</span>';
-    }
-    return '<span class="booking-akad-badge-status booking-akad-badge-aktif">' + escapeHtml(s || "Aktif") + "</span>";
+
+    var slug = lower.replace(/\s+/g, "-");
+    return '<span class="badge badge-light-' + escapeHtml(type) + ' booking-akad-badge-status booking-akad-badge-' + escapeHtml(slug) + '">' + escapeHtml(s) + "</span>";
   }
 
   function renderHeader(years) {
-    var row1 = ['<th rowspan="2" class="booking-akad-month-column">Bulan</th>'];
+    var row1 = ['<th rowspan="2" class="text-left booking-akad-month-column">Bulan</th>'];
     var row2 = [];
 
     years.forEach(function (year, index) {
       var suffix = index === 0 ? "a" : "b";
       row1.push(
-        '<th colspan="5" class="text-center booking-akad-year-heading booking-akad-year-heading-' +
+        '<th colspan="6" class="text-center booking-akad-year-heading booking-akad-year-heading-' +
           suffix +
           '">' +
           escapeHtml(year) +
@@ -168,39 +180,64 @@
     renderHeader(years);
 
     var rows = (data.months || []).map(function (month) {
-      var cells = ["<td>" + escapeHtml(month.month_label) + "</td>"];
+      var cells = ['<td class="text-left">' + escapeHtml(month.month_label) + "</td>"];
       years.forEach(function (year) {
         var amounts = summaryValues(month, year);
         categories.forEach(function (cat) {
-          if (cat.isDrilldown) {
+          var val = amounts[cat.field] !== undefined ? amounts[cat.field] : (amounts["jumlah_" + cat.field] !== undefined ? amounts["jumlah_" + cat.field] : amounts["rasio_" + cat.field]);
+          if (cat.key === "booking") {
+            var konversiVal = amounts.konversi !== undefined ? amounts.konversi : (amounts.rasio_konversi !== undefined ? amounts.rasio_konversi : (amounts.rasio_akad !== undefined ? amounts.rasio_akad : 0));
             cells.push(
               '<td class="text-right">' +
-                detailButton(amounts[cat.field], year, month.month, cat.key, cat.label) +
+                '<div class="booking-cell-wrapper">' +
+                  detailButton(val, year, month.month, cat.key, cat.label) +
+                  '<div class="booking-konversi-sub">' + rasioBadge(konversiVal) + '</div>' +
+                '</div>' +
+              "</td>"
+            );
+          } else if (cat.isDrilldown) {
+            cells.push(
+              '<td class="text-right">' +
+                detailButton(val, year, month.month, cat.key, cat.label) +
                 "</td>"
             );
           } else {
-            cells.push('<td class="text-center">' + rasioBadge(amounts[cat.field]) + "</td>");
+            cells.push('<td class="text-center">' + rasioBadge(val) + "</td>");
           }
         });
       });
       return "<tr>" + cells.join("") + "</tr>";
     });
 
-    var footerCells = ["<td>Total Tahun</td>"];
+    var footerCells = ['<td class="text-left font-weight-bold">Total Tahun</td>'];
     years.forEach(function (year) {
       var totals = data.totals[String(year)] || data.totals[year] || {};
       categories.forEach(function (cat) {
-        if (cat.isDrilldown) {
-          var val = Number(totals[cat.field] || 0);
+        var val = totals[cat.field] !== undefined ? totals[cat.field] : (totals["jumlah_" + cat.field] !== undefined ? totals["jumlah_" + cat.field] : totals["rasio_" + cat.field]);
+        if (cat.key === "booking") {
+          var num = Number(val || 0);
+          var totalKonversi = totals.konversi !== undefined ? totals.konversi : (totals.rasio_konversi !== undefined ? totals.rasio_konversi : (totals.rasio_akad !== undefined ? totals.rasio_akad : 0));
           footerCells.push(
             '<td class="text-right font-weight-bold ' +
-              (val === 0 ? "text-muted" : "") +
+              (num === 0 ? "text-muted" : "") +
               '">' +
-              formatNumber(val) +
+              '<div class="booking-cell-wrapper booking-cell-total">' +
+                '<span class="font-weight-bold">' + formatNumber(num) + '</span>' +
+                '<div class="booking-konversi-sub">' + rasioBadge(totalKonversi) + '</div>' +
+              '</div>' +
+            "</td>"
+          );
+        } else if (cat.isDrilldown) {
+          var num = Number(val || 0);
+          footerCells.push(
+            '<td class="text-right font-weight-bold ' +
+              (num === 0 ? "text-muted" : "") +
+              '">' +
+              formatNumber(num) +
               "</td>"
           );
         } else {
-          footerCells.push('<td class="text-center">' + rasioBadge(totals[cat.field]) + "</td>");
+          footerCells.push('<td class="text-center font-weight-bold">' + rasioBadge(val) + "</td>");
         }
       });
     });
@@ -217,10 +254,12 @@
   function chartDatasets(data) {
     var datasets = [];
     var metricKeys = [
-      { key: "booking", field: "jumlah_booking", label: "Jumlah Booking", colorProp: "booking" },
-      { key: "booking_aktif", field: "booking_aktif", label: "Booking Aktif", colorProp: "aktif" },
-      { key: "booking_batal", field: "booking_batal", label: "Booking Batal", colorProp: "batal" },
-      { key: "akad", field: "jumlah_akad", label: "Jumlah Akad", colorProp: "akad" }
+      { key: "booking", field: "booking", label: "Booking", colorProp: "booking" },
+      { key: "wawancara", field: "wawancara", label: "Wawancara", colorProp: "wawancara" },
+      { key: "sp3k", field: "sp3k", label: "SP3K", colorProp: "sp3k" },
+      { key: "batal", field: "batal", label: "Batal", colorProp: "batal" },
+      { key: "akad_indent", field: "akad_indent", label: "Akad Indent", colorProp: "akad_indent" },
+      { key: "akad_ajb", field: "akad_ajb", label: "Akad AJB", colorProp: "akad_ajb" }
     ];
 
     (data.years || []).forEach(function (year, yearIndex) {
@@ -233,7 +272,9 @@
           borderColor: color,
           borderWidth: 1,
           data: (data.months || []).map(function (month) {
-            return Number(summaryValues(month, year)[metric.field] || 0);
+            var amounts = summaryValues(month, year);
+            var val = amounts[metric.field] !== undefined ? amounts[metric.field] : amounts["jumlah_" + metric.field];
+            return Number(val || 0);
           })
         });
       });
@@ -398,65 +439,82 @@
         orderable: false,
         searchable: false,
         className: "text-center",
+        width: "40px",
         render: function (data, type, row, meta) {
           return meta.row + meta.settings._iDisplayStart + 1;
         }
       },
       {
-        data: "jenis_laporan",
-        name: "jenis_laporan",
+        data: "kavling",
+        name: "kavling",
+        className: "text-left",
         render: function (data, type, row) {
-          return statusBadge(data, row.is_batal);
-        }
-      },
-      {
-        data: "alamat_kavling",
-        name: "alamat_kavling",
-        render: function (data, type, row) {
-          var cluster = row.nama_cluster ? "<small>Cluster: " + escapeHtml(row.nama_cluster) + "</small>" : "";
+          var jalan = (row.kavling && row.kavling.nama_jalan) || row.nama_jalan || "-";
+          var no = (row.kavling && row.kavling.no_kavling) || row.no_kavling || "-";
+          var sales = (row.kavling && row.kavling.sales) || row.sales || "-";
+          var alamat = escapeHtml(jalan) + " No " + escapeHtml(no);
           return (
-            '<div class="booking-akad-detail-meta"><span class="font-weight-bold">' +
-            escapeHtml(data) +
-            "</span>" +
-            cluster +
+            '<div class="booking-akad-detail-meta">' +
+            '<span class="font-weight-bold text-dark">' + alamat + "</span>" +
+            '<small class="text-muted d-block">' + escapeHtml(sales) + "</small>" +
             "</div>"
           );
         }
       },
       {
-        data: "nama_konsumen",
-        name: "nama_konsumen",
+        data: "konsumen",
+        name: "konsumen",
+        className: "text-left",
         render: function (data, type, row) {
-          var tipe = row.tipe_rumah ? "<small>Tipe: " + escapeHtml(row.tipe_rumah) + "</small>" : "";
+          var nama = (row.konsumen && row.konsumen.nama_konsumen) || row.nama_konsumen || "-";
+          var tipe = (row.konsumen && row.konsumen.tipe_rumah) || row.tipe_rumah || row.nama_tipe || "-";
+          var isSubsidi = (row.konsumen && typeof row.konsumen.is_subsidi !== "undefined") ? row.konsumen.is_subsidi : row.is_subsidi;
+          var badgeClass = isSubsidi ? "badge-light-success" : "badge-light-primary";
+          var badgeLabel = isSubsidi ? "Subsidi" : "Komersil";
           return (
-            '<div class="booking-akad-detail-meta"><span>' +
-            escapeHtml(data || "-") +
-            "</span>" +
-            tipe +
+            '<div class="booking-akad-detail-meta">' +
+            '<span class="font-weight-bold text-dark">' + escapeHtml(nama) + "</span>" +
+            '<small class="text-muted d-block">' + escapeHtml(tipe) + "</small>" +
+            '<span class="badge ' + badgeClass + ' mt-25" style="width: fit-content;">' + badgeLabel + "</span>" +
             "</div>"
           );
         }
       },
       {
-        data: "tanggal_transaksi",
-        name: "tanggal_transaksi",
-        render: function (data) {
-          return formatDate(data);
-        }
-      },
-      {
-        data: "status_mkdt",
-        name: "status_mkdt",
+        data: "tanggal_booking",
+        name: "tanggal_booking",
+        className: "text-center",
         render: function (data, type, row) {
-          return statusBadge(data, row.is_batal);
+          var val = data || row.booking_tgl || "-";
+          return escapeHtml(val);
         }
       },
       {
-        data: "nominal",
-        name: "nominal",
-        className: "text-right font-weight-bold",
-        render: function (data) {
-          return money(data);
+        data: "status_terakhir",
+        name: "status_terakhir",
+        className: "text-left",
+        render: function (data, type, row) {
+          var status = data || row.status_mkdt || "Booking";
+          var badgeType = row.status_terakhir_badge || "";
+          var tglStatus = row.tanggal_status_terakhir || "-";
+          return (
+            '<div class="booking-akad-status-cell">' +
+            '<span class="booking-akad-status-date">' + escapeHtml(tglStatus) + "</span>" +
+            statusBadge(status, badgeType) +
+            "</div>"
+          );
+        }
+      },
+      {
+        data: "catatan_mkdt",
+        name: "catatan_mkdt",
+        className: "text-left",
+        render: function (data, type, row) {
+          var catatan = (data !== undefined && data !== null) ? String(data).trim() : (row.catatan_mkdt ? String(row.catatan_mkdt).trim() : "");
+          if (!catatan || catatan === "-") {
+            return '<span class="text-muted">-</span>';
+          }
+          return '<span class="booking-akad-catatan-text">' + escapeHtml(catatan) + "</span>";
         }
       },
       {
@@ -464,21 +522,26 @@
         orderable: false,
         searchable: false,
         className: "text-center",
+        width: "70px",
         render: function (data, type, row) {
-          if (!row.id_kavling) return "-";
+          var idKavling = row.id_kavling || (row.kavling && row.kavling.id_kavling);
+          if (!idKavling) return "-";
+          var idMkdt = row.id_mkdt || "";
+          var namaJalan = (row.kavling && row.kavling.nama_jalan) || row.nama_jalan || "";
+          var noKavling = (row.kavling && row.kavling.no_kavling) || row.no_kavling || "";
           return (
             '<button type="button" class="btn btn-info btn-sm booking-akad-view-kavling" ' +
             'data-id-kavling="' +
-            escapeHtml(row.id_kavling) +
+            escapeHtml(idKavling) +
             '" ' +
             'data-id-mkdt="' +
-            escapeHtml(row.id_mkdt || "") +
+            escapeHtml(idMkdt) +
             '" ' +
             'data-nama-jalan="' +
-            escapeHtml(row.nama_jalan || "") +
+            escapeHtml(namaJalan) +
             '" ' +
             'data-no-kavling="' +
-            escapeHtml(row.no_kavling || "") +
+            escapeHtml(noKavling) +
             '" ' +
             'title="Lihat Detail Kavling">' +
             '<i class="fa fa-eye"></i></button>'
@@ -493,7 +556,7 @@
       searching: true,
       lengthChange: true,
       pageLength: 10,
-      order: [[4, "asc"]], // default sort tanggal_transaksi ASC
+      order: [[3, "asc"]], // default sort tanggal_booking ASC
       scrollX: true,
       autoWidth: false,
       ajax: {
@@ -532,6 +595,56 @@
     });
   }
 
+  function openKavlingDetailModal(button) {
+    var idKavling = button.data("id-kavling");
+    if (!idKavling) return;
+
+    if (typeof window.initSigappModalStacking === "function") {
+      window.initSigappModalStacking();
+    }
+
+    window.loaded = window.loaded || [];
+
+    if (typeof window.openSiteplanDetailModal === "function") {
+      window.openSiteplanDetailModal(idKavling);
+      return;
+    }
+
+    var namaJalan = String(button.data("nama-jalan") || "");
+    var noKavling = String(button.data("no-kavling") || "");
+    var idMkdt = button.data("id-mkdt") || null;
+
+    var sh = {
+      id: "kav" + idKavling,
+      data: {
+        tipe: "kavling",
+        id_kavling: idKavling,
+        id_mkdt: idMkdt,
+        id_keuangan: null,
+        id_legal: null,
+        id_produksi: null,
+        nama_jalan: namaJalan,
+        no_kavling: noKavling
+      },
+      data2: {
+        harga_akhir: "-",
+        id_hargajual: "",
+        id_komplain: null,
+        no_tipe_rumah: "",
+        tipe_rumah: "",
+        harga_akhir_tgl: "",
+        harga_akhir_oleh: ""
+      }
+    };
+
+    window.editdtt = [sh];
+    if (typeof detail_kavling === "function") {
+      detail_kavling(sh, idKavling);
+    } else {
+      console.error("[BookingAkad] Fungsi detail_kavling tidak tersedia.");
+    }
+  }
+
   // Event Handlers
   $(function () {
     setComparison(false);
@@ -563,42 +676,7 @@
 
     // Handler tombol aksi Lihat Detail Kavling
     $(document).on("click", ".booking-akad-view-kavling", function () {
-      var button = $(this);
-      var idKavling = button.data("id-kavling");
-      if (!idKavling) return;
-
-      if (typeof window.openSiteplanDetailModal === "function") {
-        window.openSiteplanDetailModal(idKavling);
-        return;
-      }
-
-      var sh = {
-        id: "kav" + idKavling,
-        data: {
-          tipe: "kavling",
-          id_kavling: idKavling,
-          id_mkdt: button.data("id-mkdt") || null,
-          id_keuangan: null,
-          id_legal: null,
-          id_produksi: null,
-          nama_jalan: button.data("nama-jalan") || "",
-          no_kavling: button.data("no-kavling") || ""
-        },
-        data2: {
-          harga_akhir: "-",
-          id_hargajual: "",
-          id_komplain: null,
-          no_tipe_rumah: "",
-          tipe_rumah: "",
-          harga_akhir_tgl: "",
-          harga_akhir_oleh: ""
-        }
-      };
-
-      window.editdtt = [sh];
-      if (typeof detail_kavling === "function") {
-        detail_kavling(sh, idKavling);
-      }
+      openKavlingDetailModal($(this));
     });
 
     if (config.hasProject) {

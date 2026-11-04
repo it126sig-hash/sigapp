@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-11-04 11:00:54` @ `e1ced91`  
+**Last Synced:** `2026-11-04 15:17:26` @ `2d5d609`  
 
 ## Purpose
 Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial visual.
@@ -70,7 +70,8 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 #### `SiteplanUrgentService.php`
 - `getSummary(int $idProyek, int $groupId, ?int $userId = null)`
 - `getUrgentSummary(int $idProyek, int $groupId, ?int $userId = null)`
-- `getDashboardAlertCounts(int $idProyek)`
+- `getDashboardAlertCounts(?int $idProyek = null)`
+- `countMkdtDateAlerts(string $field, ?int $idProyek = null, ?string $fromDate = null, ?string $toDate = null)`
 - `emptySummary()`
 - `snoozeUrgentItem(int $userId, int $idProyek, string $itemKey, int $minutes)`
 #### `SiteplanVisualStatusService.php`
@@ -99,14 +100,14 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 ### Services (6)
 - `app/Services/SiteplanDataService.php` (124 baris, 3 public methods)
 - `app/Services/SiteplanMenuService.php` (12 baris, 0 public methods)
-- `app/Services/SiteplanUrgentService.php` (743 baris, 5 public methods)
+- `app/Services/SiteplanUrgentService.php` (791 baris, 6 public methods)
 - `app/Services/SiteplanVisualStatusService.php` (415 baris, 3 public methods)
 - `app/Services/TargetSiteplanService.php` (202 baris, 5 public methods)
 - `app/Services/KalendarService.php` (189 baris, 4 public methods)
 
 ### Repositories (3)
 - `app/Repositories/TargetSiteplanRepository.php` (142 baris, 5 public methods: `getByProject(int $idProyek)`, `getById(int $idTarget)`, `getKavlings(int $idTarget)`, `getHistory(int $idTarget)`, `getKavlingTargetMap(int $idProyek)`)
-- `app/Repositories/OthersRepository.php` (117 baris, 4 public methods: `getAll(?int $id, int $idProyek, array $clusterIds, array $filters = [])`, `hasProgressHistory()`, `countProgressHistory(int $idOthers)`, `getProgressHistory(int $idOthers, int $limit, int $offset)`)
+- `app/Repositories/OthersRepository.php` (145 baris, 4 public methods: `getAll(?int $id, int $idProyek, array $clusterIds, array $filters = [])`, `hasProgressHistory()`, `countProgressHistory(int $idOthers)`, `getProgressHistory(int $idOthers, int $limit, int $offset)`)
 - `app/Repositories/KalendarRepository.php` (87 baris, 3 public methods: `getPembayaranEvents(int $idProyek, string $start, string $end)`, `getJatuhTempoEvents(int $idProyek, string $start, string $end)`, `getMkdtEvents(int $idProyek, string $start, string $end)`)
 
 ### Models (4)
@@ -120,14 +121,14 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - `app/Views/misc` (1 file: `kalender.php`)
 
 ### JavaScript (8 file)
-- `public/assets/js/siteplan/master.js` (3859 baris)
+- `public/assets/js/siteplan/master.js` (3868 baris)
 - `public/assets/js/siteplan/composite-shape.js` (420 baris)
 - `public/assets/js/siteplan/interaction-highlight.js` (143 baris)
 - `public/assets/js/siteplan/shape-filter.js` (65 baris)
 - `public/assets/js/siteplan/polygon-clip.js` (312 baris)
 - `public/assets/js/siteplan-detail-modal.js` (2074 baris)
 - `public/assets/js/siteplan/target.js` (244 baris)
-- `public/assets/js/siteplan/tiket-overlay.js` (409 baris)
+- `public/assets/js/siteplan/tiket-overlay.js` (462 baris)
 
 ## Key Functions
 - **Controller (`app/Controllers/Siteplan.php`):**
@@ -142,6 +143,8 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
   - `getKavlings(array $params)`: Pengambilan data kavling dengan filtering proyek, cluster, dan status.
 - **Service (`app/Services/SiteplanUrgentService.php`):**
   - `getSummary()` / `getUrgentSummary()`: Menghitung kavling-kavling yang memerlukan perhatian mendesak berdasarkan filter waktu/status per divisi.
+  - `getDashboardAlertCounts(?int $idProyek)`: Agregasi tanpa batas kuota untuk kartu peringatan dashboard utama (tagihan overdue, tagihan due 7 hari, cashout subkon, bangunan telat, SP3K expire, rencana akad).
+  - `countMkdtDateAlerts(string $field, ?int $idProyek, ?string $fromDate, ?string $toDate)`: Menghitung kavling aktif dengan batas tanggal MKDT (`sp3k_tgl_exp`, `rencana_akad_tgl`) pada rentang tertentu, memvalidasi `akad_tgl` belum terlaksana dan unit tidak batal.
 - **Service (`app/Services/TargetSiteplanService.php`):**
   - `save(array $data)`: Logika transaksi penyimpanan target kavling bulanan dan pencatatan riwayat target.
 - **Service (`app/Services/KalendarService.php`):**
@@ -149,14 +152,21 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - **Repository (`app/Repositories/TargetSiteplanRepository.php`):**
   - `getByProject(int $idProyek)` / `getKavlingTargetMap(int $idProyek)`: Data access target siteplan dan pemetaan kavling target per proyek.
 - **Repository (`app/Repositories/OthersRepository.php`):**
-  - `getAll(?int $id, int $idProyek, array $clusterIds, array $filters = [])`: Mengelola data aset penunjang non-kavling pada siteplan.
+  - `getAll(?int $id, int $idProyek, array $clusterIds, array $filters = [])`: Mengelola data aset penunjang non-kavling pada siteplan. Menerapkan pengelompokan filter scope (`siteplan`, `produksi`, serta `masalah` jika kategori 'Masalah' dicentang) dan secara eksplisit menyertakan `orWhere('act_tm.active_tiket_id IS NOT NULL', null, false)`. Hal ini memastikan seluruh entitas others (jalan, fasos, rth, ruko) dengan `scope = 'masalah'` otomatis termuat pada tampilan default kanvas siteplan selama memiliki tiket masalah aktif.
+  - `addActiveTiketSelect(BaseBuilder $builder)`: Query JOIN ke derived table `tiket_masalah` (`ref_type = 'others'`, `status NOT IN ('selesai', 'batal', 'hold')`) untuk menyertakan `active_tiket_id`, `active_tiket_prioritas`, dan `active_tiket_status` pada aset fasum/penunjang.
 - **Repository (`app/Repositories/KalendarRepository.php`):**
   - `getPembayaranEvents()`, `getJatuhTempoEvents()`, `getMkdtEvents()`: Query jadwal pembayaran, jatuh tempo, dan agenda MKDT.
 - **Frontend JavaScript (`public/assets/js/siteplan/tiket-overlay.js`):**
   - `SiteplanTiketOverlay`: Modul UMD layer animasi overlay tiket masalah di KonvaJS (`getPriorityColor`, `calculateOpacity`, `calculateCentroid`, `createOverlayShape`, `createBadgeShape`, `createAnimation`, `buildOverlayShapes`, `stopAnimation`, `clearOverlay`).
+    - *Multi-Type Entities Support (`kavling` & `others`)*: Mendukung pembuatan shape overlay dan centroid warning badge untuk kavling (`#tiket-overlay-{id}`, `#tiket-badge-{id}`) maupun fasilitas umum/others (`#tiket-overlay-others{id}`, `#tiket-badge-others{id}`).
+    - *Safe Centroid Calculation*: Menangani poligon titik jamak secara aman melalui `calculateCentroid(points)` untuk kavling dan others; fallback ke bounding box center jika terjadi anomali koordinat.
+    - *Visibility Evaluation*: Memeriksa status visibilitas node induk `#kavling_{id}` atau `#others{id}` sebelum merender shape overlay pada canvas.
     - *Frame Rate Capping 30 FPS*: Pembatasan siklus render animasi menggunakan `TARGET_FPS = 30` dan `FRAME_INTERVAL_MS = 33.33ms` untuk efisiensi CPU/GPU canvas.
     - *Opsi 1 (Pulsing High-Contrast Stroke)*: Menggambar kontur poligon berdenyut berbasis prioritas (`urgent` = merah, `medium` = oranye, `normal` = biru, `low` = abu-abu) dengan garis tepi putih kontras tinggi (`stroke: '#ffffff'`, `strokeWidth` dinamis 1.0px - 3.5px via `1.0 + 2.5 * opacity`).
-    - *Opsi 2 (Centroid Warning Badge `!`)*: Menghitung titik tengah poligon kavling melalui `calculateCentroid(points)` dan menampilkan badge lingkaran peringatan tanda seru (`!`) yang berdenyut membesar-mengecil halus (`scale` 0.85x - 1.15x via `0.85 + 0.3 * opacity`).
+    - *Opsi 2 (Centroid Warning Badge `!`)*: Menghitung titik tengah poligon kavling/others melalui `calculateCentroid(points)` dan menampilkan badge lingkaran peringatan tanda seru (`!`) yang berdenyut membesar-mengecil halus (`scale` 0.85x - 1.15x via `0.85 + 0.3 * opacity`).
+- **Frontend JavaScript (`public/assets/js/siteplan/master.js`):**
+  - `siteplanProblemItems`: State penyimpanan masalah terpusat berbasis dictionary `{ kavling: [], others: [] }`.
+  - `syncSiteplanTiketOverlay()`: Menggabungkan item masalah kavling dan others secara atomik sebelum meneruskan data gabungan ke `SiteplanTiketOverlay.buildOverlayShapes()`, mencegah race condition saat pemanggilan data asinkron.
 
 ## Deprecated & Legacy Shims
 - Route `POST /siteplan/get/all` (`Siteplan::getAllKavling`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
@@ -200,9 +210,32 @@ _Jalankan `php spark module:deadcode Siteplan` untuk mengaudit dead code kandida
 ## Notes
 - Modul diinisialisasi melalui tooling otomatis.
 - **Cross-Module Callers & Integrations:**
-  - Terintegrasi dengan modul `TiketMasalah` dan `Transaksi` (`KavlingRepository::addActiveTiketSelect`): data kavling dari `POST /siteplan/get/all` menyertakan atribut `active_tiket_id`, `active_tiket_prioritas`, dan `active_tiket_status` untuk merender `tiketOverlayLayer` pada peta KonvaJS.
+  - Terintegrasi dengan modul `TiketMasalah` dan `Transaksi`:
+    - `KavlingRepository::addActiveTiketSelect`: data kavling dari `POST /siteplan/get/all` menyertakan atribut `active_tiket_id`, `active_tiket_prioritas`, dan `active_tiket_status` untuk kavling bermasalah aktif.
+    - `OthersRepository::addActiveTiketSelect`: data fasum/others dari `POST /siteplan/get_others` menyertakan atribut `active_tiket_id`, `active_tiket_prioritas`, dan `active_tiket_status` untuk fasilitas non-kavling bermasalah aktif.
+    - `OthersRepository::getAll()`: menyertakan kondisi `orWhere('act_tm.active_tiket_id IS NOT NULL', null, false)` sehingga item others berscope `masalah` otomatis termuat dan teranimasi pulse stroke serta badge peringatan `!` pada default canvas siteplan tanpa mengharuskan pengguna mencentang filter kategori 'Masalah'.
+    - `SiteplanTiketOverlay` (`public/assets/js/siteplan/tiket-overlay.js`) dan `master.js` (`syncSiteplanTiketOverlay`): mengagregasikan masalah kavling dan others secara atomik dan merender `tiketOverlayLayer` pada peta KonvaJS.
 
 ## Change Log
+- **2026-11-04 [`FEATURE`] — Penambahan Agregasi Peringatan SP3K Expire & Rencana Akad pada SiteplanUrgentService:**
+  - **Routes & Public Contracts:** Tidak berubah.
+  - **Controller / Service / Repo / Model:** `app/Services/SiteplanUrgentService.php` menambahkan method publik `countMkdtDateAlerts(string $field, ?int $idProyek, ?string $fromDate, ?string $toDate)` dan memperkaya `getDashboardAlertCounts(?int $idProyek)` dengan metrik `sp3k_expire` dan `rencana_akad` untuk integrasi peringatan dini dashboard lintas departemen.
+  - **View / CSS / JS:** Tidak berubah.
+  - **Deprecations:** Tidak ada.
+- **2026-11-04 [`FEATURE`] — Inklusi Otomatis Item Others Bermasalah Aktif pada Default Canvas Siteplan:**
+  - **Routes & Public Contracts:** Tidak berubah (`POST /siteplan/get_others` / `SiteplanDataService::getOthers`).
+  - **Controller / Service / Repo / Model:** `app/Repositories/OthersRepository.php` memperbarui method `getAll()` dengan menambahkan klausul `orWhere('act_tm.active_tiket_id IS NOT NULL', null, false)` di dalam grup filter `others.scope`. Entitas non-kavling/others (jalan, fasos, rth, ruko) yang dibuat dengan `scope = 'masalah'` kini otomatis terpilih dan tampil di kanvas default siteplan selama tiket masalahnya aktif (`act_tm.active_tiket_id IS NOT NULL`), memicu animasi pulsing stroke dan warning badge tanda seru (`!`) tanpa memerlukan filter manual kategori 'Masalah'. Unit test ditambahkan pada `tests/unit/KavlingCompositeQueryTest.php` (`testOthersScopeFilteringIncludesActiveTiket`).
+  - **View / CSS / JS:** Tidak berubah; canvas KonvaJS dan `SiteplanTiketOverlay` langsung merender animasi pulse dan badge `!` untuk aset others tersebut.
+  - **Deprecations:** Tidak ada.
+- **2026-11-04 [`FEATURE`] — Dukungan Overlay Tiket Masalah pada Entitas Fasum/Others Siteplan:**
+  - **Routes & Public Contracts:** Payload respons aset non-kavling / others (`POST /siteplan/get_others` / `SiteplanDataService::getOthers`) diperkaya dengan atribut tiket masalah aktif (`active_tiket_id`, `active_tiket_prioritas`, `active_tiket_status`).
+  - **Controller / Service / Repo / Model:** `app/Repositories/OthersRepository.php` menambahkan method `addActiveTiketSelect(BaseBuilder $builder)` dengan LEFT JOIN derived table agregasi `tiket_masalah` (`ref_type = 'others'`, `status NOT IN ('selesai', 'batal', 'hold')`). Unit test ditambahkan pada `tests/unit/KavlingCompositeQueryTest.php` (`testOthersActiveTiketSelectAddsDerivedTableAndColumns`).
+  - **View / CSS / JS:**
+    - `public/assets/js/siteplan/tiket-overlay.js`: Penambahan dukungan multi-tipe `refType = 'others'` dan `refType = 'kavling'`, ID prefixing terisolasi (`#tiket-overlay-others{id}`, `#tiket-badge-others{id}`), safe centroid calculation untuk poligon fasum, dan evaluasi visibilitas layer terhadap node target `#others{id}`.
+    - `public/assets/js/siteplan/master.js`: Penambahan state tersentralisasi `siteplanProblemItems = { kavling: [], others: [] }` dan fungsi agregasi atomik `syncSiteplanTiketOverlay()` guna mengeliminasi race condition antara pemuatan data kavling dan aset fasum.
+    - `app/Views/siteplan/master.php`: Penerapan cache busting dinamis `filemtime` pada pemuatan script `master.js`.
+    - Suite unit test Jest di `tests/js/siteplan-tiket-overlay.test.js` diperluas dari 21 menjadi 25 unit tests (100% passing).
+  - **Deprecations:** Tidak ada.
 - **2026-11-04 [`FEATURE`] — Optimalisasi Tiket Masalah Overlay Siteplan (Cap 30 FPS, High-Contrast Stroke, dan Centroid Warning Badge):**
   - **Routes & Public Contracts:** Tidak berubah.
   - **Controller / Service / Repo / Model:** Tidak berubah.

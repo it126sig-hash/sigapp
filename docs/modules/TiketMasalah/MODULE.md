@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-04 11:00:58` @ `e1ced91`  
+**Last Synced:** `2026-11-04 13:26:29` @ `2d5d609`  
 
 ## Purpose
 Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, dan tracking progres penyelesaian.
@@ -115,9 +115,14 @@ _Jalankan `php spark module:deadcode TiketMasalah` untuk mengaudit dead code kan
 ## Notes
 - Modul diinisialisasi melalui tooling otomatis.
 - **Cross-Module Callers & Consumers:**
-  - `Siteplan` & `Transaksi` (`KavlingRepository::addActiveTiketSelect`): Membaca data agregasi tabel `tiket_masalah` (`ref_type = 'kavling'`, `status NOT IN ('selesai', 'batal', 'hold')`) untuk menampilkan indikator denyut spasial masalah per kavling pada antarmuka peta Siteplan interaktif. Representasi spasial di modul `Siteplan` (`public/assets/js/siteplan/tiket-overlay.js`) didukung dengan frame rate capping 30 FPS, pulsing high-contrast stroke, dan centroid warning badge `!`.
+  - `Siteplan` & `Transaksi` (`KavlingRepository::addActiveTiketSelect` dan `OthersRepository::addActiveTiketSelect`): Membaca data agregasi tabel `tiket_masalah` (`ref_type = 'kavling'` dan `ref_type = 'others'`, `status NOT IN ('selesai', 'batal', 'hold')`) untuk menampilkan indikator denyut spasial masalah per kavling maupun per aset fasum/penunjang pada antarmuka peta Siteplan interaktif. Representasi spasial di modul `Siteplan` (`public/assets/js/siteplan/tiket-overlay.js` & `master.js`) didukung dengan frame rate capping 30 FPS, pulsing high-contrast stroke, centroid warning badge `!`, safe centroid calculation untuk poligon fasum, dan eliminasi race condition via agregasi atomik.
 
 ## Change Log
+- **2026-11-04 [`FEATURE`] — Perluasan Konsumsi Tiket Masalah Spasial untuk Entitas Others/Fasum di Siteplan:**
+  - **Routes & Public Contracts:** Tidak berubah. Rute API `/api/tiket-masalah` tetap stabil.
+  - **Controller / Service / Repo / Model:** `OthersRepository::addActiveTiketSelect` pada modul Siteplan kini mengonsumsi tabel `tiket_masalah` dengan filter `ref_type = 'others'` dan `status NOT IN ('selesai', 'batal', 'hold')` untuk memetakan tiket aktif berprioritas tertinggi pada aset fasum/penunjang non-kavling. Pengujian unit diverifikasi pada `tests/unit/KavlingCompositeQueryTest.php`.
+  - **View / CSS / JS:** Visualisasi spasial tiket masalah pada peta Siteplan (`public/assets/js/siteplan/tiket-overlay.js` dan `master.js`) kini mendukung multi-tipe kavling dan others secara atomik dengan safe centroid calculation dan evaluasi visibilitas node `#others{id}` (25 unit tests Jest passing).
+  - **Deprecations:** Tidak ada.
 - **2026-11-04 [`FEATURE`] — Penyempurnaan Visualisasi Spasial Tiket Masalah pada Siteplan (30 FPS Cap, High-Contrast Stroke, Centroid Badge):**
   - **Routes & Public Contracts:** Tidak berubah.
   - **Controller / Service / Repo / Model:** Tidak berubah.

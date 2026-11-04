@@ -59,14 +59,29 @@
 
     function parsePoints(points) {
         if (Array.isArray(points)) {
-            return points;
+            if (points.length > 0 && Array.isArray(points[0])) {
+                return points.flat ? points.flat() : Array.prototype.concat.apply([], points);
+            }
+            return points.map(function(val) {
+                return Number(val) || 0;
+            });
         }
         if (typeof points === 'string') {
+            const trimmed = points.trim();
+            if (!trimmed) return [];
             try {
-                const parsed = JSON.parse('[' + points + ']');
-                if (Array.isArray(parsed)) return parsed;
+                const jsonStr = trimmed.startsWith('[') ? trimmed : '[' + trimmed + ']';
+                const parsed = JSON.parse(jsonStr);
+                if (Array.isArray(parsed)) {
+                    if (parsed.length > 0 && Array.isArray(parsed[0])) {
+                        return parsed.flat ? parsed.flat() : Array.prototype.concat.apply([], parsed);
+                    }
+                    return parsed.map(function(val) {
+                        return Number(val) || 0;
+                    });
+                }
             } catch (_) {
-                return points.split(',').map(function(val) {
+                return trimmed.replace(/[\[\]]/g, '').split(',').map(function(val) {
                     return Number(val) || 0;
                 });
             }
@@ -83,9 +98,13 @@
         let sumY = 0;
         let count = 0;
         for (let i = 0; i < parsed.length - 1; i += 2) {
-            sumX += Number(parsed[i]) || 0;
-            sumY += Number(parsed[i + 1]) || 0;
-            count++;
+            const x = Number(parsed[i]);
+            const y = Number(parsed[i + 1]);
+            if (!isNaN(x) && !isNaN(y)) {
+                sumX += x;
+                sumY += y;
+                count++;
+            }
         }
         if (count === 0) {
             return { x: 0, y: 0 };
@@ -98,14 +117,18 @@
 
     function createOverlayShape(Konva, options) {
         options = options || {};
-        const idKavling = options.idKavling !== undefined ? options.idKavling : options.id_kavling;
+        const refType = options.refType || (options.tipe && options.tipe !== 'kavling' ? 'others' : (options.id_kavling !== undefined ? 'kavling' : (options.id !== undefined ? 'others' : 'kavling')));
+        const refId = options.refId !== undefined ? options.refId : (refType === 'others' ? (options.id !== undefined ? options.id : options.idKavling) : (options.idKavling !== undefined ? options.idKavling : options.id_kavling));
+        const targetPrefix = (refType === 'others' ? 'others' : 'kav');
+        const targetId = targetPrefix + refId;
+
         const prioritas = options.prioritas !== undefined ? options.prioritas : options.active_tiket_prioritas;
         const priorityColor = options.color || getPriorityColor(prioritas, options.conf);
         const phaseOffset = typeof options.phaseOffset === 'number' ? options.phaseOffset : 0;
         const points = parsePoints(options.points);
 
         const shape = new Konva.Line({
-            id: 'tiket-overlay-kav' + idKavling,
+            id: 'tiket-overlay-' + targetPrefix + refId,
             name: 'siteplan-tiket-overlay-shape',
             points: points,
             closed: true,
@@ -115,12 +138,18 @@
             opacity: 0,
             listening: false,
             perfectDrawEnabled: false,
-            idKavling: idKavling,
+            refType: refType,
+            refId: refId,
+            targetId: targetId,
+            idKavling: refId,
             prioritas: prioritas,
             phaseOffset: phaseOffset
         });
 
-        shape.idKavling = idKavling;
+        shape.refType = refType;
+        shape.refId = refId;
+        shape.targetId = targetId;
+        shape.idKavling = refId;
         shape.prioritas = prioritas;
         shape.phaseOffset = phaseOffset;
 
@@ -129,20 +158,27 @@
 
     function createBadgeShape(Konva, options) {
         options = options || {};
-        const idKavling = options.idKavling !== undefined ? options.idKavling : options.id_kavling;
+        const refType = options.refType || (options.tipe && options.tipe !== 'kavling' ? 'others' : (options.id_kavling !== undefined ? 'kavling' : (options.id !== undefined ? 'others' : 'kavling')));
+        const refId = options.refId !== undefined ? options.refId : (refType === 'others' ? (options.id !== undefined ? options.id : options.idKavling) : (options.idKavling !== undefined ? options.idKavling : options.id_kavling));
+        const targetPrefix = (refType === 'others' ? 'others' : 'kav');
+        const targetId = targetPrefix + refId;
+
         const prioritas = options.prioritas !== undefined ? options.prioritas : options.active_tiket_prioritas;
         const priorityColor = options.color || getPriorityColor(prioritas, options.conf);
         const phaseOffset = typeof options.phaseOffset === 'number' ? options.phaseOffset : 0;
         const centroid = options.centroid || calculateCentroid(options.points);
 
         const shape = new Konva.Shape({
-            id: 'tiket-badge-kav' + idKavling,
+            id: 'tiket-badge-' + targetPrefix + refId,
             name: 'siteplan-tiket-badge-shape',
             x: centroid.x,
             y: centroid.y,
             listening: false,
             perfectDrawEnabled: false,
-            idKavling: idKavling,
+            refType: refType,
+            refId: refId,
+            targetId: targetId,
+            idKavling: refId,
             prioritas: prioritas,
             phaseOffset: phaseOffset,
             sceneFunc: function(context, shape) {
@@ -164,7 +200,10 @@
             }
         });
 
-        shape.idKavling = idKavling;
+        shape.refType = refType;
+        shape.refId = refId;
+        shape.targetId = targetId;
+        shape.idKavling = refId;
         shape.prioritas = prioritas;
         shape.phaseOffset = phaseOffset;
 
@@ -200,12 +239,22 @@
 
             for (let i = 0; i < overlayShapes.length; i++) {
                 const shape = overlayShapes[i];
+                const refType = shape.refType !== undefined
+                    ? shape.refType
+                    : (typeof shape.getAttr === 'function' ? shape.getAttr('refType') : (shape.attrs && shape.attrs.refType));
+                const refId = shape.refId !== undefined
+                    ? shape.refId
+                    : (typeof shape.getAttr === 'function' ? shape.getAttr('refId') : (shape.attrs && shape.attrs.refId));
                 const idKavling = shape.idKavling !== undefined
                     ? shape.idKavling
                     : (typeof shape.getAttr === 'function' ? shape.getAttr('idKavling') : (shape.attrs && shape.attrs.idKavling));
 
+                const targetId = shape.targetId ||
+                    (typeof shape.getAttr === 'function' ? shape.getAttr('targetId') : (shape.attrs && shape.attrs.targetId)) ||
+                    (((refType === 'others') ? 'others' : 'kav') + (refId !== undefined ? refId : (idKavling !== undefined ? idKavling : '')));
+
                 const isVisible = typeof isBaseVisibleCallback === 'function'
-                    ? Boolean(isBaseVisibleCallback(idKavling))
+                    ? Boolean(isBaseVisibleCallback(targetId, refType, refId !== undefined ? refId : idKavling))
                     : true;
 
                 if (!isVisible) {
@@ -252,12 +301,22 @@
 
             for (let j = 0; j < badgeShapes.length; j++) {
                 const badge = badgeShapes[j];
+                const refType = badge.refType !== undefined
+                    ? badge.refType
+                    : (typeof badge.getAttr === 'function' ? badge.getAttr('refType') : (badge.attrs && badge.attrs.refType));
+                const refId = badge.refId !== undefined
+                    ? badge.refId
+                    : (typeof badge.getAttr === 'function' ? badge.getAttr('refId') : (badge.attrs && badge.attrs.refId));
                 const idKavling = badge.idKavling !== undefined
                     ? badge.idKavling
                     : (typeof badge.getAttr === 'function' ? badge.getAttr('idKavling') : (badge.attrs && badge.attrs.idKavling));
 
+                const targetId = badge.targetId ||
+                    (typeof badge.getAttr === 'function' ? badge.getAttr('targetId') : (badge.attrs && badge.attrs.targetId)) ||
+                    (((refType === 'others') ? 'others' : 'kav') + (refId !== undefined ? refId : (idKavling !== undefined ? idKavling : '')));
+
                 const isVisible = typeof isBaseVisibleCallback === 'function'
-                    ? Boolean(isBaseVisibleCallback(idKavling))
+                    ? Boolean(isBaseVisibleCallback(targetId, refType, refId !== undefined ? refId : idKavling))
                     : true;
 
                 if (!isVisible) {
@@ -339,39 +398,33 @@
         }
     }
 
-    function buildOverlayShapes(Konva, layer, kavlingList, conf, isBaseVisibleCallback) {
+    function buildOverlayShapes(Konva, layer, itemList, conf, isBaseVisibleCallback) {
         clearOverlay(layer);
 
-        const problemKavlings = (kavlingList || []).filter(function(item) {
+        const problemItems = (itemList || []).filter(function(item) {
             return item && (item.active_tiket_id || item.active_tiket_prioritas);
         });
 
-        if (problemKavlings.length === 0) {
+        if (problemItems.length === 0) {
             return [];
         }
 
-        const total = problemKavlings.length;
+        const total = problemItems.length;
         const createdShapes = [];
 
         for (let index = 0; index < total; index++) {
-            const item = problemKavlings[index];
+            const item = problemItems[index];
             const phaseOffset = index * ((2 * Math.PI) / Math.max(total, 1));
 
-            const shape = createOverlayShape(Konva, {
-                idKavling: item.id_kavling,
-                points: item.points,
-                prioritas: item.active_tiket_prioritas,
+            const options = Object.assign({}, item, {
                 conf: conf,
-                phaseOffset: phaseOffset
+                phaseOffset: phaseOffset,
+                points: item.points,
+                prioritas: item.prioritas !== undefined ? item.prioritas : item.active_tiket_prioritas
             });
 
-            const badge = createBadgeShape(Konva, {
-                idKavling: item.id_kavling,
-                points: item.points,
-                prioritas: item.active_tiket_prioritas,
-                conf: conf,
-                phaseOffset: phaseOffset
-            });
+            const shape = createOverlayShape(Konva, options);
+            const badge = createBadgeShape(Konva, options);
 
             if (typeof layer.add === 'function') {
                 layer.add(shape);

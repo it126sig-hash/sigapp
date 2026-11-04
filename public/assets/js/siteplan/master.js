@@ -155,6 +155,18 @@ Date.prototype.toDateInputValue = (function() {
     var siteplanKavlingRequest = null,
         siteplanOthersRequest = null,
         siteplanLoadSequence = 0;
+    let siteplanProblemItems = { kavling: [], others: [] };
+
+    function syncSiteplanTiketOverlay() {
+        if (typeof SiteplanTiketOverlay === 'undefined' || !tiketOverlayLayer) return;
+        const allProblemItems = [].concat(siteplanProblemItems.kavling || [], siteplanProblemItems.others || []);
+        const isBaseVisible = function(targetId) {
+            const baseNode = siteplan.findOne('#' + targetId);
+            if (!baseNode) return false;
+            return typeof baseNode.visible === 'function' ? baseNode.visible() : true;
+        };
+        SiteplanTiketOverlay.buildOverlayShapes(Konva, tiketOverlayLayer, allProblemItems, conf, isBaseVisible);
+    }
 
     function updateSiteplanRenderStats() {
         const kavlingNodes = Array.from(siteplan.find('.siteplan-kavling'));
@@ -301,6 +313,7 @@ Date.prototype.toDateInputValue = (function() {
     function clearSiteplanDataShapes() {
         clearShapeFilterSelection();
         siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
+        siteplanProblemItems = { kavling: [], others: [] };
         if (typeof SiteplanTiketOverlay !== 'undefined' && typeof SiteplanTiketOverlay.clearOverlay === 'function') {
             SiteplanTiketOverlay.clearOverlay(tiketOverlayLayer);
         } else if (typeof tiketOverlayLayer !== 'undefined' && tiketOverlayLayer) {
@@ -1125,6 +1138,7 @@ Date.prototype.toDateInputValue = (function() {
         };
 
         siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
+        siteplanProblemItems = { kavling: [], others: [] };
         if (typeof SiteplanTiketOverlay !== 'undefined' && typeof SiteplanTiketOverlay.clearOverlay === 'function') {
             SiteplanTiketOverlay.clearOverlay(tiketOverlayLayer);
         } else if (typeof tiketOverlayLayer !== 'undefined' && tiketOverlayLayer) {
@@ -1668,20 +1682,15 @@ Date.prototype.toDateInputValue = (function() {
                     siteplan.add(kav);
                 }
                 updateSiteplanRenderStats();
-                if (typeof SiteplanTiketOverlay !== 'undefined') {
-                    const problemKavlings = [];
-                    for (let p = 0; p < r.length; p++) {
-                        if (r[p] && r[p].active_tiket_id) {
-                            problemKavlings.push(r[p]);
-                        }
+                const problemKavlings = [];
+                for (let p = 0; p < r.length; p++) {
+                    if (r[p] && r[p].active_tiket_id) {
+                        r[p].refType = 'kavling';
+                        problemKavlings.push(r[p]);
                     }
-                    const isBaseVisible = function(idKavling) {
-                        const baseNode = siteplan.findOne('#kav' + idKavling);
-                        if (!baseNode) return false;
-                        return typeof baseNode.visible === 'function' ? baseNode.visible() : true;
-                    };
-                    SiteplanTiketOverlay.buildOverlayShapes(Konva, tiketOverlayLayer, problemKavlings, conf, isBaseVisible);
                 }
+                siteplanProblemItems.kavling = problemKavlings;
+                syncSiteplanTiketOverlay();
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
                 handlePendingSiteplanUrgentAction()
@@ -1774,6 +1783,16 @@ Date.prototype.toDateInputValue = (function() {
                 }
 
                 updateSiteplanRenderStats();
+
+                const problemOthers = [];
+                for (let p = 0; p < r.length; p++) {
+                    if (r[p] && r[p].active_tiket_id) {
+                        r[p].refType = 'others';
+                        problemOthers.push(r[p]);
+                    }
+                }
+                siteplanProblemItems.others = problemOthers;
+                syncSiteplanTiketOverlay();
                 
                 if (activeKategori.includes('Masalah')) {
                     set_keterangan_warna();
@@ -1812,22 +1831,16 @@ Date.prototype.toDateInputValue = (function() {
 
         var oldScale = stage.scaleX();
         var pointer = stage.getPointerPosition();
+        if (!pointer) return;
 
         var mousePointTo = {
             x: (pointer.x - stage.x()) / oldScale,
             y: (pointer.y - stage.y()) / oldScale,
         };
 
-        // how to scale? Zoom in? Or zoom out?
-        let direction = e.evt.deltaY > 0 ? -1 : 1;
-
-        // when we zoom on trackpad, e.evt.ctrlKey is true
-        // in that case lets revert direction
-        if (e.evt.ctrlKey) {
-            direction = -direction;
-        }
-
-        var newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+        var newScale = e.evt.ctrlKey
+            ? oldScale * Math.pow(0.99, e.evt.deltaY)
+            : (e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy);
 
         stage.scale({
             x: newScale,
@@ -1837,12 +1850,11 @@ Date.prototype.toDateInputValue = (function() {
         group.scale({
             x: 1 / newScale,
             y: 1 / newScale
-        })
-        var newPos = {
+        });
+        stage.position({
             x: pointer.x - mousePointTo.x * newScale,
             y: pointer.y - mousePointTo.y * newScale,
-        };
-        stage.position(newPos);
+        });
     });
 
     //clear selction
@@ -2120,67 +2132,64 @@ Date.prototype.toDateInputValue = (function() {
 
     var lastCenter = null;
     var lastDist = 0;
+    var dragStopped = false;
     stage.on('touchmove', function(e) {
         e.evt.preventDefault();
-        stage.setPointersPositions(e.evt);
-        var pointers = stage.getPointersPositions();
-        var p1 = pointers[0];
-        var p2 = pointers[1];
+        var touch1 = e.evt.touches[0];
+        var touch2 = e.evt.touches[1];
 
-        if (p1 && p2) {
-            // if the stage was under Konva's drag&drop
-            // we need to stop it, and implement our own pan logic with two pointers
-            if (stage.isDragging()) {
-                stage.stopDrag();
-            }
+        // restore single-finger drag when second finger is lifted
+        if (touch1 && !touch2 && !stage.isDragging() && dragStopped) {
+            stage.startDrag();
+            dragStopped = false;
+        }
 
-            if (!lastCenter) {
-                lastCenter = getCenter(p1, p2);
-                return;
-            }
+        if (touch1 && touch2) {
+            // Konva registers a "ready" drag on touchstart before dragDistance (3px) is crossed;
+            // stage.isDragging() is still false then, so always stopDrag() to clear _dragElements
+            stage.stopDrag();
+            dragStopped = true;
+
+            var rect = stage.container().getBoundingClientRect();
+            var p1 = { x: touch1.clientX - rect.left, y: touch1.clientY - rect.top };
+            var p2 = { x: touch2.clientX - rect.left, y: touch2.clientY - rect.top };
+
             var newCenter = getCenter(p1, p2);
-
             var dist = getDistance(p1, p2);
 
-            if (!lastDist) {
+            if (!lastCenter || !lastDist) {
+                lastCenter = newCenter;
                 lastDist = dist;
+                return;
             }
 
-            // local coordinates of center point
+            // local coordinates of previous pinch center point
             var pointTo = {
-                x: (newCenter.x - stage.x()) / stage.scaleX(),
-                y: (newCenter.y - stage.y()) / stage.scaleX(),
+                x: (lastCenter.x - stage.x()) / stage.scaleX(),
+                y: (lastCenter.y - stage.y()) / stage.scaleX(),
             };
 
             var scale = stage.scaleX() * (dist / lastDist);
 
-            stage.scaleX(scale);
-            stage.scaleY(scale);
+            stage.scale({ x: scale, y: scale });
+            group.scale({ x: 1 / scale, y: 1 / scale });
 
-            // calculate new position of the stage
-            var dx = newCenter.x - lastCenter.x;
-            var dy = newCenter.y - lastCenter.y;
-
-            var newPos = {
-                x: newCenter.x - pointTo.x * scale + dx,
-                y: newCenter.y - pointTo.y * scale + dy,
-            };
-
-            group.scale({
-                x: 1 / scale,
-                y: 1 / scale
-            })
-
-            stage.position(newPos);
+            stage.position({
+                x: newCenter.x - pointTo.x * scale,
+                y: newCenter.y - pointTo.y * scale,
+            });
 
             lastDist = dist;
             lastCenter = newCenter;
         }
     });
 
-    stage.on('touchend touchcancel', function() {
+    stage.on('touchend touchcancel', function(e) {
         lastDist = 0;
         lastCenter = null;
+        if (!e.evt.touches || e.evt.touches.length === 0) {
+            dragStopped = false;
+        }
     });
 
     function isi_data() {
