@@ -40,4 +40,25 @@ final class KavlingCompositeQueryTest extends CIUnitTestCase
         $this->assertStringContainsString('pa_pengajuan_outstanding_count', $sql);
         $this->assertStringNotContainsString('SELECT jatuh_tempo_tgl FROM keuangan WHERE', $sql);
     }
+
+    public function testActiveTiketSelectAddsDerivedTableAndColumns(): void
+    {
+        $repository = new KavlingRepository(Database::connect());
+        $reflection = new ReflectionClass($repository);
+
+        $baseQuery = $reflection->getMethod('baseQuery');
+        $builder = $baseQuery->invoke($repository);
+
+        $activeTiketMethod = $reflection->getMethod('addActiveTiketSelect');
+        $activeTiketMethod->invoke($repository, $builder);
+
+        $sql = $builder->getCompiledSelect(false);
+
+        $this->assertStringContainsString('active_tiket_id', $sql);
+        $this->assertStringContainsString('active_tiket_prioritas', $sql);
+        $this->assertStringContainsString('active_tiket_status', $sql);
+        $this->assertStringContainsString("tm.ref_type = 'kavling'", $sql);
+        $this->assertStringContainsString("tm.status NOT IN ('selesai', 'batal', 'hold')", $sql);
+        $this->assertStringContainsString('act_tm.ref_id = kavling.id_kavling', $sql);
+    }
 }

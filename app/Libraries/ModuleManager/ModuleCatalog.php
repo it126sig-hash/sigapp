@@ -91,6 +91,7 @@ class ModuleCatalog
                     'siteplan/polygon-clip.js',
                     'siteplan-detail-modal.js',
                     'siteplan/target.js',
+                    'siteplan/tiket-overlay.js',
                 ],
                 'owner_tables' => [
                     'siteplan_upload',
@@ -98,7 +99,7 @@ class ModuleCatalog
                     'target_siteplan_kavling',
                     'target_siteplan_history',
                 ],
-                'shared_tables' => ['kavling', 'mkdt', 'keuangan', 'produksi', 'legal'],
+                'shared_tables' => ['kavling', 'mkdt', 'keuangan', 'produksi', 'legal', 'tiket_masalah'],
             ],
             'MKDT' => [
                 'name' => 'MKDT',

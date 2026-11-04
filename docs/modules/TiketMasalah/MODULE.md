@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-23 13:52:13` @ `ad0c900`  
+**Last Synced:** `2026-11-04 11:00:58` @ `e1ced91`  
 
 ## Purpose
 Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, dan tracking progres penyelesaian.
@@ -63,14 +63,14 @@ Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, da
 
 ## File Inventory
 ### Controllers (2)
-- `app/Controllers/Web/TiketMasalah/TiketMasalahController.php` (19 baris, 1 public methods)
-- `app/Controllers/Api/TiketMasalah/TiketMasalahController.php` (218 baris, 13 public methods)
+- `app/Controllers/Web/TiketMasalah/TiketMasalahController.php` (19 baris, 1 public methods: `index()`)
+- `app/Controllers/Api/TiketMasalah/TiketMasalahController.php` (218 baris, 13 public methods: `list()`, `detail()`, `progress()`, `store()`, `update()`, `addProgress()`, `togglePin()`, `refInfo()`, `users()`, `creators()`, `divisions()`, `datatable()`, `createOthersArea()`)
 
 ### Services (1)
-- `app/Services/TiketMasalah/TiketMasalahService.php` (741 baris)
+- `app/Services/TiketMasalah/TiketMasalahService.php` (741 baris, 13 public methods)
 
 ### Repositories (1)
-- `app/Repositories/TiketMasalah/TiketMasalahRepository.php` (179 baris)
+- `app/Repositories/TiketMasalah/TiketMasalahRepository.php` (179 baris, 7 public methods: `getListWithSummary(string $refType, int $refId)`, `getDetailFull(int $idTiket)`, `getProgressPaginated(int $idTiket, int $limit, int $offset)`, `getDatatables(array $params)`, `countDatatables(array $params)`, `countAll()`, `insertOthersArea(array $fields)`)
 
 ### Models (4)
 - `app/Models/TiketMasalahModel.php`
@@ -79,7 +79,7 @@ Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, da
 - `app/Models/TiketMasalahUserModel.php`
 
 ### Views (1 folder)
-- `app/Views/tiket_masalah` (1 file)
+- `app/Views/tiket_masalah` (1 file: `index.php`)
 
 ### JavaScript (2 file)
 - `public/assets/js/tiket_masalah/index.js` (313 baris)
@@ -90,6 +90,16 @@ Pelaporan kendala lintas divisi, delegasi PIC perbaikan lapangan, foto bukti, da
 - `app/Controllers/Api/TiketMasalahController.php`
 - `app/Services/TiketMasalahService.php`
 - `app/Repositories/TiketMasalahRepository.php`
+
+## Key Functions
+- **Service (`app/Services/TiketMasalah/TiketMasalahService.php`):** `getListByRef(string $refType, int $refId)`, `getDetail(int $idTiket)`, `getProgress(int $idTiket, int $limit, int $offset)`, `getDatatableData(array $params)`, `createTiket(array $data, array $files)`
+- **Repository (`app/Repositories/TiketMasalah/TiketMasalahRepository.php`):** `getListWithSummary(string $refType, int $refId)`, `getDetailFull(int $idTiket)`, `getProgressPaginated(int $idTiket, int $limit, int $offset)`, `getDatatables(array $params)`, `countDatatables(array $params)`
+
+## Deprecated & Legacy Shims
+- `app/Controllers/Web/TiketMasalahController.php` — **DEPRECATED (Zero-Downtime Shim)**: Dipertahankan untuk kompatibilitas mundur; gunakan class modular di namespace `TiketMasalah`.
+- `app/Controllers/Api/TiketMasalahController.php` — **DEPRECATED (Zero-Downtime Shim)**: Dipertahankan untuk kompatibilitas mundur; gunakan class modular di namespace `TiketMasalah`.
+- `app/Services/TiketMasalahService.php` — **DEPRECATED (Zero-Downtime Shim)**: Dipertahankan untuk kompatibilitas mundur; gunakan class modular di namespace `TiketMasalah`.
+- `app/Repositories/TiketMasalahRepository.php` — **DEPRECATED (Zero-Downtime Shim)**: Dipertahankan untuk kompatibilitas mundur; gunakan class modular di namespace `TiketMasalah`.
 
 ## Readiness Checklist
 - [x] Has Service Layer
@@ -104,3 +114,18 @@ _Jalankan `php spark module:deadcode TiketMasalah` untuk mengaudit dead code kan
 
 ## Notes
 - Modul diinisialisasi melalui tooling otomatis.
+- **Cross-Module Callers & Consumers:**
+  - `Siteplan` & `Transaksi` (`KavlingRepository::addActiveTiketSelect`): Membaca data agregasi tabel `tiket_masalah` (`ref_type = 'kavling'`, `status NOT IN ('selesai', 'batal', 'hold')`) untuk menampilkan indikator denyut spasial masalah per kavling pada antarmuka peta Siteplan interaktif. Representasi spasial di modul `Siteplan` (`public/assets/js/siteplan/tiket-overlay.js`) didukung dengan frame rate capping 30 FPS, pulsing high-contrast stroke, dan centroid warning badge `!`.
+
+## Change Log
+- **2026-11-04 [`FEATURE`] — Penyempurnaan Visualisasi Spasial Tiket Masalah pada Siteplan (30 FPS Cap, High-Contrast Stroke, Centroid Badge):**
+  - **Routes & Public Contracts:** Tidak berubah.
+  - **Controller / Service / Repo / Model:** Tidak berubah.
+  - **View / CSS / JS:** Visualisasi spasial tiket masalah aktif pada peta Siteplan (`public/assets/js/siteplan/tiket-overlay.js`) dioptimalkan dengan frame rate cap 30 FPS (`TARGET_FPS = 30`, interval 33.33ms), kontur stroke putih berdenyut (1.0px s.d. 3.5px), serta penambahan warning badge tanda seru `!` di centroid poligon kavling dengan animasi skala dinamis (0.85x s.d. 1.15x). Suite pengujian diperluas menjadi 21 unit tests Jest (`tests/js/siteplan-tiket-overlay.test.js`).
+  - **Deprecations:** Tidak ada.
+- **2026-11-04 [`FEATURE`] — Integrasi Spasial Tiket Masalah Aktif ke Siteplan Overlay:**
+  - **Routes & Public Contracts:** Tidak ada perubahan rute API `/api/tiket-masalah`. Data tiket aktif kavling diintegrasikan ke payload query composite kavling (`POST /siteplan/get/all`).
+  - **Controller / Service / Repo / Model:** Konsumsi tabel `tiket_masalah` melalui query builder agregat `KavlingRepository::addActiveTiketSelect` memetakan kavling ke tiket aktif berprioritas tertinggi (`urgent`, `medium`, `normal`, `low`).
+  - **View / CSS / JS:** Data tiket masalah aktif divisualisasikan oleh layer `SiteplanTiketOverlay` (`public/assets/js/siteplan/tiket-overlay.js`) pada modul Siteplan.
+  - **Deprecations:** Tidak ada.
+- `2026-11-04` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.

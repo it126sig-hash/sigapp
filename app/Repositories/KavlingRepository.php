@@ -330,6 +330,33 @@ class KavlingRepository
     }
 
     /**
+     * Select tiket masalah aktif per kavling (LEFT JOIN derived table teragregasi).
+     */
+    private function addActiveTiketSelect(BaseBuilder $builder): void
+    {
+        $builder->join(
+            "(SELECT 
+                tm.ref_id,
+                SUBSTRING_INDEX(GROUP_CONCAT(tm.id ORDER BY CASE tm.prioritas WHEN 'urgent' THEN 1 WHEN 'medium' THEN 2 WHEN 'normal' THEN 3 WHEN 'low' THEN 4 ELSE 5 END ASC, tm.created_at DESC), ',', 1) AS active_tiket_id,
+                SUBSTRING_INDEX(GROUP_CONCAT(tm.prioritas ORDER BY CASE tm.prioritas WHEN 'urgent' THEN 1 WHEN 'medium' THEN 2 WHEN 'normal' THEN 3 WHEN 'low' THEN 4 ELSE 5 END ASC, tm.created_at DESC), ',', 1) AS active_tiket_prioritas,
+                SUBSTRING_INDEX(GROUP_CONCAT(tm.status ORDER BY CASE tm.prioritas WHEN 'urgent' THEN 1 WHEN 'medium' THEN 2 WHEN 'normal' THEN 3 WHEN 'low' THEN 4 ELSE 5 END ASC, tm.created_at DESC), ',', 1) AS active_tiket_status
+            FROM tiket_masalah tm
+            WHERE tm.ref_type = 'kavling'
+              AND tm.status NOT IN ('selesai', 'batal', 'hold')
+            GROUP BY tm.ref_id) act_tm",
+            'act_tm.ref_id = kavling.id_kavling',
+            'left',
+            false
+        );
+
+        $builder->select('
+            act_tm.active_tiket_id,
+            act_tm.active_tiket_prioritas,
+            act_tm.active_tiket_status
+        ', true);
+    }
+
+    /**
      * Main: ambil data kavling dengan seluruh filter.
      */
     public function getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null, $kategoriFilters = [])
@@ -348,6 +375,8 @@ class KavlingRepository
         } elseif ($idDivisi === 3) {
             $this->addPencairanAkadSelect($builder);
         }
+
+        $this->addActiveTiketSelect($builder);
 
         if (!empty($kategoriFilters['kategori'])) {
             if (in_array('Masalah', $kategoriFilters['kategori'])) {

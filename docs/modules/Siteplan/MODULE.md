@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-11-03 13:04:46` @ `1b0ebfd`  
+**Last Synced:** `2026-11-04 11:00:54` @ `e1ced91`  
 
 ## Purpose
 Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial visual.
@@ -27,6 +27,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - `keuangan`
 - `produksi`
 - `legal`
+- `tiket_masalah`
 
 ## Contracts
 ### A. Public HTTP Endpoints & Routes Inventory
@@ -118,14 +119,15 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - `app/Views/siteplan` (16 file: `cashout_subkon.php`, `direksi.php`, `keuangan.php`, `legal.php`, `master.php`, `mkdt.php`, `modal_list_request_kavling.php`, `pajak.php`, `pilih_proyek.php`, `planning.php`, `produksi.php`, `produksi_mobile.php`, `request_kavling_modal.php`, `sales.php`, `target.php`, `test.php`)
 - `app/Views/misc` (1 file: `kalender.php`)
 
-### JavaScript (7 file)
-- `public/assets/js/siteplan/master.js` (3824 baris)
+### JavaScript (8 file)
+- `public/assets/js/siteplan/master.js` (3859 baris)
 - `public/assets/js/siteplan/composite-shape.js` (420 baris)
 - `public/assets/js/siteplan/interaction-highlight.js` (143 baris)
 - `public/assets/js/siteplan/shape-filter.js` (65 baris)
 - `public/assets/js/siteplan/polygon-clip.js` (312 baris)
 - `public/assets/js/siteplan-detail-modal.js` (2074 baris)
 - `public/assets/js/siteplan/target.js` (244 baris)
+- `public/assets/js/siteplan/tiket-overlay.js` (409 baris)
 
 ## Key Functions
 - **Controller (`app/Controllers/Siteplan.php`):**
@@ -150,6 +152,11 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
   - `getAll(?int $id, int $idProyek, array $clusterIds, array $filters = [])`: Mengelola data aset penunjang non-kavling pada siteplan.
 - **Repository (`app/Repositories/KalendarRepository.php`):**
   - `getPembayaranEvents()`, `getJatuhTempoEvents()`, `getMkdtEvents()`: Query jadwal pembayaran, jatuh tempo, dan agenda MKDT.
+- **Frontend JavaScript (`public/assets/js/siteplan/tiket-overlay.js`):**
+  - `SiteplanTiketOverlay`: Modul UMD layer animasi overlay tiket masalah di KonvaJS (`getPriorityColor`, `calculateOpacity`, `calculateCentroid`, `createOverlayShape`, `createBadgeShape`, `createAnimation`, `buildOverlayShapes`, `stopAnimation`, `clearOverlay`).
+    - *Frame Rate Capping 30 FPS*: Pembatasan siklus render animasi menggunakan `TARGET_FPS = 30` dan `FRAME_INTERVAL_MS = 33.33ms` untuk efisiensi CPU/GPU canvas.
+    - *Opsi 1 (Pulsing High-Contrast Stroke)*: Menggambar kontur poligon berdenyut berbasis prioritas (`urgent` = merah, `medium` = oranye, `normal` = biru, `low` = abu-abu) dengan garis tepi putih kontras tinggi (`stroke: '#ffffff'`, `strokeWidth` dinamis 1.0px - 3.5px via `1.0 + 2.5 * opacity`).
+    - *Opsi 2 (Centroid Warning Badge `!`)*: Menghitung titik tengah poligon kavling melalui `calculateCentroid(points)` dan menampilkan badge lingkaran peringatan tanda seru (`!`) yang berdenyut membesar-mengecil halus (`scale` 0.85x - 1.15x via `0.85 + 0.3 * opacity`).
 
 ## Deprecated & Legacy Shims
 - Route `POST /siteplan/get/all` (`Siteplan::getAllKavling`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
@@ -192,8 +199,24 @@ _Jalankan `php spark module:deadcode Siteplan` untuk mengaudit dead code kandida
 
 ## Notes
 - Modul diinisialisasi melalui tooling otomatis.
+- **Cross-Module Callers & Integrations:**
+  - Terintegrasi dengan modul `TiketMasalah` dan `Transaksi` (`KavlingRepository::addActiveTiketSelect`): data kavling dari `POST /siteplan/get/all` menyertakan atribut `active_tiket_id`, `active_tiket_prioritas`, dan `active_tiket_status` untuk merender `tiketOverlayLayer` pada peta KonvaJS.
 
 ## Change Log
+- **2026-11-04 [`FEATURE`] — Optimalisasi Tiket Masalah Overlay Siteplan (Cap 30 FPS, High-Contrast Stroke, dan Centroid Warning Badge):**
+  - **Routes & Public Contracts:** Tidak berubah.
+  - **Controller / Service / Repo / Model:** Tidak berubah.
+  - **View / CSS / JS:** Pembaruan pada `public/assets/js/siteplan/tiket-overlay.js`:
+    - Penambahan Frame Rate Capping ke 30 FPS (`TARGET_FPS = 30`, `FRAME_INTERVAL_MS = 33.33ms`) pada loop animasi KonvaJS guna menekan utilisasi GPU/CPU canvas.
+    - Opsi 1 (Pulsing High-Contrast Stroke): Garis tepi putih `#ffffff` berdenyut dinamis (`strokeWidth` 1.0px s.d. 3.5px via `1.0 + 2.5 * opacity`) pada shape poligon kavling overlay.
+    - Opsi 2 (Centroid Warning Badge `!`): Penambahan fungsi `calculateCentroid(points)` dan `createBadgeShape(Konva, options)` yang menggambar floating warning badge tanda seru (`!`) di tengah kavling dengan animasi skala halus (`scale` 0.85x s.d. 1.15x via `0.85 + 0.3 * opacity`).
+    - Suite unit test Jest di `tests/js/siteplan-tiket-overlay.test.js` diperluas dari 14 menjadi 21 unit tests (100% passing).
+  - **Deprecations:** Tidak ada.
+- **2026-11-04 [`FEATURE`] — Penambahan Layer Animasi Tiket Masalah Overlay pada Siteplan KonvaJS:**
+  - **Routes & Public Contracts:** Tidak ada penambahan endpoint baru. Payload data kavling pada `POST /siteplan/get/all` (`Siteplan::getAllKavling`) diperkaya dengan kolom tiket masalah aktif (`active_tiket_id`, `active_tiket_prioritas`, `active_tiket_status`).
+  - **Controller / Service / Repo / Model:** `app/Repositories/KavlingRepository.php` menambahkan method `addActiveTiketSelect(BaseBuilder $builder)` dengan LEFT JOIN derived table agregasi `tiket_masalah` (`ref_type = 'kavling'`, `status NOT IN ('selesai', 'batal', 'hold')`). Unit test ditambahkan pada `tests/unit/KavlingCompositeQueryTest.php` (`testActiveTiketSelectAddsDerivedTableAndColumns()`).
+  - **View / CSS / JS:** Asset baru `public/assets/js/siteplan/tiket-overlay.js` (modul UMD `SiteplanTiketOverlay`). View `app/Views/siteplan/master.php` mendaftarkan tag script `tiket-overlay.js`. Script `public/assets/js/siteplan/master.js` menginisialisasi `tiketOverlayLayer` pada Konva Stage di antara `siteplanLayer` dan `maskedLayer`, memanggil `SiteplanTiketOverlay.buildOverlayShapes()` pada saat kavling dimuat, dan membersihkan overlay via `clearSiteplanDataShapes()`. Unit test Jest `tests/js/siteplan-tiket-overlay.test.js` (14 test cases pass).
+  - **Deprecations:** Tidak ada.
 - **2026-11-03 [`UI_REPORT`] — Sinkronisasi Milestone Visual Siteplan untuk Status Akad Indent & Akad AJB:**
   - **Routes & Public Contracts:** Penyesuaian output kontrak `visual_rows[0]` (segmen MKDT) pada method `SiteplanVisualStatusService::buildRows` dan `appendVisualRows`. Segmen MKDT kini mengembalikan `config_name` `'Akad Subsidi'` atau `'Akad Komersil'` saat `akad_indent = 1` maupun `akad = 1`. Jika `akad_indent = 1` dan belum akad AJB (`akad = 0`), menyertakan marker `[['config_name' => 'Akad Indent', 'position' => 0.5]]` (garis aksen biru). Setelah `akad = 1` (Akad AJB), marker dihapus sehingga warna solid Akad tampil penuh.
   - **Controller / Service / Repo / Model:** Diperbarui `app/Services/SiteplanVisualStatusService.php` (`mkdtRow()`) untuk evaluasi boolean `$hasAkadAjb` dan `$hasAkadIndent`. Test suite diperbarui pada `tests/unit/SiteplanVisualStatusServiceTest.php` (72 tests passing).

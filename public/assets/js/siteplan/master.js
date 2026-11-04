@@ -101,6 +101,7 @@ Date.prototype.toDateInputValue = (function() {
     //declare layer
     var siteplan = new Konva.Layer(), //siteplan layer
         masked = new Konva.Layer(), //selection layer
+        tiketOverlayLayer = new Konva.Layer({ listening: false }), // overlay tiket masalah layer
         // datal = new Konva.Layer(), //kavling shape layer
         group = new Konva.Group({ //group for tooltip
             visible: false,
@@ -300,6 +301,16 @@ Date.prototype.toDateInputValue = (function() {
     function clearSiteplanDataShapes() {
         clearShapeFilterSelection();
         siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
+        if (typeof SiteplanTiketOverlay !== 'undefined' && typeof SiteplanTiketOverlay.clearOverlay === 'function') {
+            SiteplanTiketOverlay.clearOverlay(tiketOverlayLayer);
+        } else if (typeof tiketOverlayLayer !== 'undefined' && tiketOverlayLayer) {
+            tiketOverlayLayer.destroyChildren();
+            if (tiketOverlayLayer._tiketAnimation && typeof tiketOverlayLayer._tiketAnimation.stop === 'function') {
+                tiketOverlayLayer._tiketAnimation.stop();
+                tiketOverlayLayer._tiketAnimation = null;
+            }
+            tiketOverlayLayer.batchDraw();
+        }
         if (typeof hoverHighlight !== 'undefined' && hoverHighlight) {
             hoverHighlight.hide();
         }
@@ -1114,6 +1125,16 @@ Date.prototype.toDateInputValue = (function() {
         };
 
         siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
+        if (typeof SiteplanTiketOverlay !== 'undefined' && typeof SiteplanTiketOverlay.clearOverlay === 'function') {
+            SiteplanTiketOverlay.clearOverlay(tiketOverlayLayer);
+        } else if (typeof tiketOverlayLayer !== 'undefined' && tiketOverlayLayer) {
+            tiketOverlayLayer.destroyChildren();
+            if (tiketOverlayLayer._tiketAnimation && typeof tiketOverlayLayer._tiketAnimation.stop === 'function') {
+                tiketOverlayLayer._tiketAnimation.stop();
+                tiketOverlayLayer._tiketAnimation = null;
+            }
+            tiketOverlayLayer.batchDraw();
+        }
 
         let va = $("#pilih-divisi option:selected").val();
         wr_pembangunan = [];
@@ -1647,6 +1668,20 @@ Date.prototype.toDateInputValue = (function() {
                     siteplan.add(kav);
                 }
                 updateSiteplanRenderStats();
+                if (typeof SiteplanTiketOverlay !== 'undefined') {
+                    const problemKavlings = [];
+                    for (let p = 0; p < r.length; p++) {
+                        if (r[p] && r[p].active_tiket_id) {
+                            problemKavlings.push(r[p]);
+                        }
+                    }
+                    const isBaseVisible = function(idKavling) {
+                        const baseNode = siteplan.findOne('#kav' + idKavling);
+                        if (!baseNode) return false;
+                        return typeof baseNode.visible === 'function' ? baseNode.visible() : true;
+                    };
+                    SiteplanTiketOverlay.buildOverlayShapes(Konva, tiketOverlayLayer, problemKavlings, conf, isBaseVisible);
+                }
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
                 handlePendingSiteplanUrgentAction()
@@ -2422,7 +2457,7 @@ Date.prototype.toDateInputValue = (function() {
         window.apply_server_filter();
     }
     // stage.add(siteplan, masked, datal);
-    stage.add(siteplan, masked);
+    stage.add(siteplan, tiketOverlayLayer, masked);
     stage.draw();
     siteplanStageReady = true;
     tryInitSiteplanCanvas();
