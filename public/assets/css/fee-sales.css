@@ -502,3 +502,51 @@
   font-size: 0.85rem;
 }
 
+/* -------------------------------------------------------------
+ * 7. Modal Detail Pengajuan Pencairan (#modal-group-detail)
+ * ----------------------------------------------------------- */
+
+#modal-group-detail .modal-dialog {
+  height: calc(100vh - 2rem);
+  max-height: calc(100vh - 2rem);
+  margin: 1rem auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#modal-group-detail .modal-content {
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+#modal-group-detail .modal-header,
+#modal-group-detail .modal-footer {
+  flex-shrink: 0;
+  background-color: #fff;
+}
+
+#modal-group-detail .modal-body {
+  flex-grow: 1;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  padding: 1.25rem;
+}
+
+@media (max-width: 767.98px) {
+  #modal-group-detail .modal-dialog {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    margin: 0;
+    max-width: 100vw;
+  }
+
+  #modal-group-detail .modal-content {
+    border-radius: 0;
+  }
+}

@@ -112,6 +112,45 @@ if (! function_exists('fmtRupiahPdf')) {
         return number_format((float) $num, 0, ',', '.');
     }
 }
+if (! function_exists('resolveAkadDatePdf')) {
+    function resolveAkadDatePdf($item) {
+        if (! $item) return '-';
+        $isIndent = (! empty($item->akad_indent) && (int) $item->akad_indent === 1);
+        $isAjbRaw = strtoupper(trim((string) ($item->is_ajb ?? '')));
+        $isAjb = ($isAjbRaw === 'AJB' || $isAjbRaw === '1');
+        $isAkad = (! empty($item->akad) && (int) $item->akad === 1);
+
+        $indentValid = (! empty($item->akad_indent_tgl) && $item->akad_indent_tgl !== '0000-00-00' && strtotime($item->akad_indent_tgl) > 0);
+        $akadValid = (! empty($item->akad_tgl) && $item->akad_tgl !== '0000-00-00' && strtotime($item->akad_tgl) > 0);
+
+        if ($isIndent && $indentValid) {
+            return fmtDatePdf($item->akad_indent_tgl);
+        }
+        if (($isAkad || $isAjb) && $akadValid) {
+            return fmtDatePdf($item->akad_tgl);
+        }
+        if ($akadValid) {
+            return fmtDatePdf($item->akad_tgl);
+        }
+        if ($indentValid) {
+            return fmtDatePdf($item->akad_indent_tgl);
+        }
+        return '-';
+    }
+}
+if (! function_exists('getEffectiveAkadTimePdf')) {
+    function getEffectiveAkadTimePdf($x) {
+        if (! $x) return PHP_INT_MAX;
+        $indentValid = (! empty($x->akad_indent_tgl) && $x->akad_indent_tgl !== '0000-00-00' && strtotime($x->akad_indent_tgl) > 0);
+        if (! empty($x->akad_indent) && (int) $x->akad_indent === 1 && $indentValid) {
+            return strtotime($x->akad_indent_tgl);
+        }
+        if (! empty($x->akad_tgl) && $x->akad_tgl !== '0000-00-00' && strtotime($x->akad_tgl) > 0) {
+            return strtotime($x->akad_tgl);
+        }
+        return PHP_INT_MAX;
+    }
+}
 if (! function_exists('getSalesInitialsPdf')) {
     function getSalesInitialsPdf($name) {
         $clean = trim((string) $name);
@@ -220,8 +259,8 @@ foreach ($salesGroups as $salesName => $items):
             }
 
             uasort($groupedUnitItems, function ($a, $b) {
-                $tglA = (! empty($a->akad_tgl) && $a->akad_tgl !== '0000-00-00' && strtotime($a->akad_tgl) > 0) ? strtotime($a->akad_tgl) : PHP_INT_MAX;
-                $tglB = (! empty($b->akad_tgl) && $b->akad_tgl !== '0000-00-00' && strtotime($b->akad_tgl) > 0) ? strtotime($b->akad_tgl) : PHP_INT_MAX;
+                $tglA = getEffectiveAkadTimePdf($a);
+                $tglB = getEffectiveAkadTimePdf($b);
                 if ($tglA === $tglB) {
                     return ($a->id_mkdt ?? 0) <=> ($b->id_mkdt ?? 0);
                 }
@@ -354,7 +393,7 @@ foreach ($salesGroups as $salesName => $items):
                     <?php endif; ?>
                 </td>
 
-                <td class="text-center"><?= fmtDatePdf($item->akad_tgl ?? null) ?></td>
+                <td class="text-center"><?= resolveAkadDatePdf($item) ?></td>
             </tr>
             <?php endforeach; ?>
 

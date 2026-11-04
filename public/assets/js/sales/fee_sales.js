@@ -194,6 +194,31 @@ $(function () {
         return d;
     }
 
+    function resolveAkadDate(item) {
+        if (!item) return "-";
+        let isIndent = (item.akad_indent == 1 || String(item.akad_indent) === "1");
+        let isAjbVal = String(item.is_ajb || "").trim().toUpperCase();
+        let isAjb = (isAjbVal === "AJB" || isAjbVal === "1");
+        let isAkad = (item.akad == 1 || String(item.akad) === "1");
+
+        let fmtIndent = (item.akad_indent_tgl && formatShortDate(item.akad_indent_tgl)) ? formatShortDate(item.akad_indent_tgl) : "";
+        let fmtAkad = (item.akad_tgl && formatShortDate(item.akad_tgl)) ? formatShortDate(item.akad_tgl) : "";
+
+        if (isIndent && fmtIndent) {
+            return fmtIndent;
+        }
+        if ((isAkad || isAjb) && fmtAkad) {
+            return fmtAkad;
+        }
+        if (fmtAkad) {
+            return fmtAkad;
+        }
+        if (fmtIndent) {
+            return fmtIndent;
+        }
+        return "-";
+    }
+
     $(".flatpickr-basic").flatpickr({
         dateFormat: "Y-m-d",
         allowInput: true,
@@ -554,7 +579,7 @@ $(function () {
             {
                 data: null,
                 render: function (data, type, row) {
-                    let tgl = row.akad_tgl ? formatShortDate(row.akad_tgl) : "-";
+                    let tgl = resolveAkadDate(row);
                     let badgeKpr = (parseInt(row.is_kpr) === 1)
                         ? '<span class="badge badge-light-primary font-small-1 mr-25">KPR</span>'
                         : '<span class="badge badge-light-secondary font-small-1 mr-25">TUNAI</span>';
@@ -2470,7 +2495,7 @@ $(function () {
 
                 // Kartu TTD Pembuat
                 if (g.ttd_pembuat_path) {
-                    $("#img-ttd-pembuat").html(`<img src="${base_url}fee-sales/pengajuan-signature/${g.id}/pembuat" alt="TTD Pembuat">`);
+                    $("#img-ttd-pembuat").html(`<img src="${base_url}fee-sales/pengajuan-signature/${g.id}/pembuat" alt="TTD Pembuat" onerror="this.style.display='none';">`);
                 } else {
                     $("#img-ttd-pembuat").html('<span class="text-muted font-small-2">Belum ada tanda tangan</span>');
                 }
@@ -2479,7 +2504,7 @@ $(function () {
 
                 // Kartu TTD MKDT
                 if ((g.ttd_mkdt_by || g.ttd_mkdt_id) && g.ttd_mkdt_path) {
-                    $("#img-ttd-mkdt").html(`<img src="${base_url}fee-sales/pengajuan-signature/${g.id}/mkdt" alt="TTD MKDT">`);
+                    $("#img-ttd-mkdt").html(`<img src="${base_url}fee-sales/pengajuan-signature/${g.id}/mkdt" alt="TTD MKDT" onerror="this.style.display='none';">`);
                     $("#badge-ttd-mkdt").removeClass("badge-secondary").addClass("badge-success").text("Disetujui");
                 } else {
                     $("#img-ttd-mkdt").html('<span class="text-muted font-small-2">Belum ditandatangani</span>');
@@ -2490,7 +2515,7 @@ $(function () {
 
                 // Kartu TTD Keuangan
                 if ((g.ttd_keuangan_by || g.ttd_keuangan_id) && g.ttd_keuangan_path) {
-                    $("#img-ttd-keuangan").html(`<img src="${base_url}fee-sales/pengajuan-signature/${g.id}/keuangan" alt="TTD Keuangan">`);
+                    $("#img-ttd-keuangan").html(`<img src="${base_url}fee-sales/pengajuan-signature/${g.id}/keuangan" alt="TTD Keuangan" onerror="this.style.display='none';">`);
                     $("#badge-ttd-keuangan").removeClass("badge-secondary").addClass("badge-success").text("Disetujui");
                 } else {
                     $("#img-ttd-keuangan").html('<span class="text-muted font-small-2">Belum ditandatangani</span>');
@@ -2729,7 +2754,7 @@ $(function () {
             let c100 = renderTerminCell(1, it, skema === "100");
 
             let tglBooking = (it.booking_tgl && formatShortDate(it.booking_tgl)) ? formatShortDate(it.booking_tgl) : "-";
-            let tglAkad = (it.akad_tgl && formatShortDate(it.akad_tgl)) ? formatShortDate(it.akad_tgl) : "-";
+            let tglAkad = resolveAkadDate(it);
             let tipeRumahLabel = it.tipe_rumah ? ` (${it.tipe_rumah})` : "";
 
             html += `

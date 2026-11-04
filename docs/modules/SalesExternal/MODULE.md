@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-11-03 13:00:20` @ `1b0ebfd`  
+**Last Synced:** `2026-11-03 16:41:29` @ `dced346`  
 
 ## Purpose
 Pengelolaan Master Data Sales External (agen/broker properti independen), perjanjian kerjasama (PKS), tarif komisi (subsidi & komersil), riwayat audit tarif, integrasi transaksi konsumen MKDT, pengaturan matriks hak akses (`fee_sales_setting_akses`), tracking dan pencairan Fee Sales bertahap (skema 100% atau termin 30%-60%-10%), pengelolaan multi-sales fee per kavling, serta **Pengajuan Pencairan** lintas sales dengan verifikasi tanda tangan digital 3 pihak (Pembuat, MKDT, Keuangan), protokol penolakan (*rejection protocol*) dengan saran revisi harga net AJB, kalkulasi ulang nominal tiap termin in-place, pembatalan (*void*), tautan berbagi (*shareable mobile link*), cetak laporan PDF format Landscape (A4-L), pencatatan nomor cek pencairan, dan integrasi 6 event notifikasi real-time/outbox untuk departemen Keuangan & MKDT.
@@ -23,6 +23,8 @@ Pengelolaan Master Data Sales External (agen/broker properti independen), perjan
 - **Aturan Pembatalan (*Void*) Pengajuan:** `SalesExternalService::voidPengajuanGroup` hanya diizinkan apabila belum ada satupun item termin dalam grup yang berstatus `sudah_cair` dan wajib menyertakan alasan pembatalan (`void_reason`) untuk audit trail. Saat di-void, seluruh termin terkait dikembalikan ke `belum_diajukan`.
 - **Verifikasi Password Tanda Tangan Digital:** Penandatanganan pengajuan oleh MKDT (`can_sign_mkdt`) dan Keuangan (`can_sign_keuangan`) pada `SalesExternalService::signPengajuanGroup` wajib melalui verifikasi password akun pengguna aktif (`Myth\Auth\Password::verify`).
 - **Atomicity:** Seluruh operasi tulis multi-tabel wajib dibungkus dalam Database Transaction (`$this->db->transBegin()` / `transCommit()` / `transRollback()`).
+- **Resolusi Tanggal Efektif Akad (Akad Indent vs AJB):** Pada seluruh lapisan modul (tabel DataTables Tab 1, header grup kavling modal `#modal-group-detail`, pengurutan item PDF via `FeeSalesPdfService`, dan kolom `TGL AKAD` di cetakan PDF), tanggal akad dievaluasi secara dinamis dan konsisten: jika unit berstatus **Akad Indent** (`akad_indent == 1`), sistem menggunakan `akad_indent_tgl` dengan label penanda `(Indent)`. Jika transaksi reguler/AJB (`akad_indent == 0` atau kosong), sistem menggunakan `akad_tgl`.
+- **Fallback Toleran Aset Tanda Tangan Digital:** Endpoint `GET /fee-sales/pengajuan-signature/(:num)/(:segment)` menyajikan respon gambar PNG 1x1 transparan dengan status HTTP 200 jika file fisik tanda tangan tidak ditemukan di disk server, mencegah kegagalan visual dan 404 console error pada browser.
 
 ## Database Tables
 ### Owner Table(s)
@@ -102,18 +104,18 @@ Pengelolaan Master Data Sales External (agen/broker properti independen), perjan
 
 ## File Inventory
 ### Controllers (4)
-- `app/Controllers/Web/SalesExternalController.php` (167 baris, 5 public methods: `index()`, `feeSales()`, `pengajuanPdf(int $id)`, `pengajuanSignature(int $id, string $role)`, `pengajuanShared(string $token)`)
+- `app/Controllers/Web/SalesExternalController.php` (173 baris, 5 public methods: `index()`, `feeSales()`, `pengajuanPdf(int $id)`, `pengajuanSignature(int $id, string $role)`, `pengajuanShared(string $token)`)
 - `app/Controllers/Api/SalesExternalController.php` (527 baris, 22 public methods: `listMasterSales()`, `getSales(int $id)`, `saveMasterSales()`, `getSalesHistory(int $id)`, `getActiveSalesList()`, `listFeeSales()`, `getFeeDetail(int $idMkdt)`, `saveFeeHeader()`, `deleteFeeEntry(int $idFeeSales)`, `submitPengajuanSpp()`, `konfirmasiCair()`, `editPengajuan()`, `editCair()`, `preparePengajuanGroup()`, `createPengajuanGroup()`, `listPengajuanGroup()`, `getPengajuanGroupDetail(int $id)`, `konfirmasiCairGroup()`, `voidPengajuanGroup()`, `signPengajuanGroup()`, `rejectPengajuanGroup()`, `recalculateTermin()`)
 - `app/Controllers/Web/Settings/FeeSalesSettingController.php` (22 baris, 1 public methods: `index()`)
 - `app/Controllers/Api/Settings/FeeSalesSettingController.php` (93 baris, 2 public methods: `listPermissions()`, `savePermissions()`)
 
 ### Services (3)
 - `app/Services/SalesExternalService.php` (1824 baris, 13 public methods)
-- `app/Services/FeeSalesPdfService.php` (97 baris, 1 public methods)
+- `app/Services/FeeSalesPdfService.php` (115 baris, 1 public methods)
 - `app/Services/Settings/FeeSalesSettingService.php` (212 baris, 3 public methods)
 
 ### Repositories (1)
-- `app/Repositories/SalesExternalRepository.php` (847 baris, 13 public methods: `hasGeneratedTerminByMkdt(int $idMkdt)`, `hasCairTerminByMkdt(int $idMkdt)`, `userSnapshot(int $userId)`, `getMasterSalesList(array $params = [])`, `getSalesById(int $id)`, `getSalesHistory(int $idSales)`, `getActiveSales()`, `getFeeSalesList(array $params = [])`, `getFeeDetailByMkdt(int $idMkdt)`, `getFeeDetailsByMkdtIds(array $mkdtIds)`, `getPengajuanGroupList(array $params = [])`, `getPengajuanGroupDetail(int $idPengajuan)`, `getPengajuanGroupByToken(string $tokenOrId)`)
+- `app/Repositories/SalesExternalRepository.php` (855 baris, 13 public methods: `hasGeneratedTerminByMkdt(int $idMkdt)`, `hasCairTerminByMkdt(int $idMkdt)`, `userSnapshot(int $userId)`, `getMasterSalesList(array $params = [])`, `getSalesById(int $id)`, `getSalesHistory(int $idSales)`, `getActiveSales()`, `getFeeSalesList(array $params = [])`, `getFeeDetailByMkdt(int $idMkdt)`, `getFeeDetailsByMkdtIds(array $mkdtIds)`, `getPengajuanGroupList(array $params = [])`, `getPengajuanGroupDetail(int $idPengajuan)`, `getPengajuanGroupByToken(string $tokenOrId)`)
 
 ### Models (6)
 - `app/Models/SalesModel.php`
@@ -129,9 +131,11 @@ Pengelolaan Master Data Sales External (agen/broker properti independen), perjan
 
 ### JavaScript (2 file)
 - `public/assets/js/sales/master_sales.js` (272 baris)
-- `public/assets/js/sales/fee_sales.js` (3199 baris)
+- `public/assets/js/sales/fee_sales.js` (3224 baris)
 
 ## Key Functions
+- **Controller (`app/Controllers/Web/SalesExternalController.php`):**
+  - `pengajuanSignature(int $id, string $role)`: Menyajikan file fisik tanda tangan digital pengajuan, dengan fallback respon gambar PNG transparan 1x1 (HTTP 200) jika file fisik tanda tangan tidak ditemukan di disk server guna mengeliminasi 404 console error pada browser.
 - **Controller (`app/Controllers/Api/SalesExternalController.php`):**
   - `rejectPengajuanGroup()`: Memvalidasi izin role (`can_sign_mkdt` atau `can_sign_keuangan`), memvalidasi input `id_pengajuan`, `role`, `reject_reason`, dan array `item_prices` (saran harga per unit), mendelegasikan eksekusi penolakan ke `SalesExternalService::rejectPengajuanGroup()`.
   - `recalculateTermin()`: Menerima request kalkulasi ulang nominal termin untuk kavling terkait (`id_pengajuan`, `id_mkdt`, `harga_net_ajb`), mendelegasikan ke `SalesExternalService::recalculateTerminNominals()`.
@@ -146,18 +150,21 @@ Pengelolaan Master Data Sales External (agen/broker properti independen), perjan
   - `saveFeeHeader(array $data, int|bool|null $userId = null, bool $sendNotification = true): array`: Menyimpan header komisi multi-sales, memperbarui `mkdt.harga_net_ajb` (hanya jika `!hasCairTerminByMkdt`), dan men-generate jadwal termin sesuai skema (`100%` untuk Akad Indent atau `30%-60%-10%` untuk reguler).
   - `saveMasterSales(array $data, ?int $userId, ?UploadedFile $filePks = null)`: Simpan/update profil agen dan mencatat audit trail tarif ke `sales_history`.
 - **Service (`app/Services/FeeSalesPdfService.php`):**
-  - `render(int $idPengajuan)`: Menghasilkan binary PDF Landscape (A4-L) dengan agregasi data per sales dan 3 tanda tangan digital.
+  - `render(int $idPengajuan)`: Menghasilkan binary PDF Landscape (A4-L) dengan agregasi data per sales dan 3 tanda tangan digital. Pengurutan data unit kavling (`uasort`) memperhitungkan tanggal efektif akad: memprioritaskan `akad_indent_tgl` apabila berstatus Akad Indent (`akad_indent == 1`), dengan fallback ke `akad_tgl`.
 - **Service (`app/Services/Settings/FeeSalesSettingService.php`):**
   - `listPermissions()`, `savePermissions(array $permissions, ?int $userId = null)`, `getUserPermissions(?int $userId = null)`: Pengelolaan matriks hak akses RBAC dan sinkronisasi menu sidebar.
 - **Repository (`app/Repositories/SalesExternalRepository.php`):**
   - `hasCairTerminByMkdt(int $idMkdt): bool`: Query cepat untuk mengecek keberadaan termin berstatus `sudah_cair` pada unit transaksi tertentu (dipakai sebagai guard revisi harga net AJB).
   - `hasGeneratedTerminByMkdt(int $idMkdt): bool`: Mengecek apakah termin sudah pernah di-generate untuk unit tersebut.
-  - `getFeeSalesList(array $params)`: Query JOIN kompleks daftar fee sales kavling Tab 1.
+  - `getFeeSalesList(array $params)`: Query JOIN kompleks daftar fee sales kavling Tab 1, menyertakan seleksi kolom status `m.akad` dan tanggal akad indent `m.akad_indent_tgl`.
   - `getPengajuanGroupList(array $params)`: Query DataTables daftar batch pengajuan Tab 2 dengan status dan filter proyek.
-  - `getPengajuanGroupDetail(int $idPengajuan)`: Mengambil data header pengajuan lengkap beserta tanda tangan 3 pihak, status rejection (`rejected_by`, `rejected_role`, `rejected_at`, `reject_reason`, `suggested_harga_net_ajb`), dan daftar item termin beserta saran harga (`suggested_harga_net_ajb`). Query `$tList` diperkaya dengan `LEFT JOIN fee_sales_pengajuan_item pi` dan `fee_sales_pengajuan fsp` (filter `fsp.status != 'void'`), sehingga setiap objek termin di `all_termin` menyertakan atribut riwayat pengajuan cross-pengajuan: `id_pengajuan`, `pengajuan_nomor`, `pengajuan_status`, `pengajuan_tanggal`.
-- **Frontend JavaScript & Stylesheet (`public/assets/js/sales/fee_sales.js`, `public/assets/css/fee-sales.css`, `app/Views/sales/pengajuan_fee_shared.php`):**
+  - `getPengajuanGroupDetail(int $idPengajuan)`: Mengambil data header pengajuan lengkap beserta tanda tangan 3 pihak, status rejection (`rejected_by`, `rejected_role`, `rejected_at`, `reject_reason`, `suggested_harga_net_ajb`), serta seleksi `m.akad` dan `m.akad_indent_tgl` pada rincian unit kavling. Query `$tList` diperkaya dengan `LEFT JOIN fee_sales_pengajuan_item pi` dan `fee_sales_pengajuan fsp` (filter `fsp.status != 'void'`), sehingga setiap objek termin di `all_termin` menyertakan atribut riwayat pengajuan cross-pengajuan: `id_pengajuan`, `pengajuan_nomor`, `pengajuan_status`, `pengajuan_tanggal`.
+- **Frontend JavaScript & Stylesheet (`public/assets/js/sales/fee_sales.js`, `public/assets/css/fee-sales.css`, `app/Views/sales/pdf_pengajuan_fee.php`, `app/Views/sales/pengajuan_fee_shared.php`):**
+  - `resolveAkadDate(row)` di `fee_sales.js`: Helper evaluasi tanggal akad unit kavling — jika berstatus Akad Indent (`akad_indent == 1`), menggunakan `akad_indent_tgl` (diberi label penanda `(Indent)`), sedangkan jika transaksi reguler/AJB menggunakan `akad_tgl` (format Indonesia via `formatTanggalIndo()`). Digunakan pada kolom Akad DataTables `#table-fee-sales` dan header baris grup kavling modal `#modal-group-detail`.
+  - Fallback `onerror` Tanda Tangan Digital (`fee_sales.js`): Handler fallback pada elemen `<img>` tanda tangan digital dengan transparent PNG data URI jika file tanda tangan gagal dimuat.
+  - Helper Akad PDF (`app/Views/sales/pdf_pengajuan_fee.php`): Fungsi helper `resolveAkadDatePdf($it)` dan `getEffectiveAkadTimePdf($it)` untuk evaluasi dan format tanggal akad pada kolom `TGL AKAD` cetakan dokumen pengajuan fee (menampilkan label `(Indent)` jika akad indent).
+  - Modal `#modal-group-detail` Full Height (`public/assets/css/fee-sales.css`): Styling scoped modal detail pengajuan dengan tinggi viewport penuh (`calc(100vh - 2rem)` di desktop, `100vh` di mobile), sticky locked header-footer, dan modal-body berkemampuan scroll vertikal mandiri.
   - `renderGroupItemsTable(items)`: Merender tabel detail item pengajuan (`#table-group-items`) di dalam `#modal-group-detail` dengan konsolidasi 1 baris per unit kavling (meskipun diajukan multi-termin untuk unit yang sama). Baris 1: Header Grup Unit Kavling lengkap (Sales, Konsumen, Kavling, Tanggal Booking, Tanggal Akad). Baris 2: Data nominal (Harga Net AJB, % Fee, Total Fee), matriks status tenor pencairan (30%, 60%, 10%, 100%) dengan penandaan warna kuning `.tenor-highlight-yellow` pada seluruh kolom termin yang diajukan dalam pengajuan aktif, rendering status riwayat termin historis (`.tenor-cair-badge` jika sudah cair + tanggal cair + No Cek, `.tenor-diajukan-other-badge` jika diajukan di pengajuan lain + tanggal pengajuan + nomor pengajuan, dan `Belum Diajukan` jika belum diajukan), serta kolom Status & No Cek dan Aksi yang mendukung multi-termin individual secara rapi.
-  - **Penyelarasan Lembar Shared Pengajuan (`app/Views/sales/pengajuan_fee_shared.php`):**
     - Grouping `$groupedUnitItems`: Mengonsolidasikan item pengajuan per unit kavling berbasis key `$it->id_fee_sales ?: ($it->id_mkdt . '_' . $it->id_sales)` sehingga satu unit kavling yang diajukan multi-termin tampil dalam satu kesatuan baris/kartu.
     - Tampilan Desktop (`d-none d-md-block`): Mengadopsi struktur Hierarchical Grouped Rows 12 kolom identik dengan `#modal-group-detail` (header unit kavling dan baris rincian nominal, tenor highlight emas `.tenor-highlight-yellow`, badge riwayat pencairan/pengajuan lain, serta status & nomor cek terpadu).
     - Tampilan Mobile Grid (`d-block d-md-none`): Responsive Card System tanpa horizontal overflow yang memadukan 2-kolom Financial Micro-Grid (`.fee-shared-finance-grid`) dan 2x2 Tenor Grid Box (`.fee-shared-tenor-grid`) dengan highlight emas `.active-target` (`#fff3cd` + border `#ffc107`) pada termin yang sedang diajukan.
@@ -231,6 +238,18 @@ _Jalankan `php spark module:deadcode SalesExternal` untuk mengaudit dead code ka
   - Controller dan Service utama (`Web/SalesExternalController.php`, `Api/SalesExternalController.php`, `Services/SalesExternalService.php`, `Repositories/SalesExternalRepository.php`) masih berada di root layer dan menunggu sesi refaktor khusus untuk dipindahkan ke subfolder `Web/SalesExternal/`, `Api/SalesExternal/`, `Services/SalesExternal/`, dan `Repositories/SalesExternal/`.
 
 ## Change Log
+- **`2026-11-03` [`UI_REPORT`] — Sinkronisasi Tanggal Akad Indent, Full-Height Modal Detail Pengajuan, & Fallback Toleran Tanda Tangan Digital:**
+  - **Routes & Public Contracts:**
+    - `GET /fee-sales/pengajuan-signature/(:num)/(:segment)`: Fallback 1x1 transparent PNG response (status HTTP 200) jika file fisik tanda tangan tidak ada di disk (mengeliminasi 404 console error).
+  - **Controller / Service / Repo / Model:**
+    - `app/Controllers/Web/SalesExternalController.php`: Handling fallback missing physical signature file pada method `pengajuanSignature()` dengan pengiriman binary PNG 1x1 transparan.
+    - `app/Services/FeeSalesPdfService.php`: Pengurutan dokumen PDF pengajuan fee sales (`uasort`) kini memperhitungkan tanggal efektif akad (`akad_indent_tgl` saat `akad_indent == 1`, fallback `akad_tgl`).
+    - `app/Repositories/SalesExternalRepository.php`: Seleksi kolom `m.akad` dan `m.akad_indent_tgl` pada `getFeeSalesList()`, `getFeeDetailByMkdt()`, `getKandidatTerminList()`, dan `getPengajuanGroupDetail()`.
+  - **View / CSS / JS:**
+    - `public/assets/js/sales/fee_sales.js`: Helper `resolveAkadDate()`, DataTables `#table-fee-sales` kolom Akad (prioritas `akad_indent_tgl` saat `akad_indent == 1` dan `akad_tgl` saat akad AJB), header unit kavling pada `#modal-group-detail`, dan `onerror` fallback pada gambar tanda tangan digital.
+    - `app/Views/sales/pdf_pengajuan_fee.php`: Helper `resolveAkadDatePdf()` dan `getEffectiveAkadTimePdf()`, perenderan kolom `TGL AKAD` di PDF.
+    - `public/assets/css/fee-sales.css`: Styling scoped `#modal-group-detail` full screen height (`calc(100vh - 2rem)` desktop / `100vh` mobile) dengan header-footer terkunci dan body scrollable.
+  - **Deprecations:** Tidak ada.
 - **`2026-11-03` [`UI_REPORT`] — Penyempurnaan Format Cetak PDF Pengajuan Fee Sales (Title, Tanggal Sales, & Sufiks Inisial Nomor Pengajuan):**
   - **Routes & Public Contracts:** Tidak berubah (rute `GET /fee-sales/pengajuan-pdf/(:num)` dan aliasnya tetap aktif).
   - **Controller / Service / Repo / Model:** Tidak berubah.

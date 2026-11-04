@@ -32,10 +32,28 @@ class FeeSalesPdfService
             $salesGroups[$salesKey][] = $item;
         }
 
+        $resolveAkadTime = static function ($item): int {
+            if (! empty($item->akad_indent) && (int) $item->akad_indent === 1 && ! empty($item->akad_indent_tgl) && $item->akad_indent_tgl !== '0000-00-00') {
+                $ts = strtotime($item->akad_indent_tgl);
+                if ($ts !== false && $ts > 0) {
+                    return $ts;
+                }
+            }
+
+            if (! empty($item->akad_tgl) && $item->akad_tgl !== '0000-00-00') {
+                $ts = strtotime($item->akad_tgl);
+                if ($ts !== false && $ts > 0) {
+                    return $ts;
+                }
+            }
+
+            return PHP_INT_MAX;
+        };
+
         foreach ($salesGroups as &$sItems) {
-            usort($sItems, function ($a, $b) {
-                $tglA = (! empty($a->akad_tgl) && $a->akad_tgl !== '0000-00-00' && strtotime($a->akad_tgl) > 0) ? strtotime($a->akad_tgl) : PHP_INT_MAX;
-                $tglB = (! empty($b->akad_tgl) && $b->akad_tgl !== '0000-00-00' && strtotime($b->akad_tgl) > 0) ? strtotime($b->akad_tgl) : PHP_INT_MAX;
+            usort($sItems, function ($a, $b) use ($resolveAkadTime) {
+                $tglA = $resolveAkadTime($a);
+                $tglB = $resolveAkadTime($b);
                 if ($tglA === $tglB) {
                     return ($a->id_mkdt ?? 0) <=> ($b->id_mkdt ?? 0);
                 }

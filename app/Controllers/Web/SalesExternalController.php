@@ -111,7 +111,13 @@ class SalesExternalController extends BaseController
         $path = $fileAccess->existingPath($group->$field) ?: $fileAccess->privatePath($group->$field);
 
         if (! is_file($path)) {
-            return $this->response->setStatusCode(404)->setBody('File tanda tangan tidak ditemukan.');
+            // Fallback gambar transparan 1x1 px jika file fisik tidak ada di disk (misal dev/staging/dummy)
+            $transparentPng = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAA=');
+            return $this->response
+                ->setStatusCode(200)
+                ->setContentType('image/png')
+                ->setHeader('Cache-Control', 'no-cache')
+                ->setBody($transparentPng);
         }
 
         $mime = mime_content_type($path) ?: 'image/png';
