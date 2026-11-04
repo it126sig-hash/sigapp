@@ -140,3 +140,4 @@ _Jalankan `php spark module:deadcode UserManagement` untuk mengaudit dead code k
 
 ## Notes
 - Modul diinisialisasi melalui tooling otomatis.
+- 2026-11-04: Bugfix upload foto profil pada ProfilService (`TypeError: FileRules::uploaded()`). Objek UploadedFile dipisahkan dari array validasi data teks dan umpan balik error profil_photo ditambahkan pada view profil.
