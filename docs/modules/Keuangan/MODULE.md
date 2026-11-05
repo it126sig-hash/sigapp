@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-10-23 13:52:12` @ `ad0c900`  
+**Last Synced:** `2026-11-04 22:56:08` @ `46ddc13`  
 
 ## Purpose
 Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operasional, SPP, bank KPR, pajak, dan ledger kas.
@@ -39,7 +39,9 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `pencairan_akad_pengajuan_detail` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 - `pencairan_akad_payment` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 - `pencairan_akad_payment_detail` *(akses tulis eksklusif hanya untuk modul Keuangan)*
-- `invoice_log` *(akses tulis eksklusif hanya untuk modul Keuangan)*
+- `invoice_log` *(akses tulis eksklusif hanya untuk modul Keuangan)*:
+  - **Skema Kolom Tambahan (Migrasi 2026-11-04):** `status_tagihan` (`VARCHAR(50)`, NOT NULL, DEFAULT `'draft'`), `tanggal_ubah_status` (`DATE`, NULL), `keterangan_status` (`TEXT`, NULL), `tanggal_kirim` (`DATETIME`, NULL).
+  - **Index:** `idx_invoice_log_status_tagihan` (`status_tagihan`).
 - `invoice_status_log` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 
 ### Shared Tables (Dibaca dari modul lain)
@@ -202,7 +204,25 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `getRiwayatBayarById($id_mkdt)`
 - `getTotalBayarById($id_mkdt)`
 - `getPaidItemSummaryById($id_mkdt)`
-- _dan 19 method lainnya..._
+- `getRiwayatBayarWithDetailById($id_mkdt)`
+- `getRiwayatBayar($request)`
+- `getListRiwayatSurat($request)`
+- `getAllJatuhTempo($id_proyek)`
+- `deleteTagihan(int $idKeuangan, int $actorId)`
+- `voidTagihan(int $idKeuangan, string $reason, int $actorId)`
+- `unvoidTagihan(int $idKeuangan, int $actorId)`
+- `insert($data)`
+- `delete($id)`
+- `hapusTurunKPR($id)`
+- `tambahTurunKPR($data)`
+- `hasTurunKPR(int $id_mkdt)`
+- `format_tgl($tgl)`
+- `is_active($id, $texts, $textf)`
+- `exportExcelTagihan($request)`
+- `getRiwayatTagihan($request)`
+- `simpanPenagihan($request, int $actorId)`
+- `updateStatusPenagihan($request, int $actorId)`
+- `setTanggalKirim($no_inv)`
 #### `PembayaranService.php`
 - `simpan($data)`
 - `recalculateSummary($id_mkdt)`
@@ -226,7 +246,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `getTotalIncome(array $filters = [])`
 - `getTotalIncomeByMkdt(int $idMkdt)`
 - `getTotalIncomeByKavling(int $idKavling)`
-- _dan 1 method lainnya..._
+- `getTotalIncomeByDateRange(string $dateFrom, string $dateTo)`
 #### `BankKprDisbursementService.php`
 - `getData(int $idMkdt, int $idKavling)`
 - `save($request, int $actorId)`
@@ -261,7 +281,15 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `getListDetail(int $idMkdt)`
 - `getHistory(int $idKavling)`
 - `findLockedMismatch(array $row, object $item)`
-- _dan 9 method lainnya..._
+- `generateBatchNumber()`
+- `syncBatchStatus(?int $idBatch, int $actorId)`
+- `getEligibleBatchKavling(array $idKavlings = [], int $idProyek = 0)`
+- `storeBatchPengajuan(array $data, $lampiranFile, int $actorId)`
+- `getBatchList($request)`
+- `getBatchDetail(int $idBatch)`
+- `cairkanBatch(array $post, int $actorId)`
+- `voidBatch(int $idBatch, string $reason, int $actorId)`
+- `getBatchHistory(int $idBatch)`
 #### `CashOutService.php`
 - `insert($data)`
 - `delete($id)`
@@ -308,58 +336,58 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 
 ## File Inventory
 ### Controllers (19)
-- `app/Controllers/Keuangan.php` (1923 baris, 32 public methods)
-- `app/Controllers/Tagihan.php` (521 baris, 17 public methods)
-- `app/Controllers/Pembayaran.php` (89 baris, 5 public methods)
-- `app/Controllers/Pajak.php` (589 baris, 5 public methods)
-- `app/Controllers/DanaAkad.php` (92 baris, 1 public methods)
-- `app/Controllers/CashOut.php` (242 baris, 4 public methods)
-- `app/Controllers/Keuangan/Cashout/CashoutKavling.php` (85 baris, 3 public methods)
-- `app/Controllers/Keuangan/Cashout/CashoutSubkon.php` (111 baris, 10 public methods)
-- `app/Controllers/ListBank.php` (27 baris, 1 public methods)
-- `app/Controllers/Api/BankController.php` (132 baris, 5 public methods)
-- `app/Controllers/PencairanAkad.php` (247 baris, 22 public methods)
-- `app/Controllers/Api/BookingPaymentController.php` (54 baris, 1 public methods)
-- `app/Controllers/Web/CashInReportController.php` (51 baris, 1 public methods)
-- `app/Controllers/Api/CashInReportController.php` (85 baris, 2 public methods)
-- `app/Controllers/Web/HasilAkadReportController.php` (49 baris, 1 public methods)
-- `app/Controllers/Api/HasilAkadReportController.php` (80 baris, 2 public methods)
-- `app/Controllers/PrintController.php` (133 baris, 2 public methods)
-- `app/Controllers/PencairanJaminan.php` (75 baris, 7 public methods)
-- `app/Controllers/Direksi.php` (416 baris, 12 public methods)
+- `app/Controllers/Keuangan.php` (1923 baris, 32 public methods: `getDanaAkad()`, `getBankKprDisbursement()`, `saveBankKprDisbursement()`, `voidBankKprDisbursement($id = null)`, `getJatuhTempo()`, `getCashOut()`, `saveCashOut()`, `saveDanaAkad()`, `get_riwayat_gantinama()`, `isSudahBayar($id)`, `isi_tagihan()`, `save_sb()`, `save()`, `list_tagihan()`, `getListTagihan()`, `riwayat_bayar()`, `getRiwayatBayar()`, `get_tagihan($id = null)`, `removeLP()`, `doPrint()`, `print_tagihan($id = null)`, `if_where($var, $column, $condition, $query)`, `format_tgl($tgl)`, `is_active($id, $texts, $textf)`, `get_riwayat_tagihan()`, `simpan_penagihan()`, `update_status_penagihan()`, `download_penagihan()`, `get_kopsurat_list()`, `get_kopsurat_detail()`, `simpan_kopsurat()`, `hapus_kopsurat()`)
+- `app/Controllers/Tagihan.php` (521 baris, 17 public methods: `getByID()`, `getRiwayatByID()`, `hapusTurunKPR()`, `tambahTurunKPR()`, `hapus()`, `voidTagihan()`, `unvoidTagihan()`, `save()`, `listTagihan()`, `getListTagihan($status = null)`, `getListTagihanGrouped()`, `exportExcelTagihan()`, `getListTagihanDetail()`, `riwayatBayarIndex()`, `getRiwayatBayar()`, `getListRiwayatSurat()`, `getAllJatuhTempo()`)
+- `app/Controllers/Pembayaran.php` (89 baris, 5 public methods: `save()`, `print()`, `removeLP()`, `printUm()`, `recalculateSummary()`)
+- `app/Controllers/Pajak.php` (589 baris, 5 public methods: `getOne()`, `save()`, `if_where($var, $column, $condition, $query)`, `is_active($id, $texts, $textf)`, `format_tgl($tgl)`)
+- `app/Controllers/DanaAkad.php` (92 baris, 1 public methods: `getByID()`)
+- `app/Controllers/CashOut.php` (242 baris, 4 public methods: `getListItem()`, `getByIDKavling()`, `insert()`, `delete()`)
+- `app/Controllers/Keuangan/Cashout/CashoutKavling.php` (85 baris, 3 public methods: `index()`, `getDataTables()`, `getDetailList()`)
+- `app/Controllers/Keuangan/Cashout/CashoutSubkon.php` (111 baris, 10 public methods: `index()`, `getDataTables()`, `getDetailList()`, `get()`, `save()`, `turunJatuhTempo()`, `ajukanSPP()`, `ajukanPencairan()`, `pembayaran()`, `getHistory()`)
+- `app/Controllers/ListBank.php` (27 baris, 1 public methods: `index()`)
+- `app/Controllers/Api/BankController.php` (132 baris, 5 public methods: `list()`, `ambil()`, `ambilSatu()`, `simpan()`, `hapus()`)
+- `app/Controllers/PencairanAkad.php` (247 baris, 22 public methods: `get()`, `saveRetensi()`, `saveTenor()`, `storePengajuan()`, `cairkan()`, `listPayment()`, `voidPayment()`, `void()`, `history($id_kavling)`, `listHasilAkad()`, `getListGrouped()`, `getListDetail()`, `exportTemplate()`, `importForm()`, `import()`, `postBatchList()`, `postEligibleKavling()`, `postStoreBatchPengajuan()`, `postBatchDetail()`, `postCairkanBatch()`, `postVoidBatch()`, `getBatchHistory($id)`)
+- `app/Controllers/Api/BookingPaymentController.php` (54 baris, 1 public methods: `verify()`)
+- `app/Controllers/Web/CashInReportController.php` (51 baris, 1 public methods: `index()`)
+- `app/Controllers/Api/CashInReportController.php` (85 baris, 2 public methods: `summary()`, `detail()`)
+- `app/Controllers/Web/HasilAkadReportController.php` (49 baris, 1 public methods: `index()`)
+- `app/Controllers/Api/HasilAkadReportController.php` (80 baris, 2 public methods: `summary()`, `detail()`)
+- `app/Controllers/PrintController.php` (133 baris, 2 public methods: `printSpptb()`, `printKuitansi()`)
+- `app/Controllers/PencairanJaminan.php` (75 baris, 7 public methods: `index()`, `list($id_kavling)`, `store()`, `toggleStatus($id)`, `cairkan($id)`, `history($id_kavling)`, `download($id)`)
+- `app/Controllers/Direksi.php` (416 baris, 12 public methods: `get_data_by_id($st = null)`, `save()`, `if_where($var, $column, $condition, $query)`, `format_tgl($tgl)`, `is_active($id, $texts, $textf)`, `export_xlsx()`, `tagihan()`, `get_pending_tagihan()`, `get_my_signature()`, `sign_tagihan()`, `get_history_tagihan()`, `reject_tagihan()`)
 
 ### Services (16)
-- `app/Services/KeuanganService.php` (1851 baris)
-- `app/Services/PembayaranService.php` (256 baris)
-- `app/Services/PajakService.php` (45 baris)
-- `app/Services/FinanceLedgerService.php` (596 baris)
-- `app/Services/BankKprDisbursementService.php` (407 baris)
-- `app/Services/BankService.php` (37 baris)
-- `app/Services/BookingPaymentService.php` (326 baris)
-- `app/Services/BookingFeeMigrationService.php` (234 baris)
-- `app/Services/PencairanAkadService.php` (2124 baris)
-- `app/Services/CashOutService.php` (84 baris)
-- `app/Services/Keuangan/Cashout/CashoutKavlingService.php` (132 baris)
-- `app/Services/Keuangan/Cashout/CashoutSubkonService.php` (822 baris)
-- `app/Services/CashInReportService.php` (212 baris)
-- `app/Services/HasilAkadReportService.php` (187 baris)
-- `app/Services/PrintService.php` (634 baris)
-- `app/Services/DanaJaminanService.php` (637 baris)
+- `app/Services/KeuanganService.php` (1851 baris, 34 public methods)
+- `app/Services/PembayaranService.php` (256 baris, 3 public methods)
+- `app/Services/PajakService.php` (45 baris, 2 public methods)
+- `app/Services/FinanceLedgerService.php` (596 baris, 16 public methods)
+- `app/Services/BankKprDisbursementService.php` (407 baris, 3 public methods)
+- `app/Services/BankService.php` (37 baris, 2 public methods)
+- `app/Services/BookingPaymentService.php` (326 baris, 7 public methods)
+- `app/Services/BookingFeeMigrationService.php` (234 baris, 2 public methods)
+- `app/Services/PencairanAkadService.php` (2124 baris, 24 public methods)
+- `app/Services/CashOutService.php` (84 baris, 4 public methods)
+- `app/Services/Keuangan/Cashout/CashoutKavlingService.php` (132 baris, 2 public methods)
+- `app/Services/Keuangan/Cashout/CashoutSubkonService.php` (822 baris, 10 public methods)
+- `app/Services/CashInReportService.php` (212 baris, 4 public methods)
+- `app/Services/HasilAkadReportService.php` (187 baris, 3 public methods)
+- `app/Services/PrintService.php` (643 baris, 6 public methods)
+- `app/Services/DanaJaminanService.php` (637 baris, 7 public methods)
 
 ### Repositories (13)
-- `app/Repositories/KeuanganRepository.php` (495 baris)
-- `app/Repositories/LogPembayaranRepository.php` (207 baris)
-- `app/Repositories/PaymentSummaryRepository.php` (74 baris)
-- `app/Repositories/FinanceLedgerRepository.php` (77 baris)
-- `app/Repositories/PajakRepository.php` (41 baris)
-- `app/Repositories/BookingPaymentRepository.php` (152 baris)
-- `app/Repositories/PencairanAkadListRepository.php` (157 baris)
-- `app/Repositories/CashOutRepository.php` (61 baris)
-- `app/Repositories/Keuangan/Cashout/CashoutKavlingRepo.php` (228 baris)
-- `app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php` (455 baris)
-- `app/Repositories/CashInReportRepository.php` (233 baris)
-- `app/Repositories/HasilAkadReportRepository.php` (310 baris)
-- `app/Repositories/SpptbRepository.php` (23 baris)
+- `app/Repositories/KeuanganRepository.php` (495 baris, 11 public methods: `getTagihanById(int $idMkdt)`, `getTagihanTurunKPRById(int $idMkdt)`, `getAllJatuhTempo($id_proyek)`, `getLIKeu()`, `getBelumLunasQuery()`, `getBelumLunasGroupedQuery()`, `getAllGroupedQuery()`, `getLunasGroupedQuery()`, `getListTagihanJatuhTempoDetailById(int $idMkdt)`, `getListTagihanDetailById(int $idMkdt)`, `getTagihanOnlyByID(int $idMkdt)`)
+- `app/Repositories/LogPembayaranRepository.php` (207 baris, 10 public methods: `getRiwayatBayarById(int $idMkdt)`, `getRiwayatBayarQuery($id_proyek, $id_cluster = null, $id_jalan = null)`, `softDeleteAndReturnIdMkdt($idPembayaran)`, `getRiwayatBayarByIdPembayran($id)`, `getDetailRiwayatBayarById(int $id_Pembayaran)`, `getTotalBayarByIdMkdt(int $id_Mkdt)`, `getPaidItemSummaryByIdMkdt(int $id_Mkdt)`, `getDetailRiwayatBayarByIdMkdt(int $id_Mkdt)`, `insertDetail($data)`, `hasRecentDuplicate(int $idMkdt, string $idKeuangan, $nominal, string $tanggalBayar, string $paymentType, int $seconds = 30)`)
+- `app/Repositories/PaymentSummaryRepository.php` (74 baris, 3 public methods: `updateCategory(int $idMkdt, string $kategori, float $amount)`, `setToZero(int $id_mkdt)`, `setCategory(int $idMkdt, string $kategori, float $value)`)
+- `app/Repositories/FinanceLedgerRepository.php` (77 baris, 4 public methods: `findBySource(string $sourceType, int $sourceId)`, `upsertBySource(array $payload)`, `voidBySource(string $sourceType, int $sourceId, ?int $actorId = null)`, `sumIncome(array $filters = [])`)
+- `app/Repositories/PajakRepository.php` (41 baris, 1 public methods: `linkKavling(int $idKavling, int $idPajak)`)
+- `app/Repositories/BookingPaymentRepository.php` (152 baris, 13 public methods: `mkdt(int $id, bool $lock = false)`, `link(int $id, bool $lock = false)`, `owners(int $payment)`, `payment(int $id)`, `details(int $payment)`, `bookingRows(int $id, bool $deleted = false)`, `item(string $category, ?string $name = null)`, `write(string $table, array $data, array $where = [])`, `saveLink(int $id, ?int $payment, array $extra = [])`, `separateBookingSql(string $detail = 'lpd', string $item = 'kl')`, `effectiveCategorySql(string $detail = 'lpd', string $item = 'kl')`, `installmentSummary(int $id)`, `recalculate(int $id)`)
+- `app/Repositories/PencairanAkadListRepository.php` (157 baris, 2 public methods: `buildListQuery(array $filters)`, `getSummary(array $filters, string $search = '')`)
+- `app/Repositories/CashOutRepository.php` (61 baris, 3 public methods: `getListItem(string $search)`, `getRiwayatBayarCashOutByIDKavling(int $id_kavling)`, `softDelete($id)`)
+- `app/Repositories/Keuangan/Cashout/CashoutKavlingRepo.php` (228 baris, 3 public methods: `getDataTables(array $var)`, `getDetailList(int $idKavling)`, `getCashoutRowsByKavling(int $idKavling)`)
+- `app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php` (455 baris, 20 public methods: `getSubkonByID(int $id_subkon)`, `getDataTables(array $var)`, `getDetailsByCashoutSubkonIds(array $ids)`, `getListCashoutKavling(array $id_kavlings)`, `getCashoutSubkonByID(int $id_cashout_subkon)`, `getKavlingSubkonByID(int $id_cashout_subkon)`, `getListItemDetailByIDCashoutsubkon(int $id_cashout_subkon)`, `upsertSubkon($id_subkon, array $data)`, `saveCashoutSubkon(array $data)`, `saveCashoutSubkonDetail(array $data)`, `getKavlingBySubkonId(int $id_cashout_subkon)`, `getDetailByID(int $id_detail)`, `updateDetail(int $id_detail, array $data)`, `saveHistory(int $id_cashout_subkon, string $keterangan, int $status)`, `getDetailByCashoutSubkonID(int $id_cashout_subkon)`, `syncAutomaticDetailAllocations(int $id_cashout_subkon, array $id_kavlings)`, `getAllocationsByDetailID(int $id_cashout_subkon_detail)`, `updateCashoutSubkonStatus(int $id_cashout_subkon, int $status)`, `saveCashoutSubkonKavling(array $data)`, `getHistoryByIDCashoutSubkon($id_cashout_subkon)`)
+- `app/Repositories/CashInReportRepository.php` (233 baris, 4 public methods: `getAvailableYearBounds(int $idProyek)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`)
+- `app/Repositories/HasilAkadReportRepository.php` (310 baris, 5 public methods: `getAvailableYearBounds(int $idProyek)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getMonthlyPengajuanTotals(int $idProyek, array $years)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`)
+- `app/Repositories/SpptbRepository.php` (23 baris, 1 public methods: `getLatestByMkdtId(int $idMkdt, int $limit = 3)`)
 
 ### Models (16)
 - `app/Models/KeuanganModel.php`
@@ -380,11 +408,11 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Models/DanaJaminanHistoryModel.php`
 
 ### Views (5 folder)
-- `app/Views/keuangan` (4 file)
-- `app/Views/cashout_kavling` (1 file)
-- `app/Views/cashout_subkon` (1 file)
-- `app/Views/laporan` (2 file)
-- `app/Views/pdf` (17 file)
+- `app/Views/keuangan` (4 file: `list-hasil-akad.php`, `list-tagihan.php`, `pencairan-akad-import.php`, `riwayat-bayar.php`)
+- `app/Views/cashout_kavling` (1 file: `index.php`)
+- `app/Views/cashout_subkon` (1 file: `index.php`)
+- `app/Views/laporan` (3 file: `booking-akad.php`, `cash-in.php`, `hasil-akad.php`)
+- `app/Views/pdf` (17 file: `invoice.php`, `kuitansi_pembayaran-uangmuka.php`, `kuitansi_pembayaran.bak.php`, `kuitansi_pembayaran.php`, `penagihan.php`, `poskon-batal.php`, `poskon.php`, `slf.php`, `slf_page3.php`, `spptb-memo.php`, `spptb-new-page2.php`, `spptb-new-page3.php`, `spptb-new.php`, `spptb-page-next.php`, `spptb-page1.php`, `tagihan_keuangan.php`, `testpdf.php`)
 
 ### JavaScript (9 file)
 - `public/assets/js/siteplan/keuangan.js` (2192 baris)
@@ -396,6 +424,161 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `public/assets/js/cashout_kavling/index.js` (128 baris)
 - `public/assets/js/laporan-cash-in.js` (473 baris)
 - `public/assets/js/laporan-hasil-akad.js` (228 baris)
+
+## Key Functions
+- **Service (`app/Services/KeuanganService.php`):** `simpanIsiTagihan($request, int $actorId)`, `simpanDanaAkad($request, int $actorId)`, `simpanInvoice($request, int $actorId)`, `updateSudahDibayar($request)`, `syncTagihan(int $idMkdt, array $um, int $actorId)`, `simpanPenagihan($request, int $actorId)` (Validasi kop surat, item tagihan, nomor surat duplikat, dan persistensi invoice log berstatus draft/publish), `updateStatusPenagihan($request, int $actorId)` (Transisi status tagihan dan pencatatan audit trail status log), `setTanggalKirim($no_inv)`
+- **Service (`app/Services/PembayaranService.php`):** `simpan($data)`, `recalculateSummary($id_mkdt)`, `removeLP($request)`
+- **Service (`app/Services/PajakService.php`):** `insertPajak(array $fields, int $idKavling, int $actorId)`, `updatePajak(int $idPajak, array $fields, int $actorId)`
+- **Service (`app/Services/FinanceLedgerService.php`):** `recordIncomeFromLogPembayaran(int $idPembayaran, ?int $actorId = null)`, `voidByLogPembayaran(int $idPembayaran, ?int $actorId = null)`, `recordIncomeFromDanaJaminan(int $idDanaAkad, int $idMkdt, ?int $actorId = null)`, `voidByDanaJaminan(int $idDanaAkad, ?int $actorId = null)`, `recordIncomeFromBankKprDisbursement(int $idDisbursement, ?int $actorId = null)`
+- **Service (`app/Services/BankKprDisbursementService.php`):** `getData(int $idMkdt, int $idKavling)`, `save($request, int $actorId)`, `void(int $id, $request, int $actorId)`
+- **Service (`app/Services/BankService.php`):** `simpan(array $data, int $id = null)`, `hapus(int $id)`
+- **Service (`app/Services/BookingPaymentService.php`):** `assertEditable(int $idMkdt, float $nominal, ?string $tanggal)`, `synchronize(int $idMkdt, ?int $actorId = null)`, `verify(int $idMkdt, int $actorId, ?float $nominal = null, ?string $tanggal = null)`, `assertMayDelete(int $paymentId)`, `assertManualAllocationAllowed(int $idMkdt, array $allocations)`
+- **Service (`app/Services/BookingFeeMigrationService.php`):** `run()`, `snapshot()`
+- **Service (`app/Services/PencairanAkadService.php`):** `getData(int $idMkdt, int $idKavling)`, `saveRetensi(array $post, int $actorId)`, `saveTenor(array $post, int $actorId)`, `storePengajuan($request, int $actorId)`, `cairkan($request, int $actorId)`
+- **Service (`app/Services/CashOutService.php`):** `insert($data)`, `delete($id)`, `format_tgl($tgl)`, `is_active($id, $texts, $textf)`
+- **Service (`app/Services/Keuangan/Cashout/CashoutKavlingService.php`):** `getDataTables(array $var)`, `getDetailList(int $idKavling)`
+- **Service (`app/Services/Keuangan/Cashout/CashoutSubkonService.php`):** `getDataTables(array $var)`, `getDetailList(int $id_cashout_subkon)`, `getCashoutSubkon(array $id_kavlings, ?int $id_cashout_subkon = null)`, `saveCashoutSubkon($post)`, `turunJatuhTempo($id_detail, $tanggal_jatuh_tempo, $berita_acara)`
+- **Service (`app/Services/CashInReportService.php`):** `getAvailableYears(int $idProyek)`, `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`, `getDetail(int $idProyek, array $request)`, `monthLabel(int $month)`
+- **Service (`app/Services/HasilAkadReportService.php`):** `getAvailableYears(int $idProyek)`, `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`, `getDetail(int $idProyek, array $request)`
+- **Service (`app/Services/PrintService.php`):** `printSpptb(int $idKavling, int $idMkdt, int $idProyek)`, `printKuitansi($var)`, `printKuitansiUm($var)`, `exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)`, `exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status)`
+- **Service (`app/Services/DanaJaminanService.php`):** `getData(int $idMkdt, int $idKavling)`, `saveDanaAkad($request, int $actorId)`, `listPengajuan(int $idKavling)`, `storePengajuan($request, int $actorId)`, `cairkanPengajuan(int $idPengajuan, $request, int $actorId)`
+- **Repository (`app/Repositories/KeuanganRepository.php`):** `getTagihanById(int $idMkdt)`, `getTagihanTurunKPRById(int $idMkdt)`, `getAllJatuhTempo($id_proyek)`, `getLIKeu()`, `getBelumLunasQuery()`
+- **Repository (`app/Repositories/LogPembayaranRepository.php`):** `getRiwayatBayarById(int $idMkdt)`, `getRiwayatBayarQuery($id_proyek, $id_cluster = null, $id_jalan = null)`, `softDeleteAndReturnIdMkdt($idPembayaran)`, `getRiwayatBayarByIdPembayran($id)`, `getDetailRiwayatBayarById(int $id_Pembayaran)`
+- **Repository (`app/Repositories/PaymentSummaryRepository.php`):** `updateCategory(int $idMkdt, string $kategori, float $amount)`, `setToZero(int $id_mkdt)`, `setCategory(int $idMkdt, string $kategori, float $value)`
+- **Repository (`app/Repositories/FinanceLedgerRepository.php`):** `findBySource(string $sourceType, int $sourceId)`, `upsertBySource(array $payload)`, `voidBySource(string $sourceType, int $sourceId, ?int $actorId = null)`, `sumIncome(array $filters = [])`
+- **Repository (`app/Repositories/PajakRepository.php`):** `linkKavling(int $idKavling, int $idPajak)`
+- **Repository (`app/Repositories/BookingPaymentRepository.php`):** `mkdt(int $id, bool $lock = false)`, `link(int $id, bool $lock = false)`, `owners(int $payment)`, `payment(int $id)`, `details(int $payment)`
+- **Repository (`app/Repositories/PencairanAkadListRepository.php`):** `buildListQuery(array $filters)`, `getSummary(array $filters, string $search = '')`
+- **Repository (`app/Repositories/CashOutRepository.php`):** `getListItem(string $search)`, `getRiwayatBayarCashOutByIDKavling(int $id_kavling)`, `softDelete($id)`
+- **Repository (`app/Repositories/Keuangan/Cashout/CashoutKavlingRepo.php`):** `getDataTables(array $var)`, `getDetailList(int $idKavling)`, `getCashoutRowsByKavling(int $idKavling)`
+- **Repository (`app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php`):** `getSubkonByID(int $id_subkon)`, `getDataTables(array $var)`, `getDetailsByCashoutSubkonIds(array $ids)`, `getListCashoutKavling(array $id_kavlings)`, `getCashoutSubkonByID(int $id_cashout_subkon)`
+- **Repository (`app/Repositories/CashInReportRepository.php`):** `getAvailableYearBounds(int $idProyek)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`
+- **Repository (`app/Repositories/HasilAkadReportRepository.php`):** `getAvailableYearBounds(int $idProyek)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getMonthlyPengajuanTotals(int $idProyek, array $years)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`
+- **Repository (`app/Repositories/SpptbRepository.php`):** `getLatestByMkdtId(int $idMkdt, int $limit = 3)`
+
+## Deprecated & Legacy Shims
+- Route `POST /keuangan/jatuhtempo/get` (`Keuangan::getJatuhTempo`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-bank/get` (`Keuangan::getBankKprDisbursement`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-bank/save` (`Keuangan::saveBankKprDisbursement`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-bank/void/(:num)` (`Keuangan::voidBankKprDisbursement/$1`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/ambilsatu` (`Tagihan::getByID`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/riwayat/ambilsatu` (`Tagihan::getRiwayatByID`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/turunkpr` (`Tagihan::tambahTurunKPR`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/hapusturunkpr` (`Tagihan::hapusTurunKPR`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/hapus` (`Tagihan::hapus`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/void` (`Tagihan::voidTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/unvoid` (`Tagihan::unvoidTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/jatuhtempo` (`Tagihan::getAllJatuhTempo`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /riwayat-bayar` (`Tagihan::riwayatBayarIndex`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/riwayat-bayar/ambil` (`Tagihan::getRiwayatBayar`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /tagihan/list` (`Tagihan::listTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/list/ambil` (`Tagihan::getListTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/list/ambil-grouped` (`Tagihan::getListTagihanGrouped`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/list/detail` (`Tagihan::getListTagihanDetail`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/list/export-excel` (`Tagihan::exportExcelTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /tagihan/list/ambil-riwayat-surat` (`Tagihan::getListRiwayatSurat`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /danaakad/list/ambilsatu` (`Tagihan::getListTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /pembayaran/kuitansi/cetak` (`Pembayaran::print`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /pembayaran/kuitansi-um/cetak` (`Pembayaran::printUm`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /pembayaran/simpan` (`Pembayaran::save`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /pembayaran/hapus` (`Pembayaran::removeLP`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /pembayaran/hitungulang` (`Pembayaran::recalculateSummary`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/cashout/ambil` (`CashOut::getByIDKavling`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/cashout/listitem/ambil` (`CashOut::getListItem`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/cashout/delete` (`CashOut::delete`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/cashout/save` (`CashOut::insert`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /cashout/kavling` (`CashoutKavling::index`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /cashout/kavling/list` (`CashoutKavling::getDataTables`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /cashout/kavling/detail-list` (`CashoutKavling::getDetailList`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /cashout/subkon` (`CashoutSubkon::index`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /cashout/subkon/list` (`CashoutSubkon::getDataTables`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /cashout/subkon/detail-list` (`CashoutSubkon::getDetailList`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /cashout/subkon/ambil` (`CashoutSubkon::get`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /cashout/subkon/save` (`CashoutSubkon::save`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /cashout/subkon/turun-jatuh-tempo` (`CashoutSubkon::turunJatuhTempo`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /cashout/subkon/ajukan-spp` (`CashoutSubkon::ajukanSPP`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /cashout/subkon/history` (`CashoutSubkon::getHistory`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /cashout/subkon/ajukan-pencairan` (`CashoutSubkon::ajukanPencairan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /cashout/subkon/pembayaran` (`CashoutSubkon::pembayaran`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/get` (`PencairanAkad::get`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/plan/save-retensi` (`PencairanAkad::saveRetensi`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/plan/save-tenor` (`PencairanAkad::saveTenor`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/pengajuan/store` (`PencairanAkad::storePengajuan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/pencairan/store` (`PencairanAkad::cairkan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/payment/list` (`PencairanAkad::listPayment`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/payment/void` (`PencairanAkad::voidPayment`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/void` (`PencairanAkad::void`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /keuangan/pencairan-akad/history/(:num)` (`PencairanAkad::history/$1`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/batch/list` (`PencairanAkad::postBatchList`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/batch/eligible-kavling` (`PencairanAkad::postEligibleKavling`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/batch/pengajuan/store` (`PencairanAkad::postStoreBatchPengajuan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/batch/detail` (`PencairanAkad::postBatchDetail`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/batch/pencairan/store` (`PencairanAkad::postCairkanBatch`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/pencairan-akad/batch/void` (`PencairanAkad::postVoidBatch`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /keuangan/pencairan-akad/batch/history/(:num)` (`PencairanAkad::getBatchHistory/$1`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /keuangan/hasil-akad/list` (`PencairanAkad::listHasilAkad`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/hasil-akad/list/ambil-grouped` (`PencairanAkad::getListGrouped`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/hasil-akad/list/detail` (`PencairanAkad::getListDetail`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /keuangan/hasil-akad/export-template` (`PencairanAkad::exportTemplate`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /keuangan/hasil-akad/import` (`PencairanAkad::importForm`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /keuangan/hasil-akad/import` (`PencairanAkad::import`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /print/spptb` (`PrintController::printSpptb`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /pencairan` (`PencairanJaminan::index`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /pencairan/list/(:num)` (`PencairanJaminan::list/$1`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /pencairan/store` (`PencairanJaminan::store`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /pencairan/cairkan/(:num)` (`PencairanJaminan::cairkan/$1`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /pencairan/history/(:num)` (`PencairanJaminan::history/$1`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `POST /pencairan/toggle/(:num)` (`PencairanJaminan::toggleStatus/$1`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `GET /pencairan/download/(:num)` (`PencairanJaminan::download/$1`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/getdanaakad` (`Keuangan::getDanaAkad`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/getcashout` (`Keuangan::getCashOut`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/savecashout` (`Keuangan::saveCashOut`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/savedanaakad` (`Keuangan::saveDanaAkad`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/get_riwayat_gantinama` (`Keuangan::get_riwayat_gantinama`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/issudahbayar` (`Keuangan::isSudahBayar`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/isi_tagihan` (`Keuangan::isi_tagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/save_sb` (`Keuangan::save_sb`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/save` (`Keuangan::save`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/list_tagihan` (`Keuangan::list_tagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/getlisttagihan` (`Keuangan::getListTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/riwayat_bayar` (`Keuangan::riwayat_bayar`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/getriwayatbayar` (`Keuangan::getRiwayatBayar`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/get_tagihan` (`Keuangan::get_tagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/removelp` (`Keuangan::removeLP`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/doprint` (`Keuangan::doPrint`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/print_tagihan` (`Keuangan::print_tagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/if_where` (`Keuangan::if_where`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/format_tgl` (`Keuangan::format_tgl`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/is_active` (`Keuangan::is_active`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/get_riwayat_tagihan` (`Keuangan::get_riwayat_tagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/simpan_penagihan` (`Keuangan::simpan_penagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/update_status_penagihan` (`Keuangan::update_status_penagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/download_penagihan` (`Keuangan::download_penagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/get_kopsurat_list` (`Keuangan::get_kopsurat_list`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/get_kopsurat_detail` (`Keuangan::get_kopsurat_detail`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/simpan_kopsurat` (`Keuangan::simpan_kopsurat`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /keuangan/hapus_kopsurat` (`Keuangan::hapus_kopsurat`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /tagihan/save` (`Tagihan::save`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /pajak/getone` (`Pajak::getOne`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /pajak/save` (`Pajak::save`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /pajak/if_where` (`Pajak::if_where`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /pajak/is_active` (`Pajak::is_active`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /pajak/format_tgl` (`Pajak::format_tgl`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /dana_akad/getbyid` (`DanaAkad::getByID`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /list_bank/index` (`ListBank::index`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /print_controller/printkuitansi` (`PrintController::printKuitansi`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /direksi/get_data_by_id` (`Direksi::get_data_by_id`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /direksi/save` (`Direksi::save`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /direksi/if_where` (`Direksi::if_where`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /direksi/format_tgl` (`Direksi::format_tgl`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /direksi/is_active` (`Direksi::is_active`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /direksi/export_xlsx` (`Direksi::export_xlsx`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /direksi/tagihan` (`Direksi::tagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /direksi/get_pending_tagihan` (`Direksi::get_pending_tagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /direksi/get_my_signature` (`Direksi::get_my_signature`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /direksi/sign_tagihan` (`Direksi::sign_tagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /direksi/get_history_tagihan` (`Direksi::get_history_tagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+- Route `ANY /direksi/reject_tagihan` (`Direksi::reject_tagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 
 ## Readiness Checklist
 - [ ] Has Service Layer
@@ -425,7 +608,23 @@ _Jalankan `php spark module:deadcode Keuangan` untuk mengaudit dead code kandida
 
 ## Notes
 - Modul diinisialisasi melalui tooling otomatis.
+- **Catatan Skema & Integrasi `invoice_log` (Pembaruan Migrasi 2026-11-04):**
+  - Tabel `invoice_log` diperkaya dengan kolom `status_tagihan` (`VARCHAR(50)`, NOT NULL, DEFAULT `'draft'`), `tanggal_ubah_status` (`DATE`, NULL), `keterangan_status` (`TEXT`, NULL), dan `tanggal_kirim` (`DATETIME`, NULL).
+  - Index `idx_invoice_log_status_tagihan` (`status_tagihan`) ditambahkan untuk mempercepat kueri filter tagihan aktif dan riwayat status.
+  - Seluruh data legacy yang belum memiliki status tagihan telah di-backfill menjadi `'draft'`.
 - **Deprecation Notice (PencairanJaminan & DanaJaminanService):**
   - Komponen legacy `PencairanJaminan.php`, `DanaJaminanService.php`, dan rute `/pencairan/*` berstatus **DEPRECATED** dan dijadwalkan untuk dihapus tuntas saat sesi refaktor Modul Keuangan.
   - Seluruh fungsionalitas retensi jaminan perbankan telah digantikan sepenuhnya oleh sub-modul terpadu `PencairanAkad` (`pencairan_akad_*`) dengan rute `/keuangan/pencairan-akad/*`.
   - Tidak ada modul lain (MKDT, Legal, Produksi, Promosi, dsb.) yang mengakses controller maupun service ini.
+
+## Change Log
+- **2026-11-04 [`BUGFIX`] — Penambahan Kolom status_tagihan dan Metadata Surat pada invoice_log:**
+  - **Routes & Public Contracts:** Tidak berubah (endpoint `/keuangan/simpan_penagihan` dan `/keuangan/update_status_penagihan`).
+  - **Controller / Service / Repo / Model:**
+    - Pembuatan dan eksekusi migrasi database `app/Database/Migrations/2026-11-04-000001_AddStatusTagihanAndFieldsToInvoiceLog.php`.
+    - Skema tabel `invoice_log` diperkaya dengan kolom `status_tagihan` (`VARCHAR(50)`, NOT NULL, DEFAULT `'draft'`), `tanggal_ubah_status` (`DATE`, NULL), `keterangan_status` (`TEXT`, NULL), dan `tanggal_kirim` (`DATETIME`, NULL) beserta index `idx_invoice_log_status_tagihan` (`status_tagihan`).
+    - Backfill data legacy `invoice_log` ke status default `'draft'`.
+    - Menyelesaikan runtime database error "Unknown column 'status_tagihan' in 'field list'" saat submit draft surat penagihan via `KeuanganService::simpanPenagihan`.
+  - **View / CSS / JS:** Tidak berubah.
+  - **Deprecations:** Tidak ada.
+- `2026-11-04` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.

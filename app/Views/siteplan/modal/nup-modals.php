@@ -68,12 +68,10 @@
               <tr>
                 <th style="width: 45px;">No</th>
                 <th style="width: 110px;">No NUP</th>
-                <th style="width: 170px;">Aksi</th>
+                <th style="width: 150px;">Aksi</th>
                 <th>Tgl Booking</th>
                 <th>Nama Konsumen & NIK/NPWP</th>
                 <th>Kontak & Sales</th>
-                <th>Sumber / Eks Kavling</th>
-                <th>Booking Fee</th>
                 <th>Total Sudah Bayar</th>
                 <th>Catatan NUP</th>
                 <th>Berkas</th>
@@ -81,7 +79,7 @@
             </thead>
             <tbody id="tbody-modal-daftar-nup">
               <tr>
-                <td colspan="11" class="text-center text-muted py-2">Memuat data NUP...</td>
+                <td colspan="9" class="text-center text-muted py-2">Memuat data NUP...</td>
               </tr>
             </tbody>
           </table>

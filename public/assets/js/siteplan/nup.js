@@ -204,7 +204,7 @@
       const $tbModal = $('#tbody-modal-daftar-nup');
       const $tbTab = $('#tbody-tab-daftar-nup');
 
-      const loadingRow = '<tr><td colspan="11" class="text-center py-2"><i class="fa fa-spinner fa-spin mr-50"></i> Memuat daftar NUP...</td></tr>';
+      const loadingRow = '<tr><td colspan="9" class="text-center py-2"><i class="fa fa-spinner fa-spin mr-50"></i> Memuat daftar NUP...</td></tr>';
       if ($tbModal.length) $tbModal.html(loadingRow);
       if ($tbTab.length) $tbTab.html(loadingRow);
 
@@ -229,7 +229,7 @@
           if ($tbTab.length) $tbTab.html(html);
         },
         error: function () {
-          const errRow = '<tr><td colspan="11" class="text-center text-danger py-2">Gagal memuat data NUP.</td></tr>';
+          const errRow = '<tr><td colspan="9" class="text-center text-danger py-2">Gagal memuat data NUP.</td></tr>';
           if ($tbModal.length) $tbModal.html(errRow);
           if ($tbTab.length) $tbTab.html(errRow);
         }
@@ -238,7 +238,7 @@
 
     renderListRows: function (rows) {
       if (!rows || rows.length === 0) {
-        return '<tr><td colspan="11" class="text-center text-muted py-2">Belum ada konsumen dengan status NUP pada proyek ini.</td></tr>';
+        return '<tr><td colspan="9" class="text-center text-muted py-2">Belum ada konsumen dengan status NUP pada proyek ini.</td></tr>';
       }
 
       const isMkdt = canManageMkdt();
@@ -247,13 +247,12 @@
       return rows.map(function (r, idx) {
         const isTarikan = String(r.nup_source || '').toUpperCase() === 'TARIKAN';
         const sourceBadge = isTarikan
-          ? '<span class="badge badge-light-warning nup-badge-source"><i class="fas fa-undo-alt mr-25"></i> Tarikan Kavling</span>' +
-            (r.last_kavling_label ? '<div class="small text-muted mt-25">Eks: <strong>' + escHtml(r.last_kavling_label) + '</strong></div>' : '')
+          ? '<span class="badge badge-light-warning nup-badge-source"><i class="fas fa-undo-alt mr-25"></i> Tarikan Kavling</span>'
           : '<span class="badge badge-light-primary nup-badge-source"><i class="fas fa-star mr-25"></i> NUP Baru</span>';
 
-        const verifiedBadge = Number(r.booking_verified) === 1
-          ? '<div class="small text-success"><i class="fa fa-check-circle"></i> Terverifikasi</div>'
-          : '<div class="small text-warning"><i class="fa fa-clock"></i> Menunggu Verifikasi</div>';
+        const eksKavlingInfo = (isTarikan && r.last_kavling_label)
+          ? '<div class="small text-muted">Eks: <strong>' + escHtml(r.last_kavling_label) + '</strong></div>'
+          : '';
 
         const files = [];
         if (r.file_ktp_url) {
@@ -270,7 +269,7 @@
         if (isMkdt) {
           actions.push(
             '<button type="button" class="btn btn-success btn-sm mb-25 btn-block" onclick="window.SIGAPP_NUP.openActivateNupModal(' + Number(r.id_mkdt) + ')" title="Pilih Kavling & Aktifkan menjadi Konsumen Aktif">' +
-              '<i class="fas fa-check-circle mr-25"></i> Pilih Kavling / Aktifkan' +
+              '<i class="fas fa-check-circle mr-25"></i> Pilih Kavling' +
             '</button>'
           );
         }
@@ -294,7 +293,11 @@
             '<td>' + (actions.join('') || '-') + '</td>' +
             '<td>' + formatDateDisplay(r.booking_tgl) + '<div class="small text-muted">Oleh: ' + escHtml(r.diinput_oleh || '-') + '</div></td>' +
             '<td>' +
-              '<div class="font-weight-bold">' + escHtml(r.nama_konsumen || '-') + '</div>' +
+              '<div class="d-flex align-items-center flex-wrap mb-25" style="gap:.35rem;">' +
+                '<span class="font-weight-bold">' + escHtml(r.nama_konsumen || '-') + '</span>' +
+                sourceBadge +
+              '</div>' +
+              eksKavlingInfo +
               (r.nik ? '<div class="small text-muted">NIK: ' + escHtml(r.nik) + '</div>' : '') +
               (r.npwp ? '<div class="small text-muted">NPWP: ' + escHtml(r.npwp) + '</div>' : '') +
             '</td>' +
@@ -302,8 +305,6 @@
               (r.hp_konsumen ? '<div><i class="fa fa-phone-alt text-muted mr-25"></i>' + escHtml(r.hp_konsumen) + '</div>' : '-') +
               (r.sales ? '<div class="small text-primary font-weight-bold">Sales: ' + escHtml(r.sales) + '</div>' : '') +
             '</td>' +
-            '<td>' + sourceBadge + '</td>' +
-            '<td><div class="font-weight-bold">' + formatRupiah(r.booking_fee) + '</div>' + verifiedBadge + '</td>' +
             '<td><div class="font-weight-bold text-success">' + formatRupiah(r.total_sudah_bayar) + '</div>' +
               (Number(r.total_angsuran_masuk) > 0 ? '<div class="small text-muted">Termasuk angsuran: ' + formatRupiah(r.total_angsuran_masuk) + '</div>' : '') +
             '</td>' +

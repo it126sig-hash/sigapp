@@ -1012,11 +1012,13 @@ class Siteplan extends BaseController
                 konsumen.kode_referal,
                 referrer.kode_referal as referred_by_kode,
                 referrer.nama_konsumen as referred_by_nama,
+                list_bank.bank as nama_bank,
                 username
             ')
             ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
             ->join('referrals', 'referrals.id_mkdt_referred = mkdt.id_mkdt', 'left')
             ->join('konsumen referrer', 'referrer.id_konsumen = referrals.id_konsumen_referrer', 'left')
+            ->join('list_bank', 'list_bank.id = mkdt.id_bank', 'left')
             ->join('users', 'users.id = mkdt.edit_by')
             ->where('mkdt.id_mkdt', $id_mkdt)
             ->first();

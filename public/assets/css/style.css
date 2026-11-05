@@ -315,6 +315,28 @@ a:focus {
   color: #fff !important;
 }
 
+/* Global Bootstrap Tab Transition Animation */
+@keyframes sigappTabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-content > .tab-pane.active {
+  animation: sigappTabFadeIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-content > .tab-pane.active {
+    animation: none !important;
+  }
+}
+
 .richText .richText-toolbar a,
 .richText .richText-toolbar a:hover,
 .richText .richText-toolbar a:focus,

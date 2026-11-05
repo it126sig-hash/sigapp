@@ -564,6 +564,253 @@ function lihat_detail() {
     let modalKeuanganChart = null;
     let modalHasilAkadChart = null;
 
+
+    function isValidDate(val) {
+        if (!val) return false;
+        const s = String(val).trim();
+        if (s === '' || s === '-' || s === '0000-00-00' || s.startsWith('0000-00-00') || s.startsWith('1970-01-01')) {
+            return false;
+        }
+        return true;
+    }
+
+    function resolveMkdtStatusInfo(m) {
+        if (!m) {
+            return {
+                status: '-',
+                badgeCls: 'badge-secondary',
+                date: null
+            };
+        }
+
+        const isBatal = (m.is_batal == 1 || (m.status_mkdt && String(m.status_mkdt).toLowerCase() === 'batal'));
+        if (isBatal) {
+            const tgl = isValidDate(m.mkdt_batal_tgl) ? m.mkdt_batal_tgl : (isValidDate(m.keuangan_batal_tgl) ? m.keuangan_batal_tgl : m.updated_at);
+            return {
+                status: 'Batal',
+                badgeCls: 'badge-danger',
+                date: tgl
+            };
+        }
+
+        const isAkadExplicit = (m.akad == 1 || (m.status_mkdt && String(m.status_mkdt).toLowerCase() === 'akad') || isValidDate(m.akad_tgl));
+        const isIndentExplicit = (m.akad_indent == 1 || (m.is_ajb && String(m.is_ajb).toUpperCase() === 'PPJB') || isValidDate(m.akad_indent_tgl));
+
+        if (isAkadExplicit && isIndentExplicit) {
+            const tgl = isValidDate(m.akad_indent_tgl) ? m.akad_indent_tgl : (isValidDate(m.rencana_akad_tgl) ? m.rencana_akad_tgl : m.updated_at);
+            return {
+                status: 'Akad Indent',
+                badgeCls: 'badge-primary',
+                date: tgl
+            };
+        }
+
+        if (isAkadExplicit) {
+            const tgl = isValidDate(m.akad_tgl) ? m.akad_tgl : (isValidDate(m.rencana_akad_tgl) ? m.rencana_akad_tgl : m.updated_at);
+            return {
+                status: 'Akad AJB',
+                badgeCls: 'badge-success',
+                date: tgl
+            };
+        }
+
+        if (isIndentExplicit) {
+            const tgl = isValidDate(m.akad_indent_tgl) ? m.akad_indent_tgl : (isValidDate(m.rencana_akad_tgl) ? m.rencana_akad_tgl : m.updated_at);
+            return {
+                status: 'Akad Indent',
+                badgeCls: 'badge-primary',
+                date: tgl
+            };
+        }
+
+        const isSp3k = (m.sp3k == 1 || (m.status_mkdt && String(m.status_mkdt).toUpperCase() === 'SP3K') || isValidDate(m.sp3k_tgl));
+        if (isSp3k) {
+            const tgl = isValidDate(m.sp3k_tgl) ? m.sp3k_tgl : null;
+            return {
+                status: 'SP3K',
+                badgeCls: 'badge-info',
+                date: tgl
+            };
+        }
+
+        const isWawancara = (m.wawancara == 1 || (m.status_mkdt && String(m.status_mkdt).toUpperCase() === 'WAWANCARA') || isValidDate(m.wawancara_tgl));
+        if (isWawancara) {
+            const tgl = isValidDate(m.wawancara_tgl) ? m.wawancara_tgl : null;
+            return {
+                status: 'Wawancara',
+                badgeCls: 'badge-warning',
+                date: tgl
+            };
+        }
+
+        const tglBooking = isValidDate(m.booking_tgl) ? m.booking_tgl : null;
+        return {
+            status: 'Booking',
+            badgeCls: 'badge-primary',
+            date: tglBooking
+        };
+    }
+
+    function format_date_clean(val) {
+        if (!isValidDate(val)) {
+            return '-';
+        }
+        return format_date(val);
+    }
+
+    function setAmenityIcon(selector, val) {
+        const isChecked = (val == 1 || val === true || val === '1');
+        if (isChecked) {
+            $(selector).html('<i class="fas fa-check text-success"></i>');
+        } else {
+            $(selector).html('<span class="text-muted font-weight-bold">-</span>');
+        }
+    }
+
+    function updateRingkasanHasilAkad(pa) {
+        const items = pa && Array.isArray(pa.items) ? pa.items : [];
+        const plan = pa && pa.plan ? pa.plan : null;
+        const totalHasilAkad = plan ? parseFloat(plan.total_hasil_akad || 0) : 0;
+
+        if (!plan || totalHasilAkad <= 0) {
+            setText("#s-pa_total_hasil_akad_display", 'Rp 0');
+            setText("#s-pa_sudah_cair_display", 'Rp 0');
+            setText("#s-pa_belum_cair_display", 'Rp 0');
+            $("#s-pa_cair_bar").css("width", "0%");
+            $("#s-pa_sisa_bar").css("width", "0%");
+            setText("#s-pa_cair_pct", "0%");
+            setText("#s-pa_sisa_pct", "0%");
+            return;
+        }
+
+        const totalCair = items
+            .filter(v => v.jenis === 'tenor')
+            .reduce((sum, v) => sum + (parseFloat(v.sudah_cair || 0)), 0);
+        const sisa = Math.max(0, totalHasilAkad - totalCair);
+
+        const cairPct = Math.min(100, Math.round((totalCair / totalHasilAkad) * 100));
+        const sisaPct = Math.max(0, 100 - cairPct);
+
+        setText("#s-pa_total_hasil_akad_display", detailRupiah(totalHasilAkad));
+        setText("#s-pa_sudah_cair_display", detailRupiah(totalCair));
+        setText("#s-pa_belum_cair_display", detailRupiah(sisa));
+
+        $("#s-pa_cair_bar").css("width", cairPct + "%");
+        $("#s-pa_sisa_bar").css("width", sisaPct + "%");
+        setText("#s-pa_cair_pct", cairPct + "%");
+        setText("#s-pa_sisa_pct", sisaPct + "%");
+    }
+
+    function renderKavlingTimeline(mkdt, currentStatus) {
+        const $timeline = $("#s-kavling-timeline");
+        $timeline.empty();
+
+        if (!mkdt) {
+            $timeline.html('<div class="text-center text-muted py-2 w-100">Belum ada data aktivitas transaksi pada kavling ini.</div>');
+            return;
+        }
+
+        const isBatal = mkdt.is_batal == 1 || (mkdt.status_mkdt && String(mkdt.status_mkdt).toLowerCase() === 'batal');
+
+        const stages = [
+            {
+                key: 'Booking',
+                title: 'Booking',
+                date: isValidDate(mkdt.booking_tgl) ? mkdt.booking_tgl : null,
+                desc: 'Tahap pemesanan',
+                isDone: isValidDate(mkdt.booking_tgl)
+            },
+            {
+                key: 'Wawancara',
+                title: 'Wawancara',
+                date: isValidDate(mkdt.wawancara_tgl) ? mkdt.wawancara_tgl : null,
+                desc: 'Verifikasi berkas',
+                isDone: (mkdt.wawancara == 1 || isValidDate(mkdt.wawancara_tgl))
+            },
+            {
+                key: 'SP3K',
+                title: 'SP3K',
+                date: isValidDate(mkdt.sp3k_tgl) ? mkdt.sp3k_tgl : null,
+                desc: 'Persetujuan kredit',
+                isDone: (mkdt.sp3k == 1 || isValidDate(mkdt.sp3k_tgl))
+            },
+            {
+                key: 'Akad Indent',
+                title: 'Akad Indent',
+                date: isValidDate(mkdt.akad_indent_tgl) ? mkdt.akad_indent_tgl : (mkdt.akad_indent == 1 && isValidDate(mkdt.rencana_akad_tgl) ? mkdt.rencana_akad_tgl : null),
+                desc: 'Akad indent',
+                isDone: (mkdt.akad_indent == 1 || (mkdt.is_ajb && String(mkdt.is_ajb).toUpperCase() === 'PPJB') || isValidDate(mkdt.akad_indent_tgl))
+            },
+            {
+                key: 'Akad AJB',
+                title: 'Akad AJB',
+                date: isValidDate(mkdt.akad_tgl) ? mkdt.akad_tgl : (mkdt.akad == 1 && isValidDate(mkdt.rencana_akad_tgl) ? mkdt.rencana_akad_tgl : null),
+                desc: 'Transaksi disetujui',
+                isDone: (mkdt.akad == 1 || isValidDate(mkdt.akad_tgl) || (mkdt.status_mkdt === 'Akad' && mkdt.akad_indent != 1 && (!mkdt.is_ajb || String(mkdt.is_ajb).toUpperCase() !== 'PPJB')))
+            }
+        ];
+
+        if (isBatal) {
+            stages.push({
+                key: 'Batal',
+                title: 'Batal',
+                date: isValidDate(mkdt.mkdt_batal_tgl) ? mkdt.mkdt_batal_tgl : (isValidDate(mkdt.keuangan_batal_tgl) ? mkdt.keuangan_batal_tgl : mkdt.updated_at),
+                desc: 'Transaksi dibatalkan',
+                isDone: true,
+                isBatalStage: true
+            });
+        }
+
+        let activeIdx = -1;
+        for (let i = stages.length - 1; i >= 0; i--) {
+            if (stages[i].key === currentStatus) {
+                activeIdx = i;
+                break;
+            }
+        }
+        if (activeIdx === -1) {
+            for (let i = stages.length - 1; i >= 0; i--) {
+                if (stages[i].isDone) {
+                    activeIdx = i;
+                    break;
+                }
+            }
+        }
+        if (activeIdx === -1) {
+            activeIdx = 0;
+        }
+
+        let html = '';
+        stages.forEach(function(st, idx) {
+            let cls = '';
+            let iconHtml = '';
+
+            if (st.isBatalStage) {
+                cls = 'is-batal';
+                iconHtml = '<i class="fas fa-times"></i>';
+            } else if (idx < activeIdx) {
+                cls = 'is-completed';
+                iconHtml = '<i class="fas fa-check"></i>';
+            } else if (idx === activeIdx) {
+                cls = 'is-active';
+                iconHtml = '<i class="far fa-dot-circle"></i>';
+            } else {
+                iconHtml = `<span class="small font-weight-bold">${idx + 1}</span>`;
+            }
+
+            html += `
+                <div class="kavling-timeline-item ${cls}">
+                    <div class="kavling-timeline-circle">${iconHtml}</div>
+                    <div class="kavling-timeline-title">${st.title}</div>
+                    <div class="kavling-timeline-date">${format_date_clean(st.date)}</div>
+                    <div class="kavling-timeline-desc">${st.desc}</div>
+                </div>
+            `;
+        });
+
+        $timeline.html(html);
+    }
+
     function loadSummary(r) {
         //load data konsumen
         if (r.mkdt) {
@@ -599,12 +846,13 @@ function lihat_detail() {
             // console.log()
 
             setStatusMkdtBadge(mkdt.status_mkdt)
-            setText("#s-st_bank", mkdt.bank)
+            const displayBank = mkdt.nama_bank || mkdt.bank || (mkdt.id_bank && mkdt.id_bank != '0' ? mkdt.id_bank : '-');
+            setText("#s-st_bank", displayBank)
             setText("#s-notaris", mkdt.notaris)
-            setText("#s-st_sp3k_tgl", format_date(mkdt.sp3k_tgl))
-            setText("#s-st_sp3k_tgl_exp", format_date(mkdt.sp3k_tgl_exp))
-            setText("#s-akad_indent_tgl", format_date(mkdt.akad_indent_tgl))
-            setText("#s-akad_tgl", format_date(mkdt.akad_tgl))
+            setText("#s-st_sp3k_tgl", format_date_clean(mkdt.sp3k_tgl))
+            setText("#s-st_sp3k_tgl_exp", format_date_clean(mkdt.sp3k_tgl_exp))
+            setText("#s-akad_indent_tgl", format_date_clean(mkdt.akad_indent_tgl))
+            setText("#s-akad_tgl", format_date_clean(mkdt.akad_tgl))
         } else {
             setText("#dt-promo", '-')
             setText("#dt-kode_referal", '-')
@@ -633,8 +881,78 @@ function lihat_detail() {
             setText("#s-akad_tgl", '-')
         }
 
+        // --- Status Konsumen (Card Awal) ---
+        const statusInfo = resolveMkdtStatusInfo(r.mkdt);
+        const currentStatus = statusInfo.status;
+
+        $("#s-status_konsumen_badge")
+            .text(statusInfo.status)
+            .removeClass('badge-secondary badge-primary badge-success badge-warning badge-danger badge-info')
+            .addClass(statusInfo.badgeCls);
+        setText("#s-status_konsumen_tgl", format_date_clean(statusInfo.date));
+
+        // --- Warning Banner (Perlu Perhatian) ---
+        let warnCount = 0;
+        const $warnContainer = $("#detail-summary-warning-container");
+        const $warnSp3k = $("#warn-sp3k");
+        const $warnTagihan = $("#warn-tagihan");
+
+        // Warning 1: SP3K mendekati kedaluwarsa (H-21 atau telah lewat)
+        if (r.mkdt && isValidDate(r.mkdt.sp3k_tgl_exp) && !r.mkdt.is_batal && r.mkdt.status_mkdt !== 'Batal' && !isValidDate(r.mkdt.akad_tgl) && currentStatus !== 'Akad AJB' && currentStatus !== 'Akad Indent') {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const expDate = new Date(r.mkdt.sp3k_tgl_exp);
+            expDate.setHours(0, 0, 0, 0);
+            const diffTime = expDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays <= 21) {
+                warnCount++;
+                $warnSp3k.removeClass('d-none');
+                if (diffDays < 0) {
+                    $("#warn-sp3k-desc").text(`Telah kedaluwarsa pada ${format_date(r.mkdt.sp3k_tgl_exp)} (${Math.abs(diffDays)} hari lalu)`);
+                } else if (diffDays === 0) {
+                    $("#warn-sp3k-desc").text(`Kedaluwarsa HARI INI (${format_date(r.mkdt.sp3k_tgl_exp)})`);
+                } else {
+                    $("#warn-sp3k-desc").text(`Berlaku hingga ${format_date(r.mkdt.sp3k_tgl_exp)} (${diffDays} hari lagi)`);
+                }
+            } else {
+                $warnSp3k.addClass('d-none');
+            }
+        } else {
+            $warnSp3k.addClass('d-none');
+        }
+
+        // Warning 2: Tagihan jatuh tempo
+        const tagihanJatuhTempoList = Array.isArray(r.tagihan_jatuh_tempo) ? r.tagihan_jatuh_tempo : [];
+        if (tagihanJatuhTempoList.length > 0) {
+            warnCount++;
+            $warnTagihan.removeClass('d-none');
+            const totalOverdue = tagihanJatuhTempoList.reduce((acc, v) => acc + (parseFloat(v.nominal) || 0), 0);
+            $("#warn-tagihan-desc").text(`${tagihanJatuhTempoList.length} tagihan belum dibayar (${detailRupiah(totalOverdue)})`);
+        } else {
+            $warnTagihan.addClass('d-none');
+        }
+
+        if (warnCount > 0) {
+            $("#detail-warning-count").text(`${warnCount} ITEM`);
+            $warnContainer.removeClass('d-none');
+        } else {
+            $warnContainer.addClass('d-none');
+        }
+
+        $warnSp3k.off('click').on('click', function() {
+            $('#dt-stdetail-tab').tab('show');
+        });
+        $warnTagihan.off('click').on('click', function() {
+            $('#dt-tagihan-tab').tab('show');
+        });
+
+        // --- Timeline Aktivitas Kavling ---
+        renderKavlingTimeline(r.mkdt, currentStatus);
+
         if (r.kavling) {
-            setText("#s-perintah_bangun_tgl", format_date(r.kavling.perintah_bangun_tgl))
+            setText("#s-perintah_bangun_tgl", format_date_clean(r.kavling.perintah_bangun_tgl))
         } else {
             setText("#s-perintah_bangun_tgl", "-")
         }
@@ -644,6 +962,17 @@ function lihat_detail() {
         setText("#s-persentase_bayar_tagihan_um", tg.ldp)
         setText("#s-persentase_bayar_tagihan_um_ll", tg.ldp_semua)
         setText("#s-persentase_bayar_tagihan_bb", tg.ldp_bb)
+
+        // --- Ringkasan Keuangan Redesign ---
+        const totalBayarTg = parseFloat(tg.sb_semua) || 0;
+        const sisaTagihanTg = parseFloat(tg.sisa_semua) || 0;
+        const totalTagihanTg = totalBayarTg + sisaTagihanTg;
+        const pctTagihanTg = totalTagihanTg > 0 ? Math.min(100, Math.round((totalBayarTg / totalTagihanTg) * 100)) : (totalBayarTg > 0 ? 100 : 0);
+
+        setText("#s-keu_total_tagihan", detailRupiah(totalTagihanTg));
+        setText("#s-keu_sudah_bayar", detailRupiah(totalBayarTg));
+        $("#s-keu_tagihan_bar").css("width", pctTagihanTg + "%").attr("aria-valuenow", pctTagihanTg);
+        setText("#s-keu_tagihan_pct", pctTagihanTg + "%");
 
         const tagihanJatuhTempo = Array.isArray(r.tagihan_jatuh_tempo) ? r.tagihan_jatuh_tempo : []
         const $tagihanJatuhTempoWrap = $("#s-jatuh-tempo-wrap")
@@ -689,10 +1018,22 @@ function lihat_detail() {
             setAmenityChip("#s-st_jalan", pr.st_jalan)
             setAmenityChip("#s-slo", pr.slo)
             setAmenityChip("#s-lpa", pr.lpa)
+
+            // Redesign fields
+            setText("#s-progress_bangunan_pct", p_bangunan + '%');
+            $("#s-progress_bangunan_fill").css("width", p_bangunan + "%").attr("aria-valuenow", p_bangunan);
+            setAmenityIcon("#amenity-saluran", pr.st_saluran);
+            setAmenityIcon("#amenity-air", pr.st_air || pr.sumurbor);
+            setAmenityIcon("#amenity-listrik", pr.st_jalan);
+            setAmenityIcon("#amenity-slo", pr.slo);
+            setAmenityIcon("#amenity-lpa", pr.lpa);
         } else {
             setText("#s-progress_bangunan_text", "-")
             $("#s-progress_bangunan_bar").css("width", "0%").attr("aria-valuenow", 0)
                 .addClass("is-empty").removeClass("is-partial");
+
+            setText("#s-progress_bangunan_pct", "0%");
+            $("#s-progress_bangunan_fill").css("width", "0%").attr("aria-valuenow", 0);
 
             setText("#s-tanggal_pembangunan", "-")
             setText("#s-tanggal_selesai_pembangunan", "-")
@@ -702,6 +1043,12 @@ function lihat_detail() {
             setAmenityChip("#s-st_jalan", false)
             setAmenityChip("#s-slo", false)
             setAmenityChip("#s-lpa", false)
+
+            setAmenityIcon("#amenity-saluran", false);
+            setAmenityIcon("#amenity-air", false);
+            setAmenityIcon("#amenity-listrik", false);
+            setAmenityIcon("#amenity-slo", false);
+            setAmenityIcon("#amenity-lpa", false);
         }
 
         const financeFlowTypeTag = {
@@ -870,6 +1217,7 @@ function lihat_detail() {
 
         // --- Render Retensi & Hasil Akad ---
         renderRetensiHasilAkad(r.pencairan_akad);
+        updateRingkasanHasilAkad(r.pencairan_akad);
     }
 
     function renderRetensiHasilAkadItems(items) {
@@ -1269,15 +1617,6 @@ function lihat_detail() {
         $('#dt-legal-tab').text('Legal & Pajak');
         $('#dt-tagihan-tab, #dt-cashout-tab, #dt-pajak-tab').closest('.nav-item').addClass('detail-legacy-hidden');
 
-        const $summaryRow = $('#dtt-summary > .row');
-        $summaryRow.addClass('detail-dashboard-grid').removeClass('row');
-        $summaryRow.children('[class*="col-md-"]').each(function(i) {
-            $(this).removeClass('col-md-4').addClass('detail-summary-card');
-            if (!$(this).find('.detail-card-icon').length) {
-                const icons = ['fas fa-clipboard-check', 'fas fa-wallet', 'fas fa-hard-hat'];
-                $(this).prepend(`<div class="detail-card-icon mb-1"><i class="${icons[i] || 'fas fa-info'}"></i></div>`);
-            }
-        });
 
         buildDetailFinancePanel();
         buildDetailLegalPanel();
@@ -1600,7 +1939,8 @@ function lihat_detail() {
             //status
             changeVal('#dt-status_mkdt', mkdt.status_mkdt)
             setDatePicker(mkdt.booking_tgl, '#dt-st_booking_tgl')
-            changeVal('#dt-st_bank', mkdt.bank)
+            const displayBank = mkdt.nama_bank || mkdt.bank || (mkdt.id_bank && mkdt.id_bank != '0' ? mkdt.id_bank : '');
+            changeVal('#dt-st_bank', displayBank)
 
             changeVal('#dt-st_booking_fee', mkdt.booking_fee)
 

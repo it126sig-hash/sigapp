@@ -255,4 +255,44 @@ _Jalankan `php spark module:deadcode Siteplan` untuk mengaudit dead code kandida
   - **Controller / Service / Repo / Model:** Diperbarui `app/Services/SiteplanVisualStatusService.php` (`mkdtRow()`) untuk evaluasi boolean `$hasAkadAjb` dan `$hasAkadIndent`. Test suite diperbarui pada `tests/unit/SiteplanVisualStatusServiceTest.php` (72 tests passing).
   - **View / CSS / JS:** Tidak ada perubahan file (visual rendering poligon siteplan digerakkan oleh output backend).
   - **Deprecations:** Tidak ada.
+- **2026-11-04 [`BUGFIX`] — Resolusi Nama Bank dari id_bank Tabel MKDT pada Modal Detail Kavling:**
+  - **Routes & Public Contracts:** Payload endpoint `POST /siteplan/get/detail` (`Siteplan::get_detail`) diperkaya dengan kolom `nama_bank` yang bersumber dari tabel master `list_bank` via `LEFT JOIN list_bank ON list_bank.id = mkdt.id_bank`.
+  - **Controller / Service / Repo / Model:** `app/Controllers/Siteplan.php` (`get_detail()`) menambahkan `list_bank.bank as nama_bank` pada select query `$d['mkdt']` dan menambahkan join `list_bank` berdasarkan `mkdt.id_bank`.
+  - **View / CSS / JS:** `public/assets/js/siteplan-detail-modal.js`:
+    - Mengubah populasi `#s-st_bank` pada bar status ringkasan modal detail agar memprioritaskan `mkdt.nama_bank || mkdt.bank || (mkdt.id_bank && mkdt.id_bank != '0' ? mkdt.id_bank : '-')`.
+    - Mengubah input `#dt-st_bank` pada form Tab Status & Akad agar menampilkan nama bank yang sama.
+  - **Deprecations:** Tidak ada.
+- **2026-11-04 [`BUGFIX`] — Perbaikan Render Ikon Checkmark FontAwesome pada Card Progres Pembangunan:**
+  - **Routes & Public Contracts:** Tidak berubah.
+  - **Controller / Service / Repo / Model:** Tidak berubah.
+  - **View / CSS / JS:**
+    - `public/assets/js/siteplan-detail-modal.js`: Menghapus kelas `font-weight-bold` dari output `<i class="fas fa-check text-success"></i>` pada `setAmenityIcon()`. Penggunaan `font-weight-bold` di Vuexy sebelumnya memicu `font-weight: 500 !important`, yang tidak cocok dengan `@font-face` Font Awesome Solid (`font-weight: 900`), sehingga menyebabkan glyph checkmark hilang/tidak muncul.
+    - `app/Views/siteplan/partials/modal_detail_styles.php`: Menambahkan rule eksplisit `#modal_detail .amenity-item i.fa-check` dengan `font-family: 'Font Awesome 5 Free' !important`, `font-weight: 900 !important`, dan `color: #28c76f !important` agar render checkmark selalu konsisten dan tampak jelas.
+    - `app/Views/siteplan/partials/modal_detail.php`: Menyesuaikan placeholder default amenity menjadi `-` konsisten dengan desain.
+  - **Deprecations:** Tidak ada.
+- **2026-11-04 [`BUGFIX`] / [`UI_REPORT`] — Penyempurnaan Validitas Status MKDT, Elongated Badge, dan Tanggal Muted Vertikal:**
+  - **Routes & Public Contracts:** Tidak ada perubahan endpoint atau kontrak backend (`siteplan/get/detail`).
+  - **Controller / Service / Repo / Model:** Tidak berubah.
+  - **View / CSS / JS:**
+    - `app/Views/siteplan/partials/modal_detail.php`: Mengubah layout kolom Status Konsumen agar badge `#s-status_konsumen_badge` berada di atas dan tanggal `#s-status_konsumen_tgl` berada vertikal di bawahnya dengan style muted (`text-muted small mt-25 font-weight-normal`).
+    - `app/Views/siteplan/partials/modal_detail_styles.php`: Menambahkan styling pill memanjang (`min-width: 110px`, `padding: 0.35rem 1.35rem`, `border-radius: 20px`) untuk `#s-status_konsumen_badge` beserta warna background/teks kontras per status (`badge-primary`, `badge-success`, `badge-warning`, `badge-danger`, `badge-info`, `badge-secondary`).
+    - `public/assets/js/siteplan-detail-modal.js`:
+      - Penambahan helper `isValidDate(val)` untuk menangani field MySQL `'0000-00-00'` agar tidak dievaluasi truthy di JS.
+      - Penambahan fungsi `resolveMkdtStatusInfo(m)` untuk menentukan status aktif MKDT (Batal, Akad AJB, Akad Indent, SP3K, Wawancara, Booking) dan tanggal status yang valid.
+      - Perbaikan fungsi `renderKavlingTimeline(mkdt, currentStatus)` agar status step aktif (`is-active`), completed (`is-completed`), dan connecting line horizontal sinkron dengan status aktif MKDT.
+      - Perbaikan kondisi warning SP3K kedaluwarsa dengan `isValidDate(sp3k_tgl_exp)`.
+  - **Deprecations:** Tidak ada.
+- **2026-11-04 [`UI_REPORT`] — Redesign Layout Tab Ringkasan Modal Detail Kavling:**
+  - **Routes & Public Contracts:** Tidak ada perubahan endpoint atau kontrak backend (`siteplan/get/detail`).
+  - **Controller / Service / Repo / Model:** Tidak berubah.
+  - **View / CSS / JS:**
+    - `app/Views/siteplan/partials/modal_detail.php`: Redesign total tab `#dtt-summary` menjadi 3 baris utama:
+      1. Banner warning "PERLU PERHATIAN" (SP3K H-21 & Tagihan jatuh tempo) yang otomatis tampil/sembunyi sesuai kondisi data.
+      2. Card horizontal "Status Konsumen" dengan badge status aktif saat ini (Booking, Wawancara, SP3K, Batal, Akad Indent, Akad AJB) + tanggal status, Bank, Notaris, SP3K Terbit & Kadaluarsa.
+      3. Row 2 kolom: Ringkasan Keuangan (Total Tagihan vs Sudah Bayar, Total Hasil Akad, Cair vs Belum Cair dual bar) dan Progres Pembangunan (Progres fisik bar %, Turun/Mulai/Selesai, dan checklist Site Amenities).
+      4. Card Timeline Aktivitas Kavling dengan stepper horizontal bergaris penghubung (*connecting line*).
+      5. Menjaga elemen legacy shims tersembunyi demi backward compatibility.
+    - `app/Views/siteplan/partials/modal_detail_styles.php`: Penambahan styling responsif untuk `.detail-warning-banner`, `.detail-warning-card`, `.detail-summary-status-bar`, `.kavling-timeline`, `.kavling-timeline-item`, connecting lines `::after`, dan adaptasi Dark Mode `.dark-layout`.
+    - `public/assets/js/siteplan-detail-modal.js`: Penambahan helper `format_date_clean()`, `setAmenityIcon()`, `updateRingkasanHasilAkad()`, dan `renderKavlingTimeline()`. Memperbarui `loadSummary(r)` untuk mengevaluasi warning H-21 SP3K & tagihan jatuh tempo, menentukan status aktif dan tanggalnya, mengupdate progress bar keuangan dan pembangunan, serta merender stepper timeline bergaris.
+  - **Deprecations:** Tidak ada deprecations; legacy DOM selector dipertahankan melalui hidden shims.
 - `2026-11-03` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.
