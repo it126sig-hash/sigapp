@@ -3,7 +3,7 @@
 **Modul Induk:** `MKDT` (Manajemen Konsumen dan Transaksi)  
 **Dokumen Induk:** [`docs/modules/MKDT/MODULE.md`](MODULE.md)  
 **Versi:** 2.0 (Overhaul Milestone 1–4)  
-**Tanggal Terakhir Diperbarui:** 2026-11-04  
+**Tanggal Terakhir Diperbarui:** 2026-11-05  
 **Status:** `PRODUCTION-READY`  
 
 ---
@@ -127,19 +127,30 @@ Setiap transaksi yang tercatat di tabel `mkdt` dipartisi secara eksklusif ke dal
 | 6 | **Akad AJB** | `akad_ajb` | `success` (`badge-light-success`) | Akta Jual Beli (AJB) resmi telah ditandatangani di hadapan Notaris/PPAT. |
 
 ### 4.2 Pemetaan Logika Database & Agregasi Event-Based (Database Mapping & Event-Based Totals)
-Dalam `BookingAkadReportRepository::getMonthlyStatusTotals()`, masing-masing dari 6 kolom status dihitung berdasarkan tanggal aktivitas/kejadian milestone yang terjadi pada bulan $M$ bersangkutan:
+Dalam `BookingAkadReportRepository::getMonthlyStatusTotals()`, `getAvailableYearBounds()`, dan `compileDetailQuery()`, masing-masing kolom status dihitung berdasarkan kondisi kualifikasi tahap dan ekspresi tanggal efektif (`stageDateSql()`) pada bulan $M$ bersangkutan:
 
-| Kategori Status | Tanggal Aktivitas Acuan | Kriteria Query SQL Event-Based |
+| Kategori Status | Tanggal Aktivitas Acuan | Kriteria Kualifikasi & Query SQL Event-Based |
 |---|---|---|
-| **Booking** | `m.booking_tgl` | `m.booking_tgl >= $startDate AND m.booking_tgl < $endDate` (juga menghitung kohort `total_booking_cohort` dan `booking_converted_akad`) |
-| **Wawancara** | `m.wawancara_tgl` | `m.wawancara_tgl >= $startDate AND m.wawancara_tgl < $endDate AND m.wawancara_tgl > '1970-01-01'` |
-| **SP3K** | `m.sp3k_tgl` | `m.sp3k_tgl >= $startDate AND m.sp3k_tgl < $endDate AND m.sp3k_tgl > '1970-01-01'` |
-| **Batal** | `batalDateExpr` | `(COALESCE(m.is_batal, 0) = 1 OR COALESCE(m.status_mkdt, '') = 'Batal')` dengan tanggal pembatalan efektif (`COALESCE(m.batal_tgl, k.batal_tgl, m.updated_at, m.booking_tgl)`) dalam rentang bulan $M$ |
-| **Akad Indent** | `m.akad_indent_tgl` | `(COALESCE(m.akad_indent, 0) = 1 OR COALESCE(m.is_ajb, '') = 'PPJB' OR m.akad_indent_tgl > '1970-01-01')` dengan `m.akad_indent_tgl` dalam rentang bulan $M$ |
-| **Akad AJB** | `m.akad_tgl` | `COALESCE(m.akad, 0) = 1 AND m.akad_tgl >= $startDate AND m.akad_tgl < $endDate AND m.akad_tgl > '1970-01-01'` |
+| **Booking** | `m.booking_tgl` | `m.booking_tgl IS NOT NULL AND m.booking_tgl > '1970-01-01'` dalam rentang bulan $M$ (`m.booking_tgl >= $startDate AND m.booking_tgl < $endDate`). Juga menghitung kohort `total_booking_cohort` dan `booking_converted_akad` (`akadAjbConditionSql() OR akadIndentConditionSql()`). |
+| **Wawancara** | `stageDateSql('m.wawancara_tgl')` | `wawancaraConditionSql()`: `(COALESCE(m.wawancara, 0) = 1 OR (m.wawancara_tgl IS NOT NULL AND m.wawancara_tgl > '1970-01-01'))` dengan tanggal efektif dalam rentang bulan $M$. |
+| **SP3K** | `stageDateSql('m.sp3k_tgl')` | `sp3kConditionSql()`: `(COALESCE(m.sp3k, 0) = 1 OR (m.sp3k_tgl IS NOT NULL AND m.sp3k_tgl > '1970-01-01') OR (m.sp3k_no IS NOT NULL AND TRIM(m.sp3k_no) != '' AND TRIM(m.sp3k_no) != '-'))` dengan tanggal efektif dalam rentang bulan $M$. |
+| **Batal** | `batalDateSql()` | `(COALESCE(m.is_batal, 0) = 1 OR COALESCE(m.status_mkdt, '') = 'Batal')` dengan tanggal pembatalan efektif (`COALESCE(m.mkdt_batal_tgl, m.keuangan_batal_tgl, m.updated_at, m.booking_tgl)`) dalam rentang bulan $M$. |
+| **Akad Indent** | `stageDateSql('m.akad_indent_tgl')` | `akadIndentConditionSql()`: `(COALESCE(m.akad_indent, 0) = 1 OR (m.akad_indent_tgl IS NOT NULL AND m.akad_indent_tgl > '1970-01-01'))` dengan tanggal efektif dalam rentang bulan $M$. |
+| **Akad AJB** | `stageDateSql('m.akad_tgl')` | `akadAjbConditionSql()`: `(COALESCE(m.akad, 0) = 1 OR (m.akad_tgl IS NOT NULL AND m.akad_tgl > '1970-01-01'))` dengan tanggal efektif dalam rentang bulan $M$. |
+
+#### Fallback Tanggal Efektif Tahap (`stageDateSql`):
+Untuk memastikan transaksi yang telah memiliki flag tahap (`= 1`) atau nomor SP3K valid (`sp3k_no` bukan kosong/`'-'`) tetapi tanggal tahapnya masih bernilai `'0000-00-00'` atau `NULL` tidak terlewat dari perhitungan bulanan, ekspresi `stageDateSql($column)` menggunakan fallback bertingkat dengan guard `> '1970-01-01'`:
+```sql
+COALESCE(
+    CASE WHEN $column IS NOT NULL AND $column > '1970-01-01' THEN DATE($column) END,
+    CASE WHEN m.booking_tgl IS NOT NULL AND m.booking_tgl > '1970-01-01' THEN DATE(m.booking_tgl) END,
+    CASE WHEN m.updated_at IS NOT NULL AND m.updated_at > '1970-01-01' THEN DATE(m.updated_at) END,
+    CASE WHEN m.created_at IS NOT NULL AND m.created_at > '1970-01-01' THEN DATE(m.created_at) END
+)
+```
 
 #### Keselarasan 100% Query Modal Detail (`compileDetailQuery`):
-Query server-side DataTables pada `BookingAkadReportRepository::compileDetailQuery(...)` menggunakan filter rentang tanggal aktivitas kategori yang persis sama dengan agregasi di atas. Hal ini menjamin bahwa jumlah baris (`recordsTotal`) pada modal detail ketika diklik selalu **identik 100%** dengan angka yang tertera pada sel matriks.
+Query server-side DataTables pada `BookingAkadReportRepository::compileDetailQuery(...)` menggunakan helper kondisi (`wawancaraConditionSql()`, `sp3kConditionSql()`, `akadIndentConditionSql()`, `akadAjbConditionSql()`) dan filter rentang tanggal efektif (`stageDateSql()`) yang persis sama dengan agregasi di atas. Hal ini menjamin bahwa jumlah baris (`recordsTotal`) pada modal detail ketika diklik selalu **identik 100%** dengan angka yang tertera pada sel matriks.
 
 ### 4.3 Hierarki Prevalensi Status (Status Precedence Hierarchy)
 Dalam riwayat transaksi riil, satu baris data dapat memiliki multiple flag atau tanggal historis yang terisi (misalnya transaksi yang pernah wawancara, mendapat SP3K, lalu kemudian batal). Dalam penentuan **Status Terakhir** pada modal detail maupun SQL aggregation, diterapkan aturan hierarki ketat:
@@ -178,7 +189,7 @@ Di mana:
 - **`Total Booking Cohort` ($D_M$):** `COUNT(DISTINCT m.uniq_id)` untuk seluruh transaksi yang tanggal booking-nya (`m.booking_tgl`) berada dalam rentang bulan $M$ tahun berjalan.
 - **`Booking Cohort Terkonversi Akad` ($N_M$):** `COUNT(DISTINCT m.uniq_id)` dari kelompok booking bulan $M$ tersebut yang memenuhi kriteria:
   - Tidak berstatus Batal (`is_batal = 0` dan `status_mkdt != 'Batal'`), DAN
-  - Telah mencapai Akad Indent (`akad_indent = 1` / `is_ajb = 'PPJB'`) ATAU Akad AJB (`akad = 1`).
+  - Telah mencapai Akad Indent (`akad_indent = 1` atau `akad_indent_tgl > '1970-01-01'`) ATAU Akad AJB (`akad = 1` atau `akad_tgl > '1970-01-01'`).
 
 ### 5.3 Formula Total Tertimbang Tahunan (Annual Weighted Total)
 Baris total tahunan pada footer tabel matriks dihitung bukan dengan merata-ratakan persentase 12 bulan (unweighted average), melainkan menggunakan **akumulasi tertimbang riil** dari seluruh cohort sepanjang tahun:
@@ -252,20 +263,21 @@ Tombol aksi pada kolom ke-7 memungkinkan pengguna membuka modal detail teknis un
 - **Total Record Transaksi MKDT:** `242` transaksi aktif/historis
 - **Integritas Uniq ID:** 242 dari 242 record (100%) memiliki `uniq_id` valid dan unik.
 
-### 7.2 Partisi Ground Truth 6 Status pada Proyek 13
-Pemeriksaan menyeluruh pada basis data riil Proyek 13 menunjukkan partisi lengkap 100% tanpa adanya data yang unclassified:
+### 7.2 Partisi Ground Truth 6 Status & Verifikasi 5 Kolom Status pada Proyek 13
+Pemeriksaan menyeluruh pada basis data riil Proyek 13 menunjukkan partisi lengkap 100% berdasarkan hierarki status terakhir (`TC-R03`) serta kesesuaian penuh akumulasi 5 kolom status lintas tahun dengan kondisi database (`TC-R09`):
 
-| Kategori Status | Jumlah Transaksi | Contoh `id_mkdt` | Contoh `uniq_id` | Tanggal Contoh |
-|---|---|---|---|---|
-| **Batal** | 9 | `165` | `6836afc13cfcc7.50933516` | 2025-07-29 |
-| **Akad AJB** | 171 | `145` | `67d7d7b6d15b28.06630173` | 2025-07-30 |
-| **Akad Indent** | 18 | `423` | `6aa1238460ce57.05065444` | 2026-10-07 |
-| **SP3K** | 15 | `456` | `6ad5d866e48c74.31619289` | 2026-10-27 |
-| **Wawancara** | 11 | `455` | `6aba25b1730ab4.93189517` | 2026-10-21 |
-| **Booking** | 18 | `459` | `6ad73741a423f3.42834707` | 2026-10-13 |
-| **Total** | **242** | | | |
+| Kategori Status | Aturan Kualifikasi Kolom / Hierarki | Jumlah Transaksi (Partisi Status Terakhir) | Contoh `id_mkdt` | Contoh `uniq_id` | Tanggal Contoh |
+|---|---|---|---|---|---|
+| **Batal** | `is_batal = 1` atau `status_mkdt = 'Batal'` | 9 | `165` | `6836afc13cfcc7.50933516` | 2025-07-29 |
+| **Akad AJB** | `akad = 1` atau `akad_tgl > '1970-01-01'` | 171 | `145` | `67d7d7b6d15b28.06630173` | 2025-07-30 |
+| **Akad Indent** | `akad_indent = 1` atau `akad_indent_tgl > '1970-01-01'` | 18 | `423` | `6aa1238460ce57.05065444` | 2026-10-07 |
+| **SP3K** | `sp3k = 1`, `sp3k_tgl > '1970-01-01'`, atau `sp3k_no` valid (`!= ''`, `!= '-'`) | 15 | `456` | `6ad5d866e48c74.31619289` | 2026-10-27 |
+| **Wawancara** | `wawancara = 1` atau `wawancara_tgl > '1970-01-01'` | 11 | `455` | `6aba25b1730ab4.93189517` | 2026-10-21 |
+| **Booking** | `booking_tgl IS NOT NULL AND booking_tgl > '1970-01-01'` (Tahap dasar) | 18 | `459` | `6ad73741a423f3.42834707` | 2026-10-13 |
+| **Total** | | **242** | | | |
 
-*Uji Keseimbangan:* $171 + 18 + 15 + 11 + 18 + 9 = 242$.
+*Uji Keseimbangan Partisi Status Terakhir (`TC-R03`):* $171 + 18 + 15 + 11 + 18 + 9 = 242$.
+*Uji Akumulasi 5 Kolom Lintas Tahun (`TC-R09`):* Total penjumlahan matriks bulanan untuk masing-masing dari 5 kolom (`booking`, `wawancara`, `sp3k`, `akad_indent`, `akad_ajb`) pada seluruh tahun tersedia cocok 100% dengan jumlah baris database yang memenuhi kondisi kualifikasi kolom terkait (tanpa ada record ber-flag/nomor valid dengan zero-date yang terbuang berkat fallback `stageDateSql()`).
 
 ### 7.3 Benchmark Konversi Kohort Tahun 2026
 Pada tahun booking 2026 di Proyek 13:
@@ -283,7 +295,7 @@ vendor/bin/phpunit --no-coverage tests/unit/BookingAkadReportServiceOverhaulTest
 # 2. Unit Test Service Standard (17 tests, 89 assertions)
 vendor/bin/phpunit --no-coverage tests/unit/BookingAkadReportServiceTest.php
 
-# 3. Database Live Integration Test pada Proyek 13 (8 tests, 556 assertions)
+# 3. Database Live Integration Test pada Proyek 13 (9 tests, 561 assertions)
 vendor/bin/phpunit --no-coverage tests/database/BookingAkadReportLiveDbTest.php
 
 # 4. Standalone Runner Seluruh Tingkat (38 tests, 100% Pass)

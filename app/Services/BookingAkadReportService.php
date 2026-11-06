@@ -335,25 +335,24 @@ class BookingAkadReportService
             return 'Batal';
         }
 
-        $isAjb = strtoupper((string) ($row['is_ajb'] ?? ''));
-        $hasAkad = ! empty($row['akad']) || (! empty($row['akad_tgl']) && $row['akad_tgl'] > '1970-01-01');
-        $statusMkdt = strtolower((string) ($row['status_mkdt'] ?? ''));
-
-        if ($hasAkad || $isAjb === 'AJB' || $statusMkdt === 'akad') {
+        $hasAkad = ! empty($row['akad']) || $this->isValidDate($row['akad_tgl'] ?? ($row['tgl_akad'] ?? null));
+        if ($hasAkad) {
             return 'Akad AJB';
         }
 
-        $hasAkadIndent = ! empty($row['akad_indent']) || (! empty($row['akad_indent_tgl']) && $row['akad_indent_tgl'] > '1970-01-01');
-        if ($hasAkadIndent || $isAjb === 'PPJB' || $statusMkdt === 'indent') {
+        $hasAkadIndent = ! empty($row['akad_indent']) || $this->isValidDate($row['akad_indent_tgl'] ?? null);
+        if ($hasAkadIndent) {
             return 'Akad Indent';
         }
 
-        $hasSp3k = ! empty($row['sp3k']) || (! empty($row['sp3k_tgl']) && $row['sp3k_tgl'] > '1970-01-01') || $statusMkdt === 'sp3k';
+        $hasSp3k = ! empty($row['sp3k'])
+            || $this->isValidDate($row['sp3k_tgl'] ?? null)
+            || $this->hasValidSp3kNo($row['sp3k_no'] ?? null);
         if ($hasSp3k) {
             return 'SP3K';
         }
 
-        $hasWawancara = ! empty($row['wawancara']) || (! empty($row['wawancara_tgl']) && $row['wawancara_tgl'] > '1970-01-01') || $statusMkdt === 'wawancara';
+        $hasWawancara = ! empty($row['wawancara']) || $this->isValidDate($row['wawancara_tgl'] ?? null);
         if ($hasWawancara) {
             return 'Wawancara';
         }
@@ -363,18 +362,80 @@ class BookingAkadReportService
 
     public function resolveTanggalStatusTerakhir(array $row, string $status): ?string
     {
-        if (isset($row['tanggal_status_terakhir']) && $row['tanggal_status_terakhir'] !== null) {
+        if ($this->isValidDate($row['tanggal_status_terakhir'] ?? null)) {
             return (string) $row['tanggal_status_terakhir'];
         }
 
         return match ($status) {
-            'Batal'       => $row['mkdt_batal_tgl'] ?? ($row['keuangan_batal_tgl'] ?? ($row['updated_at'] ?? ($row['booking_tgl'] ?? null))),
-            'Akad AJB'    => $row['akad_tgl'] ?? null,
-            'Akad Indent' => $row['akad_indent_tgl'] ?? null,
-            'SP3K'        => $row['sp3k_tgl'] ?? null,
-            'Wawancara'   => $row['wawancara_tgl'] ?? null,
-            default       => $row['booking_tgl'] ?? null,
+            'Batal'       => $this->firstValidDate(
+                $row['mkdt_batal_tgl'] ?? null,
+                $row['keuangan_batal_tgl'] ?? null,
+                $row['updated_at'] ?? null,
+                $row['booking_tgl'] ?? null
+            ),
+            'Akad AJB'    => $this->firstValidDate(
+                $row['akad_tgl'] ?? ($row['tgl_akad'] ?? null),
+                $row['booking_tgl'] ?? null,
+                $row['updated_at'] ?? null
+            ),
+            'Akad Indent' => $this->firstValidDate(
+                $row['akad_indent_tgl'] ?? null,
+                $row['booking_tgl'] ?? null,
+                $row['updated_at'] ?? null
+            ),
+            'SP3K'        => $this->firstValidDate(
+                $row['sp3k_tgl'] ?? null,
+                $row['booking_tgl'] ?? null,
+                $row['updated_at'] ?? null
+            ),
+            'Wawancara'   => $this->firstValidDate(
+                $row['wawancara_tgl'] ?? null,
+                $row['booking_tgl'] ?? null,
+                $row['updated_at'] ?? null
+            ),
+            default       => $this->firstValidDate(
+                $row['booking_tgl'] ?? null,
+                $row['updated_at'] ?? null
+            ),
         };
+    }
+
+    private function isValidDate(?string $date): bool
+    {
+        if ($date === null || trim($date) === '') {
+            return false;
+        }
+
+        $trimmed = trim($date);
+        if (str_starts_with($trimmed, '0000') || $trimmed <= '1970-01-01') {
+            return false;
+        }
+
+        $timestamp = strtotime($trimmed);
+
+        return $timestamp !== false && $timestamp > 0;
+    }
+
+    private function hasValidSp3kNo(?string $sp3kNo): bool
+    {
+        if ($sp3kNo === null) {
+            return false;
+        }
+
+        $trimmed = trim($sp3kNo);
+
+        return $trimmed !== '' && $trimmed !== '-';
+    }
+
+    private function firstValidDate(?string ...$candidates): ?string
+    {
+        foreach ($candidates as $candidate) {
+            if ($this->isValidDate($candidate)) {
+                return (string) $candidate;
+            }
+        }
+
+        return null;
     }
 
     public function resolveCatatanMkdt(array $row): string

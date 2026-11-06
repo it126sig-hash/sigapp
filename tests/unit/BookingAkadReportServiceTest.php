@@ -422,6 +422,76 @@ final class BookingAkadReportServiceTest extends CIUnitTestCase
     }
 
     /**
+     * Test all 5 column calculation rules (booking_tgl, wawancara/wawancara_tgl,
+     * sp3k/sp3k_tgl/sp3k_no, akad_indent/akad_indent_tgl, akad/akad_tgl/tgl_akad)
+     * and date fallback when stage date is null or zero-date.
+     */
+    public function testResolveStatusAndDateSupportsAllFiveColumnCalculationRules(): void
+    {
+        $service = new BookingAkadReportService($this->createMock(BookingAkadReportRepository::class));
+
+        // 1. Booking via booking_tgl
+        $bookingRow = [
+            'booking_tgl' => '2026-01-10',
+            'wawancara' => 0,
+            'wawancara_tgl' => '0000-00-00',
+            'sp3k' => 0,
+            'sp3k_tgl' => null,
+            'sp3k_no' => '-',
+            'akad_indent' => 0,
+            'akad_indent_tgl' => null,
+            'akad' => 0,
+            'akad_tgl' => null,
+        ];
+        $this->assertSame('Booking', $service->resolveStatusTerakhir($bookingRow));
+        $this->assertSame('2026-01-10', $service->resolveTanggalStatusTerakhir($bookingRow, 'Booking'));
+
+        // 2. Wawancara via wawancara = 1 (with zero-date fallback to booking_tgl) or valid wawancara_tgl
+        $wawancaraFlagRow = array_merge($bookingRow, ['wawancara' => 1, 'wawancara_tgl' => '0000-00-00']);
+        $this->assertSame('Wawancara', $service->resolveStatusTerakhir($wawancaraFlagRow));
+        $this->assertSame('2026-01-10', $service->resolveTanggalStatusTerakhir($wawancaraFlagRow, 'Wawancara'));
+
+        $wawancaraDateRow = array_merge($bookingRow, ['wawancara' => 0, 'wawancara_tgl' => '2026-01-15']);
+        $this->assertSame('Wawancara', $service->resolveStatusTerakhir($wawancaraDateRow));
+        $this->assertSame('2026-01-15', $service->resolveTanggalStatusTerakhir($wawancaraDateRow, 'Wawancara'));
+
+        // 3. SP3K via sp3k = 1, valid sp3k_tgl, or non-empty sp3k_no
+        $sp3kFlagRow = array_merge($bookingRow, ['sp3k' => 1, 'sp3k_tgl' => null, 'sp3k_no' => '']);
+        $this->assertSame('SP3K', $service->resolveStatusTerakhir($sp3kFlagRow));
+        $this->assertSame('2026-01-10', $service->resolveTanggalStatusTerakhir($sp3kFlagRow, 'SP3K'));
+
+        $sp3kDateRow = array_merge($bookingRow, ['sp3k' => 0, 'sp3k_tgl' => '2026-02-01', 'sp3k_no' => null]);
+        $this->assertSame('SP3K', $service->resolveStatusTerakhir($sp3kDateRow));
+        $this->assertSame('2026-02-01', $service->resolveTanggalStatusTerakhir($sp3kDateRow, 'SP3K'));
+
+        $sp3kNoRow = array_merge($bookingRow, ['sp3k' => 0, 'sp3k_tgl' => '0000-00-00', 'sp3k_no' => '001/SP3K/BTN/2026']);
+        $this->assertSame('SP3K', $service->resolveStatusTerakhir($sp3kNoRow));
+        $this->assertSame('2026-01-10', $service->resolveTanggalStatusTerakhir($sp3kNoRow, 'SP3K'));
+
+        // 4. Akad Indent via akad_indent = 1 or valid akad_indent_tgl
+        $indentFlagRow = array_merge($bookingRow, ['akad_indent' => 1, 'akad_indent_tgl' => '0000-00-00']);
+        $this->assertSame('Akad Indent', $service->resolveStatusTerakhir($indentFlagRow));
+        $this->assertSame('2026-01-10', $service->resolveTanggalStatusTerakhir($indentFlagRow, 'Akad Indent'));
+
+        $indentDateRow = array_merge($bookingRow, ['akad_indent' => 0, 'akad_indent_tgl' => '2026-03-05']);
+        $this->assertSame('Akad Indent', $service->resolveStatusTerakhir($indentDateRow));
+        $this->assertSame('2026-03-05', $service->resolveTanggalStatusTerakhir($indentDateRow, 'Akad Indent'));
+
+        // 5. Akad AJB via akad = 1, valid akad_tgl, or valid tgl_akad
+        $ajbFlagRow = array_merge($bookingRow, ['akad' => 1, 'akad_tgl' => '0000-00-00']);
+        $this->assertSame('Akad AJB', $service->resolveStatusTerakhir($ajbFlagRow));
+        $this->assertSame('2026-01-10', $service->resolveTanggalStatusTerakhir($ajbFlagRow, 'Akad AJB'));
+
+        $ajbDateRow = array_merge($bookingRow, ['akad' => 0, 'akad_tgl' => '2026-04-12']);
+        $this->assertSame('Akad AJB', $service->resolveStatusTerakhir($ajbDateRow));
+        $this->assertSame('2026-04-12', $service->resolveTanggalStatusTerakhir($ajbDateRow, 'Akad AJB'));
+
+        $tglAkadAliasRow = array_merge($bookingRow, ['akad' => 0, 'akad_tgl' => null, 'tgl_akad' => '2026-04-20']);
+        $this->assertSame('Akad AJB', $service->resolveStatusTerakhir($tglAkadAliasRow));
+        $this->assertSame('2026-04-20', $service->resolveTanggalStatusTerakhir($tglAkadAliasRow, 'Akad AJB'));
+    }
+
+    /**
      * Test Catatan MKDT Fallback: keterangan_batal -> keterangan -> keterangan_status -> '-'.
      */
     public function testDetailCatatanMkdtFallbackHierarchy(): void

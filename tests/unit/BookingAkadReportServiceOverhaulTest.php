@@ -425,6 +425,14 @@ final class BookingAkadReportServiceOverhaulTest extends CIUnitTestCase
             'akad_indent' => 0,
         ];
         $this->assertSame('Booking', $this->resolveStatusTerakhir($record6));
+
+        // Case 7: Date-driven and number-driven column rules (wawancara_tgl, sp3k_tgl, sp3k_no, akad_indent_tgl, akad_tgl, tgl_akad)
+        $this->assertSame('Wawancara', $this->resolveStatusTerakhir(['wawancara' => 0, 'wawancara_tgl' => '2026-01-10']));
+        $this->assertSame('SP3K', $this->resolveStatusTerakhir(['sp3k' => 0, 'sp3k_tgl' => '2026-02-10']));
+        $this->assertSame('SP3K', $this->resolveStatusTerakhir(['sp3k' => 0, 'sp3k_tgl' => '0000-00-00', 'sp3k_no' => 'SP3K/BTN/01']));
+        $this->assertSame('Akad Indent', $this->resolveStatusTerakhir(['akad_indent' => 0, 'akad_indent_tgl' => '2026-03-10']));
+        $this->assertSame('Akad AJB', $this->resolveStatusTerakhir(['akad' => 0, 'akad_tgl' => '2026-04-10']));
+        $this->assertSame('Akad AJB', $this->resolveStatusTerakhir(['akad' => 0, 'tgl_akad' => '2026-04-15']));
     }
 
     /**
@@ -628,21 +636,8 @@ final class BookingAkadReportServiceOverhaulTest extends CIUnitTestCase
 
     private function resolveStatusTerakhir(array $row): string
     {
-        if (! empty($row['is_batal']) || ($row['status_mkdt'] ?? '') === 'Batal') {
-            return 'Batal';
-        }
-        if (! empty($row['akad']) && (($row['is_ajb'] ?? '') === 'AJB' || ($row['status_mkdt'] ?? '') === 'Akad')) {
-            return 'Akad AJB';
-        }
-        if (! empty($row['akad_indent']) || ($row['is_ajb'] ?? '') === 'PPJB') {
-            return 'Akad Indent';
-        }
-        if (! empty($row['sp3k'])) {
-            return 'SP3K';
-        }
-        if (! empty($row['wawancara'])) {
-            return 'Wawancara';
-        }
-        return 'Booking';
+        $service = new BookingAkadReportService($this->createMock(BookingAkadReportRepository::class));
+
+        return $service->resolveStatusTerakhir($row);
     }
 }

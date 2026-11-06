@@ -177,7 +177,7 @@ recordResult('Tier 4', 'TC-R02', '100% Unique transaction code (uniq_id) integri
 
 // TC-R03: 6-Status Exact Ground Truth Partition
 $dbRows = $db->table('mkdt m')
-    ->select('m.id_mkdt, m.status_mkdt, m.is_batal, m.akad, m.is_ajb, m.akad_indent, m.sp3k, m.sp3k_tgl, m.wawancara, m.wawancara_tgl, m.booking_tgl')
+    ->select('m.id_mkdt, m.status_mkdt, m.is_batal, m.akad, m.akad_tgl, m.is_ajb, m.akad_indent, m.akad_indent_tgl, m.sp3k, m.sp3k_tgl, m.sp3k_no, m.wawancara, m.wawancara_tgl, m.booking_tgl')
     ->join('kavling k', 'k.id_kavling = m.id_kavling')
     ->join('jalan j', 'j.id_jalan = k.id_jalan')
     ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
@@ -186,10 +186,11 @@ $dbRows = $db->table('mkdt m')
 
 $pCounts = ['batal' => 0, 'akad_ajb' => 0, 'akad_indent' => 0, 'sp3k' => 0, 'wawancara' => 0, 'booking' => 0];
 foreach ($dbRows as $r) {
+    $sp3kNo = trim((string) ($r['sp3k_no'] ?? ''));
     $isBatal = ((int) ($r['is_batal'] ?? 0) === 1) || (($r['status_mkdt'] ?? '') === 'Batal');
-    $isAkadAjb = ! $isBatal && (int) ($r['akad'] ?? 0) === 1;
-    $isAkadIndent = ! $isBatal && ! $isAkadAjb && (((int) ($r['akad_indent'] ?? 0) === 1) || (($r['is_ajb'] ?? '') === 'PPJB'));
-    $hasSp3k = ! $isBatal && ! $isAkadAjb && ! $isAkadIndent && (((int) ($r['sp3k'] ?? 0) === 1) || ($r['sp3k_tgl'] !== null && $r['sp3k_tgl'] > '1970-01-01'));
+    $isAkadAjb = ! $isBatal && (((int) ($r['akad'] ?? 0) === 1) || ($r['akad_tgl'] !== null && $r['akad_tgl'] > '1970-01-01'));
+    $isAkadIndent = ! $isBatal && ! $isAkadAjb && (((int) ($r['akad_indent'] ?? 0) === 1) || ($r['akad_indent_tgl'] !== null && $r['akad_indent_tgl'] > '1970-01-01'));
+    $hasSp3k = ! $isBatal && ! $isAkadAjb && ! $isAkadIndent && (((int) ($r['sp3k'] ?? 0) === 1) || ($r['sp3k_tgl'] !== null && $r['sp3k_tgl'] > '1970-01-01') || ($sp3kNo !== '' && $sp3kNo !== '-'));
     $hasWawancara = ! $isBatal && ! $isAkadAjb && ! $isAkadIndent && ! $hasSp3k && (((int) ($r['wawancara'] ?? 0) === 1) || ($r['wawancara_tgl'] !== null && $r['wawancara_tgl'] > '1970-01-01'));
 
     if ($isBatal) {
@@ -256,6 +257,35 @@ $output = [];
 $exitCode = 0;
 exec('php spark module:sync MKDT --check-only 2>&1', $output, $exitCode);
 recordResult('Tier 4', 'TC-R07', 'Documentation sync check-only passes (php spark module:sync MKDT --check-only)', $exitCode === 0);
+
+// TC-R08: 5 Column Rules Matrix Totals vs DB Conditions in Proyek 13
+$repo = new \App\Repositories\BookingAkadReportRepository($db);
+$availYears = $repo->getAvailableYears(13);
+$summaryRows = $repo->getMonthlyStatusTotals(13, $availYears);
+$mTotals = ['booking' => 0, 'wawancara' => 0, 'sp3k' => 0, 'akad_indent' => 0, 'akad_ajb' => 0];
+foreach ($summaryRows as $sr) {
+    foreach (array_keys($mTotals) as $colKey) {
+        $mTotals[$colKey] += (int) ($sr[$colKey] ?? 0);
+    }
+}
+$baseQ = fn () => $db->table('mkdt m')
+    ->join('kavling k', 'k.id_kavling = m.id_kavling')
+    ->join('jalan j', 'j.id_jalan = k.id_jalan')
+    ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+    ->where('cl.id_proyek', 13);
+$expBooking = $baseQ()->where("m.booking_tgl IS NOT NULL AND m.booking_tgl > '1970-01-01'", null, false)->countAllResults();
+$expWawancara = $baseQ()->where("(COALESCE(m.wawancara, 0) = 1 OR (m.wawancara_tgl IS NOT NULL AND m.wawancara_tgl > '1970-01-01'))", null, false)->countAllResults();
+$expSp3k = $baseQ()->where("(COALESCE(m.sp3k, 0) = 1 OR (m.sp3k_tgl IS NOT NULL AND m.sp3k_tgl > '1970-01-01') OR (m.sp3k_no IS NOT NULL AND TRIM(m.sp3k_no) != '' AND TRIM(m.sp3k_no) != '-'))", null, false)->countAllResults();
+$expIndent = $baseQ()->where("(COALESCE(m.akad_indent, 0) = 1 OR (m.akad_indent_tgl IS NOT NULL AND m.akad_indent_tgl > '1970-01-01'))", null, false)->countAllResults();
+$expAjb = $baseQ()->where("(COALESCE(m.akad, 0) = 1 OR (m.akad_tgl IS NOT NULL AND m.akad_tgl > '1970-01-01'))", null, false)->countAllResults();
+$fiveRulesMatch = (
+    $mTotals['booking'] === $expBooking &&
+    $mTotals['wawancara'] === $expWawancara &&
+    $mTotals['sp3k'] === $expSp3k &&
+    $mTotals['akad_indent'] === $expIndent &&
+    $mTotals['akad_ajb'] === $expAjb
+);
+recordResult('Tier 4', 'TC-R08', 'All 5 column rules totals in Proyek 13 match DB active condition counts', $fiveRulesMatch, sprintf('B:%d, W:%d, S:%d, Ind:%d, AJB:%d', $mTotals['booking'], $mTotals['wawancara'], $mTotals['sp3k'], $mTotals['akad_indent'], $mTotals['akad_ajb']));
 
 // ==============================================================================
 // SUMMARY & REPORT

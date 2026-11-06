@@ -583,9 +583,13 @@ function lihat_detail() {
             };
         }
 
-        const isBatal = (m.is_batal == 1 || (m.status_mkdt && String(m.status_mkdt).toLowerCase() === 'batal'));
+        const statusMkdtUpper = m.status_mkdt ? String(m.status_mkdt).trim().toUpperCase() : '';
+        const isAjbUpper = m.is_ajb ? String(m.is_ajb).trim().toUpperCase() : '';
+
+        // a. Batal: jika m.is_batal == 1 atau status_mkdt === 'Batal'
+        const isBatal = (m.is_batal == 1 || statusMkdtUpper === 'BATAL');
         if (isBatal) {
-            const tgl = isValidDate(m.mkdt_batal_tgl) ? m.mkdt_batal_tgl : (isValidDate(m.keuangan_batal_tgl) ? m.keuangan_batal_tgl : m.updated_at);
+            const tgl = isValidDate(m.mkdt_batal_tgl) ? m.mkdt_batal_tgl : (isValidDate(m.keuangan_batal_tgl) ? m.keuangan_batal_tgl : (isValidDate(m.updated_at) ? m.updated_at : null));
             return {
                 status: 'Batal',
                 badgeCls: 'badge-danger',
@@ -593,20 +597,11 @@ function lihat_detail() {
             };
         }
 
-        const isAkadExplicit = (m.akad == 1 || (m.status_mkdt && String(m.status_mkdt).toLowerCase() === 'akad') || isValidDate(m.akad_tgl));
-        const isIndentExplicit = (m.akad_indent == 1 || (m.is_ajb && String(m.is_ajb).toUpperCase() === 'PPJB') || isValidDate(m.akad_indent_tgl));
-
-        if (isAkadExplicit && isIndentExplicit) {
-            const tgl = isValidDate(m.akad_indent_tgl) ? m.akad_indent_tgl : (isValidDate(m.rencana_akad_tgl) ? m.rencana_akad_tgl : m.updated_at);
-            return {
-                status: 'Akad Indent',
-                badgeCls: 'badge-primary',
-                date: tgl
-            };
-        }
-
-        if (isAkadExplicit) {
-            const tgl = isValidDate(m.akad_tgl) ? m.akad_tgl : (isValidDate(m.rencana_akad_tgl) ? m.rencana_akad_tgl : m.updated_at);
+        // b. Akad AJB: jika m.akad == 1 atau isValidDate(m.akad_tgl) atau (status_mkdt === 'Akad' dan m.akad_indent != 1)
+        // CATATAN PENTING: Jika m.akad == 1, PASTI tampilkan 'Akad AJB' (meskipun m.akad_indent == 1)
+        const isAkadAjb = (m.akad == 1 || isValidDate(m.akad_tgl) || (statusMkdtUpper === 'AKAD' && m.akad_indent != 1));
+        if (isAkadAjb) {
+            const tgl = isValidDate(m.akad_tgl) ? m.akad_tgl : (isValidDate(m.rencana_akad_tgl) ? m.rencana_akad_tgl : (isValidDate(m.updated_at) ? m.updated_at : null));
             return {
                 status: 'Akad AJB',
                 badgeCls: 'badge-success',
@@ -614,8 +609,10 @@ function lihat_detail() {
             };
         }
 
-        if (isIndentExplicit) {
-            const tgl = isValidDate(m.akad_indent_tgl) ? m.akad_indent_tgl : (isValidDate(m.rencana_akad_tgl) ? m.rencana_akad_tgl : m.updated_at);
+        // c. Akad Indent: jika (m.akad_indent == 1 atau isValidDate(m.akad_indent_tgl) atau is_ajb === 'PPJB') dan m.akad != 1
+        const isAkadIndent = ((m.akad_indent == 1 || isValidDate(m.akad_indent_tgl) || isAjbUpper === 'PPJB') && m.akad != 1);
+        if (isAkadIndent) {
+            const tgl = isValidDate(m.akad_indent_tgl) ? m.akad_indent_tgl : (isValidDate(m.rencana_akad_tgl) ? m.rencana_akad_tgl : (isValidDate(m.updated_at) ? m.updated_at : null));
             return {
                 status: 'Akad Indent',
                 badgeCls: 'badge-primary',
@@ -623,7 +620,8 @@ function lihat_detail() {
             };
         }
 
-        const isSp3k = (m.sp3k == 1 || (m.status_mkdt && String(m.status_mkdt).toUpperCase() === 'SP3K') || isValidDate(m.sp3k_tgl));
+        // d. SP3K: jika m.sp3k == 1 atau status_mkdt === 'SP3K' atau isValidDate(m.sp3k_tgl)
+        const isSp3k = (m.sp3k == 1 || statusMkdtUpper === 'SP3K' || isValidDate(m.sp3k_tgl));
         if (isSp3k) {
             const tgl = isValidDate(m.sp3k_tgl) ? m.sp3k_tgl : null;
             return {
@@ -633,7 +631,8 @@ function lihat_detail() {
             };
         }
 
-        const isWawancara = (m.wawancara == 1 || (m.status_mkdt && String(m.status_mkdt).toUpperCase() === 'WAWANCARA') || isValidDate(m.wawancara_tgl));
+        // e. Wawancara: jika m.wawancara == 1 atau status_mkdt === 'WAWANCARA' atau isValidDate(m.wawancara_tgl)
+        const isWawancara = (m.wawancara == 1 || statusMkdtUpper === 'WAWANCARA' || isValidDate(m.wawancara_tgl));
         if (isWawancara) {
             const tgl = isValidDate(m.wawancara_tgl) ? m.wawancara_tgl : null;
             return {
@@ -643,6 +642,7 @@ function lihat_detail() {
             };
         }
 
+        // f. Default Booking: status 'Booking', badgeCls 'badge-primary', date m.booking_tgl
         const tglBooking = isValidDate(m.booking_tgl) ? m.booking_tgl : null;
         return {
             status: 'Booking',
@@ -655,7 +655,7 @@ function lihat_detail() {
         if (!isValidDate(val)) {
             return '-';
         }
-        return format_date(val);
+        return typeof format_date === 'function' ? format_date(val) : String(val);
     }
 
     function setAmenityIcon(selector, val) {
@@ -710,7 +710,9 @@ function lihat_detail() {
             return;
         }
 
-        const isBatal = mkdt.is_batal == 1 || (mkdt.status_mkdt && String(mkdt.status_mkdt).toLowerCase() === 'batal');
+        const statusMkdtUpper = mkdt.status_mkdt ? String(mkdt.status_mkdt).trim().toUpperCase() : '';
+        const isAjbUpper = mkdt.is_ajb ? String(mkdt.is_ajb).trim().toUpperCase() : '';
+        const isBatal = mkdt.is_batal == 1 || statusMkdtUpper === 'BATAL';
 
         const stages = [
             {
@@ -739,14 +741,14 @@ function lihat_detail() {
                 title: 'Akad Indent',
                 date: isValidDate(mkdt.akad_indent_tgl) ? mkdt.akad_indent_tgl : (mkdt.akad_indent == 1 && isValidDate(mkdt.rencana_akad_tgl) ? mkdt.rencana_akad_tgl : null),
                 desc: 'Akad indent',
-                isDone: (mkdt.akad_indent == 1 || (mkdt.is_ajb && String(mkdt.is_ajb).toUpperCase() === 'PPJB') || isValidDate(mkdt.akad_indent_tgl))
+                isDone: (mkdt.akad_indent == 1 || isValidDate(mkdt.akad_indent_tgl) || isAjbUpper === 'PPJB')
             },
             {
                 key: 'Akad AJB',
                 title: 'Akad AJB',
                 date: isValidDate(mkdt.akad_tgl) ? mkdt.akad_tgl : (mkdt.akad == 1 && isValidDate(mkdt.rencana_akad_tgl) ? mkdt.rencana_akad_tgl : null),
                 desc: 'Transaksi disetujui',
-                isDone: (mkdt.akad == 1 || isValidDate(mkdt.akad_tgl) || (mkdt.status_mkdt === 'Akad' && mkdt.akad_indent != 1 && (!mkdt.is_ajb || String(mkdt.is_ajb).toUpperCase() !== 'PPJB')))
+                isDone: (mkdt.akad == 1 || isValidDate(mkdt.akad_tgl) || (statusMkdtUpper === 'AKAD' && mkdt.akad_indent != 1))
             }
         ];
 
@@ -754,7 +756,7 @@ function lihat_detail() {
             stages.push({
                 key: 'Batal',
                 title: 'Batal',
-                date: isValidDate(mkdt.mkdt_batal_tgl) ? mkdt.mkdt_batal_tgl : (isValidDate(mkdt.keuangan_batal_tgl) ? mkdt.keuangan_batal_tgl : mkdt.updated_at),
+                date: isValidDate(mkdt.mkdt_batal_tgl) ? mkdt.mkdt_batal_tgl : (isValidDate(mkdt.keuangan_batal_tgl) ? mkdt.keuangan_batal_tgl : (isValidDate(mkdt.updated_at) ? mkdt.updated_at : null)),
                 desc: 'Transaksi dibatalkan',
                 isDone: true,
                 isBatalStage: true
@@ -780,6 +782,8 @@ function lihat_detail() {
             activeIdx = 0;
         }
 
+        const isAkadAjbCompleted = (currentStatus === 'Akad AJB' && (mkdt.akad == 1 || isValidDate(mkdt.akad_tgl)));
+
         let html = '';
         stages.forEach(function(st, idx) {
             let cls = '';
@@ -788,6 +792,10 @@ function lihat_detail() {
             if (st.isBatalStage) {
                 cls = 'is-batal';
                 iconHtml = '<i class="fas fa-times"></i>';
+            } else if (isAkadAjbCompleted) {
+                // Sesuai Opsi B: jika Akad AJB selesai, semua tahap 1 s/d 5 berstatus is-completed (centang)
+                cls = 'is-completed';
+                iconHtml = '<i class="fas fa-check"></i>';
             } else if (idx < activeIdx) {
                 cls = 'is-completed';
                 iconHtml = '<i class="fas fa-check"></i>';
@@ -2411,3 +2419,12 @@ function lihat_detail() {
             `);
         });
     }
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        isValidDate,
+        format_date_clean,
+        resolveMkdtStatusInfo,
+        renderKavlingTimeline
+    };
+}

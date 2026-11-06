@@ -26,13 +26,29 @@ class BookingAkadReportRepository
     public function getAvailableYearBounds(int $idProyek): array
     {
         $batalDateExpr = $this->batalDateSql();
+        $wawancaraDateExpr = $this->stageDateSql('m.wawancara_tgl');
+        $sp3kDateExpr = $this->stageDateSql('m.sp3k_tgl');
+        $indentDateExpr = $this->stageDateSql('m.akad_indent_tgl');
+        $ajbDateExpr = $this->stageDateSql('m.akad_tgl');
 
         $bounds = [
             $this->yearBounds($this->baseMkdtQuery($idProyek), 'm.booking_tgl'),
-            $this->yearBounds($this->baseMkdtQuery($idProyek), 'm.wawancara_tgl'),
-            $this->yearBounds($this->baseMkdtQuery($idProyek), 'm.sp3k_tgl'),
-            $this->yearBounds($this->baseMkdtQuery($idProyek), 'm.akad_indent_tgl'),
-            $this->yearBounds($this->baseMkdtQuery($idProyek), 'm.akad_tgl'),
+            $this->yearBounds(
+                $this->baseMkdtQuery($idProyek)->where($this->wawancaraConditionSql(), null, false),
+                $wawancaraDateExpr
+            ),
+            $this->yearBounds(
+                $this->baseMkdtQuery($idProyek)->where($this->sp3kConditionSql(), null, false),
+                $sp3kDateExpr
+            ),
+            $this->yearBounds(
+                $this->baseMkdtQuery($idProyek)->where($this->akadIndentConditionSql(), null, false),
+                $indentDateExpr
+            ),
+            $this->yearBounds(
+                $this->baseMkdtQuery($idProyek)->where($this->akadAjbConditionSql(), null, false),
+                $ajbDateExpr
+            ),
             $this->yearBounds(
                 $this->baseMkdtQuery($idProyek)->groupStart()
                     ->where('COALESCE(m.is_batal, 0)', 1)
@@ -118,7 +134,7 @@ class BookingAkadReportRepository
             ->select('COUNT(DISTINCT m.uniq_id) AS total_booking_cohort', false)
             ->select("COUNT(DISTINCT CASE 
                 WHEN (COALESCE(m.is_batal, 0) = 0 AND COALESCE(m.status_mkdt, '') != 'Batal')
-                     AND (COALESCE(m.akad, 0) = 1 OR COALESCE(m.akad_indent, 0) = 1 OR COALESCE(m.is_ajb, '') IN ('AJB', 'PPJB'))
+                     AND ({$this->akadAjbConditionSql()} OR {$this->akadIndentConditionSql()})
                 THEN m.uniq_id 
             END) AS booking_converted_akad", false)
             ->where('m.booking_tgl IS NOT NULL')
@@ -141,13 +157,15 @@ class BookingAkadReportRepository
         }
 
         // 2. Wawancara Activity Metric
+        $wawancaraDateExpr = $this->stageDateSql('m.wawancara_tgl');
         $wawancaraRows = $this->baseMkdtQuery($idProyek)
-            ->select('YEAR(m.wawancara_tgl) AS tahun, MONTH(m.wawancara_tgl) AS bulan, COUNT(m.id_mkdt) AS wawancara', false)
-            ->where('m.wawancara_tgl IS NOT NULL')
-            ->where('m.wawancara_tgl >', '1970-01-01')
-            ->where('m.wawancara_tgl >=', $startDate)
-            ->where('m.wawancara_tgl <', $endDate)
-            ->groupBy('YEAR(m.wawancara_tgl), MONTH(m.wawancara_tgl)', false)
+            ->select("YEAR({$wawancaraDateExpr}) AS tahun, MONTH({$wawancaraDateExpr}) AS bulan, COUNT(m.id_mkdt) AS wawancara", false)
+            ->where($this->wawancaraConditionSql(), null, false)
+            ->where("{$wawancaraDateExpr} IS NOT NULL", null, false)
+            ->where("{$wawancaraDateExpr} > '1970-01-01'", null, false)
+            ->where("{$wawancaraDateExpr} >= '{$startDate}'", null, false)
+            ->where("{$wawancaraDateExpr} < '{$endDate}'", null, false)
+            ->groupBy("YEAR({$wawancaraDateExpr}), MONTH({$wawancaraDateExpr})", false)
             ->get()
             ->getResultArray();
 
@@ -160,13 +178,15 @@ class BookingAkadReportRepository
         }
 
         // 3. SP3K Activity Metric
+        $sp3kDateExpr = $this->stageDateSql('m.sp3k_tgl');
         $sp3kRows = $this->baseMkdtQuery($idProyek)
-            ->select('YEAR(m.sp3k_tgl) AS tahun, MONTH(m.sp3k_tgl) AS bulan, COUNT(m.id_mkdt) AS sp3k', false)
-            ->where('m.sp3k_tgl IS NOT NULL')
-            ->where('m.sp3k_tgl >', '1970-01-01')
-            ->where('m.sp3k_tgl >=', $startDate)
-            ->where('m.sp3k_tgl <', $endDate)
-            ->groupBy('YEAR(m.sp3k_tgl), MONTH(m.sp3k_tgl)', false)
+            ->select("YEAR({$sp3kDateExpr}) AS tahun, MONTH({$sp3kDateExpr}) AS bulan, COUNT(m.id_mkdt) AS sp3k", false)
+            ->where($this->sp3kConditionSql(), null, false)
+            ->where("{$sp3kDateExpr} IS NOT NULL", null, false)
+            ->where("{$sp3kDateExpr} > '1970-01-01'", null, false)
+            ->where("{$sp3kDateExpr} >= '{$startDate}'", null, false)
+            ->where("{$sp3kDateExpr} < '{$endDate}'", null, false)
+            ->groupBy("YEAR({$sp3kDateExpr}), MONTH({$sp3kDateExpr})", false)
             ->get()
             ->getResultArray();
 
@@ -203,18 +223,15 @@ class BookingAkadReportRepository
         }
 
         // 5. Akad Indent Activity Metric
+        $indentDateExpr = $this->stageDateSql('m.akad_indent_tgl');
         $indentRows = $this->baseMkdtQuery($idProyek)
-            ->select('YEAR(m.akad_indent_tgl) AS tahun, MONTH(m.akad_indent_tgl) AS bulan, COUNT(m.id_mkdt) AS akad_indent', false)
-            ->groupStart()
-                ->where('COALESCE(m.akad_indent, 0)', 1)
-                ->orWhere("COALESCE(m.is_ajb, '')", 'PPJB')
-                ->orWhere('m.akad_indent_tgl >', '1970-01-01')
-            ->groupEnd()
-            ->where('m.akad_indent_tgl IS NOT NULL')
-            ->where('m.akad_indent_tgl >', '1970-01-01')
-            ->where('m.akad_indent_tgl >=', $startDate)
-            ->where('m.akad_indent_tgl <', $endDate)
-            ->groupBy('YEAR(m.akad_indent_tgl), MONTH(m.akad_indent_tgl)', false)
+            ->select("YEAR({$indentDateExpr}) AS tahun, MONTH({$indentDateExpr}) AS bulan, COUNT(m.id_mkdt) AS akad_indent", false)
+            ->where($this->akadIndentConditionSql(), null, false)
+            ->where("{$indentDateExpr} IS NOT NULL", null, false)
+            ->where("{$indentDateExpr} > '1970-01-01'", null, false)
+            ->where("{$indentDateExpr} >= '{$startDate}'", null, false)
+            ->where("{$indentDateExpr} < '{$endDate}'", null, false)
+            ->groupBy("YEAR({$indentDateExpr}), MONTH({$indentDateExpr})", false)
             ->get()
             ->getResultArray();
 
@@ -227,14 +244,15 @@ class BookingAkadReportRepository
         }
 
         // 6. Akad AJB Activity Metric
+        $ajbDateExpr = $this->stageDateSql('m.akad_tgl');
         $ajbRows = $this->baseMkdtQuery($idProyek)
-            ->select('YEAR(m.akad_tgl) AS tahun, MONTH(m.akad_tgl) AS bulan, COUNT(m.id_mkdt) AS akad_ajb', false)
-            ->where('COALESCE(m.akad, 0)', 1)
-            ->where('m.akad_tgl IS NOT NULL')
-            ->where('m.akad_tgl >', '1970-01-01')
-            ->where('m.akad_tgl >=', $startDate)
-            ->where('m.akad_tgl <', $endDate)
-            ->groupBy('YEAR(m.akad_tgl), MONTH(m.akad_tgl)', false)
+            ->select("YEAR({$ajbDateExpr}) AS tahun, MONTH({$ajbDateExpr}) AS bulan, COUNT(m.id_mkdt) AS akad_ajb", false)
+            ->where($this->akadAjbConditionSql(), null, false)
+            ->where("{$ajbDateExpr} IS NOT NULL", null, false)
+            ->where("{$ajbDateExpr} > '1970-01-01'", null, false)
+            ->where("{$ajbDateExpr} >= '{$startDate}'", null, false)
+            ->where("{$ajbDateExpr} < '{$endDate}'", null, false)
+            ->groupBy("YEAR({$ajbDateExpr}), MONTH({$ajbDateExpr})", false)
             ->get()
             ->getResultArray();
 
@@ -354,10 +372,19 @@ class BookingAkadReportRepository
         $startDate = sprintf('%04d-%02d-01', $year, $month);
         $endDate = date('Y-m-d', strtotime($startDate . ' +1 month'));
         $batalDateExpr = $this->batalDateSql();
+        $wawancaraDateExpr = $this->stageDateSql('m.wawancara_tgl');
+        $sp3kDateExpr = $this->stageDateSql('m.sp3k_tgl');
+        $indentDateExpr = $this->stageDateSql('m.akad_indent_tgl');
+        $ajbDateExpr = $this->stageDateSql('m.akad_tgl');
+        $wawancaraCond = $this->wawancaraConditionSql();
+        $sp3kCond = $this->sp3kConditionSql();
+        $indentCond = $this->akadIndentConditionSql();
+        $ajbCond = $this->akadAjbConditionSql();
 
         $builder = $this->baseMkdtDetailQuery($idProyek)
             ->select('m.id_mkdt AS reference_id')
             ->select('m.id_mkdt, m.id_kavling, m.uniq_id')
+            ->select('m.wawancara, m.sp3k, m.sp3k_no, m.akad_indent, m.akad')
             ->select($this->addressSql())
             ->select("COALESCE(k.no_kavling, '-') AS no_kavling", false)
             ->select("COALESCE(j.nama_jalan, '') AS nama_jalan", false)
@@ -389,33 +416,33 @@ class BookingAkadReportRepository
             ->select("
 CASE
     WHEN (COALESCE(m.is_batal, 0) = 1 OR COALESCE(m.status_mkdt, '') = 'Batal') THEN 'Batal'
-    WHEN COALESCE(m.akad, 0) = 1 THEN 'Akad AJB'
-    WHEN (COALESCE(m.akad_indent, 0) = 1 OR COALESCE(m.is_ajb, '') = 'PPJB') THEN 'Akad Indent'
-    WHEN (COALESCE(m.sp3k, 0) = 1 OR (m.sp3k_tgl IS NOT NULL AND m.sp3k_tgl > '1970-01-01')) THEN 'SP3K'
-    WHEN (COALESCE(m.wawancara, 0) = 1 OR (m.wawancara_tgl IS NOT NULL AND m.wawancara_tgl > '1970-01-01')) THEN 'Wawancara'
+    WHEN {$ajbCond} THEN 'Akad AJB'
+    WHEN {$indentCond} THEN 'Akad Indent'
+    WHEN {$sp3kCond} THEN 'SP3K'
+    WHEN {$wawancaraCond} THEN 'Wawancara'
     ELSE 'Booking'
 END AS status_terakhir", false)
             ->select("
 CASE
     WHEN (COALESCE(m.is_batal, 0) = 1 OR COALESCE(m.status_mkdt, '') = 'Batal') THEN 'danger'
-    WHEN COALESCE(m.akad, 0) = 1 THEN 'success'
-    WHEN (COALESCE(m.akad_indent, 0) = 1 OR COALESCE(m.is_ajb, '') = 'PPJB') THEN 'info'
-    WHEN (COALESCE(m.sp3k, 0) = 1 OR (m.sp3k_tgl IS NOT NULL AND m.sp3k_tgl > '1970-01-01')) THEN 'primary'
-    WHEN (COALESCE(m.wawancara, 0) = 1 OR (m.wawancara_tgl IS NOT NULL AND m.wawancara_tgl > '1970-01-01')) THEN 'warning'
+    WHEN {$ajbCond} THEN 'success'
+    WHEN {$indentCond} THEN 'info'
+    WHEN {$sp3kCond} THEN 'primary'
+    WHEN {$wawancaraCond} THEN 'warning'
     ELSE 'secondary'
 END AS status_terakhir_badge", false)
             ->select("
 CASE
     WHEN (COALESCE(m.is_batal, 0) = 1 OR COALESCE(m.status_mkdt, '') = 'Batal') 
          THEN {$batalDateExpr}
-    WHEN COALESCE(m.akad, 0) = 1 
-         THEN m.akad_tgl
-    WHEN (COALESCE(m.akad_indent, 0) = 1 OR COALESCE(m.is_ajb, '') = 'PPJB') 
-         THEN m.akad_indent_tgl
-    WHEN (COALESCE(m.sp3k, 0) = 1 OR (m.sp3k_tgl IS NOT NULL AND m.sp3k_tgl > '1970-01-01')) 
-         THEN m.sp3k_tgl
-    WHEN (COALESCE(m.wawancara, 0) = 1 OR (m.wawancara_tgl IS NOT NULL AND m.wawancara_tgl > '1970-01-01')) 
-         THEN m.wawancara_tgl
+    WHEN {$ajbCond} 
+         THEN {$ajbDateExpr}
+    WHEN {$indentCond} 
+         THEN {$indentDateExpr}
+    WHEN {$sp3kCond} 
+         THEN {$sp3kDateExpr}
+    WHEN {$wawancaraCond} 
+         THEN {$wawancaraDateExpr}
     ELSE m.booking_tgl
 END AS tanggal_status_terakhir", false)
             ->select("COALESCE(NULLIF(TRIM(m.keterangan_batal), ''), NULLIF(TRIM(m.keterangan), ''), NULLIF(TRIM(m.keterangan_status), ''), '-') AS catatan_mkdt", false);
@@ -482,11 +509,11 @@ END AS tanggal_status_terakhir", false)
             return $builder
                 ->select("'akad_ajb' AS kategori", false)
                 ->select("'Akad AJB' AS jenis_laporan", false)
-                ->where('COALESCE(m.akad, 0)', 1)
-                ->where('m.akad_tgl IS NOT NULL')
-                ->where('m.akad_tgl >', '1970-01-01')
-                ->where('m.akad_tgl >=', $startDate)
-                ->where('m.akad_tgl <', $endDate)
+                ->where($ajbCond, null, false)
+                ->where("{$ajbDateExpr} IS NOT NULL", null, false)
+                ->where("{$ajbDateExpr} > '1970-01-01'", null, false)
+                ->where("{$ajbDateExpr} >= '{$startDate}'", null, false)
+                ->where("{$ajbDateExpr} < '{$endDate}'", null, false)
                 ->getCompiledSelect();
         }
 
@@ -494,15 +521,11 @@ END AS tanggal_status_terakhir", false)
             return $builder
                 ->select("'akad_indent' AS kategori", false)
                 ->select("'Akad Indent' AS jenis_laporan", false)
-                ->groupStart()
-                    ->where('COALESCE(m.akad_indent, 0)', 1)
-                    ->orWhere("COALESCE(m.is_ajb, '')", 'PPJB')
-                    ->orWhere('m.akad_indent_tgl >', '1970-01-01')
-                ->groupEnd()
-                ->where('m.akad_indent_tgl IS NOT NULL')
-                ->where('m.akad_indent_tgl >', '1970-01-01')
-                ->where('m.akad_indent_tgl >=', $startDate)
-                ->where('m.akad_indent_tgl <', $endDate)
+                ->where($indentCond, null, false)
+                ->where("{$indentDateExpr} IS NOT NULL", null, false)
+                ->where("{$indentDateExpr} > '1970-01-01'", null, false)
+                ->where("{$indentDateExpr} >= '{$startDate}'", null, false)
+                ->where("{$indentDateExpr} < '{$endDate}'", null, false)
                 ->getCompiledSelect();
         }
 
@@ -510,10 +533,11 @@ END AS tanggal_status_terakhir", false)
             return $builder
                 ->select("'sp3k' AS kategori", false)
                 ->select("'SP3K' AS jenis_laporan", false)
-                ->where('m.sp3k_tgl IS NOT NULL')
-                ->where('m.sp3k_tgl >', '1970-01-01')
-                ->where('m.sp3k_tgl >=', $startDate)
-                ->where('m.sp3k_tgl <', $endDate)
+                ->where($sp3kCond, null, false)
+                ->where("{$sp3kDateExpr} IS NOT NULL", null, false)
+                ->where("{$sp3kDateExpr} > '1970-01-01'", null, false)
+                ->where("{$sp3kDateExpr} >= '{$startDate}'", null, false)
+                ->where("{$sp3kDateExpr} < '{$endDate}'", null, false)
                 ->getCompiledSelect();
         }
 
@@ -521,10 +545,11 @@ END AS tanggal_status_terakhir", false)
             return $builder
                 ->select("'wawancara' AS kategori", false)
                 ->select("'Wawancara' AS jenis_laporan", false)
-                ->where('m.wawancara_tgl IS NOT NULL')
-                ->where('m.wawancara_tgl >', '1970-01-01')
-                ->where('m.wawancara_tgl >=', $startDate)
-                ->where('m.wawancara_tgl <', $endDate)
+                ->where($wawancaraCond, null, false)
+                ->where("{$wawancaraDateExpr} IS NOT NULL", null, false)
+                ->where("{$wawancaraDateExpr} > '1970-01-01'", null, false)
+                ->where("{$wawancaraDateExpr} >= '{$startDate}'", null, false)
+                ->where("{$wawancaraDateExpr} < '{$endDate}'", null, false)
                 ->getCompiledSelect();
         }
 
@@ -537,6 +562,36 @@ END AS tanggal_status_terakhir", false)
             ->where('m.booking_tgl >=', $startDate)
             ->where('m.booking_tgl <', $endDate)
             ->getCompiledSelect();
+    }
+
+    private function wawancaraConditionSql(): string
+    {
+        return "(COALESCE(m.wawancara, 0) = 1 OR (m.wawancara_tgl IS NOT NULL AND m.wawancara_tgl > '1970-01-01'))";
+    }
+
+    private function sp3kConditionSql(): string
+    {
+        return "(COALESCE(m.sp3k, 0) = 1 OR (m.sp3k_tgl IS NOT NULL AND m.sp3k_tgl > '1970-01-01') OR (m.sp3k_no IS NOT NULL AND TRIM(m.sp3k_no) != '' AND TRIM(m.sp3k_no) != '-'))";
+    }
+
+    private function akadIndentConditionSql(): string
+    {
+        return "(COALESCE(m.akad_indent, 0) = 1 OR (m.akad_indent_tgl IS NOT NULL AND m.akad_indent_tgl > '1970-01-01'))";
+    }
+
+    private function akadAjbConditionSql(): string
+    {
+        return "(COALESCE(m.akad, 0) = 1 OR (m.akad_tgl IS NOT NULL AND m.akad_tgl > '1970-01-01'))";
+    }
+
+    private function stageDateSql(string $column): string
+    {
+        return "COALESCE(
+            CASE WHEN {$column} IS NOT NULL AND {$column} > '1970-01-01' THEN DATE({$column}) END,
+            CASE WHEN m.booking_tgl IS NOT NULL AND m.booking_tgl > '1970-01-01' THEN DATE(m.booking_tgl) END,
+            CASE WHEN m.updated_at IS NOT NULL AND m.updated_at > '1970-01-01' THEN DATE(m.updated_at) END,
+            CASE WHEN m.created_at IS NOT NULL AND m.created_at > '1970-01-01' THEN DATE(m.created_at) END
+        )";
     }
 
     private function batalDateSql(): string

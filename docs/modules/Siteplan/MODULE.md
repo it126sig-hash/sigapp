@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-11-04 15:17:26` @ `2d5d609`  
+**Last Synced:** `2026-11-05 12:26:58` @ `a684cd1`  
 
 ## Purpose
 Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial visual.
@@ -92,7 +92,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 
 ## File Inventory
 ### Controllers (4)
-- `app/Controllers/Siteplan.php` (1859 baris, 19 public methods: `index()`, `view_siteplan()`, `produksi_mobile()`, `urgentSummary()`, `add_kavling()`, `add_kavling2()`, `add_others()`, `edit_kavling()`, `edit_others()`, `get_config($id)`, `getAllKavling()`, `getKategoriOptions()`, `get_others()`, `get_kavling_by_multiple_id()`, `get_harga_kavling()`, `get_turun_pembangunan()`, `set_turun_pembangunan()`, `get_kavling_by_id()`, `get_detail()`)
+- `app/Controllers/Siteplan.php` (1861 baris, 19 public methods: `index()`, `view_siteplan()`, `produksi_mobile()`, `urgentSummary()`, `add_kavling()`, `add_kavling2()`, `add_others()`, `edit_kavling()`, `edit_others()`, `get_config($id)`, `getAllKavling()`, `getKategoriOptions()`, `get_others()`, `get_kavling_by_multiple_id()`, `get_harga_kavling()`, `get_turun_pembangunan()`, `set_turun_pembangunan()`, `get_kavling_by_id()`, `get_detail()`)
 - `app/Controllers/Modal.php` (18 baris, 1 public methods: `index()`)
 - `app/Controllers/Api/TargetController.php` (81 baris, 4 public methods: `list()`, `detail()`, `save()`, `history()`)
 - `app/Controllers/Kalendar.php` (58 baris, 2 public methods: `index()`, `getEvents()`)
@@ -126,7 +126,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - `public/assets/js/siteplan/interaction-highlight.js` (143 baris)
 - `public/assets/js/siteplan/shape-filter.js` (65 baris)
 - `public/assets/js/siteplan/polygon-clip.js` (312 baris)
-- `public/assets/js/siteplan-detail-modal.js` (2074 baris)
+- `public/assets/js/siteplan-detail-modal.js` (2431 baris)
 - `public/assets/js/siteplan/target.js` (244 baris)
 - `public/assets/js/siteplan/tiket-overlay.js` (462 baris)
 
@@ -167,6 +167,9 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - **Frontend JavaScript (`public/assets/js/siteplan/master.js`):**
   - `siteplanProblemItems`: State penyimpanan masalah terpusat berbasis dictionary `{ kavling: [], others: [] }`.
   - `syncSiteplanTiketOverlay()`: Menggabungkan item masalah kavling dan others secara atomik sebelum meneruskan data gabungan ke `SiteplanTiketOverlay.buildOverlayShapes()`, mencegah race condition saat pemanggilan data asinkron.
+- **Frontend JavaScript (`public/assets/js/siteplan-detail-modal.js`):**
+  - `resolveMkdtStatusInfo(m)`: Resolusi hierarki prioritas status transaksi kavling MKDT (Batal -> Akad AJB -> Akad Indent -> SP3K -> Wawancara -> Booking) dan tanggal status yang valid (`isValidDate`). Menjamin unit kavling yang telah mencapai `akad == 1` atau tanggal akad terisi selalu berstatus `'Akad AJB'` (`badge-success`) sekalipun flag `akad_indent == 1` bernilai aktif (mengatasi edge case data riwayat seperti kavling 265 / MKDT 349).
+  - `renderKavlingTimeline(mkdt, currentStatus)`: Merender milestone horizontal stepper progres transaksi kavling (Booking, Wawancara, SP3K, Akad Indent, Akad AJB) dengan connecting lines. Menerapkan skema Opsi B di mana jika status transaksi mencapai 'Akad AJB' selesai (`mkdt.akad == 1 || isValidDate(mkdt.akad_tgl)`), seluruh 5 tahapan stepper otomatis berstatus `is-completed` dengan icon centang `fas fa-check` lingkaran solid `#2056a4`.
 
 ## Deprecated & Legacy Shims
 - Route `POST /siteplan/get/all` (`Siteplan::getAllKavling`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
@@ -217,6 +220,16 @@ _Jalankan `php spark module:deadcode Siteplan` untuk mengaudit dead code kandida
     - `SiteplanTiketOverlay` (`public/assets/js/siteplan/tiket-overlay.js`) dan `master.js` (`syncSiteplanTiketOverlay`): mengagregasikan masalah kavling dan others secara atomik dan merender `tiketOverlayLayer` pada peta KonvaJS.
 
 ## Change Log
+- **2026-11-05 [`BUGFIX`] / [`UI_REPORT`] — Penyempurnaan Hierarki Status MKDT (Prioritas Akad AJB atas Indent) dan Opsi B Stepper Timeline Selesai:**
+  - **Routes & Public Contracts:** Tidak ada perubahan endpoint atau kontrak backend (`siteplan/get/detail`).
+  - **Controller / Service / Repo / Model:** Tidak berubah.
+  - **View / CSS / JS:**
+    - `public/assets/js/siteplan-detail-modal.js`:
+      - Memperbaiki `resolveMkdtStatusInfo(m)` dengan hierarki prioritas status transaksi yang presisi: Batal (`is_batal == 1 || status_mkdt === 'Batal'`) -> Akad AJB (`akad == 1 || isValidDate(akad_tgl) || (status_mkdt === 'Akad' && akad_indent != 1)`) -> Akad Indent (`(akad_indent == 1 || isValidDate(akad_indent_tgl) || is_ajb === 'PPJB') && akad != 1`) -> SP3K -> Wawancara -> Booking. Menjamin jika `m.akad == 1` selalu diselesaikan sebagai status `'Akad AJB'` (`badge-success`) meskipun `m.akad_indent == 1` (solusi tuntas edge case kavling 265 / MKDT 349).
+      - Mengimplementasikan Opsi B pada `renderKavlingTimeline(mkdt, currentStatus)`: saat status transaksi mencapai 'Akad AJB' selesai (`mkdt.akad == 1 || isValidDate(mkdt.akad_tgl)`), seluruh 5 tahapan stepper (Booking, Wawancara, SP3K, Akad Indent, Akad AJB) otomatis berstatus `is-completed` dengan icon centang `fas fa-check` lingkaran solid biru `#2056a4`.
+    - `tests/js/siteplan-status-timeline.test.js`:
+      - Menambahkan suite pengujian unit Jest dengan 16 skenario komprehensif (Kasus A s/d G dan edge cases) untuk memvalidasi resolusi status MKDT dan stepper timeline (100% passing).
+  - **Deprecations:** Tidak ada.
 - **2026-11-04 [`FEATURE`] — Penambahan Agregasi Peringatan SP3K Expire & Rencana Akad pada SiteplanUrgentService:**
   - **Routes & Public Contracts:** Tidak berubah.
   - **Controller / Service / Repo / Model:** `app/Services/SiteplanUrgentService.php` menambahkan method publik `countMkdtDateAlerts(string $field, ?int $idProyek, ?string $fromDate, ?string $toDate)` dan memperkaya `getDashboardAlertCounts(?int $idProyek)` dengan metrik `sp3k_expire` dan `rencana_akad` untuk integrasi peringatan dini dashboard lintas departemen.

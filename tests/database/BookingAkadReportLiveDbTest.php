@@ -99,7 +99,7 @@ final class BookingAkadReportLiveDbTest extends CIUnitTestCase
     public function testProyek13TransactionsPartitionExactlyIntoSixStatuses(): void
     {
         $builder = $this->liveDb->table('mkdt m')
-            ->select('m.id_mkdt, m.status_mkdt, m.is_batal, m.akad, m.is_ajb, m.akad_indent, m.sp3k, m.sp3k_tgl, m.wawancara, m.wawancara_tgl, m.booking_tgl')
+            ->select('m.id_mkdt, m.status_mkdt, m.is_batal, m.akad, m.akad_tgl, m.is_ajb, m.akad_indent, m.akad_indent_tgl, m.sp3k, m.sp3k_tgl, m.sp3k_no, m.wawancara, m.wawancara_tgl, m.booking_tgl')
             ->join('kavling k', 'k.id_kavling = m.id_kavling')
             ->join('jalan j', 'j.id_jalan = k.id_jalan')
             ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
@@ -118,10 +118,11 @@ final class BookingAkadReportLiveDbTest extends CIUnitTestCase
         ];
 
         foreach ($rows as $r) {
+            $sp3kNo = trim((string) ($r['sp3k_no'] ?? ''));
             $isBatal = ((int) ($r['is_batal'] ?? 0) === 1) || (($r['status_mkdt'] ?? '') === 'Batal');
-            $isAkadAjb = ! $isBatal && (int) ($r['akad'] ?? 0) === 1;
-            $isAkadIndent = ! $isBatal && ! $isAkadAjb && (((int) ($r['akad_indent'] ?? 0) === 1) || (($r['is_ajb'] ?? '') === 'PPJB'));
-            $hasSp3k = ! $isBatal && ! $isAkadAjb && ! $isAkadIndent && (((int) ($r['sp3k'] ?? 0) === 1) || ($r['sp3k_tgl'] !== null && $r['sp3k_tgl'] > '1970-01-01'));
+            $isAkadAjb = ! $isBatal && (((int) ($r['akad'] ?? 0) === 1) || ($r['akad_tgl'] !== null && $r['akad_tgl'] > '1970-01-01'));
+            $isAkadIndent = ! $isBatal && ! $isAkadAjb && (((int) ($r['akad_indent'] ?? 0) === 1) || ($r['akad_indent_tgl'] !== null && $r['akad_indent_tgl'] > '1970-01-01'));
+            $hasSp3k = ! $isBatal && ! $isAkadAjb && ! $isAkadIndent && (((int) ($r['sp3k'] ?? 0) === 1) || ($r['sp3k_tgl'] !== null && $r['sp3k_tgl'] > '1970-01-01') || ($sp3kNo !== '' && $sp3kNo !== '-'));
             $hasWawancara = ! $isBatal && ! $isAkadAjb && ! $isAkadIndent && ! $hasSp3k && (((int) ($r['wawancara'] ?? 0) === 1) || ($r['wawancara_tgl'] !== null && $r['wawancara_tgl'] > '1970-01-01'));
 
             if ($isBatal) {
@@ -281,5 +282,57 @@ final class BookingAkadReportLiveDbTest extends CIUnitTestCase
                 }
             }
         }
+    }
+
+    /**
+     * TC-R09: All 5 column calculation rules across available years match exact DB condition totals without dropping zero-date flagged rows.
+     */
+    public function testFiveColumnRulesTotalInProyek13MatchesDatabaseConditionCounts(): void
+    {
+        $repo = new \App\Repositories\BookingAkadReportRepository($this->liveDb);
+        $years = $repo->getAvailableYears(13);
+        $summaryRows = $repo->getMonthlyStatusTotals(13, $years);
+
+        $matrixTotals = [
+            'booking' => 0,
+            'wawancara' => 0,
+            'sp3k' => 0,
+            'akad_indent' => 0,
+            'akad_ajb' => 0,
+        ];
+
+        foreach ($summaryRows as $row) {
+            foreach (array_keys($matrixTotals) as $col) {
+                $matrixTotals[$col] += (int) ($row[$col] ?? 0);
+            }
+        }
+
+        $baseQuery = fn () => $this->liveDb->table('mkdt m')
+            ->join('kavling k', 'k.id_kavling = m.id_kavling')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+            ->where('cl.id_proyek', 13);
+
+        $expectedBooking = $baseQuery()
+            ->where("m.booking_tgl IS NOT NULL AND m.booking_tgl > '1970-01-01'", null, false)
+            ->countAllResults();
+        $expectedWawancara = $baseQuery()
+            ->where("(COALESCE(m.wawancara, 0) = 1 OR (m.wawancara_tgl IS NOT NULL AND m.wawancara_tgl > '1970-01-01'))", null, false)
+            ->countAllResults();
+        $expectedSp3k = $baseQuery()
+            ->where("(COALESCE(m.sp3k, 0) = 1 OR (m.sp3k_tgl IS NOT NULL AND m.sp3k_tgl > '1970-01-01') OR (m.sp3k_no IS NOT NULL AND TRIM(m.sp3k_no) != '' AND TRIM(m.sp3k_no) != '-'))", null, false)
+            ->countAllResults();
+        $expectedIndent = $baseQuery()
+            ->where("(COALESCE(m.akad_indent, 0) = 1 OR (m.akad_indent_tgl IS NOT NULL AND m.akad_indent_tgl > '1970-01-01'))", null, false)
+            ->countAllResults();
+        $expectedAjb = $baseQuery()
+            ->where("(COALESCE(m.akad, 0) = 1 OR (m.akad_tgl IS NOT NULL AND m.akad_tgl > '1970-01-01'))", null, false)
+            ->countAllResults();
+
+        $this->assertSame($expectedBooking, $matrixTotals['booking'], 'Total booking across years must match booking_tgl condition.');
+        $this->assertSame($expectedWawancara, $matrixTotals['wawancara'], 'Total wawancara across years must match wawancara/wawancara_tgl condition.');
+        $this->assertSame($expectedSp3k, $matrixTotals['sp3k'], 'Total sp3k across years must match sp3k/sp3k_tgl/sp3k_no condition.');
+        $this->assertSame($expectedIndent, $matrixTotals['akad_indent'], 'Total akad_indent across years must match akad_indent/akad_indent_tgl condition.');
+        $this->assertSame($expectedAjb, $matrixTotals['akad_ajb'], 'Total akad_ajb across years must match akad/akad_tgl condition.');
     }
 }

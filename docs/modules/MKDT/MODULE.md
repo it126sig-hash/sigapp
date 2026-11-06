@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-11-04 15:24:36` @ `2d5d609`  
+**Last Synced:** `2026-11-05 12:21:26` @ `a684cd1`  
 
 ## Purpose
 Manajemen Konsumen dan Transaksi (MKDT): tata kelola siklus transaksi konsumen mulai dari NUP, booking unit, verifikasi data konsumen, posisi kavling, wawancara perbankan, persetujuan SP3K, akad indent (PPJB), akad AJB, mutasi/pergantian konsumen, hingga pembatalan unit (`mkdt`, `konsumen`, `mkdt_kavling_history`).
@@ -19,9 +19,9 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 - **Status Precedence Hierarchy**: Dalam penentuan status terakhir transaksi (terutama pada drilldown modal detail dan klasifikasi data historis), diterapkan hierarki ketat:
   $$\text{Batal} \succ \text{Akad AJB} \succ \text{Akad Indent} \succ \text{SP3K} \succ \text{Wawancara} \succ \text{Booking}$$
   - Transaksi yang berstatus Batal (`is_batal = 1` atau `status_mkdt = 'Batal'`) selalu diprioritaskan sebagai Batal.
-  - Transaksi Akad AJB (`akad = 1` atau `is_ajb = 'AJB'`) diprioritaskan di atas Akad Indent.
-  - Transaksi Akad Indent (`akad_indent = 1` atau `is_ajb = 'PPJB'`) diprioritaskan di atas SP3K.
-  - Transaksi SP3K (`sp3k = 1` atau `sp3k_tgl > '1970-01-01'`) diprioritaskan di atas Wawancara.
+  - Transaksi Akad AJB (`akad = 1` atau `akad_tgl > '1970-01-01'`) diprioritaskan di atas Akad Indent.
+  - Transaksi Akad Indent (`akad_indent = 1` atau `akad_indent_tgl > '1970-01-01'`) diprioritaskan di atas SP3K.
+  - Transaksi SP3K (`sp3k = 1`, `sp3k_tgl > '1970-01-01'`, atau `sp3k_no` terisi valid bukan `''`/`'-'`) diprioritaskan di atas Wawancara.
   - Transaksi Wawancara (`wawancara = 1` atau `wawancara_tgl > '1970-01-01'`) diprioritaskan di atas Booking murni.
 - **Real Cohort Conversion based on `mkdt.uniq_id`**: Rasio konversi dihitung bukan dari perbandingan kuantitas per bulan kalender, melainkan dari cohort transaksi unik berbasis kode transaksi (`mkdt.uniq_id`). Mengukur berapa persen transaksi unik yang melakukan booking pada bulan bersangkutan yang akhirnya berhasil mencapai akad (baik Akad Indent maupun Akad AJB) sepanjang siklus hidupnya. Persentase dibatasi pada interval $[0.0\%, 100.0\%]$.
 - **Safe Zero-Date Filtering**: Seluruh query agregasi dan tanggal status wajib memfilter tanggal tidak valid atau dirty zero-dates (`'0000-00-00'`, `'0000-00-00 00:00:00'`, `NULL`, atau `<= '1970-01-01'`) menggunakan kriteria `> '1970-01-01'` untuk mencegah kesalahan parsing dan kegagalan fungsi tanggal. Tanggal yang tidak valid dirender sebagai `-`.
@@ -34,7 +34,7 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
   6. `Catatan / Keterangan` (`text-left`): Teks catatan transaksi MKDT bertingkat dari `mkdt` (`keterangan_batal` -> `keterangan` -> `keterangan_status` -> `-`).
   7. `Aksi` (`text-center`, width 70px): Tombol aksi `.booking-akad-view-kavling` untuk memicu modal detail kavling siteplan (`#modal_detail`) dengan integrasi stacked modal `window.initSigappModalStacking()` (z-index 1070 di atas modal laporan 1050).
 - **6-Column Matrix Layout with Embedded Conversion**: Tabel matriks tahunan menyajikan tepat 6 kolom kategori status per tahun (`Booking`, `Wawancara`, `SP3K`, `Batal`, `Akad Indent`, `Akad AJB`), di mana persentase konversi kohort riil disematkan langsung di dalam sel `Booking` (pada baris bulanan dan Total Tahun via `.booking-cell-wrapper` dan `.booking-konversi-sub`).
-- **Event-Based Monthly Totals & Detail Alignment**: Angka bulanan untuk setiap kategori status merefleksikan tanggal terjadinya aktivitas/milestone masing-masing pada bulan tersebut (`booking_tgl`, `wawancara_tgl`, `sp3k_tgl`, `batalDateExpr`, `akad_indent_tgl`, `akad_tgl`), dan query modal detail diselaraskan 100% sehingga `recordsTotal` modal detail identik dengan angka pada sel matriks.
+- **Event-Based Monthly Totals & Detail Alignment**: Angka bulanan untuk setiap kategori status merefleksikan kondisi kualifikasi tahap dan tanggal efektif terjadinya aktivitas/milestone masing-masing pada bulan tersebut (`booking_tgl`, `stageDateSql('m.wawancara_tgl')`, `stageDateSql('m.sp3k_tgl')`, `batalDateExpr`, `stageDateSql('m.akad_indent_tgl')`, `stageDateSql('m.akad_tgl')`), dan query modal detail diselaraskan 100% sehingga `recordsTotal` modal detail identik dengan angka pada sel matriks.
 - **Text Alignment Standard (R4)**: Seluruh teks pada tabel laporan dan tabel modal detail wajib rata kiri (`text-left`), kecuali kolom nominal/angka metrik rata kanan (`text-right`), serta kolom tanggal, nomor urut, dan rasio persentase rata tengah (`text-center`).
 
 ## Database Tables
@@ -169,14 +169,14 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 - `app/Services/PosisiKonsumenService.php` (452 baris, 6 public methods)
 - `app/Services/KonsumenService.php` (49 baris, 3 public methods)
 - `app/Services/NupService.php` (532 baris, 6 public methods)
-- `app/Services/BookingAkadReportService.php` (694 baris, 9 public methods)
+- `app/Services/BookingAkadReportService.php` (755 baris, 9 public methods)
 
 ### Repositories (5)
 - `app/Repositories/MkdtHistoryRepository.php` (55 baris, 4 public methods: `hasTable()`, `insert(array $fields)`, `countByKavling(int $idKavling)`, `getByKavling(int $idKavling, int $limit, int $offset)`)
 - `app/Repositories/PosisiKonsumenRepository.php` (199 baris, 4 public methods: `getBaseQuery($status = "Booking")`, `getQueryBatal()`, `getRiwayatExport($id_proyek, $status)`, `insertRiwayatExport($data)`)
 - `app/Repositories/KonsumenRepository.php` (60 baris, 1 public methods: `getKonsumenTransaksi(int $idMkdt, $select = [])`)
 - `app/Repositories/NupRepository.php` (412 baris, 10 public methods: `getNupListByProyek(int $idProyek, ?string $search = null)`, `getNupDetail(int $idMkdt, bool $lock = false)`, `getKavlingRow(int $idKavling, bool $lock = false)`, `getKavlingLabel(?int $idKavling)`, `getProyekIdByKavling(?int $idKavling)`, `getKavlingOptionsForTransfer(int $idProyek, ?string $search = null, ?int $currentIdKavling = null, ?int $lastIdKavling = null, ?string $filterHargaJual = null)`, `insertKavlingHistory(array $data)`, `getKavlingHistory(int $idMkdt = 0, int $idKavling = 0)`, `isNoNupExists(string $noNup, int $idProyek, int $excludeIdMkdt = 0)`, `generateNextNupNumber(int $idProyek)`)
-- `app/Repositories/BookingAkadReportRepository.php` (604 baris, 8 public methods: `getAvailableYears(int $idProyek)`, `getAvailableYearBounds(int $idProyek)`, `getMonthlyBookingTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getMonthlyStatusTotals(int $idProyek, array $years)`, `getMonthlySummaryTotals(int $idProyek, array $years)`, `getSummary(int $idProyek, int $year)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable = [])`)
+- `app/Repositories/BookingAkadReportRepository.php` (659 baris, 8 public methods: `getAvailableYears(int $idProyek)`, `getAvailableYearBounds(int $idProyek)`, `getMonthlyBookingTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getMonthlyStatusTotals(int $idProyek, array $years)`, `getMonthlySummaryTotals(int $idProyek, array $years)`, `getSummary(int $idProyek, int $year)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable = [])`)
 
 ### Models (3)
 - `app/Models/MkdtModel.php`
@@ -210,8 +210,9 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
     - `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`: Agregasi matriks bulanan 12 bulan untuk 6 kategori status transaksi, menghitung rasio konversi cohort riil per bulan dan total tahunan berbasis transaksi unik (`mkdt.uniq_id`) dengan pembatasan [0.0%, 100.0%], serta mendukung komparasi 2 tahun side-by-side.
     - `getDetail(int $idProyek, array|int $requestOrYear, ?int $month = null, ?string $category = null, array $dataTable = [])`: Server-side DataTables provider dengan normalisasi parameter, pagination, searching multi-kolom, sorting (termasuk kolom ke-6 / index 5 `catatan_mkdt`), dan pemformatan data baris 7 kolom terstruktur.
     - `normalizeDataTableRequest(array $request)`: Normalisasi request DataTables dengan pemetaan sorting kolom ke-6 (index 5) ke `booking_akad.catatan_mkdt` dan alias nama mapping.
-    - `resolveStatusTerakhir(array $row)`: Menentukan status transaksi terakhir mengikuti hierarki Batal > Akad AJB > Akad Indent > SP3K > Wawancara > Booking.
-    - `resolveTanggalStatusTerakhir(array $row, string $status)`: Menentukan tanggal milestone status terakhir sesuai status aktif.
+    - `resolveStatusTerakhir(array $row)`: Menentukan status transaksi terakhir mengikuti hierarki Batal > Akad AJB (`akad = 1` atau `akad_tgl`/`tgl_akad` valid) > Akad Indent (`akad_indent = 1` atau `akad_indent_tgl` valid) > SP3K (`sp3k = 1`, `sp3k_tgl` valid, atau `sp3k_no` valid) > Wawancara (`wawancara = 1` atau `wawancara_tgl` valid) > Booking.
+    - `resolveTanggalStatusTerakhir(array $row, string $status)`: Menentukan tanggal milestone status terakhir sesuai status aktif dengan fallback kandidat tanggal valid (`firstValidDate()`) serta dukungan alias `akad_tgl`/`tgl_akad`.
+    - `isValidDate(?string $date)`, `hasValidSp3kNo(?string $sp3kNo)`, & `firstValidDate(?string ...$candidates)`: Helper internal untuk memvalidasi tanggal (`> '1970-01-01'` dan bukan zero-date), memvalidasi nomor SP3K (`!= ''` dan `!= '-'`), serta memilih tanggal valid pertama dari kandidat fallback (`stage_tgl` -> `booking_tgl` -> `updated_at`).
     - `resolveCatatanMkdt(array $row)`: Mengambil keterangan/catatan transaksi bertingkat dari `mkdt` (`keterangan_batal` -> `keterangan` -> `keterangan_status` -> `-`).
     - `formatDate(?string $date)`: Sanitasi dan format tanggal aman (`d-m-Y` atau `-` untuk zero-date/NULL).
     - `monthLabel(int $month)`: Label nama bulan bahasa Indonesia standar (Januari - Desember).
@@ -225,13 +226,14 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 - **Repositories:**
   - `App\Repositories\BookingAkadReportRepository`:
     - `getAvailableYears(int $idProyek)`: Menghitung rentang tahun yang tersedia dari minimum dan maksimum bounds seluruh tanggal aktivitas transaksi, diapit minimal tahun berjalan - 1 hingga tahun berjalan.
-    - `getAvailableYearBounds(int $idProyek)`: Query batas tahun minimum dan maksimum dari seluruh tanggal milestone: `booking_tgl`, `wawancara_tgl`, `sp3k_tgl`, `akad_indent_tgl`, `akad_tgl`, dan ekspresi tanggal pembatalan (`batalDateSql`), dipagari kriteria `> '1970-01-01'`.
-    - `getMonthlyStatusTotals(int $idProyek, array $years)`: Multi-metric SQL query untuk menghitung agregasi bulanan berdasarkan tanggal terjadinya masing-masing status (`booking`, `wawancara`, `sp3k`, `batal`, `akad_indent`, `akad_ajb`) serta konversi kohort transaksi booking (`total_booking_cohort` dan `booking_converted_akad`), dilengkapi safe zero-date filtering `> '1970-01-01'`.
+    - `getAvailableYearBounds(int $idProyek)`: Query batas tahun minimum dan maksimum dari seluruh tanggal milestone menggunakan kondisi kualifikasi tahap (`wawancaraConditionSql()`, `sp3kConditionSql()`, `akadIndentConditionSql()`, `akadAjbConditionSql()`) dan ekspresi tanggal efektif (`stageDateSql()` serta `batalDateSql()`), dipagari kriteria `> '1970-01-01'`.
+    - `getMonthlyStatusTotals(int $idProyek, array $years)`: Multi-metric SQL query untuk menghitung agregasi bulanan berdasarkan kondisi kualifikasi dan tanggal efektif masing-masing status (`booking` via `m.booking_tgl`, `wawancara` via `wawancaraConditionSql()` + `stageDateSql('m.wawancara_tgl')`, `sp3k` via `sp3kConditionSql()` + `stageDateSql('m.sp3k_tgl')`, `batal` via `batalDateSql()`, `akad_indent` via `akadIndentConditionSql()` + `stageDateSql('m.akad_indent_tgl')`, `akad_ajb` via `akadAjbConditionSql()` + `stageDateSql('m.akad_tgl')`), serta konversi kohort transaksi booking (`total_booking_cohort` dan `booking_converted_akad` via `akadAjbConditionSql() OR akadIndentConditionSql()`), dilengkapi safe zero-date filtering `> '1970-01-01'`.
     - `getMonthlySummaryTotals(int $idProyek, array $years)`: Alias untuk `getMonthlyStatusTotals()`.
     - `getSummary(int $idProyek, int $year)`: Adapter yang mengembalikan array asosiatif 12 bulan (1..12) dari data status totals untuk kemudahan konsumsi Service.
     - `getMonthlyBookingTotals(int $idProyek, array $years)` & `getMonthlyAkadTotals(int $idProyek, array $years)`: Query agregasi bulanan untuk backward compatibility.
     - `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable = [])`: Query detail transaksi unit kavling dengan JOIN lengkap (`mkdt`, `kavling`, `jalan`, `cluster`, `proyek`, `konsumen`, `hargajual`, `tipe`), penentuan status terakhir & tanggal status terakhir di SQL, filter safe zero-date, pencarian global DataTables, dan pagination.
-    - `compileDetailQuery(...)`: Filter kategori modal detail diselaraskan dengan rentang bulan tanggal aktivitas kategori terkait, sehingga `recordsTotal` modal detail identik 100% dengan angka pada sel matriks.
+    - `compileDetailQuery(...)`: Filter kategori modal detail diselaraskan 100% dengan kondisi kualifikasi (`wawancaraConditionSql()`, `sp3kConditionSql()`, `akadIndentConditionSql()`, `akadAjbConditionSql()`) dan rentang bulan tanggal efektif (`stageDateSql()`) kategori terkait, sehingga `recordsTotal` modal detail identik dengan angka pada sel matriks.
+    - `wawancaraConditionSql()`, `sp3kConditionSql()`, `akadIndentConditionSql()`, `akadAjbConditionSql()`, & `stageDateSql(string $column)`: Helper ekspresi SQL terpusat untuk kondisi kualifikasi 5 kolom status non-batal dan fallback tanggal efektif tahap (`COALESCE(DATE($column), DATE(m.booking_tgl), DATE(m.updated_at), DATE(m.created_at))` dengan guard `> '1970-01-01'`).
   - `App\Repositories\MkdtHistoryRepository`: Query dan persistensi tabel histori aktivitas transaksi kavling.
   - `App\Repositories\PosisiKonsumenRepository`: Query builder DataTables posisi konsumen aktif, akad, batal (termasuk seleksi kolom `mkdt.akad_indent_tgl`), dan log ekspor.
   - `App\Repositories\KonsumenRepository`: Query master konsumen terkait transaksi MKDT.
@@ -325,7 +327,7 @@ _Jalankan `php spark module:deadcode MKDT` untuk mengaudit dead code kandidat._
 - **Penyajian Matriks 6 Kolom & Konversi Kohort di Kolom Booking:**
   Kolom mandiri *Konversi (%)* dihilangkan dari tabel matriks tahunan. Sebagai gantinya, persentase konversi kohort transaksi unik riil disematkan langsung di dalam sel `Booking` (`.booking-cell-wrapper` & `.booking-konversi-sub`) pada setiap baris bulan dan baris Total Tahun.
 - **Kalkulasi Event-Based Bulanan & Keselarasan 100% Modal Detail:**
-  Angka bulanan untuk 6 kolom status dihitung berdasarkan tanggal aktivitas riil masing-masing milestone (`booking_tgl`, `wawancara_tgl`, `sp3k_tgl`, `batalDateExpr`, `akad_indent_tgl`, `akad_tgl`). Filter kategori modal detail pada `BookingAkadReportRepository::compileDetailQuery(...)` diselaraskan dengan rentang bulan tanggal aktivitas terkait sehingga jumlah baris (`recordsTotal`) modal detail selalu identik 100% dengan angka pada sel matriks.
+  Angka bulanan untuk 6 kolom status dihitung berdasarkan kondisi kualifikasi dan tanggal efektif aktivitas masing-masing milestone (`booking_tgl`, `stageDateSql('m.wawancara_tgl')`, `stageDateSql('m.sp3k_tgl')`, `batalDateExpr`, `stageDateSql('m.akad_indent_tgl')`, `stageDateSql('m.akad_tgl')`). Filter kategori modal detail pada `BookingAkadReportRepository::compileDetailQuery(...)` diselaraskan 100% dengan kondisi kualifikasi dan rentang bulan tanggal efektif terkait sehingga jumlah baris (`recordsTotal`) modal detail selalu identik dengan angka pada sel matriks, serta baris yang memiliki flag/nomor valid namun tanggalnya zero-date tidak terlewat.
 - **Eliminasi Bug Rasio Kalender Legacy (Anomali 1400%):**
   Pada implementasi sebelumnya, rasio konversi dihitung dengan membagi kuantitas akad pada bulan $M$ dengan kuantitas booking pada bulan $M$: $\frac{\text{Akad}_M}{\text{Booking}_M} \times 100\%$. Karena proses pemenuhan berkas KPR memerlukan waktu lintas bulan (wawancara, verifikasi berkas, analisa perbankan, hingga penerbitan SP3K), transaksi akad yang selesai pada bulan $M$ hampir selalu berasal dari booking bulan-bulan sebelumnya. Akibatnya, pada bulan dengan booking baru yang sedikit (misal 1 unit booking) namun pencairan akad tinggi (misal 14 unit akad), rasio melonjak drastis hingga 1400%. Bug perbandingan kalender ini dieliminasi total dengan beralih ke metodologi pelacakan cohort riil.
 - **Formula Konversi Riil Berbasis Transaksi Unik (`mkdt.uniq_id`):**
@@ -348,6 +350,24 @@ _Jalankan `php spark module:deadcode MKDT` untuk mengaudit dead code kandidat._
   - Frontend Laporan: mengonsumsi REST API `/api/laporan/booking-akad/summary` dan `/api/laporan/booking-akad/detail`.
 
 ## Change Log
+- **`2026-11-05` [`BUGFIX`] — Penyelarasan Perhitungan 5 Kolom Status (Booking, Wawancara, SP3K, Akad Indent, Akad AJB) pada Laporan Booking & Akad:**
+  - **Routes & Public Contracts:**
+    - Tidak ada rute baru; kontrak endpoint `/laporan/booking-akad`, `/api/laporan/booking-akad/summary`, dan `/api/laporan/booking-akad/detail` tetap.
+  - **Controller / Service / Repo / Model:**
+    - `App\Repositories\BookingAkadReportRepository`:
+      - Penyelarasan perhitungan 5 kolom status pada `getAvailableYearBounds()`, `getMonthlyStatusTotals()`, dan `compileDetailQuery()` menggunakan helper kondisi kualifikasi dan fallback tanggal efektif (`stageDateSql()`):
+        1. `booking`: dihitung dari `m.booking_tgl` (`m.booking_tgl IS NOT NULL AND m.booking_tgl > '1970-01-01'`), dan sub-metrik konversi `booking_converted_akad` menggunakan `akadAjbConditionSql() OR akadIndentConditionSql()`.
+        2. `wawancara`: dihitung dari `wawancaraConditionSql()` (`COALESCE(m.wawancara, 0) = 1 OR (m.wawancara_tgl IS NOT NULL AND m.wawancara_tgl > '1970-01-01')`) dengan `stageDateSql('m.wawancara_tgl')`.
+        3. `sp3k`: dihitung dari `sp3kConditionSql()` (`COALESCE(m.sp3k, 0) = 1 OR (m.sp3k_tgl IS NOT NULL AND m.sp3k_tgl > '1970-01-01') OR (m.sp3k_no IS NOT NULL AND TRIM(m.sp3k_no) != '' AND TRIM(m.sp3k_no) != '-')`) dengan `stageDateSql('m.sp3k_tgl')`.
+        4. `akad_indent`: dihitung dari `akadIndentConditionSql()` (`COALESCE(m.akad_indent, 0) = 1 OR (m.akad_indent_tgl IS NOT NULL AND m.akad_indent_tgl > '1970-01-01')`) dengan `stageDateSql('m.akad_indent_tgl')`.
+        5. `akad_ajb`: dihitung dari `akadAjbConditionSql()` (`COALESCE(m.akad, 0) = 1 OR (m.akad_tgl IS NOT NULL AND m.akad_tgl > '1970-01-01')`) dengan `stageDateSql('m.akad_tgl')`.
+    - `App\Services\BookingAkadReportService`:
+      - Penyelarasan `resolveStatusTerakhir()` dan `resolveTanggalStatusTerakhir()` (termasuk penambahan helper `isValidDate()`, `hasValidSp3kNo()`, `firstValidDate()`, serta dukungan alias `tgl_akad`/`akad_tgl`).
+  - **View / CSS / JS:** Tidak ada perubahan.
+  - **Testing & Verification:**
+    - `tests/database/BookingAkadReportLiveDbTest.php` (9 tests, termasuk `TC-R09` verifikasi kesesuaian total 5 kolom dengan kondisi database Proyek 13).
+    - `tests/unit/BookingAkadReportServiceOverhaulTest.php` (memperluas `TC-B07` untuk aturan berbasis tanggal dan nomor SP3K).
+  - **Deprecations:** Tidak ada fungsi atau rute yang di-deprecate.
 - **`2026-11-04` [`UI_REPORT & BUGFIX`] — Pembaruan Laporan Booking & Akad: Matriks 6 Kolom, Konversi di Kolom Booking, Event-Based Monthly Totals, Modal Detail 7 Kolom (Status Terakhir & Catatan), serta Perbaikan Stacked Modal Detail:**
   - **Routes & Public Contracts:**
     - Kontrak payload API `/api/laporan/booking-akad/summary` dan `/api/laporan/booking-akad/detail` tetap konsisten.
