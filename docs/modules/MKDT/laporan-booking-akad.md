@@ -3,7 +3,7 @@
 **Modul Induk:** `MKDT` (Manajemen Konsumen dan Transaksi)  
 **Dokumen Induk:** [`docs/modules/MKDT/MODULE.md`](MODULE.md)  
 **Versi:** 2.0 (Overhaul Milestone 1–4)  
-**Tanggal Terakhir Diperbarui:** 2026-11-05  
+**Tanggal Terakhir Diperbarui:** 2026-11-06  
 **Status:** `PRODUCTION-READY`  
 
 ---
@@ -260,8 +260,8 @@ Tombol aksi pada kolom ke-7 memungkinkan pengguna membuka modal detail teknis un
 - **ID Proyek:** `13`
 - **Nama Proyek:** `SANGGAR INDAH PALASTRI` (SIP)
 - **Nama Perusahaan:** `PT. Sanggarindah Karyasentosa Raya`
-- **Total Record Transaksi MKDT:** `242` transaksi aktif/historis
-- **Integritas Uniq ID:** 242 dari 242 record (100%) memiliki `uniq_id` valid dan unik.
+- **Total Record Transaksi MKDT:** `241` transaksi aktif/historis
+- **Integritas Uniq ID:** 241 dari 241 record (100%) memiliki `uniq_id` valid dan unik.
 
 ### 7.2 Partisi Ground Truth 6 Status & Verifikasi 5 Kolom Status pada Proyek 13
 Pemeriksaan menyeluruh pada basis data riil Proyek 13 menunjukkan partisi lengkap 100% berdasarkan hierarki status terakhir (`TC-R03`) serta kesesuaian penuh akumulasi 5 kolom status lintas tahun dengan kondisi database (`TC-R09`):
@@ -269,21 +269,21 @@ Pemeriksaan menyeluruh pada basis data riil Proyek 13 menunjukkan partisi lengka
 | Kategori Status | Aturan Kualifikasi Kolom / Hierarki | Jumlah Transaksi (Partisi Status Terakhir) | Contoh `id_mkdt` | Contoh `uniq_id` | Tanggal Contoh |
 |---|---|---|---|---|---|
 | **Batal** | `is_batal = 1` atau `status_mkdt = 'Batal'` | 9 | `165` | `6836afc13cfcc7.50933516` | 2025-07-29 |
-| **Akad AJB** | `akad = 1` atau `akad_tgl > '1970-01-01'` | 171 | `145` | `67d7d7b6d15b28.06630173` | 2025-07-30 |
-| **Akad Indent** | `akad_indent = 1` atau `akad_indent_tgl > '1970-01-01'` | 18 | `423` | `6aa1238460ce57.05065444` | 2026-10-07 |
-| **SP3K** | `sp3k = 1`, `sp3k_tgl > '1970-01-01'`, atau `sp3k_no` valid (`!= ''`, `!= '-'`) | 15 | `456` | `6ad5d866e48c74.31619289` | 2026-10-27 |
-| **Wawancara** | `wawancara = 1` atau `wawancara_tgl > '1970-01-01'` | 11 | `455` | `6aba25b1730ab4.93189517` | 2026-10-21 |
+| **Akad AJB** | `akad = 1` atau `akad_tgl > '1970-01-01'` | 170 | `145` | `67d7d7b6d15b28.06630173` | 2025-07-30 |
+| **Akad Indent** | `akad_indent = 1` atau `akad_indent_tgl > '1970-01-01'` | 19 | `423` | `6aa1238460ce57.05065444` | 2026-10-07 |
+| **SP3K** | `sp3k = 1`, `sp3k_tgl > '1970-01-01'`, atau `sp3k_no` valid (`!= ''`, `!= '-'`) | 16 | `456` | `6ad5d866e48c74.31619289` | 2026-10-27 |
+| **Wawancara** | `wawancara = 1` atau `wawancara_tgl > '1970-01-01'` | 9 | `455` | `6aba25b1730ab4.93189517` | 2026-10-21 |
 | **Booking** | `booking_tgl IS NOT NULL AND booking_tgl > '1970-01-01'` (Tahap dasar) | 18 | `459` | `6ad73741a423f3.42834707` | 2026-10-13 |
-| **Total** | | **242** | | | |
+| **Total** | | **241** | | | |
 
-*Uji Keseimbangan Partisi Status Terakhir (`TC-R03`):* $171 + 18 + 15 + 11 + 18 + 9 = 242$.
+*Uji Keseimbangan Partisi Status Terakhir (`TC-R03`):* $170 + 19 + 16 + 9 + 18 + 9 = 241$.
 *Uji Akumulasi 5 Kolom Lintas Tahun (`TC-R09`):* Total penjumlahan matriks bulanan untuk masing-masing dari 5 kolom (`booking`, `wawancara`, `sp3k`, `akad_indent`, `akad_ajb`) pada seluruh tahun tersedia cocok 100% dengan jumlah baris database yang memenuhi kondisi kualifikasi kolom terkait (tanpa ada record ber-flag/nomor valid dengan zero-date yang terbuang berkat fallback `stageDateSql()`).
 
 ### 7.3 Benchmark Konversi Kohort Tahun 2026
 Pada tahun booking 2026 di Proyek 13:
-- **Total Booking Cohort:** 69 unit transaksi unik.
-- **Terkonversi ke Akad:** 36 unit (18 Akad Indent + 18 Akad AJB).
-- **Hasil Konversi Tahunan Riil:** $\dfrac{36}{69} \times 100\% = 52.17\% \approx \mathbf{52.2\%}$.
+- **Total Booking Cohort:** 68 unit transaksi unik.
+- **Terkonversi ke Akad:** 36 unit (19 Akad Indent + 17 Akad AJB).
+- **Hasil Konversi Tahunan Riil:** $\dfrac{36}{68} \times 100\% = 52.94\% \approx \mathbf{52.9\%}$.
 
 ### 7.4 Suite Pengujian Otomatis
 Untuk memvalidasi integritas logika bisnis dan data layer, jalankan perintah berikut:

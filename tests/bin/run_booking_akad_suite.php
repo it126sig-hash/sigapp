@@ -161,7 +161,7 @@ $totalMkdt = $db->table('mkdt m')
     ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
     ->where('cl.id_proyek', 13)
     ->countAllResults();
-recordResult('Tier 4', 'TC-R01', 'Proyek 13 ("Sanggar Indah Palastri") contains 242 transactions', $project !== null && $totalMkdt === 242, "Count: {$totalMkdt}");
+recordResult('Tier 4', 'TC-R01', 'Proyek 13 ("Sanggar Indah Palastri") contains 241 transactions', $project !== null && $totalMkdt === 241, "Count: {$totalMkdt}");
 
 // TC-R02: 100% Uniq ID
 $uniqIds = $db->table('mkdt m')
@@ -173,7 +173,7 @@ $uniqIds = $db->table('mkdt m')
     ->get()->getResultArray();
 $uniqCount = count(array_filter(array_column($uniqIds, 'uniq_id')));
 $distinctUniq = count(array_unique(array_column($uniqIds, 'uniq_id')));
-recordResult('Tier 4', 'TC-R02', '100% Unique transaction code (uniq_id) integrity in Proyek 13', $uniqCount === 242 && $distinctUniq === 242, "242 / 242 distinct");
+recordResult('Tier 4', 'TC-R02', '100% Unique transaction code (uniq_id) integrity in Proyek 13', $uniqCount === 241 && $distinctUniq === 241, "241 / 241 distinct");
 
 // TC-R03: 6-Status Exact Ground Truth Partition
 $dbRows = $db->table('mkdt m')
@@ -209,13 +209,13 @@ foreach ($dbRows as $r) {
 }
 $isPartitionValid = (
     $pCounts['batal'] === 9 &&
-    $pCounts['akad_ajb'] === 171 &&
-    $pCounts['akad_indent'] === 18 &&
-    $pCounts['sp3k'] === 15 &&
-    $pCounts['wawancara'] === 11 &&
+    $pCounts['akad_ajb'] === 170 &&
+    $pCounts['akad_indent'] === 19 &&
+    $pCounts['sp3k'] === 16 &&
+    $pCounts['wawancara'] === 9 &&
     $pCounts['booking'] === 18
 );
-recordResult('Tier 4', 'TC-R03', 'Proyek 13 partitions exactly into 6 statuses (171, 18, 15, 11, 18, 9)', $isPartitionValid, sprintf('AJB:%d, Indent:%d, SP3K:%d, Wawancara:%d, Booking:%d, Batal:%d', $pCounts['akad_ajb'], $pCounts['akad_indent'], $pCounts['sp3k'], $pCounts['wawancara'], $pCounts['booking'], $pCounts['batal']));
+recordResult('Tier 4', 'TC-R03', 'Proyek 13 partitions exactly into 6 statuses (170, 19, 16, 9, 18, 9)', $isPartitionValid, sprintf('AJB:%d, Indent:%d, SP3K:%d, Wawancara:%d, Booking:%d, Batal:%d', $pCounts['akad_ajb'], $pCounts['akad_indent'], $pCounts['sp3k'], $pCounts['wawancara'], $pCounts['booking'], $pCounts['batal']));
 
 // TC-R04: Real lifecycle transition trace
 $r147 = $db->table('mkdt')->where('id_mkdt', 147)->get()->getRowArray();

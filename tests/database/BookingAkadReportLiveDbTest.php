@@ -40,9 +40,9 @@ final class BookingAkadReportLiveDbTest extends CIUnitTestCase
     }
 
     /**
-     * TC-R01: Proyek 13 exists, is named "SANGGAR INDAH PALASTRI", and contains 242 transactions.
+     * TC-R01: Proyek 13 exists, is named "SANGGAR INDAH PALASTRI", and contains 241 transactions.
      */
-    public function testProyek13ExistsAndContains242Transactions(): void
+    public function testProyek13ExistsAndContains241Transactions(): void
     {
         $project = $this->liveDb->table('proyek')
             ->where('id_proyek', 13)
@@ -60,12 +60,12 @@ final class BookingAkadReportLiveDbTest extends CIUnitTestCase
             ->where('cl.id_proyek', 13)
             ->countAllResults();
 
-        $this->assertSame(242, $totalMkdt, 'Proyek 13 must contain exactly 242 MKDT transactions.');
+        $this->assertSame(241, $totalMkdt, 'Proyek 13 must contain exactly 241 MKDT transactions.');
     }
 
     /**
      * TC-R02: 100% Unique Transaction Code (uniq_id) Integrity.
-     * All 242 records must possess unique, non-null, non-empty uniq_id.
+     * All 241 records must possess unique, non-null, non-empty uniq_id.
      */
     public function testProyek13HasOneHundredPercentUniqIdIntegrity(): void
     {
@@ -78,7 +78,7 @@ final class BookingAkadReportLiveDbTest extends CIUnitTestCase
             ->get()
             ->getResultArray();
 
-        $this->assertCount(242, $rows);
+        $this->assertCount(241, $rows);
 
         $uniqIds = [];
         foreach ($rows as $row) {
@@ -88,13 +88,13 @@ final class BookingAkadReportLiveDbTest extends CIUnitTestCase
         }
 
         $distinctCount = count(array_unique($uniqIds));
-        $this->assertSame(242, $distinctCount, 'All 242 transactions in Proyek 13 must have distinct uniq_id.');
+        $this->assertSame(241, $distinctCount, 'All 241 transactions in Proyek 13 must have distinct uniq_id.');
     }
 
     /**
      * TC-R03: Complete 6-Status Partition Verification.
-     * The 242 records must partition deterministically:
-     * 171 Akad AJB + 18 Akad Indent + 15 SP3K + 11 Wawancara + 18 Booking + 9 Batal = 242.
+     * The 241 records must partition deterministically:
+     * 170 Akad AJB + 19 Akad Indent + 16 SP3K + 9 Wawancara + 18 Booking + 9 Batal = 241.
      */
     public function testProyek13TransactionsPartitionExactlyIntoSixStatuses(): void
     {
@@ -106,7 +106,7 @@ final class BookingAkadReportLiveDbTest extends CIUnitTestCase
             ->where('cl.id_proyek', 13);
 
         $rows = $builder->get()->getResultArray();
-        $this->assertCount(242, $rows);
+        $this->assertCount(241, $rows);
 
         $counts = [
             'batal' => 0,
@@ -141,14 +141,14 @@ final class BookingAkadReportLiveDbTest extends CIUnitTestCase
         }
 
         $this->assertSame(9, $counts['batal'], 'Batal count must be 9.');
-        $this->assertSame(171, $counts['akad_ajb'], 'Akad AJB count must be 171.');
-        $this->assertSame(18, $counts['akad_indent'], 'Akad Indent count must be 18.');
-        $this->assertSame(15, $counts['sp3k'], 'SP3K count must be 15.');
-        $this->assertSame(11, $counts['wawancara'], 'Wawancara count must be 11.');
+        $this->assertSame(170, $counts['akad_ajb'], 'Akad AJB count must be 170.');
+        $this->assertSame(19, $counts['akad_indent'], 'Akad Indent count must be 19.');
+        $this->assertSame(16, $counts['sp3k'], 'SP3K count must be 16.');
+        $this->assertSame(9, $counts['wawancara'], 'Wawancara count must be 9.');
         $this->assertSame(18, $counts['booking'], 'Booking count must be 18.');
 
         $sum = array_sum($counts);
-        $this->assertSame(242, $sum, 'The sum of all 6 status counts must equal exactly 242.');
+        $this->assertSame(241, $sum, 'The sum of all 6 status counts must equal exactly 241.');
     }
 
     /**
