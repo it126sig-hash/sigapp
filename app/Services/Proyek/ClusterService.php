@@ -111,17 +111,20 @@ class ClusterService
 
     public function add(array $postData): array
     {
+        $idProyek = !empty($postData['idProyek']) ? (int) $postData['idProyek'] : (!empty($postData['id_proyek']) ? (int) $postData['id_proyek'] : resolve_active_proyek_id(null));
+        $namaCluster = trim((string) ($postData['namaCluster'] ?? $postData['nama_cluster'] ?? ''));
+        $isActive = isset($postData['isActive']) ? (int) $postData['isActive'] : (isset($postData['is_active']) ? (int) $postData['is_active'] : 1);
+
         $fields = [
-            'id_cluster'   => $postData['idCluster'] ?? null,
-            'id_proyek'    => $postData['idProyek'] ?? null,
-            'nama_cluster' => $postData['namaCluster'] ?? null,
-            'is_active'    => $postData['isActive'] ?? null,
+            'id_proyek'    => $idProyek ?: null,
+            'nama_cluster' => $namaCluster !== '' ? $namaCluster : null,
+            'is_active'    => $isActive,
         ];
 
         $this->validation->setRules([
-            'id_proyek'    => ['label' => 'Id proyek', 'rules' => 'permit_empty|max_length[255]'],
-            'nama_cluster' => ['label' => 'Nama cluster', 'rules' => 'permit_empty|max_length[255]'],
-            'is_active'    => ['label' => 'Is active', 'rules' => 'permit_empty|max_length[1]'],
+            'id_proyek'    => ['label' => 'Id proyek', 'rules' => 'required|numeric'],
+            'nama_cluster' => ['label' => 'Nama cluster', 'rules' => 'required|min_length[2]|max_length[255]'],
+            'is_active'    => ['label' => 'Is active', 'rules' => 'permit_empty|in_list[0,1]'],
         ]);
 
         if (! $this->validation->run($fields)) {
@@ -154,6 +157,7 @@ class ClusterService
             return [
                 'success'  => true,
                 'messages' => 'Data has been inserted successfully',
+                'data'     => array_merge(['id_cluster' => $insertId], $fields),
             ];
         }
 
@@ -165,17 +169,23 @@ class ClusterService
 
     public function edit(array $postData): array
     {
+        $idCluster = (int) ($postData['idCluster'] ?? $postData['id_cluster'] ?? 0);
+        $idProyek = !empty($postData['idProyek']) ? (int) $postData['idProyek'] : (!empty($postData['id_proyek']) ? (int) $postData['id_proyek'] : resolve_active_proyek_id(null));
+        $namaCluster = trim((string) ($postData['namaCluster'] ?? $postData['nama_cluster'] ?? ''));
+        $isActive = isset($postData['isActive']) ? (int) $postData['isActive'] : (isset($postData['is_active']) ? (int) $postData['is_active'] : 1);
+
         $fields = [
-            'id_cluster'   => $postData['idCluster'] ?? null,
-            'id_proyek'    => $postData['idProyek'] ?? null,
-            'nama_cluster' => $postData['namaCluster'] ?? null,
-            'is_active'    => $postData['isActive'] ?? null,
+            'id_cluster'   => $idCluster ?: null,
+            'id_proyek'    => $idProyek ?: null,
+            'nama_cluster' => $namaCluster !== '' ? $namaCluster : null,
+            'is_active'    => $isActive,
         ];
 
         $this->validation->setRules([
-            'id_proyek'    => ['label' => 'Id proyek', 'rules' => 'permit_empty|max_length[255]'],
-            'nama_cluster' => ['label' => 'Nama cluster', 'rules' => 'permit_empty|max_length[255]'],
-            'is_active'    => ['label' => 'Is active', 'rules' => 'permit_empty|max_length[1]'],
+            'id_cluster'   => ['label' => 'Id cluster', 'rules' => 'required|numeric'],
+            'id_proyek'    => ['label' => 'Id proyek', 'rules' => 'required|numeric'],
+            'nama_cluster' => ['label' => 'Nama cluster', 'rules' => 'required|min_length[2]|max_length[255]'],
+            'is_active'    => ['label' => 'Is active', 'rules' => 'permit_empty|in_list[0,1]'],
         ]);
 
         if (! $this->validation->run($fields)) {
@@ -185,8 +195,7 @@ class ClusterService
             ];
         }
 
-        $idCluster = (int) $fields['id_cluster'];
-        $oldData   = $this->clusterModel->find($idCluster);
+        $oldData = $this->clusterModel->find($idCluster);
 
         if ($this->clusterModel->update($idCluster, $fields)) {
             $this->historyService->log('master_cluster', [
@@ -210,6 +219,7 @@ class ClusterService
             return [
                 'success'  => true,
                 'messages' => 'Successfully updated',
+                'data'     => $fields,
             ];
         }
 

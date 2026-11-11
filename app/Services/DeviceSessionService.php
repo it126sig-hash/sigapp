@@ -10,6 +10,7 @@ use RuntimeException;
 
 class DeviceSessionService
 {
+    public const SPA_TOKEN_COOKIE = 'sigapp_spa_token';
     private const LIFETIME_DAYS = 365;
     private const TOUCH_INTERVAL_MINUTES = 5;
 
@@ -87,6 +88,31 @@ class DeviceSessionService
         );
 
         return $row ? $this->publicDevice($row) : null;
+    }
+
+    public function verifyDeviceBinding(array $device, ?string $currentUserAgent): bool
+    {
+        if (trim((string) $currentUserAgent) === '') {
+            return true;
+        }
+
+        $parsed = $this->parser->parse($currentUserAgent);
+        $expectedPlatform = trim((string) ($device['platform'] ?? ''));
+        $expectedBrowser = trim((string) ($device['browser'] ?? ''));
+
+        if ($expectedPlatform !== '') {
+            if ($parsed['platform'] === null || strcasecmp($expectedPlatform, (string) $parsed['platform']) !== 0) {
+                return false;
+            }
+        }
+
+        if ($expectedBrowser !== '') {
+            if ($parsed['browser'] === null || strcasecmp($expectedBrowser, (string) $parsed['browser']) !== 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function revokeByToken(string $rawToken, ?string $reason = 'user_logout'): bool

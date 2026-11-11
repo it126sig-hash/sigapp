@@ -50,7 +50,7 @@ class ClusterController extends BaseApiController
 
     public function add()
     {
-        $result = $this->clusterService->add((array) $this->request->getPost());
+        $result = $this->clusterService->add($this->getRequestData());
 
         if (!($result['success'] ?? false)) {
             return $this->error($result['messages'] ?? 'Gagal menambahkan cluster', 400);
@@ -61,8 +61,8 @@ class ClusterController extends BaseApiController
 
     public function edit($id = null)
     {
-        $postData = (array) $this->request->getPost();
-        if ($id !== null && empty($postData['idCluster'])) {
+        $postData = $this->getRequestData();
+        if ($id !== null && empty($postData['idCluster']) && empty($postData['id_cluster'])) {
             $postData['idCluster'] = $id;
         }
         $result = $this->clusterService->edit($postData);
@@ -76,7 +76,8 @@ class ClusterController extends BaseApiController
 
     public function remove()
     {
-        $id = (int) $this->request->getPost('id_cluster');
+        $data = $this->getRequestData();
+        $id = (int) ($this->request->getVar('id_cluster') ?: ($data['id_cluster'] ?? $data['idCluster'] ?? 0));
         if ($id <= 0) {
             return $this->error('ID cluster tidak valid', 400);
         }
@@ -88,5 +89,15 @@ class ClusterController extends BaseApiController
         }
 
         return $this->success($result, $result['messages'] ?? 'Cluster berhasil dihapus');
+    }
+
+    private function getRequestData(): array
+    {
+        $json = $this->request->getJSON(true);
+        if (!empty($json) && is_array($json)) {
+            return $json;
+        }
+
+        return (array) $this->request->getPost();
     }
 }

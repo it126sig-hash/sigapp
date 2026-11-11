@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-23 13:52:13` @ `ad0c900`  
+**Last Synced:** `2026-11-12 01:53:09` @ `d86bec6`  
 
 ## Purpose
 Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaan siteplan.
@@ -132,24 +132,24 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 
 ## File Inventory
 ### Controllers (6)
-- `app/Controllers/Web/Settings/MenuSettingController.php` (28 baris, 1 public methods)
-- `app/Controllers/Api/Settings/MenuSettingController.php` (180 baris, 12 public methods)
-- `app/Controllers/Web/Settings/SettingDataController.php` (29 baris, 1 public methods)
-- `app/Controllers/Api/Settings/SettingDataController.php` (56 baris, 4 public methods)
-- `app/Controllers/Web/Settings/PengaturanWarnaController.php` (20 baris, 1 public methods)
-- `app/Controllers/Api/Settings/PengaturanWarnaController.php` (62 baris, 5 public methods)
+- `app/Controllers/Web/Settings/MenuSettingController.php` (28 baris, 1 public methods: `index()`)
+- `app/Controllers/Api/Settings/MenuSettingController.php` (180 baris, 12 public methods: `menuList()`, `menuGet()`, `menuSave()`, `menuToggle()`, `groupAccess()`, `groupSave()`, `userAccess()`, `userSave()`, `siteplanMenuList()`, `siteplanMenuGet()`, `siteplanMenuSave()`, `siteplanMenuToggle()`)
+- `app/Controllers/Web/Settings/SettingDataController.php` (29 baris, 1 public methods: `index()`)
+- `app/Controllers/Api/Settings/SettingDataController.php` (56 baris, 4 public methods: `list(string $key)`, `get(string $key)`, `save(string $key)`, `delete($key = null)`)
+- `app/Controllers/Web/Settings/PengaturanWarnaController.php` (20 baris, 1 public methods: `index()`)
+- `app/Controllers/Api/Settings/PengaturanWarnaController.php` (62 baris, 5 public methods: `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`)
 
 ### Services (5)
-- `app/Services/Settings/MenuAccessService.php` (266 baris)
-- `app/Services/Settings/SiteplanMenuService.php` (373 baris)
-- `app/Services/Settings/SettingDataService.php` (195 baris)
-- `app/Services/Settings/PengaturanWarnaService.php` (205 baris)
-- `app/Services/Settings/MenuSettingService.php` (324 baris)
+- `app/Services/Settings/MenuAccessService.php` (266 baris, 9 public methods)
+- `app/Services/Settings/SiteplanMenuService.php` (373 baris, 10 public methods)
+- `app/Services/Settings/SettingDataService.php` (195 baris, 6 public methods)
+- `app/Services/Settings/PengaturanWarnaService.php` (205 baris, 6 public methods)
+- `app/Services/Settings/MenuSettingService.php` (324 baris, 10 public methods)
 
 ### Repositories (3)
-- `app/Repositories/Settings/MenuRepository.php` (150 baris)
-- `app/Repositories/Settings/SettingDataRepository.php` (191 baris)
-- `app/Repositories/Settings/PengaturanWarnaRepository.php` (43 baris)
+- `app/Repositories/Settings/MenuRepository.php` (150 baris, 11 public methods: `getGroups()`, `getUsers()`, `getParentOptions()`, `getFlatMenus(bool $activeOnly = false)`, `findMenuById(int $id)`, `insertMenu(array $data)`, `updateMenu(int $id, array $data)`, `groupExists(int $groupId)`, `userExists(int $userId)`, `isDescendant(int $menuId, int $parentId)`, `checkDuplicateSiteplanItemKey(string $itemKey, int $excludeId = 0)`)
+- `app/Repositories/Settings/SettingDataRepository.php` (191 baris, 9 public methods: `getAllConfigs()`, `getConfig(string $key)`, `listRows(array $config)`, `findActiveRow(array $config, int $id)`, `nextManualId(array $config)`, `getFieldNames(string $table)`, `insertRow(string $table, array $fields)`, `updateRow(string $table, string $primaryKey, int $id, array $fields)`, `softDeleteRow(array $config, int $id, int $userId)`)
+- `app/Repositories/Settings/PengaturanWarnaRepository.php` (43 baris, 5 public methods: `getAll()`, `getByConfigName(string $configName)`, `insert(array $fields)`, `update(string $configName, array $fields)`, `delete(string $configName)`)
 
 ### Models (5)
 - `app/Models/MenuModel.php`
@@ -159,9 +159,9 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 - `app/Models/PengaturanWarnaModel.php`
 
 ### Views (3 folder)
-- `app/Views/setting` (2 file)
-- `app/Views/menu` (1 file)
-- `app/Views/master` (9 file)
+- `app/Views/setting` (2 file: `data.php`, `fee_sales_access.php`)
+- `app/Views/menu` (1 file: `setting.php`)
+- `app/Views/master` (9 file: `aksesproyek.php`, `cluster.php`, `configcolor.php`, `jalan.php`, `karyawan.php`, `listbank.php`, `pengaturanWarna.php`, `proyek.php`, `tipe.php`)
 
 ### JavaScript (0 file)
 
@@ -172,6 +172,24 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 - `app/Controllers/Config.php`
 - `app/Controllers/ConfigColor.php`
 - `app/Services/MenuAccessService.php`
+
+## Key Functions
+- **Service (`app/Services/Settings/MenuAccessService.php`):** `getEffectiveMenuIds(int $userId)`, `getMenuTreeForUser(int $userId)`, `canAccessUrl(int $userId, string $url)`, `syncGroupMenus(int $groupId, array $menuIds)`, `syncUserOverrides(int $userId, array $allowIds, array $denyIds)`
+- **Service (`app/Services/Settings/SiteplanMenuService.php`):** `renderForRole(int $roleId)`, `getFlatItems(bool $activeOnly = false)`, `findItem(int $id)`, `saveItem(array $fields, int $id = 0)`, `toggleItem(int $id)`
+- **Service (`app/Services/Settings/SettingDataService.php`):** `getAllConfigs()`, `getConfig(string $key)`, `list(string $key)`, `get(string $key, int $id)`, `save(string $key, array $postData, int $userId)`
+- **Service (`app/Services/Settings/PengaturanWarnaService.php`):** `getAll()`, `getOne(string $configName)`, `add(array $postData, ?string $userName = null)`, `edit(array $postData, ?string $userName = null)`, `remove(string $configName)`
+- **Service (`app/Services/Settings/MenuSettingService.php`):** `getIndexData()`, `getMenuList()`, `getMenu(int $id)`, `saveMenu(array $postData)`, `toggleMenu(int $id)`
+- **Repository (`app/Repositories/Settings/MenuRepository.php`):** `getGroups()`, `getUsers()`, `getParentOptions()`, `getFlatMenus(bool $activeOnly = false)`, `findMenuById(int $id)`
+- **Repository (`app/Repositories/Settings/SettingDataRepository.php`):** `getAllConfigs()`, `getConfig(string $key)`, `listRows(array $config)`, `findActiveRow(array $config, int $id)`, `nextManualId(array $config)`
+- **Repository (`app/Repositories/Settings/PengaturanWarnaRepository.php`):** `getAll()`, `getByConfigName(string $configName)`, `insert(array $fields)`, `update(string $configName, array $fields)`, `delete(string $configName)`
+
+## Deprecated & Legacy Shims
+- `app/Controllers/MenuSetting.php` — **DEPRECATED (Zero-Downtime Shim)**: Dipertahankan untuk kompatibilitas mundur; gunakan class modular di namespace `Settings`.
+- `app/Controllers/SettingData.php` — **DEPRECATED (Zero-Downtime Shim)**: Dipertahankan untuk kompatibilitas mundur; gunakan class modular di namespace `Settings`.
+- `app/Controllers/PengaturanWarna.php` — **DEPRECATED (Zero-Downtime Shim)**: Dipertahankan untuk kompatibilitas mundur; gunakan class modular di namespace `Settings`.
+- `app/Controllers/Config.php` — **DEPRECATED (Zero-Downtime Shim)**: Dipertahankan untuk kompatibilitas mundur; gunakan class modular di namespace `Settings`.
+- `app/Controllers/ConfigColor.php` — **DEPRECATED (Zero-Downtime Shim)**: Dipertahankan untuk kompatibilitas mundur; gunakan class modular di namespace `Settings`.
+- `app/Services/MenuAccessService.php` — **DEPRECATED (Zero-Downtime Shim)**: Dipertahankan untuk kompatibilitas mundur; gunakan class modular di namespace `Settings`.
 
 ## Readiness Checklist
 - [x] Has Service Layer
@@ -186,3 +204,6 @@ _Jalankan `php spark module:deadcode Settings` untuk mengaudit dead code kandida
 
 ## Notes
 - Modul diinisialisasi melalui tooling otomatis.
+
+## Change Log
+- `2026-11-12` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.

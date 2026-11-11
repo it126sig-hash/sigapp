@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-11-10 16:42:04` @ `e238e4a`  
+**Last Synced:** `2026-11-12 01:53:35` @ `d86bec6`  
 
 ## Purpose
 Autentikasi sesi multi-device, revocations, proteksi login, dan audit sesi pengguna.
@@ -44,6 +44,7 @@ Autentikasi sesi multi-device, revocations, proteksi login, dan audit sesi pengg
 - `registerOrRotate(int $userId, string $rawToken, ?string $rememberSelector, ?string $userAgent, ?string $ipAddress, ?string $previousRawToken = null,)`
 - `resolveActive(int $userId, string $rawToken)`
 - `resolveActiveByToken(string $rawToken)`
+- `verifyDeviceBinding(array $device, ?string $currentUserAgent)`
 - `revokeByToken(string $rawToken, ?string $reason = 'user_logout')`
 - `resolveActiveForRemember(string $rawToken, string $rememberSelector)`
 - `listActive(int $userId, string $currentRawToken)`
@@ -68,13 +69,13 @@ Autentikasi sesi multi-device, revocations, proteksi login, dan audit sesi pengg
 ## File Inventory
 ### Controllers (5)
 - `app/Controllers/Web/DeviceAuthController.php` (167 baris, 2 public methods: `attemptLogin()`, `logout()`)
-- `app/Controllers/Api/Auth/AuthController.php` (231 baris, 3 public methods: `login()`, `logout()`, `me()`)
-- `app/Controllers/Api/AuthDeviceController.php` (89 baris, 3 public methods: `index()`, `revoke(int $deviceId)`, `revokeOthers()`)
+- `app/Controllers/Api/Auth/AuthController.php` (292 baris, 3 public methods: `login()`, `logout()`, `me()`)
+- `app/Controllers/Api/AuthDeviceController.php` (125 baris, 3 public methods: `index()`, `revoke(int $deviceId)`, `revokeOthers()`)
 - `app/Controllers/Api/AdminAuthDeviceController.php` (77 baris, 3 public methods: `index(int $userId)`, `revoke(int $userId, int $deviceId)`, `revokeAll(int $userId)`)
 - `app/Controllers/Web/LandingController.php` (16 baris, 1 public methods: `index()`)
 
 ### Services (4)
-- `app/Services/DeviceSessionService.php` (296 baris, 12 public methods)
+- `app/Services/DeviceSessionService.php` (322 baris, 13 public methods)
 - `app/Services/DeviceManagementService.php` (149 baris, 6 public methods)
 - `app/Services/UserAgentDeviceParser.php` (64 baris, 1 public methods)
 - `app/Services/DeviceManagementException.php` (19 baris, 1 public methods)

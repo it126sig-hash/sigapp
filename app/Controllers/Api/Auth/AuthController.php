@@ -7,13 +7,17 @@ use App\Services\DeviceSessionService;
 use App\Services\FileAccessService;
 use App\Services\Proyek\ActiveProyekService;
 use App\Services\Settings\MenuAccessService;
+use CodeIgniter\Cookie\Cookie;
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\HTTP\ResponseInterface;
+use Config\App;
 use Myth\Auth\Entities\User;
 use Throwable;
 
 class AuthController extends BaseApiController
 {
+    private const SPA_TOKEN_COOKIE = 'sigapp_spa_token';
+
     private DeviceSessionService $deviceSessions;
     private ActiveProyekService $activeProyekService;
     private MenuAccessService $menuAccessService;
@@ -68,8 +72,13 @@ class AuthController extends BaseApiController
 
         $userId = (int) $user->id;
         $rawDeviceToken = bin2hex(random_bytes(32));
-        $userAgent = $deviceName !== '' ? $deviceName : (string) $this->request->getUserAgent();
+        $httpUserAgent = trim((string) $this->request->getUserAgent());
+        $userAgent = $httpUserAgent !== '' ? $httpUserAgent : $deviceName;
         $ipAddress = (string) $this->request->getIPAddress();
+        $candidateToken = $this->extractRawToken();
+        $previousRawToken = ($candidateToken !== null && $this->deviceSessions->resolveActive($userId, $candidateToken) !== null)
+            ? $candidateToken
+            : null;
 
         try {
             $device = $this->deviceSessions->registerOrRotate(
@@ -78,11 +87,16 @@ class AuthController extends BaseApiController
                 null,
                 $userAgent,
                 $ipAddress,
-                null,
+                $previousRawToken,
             );
         } catch (Throwable $e) {
             return $this->error('Gagal mendaftarkan sesi perangkat: ' . $e->getMessage(), 500);
         }
+
+        $this->setSpaCookie($rawDeviceToken);
+
+        $clientPlatform = strtolower(trim((string) ($this->request->header('X-Client-Platform')?->getValue() ?? '')));
+        $isWebSpa = ($clientPlatform === 'web-spa');
 
         $userData = $this->db->table('users')
             ->select('users.id, users.username, users.email, users.name, karyawan.nama_karyawan')
@@ -94,8 +108,8 @@ class AuthController extends BaseApiController
         $fullname = $userData?->nama_karyawan ?: ($userData?->name ?: $userData?->username ?? $user->username);
 
         return $this->success([
-            'access_token' => $rawDeviceToken,
-            'token_type'   => 'Bearer',
+            'access_token' => $isWebSpa ? null : $rawDeviceToken,
+            'token_type'   => $isWebSpa ? 'HttpOnly-Cookie' : 'Bearer',
             'expires_at'   => $device['expires_at'] ?? date('Y-m-d H:i:s', strtotime('+365 days')),
             'device'       => [
                 'id'           => (int) $device['id'],
@@ -115,21 +129,13 @@ class AuthController extends BaseApiController
 
     public function logout(): ResponseInterface
     {
-        $authHeader = $this->request->header('Authorization')?->getValue()
-            ?? $this->request->getServer('HTTP_AUTHORIZATION')
-            ?? $this->request->getServer('REDIRECT_HTTP_AUTHORIZATION')
-            ?? '';
-
-        $rawToken = '';
-        if (preg_match('/^Bearer\s+(\S+)/i', trim((string) $authHeader), $matches)) {
-            $rawToken = $matches[1];
-        }
-
-        if ($rawToken !== '') {
+        $rawToken = $this->extractRawToken();
+        if ($rawToken !== null && $rawToken !== '') {
             $this->deviceSessions->revokeByToken($rawToken, 'user_logout');
         }
 
         session()->destroy();
+        $this->expireSpaCookie();
 
         return $this->success(null, 'Logout berhasil.');
     }
@@ -138,13 +144,9 @@ class AuthController extends BaseApiController
     {
         $userId = (int) (session('logged_in') ?? 0);
         if ($userId <= 0) {
-            $authHeader = $this->request->header('Authorization')?->getValue()
-                ?? $this->request->getServer('HTTP_AUTHORIZATION')
-                ?? $this->request->getServer('REDIRECT_HTTP_AUTHORIZATION')
-                ?? '';
-
-            if (preg_match('/^Bearer\s+(\S+)/i', trim((string) $authHeader), $matches)) {
-                $device = $this->deviceSessions->resolveActiveByToken($matches[1]);
+            $rawToken = $this->extractRawToken();
+            if ($rawToken !== null && $rawToken !== '') {
+                $device = $this->deviceSessions->resolveActiveByToken($rawToken);
                 $userId = (int) ($device['user_id'] ?? 0);
             }
         }
@@ -228,5 +230,62 @@ class AuthController extends BaseApiController
                 'vapid_public_key' => $vapidKey,
             ],
         ], 'Bootstrap data loaded.');
+    }
+
+    private function extractRawToken(): ?string
+    {
+        $authHeader = $this->request->header('Authorization')?->getValue()
+            ?? $this->request->getServer('HTTP_AUTHORIZATION')
+            ?? $this->request->getServer('REDIRECT_HTTP_AUTHORIZATION')
+            ?? '';
+
+        if (preg_match('/^Bearer\s+(\S+)/i', trim((string) $authHeader), $matches)) {
+            return $matches[1];
+        }
+
+        $cookieToken = trim((string) $this->request->getCookie(self::SPA_TOKEN_COOKIE));
+        if ($cookieToken !== '') {
+            return $cookieToken;
+        }
+
+        return null;
+    }
+
+    private function setSpaCookie(string $rawDeviceToken): void
+    {
+        $app = config(App::class);
+        $this->response->setCookie(new Cookie(
+            self::SPA_TOKEN_COOKIE,
+            $rawDeviceToken,
+            [
+                'expires'  => time() + (365 * 86400),
+                'path'     => $app->cookiePath ?: '/',
+                'domain'   => $app->cookieDomain ?? '',
+                'prefix'   => $app->cookiePrefix ?? '',
+                'secure'   => (bool) ($app->cookieSecure || $this->request->isSecure()),
+                'httponly' => true,
+                'samesite' => Cookie::SAMESITE_LAX,
+                'raw'      => true,
+            ],
+        ));
+    }
+
+    private function expireSpaCookie(): void
+    {
+        $app = config(App::class);
+        $this->response->setCookie(new Cookie(
+            self::SPA_TOKEN_COOKIE,
+            '',
+            [
+                'expires'  => time() - 3600,
+                'path'     => $app->cookiePath ?: '/',
+                'domain'   => $app->cookieDomain ?? '',
+                'prefix'   => $app->cookiePrefix ?? '',
+                'secure'   => (bool) ($app->cookieSecure || $this->request->isSecure()),
+                'httponly' => true,
+                'samesite' => Cookie::SAMESITE_LAX,
+                'raw'      => true,
+            ],
+        ));
     }
 }

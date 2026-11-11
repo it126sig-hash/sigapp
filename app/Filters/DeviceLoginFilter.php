@@ -13,6 +13,7 @@ use WeakMap;
 class DeviceLoginFilter implements FilterInterface
 {
     private const DEVICE_COOKIE = 'sigapp_device';
+    private const SPA_TOKEN_COOKIE = 'sigapp_spa_token';
 
     private static ?WeakMap $processedRequests = null;
     private DeviceSessionService $deviceSessions;
@@ -57,9 +58,13 @@ class DeviceLoginFilter implements FilterInterface
             ?? $request->getServer('REDIRECT_HTTP_AUTHORIZATION')
             ?? '';
 
+        $spaCookieToken = trim((string) $request->getCookie(self::SPA_TOKEN_COOKIE));
+
         $rawBearerToken = null;
         if (preg_match('/^Bearer\s+(\S+)/i', trim((string) $authHeader), $matches)) {
             $rawBearerToken = $matches[1];
+        } elseif ($spaCookieToken !== '') {
+            $rawBearerToken = $spaCookieToken;
         } elseif (!empty($request->getGet('token'))) {
             $rawBearerToken = trim((string) $request->getGet('token'));
         } elseif (!empty($request->getGet('access_token'))) {
@@ -68,7 +73,7 @@ class DeviceLoginFilter implements FilterInterface
 
         if ($rawBearerToken) {
             $device = $this->deviceSessions->resolveActiveByToken($rawBearerToken);
-            if ($device) {
+            if ($device && $this->deviceSessions->verifyDeviceBinding($device, (string) $request->getUserAgent())) {
                 $userId = (int) ($device['user_id'] ?? 0);
                 if ($userId > 0) {
                     $userModel = model(\App\Models\UserModel::class);
@@ -181,6 +186,7 @@ class DeviceLoginFilter implements FilterInterface
         $app = config(App::class);
         $this->response->deleteCookie('remember', $app->cookieDomain, $app->cookiePath, $app->cookiePrefix);
         $this->response->deleteCookie(self::DEVICE_COOKIE, $app->cookieDomain, $app->cookiePath, $app->cookiePrefix);
+        $this->response->deleteCookie(self::SPA_TOKEN_COOKIE, $app->cookieDomain, $app->cookiePath, $app->cookiePrefix);
     }
 
     private function rememberSelector(string $rememberCookie): ?string

@@ -224,3 +224,7 @@ Untuk mendukung masa transisi migrasi ke Vue SPA (`docs/VUE_MIGRATION_PROGRESS.m
   - `DeviceLoginFilter` diperbarui untuk menerima token autentikasi Bearer via query parameter `?token=` dan `?access_token=`.
   - Mengembalikan `401 JSON` untuk route `/files/*` ketika unauthenticated (tanpa me-redirect ke login page HTML).
   - Mengizinkan tag native `<img>` dan tautan dokumen pada Web SPA (`sigapp-vue`) memuat asset privat secara aman tanpa memerlukan session cookie backend legacy.
+- `2026-11-12` [`FEATURE`] — **Dukungan Payload JSON Murni & Penguatan Validasi Cluster (`/api/cluster/*`)**:
+  - `Api\Proyek\ClusterController` diperbarui dengan helper `$this->getRequestData()` yang secara mulus mengekstrak `$this->request->getJSON(true) ?: (array) $this->request->getPost()` pada method `add()`, `edit()`, dan `remove()`, memungkinkan konsumsi payload JSON murni langsung dari Axios (`sigapp-vue`) maupun form URL encoded legacy.
+  - `ClusterService` diperbarui dengan normalisasi input dual-case (`camelCase` dan `snake_case`), penguatan validasi `nama_cluster` menjadi `required|min_length[2]|max_length[255]` guna mencegah row dummy NULL, serta fallback otomatis `id_proyek` ke active proyek pengguna (`resolve_active_proyek_id(null)`).
+  - Lulus verifikasi Playwright E2E Master Cluster di Vue SPA dan uji Zero-Downtime web legacy di `http://localhost/sigapp.dev/cluster`.
