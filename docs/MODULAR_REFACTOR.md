@@ -1,6 +1,10 @@
 # Arsitektur & Refaktor Modular CI4 SIGAPP: Konteks, Keputusan, dan Standar Eksekusi
 
-Dokumen ini adalah sumber kebenaran arsitektur untuk **Refaktor Modular Bertahap (Zero-Downtime)** pada aplikasi SIGAPP (CodeIgniter 4). Baca dokumen ini bersama `docs/MIGRATION_PROGRESS.md` dan `.agents/rules/sigapp-modular-migration.md` sebelum memulai refaktor modul apa pun.
+Dokumen ini adalah sumber kebenaran arsitektur untuk **Refaktor Modular Bertahap (Zero-Downtime)** pada aplikasi SIGAPP (CodeIgniter 4) sekaligus fondasi backend untuk migrasi ke **Vue 3 (`shadcn-vue`) + Capacitor Mobile App**. Baca dokumen ini bersama:
+- [`docs/MIGRATION_PROGRESS.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/MIGRATION_PROGRESS.md) & `.agents/rules/sigapp-modular-migration.md` — Papan status dan aturan refaktor modular CI4.
+- [`sigapp-vue/docs/VUE_MOBILE_PRD.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/VUE_MOBILE_PRD.md) — Product Requirements Document (PRD) migrasi Frontend Vue 3 & Capacitor.
+- [`sigapp-vue/docs/VUE_MIGRATION_PROGRESS.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/VUE_MIGRATION_PROGRESS.md) — Pelacak kesiapan API Vue-Ready dan progres menuju Cutover 80%.
+- [`sigapp-vue/docs/API_SPA_CONTRACT.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/API_SPA_CONTRACT.md) — Spesifikasi kontrak teknis REST API JSON, Bearer Token, dan Signed URL.
 
 ---
 
@@ -20,7 +24,7 @@ Mengikuti pedoman **Karpathy Simplicity First** (*minimum code that solves the p
 - **Tanpa Boilerplate `Contracts/` & `DTOs/` Ekstra:** Membuat puluhan interface kosong (`Contracts/`) dan kelas pembungkus data (`DTOs/`) untuk aplikasi monolit CodeIgniter 4 hanya menggandakan jumlah file dan memperbesar beban konteks tanpa manfaat nyata.
 - **Kontrak Aktual yang Langsung Terbaca:**
   - **Kontrak Backend Antar-Modul:** Adalah **Public Methods** pada kelas `App\Services\<Modul>\*Service` (mengembalikan array terstruktur atau tipe primitif yang jelas, bukan instance `Model` mentah).
-  - **Kontrak Frontend (Browser/AJAX):** Adalah **Public REST API Endpoints** (`/api/<modul>/...`) yang ditangani oleh `App\Controllers\Api\<Modul>\*Controller` dengan format JSON standar `{ status, message, data }`.
+  - **Kontrak Frontend (Browser/AJAX & Vue/Capacitor — *Vue-Ready API Contract*):** Adalah **Public REST API Endpoints** (`/api/<modul>/...`) yang ditangani oleh `App\Controllers\Api\<Modul>\*Controller` dengan format JSON standar `{ success, messages, data }`. Mengacu pada [`sigapp-vue/docs/API_SPA_CONTRACT.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/API_SPA_CONTRACT.md), setiap endpoint API wajib mengembalikan objek data JSON murni (bebas dari string HTML `<button onclick>` / `<span class="badge">` khusus jQuery DataTables) serta menyediakan akses API terhadap *initial page props* (opsi dropdown, konfigurasi pajak, dan *permission flags*).
 - **Kompatibilitas Penuh Autoloader CI4:** Menggunakan subfolder di dalam struktur standar CI4 (`app/Controllers/Web/<Modul>/`, `app/Controllers/Api/<Modul>/`, `app/Services/<Modul>/`, `app/Repositories/<Modul>/`) langsung bekerja secara native dengan PSR-4 namespace `App\` tanpa perlu merombak `Config\Autoload::$psr4` setiap kali modul dipindahkan.
 
 ### 2.2 Zero-Downtime Shims
@@ -64,7 +68,7 @@ docs/modules/<Modul>/
 | Layer | Tanggung Jawab Utama | Boleh Memanggil | Larangan Keras |
 |---|---|---|---|
 | **Web Controller** (`Web/<Modul>`) | Otorisasi halaman, menyiapkan data awal tampilan, `return view(...)` | `Services/<Modul>`, `Services` modul lain | Dilarang query DB (`db_connect()`, `$this->db`, `new *Model()`, `model()`). |
-| **API Controller** (`Api/<Modul>`) | Menerima request AJAX/REST, memanggil Service, mengembalikan JSON | `Services/<Modul>`, `Services` modul lain | Dilarang merender HTML halaman utuh atau memanggil Model/DB langsung. |
+| **API Controller** (`Api/<Modul>`) | Menerima request AJAX/REST (Web & Vue/Capacitor), memanggil Service, mengembalikan JSON murni sesuai [`sigapp-vue/docs/API_SPA_CONTRACT.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/API_SPA_CONTRACT.md) (termasuk endpoint `/meta` untuk initial props/permissions) | `Services/<Modul>`, `Services` modul lain | Dilarang merender HTML halaman utuh, menyisipkan string HTML `<button onclick>`/`<span class="badge">` pada response JSON baru, atau memanggil Model/DB langsung. |
 | **Service** (`Services/<Modul>`) | Aturan bisnis, sanitasi angka (`cleanNumeric`), transaksi DB (`db_connect()` hanya untuk `transBegin/Commit/Rollback`), pemicu notifikasi/audit | `Repositories/<Modul>`, `Services` modul lain, Shared Infrastructure | Dilarang menulis query SQL/Builder kompleks (serahkan ke Repository). |
 | **Repository** (`Repositories/<Modul>`) | Semua operasi baca/tulis database, JOIN multi-tabel, agregasi, dan filter DataTables | `Models` milik modul, Query Builder (`$this->db->table()`) | Dilarang menyimpan logika HTTP request/response atau session UI. |
 | **Model** (`app/Models`) | Representasi tabel database tunggal (`$table`, `$primaryKey`, `$allowedFields`) | Framework `CodeIgniter\Model` | Dilarang diakses langsung dari Controller. |

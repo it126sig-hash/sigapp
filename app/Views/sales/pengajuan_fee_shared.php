@@ -107,7 +107,8 @@
                                     foreach (($group->items ?? []) as $itmCheck) {
                                         if (($itmCheck->termin_status ?? '') === 'sudah_cair') { $hasCair = true; break; }
                                     }
-                                    $canReject = (($group->status ?? '') !== 'void' && ($group->status ?? '') !== 'selesai' && !$hasCair);
+                                    $hasAnySignature = (!empty($group->ttd_mkdt_by) || !empty($group->ttd_keuangan_by));
+                                    $canReject = (($group->status ?? '') !== 'void' && ($group->status ?? '') !== 'selesai' && !$hasCair && !$hasAnySignature);
                                     $canSign = (($group->status ?? '') !== 'void' && ($group->status ?? '') !== 'ditolak' && !$hasCair);
                                     $hasBothRoles = (!empty($permissions['can_sign_mkdt']) && !empty($permissions['can_sign_keuangan']));
                                 ?>
@@ -194,13 +195,6 @@
                         <span class="fee-signature-date">
                             <?= !empty($group->ttd_mkdt_at) ? date('d M Y H:i', strtotime($group->ttd_mkdt_at)) : '-' ?>
                         </span>
-                        <?php if (!empty($group->ttd_mkdt_by) && $canReject && !empty($permissions['can_sign_mkdt'])): ?>
-                            <div class="text-center mt-25">
-                                <button type="button" class="btn btn-xs btn-outline-danger btn-trigger-reject" data-role="mkdt">
-                                    <i class="fas fa-times-circle mr-25"></i> Tolak & Saran Harga
-                                </button>
-                            </div>
-                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -238,13 +232,6 @@
                         <span class="fee-signature-date">
                             <?= !empty($group->ttd_keuangan_at) ? date('d M Y H:i', strtotime($group->ttd_keuangan_at)) : '-' ?>
                         </span>
-                        <?php if (!empty($group->ttd_keuangan_by) && $canReject && !empty($permissions['can_sign_keuangan'])): ?>
-                            <div class="text-center mt-25">
-                                <button type="button" class="btn btn-xs btn-outline-danger btn-trigger-reject" data-role="keuangan">
-                                    <i class="fas fa-times-circle mr-25"></i> Tolak & Saran Harga
-                                </button>
-                            </div>
-                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -254,15 +241,16 @@
                 $groupedUnitItems = [];
                 if (!empty($group->items)) {
                     foreach ($group->items as $it) {
-                        $unitKey = $it->id_fee_sales ?: ($it->id_mkdt . '_' . $it->id_sales);
+                        $unitKey = (!empty($it->id_fee_sales) ? $it->id_fee_sales : ((!empty($it->id_mkdt) ? $it->id_mkdt : '0') . '_' . (!empty($it->id_sales) ? $it->id_sales : '0')));
+                        $terminTarget = (int) ($it->termin_yang_diajukan ?? 1);
                         if (!isset($groupedUnitItems[$unitKey])) {
                             $clone = clone $it;
-                            $clone->termin_targets = [(int) $it->termin_yang_diajukan];
+                            $clone->termin_targets = [$terminTarget];
                             $clone->submitted_items = [$it];
                             $clone->nominal_diajukan_total = (float) ($it->nominal_diajukan ?? 0);
                             $groupedUnitItems[$unitKey] = $clone;
                         } else {
-                            $groupedUnitItems[$unitKey]->termin_targets[] = (int) $it->termin_yang_diajukan;
+                            $groupedUnitItems[$unitKey]->termin_targets[] = $terminTarget;
                             $groupedUnitItems[$unitKey]->submitted_items[] = $it;
                             $groupedUnitItems[$unitKey]->nominal_diajukan_total += (float) ($it->nominal_diajukan ?? 0);
                         }
@@ -479,7 +467,7 @@
                                     <?php foreach ($groupedUnitItems as $it): ?>
                                         <?php
                                             $idx++;
-                                            $skema = $it->skema_termin ?: '30_60_10';
+                                            $skema = (!empty($it->skema_termin) ? $it->skema_termin : '30_60_10');
                                             $c30  = $renderTerminCell(1, $it, $skema !== '100', $getTerminObj);
                                             $c60  = $renderTerminCell(2, $it, $skema !== '100', $getTerminObj);
                                             $c10  = $renderTerminCell(3, $it, $skema !== '100', $getTerminObj);
@@ -558,27 +546,32 @@
                                                         $sub = $submittedItems[0];
                                                         $isCair = (($sub->termin_status ?? '') === 'sudah_cair');
                                                     ?>
+                                                    <div class="d-flex align-items-center justify-content-center flex-wrap">
+                                                        <span class="badge badge-primary font-small-1 mr-25">Termin <?= esc((isset($sub->termin_yang_diajukan) && $sub->termin_yang_diajukan !== '') ? $sub->termin_yang_diajukan : '-') ?><?= !empty($sub->termin_persen) ? ' (' . (float)$sub->termin_persen . '%)' : '' ?></span>
+                                                        <?php if ($isCair): ?>
+                                                            <span class="badge badge-success font-small-1"><i class="fas fa-check-circle mr-25"></i> Sudah Cair</span>
+                                                        <?php elseif ($isVoidGroup): ?>
+                                                            <span class="badge badge-secondary font-small-1"><i class="fas fa-ban mr-25"></i> Batal / Void</span>
+                                                        <?php elseif ($isDitolakGroup): ?>
+                                                            <span class="badge badge-danger font-small-1"><i class="fas fa-times-circle mr-25"></i> Ditolak</span>
+                                                        <?php else: ?>
+                                                            <span class="badge badge-warning font-small-1"><i class="fas fa-clock mr-25"></i> Diajukan</span>
+                                                        <?php endif; ?>
+                                                    </div>
                                                     <?php if ($isCair): ?>
-                                                        <span class="badge badge-success font-small-1"><i class="fas fa-check-circle mr-25"></i> Sudah Cair</span>
                                                         <?php if (!empty($sub->termin_no_cek)): ?>
                                                             <div class="mt-25"><span class="badge badge-light-primary font-small-1">Cek: <?= esc($sub->termin_no_cek) ?></span></div>
                                                         <?php endif; ?>
                                                         <?php if (!empty($sub->termin_tgl_cair)): ?>
                                                             <small class="text-success font-weight-bold d-block mt-25"><?= date('d/m/Y', strtotime($sub->termin_tgl_cair)) ?></small>
                                                         <?php endif; ?>
-                                                    <?php elseif ($isVoidGroup): ?>
-                                                        <span class="badge badge-secondary font-small-1"><i class="fas fa-ban mr-25"></i> Batal / Void</span>
-                                                    <?php elseif ($isDitolakGroup): ?>
-                                                        <span class="badge badge-danger font-small-1"><i class="fas fa-times-circle mr-25"></i> Ditolak</span>
-                                                    <?php else: ?>
-                                                        <span class="badge badge-warning font-small-1"><i class="fas fa-clock mr-25"></i> Diajukan</span>
                                                     <?php endif; ?>
                                                 <?php else: ?>
                                                     <?php foreach ($submittedItems as $sIdx => $sub): ?>
                                                         <?php $isCair = (($sub->termin_status ?? '') === 'sudah_cair'); ?>
                                                         <div class="<?= $sIdx > 0 ? 'mt-50 pt-25 border-top' : '' ?>">
                                                             <div class="d-flex align-items-center justify-content-center flex-wrap">
-                                                                <span class="badge badge-primary font-small-1 mr-25">T<?= esc($sub->termin_yang_diajukan ?? '') ?></span>
+                                                                <span class="badge badge-primary font-small-1 mr-25">Termin <?= esc((isset($sub->termin_yang_diajukan) && $sub->termin_yang_diajukan !== '') ? $sub->termin_yang_diajukan : '-') ?><?= !empty($sub->termin_persen) ? ' (' . (float)$sub->termin_persen . '%)' : '' ?></span>
                                                                 <?php if ($isCair): ?>
                                                                     <span class="badge badge-success font-small-1"><i class="fas fa-check-circle mr-25"></i> Cair</span>
                                                                 <?php elseif ($isVoidGroup): ?>
@@ -643,7 +636,7 @@
                             <?php foreach ($groupedUnitItems as $it): ?>
                                 <?php
                                     $idx++;
-                                    $skema = $it->skema_termin ?: '30_60_10';
+                                    $skema = (!empty($it->skema_termin) ? $it->skema_termin : '30_60_10');
                                     $submittedItems = $it->submitted_items ?? [];
 
                                     $allSubmittedCair = true;

@@ -389,7 +389,7 @@ $(function () {
 
     if (!canSubmitSpp) {
         $("#btn-batch-pengajuan").remove();
-        $("#check-all-fee").closest("th").hide();
+        $("#check-all-fee").closest(".custom-control").hide();
     }
     if (!canManage) {
         $("#btn-add-fee-sales-card").hide();
@@ -485,8 +485,12 @@ $(function () {
                 data: null,
                 orderable: false,
                 className: "text-center",
-                visible: canSubmitSpp,
-                render: function (data, type, row) {
+                render: function (data, type, row, meta) {
+                    let rowNum = meta.row + meta.settings._iDisplayStart + 1;
+                    if (!canSubmitSpp) {
+                        return `<span class="font-small-2 font-weight-bold text-dark">${rowNum}</span>`;
+                    }
+
                     let isSelesai = (row.fee_status === "selesai" || (parseInt(row.total_termin || 0) > 0 && parseInt(row.total_termin || 0) === parseInt(row.termin_cair || 0)));
                     let isBelumProses = (!row.id_fee_sales || parseInt(row.total_termin || 0) === 0);
                     let isRestricted = isSelesai || isBelumProses;
@@ -502,23 +506,32 @@ $(function () {
                     let checked = (!isRestricted && selectedMkdtMap[row.id_mkdt]) ? "checked" : "";
 
                     return `
-                        <div class="custom-control custom-checkbox" ${titleAttr}>
-                            <input type="checkbox" class="custom-control-input check-mkdt-item" id="chk-mkdt-${row.id_mkdt}" value="${row.id_mkdt}" ${checked} ${disabledAttr}>
-                            <label class="custom-control-label" for="chk-mkdt-${row.id_mkdt}"></label>
+                        <div class="d-flex align-items-center justify-content-center" ${titleAttr}>
+                            <div class="custom-control custom-checkbox mr-50">
+                                <input type="checkbox" class="custom-control-input check-mkdt-item" id="chk-mkdt-${row.id_mkdt}" value="${row.id_mkdt}" ${checked} ${disabledAttr}>
+                                <label class="custom-control-label" for="chk-mkdt-${row.id_mkdt}"></label>
+                            </div>
+                            <span class="font-small-2 font-weight-bold text-muted">${rowNum}</span>
                         </div>
                     `;
                 },
             },
             {
                 data: null,
-                render: function (data, type, row, meta) {
-                    return meta.row + meta.settings._iDisplayStart + 1;
-                },
                 orderable: false,
+                className: "text-center",
+                render: function (data, type, row) {
+                    return `
+                        <button type="button" class="btn btn-xs btn-primary btn-manage-fee py-25 px-50" data-id="${row.id_mkdt}">
+                            <i class="fas fa-sliders-h mr-25"></i> Kelola
+                        </button>
+                    `;
+                },
             },
             {
                 data: null,
                 className: "text-left",
+                orderable: true,
                 render: function (data, type, row) {
                     let jalan = row.nama_jalan || "-";
                     let kav = row.no_kavling || "-";
@@ -533,6 +546,7 @@ $(function () {
             },
             {
                 data: "harga_jual",
+                orderable: true,
                 render: function (data, type, row) {
                     let hj = cleanNum(row.harga_jual);
                     if (hj > 0) {
@@ -543,6 +557,7 @@ $(function () {
             },
             {
                 data: "harga_jual_net",
+                orderable: true,
                 render: function (data, type, row) {
                     let hjNet = cleanNum(row.harga_jual_net);
                     if (hjNet > 0) {
@@ -553,6 +568,7 @@ $(function () {
             },
             {
                 data: null,
+                orderable: true,
                 render: function (data, type, row) {
                     let res = resolveHargaJualNetAjb(row);
                     if (!res.isEstimasi) {
@@ -568,6 +584,7 @@ $(function () {
             },
             {
                 data: null,
+                orderable: true,
                 render: function (data, type, row) {
                     let salesName = row.master_sales_nama || row.sales_konsumen || "-";
                     let ket = row.keterangan_sales
@@ -578,6 +595,7 @@ $(function () {
             },
             {
                 data: null,
+                orderable: true,
                 render: function (data, type, row) {
                     let tgl = resolveAkadDate(row);
                     let badgeKpr = (parseInt(row.is_kpr) === 1)
@@ -593,26 +611,38 @@ $(function () {
             },
             {
                 data: null,
+                orderable: true,
                 render: function (data, type, row) {
                     let totalHasil = cleanNum(row.total_hasil_akad);
                     let totalCairKeu = cleanNum(row.total_cair_keuangan);
                     let pct = totalHasil > 0 ? Math.min(100, Math.round((totalCairKeu / totalHasil) * 100)) : 0;
                     let barClass = pct >= 100 ? "bg-success" : (pct > 0 ? "bg-primary" : "bg-secondary");
 
+                    let dateInfoHtml = "";
+                    if (row.tgl_cair_keuangan && formatShortDate(row.tgl_cair_keuangan)) {
+                        dateInfoHtml = `<small class="text-muted d-block font-small-1 mt-25" title="Tanggal Terakhir Cair Hasil Akad"><i class="fas fa-calendar-check mr-25 text-success"></i> ${formatShortDate(row.tgl_cair_keuangan)}</small>`;
+                    } else if (row.last_update_keuangan && formatShortDate(row.last_update_keuangan)) {
+                        dateInfoHtml = `<small class="text-muted d-block font-small-1 mt-25" title="Terakhir Diperbarui"><i class="fas fa-clock mr-25 text-info"></i> ${formatShortDate(row.last_update_keuangan)}</small>`;
+                    } else {
+                        dateInfoHtml = `<small class="text-muted d-block font-small-1 mt-25">-</small>`;
+                    }
+
                     return `
-                        <div style="min-width: 70px;">
+                        <div style="min-width: 85px;">
                             <div class="font-small-2 mb-25">
                                 <span class="font-weight-bold">${pct}%</span>
                             </div>
                             <div class="progress termin-progress-mini">
                                 <div class="progress-bar ${barClass}" role="progressbar" style="width: ${pct}%;"></div>
                             </div>
+                            ${dateInfoHtml}
                         </div>
                     `;
                 },
             },
             {
                 data: null,
+                orderable: true,
                 render: function (data, type, row) {
                     if (row.id_fee_sales && cleanNum(row.fee_total) > 0) {
                         return `
@@ -627,6 +657,7 @@ $(function () {
             },
             {
                 data: null,
+                orderable: true,
                 render: function (data, type, row) {
                     let st = row.fee_status;
                     let totalT = parseInt(row.total_termin || 0);
@@ -666,19 +697,8 @@ $(function () {
                     return `<div>${badgeHtml}${dateHtml}</div>`;
                 },
             },
-            {
-                data: null,
-                orderable: false,
-                render: function (data, type, row) {
-                    return `
-                        <button type="button" class="btn btn-sm btn-primary btn-manage-fee" data-id="${row.id_mkdt}">
-                            <i class="fas fa-sliders-h mr-25"></i> Kelola
-                        </button>
-                    `;
-                },
-            },
         ],
-        order: [[7, "desc"]],
+        order: [[8, "desc"]],
         drawCallback: function (settings) {
             let api = this.api();
             let rows = api.rows({ page: "current" }).nodes();
@@ -2469,8 +2489,11 @@ $(function () {
                     $("#btn-batch-cair-modal").hide();
                 }
 
-                // Tombol Tolak & TTD MKDT
-                if (g.status !== "void" && g.status !== "ditolak" && cairCount === 0 && canSignMkdt) {
+                // Tombol Tolak & TTD MKDT & Keuangan
+                let hasAnySignature = !!(g.ttd_mkdt_by || g.ttd_mkdt_id || g.ttd_keuangan_by || g.ttd_keuangan_id);
+                let canReject = (g.status !== "void" && g.status !== "ditolak" && cairCount === 0 && !hasAnySignature);
+
+                if (canReject && canSignMkdt) {
                     $("#btn-reject-mkdt-detail").data("id", g.id).data("role", "mkdt").show();
                 } else {
                     $("#btn-reject-mkdt-detail").hide();
@@ -2481,8 +2504,7 @@ $(function () {
                     $("#btn-sign-mkdt-detail").hide();
                 }
 
-                // Tombol Tolak & TTD Keuangan
-                if (g.status !== "void" && g.status !== "ditolak" && cairCount === 0 && canSignKeuangan) {
+                if (canReject && canSignKeuangan) {
                     $("#btn-reject-keuangan-detail").data("id", g.id).data("role", "keuangan").show();
                 } else {
                     $("#btn-reject-keuangan-detail").hide();

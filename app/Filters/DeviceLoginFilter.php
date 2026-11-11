@@ -40,6 +40,10 @@ class DeviceLoginFilter implements FilterInterface
 
     public function before(RequestInterface $request, $arguments = null)
     {
+        if (strtoupper($request->getMethod()) === 'OPTIONS') {
+            return $this->response->setStatusCode(200);
+        }
+
         if ($this->isReservedAuthRoute($request)) {
             return null;
         }
@@ -47,6 +51,34 @@ class DeviceLoginFilter implements FilterInterface
             return null;
         }
         self::$processedRequests[$request] = true;
+
+        $authHeader = $request->header('Authorization')?->getValue()
+            ?? $request->getServer('HTTP_AUTHORIZATION')
+            ?? $request->getServer('REDIRECT_HTTP_AUTHORIZATION')
+            ?? '';
+
+        if (preg_match('/^Bearer\s+(\S+)/i', trim((string) $authHeader), $matches)) {
+            $rawBearerToken = $matches[1];
+            $device = $this->deviceSessions->resolveActiveByToken($rawBearerToken);
+            if ($device) {
+                $userId = (int) ($device['user_id'] ?? 0);
+                if ($userId > 0) {
+                    $userModel = model(\App\Models\UserModel::class);
+                    $user = $userModel->find($userId);
+                    if ($user && (! method_exists($user, 'isBanned') || ! $user->isBanned())) {
+                        $this->session->set('logged_in', $userId);
+                        if (method_exists($this->auth, 'login')) {
+                            $this->auth->login($user);
+                        }
+                        $this->accept($userId, $device);
+
+                        return null;
+                    }
+                }
+            }
+
+            return $this->reject($request, null, null);
+        }
 
         $userId = (int) ($this->session->get('logged_in') ?? 0);
         $rawDeviceToken = trim((string) $request->getCookie(self::DEVICE_COOKIE));
@@ -114,8 +146,23 @@ class DeviceLoginFilter implements FilterInterface
 
         $this->session->remove(['logged_in', 'sigapp_device_id']);
         $this->session->regenerate(true);
-        $this->session->set('redirect_url', (string) $request->getUri());
         $this->expireAuthCookies();
+
+        $path = trim($request->getUri()->getPath(), '/');
+        $isApi = str_starts_with($path, 'api/') || str_contains($path, '/api/');
+        $acceptHeader = $request->header('Accept')?->getValue() ?? '';
+        $isJson = str_contains($acceptHeader, 'application/json');
+        $isAjax = $request->isAJAX();
+
+        if ($isApi || $isJson || $isAjax) {
+            return $this->response->setStatusCode(401)->setJSON([
+                'success' => false,
+                'messages' => 'Sesi tidak valid atau telah kadaluarsa. Silakan login kembali.',
+                'data' => null,
+            ]);
+        }
+
+        $this->session->set('redirect_url', (string) $request->getUri());
 
         return $this->response->redirect(site_url(config('Auth')->reservedRoutes['login']));
     }
@@ -141,8 +188,13 @@ class DeviceLoginFilter implements FilterInterface
     private function isReservedAuthRoute(RequestInterface $request): bool
     {
         $path = trim($request->getUri()->getPath(), '/');
+        if ($path === 'api/auth/login' || str_ends_with($path, 'api/auth/login')) {
+            return true;
+        }
+
         foreach (config('Auth')->reservedRoutes as $route) {
-            if ($path === trim((string) $route, '/')) {
+            $r = trim((string) $route, '/');
+            if ($path === $r || str_ends_with($path, '/' . $r)) {
                 return true;
             }
         }

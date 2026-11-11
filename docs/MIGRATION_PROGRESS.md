@@ -1,14 +1,20 @@
 # SIGAPP Modular Migration Progress Ledger
 
-> **Dokumen ini adalah sumber kebenaran tunggal (Single Source of Truth) untuk melacak progres migrasi modular lintas percakapan.**
+> **Dokumen ini adalah sumber kebenaran tunggal (Single Source of Truth) untuk melacak progres migrasi arsitektur modular Backend CI4 lintas percakapan.**
 > Setiap kali selesai merefaktor satu modul di sesi chat baru, perbarui baris modul tersebut di dokumen ini dan lakukan git commit.
+>
+> **Keterkaitan dengan Migrasi Vue 3 (`shadcn-vue`) & Mobile App (Capacitor):**
+> - Ruang lingkup produk, arsitektur repo Vue, dan target **80% Parity Cutover** didokumentasikan di [`sigapp-vue/docs/VUE_MOBILE_PRD.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/VUE_MOBILE_PRD.md).
+> - Progres kesiapan **Wave 0**, status **API Vue-Ready (`RAW_JSON_READY`)**, dan pembangunan UI Vue/Capacitor dilacak secara khusus di [`sigapp-vue/docs/VUE_MIGRATION_PROGRESS.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/VUE_MIGRATION_PROGRESS.md).
+> - Standar teknis endpoint REST API JSON murni (bebas string HTML DataTables), Bearer Token, dan Signed URL mengacu pada [`sigapp-vue/docs/API_SPA_CONTRACT.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/API_SPA_CONTRACT.md).
+> - Panduan scaffolding repo terpisah (`sigapp-vue`) mengacu pada [`sigapp-vue/docs/VUE_PROJECT_SCAFFOLDING.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/VUE_PROJECT_SCAFFOLDING.md).
 
 ---
 
 ## 1. Rangkuman Progres Global
 
 * **Total Modul:** 16
-* **Status:** `6 Selesai` | `0 Sedang Dikerjakan` | `10 Antre (Pending)`
+* **Status:** `8 Selesai` | `0 Sedang Dikerjakan` | `8 Antre (Pending)`
 * **Strategi:** Migrasi modular bertahap (1 modul per sesi *fresh chat*) dengan jaminan **Zero-Downtime**.
 
 ---
@@ -17,7 +23,8 @@
 
 Urutan di bawah ini disusun dari **Modul Daun (Leaf/Paling Terisolasi)** menuju **Modul Inti (Core/Tinggi Keterikatan)** untuk meminimalisasi risiko breaking changes.
 
-> *Catatan Konsolidasi:*
+> *Catatan Konsolidasi & Prioritas Akselerasi Wave 0 (Vue/Mobile):*
+> - **Prioritas Wave 0 Vue/Capacitor:** Modul **#7 `Auth`** dan **#8 `Notifikasi`** diprioritaskan untuk dikerjakan lebih dulu sebagai fondasi infrastruktur **Wave 0** (Bearer Token `DeviceSessionService`, endpoint `/api/auth/me`, dan Push Notification FCM/WebPush) sebelum memulai pembangunan aplikasi di repo Vue. Lihat checklist lengkapnya di [`sigapp-vue/docs/VUE_MIGRATION_PROGRESS.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/VUE_MIGRATION_PROGRESS.md).
 > - Fitur Pencairan Jaminan (Retensi Perbankan) telah dikonsolidasikan langsung ke dalam sub-domain Pencairan Bank / Akad pada modul **Keuangan** sebagai bagian utuh dari Cash-In.
 > - Fitur Master Sales External dan Pengelolaan/Pencairan Fee Sales dikonsolidasikan di bawah modul **SalesExternal**.
 
@@ -26,10 +33,10 @@ Urutan di bawah ini disusun dari **Modul Daun (Leaf/Paling Terisolasi)** menuju 
 | 1 | **BPB** | Leaf Module | Rendah (Sudah modern Web/Api) | `COMPLETED` | Session Refactor (100% Score) | 2026-10-23 |
 | 2 | **TiketMasalah** | Leaf Module | Rendah (Sudah modular Web/Api) | `COMPLETED` | `80a0180` (100% Score) | 2026-10-23 |
 | 3 | **MGM** | Leaf Module | Rendah (Sudah modular Web/Api) | `COMPLETED` | Session Refactor (90% Score) | 2026-10-23 |
-| 4 | **SalesExternal** | Intermediate (Master Sales & Fee Sales) | Sedang (Sudah Web/Api, belum di subfolder `<Modul>/`) | `PENDING` | - (60% Score) | - |
+| 4 | **SalesExternal** | Intermediate (Master Sales & Fee Sales) | Sedang (Modular Web/Api & Services) | `COMPLETED` | `e238e4a` (100% Score) | 2026-11-09 |
 | 5 | **Legal** | Intermediate | Sedang | `PENDING` | - | - |
 | 6 | **AuditTrail** | Intermediate | Rendah | `PENDING` | - | - |
-| 7 | **Auth** | Infrastructure | Sedang | `PENDING` | - | - |
+| 7 | **Auth** | Infrastructure | Sedang | `COMPLETED` | Wave 0 API Bridge (`QA-PASS`) | 2026-11-10 |
 | 8 | **Notifikasi** | Infrastructure | Sedang | `PENDING` | - | - |
 | 9 | **Proyek** | Core Master Data | Sedang | `COMPLETED` | `65c937d` (90% Score) | 2026-10-23 |
 | 10 | **Produksi** | Core Construction | Sedang - Tinggi | `PENDING` | - | - |

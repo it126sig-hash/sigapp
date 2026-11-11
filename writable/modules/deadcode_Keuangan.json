@@ -1,0 +1,22 @@
+[
+    {
+        "layer": "Service",
+        "file": "KeuanganService.php",
+        "name": "simpanDanaAkad"
+    },
+    {
+        "layer": "Service",
+        "file": "KeuanganService.php",
+        "name": "simpanInvoice"
+    },
+    {
+        "layer": "Service",
+        "file": "KeuanganService.php",
+        "name": "getListTagihanJatuhTempoGrouped"
+    },
+    {
+        "layer": "Service",
+        "file": "KeuanganService.php",
+        "name": "getListTagihanJatuhTempoDetail"
+    }
+]

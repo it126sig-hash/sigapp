@@ -57,7 +57,8 @@
                                     <option value="">Semua Sales</option>
                                 </select>
 
-                                <select id="filter-fee-status" class="form-control form-control-sm" style="width: 160px;">
+                                <select id="filter-fee-status" class="form-control form-control-sm" style="width: 175px;">
+                                    <option value="belum_lunas" selected>Semua Kecuali Lunas</option>
                                     <option value="all">Semua Status Fee</option>
                                     <option value="belum_proses">Belum Diproses</option>
                                     <option value="proses_spp">Proses SPP</option>
@@ -81,13 +82,16 @@
                                 <table class="table table-hover table-striped table-fee" id="table-fee-sales" style="width: 100%;">
                                     <thead class="thead-light">
                                         <tr>
-                                            <th style="width: 35px;" class="text-center">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="check-all-fee">
-                                                    <label class="custom-control-label" for="check-all-fee"></label>
+                                            <th style="width: 70px;" class="text-center">
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <div class="custom-control custom-checkbox mr-50">
+                                                        <input type="checkbox" class="custom-control-input" id="check-all-fee">
+                                                        <label class="custom-control-label" for="check-all-fee"></label>
+                                                    </div>
+                                                    <span>No</span>
                                                 </div>
                                             </th>
-                                            <th style="width: 35px;">No</th>
+                                            <th style="width: 85px;" class="text-center">Aksi</th>
                                             <th class="text-left" style="min-width: 180px;">Konsumen & Unit</th>
                                             <th>Harga Jual</th>
                                             <th>Harga Jual Net</th>
@@ -97,7 +101,6 @@
                                             <th>Pencairan Keuangan</th>
                                             <th>Total Fee</th>
                                             <th>Status Termin</th>
-                                            <th style="width: 100px;">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>

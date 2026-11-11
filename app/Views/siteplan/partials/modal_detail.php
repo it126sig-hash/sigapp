@@ -367,7 +367,7 @@
                                                                         <div class="font-weight-bold" id="s-pa_sudah_cair_display">Rp 0</div>
                                                                     </div>
                                                                     <div class="text-right">
-                                                                        <span class="detail-dot bg-warning mr-50"></span>
+                                                                        <span class="detail-dot bg-secondary mr-50"></span>
                                                                         <span class="small text-muted">Belum Cair</span>
                                                                         <div class="font-weight-bold" id="s-pa_belum_cair_display">Rp 0</div>
                                                                     </div>
@@ -375,12 +375,12 @@
                                                                 <div class="d-flex align-items-center">
                                                                     <div class="progress flex-grow-1" style="height: 6px; border-radius: 4px; display: flex;">
                                                                         <div class="progress-bar bg-primary" id="s-pa_cair_bar" style="width: 0%;"></div>
-                                                                        <div class="progress-bar bg-warning" id="s-pa_sisa_bar" style="width: 0%;"></div>
+                                                                        <div class="progress-bar bg-transparent" id="s-pa_sisa_bar" style="width: 0%;"></div>
                                                                     </div>
                                                                 </div>
                                                                 <div class="d-flex justify-content-between small text-muted mt-25">
                                                                     <span id="s-pa_cair_pct">0%</span>
-                                                                    <span id="s-pa_sisa_pct">0%</span>
+                                                                    <span class="text-secondary" id="s-pa_sisa_pct">0%</span>
                                                                 </div>
                                                             </div>
                                                         </div>

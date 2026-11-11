@@ -805,7 +805,10 @@ final class FeeSalesWorkflowTest extends CIUnitTestCase
 
     public function testSalesExternalRepositoryHasTanggalPengajuanSalesInSelect(): void
     {
-        $repoFile = file_get_contents(APPPATH . 'Repositories/SalesExternalRepository.php');
+        $repoPath = is_file(APPPATH . 'Repositories/SalesExternal/SalesExternalRepository.php')
+            ? APPPATH . 'Repositories/SalesExternal/SalesExternalRepository.php'
+            : APPPATH . 'Repositories/SalesExternalRepository.php';
+        $repoFile = file_get_contents($repoPath);
         $this->assertStringContainsString("'fsp.tanggal_pengajuan_sales'", $repoFile);
         $this->assertStringContainsString("->orLike('fsp.tanggal_pengajuan_sales'", $repoFile);
         $this->assertStringContainsString("->orLike('fsp.ttd_pembuat_nama'", $repoFile);

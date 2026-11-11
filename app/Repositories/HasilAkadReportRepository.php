@@ -39,6 +39,7 @@ class HasilAkadReportRepository
             ->selectSum('m.harga_jual_net', 'total_penjualan')
             ->select('COUNT(DISTINCT m.id_kavling) AS jumlah_kavling', false)
             ->selectSum('m.harga_kpr_acc', 'total_acc_kpr')
+            ->selectSum('m.harga_kpr_acc', 'total_hasil_akad')
             ->where('m.akad_tgl >=', $startDate)
             ->where('m.akad_tgl <', $endDate)
             ->groupBy('YEAR(m.akad_tgl), MONTH(m.akad_tgl)', false)
@@ -84,9 +85,10 @@ class HasilAkadReportRepository
 
         if ($dataTable['search'] !== '') {
             $builder->groupStart()
-                ->like('hasil_akad.jenis_laporan', $dataTable['search'])
+                ->like('hasil_akad.tipe_rumah', $dataTable['search'])
                 ->orLike('hasil_akad.alamat_kavling', $dataTable['search'])
                 ->orLike('hasil_akad.nama_konsumen', $dataTable['search'])
+                ->orLike('hasil_akad.jenis_laporan', $dataTable['search'])
                 ->orLike('hasil_akad.tanggal_transaksi', $dataTable['search'])
                 ->groupEnd();
         }
@@ -110,15 +112,22 @@ class HasilAkadReportRepository
         $startDate = sprintf('%04d-%02d-01', $year, $month);
         $endDate = date('Y-m-d', strtotime($startDate . ' +1 month'));
 
-        if ($category === 'penjualan') {
+        if ($category === 'penjualan' || $category === 'akad') {
             return $this->baseMkdtQuery($idProyek)
                 ->select('m.id_mkdt AS reference_id')
-                ->select("'penjualan' AS kategori", false)
-                ->select("'Total Penjualan' AS jenis_laporan", false)
+                ->select("'{$category}' AS kategori", false)
+                ->select("'Total Hasil Akad' AS jenis_laporan", false)
                 ->select($this->addressSql())
                 ->select("COALESCE(c.nama_konsumen, '-') AS nama_konsumen", false)
                 ->select('m.akad_tgl AS tanggal_transaksi')
-                ->select('m.harga_jual_net AS nominal')
+                ->select('m.harga_kpr_acc AS total_hasil_akad')
+                ->select('m.harga_kpr_acc AS nominal')
+                ->select('m.booking_tgl AS booking_tgl')
+                ->select('m.akad_tgl AS akad_tgl')
+                ->select('COALESCE(m.harga_jual_net, hj.hargajual, 0) AS harga_jual', false)
+                ->select($this->totalSudahCairSql() . ' AS total_sudah_cair', false)
+                ->select($this->tipeRumahSql(), false)
+                ->select($this->isSubsidiSql(), false)
                 ->select('m.id_kavling, m.id_mkdt')
                 ->select("COALESCE(j.nama_jalan, '') AS nama_jalan", false)
                 ->select("COALESCE(k.no_kavling, '-') AS no_kavling", false)
@@ -136,6 +145,12 @@ class HasilAkadReportRepository
                 ->select("COALESCE(c.nama_konsumen, '-') AS nama_konsumen", false)
                 ->select('m.akad_tgl AS tanggal_transaksi')
                 ->select('m.harga_kpr_acc AS nominal')
+                ->select('m.booking_tgl AS booking_tgl')
+                ->select('m.akad_tgl AS akad_tgl')
+                ->select('COALESCE(m.harga_jual_net, hj.hargajual, 0) AS harga_jual', false)
+                ->select($this->totalSudahCairSql() . ' AS total_sudah_cair', false)
+                ->select($this->tipeRumahSql(), false)
+                ->select($this->isSubsidiSql(), false)
                 ->select('m.id_kavling, m.id_mkdt')
                 ->select("COALESCE(j.nama_jalan, '') AS nama_jalan", false)
                 ->select("COALESCE(k.no_kavling, '-') AS no_kavling", false)
@@ -153,10 +168,13 @@ class HasilAkadReportRepository
                 ->select($this->addressSql())
                 ->select("COALESCE(c.nama_konsumen, '-') AS nama_konsumen", false)
                 ->select('pg.tanggal_pengajuan AS tanggal_transaksi')
+                ->select('pg.tanggal_pengajuan AS tanggal_pengajuan')
                 ->select("COALESCE(pengaju.username, '-') AS pengaju_username", false)
                 ->select('pg.status AS status_pengajuan')
                 ->select($this->paymentDatesSql() . ' AS tanggal_pencairan', false)
                 ->select('pg.total_pengajuan AS nominal')
+                ->select($this->tipeRumahSql(), false)
+                ->select($this->isSubsidiSql(), false)
                 ->select('m.id_kavling, m.id_mkdt')
                 ->select("COALESCE(j.nama_jalan, '') AS nama_jalan", false)
                 ->select("COALESCE(k.no_kavling, '-') AS no_kavling", false)
@@ -173,8 +191,14 @@ class HasilAkadReportRepository
             ->select($this->addressSql())
             ->select("COALESCE(c.nama_konsumen, '-') AS nama_konsumen", false)
             ->select('pay.tanggal_cair AS tanggal_transaksi')
+            ->select('pg.tanggal_pengajuan AS tanggal_pengajuan')
+            ->select('pay.tanggal_cair AS tanggal_cair')
+            ->select('pay.tanggal_cair AS tanggal_pencairan')
+            ->select("'paid' AS status_pengajuan", false)
             ->select("COALESCE(pencair.username, '-') AS pencair_username", false)
             ->select('pay.total_cair AS nominal')
+            ->select($this->tipeRumahSql(), false)
+            ->select($this->isSubsidiSql(), false)
             ->select('m.id_kavling, m.id_mkdt')
             ->select("COALESCE(j.nama_jalan, '') AS nama_jalan", false)
             ->select("COALESCE(k.no_kavling, '-') AS no_kavling", false)
@@ -187,6 +211,9 @@ class HasilAkadReportRepository
     {
         return $this->db->table('mkdt m')
             ->join('kavling k', 'k.id_kavling = m.id_kavling')
+            ->join('tipe t', 't.id_tipe = k.id_tipe', 'left')
+            ->join('hargajual hj', 'hj.id = m.id_hargajual', 'left')
+            ->join('tipe thj', 'thj.id_tipe = hj.id_tipe', 'left')
             ->join('jalan j', 'j.id_jalan = k.id_jalan')
             ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
             ->join('konsumen c', 'c.id_konsumen = m.id_konsumen', 'left')
@@ -201,6 +228,9 @@ class HasilAkadReportRepository
             ->join('pencairan_akad_plan plan', 'plan.id = pg.id_plan')
             ->join('mkdt m', 'm.id_mkdt = plan.id_mkdt')
             ->join('kavling k', 'k.id_kavling = plan.id_kavling')
+            ->join('tipe t', 't.id_tipe = k.id_tipe', 'left')
+            ->join('hargajual hj', 'hj.id = m.id_hargajual', 'left')
+            ->join('tipe thj', 'thj.id_tipe = hj.id_tipe', 'left')
             ->join('jalan j', 'j.id_jalan = k.id_jalan')
             ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
             ->join('konsumen c', 'c.id_konsumen = m.id_konsumen', 'left')
@@ -217,6 +247,9 @@ class HasilAkadReportRepository
             ->join('pencairan_akad_plan plan', 'plan.id = pg.id_plan')
             ->join('mkdt m', 'm.id_mkdt = plan.id_mkdt')
             ->join('kavling k', 'k.id_kavling = plan.id_kavling')
+            ->join('tipe t', 't.id_tipe = k.id_tipe', 'left')
+            ->join('hargajual hj', 'hj.id = m.id_hargajual', 'left')
+            ->join('tipe thj', 'thj.id_tipe = hj.id_tipe', 'left')
             ->join('jalan j', 'j.id_jalan = k.id_jalan')
             ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
             ->join('konsumen c', 'c.id_konsumen = m.id_konsumen', 'left')
@@ -244,6 +277,26 @@ class HasilAkadReportRepository
     private function addressSql(): string
     {
         return "TRIM(CONCAT(COALESCE(j.nama_jalan, ''), ' No. ', COALESCE(k.no_kavling, '-'))) AS alamat_kavling";
+    }
+
+    private function tipeRumahSql(): string
+    {
+        return "COALESCE(thj.tipe_rumah, t.tipe_rumah, '-') AS tipe_rumah";
+    }
+
+    private function isSubsidiSql(): string
+    {
+        return "CASE WHEN COALESCE(m.is_subsidi, hj.is_subsidi, thj.is_subsidi, t.is_subsidi, 0) = 1 THEN 1 ELSE 0 END AS is_subsidi";
+    }
+
+    private function totalSudahCairSql(): string
+    {
+        return "COALESCE((
+            SELECT SUM(pg.total_cair)
+            FROM pencairan_akad_pengajuan pg
+            JOIN pencairan_akad_plan pap ON pap.id = pg.id_plan
+            WHERE pap.id_mkdt = m.id_mkdt AND pg.status != 'void'
+        ), 0)";
     }
 
     private function pengajuanItemSummarySql(): string

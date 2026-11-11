@@ -26,7 +26,7 @@ class FileAccessService
         */
 
         'file_produksi'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
-        'gambar_kerja'      => [1, 2,  6, 7, 9],
+        'gambar_kerja'      => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'siteplan_upload'   => [1, 2,  2, 3, 4, 5, 6, 7, 8, 9, 10],
         'file_spptb'        => [1, 2,  3, 4, 9],
         'pencairan_jaminan' => [1, 2,  3, 9],

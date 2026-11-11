@@ -1,6 +1,6 @@
 {
-    "scanned_at": "2026-10-23T13:42:56+07:00",
-    "total_modules": 16,
+    "scanned_at": "2026-11-09T16:35:49+07:00",
+    "total_modules": 17,
     "modules": {
         "Proyek": {
             "name": "Proyek",
@@ -329,11 +329,25 @@
             "views": [
                 {
                     "folder": "app/Views/proyek",
-                    "file_count": 1
+                    "file_count": 1,
+                    "files": [
+                        "proyek_.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/master",
-                    "file_count": 9
+                    "file_count": 9,
+                    "files": [
+                        "aksesproyek.php",
+                        "cluster.php",
+                        "configcolor.php",
+                        "jalan.php",
+                        "karyawan.php",
+                        "listbank.php",
+                        "pengaturanWarna.php",
+                        "proyek.php",
+                        "tipe.php"
+                    ]
                 }
             ],
             "assets_js": [
@@ -825,13 +839,14 @@
                 "mkdt",
                 "keuangan",
                 "produksi",
-                "legal"
+                "legal",
+                "tiket_masalah"
             ],
             "controllers": [
                 {
                     "relative_path": "app/Controllers/Siteplan.php",
                     "filename": "Siteplan.php",
-                    "line_count": 1859,
+                    "line_count": 1861,
                     "public_methods": [
                         "index()",
                         "view_siteplan()",
@@ -924,11 +939,12 @@
                 {
                     "relative_path": "app/Services/SiteplanUrgentService.php",
                     "filename": "SiteplanUrgentService.php",
-                    "line_count": 743,
+                    "line_count": 791,
                     "public_methods": [
                         "getSummary(int $idProyek, int $groupId, ?int $userId = null)",
                         "getUrgentSummary(int $idProyek, int $groupId, ?int $userId = null)",
-                        "getDashboardAlertCounts(int $idProyek)",
+                        "getDashboardAlertCounts(?int $idProyek = null)",
+                        "countMkdtDateAlerts(string $field, ?int $idProyek = null, ?string $fromDate = null, ?string $toDate = null)",
                         "emptySummary()",
                         "snoozeUrgentItem(int $userId, int $idProyek, string $itemKey, int $minutes)"
                     ]
@@ -936,7 +952,7 @@
                 {
                     "relative_path": "app/Services/SiteplanVisualStatusService.php",
                     "filename": "SiteplanVisualStatusService.php",
-                    "line_count": 412,
+                    "line_count": 415,
                     "public_methods": [
                         "appendVisualRows(array $rows, ?DateTimeInterface $today = null)",
                         "buildRows($row, ?DateTimeInterface $today = null)",
@@ -983,7 +999,7 @@
                 {
                     "relative_path": "app/Repositories/OthersRepository.php",
                     "filename": "OthersRepository.php",
-                    "line_count": 117,
+                    "line_count": 145,
                     "public_methods": [
                         "getAll(?int $id, int $idProyek, array $clusterIds, array $filters = [])",
                         "hasProgressHistory()",
@@ -1032,18 +1048,39 @@
             "views": [
                 {
                     "folder": "app/Views/siteplan",
-                    "file_count": 16
+                    "file_count": 16,
+                    "files": [
+                        "cashout_subkon.php",
+                        "direksi.php",
+                        "keuangan.php",
+                        "legal.php",
+                        "master.php",
+                        "mkdt.php",
+                        "modal_list_request_kavling.php",
+                        "pajak.php",
+                        "pilih_proyek.php",
+                        "planning.php",
+                        "produksi.php",
+                        "produksi_mobile.php",
+                        "request_kavling_modal.php",
+                        "sales.php",
+                        "target.php",
+                        "test.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/misc",
-                    "file_count": 1
+                    "file_count": 1,
+                    "files": [
+                        "kalender.php"
+                    ]
                 }
             ],
             "assets_js": [
                 {
                     "path": "public/assets/js/siteplan/master.js",
                     "filename": "master.js",
-                    "line_count": 3824
+                    "line_count": 3868
                 },
                 {
                     "path": "public/assets/js/siteplan/composite-shape.js",
@@ -1068,12 +1105,17 @@
                 {
                     "path": "public/assets/js/siteplan-detail-modal.js",
                     "filename": "siteplan-detail-modal.js",
-                    "line_count": 2070
+                    "line_count": 2431
                 },
                 {
                     "path": "public/assets/js/siteplan/target.js",
                     "filename": "target.js",
                     "line_count": 244
+                },
+                {
+                    "path": "public/assets/js/siteplan/tiket-overlay.js",
+                    "filename": "tiket-overlay.js",
+                    "line_count": 462
                 }
             ],
             "routes": [
@@ -1296,7 +1338,8 @@
                 "SiteplanUrgentService.php": [
                     "getSummary(int $idProyek, int $groupId, ?int $userId = null)",
                     "getUrgentSummary(int $idProyek, int $groupId, ?int $userId = null)",
-                    "getDashboardAlertCounts(int $idProyek)",
+                    "getDashboardAlertCounts(?int $idProyek = null)",
+                    "countMkdtDateAlerts(string $field, ?int $idProyek = null, ?string $fromDate = null, ?string $toDate = null)",
                     "emptySummary()",
                     "snoozeUrgentItem(int $userId, int $idProyek, string $itemKey, int $minutes)"
                 ],
@@ -1370,7 +1413,8 @@
             ],
             "shared_tables": [
                 "kavling",
-                "keuangan"
+                "keuangan",
+                "legal"
             ],
             "controllers": [
                 {
@@ -1466,13 +1510,32 @@
                         "new ClusterModel()",
                         "new ProyekModel()"
                     ]
+                },
+                {
+                    "relative_path": "app/Controllers/Web/BookingAkadReportController.php",
+                    "filename": "BookingAkadReportController.php",
+                    "line_count": 49,
+                    "public_methods": [
+                        "index()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/BookingAkadReportController.php",
+                    "filename": "BookingAkadReportController.php",
+                    "line_count": 80,
+                    "public_methods": [
+                        "summary()",
+                        "detail()"
+                    ],
+                    "violations": []
                 }
             ],
             "services": [
                 {
                     "relative_path": "app/Services/MkdtHistoryService.php",
                     "filename": "MkdtHistoryService.php",
-                    "line_count": 313,
+                    "line_count": 314,
                     "public_methods": [
                         "actionLabel(string $action)",
                         "log(int $idKavling, ?int $idMkdt, string $action, string $summary, ?array $oldData = null, ?array $newData = null, ?int $actorId = null, array $metadata = [])",
@@ -1520,7 +1583,7 @@
                 {
                     "relative_path": "app/Services/PosisiKonsumenService.php",
                     "filename": "PosisiKonsumenService.php",
-                    "line_count": 426,
+                    "line_count": 452,
                     "public_methods": [
                         "getDataTable($request, $status = null)",
                         "getDataTablesBatal($request)",
@@ -1552,6 +1615,22 @@
                         "getKavlingOptions(int $idProyek, ?string $search = null, ?int $currentIdKavling = null, ?int $lastIdKavling = null, ?string $filterHargaJual = null)",
                         "getFormattedKavlingHistory(int $idMkdt = 0, int $idKavling = 0)"
                     ]
+                },
+                {
+                    "relative_path": "app/Services/BookingAkadReportService.php",
+                    "filename": "BookingAkadReportService.php",
+                    "line_count": 755,
+                    "public_methods": [
+                        "getAvailableYears(int $idProyek)",
+                        "getSummary(int $idProyek, int $yearA, ?int $yearB = null)",
+                        "getDetail(int $idProyek, array|int $requestOrYear, ?int $month = null, ?string $category = null, array $dataTable = [])",
+                        "monthLabel(int $month)",
+                        "resolveStatusBadge(string $status)",
+                        "resolveStatusTerakhir(array $row)",
+                        "resolveTanggalStatusTerakhir(array $row, string $status)",
+                        "resolveCatatanMkdt(array $row)",
+                        "formatDate(?string $date)"
+                    ]
                 }
             ],
             "repositories": [
@@ -1569,7 +1648,7 @@
                 {
                     "relative_path": "app/Repositories/PosisiKonsumenRepository.php",
                     "filename": "PosisiKonsumenRepository.php",
-                    "line_count": 197,
+                    "line_count": 199,
                     "public_methods": [
                         "getBaseQuery($status = \"Booking\")",
                         "getQueryBatal()",
@@ -1601,13 +1680,28 @@
                         "isNoNupExists(string $noNup, int $idProyek, int $excludeIdMkdt = 0)",
                         "generateNextNupNumber(int $idProyek)"
                     ]
+                },
+                {
+                    "relative_path": "app/Repositories/BookingAkadReportRepository.php",
+                    "filename": "BookingAkadReportRepository.php",
+                    "line_count": 659,
+                    "public_methods": [
+                        "getAvailableYears(int $idProyek)",
+                        "getAvailableYearBounds(int $idProyek)",
+                        "getMonthlyBookingTotals(int $idProyek, array $years)",
+                        "getMonthlyAkadTotals(int $idProyek, array $years)",
+                        "getMonthlyStatusTotals(int $idProyek, array $years)",
+                        "getMonthlySummaryTotals(int $idProyek, array $years)",
+                        "getSummary(int $idProyek, int $year)",
+                        "getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable = [])"
+                    ]
                 }
             ],
             "models": [
                 {
                     "relative_path": "app/Models/MkdtModel.php",
                     "filename": "MkdtModel.php",
-                    "line_count": 121,
+                    "line_count": 122,
                     "public_methods": []
                 },
                 {
@@ -1627,18 +1721,41 @@
             "views": [
                 {
                     "folder": "app/Views/kavling",
-                    "file_count": 4
+                    "file_count": 4,
+                    "files": [
+                        "list-kavling-akad.php",
+                        "list-kavling-batal.php",
+                        "list-kavling.php",
+                        "list-stock.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/promo",
-                    "file_count": 1
+                    "file_count": 1,
+                    "files": [
+                        "index.php"
+                    ]
+                },
+                {
+                    "folder": "app/Views/laporan",
+                    "file_count": 3,
+                    "files": [
+                        "booking-akad.php",
+                        "cash-in.php",
+                        "hasil-akad.php"
+                    ]
                 }
             ],
             "assets_js": [
                 {
                     "path": "public/assets/js/siteplan/mkdt.js",
                     "filename": "mkdt.js",
-                    "line_count": 3267
+                    "line_count": 3299
+                },
+                {
+                    "path": "public/assets/js/laporan-booking-akad.js",
+                    "filename": "laporan-booking-akad.js",
+                    "line_count": 691
                 }
             ],
             "routes": [
@@ -1759,6 +1876,30 @@
                     "uri": "/api/nup/kavling-history",
                     "type": "Explicit",
                     "handler": "NupController::kavlingHistory",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/laporan/booking-akad",
+                    "type": "Explicit",
+                    "handler": "BookingAkadReportController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/laporan/booking-akad/summary",
+                    "type": "Explicit",
+                    "handler": "BookingAkadReportController::summary",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/laporan/booking-akad/detail",
+                    "type": "Explicit",
+                    "handler": "BookingAkadReportController::detail",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -2020,6 +2161,17 @@
                     "pullToNup(array $post, ?UploadedFile $fileLampiran, int $actorId)",
                     "getKavlingOptions(int $idProyek, ?string $search = null, ?int $currentIdKavling = null, ?int $lastIdKavling = null, ?string $filterHargaJual = null)",
                     "getFormattedKavlingHistory(int $idMkdt = 0, int $idKavling = 0)"
+                ],
+                "BookingAkadReportService.php": [
+                    "getAvailableYears(int $idProyek)",
+                    "getSummary(int $idProyek, int $yearA, ?int $yearB = null)",
+                    "getDetail(int $idProyek, array|int $requestOrYear, ?int $month = null, ?string $category = null, array $dataTable = [])",
+                    "monthLabel(int $month)",
+                    "resolveStatusBadge(string $status)",
+                    "resolveStatusTerakhir(array $row)",
+                    "resolveTanggalStatusTerakhir(array $row, string $status)",
+                    "resolveCatatanMkdt(array $row)",
+                    "formatDate(?string $date)"
                 ]
             },
             "doc_path": "docs/modules/MKDT/MODULE.md"
@@ -2072,7 +2224,7 @@
                 {
                     "relative_path": "app/Controllers/Transaksi.php",
                     "filename": "Transaksi.php",
-                    "line_count": 253,
+                    "line_count": 270,
                     "public_methods": [
                         "getByID()",
                         "getStatusByID()",
@@ -2091,7 +2243,7 @@
                 {
                     "relative_path": "app/Controllers/Api/TransaksiController.php",
                     "filename": "TransaksiController.php",
-                    "line_count": 311,
+                    "line_count": 325,
                     "public_methods": [
                         "getByID()",
                         "getStatusByID()",
@@ -2165,7 +2317,7 @@
                 {
                     "relative_path": "app/Services/TransaksiService.php",
                     "filename": "TransaksiService.php",
-                    "line_count": 935,
+                    "line_count": 947,
                     "public_methods": [
                         "getBundle(?int $idMkdt, ?int $idHargajual, ?int $idKavling)",
                         "getStatusById($id_hargajual, $id_kavling, $id_mkdt)",
@@ -2212,7 +2364,7 @@
                 {
                     "relative_path": "app/Repositories/KavlingRepository.php",
                     "filename": "KavlingRepository.php",
-                    "line_count": 686,
+                    "line_count": 716,
                     "public_methods": [
                         "getKavlingByIdMkdt(int $id_mkdt)",
                         "getIdProyekByIdMkdt(int $id_mkdt)",
@@ -2253,7 +2405,10 @@
             "views": [
                 {
                     "folder": "app/Views/hargajual",
-                    "file_count": 1
+                    "file_count": 1,
+                    "files": [
+                        "index.php"
+                    ]
                 }
             ],
             "assets_js": [
@@ -3158,7 +3313,7 @@
                 {
                     "relative_path": "app/Services/HasilAkadReportService.php",
                     "filename": "HasilAkadReportService.php",
-                    "line_count": 187,
+                    "line_count": 199,
                     "public_methods": [
                         "getAvailableYears(int $idProyek)",
                         "getSummary(int $idProyek, int $yearA, ?int $yearB = null)",
@@ -3168,7 +3323,7 @@
                 {
                     "relative_path": "app/Services/PrintService.php",
                     "filename": "PrintService.php",
-                    "line_count": 634,
+                    "line_count": 643,
                     "public_methods": [
                         "printSpptb(int $idKavling, int $idMkdt, int $idProyek)",
                         "printKuitansi($var)",
@@ -3348,7 +3503,7 @@
                 {
                     "relative_path": "app/Repositories/HasilAkadReportRepository.php",
                     "filename": "HasilAkadReportRepository.php",
-                    "line_count": 310,
+                    "line_count": 363,
                     "public_methods": [
                         "getAvailableYearBounds(int $idProyek)",
                         "getMonthlyAkadTotals(int $idProyek, array $years)",
@@ -3477,23 +3632,59 @@
             "views": [
                 {
                     "folder": "app/Views/keuangan",
-                    "file_count": 4
+                    "file_count": 4,
+                    "files": [
+                        "list-hasil-akad.php",
+                        "list-tagihan.php",
+                        "pencairan-akad-import.php",
+                        "riwayat-bayar.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/cashout_kavling",
-                    "file_count": 1
+                    "file_count": 1,
+                    "files": [
+                        "index.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/cashout_subkon",
-                    "file_count": 1
+                    "file_count": 1,
+                    "files": [
+                        "index.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/laporan",
-                    "file_count": 2
+                    "file_count": 3,
+                    "files": [
+                        "booking-akad.php",
+                        "cash-in.php",
+                        "hasil-akad.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/pdf",
-                    "file_count": 17
+                    "file_count": 17,
+                    "files": [
+                        "invoice.php",
+                        "kuitansi_pembayaran-uangmuka.php",
+                        "kuitansi_pembayaran.bak.php",
+                        "kuitansi_pembayaran.php",
+                        "penagihan.php",
+                        "poskon-batal.php",
+                        "poskon.php",
+                        "slf.php",
+                        "slf_page3.php",
+                        "spptb-memo.php",
+                        "spptb-new-page2.php",
+                        "spptb-new-page3.php",
+                        "spptb-new.php",
+                        "spptb-page-next.php",
+                        "spptb-page1.php",
+                        "tagihan_keuangan.php",
+                        "testpdf.php"
+                    ]
                 }
             ],
             "assets_js": [
@@ -3540,7 +3731,7 @@
                 {
                     "path": "public/assets/js/laporan-hasil-akad.js",
                     "filename": "laporan-hasil-akad.js",
-                    "line_count": 228
+                    "line_count": 721
                 }
             ],
             "routes": [
@@ -4883,11 +5074,20 @@
             "views": [
                 {
                     "folder": "app/Views/legal",
-                    "file_count": 1
+                    "file_count": 1,
+                    "files": [
+                        "list-legalitas.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/public",
-                    "file_count": 4
+                    "file_count": 4,
+                    "files": [
+                        "landing.php",
+                        "legal_layout.php",
+                        "privacy_policy.php",
+                        "terms_of_service.php"
+                    ]
                 }
             ],
             "assets_js": [
@@ -5335,11 +5535,19 @@
             "views": [
                 {
                     "folder": "app/Views/checklist",
-                    "file_count": 3
+                    "file_count": 3,
+                    "files": [
+                        "checklistGroup.php",
+                        "checklistItem.php",
+                        "checklistSubItem.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/direksi",
-                    "file_count": 1
+                    "file_count": 1,
+                    "files": [
+                        "list-tagihan-pending.php"
+                    ]
                 }
             ],
             "assets_js": [
@@ -5895,9 +6103,10 @@
                 {
                     "relative_path": "app/Controllers/Web/Bpb/BpbController.php",
                     "filename": "BpbController.php",
-                    "line_count": 77,
+                    "line_count": 90,
                     "public_methods": [
                         "index()",
+                        "shared(string $token)",
                         "signature(int $id)",
                         "pdf(int $id)",
                         "verify(string $token)"
@@ -5939,11 +6148,12 @@
                 {
                     "relative_path": "app/Services/Bpb/BpbService.php",
                     "filename": "BpbService.php",
-                    "line_count": 664,
+                    "line_count": 693,
                     "public_methods": [
                         "list(array $input, int $userId)",
                         "options(int $userId)",
                         "detail(int $id, int $userId)",
+                        "detailByToken(string $token, int $userId)",
                         "saveDraft(array $data, array $uploads, int $userId)",
                         "submit(array $data, array $uploads, int $userId, string $ip, string $agent)",
                         "update(int $id, array $data, array $uploads, int $userId, string $ip, string $agent)",
@@ -5957,7 +6167,7 @@
                 {
                     "relative_path": "app/Services/Bpb/BpbWorkflow.php",
                     "filename": "BpbWorkflow.php",
-                    "line_count": 63,
+                    "line_count": 69,
                     "public_methods": [
                         "labels()",
                         "label(string $status)",
@@ -6019,11 +6229,12 @@
                 {
                     "relative_path": "app/Repositories/Bpb/BpbRepository.php",
                     "filename": "BpbRepository.php",
-                    "line_count": 206,
+                    "line_count": 221,
                     "public_methods": [
                         "list(array $input, int $userId)",
                         "detail(int $id)",
                         "findForVerification(string $token)",
+                        "findByShareToken(string $token)",
                         "lock(int $id)",
                         "findBySubmissionKey(string $key)",
                         "options(int $excludeUserId)",
@@ -6083,14 +6294,20 @@
             "views": [
                 {
                     "folder": "app/Views/bpb",
-                    "file_count": 3
+                    "file_count": 4,
+                    "files": [
+                        "index.php",
+                        "pdf.php",
+                        "shared.php",
+                        "verify.php"
+                    ]
                 }
             ],
             "assets_js": [
                 {
                     "path": "public/assets/js/bpb.js",
                     "filename": "bpb.js",
-                    "line_count": 628
+                    "line_count": 835
                 },
                 {
                     "path": "public/assets/js/profile-signature.js",
@@ -6104,6 +6321,14 @@
                     "uri": "/bpb",
                     "type": "Explicit",
                     "handler": "BpbController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/bpb/shared/(:segment)",
+                    "type": "Explicit",
+                    "handler": "BpbController::shared/$1",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -6249,6 +6474,7 @@
                     "list(array $input, int $userId)",
                     "options(int $userId)",
                     "detail(int $id, int $userId)",
+                    "detailByToken(string $token, int $userId)",
                     "saveDraft(array $data, array $uploads, int $userId)",
                     "submit(array $data, array $uploads, int $userId, string $ip, string $agent)",
                     "update(int $id, array $data, array $uploads, int $userId, string $ip, string $agent)",
@@ -6421,7 +6647,10 @@
             "views": [
                 {
                     "folder": "app/Views/tiket_masalah",
-                    "file_count": 1
+                    "file_count": 1,
+                    "files": [
+                        "index.php"
+                    ]
                 }
             ],
             "assets_js": [
@@ -6751,7 +6980,13 @@
             "views": [
                 {
                     "folder": "app/Views/mgm",
-                    "file_count": 4
+                    "file_count": 4,
+                    "files": [
+                        "index.php",
+                        "modal_bonus_action.php",
+                        "modal_detail_pencairan.php",
+                        "modal_setting_stages.php"
+                    ]
                 }
             ],
             "assets_js": [
@@ -6928,21 +7163,17 @@
         "SalesExternal": {
             "name": "SalesExternal",
             "description": "Pengelolaan Master Data Sales External, PKS, tarif komisi, serta pengajuan, verifikasi tanda tangan, dan pencairan Fee Sales bertahap/batch.",
-            "status": "MAPPED",
-            "readiness_score": 60,
+            "status": "REFACTORED",
+            "readiness_score": 100,
             "readiness_checklist": {
-                "has_service": false,
-                "has_repository": false,
-                "has_web_api_split": false,
+                "has_service": true,
+                "has_repository": true,
+                "has_web_api_split": true,
                 "has_explicit_routes": true,
-                "zero_controller_violations": false,
+                "zero_controller_violations": true,
                 "has_documentation": true
             },
-            "controller_violations": {
-                "app/Controllers/Web/SalesExternalController.php": [
-                    "new ProyekModel()"
-                ]
-            },
+            "controller_violations": [],
             "owner_tables": [
                 "sales",
                 "sales_history",
@@ -6957,13 +7188,16 @@
                 "konsumen",
                 "kavling",
                 "proyek",
-                "keuangan"
+                "keuangan",
+                "pencairan_akad_plan",
+                "pencairan_akad_pengajuan",
+                "pencairan_akad_payment"
             ],
             "controllers": [
                 {
-                    "relative_path": "app/Controllers/Web/SalesExternalController.php",
+                    "relative_path": "app/Controllers/Web/SalesExternal/SalesExternalController.php",
                     "filename": "SalesExternalController.php",
-                    "line_count": 165,
+                    "line_count": 176,
                     "public_methods": [
                         "index()",
                         "feeSales()",
@@ -6971,14 +7205,12 @@
                         "pengajuanSignature(int $id, string $role)",
                         "pengajuanShared(string $token)"
                     ],
-                    "violations": [
-                        "new ProyekModel()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/SalesExternalController.php",
+                    "relative_path": "app/Controllers/Api/SalesExternal/SalesExternalController.php",
                     "filename": "SalesExternalController.php",
-                    "line_count": 435,
+                    "line_count": 522,
                     "public_methods": [
                         "listMasterSales()",
                         "getSales(int $id)",
@@ -6999,12 +7231,14 @@
                         "getPengajuanGroupDetail(int $id)",
                         "konfirmasiCairGroup()",
                         "voidPengajuanGroup()",
-                        "signPengajuanGroup()"
+                        "signPengajuanGroup()",
+                        "rejectPengajuanGroup()",
+                        "recalculateTermin()"
                     ],
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Web/Settings/FeeSalesSettingController.php",
+                    "relative_path": "app/Controllers/Web/SalesExternal/FeeSalesSettingController.php",
                     "filename": "FeeSalesSettingController.php",
                     "line_count": 22,
                     "public_methods": [
@@ -7013,7 +7247,7 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/Settings/FeeSalesSettingController.php",
+                    "relative_path": "app/Controllers/Api/SalesExternal/FeeSalesSettingController.php",
                     "filename": "FeeSalesSettingController.php",
                     "line_count": 93,
                     "public_methods": [
@@ -7025,9 +7259,9 @@
             ],
             "services": [
                 {
-                    "relative_path": "app/Services/SalesExternalService.php",
+                    "relative_path": "app/Services/SalesExternal/SalesExternalService.php",
                     "filename": "SalesExternalService.php",
-                    "line_count": 1456,
+                    "line_count": 1831,
                     "public_methods": [
                         "saveMasterSales(array $data, ?int $userId, ?UploadedFile $filePks = null)",
                         "saveFeeHeader(array $data, int|bool|null $userId = null, bool $sendNotification = true)",
@@ -7039,19 +7273,21 @@
                         "createPengajuanGroup(array $data, ?int $userId, ?UploadedFile $fileSpp = null)",
                         "voidPengajuanGroup(int $idPengajuan, string $alasan, int $userId)",
                         "signPengajuanGroup(int $idPengajuan, string $role, array $data, int $userId)",
+                        "rejectPengajuanGroup(int $idPengajuan, string $role, array $data, int $userId)",
+                        "recalculateTerminNominals(array $data, int $userId)",
                         "confirmPencairanGroup(int $idPengajuan, array $data, ?int $userId, ?UploadedFile $fileBukti = null)"
                     ]
                 },
                 {
-                    "relative_path": "app/Services/FeeSalesPdfService.php",
+                    "relative_path": "app/Services/SalesExternal/FeeSalesPdfService.php",
                     "filename": "FeeSalesPdfService.php",
-                    "line_count": 97,
+                    "line_count": 116,
                     "public_methods": [
                         "render(int $idPengajuan)"
                     ]
                 },
                 {
-                    "relative_path": "app/Services/Settings/FeeSalesSettingService.php",
+                    "relative_path": "app/Services/SalesExternal/FeeSalesSettingService.php",
                     "filename": "FeeSalesSettingService.php",
                     "line_count": 212,
                     "public_methods": [
@@ -7063,11 +7299,13 @@
             ],
             "repositories": [
                 {
-                    "relative_path": "app/Repositories/SalesExternalRepository.php",
+                    "relative_path": "app/Repositories/SalesExternal/SalesExternalRepository.php",
                     "filename": "SalesExternalRepository.php",
-                    "line_count": 779,
+                    "line_count": 904,
                     "public_methods": [
+                        "getMkdtIdByFeeSalesId(int $idFeeSales)",
                         "hasGeneratedTerminByMkdt(int $idMkdt)",
+                        "hasCairTerminByMkdt(int $idMkdt)",
                         "userSnapshot(int $userId)",
                         "getMasterSalesList(array $params = [])",
                         "getSalesById(int $id)",
@@ -7110,25 +7348,44 @@
                 {
                     "relative_path": "app/Models/FeeSalesPengajuanModel.php",
                     "filename": "FeeSalesPengajuanModel.php",
-                    "line_count": 48,
+                    "line_count": 53,
                     "public_methods": []
                 },
                 {
                     "relative_path": "app/Models/FeeSalesPengajuanItemModel.php",
                     "filename": "FeeSalesPengajuanItemModel.php",
-                    "line_count": 24,
+                    "line_count": 25,
                     "public_methods": []
                 }
             ],
-            "shims": [],
+            "shims": [
+                "app/Controllers/Web/SalesExternalController.php",
+                "app/Controllers/Api/SalesExternalController.php",
+                "app/Controllers/Web/Settings/FeeSalesSettingController.php",
+                "app/Controllers/Api/Settings/FeeSalesSettingController.php",
+                "app/Services/SalesExternalService.php",
+                "app/Services/FeeSalesPdfService.php",
+                "app/Services/Settings/FeeSalesSettingService.php",
+                "app/Repositories/SalesExternalRepository.php"
+            ],
             "views": [
                 {
                     "folder": "app/Views/sales",
-                    "file_count": 4
+                    "file_count": 4,
+                    "files": [
+                        "fee_sales.php",
+                        "master_sales.php",
+                        "pdf_pengajuan_fee.php",
+                        "pengajuan_fee_shared.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/setting",
-                    "file_count": 2
+                    "file_count": 2,
+                    "files": [
+                        "data.php",
+                        "fee_sales_access.php"
+                    ]
                 }
             ],
             "assets_js": [
@@ -7140,7 +7397,7 @@
                 {
                     "path": "public/assets/js/sales/fee_sales.js",
                     "filename": "fee_sales.js",
-                    "line_count": 2551
+                    "line_count": 3246
                 }
             ],
             "routes": [
@@ -7148,7 +7405,7 @@
                     "http_method": "GET",
                     "uri": "/master-sales",
                     "type": "Explicit",
-                    "handler": "\\App\\Controllers\\Web\\SalesExternalController::index",
+                    "handler": "\\App\\Controllers\\Web\\SalesExternal\\SalesExternalController::index",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -7156,7 +7413,7 @@
                     "http_method": "GET",
                     "uri": "/fee-sales",
                     "type": "Explicit",
-                    "handler": "\\App\\Controllers\\Web\\SalesExternalController::feeSales",
+                    "handler": "\\App\\Controllers\\Web\\SalesExternal\\SalesExternalController::feeSales",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -7164,7 +7421,7 @@
                     "http_method": "GET",
                     "uri": "/fee-sales/pengajuan-pdf/(:num)",
                     "type": "Explicit",
-                    "handler": "\\App\\Controllers\\Web\\SalesExternalController::pengajuanPdf/$1",
+                    "handler": "\\App\\Controllers\\Web\\SalesExternal\\SalesExternalController::pengajuanPdf/$1",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -7172,7 +7429,7 @@
                     "http_method": "GET",
                     "uri": "/fee-sales/export-pdf-pengajuan/(:num)",
                     "type": "Explicit",
-                    "handler": "\\App\\Controllers\\Web\\SalesExternalController::pengajuanPdf/$1",
+                    "handler": "\\App\\Controllers\\Web\\SalesExternal\\SalesExternalController::pengajuanPdf/$1",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -7180,7 +7437,7 @@
                     "http_method": "GET",
                     "uri": "/fee-sales/pengajuan-signature/(:num)/(:segment)",
                     "type": "Explicit",
-                    "handler": "\\App\\Controllers\\Web\\SalesExternalController::pengajuanSignature/$1/$2",
+                    "handler": "\\App\\Controllers\\Web\\SalesExternal\\SalesExternalController::pengajuanSignature/$1/$2",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -7188,7 +7445,7 @@
                     "http_method": "GET",
                     "uri": "/fee-sales/pengajuan/(:segment)",
                     "type": "Explicit",
-                    "handler": "\\App\\Controllers\\Web\\SalesExternalController::pengajuanShared/$1",
+                    "handler": "\\App\\Controllers\\Web\\SalesExternal\\SalesExternalController::pengajuanShared/$1",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -7361,10 +7618,26 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
+                    "http_method": "POST",
+                    "uri": "/api/sales-external/reject-group",
+                    "type": "Explicit",
+                    "handler": "SalesExternalController::rejectPengajuanGroup",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/sales-external/recalculate-termin",
+                    "type": "Explicit",
+                    "handler": "SalesExternalController::recalculateTermin",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
                     "http_method": "GET",
                     "uri": "/setting-fee-sales",
                     "type": "Explicit",
-                    "handler": "FeeSalesSettingController::index",
+                    "handler": "\\App\\Controllers\\Web\\SalesExternal\\FeeSalesSettingController::index",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -7397,6 +7670,8 @@
                     "createPengajuanGroup(array $data, ?int $userId, ?UploadedFile $fileSpp = null)",
                     "voidPengajuanGroup(int $idPengajuan, string $alasan, int $userId)",
                     "signPengajuanGroup(int $idPengajuan, string $role, array $data, int $userId)",
+                    "rejectPengajuanGroup(int $idPengajuan, string $role, array $data, int $userId)",
+                    "recalculateTerminNominals(array $data, int $userId)",
                     "confirmPencairanGroup(int $idPengajuan, array $data, ?int $userId, ?UploadedFile $fileBukti = null)"
                 ],
                 "FeeSalesPdfService.php": [
@@ -7641,7 +7916,10 @@
             "views": [
                 {
                     "folder": "app/Views/emails",
-                    "file_count": 1
+                    "file_count": 1,
+                    "files": [
+                        "email_digest.php"
+                    ]
                 }
             ],
             "assets_js": [
@@ -7991,7 +8269,7 @@
                 {
                     "relative_path": "app/Services/UserManagement/ProfilService.php",
                     "filename": "ProfilService.php",
-                    "line_count": 230,
+                    "line_count": 229,
                     "public_methods": [
                         "getIndexData(int $userId)",
                         "updateProfile(int $userId, array $postData, ?UploadedFile $photo = null)",
@@ -8095,11 +8373,28 @@
             "views": [
                 {
                     "folder": "app/Views/user",
-                    "file_count": 4
+                    "file_count": 4,
+                    "files": [
+                        "login.php",
+                        "profil.php",
+                        "register.php",
+                        "setuser.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/master",
-                    "file_count": 9
+                    "file_count": 9,
+                    "files": [
+                        "aksesproyek.php",
+                        "cluster.php",
+                        "configcolor.php",
+                        "jalan.php",
+                        "karyawan.php",
+                        "listbank.php",
+                        "pengaturanWarna.php",
+                        "proyek.php",
+                        "tipe.php"
+                    ]
                 }
             ],
             "assets_js": [],
@@ -8692,15 +8987,33 @@
             "views": [
                 {
                     "folder": "app/Views/setting",
-                    "file_count": 2
+                    "file_count": 2,
+                    "files": [
+                        "data.php",
+                        "fee_sales_access.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/menu",
-                    "file_count": 1
+                    "file_count": 1,
+                    "files": [
+                        "setting.php"
+                    ]
                 },
                 {
                     "folder": "app/Views/master",
-                    "file_count": 9
+                    "file_count": 9,
+                    "files": [
+                        "aksesproyek.php",
+                        "cluster.php",
+                        "configcolor.php",
+                        "jalan.php",
+                        "karyawan.php",
+                        "listbank.php",
+                        "pengaturanWarna.php",
+                        "proyek.php",
+                        "tipe.php"
+                    ]
                 }
             ],
             "assets_js": [],
@@ -9534,7 +9847,10 @@
             "views": [
                 {
                     "folder": "app/Views/riwayat_perubahan",
-                    "file_count": 1
+                    "file_count": 1,
+                    "files": [
+                        "index.php"
+                    ]
                 }
             ],
             "assets_js": [],
@@ -9577,6 +9893,210 @@
                 ]
             },
             "doc_path": "docs/modules/AuditTrail/MODULE.md"
+        },
+        "Home": {
+            "name": "Home",
+            "description": "Dashboard eksekutif dan operasional multi-departemen, ringkasan metrik lintas divisi, antrean tindakan cepat (Action Queue), peringatan dini berbasis wewenang role, serta pemantauan log aktivitas sistem.",
+            "status": "MAPPED",
+            "readiness_score": 40,
+            "readiness_checklist": {
+                "has_service": false,
+                "has_repository": false,
+                "has_web_api_split": false,
+                "has_explicit_routes": false,
+                "zero_controller_violations": false,
+                "has_documentation": true
+            },
+            "controller_violations": {
+                "app/Controllers/Home.php": [
+                    "db_connect()",
+                    "$this->db->table()",
+                    "new ProyekModel()"
+                ]
+            },
+            "owner_tables": [],
+            "shared_tables": [
+                "mkdt",
+                "kavling",
+                "jalan",
+                "cluster",
+                "proyek",
+                "keuangan",
+                "produksi",
+                "legal",
+                "spk_bangunan",
+                "bpb_requests",
+                "referral_bonuses",
+                "fee_sales_pengajuan",
+                "kavling_request",
+                "history_log",
+                "tiket_masalah",
+                "others"
+            ],
+            "controllers": [
+                {
+                    "relative_path": "app/Controllers/Home.php",
+                    "filename": "Home.php",
+                    "line_count": 624,
+                    "public_methods": [
+                        "index()",
+                        "dashboard()",
+                        "getData($id_proyek, $sdate, $edate)",
+                        "getDashboard()",
+                        "getBookingAkad($field = 'booking_tgl', $id_proyek = null, $thn = null, $bln = null)",
+                        "loadAktivitas()",
+                        "generateMenu($menu)",
+                        "getMenuBtn()",
+                        "getMenuItemsJson()",
+                        "getKop()",
+                        "getHak($id_user, $nama_hak = null)"
+                    ],
+                    "violations": [
+                        "db_connect()",
+                        "$this->db->table()",
+                        "new ProyekModel()"
+                    ]
+                }
+            ],
+            "services": [
+                {
+                    "relative_path": "app/Services/DashboardService.php",
+                    "filename": "DashboardService.php",
+                    "line_count": 577,
+                    "public_methods": [
+                        "getRoleContext()",
+                        "getDepartmentMetrics(int $idProyek, string $sdate, string $edate)",
+                        "getActionQueue(int $idProyek, array $roleContext)",
+                        "buildRoleAwareAlerts(array $alertCounts, array $production, array $deptMetrics, array $finance, array $roleContext)"
+                    ]
+                }
+            ],
+            "repositories": [],
+            "models": [],
+            "shims": [],
+            "views": [
+                {
+                    "folder": "app/Views/home",
+                    "file_count": 1,
+                    "files": [
+                        "dashboard.php"
+                    ]
+                }
+            ],
+            "assets_js": [
+                {
+                    "path": "public/assets/js/dashboard.js",
+                    "filename": "dashboard.js",
+                    "line_count": 1185
+                }
+            ],
+            "routes": [
+                {
+                    "http_method": "GET",
+                    "uri": "/dashboard",
+                    "type": "Explicit",
+                    "handler": "Home::dashboard",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/",
+                    "type": "Explicit",
+                    "handler": "Home::dashboard",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/loadaktivitas",
+                    "type": "Explicit",
+                    "handler": "Home::loadAktivitas",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/get-dashboard",
+                    "type": "Explicit",
+                    "handler": "Home::getDashboard",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/home/getMenuItemsJson",
+                    "type": "Explicit",
+                    "handler": "Home::getMenuItemsJson",
+                    "status": "\ud83d\udfe1 LEGACY",
+                    "notes": "Rute eksplisit ke flat controller lama"
+                },
+                {
+                    "http_method": "ANY",
+                    "uri": "/home/index",
+                    "type": "AutoRoute",
+                    "handler": "Home::index",
+                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
+                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                },
+                {
+                    "http_method": "ANY",
+                    "uri": "/home/getdata",
+                    "type": "AutoRoute",
+                    "handler": "Home::getData",
+                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
+                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                },
+                {
+                    "http_method": "ANY",
+                    "uri": "/home/getbookingakad",
+                    "type": "AutoRoute",
+                    "handler": "Home::getBookingAkad",
+                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
+                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                },
+                {
+                    "http_method": "ANY",
+                    "uri": "/home/generatemenu",
+                    "type": "AutoRoute",
+                    "handler": "Home::generateMenu",
+                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
+                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                },
+                {
+                    "http_method": "ANY",
+                    "uri": "/home/getmenubtn",
+                    "type": "AutoRoute",
+                    "handler": "Home::getMenuBtn",
+                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
+                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                },
+                {
+                    "http_method": "ANY",
+                    "uri": "/home/getkop",
+                    "type": "AutoRoute",
+                    "handler": "Home::getKop",
+                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
+                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                },
+                {
+                    "http_method": "ANY",
+                    "uri": "/home/gethak",
+                    "type": "AutoRoute",
+                    "handler": "Home::getHak",
+                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
+                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                }
+            ],
+            "service_contracts": {
+                "DashboardService.php": [
+                    "getRoleContext()",
+                    "getDepartmentMetrics(int $idProyek, string $sdate, string $edate)",
+                    "getActionQueue(int $idProyek, array $roleContext)",
+                    "buildRoleAwareAlerts(array $alertCounts, array $production, array $deptMetrics, array $finance, array $roleContext)"
+                ]
+            },
+            "doc_path": "docs/modules/Home/MODULE.md"
         }
     },
     "unmapped_files": {

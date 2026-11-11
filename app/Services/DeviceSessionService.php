@@ -74,6 +74,43 @@ class DeviceSessionService
         return $row ? $this->publicDevice($row) : null;
     }
 
+    public function resolveActiveByToken(string $rawToken): ?array
+    {
+        $rawToken = trim($rawToken);
+        if ($rawToken === '') {
+            return null;
+        }
+
+        $row = $this->repository->findActiveByTokenHashOnly(
+            $this->hashToken($rawToken),
+            $this->now()->format('Y-m-d H:i:s'),
+        );
+
+        return $row ? $this->publicDevice($row) : null;
+    }
+
+    public function revokeByToken(string $rawToken, ?string $reason = 'user_logout'): bool
+    {
+        $rawToken = trim($rawToken);
+        if ($rawToken === '') {
+            return false;
+        }
+
+        $row = $this->repository->findActiveByTokenHashOnly(
+            $this->hashToken($rawToken),
+            $this->now()->format('Y-m-d H:i:s'),
+        );
+
+        if (! $row) {
+            return false;
+        }
+
+        $userId = (int) $row['user_id'];
+        $deviceId = (int) $row['id'];
+
+        return $this->revokeOne($userId, $deviceId, $userId, $reason);
+    }
+
     public function resolveActiveForRemember(string $rawToken, string $rememberSelector): ?array
     {
         $selector = $this->nullableLimited($rememberSelector, 255);

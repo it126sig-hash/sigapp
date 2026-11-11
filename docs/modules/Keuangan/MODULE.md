@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-11-04 22:56:08` @ `46ddc13`  
+**Last Synced:** `2026-11-09 12:10:04` @ `e238e4a`  
 
 ## Purpose
 Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operasional, SPP, bank KPR, pajak, dan ledger kas.
@@ -39,9 +39,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `pencairan_akad_pengajuan_detail` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 - `pencairan_akad_payment` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 - `pencairan_akad_payment_detail` *(akses tulis eksklusif hanya untuk modul Keuangan)*
-- `invoice_log` *(akses tulis eksklusif hanya untuk modul Keuangan)*:
-  - **Skema Kolom Tambahan (Migrasi 2026-11-04):** `status_tagihan` (`VARCHAR(50)`, NOT NULL, DEFAULT `'draft'`), `tanggal_ubah_status` (`DATE`, NULL), `keterangan_status` (`TEXT`, NULL), `tanggal_kirim` (`DATETIME`, NULL).
-  - **Index:** `idx_invoice_log_status_tagihan` (`status_tagihan`).
+- `invoice_log` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 - `invoice_status_log` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 
 ### Shared Tables (Dibaca dari modul lain)
@@ -370,7 +368,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Services/Keuangan/Cashout/CashoutKavlingService.php` (132 baris, 2 public methods)
 - `app/Services/Keuangan/Cashout/CashoutSubkonService.php` (822 baris, 10 public methods)
 - `app/Services/CashInReportService.php` (212 baris, 4 public methods)
-- `app/Services/HasilAkadReportService.php` (187 baris, 3 public methods)
+- `app/Services/HasilAkadReportService.php` (199 baris, 3 public methods)
 - `app/Services/PrintService.php` (643 baris, 6 public methods)
 - `app/Services/DanaJaminanService.php` (637 baris, 7 public methods)
 
@@ -386,7 +384,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Repositories/Keuangan/Cashout/CashoutKavlingRepo.php` (228 baris, 3 public methods: `getDataTables(array $var)`, `getDetailList(int $idKavling)`, `getCashoutRowsByKavling(int $idKavling)`)
 - `app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php` (455 baris, 20 public methods: `getSubkonByID(int $id_subkon)`, `getDataTables(array $var)`, `getDetailsByCashoutSubkonIds(array $ids)`, `getListCashoutKavling(array $id_kavlings)`, `getCashoutSubkonByID(int $id_cashout_subkon)`, `getKavlingSubkonByID(int $id_cashout_subkon)`, `getListItemDetailByIDCashoutsubkon(int $id_cashout_subkon)`, `upsertSubkon($id_subkon, array $data)`, `saveCashoutSubkon(array $data)`, `saveCashoutSubkonDetail(array $data)`, `getKavlingBySubkonId(int $id_cashout_subkon)`, `getDetailByID(int $id_detail)`, `updateDetail(int $id_detail, array $data)`, `saveHistory(int $id_cashout_subkon, string $keterangan, int $status)`, `getDetailByCashoutSubkonID(int $id_cashout_subkon)`, `syncAutomaticDetailAllocations(int $id_cashout_subkon, array $id_kavlings)`, `getAllocationsByDetailID(int $id_cashout_subkon_detail)`, `updateCashoutSubkonStatus(int $id_cashout_subkon, int $status)`, `saveCashoutSubkonKavling(array $data)`, `getHistoryByIDCashoutSubkon($id_cashout_subkon)`)
 - `app/Repositories/CashInReportRepository.php` (233 baris, 4 public methods: `getAvailableYearBounds(int $idProyek)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`)
-- `app/Repositories/HasilAkadReportRepository.php` (310 baris, 5 public methods: `getAvailableYearBounds(int $idProyek)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getMonthlyPengajuanTotals(int $idProyek, array $years)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`)
+- `app/Repositories/HasilAkadReportRepository.php` (363 baris, 5 public methods: `getAvailableYearBounds(int $idProyek)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getMonthlyPengajuanTotals(int $idProyek, array $years)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`)
 - `app/Repositories/SpptbRepository.php` (23 baris, 1 public methods: `getLatestByMkdtId(int $idMkdt, int $limit = 3)`)
 
 ### Models (16)
@@ -423,7 +421,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `public/assets/js/keuangan/penagihan.js` (1041 baris)
 - `public/assets/js/cashout_kavling/index.js` (128 baris)
 - `public/assets/js/laporan-cash-in.js` (473 baris)
-- `public/assets/js/laporan-hasil-akad.js` (228 baris)
+- `public/assets/js/laporan-hasil-akad.js` (721 baris)
 
 ## Key Functions
 - **Service (`app/Services/KeuanganService.php`):** `simpanIsiTagihan($request, int $actorId)`, `simpanDanaAkad($request, int $actorId)`, `simpanInvoice($request, int $actorId)`, `updateSudahDibayar($request)`, `syncTagihan(int $idMkdt, array $um, int $actorId)`, `simpanPenagihan($request, int $actorId)` (Validasi kop surat, item tagihan, nomor surat duplikat, dan persistensi invoice log berstatus draft/publish), `updateStatusPenagihan($request, int $actorId)` (Transisi status tagihan dan pencatatan audit trail status log), `setTanggalKirim($no_inv)`
@@ -439,7 +437,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - **Service (`app/Services/Keuangan/Cashout/CashoutKavlingService.php`):** `getDataTables(array $var)`, `getDetailList(int $idKavling)`
 - **Service (`app/Services/Keuangan/Cashout/CashoutSubkonService.php`):** `getDataTables(array $var)`, `getDetailList(int $id_cashout_subkon)`, `getCashoutSubkon(array $id_kavlings, ?int $id_cashout_subkon = null)`, `saveCashoutSubkon($post)`, `turunJatuhTempo($id_detail, $tanggal_jatuh_tempo, $berita_acara)`
 - **Service (`app/Services/CashInReportService.php`):** `getAvailableYears(int $idProyek)`, `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`, `getDetail(int $idProyek, array $request)`, `monthLabel(int $month)`
-- **Service (`app/Services/HasilAkadReportService.php`):** `getAvailableYears(int $idProyek)`, `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`, `getDetail(int $idProyek, array $request)`
+- **Service (`app/Services/HasilAkadReportService.php`):** `getAvailableYears(int $idProyek)`, `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`, `getDetail(int $idProyek, array $request)`. Mendukung kategori aktif `'akad'` berdampingan dengan backward-compatibility `'penjualan'`, `'pengajuan'`, dan `'cair'`; kalkulasi key finansial `total_hasil_akad` (akumulasi `m.harga_kpr_acc` dari `mkdt`), `total_akad`, dan `total_penjualan` pada payload summary bulanan & total tahunan via helper `assignAkadRow()` dan `emptyAmounts()`; normalisasi parameter request dan whitelist ordering column DataTables detail (`konsumen`, `kavling`, `tipe_rumah`, `total_hasil_akad`, `nominal`, `booking_tgl`, `akad_tgl`, `harga_jual`, `total_sudah_cair`, `tanggal_pengajuan`, `tanggal_cair`) via `normalizeDataTableRequest()`.
 - **Service (`app/Services/PrintService.php`):** `printSpptb(int $idKavling, int $idMkdt, int $idProyek)`, `printKuitansi($var)`, `printKuitansiUm($var)`, `exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)`, `exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status)`
 - **Service (`app/Services/DanaJaminanService.php`):** `getData(int $idMkdt, int $idKavling)`, `saveDanaAkad($request, int $actorId)`, `listPengajuan(int $idKavling)`, `storePengajuan($request, int $actorId)`, `cairkanPengajuan(int $idPengajuan, $request, int $actorId)`
 - **Repository (`app/Repositories/KeuanganRepository.php`):** `getTagihanById(int $idMkdt)`, `getTagihanTurunKPRById(int $idMkdt)`, `getAllJatuhTempo($id_proyek)`, `getLIKeu()`, `getBelumLunasQuery()`
@@ -453,8 +451,14 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - **Repository (`app/Repositories/Keuangan/Cashout/CashoutKavlingRepo.php`):** `getDataTables(array $var)`, `getDetailList(int $idKavling)`, `getCashoutRowsByKavling(int $idKavling)`
 - **Repository (`app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php`):** `getSubkonByID(int $id_subkon)`, `getDataTables(array $var)`, `getDetailsByCashoutSubkonIds(array $ids)`, `getListCashoutKavling(array $id_kavlings)`, `getCashoutSubkonByID(int $id_cashout_subkon)`
 - **Repository (`app/Repositories/CashInReportRepository.php`):** `getAvailableYearBounds(int $idProyek)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`
-- **Repository (`app/Repositories/HasilAkadReportRepository.php`):** `getAvailableYearBounds(int $idProyek)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getMonthlyPengajuanTotals(int $idProyek, array $years)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`
+- **Repository (`app/Repositories/HasilAkadReportRepository.php`):** `getAvailableYearBounds(int $idProyek)`, `getMonthlyAkadTotals(int $idProyek, array $years)` (mengakumulasikan `m.harga_kpr_acc` sebagai `total_hasil_akad`), `getMonthlyPengajuanTotals(int $idProyek, array $years)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`. Dilengkapi builder kueri detail modular `compileDetailQuery()` dengan helper SQL builder: `tipeRumahSql()`, `isSubsidiSql()`, dan `totalSudahCairSql()` untuk join ke tabel `tipe` dan `hargajual` serta subquery agregasi pencairan; perluasan multi-column search builder untuk DataTables server-side (`tipe_rumah`, `alamat_kavling`, `nama_konsumen`, `jenis_laporan`, `tanggal_transaksi`).
 - **Repository (`app/Repositories/SpptbRepository.php`):** `getLatestByMkdtId(int $idMkdt, int $limit = 3)`
+- **Frontend Assets (`public/assets/js/laporan-hasil-akad.js`):** Menangani rendering matriks komparasi 3 kolom (`Total Hasil Akad`, `Total Pengajuan`, `Total Cair`), chart bulanan berlabel `Total Hasil Akad <Tahun>`, dan modal detail dinamis server-side DataTables:
+  - Detail `Total Hasil Akad` (6 kolom): `Nama Konsumen / Kavling` (gabungan nama konsumen, alamat kavling, tipe rumah + badge Subsidi/Komersil rata kiri), `Tgl Booking`, `Tgl Akad`, `Total Hasil Akad` (nominal `m.harga_kpr_acc` tebal), `Total Sudah Cair` (nominal pencairan hijau tebal + pill badge persentase ketercairan), dan `Aksi` (Detail Kavling Siteplan & Kelola Pencairan Akad).
+  - Detail `Total Pengajuan` & `Total Cair` (5 kolom): `Nama Konsumen / Kavling` (gabungan rata kiri), `Tgl Pengajuan`, `Status & Rincian` (teks rincian item termin/retensi di baris 1, horizontal flexbox badge status di kiri dan tanggal pencairan di kanan pada baris 2), `Nominal` (tebal rata kanan), dan `Aksi`.
+  - Helper rendering modular: `renderKonsumenKavling(row)`, `renderStatusRincian(row, category)`, dan `renderActionButtons(row)`.
+- **View & Modal Detail Integration (`app/Views/laporan/hasil-akad.php`):** Mengintegrasikan partial stylesheet `<style><?= view('siteplan/partials/modal_detail_styles') ?></style>`, vendor assets Flatpickr (CSS/JS) & Select2 (CSS/JS), serta inisialisasi lingkungan JS yang tahan redeklarasi (`window.base_url` dan `window.loaded = window.loaded || []`) untuk menjamin render modal detail kavling (`siteplan-detail-modal.js`) berjalan mulus tanpa error JS/CSS.
+- **Service Dependency (`app/Services/FileAccessService.php`):** Otorisasi whitelist kategori berkas `'gambar_kerja'` dibuka untuk role Keuangan (`3`) bersama seluruh peran operasional (`[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]`), memastikan denah arsitektur kavling dapat diakses dan ditampilkan di modal detail kavling tanpa HTTP 403 Forbidden.
 
 ## Deprecated & Legacy Shims
 - Route `POST /keuangan/jatuhtempo/get` (`Keuangan::getJatuhTempo`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
@@ -616,8 +620,59 @@ _Jalankan `php spark module:deadcode Keuangan` untuk mengaudit dead code kandida
   - Komponen legacy `PencairanJaminan.php`, `DanaJaminanService.php`, dan rute `/pencairan/*` berstatus **DEPRECATED** dan dijadwalkan untuk dihapus tuntas saat sesi refaktor Modul Keuangan.
   - Seluruh fungsionalitas retensi jaminan perbankan telah digantikan sepenuhnya oleh sub-modul terpadu `PencairanAkad` (`pencairan_akad_*`) dengan rute `/keuangan/pencairan-akad/*`.
   - Tidak ada modul lain (MKDT, Legal, Produksi, Promosi, dsb.) yang mengakses controller maupun service ini.
+- **Integrasi Modal Detail Kavling & Autorisasi File Gambar Kerja (Pembaruan 2026-11-09):**
+  - Tampilan laporan Hasil Akad (`app/Views/laporan/hasil-akad.php`) mengintegrasikan modal detail kavling lintas modul (`siteplan/partials/modal_detail` & `siteplan-detail-modal.js`).
+  - Dependensi visual modal (Flatpickr CSS/JS, Select2 CSS/JS, dan `modal_detail_styles`) diinisialisasi secara eksplisit pada view laporan bersama runtime environment tahan redeklarasi (`window.base_url` dan `window.loaded = window.loaded || []`).
+  - Whitelist otorisasi kategori berkas `'gambar_kerja'` pada `FileAccessService` mencakup role Keuangan (3), memastikan gambar denah arsitektur kavling tampil dengan aman saat dibuka oleh staf Keuangan tanpa HTTP 403 Forbidden.
 
 ## Change Log
+- **2026-11-09 [`BUGFIX`] — Penyempurnaan Asset & Autorisasi Render Modal Detail Kavling:**
+  - **Routes & Public Contracts:**
+    - `app/Services/FileAccessService.php`: Memperbarui whitelist role kategori `'gambar_kerja'` menjadi `[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]` sehingga role Keuangan (3) dan seluruh peran operasional lainnya dapat memuat denah dan gambar arsitektural kavling tanpa terkena HTTP 403 Forbidden.
+  - **Controller / Service / Repo / Model:**
+    - Otorisasi akses berkas pada layer `FileAccessService` diperluas untuk kategori `'gambar_kerja'` mencakup role Keuangan.
+  - **View / CSS / JS:**
+    - `app/Views/laporan/hasil-akad.php`:
+      - Menyertakan partial stylesheet `<style><?= view('siteplan/partials/modal_detail_styles') ?></style>` agar styling modal detail kavling seragam dan utuh.
+      - Memuat vendor assets: Flatpickr CSS/JS dan Select2 CSS/JS untuk mendukung elemen form dan filter di dalam modal detail kavling.
+      - Mengintegrasikan inisialisasi runtime `window.base_url = '<?= base_url() ?>/'` dan `window.loaded = window.loaded || []` dengan pola aman non-redeklarasi untuk mencegah `SyntaxError: Identifier has already been declared`.
+  - **Deprecations:** Tidak ada.
+- **2026-11-09 [`UI_REPORT` / `FEATURE`] — Refinement V2 Matriks Total Hasil Akad & Perampingan Modal Detail:**
+  - **Routes & Public Contracts:**
+    - `POST /api/laporan/hasil-akad/summary`: Mengembalikan key `total_hasil_akad` pada bulan dan total tahunan (mengakumulasikan `m.harga_kpr_acc` dari `mkdt`), tetap mempertahankan key `total_akad` dan `total_penjualan` untuk backward-compatibility.
+    - `POST /api/laporan/hasil-akad/detail`: Whitelist parameter ordering diperkaya dengan `total_hasil_akad`. Payload baris kategori `akad` menyertakan `total_hasil_akad` (`m.harga_kpr_acc`) sebagai nominal utama.
+  - **Controller / Service / Repo / Model:**
+    - `app/Repositories/HasilAkadReportRepository.php`:
+      - `getMonthlyAkadTotals()` menambahkan akumulasi `SUM(m.harga_kpr_acc)` dialiaskan sebagai `total_hasil_akad`.
+      - `compileDetailQuery()` menyertakan kolom `m.harga_kpr_acc AS total_hasil_akad`, `tipe_rumah`, `is_subsidi`, `booking_tgl`, `akad_tgl`, `total_sudah_cair`, dan pencarian DataTables di kolom `tipe_rumah`.
+    - `app/Services/HasilAkadReportService.php`:
+      - `assignAkadRow()` dan `emptyAmounts()` memetakan `total_hasil_akad` secara konsisten pada summary payload.
+      - `normalizeDataTableRequest()` mendaftarkan `total_hasil_akad` ke dalam whitelist kolom pengurutan orderable.
+    - `tests/unit/HasilAkadReportServiceTest.php`: Memperbarui dan memverifikasi 6 test cases (38 assertions) lulus 100% untuk struktur summary V2, alias kategori akad/penjualan, dan format respon detail.
+  - **View / CSS / JS:**
+    - `app/Views/laporan/hasil-akad.php`: Pembaruan version query string asset JS modal dan laporan.
+    - `public/assets/js/laporan-hasil-akad.js`:
+      - Matriks & Summary: Kolom tabel dan series chart dari "Total Akad" diubah menjadi "Total Hasil Akad" yang membaca data dari `total_hasil_akad`.
+      - Modal Detail "Total Hasil Akad" dirampingkan menjadi 6 kolom: Menggabungkan info konsumen, alamat kavling, tipe rumah + badge Subsidi/Komersil ke kolom "Nama Konsumen / Kavling" (rata kiri); Tgl Booking; Tgl Akad; Total Hasil Akad (tebal rata kanan); Total Sudah Cair (nominal hijau tebal + pill badge persentase cair); Aksi (Detail Siteplan & Kelola Modal).
+      - Modal Detail "Total Pengajuan" & "Total Cair" dirampingkan menjadi 5 kolom: "Nama Konsumen / Kavling" gabungan rata kiri; Tgl Pengajuan; Status & Rincian (teks rincian baris 1, flexbox badge status di kiri dan tgl cair di kanan pada baris 2); Nominal (tebal rata kanan); Aksi.
+    - `public/assets/css/laporan-hasil-akad.css`:
+      - Penataan layout sel `.hasil-akad-consumer-cell` menyatu rata kiri.
+      - Styling flexbox dua baris `.hasil-akad-rincian-status` dan `.hasil-akad-status-row` yang rapi dan ramping untuk menjaga kerapian vertikal baris tabel.
+      - Styling pill badge persentase `.hasil-akad-percent-pill` (hijau/kuning) pada kolom pencairan.
+  - **Deprecations:** Tidak ada. Zero-downtime kompatibel dengan seluruh parameter sebelumnya.
+- **2026-11-09 [`UI_REPORT` / `FEATURE`] — Redesain Matriks, Modal Detail Dinamis, dan Standarisasi Hasil Akad:**
+  - **Routes & Public Contracts:**
+    - `POST /api/laporan/hasil-akad/summary`: Menambahkan key `total_akad` berdampingan dengan `total_penjualan` (backward-compatible).
+    - `POST /api/laporan/hasil-akad/detail`: Mendukung category `'akad'` di samping `'penjualan'`, `'pengajuan'`, dan `'cair'`. Response detail menyertakan kolom `tipe_rumah`, `is_subsidi`, `booking_tgl`, `akad_tgl`, `harga_jual`, `total_sudah_cair`, `tanggal_pengajuan`, `tanggal_cair`.
+  - **Controller / Service / Repo / Model:**
+    - `app/Repositories/HasilAkadReportRepository.php`: Menambahkan query join ke tabel `tipe` dan `hargajual`; helper SQL `tipeRumahSql()`, `isSubsidiSql()`, `totalSudahCairSql()`; penanganan category `'akad'`; serta perluasan pencarian multi-kolom di `getDetailRows()`.
+    - `app/Services/HasilAkadReportService.php`: Mendaftarkan `'akad'` pada `CATEGORIES`, mapping `total_akad` di `assignAkadRow` dan `emptyAmounts()`, serta menambahkan whitelist sorting/ordering columns baru pada DataTables request.
+    - `tests/unit/HasilAkadReportServiceTest.php`: Unit test untuk validasi category baru `'akad'`, backward-compatibility `'penjualan'`, dan format response summary/detail.
+  - **View / CSS / JS:**
+    - `app/Views/laporan/hasil-akad.php`: Thead dinamis pada modal detail yang menyesuaikan struktur kolom berdasarkan kategori yang dipilih.
+    - `public/assets/js/laporan-hasil-akad.js`: Mengeliminasi kolom redundant 'Total acc KPR' dari matriks dan chart; mengganti label 'Total Penjualan' menjadi 'Total Akad'; restrukturisasi modal detail dinamis (7 kolom untuk Total Akad, 6 kolom untuk Pengajuan & Pencairan); menambahkan helper modular `renderKonsumenKavling()`, `renderTipeRumah()`, `renderStatusRincian()`, dan `renderActionButtons()` (tombol aksi Detail Konsumen & Kelola Pencairan).
+    - `public/assets/css/laporan-hasil-akad.css`: Penyesuaian layout responsive 3-kolom matriks per tahun, soft-tint badge status subsidi/komersil, rincian tanggal/nominal status, dan button group aksi.
+  - **Deprecations:** Tidak ada (Zero-Downtime: parameter `penjualan` tetap didukung sebagai alias).
 - **2026-11-04 [`BUGFIX`] — Penambahan Kolom status_tagihan dan Metadata Surat pada invoice_log:**
   - **Routes & Public Contracts:** Tidak berubah (endpoint `/keuangan/simpan_penagihan` dan `/keuangan/update_status_penagihan`).
   - **Controller / Service / Repo / Model:**

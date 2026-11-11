@@ -7,7 +7,7 @@ use InvalidArgumentException;
 
 class HasilAkadReportService
 {
-    public const CATEGORIES = ['penjualan', 'acc_kpr', 'pengajuan', 'cair'];
+    public const CATEGORIES = ['penjualan', 'akad', 'acc_kpr', 'pengajuan', 'cair'];
 
     private const MONTH_LABELS = [
         1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
@@ -111,7 +111,10 @@ class HasilAkadReportService
             return;
         }
 
-        $summary[$year][$month]['total_penjualan'] = (float) ($row['total_penjualan'] ?? 0);
+        $totalPenjualan = (float) ($row['total_penjualan'] ?? 0);
+        $summary[$year][$month]['total_penjualan'] = $totalPenjualan;
+        $summary[$year][$month]['total_hasil_akad'] = (float) ($row['total_hasil_akad'] ?? $row['total_acc_kpr'] ?? 0);
+        $summary[$year][$month]['total_akad'] = (float) ($row['total_hasil_akad'] ?? $row['total_acc_kpr'] ?? 0);
         $summary[$year][$month]['jumlah_kavling'] = (int) ($row['jumlah_kavling'] ?? 0);
         $summary[$year][$month]['total_acc_kpr'] = (float) ($row['total_acc_kpr'] ?? 0);
     }
@@ -140,6 +143,8 @@ class HasilAkadReportService
     {
         return [
             'total_penjualan' => 0.0,
+            'total_akad' => 0.0,
+            'total_hasil_akad' => 0.0,
             'jumlah_kavling' => 0,
             'total_acc_kpr' => 0.0,
             'total_pengajuan' => 0.0,
@@ -157,6 +162,13 @@ class HasilAkadReportService
             'nama_konsumen' => 'hasil_akad.nama_konsumen',
             'tanggal_transaksi' => 'hasil_akad.tanggal_transaksi',
             'nominal' => 'hasil_akad.nominal',
+            'total_hasil_akad' => 'hasil_akad.total_hasil_akad',
+            'tipe_rumah' => 'hasil_akad.tipe_rumah',
+            'booking_tgl' => 'hasil_akad.booking_tgl',
+            'akad_tgl' => 'hasil_akad.akad_tgl',
+            'harga_jual' => 'hasil_akad.harga_jual',
+            'total_sudah_cair' => 'hasil_akad.total_sudah_cair',
+            'tanggal_pengajuan' => 'hasil_akad.tanggal_pengajuan',
         ];
         $length = max(1, (int) ($request['length'] ?? 10));
 

@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-11-05 12:26:58` @ `a684cd1`  
+**Last Synced:** `2026-11-09 13:54:51` @ `e238e4a`  
 
 ## Purpose
 Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial visual.
@@ -170,6 +170,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - **Frontend JavaScript (`public/assets/js/siteplan-detail-modal.js`):**
   - `resolveMkdtStatusInfo(m)`: Resolusi hierarki prioritas status transaksi kavling MKDT (Batal -> Akad AJB -> Akad Indent -> SP3K -> Wawancara -> Booking) dan tanggal status yang valid (`isValidDate`). Menjamin unit kavling yang telah mencapai `akad == 1` atau tanggal akad terisi selalu berstatus `'Akad AJB'` (`badge-success`) sekalipun flag `akad_indent == 1` bernilai aktif (mengatasi edge case data riwayat seperti kavling 265 / MKDT 349).
   - `renderKavlingTimeline(mkdt, currentStatus)`: Merender milestone horizontal stepper progres transaksi kavling (Booking, Wawancara, SP3K, Akad Indent, Akad AJB) dengan connecting lines. Menerapkan skema Opsi B di mana jika status transaksi mencapai 'Akad AJB' selesai (`mkdt.akad == 1 || isValidDate(mkdt.akad_tgl)`), seluruh 5 tahapan stepper otomatis berstatus `is-completed` dengan icon centang `fas fa-check` lingkaran solid `#2056a4`.
+  - `updateRingkasanHasilAkad(pa)`: Menghitung dan merender nominal, persentase, serta lebar bar pada blok Total Hasil Akad (`#s-pa_cair_bar` dengan warna `bg-success` untuk Cair dan `#s-pa_sisa_bar` dengan `bg-transparent` / menampilkan track `.progress` biasa untuk Belum Cair, disertai dot legend `.detail-dot.bg-secondary` dan teks `#s-pa_sisa_pct.text-secondary`).
 
 ## Deprecated & Legacy Shims
 - Route `POST /siteplan/get/all` (`Siteplan::getAllKavling`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
@@ -220,6 +221,13 @@ _Jalankan `php spark module:deadcode Siteplan` untuk mengaudit dead code kandida
     - `SiteplanTiketOverlay` (`public/assets/js/siteplan/tiket-overlay.js`) dan `master.js` (`syncSiteplanTiketOverlay`): mengagregasikan masalah kavling dan others secara atomik dan merender `tiketOverlayLayer` pada peta KonvaJS.
 
 ## Change Log
+- **2026-11-09 [`UI_REPORT`] — Penyesuaian Bar Belum Cair (`bg-transparent` / Track Progress Biasa) dan Indikator Legend Secondary pada Blok Total Hasil Akad Modal Detail Kavling:**
+  - **Routes & Public Contracts:** Tidak ada perubahan.
+  - **Controller / Service / Repo / Model:** Tidak ada perubahan.
+  - **View / CSS / JS:**
+    - `app/Views/siteplan/partials/modal_detail.php`: Mengubah `#s-pa_sisa_bar` menggunakan `progress-bar bg-transparent` (transparan/kosong sehingga menampilkan track `.progress` biasa), serta mengubah dot indikator legend (`.detail-dot.bg-secondary`) dan label teks persentase belum cair (`#s-pa_sisa_pct.text-secondary`) pada blok Total Hasil Akad (Tab Ringkasan -> Card Ringkasan Keuangan) menjadi warna secondary.
+    - `app/Views/siteplan/partials/modal_detail_styles.php`: Menambahkan aturan CSS ter-scope untuk memastikan `#modal_detail #s-pa_sisa_bar.bg-transparent` menampilkan track `.progress` kosong (`background-color: transparent !important`, `background-image: none !important`) serta styling `.detail-dot.bg-secondary` dan dukungan `.dark-layout`.
+  - **Deprecations:** Tidak ada.
 - **2026-11-05 [`BUGFIX`] / [`UI_REPORT`] — Penyempurnaan Hierarki Status MKDT (Prioritas Akad AJB atas Indent) dan Opsi B Stepper Timeline Selesai:**
   - **Routes & Public Contracts:** Tidak ada perubahan endpoint atau kontrak backend (`siteplan/get/detail`).
   - **Controller / Service / Repo / Model:** Tidak berubah.

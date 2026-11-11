@@ -1982,6 +1982,20 @@
         background: #fff;
     }
 
+    #modal_detail #s-pa_sisa_bar,
+    #modal_detail .progress-bar.bg-transparent {
+        background: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
+        box-shadow: none !important;
+    }
+
+    #modal_detail .detail-dot.bg-secondary {
+        background: var(--sigapp-secondary, #64748b) !important;
+        background-color: var(--sigapp-secondary, #64748b) !important;
+        background-image: none !important;
+    }
+
     #modal_detail .detail-card-icon-pill {
         width: 30px;
         height: 30px;
@@ -2139,6 +2153,24 @@
     .dark-layout #modal_detail .detail-summary-section-card {
         background: #242b3d;
         border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .dark-layout #modal_detail #s-pa_sisa_bar,
+    .dark-layout #modal_detail .progress-bar.bg-transparent {
+        background: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
+        box-shadow: none !important;
+    }
+
+    .dark-layout #modal_detail .detail-dot.bg-secondary {
+        background: #94a3b8 !important;
+        background-color: #94a3b8 !important;
+        background-image: none !important;
+    }
+
+    .dark-layout #modal_detail #s-pa_sisa_pct.text-secondary {
+        color: #94a3b8 !important;
     }
 
     .dark-layout #modal_detail .detail-summary-bar-icon {

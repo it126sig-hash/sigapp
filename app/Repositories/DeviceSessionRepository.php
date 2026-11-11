@@ -120,6 +120,18 @@ class DeviceSessionRepository
         return $row ?: null;
     }
 
+    public function findActiveByTokenHashOnly(string $tokenHash, string $now): ?array
+    {
+        $row = $this->db->table('auth_device_sessions')
+            ->where('token_hash', $tokenHash)
+            ->where('revoked_at', null)
+            ->where('expires_at >', $now)
+            ->get()
+            ->getRowArray();
+
+        return $row ?: null;
+    }
+
     public function findActiveByTokenHashAndSelector(string $tokenHash, string $selector, string $now): ?array
     {
         $row = $this->db->table('auth_device_sessions')

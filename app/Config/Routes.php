@@ -13,6 +13,12 @@ $routes->get('login', '\\App\\Controllers\\Web\\DeviceAuthController::login', ['
 $routes->post('login', '\\App\\Controllers\\Web\\DeviceAuthController::attemptLogin');
 $routes->get('logout', '\\App\\Controllers\\Web\\DeviceAuthController::logout', ['filter' => []]);
 
+$routes->post('api/auth/login', 'Api\Auth\AuthController::login');
+$routes->group('api/auth', ['namespace' => 'App\Controllers\Api\Auth', 'filter' => 'login'], static function ($routes) {
+    $routes->get('me', 'AuthController::me');
+    $routes->post('logout', 'AuthController::logout');
+});
+
 $routes->group('api/auth/devices', ['namespace' => 'App\\Controllers\\Api', 'filter' => 'login'], static function ($routes): void {
     $routes->get('', 'AuthDeviceController::index');
     $routes->post('(:num)/revoke', 'AuthDeviceController::revoke/$1', ['filter' => 'csrf']);
@@ -174,6 +180,15 @@ $routes->group('api/aksesproyek', ['namespace' => 'App\Controllers\Api\Proyek', 
     $routes->post('edit', 'AksesProyekController::edit');
 });
 
+// ── Modul Siteplan (API Routes) ──
+$routes->group('api/siteplan', ['namespace' => 'App\Controllers\Api\Siteplan', 'filter' => 'login'], function ($routes) {
+    $routes->get('kavling', 'SiteplanController::kavling');
+    $routes->get('proyek/(:num)', 'SiteplanController::proyek/$1');
+    $routes->get('proyek', 'SiteplanController::proyek');
+    $routes->get('config', 'SiteplanController::config');
+    $routes->get('others', 'SiteplanController::others');
+});
+
 
 
 // $routes->get("bank", 'ListBank::index');
@@ -204,11 +219,11 @@ $routes->group('api/notif', ['namespace' => 'App\Controllers\Api', 'filter' => '
 $routes->group('', ['namespace' => 'App\Controllers\Web\Settings', 'filter' => 'login'], function ($routes) {
     $routes->get('menu-setting', 'MenuSettingController::index');
     $routes->get('setting-data', 'SettingDataController::index');
-    $routes->get('setting-fee-sales', 'FeeSalesSettingController::index');
+    $routes->get('setting-fee-sales', '\App\Controllers\Web\SalesExternal\FeeSalesSettingController::index');
 });
 
 // Setting Akses Fee Sales API
-$routes->group('api/setting-fee-sales', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
+$routes->group('api/setting-fee-sales', ['namespace' => 'App\Controllers\Api\SalesExternal', 'filter' => 'login'], function ($routes) {
     $routes->post('list', 'FeeSalesSettingController::listPermissions');
     $routes->post('save', 'FeeSalesSettingController::savePermissions');
 });
@@ -670,14 +685,14 @@ $routes->group('api/public', [
 });
 
 // ── Master Sales External & Fee Sales ──────────────────────────────
-$routes->get('master-sales', '\App\Controllers\Web\SalesExternalController::index', ['filter' => ['login', 'role:Admin,MKDT']]);
-$routes->get('fee-sales', '\App\Controllers\Web\SalesExternalController::feeSales', ['filter' => 'login']);
-$routes->get('fee-sales/pengajuan-pdf/(:num)', '\App\Controllers\Web\SalesExternalController::pengajuanPdf/$1', ['filter' => 'login']);
-$routes->get('fee-sales/export-pdf-pengajuan/(:num)', '\App\Controllers\Web\SalesExternalController::pengajuanPdf/$1', ['filter' => 'login']);
-$routes->get('fee-sales/pengajuan-signature/(:num)/(:segment)', '\App\Controllers\Web\SalesExternalController::pengajuanSignature/$1/$2', ['filter' => 'login']);
-$routes->get('fee-sales/pengajuan/(:segment)', '\App\Controllers\Web\SalesExternalController::pengajuanShared/$1', ['filter' => 'login']);
+$routes->get('master-sales', '\App\Controllers\Web\SalesExternal\SalesExternalController::index', ['filter' => ['login', 'role:Admin,MKDT']]);
+$routes->get('fee-sales', '\App\Controllers\Web\SalesExternal\SalesExternalController::feeSales', ['filter' => 'login']);
+$routes->get('fee-sales/pengajuan-pdf/(:num)', '\App\Controllers\Web\SalesExternal\SalesExternalController::pengajuanPdf/$1', ['filter' => 'login']);
+$routes->get('fee-sales/export-pdf-pengajuan/(:num)', '\App\Controllers\Web\SalesExternal\SalesExternalController::pengajuanPdf/$1', ['filter' => 'login']);
+$routes->get('fee-sales/pengajuan-signature/(:num)/(:segment)', '\App\Controllers\Web\SalesExternal\SalesExternalController::pengajuanSignature/$1/$2', ['filter' => 'login']);
+$routes->get('fee-sales/pengajuan/(:segment)', '\App\Controllers\Web\SalesExternal\SalesExternalController::pengajuanShared/$1', ['filter' => 'login']);
 
-$routes->group('api/sales-external', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/sales-external', ['namespace' => 'App\Controllers\Api\SalesExternal', 'filter' => 'login'], function ($routes) {
     $routes->post('list-master', 'SalesExternalController::listMasterSales');
     $routes->get('get/(:num)', 'SalesExternalController::getSales/$1');
     $routes->post('save', 'SalesExternalController::saveMasterSales');
