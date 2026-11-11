@@ -18,7 +18,7 @@ Dokumen ini adalah aturan WAJIB saat menjalankan mode tugas **`REFACTOR`** (migr
 Setiap modul bisnis memiliki wilayah kepemilikan yang didefinisikan dalam `docs/modules/<NamaModul>/MODULE.md`:
 - **Kepemilikan Tabel (`Owner Tables`):** Hanya modul pemilik yang diizinkan melakukan **INSERT, UPDATE, DELETE** pada tabel miliknya. Modul lain dilarang memanipulasi tabel modul lain secara langsung.
 - **Komunikasi Antar-Modul (`Contracts`):**
-  - *Frontend (Browser/JS/AJAX):* Melalui Public REST API (`/api/...`) dengan format JSON standar `{ status, message, data }`.
+  - *Frontend (Browser/JS/AJAX & Vue/Capacitor):* Melalui Public REST API (`/api/...`) yang **WAJIB mengembalikan Full JSON murni (`RAW_JSON_READY`)** dengan format standar `BaseApiController` `{ success, messages, data, errors? }` (bebas string HTML DataTables dan tanpa redirect HTML `302` pada `/api/*`) sesuai `docs/MODULAR_REFACTOR.md` dan `sigapp-vue/docs/API_SPA_CONTRACT.md`.
   - *Backend Antar-Modul:* Melalui Direct PHP Public Service Methods (dilarang loopback HTTP `curl`).
 - **Struktur Namespace Modular:**
   - Web Controllers: `app/Controllers/Web/<Modul>/` (`App\Controllers\Web\<Modul>`)

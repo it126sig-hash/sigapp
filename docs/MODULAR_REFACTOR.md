@@ -68,7 +68,7 @@ docs/modules/<Modul>/
 | Layer | Tanggung Jawab Utama | Boleh Memanggil | Larangan Keras |
 |---|---|---|---|
 | **Web Controller** (`Web/<Modul>`) | Otorisasi halaman, menyiapkan data awal tampilan, `return view(...)` | `Services/<Modul>`, `Services` modul lain | Dilarang query DB (`db_connect()`, `$this->db`, `new *Model()`, `model()`). |
-| **API Controller** (`Api/<Modul>`) | Menerima request AJAX/REST (Web & Vue/Capacitor), memanggil Service, mengembalikan JSON murni sesuai [`sigapp-vue/docs/API_SPA_CONTRACT.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/API_SPA_CONTRACT.md) (termasuk endpoint `/meta` untuk initial props/permissions) | `Services/<Modul>`, `Services` modul lain | Dilarang merender HTML halaman utuh, menyisipkan string HTML `<button onclick>`/`<span class="badge">` pada response JSON baru, atau memanggil Model/DB langsung. |
+| **API Controller** (`Api/<Modul>`) | Menerima request AJAX/REST (Web & Vue/Capacitor), memanggil Service, dan **WAJIB mengembalikan Full JSON murni (`RAW_JSON_READY`)** untuk seluruh skenario (sukses `200/201` maupun error `400/401/403/404/422/500`) dengan envelope `{ success, messages, data, errors? }` sesuai [`sigapp-vue/docs/API_SPA_CONTRACT.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/API_SPA_CONTRACT.md) (termasuk endpoint `/meta` untuk initial props/permissions) | `Services/<Modul>`, `Services` modul lain | **Dilarang keras** merender HTML halaman utuh, melakukan HTTP redirect `302` ke halaman HTML, melempar HTML exception, menyisipkan string HTML `<button onclick>`/`<span class="badge">` pada response JSON baru (gunakan `?format=raw` jika menjaga kompatibilitas DataTables lama), atau memanggil Model/DB langsung. |
 | **Service** (`Services/<Modul>`) | Aturan bisnis, sanitasi angka (`cleanNumeric`), transaksi DB (`db_connect()` hanya untuk `transBegin/Commit/Rollback`), pemicu notifikasi/audit | `Repositories/<Modul>`, `Services` modul lain, Shared Infrastructure | Dilarang menulis query SQL/Builder kompleks (serahkan ke Repository). |
 | **Repository** (`Repositories/<Modul>`) | Semua operasi baca/tulis database, JOIN multi-tabel, agregasi, dan filter DataTables | `Models` milik modul, Query Builder (`$this->db->table()`) | Dilarang menyimpan logika HTTP request/response atau session UI. |
 | **Model** (`app/Models`) | Representasi tabel database tunggal (`$table`, `$primaryKey`, `$allowedFields`) | Framework `CodeIgniter\Model` | Dilarang diakses langsung dari Controller. |
@@ -179,12 +179,14 @@ Setiap modul wajib memiliki satu dokumen `MODULE.md` tunggal (tidak ada lagi fil
    - Susun *Implementation Plan* dan minta persetujuan User.
 2. **Fase 2 — Implementasi Backend & Frontend (`sigapp-engineer` + `sigapp-frontend`):**
    - Pindahkan dan pisahkan controller ke `app/Controllers/Web/<Modul>/` dan `app/Controllers/Api/<Modul>/`.
+   - Pastikan **setiap endpoint di `app/Controllers/Api/<Modul>/` mengembalikan Full JSON murni (`RAW_JSON_READY`)** melalui `BaseApiController` (`{ success, messages, data, errors? }`) baik untuk response sukses maupun error (`400/401/403/404/422/500`), bebas dari string HTML DataTables (gunakan `?format=raw` bila endpoint masih dipakai DataTables legacy), serta sediakan endpoint `/meta` untuk opsi dropdown & permission flags.
    - Pindahkan/ekstrak logika bisnis ke `app/Services/<Modul>/` dan seluruh query DB/Model ke `app/Repositories/<Modul>/` hingga **0 Controller Layer Violations**.
    - Pasang *Zero-Downtime Shims* untuk file lama dan daftarkan di `ModuleCatalog.php`.
    - Daftarkan rute eksplisit di `app/Config/Routes.php` tanpa menghapus rute legacy.
    - Rapikan View & aset CSS/JS sesuai standar `sigapp-ui-acuan`.
 3. **Fase 3 — Verifikasi & Audit QA (`sigapp-qa`):**
    - Jalankan `php spark module:map` (pastikan 0 unmapped files) dan `php spark module:status` (pastikan status modul `REFACTORED` dengan skor $\ge 80\%$).
+   - Verifikasi bahwa seluruh endpoint `/api/<modul>/*` mengembalikan **100% Full JSON** (bukan HTML/redirect `302` dan bebas HTML debt pada mode raw).
    - Jalankan pengujian E2E Playwright menggunakan akun departemen sesuai skill `sigapp-local-testing`.
 4. **Fase 4 — Sinkronisasi Dokumen & Ledger (`sigapp-docs`):**
    - Jalankan `php spark module:sync <Modul>` untuk memperbarui `docs/modules/<Modul>/MODULE.md`.

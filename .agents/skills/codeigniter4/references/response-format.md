@@ -1,8 +1,11 @@
-# Standar Format JSON Response API
+# Standar Format Full JSON Response API (`BaseApiController` & `RAW_JSON_READY`)
 
-## BaseController untuk API
+> **Aturan Mutlak Full JSON (`/api/*`):**
+> 1. Seluruh endpoint di `App\Controllers\Api\<Modul>\*Controller` **WAJIB** mewarisi `App\Controllers\Api\BaseApiController` dan mengembalikan **Full JSON Murni (`RAW_JSON_READY`)** baik saat sukses (`200/201`) maupun error (`400/401/403/404/422/500`).
+> 2. **DILARANG KERAS** mengembalikan halaman HTML, melakukan HTTP redirect `302` ke `/login`, atau melempar HTML exception pada rute `/api/*`.
+> 3. **DILARANG KERAS** menyisipkan potongan string HTML (`<button onclick="...">`, `<span class="badge">`) di dalam response JSON API baru. Jika memodifikasi endpoint legacy yang masih dipakai oleh jQuery DataTables di view CI4, dukung query `?format=raw` agar mengembalikan objek data JSON murni untuk klien modern (`sigapp-vue` / Capacitor) sekaligus menjaga kompatibilitas tampilan lama (Zero-Downtime).
 
-Buat `app/Controllers/Api/BaseApiController.php`:
+## BaseController untuk API (`app/Controllers/Api/BaseApiController.php`)
 
 ```php
 <?php
@@ -15,73 +18,70 @@ class BaseApiController extends ResourceController
 {
     protected $format = 'json';
 
-    /**
-     * Response sukses dengan data.
-     */
-    protected function success(mixed $data, string $message = 'Success', int $code = 200)
+    protected function success(mixed $data = null, string $message = 'Success', int $code = 200)
     {
-        return $this->respond([
-            'status'  => true,
-            'message' => $message,
-            'data'    => $data,
-        ], $code);
+        $body = ['success' => true, 'messages' => $message];
+        if ($data !== null) $body['data'] = $data;
+        $body['token'] = csrf_hash();
+        return $this->respond($body, $code);
     }
 
-    /**
-     * Response sukses tanpa data (untuk delete, dsb.).
-     */
-    protected function successMessage(string $message, int $code = 200)
+    protected function successCreated(mixed $data, string $message = 'Created')
     {
         return $this->respond([
-            'status'  => true,
-            'message' => $message,
-        ], $code);
+            'success'  => true,
+            'messages' => $message,
+            'data'     => $data,
+            'token'    => csrf_hash(),
+        ], 201);
     }
 
-    /**
-     * Response error.
-     */
     protected function error(string $message, int $code = 400, mixed $errors = null)
     {
-        $body = [
-            'status'  => false,
-            'message' => $message,
-        ];
-
-        if ($errors !== null) {
-            $body['errors'] = $errors;
-        }
-
+        $body = ['success' => false, 'messages' => $message];
+        if ($errors !== null) $body['errors'] = $errors;
+        $body['token'] = csrf_hash();
         return $this->respond($body, $code);
     }
 }
 ```
 
-## Contoh Response
+## Contoh Response Full JSON
 
 ```json
-// GET /api/users
+// GET /api/cluster?format=raw (200 OK - RAW_JSON_READY)
 {
-    "status": true,
-    "message": "Success",
-    "data": [
-        { "id": 1, "name": "Budi", "email": "budi@example.com" }
-    ]
+    "success": true,
+    "messages": "Success",
+    "data": {
+        "items": [
+            {
+                "id_cluster": 12,
+                "nama_cluster": "Cluster Aster",
+                "status": "aktif",
+                "permissions": { "can_edit": true, "can_delete": false }
+            }
+        ],
+        "meta": { "page": 1, "per_page": 25, "total": 1 }
+    },
+    "token": "a1b2c3..."
 }
 
-// POST /api/users (validasi gagal)
+// POST /api/cluster (400 / 422 Validasi Gagal - Tetap Full JSON)
 {
-    "status": false,
-    "message": "Validation failed",
+    "success": false,
+    "messages": "Validasi gagal.",
     "errors": {
-        "email": "Email already exists"
-    }
+        "nama_cluster": "Nama cluster wajib diisi."
+    },
+    "token": "a1b2c3..."
 }
 
-// GET /api/users/99 (not found)
+// GET /api/cluster/999 (404 Not Found - Tetap Full JSON, Dilarang HTML PageNotFoundException)
 {
-    "status": false,
-    "message": "User with id 99 not found"
+    "success": false,
+    "messages": "Data tidak ditemukan.",
+    "token": "a1b2c3..."
 }
 ```
 

@@ -16,7 +16,7 @@ description: >
 | Layer | Tanggung Jawab |
 |-------|----------------|
 | **Web Controller** | Handle request dari browser (render view, redirect). Tidak ada logika bisnis. |
-| **API Controller** | Handle request JSON/REST. Validasi format input, panggil Service, return JSON. Tidak ada logika bisnis. |
+| **API Controller** | Handle request JSON/REST. Validasi format input, panggil Service, **WAJIB return Full JSON murni (`RAW_JSON_READY`)** untuk sukses (`200/201`) maupun error (`400/401/403/404/422/500`). Dilarang return HTML view, redirect `302` HTML, atau string HTML `<button>`/`<span class="badge">` DataTables. Tidak ada logika bisnis. |
 | **Service** | Semua logika bisnis, kalkulasi, validasi bisnis, **validasi ulang angka dari frontend**. |
 | **Repository** | Query kompleks (JOIN, subquery, agregasi). Bukan untuk query sederhana. |
 | **Model** | Konfigurasi tabel, allowedFields, validasi DB-level. |
@@ -116,24 +116,27 @@ class BaseApiController extends ResourceController
 
     protected function success(mixed $data = null, string $message = 'Success', int $code = 200)
     {
-        $body = ['status' => true, 'message' => $message];
+        $body = ['success' => true, 'messages' => $message];
         if ($data !== null) $body['data'] = $data;
+        $body['token'] = csrf_hash();
         return $this->respond($body, $code);
     }
 
     protected function successCreated(mixed $data, string $message = 'Created')
     {
         return $this->respond([
-            'status'  => true,
-            'message' => $message,
-            'data'    => $data,
+            'success'  => true,
+            'messages' => $message,
+            'data'     => $data,
+            'token'    => csrf_hash(),
         ], 201);
     }
 
     protected function error(string $message, int $code = 400, mixed $errors = null)
     {
-        $body = ['status' => false, 'message' => $message];
+        $body = ['success' => false, 'messages' => $message];
         if ($errors !== null) $body['errors'] = $errors;
+        $body['token'] = csrf_hash();
         return $this->respond($body, $code);
     }
 }

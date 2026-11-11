@@ -21,9 +21,10 @@ Agen utama **DILARANG** mengerjakan seluruh fase sendirian atau berhenti setelah
    - *Larangan:* **100% Read-Only (`EnableWriteTools: false`).** Dilarang mengubah file apapun.
 
 3. **`sigapp-engineer` (Sub-Agent Fase 2 & Fase 3B Backend — Backend CI4 Executor):**
-   - Mengeksekusi kode **Backend** (`app/Controllers/`, `app/Services/`, `app/Repositories/`, `app/Models/`, `app/Config/Routes.php`) secara *surgical* sesuai Plan (mematuhi `codeigniter4`, `sigapp-notifikasi`, validasi finansial DB `cleanNumeric()`, transaksi DB, Zero-Downtime shims, dan injeksi `FileAccessService`).
+   - Mengeksekusi kode **Backend** (`app/Controllers/`, `app/Services/`, `app/Repositories/`, `app/Models/`, `app/Config/Routes.php`) secara *surgical* sesuai Plan (mematuhi `codeigniter4`, `docs/MODULAR_REFACTOR.md`, `sigapp-vue/docs/API_SPA_CONTRACT.md`, `sigapp-notifikasi`, validasi finansial DB `cleanNumeric()`, transaksi DB, Zero-Downtime shims, dan injeksi Signed URL `FileAccessService`).
+   - **WAJIB FULL JSON DI SETIAP API (`/api/*`):** Setiap method di `App\Controllers\Api\<Modul>\*Controller` wajib mewarisi `BaseApiController` dan mengembalikan **Full JSON Murni (`RAW_JSON_READY`)** dengan envelope `{ success, messages, data, errors? }` baik saat sukses (`200/201`) maupun error (`400/401/403/404/422/500`), bebas dari string HTML `<button>`/`<span class="badge">` DataTables (gunakan `?format=raw` jika masih dipakai DataTables legacy), serta menyediakan endpoint `/meta` untuk initial props/permissions.
    - Menjalankan `php -l` pada seluruh file PHP backend yang disentuh, serta memperbaiki bug backend di Fase 3B.
-   - *Larangan:* Dilarang mengubah file View/CSS/JS/Modal frontend (itu wewenang `sigapp-frontend`), dilarang menyentuh file di luar *File Inventory* Backend, dilarang mengklaim tes E2E lulus sendiri.
+   - *Larangan:* Dilarang mengembalikan HTML view atau redirect `302` HTML pada rute `/api/*`, dilarang mengubah file View/CSS/JS/Modal frontend (itu wewenang `sigapp-frontend`), dilarang menyentuh file di luar *File Inventory* Backend, dilarang mengklaim tes E2E lulus sendiri.
 
 4. **`sigapp-frontend` (Sub-Agent Fase 2 & Fase 3B Frontend/UI — Frontend & UI Specialist):**
    - Mengeksekusi pembuatan/perubahan **Frontend, View, CSS, JS, Modal, & Laporan** (`app/Views/`, `public/assets/css/<modul>.css`, `public/assets/js/<modul>.js`, modal partials) secara *surgical*.
