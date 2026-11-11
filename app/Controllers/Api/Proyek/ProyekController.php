@@ -96,6 +96,8 @@ class ProyekController extends BaseApiController
                 return [
                     'id_proyek'       => (int) $row->id_proyek,
                     'nama_proyek'     => $row->nama_proyek,
+                    'lokasi_proyek'   => $row->kota ?? $row->alamat_proyek ?? '',
+                    'logo_url'        => $row->logo_access_url ?? '',
                     'logo_access_url' => $row->logo_access_url ?? '',
                 ];
             }, $list),

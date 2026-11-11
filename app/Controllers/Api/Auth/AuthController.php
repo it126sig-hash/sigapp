@@ -196,14 +196,16 @@ class AuthController extends BaseApiController
                 'id_proyek'     => (int) $activeProyekObj->id_proyek,
                 'nama_proyek'   => (string) $activeProyekObj->nama_proyek,
                 'lokasi_proyek' => (string) ($activeProyekObj->kota ?? $activeProyekObj->alamat_proyek ?? ''),
-                'logo_url'      => (string) ($activeProyekObj->logo_access_url ?? $this->fileAccessService->accessUrl('proyek_logo', (int) $activeProyekObj->id_proyek)),
+                'logo_url'      => (string) ($activeProyekObj->logo_thumbnail_url ?? $activeProyekObj->logo_access_url ?? $this->fileAccessService->thumbnailUrl('proyek_logo', (int) $activeProyekObj->id_proyek)),
             ];
         }
 
         $accessibleList = $this->activeProyekService->getAccessibleList($userId);
-        $accessibleProjects = array_map(static fn (object $p): array => [
-            'id_proyek'   => (int) $p->id_proyek,
-            'nama_proyek' => (string) $p->nama_proyek,
+        $accessibleProjects = array_map(fn (object $p): array => [
+            'id_proyek'     => (int) $p->id_proyek,
+            'nama_proyek'   => (string) $p->nama_proyek,
+            'lokasi_proyek' => (string) ($p->kota ?? $p->alamat_proyek ?? ''),
+            'logo_url'      => (string) ($p->logo_thumbnail_url ?? $p->logo_access_url ?? $this->fileAccessService->thumbnailUrl('proyek_logo', (int) $p->id_proyek)),
         ], $accessibleList);
 
         $menuTree = $this->menuAccessService->getMenuTreeForUser($userId);
