@@ -34,22 +34,30 @@ class ProyekService
         $this->notif               = new NotifikasiService();
     }
 
+    public function getDropdownList(): array
+    {
+        return $this->proyekModel->select('id_proyek, nama_proyek')->orderBy('order_by', 'asc')->findAll();
+    }
+
     public function getAll(array $params = []): array
     {
         $rows = [];
+        $items = $this->proyekRepository->getAll($params);
 
-        foreach ($this->proyekRepository->getAll($params) as $key => $value) {
-            $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_proyek . ')"><i class="fas fa-edit"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-outline-info waves-effect btn-sm" onclick="viewProyek(' . $value->id_proyek . ')"><i class="fas fa-eye"></i></button>';
-            $ops .= '</div>';
-
+        foreach ($items as $key => $value) {
+            $id = (int) $value->id_proyek;
             $rows[$key] = [
-                $key + 1,
-                $value->nama_proyek,
-                $value->alamat_proyek,
-                "<img width='50px' src='" . $this->fileAccessService->thumbnailUrl('proyek_logo', (int) $value->id_proyek) . "'>",
-                $ops,
+                'id_proyek'          => $id,
+                'no'                 => $key + 1,
+                'nama_proyek'        => $value->nama_proyek,
+                'alamat_proyek'      => $value->alamat_proyek,
+                'kelurahan'          => $value->kelurahan ?? null,
+                'kecamatan'          => $value->kecamatan ?? null,
+                'kota'               => $value->kota ?? null,
+                'provinsi'           => $value->provinsi ?? null,
+                'landing_page_url'   => $value->landing_page_url ?? null,
+                'logo_thumbnail_url' => $this->fileAccessService->thumbnailUrl('proyek_logo', $id),
+                'logo_access_url'    => $this->fileAccessService->accessUrl('proyek_logo', $id),
             ];
         }
 
@@ -352,20 +360,17 @@ class ProyekService
         return $file && $file->getError() !== UPLOAD_ERR_NO_FILE;
     }
 
-    public function getAksesList(): array
+    public function getAksesList(array $params = []): array
     {
         $rows = $this->proyekRepository->getAksesProyekList();
         $data = [];
 
         foreach ($rows as $key => $value) {
-            $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-sm btn-info" onclick="edit(\'' . $value->id_proyek . '\')"><i class="fa fa-edit"></i></button>';
-            $ops .= '</div>';
-
             $data[$key] = [
-                $value->nama_proyek,
-                $value->kumpulan_username,
-                $ops,
+                'id_proyek'         => (int) $value->id_proyek,
+                'nama_proyek'       => $value->nama_proyek,
+                'id_users'          => $value->id_users,
+                'kumpulan_username' => $value->kumpulan_username ?? '',
             ];
         }
 

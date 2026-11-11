@@ -103,4 +103,14 @@ class TipeRepository
 
         return $builder;
     }
+
+    public function getListKavling(int $idTipe): array
+    {
+        return $this->db->table('kavling')
+            ->select('kavling.id_kavling, kavling.no_kavling, kavling.status_kavling, jalan.nama_jalan')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
+            ->where('kavling.id_tipe', $idTipe)
+            ->get()
+            ->getResult();
+    }
 }

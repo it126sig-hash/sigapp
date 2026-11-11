@@ -14,7 +14,7 @@
 ## 1. Rangkuman Progres Global
 
 * **Total Modul:** 16
-* **Status:** `8 Selesai` | `0 Sedang Dikerjakan` | `8 Antre (Pending)`
+* **Status:** `9 Selesai` | `0 Sedang Dikerjakan` | `7 Antre (Pending)`
 * **Strategi:** Migrasi modular bertahap (1 modul per sesi *fresh chat*) dengan jaminan **Zero-Downtime**.
 
 ---
@@ -34,7 +34,7 @@ Urutan di bawah ini disusun dari **Modul Daun (Leaf/Paling Terisolasi)** menuju 
 | 2 | **TiketMasalah** | Leaf Module | Rendah (Sudah modular Web/Api) | `COMPLETED` | `80a0180` (100% Score) | 2026-10-23 |
 | 3 | **MGM** | Leaf Module | Rendah (Sudah modular Web/Api) | `COMPLETED` | Session Refactor (90% Score) | 2026-10-23 |
 | 4 | **SalesExternal** | Intermediate (Master Sales & Fee Sales) | Sedang (Modular Web/Api & Services) | `COMPLETED` | `e238e4a` (100% Score) | 2026-11-09 |
-| 5 | **Legal** | Intermediate | Sedang | `PENDING` | - | - |
+| 5 | **Legal** | Intermediate | Sedang | `COMPLETED` | `e658eba` (100% Score) | 2026-11-11 |
 | 6 | **AuditTrail** | Intermediate | Rendah | `PENDING` | - | - |
 | 7 | **Auth** | Infrastructure | Sedang | `COMPLETED` | Wave 0 API Bridge (`QA-PASS`) | 2026-11-10 |
 | 8 | **Notifikasi** | Infrastructure | Sedang | `PENDING` | - | - |

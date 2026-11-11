@@ -31,8 +31,11 @@ $routes->group('api/admin/users/(:num)/devices', ['namespace' => 'App\\Controlle
     $routes->post('revoke-all', 'AdminAuthDeviceController::revokeAll/$1', ['filter' => 'csrf']);
 });
 
-$routes->get('privacy-policy', '\App\Controllers\Web\LegalPageController::privacyPolicy');
-$routes->get('toc', '\App\Controllers\Web\LegalPageController::termsOfService');
+// ── Modul Legal (Public Web Routes) ──
+$routes->group('', ['namespace' => 'App\Controllers\Web\Legal'], function ($routes) {
+    $routes->get('privacy-policy', 'LegalPageController::privacyPolicy');
+    $routes->get('toc', 'LegalPageController::termsOfService');
+});
 
 $routes->get('dashboard', 'Home::dashboard');
 $routes->get('/', 'Home::dashboard');
@@ -52,7 +55,10 @@ $routes->get('/list-batal', 'Mkdt::list_batal');
 $routes->get('/list-stock', 'Mkdt::list_stock');
 // $routes->get('/list-tagihan', 'Keuangan::list_tagihan');
 
-$routes->get('/legalitas', 'Legal::list_legalitas');
+// ── Modul Legal (Web Routes) ──
+$routes->group('', ['namespace' => 'App\Controllers\Web\Legal', 'filter' => 'login'], function ($routes) {
+    $routes->get('legalitas', 'LegalController::list_legalitas');
+});
 
 $routes->get('/getnotif', 'Notif::getNotif', ['filter' => 'login']);
 $routes->get('/loadnotif', 'Notif::loadNotif', ['filter' => 'login']);
@@ -125,58 +131,63 @@ $routes->group('', ['namespace' => 'App\Controllers\Web\Proyek', 'filter' => 'lo
 
 // ── Modul Proyek (API Routes) ──
 $routes->group('api/proyek', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
-    $routes->post('all', 'ProyekController::getAll');
-    $routes->post('getall', 'ProyekController::getAll');
-    $routes->post('getone', 'ProyekController::getOne');
+    $routes->match(['get', 'post'], 'all', 'ProyekController::getAll');
+    $routes->match(['get', 'post'], 'getall', 'ProyekController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'ProyekController::getOne');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'ProyekController::getOne/$1');
     $routes->post('add', 'ProyekController::add');
     $routes->post('edit', 'ProyekController::edit');
     $routes->post('remove', 'ProyekController::remove');
-    $routes->get('siteplan-list', 'ProyekController::getSiteplanList');
-    $routes->post('siteplan-list', 'ProyekController::getSiteplanList');
-    $routes->get('accessible', 'ProyekController::getAccessible');
-    $routes->post('accessible', 'ProyekController::getAccessible');
+    $routes->match(['get', 'post'], 'siteplan-list', 'ProyekController::getSiteplanList');
+    $routes->match(['get', 'post'], 'siteplan-list/(:num)', 'ProyekController::getSiteplanList/$1');
+    $routes->match(['get', 'post'], 'accessible', 'ProyekController::getAccessible');
     $routes->post('set-active', 'ProyekController::setActive');
 });
 
 $routes->group('api/cluster', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
-    $routes->post('datatable', 'ClusterController::getDataTable');
-    $routes->post('getdatatable', 'ClusterController::getDataTable');
-    $routes->post('all', 'ClusterController::getAll');
-    $routes->post('getall', 'ClusterController::getAll');
-    $routes->post('getone', 'ClusterController::getOne');
+    $routes->match(['get', 'post'], 'datatable', 'ClusterController::getDataTable');
+    $routes->match(['get', 'post'], 'getdatatable', 'ClusterController::getDataTable');
+    $routes->match(['get', 'post'], 'all', 'ClusterController::getAll');
+    $routes->match(['get', 'post'], 'getall', 'ClusterController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'ClusterController::getOne');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'ClusterController::getOne/$1');
     $routes->post('add', 'ClusterController::add');
     $routes->post('edit', 'ClusterController::edit');
     $routes->post('remove', 'ClusterController::remove');
 });
 
 $routes->group('api/tipe', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
-    $routes->post('datatables', 'TipeController::getDataTables');
-    $routes->post('getdatatables', 'TipeController::getDataTables');
-    $routes->post('all', 'TipeController::getAll');
-    $routes->post('getall', 'TipeController::getAll');
-    $routes->post('getone', 'TipeController::getOne');
+    $routes->match(['get', 'post'], 'datatables', 'TipeController::getDataTables');
+    $routes->match(['get', 'post'], 'getdatatables', 'TipeController::getDataTables');
+    $routes->match(['get', 'post'], 'all', 'TipeController::getAll');
+    $routes->match(['get', 'post'], 'getall', 'TipeController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'TipeController::getOne');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'TipeController::getOne/$1');
     $routes->post('add', 'TipeController::add');
     $routes->post('edit', 'TipeController::edit');
     $routes->post('remove', 'TipeController::remove');
-    $routes->post('list-kavling', 'TipeController::getListKavling');
-    $routes->post('getlistkavling', 'TipeController::getListKavling');
+    $routes->match(['get', 'post'], 'list-kavling', 'TipeController::getListKavling');
+    $routes->match(['get', 'post'], 'list-kavling/(:num)', 'TipeController::getListKavling/$1');
+    $routes->match(['get', 'post'], 'getlistkavling', 'TipeController::getListKavling');
 });
 
 $routes->group('api/jalan', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
-    $routes->post('datatable', 'JalanController::getDatatable');
-    $routes->post('getdatatable', 'JalanController::getDatatable');
-    $routes->post('all', 'JalanController::getAll');
-    $routes->post('getall', 'JalanController::getAll');
-    $routes->post('getone', 'JalanController::getOne');
+    $routes->match(['get', 'post'], 'datatable', 'JalanController::getDatatable');
+    $routes->match(['get', 'post'], 'getdatatable', 'JalanController::getDatatable');
+    $routes->match(['get', 'post'], 'all', 'JalanController::getAll');
+    $routes->match(['get', 'post'], 'getall', 'JalanController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'JalanController::getOne');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'JalanController::getOne/$1');
     $routes->post('add', 'JalanController::add');
     $routes->post('edit', 'JalanController::edit');
     $routes->post('remove', 'JalanController::remove');
 });
 
 $routes->group('api/aksesproyek', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
-    $routes->post('all', 'AksesProyekController::getAll');
-    $routes->post('getone', 'AksesProyekController::getOne');
-    $routes->post('search-users', 'AksesProyekController::getAkses');
+    $routes->match(['get', 'post'], 'all', 'AksesProyekController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'AksesProyekController::getOne');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'AksesProyekController::getOne/$1');
+    $routes->match(['get', 'post'], 'search-users', 'AksesProyekController::getAkses');
     $routes->post('edit', 'AksesProyekController::edit');
 });
 
@@ -542,12 +553,18 @@ $routes->group('pencairan', ['filter' => 'login'], function ($routes) {
 
 
 
-$routes->group('api/legal', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function($routes) {
+$routes->group('api/legal', ['namespace' => 'App\Controllers\Api\Legal', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'LegalController::meta');
+    $routes->post('meta', 'LegalController::meta');
     $routes->post('save', 'LegalController::save');
+    $routes->get('get', 'LegalController::getDataByID');
     $routes->post('get', 'LegalController::getDataByID');
     $routes->post('remove', 'LegalController::removeDoc');
+    $routes->post('removeDoc', 'LegalController::removeDoc');
+    $routes->get('getDoc', 'LegalController::getDoc');
     $routes->post('getDoc', 'LegalController::getDoc');
     $routes->post('upload', 'LegalController::upload');
+    $routes->get('getListLegalitas', 'LegalController::getListLegalitas');
     $routes->post('getListLegalitas', 'LegalController::getListLegalitas');
     $routes->post('edit_others', 'LegalController::edit_others');
 });

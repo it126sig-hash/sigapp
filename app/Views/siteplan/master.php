@@ -1315,7 +1315,9 @@ foreach (user()->getRoles() as $key => $val) {
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <select id="filter-id_cluster" name="id_cluster[]" multiple class="select2 select-sm form-control-sm"></select>
+                                    <select id="filter-id_cluster" name="id_cluster[]" multiple class="select2 select-sm form-control-sm">
+                                        <option value="all">Semua Cluster</option>
+                                    </select>
                                     <small id="siteplan-cluster-hint" class="form-text text-muted">
                                         Pilih minimal satu cluster untuk menampilkan data siteplan.
                                     </small>

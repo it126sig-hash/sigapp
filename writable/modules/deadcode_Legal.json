@@ -1,0 +1,12 @@
+[
+    {
+        "layer": "Controller",
+        "file": "LegalController.php",
+        "name": "index"
+    },
+    {
+        "layer": "Repository",
+        "file": "LegalRepository.php",
+        "name": "updateLegal"
+    }
+]

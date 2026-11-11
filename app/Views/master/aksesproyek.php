@@ -128,7 +128,18 @@
 					return r.data;
 				},
 				async: "true"
-			}
+			},
+			"columns": [
+				{ "data": "nama_proyek", "defaultContent": "" },
+				{ "data": "kumpulan_username", "defaultContent": "" },
+				{
+					"data": "id_proyek",
+					"orderable": false,
+					"render": function(data) {
+						return '<div class="btn-group"><button type="button" class="btn btn-sm btn-info" onclick="edit(\'' + data + '\')"><i class="fa fa-edit"></i></button></div>';
+					}
+				}
+			]
 		});
 
 		$("#id_users").select2({

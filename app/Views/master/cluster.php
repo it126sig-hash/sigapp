@@ -146,6 +146,42 @@
         {
           targets: [1],
           visible: false
+        },
+        {
+          targets: [5],
+          render: function(data) {
+            return '<span class="badge badge-light-success badge-pill">' + (data || 0) + '</span>';
+          }
+        },
+        {
+          targets: [6],
+          render: function(data) {
+            return '<span class="badge badge-light-warning badge-pill">' + (data || 0) + '</span>';
+          }
+        },
+        {
+          targets: [7],
+          render: function(data) {
+            return '<span class="badge badge-light-secondary badge-pill">' + (data || 0) + '</span>';
+          }
+        },
+        {
+          targets: [8],
+          render: function(data) {
+            return data == 1 
+              ? '<span class="badge badge-light-success badge-pill">Aktif</span>' 
+              : '<span class="badge badge-light-danger badge-pill">Tidak</span>';
+          }
+        },
+        {
+          targets: [9],
+          orderable: false,
+          render: function(data) {
+            return '<div class="btn-group">' +
+              '<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' + data + ')"><i class="fa fa-edit"></i></button>' +
+              '<button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="remove(' + data + ')"><i class="fa fa-trash"></i></button>' +
+            '</div>';
+          }
         }
       ],
       lengthChange: true,

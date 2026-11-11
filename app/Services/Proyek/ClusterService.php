@@ -30,25 +30,35 @@ class ClusterService
 
         $result = $this->clusterRepository->getDataTables($params);
         $data   = [];
+        $isRaw  = ($params['format'] ?? '') === 'raw';
 
         foreach ($result['rows'] as $key => $value) {
-            $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_cluster . ')"><i class="fa fa-edit"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="remove(' . $value->id_cluster . ')"><i class="fa fa-trash"></i></button>';
-            $ops .= '</div>';
-
-            $data[$key] = [
-                $value->id_cluster,
-                $value->id_proyek,
-                $value->nama_proyek,
-                $value->nama_cluster,
-                $value->jumlah_bangun,
-                '<span class="badge badge-light-success badge-pill">' . $value->total_akad . '</span>',
-                '<span class="badge badge-light-warning badge-pill">' . $value->total_booking . '</span>',
-                '<span class="badge badge-light-secondary badge-pill">' . $value->total_belum_terjual . '</span>',
-                $this->isActiveBadge($value->is_active, "Aktif", "Tidak"),
-                $ops,
-            ];
+            if ($isRaw) {
+                $data[$key] = [
+                    'id_cluster'          => (int) $value->id_cluster,
+                    'id_proyek'           => (int) $value->id_proyek,
+                    'nama_proyek'         => $value->nama_proyek,
+                    'nama_cluster'        => $value->nama_cluster,
+                    'jumlah_bangun'       => (int) $value->jumlah_bangun,
+                    'total_akad'          => (int) $value->total_akad,
+                    'total_booking'       => (int) $value->total_booking,
+                    'total_belum_terjual' => (int) $value->total_belum_terjual,
+                    'is_active'           => (int) $value->is_active,
+                ];
+            } else {
+                $data[$key] = [
+                    (int) $value->id_cluster,
+                    (int) $value->id_proyek,
+                    $value->nama_proyek,
+                    $value->nama_cluster,
+                    (int) $value->jumlah_bangun,
+                    (int) $value->total_akad,
+                    (int) $value->total_booking,
+                    (int) $value->total_belum_terjual,
+                    (int) $value->is_active,
+                    (int) $value->id_cluster,
+                ];
+            }
         }
 
         return [
@@ -64,21 +74,27 @@ class ClusterService
         $params['id_proyek'] = resolve_active_proyek_id($params['id_proyek'] ?? null);
         $clusters            = $this->clusterRepository->getAll($params);
         $data                = [];
+        $isRaw               = ($params['format'] ?? '') === 'raw';
 
         foreach ($clusters as $key => $value) {
-            $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_cluster . ')"><i class="fa fa-edit"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="remove(' . $value->id_cluster . ')"><i class="fa fa-trash"></i></button>';
-            $ops .= '</div>';
-
-            $data[$key] = [
-                $value->id_cluster,
-                $value->id_proyek,
-                $value->nama_proyek,
-                $value->nama_cluster,
-                $value->is_active,
-                $ops,
-            ];
+            if ($isRaw) {
+                $data[$key] = [
+                    'id_cluster'   => (int) $value->id_cluster,
+                    'id_proyek'    => (int) $value->id_proyek,
+                    'nama_proyek'  => $value->nama_proyek,
+                    'nama_cluster' => $value->nama_cluster,
+                    'is_active'    => (int) $value->is_active,
+                ];
+            } else {
+                $data[$key] = [
+                    $value->id_cluster,
+                    $value->id_proyek,
+                    $value->nama_proyek,
+                    $value->nama_cluster,
+                    $value->is_active,
+                    $value->id_cluster,
+                ];
+            }
         }
 
         return $data;

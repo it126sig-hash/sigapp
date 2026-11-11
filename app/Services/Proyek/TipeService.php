@@ -65,22 +65,33 @@ class TipeService
     public function getAll(array $params): array
     {
         $data = [];
+        $isRaw = ($params['format'] ?? '') === 'raw';
 
         foreach ($this->tipeRepository->getAll($params) as $key => $value) {
-            $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_tipe . ')"><i class="fa fa-edit"></i></button>';
-            $ops .= '</div>';
-
-            $data[$key] = [
-                $value->id_tipe,
-                $value->nama_proyek,
-                $value->no_tipe_rumah,
-                $value->tipe_rumah,
-                $value->lb,
-                $value->lt,
-                $value->keterangan,
-                $ops,
-            ];
+            if ($isRaw) {
+                $data[$key] = [
+                    'id_tipe'       => (int) $value->id_tipe,
+                    'id_proyek'     => (int) $value->id_proyek,
+                    'nama_proyek'   => $value->nama_proyek,
+                    'no_tipe_rumah' => $value->no_tipe_rumah,
+                    'tipe_rumah'    => $value->tipe_rumah,
+                    'lb'            => (float) $value->lb,
+                    'lt'            => (float) $value->lt,
+                    'harga'         => (float) ($value->harga ?? 0),
+                    'keterangan'    => $value->keterangan,
+                ];
+            } else {
+                $data[$key] = [
+                    $value->id_tipe,
+                    $value->nama_proyek,
+                    $value->no_tipe_rumah,
+                    $value->tipe_rumah,
+                    $value->lb,
+                    $value->lt,
+                    $value->keterangan,
+                    (int) $value->id_tipe,
+                ];
+            }
         }
 
         return $data;
@@ -90,28 +101,40 @@ class TipeService
     {
         $result = $this->tipeRepository->getDataTables($params);
         $rows = [];
-        $no = $params['start'] + 1;
+        $no = ($params['start'] ?? 0) + 1;
+        $isRaw = ($params['format'] ?? '') === 'raw';
 
         foreach ($result['rows'] as $key => $value) {
-            $ops = '<div class="btn-group">';
-            $ops .= '   <button type="button" class="btn btn-outline-info waves-effect btn-sm" onclick="view(' . $value->id_tipe . ')" title="Lihat Detail"><i class="fa fa-eye"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_tipe . ')" title="Perbaharui Data"><i class="fa fa-edit"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="remove(' . $value->id_tipe . ')" title="Hapus"><i class="fa fa-trash"></i></button>';
-            $ops .= '</div>';
-
             $tipeRumahMerge = $value->tipe_rumah . ' (' . $value->lb . '/' . $value->lt . ')';
 
-            $rows[$key] = [
-                $no++,
-                $value->no_tipe_rumah,
-                $tipeRumahMerge,
-                $this->statusBadge($value->is_subsidi, 'Subsidi', 'Non-Subsidi'),
-                $value->jumlah_kamar_tidur,
-                $value->jumlah_kamar_mandi,
-                '<span class="badge badge-light-info font-weight-bolder" style="cursor: pointer;" onclick="listKavling(' . $value->id_tipe . ')" title="Lihat List Kavling">' . $value->jumlah_kavling . ' Unit</span>',
-                $value->keterangan,
-                $ops,
-            ];
+            if ($isRaw) {
+                $rows[$key] = [
+                    'id_tipe'            => (int) $value->id_tipe,
+                    'id_proyek'          => (int) $value->id_proyek,
+                    'nama_proyek'        => $value->nama_proyek,
+                    'no_tipe_rumah'      => $value->no_tipe_rumah,
+                    'tipe_rumah'         => $value->tipe_rumah,
+                    'lb'                 => (float) $value->lb,
+                    'lt'                 => (float) $value->lt,
+                    'is_subsidi'         => (int) $value->is_subsidi,
+                    'jumlah_kamar_tidur' => (int) $value->jumlah_kamar_tidur,
+                    'jumlah_kamar_mandi' => (int) $value->jumlah_kamar_mandi,
+                    'jumlah_kavling'     => (int) $value->jumlah_kavling,
+                    'keterangan'         => $value->keterangan ?? '',
+                ];
+            } else {
+                $rows[$key] = [
+                    $no++,
+                    $value->no_tipe_rumah,
+                    $tipeRumahMerge,
+                    (int) $value->is_subsidi,
+                    (int) $value->jumlah_kamar_tidur,
+                    (int) $value->jumlah_kamar_mandi,
+                    (int) $value->jumlah_kavling,
+                    $value->keterangan ?? '',
+                    (int) $value->id_tipe,
+                ];
+            }
         }
 
         return [
@@ -120,6 +143,15 @@ class TipeService
             'recordsFiltered' => $result['recordsFiltered'],
             'data' => $rows,
         ];
+    }
+
+    public function getListKavling(int $idTipe): array
+    {
+        if ($idTipe <= 0) {
+            return [];
+        }
+
+        return $this->tipeRepository->getListKavling($idTipe);
     }
 
     public function getOne(int $idTipe): ?object

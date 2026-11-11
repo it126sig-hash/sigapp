@@ -688,6 +688,33 @@
 
 		table = $('#data_table').DataTable({
 			paging: true,
+			columnDefs: [
+				{
+					targets: [3],
+					render: function(data) {
+						return data == 1 
+							? '<span class="badge badge-light-success">Subsidi</span>' 
+							: '<span class="badge badge-light-secondary">Non-Subsidi</span>';
+					}
+				},
+				{
+					targets: [6],
+					render: function(data, type, row) {
+						return '<span class="badge badge-light-info font-weight-bolder" style="cursor: pointer;" onclick="listKavling(' + row[8] + ')" title="Lihat List Kavling">' + (data || 0) + ' Unit</span>';
+					}
+				},
+				{
+					targets: [8],
+					orderable: false,
+					render: function(data) {
+						return '<div class="btn-group">' +
+							'<button type="button" class="btn btn-outline-info waves-effect btn-sm" onclick="view(' + data + ')" title="Lihat Detail"><i class="fa fa-eye"></i></button>' +
+							'<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' + data + ')" title="Perbaharui Data"><i class="fa fa-edit"></i></button>' +
+							'<button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="remove(' + data + ')" title="Hapus"><i class="fa fa-trash"></i></button>' +
+						'</div>';
+					}
+				}
+			],
 			lengthChange: true,
 			searching: true,
 			ordering: true,

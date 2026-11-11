@@ -279,12 +279,27 @@ class ModuleCatalog
             'Legal' => [
                 'name' => 'Legal',
                 'description' => 'Administrasi dan tracking perizinan lahan, sertifikat HGB/PBB/PBG/AJB, dan dokumen legal.',
-                'controllers' => ['Legal.php', 'Api/LegalController.php', 'Web/LegalPageController.php'],
-                'services' => ['LegalService.php'],
-                'repositories' => ['LegalRepository.php'],
+                'controllers' => [
+                    'Web/Legal/LegalController.php',
+                    'Web/Legal/LegalPageController.php',
+                    'Api/Legal/LegalController.php',
+                ],
+                'services' => [
+                    'Legal/LegalService.php',
+                ],
+                'repositories' => [
+                    'Legal/LegalRepository.php',
+                ],
                 'models' => ['LegalModel.php'],
+                'shims' => [
+                    'app/Controllers/Legal.php',
+                    'app/Controllers/Web/LegalPageController.php',
+                    'app/Controllers/Api/LegalController.php',
+                    'app/Services/LegalService.php',
+                    'app/Repositories/LegalRepository.php',
+                ],
                 'views' => ['legal', 'public'],
-                'assets_js' => ['siteplan/legal.js'],
+                'assets_js' => ['siteplan/legal.js', 'legal.js'],
                 'owner_tables' => ['legal'],
                 'shared_tables' => ['kavling', 'mkdt'],
             ],

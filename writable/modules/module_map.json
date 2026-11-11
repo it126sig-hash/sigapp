@@ -1,5 +1,5 @@
 {
-    "scanned_at": "2026-11-09T16:35:49+07:00",
+    "scanned_at": "2026-11-11T13:17:48+07:00",
     "total_modules": 17,
     "modules": {
         "Proyek": {
@@ -1080,7 +1080,7 @@
                 {
                     "path": "public/assets/js/siteplan/master.js",
                     "filename": "master.js",
-                    "line_count": 3868
+                    "line_count": 3931
                 },
                 {
                     "path": "public/assets/js/siteplan/composite-shape.js",
@@ -4976,17 +4976,21 @@
         "Legal": {
             "name": "Legal",
             "description": "Administrasi dan tracking perizinan lahan, sertifikat HGB/PBB/PBG/AJB, dan dokumen legal.",
-            "status": "MAPPED",
-            "readiness_score": 70,
+            "status": "REFACTORED",
+            "readiness_score": 90,
             "readiness_checklist": {
-                "has_service": false,
-                "has_repository": false,
-                "has_web_api_split": false,
+                "has_service": true,
+                "has_repository": true,
+                "has_web_api_split": true,
                 "has_explicit_routes": true,
-                "zero_controller_violations": true,
+                "zero_controller_violations": false,
                 "has_documentation": true
             },
-            "controller_violations": [],
+            "controller_violations": {
+                "app/Controllers/Api/Legal/LegalController.php": [
+                    "Database::connect()"
+                ]
+            },
             "owner_tables": [
                 "legal"
             ],
@@ -4996,31 +5000,17 @@
             ],
             "controllers": [
                 {
-                    "relative_path": "app/Controllers/Legal.php",
-                    "filename": "Legal.php",
-                    "line_count": 16,
+                    "relative_path": "app/Controllers/Web/Legal/LegalController.php",
+                    "filename": "LegalController.php",
+                    "line_count": 23,
                     "public_methods": [
+                        "index()",
                         "list_legalitas()"
                     ],
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/LegalController.php",
-                    "filename": "LegalController.php",
-                    "line_count": 206,
-                    "public_methods": [
-                        "save()",
-                        "getDataByID()",
-                        "removeDoc()",
-                        "getDoc()",
-                        "upload()",
-                        "edit_others()",
-                        "getListLegalitas()"
-                    ],
-                    "violations": []
-                },
-                {
-                    "relative_path": "app/Controllers/Web/LegalPageController.php",
+                    "relative_path": "app/Controllers/Web/Legal/LegalPageController.php",
                     "filename": "LegalPageController.php",
                     "line_count": 27,
                     "public_methods": [
@@ -5028,15 +5018,34 @@
                         "termsOfService()"
                     ],
                     "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Legal/LegalController.php",
+                    "filename": "LegalController.php",
+                    "line_count": 318,
+                    "public_methods": [
+                        "save()",
+                        "getDataByID()",
+                        "removeDoc()",
+                        "getDoc()",
+                        "upload()",
+                        "edit_others()",
+                        "getListLegalitas()",
+                        "meta()"
+                    ],
+                    "violations": [
+                        "Database::connect()"
+                    ]
                 }
             ],
             "services": [
                 {
-                    "relative_path": "app/Services/LegalService.php",
+                    "relative_path": "app/Services/Legal/LegalService.php",
                     "filename": "LegalService.php",
-                    "line_count": 150,
+                    "line_count": 175,
                     "public_methods": [
                         "simpan(array $data)",
+                        "cleanNumeric(mixed $value)",
                         "deleteDocument($id)",
                         "uploadDocument($file, array $data)",
                         "editOthers(array $data, int $id_kavling)"
@@ -5045,11 +5054,14 @@
             ],
             "repositories": [
                 {
-                    "relative_path": "app/Repositories/LegalRepository.php",
+                    "relative_path": "app/Repositories/Legal/LegalRepository.php",
                     "filename": "LegalRepository.php",
-                    "line_count": 190,
+                    "line_count": 215,
                     "public_methods": [
                         "getLegalDataById($id_legal)",
+                        "insertLegal(array $data)",
+                        "updateLegal(int $idLegal, array $data)",
+                        "updateKavlingLegal(int $idKavling, int $idLegal)",
                         "getKavlingLegalTaxes($id_kavling)",
                         "getFileDocById($id)",
                         "deleteFileDoc($id)",
@@ -5070,7 +5082,13 @@
                     "public_methods": []
                 }
             ],
-            "shims": [],
+            "shims": [
+                "app/Controllers/Legal.php",
+                "app/Controllers/Web/LegalPageController.php",
+                "app/Controllers/Api/LegalController.php",
+                "app/Services/LegalService.php",
+                "app/Repositories/LegalRepository.php"
+            ],
             "views": [
                 {
                     "folder": "app/Views/legal",
@@ -5094,7 +5112,7 @@
                 {
                     "path": "public/assets/js/siteplan/legal.js",
                     "filename": "legal.js",
-                    "line_count": 470
+                    "line_count": 497
                 }
             ],
             "routes": [
@@ -5102,15 +5120,55 @@
                     "http_method": "GET",
                     "uri": "/legalitas",
                     "type": "Explicit",
-                    "handler": "Legal::list_legalitas",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "LegalController::list_legalitas",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/privacy-policy",
+                    "type": "Explicit",
+                    "handler": "LegalPageController::privacyPolicy",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/toc",
+                    "type": "Explicit",
+                    "handler": "LegalPageController::termsOfService",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/legal/meta",
+                    "type": "Explicit",
+                    "handler": "LegalController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/legal/meta",
+                    "type": "Explicit",
+                    "handler": "LegalController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/api/legal/save",
                     "type": "Explicit",
                     "handler": "LegalController::save",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/legal/get",
+                    "type": "Explicit",
+                    "handler": "LegalController::getDataByID",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -5132,6 +5190,22 @@
                 },
                 {
                     "http_method": "POST",
+                    "uri": "/api/legal/removeDoc",
+                    "type": "Explicit",
+                    "handler": "LegalController::removeDoc",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/legal/getDoc",
+                    "type": "Explicit",
+                    "handler": "LegalController::getDoc",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
                     "uri": "/api/legal/getDoc",
                     "type": "Explicit",
                     "handler": "LegalController::getDoc",
@@ -5143,6 +5217,14 @@
                     "uri": "/api/legal/upload",
                     "type": "Explicit",
                     "handler": "LegalController::upload",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/legal/getListLegalitas",
+                    "type": "Explicit",
+                    "handler": "LegalController::getListLegalitas",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -5161,27 +5243,12 @@
                     "handler": "LegalController::edit_others",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/privacy-policy",
-                    "type": "Explicit",
-                    "handler": "\\App\\Controllers\\Web\\LegalPageController::privacyPolicy",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/toc",
-                    "type": "Explicit",
-                    "handler": "\\App\\Controllers\\Web\\LegalPageController::termsOfService",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
                 }
             ],
             "service_contracts": {
                 "LegalService.php": [
                     "simpan(array $data)",
+                    "cleanNumeric(mixed $value)",
                     "deleteDocument($id)",
                     "uploadDocument($file, array $data)",
                     "editOthers(array $data, int $id_kavling)"
@@ -9502,16 +9569,21 @@
             "name": "Auth",
             "description": "Autentikasi sesi multi-device, revocations, proteksi login, dan audit sesi pengguna.",
             "status": "MAPPED",
-            "readiness_score": 70,
+            "readiness_score": 60,
             "readiness_checklist": {
                 "has_service": false,
                 "has_repository": false,
                 "has_web_api_split": false,
                 "has_explicit_routes": true,
-                "zero_controller_violations": true,
+                "zero_controller_violations": false,
                 "has_documentation": true
             },
-            "controller_violations": [],
+            "controller_violations": {
+                "app/Controllers/Api/Auth/AuthController.php": [
+                    "db_connect()",
+                    "$this->db->table()"
+                ]
+            },
             "owner_tables": [
                 "auth_device_sessions"
             ],
@@ -9528,6 +9600,20 @@
                         "logout()"
                     ],
                     "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Auth/AuthController.php",
+                    "filename": "AuthController.php",
+                    "line_count": 231,
+                    "public_methods": [
+                        "login()",
+                        "logout()",
+                        "me()"
+                    ],
+                    "violations": [
+                        "db_connect()",
+                        "$this->db->table()"
+                    ]
                 },
                 {
                     "relative_path": "app/Controllers/Api/AuthDeviceController.php",
@@ -9565,10 +9651,12 @@
                 {
                     "relative_path": "app/Services/DeviceSessionService.php",
                     "filename": "DeviceSessionService.php",
-                    "line_count": 259,
+                    "line_count": 296,
                     "public_methods": [
                         "registerOrRotate(int $userId, string $rawToken, ?string $rememberSelector, ?string $userAgent, ?string $ipAddress, ?string $previousRawToken = null,)",
                         "resolveActive(int $userId, string $rawToken)",
+                        "resolveActiveByToken(string $rawToken)",
+                        "revokeByToken(string $rawToken, ?string $reason = 'user_logout')",
                         "resolveActiveForRemember(string $rawToken, string $rememberSelector)",
                         "listActive(int $userId, string $currentRawToken)",
                         "listActiveForUser(int $userId)",
@@ -9613,10 +9701,11 @@
                 {
                     "relative_path": "app/Repositories/DeviceSessionRepository.php",
                     "filename": "DeviceSessionRepository.php",
-                    "line_count": 427,
+                    "line_count": 439,
                     "public_methods": [
                         "registerOrRotate(array $data, ?string $previousTokenHash)",
                         "findActiveByTokenHash(int $userId, string $tokenHash, string $now)",
+                        "findActiveByTokenHashOnly(string $tokenHash, string $now)",
                         "findActiveByTokenHashAndSelector(string $tokenHash, string $selector, string $now)",
                         "listActive(int $userId, string $now)",
                         "touchIfStale(int $userId, int $deviceId, string $threshold, string $now, string $expiresAt)",
@@ -9671,6 +9760,30 @@
                     "uri": "/logout",
                     "type": "Explicit",
                     "handler": "\\App\\Controllers\\Web\\DeviceAuthController::logout",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/auth/login",
+                    "type": "Explicit",
+                    "handler": "Api\\Auth\\AuthController::login",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/auth/me",
+                    "type": "Explicit",
+                    "handler": "AuthController::me",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/auth/logout",
+                    "type": "Explicit",
+                    "handler": "AuthController::logout",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -9735,6 +9848,8 @@
                 "DeviceSessionService.php": [
                     "registerOrRotate(int $userId, string $rawToken, ?string $rememberSelector, ?string $userAgent, ?string $ipAddress, ?string $previousRawToken = null,)",
                     "resolveActive(int $userId, string $rawToken)",
+                    "resolveActiveByToken(string $rawToken)",
+                    "revokeByToken(string $rawToken, ?string $reason = 'user_logout')",
                     "resolveActiveForRemember(string $rawToken, string $rememberSelector)",
                     "listActive(int $userId, string $currentRawToken)",
                     "listActiveForUser(int $userId)",
@@ -10100,7 +10215,9 @@
         }
     },
     "unmapped_files": {
-        "controllers": [],
+        "controllers": [
+            "app/Controllers/Api/Siteplan/SiteplanController.php"
+        ],
         "services": [],
         "repositories": [],
         "models": []

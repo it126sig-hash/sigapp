@@ -248,12 +248,24 @@ Date.prototype.toDateInputValue = (function() {
         initSiteplanCanvas();
     }
 
+    function allAvailableClusterIds() {
+        return (siteplanClusterOptions || []).map(function(item) {
+            return String(item.id_cluster);
+        });
+    }
+
     function selectedClusterIds() {
+        const rawVal = $('#filter-id_cluster').val();
+        const rawArray = Array.isArray(rawVal) ? rawVal : (rawVal == null || rawVal === '' ? [] : [rawVal]);
+        if (rawArray.includes('all')) {
+            return allAvailableClusterIds();
+        }
+
         if (typeof SiteplanFilterState === 'undefined') {
             return Array.isArray(filter.id_cluster) ? filter.id_cluster : [];
         }
 
-        return SiteplanFilterState.normalizeIds($('#filter-id_cluster').val());
+        return SiteplanFilterState.normalizeIds(rawVal);
     }
 
     function setSiteplanClusterHint(show, message) {
@@ -2356,17 +2368,21 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     window.apply_server_filter = function() {
+        const rawClusterVal = $('#filter-id_cluster').val();
+        const rawClusterArray = Array.isArray(rawClusterVal) ? rawClusterVal : (rawClusterVal == null || rawClusterVal === '' ? [] : [rawClusterVal]);
         filter.id_cluster = selectedClusterIds();
         filter.id_jalan = $("#filter-id_jalan").val();
-        SiteplanFilterState.save(getSiteplanStorage(), siteplanCurrentUserId, dt_proyek.id_proyek, filter.id_cluster);
+        const saveSelection = rawClusterArray.includes('all') ? ['all'] : filter.id_cluster;
+        SiteplanFilterState.save(getSiteplanStorage(), siteplanCurrentUserId, dt_proyek.id_proyek, saveSelection);
         load_kavling();
         renderActiveFilterTags();
     }
 
     window.reset_server_filter = function() {
+        const rawClusterVal = $('#filter-id_cluster').val();
         const preservedClusters = selectedClusterIds();
         $('#form-filter-kategori')[0].reset();
-        $('#filter-id_cluster').val(preservedClusters).trigger('change.select2');
+        $('#filter-id_cluster').val(rawClusterVal).trigger('change.select2');
         $('#filter-id_jalan').val(null).trigger('change.select2');
         $('#pilih-divisi').val('0').trigger('change.select2');
         $('#filter-id_jalan').prop('disabled', preservedClusters.length === 0);
@@ -2411,14 +2427,20 @@ Date.prototype.toDateInputValue = (function() {
 
     function renderActiveFilterTags() {
         let html = '';
-        const selectedClusters = new Set(selectedClusterIds());
-        $('#filter-id_cluster option:selected').each(function() {
-            const clusterId = String($(this).val());
-            if (!selectedClusters.has(clusterId)) return;
+        const rawClusterVal = $('#filter-id_cluster').val();
+        const rawClusterArray = Array.isArray(rawClusterVal) ? rawClusterVal : (rawClusterVal == null || rawClusterVal === '' ? [] : [rawClusterVal]);
+        if (rawClusterArray.includes('all')) {
+            html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('cluster', 'all')">Cluster: Semua Cluster &times;</span>`;
+        } else {
+            const selectedClusters = new Set(selectedClusterIds());
+            $('#filter-id_cluster option:selected').each(function() {
+                const clusterId = String($(this).val());
+                if (!selectedClusters.has(clusterId)) return;
 
-            const clusterText = escapeSiteplanHtml($(this).text());
-            html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('cluster', '${clusterId}')">Cluster: ${clusterText} &times;</span>`;
-        });
+                const clusterText = escapeSiteplanHtml($(this).text());
+                html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('cluster', '${clusterId}')">Cluster: ${clusterText} &times;</span>`;
+            });
+        }
         
         if (filter.id_jalan) {
             const jalanText = escapeSiteplanHtml($("#filter-id_jalan option:selected").text());
@@ -2442,14 +2464,22 @@ Date.prototype.toDateInputValue = (function() {
 
     window.removeFilterTag = function(type, val = null) {
         if (type === 'cluster') {
-            const remaining = selectedClusterIds().filter(function(id) {
-                return id !== String(val);
-            });
-            $('#filter-id_cluster').val(remaining).trigger('change.select2');
-            filter.id_cluster = remaining;
-            $('#filter-id_jalan').val(null).trigger('change.select2');
-            filter.id_jalan = '';
-            $('#filter-id_jalan').prop('disabled', remaining.length === 0);
+            if (val === 'all') {
+                $('#filter-id_cluster').val([]).trigger('change.select2');
+                filter.id_cluster = [];
+                $('#filter-id_jalan').val(null).trigger('change.select2');
+                filter.id_jalan = '';
+                $('#filter-id_jalan').prop('disabled', true);
+            } else {
+                const remaining = selectedClusterIds().filter(function(id) {
+                    return id !== String(val);
+                });
+                $('#filter-id_cluster').val(remaining).trigger('change.select2');
+                filter.id_cluster = remaining;
+                $('#filter-id_jalan').val(null).trigger('change.select2');
+                filter.id_jalan = '';
+                $('#filter-id_jalan').prop('disabled', remaining.length === 0);
+            }
         } else if (type === 'jalan') {
             $('#filter-id_jalan').val(null).trigger('change');
             filter.id_jalan = '';
@@ -2601,8 +2631,30 @@ Date.prototype.toDateInputValue = (function() {
         data: siteplanClusterSelectData,
         width: '100%'
     })
+    let previousClusterValues = [];
     // on select cluster
     $("#filter-id_cluster").on("change", function(e) {
+        const rawVal = $(this).val();
+        let currentVal = Array.isArray(rawVal) ? rawVal : (rawVal == null || rawVal === '' ? [] : [rawVal]);
+
+        const hadAll = previousClusterValues.includes('all');
+        const hasAll = currentVal.includes('all');
+
+        if (!hadAll && hasAll) {
+            // User baru saja klik "Semua Cluster" -> deselect cluster individual
+            currentVal = ['all'];
+            previousClusterValues = currentVal.slice();
+            $(this).val(currentVal).trigger('change');
+            return;
+        } else if (hadAll && hasAll && currentVal.length > 1) {
+            // User sebelumnya memilih "Semua Cluster" lalu memilih cluster tertentu -> lepas "Semua Cluster"
+            currentVal = currentVal.filter(function(v) { return v !== 'all'; });
+            previousClusterValues = currentVal.slice();
+            $(this).val(currentVal).trigger('change');
+            return;
+        }
+
+        previousClusterValues = currentVal.slice();
         const clusterIds = selectedClusterIds();
         $('#filter-id_jalan').val(null).trigger('change.select2');
         filter.id_jalan = '';
@@ -2626,7 +2678,7 @@ Date.prototype.toDateInputValue = (function() {
                 return {
                     [csrfName]: csrfHash,
                     search: params.term,
-                    id_cluster: $("#filter-id_cluster").val(),
+                    id_cluster: selectedClusterIds(),
                     id_proyek: dt_proyek.id_proyek
                 };
             },
@@ -2649,21 +2701,32 @@ Date.prototype.toDateInputValue = (function() {
         },
     })
 
+    const availableClusterIds = siteplanClusterSelectData.map(function(item) { return item.id; });
     const restoredClusterIds = SiteplanFilterState.restore(
         getSiteplanStorage(),
         siteplanCurrentUserId,
         dt_proyek.id_proyek,
-        siteplanClusterSelectData.map(function(item) { return item.id; })
+        availableClusterIds
     );
-    const availableClusterIds = siteplanClusterSelectData.map(function(item) { return item.id; });
     const pendingTiketAction = getPendingSiteplanTiketAction();
     const targetClusterIds = SiteplanFilterState.normalizeIds(
         pendingTiketAction ? pendingTiketAction.targetClusterId : null
     ).filter(function(id) {
         return availableClusterIds.includes(id);
     });
-    const initialClusterIds = SiteplanFilterState.normalizeIds(restoredClusterIds.concat(targetClusterIds));
-    $('#filter-id_cluster').val(initialClusterIds).trigger('change.select2');
+
+    let initialClusterSelection = [];
+    if (targetClusterIds.length > 0) {
+        initialClusterSelection = targetClusterIds;
+    } else if (restoredClusterIds.includes('all')) {
+        initialClusterSelection = ['all'];
+    } else {
+        initialClusterSelection = SiteplanFilterState.normalizeIds(restoredClusterIds);
+    }
+
+    previousClusterValues = initialClusterSelection.slice();
+    $('#filter-id_cluster').val(initialClusterSelection).trigger('change.select2');
+    const initialClusterIds = selectedClusterIds();
     $('#filter-id_jalan').prop('disabled', initialClusterIds.length === 0);
     filter.id_cluster = initialClusterIds;
     filter.id_jalan = '';

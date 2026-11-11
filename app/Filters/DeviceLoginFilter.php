@@ -57,8 +57,16 @@ class DeviceLoginFilter implements FilterInterface
             ?? $request->getServer('REDIRECT_HTTP_AUTHORIZATION')
             ?? '';
 
+        $rawBearerToken = null;
         if (preg_match('/^Bearer\s+(\S+)/i', trim((string) $authHeader), $matches)) {
             $rawBearerToken = $matches[1];
+        } elseif (!empty($request->getGet('token'))) {
+            $rawBearerToken = trim((string) $request->getGet('token'));
+        } elseif (!empty($request->getGet('access_token'))) {
+            $rawBearerToken = trim((string) $request->getGet('access_token'));
+        }
+
+        if ($rawBearerToken) {
             $device = $this->deviceSessions->resolveActiveByToken($rawBearerToken);
             if ($device) {
                 $userId = (int) ($device['user_id'] ?? 0);
@@ -150,11 +158,12 @@ class DeviceLoginFilter implements FilterInterface
 
         $path = trim($request->getUri()->getPath(), '/');
         $isApi = str_starts_with($path, 'api/') || str_contains($path, '/api/');
+        $isFiles = str_starts_with($path, 'files/') || str_contains($path, '/files/');
         $acceptHeader = $request->header('Accept')?->getValue() ?? '';
         $isJson = str_contains($acceptHeader, 'application/json');
         $isAjax = $request->isAJAX();
 
-        if ($isApi || $isJson || $isAjax) {
+        if ($isApi || $isFiles || $isJson || $isAjax) {
             return $this->response->setStatusCode(401)->setJSON([
                 'success' => false,
                 'messages' => 'Sesi tidak valid atau telah kadaluarsa. Silakan login kembali.',

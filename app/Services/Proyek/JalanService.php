@@ -41,15 +41,25 @@ class JalanService
     public function getAll(array $params): array
     {
         $rows = [];
+        $isRaw = ($params['format'] ?? '') === 'raw';
 
         foreach ($this->jalanRepository->getAll($params) as $key => $value) {
-            $rows[$key] = [
-                $value->id_jalan,
-                $value->id_cluster,
-                $value->nama_cluster,
-                $value->nama_jalan,
-                $this->actionButtons((int) $value->id_jalan),
-            ];
+            if ($isRaw) {
+                $rows[$key] = [
+                    'id_jalan'     => (int) $value->id_jalan,
+                    'id_cluster'   => (int) $value->id_cluster,
+                    'nama_cluster' => $value->nama_cluster,
+                    'nama_jalan'   => $value->nama_jalan,
+                ];
+            } else {
+                $rows[$key] = [
+                    (int) $value->id_jalan,
+                    (int) $value->id_cluster,
+                    $value->nama_cluster,
+                    $value->nama_jalan,
+                    (int) $value->id_jalan,
+                ];
+            }
         }
 
         return $rows;
@@ -59,22 +69,36 @@ class JalanService
     {
         $result = $this->jalanRepository->getDataTables($params);
         $rows = [];
-        $no = $result['start'];
+        $no = ($result['start'] ?? 0);
+        $isRaw = ($params['format'] ?? '') === 'raw';
 
         foreach ($result['rows'] as $key => $value) {
             $no++;
 
-            $rows[$key] = [
-                $no,
-                $value->id_jalan,
-                $value->nama_cluster,
-                $value->nama_jalan,
-                '<span class="badge badge-light-primary badge-pill">' . $value->total_kavling . '</span>',
-                '<span class="badge badge-light-success badge-pill">' . $value->total_akad . '</span>',
-                '<span class="badge badge-light-warning badge-pill">' . $value->total_booking . '</span>',
-                '<span class="badge badge-light-secondary badge-pill">' . $value->total_belum_terjual . '</span>',
-                $this->actionButtons((int) $value->id_jalan),
-            ];
+            if ($isRaw) {
+                $rows[$key] = [
+                    'id_jalan'            => (int) $value->id_jalan,
+                    'id_cluster'          => (int) $value->id_cluster,
+                    'nama_cluster'        => $value->nama_cluster,
+                    'nama_jalan'          => $value->nama_jalan,
+                    'total_kavling'       => (int) $value->total_kavling,
+                    'total_akad'          => (int) $value->total_akad,
+                    'total_booking'       => (int) $value->total_booking,
+                    'total_belum_terjual' => (int) $value->total_belum_terjual,
+                ];
+            } else {
+                $rows[$key] = [
+                    $no,
+                    (int) $value->id_jalan,
+                    $value->nama_cluster,
+                    $value->nama_jalan,
+                    (int) $value->total_kavling,
+                    (int) $value->total_akad,
+                    (int) $value->total_booking,
+                    (int) $value->total_belum_terjual,
+                    (int) $value->id_jalan,
+                ];
+            }
         }
 
         return [

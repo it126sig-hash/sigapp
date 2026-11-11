@@ -4,7 +4,6 @@ namespace App\Controllers\Api\Proyek;
 
 use App\Controllers\Api\BaseApiController;
 use App\Services\Proyek\ProyekService;
-use CodeIgniter\Exceptions\PageNotFoundException;
 
 class AksesProyekController extends BaseApiController
 {
@@ -19,28 +18,23 @@ class AksesProyekController extends BaseApiController
     {
         $data = $this->proyekService->getAksesList();
 
-        return $this->respond([
-            'data'  => $data,
-            'token' => csrf_hash(),
-        ]);
+        return $this->success($data, 'Data akses proyek berhasil dimuat');
     }
 
-    public function getOne()
+    public function getOne($id = null)
     {
-        $id = (int) $this->request->getPost('id_proyek');
+        $id = (int) ($id ?: ($this->request->getVar('id_proyek') ?: $this->request->getVar('id')));
 
         if ($id <= 0) {
-            throw new PageNotFoundException();
+            return $this->error('ID proyek tidak valid', 400);
         }
 
         $data = $this->proyekService->getAksesOne($id);
         if (!$data) {
-            throw new PageNotFoundException();
+            return $this->error('Data akses proyek tidak ditemukan', 404);
         }
 
-        $data->token = csrf_hash();
-
-        return $this->respond($data);
+        return $this->success($data);
     }
 
     public function getAkses()
@@ -48,10 +42,7 @@ class AksesProyekController extends BaseApiController
         $search = (string) ($this->request->getPost('search') ?? '');
         $data   = $this->proyekService->searchAksesUsers($search);
 
-        return $this->respond([
-            'data'  => $data,
-            'token' => csrf_hash(),
-        ]);
+        return $this->success($data, 'Pencarian pengguna berhasil dimuat');
     }
 
     public function edit($id = null)
@@ -61,8 +52,11 @@ class AksesProyekController extends BaseApiController
             $postData['id_proyek'] = $id;
         }
         $result = $this->proyekService->updateAkses($postData);
-        $result['token'] = csrf_hash();
 
-        return $this->respond($result);
+        if (!($result['success'] ?? false)) {
+            return $this->error($result['messages'] ?? 'Gagal memperbarui akses proyek', 400);
+        }
+
+        return $this->success($result, $result['messages'] ?? 'Akses proyek berhasil diperbarui');
     }
 }

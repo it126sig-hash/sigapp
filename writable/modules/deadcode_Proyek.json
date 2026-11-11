@@ -11,6 +11,21 @@
     },
     {
         "layer": "Service",
+        "file": "ClusterService.php",
+        "name": "add"
+    },
+    {
+        "layer": "Service",
+        "file": "ClusterService.php",
+        "name": "remove"
+    },
+    {
+        "layer": "Service",
+        "file": "TipeService.php",
+        "name": "getListKavling"
+    },
+    {
+        "layer": "Service",
         "file": "TipeService.php",
         "name": "add"
     },
@@ -18,5 +33,10 @@
         "layer": "Service",
         "file": "TipeService.php",
         "name": "remove"
+    },
+    {
+        "layer": "Service",
+        "file": "JalanService.php",
+        "name": "add"
     }
 ]

@@ -45,12 +45,20 @@ class Jalan extends BaseController
 		$id = (int) $this->request->getPost('id_jalan');
 
 		if ($id <= 0) {
-			throw new PageNotFoundException();
+			return $this->response->setStatusCode(400)->setJSON([
+				'success'  => false,
+				'messages' => 'ID jalan tidak valid',
+				'token'    => csrf_hash(),
+			]);
 		}
 
 		$data = $this->jalanService->getOne($id);
 		if (!$data) {
-			throw new PageNotFoundException();
+			return $this->response->setStatusCode(404)->setJSON([
+				'success'  => false,
+				'messages' => 'Jalan tidak ditemukan',
+				'token'    => csrf_hash(),
+			]);
 		}
 
 		$data->token = csrf_hash();
@@ -73,7 +81,11 @@ class Jalan extends BaseController
 		$id = (int) $this->request->getPost('id_jalan');
 
 		if ($id <= 0) {
-			throw new PageNotFoundException();
+			return $this->response->setStatusCode(400)->setJSON([
+				'success'  => false,
+				'messages' => 'ID jalan tidak valid',
+				'token'    => csrf_hash(),
+			]);
 		}
 
 		return $this->json($this->jalanService->remove($id));
