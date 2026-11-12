@@ -2,29 +2,11 @@
 
 namespace App\Controllers;
 
-use CodeIgniter\API\ResponseTrait;
-use App\Models\SubkonModel;
+use App\Controllers\Api\Produksi\SubkonController as ModularSubkonController;
 
-
-class Subkon extends BaseController
+/**
+ * @deprecated Legacy shim. Use App\Controllers\Api\Produksi\SubkonController.
+ */
+class Subkon extends ModularSubkonController
 {
-    protected $db;
-    protected $modelSubkon;
-
-    use ResponseTrait;
-
-    public function __construct()
-    {
-        $this->modelSubkon = new SubkonModel();
-
-        $this->db = db_connect();
-    }
-
-    function getList()
-    {
-        $search = trim((string) $this->request->getVar('search'));
-
-        $data = $this->modelSubkon->like('nama_subkon', $search)->findAll();
-        return $this->response->setJSON($data);
-    }
 }

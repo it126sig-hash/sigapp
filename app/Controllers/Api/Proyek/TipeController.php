@@ -50,6 +50,16 @@ class TipeController extends BaseApiController
         return $this->success($data);
     }
 
+    protected function getRequestData(): array
+    {
+        $json = $this->request->getJSON(true);
+        if (is_array($json) && !empty($json)) {
+            return $json;
+        }
+
+        return (array) $this->request->getPost();
+    }
+
     public function add()
     {
         $result = $this->tipeService->add($this->request);
@@ -63,6 +73,11 @@ class TipeController extends BaseApiController
 
     public function edit($id = null)
     {
+        if ($id !== null && !$this->request->getPost('idTipe') && !$this->request->getPost('id_tipe')) {
+            $_POST['id_tipe'] = (int) $id;
+            $_POST['idTipe'] = (int) $id;
+        }
+
         $result = $this->tipeService->edit($this->request);
 
         if (!($result['success'] ?? false)) {
@@ -72,9 +87,10 @@ class TipeController extends BaseApiController
         return $this->success($result, $result['messages'] ?? 'Tipe berhasil diperbarui');
     }
 
-    public function remove()
+    public function remove($id = null)
     {
-        $id = (int) $this->request->getPost('id_tipe');
+        $payload = $this->getRequestData();
+        $id = (int) ($id ?: ($payload['id_tipe'] ?? ($payload['id'] ?? ($this->request->getPost('id_tipe') ?: $this->request->getVar('id_tipe')))));
         if ($id <= 0) {
             return $this->error('ID tipe tidak valid', 400);
         }

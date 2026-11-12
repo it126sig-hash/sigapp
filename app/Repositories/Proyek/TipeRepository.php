@@ -14,7 +14,7 @@ class TipeRepository
     public function getAll(array $params): array
     {
         $builder = $this->db->table('tipe')
-            ->select('id_tipe, tipe.id_proyek, no_tipe_rumah, tipe_rumah, lb, lt, harga, keterangan, nama_proyek')
+            ->select('id_tipe, tipe.id_proyek, no_tipe_rumah, tipe_rumah, lb, lt, harga, keterangan, nama_proyek, is_subsidi, tipe.id_gambar_tipe, tipe.id_gambar_denah, tipe.id_gambar_kerja, (SELECT count(id_kavling) FROM kavling WHERE kavling.id_tipe = tipe.id_tipe AND deleted_at IS NULL) as jumlah_kavling')
             ->join('proyek', 'proyek.id_proyek = tipe.id_proyek')
             ->orderBy('tipe_rumah', 'desc');
 
@@ -23,7 +23,10 @@ class TipeRepository
         }
 
         if (!empty($params['search'])) {
-            $builder->like('no_tipe_rumah', $params['search']);
+            $builder->groupStart()
+                ->like('tipe.no_tipe_rumah', $params['search'])
+                ->orLike('tipe.tipe_rumah', $params['search'])
+            ->groupEnd();
         }
 
         return $builder->get()->getResult();
@@ -89,7 +92,7 @@ class TipeRepository
     private function dataTablesBaseQuery(string $search = '', $idProyek = null)
     {
         $builder = $this->db->table('tipe')
-            ->select('id_tipe, tipe.id_proyek, no_tipe_rumah, tipe_rumah, lb, lt, jumlah_kamar_tidur, jumlah_kamar_mandi, harga, keterangan, nama_proyek, is_subsidi, (SELECT count(id_kavling) FROM kavling WHERE kavling.id_tipe = tipe.id_tipe AND deleted_at IS NULL) as jumlah_kavling')
+            ->select('id_tipe, tipe.id_proyek, no_tipe_rumah, tipe_rumah, lb, lt, jumlah_kamar_tidur, jumlah_kamar_mandi, harga, keterangan, nama_proyek, is_subsidi, tipe.id_gambar_tipe, tipe.id_gambar_denah, tipe.id_gambar_kerja, (SELECT count(id_kavling) FROM kavling WHERE kavling.id_tipe = tipe.id_tipe AND deleted_at IS NULL) as jumlah_kavling')
             ->join('proyek', 'proyek.id_proyek = tipe.id_proyek')
             ->orderBy('tipe_rumah', 'desc');
 
@@ -98,7 +101,10 @@ class TipeRepository
         }
 
         if ($search !== '') {
-            $builder->like('tipe.no_tipe_rumah', $search);
+            $builder->groupStart()
+                ->like('tipe.no_tipe_rumah', $search)
+                ->orLike('tipe.tipe_rumah', $search)
+            ->groupEnd();
         }
 
         return $builder;

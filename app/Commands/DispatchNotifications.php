@@ -2,7 +2,7 @@
 
 namespace App\Commands;
 
-use App\Services\NotificationDispatchService;
+use App\Services\Notifikasi\NotificationDispatchService;
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
 

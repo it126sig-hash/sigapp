@@ -8,5 +8,15 @@
         "layer": "Service",
         "file": "NotificationDispatchService.php",
         "name": "dispatch"
+    },
+    {
+        "layer": "Service",
+        "file": "WebPushService.php",
+        "name": "initError"
+    },
+    {
+        "layer": "Service",
+        "file": "WebPushService.php",
+        "name": "sendToGroup"
     }
 ]

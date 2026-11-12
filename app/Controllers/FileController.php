@@ -24,19 +24,21 @@ class FileController extends BaseController
 
     public function show(string $source, int $id)
     {
-        return $this->stream($source, $id, false);
+        $signedUserId = $this->resolveSignedUserId($source, $id, null);
+        return $this->stream($source, $id, false, $signedUserId);
     }
 
     public function thumbnail(string $source, int $id)
     {
         try {
+            $signedUserId = $this->resolveSignedUserId($source, $id, 'thumb');
             try {
-                $file = $this->fileAccessService->resolve($source, $id, true);
+                $file = $this->fileAccessService->resolve($source, $id, true, $signedUserId);
             } catch (RuntimeException $e) {
                 if ($e->getMessage() === 'FORBIDDEN') {
                     throw $e;
                 }
-                $file = $this->fileAccessService->resolve($source, $id, false);
+                $file = $this->fileAccessService->resolve($source, $id, false, $signedUserId);
             }
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'FORBIDDEN') {
@@ -52,7 +54,9 @@ class FileController extends BaseController
     public function path(string $source)
     {
         try {
-            $file = $this->fileAccessService->resolvePath($source, (string) $this->request->getGet('path'));
+            $pathToken = (string) $this->request->getGet('path');
+            $signedUserId = $this->resolveSignedUserId($source, $pathToken, null);
+            $file = $this->fileAccessService->resolvePath($source, $pathToken, $signedUserId);
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'FORBIDDEN') {
                 return $this->response->setStatusCode(403)->setBody('Akses file ditolak');
@@ -74,7 +78,9 @@ class FileController extends BaseController
     public function pathThumbnail(string $source)
     {
         try {
-            $file = $this->fileAccessService->resolvePath($source, (string) $this->request->getGet('path'));
+            $pathToken = (string) $this->request->getGet('path');
+            $signedUserId = $this->resolveSignedUserId($source, $pathToken, 'thumb');
+            $file = $this->fileAccessService->resolvePath($source, $pathToken, $signedUserId);
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'FORBIDDEN') {
                 return $this->response->setStatusCode(403)->setBody('Akses file ditolak');
@@ -86,10 +92,29 @@ class FileController extends BaseController
         return $this->streamThumbnail($file);
     }
 
-    private function stream(string $source, int $id, bool $thumbnail)
+    private function resolveSignedUserId(string $source, string|int $identifier, ?string $variant = null): ?int
+    {
+        $expires = (int) $this->request->getGet('expires');
+        $uid = (int) $this->request->getGet('uid');
+        $sig = trim((string) $this->request->getGet('sig'));
+
+        if ($expires > 0 || $uid > 0 || $sig !== '') {
+            if ($expires <= 0 || $uid <= 0 || $sig === '') {
+                throw new RuntimeException('FORBIDDEN');
+            }
+            if ($this->fileAccessService->verifySignature($source, $identifier, $variant, $expires, $uid, $sig)) {
+                return $uid;
+            }
+            throw new RuntimeException('FORBIDDEN');
+        }
+
+        return null;
+    }
+
+    private function stream(string $source, int $id, bool $thumbnail, ?int $signedUserId = null)
     {
         try {
-            $file = $this->fileAccessService->resolve($source, $id, $thumbnail);
+            $file = $this->fileAccessService->resolve($source, $id, $thumbnail, $signedUserId);
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'FORBIDDEN') {
                 return $this->response->setStatusCode(403)->setBody('Akses file ditolak');

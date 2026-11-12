@@ -60,15 +60,24 @@ $routes->group('', ['namespace' => 'App\Controllers\Web\Legal', 'filter' => 'log
     $routes->get('legalitas', 'LegalController::list_legalitas');
 });
 
-$routes->get('/getnotif', 'Notif::getNotif', ['filter' => 'login']);
-$routes->get('/loadnotif', 'Notif::loadNotif', ['filter' => 'login']);
-$routes->get('/notif/summary', 'Notif::getSummary', ['filter' => 'login']);
-$routes->get('/notif/center', 'Notif::getCenter', ['filter' => 'login']);
-$routes->post('/notif/snooze', 'Notif::snooze', ['filter' => 'login']);
-$routes->post('/notif/mark-as-read/(:num)', 'Notif::markAsRead/$1', ['filter' => 'login']);
-$routes->post('/notif/mark-all-as-read', 'Notif::markAllAsRead', ['filter' => 'login']);
-$routes->get('/notif/icon/(:num)', 'Notif::icon/$1');
-$routes->get('/notif/open/(:num)', 'Notif::open/$1', ['filter' => 'login']);
+// ── Modul Notifikasi (Web Routes) ──
+$routes->group('notif', ['namespace' => 'App\Controllers\Web\Notifikasi'], function ($routes) {
+    $routes->get('open/(:num)', 'NotifikasiController::open/$1', ['filter' => 'login']);
+    $routes->get('icon/(:num)', 'NotifikasiController::icon/$1');
+});
+
+// ── Modul Notifikasi: Legacy & AutoRoute Shims (Zero-Downtime) ──
+$routes->group('', ['filter' => 'login'], function ($routes) {
+    $routes->get('/getnotif', '\App\Controllers\Api\Notifikasi\NotifikasiController::getNotif');
+    $routes->get('/loadnotif', '\App\Controllers\Api\Notifikasi\NotifikasiController::loadNotif');
+    $routes->get('/notif/summary', '\App\Controllers\Api\Notifikasi\NotifikasiController::getSummary');
+    $routes->get('/notif/center', '\App\Controllers\Api\Notifikasi\NotifikasiController::getCenter');
+    $routes->post('/notif/snooze', '\App\Controllers\Api\Notifikasi\NotifikasiController::snooze');
+    $routes->post('/notif/mark-as-read/(:num)', '\App\Controllers\Api\Notifikasi\NotifikasiController::markAsRead/$1');
+    $routes->post('/notif/mark-all-as-read', '\App\Controllers\Api\Notifikasi\NotifikasiController::markAllAsRead');
+    $routes->match(['get', 'post'], '/notif/tambah_notif', '\App\Controllers\Api\Notifikasi\NotifikasiController::tambah_notif');
+    $routes->match(['get', 'post'], '/notif/getactivity', '\App\Controllers\Api\Notifikasi\NotifikasiController::getActivityRoute');
+});
 $routes->get('/loadaktivitas', 'Home::loadAktivitas');
 
 $routes->get('/profil', '\App\Controllers\Web\UserManagement\ProfilController::index');
@@ -103,10 +112,10 @@ $routes->group('api/profile/signature', ['namespace' => 'App\Controllers\Api\Bpb
     $routes->put('', 'ProfileSignatureController::save', ['filter' => 'throttle:5,60']);
     $routes->delete('', 'ProfileSignatureController::delete', ['filter' => 'throttle:5,60']);
 });
-$routes->group('google-calendar', ['filter' => 'login'], function ($routes) {
-    $routes->get('connect', 'GoogleCalendar::connect');
-    $routes->get('callback', 'GoogleCalendar::callback');
-    $routes->post('disconnect', 'GoogleCalendar::disconnect');
+$routes->group('google-calendar', ['namespace' => 'App\Controllers\Web\Notifikasi', 'filter' => 'login'], function ($routes) {
+    $routes->get('connect', 'GoogleCalendarController::connect');
+    $routes->get('callback', 'GoogleCalendarController::callback');
+    $routes->post('disconnect', 'GoogleCalendarController::disconnect');
 });
 
 $routes->get('/configcolor', '\App\Controllers\Web\Settings\PengaturanWarnaController::index');
@@ -212,14 +221,21 @@ $routes->group('api/bank', ['namespace' => 'App\Controllers\Api', 'filter' => 'l
     $routes->post('hapus', 'BankController::hapus');
 });
 
-// Notifikasi push. Foreground tetap memakai polling /notif/summary.
-$routes->group('api/notif', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function($routes) {
+// ── Modul Notifikasi (API Routes Modern Full JSON) ──
+$routes->group('api/notif', ['namespace' => 'App\Controllers\Api\Notifikasi', 'filter' => 'login'], function ($routes) {
+    $routes->get('summary', 'NotifikasiController::summary');
+    $routes->get('center', 'NotifikasiController::center');
+    $routes->post('snooze', 'NotifikasiController::snooze');
+    $routes->get('load', 'NotifikasiController::load');
+    $routes->post('mark-as-read/(:num)', 'NotifikasiController::markAsRead/$1');
+    $routes->post('mark-all-as-read', 'NotifikasiController::markAllAsRead');
+    $routes->get('list', 'NotifikasiController::list');
+
     $routes->get('push/status', 'NotifPushController::status');
     $routes->post('push/subscribe', 'NotifPushController::subscribe');
     $routes->post('push/unsubscribe', 'NotifPushController::unsubscribe');
     $routes->post('push/test', 'NotifPushController::test', ['filter' => 'throttle:5,60']);
 
-    // Preferensi Notifikasi
     $routes->get('preferences', 'NotificationPreferenceController::index');
     $routes->post('preferences', 'NotificationPreferenceController::save');
     $routes->post('preferences/reset', 'NotificationPreferenceController::reset');
@@ -433,7 +449,7 @@ $routes->get('/riwayat-bayar', 'Tagihan::riwayatBayarIndex');
 $routes->post('/tagihan/riwayat-bayar/ambil', 'Tagihan::getRiwayatBayar');
 
 $routes->group('', ['filter' => 'login'], function ($routes) {
-    $routes->get('riwayat-perubahan', 'RiwayatPerubahan::index');
+    $routes->get('riwayat-perubahan', '\App\Controllers\Web\AuditTrail\RiwayatPerubahanController::index');
 });
 
 
@@ -514,8 +530,13 @@ $routes->group('kavling', ['filter' => 'login'], function ($routes) {
     $routes->post('list/ambil', 'Kavling::getList');
 });
 
-$routes->group('subkon', ['filter' => 'login'], function ($routes) {
-    $routes->post('list/ambil', 'Subkon::getList');
+$routes->group('subkon', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'list/ambil', 'SubkonController::getList');
+    $routes->match(['get', 'post'], 'list',       'SubkonController::getList');
+});
+
+$routes->group('api/subkon', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'list', 'SubkonController::getList');
 });
 
 //subkon
@@ -600,7 +621,8 @@ $routes->group('api/referral-qr', ['namespace' => 'App\Controllers\Api\MGM', 'fi
     $routes->get('download', 'ReferralQrController::download');
 });
 
-$routes->group('api/produksi', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/produksi', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'meta',   'ProduksiController::meta');
     $routes->post('get_data_by_id',          'ProduksiController::get_data_by_id');
     $routes->post('getBayarProduksi',         'ProduksiController::getBayarProduksi');
     $routes->post('getBayarProduksiListItem', 'ProduksiController::getBayarProduksiListItem');
@@ -620,6 +642,85 @@ $routes->group('api/produksi', ['namespace' => 'App\Controllers\Api', 'filter' =
     $routes->post('get_gambarkerja',          'ProduksiController::get_gambarkerja');
     $routes->post('add_jalan',                'ProduksiController::add_jalan');
     $routes->post('edit_others',              'ProduksiController::edit_others');
+
+    // Sales API sub-group
+    $routes->group('sales', function ($routes) {
+        $routes->post('get_data_by_id',              'SalesController::get_data_by_id');
+        $routes->post('save_checklist',              'SalesController::save_checklist');
+        $routes->post('get_data_komplain_by_id',    'SalesController::get_data_komplain_by_id');
+        $routes->post('batalkan_komplain',           'SalesController::batalkan_komplain');
+        $routes->post('save_komplain_sales',         'SalesController::save_komplain_sales');
+        $routes->post('get_data_serah_terima_by_id', 'SalesController::get_data_serah_terima_by_id');
+        $routes->post('save_serah_terima',           'SalesController::save_serah_terima');
+    });
+});
+
+$routes->group('sales', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->post('get_data_by_id',              'SalesController::get_data_by_id');
+    $routes->post('save_checklist',              'SalesController::save_checklist');
+    $routes->post('get_data_komplain_by_id',    'SalesController::get_data_komplain_by_id');
+    $routes->post('batalkan_komplain',           'SalesController::batalkan_komplain');
+    $routes->post('save_komplain_sales',         'SalesController::save_komplain_sales');
+    $routes->post('get_data_serah_terima_by_id', 'SalesController::get_data_serah_terima_by_id');
+    $routes->post('save_serah_terima',           'SalesController::save_serah_terima');
+});
+
+$routes->group('', ['namespace' => 'App\Controllers\Web\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->get('checklist-group',    'ChecklistGroupController::index');
+    $routes->get('checklistGroup',      'ChecklistGroupController::index');
+    $routes->get('checklist-item',     'ChecklistItemController::index');
+    $routes->get('checklistItem',       'ChecklistItemController::index');
+    $routes->get('checklist-sub-item', 'ChecklistSubItemController::index');
+    $routes->get('checklistSubItem',    'ChecklistSubItemController::index');
+    $routes->get('produksi/mobile',     'ProduksiController::produksiMobile');
+});
+
+$routes->group('checklistGroup', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getAll', 'ChecklistGroupController::getAll');
+    $routes->post('getOne',                   'ChecklistGroupController::getOne');
+    $routes->post('add',                      'ChecklistGroupController::add');
+    $routes->post('edit',                     'ChecklistGroupController::edit');
+    $routes->post('remove',                   'ChecklistGroupController::remove');
+});
+
+$routes->group('checklistItem', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getAll', 'ChecklistItemController::getAll');
+    $routes->post('getOne',                   'ChecklistItemController::getOne');
+    $routes->post('add',                      'ChecklistItemController::add');
+    $routes->post('edit',                     'ChecklistItemController::edit');
+    $routes->post('remove',                   'ChecklistItemController::remove');
+});
+
+$routes->group('checklistSubItem', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getAll', 'ChecklistSubItemController::getAll');
+    $routes->post('getOne',                   'ChecklistSubItemController::getOne');
+    $routes->post('add',                      'ChecklistSubItemController::add');
+    $routes->post('edit',                     'ChecklistSubItemController::edit');
+    $routes->post('remove',                   'ChecklistSubItemController::remove');
+});
+
+$routes->group('api/checklist-group', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getAll', 'ChecklistGroupController::getAll');
+    $routes->post('getOne',                   'ChecklistGroupController::getOne');
+    $routes->post('add',                      'ChecklistGroupController::add');
+    $routes->post('edit',                     'ChecklistGroupController::edit');
+    $routes->post('remove',                   'ChecklistGroupController::remove');
+});
+
+$routes->group('api/checklist-item', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getAll', 'ChecklistItemController::getAll');
+    $routes->post('getOne',                   'ChecklistItemController::getOne');
+    $routes->post('add',                      'ChecklistItemController::add');
+    $routes->post('edit',                     'ChecklistItemController::edit');
+    $routes->post('remove',                   'ChecklistItemController::remove');
+});
+
+$routes->group('api/checklist-sub-item', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getAll', 'ChecklistSubItemController::getAll');
+    $routes->post('getOne',                   'ChecklistSubItemController::getOne');
+    $routes->post('add',                      'ChecklistSubItemController::add');
+    $routes->post('edit',                     'ChecklistSubItemController::edit');
+    $routes->post('remove',                   'ChecklistSubItemController::remove');
 });
 
 $routes->group('api/target', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
@@ -629,7 +730,8 @@ $routes->group('api/target', ['namespace' => 'App\Controllers\Api', 'filter' => 
     $routes->post('history', 'TargetController::history');
 });
 
-$routes->group('api/riwayat-perubahan', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/riwayat-perubahan', ['namespace' => 'App\Controllers\Api\AuditTrail', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'HistoryController::meta');
     $routes->post('list', 'HistoryController::list');
     $routes->post('kavling', 'HistoryController::kavling');
 });

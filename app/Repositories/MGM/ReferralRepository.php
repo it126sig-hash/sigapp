@@ -250,6 +250,31 @@ class ReferralRepository extends Model
             ->get()->getResultArray();
     }
 
+    public function getAllBonusStagesByProyek(int $idProyek): array
+    {
+        return $this->db->table('referral_bonus_stages')
+            ->where('id_proyek', $idProyek)
+            ->orderBy('urutan', 'asc')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function saveBonusStage(array $data, ?int $id = null): bool
+    {
+        $table = $this->db->table('referral_bonus_stages');
+        if ($id) {
+            return (bool) $table->where('id', $id)->update($data);
+        }
+        return (bool) $table->insert($data);
+    }
+
+    public function deleteBonusStage(int $id): bool
+    {
+        return (bool) $this->db->table('referral_bonus_stages')
+            ->where('id', $id)
+            ->delete();
+    }
+
     public function getMgmNotificationContextByBonus(int $idBonus): ?object
     {
         return $this->db->table('referral_bonuses rb')

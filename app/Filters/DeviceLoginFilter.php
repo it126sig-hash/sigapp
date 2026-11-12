@@ -3,6 +3,7 @@
 namespace App\Filters;
 
 use App\Services\DeviceSessionService;
+use App\Services\FileAccessService;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -52,6 +53,17 @@ class DeviceLoginFilter implements FilterInterface
             return null;
         }
         self::$processedRequests[$request] = true;
+
+        $path = trim($request->getUri()->getPath(), '/');
+        $isFiles = str_starts_with($path, 'files/') || str_contains($path, '/files/');
+        if ($isFiles && !empty($request->getGet('sig')) && !empty($request->getGet('expires')) && !empty($request->getGet('uid'))) {
+            $fileAccess = new FileAccessService();
+            if ($fileAccess->verifyRequestSignature($request)) {
+                return null;
+            }
+
+            return $this->reject($request, null, null);
+        }
 
         $authHeader = $request->header('Authorization')?->getValue()
             ?? $request->getServer('HTTP_AUTHORIZATION')

@@ -1,31 +1,21 @@
 {
-    "scanned_at": "2026-11-11T13:17:48+07:00",
+    "scanned_at": "2026-11-12T16:15:57+07:00",
     "total_modules": 17,
     "modules": {
         "Proyek": {
             "name": "Proyek",
             "description": "Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akses.",
             "status": "REFACTORED",
-            "readiness_score": 90,
+            "readiness_score": 100,
             "readiness_checklist": {
                 "has_service": true,
                 "has_repository": true,
                 "has_web_api_split": true,
                 "has_explicit_routes": true,
-                "zero_controller_violations": false,
+                "zero_controller_violations": true,
                 "has_documentation": true
             },
-            "controller_violations": {
-                "app/Controllers/Web/Proyek/ClusterController.php": [
-                    "new ProyekModel()"
-                ],
-                "app/Controllers/Web/Proyek/TipeController.php": [
-                    "new ProyekModel()"
-                ],
-                "app/Controllers/Api/Proyek/TipeController.php": [
-                    "new KavlingModel()"
-                ]
-            },
+            "controller_violations": [],
             "owner_tables": [
                 "proyek",
                 "cluster",
@@ -37,7 +27,7 @@
                 {
                     "relative_path": "app/Controllers/Web/Proyek/ProyekController.php",
                     "filename": "ProyekController.php",
-                    "line_count": 18,
+                    "line_count": 33,
                     "public_methods": [
                         "index()"
                     ],
@@ -46,10 +36,10 @@
                 {
                     "relative_path": "app/Controllers/Api/Proyek/ProyekController.php",
                     "filename": "ProyekController.php",
-                    "line_count": 107,
+                    "line_count": 119,
                     "public_methods": [
                         "getAll()",
-                        "getOne()",
+                        "getOne($id = null)",
                         "add()",
                         "edit($id = null)",
                         "getSiteplanList($id = null)",
@@ -62,22 +52,20 @@
                 {
                     "relative_path": "app/Controllers/Web/Proyek/ClusterController.php",
                     "filename": "ClusterController.php",
-                    "line_count": 27,
+                    "line_count": 42,
                     "public_methods": [
                         "index()"
                     ],
-                    "violations": [
-                        "new ProyekModel()"
-                    ]
+                    "violations": []
                 },
                 {
                     "relative_path": "app/Controllers/Api/Proyek/ClusterController.php",
                     "filename": "ClusterController.php",
-                    "line_count": 87,
+                    "line_count": 104,
                     "public_methods": [
                         "getDataTable()",
                         "getAll()",
-                        "getOne()",
+                        "getOne($id = null)",
                         "add()",
                         "edit($id = null)",
                         "remove()"
@@ -87,35 +75,31 @@
                 {
                     "relative_path": "app/Controllers/Web/Proyek/TipeController.php",
                     "filename": "TipeController.php",
-                    "line_count": 30,
+                    "line_count": 42,
                     "public_methods": [
                         "index()"
                     ],
-                    "violations": [
-                        "new ProyekModel()"
-                    ]
+                    "violations": []
                 },
                 {
                     "relative_path": "app/Controllers/Api/Proyek/TipeController.php",
                     "filename": "TipeController.php",
-                    "line_count": 100,
+                    "line_count": 119,
                     "public_methods": [
                         "getAll()",
                         "getDataTables()",
-                        "getOne()",
+                        "getOne($id = null)",
                         "add()",
                         "edit($id = null)",
-                        "remove()",
-                        "getListKavling()"
+                        "remove($id = null)",
+                        "getListKavling($id = null)"
                     ],
-                    "violations": [
-                        "new KavlingModel()"
-                    ]
+                    "violations": []
                 },
                 {
                     "relative_path": "app/Controllers/Web/Proyek/JalanController.php",
                     "filename": "JalanController.php",
-                    "line_count": 26,
+                    "line_count": 41,
                     "public_methods": [
                         "index()"
                     ],
@@ -124,11 +108,11 @@
                 {
                     "relative_path": "app/Controllers/Api/Proyek/JalanController.php",
                     "filename": "JalanController.php",
-                    "line_count": 88,
+                    "line_count": 108,
                     "public_methods": [
                         "getAll()",
                         "getDatatable()",
-                        "getOne()",
+                        "getOne($id = null)",
                         "add()",
                         "edit($id = null)",
                         "remove()"
@@ -138,7 +122,7 @@
                 {
                     "relative_path": "app/Controllers/Web/Proyek/AksesProyekController.php",
                     "filename": "AksesProyekController.php",
-                    "line_count": 20,
+                    "line_count": 35,
                     "public_methods": [
                         "index()"
                     ],
@@ -147,10 +131,10 @@
                 {
                     "relative_path": "app/Controllers/Api/Proyek/AksesProyekController.php",
                     "filename": "AksesProyekController.php",
-                    "line_count": 69,
+                    "line_count": 63,
                     "public_methods": [
                         "getAll()",
-                        "getOne()",
+                        "getOne($id = null)",
                         "getAkses()",
                         "edit($id = null)"
                     ],
@@ -161,15 +145,16 @@
                 {
                     "relative_path": "app/Services/Proyek/ProyekService.php",
                     "filename": "ProyekService.php",
-                    "line_count": 418,
+                    "line_count": 423,
                     "public_methods": [
+                        "getDropdownList()",
                         "getAll(array $params = [])",
                         "getOne(int $idProyek)",
                         "add(IncomingRequest $request)",
                         "edit(IncomingRequest $request)",
                         "getSiteplanList(int $idProyek)",
                         "remove(int $idProyek)",
-                        "getAksesList()",
+                        "getAksesList(array $params = [])",
                         "getAksesOne(int $idProyek)",
                         "searchAksesUsers(string $keyword)",
                         "updateAkses(array $postData)"
@@ -178,7 +163,7 @@
                 {
                     "relative_path": "app/Services/Proyek/ClusterService.php",
                     "filename": "ClusterService.php",
-                    "line_count": 248,
+                    "line_count": 274,
                     "public_methods": [
                         "getDataTables(array $params)",
                         "getAll(array $params)",
@@ -192,10 +177,11 @@
                 {
                     "relative_path": "app/Services/Proyek/TipeService.php",
                     "filename": "TipeService.php",
-                    "line_count": 428,
+                    "line_count": 497,
                     "public_methods": [
                         "getAll(array $params)",
                         "getDataTables(array $params)",
+                        "getListKavling(int $idTipe)",
                         "getOne(int $idTipe)",
                         "add(IncomingRequest $request)",
                         "edit(IncomingRequest $request)",
@@ -205,21 +191,21 @@
                 {
                     "relative_path": "app/Services/Proyek/JalanService.php",
                     "filename": "JalanService.php",
-                    "line_count": 210,
+                    "line_count": 288,
                     "public_methods": [
                         "getIndexData()",
                         "getAll(array $params)",
                         "getDataTables(array $params)",
                         "getOne(int $idJalan)",
-                        "add(IncomingRequest $request)",
-                        "edit(IncomingRequest $request)",
+                        "add($input)",
+                        "edit($input)",
                         "remove(int $idJalan)"
                     ]
                 },
                 {
                     "relative_path": "app/Services/Proyek/ActiveProyekService.php",
                     "filename": "ActiveProyekService.php",
-                    "line_count": 190,
+                    "line_count": 207,
                     "public_methods": [
                         "getActiveId()",
                         "getActive()",
@@ -265,12 +251,13 @@
                 {
                     "relative_path": "app/Repositories/Proyek/TipeRepository.php",
                     "filename": "TipeRepository.php",
-                    "line_count": 107,
+                    "line_count": 123,
                     "public_methods": [
                         "getAll(array $params)",
                         "getDataTables(array $params)",
                         "getGambarKerjaHistory(int $idTipe)",
-                        "ensureConfigShape(string $tipeRumah, string $fill)"
+                        "ensureConfigShape(string $tipeRumah, string $fill)",
+                        "getListKavling(int $idTipe)"
                     ]
                 },
                 {
@@ -373,30 +360,6 @@
                 },
                 {
                     "http_method": "POST",
-                    "uri": "/api/proyek/all",
-                    "type": "Explicit",
-                    "handler": "ProyekController::getAll",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/proyek/getall",
-                    "type": "Explicit",
-                    "handler": "ProyekController::getAll",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/proyek/getone",
-                    "type": "Explicit",
-                    "handler": "ProyekController::getOne",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
                     "uri": "/api/proyek/add",
                     "type": "Explicit",
                     "handler": "ProyekController::add",
@@ -420,38 +383,6 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "GET",
-                    "uri": "/api/proyek/siteplan-list",
-                    "type": "Explicit",
-                    "handler": "ProyekController::getSiteplanList",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/proyek/siteplan-list",
-                    "type": "Explicit",
-                    "handler": "ProyekController::getSiteplanList",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/api/proyek/accessible",
-                    "type": "Explicit",
-                    "handler": "ProyekController::getAccessible",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/proyek/accessible",
-                    "type": "Explicit",
-                    "handler": "ProyekController::getAccessible",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
                     "http_method": "POST",
                     "uri": "/api/proyek/set-active",
                     "type": "Explicit",
@@ -464,46 +395,6 @@
                     "uri": "/cluster",
                     "type": "Explicit",
                     "handler": "ClusterController::index",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/cluster/datatable",
-                    "type": "Explicit",
-                    "handler": "ClusterController::getDataTable",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/cluster/getdatatable",
-                    "type": "Explicit",
-                    "handler": "ClusterController::getDataTable",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/cluster/all",
-                    "type": "Explicit",
-                    "handler": "ClusterController::getAll",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/cluster/getall",
-                    "type": "Explicit",
-                    "handler": "ClusterController::getAll",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/cluster/getone",
-                    "type": "Explicit",
-                    "handler": "ClusterController::getOne",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -541,46 +432,6 @@
                 },
                 {
                     "http_method": "POST",
-                    "uri": "/api/tipe/datatables",
-                    "type": "Explicit",
-                    "handler": "TipeController::getDataTables",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/tipe/getdatatables",
-                    "type": "Explicit",
-                    "handler": "TipeController::getDataTables",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/tipe/all",
-                    "type": "Explicit",
-                    "handler": "TipeController::getAll",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/tipe/getall",
-                    "type": "Explicit",
-                    "handler": "TipeController::getAll",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/tipe/getone",
-                    "type": "Explicit",
-                    "handler": "TipeController::getOne",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
                     "uri": "/api/tipe/add",
                     "type": "Explicit",
                     "handler": "TipeController::add",
@@ -604,66 +455,10 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "POST",
-                    "uri": "/api/tipe/list-kavling",
-                    "type": "Explicit",
-                    "handler": "TipeController::getListKavling",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/tipe/getlistkavling",
-                    "type": "Explicit",
-                    "handler": "TipeController::getListKavling",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
                     "http_method": "GET",
                     "uri": "/jalan",
                     "type": "Explicit",
                     "handler": "JalanController::index",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/jalan/datatable",
-                    "type": "Explicit",
-                    "handler": "JalanController::getDatatable",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/jalan/getdatatable",
-                    "type": "Explicit",
-                    "handler": "JalanController::getDatatable",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/jalan/all",
-                    "type": "Explicit",
-                    "handler": "JalanController::getAll",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/jalan/getall",
-                    "type": "Explicit",
-                    "handler": "JalanController::getAll",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/jalan/getone",
-                    "type": "Explicit",
-                    "handler": "JalanController::getOne",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -709,30 +504,6 @@
                 },
                 {
                     "http_method": "POST",
-                    "uri": "/api/aksesproyek/all",
-                    "type": "Explicit",
-                    "handler": "AksesProyekController::getAll",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/aksesproyek/getone",
-                    "type": "Explicit",
-                    "handler": "AksesProyekController::getOne",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/aksesproyek/search-users",
-                    "type": "Explicit",
-                    "handler": "AksesProyekController::getAkses",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
                     "uri": "/api/aksesproyek/edit",
                     "type": "Explicit",
                     "handler": "AksesProyekController::edit",
@@ -742,13 +513,14 @@
             ],
             "service_contracts": {
                 "ProyekService.php": [
+                    "getDropdownList()",
                     "getAll(array $params = [])",
                     "getOne(int $idProyek)",
                     "add(IncomingRequest $request)",
                     "edit(IncomingRequest $request)",
                     "getSiteplanList(int $idProyek)",
                     "remove(int $idProyek)",
-                    "getAksesList()",
+                    "getAksesList(array $params = [])",
                     "getAksesOne(int $idProyek)",
                     "searchAksesUsers(string $keyword)",
                     "updateAkses(array $postData)"
@@ -765,6 +537,7 @@
                 "TipeService.php": [
                     "getAll(array $params)",
                     "getDataTables(array $params)",
+                    "getListKavling(int $idTipe)",
                     "getOne(int $idTipe)",
                     "add(IncomingRequest $request)",
                     "edit(IncomingRequest $request)",
@@ -775,8 +548,8 @@
                     "getAll(array $params)",
                     "getDataTables(array $params)",
                     "getOne(int $idJalan)",
-                    "add(IncomingRequest $request)",
-                    "edit(IncomingRequest $request)",
+                    "add($input)",
+                    "edit($input)",
                     "remove(int $idJalan)"
                 ],
                 "ActiveProyekService.php": [
@@ -5113,6 +4886,11 @@
                     "path": "public/assets/js/siteplan/legal.js",
                     "filename": "legal.js",
                     "line_count": 497
+                },
+                {
+                    "path": "public/assets/js/legal.js",
+                    "filename": "legal.js",
+                    "line_count": 216
                 }
             ],
             "routes": [
@@ -5259,58 +5037,17 @@
         "Produksi": {
             "name": "Produksi",
             "description": "Manajemen konstruksi lapangan, tahapan serah terima fisik (ST 0-100%), komplain, dan pengawasan subkon.",
-            "status": "MAPPED",
-            "readiness_score": 60,
+            "status": "REFACTORED",
+            "readiness_score": 100,
             "readiness_checklist": {
-                "has_service": false,
-                "has_repository": false,
-                "has_web_api_split": false,
-                "has_explicit_routes": false,
-                "zero_controller_violations": false,
+                "has_service": true,
+                "has_repository": true,
+                "has_web_api_split": true,
+                "has_explicit_routes": true,
+                "zero_controller_violations": true,
                 "has_documentation": true
             },
-            "controller_violations": {
-                "app/Controllers/Produksi.php": [
-                    "Database::connect()",
-                    "new GambarkerjaModel()",
-                    "new KavlingModel()",
-                    "new ChecklistWorkModel()",
-                    "new KomplainModel()",
-                    "new ProduksiModel()"
-                ],
-                "app/Controllers/Api/ProduksiController.php": [
-                    "Database::connect()",
-                    "new GambarkerjaModel()",
-                    "new KavlingModel()",
-                    "new ChecklistWorkModel()",
-                    "new KomplainModel()"
-                ],
-                "app/Controllers/Subkon.php": [
-                    "db_connect()",
-                    "new SubkonModel()"
-                ],
-                "app/Controllers/ChecklistGroup.php": [
-                    "new ChecklistGroupModel()"
-                ],
-                "app/Controllers/ChecklistItem.php": [
-                    "new ChecklistItemModel()",
-                    "new ChecklistGroupModel()"
-                ],
-                "app/Controllers/ChecklistSubItem.php": [
-                    "new ChecklistSubItemModel()",
-                    "new ChecklistItemModel()",
-                    "new ChecklistGroupModel()"
-                ],
-                "app/Controllers/Sales.php": [
-                    "new ProduksiModel()",
-                    "new GambarkerjaModel()",
-                    "new KavlingModel()",
-                    "new ChecklistSubItemModel()",
-                    "new ChecklistWorkModel()",
-                    "new SerahTerimaModel()",
-                    "new KomplainModel()"
-                ]
-            },
+            "controller_violations": [],
             "owner_tables": [
                 "produksi",
                 "komplain",
@@ -5328,41 +5065,50 @@
             ],
             "controllers": [
                 {
-                    "relative_path": "app/Controllers/Produksi.php",
-                    "filename": "Produksi.php",
-                    "line_count": 493,
+                    "relative_path": "app/Controllers/Web/Produksi/ProduksiController.php",
+                    "filename": "ProduksiController.php",
+                    "line_count": 101,
                     "public_methods": [
-                        "get_data_by_id()",
-                        "getBayarProduksiListItem()",
-                        "getBayarProduksi()",
-                        "saveBayarProduksi()",
-                        "deleteBayarProduksi()",
-                        "get_data_komplain_by_id()",
-                        "save_komplain_produksi()",
-                        "save()",
-                        "saveSLf()",
-                        "getSlf()",
-                        "hapusSLF()",
+                        "index()",
+                        "produksiMobile()",
                         "getSLFPDF($id)",
-                        "getKavling()",
-                        "hapus_foto()",
-                        "get_gambarkerja()",
-                        "edit_others()"
+                        "direksi()"
                     ],
-                    "violations": [
-                        "Database::connect()",
-                        "new GambarkerjaModel()",
-                        "new KavlingModel()",
-                        "new ChecklistWorkModel()",
-                        "new KomplainModel()",
-                        "new ProduksiModel()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/ProduksiController.php",
-                    "filename": "ProduksiController.php",
-                    "line_count": 789,
+                    "relative_path": "app/Controllers/Web/Produksi/ChecklistGroupController.php",
+                    "filename": "ChecklistGroupController.php",
+                    "line_count": 18,
                     "public_methods": [
+                        "index()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Web/Produksi/ChecklistItemController.php",
+                    "filename": "ChecklistItemController.php",
+                    "line_count": 27,
+                    "public_methods": [
+                        "index()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Web/Produksi/ChecklistSubItemController.php",
+                    "filename": "ChecklistSubItemController.php",
+                    "line_count": 27,
+                    "public_methods": [
+                        "index()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Produksi/ProduksiController.php",
+                    "filename": "ProduksiController.php",
+                    "line_count": 359,
+                    "public_methods": [
+                        "meta()",
                         "get_data_by_id()",
                         "history()",
                         "getBayarProduksiListItem()",
@@ -5383,81 +5129,21 @@
                         "add_jalan()",
                         "edit_others()"
                     ],
-                    "violations": [
-                        "Database::connect()",
-                        "new GambarkerjaModel()",
-                        "new KavlingModel()",
-                        "new ChecklistWorkModel()",
-                        "new KomplainModel()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Subkon.php",
-                    "filename": "Subkon.php",
-                    "line_count": 31,
+                    "relative_path": "app/Controllers/Api/Produksi/SubkonController.php",
+                    "filename": "SubkonController.php",
+                    "line_count": 37,
                     "public_methods": [
                         "getList()"
                     ],
-                    "violations": [
-                        "db_connect()",
-                        "new SubkonModel()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/ChecklistGroup.php",
-                    "filename": "ChecklistGroup.php",
-                    "line_count": 193,
-                    "public_methods": [
-                        "index()",
-                        "getAll()",
-                        "getOne()",
-                        "add()",
-                        "edit()",
-                        "remove()"
-                    ],
-                    "violations": [
-                        "new ChecklistGroupModel()"
-                    ]
-                },
-                {
-                    "relative_path": "app/Controllers/ChecklistItem.php",
-                    "filename": "ChecklistItem.php",
-                    "line_count": 220,
-                    "public_methods": [
-                        "index()",
-                        "getAll()",
-                        "getOne()",
-                        "add()",
-                        "edit()",
-                        "remove()"
-                    ],
-                    "violations": [
-                        "new ChecklistItemModel()",
-                        "new ChecklistGroupModel()"
-                    ]
-                },
-                {
-                    "relative_path": "app/Controllers/ChecklistSubItem.php",
-                    "filename": "ChecklistSubItem.php",
-                    "line_count": 259,
-                    "public_methods": [
-                        "index()",
-                        "getAll()",
-                        "getOne()",
-                        "add()",
-                        "edit()",
-                        "remove()"
-                    ],
-                    "violations": [
-                        "new ChecklistSubItemModel()",
-                        "new ChecklistItemModel()",
-                        "new ChecklistGroupModel()"
-                    ]
-                },
-                {
-                    "relative_path": "app/Controllers/Sales.php",
-                    "filename": "Sales.php",
-                    "line_count": 388,
+                    "relative_path": "app/Controllers/Api/Produksi/SalesController.php",
+                    "filename": "SalesController.php",
+                    "line_count": 92,
                     "public_methods": [
                         "get_data_by_id()",
                         "save_checklist()",
@@ -5467,50 +5153,125 @@
                         "get_data_serah_terima_by_id()",
                         "save_serah_terima()"
                     ],
-                    "violations": [
-                        "new ProduksiModel()",
-                        "new GambarkerjaModel()",
-                        "new KavlingModel()",
-                        "new ChecklistSubItemModel()",
-                        "new ChecklistWorkModel()",
-                        "new SerahTerimaModel()",
-                        "new KomplainModel()"
-                    ]
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Produksi/ChecklistGroupController.php",
+                    "filename": "ChecklistGroupController.php",
+                    "line_count": 94,
+                    "public_methods": [
+                        "getAll()",
+                        "getOne()",
+                        "add()",
+                        "edit($id = null)",
+                        "remove()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Produksi/ChecklistItemController.php",
+                    "filename": "ChecklistItemController.php",
+                    "line_count": 94,
+                    "public_methods": [
+                        "getAll()",
+                        "getOne()",
+                        "add()",
+                        "edit($id = null)",
+                        "remove()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Produksi/ChecklistSubItemController.php",
+                    "filename": "ChecklistSubItemController.php",
+                    "line_count": 94,
+                    "public_methods": [
+                        "getAll()",
+                        "getOne()",
+                        "add()",
+                        "edit($id = null)",
+                        "remove()"
+                    ],
+                    "violations": []
                 }
             ],
             "services": [
                 {
-                    "relative_path": "app/Services/ProduksiService.php",
+                    "relative_path": "app/Services/Produksi/ProduksiService.php",
                     "filename": "ProduksiService.php",
-                    "line_count": 264,
+                    "line_count": 1017,
                     "public_methods": [
-                        "save(array $var, array $uploadedFiles, int $userId)"
+                        "cleanNumeric(mixed $value)",
+                        "save(array $var, array $uploadedFiles, int $userId)",
+                        "saveMobileUpload(int $idKavling, ?int $idProduksi, array $files, array $vars, int $userId)",
+                        "saveBayarProduksi(int $idKavling, int $idItemProduksi, mixed $nominal, string $tanggalBayar, string $keterangan, int $userId)",
+                        "deleteBayarProduksi(int $id, int $userId)",
+                        "getBayarProduksiData(int $idKavling)",
+                        "getDetailByKavling(int $idKavling, ?int $idProduksi)",
+                        "getHistory(int $idKavling, int $limit = 10, int $offset = 0)",
+                        "getKomplainDetail(int $idKavling)",
+                        "saveKomplainProduksi(array $data, array $uploadedFiles, int $userId)",
+                        "saveKomplainSales(array $data, array $uploadedFiles, int $userId)",
+                        "batalkanKomplain(int $idKavling, ?int $idKomplain)",
+                        "getSerahTerimaDetail(int $idKavling)",
+                        "saveSerahTerima(array $data, int $userId)",
+                        "getChecklistSalesDetail(int $idKavling)",
+                        "saveChecklistSales(int $idKavling, mixed $isChecked, array $postVars, int $userId)",
+                        "deleteFoto(int $id, int $userId)",
+                        "addJalan(array $postVars, int $userId)",
+                        "editOthers(int $id, array $postVars, array $uploadedFiles, int $userId)",
+                        "saveSlf(array $postVars, int $userId)",
+                        "deleteSlf(int $id)"
                     ]
                 },
                 {
-                    "relative_path": "app/Services/ProduksiFileService.php",
+                    "relative_path": "app/Services/Produksi/ProduksiFileService.php",
                     "filename": "ProduksiFileService.php",
-                    "line_count": 186,
+                    "line_count": 187,
                     "public_methods": [
                         "uploadFotoGroups(array $requestFiles, array $requestVars, int $idKavling)",
                         "moveFotoToTrash(object $file)"
                     ]
                 },
                 {
-                    "relative_path": "app/Services/PhotoGpsMetadataService.php",
+                    "relative_path": "app/Services/Produksi/PhotoGpsMetadataService.php",
                     "filename": "PhotoGpsMetadataService.php",
                     "line_count": 191,
                     "public_methods": [
                         "prepareDownload(array $file)",
                         "cleanup(?string $temporaryPath)"
                     ]
+                },
+                {
+                    "relative_path": "app/Services/Produksi/ChecklistService.php",
+                    "filename": "ChecklistService.php",
+                    "line_count": 334,
+                    "public_methods": [
+                        "getAllGroups(bool $asDatatable = false)",
+                        "getGroup(int $id)",
+                        "createGroup(array $data, int $userId)",
+                        "updateGroup(int $id, array $data, int $userId)",
+                        "deleteGroup(int $id)",
+                        "getAllItems(bool $asDatatable = false)",
+                        "getItem(int $id)",
+                        "createItem(array $data, int $userId)",
+                        "updateItem(int $id, array $data, int $userId)",
+                        "deleteItem(int $id)",
+                        "getAllSubItems(bool $asDatatable = false)",
+                        "getSubItem(int $id)",
+                        "createSubItem(array $data, int $userId)",
+                        "updateSubItem(int $id, array $data, int $userId)",
+                        "deleteSubItem(int $id)",
+                        "getActiveGroups()",
+                        "getActiveGroupsWithItems()"
+                    ]
                 }
             ],
             "repositories": [
                 {
-                    "relative_path": "app/Repositories/ProduksiRepository.php",
+                    "relative_path": "app/Repositories/Produksi/ProduksiRepository.php",
                     "filename": "ProduksiRepository.php",
-                    "line_count": 379,
+                    "line_count": 553,
                     "public_methods": [
                         "getFilesByKavling(int $idKavling)",
                         "insertFiles(array $files)",
@@ -5525,7 +5286,6 @@
                         "getRiwayatBayarByKavling(int $idKavling)",
                         "insertBayarSingle(array $data)",
                         "deleteBayar(int $id)",
-                        "upsertBayarItems(string $idKavling, array $items, int $userId)",
                         "getByIdWithUsers(int $idProduksi)",
                         "getSlfList()",
                         "getSlfById(int $id)",
@@ -5538,7 +5298,53 @@
                         "getOtherById(int $id)",
                         "updateOthers(int $id, array $fields)",
                         "hasJalanProgressHistoryTable()",
-                        "insertJalanProgressHistory(array $fields)"
+                        "insertJalanProgressHistory(array $fields)",
+                        "getSubkonList(string $search)",
+                        "getGambarKerjaById(int $id)",
+                        "getKavlingById(int $idKavling)",
+                        "getKavlingCheckStatus(int $idKavling)",
+                        "getKavlingOwnerKomplain(int $idKavling, int $idKomplain)",
+                        "updateKavling(int $idKavling, array $data)",
+                        "getProduksiRaw(int $idProduksi)",
+                        "insertProduksi(array $data)",
+                        "updateProduksi(int $idProduksi, array $data)",
+                        "getKomplainWithUsers(int $idKavling)",
+                        "insertKomplain(array $data)",
+                        "updateKomplain(int $idKomplain, array $data)",
+                        "deleteKomplain(int $idKomplain)",
+                        "getSerahTerimaByKavling(int $idKavling)",
+                        "insertSerahTerima(array $data)",
+                        "updateSerahTerima(int $idSerahTerima, array $data)",
+                        "getChecklistWorkByKavling(int $idKavling)",
+                        "getChecklistWorkWithUsers(int $idKavling)",
+                        "getChecklistWorkForProduksi(int $idKavling)",
+                        "getAllSubitemIds()",
+                        "upsertChecklistWork(int $idKavling, int $idSubitem, array $data)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Produksi/ChecklistRepository.php",
+                    "filename": "ChecklistRepository.php",
+                    "line_count": 199,
+                    "public_methods": [
+                        "getAllGroups()",
+                        "getActiveGroups()",
+                        "getGroupById(int $id)",
+                        "insertGroup(array $data)",
+                        "updateGroup(int $id, array $data)",
+                        "toggleGroupStatus(int $id)",
+                        "getAllItems()",
+                        "getItemById(int $id)",
+                        "getItemsByGroup(int $idGroup)",
+                        "insertItem(array $data)",
+                        "updateItem(int $id, array $data)",
+                        "toggleItemStatus(int $id)",
+                        "getAllSubItems()",
+                        "getSubItemById(int $id)",
+                        "insertSubItem(array $data)",
+                        "updateSubItem(int $id, array $data)",
+                        "toggleSubItemStatus(int $id)",
+                        "getActiveGroupsWithItems()"
                     ]
                 }
             ],
@@ -5598,7 +5404,19 @@
                     "public_methods": []
                 }
             ],
-            "shims": [],
+            "shims": [
+                "app/Controllers/Produksi.php",
+                "app/Controllers/Api/ProduksiController.php",
+                "app/Controllers/Subkon.php",
+                "app/Controllers/ChecklistGroup.php",
+                "app/Controllers/ChecklistItem.php",
+                "app/Controllers/ChecklistSubItem.php",
+                "app/Controllers/Sales.php",
+                "app/Services/ProduksiService.php",
+                "app/Services/ProduksiFileService.php",
+                "app/Services/PhotoGpsMetadataService.php",
+                "app/Repositories/ProduksiRepository.php"
+            ],
             "views": [
                 {
                     "folder": "app/Views/checklist",
@@ -5635,6 +5453,62 @@
                 }
             ],
             "routes": [
+                {
+                    "http_method": "GET",
+                    "uri": "/produksi/mobile",
+                    "type": "Explicit",
+                    "handler": "ProduksiController::produksiMobile",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/checklist-group",
+                    "type": "Explicit",
+                    "handler": "ChecklistGroupController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/checklistGroup",
+                    "type": "Explicit",
+                    "handler": "ChecklistGroupController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/checklist-item",
+                    "type": "Explicit",
+                    "handler": "ChecklistItemController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/checklistItem",
+                    "type": "Explicit",
+                    "handler": "ChecklistItemController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/checklist-sub-item",
+                    "type": "Explicit",
+                    "handler": "ChecklistSubItemController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/checklistSubItem",
+                    "type": "Explicit",
+                    "handler": "ChecklistSubItemController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
                 {
                     "http_method": "POST",
                     "uri": "/api/produksi/get_data_by_id",
@@ -5789,344 +5663,332 @@
                 },
                 {
                     "http_method": "POST",
-                    "uri": "/subkon/list/ambil",
+                    "uri": "/api/produksi/sales/get_data_by_id",
                     "type": "Explicit",
-                    "handler": "Subkon::getList",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "SalesController::get_data_by_id",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/produksi/get_data_by_id",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::get_data_by_id",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/produksi/sales/save_checklist",
+                    "type": "Explicit",
+                    "handler": "SalesController::save_checklist",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/produksi/getbayarproduksilistitem",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::getBayarProduksiListItem",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/produksi/sales/get_data_komplain_by_id",
+                    "type": "Explicit",
+                    "handler": "SalesController::get_data_komplain_by_id",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/produksi/getbayarproduksi",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::getBayarProduksi",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/produksi/sales/batalkan_komplain",
+                    "type": "Explicit",
+                    "handler": "SalesController::batalkan_komplain",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/produksi/savebayarproduksi",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::saveBayarProduksi",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/produksi/sales/save_komplain_sales",
+                    "type": "Explicit",
+                    "handler": "SalesController::save_komplain_sales",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/produksi/deletebayarproduksi",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::deleteBayarProduksi",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/produksi/sales/get_data_serah_terima_by_id",
+                    "type": "Explicit",
+                    "handler": "SalesController::get_data_serah_terima_by_id",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/produksi/get_data_komplain_by_id",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::get_data_komplain_by_id",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/produksi/sales/save_serah_terima",
+                    "type": "Explicit",
+                    "handler": "SalesController::save_serah_terima",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/produksi/save_komplain_produksi",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::save_komplain_produksi",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/produksi/save",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::save",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/produksi/saveslf",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::saveSLf",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/produksi/getslf",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::getSlf",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/produksi/hapusslf",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::hapusSLF",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/produksi/getslfpdf",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::getSLFPDF",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/produksi/getkavling",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::getKavling",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/produksi/hapus_foto",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::hapus_foto",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/produksi/get_gambarkerja",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::get_gambarkerja",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/produksi/edit_others",
-                    "type": "AutoRoute",
-                    "handler": "Produksi::edit_others",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_group/index",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistGroup::index",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_group/getall",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistGroup::getAll",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_group/getone",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistGroup::getOne",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_group/add",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistGroup::add",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_group/edit",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistGroup::edit",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_group/remove",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistGroup::remove",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_item/index",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistItem::index",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_item/getall",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistItem::getAll",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_item/getone",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistItem::getOne",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_item/add",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistItem::add",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_item/edit",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistItem::edit",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_item/remove",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistItem::remove",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_sub_item/index",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistSubItem::index",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_sub_item/getall",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistSubItem::getAll",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_sub_item/getone",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistSubItem::getOne",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_sub_item/add",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistSubItem::add",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_sub_item/edit",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistSubItem::edit",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/checklist_sub_item/remove",
-                    "type": "AutoRoute",
-                    "handler": "ChecklistSubItem::remove",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
+                    "http_method": "POST",
                     "uri": "/sales/get_data_by_id",
-                    "type": "AutoRoute",
-                    "handler": "Sales::get_data_by_id",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SalesController::get_data_by_id",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
                     "uri": "/sales/save_checklist",
-                    "type": "AutoRoute",
-                    "handler": "Sales::save_checklist",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SalesController::save_checklist",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
                     "uri": "/sales/get_data_komplain_by_id",
-                    "type": "AutoRoute",
-                    "handler": "Sales::get_data_komplain_by_id",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SalesController::get_data_komplain_by_id",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
                     "uri": "/sales/batalkan_komplain",
-                    "type": "AutoRoute",
-                    "handler": "Sales::batalkan_komplain",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SalesController::batalkan_komplain",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
                     "uri": "/sales/save_komplain_sales",
-                    "type": "AutoRoute",
-                    "handler": "Sales::save_komplain_sales",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SalesController::save_komplain_sales",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
                     "uri": "/sales/get_data_serah_terima_by_id",
-                    "type": "AutoRoute",
-                    "handler": "Sales::get_data_serah_terima_by_id",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SalesController::get_data_serah_terima_by_id",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
                     "uri": "/sales/save_serah_terima",
-                    "type": "AutoRoute",
-                    "handler": "Sales::save_serah_terima",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SalesController::save_serah_terima",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/checklistGroup/getOne",
+                    "type": "Explicit",
+                    "handler": "ChecklistGroupController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/checklistGroup/add",
+                    "type": "Explicit",
+                    "handler": "ChecklistGroupController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/checklistGroup/edit",
+                    "type": "Explicit",
+                    "handler": "ChecklistGroupController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/checklistGroup/remove",
+                    "type": "Explicit",
+                    "handler": "ChecklistGroupController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/checklist-group/getOne",
+                    "type": "Explicit",
+                    "handler": "ChecklistGroupController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/checklist-group/add",
+                    "type": "Explicit",
+                    "handler": "ChecklistGroupController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/checklist-group/edit",
+                    "type": "Explicit",
+                    "handler": "ChecklistGroupController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/checklist-group/remove",
+                    "type": "Explicit",
+                    "handler": "ChecklistGroupController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/checklistItem/getOne",
+                    "type": "Explicit",
+                    "handler": "ChecklistItemController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/checklistItem/add",
+                    "type": "Explicit",
+                    "handler": "ChecklistItemController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/checklistItem/edit",
+                    "type": "Explicit",
+                    "handler": "ChecklistItemController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/checklistItem/remove",
+                    "type": "Explicit",
+                    "handler": "ChecklistItemController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/checklist-item/getOne",
+                    "type": "Explicit",
+                    "handler": "ChecklistItemController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/checklist-item/add",
+                    "type": "Explicit",
+                    "handler": "ChecklistItemController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/checklist-item/edit",
+                    "type": "Explicit",
+                    "handler": "ChecklistItemController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/checklist-item/remove",
+                    "type": "Explicit",
+                    "handler": "ChecklistItemController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/checklistSubItem/getOne",
+                    "type": "Explicit",
+                    "handler": "ChecklistSubItemController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/checklistSubItem/add",
+                    "type": "Explicit",
+                    "handler": "ChecklistSubItemController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/checklistSubItem/edit",
+                    "type": "Explicit",
+                    "handler": "ChecklistSubItemController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/checklistSubItem/remove",
+                    "type": "Explicit",
+                    "handler": "ChecklistSubItemController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/checklist-sub-item/getOne",
+                    "type": "Explicit",
+                    "handler": "ChecklistSubItemController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/checklist-sub-item/add",
+                    "type": "Explicit",
+                    "handler": "ChecklistSubItemController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/checklist-sub-item/edit",
+                    "type": "Explicit",
+                    "handler": "ChecklistSubItemController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/checklist-sub-item/remove",
+                    "type": "Explicit",
+                    "handler": "ChecklistSubItemController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 }
             ],
             "service_contracts": {
                 "ProduksiService.php": [
-                    "save(array $var, array $uploadedFiles, int $userId)"
+                    "cleanNumeric(mixed $value)",
+                    "save(array $var, array $uploadedFiles, int $userId)",
+                    "saveMobileUpload(int $idKavling, ?int $idProduksi, array $files, array $vars, int $userId)",
+                    "saveBayarProduksi(int $idKavling, int $idItemProduksi, mixed $nominal, string $tanggalBayar, string $keterangan, int $userId)",
+                    "deleteBayarProduksi(int $id, int $userId)",
+                    "getBayarProduksiData(int $idKavling)",
+                    "getDetailByKavling(int $idKavling, ?int $idProduksi)",
+                    "getHistory(int $idKavling, int $limit = 10, int $offset = 0)",
+                    "getKomplainDetail(int $idKavling)",
+                    "saveKomplainProduksi(array $data, array $uploadedFiles, int $userId)",
+                    "saveKomplainSales(array $data, array $uploadedFiles, int $userId)",
+                    "batalkanKomplain(int $idKavling, ?int $idKomplain)",
+                    "getSerahTerimaDetail(int $idKavling)",
+                    "saveSerahTerima(array $data, int $userId)",
+                    "getChecklistSalesDetail(int $idKavling)",
+                    "saveChecklistSales(int $idKavling, mixed $isChecked, array $postVars, int $userId)",
+                    "deleteFoto(int $id, int $userId)",
+                    "addJalan(array $postVars, int $userId)",
+                    "editOthers(int $id, array $postVars, array $uploadedFiles, int $userId)",
+                    "saveSlf(array $postVars, int $userId)",
+                    "deleteSlf(int $id)"
                 ],
                 "ProduksiFileService.php": [
                     "uploadFotoGroups(array $requestFiles, array $requestVars, int $idKavling)",
@@ -6135,6 +5997,25 @@
                 "PhotoGpsMetadataService.php": [
                     "prepareDownload(array $file)",
                     "cleanup(?string $temporaryPath)"
+                ],
+                "ChecklistService.php": [
+                    "getAllGroups(bool $asDatatable = false)",
+                    "getGroup(int $id)",
+                    "createGroup(array $data, int $userId)",
+                    "updateGroup(int $id, array $data, int $userId)",
+                    "deleteGroup(int $id)",
+                    "getAllItems(bool $asDatatable = false)",
+                    "getItem(int $id)",
+                    "createItem(array $data, int $userId)",
+                    "updateItem(int $id, array $data, int $userId)",
+                    "deleteItem(int $id)",
+                    "getAllSubItems(bool $asDatatable = false)",
+                    "getSubItem(int $id)",
+                    "createSubItem(array $data, int $userId)",
+                    "updateSubItem(int $id, array $data, int $userId)",
+                    "deleteSubItem(int $id)",
+                    "getActiveGroups()",
+                    "getActiveGroupsWithItems()"
                 ]
             },
             "doc_path": "docs/modules/Produksi/MODULE.md"
@@ -6869,20 +6750,16 @@
             "name": "MGM",
             "description": "Member Get Member: program referral konsumen, pembuatan link/QR publik, serta approval dan pencairan komisi.",
             "status": "REFACTORED",
-            "readiness_score": 90,
+            "readiness_score": 100,
             "readiness_checklist": {
                 "has_service": true,
                 "has_repository": true,
                 "has_web_api_split": true,
                 "has_explicit_routes": true,
-                "zero_controller_violations": false,
+                "zero_controller_violations": true,
                 "has_documentation": true
             },
-            "controller_violations": {
-                "app/Controllers/Api/MGM/ReferralSettingController.php": [
-                    "new ReferralBonusStageModel()"
-                ]
-            },
+            "controller_violations": [],
             "owner_tables": [
                 "referrals",
                 "referral_bonuses",
@@ -6925,15 +6802,13 @@
                 {
                     "relative_path": "app/Controllers/Api/MGM/ReferralSettingController.php",
                     "filename": "ReferralSettingController.php",
-                    "line_count": 58,
+                    "line_count": 59,
                     "public_methods": [
                         "listStages()",
                         "saveStage()",
                         "deleteStage()"
                     ],
-                    "violations": [
-                        "new ReferralBonusStageModel()"
-                    ]
+                    "violations": []
                 },
                 {
                     "relative_path": "app/Controllers/Api/MGM/ReferralQrController.php",
@@ -6959,13 +6834,16 @@
                 {
                     "relative_path": "app/Services/MGM/ReferralService.php",
                     "filename": "ReferralService.php",
-                    "line_count": 838,
+                    "line_count": 890,
                     "public_methods": [
                         "validateKodePublic(string $kode)",
                         "getSubRowsByReferrer(int $idKonsumenReferrer, int $idProyek, array $filters = [])",
                         "generateKodeReferal(int $idKonsumen)",
                         "createReferral(int $idMkdtReferred, string $kodeReferal, int $idProyek)",
                         "syncReferralForMkdt(int $idMkdtReferred, string $kodeReferal, int $idProyek, string $statusMkdt)",
+                        "getStages(int $idProyek)",
+                        "saveStage(array $payload, ?int $id = null)",
+                        "deleteStage(int $id)",
                         "checkAndActivateBonuses(int $idMkdt, string $newStatusMkdt)",
                         "confirmBonus(int $idReferralBonus, ?float $nominalOverride)",
                         "updateKeterangan(int $idReferralBonus, string $keterangan)",
@@ -6993,7 +6871,7 @@
                 {
                     "relative_path": "app/Repositories/MGM/ReferralRepository.php",
                     "filename": "ReferralRepository.php",
-                    "line_count": 463,
+                    "line_count": 488,
                     "public_methods": [
                         "getListMGM(int $idProyek, array $filters = [])",
                         "getSubRowsByReferrer(int $idKonsumenReferrer, int $idProyek, array $filters = [])",
@@ -7001,6 +6879,9 @@
                         "getReferralByMkdt(int $idMkdt)",
                         "getMkdtReferralContext(int $idMkdt)",
                         "getBonusStagesByProyek(int $idProyek)",
+                        "getAllBonusStagesByProyek(int $idProyek)",
+                        "saveBonusStage(array $data, ?int $id = null)",
+                        "deleteBonusStage(int $id)",
                         "getMgmNotificationContextByBonus(int $idBonus)",
                         "findPublicByKode(string $kode)",
                         "searchReferrerOptions(string $search, int $idProyek)",
@@ -7208,6 +7089,9 @@
                     "generateKodeReferal(int $idKonsumen)",
                     "createReferral(int $idMkdtReferred, string $kodeReferal, int $idProyek)",
                     "syncReferralForMkdt(int $idMkdtReferred, string $kodeReferal, int $idProyek, string $statusMkdt)",
+                    "getStages(int $idProyek)",
+                    "saveStage(array $payload, ?int $id = null)",
+                    "deleteStage(int $id)",
                     "checkAndActivateBonuses(int $idMkdt, string $newStatusMkdt)",
                     "confirmBonus(int $idReferralBonus, ?float $nominalOverride)",
                     "updateKeterangan(int $idReferralBonus, string $keterangan)",
@@ -7755,28 +7639,17 @@
         "Notifikasi": {
             "name": "Notifikasi",
             "description": "Pemberitahuan terpusat: navbar in-app alerts, queue email digest, browser Web Push, dan pengaturan preferensi user.",
-            "status": "MAPPED",
-            "readiness_score": 60,
+            "status": "REFACTORED",
+            "readiness_score": 100,
             "readiness_checklist": {
-                "has_service": false,
-                "has_repository": false,
-                "has_web_api_split": false,
-                "has_explicit_routes": false,
-                "zero_controller_violations": false,
+                "has_service": true,
+                "has_repository": true,
+                "has_web_api_split": true,
+                "has_explicit_routes": true,
+                "zero_controller_violations": true,
                 "has_documentation": true
             },
-            "controller_violations": {
-                "app/Controllers/Notif.php": [
-                    "db_connect()",
-                    "$this->db->table()"
-                ],
-                "app/Controllers/Api/NotifPushController.php": [
-                    "db_connect()"
-                ],
-                "app/Controllers/Api/NotificationPreferenceController.php": [
-                    "db_connect()"
-                ]
-            },
+            "controller_violations": [],
             "owner_tables": [
                 "push_subscriptions",
                 "notification",
@@ -7790,73 +7663,80 @@
                 "google_calendar_event_syncs"
             ],
             "shared_tables": [
-                "users"
+                "users",
+                "proyek"
             ],
             "controllers": [
                 {
-                    "relative_path": "app/Controllers/Notif.php",
-                    "filename": "Notif.php",
-                    "line_count": 248,
+                    "relative_path": "app/Controllers/Web/Notifikasi/NotifikasiController.php",
+                    "filename": "NotifikasiController.php",
+                    "line_count": 45,
                     "public_methods": [
-                        "tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null, ?string $actionUrl = null, ?string $eventType = null)",
-                        "icon(int $idProyek)",
                         "open(int $notificationId)",
-                        "getNotif($all = false)",
-                        "getSummary()",
-                        "getCenter()",
-                        "snooze()",
-                        "loadNotif($all = false)",
-                        "getActivity($all = false, $offset = null, $id_proyek = null, $limit = 10)",
-                        "markAsRead($id)",
-                        "markAllAsRead()"
+                        "icon(int $idProyek)"
                     ],
-                    "violations": [
-                        "db_connect()",
-                        "$this->db->table()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/NotifPushController.php",
-                    "filename": "NotifPushController.php",
-                    "line_count": 150,
-                    "public_methods": [
-                        "status()",
-                        "subscribe()",
-                        "unsubscribe()",
-                        "test()"
-                    ],
-                    "violations": [
-                        "db_connect()"
-                    ]
-                },
-                {
-                    "relative_path": "app/Controllers/Api/NotificationPreferenceController.php",
-                    "filename": "NotificationPreferenceController.php",
-                    "line_count": 95,
-                    "public_methods": [
-                        "index()",
-                        "save()",
-                        "reset()"
-                    ],
-                    "violations": [
-                        "db_connect()"
-                    ]
-                },
-                {
-                    "relative_path": "app/Controllers/GoogleCalendar.php",
-                    "filename": "GoogleCalendar.php",
-                    "line_count": 54,
+                    "relative_path": "app/Controllers/Web/Notifikasi/GoogleCalendarController.php",
+                    "filename": "GoogleCalendarController.php",
+                    "line_count": 55,
                     "public_methods": [
                         "connect()",
                         "callback()",
                         "disconnect()"
                     ],
                     "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Notifikasi/NotifikasiController.php",
+                    "filename": "NotifikasiController.php",
+                    "line_count": 381,
+                    "public_methods": [
+                        "tambah_notif($target = null, $notif = null, $add_by = null, $id_kavling = null, $id_konsumen = null, $type = null, $id_proyek = null, ?string $actionUrl = null, ?string $eventType = null)",
+                        "summary()",
+                        "getSummary()",
+                        "center()",
+                        "getCenter()",
+                        "snooze()",
+                        "load()",
+                        "loadNotif($all = false)",
+                        "getNotif($all = false)",
+                        "list()",
+                        "markAsRead($id)",
+                        "markAllAsRead()",
+                        "getActivity($all = false, $offset = null, $id_proyek = null, $limit = 10)",
+                        "getActivityRoute()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Notifikasi/NotifPushController.php",
+                    "filename": "NotifPushController.php",
+                    "line_count": 133,
+                    "public_methods": [
+                        "status()",
+                        "subscribe()",
+                        "unsubscribe()",
+                        "test()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Notifikasi/NotificationPreferenceController.php",
+                    "filename": "NotificationPreferenceController.php",
+                    "line_count": 86,
+                    "public_methods": [
+                        "index()",
+                        "save()",
+                        "reset()"
+                    ],
+                    "violations": []
                 }
             ],
             "services": [
                 {
-                    "relative_path": "app/Services/NotifikasiService.php",
+                    "relative_path": "app/Services/Notifikasi/NotifikasiService.php",
                     "filename": "NotifikasiService.php",
                     "line_count": 441,
                     "public_methods": [
@@ -7867,7 +7747,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/NotificationDispatchService.php",
+                    "relative_path": "app/Services/Notifikasi/NotificationDispatchService.php",
                     "filename": "NotificationDispatchService.php",
                     "line_count": 249,
                     "public_methods": [
@@ -7875,9 +7755,9 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/NotificationPreferenceService.php",
+                    "relative_path": "app/Services/Notifikasi/NotificationPreferenceService.php",
                     "filename": "NotificationPreferenceService.php",
-                    "line_count": 318,
+                    "line_count": 316,
                     "public_methods": [
                         "isAllowed(int $userId, string $eventType, string $channel)",
                         "getUserPreferences(int $userId, ?int $userGroupId = null)",
@@ -7886,25 +7766,25 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/NotificationNavigationService.php",
+                    "relative_path": "app/Services/Notifikasi/NotificationNavigationService.php",
                     "filename": "NotificationNavigationService.php",
-                    "line_count": 93,
+                    "line_count": 91,
                     "public_methods": [
                         "processOpen(int $notificationId, int $userId)"
                     ]
                 },
                 {
-                    "relative_path": "app/Services/NotificationIconService.php",
+                    "relative_path": "app/Services/Notifikasi/NotificationIconService.php",
                     "filename": "NotificationIconService.php",
-                    "line_count": 41,
+                    "line_count": 43,
                     "public_methods": [
                         "getIconPath(int $idProyek)"
                     ]
                 },
                 {
-                    "relative_path": "app/Services/WebPushService.php",
+                    "relative_path": "app/Services/Notifikasi/WebPushService.php",
                     "filename": "WebPushService.php",
-                    "line_count": 241,
+                    "line_count": 246,
                     "public_methods": [
                         "isReady()",
                         "initError()",
@@ -7912,6 +7792,7 @@
                         "subscribe(int $userId, array $subscriptionData, ?string $userAgent = null, ?int $deviceSessionId = null)",
                         "unsubscribe(int $userId, string $endpoint)",
                         "activeSubscriptionCount(int $userId)",
+                        "getActiveSubscriptionsForUser(int $userId)",
                         "sendToUser(int $userId, string $title, string $body, string $url = '/')",
                         "sendToGroup(string $groupId, string $title, string $body, string $url = '/', int $excludeUserId = 0)",
                         "sendToSubscriptions(array $subscriptions, string $title, string $body, string $url = '/', ?string $icon = null, ?int $notificationId = null)",
@@ -7919,7 +7800,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/EmailDigestService.php",
+                    "relative_path": "app/Services/Notifikasi/EmailDigestService.php",
                     "filename": "EmailDigestService.php",
                     "line_count": 538,
                     "public_methods": [
@@ -7927,7 +7808,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/GoogleCalendarService.php",
+                    "relative_path": "app/Services/Notifikasi/GoogleCalendarService.php",
                     "filename": "GoogleCalendarService.php",
                     "line_count": 611,
                     "public_methods": [
@@ -7944,22 +7825,25 @@
             ],
             "repositories": [
                 {
-                    "relative_path": "app/Repositories/NotifRepository.php",
-                    "filename": "NotifRepository.php",
-                    "line_count": 30,
-                    "public_methods": [
-                        "tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null)"
-                    ]
-                },
-                {
-                    "relative_path": "app/Repositories/NotificationRepository.php",
+                    "relative_path": "app/Repositories/Notifikasi/NotificationRepository.php",
                     "filename": "NotificationRepository.php",
-                    "line_count": 290,
+                    "line_count": 323,
                     "public_methods": [
                         "listForUser(int $userId, int $groupId, ?int $idProyek = null, int $offset = 0, int $limit = 10, bool $all = false)",
                         "unreadCountForUser(int $userId, int $groupId, ?int $idProyek = null)",
                         "markAsReadForUser(int $notificationId, int $userId)",
-                        "markAllAsReadForUser(int $userId)"
+                        "markAllAsReadForUser(int $userId)",
+                        "getUserGroupId(int $userId)",
+                        "getProyekName(int $idProyek)",
+                        "getActorDepartmentContext(int $userId)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Notifikasi/NotifRepository.php",
+                    "filename": "NotifRepository.php",
+                    "line_count": 29,
+                    "public_methods": [
+                        "tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null)"
                     ]
                 }
             ],
@@ -7979,7 +7863,22 @@
                     ]
                 }
             ],
-            "shims": [],
+            "shims": [
+                "app/Controllers/Notif.php",
+                "app/Controllers/GoogleCalendar.php",
+                "app/Controllers/Api/NotifPushController.php",
+                "app/Controllers/Api/NotificationPreferenceController.php",
+                "app/Services/NotifikasiService.php",
+                "app/Services/NotificationDispatchService.php",
+                "app/Services/NotificationPreferenceService.php",
+                "app/Services/NotificationNavigationService.php",
+                "app/Services/NotificationIconService.php",
+                "app/Services/WebPushService.php",
+                "app/Services/EmailDigestService.php",
+                "app/Services/GoogleCalendarService.php",
+                "app/Repositories/NotificationRepository.php",
+                "app/Repositories/NotifRepository.php"
+            ],
             "views": [
                 {
                     "folder": "app/Views/emails",
@@ -7993,81 +7892,161 @@
                 {
                     "path": "public/assets/js/push-subscription.js",
                     "filename": "push-subscription.js",
-                    "line_count": 234
+                    "line_count": 249
                 }
             ],
             "routes": [
                 {
                     "http_method": "GET",
-                    "uri": "/getnotif",
+                    "uri": "/notif/open/(:num)",
                     "type": "Explicit",
-                    "handler": "Notif::getNotif",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/loadnotif",
-                    "type": "Explicit",
-                    "handler": "Notif::loadNotif",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/notif/summary",
-                    "type": "Explicit",
-                    "handler": "Notif::getSummary",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/notif/center",
-                    "type": "Explicit",
-                    "handler": "Notif::getCenter",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/notif/snooze",
-                    "type": "Explicit",
-                    "handler": "Notif::snooze",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/notif/mark-as-read/(:num)",
-                    "type": "Explicit",
-                    "handler": "Notif::markAsRead/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/notif/mark-all-as-read",
-                    "type": "Explicit",
-                    "handler": "Notif::markAllAsRead",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "NotifikasiController::open/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
                     "uri": "/notif/icon/(:num)",
                     "type": "Explicit",
-                    "handler": "Notif::icon/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "NotifikasiController::icon/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
-                    "uri": "/notif/open/(:num)",
+                    "uri": "/google-calendar/connect",
                     "type": "Explicit",
-                    "handler": "Notif::open/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "GoogleCalendarController::connect",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/google-calendar/callback",
+                    "type": "Explicit",
+                    "handler": "GoogleCalendarController::callback",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/google-calendar/disconnect",
+                    "type": "Explicit",
+                    "handler": "GoogleCalendarController::disconnect",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/getnotif",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Notifikasi\\NotifikasiController::getNotif",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/loadnotif",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Notifikasi\\NotifikasiController::loadNotif",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/notif/summary",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Notifikasi\\NotifikasiController::getSummary",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/notif/center",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Notifikasi\\NotifikasiController::getCenter",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/notif/snooze",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Notifikasi\\NotifikasiController::snooze",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/notif/mark-as-read/(:num)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Notifikasi\\NotifikasiController::markAsRead/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/notif/mark-all-as-read",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Notifikasi\\NotifikasiController::markAllAsRead",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/notif/summary",
+                    "type": "Explicit",
+                    "handler": "NotifikasiController::summary",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/notif/center",
+                    "type": "Explicit",
+                    "handler": "NotifikasiController::center",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/notif/snooze",
+                    "type": "Explicit",
+                    "handler": "NotifikasiController::snooze",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/notif/load",
+                    "type": "Explicit",
+                    "handler": "NotifikasiController::load",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/notif/mark-as-read/(:num)",
+                    "type": "Explicit",
+                    "handler": "NotifikasiController::markAsRead/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/notif/mark-all-as-read",
+                    "type": "Explicit",
+                    "handler": "NotifikasiController::markAllAsRead",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/notif/list",
+                    "type": "Explicit",
+                    "handler": "NotifikasiController::list",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
@@ -8124,46 +8103,6 @@
                     "handler": "NotificationPreferenceController::reset",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/google-calendar/connect",
-                    "type": "Explicit",
-                    "handler": "GoogleCalendar::connect",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/google-calendar/callback",
-                    "type": "Explicit",
-                    "handler": "GoogleCalendar::callback",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/google-calendar/disconnect",
-                    "type": "Explicit",
-                    "handler": "GoogleCalendar::disconnect",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/notif/tambah_notif",
-                    "type": "AutoRoute",
-                    "handler": "Notif::tambah_notif",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/notif/getactivity",
-                    "type": "AutoRoute",
-                    "handler": "Notif::getActivity",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
                 }
             ],
             "service_contracts": {
@@ -8195,6 +8134,7 @@
                     "subscribe(int $userId, array $subscriptionData, ?string $userAgent = null, ?int $deviceSessionId = null)",
                     "unsubscribe(int $userId, string $endpoint)",
                     "activeSubscriptionCount(int $userId)",
+                    "getActiveSubscriptionsForUser(int $userId)",
                     "sendToUser(int $userId, string $title, string $body, string $url = '/')",
                     "sendToGroup(string $groupId, string $title, string $body, string $url = '/', int $excludeUserId = 0)",
                     "sendToSubscriptions(array $subscriptions, string $title, string $body, string $url = '/', ?string $icon = null, ?int $notificationId = null)",
@@ -9604,7 +9544,7 @@
                 {
                     "relative_path": "app/Controllers/Api/Auth/AuthController.php",
                     "filename": "AuthController.php",
-                    "line_count": 231,
+                    "line_count": 292,
                     "public_methods": [
                         "login()",
                         "logout()",
@@ -9618,7 +9558,7 @@
                 {
                     "relative_path": "app/Controllers/Api/AuthDeviceController.php",
                     "filename": "AuthDeviceController.php",
-                    "line_count": 89,
+                    "line_count": 125,
                     "public_methods": [
                         "index()",
                         "revoke(int $deviceId)",
@@ -9651,11 +9591,12 @@
                 {
                     "relative_path": "app/Services/DeviceSessionService.php",
                     "filename": "DeviceSessionService.php",
-                    "line_count": 296,
+                    "line_count": 322,
                     "public_methods": [
                         "registerOrRotate(int $userId, string $rawToken, ?string $rememberSelector, ?string $userAgent, ?string $ipAddress, ?string $previousRawToken = null,)",
                         "resolveActive(int $userId, string $rawToken)",
                         "resolveActiveByToken(string $rawToken)",
+                        "verifyDeviceBinding(array $device, ?string $currentUserAgent)",
                         "revokeByToken(string $rawToken, ?string $reason = 'user_logout')",
                         "resolveActiveForRemember(string $rawToken, string $rememberSelector)",
                         "listActive(int $userId, string $currentRawToken)",
@@ -9849,6 +9790,7 @@
                     "registerOrRotate(int $userId, string $rawToken, ?string $rememberSelector, ?string $userAgent, ?string $ipAddress, ?string $previousRawToken = null,)",
                     "resolveActive(int $userId, string $rawToken)",
                     "resolveActiveByToken(string $rawToken)",
+                    "verifyDeviceBinding(array $device, ?string $currentUserAgent)",
                     "revokeByToken(string $rawToken, ?string $reason = 'user_logout')",
                     "resolveActiveForRemember(string $rawToken, string $rememberSelector)",
                     "listActive(int $userId, string $currentRawToken)",
@@ -9879,12 +9821,12 @@
         "AuditTrail": {
             "name": "AuditTrail",
             "description": "Pencatatan riwayat perubahan data krusial, log transaksi, dan jejak aktivitas user.",
-            "status": "MAPPED",
-            "readiness_score": 70,
+            "status": "REFACTORED",
+            "readiness_score": 100,
             "readiness_checklist": {
-                "has_service": false,
-                "has_repository": false,
-                "has_web_api_split": false,
+                "has_service": true,
+                "has_repository": true,
+                "has_web_api_split": true,
                 "has_explicit_routes": true,
                 "zero_controller_violations": true,
                 "has_documentation": true
@@ -9898,19 +9840,20 @@
             ],
             "controllers": [
                 {
-                    "relative_path": "app/Controllers/RiwayatPerubahan.php",
-                    "filename": "RiwayatPerubahan.php",
-                    "line_count": 28,
+                    "relative_path": "app/Controllers/Web/AuditTrail/RiwayatPerubahanController.php",
+                    "filename": "RiwayatPerubahanController.php",
+                    "line_count": 29,
                     "public_methods": [
                         "index()"
                     ],
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/HistoryController.php",
+                    "relative_path": "app/Controllers/Api/AuditTrail/HistoryController.php",
                     "filename": "HistoryController.php",
-                    "line_count": 120,
+                    "line_count": 168,
                     "public_methods": [
+                        "meta()",
                         "list()",
                         "kavling()"
                     ],
@@ -9919,9 +9862,9 @@
             ],
             "services": [
                 {
-                    "relative_path": "app/Services/HistoryService.php",
+                    "relative_path": "app/Services/AuditTrail/HistoryService.php",
                     "filename": "HistoryService.php",
-                    "line_count": 242,
+                    "line_count": 244,
                     "public_methods": [
                         "hasTable()",
                         "log(string $module, array $fields)",
@@ -9936,9 +9879,9 @@
             ],
             "repositories": [
                 {
-                    "relative_path": "app/Repositories/HistoryRepository.php",
+                    "relative_path": "app/Repositories/AuditTrail/HistoryRepository.php",
                     "filename": "HistoryRepository.php",
-                    "line_count": 164,
+                    "line_count": 206,
                     "public_methods": [
                         "hasTable()",
                         "insert(array $fields)",
@@ -9946,7 +9889,10 @@
                         "count(array $filters)",
                         "getByKavling(int $idKavling, array $modules, int $limit, int $offset)",
                         "countByKavling(int $idKavling, array $modules)",
-                        "getByReferenceAction(string $module, int $referenceId, string $action)"
+                        "getByReferenceAction(string $module, int $referenceId, string $action)",
+                        "getProyekIdByKavling(int $idKavling)",
+                        "getTargetSiteplanProyekId(int $referenceId)",
+                        "getCashoutProyekIds(int $idCashoutSubkon)"
                     ]
                 }
             ],
@@ -9958,7 +9904,12 @@
                     "public_methods": []
                 }
             ],
-            "shims": [],
+            "shims": [
+                "app/Controllers/RiwayatPerubahan.php",
+                "app/Controllers/Api/HistoryController.php",
+                "app/Services/HistoryService.php",
+                "app/Repositories/HistoryRepository.php"
+            ],
             "views": [
                 {
                     "folder": "app/Views/riwayat_perubahan",
@@ -9968,15 +9919,29 @@
                     ]
                 }
             ],
-            "assets_js": [],
+            "assets_js": [
+                {
+                    "path": "public/assets/js/riwayat_perubahan.js",
+                    "filename": "riwayat_perubahan.js",
+                    "line_count": 256
+                }
+            ],
             "routes": [
                 {
                     "http_method": "GET",
                     "uri": "/riwayat-perubahan",
                     "type": "Explicit",
-                    "handler": "RiwayatPerubahan::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Web\\AuditTrail\\RiwayatPerubahanController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/riwayat-perubahan/meta",
+                    "type": "Explicit",
+                    "handler": "HistoryController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",

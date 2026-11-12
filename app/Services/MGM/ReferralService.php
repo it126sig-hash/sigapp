@@ -205,6 +205,58 @@ class ReferralService
     }
 
     /**
+     * Mengambil seluruh tahapan bonus proyek untuk pengaturan (setting).
+     */
+    public function getStages(int $idProyek): array
+    {
+        return $this->repo->getAllBonusStagesByProyek($idProyek);
+    }
+
+    /**
+     * Menyimpan tahapan bonus (tambah baru atau update).
+     */
+    public function saveStage(array $payload, ?int $id = null): array
+    {
+        $namaTahapan = trim((string) ($payload['nama_tahapan'] ?? ''));
+        if ($namaTahapan === '') {
+            return ['success' => false, 'message' => 'Nama tahapan wajib diisi'];
+        }
+
+        $data = [
+            'id_proyek'           => (int) ($payload['id_proyek'] ?? 0),
+            'nama_tahapan'        => $namaTahapan,
+            'trigger_status_mkdt' => trim((string) ($payload['trigger_status_mkdt'] ?? '')),
+            'nominal_default'     => (float) str_replace(',', '', (string) ($payload['nominal_default'] ?? 0)),
+            'urutan'              => (int) ($payload['urutan'] ?? 0),
+            'is_active'           => (int) ($payload['is_active'] ?? 1),
+        ];
+
+        $saved = $this->repo->saveBonusStage($data, $id);
+        if (!$saved) {
+            return ['success' => false, 'message' => 'Gagal menyimpan tahapan'];
+        }
+
+        return ['success' => true, 'message' => 'Tahapan berhasil disimpan'];
+    }
+
+    /**
+     * Menghapus tahapan bonus.
+     */
+    public function deleteStage(int $id): array
+    {
+        if ($id <= 0) {
+            return ['success' => false, 'message' => 'ID tahapan tidak valid'];
+        }
+
+        $deleted = $this->repo->deleteBonusStage($id);
+        if (!$deleted) {
+            return ['success' => false, 'message' => 'Gagal menghapus tahapan'];
+        }
+
+        return ['success' => true, 'message' => 'Tahapan berhasil dihapus'];
+    }
+
+    /**
      * Kontrak Antar-Modul untuk TransaksiService & MgmRepairBonuses CLI:
      * Mengecek dan mengaktifkan bonus tahapan referral sesuai status MKDT.
      */
