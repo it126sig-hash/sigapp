@@ -206,4 +206,5 @@ _Jalankan `php spark module:deadcode Settings` untuk mengaudit dead code kandida
 - Modul diinisialisasi melalui tooling otomatis.
 
 ## Change Log
+- `2026-11-12` [`SECURITY-AUTH`] — Peningkatan keamanan autentikasi SPA: Integrasi arsitektur Hybrid HttpOnly Cookie `sigapp_spa_token` untuk Web SPA (0 token di `localStorage`, `access_token: null`), Device Binding (`DeviceSessionService::verifyDeviceBinding()`) berdasarkan `User-Agent` (`browser` & `platform`), dan verifikasi sesi aman untuk navigasi menu/pengaturan.
 - `2026-11-12` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.

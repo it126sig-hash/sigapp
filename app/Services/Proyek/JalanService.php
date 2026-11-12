@@ -46,10 +46,15 @@ class JalanService
         foreach ($this->jalanRepository->getAll($params) as $key => $value) {
             if ($isRaw) {
                 $rows[$key] = [
-                    'id_jalan'     => (int) $value->id_jalan,
-                    'id_cluster'   => (int) $value->id_cluster,
-                    'nama_cluster' => $value->nama_cluster,
-                    'nama_jalan'   => $value->nama_jalan,
+                    'id_jalan'            => (int) $value->id_jalan,
+                    'id_cluster'          => (int) $value->id_cluster,
+                    'nama_cluster'        => $value->nama_cluster,
+                    'nama_proyek'         => $value->nama_proyek ?? '',
+                    'nama_jalan'          => $value->nama_jalan,
+                    'total_kavling'       => (int) ($value->total_kavling ?? 0),
+                    'total_akad'          => (int) ($value->total_akad ?? 0),
+                    'total_booking'       => (int) ($value->total_booking ?? 0),
+                    'total_belum_terjual' => (int) ($value->total_belum_terjual ?? 0),
                 ];
             } else {
                 $rows[$key] = [
@@ -111,6 +116,24 @@ class JalanService
 
     public function getOne(int $idJalan): ?object
     {
+        $db = db_connect();
+        $row = $db->table('jalan')
+            ->select("id_jalan, jalan.id_cluster, cluster.nama_cluster, cluster.id_proyek, proyek.nama_proyek, nama_jalan,
+                (SELECT COUNT(kavling.id_kavling) FROM kavling WHERE kavling.id_jalan = jalan.id_jalan) as total_kavling,
+                (SELECT COUNT(kavling.id_kavling) FROM kavling JOIN mkdt ON mkdt.id_mkdt = kavling.id_mkdt WHERE kavling.id_jalan = jalan.id_jalan AND mkdt.status_mkdt = 'Akad' AND mkdt.is_batal = 0) as total_akad,
+                (SELECT COUNT(kavling.id_kavling) FROM kavling JOIN mkdt ON mkdt.id_mkdt = kavling.id_mkdt WHERE kavling.id_jalan = jalan.id_jalan AND mkdt.status_mkdt = 'Booking' AND mkdt.is_batal = 0) as total_booking,
+                (SELECT COUNT(kavling.id_kavling) FROM kavling LEFT JOIN mkdt ON mkdt.id_mkdt = kavling.id_mkdt WHERE kavling.id_jalan = jalan.id_jalan AND (kavling.id_mkdt IS NULL OR mkdt.status_mkdt = 'Batal' OR mkdt.is_batal = 1)) as total_belum_terjual
+            ")
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+            ->where('jalan.id_jalan', $idJalan)
+            ->get()
+            ->getRow();
+
+        if ($row) {
+            return $row;
+        }
+
         return $this->jalanModel
             ->select('jalan.*, cluster.nama_cluster')
             ->join('cluster', 'cluster.id_cluster = jalan.id_cluster', 'left')
@@ -118,9 +141,10 @@ class JalanService
             ->first();
     }
 
-    public function add(IncomingRequest $request): array
+    public function add($input): array
     {
-        $fields = $this->requestFields($request);
+        $fields = $this->requestFields($input);
+        unset($fields['id_jalan']);
 
         $validation = $this->validate($fields);
         if ($validation !== true) {
@@ -131,23 +155,27 @@ class JalanService
             $insertId = (int) $this->jalanModel->getInsertID();
             $this->historyService->log('master_jalan', [
                 'reference_type' => 'jalan',
-                'reference_id' => $insertId,
-                'action' => 'insert',
-                'new_data' => $fields
+                'reference_id'   => $insertId,
+                'action'         => 'insert',
+                'new_data'       => $fields,
             ]);
             $db = db_connect();
             $idProyek = $db->table('cluster')->select('id_proyek')->where('id_cluster', $fields['id_cluster'])->get()->getRow()->id_proyek ?? null;
             $this->notif->tambah_notif("6", "Menambahkan Master Jalan: " . ($fields['nama_jalan'] ?? ''), user_id(), null, null, \App\Enums\NotificationEvent::MASTER_JALAN, $idProyek);
 
-            return ['success' => true, 'messages' => 'Data has been inserted successfully'];
+            return [
+                'success'  => true,
+                'messages' => 'Data has been inserted successfully',
+                'id_jalan' => $insertId,
+            ];
         }
 
         return ['success' => false, 'messages' => 'Insertion error!'];
     }
 
-    public function edit(IncomingRequest $request): array
+    public function edit($input): array
     {
-        $fields = $this->requestFields($request);
+        $fields = $this->requestFields($input);
         $idJalan = (int) ($fields['id_jalan'] ?? 0);
 
         if ($idJalan <= 0) {
@@ -160,13 +188,18 @@ class JalanService
         }
 
         $oldData = $this->jalanModel->find($idJalan);
-        if ($this->jalanModel->update($idJalan, $fields)) {
+        $updateData = [
+            'id_cluster' => $fields['id_cluster'],
+            'nama_jalan' => $fields['nama_jalan'],
+        ];
+
+        if ($this->jalanModel->update($idJalan, $updateData)) {
             $this->historyService->log('master_jalan', [
                 'reference_type' => 'jalan',
-                'reference_id' => $idJalan,
-                'action' => 'update',
-                'old_data' => $oldData,
-                'new_data' => $fields
+                'reference_id'   => $idJalan,
+                'action'         => 'update',
+                'old_data'       => $oldData,
+                'new_data'       => $updateData,
             ]);
             $db = db_connect();
             $idProyek = $db->table('cluster')->select('id_proyek')->where('id_cluster', $fields['id_cluster'])->get()->getRow()->id_proyek ?? null;
@@ -197,12 +230,18 @@ class JalanService
         return ['success' => false, 'messages' => 'Deletion error!'];
     }
 
-    private function requestFields(IncomingRequest $request): array
+    private function requestFields($input): array
     {
+        if ($input instanceof IncomingRequest) {
+            $post = $input->getJSON(true) ?: (array) $input->getPost();
+        } else {
+            $post = (array) $input;
+        }
+
         return [
-            'id_jalan' => $request->getPost('idJalan'),
-            'id_cluster' => $request->getPost('idCluster'),
-            'nama_jalan' => $request->getPost('namaJalan'),
+            'id_jalan'   => (int) ($post['id_jalan'] ?? $post['idJalan'] ?? 0),
+            'id_cluster' => (int) ($post['id_cluster'] ?? $post['idCluster'] ?? 0),
+            'nama_jalan' => trim((string) ($post['nama_jalan'] ?? $post['namaJalan'] ?? '')),
         ];
     }
 
@@ -210,8 +249,23 @@ class JalanService
     {
         $this->validation->reset();
         $this->validation->setRules([
-            'id_cluster' => ['label' => 'Id cluster', 'rules' => 'permit_empty|max_length[255]'],
-            'nama_jalan' => ['label' => 'Nama jalan', 'rules' => 'permit_empty|max_length[255]'],
+            'id_cluster' => [
+                'label'  => 'Cluster',
+                'rules'  => 'required|is_natural_no_zero',
+                'errors' => [
+                    'required'            => 'Cluster wajib dipilih.',
+                    'is_natural_no_zero' => 'Cluster yang dipilih tidak valid.',
+                ],
+            ],
+            'nama_jalan' => [
+                'label'  => 'Nama jalan',
+                'rules'  => 'required|min_length[2]|max_length[255]',
+                'errors' => [
+                    'required'   => 'Nama jalan wajib diisi.',
+                    'min_length' => 'Nama jalan minimal 2 karakter.',
+                    'max_length' => 'Nama jalan maksimal 255 karakter.',
+                ],
+            ],
         ]);
 
         if (!$this->validation->run($fields)) {

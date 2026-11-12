@@ -50,9 +50,19 @@ class JalanController extends BaseApiController
         return $this->success($data);
     }
 
+    protected function getRequestData(): array
+    {
+        $json = $this->request->getJSON(true);
+        if (is_array($json) && !empty($json)) {
+            return $json;
+        }
+
+        return (array) $this->request->getPost();
+    }
+
     public function add()
     {
-        $result = $this->jalanService->add($this->request);
+        $result = $this->jalanService->add($this->getRequestData());
 
         if (!($result['success'] ?? false)) {
             return $this->error($result['messages'] ?? 'Gagal menambahkan jalan', 400);
@@ -63,7 +73,12 @@ class JalanController extends BaseApiController
 
     public function edit($id = null)
     {
-        $result = $this->jalanService->edit($this->request);
+        $data = $this->getRequestData();
+        if ($id !== null && !isset($data['id_jalan']) && !isset($data['idJalan'])) {
+            $data['id_jalan'] = (int) $id;
+        }
+
+        $result = $this->jalanService->edit($data);
 
         if (!($result['success'] ?? false)) {
             return $this->error($result['messages'] ?? 'Gagal memperbarui jalan', 400);
@@ -74,7 +89,8 @@ class JalanController extends BaseApiController
 
     public function remove()
     {
-        $id = (int) $this->request->getPost('id_jalan');
+        $data = $this->getRequestData();
+        $id = (int) ($data['id_jalan'] ?? $data['idJalan'] ?? $data['id'] ?? $this->request->getPost('id_jalan') ?? $this->request->getVar('id'));
 
         if ($id <= 0) {
             return $this->error('ID jalan tidak valid', 400);

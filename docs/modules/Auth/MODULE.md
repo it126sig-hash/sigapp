@@ -120,5 +120,6 @@ _Jalankan `php spark module:deadcode Auth` untuk mengaudit dead code kandidat._
 - Modul diinisialisasi melalui tooling otomatis.
 
 ## Change Log
+- `2026-11-12` [`SECURITY-AUTH`] — Penguatan arsitektur autentikasi Hybrid Dual-Mode: Implementasi `HttpOnly` Cookie `sigapp_spa_token` untuk Web SPA (`X-Client-Platform: web-spa`) dengan response `access_token: null`, penambahan validasi Device Binding (`DeviceSessionService::verifyDeviceBinding()`) berdasarkan `User-Agent` (`browser` & `platform`) untuk mitigasi session hijacking, pemeliharaan Bearer token untuk Native Capacitor, dan dukungan cookie fallback di `AuthController`, `DeviceLoginFilter`, serta `AuthDeviceController`.
+- `2026-11-12` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.
 - `2026-11-10` [`WAVE0-AUTH`] — Penambahan endpoint REST API JSON `POST /api/auth/login`, `GET /api/auth/me`, dan `POST /api/auth/logout` untuk autentikasi Bearer Token SPA Vue 3 / Capacitor, integrasi Dual-Mode Bearer Token di `DeviceLoginFilter`, serta rotasi sesi multi-device `DeviceSessionService`.
-- `2026-11-10` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.
