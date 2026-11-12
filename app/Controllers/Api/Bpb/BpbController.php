@@ -18,7 +18,8 @@ class BpbController extends BaseApiController
     public function list()
     {
         try {
-            $result = $this->service->list($this->request->getPost(), (int) user_id());
+            $input = array_merge($this->request->getGet() ?? [], $this->payload() ?: $this->request->getPost() ?: []);
+            $result = $this->service->list($input, (int) user_id());
             $result['token'] = csrf_hash();
             return $this->respond($result);
         } catch (\Throwable $e) {

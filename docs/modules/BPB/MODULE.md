@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-10-29 14:23:21` @ `bc174ee`  
+**Last Synced:** `2026-11-12 20:21:52` @ `490a491`  
 
 ## Purpose
 Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, dan tanda tangan digital.
@@ -37,7 +37,6 @@ Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, 
 | `GET` | `/bpb/(:num)/pdf` | `Explicit` | `BpbController::pdf/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/bpb/signature/(:num)` | `Explicit` | `BpbController::signature/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/bpb/verify/(:segment)` | `Explicit` | `BpbController::verify/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/bpb/list` | `Explicit` | `BpbController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/bpb/options` | `Explicit` | `BpbController::options` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/bpb/detail/(:num)` | `Explicit` | `BpbController::detail/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/bpb/draft` | `Explicit` | `BpbController::draft` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -94,11 +93,11 @@ Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, 
 ## File Inventory
 ### Controllers (3)
 - `app/Controllers/Web/Bpb/BpbController.php` (90 baris, 5 public methods: `index()`, `shared(string $token)`, `signature(int $id)`, `pdf(int $id)`, `verify(string $token)`)
-- `app/Controllers/Api/Bpb/BpbController.php` (123 baris, 10 public methods: `list()`, `options()`, `detail(int $id)`, `draft()`, `submit()`, `update($id = null)`, `sign(int $id)`, `reject(int $id)`, `cancel(int $id)`, `status(int $id)`)
+- `app/Controllers/Api/Bpb/BpbController.php` (124 baris, 10 public methods: `list()`, `options()`, `detail(int $id)`, `draft()`, `submit()`, `update($id = null)`, `sign(int $id)`, `reject(int $id)`, `cancel(int $id)`, `status(int $id)`)
 - `app/Controllers/Api/Bpb/ProfileSignatureController.php` (54 baris, 4 public methods: `show($id = null)`, `image()`, `save()`, `delete($id = null)`)
 
 ### Services (7)
-- `app/Services/Bpb/BpbService.php` (693 baris, 12 public methods)
+- `app/Services/Bpb/BpbService.php` (697 baris, 12 public methods)
 - `app/Services/Bpb/BpbWorkflow.php` (69 baris, 6 public methods)
 - `app/Services/Bpb/BpbPdfService.php` (323 baris, 2 public methods)
 - `app/Services/Bpb/BpbFileService.php` (119 baris, 4 public methods)

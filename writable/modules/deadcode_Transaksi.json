@@ -1,18 +1,28 @@
 [
     {
-        "layer": "Controller",
-        "file": "Hargajual.php",
-        "name": "index"
+        "layer": "Service",
+        "file": "TransaksiService.php",
+        "name": "getMeta"
     },
     {
-        "layer": "Controller",
-        "file": "Hargajual.php",
-        "name": "add"
+        "layer": "Service",
+        "file": "TransaksiService.php",
+        "name": "update"
     },
     {
-        "layer": "Controller",
-        "file": "Hargajual.php",
-        "name": "remove"
+        "layer": "Service",
+        "file": "HargaJualService.php",
+        "name": "getMeta"
+    },
+    {
+        "layer": "Service",
+        "file": "HargaJualService.php",
+        "name": "create"
+    },
+    {
+        "layer": "Service",
+        "file": "HargaJualService.php",
+        "name": "update"
     },
     {
         "layer": "Repository",

@@ -93,8 +93,8 @@ $routes->group('bpb', ['namespace' => 'App\Controllers\Web\Bpb'], function ($rou
 });
 
 // ── Modul BPB (API Routes) ──
-$routes->group('api/bpb', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' => 'csrf'], function ($routes) {
-    $routes->post('list', 'BpbController::list');
+$routes->group('api/bpb', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'list', 'BpbController::list');
     $routes->get('options', 'BpbController::options');
     $routes->get('detail/(:num)', 'BpbController::detail/$1');
     $routes->post('draft', 'BpbController::draft');
@@ -106,7 +106,7 @@ $routes->group('api/bpb', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' =>
     $routes->post('(:num)/status', 'BpbController::status/$1', ['filter' => 'throttle:10,60']);
 });
 
-$routes->group('api/profile/signature', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' => 'csrf'], function ($routes) {
+$routes->group('api/profile/signature', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' => 'login'], function ($routes) {
     $routes->get('', 'ProfileSignatureController::show');
     $routes->get('image', 'ProfileSignatureController::image');
     $routes->put('', 'ProfileSignatureController::save', ['filter' => 'throttle:5,60']);
@@ -410,9 +410,42 @@ $routes->post("siteplan/urgent/summary", 'Siteplan::urgentSummary');
 $routes->get("siteplan/view", 'Siteplan::view_siteplan');
 $routes->get("siteplan/produksi-mobile", 'Siteplan::produksi_mobile');
 
-//hargajual
-$routes->post("hargajual/get/all", 'Hargajual::getDataTable');
-$routes->post("hargajual/get", 'Hargajual::getAll');
+// ── Modul Transaksi (Web Routes) ──
+$routes->group('', ['namespace' => 'App\Controllers\Web\Transaksi', 'filter' => 'login'], function ($routes) {
+    $routes->get('hargajual', 'HargajualController::index');
+    $routes->get('hargajual/index', 'HargajualController::index');
+});
+
+// ── Modul Transaksi (Legacy Zero-Downtime Aliases) ──
+$routes->group('hargajual', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
+    $routes->post('get/all', 'HargajualController::getDataTable');
+    $routes->post('getDataTable', 'HargajualController::getDataTable');
+    $routes->post('getdatatable', 'HargajualController::getDataTable');
+    $routes->post('get', 'HargajualController::getAll');
+    $routes->post('getAll', 'HargajualController::getAll');
+    $routes->post('getall', 'HargajualController::getAll');
+    $routes->post('getOne', 'HargajualController::getOne');
+    $routes->post('getone', 'HargajualController::getOne');
+    $routes->post('add', 'HargajualController::add');
+    $routes->post('edit', 'HargajualController::edit');
+    $routes->post('remove', 'HargajualController::remove');
+    $routes->post('set_harga', 'HargajualController::set_harga');
+});
+
+$routes->group('transaksi', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
+    $routes->post('simpan', 'TransaksiController::saveTransaksi');
+    $routes->post('saveTransaksi', 'TransaksiController::saveTransaksi');
+    $routes->post('savetransaksi', 'TransaksiController::saveTransaksi');
+    $routes->post('ambilsatu', 'TransaksiController::getByID');
+    $routes->post('getByID', 'TransaksiController::getByID');
+    $routes->post('getbyid', 'TransaksiController::getByID');
+    $routes->post('status/ambilsatu', 'TransaksiController::getStatusByID');
+    $routes->post('getStatusByID', 'TransaksiController::getStatusByID');
+    $routes->post('getstatusbyid', 'TransaksiController::getStatusByID');
+    $routes->post('status/simpan', 'TransaksiController::saveStatus');
+    $routes->post('saveStatus', 'TransaksiController::saveStatus');
+    $routes->post('savestatus', 'TransaksiController::saveStatus');
+});
 
 
 //tipe
@@ -526,8 +559,15 @@ $routes->group('api/laporan/booking-akad', ['namespace' => 'App\Controllers\Api'
 
 $routes->get("/pembayaran/hitungulang", 'Pembayaran::recalculateSummary');
 
-$routes->group('kavling', ['filter' => 'login'], function ($routes) {
-    $routes->post('list/ambil', 'Kavling::getList');
+$routes->group('kavling', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
+    $routes->post('list/ambil', 'KavlingController::getList');
+    $routes->post('getList', 'KavlingController::getList');
+});
+
+$routes->group('api/kavling', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
+    $routes->get('list', 'KavlingController::getList');
+    $routes->post('list', 'KavlingController::getList');
+    $routes->post('list/ambil', 'KavlingController::getList');
 });
 
 $routes->group('subkon', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
@@ -590,15 +630,35 @@ $routes->group('api/legal', ['namespace' => 'App\Controllers\Api\Legal', 'filter
     $routes->post('edit_others', 'LegalController::edit_others');
 });
 
-$routes->group('api/transaksi', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function($routes) {
+$routes->group('api/transaksi', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function($routes) {
+    $routes->get('meta', 'TransaksiController::meta');
+    $routes->post('meta', 'TransaksiController::meta');
     $routes->post('simpan', 'TransaksiController::saveTransaksi');
     $routes->post('ambilsatu', 'TransaksiController::getByID');
-    $routes->post('status/ambilsatu', 'TransaksiController::getStatusById');
+    $routes->post('status/ambilsatu', 'TransaksiController::getStatusByID');
     $routes->post('status/simpan', 'TransaksiController::saveStatus');
     $routes->post('konsumen/ganti', 'TransaksiController::replaceConsumer');
 });
 
-$routes->group('api/mkdt', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/hargajual', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'HargajualController::meta');
+    $routes->post('meta', 'HargajualController::meta');
+    $routes->post('get/all', 'HargajualController::getDataTable');
+    $routes->post('datatable', 'HargajualController::getDataTable');
+    $routes->post('getDataTable', 'HargajualController::getDataTable');
+    $routes->post('get', 'HargajualController::getAll');
+    $routes->post('all', 'HargajualController::getAll');
+    $routes->post('getAll', 'HargajualController::getAll');
+    $routes->post('getOne', 'HargajualController::getOne');
+    $routes->post('getone', 'HargajualController::getOne');
+    $routes->post('add', 'HargajualController::add');
+    $routes->post('edit', 'HargajualController::edit');
+    $routes->post('remove', 'HargajualController::remove');
+    $routes->post('set_harga', 'HargajualController::set_harga');
+    $routes->post('set-harga', 'HargajualController::set_harga');
+});
+
+$routes->group('api/mkdt', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
     $routes->post('history', 'MkdtController::history');
     $routes->post('consumer-replacement-history', 'MkdtController::consumerReplacementHistory');
 });
@@ -774,7 +834,7 @@ $routes->group('api/mgm', ['namespace' => 'App\Controllers\Api\MGM', 'filter' =>
     $routes->post('stages/delete', 'ReferralSettingController::deleteStage');
 });
 
-$routes->group('api/kavling-request', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/kavling-request', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
     $routes->post('submit', 'KavlingRequestController::submit');
     $routes->post('kavling-list', 'KavlingRequestController::kavlingList');
     $routes->post('list', 'KavlingRequestController::list');

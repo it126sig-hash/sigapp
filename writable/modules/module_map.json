@@ -1,5 +1,5 @@
 {
-    "scanned_at": "2026-11-12T16:15:57+07:00",
+    "scanned_at": "2026-11-13T01:31:52+07:00",
     "total_modules": 17,
     "modules": {
         "Proyek": {
@@ -599,6 +599,9 @@
                 ],
                 "app/Controllers/Kalendar.php": [
                     "new GroupModel()"
+                ],
+                "app/Controllers/Api/Siteplan/SiteplanController.php": [
+                    "Database::connect()"
                 ]
             },
             "owner_tables": [
@@ -689,6 +692,20 @@
                     ],
                     "violations": [
                         "new GroupModel()"
+                    ]
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Siteplan/SiteplanController.php",
+                    "filename": "SiteplanController.php",
+                    "line_count": 115,
+                    "public_methods": [
+                        "kavling()",
+                        "proyek($id = null)",
+                        "config()",
+                        "others()"
+                    ],
+                    "violations": [
+                        "Database::connect()"
                     ]
                 }
             ],
@@ -977,6 +994,46 @@
                     "uri": "/api/target/history",
                     "type": "Explicit",
                     "handler": "TargetController::history",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/siteplan/kavling",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::kavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/siteplan/proyek/(:num)",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::proyek/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/siteplan/proyek",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::proyek",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/siteplan/config",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::config",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/siteplan/others",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::others",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -1952,41 +2009,22 @@
         "Transaksi": {
             "name": "Transaksi",
             "description": "Eksekusi transaksi jual-beli kavling, penetapan harga jual, ganti konsumen, dan request kavling.",
-            "status": "MAPPED",
-            "readiness_score": 60,
+            "status": "REFACTORED",
+            "readiness_score": 100,
             "readiness_checklist": {
-                "has_service": false,
-                "has_repository": false,
-                "has_web_api_split": false,
-                "has_explicit_routes": false,
-                "zero_controller_violations": false,
+                "has_service": true,
+                "has_repository": true,
+                "has_web_api_split": true,
+                "has_explicit_routes": true,
+                "zero_controller_violations": true,
                 "has_documentation": true
             },
-            "controller_violations": {
-                "app/Controllers/Transaksi.php": [
-                    "db_connect()",
-                    "new KeuanganModel()",
-                    "new MkdtModel()",
-                    "new KavlingModel()",
-                    "new KonsumenModel()",
-                    "new ProfilePerusahaanModel()"
-                ],
-                "app/Controllers/Hargajual.php": [
-                    "db_connect()",
-                    "$this->db->table()",
-                    "new ClusterModel()",
-                    "new ProyekModel()",
-                    "new KavlingModel()",
-                    "new FileHargajualModel()"
-                ],
-                "app/Controllers/Kavling.php": [
-                    "db_connect()"
-                ]
-            },
+            "controller_violations": [],
             "owner_tables": [
                 "kavling",
                 "kavling_request",
-                "file_hargajual"
+                "file_hargajual",
+                "hargajual"
             ],
             "shared_tables": [
                 "mkdt",
@@ -1995,29 +2033,36 @@
             ],
             "controllers": [
                 {
-                    "relative_path": "app/Controllers/Transaksi.php",
-                    "filename": "Transaksi.php",
-                    "line_count": 270,
+                    "relative_path": "app/Controllers/Web/Transaksi/HargajualController.php",
+                    "filename": "HargajualController.php",
+                    "line_count": 37,
                     "public_methods": [
-                        "getByID()",
-                        "getStatusByID()",
-                        "saveTransaksi()",
-                        "saveStatus()"
+                        "index()"
                     ],
-                    "violations": [
-                        "db_connect()",
-                        "new KeuanganModel()",
-                        "new MkdtModel()",
-                        "new KavlingModel()",
-                        "new KonsumenModel()",
-                        "new ProfilePerusahaanModel()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/TransaksiController.php",
-                    "filename": "TransaksiController.php",
-                    "line_count": 325,
+                    "relative_path": "app/Controllers/Api/Transaksi/HargajualController.php",
+                    "filename": "HargajualController.php",
+                    "line_count": 142,
                     "public_methods": [
+                        "meta()",
+                        "getDataTable()",
+                        "getAll()",
+                        "getOne()",
+                        "add()",
+                        "edit($id = null)",
+                        "remove()",
+                        "set_harga()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Transaksi/TransaksiController.php",
+                    "filename": "TransaksiController.php",
+                    "line_count": 346,
+                    "public_methods": [
+                        "meta()",
                         "getByID()",
                         "getStatusByID()",
                         "saveTransaksi()",
@@ -2027,9 +2072,9 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/MkdtController.php",
+                    "relative_path": "app/Controllers/Api/Transaksi/MkdtController.php",
                     "filename": "MkdtController.php",
-                    "line_count": 58,
+                    "line_count": 67,
                     "public_methods": [
                         "history()",
                         "consumerReplacementHistory()"
@@ -2037,9 +2082,9 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/KavlingRequestController.php",
+                    "relative_path": "app/Controllers/Api/Transaksi/KavlingRequestController.php",
                     "filename": "KavlingRequestController.php",
-                    "line_count": 128,
+                    "line_count": 135,
                     "public_methods": [
                         "submit()",
                         "kavlingList()",
@@ -2049,74 +2094,66 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Hargajual.php",
-                    "filename": "Hargajual.php",
-                    "line_count": 581,
-                    "public_methods": [
-                        "index()",
-                        "getDataTable()",
-                        "set_harga()",
-                        "getAll()",
-                        "getOne()",
-                        "add()",
-                        "edit()",
-                        "remove()",
-                        "if_where($var, $column, $condition, $query)",
-                        "is_active($id, $texts, $textf)",
-                        "format_tgl($tgl)"
-                    ],
-                    "violations": [
-                        "db_connect()",
-                        "$this->db->table()",
-                        "new ClusterModel()",
-                        "new ProyekModel()",
-                        "new KavlingModel()",
-                        "new FileHargajualModel()"
-                    ]
-                },
-                {
-                    "relative_path": "app/Controllers/Kavling.php",
-                    "filename": "Kavling.php",
-                    "line_count": 34,
+                    "relative_path": "app/Controllers/Api/Transaksi/KavlingController.php",
+                    "filename": "KavlingController.php",
+                    "line_count": 45,
                     "public_methods": [
                         "getList()"
                     ],
-                    "violations": [
-                        "db_connect()"
-                    ]
+                    "violations": []
                 }
             ],
             "services": [
                 {
-                    "relative_path": "app/Services/TransaksiService.php",
+                    "relative_path": "app/Services/Transaksi/TransaksiService.php",
                     "filename": "TransaksiService.php",
-                    "line_count": 947,
+                    "line_count": 988,
                     "public_methods": [
+                        "getMeta(?int $idProyek = null, ?int $userId = null)",
                         "getBundle(?int $idMkdt, ?int $idHargajual, ?int $idKavling)",
                         "getStatusById($id_hargajual, $id_kavling, $id_mkdt)",
                         "saveTransaksi(array $kons, array $mk, array $um, array $files = [], array $opt = [])",
                         "replaceConsumer(int $idMkdt, int $idKavling, int $oldConsumerId, array $consumer, array $files, string $referralCode, int $actorId, bool $allowDuplicateNik = false)",
                         "saveStatus(array $data, array $perintahBangun, array $files = [])",
                         "createOrUpdate(?int $idMkdtExisting, array $data, array $opt = [])",
-                        "update($id, $data)"
+                        "update($id, $data)",
+                        "cleanNumeric(mixed $value)"
                     ]
                 },
                 {
-                    "relative_path": "app/Services/KavlingRequestService.php",
+                    "relative_path": "app/Services/Transaksi/KavlingRequestService.php",
                     "filename": "KavlingRequestService.php",
-                    "line_count": 217,
+                    "line_count": 222,
                     "public_methods": [
                         "submitRequest(array $data, int $userId)",
                         "getList(int $idProyek, ?string $status = null)",
                         "updateStatus(int $idRequest, string $newStatus, int $userId)"
                     ]
+                },
+                {
+                    "relative_path": "app/Services/Transaksi/HargaJualService.php",
+                    "filename": "HargaJualService.php",
+                    "line_count": 576,
+                    "public_methods": [
+                        "hasAccess(int $userId)",
+                        "getProyekList()",
+                        "getMeta(?int $idProyek, int $userId)",
+                        "getDataTable(array $var, ?int $idProyek, bool $rawFormat = false)",
+                        "getAll(?int $idProyek, string $search = '')",
+                        "getOne(int $id)",
+                        "create(array $fields, ?UploadedFile $file, int $userId)",
+                        "update(int $id, array $fields, ?UploadedFile $file, int $userId)",
+                        "toggleActive(int $id, int $currentIsActive, int $userId)",
+                        "setHargaKavling(string $rawIdKavling, $idHargaAkhir, int $userId)",
+                        "cleanNumeric(mixed $value)"
+                    ]
                 }
             ],
             "repositories": [
                 {
-                    "relative_path": "app/Repositories/TransaksiRepository.php",
+                    "relative_path": "app/Repositories/Transaksi/TransaksiRepository.php",
                     "filename": "TransaksiRepository.php",
-                    "line_count": 232,
+                    "line_count": 230,
                     "public_methods": [
                         "getKonsumenTransaksi(int $idMkdt)",
                         "findNikUsage(string $nik, ?int $excludeMkdt = null, ?int $excludeKonsumen = null)",
@@ -2127,17 +2164,30 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/HargaJualRepository.php",
+                    "relative_path": "app/Repositories/Transaksi/HargaJualRepository.php",
                     "filename": "HargaJualRepository.php",
-                    "line_count": 37,
+                    "line_count": 270,
                     "public_methods": [
-                        "getHargaJualById(int $id)"
+                        "getHargaJualById(int $id)",
+                        "hasModuleAccess(int $userId, string $module = 'Hargajual')",
+                        "getProyekList()",
+                        "getDetailById(int $id)",
+                        "getActiveByProyek(?int $idProyek, string $search = '')",
+                        "getDataTableRows(array $var, ?int $idProyek)",
+                        "getDataTableFilteredCount(array $var, ?int $idProyek)",
+                        "getDataTableTotalCount(?int $idProyek)",
+                        "insertFileHargajual(array $data)",
+                        "insertHargaJual(array $data)",
+                        "updateHargaJual(int $id, array $data)",
+                        "findKavlingById(int $idKavling)",
+                        "updateKavlingHarga(int $idKavling, array $data)",
+                        "getPricelistRowById(int $id)"
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/KavlingRepository.php",
+                    "relative_path": "app/Repositories/Transaksi/KavlingRepository.php",
                     "filename": "KavlingRepository.php",
-                    "line_count": 716,
+                    "line_count": 720,
                     "public_methods": [
                         "getKavlingByIdMkdt(int $id_mkdt)",
                         "getIdProyekByIdMkdt(int $id_mkdt)",
@@ -2174,7 +2224,19 @@
                     "public_methods": []
                 }
             ],
-            "shims": [],
+            "shims": [
+                "app/Controllers/Transaksi.php",
+                "app/Controllers/Api/TransaksiController.php",
+                "app/Controllers/Api/MkdtController.php",
+                "app/Controllers/Api/KavlingRequestController.php",
+                "app/Controllers/Hargajual.php",
+                "app/Controllers/Kavling.php",
+                "app/Services/TransaksiService.php",
+                "app/Services/KavlingRequestService.php",
+                "app/Repositories/TransaksiRepository.php",
+                "app/Repositories/HargaJualRepository.php",
+                "app/Repositories/KavlingRepository.php"
+            ],
             "views": [
                 {
                     "folder": "app/Views/hargajual",
@@ -2185,6 +2247,11 @@
                 }
             ],
             "assets_js": [
+                {
+                    "path": "public/assets/js/hargajual.js",
+                    "filename": "hargajual.js",
+                    "line_count": 681
+                },
                 {
                     "path": "public/assets/js/siteplan/sales.js",
                     "filename": "sales.js",
@@ -2197,6 +2264,350 @@
                 }
             ],
             "routes": [
+                {
+                    "http_method": "GET",
+                    "uri": "/hargajual",
+                    "type": "Explicit",
+                    "handler": "HargajualController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/hargajual/index",
+                    "type": "Explicit",
+                    "handler": "HargajualController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/hargajual/get/all",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getDataTable",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/hargajual/getDataTable",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getDataTable",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/hargajual/getdatatable",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getDataTable",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/hargajual/get",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/hargajual/getAll",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/hargajual/getall",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/hargajual/getOne",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/hargajual/getone",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/hargajual/add",
+                    "type": "Explicit",
+                    "handler": "HargajualController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/hargajual/edit",
+                    "type": "Explicit",
+                    "handler": "HargajualController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/hargajual/remove",
+                    "type": "Explicit",
+                    "handler": "HargajualController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/hargajual/set_harga",
+                    "type": "Explicit",
+                    "handler": "HargajualController::set_harga",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/hargajual/meta",
+                    "type": "Explicit",
+                    "handler": "HargajualController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/meta",
+                    "type": "Explicit",
+                    "handler": "HargajualController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/get/all",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getDataTable",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/datatable",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getDataTable",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/getDataTable",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getDataTable",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/get",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/all",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/getAll",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getAll",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/getOne",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/getone",
+                    "type": "Explicit",
+                    "handler": "HargajualController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/add",
+                    "type": "Explicit",
+                    "handler": "HargajualController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/edit",
+                    "type": "Explicit",
+                    "handler": "HargajualController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/remove",
+                    "type": "Explicit",
+                    "handler": "HargajualController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/set_harga",
+                    "type": "Explicit",
+                    "handler": "HargajualController::set_harga",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/hargajual/set-harga",
+                    "type": "Explicit",
+                    "handler": "HargajualController::set_harga",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/transaksi/simpan",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::saveTransaksi",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/transaksi/saveTransaksi",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::saveTransaksi",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/transaksi/savetransaksi",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::saveTransaksi",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/transaksi/ambilsatu",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::getByID",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/transaksi/getByID",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::getByID",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/transaksi/getbyid",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::getByID",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/transaksi/status/ambilsatu",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::getStatusByID",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/transaksi/getStatusByID",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::getStatusByID",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/transaksi/getstatusbyid",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::getStatusByID",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/transaksi/status/simpan",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::saveStatus",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/transaksi/saveStatus",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::saveStatus",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/transaksi/savestatus",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::saveStatus",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/transaksi/meta",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/transaksi/meta",
+                    "type": "Explicit",
+                    "handler": "TransaksiController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
                 {
                     "http_method": "POST",
                     "uri": "/api/transaksi/simpan",
@@ -2217,7 +2628,7 @@
                     "http_method": "POST",
                     "uri": "/api/transaksi/status/ambilsatu",
                     "type": "Explicit",
-                    "handler": "TransaksiController::getStatusById",
+                    "handler": "TransaksiController::getStatusByID",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -2287,147 +2698,74 @@
                 },
                 {
                     "http_method": "POST",
-                    "uri": "/hargajual/get/all",
-                    "type": "Explicit",
-                    "handler": "Hargajual::getDataTable",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/hargajual/get",
-                    "type": "Explicit",
-                    "handler": "Hargajual::getAll",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
                     "uri": "/kavling/list/ambil",
                     "type": "Explicit",
-                    "handler": "Kavling::getList",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "KavlingController::getList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/transaksi/getbyid",
-                    "type": "AutoRoute",
-                    "handler": "Transaksi::getByID",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/kavling/getList",
+                    "type": "Explicit",
+                    "handler": "KavlingController::getList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/transaksi/getstatusbyid",
-                    "type": "AutoRoute",
-                    "handler": "Transaksi::getStatusByID",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "GET",
+                    "uri": "/api/kavling/list",
+                    "type": "Explicit",
+                    "handler": "KavlingController::getList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/transaksi/savetransaksi",
-                    "type": "AutoRoute",
-                    "handler": "Transaksi::saveTransaksi",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/kavling/list",
+                    "type": "Explicit",
+                    "handler": "KavlingController::getList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/transaksi/savestatus",
-                    "type": "AutoRoute",
-                    "handler": "Transaksi::saveStatus",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/hargajual/index",
-                    "type": "AutoRoute",
-                    "handler": "Hargajual::index",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/hargajual/set_harga",
-                    "type": "AutoRoute",
-                    "handler": "Hargajual::set_harga",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/hargajual/getone",
-                    "type": "AutoRoute",
-                    "handler": "Hargajual::getOne",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/hargajual/add",
-                    "type": "AutoRoute",
-                    "handler": "Hargajual::add",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/hargajual/edit",
-                    "type": "AutoRoute",
-                    "handler": "Hargajual::edit",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/hargajual/remove",
-                    "type": "AutoRoute",
-                    "handler": "Hargajual::remove",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/hargajual/if_where",
-                    "type": "AutoRoute",
-                    "handler": "Hargajual::if_where",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/hargajual/is_active",
-                    "type": "AutoRoute",
-                    "handler": "Hargajual::is_active",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/hargajual/format_tgl",
-                    "type": "AutoRoute",
-                    "handler": "Hargajual::format_tgl",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/kavling/list/ambil",
+                    "type": "Explicit",
+                    "handler": "KavlingController::getList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 }
             ],
             "service_contracts": {
                 "TransaksiService.php": [
+                    "getMeta(?int $idProyek = null, ?int $userId = null)",
                     "getBundle(?int $idMkdt, ?int $idHargajual, ?int $idKavling)",
                     "getStatusById($id_hargajual, $id_kavling, $id_mkdt)",
                     "saveTransaksi(array $kons, array $mk, array $um, array $files = [], array $opt = [])",
                     "replaceConsumer(int $idMkdt, int $idKavling, int $oldConsumerId, array $consumer, array $files, string $referralCode, int $actorId, bool $allowDuplicateNik = false)",
                     "saveStatus(array $data, array $perintahBangun, array $files = [])",
                     "createOrUpdate(?int $idMkdtExisting, array $data, array $opt = [])",
-                    "update($id, $data)"
+                    "update($id, $data)",
+                    "cleanNumeric(mixed $value)"
                 ],
                 "KavlingRequestService.php": [
                     "submitRequest(array $data, int $userId)",
                     "getList(int $idProyek, ?string $status = null)",
                     "updateStatus(int $idRequest, string $newStatus, int $userId)"
+                ],
+                "HargaJualService.php": [
+                    "hasAccess(int $userId)",
+                    "getProyekList()",
+                    "getMeta(?int $idProyek, int $userId)",
+                    "getDataTable(array $var, ?int $idProyek, bool $rawFormat = false)",
+                    "getAll(?int $idProyek, string $search = '')",
+                    "getOne(int $id)",
+                    "create(array $fields, ?UploadedFile $file, int $userId)",
+                    "update(int $id, array $fields, ?UploadedFile $file, int $userId)",
+                    "toggleActive(int $id, int $currentIsActive, int $userId)",
+                    "setHargaKavling(string $rawIdKavling, $idHargaAkhir, int $userId)",
+                    "cleanNumeric(mixed $value)"
                 ]
             },
             "doc_path": "docs/modules/Transaksi/MODULE.md"
@@ -6064,7 +6402,7 @@
                 {
                     "relative_path": "app/Controllers/Api/Bpb/BpbController.php",
                     "filename": "BpbController.php",
-                    "line_count": 123,
+                    "line_count": 124,
                     "public_methods": [
                         "list()",
                         "options()",
@@ -6096,7 +6434,7 @@
                 {
                     "relative_path": "app/Services/Bpb/BpbService.php",
                     "filename": "BpbService.php",
-                    "line_count": 693,
+                    "line_count": 697,
                     "public_methods": [
                         "list(array $input, int $userId)",
                         "options(int $userId)",
@@ -6301,14 +6639,6 @@
                     "uri": "/bpb/verify/(:segment)",
                     "type": "Explicit",
                     "handler": "BpbController::verify/$1",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/bpb/list",
-                    "type": "Explicit",
-                    "handler": "BpbController::list",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -10180,9 +10510,7 @@
         }
     },
     "unmapped_files": {
-        "controllers": [
-            "app/Controllers/Api/Siteplan/SiteplanController.php"
-        ],
+        "controllers": [],
         "services": [],
         "repositories": [],
         "models": []

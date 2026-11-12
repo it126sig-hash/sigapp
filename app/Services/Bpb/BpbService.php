@@ -85,8 +85,10 @@ class BpbService
         $access = new FileAccessService();
         foreach ($detail['files'] as &$file) {
             $file['url'] = $access->accessUrl('bpb_file', (int) $file['id']);
+            $file['signed_url'] = $access->signedUrl('bpb_file', (int) $file['id'], $userId);
             if (str_starts_with(strtolower((string) ($file['mime_type'] ?? '')), 'image/')) {
                 $file['thumbnail_url'] = $access->thumbnailUrl('bpb_file', (int) $file['id']);
+                $file['signed_thumbnail_url'] = $access->signedThumbnailUrl('bpb_file', (int) $file['id'], $userId);
             }
         }
         foreach ($detail['signatures'] as &$signature) {
@@ -162,7 +164,9 @@ class BpbService
         $id = (int) ($data['id'] ?? 0);
         if ($id <= 0) {
             $key = trim((string) ($data['submission_key'] ?? ''));
-            if (! preg_match('/^[a-f0-9]{64}$/i', $key)) {
+            if ($key === '') {
+                $key = bin2hex(random_bytes(32));
+            } elseif (! preg_match('/^[a-f0-9]{64}$/i', $key)) {
                 throw new RuntimeException('Kunci pengajuan tidak valid. Muat ulang form BPB lalu coba kembali.');
             }
 
