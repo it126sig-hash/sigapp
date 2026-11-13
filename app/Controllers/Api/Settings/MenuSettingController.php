@@ -9,6 +9,8 @@ use App\Repositories\Settings\MenuRepository;
 
 class MenuSettingController extends BaseApiController
 {
+    private const MENU_URL = 'menu-setting';
+
     protected MenuSettingService $menuSettingService;
     protected MenuAccessService $menuAccessService;
     protected MenuRepository $menuRepo;
@@ -20,17 +22,53 @@ class MenuSettingController extends BaseApiController
         $this->menuRepo           = new MenuRepository();
     }
 
+    public function meta()
+    {
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        return $this->success(array_merge(
+            $this->menuSettingService->getIndexData(),
+            ['permissions' => ['can_manage' => true]]
+        ), 'Metadata menu setting berhasil dimuat');
+    }
+
     public function menuList()
     {
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        if ($this->isRawFormat()) {
+            $params = $this->readRequestData();
+            $params['format'] = 'raw';
+
+            return $this->success(
+                $this->menuSettingService->getMenuList($params),
+                'Data menu berhasil dimuat'
+            );
+        }
+
         return $this->respond($this->menuSettingService->getMenuList());
     }
 
     public function menuGet()
     {
-        $id = (int) $this->request->getPost('id');
-        $menu = $this->menuSettingService->getMenu($id);
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        $input = $this->readRequestData();
+        $id = (int) ($input['id'] ?? 0);
+        $raw = $this->isRawFormat();
+        $menu = $this->menuSettingService->getMenu($id, $raw);
 
         if (!$menu) {
+            if ($raw) {
+                return $this->error('Menu tidak ditemukan', 404);
+            }
+
             return $this->respond([
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -38,26 +76,51 @@ class MenuSettingController extends BaseApiController
             ]);
         }
 
-        return $this->respond($menu);
+        return $raw ? $this->success($menu) : $this->respond($menu);
     }
 
     public function menuSave()
     {
-        $result = $this->menuSettingService->saveMenu((array) $this->request->getPost());
-        return $this->respond($result);
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        $raw = $this->isRawFormat();
+        $result = $this->menuSettingService->saveMenu($this->readRequestData(), $raw);
+
+        return $this->respondResult($result, $raw);
     }
 
     public function menuToggle()
     {
-        $id = (int) $this->request->getPost('id');
-        $result = $this->menuSettingService->toggleMenu($id);
-        return $this->respond($result);
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        $input = $this->readRequestData();
+        $id = (int) ($input['id'] ?? 0);
+        $raw = $this->isRawFormat();
+        $result = $this->menuSettingService->toggleMenu($id, $raw);
+
+        return $this->respondResult($result, $raw);
     }
 
     public function groupAccess()
     {
-        $groupId = (int) $this->request->getPost('group_id');
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        $input = $this->readRequestData();
+        $groupId = (int) ($input['group_id'] ?? 0);
+        $raw = $this->isRawFormat();
+
         if (!$this->menuRepo->groupExists($groupId)) {
+            if ($raw) {
+                $status = $groupId <= 0 ? 422 : 404;
+                return $this->error('Departemen tidak valid', $status, ['group_id' => 'Departemen tidak valid']);
+            }
+
             return $this->respond([
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -65,18 +128,37 @@ class MenuSettingController extends BaseApiController
             ]);
         }
 
-        return $this->respond([
-            'success'  => true,
-            'token'    => csrf_hash(),
+        $payload = [
             'menus'    => $this->menuRepo->getFlatMenus(true),
             'selected' => $this->menuAccessService->getGroupMenuIds([$groupId]),
-        ]);
+        ];
+
+        if ($raw) {
+            return $this->success($payload, 'Akses departemen berhasil dimuat');
+        }
+
+        return $this->respond(array_merge([
+            'success' => true,
+            'token'   => csrf_hash(),
+        ], $payload));
     }
 
     public function groupSave()
     {
-        $groupId = (int) $this->request->getPost('group_id');
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        $input = $this->readRequestData();
+        $groupId = (int) ($input['group_id'] ?? 0);
+        $raw = $this->isRawFormat();
+
         if (!$this->menuRepo->groupExists($groupId)) {
+            if ($raw) {
+                $status = $groupId <= 0 ? 422 : 404;
+                return $this->error('Departemen tidak valid', $status, ['group_id' => 'Departemen tidak valid']);
+            }
+
             return $this->respond([
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -84,8 +166,16 @@ class MenuSettingController extends BaseApiController
             ]);
         }
 
-        $menuIds = $this->request->getPost('menu_ids') ?? [];
-        $this->menuAccessService->syncGroupMenus($groupId, is_array($menuIds) ? $menuIds : []);
+        $menuIds = $input['menu_ids'] ?? [];
+        $menuIds = is_array($menuIds) ? $menuIds : [];
+        $this->menuAccessService->syncGroupMenus($groupId, $menuIds);
+
+        if ($raw) {
+            return $this->success([
+                'group_id' => $groupId,
+                'selected' => $this->menuAccessService->getGroupMenuIds([$groupId]),
+            ], 'Akses departemen berhasil disimpan');
+        }
 
         return $this->respond([
             'success'  => true,
@@ -96,8 +186,20 @@ class MenuSettingController extends BaseApiController
 
     public function userAccess()
     {
-        $userId = (int) $this->request->getPost('user_id');
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        $input = $this->readRequestData();
+        $userId = (int) ($input['user_id'] ?? 0);
+        $raw = $this->isRawFormat();
+
         if (!$this->menuRepo->userExists($userId)) {
+            if ($raw) {
+                $status = $userId <= 0 ? 422 : 404;
+                return $this->error('User tidak valid', $status, ['user_id' => 'User tidak valid']);
+            }
+
             return $this->respond([
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -106,21 +208,39 @@ class MenuSettingController extends BaseApiController
         }
 
         $overrides = $this->menuAccessService->getUserOverrides($userId);
-
-        return $this->respond([
-            'success'        => true,
-            'token'          => csrf_hash(),
+        $payload = [
             'menus'          => $this->menuRepo->getFlatMenus(true),
             'allow'          => $overrides['allow'],
             'deny'           => $overrides['deny'],
             'group_menu_ids' => $this->menuAccessService->getGroupMenuIds($this->menuAccessService->getUserGroupIds($userId)),
-        ]);
+        ];
+
+        if ($raw) {
+            return $this->success($payload, 'Akses user berhasil dimuat');
+        }
+
+        return $this->respond(array_merge([
+            'success' => true,
+            'token'   => csrf_hash(),
+        ], $payload));
     }
 
     public function userSave()
     {
-        $userId = (int) $this->request->getPost('user_id');
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        $input = $this->readRequestData();
+        $userId = (int) ($input['user_id'] ?? 0);
+        $raw = $this->isRawFormat();
+
         if (!$this->menuRepo->userExists($userId)) {
+            if ($raw) {
+                $status = $userId <= 0 ? 422 : 404;
+                return $this->error('User tidak valid', $status, ['user_id' => 'User tidak valid']);
+            }
+
             return $this->respond([
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -128,13 +248,22 @@ class MenuSettingController extends BaseApiController
             ]);
         }
 
-        $allowIds = $this->request->getPost('allow_ids') ?? [];
-        $denyIds = $this->request->getPost('deny_ids') ?? [];
+        $allowIds = $input['allow_ids'] ?? [];
+        $denyIds = $input['deny_ids'] ?? [];
         $this->menuAccessService->syncUserOverrides(
             $userId,
             is_array($allowIds) ? $allowIds : [],
             is_array($denyIds) ? $denyIds : []
         );
+
+        if ($raw) {
+            $overrides = $this->menuAccessService->getUserOverrides($userId);
+            return $this->success([
+                'user_id' => $userId,
+                'allow'   => $overrides['allow'],
+                'deny'    => $overrides['deny'],
+            ], 'Akses user berhasil disimpan');
+        }
 
         return $this->respond([
             'success'  => true,
@@ -145,15 +274,39 @@ class MenuSettingController extends BaseApiController
 
     public function siteplanMenuList()
     {
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        if ($this->isRawFormat()) {
+            $params = $this->readRequestData();
+            $params['format'] = 'raw';
+
+            return $this->success(
+                $this->menuSettingService->getSiteplanMenuList($params),
+                'Data menu siteplan berhasil dimuat'
+            );
+        }
+
         return $this->respond($this->menuSettingService->getSiteplanMenuList());
     }
 
     public function siteplanMenuGet()
     {
-        $id = (int) $this->request->getPost('id');
-        $menu = $this->menuSettingService->getSiteplanMenu($id);
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        $input = $this->readRequestData();
+        $id = (int) ($input['id'] ?? 0);
+        $raw = $this->isRawFormat();
+        $menu = $this->menuSettingService->getSiteplanMenu($id, $raw);
 
         if (!$menu) {
+            if ($raw) {
+                return $this->error('Menu siteplan tidak ditemukan', 404);
+            }
+
             return $this->respond([
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -161,19 +314,53 @@ class MenuSettingController extends BaseApiController
             ]);
         }
 
-        return $this->respond($menu);
+        return $raw ? $this->success($menu) : $this->respond($menu);
     }
 
     public function siteplanMenuSave()
     {
-        $result = $this->menuSettingService->saveSiteplanMenu((array) $this->request->getPost());
-        return $this->respond($result);
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        $raw = $this->isRawFormat();
+        $result = $this->menuSettingService->saveSiteplanMenu($this->readRequestData(), $raw);
+
+        return $this->respondResult($result, $raw);
     }
 
     public function siteplanMenuToggle()
     {
-        $id = (int) $this->request->getPost('id');
-        $result = $this->menuSettingService->toggleSiteplanMenu($id);
-        return $this->respond($result);
+        if ($denied = $this->ensureMenuAccess(self::MENU_URL)) {
+            return $denied;
+        }
+
+        $input = $this->readRequestData();
+        $id = (int) ($input['id'] ?? 0);
+        $raw = $this->isRawFormat();
+        $result = $this->menuSettingService->toggleSiteplanMenu($id, $raw);
+
+        return $this->respondResult($result, $raw);
+    }
+
+    private function respondResult(array $result, bool $raw)
+    {
+        if (!$raw) {
+            return $this->respond($result);
+        }
+
+        if (!($result['success'] ?? false)) {
+            return $this->error(
+                (string) ($result['messages'] ?? 'Permintaan gagal'),
+                (int) ($result['status'] ?? 422),
+                $result['errors'] ?? null
+            );
+        }
+
+        if (!empty($result['created'])) {
+            return $this->successCreated($result['data'] ?? null, (string) ($result['messages'] ?? 'Created'));
+        }
+
+        return $this->success($result['data'] ?? null, (string) ($result['messages'] ?? 'Success'));
     }
 }

@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `80/100`  
-**Last Synced:** `2026-11-13 11:41:06` @ `c377b23`  
+**Last Synced:** `2026-11-13 12:02:14` @ `6aebbbb`  
 
 ## Purpose
 Manajemen Konsumen dan Transaksi (MKDT): tata kelola siklus transaksi konsumen mulai dari NUP, booking unit, verifikasi data konsumen, posisi kavling, wawancara perbankan, persetujuan SP3K, akad indent (PPJB), akad AJB, mutasi/pergantian konsumen, hingga pembatalan unit (`mkdt`, `konsumen`, `mkdt_kavling_history`).
@@ -68,6 +68,12 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 | `POST` | `/api/nup/pull` | `Explicit` | `NupController::pull` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/nup/kavling-options` | `Explicit` | `NupController::kavlingOptions` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/nup/kavling-history` | `Explicit` | `NupController::kavlingHistory` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/promo` | `Explicit` | `\App\Controllers\Web\Mkdt\PromoController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/mkdt/promo/add` | `Explicit` | `PromoController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/mkdt/promo/edit` | `Explicit` | `PromoController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/mkdt/promo/edit/(:num)` | `Explicit` | `PromoController::edit/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/mkdt/promo/remove` | `Explicit` | `PromoController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/mkdt/promo/remove/(:num)` | `Explicit` | `PromoController::remove/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/laporan/booking-akad` | `Explicit` | `\App\Controllers\Web\Mkdt\BookingAkadReportController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/laporan/booking-akad/summary` | `Explicit` | `BookingAkadReportController::summary` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/laporan/booking-akad/detail` | `Explicit` | `BookingAkadReportController::detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -87,16 +93,6 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 | `ANY` | `/posisi_konsumen/is_active` | `AutoRoute` | `PosisiKonsumen::is_active` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/posisi_konsumen/exportposkonpdf` | `AutoRoute` | `PosisiKonsumen::exportPoskonPdf` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/posisi_konsumen/exportposkonxlsx` | `AutoRoute` | `PosisiKonsumen::exportPoskonXlsx` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/promo/index` | `AutoRoute` | `Promo::index` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/promo/getdatatable` | `AutoRoute` | `Promo::getDataTable` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/promo/getall` | `AutoRoute` | `Promo::getAll` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/promo/getone` | `AutoRoute` | `Promo::getOne` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/promo/add` | `AutoRoute` | `Promo::add` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/promo/edit` | `AutoRoute` | `Promo::edit` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/promo/remove` | `AutoRoute` | `Promo::remove` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/promo/if_where` | `AutoRoute` | `Promo::if_where` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/promo/is_active` | `AutoRoute` | `Promo::is_active` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/promo/format_tgl` | `AutoRoute` | `Promo::format_tgl` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
 #### `MkdtHistoryService.php`
@@ -141,6 +137,17 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 - `pullToNup(array $post, ?UploadedFile $fileLampiran, int $actorId)`
 - `getKavlingOptions(int $idProyek, ?string $search = null, ?int $currentIdKavling = null, ?int $lastIdKavling = null, ?string $filterHargaJual = null)`
 - `getFormattedKavlingHistory(int $idMkdt = 0, int $idKavling = 0)`
+#### `PromoService.php`
+- `getIndexData()`
+- `getDataTables(array $params, bool $raw = false)`
+- `getAll(?int $idProyek = null, string $search = '', bool $raw = false)`
+- `getOne(int $id)`
+- `create(array $input, int $actorId)`
+- `update(int $id, array $input, int $actorId)`
+- `deactivate(int $id, int $actorId)`
+- `formatDate(?string $tgl)`
+- `statusBadge($id, string $activeText, string $inactiveText)`
+- `cleanNumeric(mixed $value)`
 #### `BookingAkadReportService.php`
 - `getAvailableYears(int $idProyek)`
 - `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`
@@ -153,15 +160,16 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 - `formatDate(?string $date)`
 
 ## File Inventory
-### Controllers (6)
+### Controllers (7)
 - `app/Controllers/Mkdt.php` (1257 baris, 13 public methods: `get_data_by_id($st = null)`, `simpan_batal()`, `batal_mkdt()`, `save()`, `set_harga()`, `list_stock()`, `getListStock()`, `if_where($var, $column, $condition, $query)`, `format_tgl($tgl)`, `is_active($id, $texts, $textf)`, `getsi()`, `saveSI()`, `export_xlsx()`)
 - `app/Controllers/PosisiKonsumen.php` (304 baris, 10 public methods: `index($status = null)`, `getDataTables($status = null)`, `getDataTablesAkad()`, `getDataTablesBatal()`, `format_tgl($tgl)`, `is_active($id, $texts, $textf)`, `exportPoskon($tipe, $status)`, `exportPoskonPdf($status)`, `exportPoskonXlsx($status)`, `getRiwayatExport($status = "Aktif")`)
 - `app/Controllers/Api/Mkdt/NupController.php` (195 baris, 6 public methods: `list()`, `detail()`, `save()`, `pull()`, `kavlingOptions()`, `kavlingHistory()`)
-- `app/Controllers/Promo.php` (351 baris, 10 public methods: `index()`, `getDataTable()`, `getAll()`, `getOne()`, `add()`, `edit()`, `remove()`, `if_where($var, $column, $condition, $query)`, `is_active($id, $texts, $textf)`, `format_tgl($tgl)`)
+- `app/Controllers/Web/Mkdt/PromoController.php` (33 baris, 1 public methods: `index()`)
+- `app/Controllers/Api/Mkdt/PromoController.php` (206 baris, 7 public methods: `meta()`, `getDataTable()`, `getAll()`, `getOne($id = null)`, `add()`, `edit($id = null)`, `remove($id = null)`)
 - `app/Controllers/Web/Mkdt/BookingAkadReportController.php` (49 baris, 1 public methods: `index()`)
 - `app/Controllers/Api/Mkdt/BookingAkadReportController.php` (81 baris, 2 public methods: `summary()`, `detail()`)
 
-### Services (8)
+### Services (9)
 - `app/Services/Mkdt/MkdtHistoryService.php` (316 baris, 11 public methods)
 - `app/Services/Mkdt/MkdtSettlementService.php` (48 baris, 1 public methods)
 - `app/Services/Mkdt/MkdtFinancialBreakdownService.php` (254 baris, 6 public methods)
@@ -169,13 +177,15 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 - `app/Services/Mkdt/PosisiKonsumenService.php` (453 baris, 6 public methods)
 - `app/Services/Mkdt/KonsumenService.php` (49 baris, 3 public methods)
 - `app/Services/Mkdt/NupService.php` (536 baris, 6 public methods)
+- `app/Services/Mkdt/PromoService.php` (492 baris, 10 public methods)
 - `app/Services/Mkdt/BookingAkadReportService.php` (755 baris, 9 public methods)
 
-### Repositories (5)
+### Repositories (6)
 - `app/Repositories/Mkdt/MkdtHistoryRepository.php` (55 baris, 4 public methods: `hasTable()`, `insert(array $fields)`, `countByKavling(int $idKavling)`, `getByKavling(int $idKavling, int $limit, int $offset)`)
 - `app/Repositories/Mkdt/PosisiKonsumenRepository.php` (199 baris, 4 public methods: `getBaseQuery($status = "Booking")`, `getQueryBatal()`, `getRiwayatExport($id_proyek, $status)`, `insertRiwayatExport($data)`)
 - `app/Repositories/Mkdt/KonsumenRepository.php` (60 baris, 1 public methods: `getKonsumenTransaksi(int $idMkdt, $select = [])`)
 - `app/Repositories/Mkdt/NupRepository.php` (412 baris, 10 public methods: `getNupListByProyek(int $idProyek, ?string $search = null)`, `getNupDetail(int $idMkdt, bool $lock = false)`, `getKavlingRow(int $idKavling, bool $lock = false)`, `getKavlingLabel(?int $idKavling)`, `getProyekIdByKavling(?int $idKavling)`, `getKavlingOptionsForTransfer(int $idProyek, ?string $search = null, ?int $currentIdKavling = null, ?int $lastIdKavling = null, ?string $filterHargaJual = null)`, `insertKavlingHistory(array $data)`, `getKavlingHistory(int $idMkdt = 0, int $idKavling = 0)`, `isNoNupExists(string $noNup, int $idProyek, int $excludeIdMkdt = 0)`, `generateNextNupNumber(int $idProyek)`)
+- `app/Repositories/Mkdt/PromoRepository.php` (201 baris, 7 public methods: `getProyekList()`, `getDataTables(array $params)`, `getAll(?int $idProyek = null, string $search = '')`, `getById(int $id)`, `insert(array $fields)`, `updateById(int $id, array $fields)`, `deactivate(int $id, int $actorId, string $timestamp)`)
 - `app/Repositories/Mkdt/BookingAkadReportRepository.php` (659 baris, 8 public methods: `getAvailableYears(int $idProyek)`, `getAvailableYearBounds(int $idProyek)`, `getMonthlyBookingTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getMonthlyStatusTotals(int $idProyek, array $years)`, `getMonthlySummaryTotals(int $idProyek, array $years)`, `getSummary(int $idProyek, int $year)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable = [])`)
 
 ### Models (3)
@@ -192,7 +202,8 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 - `public/assets/js/siteplan/mkdt.js` (3299 baris)
 - `public/assets/js/laporan-booking-akad.js` (691 baris)
 
-### Zero-Downtime Shims (16 file)
+### Zero-Downtime Shims (17 file)
+- `app/Controllers/Promo.php`
 - `app/Controllers/Api/NupController.php`
 - `app/Controllers/Web/BookingAkadReportController.php`
 - `app/Controllers/Api/BookingAkadReportController.php`
@@ -355,7 +366,6 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 > **Layer Violations Detected:**
 > - `app/Controllers/Mkdt.php`: db_connect(), $this->db->table(), new KeuanganModel(), new MkdtModel(), new KavlingModel(), new KonsumenModel(), new LogPembayaranModel()
 > - `app/Controllers/PosisiKonsumen.php`: db_connect(), $this->db->table(), new KeuanganModel(), new MkdtModel(), new KavlingModel(), new KonsumenModel(), new LogPembayaranModel(), new ProyekModel(), new ChecklistSubItemModel()
-> - `app/Controllers/Promo.php`: db_connect(), $this->db->table(), new ClusterModel(), new ProyekModel()
 
 ## Dead Code Candidates
 _Jalankan `php spark module:deadcode MKDT` untuk mengaudit dead code kandidat._

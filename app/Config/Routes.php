@@ -270,34 +270,37 @@ $routes->group('api/setting-fee-sales', ['namespace' => 'App\Controllers\Api\Sal
 
 // ── Modul Settings (API Routes Modern) ──
 $routes->group('api/menu-setting', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
-    $routes->post('menu/list', 'MenuSettingController::menuList');
-    $routes->post('menu/get', 'MenuSettingController::menuGet');
+    $routes->get('meta', 'MenuSettingController::meta');
+    $routes->match(['get', 'post'], 'menu/list', 'MenuSettingController::menuList');
+    $routes->match(['get', 'post'], 'menu/get', 'MenuSettingController::menuGet');
     $routes->post('menu/save', 'MenuSettingController::menuSave');
     $routes->post('menu/toggle', 'MenuSettingController::menuToggle');
-    $routes->post('access/group', 'MenuSettingController::groupAccess');
+    $routes->match(['get', 'post'], 'access/group', 'MenuSettingController::groupAccess');
     $routes->post('access/group/save', 'MenuSettingController::groupSave');
-    $routes->post('access/user', 'MenuSettingController::userAccess');
+    $routes->match(['get', 'post'], 'access/user', 'MenuSettingController::userAccess');
     $routes->post('access/user/save', 'MenuSettingController::userSave');
-    $routes->post('siteplan-menu/list', 'MenuSettingController::siteplanMenuList');
-    $routes->post('siteplan-menu/get', 'MenuSettingController::siteplanMenuGet');
+    $routes->match(['get', 'post'], 'siteplan-menu/list', 'MenuSettingController::siteplanMenuList');
+    $routes->match(['get', 'post'], 'siteplan-menu/get', 'MenuSettingController::siteplanMenuGet');
     $routes->post('siteplan-menu/save', 'MenuSettingController::siteplanMenuSave');
     $routes->post('siteplan-menu/toggle', 'MenuSettingController::siteplanMenuToggle');
 });
 
 $routes->group('api/setting-data', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
-    $routes->post('list/(:segment)', 'SettingDataController::list/$1');
-    $routes->post('get/(:segment)', 'SettingDataController::get/$1');
+    $routes->get('meta', 'SettingDataController::meta');
+    $routes->match(['get', 'post'], 'list/(:segment)', 'SettingDataController::list/$1');
+    $routes->match(['get', 'post'], 'get/(:segment)', 'SettingDataController::get/$1');
     $routes->post('save/(:segment)', 'SettingDataController::save/$1');
-    $routes->post('delete/(:segment)', 'SettingDataController::delete/$1');
+    $routes->match(['delete', 'post'], 'delete/(:segment)', 'SettingDataController::delete/$1');
 });
 
 $routes->group('api/pengaturan-warna', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
-    $routes->post('all', 'PengaturanWarnaController::getAll');
-    $routes->post('getall', 'PengaturanWarnaController::getAll');
-    $routes->post('getone', 'PengaturanWarnaController::getOne');
+    $routes->get('meta', 'PengaturanWarnaController::meta');
+    $routes->match(['get', 'post'], 'all', 'PengaturanWarnaController::getAll');
+    $routes->match(['get', 'post'], 'getall', 'PengaturanWarnaController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'PengaturanWarnaController::getOne');
     $routes->post('add', 'PengaturanWarnaController::add');
     $routes->post('edit', 'PengaturanWarnaController::edit');
-    $routes->post('remove', 'PengaturanWarnaController::remove');
+    $routes->match(['delete', 'post'], 'remove', 'PengaturanWarnaController::remove');
 });
 
 // ── Modul Settings (Legacy Routes Zero-Downtime Aliases) ──
@@ -456,6 +459,24 @@ $routes->group('siteplan', ['namespace' => 'App\Controllers\Api\Siteplan', 'filt
 $routes->group('', ['namespace' => 'App\Controllers\Web\Transaksi', 'filter' => 'login'], function ($routes) {
     $routes->get('hargajual', 'HargajualController::index');
     $routes->get('hargajual/index', 'HargajualController::index');
+});
+
+// ── Modul MKDT Promo (Web & Legacy Zero-Downtime Routes) ──
+$routes->get('promo', '\App\Controllers\Web\Mkdt\PromoController::index', ['filter' => 'login']);
+$routes->group('promo', ['filter' => 'login'], function ($routes) {
+    $routes->get('index', 'Promo::index');
+    $routes->match(['get', 'post'], 'getDataTable', 'Promo::getDataTable');
+    $routes->match(['get', 'post'], 'getdatatable', 'Promo::getDataTable');
+    $routes->match(['get', 'post'], 'getAll', 'Promo::getAll');
+    $routes->match(['get', 'post'], 'getall', 'Promo::getAll');
+    $routes->match(['get', 'post'], 'getOne', 'Promo::getOne');
+    $routes->match(['get', 'post'], 'getone', 'Promo::getOne');
+    $routes->match(['get', 'post'], 'getOne/(:num)', 'Promo::getOne/$1');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'Promo::getOne/$1');
+    $routes->post('add', 'Promo::add');
+    $routes->post('edit', 'Promo::edit');
+    $routes->post('edit/(:num)', 'Promo::edit/$1');
+    $routes->post('remove', 'Promo::remove');
 });
 
 // ── Modul Transaksi (Legacy Zero-Downtime Aliases) ──
@@ -703,6 +724,25 @@ $routes->group('api/hargajual', ['namespace' => 'App\Controllers\Api\Transaksi',
 $routes->group('api/mkdt', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
     $routes->post('history', 'MkdtController::history');
     $routes->post('consumer-replacement-history', 'MkdtController::consumerReplacementHistory');
+});
+
+$routes->group('api/mkdt/promo', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'meta', 'PromoController::meta');
+    $routes->match(['get', 'post'], 'datatable', 'PromoController::getDataTable');
+    $routes->match(['get', 'post'], 'getdatatable', 'PromoController::getDataTable');
+    $routes->match(['get', 'post'], 'getDataTable', 'PromoController::getDataTable');
+    $routes->match(['get', 'post'], 'all', 'PromoController::getAll');
+    $routes->match(['get', 'post'], 'getall', 'PromoController::getAll');
+    $routes->match(['get', 'post'], 'getAll', 'PromoController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'PromoController::getOne');
+    $routes->match(['get', 'post'], 'getOne', 'PromoController::getOne');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'PromoController::getOne/$1');
+    $routes->match(['get', 'post'], 'getOne/(:num)', 'PromoController::getOne/$1');
+    $routes->post('add', 'PromoController::add');
+    $routes->post('edit', 'PromoController::edit');
+    $routes->post('edit/(:num)', 'PromoController::edit/$1');
+    $routes->post('remove', 'PromoController::remove');
+    $routes->post('remove/(:num)', 'PromoController::remove/$1');
 });
 
 $routes->group('api/nup', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {

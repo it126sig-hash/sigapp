@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-12 01:53:09` @ `d86bec6`  
+**Last Synced:** `2026-11-13 11:55:34` @ `6aebbbb`  
 
 ## Purpose
 Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaan siteplan.
@@ -30,16 +30,11 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 |---|---|---|---|---|---|
 | `GET` | `/menu-setting` | `Explicit` | `MenuSettingController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/menu-setting` | `Explicit` | `\App\Controllers\Web\Settings\MenuSettingController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/menu-setting/menu/list` | `Explicit` | `MenuSettingController::menuList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/menu-setting/menu/get` | `Explicit` | `MenuSettingController::menuGet` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/menu-setting/meta` | `Explicit` | `MenuSettingController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/menu-setting/menu/save` | `Explicit` | `MenuSettingController::menuSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/menu-setting/menu/toggle` | `Explicit` | `MenuSettingController::menuToggle` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/menu-setting/access/group` | `Explicit` | `MenuSettingController::groupAccess` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/menu-setting/access/group/save` | `Explicit` | `MenuSettingController::groupSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/menu-setting/access/user` | `Explicit` | `MenuSettingController::userAccess` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/menu-setting/access/user/save` | `Explicit` | `MenuSettingController::userSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/menu-setting/siteplan-menu/list` | `Explicit` | `MenuSettingController::siteplanMenuList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/menu-setting/siteplan-menu/get` | `Explicit` | `MenuSettingController::siteplanMenuGet` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/menu-setting/siteplan-menu/save` | `Explicit` | `MenuSettingController::siteplanMenuSave` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/menu-setting/siteplan-menu/toggle` | `Explicit` | `MenuSettingController::siteplanMenuToggle` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/menu-setting/menu/list` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::menuList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -56,21 +51,16 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 | `POST` | `/menu-setting/siteplan-menu/toggle` | `Explicit` | `\App\Controllers\Api\Settings\MenuSettingController::siteplanMenuToggle` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/setting-data` | `Explicit` | `SettingDataController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/setting-data` | `Explicit` | `\App\Controllers\Web\Settings\SettingDataController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/setting-data/list/(:segment)` | `Explicit` | `SettingDataController::list/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/setting-data/get/(:segment)` | `Explicit` | `SettingDataController::get/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/setting-data/meta` | `Explicit` | `SettingDataController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/setting-data/save/(:segment)` | `Explicit` | `SettingDataController::save/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/setting-data/delete/(:segment)` | `Explicit` | `SettingDataController::delete/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/setting-data/list/(:segment)` | `Explicit` | `\App\Controllers\Api\Settings\SettingDataController::list/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/setting-data/get/(:segment)` | `Explicit` | `\App\Controllers\Api\Settings\SettingDataController::get/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/setting-data/save/(:segment)` | `Explicit` | `\App\Controllers\Api\Settings\SettingDataController::save/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/setting-data/delete/(:segment)` | `Explicit` | `\App\Controllers\Api\Settings\SettingDataController::delete/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/configcolor` | `Explicit` | `\App\Controllers\Web\Settings\PengaturanWarnaController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/pengaturan-warna/all` | `Explicit` | `PengaturanWarnaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/pengaturan-warna/getall` | `Explicit` | `PengaturanWarnaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/pengaturan-warna/getone` | `Explicit` | `PengaturanWarnaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/pengaturan-warna/meta` | `Explicit` | `PengaturanWarnaController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/pengaturan-warna/add` | `Explicit` | `PengaturanWarnaController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/pengaturan-warna/edit` | `Explicit` | `PengaturanWarnaController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/pengaturan-warna/remove` | `Explicit` | `PengaturanWarnaController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/pengaturanWarna/getAll` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::getAll` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/pengaturanWarna/getOne` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/pengaturanWarna/add` | `Explicit` | `\App\Controllers\Api\Settings\PengaturanWarnaController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -106,45 +96,46 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 - `getActionItemsForList(int $roleId)`
 #### `SettingDataService.php`
 - `getAllConfigs()`
+- `getMetaTables()`
 - `getConfig(string $key)`
-- `list(string $key)`
-- `get(string $key, int $id)`
-- `save(string $key, array $postData, int $userId)`
-- `delete(string $key, int $id, int $userId)`
+- `list(string $key, array $params = [])`
+- `get(string $key, int $id, bool $raw = false)`
+- `save(string $key, array $postData, int $userId, bool $raw = false)`
+- `delete(string $key, int $id, int $userId, bool $raw = false)`
 #### `PengaturanWarnaService.php`
-- `getAll()`
-- `getOne(string $configName)`
-- `add(array $postData, ?string $userName = null)`
-- `edit(array $postData, ?string $userName = null)`
-- `remove(string $configName)`
+- `getAll(array $params = [])`
+- `getOne(string $configName, bool $raw = false)`
+- `add(array $postData, ?string $userName = null, bool $raw = false)`
+- `edit(array $postData, ?string $userName = null, bool $raw = false)`
+- `remove(string $configName, bool $raw = false)`
 - `normalizeStrokeWidth($value)`
 #### `MenuSettingService.php`
 - `getIndexData()`
-- `getMenuList()`
-- `getMenu(int $id)`
-- `saveMenu(array $postData)`
-- `toggleMenu(int $id)`
-- `getSiteplanMenuList()`
-- `getSiteplanMenu(int $id)`
-- `saveSiteplanMenu(array $postData)`
-- `toggleSiteplanMenu(int $id)`
+- `getMenuList(array $params = [])`
+- `getMenu(int $id, bool $raw = false)`
+- `saveMenu(array $postData, bool $raw = false)`
+- `toggleMenu(int $id, bool $raw = false)`
+- `getSiteplanMenuList(array $params = [])`
+- `getSiteplanMenu(int $id, bool $raw = false)`
+- `saveSiteplanMenu(array $postData, bool $raw = false)`
+- `toggleSiteplanMenu(int $id, bool $raw = false)`
 - `makeSlug(string $name)`
 
 ## File Inventory
 ### Controllers (6)
 - `app/Controllers/Web/Settings/MenuSettingController.php` (28 baris, 1 public methods: `index()`)
-- `app/Controllers/Api/Settings/MenuSettingController.php` (180 baris, 12 public methods: `menuList()`, `menuGet()`, `menuSave()`, `menuToggle()`, `groupAccess()`, `groupSave()`, `userAccess()`, `userSave()`, `siteplanMenuList()`, `siteplanMenuGet()`, `siteplanMenuSave()`, `siteplanMenuToggle()`)
+- `app/Controllers/Api/Settings/MenuSettingController.php` (367 baris, 13 public methods: `meta()`, `menuList()`, `menuGet()`, `menuSave()`, `menuToggle()`, `groupAccess()`, `groupSave()`, `userAccess()`, `userSave()`, `siteplanMenuList()`, `siteplanMenuGet()`, `siteplanMenuSave()`, `siteplanMenuToggle()`)
 - `app/Controllers/Web/Settings/SettingDataController.php` (29 baris, 1 public methods: `index()`)
-- `app/Controllers/Api/Settings/SettingDataController.php` (56 baris, 4 public methods: `list(string $key)`, `get(string $key)`, `save(string $key)`, `delete($key = null)`)
+- `app/Controllers/Api/Settings/SettingDataController.php` (150 baris, 5 public methods: `meta()`, `list(string $key)`, `get(string $key)`, `save(string $key)`, `delete($key = null)`)
 - `app/Controllers/Web/Settings/PengaturanWarnaController.php` (20 baris, 1 public methods: `index()`)
-- `app/Controllers/Api/Settings/PengaturanWarnaController.php` (62 baris, 5 public methods: `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`)
+- `app/Controllers/Api/Settings/PengaturanWarnaController.php` (146 baris, 6 public methods: `meta()`, `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`)
 
 ### Services (5)
 - `app/Services/Settings/MenuAccessService.php` (266 baris, 9 public methods)
 - `app/Services/Settings/SiteplanMenuService.php` (373 baris, 10 public methods)
-- `app/Services/Settings/SettingDataService.php` (195 baris, 6 public methods)
-- `app/Services/Settings/PengaturanWarnaService.php` (205 baris, 6 public methods)
-- `app/Services/Settings/MenuSettingService.php` (324 baris, 10 public methods)
+- `app/Services/Settings/SettingDataService.php` (349 baris, 7 public methods)
+- `app/Services/Settings/PengaturanWarnaService.php` (372 baris, 6 public methods)
+- `app/Services/Settings/MenuSettingService.php` (533 baris, 10 public methods)
 
 ### Repositories (3)
 - `app/Repositories/Settings/MenuRepository.php` (150 baris, 11 public methods: `getGroups()`, `getUsers()`, `getParentOptions()`, `getFlatMenus(bool $activeOnly = false)`, `findMenuById(int $id)`, `insertMenu(array $data)`, `updateMenu(int $id, array $data)`, `groupExists(int $groupId)`, `userExists(int $userId)`, `isDescendant(int $menuId, int $parentId)`, `checkDuplicateSiteplanItemKey(string $itemKey, int $excludeId = 0)`)
