@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-14 00:38:07` @ `64209ba`  
+**Last Synced:** `2026-11-14 00:58:00` @ `f21fc2b`  
 
 ## Purpose
 Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operasional, SPP, bank KPR, pajak, dan ledger kas.
@@ -801,6 +801,12 @@ _Jalankan `php spark module:deadcode Keuangan` untuk mengaudit dead code kandida
   - Whitelist otorisasi kategori berkas `'gambar_kerja'` pada `FileAccessService` mencakup role Keuangan (3), memastikan gambar denah arsitektur kavling tampil dengan aman saat dibuka oleh staf Keuangan tanpa HTTP 403 Forbidden.
 
 ## Change Log
+- **2026-11-14 [`REFACTOR` — Fase 6 / `REFACTOR COMPLETE`] — Final Cross-Module Regression Audit & Global Migration Ledger Sync:**
+  - **Routes & Public Contracts:** Tidak berubah (`141` rute eksplisit Keuangan terverifikasi pada commit Fase 5 `f21fc2b`; seluruh `11+2` endpoint `/meta` `200 OK`, `6` endpoint `?format=raw`, `5` legacy Opsi A shims mencatat `DEPRECATED_KEUANGAN_HIT`).
+  - **Controller / Service / Repo / Model:** Tidak berubah (Fase 6 hanya audit regresi akhir dan sinkronisasi ledger; `25 Ctrl | 18 Serv | 16 Repo | 16 Model | 25 Tables`, `0` controller violations).
+  - **View / CSS / JS:** Tidak berubah; Playwright E2E multi-role (`Keuangan`/`nisalis`, `MKDT`/`citra`, `Planning`/`purnama`) dan audit log `writable/logs/log-2026-11-14.log` (`0 ERROR / 0 CRITICAL`) lulus penuh.
+  - **Documentation & Ledger:** `docs/modules/Keuangan/MODULE.md` disinkronkan pada `@ f21fc2b`, `docs/modules/Keuangan/MIGRATION_LOG.md` mencatat hasil QA Fase 6 `PASS`, dan `docs/MIGRATION_PROGRESS.md` memindahkan Modul #16 `Keuangan` menjadi `COMPLETED` (`16 Selesai | 0 Sedang Dikerjakan | 0 Antre`).
+  - **Deprecations:** `44` Zero-Downtime Shims (`19` Controller shims termasuk Opsi A `Keuangan`, `Pajak`, `Direksi`; `14` Service shims; `11` Repository shims) tetap aktif untuk masa observasi log.
 - **2026-11-13 [`REFACTOR` — Fase 5 & 5B] — Dekomposisi Pajak, Direksi, Penagihan/KopSurat/`doPrint`, & Opsi A Shim `Keuangan.php`:**
   - **Routes & Public Contracts:**
     - `app/Config/Routes.php` (`141` rute eksplisit Keuangan setelah konsolidasi): Mendaftarkan rute eksplisit `/pajak/{getOne,save}` -> `Api\Keuangan\PajakController`, `/direksi/{tagihan,export_xlsx}` -> `Web\Keuangan\DireksiController`, `/direksi/{get_data_by_id,save,get_pending_tagihan,get_my_signature,sign_tagihan,get_history_tagihan,reject_tagihan}` -> `Api\Keuangan\DireksiController`, `/keuangan/{download_penagihan,doPrint}` -> `Web\Keuangan\PenagihanController`, serta `/keuangan/{isi_tagihan,save_sb,save,get_tagihan,get_riwayat_tagihan,simpan_penagihan,update_status_penagihan,get_kopsurat_list,get_kopsurat_detail,simpan_kopsurat,hapus_kopsurat}` (termasuk `GET /keuangan/get_riwayat_tagihan` di Fase 5B) -> `Api\Keuangan\PenagihanController`.

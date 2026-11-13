@@ -13,8 +13,8 @@ Log bertahap migrasi modular dan debugging untuk modul **Keuangan** (Mode `REFAC
 | **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 1 (Subdomain Tagihan, Pembayaran, Print & Bank KPR Disbursement) | `COMPLETED` | 2026-11-13 | `280ba27` |
 | **Fase 3** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 2 (Subdomain Pencairan Akad, Dana Akad & Konsolidasi `PencairanJaminan` -> `DanaJaminanController`) | `COMPLETED` | 2026-11-13 | `2e2ade2` |
 | **Fase 4** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 3 (Subdomain CashOut Umum, Cashout Kavling & Cashout Subkon + Fase 4B Remediation) | `COMPLETED` | 2026-11-13 | `64209ba` |
-| **Fase 5** | Dekomposisi Subdomain Pajak, Direksi, Penagihan/KopSurat/`doPrint` & Opsi A Shim `Keuangan.php` (+ Fase 5B Putaran 1 & 2) | `COMPLETED` | 2026-11-13 | `PENDING (akan diisi di Fase 6)` |
-| **Fase 6** | Final Cross-Module QA Audit & Global Migration Ledger Sync (`docs/MIGRATION_PROGRESS.md`) | `PENDING` | — | — |
+| **Fase 5** | Dekomposisi Subdomain Pajak, Direksi, Penagihan/KopSurat/`doPrint` & Opsi A Shim `Keuangan.php` (+ Fase 5B Putaran 1 & 2) | `COMPLETED` | 2026-11-13 | `f21fc2b` |
+| **Fase 6** | Final Cross-Module QA Audit & Global Migration Ledger Sync (`docs/MIGRATION_PROGRESS.md`) | `COMPLETED` | 2026-11-14 | `PENDING` *(akan di-commit pada penutup Fase 6)* |
 
 ---
 
@@ -311,7 +311,7 @@ Jika diperlukan rollback terhadap perubahan Fase 4 sebelum commit (mengacu pada 
 
 - **Tanggal:** `2026-11-13`
 - **Status QA:** `PASS` *(QA Awal `FAIL` -> Remediasi Fase 5B Putaran 1 & 2 -> Re-QA Independen `PASS` oleh `sigapp-qa`)*
-- **Commit Hash:** `PENDING (akan diisi di Fase 6)`
+- **Commit Hash:** `f21fc2b`
 
 ### 1. Scope & Daftar File Baru & Diubah (17 File Kode + Docs/Map)
 1. Mengekstrak subdomain **Pajak**, **Direksi**, serta **Penagihan / KopSurat / `doPrint`** ke **5 Controller modular baru**, **2 Service baru** (+1 diperkuat), dan **2 Repository baru** (+1 diperkuat) di namespace `*\Keuangan\*`.
@@ -378,21 +378,51 @@ Diverifikasi secara independen oleh `sigapp-qa`:
 - **Runtime Log Audit (`writable/logs/`):** **`0 ERROR / 0 CRITICAL`**.
 
 ### 5. Prosedur Rollback Fase 5
-Catatan: Commit hash Fase 5 adalah **`PENDING (akan diisi di Fase 6)`**; baseline sebelum Fase 5 adalah commit Fase 4 **`64209ba`**.
-Jika diperlukan rollback terhadap perubahan Fase 5 pada working tree (sebelum commit Fase 6):
-1. Kembalikan seluruh file tracked milik Fase 5 ke baseline commit **`64209ba`**:
-   ```bash
-   git checkout 64209ba -- app/Config/Routes.php app/Libraries/ModuleManager/ModuleCatalog.php app/Controllers/Keuangan.php app/Controllers/Pajak.php app/Controllers/Direksi.php app/Services/Keuangan/PajakService.php app/Repositories/Keuangan/PajakRepository.php app/Views/pdf/tagihan_keuangan.php docs/modules/Keuangan/MODULE.md docs/modules/Keuangan/MIGRATION_LOG.md writable/modules/module_map.json writable/modules/deadcode_Keuangan.json
-   ```
-2. Hapus 9 file baru untracked milik Fase 5:
-   - `app/Controllers/Api/Keuangan/PajakController.php`
-   - `app/Controllers/Web/Keuangan/DireksiController.php`
-   - `app/Controllers/Api/Keuangan/DireksiController.php`
-   - `app/Controllers/Web/Keuangan/PenagihanController.php`
-   - `app/Controllers/Api/Keuangan/PenagihanController.php`
-   - `app/Services/Keuangan/DireksiService.php`
-   - `app/Services/Keuangan/PenagihanService.php`
-   - `app/Repositories/Keuangan/DireksiRepository.php`
-   - `app/Repositories/Keuangan/PenagihanRepository.php`
-3. Jalankan `php spark module:sync Keuangan` untuk memulihkan status Fase 4 (`64209ba`).
-4. Jika rollback dilakukan setelah commit Fase 5/6 dibuat, gunakan `git revert <commit-hash-fase-5>` diikuti `php spark module:sync Keuangan`.
+Catatan: Commit hash Fase 5 adalah **`f21fc2b`** (`refactor(keuangan): phase 5 - modularize pajak, direksi, penagihan, and deprecate legacy keuangan`); baseline sebelum Fase 5 adalah commit Fase 4 **`64209ba`**.
+Jika diperlukan rollback terhadap perubahan Fase 5 setelah di-commit:
+```bash
+git revert f21fc2b
+php spark module:sync Keuangan
+```
+
+---
+
+## Fase 6 — Final Cross-Module Regression Audit & Global Ledger Sync
+
+- **Tanggal:** `2026-11-14`
+- **Status QA:** `PASS` *(Sertifikat `PASS` independen oleh `sigapp-qa` pada commit Fase 5 **`f21fc2b`**)*
+- **Commit Hash:** `PENDING` *(commit penutup dokumen Fase 6)*
+
+### 1. Scope Fase 6
+1. Verifikasi sinkronisasi akhir modul `Keuangan` via `php spark module:status` dan `php spark module:sync Keuangan --check-only` (serta pemutakhiran timestamp/hash sinkronisasi `MODULE.md` ke `@ f21fc2b`).
+2. Validasi regresi lintas-modul menyeluruh pasca-Fase 5 (Playwright E2E multi-role `Keuangan`, `MKDT`, dan `Planning`, seluruh endpoint `/meta`, `?format=raw`, dan legacy Opsi A shims).
+3. Eksekusi penuh unit & database test PHPUnit terkait Keuangan serta modul terhubung (`Cashout`, `Direksi`, `PencairanAkad`, `FeeSales`, `Siteplan`, `MKDT-Financial`).
+4. Audit log aplikasi harian (`writable/logs/log-2026-11-14.log`) untuk memastikan `0` error runtime dan mengonfirmasi hook observasi `DEPRECATED_KEUANGAN_HIT` berjalan sesuai probe.
+5. Pembaruan Global Migration Ledger `docs/MIGRATION_PROGRESS.md` (status Modul **#16 `Keuangan`** -> **`COMPLETED`**, progres global **`16 Selesai | 0 Sedang Dikerjakan | 0 Antre (Pending)`**).
+
+### 2. Hasil Verifikasi QA Akhir (`PASS` pada Commit `f21fc2b`)
+- **CLI Modularity & Sync:**
+  - `php spark module:status Keuangan`: **`REFACTORED | 100%`** (`25 Ctrl | 18 Serv | 16 Repo | 16 Model | 141 Route | 25 Tables`), `controller_violations: []`.
+  - Statistik Global: `17` modul (`15 REFACTORED`, `2 MAPPED`, rata-rata skor kesiapan `93.5%`), `0 unmapped files`.
+  - `php spark module:sync Keuangan --check-only`: Exit `0` (`[OK] Keuangan: MODULE.md ada.`, tersinkronisasi pada `@ f21fc2b`).
+- **Playwright E2E Multi-Role:**
+  - **Keuangan (`nisalis`):** 7 halaman inti Keuangan (`200 OK`, `0` console errors, termasuk `/cashout/kavling` dan pembukaan modal `#modal-cashout-keu`), seluruh **11+2** endpoint `/meta` `200 OK`, `6` endpoint `?format=raw` `200 OK`, dan `5` legacy Opsi A shims terverifikasi memicu `DEPRECATED_KEUANGAN_HIT`.
+  - **MKDT (`citra`):** `/list-kavling` `200 OK` (`1.489` baris, `0` console error, `0` HTTP 404/500).
+  - **Planning (`purnama`):** `/siteplan/view` `200 OK` (`311` Konva shapes, `#modal_detail` tab Keuangan & Legal/Pajak termuat normal, `0` JS error, `0` HTTP 500; catatan 1 asset foto profil lokal tidak terkait modul Keuangan).
+- **PHPUnit (`--no-coverage`):**
+  - **27/27** file test relevan `Keuangan` / `Cashout` / `Direksi` / `PencairanAkad` / `FeeSales` / `Siteplan` / `MKDT-Financial` — **`PASS`**.
+  - *(Catatan transparan non-blocking: terdapat 2 test pre-existing milik modul MKDT di luar Keuangan, yaitu `BookingAkadReportProyek13MetricsTest` & `BookingAkadReportM2ChallengerTest`, yang berasal dari sebelum refaktor Keuangan).*
+- **Runtime Log Audit (`writable/logs/log-2026-11-14.log`, rentang `00:43:24`–`00:55:51`):**
+  - **`0` `ERROR` / `0` `CRITICAL`**.
+  - **`8` `WARNING DEPRECATED_KEUANGAN_HIT`** tercatat sesuai probe pengujian terhadap legacy Opsi A shims.
+
+### 3. Daftar File Diperbarui pada Fase 6
+- `docs/modules/Keuangan/MODULE.md` — Disinkronkan via `php spark module:sync Keuangan` (`@ f21fc2b`) dan penambahan entri `REFACTOR COMPLETE` (Fase 6) pada `## Change Log`.
+- `docs/modules/Keuangan/MIGRATION_LOG.md` — Pengisian commit hash Fase 5 (`f21fc2b`) pada tabel ringkasan, header Fase 5, dan prosedur rollback Fase 5, serta penambahan entri lengkap **Fase 6**.
+- `docs/MIGRATION_PROGRESS.md` — Pembaruan baris **#16 `Keuangan`** menjadi `COMPLETED` (`REFACTORED 100%`, `f21fc2b`, `2026-11-14`) dan pembaruan rangkuman progres global (`16 Selesai | 0 Sedang Dikerjakan | 0 Antre (Pending)`).
+
+### 4. Prosedur Rollback Fase 6
+```bash
+git revert <commit-hash-fase-6>
+```
+*(Fase 6 hanya memutakhirkan file dokumentasi tanpa perubahan kode aplikasi PHP/JS/View maupun skema database.)*
