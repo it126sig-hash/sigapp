@@ -49,7 +49,7 @@ $routes->post('/list-kavling/batal/ambil', '\App\Controllers\Api\Mkdt\PosisiKons
 $routes->get('/list-kavling/(:segment)', '\App\Controllers\Web\Mkdt\PosisiKonsumenController::index/$1');
 
 
-$routes->get('/list-batal', 'Mkdt::list_batal');
+$routes->addRedirect('/list-batal', '/list-kavling/batal');
 $routes->get('/list-stock', '\App\Controllers\Web\Mkdt\StockController::index', ['filter' => 'login']);
 // $routes->get('/list-tagihan', 'Keuangan::list_tagihan');
 

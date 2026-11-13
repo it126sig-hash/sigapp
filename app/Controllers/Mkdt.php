@@ -5,22 +5,21 @@ namespace App\Controllers;
 use App\Models\MkdtModel;
 use App\Models\KavlingModel;
 use App\Models\KonsumenModel;
-use App\Models\LogPembayaranModel;
-use CodeIgniter\HTTP\Response;
 use App\Models\KeuanganModel;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 use App\Controllers\Api\Mkdt\MkdtOperationController;
 use App\Controllers\Notif;
 use App\Controllers\Web\Mkdt\StockController;
 use App\Services\FileAccessService;
-use App\Services\MkdtHistoryService;
 use App\Services\BookingPaymentService;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * @deprecated Zero-Downtime legacy shim. Use App\Controllers\Web\Mkdt\* or App\Controllers\Api\Mkdt\* (and App\Controllers\Api\Transaksi\* for transaction endpoints).
+ */
 class Mkdt extends BaseController
 {
     protected $db;
@@ -29,11 +28,8 @@ class Mkdt extends BaseController
     protected $kavlingModel;
     protected $konsumenModel;
     protected $validation;
-    protected $lpModel;
     protected $notif;
-    protected $username;
     protected $fileAccessService;
-    protected $mkdtHistoryService;
     protected BookingPaymentService $bookingPaymentService;
     protected StockController $stockController;
     protected MkdtOperationController $operationController;
@@ -46,11 +42,8 @@ class Mkdt extends BaseController
         $this->kavlingModel = new KavlingModel();
         $this->konsumenModel = new KonsumenModel();
         $this->validation = \Config\Services::validation();
-        $this->lpModel = new LogPembayaranModel();
         $this->db = db_connect();
-        $this->username = $this->db->table('users')->select('username')->get()->getRow();
         $this->fileAccessService = new FileAccessService();
-        $this->mkdtHistoryService = new MkdtHistoryService();
         $this->bookingPaymentService = new BookingPaymentService($this->db);
         $this->stockController = new StockController();
         $this->operationController = new MkdtOperationController();
@@ -62,8 +55,13 @@ class Mkdt extends BaseController
         $this->stockController->initController($request, $response, $logger);
         $this->operationController->initController($request, $response, $logger);
     }
+
+    /**
+     * @deprecated Legacy endpoint. Use App\Controllers\Api\Transaksi\TransaksiController.
+     */
     function get_data_by_id($st = null)
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '. Use App\Controllers\Api\Transaksi\TransaksiController.');
         $hj = [];
         $id_hargajual = $this->request->getVar('id_hargajual');
         if ($id_hargajual) {
@@ -204,8 +202,12 @@ class Mkdt extends BaseController
 
     //     // $this->db->table("keuangan")->insert($ft);
     // }
+    /**
+     * @deprecated Legacy endpoint. Use App\Controllers\Api\Transaksi\TransaksiController.
+     */
     function save()
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '. Use App\Controllers\Api\Transaksi\TransaksiController.');
         $response['token'] = csrf_hash();
         $id_kavling = $this->request->getVar('id_kavling');
 
@@ -570,8 +572,12 @@ class Mkdt extends BaseController
 
         return $this->response->setJSON($response);
     }
+    /**
+     * @deprecated Legacy endpoint. Use App\Controllers\Api\Transaksi\HargajualController::set_harga().
+     */
     function set_harga()
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '. Use App\Controllers\Api\Transaksi\HargajualController::set_harga().');
         $response = array();
         $response['token'] = csrf_hash();
 
@@ -628,56 +634,6 @@ class Mkdt extends BaseController
         }
         return $this->response->setJSON($response);
     }
-    protected function get_kavling($id_kavling)
-    {
-        return $q = $this->kavlingModel
-            ->select('
-                        kavling.*, 
-                        jalan.nama_jalan, 
-                        cluster.id_cluster, 
-                        cluster.nama_cluster,
-                        tipe.id_tipe,
-                        tipe.tipe_rumah,
-                        tipe.no_tipe_rumah,
-                        tipe.id_gambar_kerja,
-                        config_shape.config_name, 
-                        config_shape.fill, 
-                        config_shape.stroke, 
-                        config_shape.strokeWidth, 
-                        config_shape.dashed, 
-                        config_shape.keterangan as conf_ket')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
-            ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
-            // ->join('config_shape', 'config_shape.id_config = kavling.'.$conf)
-            ->join('config_shape', 'config_shape.id_config = kavling.id_config')
-            ->where('kavling.id_kavling', $id_kavling)
-            ->first();
-    }
-    protected function get_kavling_konsumen($id_kavling)
-    {
-        return $q = $this->kavlingModel
-            ->select('
-                        kavling.*, 
-                        konsumen.nama_konsumen,
-                        jalan.nama_jalan, 
-                        cluster.id_cluster, 
-                        cluster.nama_cluster,
-                        tipe.id_tipe,
-                        tipe.tipe_rumah,
-                        tipe.no_tipe_rumah,
-                        tipe.id_gambar_kerja,
-                       ')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
-            ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
-            ->join('mkdt', 'kavling.id_mkdt = mkdt.id_mkdt')
-            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
-            ->where('kavling.id_kavling', $id_kavling)
-            ->first();
-    }
 
     /**
      * @deprecated Legacy shim. Use App\Controllers\Web\Mkdt\StockController::index().
@@ -695,8 +651,12 @@ class Mkdt extends BaseController
         return $this->operationController->getListStock();
     }
 
+    /**
+     * @deprecated Legacy orphan public helper. No active callers; kept for Zero-Downtime observation.
+     */
     function if_where($var, $column, $condition, $query)
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '.');
         $x = 0;
         foreach ($column as $i) {
             if ($x === 0) {
@@ -709,6 +669,10 @@ class Mkdt extends BaseController
         }
         return $query;
     }
+
+    /**
+     * @deprecated Internal helper used only by deprecated save()/set_harga().
+     */
     protected function num($d)
     {
         $d = str_replace('.', "", $d);
@@ -716,15 +680,24 @@ class Mkdt extends BaseController
 
         return $d;
     }
+
+    /**
+     * @deprecated Legacy orphan public helper. No active callers; kept for Zero-Downtime observation.
+     */
     function format_tgl($tgl)
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '.');
         if ($tgl == "" || $tgl == "0000-00-00" || $tgl == null)
             return "-";
         return date_format(date_create($tgl), "d-M-Y");
     }
 
+    /**
+     * @deprecated Legacy orphan public helper. No active callers; kept for Zero-Downtime observation.
+     */
     function is_active($id, $texts, $textf)
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '.');
         $r = '<span class="btn btn-primary btn-sm" text-capitalized="">' . $textf . '</span>';
         if ($id == "1")
             $r = '<span class="btn btn-success btn-sm" text-capitalized="">' . $texts . '</span>';
@@ -748,8 +721,12 @@ class Mkdt extends BaseController
     }
 
     /******************************** export *******************************/
+    /**
+     * @deprecated Legacy endpoint. No modular target exists yet; kept for Zero-Downtime observation.
+     */
     public function export_xlsx()
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '. No modular replacement yet.');
         $table = $this->request->getVar('table');
 
         // $spreadsheet = new Spreadsheet();

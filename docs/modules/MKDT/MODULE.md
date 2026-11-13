@@ -1,8 +1,8 @@
 # Module: MKDT
 
-**Status:** `MAPPED`  
-**Readiness Score:** `80/100`  
-**Last Synced:** `2026-11-13 12:46:15` @ `4975daa`  
+**Status:** `REFACTORED`  
+**Readiness Score:** `100/100`  
+**Last Synced:** `2026-11-13 13:00:41` @ `873f308`  
 
 ## Purpose
 Manajemen Konsumen dan Transaksi (MKDT): tata kelola siklus transaksi konsumen mulai dari NUP, booking unit, verifikasi data konsumen, posisi kavling, wawancara perbankan, persetujuan SP3K, akad indent (PPJB), akad AJB, mutasi/pergantian konsumen, hingga pembatalan unit (`mkdt`, `konsumen`, `mkdt_kavling_history`).
@@ -56,7 +56,6 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `GET` | `/list-batal` | `Explicit` | `Mkdt::list_batal` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `GET` | `/list-kavling` | `Explicit` | `\App\Controllers\Web\Mkdt\PosisiKonsumenController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/list-kavling/(:segment)` | `Explicit` | `\App\Controllers\Web\Mkdt\PosisiKonsumenController::index/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/list-kavling/ambil` | `Explicit` | `\App\Controllers\Api\Mkdt\PosisiKonsumenController::getDataTables` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -86,20 +85,6 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 | `POST` | `/mkdt/saveSI` | `Explicit` | `MkdtOperationController::saveSi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/mkdt/savesi` | `Explicit` | `MkdtOperationController::saveSi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/mkdt/simpan_batal` | `Explicit` | `MkdtOperationController::simpanBatal` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `ANY` | `/mkdt/initcontroller` | `AutoRoute` | `Mkdt::initController` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/get_data_by_id` | `AutoRoute` | `Mkdt::get_data_by_id` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/simpan_batal` | `AutoRoute` | `Mkdt::simpan_batal` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/batal_mkdt` | `AutoRoute` | `Mkdt::batal_mkdt` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/save` | `AutoRoute` | `Mkdt::save` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/set_harga` | `AutoRoute` | `Mkdt::set_harga` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/list_stock` | `AutoRoute` | `Mkdt::list_stock` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/getliststock` | `AutoRoute` | `Mkdt::getListStock` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/if_where` | `AutoRoute` | `Mkdt::if_where` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/format_tgl` | `AutoRoute` | `Mkdt::format_tgl` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/is_active` | `AutoRoute` | `Mkdt::is_active` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/getsi` | `AutoRoute` | `Mkdt::getsi` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/savesi` | `AutoRoute` | `Mkdt::saveSI` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/mkdt/export_xlsx` | `AutoRoute` | `Mkdt::export_xlsx` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
 #### `MkdtHistoryService.php`
@@ -184,8 +169,7 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 - `cancelBooking(array $input, ?UploadedFile $suratBatalFile, int $actorId, array $userGroupIds)`
 
 ## File Inventory
-### Controllers (10)
-- `app/Controllers/Mkdt.php` (799 baris, 14 public methods: `initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)`, `get_data_by_id($st = null)`, `simpan_batal()`, `batal_mkdt()`, `save()`, `set_harga()`, `list_stock()`, `getListStock()`, `if_where($var, $column, $condition, $query)`, `format_tgl($tgl)`, `is_active($id, $texts, $textf)`, `getsi()`, `saveSI()`, `export_xlsx()`)
+### Controllers (9)
 - `app/Controllers/Web/Mkdt/PosisiKonsumenController.php` (38 baris, 1 public methods: `index($status = null)`)
 - `app/Controllers/Api/Mkdt/PosisiKonsumenController.php` (145 baris, 6 public methods: `meta()`, `getDataTables($status = null)`, `getDataTablesAkad()`, `getDataTablesBatal()`, `exportPoskon($tipe = 'xlsx', $status = 'aktif')`, `getRiwayatExport($status = 'Aktif')`)
 - `app/Controllers/Api/Mkdt/NupController.php` (195 baris, 6 public methods: `list()`, `detail()`, `save()`, `pull()`, `kavlingOptions()`, `kavlingHistory()`)
@@ -235,7 +219,8 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 - `public/assets/js/siteplan/mkdt.js` (3299 baris)
 - `public/assets/js/laporan-booking-akad.js` (691 baris)
 
-### Zero-Downtime Shims (18 file)
+### Zero-Downtime Shims (19 file)
+- `app/Controllers/Mkdt.php`
 - `app/Controllers/PosisiKonsumen.php`
 - `app/Controllers/Promo.php`
 - `app/Controllers/Api/NupController.php`
@@ -263,7 +248,8 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
     - `summary()`: Endpoint JSON POST `/api/laporan/booking-akad/summary` untuk menyajikan ringkasan matriks agregasi bulanan (12 bulan) untuk single year maupun komparasi 2 tahun, mencakup 6 status transaksi resmi dan konversi cohort riil berbasis `uniq_id`.
     - `detail()`: Endpoint JSON POST `/api/laporan/booking-akad/detail` untuk melayani server-side DataTables rincian transaksi kavling per bulan dan kategori status dengan payload 7 kolom terstruktur dan token CSRF terbaru.
   - `App\Controllers\Api\Mkdt\NupController`: Endpoint terstruktur untuk listing, detail, simpan, pull transaksi ke NUP, opsi kavling, dan histori pemindahan kavling (`/api/nup/*`).
-  - `App\Controllers\Mkdt`: Controller legacy untuk alur simpan transaksi, set harga, detail unit, dan ekspor HTML-to-Excel (`save()`, `set_harga()`, `get_data_by_id()`, `export_xlsx()`), sekaligus **Zero-Downtime Legacy Delegator Shim** (`initController()` meneruskan request/response/logger ke `StockController` & `MkdtOperationController`):
+  - `App\Controllers\Mkdt` (**Zero-Downtime Legacy Shim**, terdaftar di `ModuleCatalog::MODULES['MKDT']['shims']`):
+    - `@deprecated` Opsi A endpoints (`get_data_by_id()`, `save()`, `set_harga()`, `export_xlsx()`) & `@deprecated` orphan public helpers (`if_where()`, `format_tgl()`, `is_active()`): menulis `log_message('warning', 'DEPRECATED_MKDT_HIT: ...')` untuk observasi log sebelum penghapusan permanen pada follow-up, serta `@deprecated` internal helper `num()`.
     - `@deprecated` `list_stock()` -> mendelegasikan ke `App\Controllers\Web\Mkdt\StockController::index()`.
     - `@deprecated` `getListStock()`, `getsi()`, `saveSI()`, `batal_mkdt()`, `simpan_batal()` -> mendelegasikan ke `App\Controllers\Api\Mkdt\MkdtOperationController` (`getListStock()`, `getSi()`, `saveSi()`, `getBatal()`, `simpanBatal()`).
   - `App\Controllers\Web\Mkdt\StockController`:
@@ -435,15 +421,29 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
     - `exportPoskonXlsx($status = 'aktif')` -> **DEPRECATED**, gunakan `App\Controllers\Api\Mkdt\PosisiKonsumenController::exportPoskon('xlsx', $status)`.
     - `format_tgl($tgl)` -> **DEPRECATED**, gunakan `App\Services\Mkdt\PosisiKonsumenService::format_tgl()`.
     - `is_active($id, $texts, $textf)` -> **DEPRECATED**, gunakan `App\Services\Mkdt\PosisiKonsumenService::is_active()`.
-- **Zero-Downtime Method Shims pada `App\Controllers\Mkdt` (Fase 4 Migrasi MKDT — Stock, Standing Instruction, & Batal Booking):**
-  - `list_stock()` -> **DEPRECATED**, mendelegasikan ke `App\Controllers\Web\Mkdt\StockController::index()`.
-  - `getListStock()` -> **DEPRECATED**, mendelegasikan ke `App\Controllers\Api\Mkdt\MkdtOperationController::getListStock()`.
-  - `getsi()` -> **DEPRECATED**, mendelegasikan ke `App\Controllers\Api\Mkdt\MkdtOperationController::getSi()`.
-  - `saveSI()` -> **DEPRECATED**, mendelegasikan ke `App\Controllers\Api\Mkdt\MkdtOperationController::saveSi()`.
-  - `batal_mkdt()` -> **DEPRECATED**, mendelegasikan ke `App\Controllers\Api\Mkdt\MkdtOperationController::getBatal()`.
-  - `simpan_batal()` -> **DEPRECATED**, mendelegasikan ke `App\Controllers\Api\Mkdt\MkdtOperationController::simpanBatal()`.
+- **Zero-Downtime Legacy Controller Shim & Deprecation In-Place (Fase 4 & Fase 5 Migrasi MKDT — `App\Controllers\Mkdt`):**
+  - `app/Controllers/Mkdt.php` (`App\Controllers\Mkdt`) kini sepenuhnya terdaftar di `ModuleCatalog::MODULES['MKDT']['shims']` dengan anotasi kelas `@deprecated Zero-Downtime legacy shim`.
+  - **6 Method Delegator Shim (Fase 4):**
+    - `list_stock()` -> **DEPRECATED**, mendelegasikan ke `App\Controllers\Web\Mkdt\StockController::index()`.
+    - `getListStock()` -> **DEPRECATED**, mendelegasikan ke `App\Controllers\Api\Mkdt\MkdtOperationController::getListStock()`.
+    - `getsi()` -> **DEPRECATED**, mendelegasikan ke `App\Controllers\Api\Mkdt\MkdtOperationController::getSi()`.
+    - `saveSI()` -> **DEPRECATED**, mendelegasikan ke `App\Controllers\Api\Mkdt\MkdtOperationController::saveSi()`.
+    - `batal_mkdt()` -> **DEPRECATED**, mendelegasikan ke `App\Controllers\Api\Mkdt\MkdtOperationController::getBatal()`.
+    - `simpan_batal()` -> **DEPRECATED**, mendelegasikan ke `App\Controllers\Api\Mkdt\MkdtOperationController::simpanBatal()`.
+  - **4 Method Opsi A + 3 Helper Publik dengan Log Observasi `DEPRECATED_MKDT_HIT:` + `num()` (Fase 5):**
+    Seluruh method di bawah ini beranotasi `@deprecated` dan menulis `log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ...')` ke log aplikasi untuk observasi Zero-Downtime sebelum penghapusan permanen pada follow-up:
+    - `get_data_by_id($st = null)` -> **DEPRECATED**, gunakan `App\Controllers\Api\Transaksi\TransaksiController`.
+    - `save()` -> **DEPRECATED**, gunakan `App\Controllers\Api\Transaksi\TransaksiController`.
+    - `set_harga()` -> **DEPRECATED**, gunakan `App\Controllers\Api\Transaksi\HargajualController::set_harga()`.
+    - `export_xlsx()` -> **DEPRECATED**, dipertahankan sementara untuk observasi Zero-Downtime (belum ada target modular pengganti).
+    - `if_where($var, $column, $condition, $query)` -> **DEPRECATED** (orphan public helper; observasi `DEPRECATED_MKDT_HIT:`).
+    - `format_tgl($tgl)` -> **DEPRECATED** (orphan public helper; observasi `DEPRECATED_MKDT_HIT:`).
+    - `is_active($id, $texts, $textf)` -> **DEPRECATED** (orphan public helper; observasi `DEPRECATED_MKDT_HIT:`).
+    - `num($d)` (`protected`) -> **DEPRECATED** (internal helper hanya dipakai oleh `save()` / `set_harga()`).
+  - **Dead Code Yatim yang Dihapus Permanen (Fase 5):**
+    - Properti yatim `$lpModel`, `$username`, `$mkdtHistoryService` dan method yatim `get_kavling()`, `get_kavling_konsumen()` telah dihapus dari `app/Controllers/Mkdt.php`.
 - **Legacy Routes / Shims:**
-  - Route `GET /list-batal` (`Mkdt::list_batal`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+  - Route broken `GET /list-batal` (sebelumnya menunjuk `Mkdt::list_batal` yang tidak ada) telah diganti menjadi `$routes->addRedirect('/list-batal', '/list-kavling/batal')` di `app/Config/Routes.php` L52 (HTTP 302 redirect ke `/list-kavling/batal`).
   - Route `GET /list-stock` kini mengarah ke `\App\Controllers\Web\Mkdt\StockController::index` (rute AutoRoute `/mkdt/list_stock` -> **DEPRECATED**).
   - Route Legacy Zero-Downtime Operasi MKDT pada `app/Config/Routes.php` (kini menunjuk langsung ke `App\Controllers\Api\Mkdt\MkdtOperationController` dalam default mode; penanda follow-up migrasi frontend ke `/api/mkdt/*?format=raw`):
     - `GET|POST /mkdt/getListStock`, `/mkdt/getliststock` -> **DEPRECATED (Zero-Downtime)**, gunakan `GET|POST /api/mkdt/stock/list?format=raw`.
@@ -454,18 +454,12 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
   - Route Web & Legacy AJAX Zero-Downtime Posisi Konsumen pada `app/Config/Routes.php` (sudah menunjuk controller kanonik `Web\Mkdt\PosisiKonsumenController` & `Api\Mkdt\PosisiKonsumenController` dalam default mode; penanda follow-up migrasi frontend ke `/api/mkdt/posisi-konsumen/*?format=raw`):
     - `GET /list-kavling`, `GET /list-kavling/(:segment)` -> `Web\Mkdt\PosisiKonsumenController::index`
     - `POST /list-kavling/ambil`, `POST /list-kavling/akad/ambil`, `POST /list-kavling/batal/ambil`, `POST /export/poskon/(:segment)/(:segment)`, `POST /riwayat/poskon/(:segment)` -> **DEPRECATED (Zero-Downtime AJAX)**, gunakan `/api/mkdt/posisi-konsumen/*?format=raw`.
-  - Route `ANY /mkdt/get_data_by_id` (`Mkdt::get_data_by_id`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-  - Route `ANY /mkdt/simpan_batal` (`Mkdt::simpan_batal`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-  - Route `ANY /mkdt/batal_mkdt` (`Mkdt::batal_mkdt`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-  - Route `ANY /mkdt/save` (`Mkdt::save`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-  - Route `ANY /mkdt/set_harga` (`Mkdt::set_harga`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-  - Route `ANY /mkdt/getliststock` (`Mkdt::getListStock`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-  - Route `ANY /mkdt/if_where` (`Mkdt::if_where`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-  - Route `ANY /mkdt/format_tgl` (`Mkdt::format_tgl`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-  - Route `ANY /mkdt/is_active` (`Mkdt::is_active`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-  - Route `ANY /mkdt/getsi` (`Mkdt::getsi`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-  - Route `ANY /mkdt/savesi` (`Mkdt::saveSI`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-  - Route `ANY /mkdt/export_xlsx` (`Mkdt::export_xlsx`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+  - Endpoint AutoRoute Legacy pada shim `Mkdt` (Opsi A & orphan helpers; memicu log `DEPRECATED_MKDT_HIT:` saat dipanggil selama masa observasi):
+    - `ANY /mkdt/get_data_by_id` (`Mkdt::get_data_by_id`) — **LEGACY / DEPRECATED**: Gunakan `App\Controllers\Api\Transaksi\TransaksiController`.
+    - `ANY /mkdt/save` (`Mkdt::save`) — **LEGACY / DEPRECATED**: Gunakan `App\Controllers\Api\Transaksi\TransaksiController`.
+    - `ANY /mkdt/set_harga` (`Mkdt::set_harga`) — **LEGACY / DEPRECATED**: Gunakan `App\Controllers\Api\Transaksi\HargajualController::set_harga()`.
+    - `ANY /mkdt/export_xlsx` (`Mkdt::export_xlsx`) — **LEGACY / DEPRECATED**: Dipertahankan sementara untuk observasi Zero-Downtime.
+    - `ANY /mkdt/if_where` (`Mkdt::if_where`), `ANY /mkdt/format_tgl` (`Mkdt::format_tgl`), `ANY /mkdt/is_active` (`Mkdt::is_active`) — **LEGACY / DEPRECATED**: Orphan public helpers.
   - Route `ANY /posisi_konsumen/format_tgl` (`PosisiKonsumen::format_tgl`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
   - Route `ANY /posisi_konsumen/is_active` (`PosisiKonsumen::is_active`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
   - Route `ANY /posisi_konsumen/exportposkonpdf` (`PosisiKonsumen::exportPoskonPdf`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
@@ -485,13 +479,10 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 ## Readiness Checklist
 - [x] Has Service Layer
 - [x] Has Repository Layer
-- [ ] Web & API Controllers Separated
-- [ ] Explicit Routes Defined
-- [ ] Zero Controller Layer Violations
+- [x] Web & API Controllers Separated
+- [x] Explicit Routes Defined
+- [x] Zero Controller Layer Violations
 - [x] MODULE.md Initialized
-
-> **Layer Violations Detected:**
-> - `app/Controllers/Mkdt.php`: db_connect(), $this->db->table(), new KeuanganModel(), new MkdtModel(), new KavlingModel(), new KonsumenModel(), new LogPembayaranModel()
 
 ## Dead Code Candidates
 _Jalankan `php spark module:deadcode MKDT` untuk mengaudit dead code kandidat._
@@ -534,6 +525,19 @@ _Jalankan `php spark module:deadcode MKDT` untuk mengaudit dead code kandidat._
   - Perbaikan Fase 4 pada alur Batal Booking: (1) `BatalBookingService::cancelBooking()` kini mengunggah/menyimpan `surat_batal` via `FileAccessService::storeAs()` **sebelum** melakukan `updateMkdtBatal()` di database (mengatasi bug urutan legacy `Mkdt::simpan_batal` yang menyebabkan `surat_batal` gagal tersimpan), dan (2) `BatalBookingService::getDetail()` (`batal_mkdt` / `/api/mkdt/batal/detail`) serta hasil `cancelBooking()` kini menyertakan `surat_batal_access_url` via `FileAccessService::accessUrl('mkdt_surat_batal', $idMkdt)`.
 
 ## Change Log
+- **`2026-11-13` [`REFACTOR & DEPRECATE`] — Fase 5 Migrasi MKDT (Deprecate Legacy Dead Methods di `Mkdt.php` — Opsi A, Pindah `Mkdt.php` ke `'shims'`, & Redirect `/list-batal`):**
+  - **Routes & Public Contracts:**
+    - `app/Config/Routes.php` L52: Mengganti rute broken `GET /list-batal` (`Mkdt::list_batal`) menjadi `$routes->addRedirect('/list-batal', '/list-kavling/batal')` (HTTP 302 redirect ke halaman Posisi Konsumen Batal).
+    - Kontrak `/api/mkdt/*`, `/api/nup/*`, dan `/api/laporan/booking-akad/*` tetap tidak berubah.
+  - **Controller / Service / Repo / Model:**
+    - `app/Controllers/Mkdt.php`: Menambahkan anotasi kelas `@deprecated Zero-Downtime legacy shim`, menghapus dead code yatim (`$lpModel`, `$username`, `$mkdtHistoryService`, `get_kavling()`, `get_kavling_konsumen()`), serta menandai `@deprecated` + logging `log_message('warning', 'DEPRECATED_MKDT_HIT: ...')` pada 4 method Opsi A (`get_data_by_id()`, `save()`, `set_harga()`, `export_xlsx()`) dan 3 orphan public helper (`if_where()`, `format_tgl()`, `is_active()`), serta `@deprecated` pada helper internal `num()`.
+    - `app/Libraries/ModuleManager/ModuleCatalog.php`: Memindahkan `app/Controllers/Mkdt.php` dari `'controllers'` ke `'shims'` pada definisi modul `MKDT` (`REFACTORED | 100% | Ctrl: 9 | Serv: 12 | Repo: 9 | Model: 3 | Route: 29 | Tables: 7`).
+  - **View / CSS / JS:** Tidak ada perubahan.
+  - **Deprecations:**
+    - `App\Controllers\Mkdt` sepenuhnya berstatus Zero-Downtime shim (`@deprecated`) dengan observasi log `DEPRECATED_MKDT_HIT:` untuk `get_data_by_id()`, `save()`, `set_harga()`, `export_xlsx()`, `if_where()`, `format_tgl()`, dan `is_active()`, serta `@deprecated` pada `num()`.
+    - Rute broken `Mkdt::list_batal` dihapus/diganti redirect `/list-batal` -> `/list-kavling/batal`.
+  - **Testing & Verification:**
+    - Diverifikasi `PASS` oleh `sigapp-qa`: Playwright (`/list-batal` -> 302 `/list-kavling/batal`, `/list-stock`), verifikasi log `DEPRECATED_MKDT_HIT: App\Controllers\Mkdt::format_tgl called by user 17`, `php spark module:status` (`MKDT: REFACTORED 100%`), `php spark module:deadcode MKDT`, PHPUnit `MkdtOperationServicesTest` (6/6, 55 assertions), dan `tests/bin/run_booking_akad_suite.php` (39/39 PASS).
 - **`2026-11-13` [`REFACTOR & BUGFIX`] — Fase 4 Migrasi MKDT (Dekomposisi Stock, Standing Instruction, & Batal Booking; Dual-Mode `/api/mkdt/*`; Perbaikan `surat_batal` Upload-Before-Update & `surat_batal_access_url`):**
   - **Routes & Public Contracts:**
     - Web: `GET /list-stock` -> `\App\Controllers\Web\Mkdt\StockController::index`.

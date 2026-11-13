@@ -12,8 +12,8 @@ Log bertahap migrasi modular dan debugging untuk modul **MKDT** (Mode `REFACTOR`
 | **Fase 1** | Cleanup Dead Code + Move Modern Layer + Bugfix `/list-stock` | `COMPLETED` | 2026-11-13 | `6aebbbb` |
 | **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer — Subdomain Promo (`PromoController`, `PromoService`, `PromoRepository`, Shim, & Bugfix UI) | `COMPLETED` | 2026-11-13 | `8ffb065` |
 | **Fase 3** | API & Web Controller Separation + Explicit Routes (Subdomain Posisi Konsumen) | `COMPLETED` | 2026-11-13 | `4975daa` |
-| **Fase 4** | Stock, Standing Instruction, & Batal Booking + Unit Tests | `COMPLETED` | 2026-11-13 | `(akan diisi setelah commit Fase 4)` |
-| **Fase 5** | Deprecation Warnings (`Mkdt::save`, `set_harga`, `get_data_by_id`, `export_xlsx`) & Cleanup | `PENDING` | - | - |
+| **Fase 4** | Stock, Standing Instruction, & Batal Booking + Unit Tests | `COMPLETED` | 2026-11-13 | `873f308` |
+| **Fase 5** | Deprecate Legacy `Mkdt` Methods (Opsi A), Shim Migration, & Redirect `/list-batal` | `COMPLETED` | 2026-11-13 | `(akan diisi setelah commit Fase 5)` |
 | **Fase 6** | Final QA Audit & Global Migration Ledger Sync (`docs/MIGRATION_PROGRESS.md`) | `PENDING` | - | - |
 
 ---
@@ -312,9 +312,73 @@ Log bertahap migrasi modular dan debugging untuk modul **MKDT** (Mode `REFACTOR`
 
 ### Commit & Rollback
 
-- **Commit Implementasi Fase 4:** `(akan diisi setelah commit Fase 4)`
+- **Commit Implementasi Fase 4:** `873f308`
 - **Prosedur Rollback Aman:**
   ```bash
-  git revert <hash_fase_4>
+  git revert 873f308
   ```
   *(Karena 6 metode pada `App\Controllers\Mkdt` tetap dipertahankan sebagai `@deprecated` Zero-Downtime shims dan mode default endpoint `/api/mkdt/*` tetap kompatibel dengan frontend legacy, rollback dapat dilakukan aman via `git revert` tanpa perubahan skema database.)*
+
+---
+
+## Fase 5 — Deprecate Legacy `Mkdt` Methods (Opsi A) & Shim Migration
+
+- **Tanggal:** `2026-11-13`
+- **Status QA:** `PASS` (Diverifikasi oleh `sigapp-qa`)
+- **Scope:**
+  1. Menandai `App\Controllers\Mkdt` sebagai `@deprecated Zero-Downtime legacy shim` serta memindahkannya dari daftar `'controllers'` ke `'shims'` pada `ModuleCatalog::MODULES['MKDT']`.
+  2. Menghapus dead code yatim di `app/Controllers/Mkdt.php` (`$lpModel`, `$username`, `$mkdtHistoryService`, `get_kavling()`, `get_kavling_konsumen()`).
+  3. Menerapkan keputusan Opsi A (Legacy Deprecation In-Place) dengan anotasi `@deprecated` + logging observasi `log_message('warning', 'DEPRECATED_MKDT_HIT: ...')` pada 4 method legacy utama (`get_data_by_id()`, `save()`, `set_harga()`, `export_xlsx()`) dan 3 orphan public helper (`if_where()`, `format_tgl()`, `is_active()`), serta `@deprecated` pada helper internal `num()`.
+  4. Memperbaiki rute broken `GET /list-batal` (yang sebelumnya menunjuk `Mkdt::list_batal`) menjadi `$routes->addRedirect('/list-batal', '/list-kavling/batal')` pada `app/Config/Routes.php` L52.
+
+### Daftar File Diubah
+
+- `app/Controllers/Mkdt.php` (775 baris) — Tambah class-level `@deprecated Zero-Downtime legacy shim`; hapus properti/method yatim (`$lpModel`, `$username`, `$mkdtHistoryService`, `get_kavling()`, `get_kavling_konsumen()`); tambah `@deprecated` + `log_message('warning', 'DEPRECATED_MKDT_HIT: ...')` pada 7 method publik (`get_data_by_id`, `save`, `set_harga`, `export_xlsx`, `if_where`, `format_tgl`, `is_active`); tambah `@deprecated` pada `protected function num($d)`.
+- `app/Config/Routes.php` (L52) — Mengganti rute broken `/list-batal` -> `$routes->addRedirect('/list-batal', '/list-kavling/batal')`.
+- `app/Libraries/ModuleManager/ModuleCatalog.php` — Memindahkan `app/Controllers/Mkdt.php` dari `'controllers'` ke `'shims'` pada definisi modul `MKDT`.
+- **Dokumentasi:**
+  - `docs/modules/MKDT/MODULE.md` (disinkronkan via `php spark module:sync MKDT` -> status `REFACTORED | 100/100`, plus kurasi manual `## Key Functions`, `## Deprecated & Legacy Shims`, dan `## Change Log`).
+  - `docs/modules/MKDT/MIGRATION_LOG.md` (pengisian commit hash Fase 4 `873f308` dan penambahan entri Fase 5).
+
+### Daftar Method `@deprecated` & Hook Observasi `DEPRECATED_MKDT_HIT:`
+
+Seluruh method di bawah ini tetap dipertahankan sementara untuk masa observasi log sebelum penghapusan permanen pada tahap *follow-up*:
+
+- **4 Method Opsi A (`log_message('warning', 'DEPRECATED_MKDT_HIT: ...')`):**
+  1. `get_data_by_id($st = null)` -> gunakan `App\Controllers\Api\Transaksi\TransaksiController`.
+  2. `save()` -> gunakan `App\Controllers\Api\Transaksi\TransaksiController`.
+  3. `set_harga()` -> gunakan `App\Controllers\Api\Transaksi\HargajualController::set_harga()`.
+  4. `export_xlsx()` -> dipertahankan sementara (belum ada pengganti modular).
+- **3 Orphan Public Helpers (`log_message('warning', 'DEPRECATED_MKDT_HIT: ...')`):**
+  5. `if_where($var, $column, $condition, $query)`
+  6. `format_tgl($tgl)`
+  7. `is_active($id, $texts, $textf)`
+- **1 Internal Helper (`@deprecated`):**
+  8. `num($d)` (`protected`, hanya digunakan oleh `save()` & `set_harga()`).
+- **6 Method Delegator Shim (dari Fase 4, `@deprecated`):**
+  9. `list_stock()`, `getListStock()`, `getsi()`, `saveSI()`, `batal_mkdt()`, `simpan_batal()`.
+
+### Hasil Verifikasi & Command (QA `PASS`)
+
+- **Playwright E2E:**
+  - Navigasi `GET /list-batal` -> HTTP **302** redirect ke `/list-kavling/batal` (`PASS`).
+  - Navigasi `GET /list-stock` -> HTTP **200 OK**, tanpa console error maupun error PHP (`PASS`).
+- **Verifikasi Log Observasi `DEPRECATED_MKDT_HIT:`:**
+  - Terkonfirmasi tercatat di log aplikasi: `DEPRECATED_MKDT_HIT: App\Controllers\Mkdt::format_tgl called by user 17` (`PASS`).
+- **`php spark module:status`:**
+  - `MKDT`: `REFACTORED | 100% | Ctrl: 9 | Serv: 12 | Repo: 9 | Model: 3 | Route: 29 | Tables: 7`.
+- **`php spark module:deadcode MKDT`:**
+  - Memeriksa 30 metode; ditemukan 6 kandidat (`0 Callers`: `PosisiKonsumenController::meta()`, `PromoController::meta()`, `MkdtOperationController::meta()`, `MkdtOperationController::getListStock()`, `MkdtOperationController::getSi()`, `MkdtFinancialReconciliationService::apply()`). Tidak ada lagi dead code yatim di `Mkdt.php` dalam inventori controller aktif.
+- **PHPUnit (`tests/unit/MkdtOperationServicesTest.php`):**
+  - **6/6 tests pass (55 assertions)**.
+- **Suite Laporan Booking & Akad (`tests/bin/run_booking_akad_suite.php`):**
+  - **39/39 PASS**.
+
+### Commit & Rollback
+
+- **Commit Implementasi Fase 5:** `(akan diisi setelah commit Fase 5)`
+- **Prosedur Rollback Aman:**
+  ```bash
+  git revert <hash_fase_5>
+  ```
+  *(Karena 4 method Opsi A dan 3 orphan public helpers pada `App\Controllers\Mkdt` hanya diberi anotasi `@deprecated` + log observasi tanpa menghapus endpoint aktif, dan `/list-batal` dialihkan via redirect HTTP 302, rollback aman dilakukan via `git revert` tanpa perubahan skema database.)*

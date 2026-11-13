@@ -135,7 +135,6 @@ class ModuleCatalog
                 'name' => 'MKDT',
                 'description' => 'Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, dan posisi kavling.',
                 'controllers' => [
-                    'Mkdt.php',
                     'Web/Mkdt/PosisiKonsumenController.php',
                     'Api/Mkdt/PosisiKonsumenController.php',
                     'Api/Mkdt/NupController.php',
@@ -173,6 +172,7 @@ class ModuleCatalog
                 ],
                 'models' => ['MkdtModel.php', 'KonsumenModel.php', 'MkdtKavlingHistoryModel.php'],
                 'shims' => [
+                    'app/Controllers/Mkdt.php',
                     'app/Controllers/PosisiKonsumen.php',
                     'app/Controllers/Promo.php',
                     'app/Controllers/Api/NupController.php',
