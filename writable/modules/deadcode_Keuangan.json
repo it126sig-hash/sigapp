@@ -1,5 +1,40 @@
 [
     {
+        "layer": "Controller",
+        "file": "CashOutController.php",
+        "name": "initController"
+    },
+    {
+        "layer": "Controller",
+        "file": "CashoutKavlingController.php",
+        "name": "initController"
+    },
+    {
+        "layer": "Controller",
+        "file": "CashoutKavlingController.php",
+        "name": "initController"
+    },
+    {
+        "layer": "Controller",
+        "file": "CashoutSubkonController.php",
+        "name": "initController"
+    },
+    {
+        "layer": "Controller",
+        "file": "CashoutSubkonController.php",
+        "name": "initController"
+    },
+    {
+        "layer": "Controller",
+        "file": "PenagihanController.php",
+        "name": "initController"
+    },
+    {
+        "layer": "Controller",
+        "file": "PenagihanController.php",
+        "name": "initController"
+    },
+    {
         "layer": "Service",
         "file": "KeuanganService.php",
         "name": "simpanDanaAkad"

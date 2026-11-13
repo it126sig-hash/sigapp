@@ -12,8 +12,8 @@ Log bertahap migrasi modular dan debugging untuk modul **Keuangan** (Mode `REFAC
 | **Fase 1** | Migrasi Layer Service & Repository ke `*\Keuangan\*` + Subdomain Laporan, Bank & BookingPayment | `COMPLETED` | 2026-11-13 | `d5ce0c1` |
 | **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 1 (Subdomain Tagihan, Pembayaran, Print & Bank KPR Disbursement) | `COMPLETED` | 2026-11-13 | `280ba27` |
 | **Fase 3** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 2 (Subdomain Pencairan Akad, Dana Akad & Konsolidasi `PencairanJaminan` -> `DanaJaminanController`) | `COMPLETED` | 2026-11-13 | `2e2ade2` |
-| **Fase 4** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 3 (Subdomain CashOut Umum, Cashout Kavling & Cashout Subkon + Fase 4B Remediation) | `COMPLETED` | 2026-11-13 | *(working tree — pra-commit)* |
-| **Fase 5** | Deprecate Legacy Methods (Opsi A) & Shim Migration | `PENDING` | — | — |
+| **Fase 4** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 3 (Subdomain CashOut Umum, Cashout Kavling & Cashout Subkon + Fase 4B Remediation) | `COMPLETED` | 2026-11-13 | `64209ba` |
+| **Fase 5** | Dekomposisi Subdomain Pajak, Direksi, Penagihan/KopSurat/`doPrint` & Opsi A Shim `Keuangan.php` (+ Fase 5B Putaran 1 & 2) | `COMPLETED` | 2026-11-13 | `PENDING (akan diisi di Fase 6)` |
 | **Fase 6** | Final Cross-Module QA Audit & Global Migration Ledger Sync (`docs/MIGRATION_PROGRESS.md`) | `PENDING` | — | — |
 
 ---
@@ -256,7 +256,7 @@ Jika diperlukan rollback terhadap perubahan Fase 3 sebelum commit (mengacu pada 
 
 - **Tanggal:** `2026-11-13`
 - **Status QA:** `PASS` *(QA Awal `FAIL` (`ae592b78`) -> Remediasi Fase 4B (`sigapp-frontend`) -> Re-QA Independen `PASS` oleh `sigapp-qa` (`800fa998`))*
-- **Commit Hash:** *(working tree — pra-commit)*
+- **Commit Hash:** `64209ba`
 
 ### 1. Ringkasan Implementasi (`sigapp-engineer`)
 - **5 Controller Modular Baru (`0` direct DB/Model access; `meta()` + Dual-Mode `?format=raw`):**
@@ -304,3 +304,95 @@ Jika diperlukan rollback terhadap perubahan Fase 4 sebelum commit (mengacu pada 
    - `app/Controllers/Api/Keuangan/Cashout/CashoutSubkonController.php`
 3. Jalankan `php spark module:sync Keuangan` untuk memulihkan status Fase 3.
 4. Jika rollback dilakukan setelah di-commit, gunakan `git revert <commit-hash-fase-4>` diikuti `php spark module:sync Keuangan`.
+
+---
+
+## Fase 5 — Pajak, Direksi, Penagihan/KopSurat/`doPrint`, & Opsi A Shim `Keuangan.php` (+ Fase 5B Putaran 1 & 2)
+
+- **Tanggal:** `2026-11-13`
+- **Status QA:** `PASS` *(QA Awal `FAIL` -> Remediasi Fase 5B Putaran 1 & 2 -> Re-QA Independen `PASS` oleh `sigapp-qa`)*
+- **Commit Hash:** `PENDING (akan diisi di Fase 6)`
+
+### 1. Scope & Daftar File Baru & Diubah (17 File Kode + Docs/Map)
+1. Mengekstrak subdomain **Pajak**, **Direksi**, serta **Penagihan / KopSurat / `doPrint`** ke **5 Controller modular baru**, **2 Service baru** (+1 diperkuat), dan **2 Repository baru** (+1 diperkuat) di namespace `*\Keuangan\*`.
+2. Mengubah `app/Controllers/Keuangan.php`, `app/Controllers/Pajak.php`, dan `app/Controllers/Direksi.php` menjadi **Opsi A Zero-Downtime Shims (`@deprecated`)** dengan logging `DEPRECATED_KEUANGAN_HIT`.
+3. Mendaftarkan rute eksplisit `/api/keuangan/{pajak,direksi,penagihan}/meta`, `/pajak/*`, `/direksi/*`, dan `/keuangan/*` di `app/Config/Routes.php` beserta kontrak Dual-Mode `?format=raw`, preservasi singular `'message'` vs `'messages'`, dan `HTTP 404` pada `download_penagihan`.
+4. Memperbarui `app/Libraries/ModuleManager/ModuleCatalog.php` sehingga status modul Keuangan mencapai **`REFACTORED | 100%`** (`Ctrl 25 | Serv 18 | Repo 16 | Model 16 | Route 141 | Tables 25`, total `44` shims).
+
+#### Daftar File Kode (17 File)
+- **Controllers Modular Baru (5 file):**
+  - `app/Controllers/Api/Keuangan/PajakController.php` (`meta()`, `getOne()`, `save()`)
+  - `app/Controllers/Web/Keuangan/DireksiController.php` (`tagihan()`, `export_xlsx()`)
+  - `app/Controllers/Api/Keuangan/DireksiController.php` (`meta()`, `get_data_by_id()`, `save()`, `get_pending_tagihan()`, `get_my_signature()`, `sign_tagihan()`, `get_history_tagihan()`, `reject_tagihan()`)
+  - `app/Controllers/Web/Keuangan/PenagihanController.php` (`download_penagihan()`, `doPrint()`)
+  - `app/Controllers/Api/Keuangan/PenagihanController.php` (`meta()`, `isi_tagihan()`, `save_sb()`, `save()`, `get_tagihan()`, `get_riwayat_tagihan()`, `simpan_penagihan()`, `update_status_penagihan()`, `get_kopsurat_list()`, `get_kopsurat_detail()`, `simpan_kopsurat()`, `hapus_kopsurat()`)
+- **Services Baru & Diperkuat (3 file):**
+  - `app/Services/Keuangan/DireksiService.php` *(baru — 9 public methods)*
+  - `app/Services/Keuangan/PenagihanService.php` *(baru — 14 public methods, termasuk `streamDownloadPenagihan()` & `streamDoPrintPdf()`)*
+  - `app/Services/Keuangan/PajakService.php` *(diperkuat — `getMetaPayload()`, `getOneBundle()`, `savePajakData()`, `insertPajak()`, `updatePajak()`)*
+- **Repositories Baru & Diperkuat (3 file):**
+  - `app/Repositories/Keuangan/DireksiRepository.php` *(baru — 8 public methods)*
+  - `app/Repositories/Keuangan/PenagihanRepository.php` *(baru — 32 public methods)*
+  - `app/Repositories/Keuangan/PajakRepository.php` *(diperkuat — `getPajakBundleByKavling()`, `getLatestFilesByCategories()`, `insertFileUpload()`, `getTarifPph()`, `getTarifPpn()`)*
+- **Opsi A Zero-Downtime Shims (3 file diubah):**
+  - `app/Controllers/Keuangan.php` (`@deprecated` + `DEPRECATED_KEUANGAN_HIT` + `initDelegate(\CodeIgniter\Controller $controller): \CodeIgniter\Controller` + 4 orphan legacy methods)
+  - `app/Controllers/Pajak.php` (`@deprecated` + `DEPRECATED_KEUANGAN_HIT`)
+  - `app/Controllers/Direksi.php` (`@deprecated` + `DEPRECATED_KEUANGAN_HIT` + delegasi Web `tagihan()` & `export_xlsx()`)
+- **View, Konfigurasi & Katalog (3 file diubah) + Docs/Map:**
+  - `app/Views/pdf/tagihan_keuangan.php` (perbaikan helper `format_date()` menggantikan typo `foramt_date()` + render tanggal aman untuk Dompdf)
+  - `app/Config/Routes.php` (rute eksplisit Pajak, Direksi, Penagihan/KopSurat/`doPrint`, 3 endpoint `/meta`, termasuk `GET /keuangan/get_riwayat_tagihan`)
+  - `app/Libraries/ModuleManager/ModuleCatalog.php` (inventori Fase 5 + 3 shims baru)
+  - Dokumentasi & map: `docs/modules/Keuangan/MODULE.md`, `docs/modules/Keuangan/MIGRATION_LOG.md`, `writable/modules/module_map.json`, `writable/modules/deadcode_Keuangan.json`.
+
+### 2. Hasil QA Awal (`FAIL`) & Root Cause Analysis (RCA)
+1. **Error pada `doPrint` akibat typo `foramt_date()` vs `format_date()`:**
+   - **Gejala:** Render view `app/Views/pdf/tagihan_keuangan.php` gagal saat memanggil helper tanggal.
+   - **RCA:** Terdapat typo nama fungsi `foramt_date()` pada template PDF `tagihan_keuangan.php` serta ketidaksesuaian pemanggilan `format_date()`.
+2. **Dompdf `PREG_JIT_STACKLIMIT_ERROR` / kegagalan render `doPrint`:**
+   - **Gejala:** Streaming PDF `POST /keuangan/doPrint` gagal di Dompdf ketika tanggal/kop surat tidak dinormalisasi atau MIME gambar kop tidak terdeteksi tepat.
+   - **RCA:** Data URI gambar kop di-hardcode/tidak mendeteksi MIME secara dinamis dan input `tanggal_surat_tagihan` belum dinormalisasi ke `Y-m-d` / `'-'` sebelum dirender oleh Dompdf.
+3. **`download_penagihan` mengembalikan HTTP `200` saat `id` kosong:**
+   - **Gejala:** Request `GET /keuangan/download_penagihan` tanpa `id` atau dengan `id` kosong tidak mengembalikan status `404`.
+   - **RCA:** Guard pengecekan `$id === ''` pada `Web\Keuangan\PenagihanController::download_penagihan()` belum mengembalikan status `404` secara eksplisit sebelum memanggil service.
+4. **`Keuangan::initDelegate()` melempar `TypeError`:**
+   - **Gejala:** Pemanggilan endpoint melalui shim `App\Controllers\Keuangan` ke controller `Api\Keuangan\*` gagal dengan `TypeError`.
+   - **RCA:** Signature `initDelegate()` sebelumnya menuntut `App\Controllers\BaseController`, sedangkan controller `Api\Keuangan\*` mewarisi `BaseApiController` (`CodeIgniter\RESTful\ResourceController` / `CodeIgniter\Controller`), bukan `App\Controllers\BaseController`.
+5. **Rute `GET /keuangan/get_riwayat_tagihan` belum terdaftar:**
+   - **Gejala:** Akses HTTP `GET` ke `/keuangan/get_riwayat_tagihan` tidak cocok pada rute eksplisit yang awalnya hanya mendaftarkan `POST`.
+
+### 3. Perbaikan Fase 5B (Putaran 1 & Putaran 2)
+- **`app/Services/Keuangan/PenagihanService.php` (`streamDoPrintPdf`):** Menambahkan deteksi MIME kop surat dinamis (`mime_content_type()` -> `\finfo(FILEINFO_MIME_TYPE)` -> peta ekstensi gambar) serta normalisasi `tanggal_surat_tagihan` ke format `Y-m-d` atau `'-'`.
+- **`app/Controllers/Web/Keuangan/PenagihanController.php` (`download_penagihan`):** Memastikan `trim((string) ($this->request->getVar('id') ?? '')) === ''` dan `! $streamed` mengembalikan `HTTP 404` (`Surat tagihan tidak ditemukan`).
+- **`app/Views/pdf/tagihan_keuangan.php` (`format_date`):** Mengganti typo `foramt_date()` menjadi `format_date($d)` dengan guard kosong/non-ISO yang aman untuk Dompdf.
+- **`app/Controllers/Keuangan.php` (`initDelegate`):** Mengubah type hint menjadi `initDelegate(\CodeIgniter\Controller $controller): \CodeIgniter\Controller` (diimpor sebagai `BaseCiController`) agar kompatibel dengan seluruh delegasi `Web\Keuangan\*` maupun `Api\Keuangan\*`.
+- **`app/Config/Routes.php`:** Menambahkan rute eksplisit `GET /keuangan/get_riwayat_tagihan` (mendampingi `POST /keuangan/get_riwayat_tagihan`).
+
+### 4. Hasil Re-QA Final (`PASS` — Fase 5B Putaran 2)
+Diverifikasi secara independen oleh `sigapp-qa`:
+- **`doPrint` PDF Rendering:** Menghasilkan output PDF valid sebesar **`274,951` bytes** dengan **`0` console error**.
+- **Negative Test `download_penagihan`:** Request dengan `id` kosong maupun ID tidak ditemukan mengembalikan **`HTTP 404`**.
+- **Shim & Endpoint Verification:** Seluruh shim Opsi A (`Keuangan`, `Pajak`, `Direksi`), 3 endpoint `/meta` (`/api/keuangan/{pajak,direksi,penagihan}/meta`), dual-mode `?format=raw`, dan preservasi singular `'message'` vs `'messages'` terverifikasi lulus.
+- **Modular Sync & Status:**
+  - `php spark module:sync Keuangan --check-only`: Exit `0` (`MODULE.md` sinkron).
+  - `php spark module:status Keuangan`: **`REFACTORED | 100%`** (`Ctrl 25 | Serv 18 | Repo 16 | Model 16 | Route 141 | Tables 25`).
+- **Runtime Log Audit (`writable/logs/`):** **`0 ERROR / 0 CRITICAL`**.
+
+### 5. Prosedur Rollback Fase 5
+Catatan: Commit hash Fase 5 adalah **`PENDING (akan diisi di Fase 6)`**; baseline sebelum Fase 5 adalah commit Fase 4 **`64209ba`**.
+Jika diperlukan rollback terhadap perubahan Fase 5 pada working tree (sebelum commit Fase 6):
+1. Kembalikan seluruh file tracked milik Fase 5 ke baseline commit **`64209ba`**:
+   ```bash
+   git checkout 64209ba -- app/Config/Routes.php app/Libraries/ModuleManager/ModuleCatalog.php app/Controllers/Keuangan.php app/Controllers/Pajak.php app/Controllers/Direksi.php app/Services/Keuangan/PajakService.php app/Repositories/Keuangan/PajakRepository.php app/Views/pdf/tagihan_keuangan.php docs/modules/Keuangan/MODULE.md docs/modules/Keuangan/MIGRATION_LOG.md writable/modules/module_map.json writable/modules/deadcode_Keuangan.json
+   ```
+2. Hapus 9 file baru untracked milik Fase 5:
+   - `app/Controllers/Api/Keuangan/PajakController.php`
+   - `app/Controllers/Web/Keuangan/DireksiController.php`
+   - `app/Controllers/Api/Keuangan/DireksiController.php`
+   - `app/Controllers/Web/Keuangan/PenagihanController.php`
+   - `app/Controllers/Api/Keuangan/PenagihanController.php`
+   - `app/Services/Keuangan/DireksiService.php`
+   - `app/Services/Keuangan/PenagihanService.php`
+   - `app/Repositories/Keuangan/DireksiRepository.php`
+   - `app/Repositories/Keuangan/PenagihanRepository.php`
+3. Jalankan `php spark module:sync Keuangan` untuk memulihkan status Fase 4 (`64209ba`).
+4. Jika rollback dilakukan setelah commit Fase 5/6 dibuat, gunakan `git revert <commit-hash-fase-5>` diikuti `php spark module:sync Keuangan`.

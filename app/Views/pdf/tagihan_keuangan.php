@@ -1,20 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php
-$bulan = ['Januari','Februari','Maret','April','Mei', 'Juni','Juli', 'Agustus','September','Oktober','November','Desember'];
+if (!function_exists('format_date')) {
+    function format_date($d)
+    {
+        $raw = trim((string) ($d ?? ''));
+        if ($raw === '' || $raw === '-' || strpos($raw, '0000-00-00') === 0) {
+            return '-';
+        }
 
-function foramt_date($d){
-    $bulan = ['Januari','Februari','Maret','April','Mei', 'Juni','Juli', 'Agustus','September','Oktober','November','Desember'];
+        $bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
-    if($d){
-        $d = explode("-", $d);
-        return $d[2] . " " . $bulan[$d[1]]. " ". $d[0];
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) {
+            $ts = strtotime($raw);
+            if ($ts === false) {
+                return htmlspecialchars((string) $d, ENT_QUOTES, 'UTF-8');
+            }
+            $raw = date('Y-m-d', $ts);
+        }
+
+        $parts = explode('-', $raw);
+        if (count($parts) !== 3) {
+            return htmlspecialchars((string) $d, ENT_QUOTES, 'UTF-8');
+        }
+
+        $monthIndex = (int) $parts[1] - 1;
+        if (!isset($bulan[$monthIndex])) {
+            return htmlspecialchars((string) $d, ENT_QUOTES, 'UTF-8');
+        }
+
+        return $parts[2] . ' ' . $bulan[$monthIndex] . ' ' . $parts[0];
     }
-    return $d;
 }
-
-
-
 ?>
 <head>
     <meta charset="UTF-8">
@@ -24,14 +41,9 @@ function foramt_date($d){
 </head>
 <style>
     body {
-        background-image: url("<?= ($kop) ?>");
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         font-size: 10pt;
         margin: -45px;
-        /* background-position: right 50px; */
-        background-size: 100%;
-        background-repeat: no-repeat;
-        /* background-position: center center;          */
     }
 
     th,
@@ -64,8 +76,11 @@ function foramt_date($d){
 </style>
 
 <body>
+    <?php if (!empty($kop)): ?>
+        <img src="<?= htmlspecialchars((string) $kop, ENT_QUOTES, 'UTF-8') ?>" alt="" style="position: fixed; top: -45px; left: -45px; width: 210mm; height: auto; z-index: -1;">
+    <?php endif; ?>
     <div style="padding-top:120px; text-align:center">
-        <h3>Surat Tagihan</h>
+        <h3>Surat Tagihan</h3>
     </div>
     <div style="padding: 10px 70px 50px 70px">
         <p style="float:left">
@@ -80,7 +95,7 @@ function foramt_date($d){
             <span><?= $no_sruat ?></span>
         </p>
     </div>
-    <table style="width:100%; padding: 50px 70px px 70px">
+    <table style="width:100%; padding: 50px 70px 0px 70px;">
         <thead>
             <tr>
                 <th scope="col" class="text-nowrap">No</th>
@@ -107,7 +122,7 @@ function foramt_date($d){
         </ol>
     </div>
     <div style="float: right; text-align:center;padding: 20px 70px 0px 70px">
-            Bandung, <?= format_date($tanggal_surat_tagihan) ?>
+            Bandung, <?= format_date($tanggal_surat_tagihan ?? '') ?>
             <br>
             <br>
             <br>

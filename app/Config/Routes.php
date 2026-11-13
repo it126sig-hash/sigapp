@@ -587,6 +587,54 @@ $routes->group('api/keuangan', ['namespace' => 'App\Controllers\Api\Keuangan', '
     $routes->get('cashout/meta', 'CashOutController::meta');
     $routes->get('cashout-kavling/meta', 'Cashout\CashoutKavlingController::meta');
     $routes->get('cashout-subkon/meta', 'Cashout\CashoutSubkonController::meta');
+    $routes->get('pajak/meta', 'PajakController::meta');
+    $routes->get('direksi/meta', 'DireksiController::meta');
+    $routes->get('penagihan/meta', 'PenagihanController::meta');
+});
+
+// Pajak modular explicit routes
+$routes->group('pajak', ['filter' => 'login'], function ($routes) {
+    $routes->post('getOne', '\App\Controllers\Api\Keuangan\PajakController::getOne');
+    $routes->post('save', '\App\Controllers\Api\Keuangan\PajakController::save');
+});
+
+// Direksi modular explicit routes
+$routes->group('direksi', ['filter' => 'login'], function ($routes) {
+    $routes->get('tagihan', '\App\Controllers\Web\Keuangan\DireksiController::tagihan');
+    $routes->get('export_xlsx', '\App\Controllers\Web\Keuangan\DireksiController::export_xlsx');
+    $routes->post('export_xlsx', '\App\Controllers\Web\Keuangan\DireksiController::export_xlsx');
+    $routes->post('get_data_by_id', '\App\Controllers\Api\Keuangan\DireksiController::get_data_by_id');
+    $routes->post('save', '\App\Controllers\Api\Keuangan\DireksiController::save');
+    $routes->get('get_pending_tagihan', '\App\Controllers\Api\Keuangan\DireksiController::get_pending_tagihan');
+    $routes->post('get_pending_tagihan', '\App\Controllers\Api\Keuangan\DireksiController::get_pending_tagihan');
+    $routes->get('get_my_signature', '\App\Controllers\Api\Keuangan\DireksiController::get_my_signature');
+    $routes->post('get_my_signature', '\App\Controllers\Api\Keuangan\DireksiController::get_my_signature');
+    $routes->post('sign_tagihan', '\App\Controllers\Api\Keuangan\DireksiController::sign_tagihan');
+    $routes->get('get_history_tagihan', '\App\Controllers\Api\Keuangan\DireksiController::get_history_tagihan');
+    $routes->post('get_history_tagihan', '\App\Controllers\Api\Keuangan\DireksiController::get_history_tagihan');
+    $routes->post('reject_tagihan', '\App\Controllers\Api\Keuangan\DireksiController::reject_tagihan');
+});
+
+// Penagihan, KopSurat & DoPrint modular explicit routes
+$routes->group('keuangan', ['filter' => 'login'], function ($routes) {
+    $routes->get('download_penagihan', '\App\Controllers\Web\Keuangan\PenagihanController::download_penagihan');
+    $routes->get('doPrint', '\App\Controllers\Web\Keuangan\PenagihanController::doPrint');
+    $routes->post('doPrint', '\App\Controllers\Web\Keuangan\PenagihanController::doPrint');
+    $routes->post('isi_tagihan', '\App\Controllers\Api\Keuangan\PenagihanController::isi_tagihan');
+    $routes->post('save_sb', '\App\Controllers\Api\Keuangan\PenagihanController::save_sb');
+    $routes->post('save', '\App\Controllers\Api\Keuangan\PenagihanController::save');
+    $routes->post('get_tagihan', '\App\Controllers\Api\Keuangan\PenagihanController::get_tagihan');
+    $routes->post('get_tagihan/(:segment)', '\App\Controllers\Api\Keuangan\PenagihanController::get_tagihan/$1');
+    $routes->get('get_riwayat_tagihan', '\App\Controllers\Api\Keuangan\PenagihanController::get_riwayat_tagihan');
+    $routes->post('get_riwayat_tagihan', '\App\Controllers\Api\Keuangan\PenagihanController::get_riwayat_tagihan');
+    $routes->post('simpan_penagihan', '\App\Controllers\Api\Keuangan\PenagihanController::simpan_penagihan');
+    $routes->post('update_status_penagihan', '\App\Controllers\Api\Keuangan\PenagihanController::update_status_penagihan');
+    $routes->get('get_kopsurat_list', '\App\Controllers\Api\Keuangan\PenagihanController::get_kopsurat_list');
+    $routes->post('get_kopsurat_list', '\App\Controllers\Api\Keuangan\PenagihanController::get_kopsurat_list');
+    $routes->get('get_kopsurat_detail', '\App\Controllers\Api\Keuangan\PenagihanController::get_kopsurat_detail');
+    $routes->post('get_kopsurat_detail', '\App\Controllers\Api\Keuangan\PenagihanController::get_kopsurat_detail');
+    $routes->post('simpan_kopsurat', '\App\Controllers\Api\Keuangan\PenagihanController::simpan_kopsurat');
+    $routes->post('hapus_kopsurat', '\App\Controllers\Api\Keuangan\PenagihanController::hapus_kopsurat');
 });
 
 //pencairan akad (gabungan retensi + hasil akad)

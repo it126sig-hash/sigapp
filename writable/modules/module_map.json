@@ -1,5 +1,5 @@
 {
-    "scanned_at": "2026-11-13T21:00:32+07:00",
+    "scanned_at": "2026-11-14T00:39:11+07:00",
     "total_modules": 17,
     "modules": {
         "Proyek": {
@@ -3005,39 +3005,17 @@
         "Keuangan": {
             "name": "Keuangan",
             "description": "Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operasional, SPP, bank KPR, pajak, dan ledger kas.",
-            "status": "MAPPED",
-            "readiness_score": 80,
+            "status": "REFACTORED",
+            "readiness_score": 100,
             "readiness_checklist": {
                 "has_service": true,
                 "has_repository": true,
-                "has_web_api_split": false,
-                "has_explicit_routes": false,
-                "zero_controller_violations": false,
+                "has_web_api_split": true,
+                "has_explicit_routes": true,
+                "zero_controller_violations": true,
                 "has_documentation": true
             },
-            "controller_violations": {
-                "app/Controllers/Keuangan.php": [
-                    "db_connect()",
-                    "$this->db->table()",
-                    "new KeuanganModel()",
-                    "new KavlingModel()",
-                    "new MkdtModel()",
-                    "new KonsumenModel()",
-                    "new LogPembayaranModel()",
-                    "new ProfilePerusahaanModel()",
-                    "new RiwayatPencairanJaminanModel()"
-                ],
-                "app/Controllers/Pajak.php": [
-                    "db_connect()",
-                    "$this->db->table()",
-                    "new ClusterModel()",
-                    "new ProyekModel()"
-                ],
-                "app/Controllers/Direksi.php": [
-                    "db_connect()",
-                    "$this->db->table()"
-                ]
-            },
+            "controller_violations": [],
             "owner_tables": [
                 "keuangan",
                 "log_pembayaran",
@@ -3070,56 +3048,6 @@
                 "kavling"
             ],
             "controllers": [
-                {
-                    "relative_path": "app/Controllers/Keuangan.php",
-                    "filename": "Keuangan.php",
-                    "line_count": 1923,
-                    "public_methods": [
-                        "getDanaAkad()",
-                        "getBankKprDisbursement()",
-                        "saveBankKprDisbursement()",
-                        "voidBankKprDisbursement($id = null)",
-                        "getJatuhTempo()",
-                        "getCashOut()",
-                        "saveCashOut()",
-                        "saveDanaAkad()",
-                        "get_riwayat_gantinama()",
-                        "isSudahBayar($id)",
-                        "isi_tagihan()",
-                        "save_sb()",
-                        "save()",
-                        "list_tagihan()",
-                        "getListTagihan()",
-                        "riwayat_bayar()",
-                        "getRiwayatBayar()",
-                        "get_tagihan($id = null)",
-                        "removeLP()",
-                        "doPrint()",
-                        "print_tagihan($id = null)",
-                        "if_where($var, $column, $condition, $query)",
-                        "format_tgl($tgl)",
-                        "is_active($id, $texts, $textf)",
-                        "get_riwayat_tagihan()",
-                        "simpan_penagihan()",
-                        "update_status_penagihan()",
-                        "download_penagihan()",
-                        "get_kopsurat_list()",
-                        "get_kopsurat_detail()",
-                        "simpan_kopsurat()",
-                        "hapus_kopsurat()"
-                    ],
-                    "violations": [
-                        "db_connect()",
-                        "$this->db->table()",
-                        "new KeuanganModel()",
-                        "new KavlingModel()",
-                        "new MkdtModel()",
-                        "new KonsumenModel()",
-                        "new LogPembayaranModel()",
-                        "new ProfilePerusahaanModel()",
-                        "new RiwayatPencairanJaminanModel()"
-                    ]
-                },
                 {
                     "relative_path": "app/Controllers/Web/Keuangan/TagihanController.php",
                     "filename": "TagihanController.php",
@@ -3251,22 +3179,15 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Pajak.php",
-                    "filename": "Pajak.php",
-                    "line_count": 589,
+                    "relative_path": "app/Controllers/Api/Keuangan/PajakController.php",
+                    "filename": "PajakController.php",
+                    "line_count": 109,
                     "public_methods": [
+                        "meta()",
                         "getOne()",
-                        "save()",
-                        "if_where($var, $column, $condition, $query)",
-                        "is_active($id, $texts, $textf)",
-                        "format_tgl($tgl)"
+                        "save()"
                     ],
-                    "violations": [
-                        "db_connect()",
-                        "$this->db->table()",
-                        "new ClusterModel()",
-                        "new ProyekModel()"
-                    ]
+                    "violations": []
                 },
                 {
                     "relative_path": "app/Controllers/Api/Keuangan/CashOutController.php",
@@ -3406,27 +3327,62 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Direksi.php",
-                    "filename": "Direksi.php",
-                    "line_count": 416,
+                    "relative_path": "app/Controllers/Web/Keuangan/DireksiController.php",
+                    "filename": "DireksiController.php",
+                    "line_count": 35,
                     "public_methods": [
+                        "tagihan()",
+                        "export_xlsx()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Keuangan/DireksiController.php",
+                    "filename": "DireksiController.php",
+                    "line_count": 174,
+                    "public_methods": [
+                        "meta()",
                         "get_data_by_id($st = null)",
                         "save()",
-                        "if_where($var, $column, $condition, $query)",
-                        "format_tgl($tgl)",
-                        "is_active($id, $texts, $textf)",
-                        "export_xlsx()",
-                        "tagihan()",
                         "get_pending_tagihan()",
                         "get_my_signature()",
                         "sign_tagihan()",
                         "get_history_tagihan()",
                         "reject_tagihan()"
                     ],
-                    "violations": [
-                        "db_connect()",
-                        "$this->db->table()"
-                    ]
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Web/Keuangan/PenagihanController.php",
+                    "filename": "PenagihanController.php",
+                    "line_count": 56,
+                    "public_methods": [
+                        "initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)",
+                        "download_penagihan()",
+                        "doPrint()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Keuangan/PenagihanController.php",
+                    "filename": "PenagihanController.php",
+                    "line_count": 229,
+                    "public_methods": [
+                        "initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)",
+                        "meta()",
+                        "isi_tagihan()",
+                        "save_sb()",
+                        "save()",
+                        "get_tagihan($id = null)",
+                        "get_riwayat_tagihan()",
+                        "simpan_penagihan()",
+                        "update_status_penagihan()",
+                        "get_kopsurat_list()",
+                        "get_kopsurat_detail()",
+                        "simpan_kopsurat()",
+                        "hapus_kopsurat()"
+                    ],
+                    "violations": []
                 }
             ],
             "services": [
@@ -3494,8 +3450,11 @@
                 {
                     "relative_path": "app/Services/Keuangan/PajakService.php",
                     "filename": "PajakService.php",
-                    "line_count": 45,
+                    "line_count": 289,
                     "public_methods": [
+                        "getMetaPayload(?int $activeProjectId = null)",
+                        "getOneBundle(int $idKavling, ?int $actorId = null)",
+                        "savePajakData(array $postData, array $uploadedFiles, int $actorId)",
                         "insertPajak(array $fields, int $idKavling, int $actorId)",
                         "updatePajak(int $idPajak, array $fields, int $actorId)"
                     ]
@@ -3709,6 +3668,43 @@
                         "getDownloadFile(int $idPengajuan)",
                         "getDanaAkadDetail(int $idMkdt, int $idKavling = 0)"
                     ]
+                },
+                {
+                    "relative_path": "app/Services/Keuangan/DireksiService.php",
+                    "filename": "DireksiService.php",
+                    "line_count": 372,
+                    "public_methods": [
+                        "getMetaPayload(?int $activeProjectId = null)",
+                        "getDiskresiData(int $idKavling, ?int $actorId = null)",
+                        "saveDiskresi(int $idKavling, array $postData, int $actorId)",
+                        "exportXlsx(string $tableHtml)",
+                        "getPendingTagihan()",
+                        "getHistoryTagihan()",
+                        "getMySignature(int $userId)",
+                        "signTagihan(string $noInv, string $password, string $signatureMethod, string $signatureData, int $userId)",
+                        "rejectTagihan(string $noInv, string $alasan, string $password, int $userId)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Services/Keuangan/PenagihanService.php",
+                    "filename": "PenagihanService.php",
+                    "line_count": 940,
+                    "public_methods": [
+                        "getMetaPayload(?int $activeProjectId = null)",
+                        "isiTagihan($request, ?int $actorId)",
+                        "saveSudahDibayar($request)",
+                        "saveLegacyPayment(array $input, ?int $actorId)",
+                        "getTagihanBundle(int $idMkdt, ?string $mode = null)",
+                        "getRiwayatTagihan(?int $idMkdt = null, ?string $noInv = null)",
+                        "simpanPenagihan(array $input, int $actorId)",
+                        "updateStatusPenagihan(array $input, int $actorId)",
+                        "getKopsuratList()",
+                        "getKopsuratDetail(int $id)",
+                        "simpanKopsurat(array $postData, $fileKop = null)",
+                        "hapusKopsurat(int $id)",
+                        "streamDownloadPenagihan(string $noInv)",
+                        "streamDoPrintPdf(array $input, int $actorId)"
+                    ]
                 }
             ],
             "repositories": [
@@ -3774,9 +3770,14 @@
                 {
                     "relative_path": "app/Repositories/Keuangan/PajakRepository.php",
                     "filename": "PajakRepository.php",
-                    "line_count": 41,
+                    "line_count": 154,
                     "public_methods": [
-                        "linkKavling(int $idKavling, int $idPajak)"
+                        "linkKavling(int $idKavling, int $idPajak)",
+                        "getPajakBundleByKavling(int $idKavling)",
+                        "getLatestFilesByCategories(int $idKavling, array $categories, ?int $idGroup = null)",
+                        "insertFileUpload(array $data)",
+                        "getTarifPph()",
+                        "getTarifPpn()"
                     ]
                 },
                 {
@@ -3902,6 +3903,60 @@
                         "updateBank(int $id, array $data)",
                         "deleteBank(int $id)"
                     ]
+                },
+                {
+                    "relative_path": "app/Repositories/Keuangan/DireksiRepository.php",
+                    "filename": "DireksiRepository.php",
+                    "line_count": 127,
+                    "public_methods": [
+                        "getDiskresiByKavling(int $idKavling)",
+                        "updateDiskresiKavling(int $idKavling, array $data)",
+                        "getPendingTagihan()",
+                        "getHistoryTagihan()",
+                        "findUserById(int $userId)",
+                        "findInvoiceByNoInv(string $noInv)",
+                        "updateInvoiceSignature(string $noInv, array $data)",
+                        "insertInvoiceStatusLog(array $data)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Keuangan/PenagihanRepository.php",
+                    "filename": "PenagihanRepository.php",
+                    "line_count": 383,
+                    "public_methods": [
+                        "getDb()",
+                        "getKavlingForPayment(int $idKavling)",
+                        "getMkdtRow(int $idMkdt)",
+                        "isMkdtBookingPaid(int $idMkdt)",
+                        "updateMkdt(int $idMkdt, array $data)",
+                        "insertLogPembayaran(array $data)",
+                        "getProfilePerusahaan()",
+                        "getMkdtWithKonsumen(int $idMkdt)",
+                        "getKeuanganByMkdt(int $idMkdt)",
+                        "getLogPembayaranWithUserByMkdt(int $idMkdt)",
+                        "getInvoicesByMkdt(int $idMkdt)",
+                        "getKodeKeuanganByMkdt(int $idMkdt)",
+                        "getRiwayatTagihan(?int $idMkdt = null, ?string $noInv = null)",
+                        "findDuplicateNomorSurat(string $nomorSurat, ?string $excludeNoInv = null)",
+                        "findInvoiceByNoInv(string $noInv)",
+                        "findLastInvoiceByPrefix(string $prefix)",
+                        "insertInvoice(array $data)",
+                        "updateInvoice(string $noInv, array $data)",
+                        "insertInvoiceStatusLog(array $data)",
+                        "getProyekInfoForInvoice(int $idKavling)",
+                        "getKonsumenSummary(int $idKonsumen)",
+                        "getKavlingLocationSummary(int $idKavling)",
+                        "getKaryawanNameByUserId(int $userId)",
+                        "getFirstKopsuratLokasi()",
+                        "getKopsuratListObjects()",
+                        "getKopsuratListArrays()",
+                        "findKopsuratObject(int $id)",
+                        "findKopsuratArray(int $id)",
+                        "insertKopsurat(array $data)",
+                        "updateKopsurat(int $id, array $data)",
+                        "deleteKopsurat(int $id)",
+                        "countInvoicesUsingKopsurat(int $idKopsurat)"
+                    ]
                 }
             ],
             "models": [
@@ -4012,6 +4067,9 @@
                 }
             ],
             "shims": [
+                "app/Controllers/Keuangan.php",
+                "app/Controllers/Pajak.php",
+                "app/Controllers/Direksi.php",
                 "app/Controllers/Tagihan.php",
                 "app/Controllers/Pembayaran.php",
                 "app/Controllers/PrintController.php",
@@ -4697,6 +4755,30 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
+                    "http_method": "GET",
+                    "uri": "/api/keuangan/pajak/meta",
+                    "type": "Explicit",
+                    "handler": "PajakController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/pajak/getOne",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PajakController::getOne",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/pajak/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PajakController::save",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
                     "http_method": "POST",
                     "uri": "/keuangan/cashout/ambil",
                     "type": "Explicit",
@@ -5001,396 +5083,268 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/getdanaakad",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::getDanaAkad",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/getbankkprdisbursement",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::getBankKprDisbursement",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/savebankkprdisbursement",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::saveBankKprDisbursement",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/voidbankkprdisbursement",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::voidBankKprDisbursement",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/getjatuhtempo",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::getJatuhTempo",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/getcashout",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::getCashOut",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/savecashout",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::saveCashOut",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/savedanaakad",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::saveDanaAkad",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/get_riwayat_gantinama",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::get_riwayat_gantinama",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/issudahbayar",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::isSudahBayar",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/isi_tagihan",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::isi_tagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/save_sb",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::save_sb",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/save",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::save",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/list_tagihan",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::list_tagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/getlisttagihan",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::getListTagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/riwayat_bayar",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::riwayat_bayar",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/getriwayatbayar",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::getRiwayatBayar",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/get_tagihan",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::get_tagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/removelp",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::removeLP",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/doprint",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::doPrint",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/print_tagihan",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::print_tagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/if_where",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::if_where",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/format_tgl",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::format_tgl",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/is_active",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::is_active",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/get_riwayat_tagihan",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::get_riwayat_tagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/simpan_penagihan",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::simpan_penagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/update_status_penagihan",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::update_status_penagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/download_penagihan",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::download_penagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/get_kopsurat_list",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::get_kopsurat_list",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/get_kopsurat_detail",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::get_kopsurat_detail",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/simpan_kopsurat",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::simpan_kopsurat",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/keuangan/hapus_kopsurat",
-                    "type": "AutoRoute",
-                    "handler": "Keuangan::hapus_kopsurat",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/pajak/getone",
-                    "type": "AutoRoute",
-                    "handler": "Pajak::getOne",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/pajak/save",
-                    "type": "AutoRoute",
-                    "handler": "Pajak::save",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/pajak/if_where",
-                    "type": "AutoRoute",
-                    "handler": "Pajak::if_where",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/pajak/is_active",
-                    "type": "AutoRoute",
-                    "handler": "Pajak::is_active",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/pajak/format_tgl",
-                    "type": "AutoRoute",
-                    "handler": "Pajak::format_tgl",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/direksi/get_data_by_id",
-                    "type": "AutoRoute",
-                    "handler": "Direksi::get_data_by_id",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/direksi/save",
-                    "type": "AutoRoute",
-                    "handler": "Direksi::save",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/direksi/if_where",
-                    "type": "AutoRoute",
-                    "handler": "Direksi::if_where",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/direksi/format_tgl",
-                    "type": "AutoRoute",
-                    "handler": "Direksi::format_tgl",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/direksi/is_active",
-                    "type": "AutoRoute",
-                    "handler": "Direksi::is_active",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/direksi/export_xlsx",
-                    "type": "AutoRoute",
-                    "handler": "Direksi::export_xlsx",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
+                    "http_method": "GET",
                     "uri": "/direksi/tagihan",
-                    "type": "AutoRoute",
-                    "handler": "Direksi::tagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\DireksiController::tagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "GET",
+                    "uri": "/direksi/export_xlsx",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\DireksiController::export_xlsx",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/direksi/export_xlsx",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\DireksiController::export_xlsx",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/keuangan/direksi/meta",
+                    "type": "Explicit",
+                    "handler": "DireksiController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/direksi/get_data_by_id",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DireksiController::get_data_by_id",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/direksi/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DireksiController::save",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
                     "uri": "/direksi/get_pending_tagihan",
-                    "type": "AutoRoute",
-                    "handler": "Direksi::get_pending_tagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DireksiController::get_pending_tagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
+                    "uri": "/direksi/get_pending_tagihan",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DireksiController::get_pending_tagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
                     "uri": "/direksi/get_my_signature",
-                    "type": "AutoRoute",
-                    "handler": "Direksi::get_my_signature",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DireksiController::get_my_signature",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
+                    "uri": "/direksi/get_my_signature",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DireksiController::get_my_signature",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
                     "uri": "/direksi/sign_tagihan",
-                    "type": "AutoRoute",
-                    "handler": "Direksi::sign_tagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DireksiController::sign_tagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "GET",
                     "uri": "/direksi/get_history_tagihan",
-                    "type": "AutoRoute",
-                    "handler": "Direksi::get_history_tagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DireksiController::get_history_tagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
+                    "uri": "/direksi/get_history_tagihan",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DireksiController::get_history_tagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
                     "uri": "/direksi/reject_tagihan",
-                    "type": "AutoRoute",
-                    "handler": "Direksi::reject_tagihan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DireksiController::reject_tagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/keuangan/download_penagihan",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\PenagihanController::download_penagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/keuangan/doPrint",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\PenagihanController::doPrint",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/doPrint",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\PenagihanController::doPrint",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/keuangan/penagihan/meta",
+                    "type": "Explicit",
+                    "handler": "PenagihanController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/isi_tagihan",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::isi_tagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/save_sb",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::save_sb",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::save",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/get_tagihan",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::get_tagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/get_tagihan/(:segment)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::get_tagihan/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/keuangan/get_riwayat_tagihan",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::get_riwayat_tagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/get_riwayat_tagihan",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::get_riwayat_tagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/simpan_penagihan",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::simpan_penagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/update_status_penagihan",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::update_status_penagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/keuangan/get_kopsurat_list",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::get_kopsurat_list",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/get_kopsurat_list",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::get_kopsurat_list",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/keuangan/get_kopsurat_detail",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::get_kopsurat_detail",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/get_kopsurat_detail",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::get_kopsurat_detail",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/simpan_kopsurat",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::simpan_kopsurat",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/hapus_kopsurat",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PenagihanController::hapus_kopsurat",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 }
             ],
             "service_contracts": {
@@ -5446,6 +5400,9 @@
                     "removeLP($request)"
                 ],
                 "PajakService.php": [
+                    "getMetaPayload(?int $activeProjectId = null)",
+                    "getOneBundle(int $idKavling, ?int $actorId = null)",
+                    "savePajakData(array $postData, array $uploadedFiles, int $actorId)",
                     "insertPajak(array $fields, int $idKavling, int $actorId)",
                     "updatePajak(int $idPajak, array $fields, int $actorId)"
                 ],
@@ -5593,6 +5550,33 @@
                     "getMetaPayload()",
                     "getDownloadFile(int $idPengajuan)",
                     "getDanaAkadDetail(int $idMkdt, int $idKavling = 0)"
+                ],
+                "DireksiService.php": [
+                    "getMetaPayload(?int $activeProjectId = null)",
+                    "getDiskresiData(int $idKavling, ?int $actorId = null)",
+                    "saveDiskresi(int $idKavling, array $postData, int $actorId)",
+                    "exportXlsx(string $tableHtml)",
+                    "getPendingTagihan()",
+                    "getHistoryTagihan()",
+                    "getMySignature(int $userId)",
+                    "signTagihan(string $noInv, string $password, string $signatureMethod, string $signatureData, int $userId)",
+                    "rejectTagihan(string $noInv, string $alasan, string $password, int $userId)"
+                ],
+                "PenagihanService.php": [
+                    "getMetaPayload(?int $activeProjectId = null)",
+                    "isiTagihan($request, ?int $actorId)",
+                    "saveSudahDibayar($request)",
+                    "saveLegacyPayment(array $input, ?int $actorId)",
+                    "getTagihanBundle(int $idMkdt, ?string $mode = null)",
+                    "getRiwayatTagihan(?int $idMkdt = null, ?string $noInv = null)",
+                    "simpanPenagihan(array $input, int $actorId)",
+                    "updateStatusPenagihan(array $input, int $actorId)",
+                    "getKopsuratList()",
+                    "getKopsuratDetail(int $id)",
+                    "simpanKopsurat(array $postData, $fileKop = null)",
+                    "hapusKopsurat(int $id)",
+                    "streamDownloadPenagihan(string $noInv)",
+                    "streamDoPrintPdf(array $input, int $actorId)"
                 ]
             },
             "doc_path": "docs/modules/Keuangan/MODULE.md"
