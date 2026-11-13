@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-13 13:00:41` @ `873f308`  
+**Last Synced:** `2026-11-13 13:45:24` @ `7f0ed7e`  
 
 ## Purpose
 Manajemen Konsumen dan Transaksi (MKDT): tata kelola siklus transaksi konsumen mulai dari NUP, booking unit, verifikasi data konsumen, posisi kavling, wawancara perbankan, persetujuan SP3K, akad indent (PPJB), akad AJB, mutasi/pergantian konsumen, hingga pembatalan unit (`mkdt`, `konsumen`, `mkdt_kavling_history`).
@@ -524,7 +524,25 @@ _Jalankan `php spark module:deadcode MKDT` untuk mengaudit dead code kandidat._
   - Kontrak lengkap API Operasi MKDT dual-mode pada `app/Config/Routes.php` (`api/mkdt`): `GET|POST operations/meta`, `GET|POST stock/list`, `GET|POST si`, `POST si/save`, `GET|POST batal/detail`, `POST batal/simpan` (`MkdtOperationController`).
   - Perbaikan Fase 4 pada alur Batal Booking: (1) `BatalBookingService::cancelBooking()` kini mengunggah/menyimpan `surat_batal` via `FileAccessService::storeAs()` **sebelum** melakukan `updateMkdtBatal()` di database (mengatasi bug urutan legacy `Mkdt::simpan_batal` yang menyebabkan `surat_batal` gagal tersimpan), dan (2) `BatalBookingService::getDetail()` (`batal_mkdt` / `/api/mkdt/batal/detail`) serta hasil `cancelBooking()` kini menyertakan `surat_batal_access_url` via `FileAccessService::accessUrl('mkdt_surat_batal', $idMkdt)`.
 
+- **Backlog Follow-up Non-Blocking Pasca-Migrasi MKDT:**
+  1. Migrasi view/JS legacy (`app/Views/promo/index.php`, `app/Views/kavling/list-kavling.php`, `app/Views/kavling/list-kavling-akad.php`, `app/Views/kavling/list-kavling-batal.php`, `app/Views/kavling/list-stock.php`) agar memanggil endpoint `/api/mkdt/*?format=raw` dan mengekstrak inline JS/CSS ke aset eksternal per `sigapp-ui-acuan`.
+  2. Switch default response `/api/mkdt/*` ke full JSON setelah seluruh frontend bermigrasi (`// TODO(full-json)` pada `PromoController::isRawRequest()`, `PosisiKonsumenController::isRawRequest()`, dan `MkdtOperationController::isRawFormat()`).
+  3. Pembersihan method `@deprecated` di `app/Controllers/Mkdt.php` setelah periode observasi log `DEPRECATED_MKDT_HIT:` bersih.
+  4. Pemutakhiran atau pengarsipan 2 unit/DB test pra-refaktor dari commit `bc174ee` (`tests/unit/BookingAkadReportM2ChallengerTest.php` & `tests/database/BookingAkadReportProyek13MetricsTest.php`).
+
 ## Change Log
+- **`2026-11-13` [`REFACTOR COMPLETE`] — Fase 6 Final Cross-Module QA PASS & Penyelesaian Migrasi MKDT:**
+  - **Routes & Public Contracts:**
+    - Seluruh 29 rute eksplisit Web/API MKDT (`\App\Controllers\Web\Mkdt\*`, `\App\Controllers\Api\Mkdt\*`), kontrak dual-mode `/api/mkdt/*?format=raw`, `/api/nup/*`, `/api/laporan/booking-akad/*`, serta redirect `/list-batal` -> `/list-kavling/batal` terverifikasi aktif dan konsisten.
+  - **Controller / Service / Repo / Model:**
+    - Inventori final modul `MKDT` terverifikasi lengkap dan sinkron: `REFACTORED | 100% | Ctrl: 9 | Serv: 12 | Repo: 9 | Model: 3 | Route: 29 | Tables: 7` (ditambah 19 Zero-Downtime Shims di `ModuleCatalog`).
+  - **View / CSS / JS:**
+    - Tidak ada perubahan kode aplikasi pada Fase 6; seluruh penanda `TODO(follow-up)` pada view legacy tetap terdokumentasi di `## Notes` sebagai backlog non-blocking.
+  - **Deprecations:**
+    - Status `@deprecated` in-place (Opsi A) pada `App\Controllers\Mkdt` terverifikasi zero runtime hit (`0 DEPRECATED_MKDT_HIT` pada log harian `log-2026-11-13.log`).
+  - **Testing & Verification:**
+    - Final Cross-Module QA `PASS`: `php spark module:status` (`MKDT = REFACTORED 100%`; global `14/17` refactored, rata-rata `91.2%`), `php spark module:sync MKDT --check-only` (`[OK]`), `tests/bin/run_booking_akad_suite.php` (`39/39 PASS`), PHPUnit unit (`76/80 PASS`; 4 fail pre-existing di `BookingAkadReportM2ChallengerTest.php` dari `bc174ee`) & DB (`42/43 PASS`; 1 fail pre-existing di `BookingAkadReportProyek13MetricsTest.php` dari `bc174ee`; seluruh unit & DB test `MkdtOperationServicesTest`, `MkdtFinancialBreakdownServiceTest`, `MkdtConsumerReplacementHistoryTest`, `BookingAkadReportService*Test`, dan 9 DB test lainnya `100% PASS`), Playwright E2E departemen MKDT (`citra`: `/list-kavling` + `#modal_detail`, `/list-kavling/akad`, `/list-kavling/batal`, `/list-batal` 302, `/list-stock`, `/promo`, `/laporan/booking-akad`, `/api/mkdt/*?format=raw`, `api/nup/list`), regresi lintas-modul Siteplan/Planning (`purnama` + `citra` di `/siteplan/view?id_proyek=13`), serta audit `writable/logs/log-2026-11-13.log` (`0 ERROR`, `0 CRITICAL`, `0 DEPRECATED_MKDT_HIT`).
+    - Global ledger `docs/MIGRATION_PROGRESS.md` diperbarui: baris **#15 MKDT** -> `COMPLETED` (`15 Selesai | 0 Sedang Dikerjakan | 1 Antre (Pending)`).
 - **`2026-11-13` [`REFACTOR & DEPRECATE`] — Fase 5 Migrasi MKDT (Deprecate Legacy Dead Methods di `Mkdt.php` — Opsi A, Pindah `Mkdt.php` ke `'shims'`, & Redirect `/list-batal`):**
   - **Routes & Public Contracts:**
     - `app/Config/Routes.php` L52: Mengganti rute broken `GET /list-batal` (`Mkdt::list_batal`) menjadi `$routes->addRedirect('/list-batal', '/list-kavling/batal')` (HTTP 302 redirect ke halaman Posisi Konsumen Batal).

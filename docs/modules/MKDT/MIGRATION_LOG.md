@@ -13,8 +13,8 @@ Log bertahap migrasi modular dan debugging untuk modul **MKDT** (Mode `REFACTOR`
 | **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer — Subdomain Promo (`PromoController`, `PromoService`, `PromoRepository`, Shim, & Bugfix UI) | `COMPLETED` | 2026-11-13 | `8ffb065` |
 | **Fase 3** | API & Web Controller Separation + Explicit Routes (Subdomain Posisi Konsumen) | `COMPLETED` | 2026-11-13 | `4975daa` |
 | **Fase 4** | Stock, Standing Instruction, & Batal Booking + Unit Tests | `COMPLETED` | 2026-11-13 | `873f308` |
-| **Fase 5** | Deprecate Legacy `Mkdt` Methods (Opsi A), Shim Migration, & Redirect `/list-batal` | `COMPLETED` | 2026-11-13 | `(akan diisi setelah commit Fase 5)` |
-| **Fase 6** | Final QA Audit & Global Migration Ledger Sync (`docs/MIGRATION_PROGRESS.md`) | `PENDING` | - | - |
+| **Fase 5** | Deprecate Legacy `Mkdt` Methods (Opsi A), Shim Migration, & Redirect `/list-batal` | `COMPLETED` | 2026-11-13 | `7f0ed7e` |
+| **Fase 6** | Final Cross-Module QA Audit & Global Migration Ledger Sync (`docs/MIGRATION_PROGRESS.md`) | `COMPLETED` | 2026-11-13 | `(commit final docs Fase 6)` |
 
 ---
 
@@ -376,9 +376,66 @@ Seluruh method di bawah ini tetap dipertahankan sementara untuk masa observasi l
 
 ### Commit & Rollback
 
-- **Commit Implementasi Fase 5:** `(akan diisi setelah commit Fase 5)`
+- **Commit Implementasi Fase 5:** `7f0ed7e` (`refactor(mkdt): phase 5 - deprecate legacy Mkdt methods and move Mkdt shim`)
 - **Prosedur Rollback Aman:**
   ```bash
-  git revert <hash_fase_5>
+  git revert 7f0ed7e
   ```
   *(Karena 4 method Opsi A dan 3 orphan public helpers pada `App\Controllers\Mkdt` hanya diberi anotasi `@deprecated` + log observasi tanpa menghapus endpoint aktif, dan `/list-batal` dialihkan via redirect HTTP 302, rollback aman dilakukan via `git revert` tanpa perubahan skema database.)*
+
+---
+
+## Fase 6 — Final Cross-Module QA & Completion
+
+- **Tanggal:** `2026-11-13`
+- **Status QA:** `PASS` (Final Cross-Module QA Audit)
+- **Scope:**
+  1. Verifikasi sinkronisasi akhir inventori modul `MKDT` (`php spark module:sync MKDT`, `php spark module:sync MKDT --check-only`, dan `php spark module:status`).
+  2. Validasi regresi penuh unit test, database test, suite laporan Booking & Akad, Playwright E2E departemen MKDT, dan regresi lintas-modul Siteplan/Planning.
+  3. Audit log harian aplikasi (`writable/logs/log-2026-11-13.log`) untuk memastikan 0 error runtime dan 0 hit legacy deprecated pada alur normal.
+  4. Penetapan daftar backlog follow-up non-blocking pasca-migrasi serta pembaruan Global Migration Ledger `docs/MIGRATION_PROGRESS.md` (baris **#15 MKDT** -> `COMPLETED`).
+
+### Hasil Verifikasi QA Akhir (`PASS`)
+
+- **`php spark module:status`:**
+  - `MKDT`: `REFACTORED | 100% | Ctrl: 9 | Serv: 12 | Repo: 9 | Model: 3 | Route: 29 | Tables: 7`.
+  - Statistik Global: `14 dari 17` modul berstatus `REFACTORED`, rata-rata skor kesiapan `91.2%`.
+- **`php spark module:sync MKDT --check-only`:**
+  - `[OK] MKDT: MODULE.md ada.`
+- **Suite Laporan Booking & Akad (`tests/bin/run_booking_akad_suite.php`):**
+  - **39/39 PASS**.
+- **PHPUnit (MKDT & BookingAkad):**
+  - **Unit Tests:** `76/80 PASS` — terdapat 4 fail pre-existing pada `tests/unit/BookingAkadReportM2ChallengerTest.php` (berasal dari commit pra-refaktor `bc174ee`, non-blocking terhadap migrasi MKDT).
+  - **Database Tests:** `42/43 PASS` — terdapat 1 fail pre-existing pada `tests/database/BookingAkadReportProyek13MetricsTest.php` (berasal dari commit pra-refaktor `bc174ee`, non-blocking terhadap migrasi MKDT).
+  - **Test Spesifik Modul & Laporan:** Seluruh unit & database test `MkdtOperationServicesTest`, `MkdtFinancialBreakdownServiceTest`, `MkdtConsumerReplacementHistoryTest`, `BookingAkadReportService*Test`, serta 9 database test lainnya **100% PASS**.
+- **Playwright E2E Departemen MKDT (`citra`):**
+  - `/list-kavling` + `#modal_detail`, `/list-kavling/akad`, `/list-kavling/batal` -> `200 OK`, `PASS`.
+  - `/list-batal` -> HTTP `302` redirect ke `/list-kavling/batal` -> `PASS`.
+  - `/list-stock`, `/promo`, `/laporan/booking-akad` -> `200 OK`, `PASS`.
+  - Seluruh endpoint API `/api/mkdt/*?format=raw` & `/api/nup/list` -> `200 OK`, `PASS`.
+- **Regresi Lintas-Modul Siteplan/Planning (`purnama` + `citra` pada `/siteplan/view?id_proyek=13`):**
+  - Interaksi `#modal_detail`, NUP, `api/mkdt/history`, `#modals-si`, dan `#modal-batal` -> `PASS`.
+- **Audit Log Aplikasi (`writable/logs/log-2026-11-13.log`):**
+  - `0 ERROR`, `0 CRITICAL`, `0 DEPRECATED_MKDT_HIT`.
+
+### Backlog Follow-Up Non-Blocking Pasca-Migrasi
+
+1. Migrasi view/JS legacy (`app/Views/promo/index.php`, `app/Views/kavling/list-kavling*.php`, `app/Views/kavling/list-stock.php`) agar memanggil `/api/mkdt/*?format=raw` serta mengekstrak inline JS/CSS sesuai standar `sigapp-ui-acuan`.
+2. Switch default response `/api/mkdt/*` ke full JSON setelah frontend bermigrasi (`// TODO(full-json)`).
+3. Pembersihan method `@deprecated` di `app/Controllers/Mkdt.php` setelah periode observasi log `DEPRECATED_MKDT_HIT:` bersih.
+4. Pemutakhiran atau pengarsipan 2 unit/DB test pra-refaktor dari commit `bc174ee` (`tests/unit/BookingAkadReportM2ChallengerTest.php` & `tests/database/BookingAkadReportProyek13MetricsTest.php`).
+
+### Daftar File Diperbarui (Fase 6)
+
+- `docs/modules/MKDT/MODULE.md` — Sinkronisasi via `php spark module:sync MKDT`, penambahan backlog follow-up pada `## Notes`, dan entri `REFACTOR COMPLETE` di `## Change Log`.
+- `docs/modules/MKDT/MIGRATION_LOG.md` — Pengisian commit hash Fase 5 (`7f0ed7e`), status Fase 6 `COMPLETED`, hasil QA akhir `PASS`, dan daftar follow-up backlog.
+- `docs/MIGRATION_PROGRESS.md` — Pembaruan baris **#15 MKDT** menjadi `COMPLETED` (`REFACTORED 100%`, `2026-11-13`) dan penyesuaian rangkuman progres global (`15 Selesai | 0 Sedang Dikerjakan | 1 Antre (Pending)`).
+
+### Commit & Rollback
+
+- **Commit Final Dokumentasi Fase 6:** `(commit final docs Fase 6)`
+- **Prosedur Rollback Aman:**
+  ```bash
+  git revert <hash_fase_6>
+  ```
+  *(Fase 6 hanya memutakhirkan file dokumentasi tanpa perubahan kode aplikasi maupun skema database.)*
