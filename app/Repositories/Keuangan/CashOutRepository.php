@@ -24,7 +24,7 @@ class CashOutRepository extends Model
     protected $updatedField = 'updated_at';
     protected $deletedField = 'deleted_at';
 
-    public function getListItem(string $search)
+    public function getListItem(string $search = ''): array
     {
         return $this->db->table('list_cashout lc')
             ->where('lc.deleted_at', null)
@@ -33,6 +33,33 @@ class CashOutRepository extends Model
             ->orderBy('lc.id', 'ASC')
             ->get()
             ->getResult();
+    }
+
+    public function getListItemSelect2(string $search = ''): array
+    {
+        return array_map(static function ($row): array {
+            return [
+                'id' => (int) ($row->id ?? 0),
+                'text' => (string) ($row->item ?? ''),
+                'item' => (string) ($row->item ?? ''),
+                'sort' => isset($row->sort) ? (int) $row->sort : null,
+            ];
+        }, $this->getListItem($search));
+    }
+
+    public function getKavlingDetail(int $idKavling): ?object
+    {
+        if ($idKavling <= 0) {
+            return null;
+        }
+
+        $row = $this->db->table('kavling')
+            ->select('id_kavling, id_mkdt')
+            ->where('id_kavling', $idKavling)
+            ->get()
+            ->getRow();
+
+        return $row ?: null;
     }
     public function getRiwayatBayarCashOutByIDKavling(int $id_kavling)
     {

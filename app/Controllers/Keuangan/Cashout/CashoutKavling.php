@@ -2,83 +2,43 @@
 
 namespace App\Controllers\Keuangan\Cashout;
 
+use App\Controllers\Api\Keuangan\Cashout\CashoutKavlingController as ApiCashoutKavlingController;
 use App\Controllers\BaseController;
-use App\Models\ChecklistSubItemModel;
-use App\Models\ProyekModel;
-use App\Services\ActiveProyekService;
-use App\Services\Keuangan\Cashout\CashoutKavlingService;
+use App\Controllers\Web\Keuangan\Cashout\CashoutKavlingController as WebCashoutKavlingController;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
+/** @deprecated Zero-Downtime Shim — gunakan \App\Controllers\Web\Keuangan\Cashout\CashoutKavlingController atau \App\Controllers\Api\Keuangan\Cashout\CashoutKavlingController */
 class CashoutKavling extends BaseController
 {
-    protected $cashoutKavlingService;
-    protected $activeProyekService;
-    protected $proyekModel;
-    protected $siModel;
-    protected $db;
-
-    public function __construct()
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        $this->cashoutKavlingService = new CashoutKavlingService();
-        $this->activeProyekService = new ActiveProyekService();
-        $this->proyekModel = new ProyekModel();
-        $this->siModel = new ChecklistSubItemModel();
-        $this->db = \Config\Database::connect();
+        parent::initController($request, $response, $logger);
+        log_message('warning', 'DEPRECATED_KEUANGAN_HIT: ' . static::class . ' via ' . $request->getUri()->getPath());
     }
 
     public function index()
     {
-        $idProyek = $this->activeProyekService->getActiveId();
-        if ($idProyek === null) {
-            return redirect()->to(base_url('dashboard'))->with('error', 'Silahkan pilih proyek terlebih dahulu');
-        }
+        $web = new WebCashoutKavlingController();
+        $web->initController($this->request, $this->response, $this->logger);
 
-        $data = [
-            'content' => 'cashout_kavling/index',
-            'data' => [
-                'title' => 'Rekap Cashout per Kavling',
-                'proyek' => $this->proyekModel->find($idProyek),
-                'pph' => $this->db->table('pph')->where('deleted_at', null)->get()->getResult(),
-                'ppn' => $this->db->table('ppn')->where('deleted_at', null)->get()->getResult(),
-                'list' => [],
-            ],
-        ];
-
-        if (in_groups(['1', '7', '8'])) {
-            $data['data']['list'] = $this->siModel
-                ->select('
-                    checklist_group.nama_group,
-                    checklist_item.nama_item,
-                    checklist_subitem.id_subitem,
-                    checklist_subitem.nama_subitem,
-                ')
-                ->join('checklist_item', 'checklist_item.id_item = checklist_subitem.id_item')
-                ->join('checklist_group', 'checklist_item.id_group = checklist_group.id_group')
-                ->where('checklist_item.is_active = 1')
-                ->where('checklist_group.is_active = 1')
-                ->where('checklist_subitem.is_active = 1')
-                ->orderBy('checklist_item.id_group', 'asc')
-                ->orderBy('checklist_item.id_item', 'asc')
-                ->findAll();
-        }
-
-        return view('template', $data);
+        return $web->index();
     }
 
     public function getDataTables()
     {
-        return $this->json($this->cashoutKavlingService->getDataTables($this->request->getVar()));
+        $api = new ApiCashoutKavlingController();
+        $api->initController($this->request, $this->response, $this->logger);
+
+        return $api->getDataTables();
     }
 
     public function getDetailList()
     {
-        return $this->json(
-            $this->cashoutKavlingService->getDetailList((int) $this->request->getPost('id_kavling'))
-        );
-    }
+        $api = new ApiCashoutKavlingController();
+        $api->initController($this->request, $this->response, $this->logger);
 
-    private function json(array $payload)
-    {
-        $payload['token'] = $payload['token'] ?? csrf_hash();
-        return $this->response->setJSON($payload);
+        return $api->getDetailList();
     }
 }

@@ -570,10 +570,10 @@ $routes->post("/pembayaran/simpan", '\App\Controllers\Api\Keuangan\PembayaranCon
 $routes->post("/pembayaran/hapus", '\App\Controllers\Api\Keuangan\PembayaranController::removeLP', ['filter' => 'login']);
 
 //cashout
-$routes->post("/keuangan/cashout/ambil", 'CashOut::getByIDKavling');
-$routes->post("/keuangan/cashout/listitem/ambil", 'CashOut::getListItem');
-$routes->post("/keuangan/cashout/delete", 'CashOut::delete');
-$routes->post("/keuangan/cashout/save", 'CashOut::insert');
+$routes->post("/keuangan/cashout/ambil", '\App\Controllers\Api\Keuangan\CashOutController::getByIDKavling', ['filter' => 'login']);
+$routes->post("/keuangan/cashout/listitem/ambil", '\App\Controllers\Api\Keuangan\CashOutController::getListItem', ['filter' => 'login']);
+$routes->post("/keuangan/cashout/delete", '\App\Controllers\Api\Keuangan\CashOutController::delete', ['filter' => 'login']);
+$routes->post("/keuangan/cashout/save", '\App\Controllers\Api\Keuangan\CashOutController::insert', ['filter' => 'login']);
 $routes->post("/keuangan/pencairan-bank/get", '\App\Controllers\Api\Keuangan\BankKprDisbursementController::getData', ['filter' => 'login']);
 $routes->post("/keuangan/pencairan-bank/save", '\App\Controllers\Api\Keuangan\BankKprDisbursementController::save', ['filter' => 'login']);
 $routes->post("/keuangan/pencairan-bank/void/(:num)", '\App\Controllers\Api\Keuangan\BankKprDisbursementController::void/$1', ['filter' => 'login']);
@@ -584,6 +584,9 @@ $routes->group('api/keuangan', ['namespace' => 'App\Controllers\Api\Keuangan', '
     $routes->get('pencairan-bank/meta', 'BankKprDisbursementController::meta');
     $routes->get('pencairan-akad/meta', 'PencairanAkadController::meta');
     $routes->get('dana-jaminan/meta', 'DanaJaminanController::meta');
+    $routes->get('cashout/meta', 'CashOutController::meta');
+    $routes->get('cashout-kavling/meta', 'Cashout\CashoutKavlingController::meta');
+    $routes->get('cashout-subkon/meta', 'Cashout\CashoutSubkonController::meta');
 });
 
 //pencairan akad (gabungan retensi + hasil akad)
@@ -660,21 +663,21 @@ $routes->group('api/subkon', ['namespace' => 'App\Controllers\Api\Produksi', 'fi
     $routes->match(['get', 'post'], 'list', 'SubkonController::getList');
 });
 
-//subkon
-$routes->group('cashout', ['filter' => 'login', 'namespace' => 'App\Controllers\Keuangan\Cashout'], function ($routes) {
-    $routes->get('kavling', 'CashoutKavling::index');
-    $routes->post('kavling/list', 'CashoutKavling::getDataTables');
-    $routes->post('kavling/detail-list', 'CashoutKavling::getDetailList');
-    $routes->get('subkon', 'CashoutSubkon::index');
-    $routes->post('subkon/list', 'CashoutSubkon::getDataTables');
-    $routes->post('subkon/detail-list', 'CashoutSubkon::getDetailList');
-    $routes->post('subkon/ambil', 'CashoutSubkon::get');
-    $routes->post('subkon/save', 'CashoutSubkon::save');
-    $routes->post('subkon/turun-jatuh-tempo', 'CashoutSubkon::turunJatuhTempo');
-    $routes->post('subkon/ajukan-spp', 'CashoutSubkon::ajukanSPP');
-    $routes->post('subkon/history', 'CashoutSubkon::getHistory');
-    $routes->post('subkon/ajukan-pencairan', 'CashoutSubkon::ajukanPencairan');
-    $routes->post('subkon/pembayaran', 'CashoutSubkon::pembayaran');
+//subkon & cashout kavling
+$routes->group('cashout', ['filter' => 'login'], function ($routes) {
+    $routes->get('kavling', '\App\Controllers\Web\Keuangan\Cashout\CashoutKavlingController::index');
+    $routes->post('kavling/list', '\App\Controllers\Api\Keuangan\Cashout\CashoutKavlingController::getDataTables');
+    $routes->post('kavling/detail-list', '\App\Controllers\Api\Keuangan\Cashout\CashoutKavlingController::getDetailList');
+    $routes->get('subkon', '\App\Controllers\Web\Keuangan\Cashout\CashoutSubkonController::index');
+    $routes->post('subkon/list', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::getDataTables');
+    $routes->post('subkon/detail-list', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::getDetailList');
+    $routes->post('subkon/ambil', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::get');
+    $routes->post('subkon/save', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::save');
+    $routes->post('subkon/turun-jatuh-tempo', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::turunJatuhTempo');
+    $routes->post('subkon/ajukan-spp', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::ajukanSPP');
+    $routes->post('subkon/history', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::getHistory');
+    $routes->post('subkon/ajukan-pencairan', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::ajukanPencairan');
+    $routes->post('subkon/pembayaran', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::pembayaran');
     // $routes->post('toggle/(:num)', 'CashoutSubkon::toggleStatus/$1');
     // $routes->get('download/(:num)', 'CashoutSubkon::download/$1');
 });

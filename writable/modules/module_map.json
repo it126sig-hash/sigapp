@@ -1,5 +1,5 @@
 {
-    "scanned_at": "2026-11-13T20:31:35+07:00",
+    "scanned_at": "2026-11-13T21:00:32+07:00",
     "total_modules": 17,
     "modules": {
         "Proyek": {
@@ -3033,16 +3033,6 @@
                     "new ClusterModel()",
                     "new ProyekModel()"
                 ],
-                "app/Controllers/CashOut.php": [
-                    "db_connect()",
-                    "$this->db->table()"
-                ],
-                "app/Controllers/Keuangan/Cashout/CashoutKavling.php": [
-                    "Database::connect()",
-                    "$this->db->table()",
-                    "new ProyekModel()",
-                    "new ChecklistSubItemModel()"
-                ],
                 "app/Controllers/Direksi.php": [
                     "db_connect()",
                     "$this->db->table()"
@@ -3279,42 +3269,58 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Controllers/CashOut.php",
-                    "filename": "CashOut.php",
-                    "line_count": 242,
+                    "relative_path": "app/Controllers/Api/Keuangan/CashOutController.php",
+                    "filename": "CashOutController.php",
+                    "line_count": 159,
                     "public_methods": [
+                        "initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)",
+                        "meta()",
                         "getListItem()",
                         "getByIDKavling()",
                         "insert()",
-                        "delete()"
+                        "delete($id = null)"
                     ],
-                    "violations": [
-                        "db_connect()",
-                        "$this->db->table()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Keuangan/Cashout/CashoutKavling.php",
-                    "filename": "CashoutKavling.php",
-                    "line_count": 85,
+                    "relative_path": "app/Controllers/Web/Keuangan/Cashout/CashoutKavlingController.php",
+                    "filename": "CashoutKavlingController.php",
+                    "line_count": 49,
                     "public_methods": [
-                        "index()",
+                        "initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)",
+                        "index()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Keuangan/Cashout/CashoutKavlingController.php",
+                    "filename": "CashoutKavlingController.php",
+                    "line_count": 94,
+                    "public_methods": [
+                        "initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)",
+                        "meta()",
                         "getDataTables()",
                         "getDetailList()"
                     ],
-                    "violations": [
-                        "Database::connect()",
-                        "$this->db->table()",
-                        "new ProyekModel()",
-                        "new ChecklistSubItemModel()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Keuangan/Cashout/CashoutSubkon.php",
-                    "filename": "CashoutSubkon.php",
-                    "line_count": 111,
+                    "relative_path": "app/Controllers/Web/Keuangan/Cashout/CashoutSubkonController.php",
+                    "filename": "CashoutSubkonController.php",
+                    "line_count": 36,
                     "public_methods": [
-                        "index()",
+                        "initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)",
+                        "index()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Keuangan/Cashout/CashoutSubkonController.php",
+                    "filename": "CashoutSubkonController.php",
+                    "line_count": 177,
+                    "public_methods": [
+                        "initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)",
+                        "meta()",
                         "getDataTables()",
                         "getDetailList()",
                         "get()",
@@ -3603,8 +3609,16 @@
                 {
                     "relative_path": "app/Services/Keuangan/CashOutService.php",
                     "filename": "CashOutService.php",
-                    "line_count": 84,
+                    "line_count": 274,
                     "public_methods": [
+                        "getListItem(string $search = '')",
+                        "getListItemSelect2(string $search = '')",
+                        "getMetaPayload()",
+                        "getByIDKavling(int $idKavling)",
+                        "konsumenExistsForKavling(int|string $idKavling)",
+                        "formatBiayaMkdt(?object $mkdt)",
+                        "saveCashOut(array $input, ?int $userId = null)",
+                        "deleteCashOut(int $id)",
                         "insert($data)",
                         "delete($id)",
                         "format_tgl($tgl)",
@@ -3614,18 +3628,24 @@
                 {
                     "relative_path": "app/Services/Keuangan/Cashout/CashoutKavlingService.php",
                     "filename": "CashoutKavlingService.php",
-                    "line_count": 132,
+                    "line_count": 294,
                     "public_methods": [
+                        "getIndexData(?int $idProyek)",
+                        "getMetaPayload(?int $idProyek)",
                         "getDataTables(array $var)",
+                        "getDataTablesRaw(array $var)",
                         "getDetailList(int $idKavling)"
                     ]
                 },
                 {
                     "relative_path": "app/Services/Keuangan/Cashout/CashoutSubkonService.php",
                     "filename": "CashoutSubkonService.php",
-                    "line_count": 822,
+                    "line_count": 919,
                     "public_methods": [
+                        "getIndexData()",
+                        "getMetaPayload()",
                         "getDataTables(array $var)",
+                        "getDataTablesRaw(array $var)",
                         "getDetailList(int $id_cashout_subkon)",
                         "getCashoutSubkon(array $id_kavlings, ?int $id_cashout_subkon = null)",
                         "saveCashoutSubkon($post)",
@@ -3792,9 +3812,11 @@
                 {
                     "relative_path": "app/Repositories/Keuangan/CashOutRepository.php",
                     "filename": "CashOutRepository.php",
-                    "line_count": 61,
+                    "line_count": 88,
                     "public_methods": [
-                        "getListItem(string $search)",
+                        "getListItem(string $search = '')",
+                        "getListItemSelect2(string $search = '')",
+                        "getKavlingDetail(int $idKavling)",
                         "getRiwayatBayarCashOutByIDKavling(int $id_kavling)",
                         "softDelete($id)"
                     ]
@@ -3996,6 +4018,9 @@
                 "app/Controllers/PencairanAkad.php",
                 "app/Controllers/PencairanJaminan.php",
                 "app/Controllers/DanaAkad.php",
+                "app/Controllers/CashOut.php",
+                "app/Controllers/Keuangan/Cashout/CashoutKavling.php",
+                "app/Controllers/Keuangan/Cashout/CashoutSubkon.php",
                 "app/Controllers/ListBank.php",
                 "app/Controllers/Api/BankController.php",
                 "app/Controllers/Api/BookingPaymentController.php",
@@ -4091,7 +4116,7 @@
                 {
                     "path": "public/assets/js/siteplan/keuangan.js",
                     "filename": "keuangan.js",
-                    "line_count": 2192
+                    "line_count": 2194
                 },
                 {
                     "path": "public/assets/js/siteplan/pajak.js",
@@ -4675,137 +4700,161 @@
                     "http_method": "POST",
                     "uri": "/keuangan/cashout/ambil",
                     "type": "Explicit",
-                    "handler": "CashOut::getByIDKavling",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\CashOutController::getByIDKavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/keuangan/cashout/listitem/ambil",
                     "type": "Explicit",
-                    "handler": "CashOut::getListItem",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\CashOutController::getListItem",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/keuangan/cashout/delete",
                     "type": "Explicit",
-                    "handler": "CashOut::delete",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\CashOutController::delete",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/keuangan/cashout/save",
                     "type": "Explicit",
-                    "handler": "CashOut::insert",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\CashOutController::insert",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/keuangan/cashout/meta",
+                    "type": "Explicit",
+                    "handler": "CashOutController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
                     "uri": "/cashout/kavling",
                     "type": "Explicit",
-                    "handler": "CashoutKavling::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\Cashout\\CashoutKavlingController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/keuangan/cashout-kavling/meta",
+                    "type": "Explicit",
+                    "handler": "Cashout\\CashoutKavlingController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/cashout/kavling/list",
                     "type": "Explicit",
-                    "handler": "CashoutKavling::getDataTables",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\Cashout\\CashoutKavlingController::getDataTables",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/cashout/kavling/detail-list",
                     "type": "Explicit",
-                    "handler": "CashoutKavling::getDetailList",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\Cashout\\CashoutKavlingController::getDetailList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
                     "uri": "/cashout/subkon",
                     "type": "Explicit",
-                    "handler": "CashoutSubkon::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\Cashout\\CashoutSubkonController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/keuangan/cashout-subkon/meta",
+                    "type": "Explicit",
+                    "handler": "Cashout\\CashoutSubkonController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/cashout/subkon/list",
                     "type": "Explicit",
-                    "handler": "CashoutSubkon::getDataTables",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\Cashout\\CashoutSubkonController::getDataTables",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/cashout/subkon/detail-list",
                     "type": "Explicit",
-                    "handler": "CashoutSubkon::getDetailList",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\Cashout\\CashoutSubkonController::getDetailList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/cashout/subkon/ambil",
                     "type": "Explicit",
-                    "handler": "CashoutSubkon::get",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\Cashout\\CashoutSubkonController::get",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/cashout/subkon/save",
                     "type": "Explicit",
-                    "handler": "CashoutSubkon::save",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\Cashout\\CashoutSubkonController::save",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/cashout/subkon/turun-jatuh-tempo",
                     "type": "Explicit",
-                    "handler": "CashoutSubkon::turunJatuhTempo",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\Cashout\\CashoutSubkonController::turunJatuhTempo",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/cashout/subkon/ajukan-spp",
                     "type": "Explicit",
-                    "handler": "CashoutSubkon::ajukanSPP",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\Cashout\\CashoutSubkonController::ajukanSPP",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/cashout/subkon/history",
                     "type": "Explicit",
-                    "handler": "CashoutSubkon::getHistory",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\Cashout\\CashoutSubkonController::getHistory",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/cashout/subkon/ajukan-pencairan",
                     "type": "Explicit",
-                    "handler": "CashoutSubkon::ajukanPencairan",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\Cashout\\CashoutSubkonController::ajukanPencairan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/cashout/subkon/pembayaran",
                     "type": "Explicit",
-                    "handler": "CashoutSubkon::pembayaran",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\Cashout\\CashoutSubkonController::pembayaran",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
@@ -5477,17 +5526,31 @@
                     "getBatchHistory(int $idBatch)"
                 ],
                 "CashOutService.php": [
+                    "getListItem(string $search = '')",
+                    "getListItemSelect2(string $search = '')",
+                    "getMetaPayload()",
+                    "getByIDKavling(int $idKavling)",
+                    "konsumenExistsForKavling(int|string $idKavling)",
+                    "formatBiayaMkdt(?object $mkdt)",
+                    "saveCashOut(array $input, ?int $userId = null)",
+                    "deleteCashOut(int $id)",
                     "insert($data)",
                     "delete($id)",
                     "format_tgl($tgl)",
                     "is_active($id, $texts, $textf)"
                 ],
                 "CashoutKavlingService.php": [
+                    "getIndexData(?int $idProyek)",
+                    "getMetaPayload(?int $idProyek)",
                     "getDataTables(array $var)",
+                    "getDataTablesRaw(array $var)",
                     "getDetailList(int $idKavling)"
                 ],
                 "CashoutSubkonService.php": [
+                    "getIndexData()",
+                    "getMetaPayload()",
                     "getDataTables(array $var)",
+                    "getDataTablesRaw(array $var)",
                     "getDetailList(int $id_cashout_subkon)",
                     "getCashoutSubkon(array $id_kavlings, ?int $id_cashout_subkon = null)",
                     "saveCashoutSubkon($post)",

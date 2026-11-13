@@ -11,8 +11,8 @@ Log bertahap migrasi modular dan debugging untuk modul **Keuangan** (Mode `REFAC
 | **Fase 0** | Baseline & Safety Verification | `COMPLETED` | 2026-11-13 | `8204898` *(baseline)* |
 | **Fase 1** | Migrasi Layer Service & Repository ke `*\Keuangan\*` + Subdomain Laporan, Bank & BookingPayment | `COMPLETED` | 2026-11-13 | `d5ce0c1` |
 | **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 1 (Subdomain Tagihan, Pembayaran, Print & Bank KPR Disbursement) | `COMPLETED` | 2026-11-13 | `280ba27` |
-| **Fase 3** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 2 (Subdomain Pencairan Akad, Dana Akad & Konsolidasi `PencairanJaminan` -> `DanaJaminanController`) | `COMPLETED` | 2026-11-13 | *(working tree — pra-commit)* |
-| **Fase 4** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 3 & Konsolidasi API/Web | `PENDING` | — | — |
+| **Fase 3** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 2 (Subdomain Pencairan Akad, Dana Akad & Konsolidasi `PencairanJaminan` -> `DanaJaminanController`) | `COMPLETED` | 2026-11-13 | `2e2ade2` |
+| **Fase 4** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 3 (Subdomain CashOut Umum, Cashout Kavling & Cashout Subkon + Fase 4B Remediation) | `COMPLETED` | 2026-11-13 | *(working tree — pra-commit)* |
 | **Fase 5** | Deprecate Legacy Methods (Opsi A) & Shim Migration | `PENDING` | — | — |
 | **Fase 6** | Final Cross-Module QA Audit & Global Migration Ledger Sync (`docs/MIGRATION_PROGRESS.md`) | `PENDING` | — | — |
 
@@ -209,7 +209,7 @@ Atau sebelum commit (pada working tree):
 
 - **Tanggal:** `2026-11-13`
 - **Status QA:** `PASS` *(Diverifikasi independen oleh `sigapp-qa`)*
-- **Commit Hash:** *(working tree — pra-commit)*
+- **Commit Hash:** `2e2ade2`
 
 ### 1. Ringkasan Implementasi (`sigapp-engineer`)
 - **3 Controller Modular Baru (0 direct DB/Model access; `meta()` + `?format=raw`):**
@@ -249,3 +249,58 @@ Jika diperlukan rollback terhadap perubahan Fase 3 sebelum commit (mengacu pada 
    - `app/Controllers/Api/Keuangan/PencairanAkadController.php`
    - `app/Controllers/Api/Keuangan/DanaJaminanController.php`
 3. Jalankan `php spark module:sync Keuangan` untuk memulihkan status Fase 2.
+
+---
+
+## Fase 4 — Subdomain CashOut Umum, Cashout Kavling & Cashout Subkon (+ Fase 4B Remediation)
+
+- **Tanggal:** `2026-11-13`
+- **Status QA:** `PASS` *(QA Awal `FAIL` (`ae592b78`) -> Remediasi Fase 4B (`sigapp-frontend`) -> Re-QA Independen `PASS` oleh `sigapp-qa` (`800fa998`))*
+- **Commit Hash:** *(working tree — pra-commit)*
+
+### 1. Ringkasan Implementasi (`sigapp-engineer`)
+- **5 Controller Modular Baru (`0` direct DB/Model access; `meta()` + Dual-Mode `?format=raw`):**
+  - `app/Controllers/Api/Keuangan/CashOutController.php` (`meta()`, `getListItem()`, `getByIDKavling()`, `insert()`, `delete()`)
+  - `app/Controllers/Web/Keuangan/Cashout/CashoutKavlingController.php` (`index()`)
+  - `app/Controllers/Api/Keuangan/Cashout/CashoutKavlingController.php` (`meta()`, `getDataTables()`, `getDetailList()`)
+  - `app/Controllers/Web/Keuangan/Cashout/CashoutSubkonController.php` (`index()`)
+  - `app/Controllers/Api/Keuangan/Cashout/CashoutSubkonController.php` (`meta()`, `getDataTables()`, `getDetailList()`, `get()`, `save()`, `turunJatuhTempo()`, `ajukanSPP()`, `ajukanPencairan()`, `pembayaran()`, `getHistory()`)
+- **Ekstraksi Query/Validasi ke Service & Repository:**
+  - `app/Repositories/Keuangan/CashOutRepository.php`: Penambahan `getListItemSelect2()` dan `getKavlingDetail()`.
+  - `app/Services/Keuangan/CashOutService.php`: Penambahan `getListItemSelect2()`, `getByIDKavling()` (bundel data konsumen, biaya MKDT, riwayat bayar), `getMetaPayload()`, `konsumenExistsForKavling()`, `cleanNumeric()`, `formatBiayaMkdt()`, `saveCashOut()`, dan `deleteCashOut()`.
+  - `app/Services/Keuangan/Cashout/CashoutKavlingService.php`: Penambahan `getIndexData()`, `getMetaPayload()`, dan `getDataTablesRaw()`.
+  - `app/Services/Keuangan/Cashout/CashoutSubkonService.php`: Penambahan `getIndexData()`, `getMetaPayload()`, dan `getDataTablesRaw()` (delegasi langsung ke `CashoutSubkonRepo::getDataTables()`).
+- **3 Zero-Downtime Shims `@deprecated`:**
+  - `app/Controllers/CashOut.php` -> delegasi ke `Api\Keuangan\CashOutController` (`DEPRECATED_KEUANGAN_HIT` warning log pada `initController()`).
+  - `app/Controllers/Keuangan/Cashout/CashoutKavling.php` -> delegasi ke `Web\Keuangan\Cashout\CashoutKavlingController` & `Api\Keuangan\Cashout\CashoutKavlingController` (`DEPRECATED_KEUANGAN_HIT` warning log pada `initController()`).
+  - `app/Controllers/Keuangan/Cashout/CashoutSubkon.php` -> delegasi ke `Web\Keuangan\Cashout\CashoutSubkonController` & `Api\Keuangan\Cashout\CashoutSubkonController` (`DEPRECATED_KEUANGAN_HIT` warning log pada `initController()`).
+- **Rute, Katalog & Dokumentasi:**
+  - `app/Config/Routes.php` (`154` rute eksplisit Keuangan, termasuk `GET /api/keuangan/cashout/meta`, `GET /api/keuangan/cashout-kavling/meta`, `GET /api/keuangan/cashout-subkon/meta`, serta rute eksplisit `/keuangan/cashout/*`, `/cashout/kavling*`, dan `/cashout/subkon*` ke controller modular).
+  - `app/Libraries/ModuleManager/ModuleCatalog.php` (`Ctrl: 23`, total `41` shims), `docs/modules/Keuangan/MODULE.md`, `writable/modules/module_map.json`.
+
+### 2. QA Awal & Fase 4B Remediation (`FAIL` -> `PASS`)
+- **Audit Awal `sigapp-qa` (`ae592b78` — `FAIL`):**
+  - Menandai `FAIL` akibat `TypeError: $(...).richText is not a function` pada `public/assets/js/siteplan/keuangan.js:72` saat memuat `GET /cashout/kavling` (memutus eksekusi skrip sebelum binding modal sehingga klik `.ck-open-cashout` tidak membuka modal).
+  - *(Sempat pula tercatat catatan transien pada `POST /cashout/subkon/list?format=raw`, namun terkonfirmasi `CashoutSubkonService::getDataTablesRaw()` sudah mendelegasikan langsung ke `CashoutSubkonRepo::getDataTables()`).*
+- **Fase 4B Remediation (`sigapp-frontend`):**
+  - Membungkus inisialisasi `.richText()` untuk `#idk-rincian`, `#snk`, dan `#status_keterangan` dengan guard `if ($.fn && typeof $.fn.richText === "function")` di `public/assets/js/siteplan/keuangan.js:72-116` (`JS_SYNTAX_OK`, `git diff --check` exit `0`).
+- **Re-QA Independen (`sigapp-qa` `800fa998` — `PASS`):**
+  - **Playwright E2E:** `/cashout/kavling` & klik `.ck-open-cashout` membuka `#modal-cashout-keu` dengan **`0 console error`**; `/cashout/subkon` termuat normal dengan **`0 console error`**.
+  - **HTTP Endpoints & Dual-Mode:** Seluruh 3 endpoint `/meta` (`/api/keuangan/cashout/meta`, `/api/keuangan/cashout-kavling/meta`, `/api/keuangan/cashout-subkon/meta`) & dual-mode `?format=raw` mengembalikan `200 OK`; negative tests menghasilkan `404`/`422` sesuai kontrak.
+  - **PHPUnit:** **`33 tests / 114 assertions` — PASS**.
+  - **Runtime Log:** **`0 ERROR / 0 CRITICAL`**.
+
+### 3. Prosedur Rollback Fase 4
+Jika diperlukan rollback terhadap perubahan Fase 4 sebelum commit (mengacu pada baseline commit Fase 3 **`2e2ade2`**):
+1. Kembalikan seluruh file tracked milik Fase 4 ke `HEAD` (`2e2ade2`):
+   ```bash
+   git checkout HEAD -- app/Config/Routes.php app/Libraries/ModuleManager/ModuleCatalog.php app/Controllers/CashOut.php app/Controllers/Keuangan/Cashout/CashoutKavling.php app/Controllers/Keuangan/Cashout/CashoutSubkon.php app/Repositories/Keuangan/CashOutRepository.php app/Services/Keuangan/CashOutService.php app/Services/Keuangan/Cashout/CashoutKavlingService.php app/Services/Keuangan/Cashout/CashoutSubkonService.php public/assets/js/siteplan/keuangan.js docs/modules/Keuangan/MODULE.md docs/modules/Keuangan/MIGRATION_LOG.md writable/modules/module_map.json
+   ```
+2. Hapus 5 file controller modular baru untracked:
+   - `app/Controllers/Api/Keuangan/CashOutController.php`
+   - `app/Controllers/Web/Keuangan/Cashout/CashoutKavlingController.php`
+   - `app/Controllers/Api/Keuangan/Cashout/CashoutKavlingController.php`
+   - `app/Controllers/Web/Keuangan/Cashout/CashoutSubkonController.php`
+   - `app/Controllers/Api/Keuangan/Cashout/CashoutSubkonController.php`
+3. Jalankan `php spark module:sync Keuangan` untuk memulihkan status Fase 3.
+4. Jika rollback dilakukan setelah di-commit, gunakan `git revert <commit-hash-fase-4>` diikuti `php spark module:sync Keuangan`.

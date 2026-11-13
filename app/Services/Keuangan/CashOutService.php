@@ -2,24 +2,207 @@
 
 namespace App\Services\Keuangan;
 
-use CodeIgniter\Database\BaseConnection;
-use App\Services\Notifikasi\NotifikasiService;
 use App\Repositories\Keuangan\CashOutRepository;
-use Hermawan\DataTables\DataTable;
-
+use App\Services\Mkdt\KonsumenService;
+use App\Services\Notifikasi\NotifikasiService;
+use CodeIgniter\Database\BaseConnection;
 
 class CashOutService
 {
-    protected $repo;
-    protected $db;
-    protected $notif;
+    protected CashOutRepository $repo;
+    protected KonsumenService $konsumenService;
+    protected BaseConnection $db;
+    protected NotifikasiService $notif;
 
-    public function __construct()
+    public function __construct(
+        ?CashOutRepository $repo = null,
+        ?KonsumenService $konsumenService = null,
+        ?BaseConnection $db = null,
+        ?NotifikasiService $notif = null
+    ) {
+        $this->repo = $repo ?? model(CashOutRepository::class);
+        $this->konsumenService = $konsumenService ?? new KonsumenService();
+        $this->db = $db ?? \Config\Database::connect();
+        $this->notif = $notif ?? new NotifikasiService();
+    }
+
+    public function getListItem(string $search = ''): array
     {
-        $this->repo = model(CashOutRepository::class);
-        $this->db = \Config\Database::connect();
+        return $this->repo->getListItem($search);
+    }
 
-        $this->notif = new NotifikasiService();
+    public function getListItemSelect2(string $search = ''): array
+    {
+        return $this->repo->getListItemSelect2($search);
+    }
+
+    public function getMetaPayload(): array
+    {
+        $items = $this->repo->getListItemSelect2('');
+
+        return [
+            'list_item' => $items,
+            'items' => $items,
+        ];
+    }
+
+    public function getByIDKavling(int $idKavling): array
+    {
+        if ($idKavling <= 0) {
+            return [
+                'success' => false,
+                'messages' => 'data tidak ditemukan',
+            ];
+        }
+
+        $kavling = $this->repo->getKavlingDetail($idKavling);
+        $mkdt = $kavling && ! empty($kavling->id_mkdt)
+            ? $this->konsumenService->getKonsumenTransaksi((int) $kavling->id_mkdt)
+            : null;
+
+        return [
+            'success' => true,
+            'konsumen' => $mkdt ?: $this->konsumenService->getByIDKavling($idKavling),
+            'biaya_mkdt' => $this->formatBiayaMkdt($mkdt),
+            'riwayat_bayar' => $this->repo->getRiwayatBayarCashOutByIDKavling($idKavling),
+        ];
+    }
+
+    public function konsumenExistsForKavling(int|string $idKavling): bool
+    {
+        $idKavlingInt = (int) $idKavling;
+        if ($idKavlingInt <= 0) {
+            return false;
+        }
+
+        $kavling = $this->repo->getKavlingDetail($idKavlingInt);
+        if ($kavling && ! empty($kavling->id_mkdt) && $this->konsumenService->getKonsumenTransaksi((int) $kavling->id_mkdt)) {
+            return true;
+        }
+
+        return (bool) $this->konsumenService->getByIDKavling($idKavlingInt);
+    }
+
+    public function formatBiayaMkdt(?object $mkdt): array
+    {
+        $num = static function ($value): float {
+            return (float) ($value ?? 0);
+        };
+
+        if (! $mkdt) {
+            return [];
+        }
+
+        $hargaUangMuka = $num($mkdt->harga_uang_muka ?? 0);
+        $diskonUangMuka = $num($mkdt->harga_diskon_uang_muka ?? 0);
+        $sbum = $num($mkdt->harga_sbum ?? 0);
+        $administrasi = $num($mkdt->harga_administrasi ?? 0);
+        $bphtb = $num($mkdt->harga_bphtb ?? 0);
+        $biayaProses = $num($mkdt->harga_biaya_proses ?? 0);
+        $ppn = $num($mkdt->harga_ppn ?? 0);
+        $penambahanUm = $num($mkdt->harga_penambahan_um ?? 0);
+        $penambahan = $num($mkdt->harga_penambahan ?? 0);
+        $penambahanTanah = $num($mkdt->harga_penambahan_tanah ?? 0);
+
+        $totalUm = $hargaUangMuka - $diskonUangMuka - $sbum;
+        $totalBiayaLain = $administrasi + $bphtb + $biayaProses + $ppn + $penambahanUm + $penambahan + $penambahanTanah;
+
+        return [
+            'harga_jual' => $num($mkdt->harga_jual ?? 0),
+            'harga_jual_net' => $num($mkdt->harga_jual_net ?? 0),
+            'harga_kpr' => $num($mkdt->harga_kpr ?? 0),
+            'harga_kpr_acc' => $num($mkdt->harga_kpr_acc ?? 0),
+            'harga_uang_muka' => $hargaUangMuka,
+            'harga_diskon_uang_muka' => $diskonUangMuka,
+            'harga_sbum' => $sbum,
+            'harga_administrasi' => $administrasi,
+            'harga_bphtb' => $bphtb,
+            'harga_biaya_proses' => $biayaProses,
+            'harga_ppn' => $ppn,
+            'harga_penambahan_um' => $penambahanUm,
+            'harga_penambahan' => $penambahan,
+            'harga_penambahan_tanah' => $penambahanTanah,
+            'total_um' => $totalUm,
+            'total_biaya_lain' => $totalBiayaLain,
+            'total_tercatat' => $totalUm + $totalBiayaLain,
+        ];
+    }
+
+    public function saveCashOut(array $input, ?int $userId = null): array
+    {
+        $idKavling = trim((string) ($input['id_kavling'] ?? ''));
+        $idItemCashout = trim((string) ($input['co-untuk_pembayaran'] ?? $input['id_item_cashout'] ?? ''));
+        $tanggalBayar = trim((string) ($input['co-tanggal_bayar'] ?? $input['tanggal_bayar'] ?? ''));
+        $nominalRaw = $input['co-nominal'] ?? $input['nominal'] ?? null;
+        $nominal = $this->cleanNumeric($nominalRaw);
+        $keterangan = $input['co-keterangan'] ?? $input['keterangan'] ?? null;
+
+        if ($idKavling === '' || $idItemCashout === '' || $tanggalBayar === '' || $nominal <= 0) {
+            return [
+                'success' => false,
+                'messages' => 'data tidak lengkap',
+                'status_code' => 422,
+            ];
+        }
+
+        if (! $this->konsumenExistsForKavling($idKavling)) {
+            return [
+                'success' => false,
+                'messages' => 'Kavling belum memiliki data konsumen',
+                'status_code' => 422,
+            ];
+        }
+
+        $payload = [
+            'id_kavling' => (int) $idKavling,
+            'id_item_cashout' => (int) $idItemCashout,
+            'tanggal_bayar' => $tanggalBayar,
+            'nominal' => $nominal,
+            'keterangan' => $keterangan !== null ? trim((string) $keterangan) : null,
+        ];
+        if ($userId !== null && $userId > 0) {
+            $payload['add_by'] = $userId;
+        }
+
+        if ($this->insert($payload)) {
+            return [
+                'success' => true,
+                'id_kavling' => $idKavling,
+                'messages' => 'data berhasil disimpan',
+            ];
+        }
+
+        return [
+            'success' => false,
+            'messages' => 'data gagal disimpan',
+            'status_code' => 500,
+        ];
+    }
+
+    public function deleteCashOut(int $id): array
+    {
+        if ($id <= 0) {
+            return [
+                'success' => false,
+                'messages' => 'data tidak ditemukan',
+                'status_code' => 404,
+            ];
+        }
+
+        $idKavling = $this->delete($id);
+        if ($idKavling) {
+            return [
+                'success' => true,
+                'id_kavling' => $idKavling,
+                'messages' => 'data berhasil dihapus',
+            ];
+        }
+
+        return [
+            'success' => false,
+            'messages' => 'data gagal dihapus',
+            'status_code' => 422,
+        ];
     }
 
     function insert($data)
@@ -33,18 +216,17 @@ class CashOutService
         }
         return true;
     }
+
     function delete($id)
     {
         $this->db->transStart();
 
-        // 1. Ambil data row-nya dulu
         $dataRow = $this->repo->find($id);
-        // var_dump($dataRow);
-        // die();
         $idKavling = $dataRow ? $dataRow->id_kavling : null;
 
-        // 2. Baru hapus
-        $this->repo->softDelete($id);
+        if ($dataRow) {
+            $this->repo->softDelete($id);
+        }
 
         $this->db->transComplete();
 
@@ -52,8 +234,16 @@ class CashOutService
             return false;
         }
 
-        // Kamu bisa mengembalikan id_kavling atau melakukan aksi lain di sini
         return $idKavling;
+    }
+
+    private function cleanNumeric(mixed $value): float
+    {
+        if ($value === null || $value === '') {
+            return 0.0;
+        }
+
+        return (float) str_replace(',', '', trim((string) $value));
     }
 
     private function num($v)
