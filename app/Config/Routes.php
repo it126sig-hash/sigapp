@@ -42,13 +42,11 @@ $routes->get('/', 'Home::dashboard');
 $routes->get('landing', '\App\Controllers\Web\LandingController::index');
 
 //poskon
-$routes->get('/list-kavling', 'PosisiKonsumen::index');
-$routes->post('/list-kavling/ambil', 'PosisiKonsumen::getDataTables');
-
-
-$routes->get('/list-kavling/(:segment)', 'PosisiKonsumen::index/$1');
-$routes->post('/list-kavling/akad/ambil', 'PosisiKonsumen::getDataTablesAkad');
-$routes->post('/list-kavling/batal/ambil', 'PosisiKonsumen::getDataTablesBatal');
+$routes->get('/list-kavling', '\App\Controllers\Web\Mkdt\PosisiKonsumenController::index');
+$routes->post('/list-kavling/ambil', '\App\Controllers\Api\Mkdt\PosisiKonsumenController::getDataTables');
+$routes->post('/list-kavling/akad/ambil', '\App\Controllers\Api\Mkdt\PosisiKonsumenController::getDataTablesAkad');
+$routes->post('/list-kavling/batal/ambil', '\App\Controllers\Api\Mkdt\PosisiKonsumenController::getDataTablesBatal');
+$routes->get('/list-kavling/(:segment)', '\App\Controllers\Web\Mkdt\PosisiKonsumenController::index/$1');
 
 
 $routes->get('/list-batal', 'Mkdt::list_batal');
@@ -518,10 +516,10 @@ $routes->post("tipe/get/all", 'Tipe::getAll');
 $routes->post("proyek/get/all", 'Proyek::getAll');
 
 //export
-$routes->post("export/poskon/(:segment)/(:segment)", 'PosisiKonsumen::exportPoskon/$1/$2');
+$routes->post("export/poskon/(:segment)/(:segment)", '\App\Controllers\Api\Mkdt\PosisiKonsumenController::exportPoskon/$1/$2');
 
 //log export
-$routes->post("riwayat/poskon/(:segment)", 'PosisiKonsumen::getRiwayatExport/$1');
+$routes->post("riwayat/poskon/(:segment)", '\App\Controllers\Api\Mkdt\PosisiKonsumenController::getRiwayatExport/$1');
 
 
 // routes awal
@@ -743,6 +741,16 @@ $routes->group('api/mkdt/promo', ['namespace' => 'App\Controllers\Api\Mkdt', 'fi
     $routes->post('edit/(:num)', 'PromoController::edit/$1');
     $routes->post('remove', 'PromoController::remove');
     $routes->post('remove/(:num)', 'PromoController::remove/$1');
+});
+
+$routes->group('api/mkdt/posisi-konsumen', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'meta', 'PosisiKonsumenController::meta');
+    $routes->match(['get', 'post'], 'datatable', 'PosisiKonsumenController::getDataTables');
+    $routes->match(['get', 'post'], 'datatable-akad', 'PosisiKonsumenController::getDataTablesAkad');
+    $routes->match(['get', 'post'], 'datatable-batal', 'PosisiKonsumenController::getDataTablesBatal');
+    $routes->match(['get', 'post'], 'datatable/(:segment)', 'PosisiKonsumenController::getDataTables/$1');
+    $routes->post('export/(:segment)/(:segment)', 'PosisiKonsumenController::exportPoskon/$1/$2');
+    $routes->match(['get', 'post'], 'riwayat/(:segment)', 'PosisiKonsumenController::getRiwayatExport/$1');
 });
 
 $routes->group('api/nup', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {

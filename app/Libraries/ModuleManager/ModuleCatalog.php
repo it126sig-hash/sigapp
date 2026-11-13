@@ -136,7 +136,8 @@ class ModuleCatalog
                 'description' => 'Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, dan posisi kavling.',
                 'controllers' => [
                     'Mkdt.php',
-                    'PosisiKonsumen.php',
+                    'Web/Mkdt/PosisiKonsumenController.php',
+                    'Api/Mkdt/PosisiKonsumenController.php',
                     'Api/Mkdt/NupController.php',
                     'Web/Mkdt/PromoController.php',
                     'Api/Mkdt/PromoController.php',
@@ -164,6 +165,7 @@ class ModuleCatalog
                 ],
                 'models' => ['MkdtModel.php', 'KonsumenModel.php', 'MkdtKavlingHistoryModel.php'],
                 'shims' => [
+                    'app/Controllers/PosisiKonsumen.php',
                     'app/Controllers/Promo.php',
                     'app/Controllers/Api/NupController.php',
                     'app/Controllers/Web/BookingAkadReportController.php',
@@ -184,7 +186,7 @@ class ModuleCatalog
                 ],
                 'views' => ['kavling', 'promo', 'laporan'],
                 'assets_js' => ['siteplan/mkdt.js', 'laporan-booking-akad.js'],
-                'owner_tables' => ['mkdt', 'konsumen', 'mkdt_kavling_history', 'promo'],
+                'owner_tables' => ['mkdt', 'konsumen', 'mkdt_kavling_history', 'promo', 'riwayat_export_poskon'],
                 'shared_tables' => ['kavling', 'keuangan', 'legal'],
             ],
             'Transaksi' => [

@@ -11,7 +11,7 @@ Log bertahap migrasi modular dan debugging untuk modul **MKDT** (Mode `REFACTOR`
 | **Fase 0** | Baseline & Safety Verification | `COMPLETED` | 2026-11-13 | `c377b23` |
 | **Fase 1** | Cleanup Dead Code + Move Modern Layer + Bugfix `/list-stock` | `COMPLETED` | 2026-11-13 | `6aebbbb` |
 | **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer — Subdomain Promo (`PromoController`, `PromoService`, `PromoRepository`, Shim, & Bugfix UI) | `COMPLETED` | 2026-11-13 | `8ffb065` |
-| **Fase 3** | API & Web Controller Separation + Explicit Routes | `PENDING` | - | - |
+| **Fase 3** | API & Web Controller Separation + Explicit Routes (Subdomain Posisi Konsumen) | `COMPLETED` | 2026-11-13 | `<pending_commit>` |
 | **Fase 4** | Cross-Module Alignment & Unit/Integration Tests | `PENDING` | - | - |
 | **Fase 5** | Deprecation Warnings (`Mkdt::save`, `set_harga`, `get_data_by_id`, `export_xlsx`) & Cleanup | `PENDING` | - | - |
 | **Fase 6** | Final QA Audit & Global Migration Ledger Sync (`docs/MIGRATION_PROGRESS.md`) | `PENDING` | - | - |
@@ -175,3 +175,68 @@ Log bertahap migrasi modular dan debugging untuk modul **MKDT** (Mode `REFACTOR`
   git revert 8ffb065
   ```
   *(Karena `App\Controllers\Promo` bertindak sebagai Zero-Downtime delegator shim dan rute `/promo/*` tetap dipertahankan, rollback dapat dilakukan aman via `git revert` tanpa perubahan skema database.)*
+
+---
+
+## Fase 3 — Posisi Konsumen (Web & API Controller Separation + Explicit Routes)
+
+- **Tanggal:** `2026-11-13`
+- **Status QA:** `PASS` (Diverifikasi oleh `sigapp-qa` pada `2026-11-13 12:22`)
+- **Scope:**
+  1. Ekstraksi query metadata halaman (`getFirstProyek`, `getPphList`, `getPpnList`, `getLiKeu`, `getConfigShapeMap`, `getChecklistSubItemsWithGroup`, `getHakAksesByUser`) dan query server-side DataTables mode raw (`getRawDataTables`, `getRawDataTablesBatal`) ke `App\Repositories\Mkdt\PosisiKonsumenRepository`.
+  2. Ekstraksi orkestrasi data halaman web & metadata (`getIndexData`, `userHasProjectAccess` memakai `ActiveProyekService::resolveAndGet()` dengan fallback `getFirstProyek()`), payload JSON raw DataTables (`getRawDataTables`, `getRawDataTablesBatal`), serta ekspor PDF/XLSX + pencatatan riwayat (`exportPoskon`) ke `App\Services\Mkdt\PosisiKonsumenService`.
+  3. Pemisahan controller Posisi Konsumen menjadi Thin Web Controller (`App\Controllers\Web\Mkdt\PosisiKonsumenController::index`) dan Thin API Controller (`App\Controllers\Api\Mkdt\PosisiKonsumenController extends BaseApiController`) dengan dukungan dual-mode (`?format=raw` = `RAW_JSON_READY` dengan penanda `// TODO(full-json)` pada `isRawRequest()`).
+  4. Konversi `App\Controllers\PosisiKonsumen` menjadi Zero-Downtime legacy delegator shim (`initController()` meneruskan request/response/logger, 0 layer violations; memperbaiki `exportPoskonPdf()` dan `exportPoskonXlsx()` legacy yang sebelumnya memanggil method `PrintService` yang tidak ada agar mendelegasikan ke `Api\Mkdt\PosisiKonsumenController::exportPoskon()`).
+  5. Pembaruan routing eksplisit di `app/Config/Routes.php` untuk rute Web (`/list-kavling`, `/list-kavling/(:segment)`), rute Legacy Zero-Downtime AJAX (`/list-kavling/ambil`, `/list-kavling/akad/ambil`, `/list-kavling/batal/ambil`, `/export/poskon/(:segment)/(:segment)`, `/riwayat/poskon/(:segment)`), dan grup API dual-mode `/api/mkdt/posisi-konsumen/*` (`meta`, `datatable`, `datatable/(:segment)`, `datatable-akad`, `datatable-batal`, `export/(:segment)/(:segment)`, `riwayat/(:segment)`), serta pembaruan `app/Libraries/ModuleManager/ModuleCatalog.php` (penambahan tabel `riwayat_export_poskon` ke `owner_tables`, pembaruan `controllers`, dan pendaftaran `app/Controllers/PosisiKonsumen.php` pada `'shims'`).
+  6. Penambahan penanda `<!-- TODO(follow-up) -->` pada `app/Views/kavling/list-kavling.php`, `list-kavling-akad.php`, `list-kavling-batal.php`, serta perbaikan Fase 3B untuk bug double-nesting `$data['data'][...]` pada `app/Views/kavling/list-kavling.php` (L716–721 & L1634).
+
+### Daftar File Diubah & Dibuat
+
+- **File Kanonik Baru (2 File):**
+  - `app/Controllers/Web/Mkdt/PosisiKonsumenController.php` (37 baris, 1 public method: `index($status = null)`)
+  - `app/Controllers/Api/Mkdt/PosisiKonsumenController.php` (144 baris, 6 public methods: `meta()`, `getDataTables($status = null)`, `getDataTablesAkad()`, `getDataTablesBatal()`, `exportPoskon($tipe = 'xlsx', $status = 'aktif')`, `getRiwayatExport($status = 'Aktif')`)
+- **File Dimodifikasi & Zero-Downtime Shim:**
+  - `app/Repositories/Mkdt/PosisiKonsumenRepository.php` (575 baris, 13 public methods: tambah `getFirstProyek`, `getPphList`, `getPpnList`, `getLiKeu`, `getConfigShapeMap`, `getChecklistSubItemsWithGroup`, `getHakAksesByUser`, `getRawDataTables`, `getRawDataTablesBatal`)
+  - `app/Services/Mkdt/PosisiKonsumenService.php` (821 baris, 11 public methods: tambah `getIndexData`, `userHasProjectAccess`, `getRawDataTables`, `getRawDataTablesBatal`, `exportPoskon`)
+  - `app/Controllers/PosisiKonsumen.php` (96 baris) — Diubah menjadi Zero-Downtime legacy delegator shim (`@deprecated`, 0 layer violations; memperbaiki delegasi `exportPoskonPdf`/`exportPoskonXlsx`; mempertahankan `format_tgl` dan `is_active` sebagai `@deprecated`).
+  - `app/Config/Routes.php` — Memperbarui rute Web & Legacy AJAX `/list-kavling*`, `/export/poskon/*`, `/riwayat/poskon/*` ke controller kanonik dan mendaftarkan grup `/api/mkdt/posisi-konsumen/*`.
+  - `app/Libraries/ModuleManager/ModuleCatalog.php` — Pembaruan daftar `controllers`, penambahan `app/Controllers/PosisiKonsumen.php` di `shims`, dan penambahan `riwayat_export_poskon` di `owner_tables`.
+  - `app/Views/kavling/list-kavling.php` — L1 penanda `TODO(follow-up)`; L716–721 & L1634 perbaikan Fase 3B pembacaan variabel view langsung (non-double-nested) dan passing data ke partial `siteplan/partials/modal_detail`.
+  - `app/Views/kavling/list-kavling-akad.php` — L1 penanda `TODO(follow-up)`.
+  - `app/Views/kavling/list-kavling-batal.php` — L1 penanda `TODO(follow-up)`.
+- **Dokumentasi:**
+  - `docs/modules/MKDT/MODULE.md` (disinkronkan via `php spark module:sync MKDT` + kurasi manual).
+  - `docs/modules/MKDT/MIGRATION_LOG.md` (diperbarui pada Fase 4).
+
+### Hasil Verifikasi & Command
+
+- **PHP Syntax Lint (`php -l`):** Seluruh file PHP yang dibuat dan dimodifikasi (`Web/Mkdt/PosisiKonsumenController.php`, `Api/Mkdt/PosisiKonsumenController.php`, `PosisiKonsumen.php`, `PosisiKonsumenService.php`, `PosisiKonsumenRepository.php`, `Routes.php`, `ModuleCatalog.php`) bersih (`No syntax errors detected`).
+- **`php spark module:status MKDT`:** Skor MKDT `80%` (`MAPPED`, `8 Ctrl`, `9 Serv`, `6 Repo`, `3 Model`, `37 Route`, `5 Tables`); `Layer Violations Detected` untuk `app/Controllers/PosisiKonsumen.php` kini **0** (hanya menyisakan `app/Controllers/Mkdt.php`).
+- **`php spark module:deadcode MKDT`:** Memeriksa 30 metode; ditemukan 4 kandidat `0 Callers`:
+  1. `Controller PosisiKonsumenController.php::meta()` (endpoint API metadata baru untuk konsumsi frontend *follow-up*).
+  2. `Controller PromoController.php::meta()` (kandidat dari Fase 2 untuk konsumsi *follow-up*).
+  3. `Service MkdtFinancialReconciliationService.php::apply()` (kandidat eksisting dari Fase 1).
+  4. `Service PosisiKonsumenService.php::exportPoskon()` (dipanggil oleh `Api\Mkdt\PosisiKonsumenController::exportPoskon()`).
+- **PHPUnit:** `10/10` pass (verifikasi QA Fase 3); verifikasi tambahan unit test MKDT (`tests/unit/MkdtFinancialBreakdownServiceTest.php` + `tests/unit/MkdtConsumerReplacementHistoryTest.php`): `13/13` pass (`31 assertions`).
+- **Playwright E2E & Dual-Mode `?format=raw`:** Seluruh rute web (`/list-kavling`, `/list-kavling/akad`, `/list-kavling/batal`) serta endpoint `/api/mkdt/posisi-konsumen/{meta,datatable,datatable-akad,datatable-batal,export,riwayat}` (termasuk mode `?format=raw`) terverifikasi **PASS** dengan **0 console error**.
+
+### Bug Ditemukan, Root Cause Analysis (RCA), & Remediasi (Playwright E2E)
+
+- **Temuan QA Awal (Playwright E2E pada `/list-kavling`):**
+  - Halaman `/list-kavling` memicu error PHP/view & kerusakan inisialisasi variabel JS (`has_akses`, `pph`, `ppn`, `li_keu`, `conf`, `proyek`) serta payload partial `siteplan/partials/modal_detail`.
+- **Root Cause Analysis (RCA):**
+  1. View `app/Views/kavling/list-kavling.php` (baris 716–721) sebelumnya membaca `$data['data']['has_akses']`, `$data['data']['pph']`, `$data['data']['ppn']`, `$data['data']['li_keu']`, `$data['data']['conf']`, dan `$data['data']['proyek']` (double-nesting), sementara `Web\Mkdt\PosisiKonsumenController::index()` mengirim `view('template', ['content' => $indexData['content'], 'data' => $indexData['data']])` sehingga di dalam view konten, CodeIgniter sudah mengekstrak `$data` menjadi variabel langsung (`$has_akses`, `$pph`, `$ppn`, `$li_keu`, `$conf`, `$proyek`) dan tidak lagi memiliki `$data['data']`.
+  2. Baris 1634 `list-kavling.php` meneruskan parameter view ke `siteplan/partials/modal_detail` tanpa menyesuaikan fallback struktur `$data['data']` vs `$data`.
+- **Perbaikan (Fase 3B pada `app/Views/kavling/list-kavling.php` L716–721 & L1634):**
+  1. Mengubah L716–721 agar membaca variabel langsung dengan fallback aman: `$has_akses ?? $data['data']['has_akses'] ?? ['proyek' => false, 'legal' => false]`, `$pph ?? $data['data']['pph'] ?? []`, `$ppn ?? $data['data']['ppn'] ?? []`, `$li_keu ?? $data['data']['li_keu'] ?? '[]'`, `$conf ?? $data['data']['conf'] ?? '{}'`, dan `$proyek ?? $data['data']['proyek'] ?? null`.
+  2. Memperbaiki L1634 pemanggilan `view('siteplan/partials/modal_detail', isset($data['data']) ? ['data' => $data['data']] : (isset($data) ? $data : []))`.
+- **Re-Verify QA:** Pengujian ulang Playwright E2E pada `/list-kavling`, `/list-kavling/akad`, `/list-kavling/batal`, dan endpoint dual-mode `?format=raw` mengembalikan **PASS** dengan **0 console error** dan **0 network error**.
+
+### Commit & Rollback
+
+- **Commit Implementasi Fase 3:** `<hash_fase_3>` *(belum di-commit pada sesi ini)*
+- **Prosedur Rollback Aman:**
+  ```bash
+  git revert <hash_fase_3>
+  ```
+  *(Karena `App\Controllers\PosisiKonsumen` tetap dipertahankan sebagai Zero-Downtime delegator shim dan seluruh rute `/list-kavling*`, `/export/poskon/*`, `/riwayat/poskon/*` tetap kompatibel dalam mode default, rollback aman dilakukan via `git revert <hash_fase_3>` tanpa perubahan skema database.)*

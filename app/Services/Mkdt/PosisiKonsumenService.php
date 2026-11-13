@@ -4,6 +4,8 @@ namespace App\Services\Mkdt;
 
 use App\Repositories\Mkdt\PosisiKonsumenRepository;
 use App\Services\FileAccessService;
+use App\Services\PrintService;
+use App\Services\Proyek\ActiveProyekService;
 use App\Services\Settings\SiteplanMenuService;
 use Hermawan\DataTables\DataTable;
 
@@ -14,16 +16,160 @@ class PosisiKonsumenService
     protected FileAccessService $fileAccessService;
     protected SiteplanMenuService $siteplanMenuService;
     protected MkdtFinancialBreakdownService $financialBreakdownService;
+    protected ?ActiveProyekService $activeProyekService;
+    protected ?PrintService $printService;
     protected ?array $actionMenuItems = null;
     protected int $actionMenuRoleId = 0;
 
-    public function __construct()
-    {
+    public function __construct(
+        ?PosisiKonsumenRepository $posisiKonsumenRepo = null,
+        ?ActiveProyekService $activeProyekService = null,
+        ?PrintService $printService = null
+    ) {
         $this->db = \Config\Database::connect();
-        $this->posisiKonsumenRepo = new PosisiKonsumenRepository();
+        $this->posisiKonsumenRepo = $posisiKonsumenRepo ?? new PosisiKonsumenRepository();
         $this->fileAccessService = new FileAccessService();
         $this->siteplanMenuService = new SiteplanMenuService();
         $this->financialBreakdownService = new MkdtFinancialBreakdownService();
+        $this->activeProyekService = $activeProyekService;
+        $this->printService = $printService;
+    }
+
+    protected function getActiveProyekService(): ActiveProyekService
+    {
+        if ($this->activeProyekService === null) {
+            $this->activeProyekService = new ActiveProyekService();
+        }
+
+        return $this->activeProyekService;
+    }
+
+    protected function getPrintService(): PrintService
+    {
+        if ($this->printService === null) {
+            $this->printService = new PrintService();
+        }
+
+        return $this->printService;
+    }
+
+    /**
+     * Susun data halaman Web index() dan metadata /api/mkdt/posisi-konsumen/meta.
+     *
+     * @param array<int|string, mixed> $userGroups
+     * @return array<string, mixed>
+     */
+    public function getIndexData(?string $status, int $userId, array $userGroups): array
+    {
+        $normalizedStatus = ($status !== null && trim($status) !== '') ? trim($status) : null;
+
+        $viewContent = 'kavling/list-kavling';
+        if ($normalizedStatus === 'akad') {
+            $viewContent = 'kavling/list-kavling-akad';
+        } elseif ($normalizedStatus === 'batal') {
+            $viewContent = 'kavling/list-kavling-batal';
+        }
+
+        $proyek = $this->getActiveProyekService()->resolveAndGet();
+        if (!$proyek) {
+            $proyek = $this->posisiKonsumenRepo->getFirstProyek();
+        }
+
+        $pph   = $this->posisiKonsumenRepo->getPphList();
+        $ppn   = $this->posisiKonsumenRepo->getPpnList();
+        $liKeu = $this->posisiKonsumenRepo->getLiKeu();
+        $conf  = $this->posisiKonsumenRepo->getConfigShapeMap();
+
+        $isProjectGroup = $this->hasAnyGroup($userGroups, ['1', '7', '8']);
+        $isLegalGroup   = $this->hasAnyGroup($userGroups, ['5']);
+
+        $viewData = [
+            'pph'        => $pph,
+            'ppn'        => $ppn,
+            'controller' => 'PosisiKonsumen',
+            'title'      => 'Posisi Konsumen ' . ($normalizedStatus ?? ''),
+            'proyek'     => $proyek,
+            'li_keu'     => json_encode($liKeu),
+            'conf'       => json_encode($conf),
+        ];
+
+        if ($isProjectGroup) {
+            $viewData['list'] = $this->posisiKonsumenRepo->getChecklistSubItemsWithGroup();
+        }
+
+        $hasAkses = [
+            'proyek' => false,
+            'legal'  => false,
+        ];
+
+        if ($proyek && $isProjectGroup) {
+            $hasAkses['proyek'] = $this->userHasProjectAccess($proyek, $userId);
+            $tanggalPembangunanAkses = $this->posisiKonsumenRepo->getHakAksesByUser($userId);
+            $hasUpdateAccess = array_values(array_filter($tanggalPembangunanAkses, static function ($item) {
+                return ($item->nama_akses ?? '') === 'update_tanggal_pembangunan';
+            }));
+            $hasAkses['update_tanggal_pembangunan'] = count($hasUpdateAccess) > 0;
+        } elseif ($proyek && $isLegalGroup) {
+            $hasAkses['legal'] = $this->userHasProjectAccess($proyek, $userId);
+        }
+
+        $viewData['has_akses'] = $hasAkses;
+
+        return [
+            'content' => $viewContent,
+            'data'    => $viewData,
+            'meta'    => [
+                'proyek'              => $proyek,
+                'active_proyek_id'    => $proyek ? (int) ($proyek->id_proyek ?? 0) : null,
+                'pph'                 => $pph,
+                'ppn'                 => $ppn,
+                'li_keu'              => $liKeu,
+                'conf'                => $conf,
+                'has_akses'           => $hasAkses,
+                'list'                => $viewData['list'] ?? [],
+                'status_options'      => [
+                    ['value' => 'aktif', 'label' => 'Aktif / Booking'],
+                    ['value' => 'akad', 'label' => 'Akad'],
+                    ['value' => 'batal', 'label' => 'Batal'],
+                ],
+                'bulan_field_options' => [
+                    ['value' => 'booking', 'label' => 'Tanggal Booking'],
+                    ['value' => 'indent', 'label' => 'Tanggal Akad Indent'],
+                    ['value' => 'akad', 'label' => 'Tanggal Akad'],
+                ],
+            ],
+        ];
+    }
+
+    public function userHasProjectAccess(?object $proyek, int $userId): bool
+    {
+        if (!$proyek || !isset($proyek->id_users) || $proyek->id_users === null || $proyek->id_users === '') {
+            return false;
+        }
+
+        $allowedUserIds = array_filter(array_map('trim', explode(',', (string) $proyek->id_users)));
+
+        return in_array((string) $userId, $allowedUserIds, true);
+    }
+
+    /**
+     * @param array<int|string, mixed> $userGroups
+     * @param array<int, string>       $targets
+     */
+    private function hasAnyGroup(array $userGroups, array $targets): bool
+    {
+        $isList = array_is_list($userGroups);
+
+        foreach ($userGroups as $key => $value) {
+            if (in_array((string) $value, $targets, true)) {
+                return true;
+            }
+            if (!$isList && is_int($key) && in_array((string) $key, $targets, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function resolveCurrentRoleId(): int
@@ -157,9 +303,232 @@ class PosisiKonsumenService
         return $this->renderPercentageLabel($progress['label'], $progress['percentage'], $colorize);
     }
 
+    /**
+     * Raw DataTables payload bebas HTML untuk ?format=raw (aktif/akad).
+     *
+     * @param array<string, mixed> $params
+     * @return array<string, mixed>
+     */
+    public function getRawDataTables(array $params, ?string $status = null): array
+    {
+        $draw       = (int) ($params['draw'] ?? 1);
+        $rowNumber  = max(0, (int) ($params['start'] ?? 0));
+        $repoResult = $this->posisiKonsumenRepo->getRawDataTables($params, $status);
+
+        $items = [];
+        foreach ($repoResult['rows'] as $row) {
+            $hasAjb    = !empty($row->akad_tgl) && $row->akad_tgl !== '0000-00-00';
+            $hasIndent = !empty($row->akad_indent_tgl) && $row->akad_indent_tgl !== '0000-00-00';
+            $akadLabel = '-';
+            $akadType  = null;
+            if ($hasAjb) {
+                $akadLabel = 'AJB: ' . $this->format_tgl($row->akad_tgl);
+                $akadType  = 'ajb';
+            } elseif ($hasIndent) {
+                $akadLabel = 'Indent: ' . $this->format_tgl($row->akad_indent_tgl);
+                $akadType  = 'indent';
+            }
+
+            $isKpr = (int) ($row->is_kpr ?? 0);
+            $um    = (float) ($row->um ?? 0);
+            $adm   = (float) ($row->adm ?? 0);
+            $bb    = (float) ($row->bb ?? 0);
+            $totUm = (float) ($row->total_um ?? 0);
+            $totAdm = (float) ($row->total_adm ?? 0);
+            $totBb = (float) ($row->total_bb ?? 0);
+
+            $items[] = [
+                'no'                       => ++$rowNumber,
+                'id_kavling'               => (int) ($row->id_kavling ?? 0),
+                'id_mkdt'                  => (int) ($row->id_mkdt ?? 0),
+                'id_keuangan'              => $row->id_keuangan !== null ? (int) $row->id_keuangan : null,
+                'id_legal'                 => $row->id_legal !== null ? (int) $row->id_legal : null,
+                'id_produksi'              => $row->id_produksi !== null ? (int) $row->id_produksi : null,
+                'id_hargajual'             => $row->id_hargajual !== null ? (int) $row->id_hargajual : null,
+                'id_komplain'              => $row->id_komplain !== null ? (int) $row->id_komplain : null,
+                'id_proyek'                => $row->id_proyek !== null ? (int) $row->id_proyek : null,
+                'nama_proyek'              => (string) ($row->nama_proyek ?? ''),
+                'id_cluster'               => $row->id_cluster !== null ? (int) $row->id_cluster : null,
+                'id_jalan'                 => $row->id_jalan !== null ? (int) $row->id_jalan : null,
+                'nama_jalan'               => (string) ($row->nama_jalan ?? ''),
+                'no_kavling'               => (string) ($row->no_kavling ?? ''),
+                'id_tipe'                  => $row->id_tipe ?? null,
+                'tipe_rumah'               => (string) ($row->tipe_rumah ?? ''),
+                'no_tipe_rumah'            => (string) ($row->no_tipe_rumah ?? ''),
+                'lb'                       => $row->lb !== null ? (float) $row->lb : null,
+                'lt'                       => $row->lt !== null ? (float) $row->lt : null,
+                'harga_akhir'              => $row->harga_akhir !== null ? (float) $row->harga_akhir : null,
+                'nama_konsumen'            => (string) ($row->nama_konsumen ?? ''),
+                'kode_referal'             => (string) ($row->kode_referal ?? ''),
+                'sales'                    => (string) ($row->sales ?? ''),
+                'booking_tgl'              => $row->booking_tgl ?? null,
+                'booking_tgl_formatted'    => $this->format_tgl($row->booking_tgl ?? null),
+                'wawancara_tgl'            => $row->wawancara_tgl ?? null,
+                'wawancara_tgl_formatted'  => $this->format_tgl($row->wawancara_tgl ?? null),
+                'akad'                     => (int) ($row->akad ?? 0),
+                'akad_indent'              => (int) ($row->akad_indent ?? 0),
+                'akad_tgl'                 => $row->akad_tgl ?? null,
+                'akad_indent_tgl'          => $row->akad_indent_tgl ?? null,
+                'akad_type'                => $akadType,
+                'akad_label'               => $akadLabel,
+                'is_kpr'                   => $isKpr,
+                'jenis_pembayaran'         => $isKpr === 1 ? 'KPR' : 'TUNAI',
+                'bank'                     => (string) ($row->bank ?? ''),
+                'keterangan'               => (string) ($row->keterangan ?? ''),
+                'sp3k_tgl'                 => $row->sp3k_tgl ?? null,
+                'sp3k_tgl_formatted'       => $this->format_tgl($row->sp3k_tgl ?? null),
+                'sp3k_tgl_exp'             => $row->sp3k_tgl_exp ?? null,
+                'sp3k_tgl_exp_formatted'   => $this->format_tgl($row->sp3k_tgl_exp ?? null),
+                'sikasep'                  => (string) ($row->sikasep ?? ''),
+                'tunai_progress'           => $isKpr === 1 ? null : $this->financialBreakdownService->progress($um + $adm + $bb, $totUm + $totAdm + $totBb),
+                'um_progress'              => $isKpr === 0 ? null : $this->financialBreakdownService->progress($um, $totUm),
+                'adm_progress'             => $isKpr === 0 ? null : $this->financialBreakdownService->progress($adm, $totAdm),
+                'bb_progress'              => $isKpr === 0 ? null : $this->financialBreakdownService->progress($bb, $totBb),
+                'um'                       => $um,
+                'adm'                      => $adm,
+                'bb'                       => $bb,
+                'total_um'                 => $totUm,
+                'total_adm'                => $totAdm,
+                'total_bb'                 => $totBb,
+                'progres_bangunan'         => (int) ($row->progres_bangunan ?? 0),
+                'lpa'                      => (int) ($row->lpa ?? 0),
+                'lpa_tanggal'              => $row->lpa_tanggal ?? null,
+                'st_listrik'               => (int) ($row->st_listrik ?? 0),
+                'sertifikat_split_no_hgb'  => (string) ($row->sertifikat_split_no_hgb ?? ''),
+                'sertifikat_split_nib'     => (string) ($row->sertifikat_split_nib ?? ''),
+                'pbg_no'                   => (string) ($row->pbg_no ?? ''),
+                'pbb_pecah_nop'            => (string) ($row->pbb_pecah_nop ?? ''),
+                'sikumbang'                => (string) ($row->sikumbang ?? ''),
+                'keterangan_status'        => (string) ($row->keterangan_status ?: '-'),
+                'uadd_by'                  => (string) ($row->uadd_by ?? ''),
+                'uedit_by'                 => (string) ($row->uedit_by ?? ''),
+                'row_payload'              => $this->buildPoskonRowPayload($row),
+            ];
+        }
+
+        return [
+            'draw'            => $draw,
+            'recordsTotal'    => $repoResult['recordsTotal'],
+            'recordsFiltered' => $repoResult['recordsFiltered'],
+            'items'           => $items,
+            'data'            => $items,
+        ];
+    }
+
+    /**
+     * Raw DataTables payload bebas HTML untuk ?format=raw (batal).
+     *
+     * @param array<string, mixed> $params
+     * @return array<string, mixed>
+     */
+    public function getRawDataTablesBatal(array $params): array
+    {
+        $draw       = (int) ($params['draw'] ?? 1);
+        $rowNumber  = max(0, (int) ($params['start'] ?? 0));
+        $repoResult = $this->posisiKonsumenRepo->getRawDataTablesBatal($params);
+
+        $items = [];
+        foreach ($repoResult['rows'] as $row) {
+            $isKpr        = (int) ($row->is_kpr ?? 0);
+            $perluRefund  = (int) ($row->perlu_refund ?? 0);
+            $totalTagihan = (float) ($row->um ?? 0) + (float) ($row->adm ?? 0) + (float) ($row->bb ?? 0);
+            $sudahBayar   = (float) ($row->total_um ?? 0) + (float) ($row->total_adm ?? 0) + (float) ($row->total_bb ?? 0);
+
+            $items[] = [
+                'no'                      => ++$rowNumber,
+                'id_kavling'              => (int) ($row->id_kavling ?? 0),
+                'id_mkdt'                 => (int) ($row->id_mkdt ?? 0),
+                'nama_proyek'             => (string) ($row->nama_proyek ?? ''),
+                'nama_jalan'              => (string) ($row->nama_jalan ?? ''),
+                'no_kavling'              => (string) ($row->no_kavling ?? ''),
+                'tipe_rumah'              => (string) ($row->tipe_rumah ?? ''),
+                'no_tipe_rumah'           => (string) ($row->no_tipe_rumah ?? ''),
+                'nama_konsumen'           => (string) ($row->nama_konsumen ?? ''),
+                'booking_tgl'             => $row->booking_tgl ?? null,
+                'booking_tgl_formatted'   => $this->format_tgl($row->booking_tgl ?? null),
+                'is_kpr'                  => $isKpr,
+                'jenis_pembayaran'        => $isKpr === 1 ? 'KPR' : 'TUNAI',
+                'keterangan_batal'        => (string) ($row->keterangan_batal ?? ''),
+                'mkdt_batal_tgl'          => $row->mkdt_batal_tgl ?? null,
+                'tanggal_batal_formatted' => $this->format_tgl($row->mkdt_batal_tgl ?? null),
+                'nama_pembatal'           => (string) ($row->nama_pembatal ?? '-'),
+                'perlu_refund'            => $perluRefund,
+                'perlu_refund_label'      => $perluRefund === 1 ? 'Perlu Refund' : 'Tidak Perlu Refund',
+                'total_tagihan'           => $totalTagihan,
+                'sudah_bayar'             => $sudahBayar,
+                'sisa_tagihan'            => $totalTagihan - $sudahBayar,
+                'uadd_by'                 => (string) ($row->uadd_by ?? ''),
+                'uedit_by'                => (string) ($row->uedit_by ?? ''),
+                'row_payload'             => $this->buildPoskonRowPayload($row),
+            ];
+        }
+
+        return [
+            'draw'            => $draw,
+            'recordsTotal'    => $repoResult['recordsTotal'],
+            'recordsFiltered' => $repoResult['recordsFiltered'],
+            'items'           => $items,
+            'data'            => $items,
+        ];
+    }
+
+    /**
+     * Ekspor data Posisi Konsumen ke PDF/XLSX dan catat riwayat export.
+     *
+     * @param array<string, mixed> $filters
+     * @return array<string, mixed>
+     */
+    public function exportPoskon(string $tipe, string $status, array $filters, int $userId): array
+    {
+        $idProyek  = $filters['id_proyek'] ?? null;
+        $idCluster = $filters['id_cluster'] ?? null;
+        $idJalan   = $filters['id_jalan'] ?? null;
+
+        if ($idProyek === null || $idProyek === '' || (int) $idProyek <= 0) {
+            return [
+                'status'  => 'error',
+                'message' => 'Tidak ada proyek yang dipilih',
+            ];
+        }
+
+        $idCluster = ($idCluster !== null && $idCluster !== '') ? $idCluster : null;
+        $idJalan   = ($idJalan !== null && $idJalan !== '') ? $idJalan : null;
+
+        $normalizedTipe = strtolower(trim($tipe)) === 'pdf' ? 'pdf' : 'xlsx';
+        $printService   = $this->getPrintService();
+
+        if ($normalizedTipe === 'pdf') {
+            $response = $printService->exportPoskonPdf($idProyek, $idCluster, $idJalan, $status);
+        } else {
+            $response = $printService->exportPoskonXlsx($idProyek, $idCluster, $idJalan, $status);
+        }
+
+        if (!empty($response['status']) && $response['status'] == true) {
+            $data = [
+                'id_proyek'  => $idProyek,
+                'status'     => $status,
+                'path'       => $response['path'],
+                'filename'   => $response['filename'],
+                'randomName' => $response['randomName'],
+                'tipe_file'  => $normalizedTipe,
+                'export_tgl' => date('Y-m-d H:i:s'),
+                'export_by'  => $userId,
+            ];
+            $this->insertRiwayatExport($data);
+        }
+
+        return $response;
+    }
+
     public function getDataTable($request, $status = null)
     {
         $status = $status ?? "Booking";
+        if (strtolower((string) $status) === 'aktif' || $status === '') {
+            $status = 'Booking';
+        } elseif (strtolower((string) $status) === 'akad') {
+            $status = 'Akad';
+        }
+
         $builder = $this->posisiKonsumenRepo->getBaseQuery($status);
         $rowNumber = (int) $request->getVar('start');
         if ($request->getVar('id_proyek'))

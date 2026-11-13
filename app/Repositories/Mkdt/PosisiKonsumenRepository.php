@@ -195,4 +195,381 @@ class PosisiKonsumenRepository
     {
         return $this->db->table('riwayat_export_poskon')->insert($data);
     }
+
+    public function getFirstProyek(): ?object
+    {
+        $row = $this->db->table('proyek')
+            ->orderBy('id_proyek', 'ASC')
+            ->limit(1)
+            ->get()
+            ->getRow();
+
+        return $row ?: null;
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    public function getPphList(): array
+    {
+        return $this->db->table('pph')
+            ->where('deleted_at', null)
+            ->get()
+            ->getResult();
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    public function getPpnList(): array
+    {
+        return $this->db->table('ppn')
+            ->where('deleted_at', null)
+            ->get()
+            ->getResult();
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    public function getLiKeu(): array
+    {
+        return $this->db->table('keuangan_item_list')
+            ->select('*')
+            ->where('deleted_at', null)
+            ->orderBy('id_keuangan_item_list', 'ASC')
+            ->get()
+            ->getResult();
+    }
+
+    /**
+     * Struktur key/kolom map `config_shape` identik dengan PosisiKonsumen::getConfigShapeMap().
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function getConfigShapeMap(): array
+    {
+        $map  = [];
+        $rows = $this->db->table('config_shape')->get()->getResult();
+
+        foreach ($rows as $row) {
+            if (!isset($row->config_name)) {
+                continue;
+            }
+            $map[$row->config_name] = [
+                'fill'        => $row->fill ?? null,
+                'stroke'      => $row->stroke ?? null,
+                'strokeWidth' => $row->strokeWidth ?? null,
+                'dashed'      => $row->dashed ?? null,
+                'keterangan'  => $row->keterangan ?? null,
+            ];
+        }
+
+        return $map;
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    public function getChecklistSubItemsWithGroup(): array
+    {
+        return $this->db->table('checklist_subitem')
+            ->select('
+                checklist_group.nama_group,
+                checklist_item.nama_item,
+                checklist_subitem.id_subitem,
+                checklist_subitem.nama_subitem
+            ')
+            ->join('checklist_item', 'checklist_item.id_item = checklist_subitem.id_item')
+            ->join('checklist_group', 'checklist_item.id_group = checklist_group.id_group')
+            ->where('checklist_item.is_active', 1)
+            ->where('checklist_group.is_active', 1)
+            ->where('checklist_subitem.is_active', 1)
+            ->orderBy('checklist_item.id_group', 'asc')
+            ->orderBy('checklist_item.id_item', 'asc')
+            ->get()
+            ->getResult();
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    public function getHakAksesByUser(int $userId, ?string $namaHak = null): array
+    {
+        if ($userId <= 0) {
+            return [];
+        }
+
+        $builder = $this->db->table('hak_akses')
+            ->like('id_users', (string) $userId);
+
+        if ($namaHak !== null && $namaHak !== '') {
+            $builder->like('nama_hak', ';' . $namaHak . ';');
+        }
+
+        return $builder->get()->getResult();
+    }
+
+    /**
+     * Raw DataTables query untuk posisi konsumen aktif/akad (?format=raw).
+     *
+     * @param array<string, mixed> $params
+     * @return array{recordsTotal: int, recordsFiltered: int, rows: array<int, object>}
+     */
+    public function getRawDataTables(array $params, ?string $status = null): array
+    {
+        $resolvedStatus = $this->resolveBaseStatus($status);
+        $search         = $this->extractSearchValue($params);
+        $start          = max(0, (int) ($params['start'] ?? 0));
+        $length         = isset($params['length']) ? (int) $params['length'] : 10;
+
+        $totalBuilder = $this->getBaseQuery($resolvedStatus);
+        $this->applyBaseFilters($totalBuilder, $params);
+        $recordsTotal = (int) $totalBuilder->countAllResults();
+
+        $filteredBuilder = $this->getBaseQuery($resolvedStatus);
+        $this->applyBaseFilters($filteredBuilder, $params);
+        $this->applyBaseSearch($filteredBuilder, $search);
+        $recordsFiltered = (int) $filteredBuilder->countAllResults();
+
+        $dataBuilder = $this->getBaseQuery($resolvedStatus);
+        $this->applyBaseFilters($dataBuilder, $params);
+        $this->applyBaseSearch($dataBuilder, $search);
+
+        if ($length > 0) {
+            $dataBuilder->limit($length, $start);
+        } elseif ($start > 0) {
+            $dataBuilder->offset($start);
+        }
+
+        return [
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'rows'            => $dataBuilder->get()->getResult(),
+        ];
+    }
+
+    /**
+     * Raw DataTables query untuk posisi konsumen batal (?format=raw).
+     *
+     * @param array<string, mixed> $params
+     * @return array{recordsTotal: int, recordsFiltered: int, rows: array<int, object>}
+     */
+    public function getRawDataTablesBatal(array $params): array
+    {
+        $search = $this->extractSearchValue($params);
+        $start  = max(0, (int) ($params['start'] ?? 0));
+        $length = isset($params['length']) ? (int) $params['length'] : 10;
+
+        $totalBuilder = $this->getQueryBatal();
+        $this->applyBatalFilters($totalBuilder, $params);
+        $recordsTotal = (int) $totalBuilder->countAllResults();
+
+        $filteredBuilder = $this->getQueryBatal();
+        $this->applyBatalFilters($filteredBuilder, $params);
+        $this->applyBatalSearch($filteredBuilder, $search);
+        $recordsFiltered = (int) $filteredBuilder->countAllResults();
+
+        $dataBuilder = $this->getQueryBatal();
+        $this->applyBatalFilters($dataBuilder, $params);
+        $this->applyBatalSearch($dataBuilder, $search);
+
+        if ($length > 0) {
+            $dataBuilder->limit($length, $start);
+        } elseif ($start > 0) {
+            $dataBuilder->offset($start);
+        }
+
+        return [
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'rows'            => $dataBuilder->get()->getResult(),
+        ];
+    }
+
+    private function resolveBaseStatus(?string $status): string
+    {
+        if ($status === null || trim($status) === '' || strtolower(trim($status)) === 'aktif') {
+            return 'Booking';
+        }
+        if (strtolower(trim($status)) === 'akad') {
+            return 'Akad';
+        }
+
+        return trim($status);
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function extractSearchValue(array $params): string
+    {
+        if (isset($params['search']) && is_array($params['search'])) {
+            return trim((string) ($params['search']['value'] ?? ''));
+        }
+        if (isset($params['search'])) {
+            return trim((string) $params['search']);
+        }
+
+        return '';
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function applyBaseFilters(BaseBuilder $builder, array $params): void
+    {
+        if (!empty($params['id_proyek'])) {
+            $builder->where('proyek.id_proyek', $params['id_proyek']);
+        }
+        if (!empty($params['id_cluster'])) {
+            $builder->where('cluster.id_cluster', $params['id_cluster']);
+        }
+        if (!empty($params['id_jalan'])) {
+            $builder->where('jalan.id_jalan', $params['id_jalan']);
+        }
+
+        if (isset($params['sp3k']) && $params['sp3k'] !== '' && $params['sp3k'] !== null) {
+            $builder->where('mkdt.sp3k', $params['sp3k']);
+        }
+        if (isset($params['wawancara']) && $params['wawancara'] !== '' && $params['wawancara'] !== null) {
+            $builder->where('mkdt.wawancara', $params['wawancara']);
+        }
+        if (isset($params['akad']) && $params['akad'] !== '' && $params['akad'] !== null) {
+            $builder->where('mkdt.akad', $params['akad']);
+        }
+        if (isset($params['akad_indent']) && $params['akad_indent'] !== '' && $params['akad_indent'] !== null) {
+            $builder->where('mkdt.akad_indent', $params['akad_indent']);
+            if ((int) $params['akad_indent'] === 1 && (!isset($params['akad']) || $params['akad'] === '' || $params['akad'] === null)) {
+                $builder->where('mkdt.akad', 0);
+            }
+        }
+
+        $bulan = $params['bulan'] ?? '';
+        $tahun = $params['tahun'] ?? '';
+        if ($bulan !== '' || $tahun !== '') {
+            $bulanField = $params['bulan_field'] ?? '';
+            if ($bulanField === 'akad') {
+                $col = 'mkdt.akad_tgl';
+            } elseif ($bulanField === 'indent') {
+                $col = 'mkdt.akad_indent_tgl';
+            } else {
+                $col = 'mkdt.booking_tgl';
+            }
+
+            if ($bulan !== '' && $bulan !== null) {
+                $builder->where("MONTH($col)", $bulan);
+            }
+            if ($tahun !== '' && $tahun !== null) {
+                $builder->where("YEAR($col)", $tahun);
+            }
+        }
+    }
+
+    private function applyBaseSearch(BaseBuilder $builder, string $search): void
+    {
+        if ($search === '') {
+            return;
+        }
+
+        $searchableColumns = [
+            'kavling.id_kavling',
+            'jalan.nama_jalan',
+            'kavling.no_kavling',
+            'hargajual.id_tipe',
+            'konsumen.nama_konsumen',
+            'konsumen.kode_referal',
+            'konsumen.sales',
+            'mkdt.booking_tgl',
+            'mkdt.wawancara_tgl',
+            'mkdt.akad_tgl',
+            'mkdt.akad_indent_tgl',
+            'mkdt.is_kpr',
+            'list_bank.bank',
+            'mkdt.keterangan',
+            'mkdt.sp3k_tgl',
+            'mkdt.sp3k_tgl_exp',
+            'produksi.progres_bangunan',
+            'produksi.lpa',
+            'produksi.st_jalan',
+            'legal.sertifikat_split_no_hgb',
+            'legal.sertifikat_split_nib',
+            'legal.pbg_no',
+            'legal.pbb_pecah_nop',
+            'mkdt.keterangan_status',
+        ];
+
+        $builder->groupStart();
+        foreach ($searchableColumns as $index => $column) {
+            if ($index === 0) {
+                $builder->like($column, $search);
+            } else {
+                $builder->orLike($column, $search);
+            }
+        }
+        $builder->groupEnd();
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function applyBatalFilters(BaseBuilder $builder, array $params): void
+    {
+        if (!empty($params['id_proyek'])) {
+            $builder->where('proyek.id_proyek', $params['id_proyek']);
+        }
+        if (!empty($params['id_cluster'])) {
+            $builder->where('cluster.id_cluster', $params['id_cluster']);
+        }
+        if (!empty($params['id_jalan'])) {
+            $builder->where('jalan.id_jalan', $params['id_jalan']);
+        }
+
+        if (!empty($params['periode_booking'])) {
+            $dates = explode(' to ', (string) $params['periode_booking']);
+            if (count($dates) === 2) {
+                $builder->where('mkdt.booking_tgl >=', trim($dates[0]));
+                $builder->where('mkdt.booking_tgl <=', trim($dates[1]));
+            } elseif (count($dates) === 1 && trim($dates[0]) !== '') {
+                $builder->where('mkdt.booking_tgl', trim($dates[0]));
+            }
+        }
+
+        if (!empty($params['periode_batal'])) {
+            $dates = explode(' to ', (string) $params['periode_batal']);
+            if (count($dates) === 2) {
+                $builder->where('mkdt.mkdt_batal_tgl >=', trim($dates[0]));
+                $builder->where('mkdt.mkdt_batal_tgl <=', trim($dates[1]));
+            } elseif (count($dates) === 1 && trim($dates[0]) !== '') {
+                $builder->where('mkdt.mkdt_batal_tgl', trim($dates[0]));
+            }
+        }
+    }
+
+    private function applyBatalSearch(BaseBuilder $builder, string $search): void
+    {
+        if ($search === '') {
+            return;
+        }
+
+        $searchableColumns = [
+            'jalan.nama_jalan',
+            'kavling.no_kavling',
+            'tipe.tipe_rumah',
+            'mkdt.keterangan_batal',
+            'konsumen.nama_konsumen',
+            'mkdt.booking_tgl',
+            'mkdt.is_kpr',
+        ];
+
+        $builder->groupStart();
+        foreach ($searchableColumns as $index => $column) {
+            if ($index === 0) {
+                $builder->like($column, $search);
+            } else {
+                $builder->orLike($column, $search);
+            }
+        }
+        $builder->groupEnd();
+    }
 }

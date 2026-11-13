@@ -1,6 +1,11 @@
 [
     {
         "layer": "Controller",
+        "file": "PosisiKonsumenController.php",
+        "name": "meta"
+    },
+    {
+        "layer": "Controller",
         "file": "PromoController.php",
         "name": "meta"
     },
@@ -8,5 +13,10 @@
         "layer": "Service",
         "file": "MkdtFinancialReconciliationService.php",
         "name": "apply"
+    },
+    {
+        "layer": "Service",
+        "file": "PosisiKonsumenService.php",
+        "name": "exportPoskon"
     }
 ]

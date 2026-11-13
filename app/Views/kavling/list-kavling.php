@@ -1,3 +1,4 @@
+<!-- TODO(follow-up): migrate /list-kavling*, /export/poskon*, /riwayat/poskon* AJAX calls to /api/mkdt/posisi-konsumen/*?format=raw -->
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/buttons.bootstrap4.min.css">
@@ -712,12 +713,12 @@ if (!empty($roles)) {
 <script>
   var roleid = "<?= $k; ?>";
   var rolename = "<?= $v; ?>";
-  const has_akses = JSON.parse('<?= json_encode($data['data']['has_akses'] ?? ['proyek' => false, 'legal' => false]) ?>');
-  const pph = JSON.parse('<?= json_encode($data['data']['pph'] ?? []) ?>');
-  const ppn = JSON.parse('<?= json_encode($data['data']['ppn'] ?? []) ?>');
-  const li_keu = JSON.parse('<?= $data['data']['li_keu'] ?? '[]' ?>');
-  var conf = JSON.parse('<?= $data['data']['conf'] ?? '{}' ?>');
-  const proyekContext = <?= json_encode($data['data']['proyek'] ?? null) ?>;
+  const has_akses = JSON.parse('<?= json_encode($has_akses ?? $data['data']['has_akses'] ?? ['proyek' => false, 'legal' => false]) ?>');
+  const pph = JSON.parse('<?= json_encode($pph ?? $data['data']['pph'] ?? []) ?>');
+  const ppn = JSON.parse('<?= json_encode($ppn ?? $data['data']['ppn'] ?? []) ?>');
+  const li_keu = JSON.parse('<?= $li_keu ?? $data['data']['li_keu'] ?? '[]' ?>');
+  var conf = JSON.parse('<?= $conf ?? $data['data']['conf'] ?? '{}' ?>');
+  const proyekContext = <?= json_encode($proyek ?? $data['data']['proyek'] ?? null) ?>;
   window.siteplanMenuItems = [];
 
   window.editdtt = [];
@@ -1630,7 +1631,7 @@ if (in_array($role_id, [1, 7, 3])) {
   echo view('siteplan/cashout_subkon');
 }
 ?>
-<?= view('siteplan/partials/modal_detail', ['data' => $data['data'] ?? []]) ?>
+<?= view('siteplan/partials/modal_detail', isset($data['data']) ? ['data' => $data['data']] : (isset($data) ? $data : [])) ?>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
 <?= view('siteplan/modal/nup-modals') ?>
 <script src="<?= base_url() ?>assets/js/siteplan/nup.js?<?= filemtime(FCPATH . 'assets/js/siteplan/nup.js') ?>"></script>
