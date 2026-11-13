@@ -704,21 +704,40 @@ class PencairanAkadService
             return $this->response(false, 'Pengajuan yang sudah ada pencairan tidak bisa di-void');
         }
 
-        $this->db->table('pencairan_akad_pengajuan')->where('id', $idPengajuan)->update([
-            'status' => 'void',
-            'void_reason' => $reason,
-            'edit_by' => $actorId,
-            'updated_at' => date('Y-m-d H:i:s'),
-        ]);
+        $db = $this->db;
+        $db->transException(true);
 
-        $this->syncBatchStatus((int) ($pengajuan->id_batch ?? 0), $actorId);
+        try {
+            $db->transStart();
 
-        $plan = $this->getPlanById((int) $pengajuan->id_plan);
-        if ($plan) {
-            $this->saveHistory((int) $plan->id_kavling, (int) $plan->id_mkdt, (int) $plan->id, $idPengajuan, 'void', 'Pengajuan dibatalkan: ' . $reason, [], $actorId);
+            $db->table('pencairan_akad_pengajuan')->where('id', $idPengajuan)->update([
+                'status' => 'void',
+                'void_reason' => $reason,
+                'edit_by' => $actorId,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            $this->syncBatchStatus((int) ($pengajuan->id_batch ?? 0), $actorId);
+
+            $plan = $this->getPlanById((int) $pengajuan->id_plan);
+            if ($plan) {
+                $this->saveHistory((int) $plan->id_kavling, (int) $plan->id_mkdt, (int) $plan->id, $idPengajuan, 'void', 'Pengajuan dibatalkan: ' . $reason, [], $actorId);
+            }
+
+            $db->transComplete();
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            return $this->response(true, 'Pengajuan berhasil dibatalkan');
+        } catch (\Throwable $e) {
+            try {
+                $db->transRollback();
+            } catch (\Throwable $rollback) {
+            }
+            log_message('error', '[PencairanAkadService::void] {message}', ['message' => $e->getMessage()]);
+            return $this->response(false, 'Gagal membatalkan pengajuan: ' . $e->getMessage());
         }
-
-        return $this->response(true, 'Pengajuan berhasil dibatalkan');
     }
 
     /**
@@ -1012,6 +1031,107 @@ class PencairanAkadService
         $payload['token'] = csrf_hash();
 
         return $response->setJSON($payload);
+    }
+
+    public function getListGroupedRaw($request): array
+    {
+        $filters = $this->listFilters($request);
+        $builder = $this->listRepository->buildListQuery($filters);
+        $searchColumns = ['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'];
+
+        $searchValue = $this->extractSearchValue($request);
+        $this->applyRawSearch($builder, $searchValue, $searchColumns);
+
+        [$page, $perPage, $start] = $this->resolveRawPagination($request);
+        $total = $builder->countAllResults(false);
+        $rows = $builder->limit($perPage, $start)->get()->getResult();
+
+        $canManage = ! function_exists('in_groups') || in_groups(['1', '3']);
+        $items = array_map(static function ($v) use ($canManage): array {
+            $hargaKprAcc = (float) ($v->harga_kpr_acc ?? 0);
+            $sudahCair = (float) ($v->sudah_cair ?? 0);
+            $outstanding = (float) ($v->pengajuan_outstanding ?? 0);
+            $sisa = $hargaKprAcc - $sudahCair;
+
+            return [
+                'id_mkdt' => (int) ($v->id_mkdt ?? 0),
+                'id_kavling' => (int) ($v->id_kavling ?? 0),
+                'id_plan' => $v->id_plan ? (int) $v->id_plan : null,
+                'akad_tgl' => $v->akad_tgl ?? null,
+                'nama_proyek' => (string) ($v->nama_proyek ?? ''),
+                'nama_jalan' => (string) ($v->nama_jalan ?? ''),
+                'no_kavling' => (string) ($v->no_kavling ?? ''),
+                'tipe_rumah' => (string) ($v->tipe_rumah ?? ''),
+                'nama_konsumen' => (string) ($v->nama_konsumen ?? ''),
+                'is_kpr' => (int) ($v->is_kpr ?? 0),
+                'hargajual' => (float) ($v->hargajual ?? 0),
+                'harga_kpr_acc' => $hargaKprAcc,
+                'total_hasil_akad' => (float) ($v->total_hasil_akad ?? 0),
+                'pengajuan_outstanding' => $outstanding,
+                'sudah_cair' => $sudahCair,
+                'sisa' => $sisa,
+                'can_batch' => ($hargaKprAcc - $sudahCair - $outstanding) > 0.01,
+                'permissions' => [
+                    'can_manage' => $canManage,
+                ],
+            ];
+        }, $rows);
+
+        return [
+            'items' => $items,
+            'summary' => $this->listRepository->getSummary($filters, $searchValue),
+            'meta' => [
+                'page' => $page,
+                'per_page' => $perPage,
+                'total' => $total,
+            ],
+        ];
+    }
+
+    protected function extractSearchValue($request): string
+    {
+        $search = $request->getVar('search');
+        if (is_array($search)) {
+            return trim((string) ($search['value'] ?? ''));
+        }
+
+        return trim((string) ($search ?? $request->getVar('search_value') ?? ''));
+    }
+
+    protected function applyRawSearch($builder, string $searchValue, array $searchColumns): void
+    {
+        if ($searchValue === '' || $searchColumns === []) {
+            return;
+        }
+
+        $builder->groupStart();
+        foreach ($searchColumns as $index => $column) {
+            if ($index === 0) {
+                $builder->like($column, $searchValue);
+            } else {
+                $builder->orLike($column, $searchValue);
+            }
+        }
+        $builder->groupEnd();
+    }
+
+    protected function resolveRawPagination($request): array
+    {
+        $perPage = (int) ($request->getVar('per_page') ?? $request->getVar('length') ?? 25);
+        if ($perPage <= 0) {
+            $perPage = 25;
+        }
+        $perPage = min($perPage, 200);
+
+        $page = (int) ($request->getVar('page') ?? 0);
+        if ($page <= 0) {
+            $start = max(0, (int) ($request->getVar('start') ?? 0));
+            $page = (int) floor($start / $perPage) + 1;
+        } else {
+            $start = ($page - 1) * $perPage;
+        }
+
+        return [$page, $perPage, $start];
     }
 
     protected function listFilters($request): array
@@ -1320,13 +1440,22 @@ class PencairanAkadService
             ->getRow()->nominal_cair;
     }
 
-    protected function getListDajam(): array
+    public function getListDajam(): array
     {
         return $this->db->table('list_dajam')
             ->where('deleted_at', null)
             ->orderBy('id', 'ASC')
             ->get()
             ->getResult();
+    }
+
+    public function getMetaPayload(): array
+    {
+        return [
+            'list_dajam' => $this->getListDajam(),
+            'template_columns' => self::templateColumns(),
+            'statuses' => ['draft', 'diajukan', 'active', 'partial', 'paid', 'void'],
+        ];
     }
 
     protected function listPengajuan(int $idPlan): array
@@ -1744,7 +1873,7 @@ class PencairanAkadService
         }
     }
 
-    public function getBatchList($request)
+    protected function buildBatchListQuery($request)
     {
         $builder = $this->db->table('pencairan_akad_batch b')
             ->select('
@@ -1806,6 +1935,13 @@ class PencairanAkadService
             }
         }
 
+        return $builder;
+    }
+
+    public function getBatchList($request)
+    {
+        $builder = $this->buildBatchListQuery($request);
+
         return DataTable::of($builder)
             ->setSearchableColumns(['b.nomor_batch', 'b.catatan', 'k.no_kavling'])
             ->addNumbering('no')
@@ -1836,6 +1972,58 @@ class PencairanAkadService
                 return '<div class="d-inline-flex align-items-center justify-content-center text-nowrap">' . $btnCair . $btnDetail . '</div>';
             }, 'last')
             ->toJson(true);
+    }
+
+    public function getBatchListRaw($request): array
+    {
+        $builder = $this->buildBatchListQuery($request);
+        $searchValue = $this->extractSearchValue($request);
+        $this->applyRawSearch($builder, $searchValue, ['b.nomor_batch', 'b.catatan', 'k.no_kavling']);
+
+        [$page, $perPage, $start] = $this->resolveRawPagination($request);
+        $compiled = $builder->getCompiledSelect(false);
+        $totalRow = $this->db->query("SELECT COUNT(*) AS total FROM ({$compiled}) batch_count")->getRow();
+        $total = (int) ($totalRow->total ?? 0);
+
+        $rows = $builder->limit($perPage, $start)->get()->getResult();
+        $isKeuangan = ! function_exists('in_groups') || in_groups(['1', '3']);
+
+        $items = array_map(static function ($v) use ($isKeuangan): array {
+            $sisa = (float) ($v->sisa ?? 0);
+            $canCair = $isKeuangan && in_array((string) $v->status, ['active', 'partial'], true) && $sisa > 0;
+            $rawItems = (string) ($v->daftar_kavling_item ?? '');
+            $kavlingItems = $rawItems !== '' ? array_values(array_filter(explode('<br>', str_replace('`', '', $rawItems)))) : [];
+
+            return [
+                'id' => (int) $v->id,
+                'nomor_batch' => (string) ($v->nomor_batch ?? ''),
+                'tanggal_pengajuan' => $v->tanggal_pengajuan ?? null,
+                'tanggal_rencana_cair' => $v->tanggal_rencana_cair ?? null,
+                'total_pengajuan' => (float) ($v->total_pengajuan ?? 0),
+                'total_cair' => (float) ($v->total_cair ?? 0),
+                'sisa' => $sisa,
+                'status' => (string) ($v->status ?? ''),
+                'catatan' => $v->catatan ?? null,
+                'lampiran_surat' => $v->lampiran_surat ?? null,
+                'created_at' => $v->created_at ?? null,
+                'pic_nama' => (string) ($v->pic_nama ?? '-'),
+                'jumlah_kavling' => (int) ($v->jumlah_kavling ?? 0),
+                'daftar_kavling_items' => $kavlingItems,
+                'permissions' => [
+                    'can_cair' => $canCair,
+                    'can_view_detail' => true,
+                ],
+            ];
+        }, $rows);
+
+        return [
+            'items' => $items,
+            'meta' => [
+                'page' => $page,
+                'per_page' => $perPage,
+                'total' => $total,
+            ],
+        ];
     }
 
     public function getBatchDetail(int $idBatch): array

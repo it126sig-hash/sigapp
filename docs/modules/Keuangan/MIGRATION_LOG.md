@@ -10,8 +10,8 @@ Log bertahap migrasi modular dan debugging untuk modul **Keuangan** (Mode `REFAC
 |---|---|---|---|---|
 | **Fase 0** | Baseline & Safety Verification | `COMPLETED` | 2026-11-13 | `8204898` *(baseline)* |
 | **Fase 1** | Migrasi Layer Service & Repository ke `*\Keuangan\*` + Subdomain Laporan, Bank & BookingPayment | `COMPLETED` | 2026-11-13 | `d5ce0c1` |
-| **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 1 (Subdomain Tagihan, Pembayaran, Print & Bank KPR Disbursement) | `COMPLETED` | 2026-11-13 | *(working tree — pra-commit)* |
-| **Fase 3** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 2 | `PENDING` | — | — |
+| **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 1 (Subdomain Tagihan, Pembayaran, Print & Bank KPR Disbursement) | `COMPLETED` | 2026-11-13 | `280ba27` |
+| **Fase 3** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 2 (Subdomain Pencairan Akad, Dana Akad & Konsolidasi `PencairanJaminan` -> `DanaJaminanController`) | `COMPLETED` | 2026-11-13 | *(working tree — pra-commit)* |
 | **Fase 4** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 3 & Konsolidasi API/Web | `PENDING` | — | — |
 | **Fase 5** | Deprecate Legacy Methods (Opsi A) & Shim Migration | `PENDING` | — | — |
 | **Fase 6** | Final Cross-Module QA Audit & Global Migration Ledger Sync (`docs/MIGRATION_PROGRESS.md`) | `PENDING` | — | — |
@@ -125,7 +125,7 @@ Atau sebelum commit (pada working tree):
 
 - **Tanggal:** `2026-11-13`
 - **Status QA:** `PASS` *(QA Awal `FAIL` -> Remediasi Fase 2B -> Re-QA Independen `PASS` oleh `sigapp-qa` pada 2026-11-13 20:19 WIB)*
-- **Commit Hash:** *(working tree — pra-commit)*
+- **Commit Hash:** `280ba27`
 
 ### 1. Scope & Daftar File Fase 2
 1. Memisahkan controller legacy **Tagihan**, **Pembayaran**, **Print**, dan **Bank KPR Disbursement** (dari `Tagihan.php`, `Pembayaran.php`, `PrintController.php`, dan sebagian `Keuangan.php`) ke **5 Controller modular baru** di `App\Controllers\Web\Keuangan\*` dan `App\Controllers\Api\Keuangan\*`.
@@ -202,3 +202,50 @@ Atau sebelum commit (pada working tree):
    - `app/Controllers/Web/Keuangan/PrintController.php`
    - `app/Controllers/Api/Keuangan/BankKprDisbursementController.php`
 3. Jalankan `php spark module:sync Keuangan` untuk memulihkan status Fase 1.
+
+---
+
+## Fase 3 — Subdomain Pencairan Akad, Dana Akad & Konsolidasi `PencairanJaminan` -> `DanaJaminanController`
+
+- **Tanggal:** `2026-11-13`
+- **Status QA:** `PASS` *(Diverifikasi independen oleh `sigapp-qa`)*
+- **Commit Hash:** *(working tree — pra-commit)*
+
+### 1. Ringkasan Implementasi (`sigapp-engineer`)
+- **3 Controller Modular Baru (0 direct DB/Model access; `meta()` + `?format=raw`):**
+  - `app/Controllers/Web/Keuangan/PencairanAkadController.php` (`listHasilAkad()`, `importForm()`, `exportTemplate()`)
+  - `app/Controllers/Api/Keuangan/PencairanAkadController.php` (`meta()`, `get()`, `saveRetensi()`, `saveTenor()`, `storePengajuan()`, `cairkan()`, `listPayment()`, `voidPayment()`, `void()`, `history()`, `getListGrouped()`, `getListDetail()`, `import()`, `postBatchList()`, `postEligibleKavling()`, `postStoreBatchPengajuan()`, `postBatchDetail()`, `postCairkanBatch()`, `postVoidBatch()`, `getBatchHistory()`)
+  - `app/Controllers/Api/Keuangan/DanaJaminanController.php` (`meta()`, `index()`, `list()`, `store()`, `cairkan()`, `history()`, `toggleStatus()`, `download()`, `getByID()`, `getDanaAkad()`, `saveDanaAkad()`)
+- **Penguatan Service Layer:**
+  - `app/Services/Keuangan/PencairanAkadService.php`: Penguatan `void()` dengan DB transaction (`transStart`/`transComplete`), ekspos `getListDajam()` (public), serta penambahan `getMetaPayload()`, `getListGroupedRaw()`, `buildBatchListQuery()`, dan `getBatchListRaw()`.
+  - `app/Services/Keuangan/DanaJaminanService.php`: Penambahan `getListDajam()`, `getMetaPayload()`, `getDownloadFile()`, dan `getDanaAkadDetail()`.
+- **3 Zero-Downtime Shims `@deprecated`:**
+  - `app/Controllers/PencairanAkad.php` -> delegasi ke `Api\Keuangan\PencairanAkadController` & `Web\Keuangan\PencairanAkadController`
+  - `app/Controllers/PencairanJaminan.php` -> delegasi ke `Api\Keuangan\DanaJaminanController` + warning log `DEPRECATED_KEUANGAN_HIT` pada `initController()`
+  - `app/Controllers/DanaAkad.php` -> delegasi ke `Api\Keuangan\DanaJaminanController` + warning log `DEPRECATED_KEUANGAN_HIT` pada `initController()`
+- **Rute, Katalog & Dokumentasi:**
+  - `app/Config/Routes.php` (`151` rute eksplisit Keuangan, termasuk `GET /api/keuangan/pencairan-akad/meta`, `GET /api/keuangan/dana-jaminan/meta`, grup `/keuangan/pencairan-akad/*` & `/keuangan/hasil-akad/*`, `/danaakad/getbyid`, `/keuangan/{getDanaAkad,saveDanaAkad}`, serta konsolidasi grup `/pencairan/*` ke `Api\Keuangan\DanaJaminanController`).
+  - `app/Libraries/ModuleManager/ModuleCatalog.php`, `docs/modules/Keuangan/MODULE.md`, `writable/modules/module_map.json`.
+
+### 2. Hasil QA Independen Fase 3 (`sigapp-qa` — `PASS`)
+- **Static & Modularity Checks:** `0 broken callers`, `0` violations baru pada controller modular, `php spark module:map` `100%` (`0 unmapped files`), `php spark module:status Keuangan` = `MAPPED 80%`, `php spark module:deadcode Keuangan` `0` regresi baru.
+- **PHPUnit:**
+  - Suite `PencairanAkad`: `17 tests / 33 assertions` — **PASS**
+  - `FeeSalesWorkflowTest`: `31 tests / 275 assertions` — **PASS**
+  - `BookingPaymentAggregationTest`: `2 tests / 8 assertions` — **PASS**
+- **Playwright E2E & Endpoint Verification:**
+  - `/keuangan/hasil-akad/list`, `/keuangan/hasil-akad/import`, `/keuangan/hasil-akad/export-template`, `/api/keuangan/pencairan-akad/meta`, `/api/keuangan/dana-jaminan/meta`, dual-mode `?format=raw`, dan negative test `404` terverifikasi normal (`0` console error & `0 ERROR` log dari alur UI).
+- **Catatan Minor Pra-Eksisting (Non-Blocking):**
+  - Polusi shared `Services::renderer()` saat menjalankan seluruh suite PHPUnit sekaligus, serta perilaku `respondDual()` ketika payload array kosong `[]` (dikonversi menjadi `null`).
+
+### 3. Prosedur Rollback Fase 3
+Jika diperlukan rollback terhadap perubahan Fase 3 sebelum commit (mengacu pada baseline commit Fase 2 **`280ba27`**):
+1. Kembalikan seluruh file tracked milik Fase 3 ke `HEAD` (`280ba27`):
+   ```bash
+   git checkout HEAD -- app/Config/Routes.php app/Libraries/ModuleManager/ModuleCatalog.php app/Controllers/PencairanAkad.php app/Controllers/PencairanJaminan.php app/Controllers/DanaAkad.php app/Services/Keuangan/PencairanAkadService.php app/Services/Keuangan/DanaJaminanService.php docs/modules/Keuangan/MODULE.md docs/modules/Keuangan/MIGRATION_LOG.md writable/modules/module_map.json
+   ```
+2. Hapus 3 file controller modular baru untracked:
+   - `app/Controllers/Web/Keuangan/PencairanAkadController.php`
+   - `app/Controllers/Api/Keuangan/PencairanAkadController.php`
+   - `app/Controllers/Api/Keuangan/DanaJaminanController.php`
+3. Jalankan `php spark module:sync Keuangan` untuk memulihkan status Fase 2.

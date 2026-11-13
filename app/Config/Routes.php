@@ -561,6 +561,9 @@ $routes->group('', ['filter' => 'login'], function ($routes) {
 
 //dana akad
 $routes->post("/danaakad/list/ambilsatu", '\App\Controllers\Api\Keuangan\TagihanController::getListTagihan', ['filter' => 'login']);
+$routes->post("/danaakad/getbyid", '\App\Controllers\Api\Keuangan\DanaJaminanController::getByID', ['filter' => 'login']);
+$routes->post("/keuangan/getDanaAkad", '\App\Controllers\Api\Keuangan\DanaJaminanController::getDanaAkad', ['filter' => 'login']);
+$routes->post("/keuangan/saveDanaAkad", '\App\Controllers\Api\Keuangan\DanaJaminanController::saveDanaAkad', ['filter' => 'login']);
 
 //pembayaran
 $routes->post("/pembayaran/simpan", '\App\Controllers\Api\Keuangan\PembayaranController::save', ['filter' => 'login']);
@@ -579,33 +582,37 @@ $routes->group('api/keuangan', ['namespace' => 'App\Controllers\Api\Keuangan', '
     $routes->get('tagihan/meta', 'TagihanController::meta');
     $routes->get('pembayaran/meta', 'PembayaranController::meta');
     $routes->get('pencairan-bank/meta', 'BankKprDisbursementController::meta');
+    $routes->get('pencairan-akad/meta', 'PencairanAkadController::meta');
+    $routes->get('dana-jaminan/meta', 'DanaJaminanController::meta');
 });
 
 //pencairan akad (gabungan retensi + hasil akad)
-$routes->post("/keuangan/pencairan-akad/get", 'PencairanAkad::get');
-$routes->post("/keuangan/pencairan-akad/plan/save-retensi", 'PencairanAkad::saveRetensi');
-$routes->post("/keuangan/pencairan-akad/plan/save-tenor", 'PencairanAkad::saveTenor');
-$routes->post("/keuangan/pencairan-akad/pengajuan/store", 'PencairanAkad::storePengajuan');
-$routes->post("/keuangan/pencairan-akad/pencairan/store", 'PencairanAkad::cairkan');
-$routes->post("/keuangan/pencairan-akad/payment/list", 'PencairanAkad::listPayment');
-$routes->post("/keuangan/pencairan-akad/payment/void", 'PencairanAkad::voidPayment');
-$routes->post("/keuangan/pencairan-akad/void", 'PencairanAkad::void');
-$routes->get("/keuangan/pencairan-akad/history/(:num)", 'PencairanAkad::history/$1');
+$routes->group('keuangan', ['filter' => 'login'], function ($routes) {
+    $routes->post('pencairan-akad/get', '\App\Controllers\Api\Keuangan\PencairanAkadController::get');
+    $routes->post('pencairan-akad/plan/save-retensi', '\App\Controllers\Api\Keuangan\PencairanAkadController::saveRetensi');
+    $routes->post('pencairan-akad/plan/save-tenor', '\App\Controllers\Api\Keuangan\PencairanAkadController::saveTenor');
+    $routes->post('pencairan-akad/pengajuan/store', '\App\Controllers\Api\Keuangan\PencairanAkadController::storePengajuan');
+    $routes->post('pencairan-akad/pencairan/store', '\App\Controllers\Api\Keuangan\PencairanAkadController::cairkan');
+    $routes->post('pencairan-akad/payment/list', '\App\Controllers\Api\Keuangan\PencairanAkadController::listPayment');
+    $routes->post('pencairan-akad/payment/void', '\App\Controllers\Api\Keuangan\PencairanAkadController::voidPayment');
+    $routes->post('pencairan-akad/void', '\App\Controllers\Api\Keuangan\PencairanAkadController::void');
+    $routes->get('pencairan-akad/history/(:num)', '\App\Controllers\Api\Keuangan\PencairanAkadController::history/$1');
 
-$routes->post("/keuangan/pencairan-akad/batch/list", 'PencairanAkad::postBatchList');
-$routes->post("/keuangan/pencairan-akad/batch/eligible-kavling", 'PencairanAkad::postEligibleKavling');
-$routes->post("/keuangan/pencairan-akad/batch/pengajuan/store", 'PencairanAkad::postStoreBatchPengajuan');
-$routes->post("/keuangan/pencairan-akad/batch/detail", 'PencairanAkad::postBatchDetail');
-$routes->post("/keuangan/pencairan-akad/batch/pencairan/store", 'PencairanAkad::postCairkanBatch');
-$routes->post("/keuangan/pencairan-akad/batch/void", 'PencairanAkad::postVoidBatch');
-$routes->get("/keuangan/pencairan-akad/batch/history/(:num)", 'PencairanAkad::getBatchHistory/$1');
+    $routes->post('pencairan-akad/batch/list', '\App\Controllers\Api\Keuangan\PencairanAkadController::postBatchList');
+    $routes->post('pencairan-akad/batch/eligible-kavling', '\App\Controllers\Api\Keuangan\PencairanAkadController::postEligibleKavling');
+    $routes->post('pencairan-akad/batch/pengajuan/store', '\App\Controllers\Api\Keuangan\PencairanAkadController::postStoreBatchPengajuan');
+    $routes->post('pencairan-akad/batch/detail', '\App\Controllers\Api\Keuangan\PencairanAkadController::postBatchDetail');
+    $routes->post('pencairan-akad/batch/pencairan/store', '\App\Controllers\Api\Keuangan\PencairanAkadController::postCairkanBatch');
+    $routes->post('pencairan-akad/batch/void', '\App\Controllers\Api\Keuangan\PencairanAkadController::postVoidBatch');
+    $routes->get('pencairan-akad/batch/history/(:num)', '\App\Controllers\Api\Keuangan\PencairanAkadController::getBatchHistory/$1');
 
-$routes->get("/keuangan/hasil-akad/list", 'PencairanAkad::listHasilAkad');
-$routes->post("/keuangan/hasil-akad/list/ambil-grouped", 'PencairanAkad::getListGrouped');
-$routes->post("/keuangan/hasil-akad/list/detail", 'PencairanAkad::getListDetail');
-$routes->get("/keuangan/hasil-akad/export-template", 'PencairanAkad::exportTemplate');
-$routes->get("/keuangan/hasil-akad/import", 'PencairanAkad::importForm');
-$routes->post("/keuangan/hasil-akad/import", 'PencairanAkad::import');
+    $routes->get('hasil-akad/list', '\App\Controllers\Web\Keuangan\PencairanAkadController::listHasilAkad');
+    $routes->post('hasil-akad/list/ambil-grouped', '\App\Controllers\Api\Keuangan\PencairanAkadController::getListGrouped');
+    $routes->post('hasil-akad/list/detail', '\App\Controllers\Api\Keuangan\PencairanAkadController::getListDetail');
+    $routes->get('hasil-akad/export-template', '\App\Controllers\Web\Keuangan\PencairanAkadController::exportTemplate');
+    $routes->get('hasil-akad/import', '\App\Controllers\Web\Keuangan\PencairanAkadController::importForm');
+    $routes->post('hasil-akad/import', '\App\Controllers\Api\Keuangan\PencairanAkadController::import');
+});
 
 $routes->group('laporan', ['namespace' => 'App\Controllers\Web', 'filter' => 'login'], function ($routes) {
     $routes->get('cash-in', '\App\Controllers\Web\Keuangan\CashInReportController::index');
@@ -676,14 +683,14 @@ $routes->group('cashout', ['filter' => 'login', 'namespace' => 'App\Controllers\
 
 // DEPRECATED: Rute legacy untuk PencairanJaminan, dijadwalkan untuk dihapus saat refaktor Keuangan.
 // Seluruh fitur pencairan telah dialihkan ke rute /keuangan/pencairan-akad/*
-$routes->group('pencairan', ['filter' => 'login'], function ($routes) {
-    $routes->get('/', 'PencairanJaminan::index');
-    $routes->get('list/(:num)', 'PencairanJaminan::list/$1');
-    $routes->post('store', 'PencairanJaminan::store');
-    $routes->post('cairkan/(:num)', 'PencairanJaminan::cairkan/$1');
-    $routes->get('history/(:num)', 'PencairanJaminan::history/$1');
-    $routes->post('toggle/(:num)', 'PencairanJaminan::toggleStatus/$1');
-    $routes->get('download/(:num)', 'PencairanJaminan::download/$1');
+$routes->group('pencairan', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function ($routes) {
+    $routes->get('/', 'DanaJaminanController::index');
+    $routes->get('list/(:num)', 'DanaJaminanController::list/$1');
+    $routes->post('store', 'DanaJaminanController::store');
+    $routes->post('cairkan/(:num)', 'DanaJaminanController::cairkan/$1');
+    $routes->get('history/(:num)', 'DanaJaminanController::history/$1');
+    $routes->post('toggle/(:num)', 'DanaJaminanController::toggleStatus/$1');
+    $routes->get('download/(:num)', 'DanaJaminanController::download/$1');
 });
 
 

@@ -474,6 +474,105 @@ class DanaJaminanService
         return $this->response(false, 'Gunakan form pencairan agar nominal cair dan ledger tercatat lengkap');
     }
 
+    public function getListDajam(): array
+    {
+        return $this->db->table('list_dajam')
+            ->where('deleted_at', null)
+            ->orderBy('id', 'ASC')
+            ->get()
+            ->getResult();
+    }
+
+    public function getMetaPayload(): array
+    {
+        return [
+            'list_dajam' => $this->getListDajam(),
+            'statuses' => ['draft', 'diajukan', 'cair'],
+        ];
+    }
+
+    public function getDownloadFile(int $idPengajuan): array
+    {
+        if ($idPengajuan <= 0) {
+            return $this->response(false, 'Lampiran tidak ditemukan');
+        }
+
+        $row = $this->db->table('riwayat_pencairan_jaminan')
+            ->where('id', $idPengajuan)
+            ->get()
+            ->getRowArray();
+
+        if (! $row) {
+            return $this->response(false, 'Lampiran tidak ditemukan');
+        }
+
+        return $this->response(true, 'Lampiran ditemukan', [
+            'id' => $idPengajuan,
+            'file_path' => $row['surat_path'] ?? ($row['file_path'] ?? null),
+            'access_url' => $this->fileAccessService->accessUrl('pencairan_jaminan', $idPengajuan),
+            'download_url' => $this->fileAccessService->accessUrl('pencairan_jaminan', $idPengajuan, true),
+            'signed_download_url' => $this->fileAccessService->signedUrl('pencairan_jaminan', $idPengajuan, 3600, null, true),
+        ]);
+    }
+
+    public function getDanaAkadDetail(int $idMkdt, int $idKavling = 0): array
+    {
+        if ($idMkdt <= 0) {
+            return $this->response(false, 'Data MKDT tidak valid', [
+                'id_mkdt' => $idMkdt,
+                'id_kavling' => $idKavling,
+                'mkdt' => null,
+                'konsumen' => null,
+                'list_dajam' => [],
+                'dana_akad' => [],
+                'list_pengajuan' => [],
+            ]);
+        }
+
+        $mkdtRow = $this->db->table('mkdt')
+            ->select('id_mkdt, id_kavling, id_konsumen, harga_kpr_acc, dajam_selesai, status_mkdt')
+            ->where('id_mkdt', $idMkdt)
+            ->get()
+            ->getRow();
+
+        if ($idKavling <= 0 && $mkdtRow) {
+            $idKavling = (int) ($mkdtRow->id_kavling ?? 0);
+            if ($idKavling <= 0) {
+                $kavRow = $this->db->table('kavling')
+                    ->select('id_kavling')
+                    ->where('id_mkdt', $idMkdt)
+                    ->get()
+                    ->getRow();
+                $idKavling = (int) ($kavRow->id_kavling ?? 0);
+            }
+        }
+
+        $konsumenRow = null;
+        if ($mkdtRow && ! empty($mkdtRow->id_konsumen)) {
+            $konsumenRow = $this->db->table('konsumen')
+                ->where('id_konsumen', (int) $mkdtRow->id_konsumen)
+                ->get()
+                ->getRow();
+        }
+
+        $danaAkadRows = $idKavling > 0
+            ? $this->db->table('dana_akad')->where('id_kavling', $idKavling)->get()->getResult()
+            : [];
+
+        $listDajam = $idKavling > 0 ? $this->getDanaJaminanRows($idKavling) : $this->getListDajam();
+        $listPengajuan = $idKavling > 0 ? $this->listPengajuan($idKavling)['data'] : [];
+
+        return $this->response(true, 'Data dana akad berhasil dimuat', [
+            'id_mkdt' => $idMkdt,
+            'id_kavling' => $idKavling,
+            'mkdt' => $mkdtRow,
+            'konsumen' => $konsumenRow,
+            'list_dajam' => $listDajam,
+            'dana_akad' => $danaAkadRows,
+            'list_pengajuan' => $listPengajuan,
+        ]);
+    }
+
     protected function getDanaJaminanRows(int $idKavling): array
     {
         return $this->db->table('list_dajam')

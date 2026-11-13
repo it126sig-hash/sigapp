@@ -1,5 +1,5 @@
 {
-    "scanned_at": "2026-11-13T20:13:21+07:00",
+    "scanned_at": "2026-11-13T20:31:35+07:00",
     "total_modules": 17,
     "modules": {
         "Proyek": {
@@ -146,7 +146,7 @@
                 {
                     "relative_path": "app/Services/Proyek/ProyekService.php",
                     "filename": "ProyekService.php",
-                    "line_count": 696,
+                    "line_count": 700,
                     "public_methods": [
                         "getDropdownList()",
                         "getAll(array $params = [])",
@@ -226,7 +226,7 @@
                 {
                     "relative_path": "app/Repositories/Proyek/ProyekRepository.php",
                     "filename": "ProyekRepository.php",
-                    "line_count": 260,
+                    "line_count": 261,
                     "public_methods": [
                         "getAll(array $params = [])",
                         "getById(int $idProyek)",
@@ -3033,11 +3033,6 @@
                     "new ClusterModel()",
                     "new ProyekModel()"
                 ],
-                "app/Controllers/DanaAkad.php": [
-                    "db_connect()",
-                    "$this->db->table()",
-                    "new ProfilePerusahaanModel()"
-                ],
                 "app/Controllers/CashOut.php": [
                     "db_connect()",
                     "$this->db->table()"
@@ -3047,9 +3042,6 @@
                     "$this->db->table()",
                     "new ProyekModel()",
                     "new ChecklistSubItemModel()"
-                ],
-                "app/Controllers/PencairanJaminan.php": [
-                    "new RiwayatPencairanJaminanModel()"
                 ],
                 "app/Controllers/Direksi.php": [
                     "db_connect()",
@@ -3211,6 +3203,64 @@
                     "violations": []
                 },
                 {
+                    "relative_path": "app/Controllers/Web/Keuangan/PencairanAkadController.php",
+                    "filename": "PencairanAkadController.php",
+                    "line_count": 60,
+                    "public_methods": [
+                        "listHasilAkad()",
+                        "importForm()",
+                        "exportTemplate()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Keuangan/PencairanAkadController.php",
+                    "filename": "PencairanAkadController.php",
+                    "line_count": 332,
+                    "public_methods": [
+                        "meta()",
+                        "get()",
+                        "saveRetensi()",
+                        "saveTenor()",
+                        "storePengajuan()",
+                        "cairkan()",
+                        "listPayment()",
+                        "voidPayment()",
+                        "void()",
+                        "history($id_kavling = null)",
+                        "getListGrouped()",
+                        "getListDetail()",
+                        "import()",
+                        "postBatchList()",
+                        "postEligibleKavling()",
+                        "postStoreBatchPengajuan()",
+                        "postBatchDetail()",
+                        "postCairkanBatch()",
+                        "postVoidBatch()",
+                        "getBatchHistory($id = null)"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Keuangan/DanaJaminanController.php",
+                    "filename": "DanaJaminanController.php",
+                    "line_count": 172,
+                    "public_methods": [
+                        "meta()",
+                        "index()",
+                        "list($id_kavling = null)",
+                        "store()",
+                        "cairkan($id_pengajuan = null)",
+                        "history($id_kavling = null)",
+                        "toggleStatus($id_pengajuan = null)",
+                        "download($id_pengajuan = null)",
+                        "getByID()",
+                        "getDanaAkad()",
+                        "saveDanaAkad()"
+                    ],
+                    "violations": []
+                },
+                {
                     "relative_path": "app/Controllers/Pajak.php",
                     "filename": "Pajak.php",
                     "line_count": 589,
@@ -3226,19 +3276,6 @@
                         "$this->db->table()",
                         "new ClusterModel()",
                         "new ProyekModel()"
-                    ]
-                },
-                {
-                    "relative_path": "app/Controllers/DanaAkad.php",
-                    "filename": "DanaAkad.php",
-                    "line_count": 92,
-                    "public_methods": [
-                        "getByID()"
-                    ],
-                    "violations": [
-                        "db_connect()",
-                        "$this->db->table()",
-                        "new ProfilePerusahaanModel()"
                     ]
                 },
                 {
@@ -3314,36 +3351,6 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/PencairanAkad.php",
-                    "filename": "PencairanAkad.php",
-                    "line_count": 247,
-                    "public_methods": [
-                        "get()",
-                        "saveRetensi()",
-                        "saveTenor()",
-                        "storePengajuan()",
-                        "cairkan()",
-                        "listPayment()",
-                        "voidPayment()",
-                        "void()",
-                        "history($id_kavling)",
-                        "listHasilAkad()",
-                        "getListGrouped()",
-                        "getListDetail()",
-                        "exportTemplate()",
-                        "importForm()",
-                        "import()",
-                        "postBatchList()",
-                        "postEligibleKavling()",
-                        "postStoreBatchPengajuan()",
-                        "postBatchDetail()",
-                        "postCairkanBatch()",
-                        "postVoidBatch()",
-                        "getBatchHistory($id)"
-                    ],
-                    "violations": []
-                },
-                {
                     "relative_path": "app/Controllers/Api/Keuangan/BookingPaymentController.php",
                     "filename": "BookingPaymentController.php",
                     "line_count": 67,
@@ -3391,23 +3398,6 @@
                         "detail()"
                     ],
                     "violations": []
-                },
-                {
-                    "relative_path": "app/Controllers/PencairanJaminan.php",
-                    "filename": "PencairanJaminan.php",
-                    "line_count": 75,
-                    "public_methods": [
-                        "index()",
-                        "list($id_kavling)",
-                        "store()",
-                        "toggleStatus($id)",
-                        "cairkan($id)",
-                        "history($id_kavling)",
-                        "download($id)"
-                    ],
-                    "violations": [
-                        "new RiwayatPencairanJaminanModel()"
-                    ]
                 },
                 {
                     "relative_path": "app/Controllers/Direksi.php",
@@ -3578,7 +3568,7 @@
                 {
                     "relative_path": "app/Services/Keuangan/PencairanAkadService.php",
                     "filename": "PencairanAkadService.php",
-                    "line_count": 2127,
+                    "line_count": 2315,
                     "public_methods": [
                         "getData(int $idMkdt, int $idKavling)",
                         "saveRetensi(array $post, int $actorId)",
@@ -3592,14 +3582,18 @@
                         "templateColumns()",
                         "importTanggalCair(string $csvPath, $lampiranFile, int $actorId)",
                         "getListGrouped($request)",
+                        "getListGroupedRaw($request)",
                         "getListDetail(int $idMkdt)",
                         "getHistory(int $idKavling)",
                         "findLockedMismatch(array $row, object $item)",
+                        "getListDajam()",
+                        "getMetaPayload()",
                         "generateBatchNumber()",
                         "syncBatchStatus(?int $idBatch, int $actorId)",
                         "getEligibleBatchKavling(array $idKavlings = [], int $idProyek = 0)",
                         "storeBatchPengajuan(array $data, $lampiranFile, int $actorId)",
                         "getBatchList($request)",
+                        "getBatchListRaw($request)",
                         "getBatchDetail(int $idBatch)",
                         "cairkanBatch(array $post, int $actorId)",
                         "voidBatch(int $idBatch, string $reason, int $actorId)",
@@ -3681,7 +3675,7 @@
                 {
                     "relative_path": "app/Services/Keuangan/DanaJaminanService.php",
                     "filename": "DanaJaminanService.php",
-                    "line_count": 640,
+                    "line_count": 739,
                     "public_methods": [
                         "getData(int $idMkdt, int $idKavling)",
                         "saveDanaAkad($request, int $actorId)",
@@ -3689,7 +3683,11 @@
                         "storePengajuan($request, int $actorId)",
                         "cairkanPengajuan(int $idPengajuan, $request, int $actorId)",
                         "getHistory(int $idKavling)",
-                        "rejectLegacyToggle()"
+                        "rejectLegacyToggle()",
+                        "getListDajam()",
+                        "getMetaPayload()",
+                        "getDownloadFile(int $idPengajuan)",
+                        "getDanaAkadDetail(int $idMkdt, int $idKavling = 0)"
                     ]
                 }
             ],
@@ -3995,6 +3993,9 @@
                 "app/Controllers/Tagihan.php",
                 "app/Controllers/Pembayaran.php",
                 "app/Controllers/PrintController.php",
+                "app/Controllers/PencairanAkad.php",
+                "app/Controllers/PencairanJaminan.php",
+                "app/Controllers/DanaAkad.php",
                 "app/Controllers/ListBank.php",
                 "app/Controllers/Api/BankController.php",
                 "app/Controllers/Api/BookingPaymentController.php",
@@ -4399,6 +4400,278 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
+                    "http_method": "GET",
+                    "uri": "/keuangan/hasil-akad/list",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\PencairanAkadController::listHasilAkad",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/keuangan/hasil-akad/export-template",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\PencairanAkadController::exportTemplate",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/keuangan/hasil-akad/import",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\PencairanAkadController::importForm",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/keuangan/pencairan-akad/meta",
+                    "type": "Explicit",
+                    "handler": "PencairanAkadController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/get",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::get",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/plan/save-retensi",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::saveRetensi",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/plan/save-tenor",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::saveTenor",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/pengajuan/store",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::storePengajuan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/pencairan/store",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::cairkan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/payment/list",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::listPayment",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/payment/void",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::voidPayment",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/void",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::void",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/keuangan/pencairan-akad/history/(:num)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::history/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/batch/list",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::postBatchList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/batch/eligible-kavling",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::postEligibleKavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/batch/pengajuan/store",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::postStoreBatchPengajuan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/batch/detail",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::postBatchDetail",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/batch/pencairan/store",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::postCairkanBatch",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-akad/batch/void",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::postVoidBatch",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/keuangan/pencairan-akad/batch/history/(:num)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::getBatchHistory/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/hasil-akad/list/ambil-grouped",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::getListGrouped",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/hasil-akad/list/detail",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::getListDetail",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/hasil-akad/import",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PencairanAkadController::import",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/danaakad/getbyid",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DanaJaminanController::getByID",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/getDanaAkad",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DanaJaminanController::getDanaAkad",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/saveDanaAkad",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\DanaJaminanController::saveDanaAkad",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/keuangan/dana-jaminan/meta",
+                    "type": "Explicit",
+                    "handler": "DanaJaminanController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/pencairan",
+                    "type": "Explicit",
+                    "handler": "DanaJaminanController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/pencairan/list/(:num)",
+                    "type": "Explicit",
+                    "handler": "DanaJaminanController::list/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/pencairan/store",
+                    "type": "Explicit",
+                    "handler": "DanaJaminanController::store",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/pencairan/cairkan/(:num)",
+                    "type": "Explicit",
+                    "handler": "DanaJaminanController::cairkan/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/pencairan/history/(:num)",
+                    "type": "Explicit",
+                    "handler": "DanaJaminanController::history/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/pencairan/toggle/(:num)",
+                    "type": "Explicit",
+                    "handler": "DanaJaminanController::toggleStatus/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/pencairan/download/(:num)",
+                    "type": "Explicit",
+                    "handler": "DanaJaminanController::download/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
                     "http_method": "POST",
                     "uri": "/keuangan/cashout/ambil",
                     "type": "Explicit",
@@ -4608,182 +4881,6 @@
                 },
                 {
                     "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/get",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::get",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/plan/save-retensi",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::saveRetensi",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/plan/save-tenor",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::saveTenor",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/pengajuan/store",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::storePengajuan",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/pencairan/store",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::cairkan",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/payment/list",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::listPayment",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/payment/void",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::voidPayment",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/void",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::void",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/keuangan/pencairan-akad/history/(:num)",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::history/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/batch/list",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::postBatchList",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/batch/eligible-kavling",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::postEligibleKavling",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/batch/pengajuan/store",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::postStoreBatchPengajuan",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/batch/detail",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::postBatchDetail",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/batch/pencairan/store",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::postCairkanBatch",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-akad/batch/void",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::postVoidBatch",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/keuangan/pencairan-akad/batch/history/(:num)",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::getBatchHistory/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/keuangan/hasil-akad/list",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::listHasilAkad",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/hasil-akad/list/ambil-grouped",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::getListGrouped",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/hasil-akad/list/detail",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::getListDetail",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/keuangan/hasil-akad/export-template",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::exportTemplate",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/keuangan/hasil-akad/import",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::importForm",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/hasil-akad/import",
-                    "type": "Explicit",
-                    "handler": "PencairanAkad::import",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
                     "uri": "/api/tagihan/booking/verifikasi",
                     "type": "Explicit",
                     "handler": "BookingPaymentController::verify",
@@ -4853,62 +4950,6 @@
                     "handler": "HasilAkadReportController::detail",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/pencairan",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/pencairan/list/(:num)",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::list/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/pencairan/store",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::store",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/pencairan/cairkan/(:num)",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::cairkan/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/pencairan/history/(:num)",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::history/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/pencairan/toggle/(:num)",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::toggleStatus/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/pencairan/download/(:num)",
-                    "type": "Explicit",
-                    "handler": "PencairanJaminan::download/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
                 },
                 {
                     "http_method": "ANY",
@@ -5208,14 +5249,6 @@
                 },
                 {
                     "http_method": "ANY",
-                    "uri": "/dana_akad/getbyid",
-                    "type": "AutoRoute",
-                    "handler": "DanaAkad::getByID",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
                     "uri": "/direksi/get_data_by_id",
                     "type": "AutoRoute",
                     "handler": "Direksi::get_data_by_id",
@@ -5426,14 +5459,18 @@
                     "templateColumns()",
                     "importTanggalCair(string $csvPath, $lampiranFile, int $actorId)",
                     "getListGrouped($request)",
+                    "getListGroupedRaw($request)",
                     "getListDetail(int $idMkdt)",
                     "getHistory(int $idKavling)",
                     "findLockedMismatch(array $row, object $item)",
+                    "getListDajam()",
+                    "getMetaPayload()",
                     "generateBatchNumber()",
                     "syncBatchStatus(?int $idBatch, int $actorId)",
                     "getEligibleBatchKavling(array $idKavlings = [], int $idProyek = 0)",
                     "storeBatchPengajuan(array $data, $lampiranFile, int $actorId)",
                     "getBatchList($request)",
+                    "getBatchListRaw($request)",
                     "getBatchDetail(int $idBatch)",
                     "cairkanBatch(array $post, int $actorId)",
                     "voidBatch(int $idBatch, string $reason, int $actorId)",
@@ -5488,7 +5525,11 @@
                     "storePengajuan($request, int $actorId)",
                     "cairkanPengajuan(int $idPengajuan, $request, int $actorId)",
                     "getHistory(int $idKavling)",
-                    "rejectLegacyToggle()"
+                    "rejectLegacyToggle()",
+                    "getListDajam()",
+                    "getMetaPayload()",
+                    "getDownloadFile(int $idPengajuan)",
+                    "getDanaAkadDetail(int $idMkdt, int $idKavling = 0)"
                 ]
             },
             "doc_path": "docs/modules/Keuangan/MODULE.md"
