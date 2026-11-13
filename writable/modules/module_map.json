@@ -1,5 +1,5 @@
 {
-    "scanned_at": "2026-11-13T02:59:31+07:00",
+    "scanned_at": "2026-11-13T19:40:53+07:00",
     "total_modules": 17,
     "modules": {
         "Proyek": {
@@ -629,7 +629,7 @@
                 {
                     "relative_path": "app/Controllers/Api/Siteplan/SiteplanController.php",
                     "filename": "SiteplanController.php",
-                    "line_count": 543,
+                    "line_count": 550,
                     "public_methods": [
                         "meta()",
                         "kavling()",
@@ -656,7 +656,7 @@
                 {
                     "relative_path": "app/Controllers/Api/Siteplan/TargetController.php",
                     "filename": "TargetController.php",
-                    "line_count": 114,
+                    "line_count": 122,
                     "public_methods": [
                         "list()",
                         "detail()",
@@ -668,7 +668,7 @@
                 {
                     "relative_path": "app/Controllers/Api/Siteplan/KalendarController.php",
                     "filename": "KalendarController.php",
-                    "line_count": 124,
+                    "line_count": 132,
                     "public_methods": [
                         "meta()",
                         "getEvents()"
@@ -1407,49 +1407,25 @@
         "MKDT": {
             "name": "MKDT",
             "description": "Manajemen Konsumen dan Transaksi: siklus pemesanan, verifikasi data konsumen, dan posisi kavling.",
-            "status": "MAPPED",
-            "readiness_score": 60,
+            "status": "REFACTORED",
+            "readiness_score": 100,
             "readiness_checklist": {
-                "has_service": false,
-                "has_repository": false,
-                "has_web_api_split": false,
-                "has_explicit_routes": false,
-                "zero_controller_violations": false,
+                "has_service": true,
+                "has_repository": true,
+                "has_web_api_split": true,
+                "has_explicit_routes": true,
+                "zero_controller_violations": true,
                 "has_documentation": true
             },
-            "controller_violations": {
-                "app/Controllers/Mkdt.php": [
-                    "db_connect()",
-                    "$this->db->table()",
-                    "new KeuanganModel()",
-                    "new MkdtModel()",
-                    "new KavlingModel()",
-                    "new KonsumenModel()",
-                    "new LogPembayaranModel()"
-                ],
-                "app/Controllers/PosisiKonsumen.php": [
-                    "db_connect()",
-                    "$this->db->table()",
-                    "new KeuanganModel()",
-                    "new MkdtModel()",
-                    "new KavlingModel()",
-                    "new KonsumenModel()",
-                    "new LogPembayaranModel()",
-                    "new ProyekModel()",
-                    "new ChecklistSubItemModel()"
-                ],
-                "app/Controllers/Promo.php": [
-                    "db_connect()",
-                    "$this->db->table()",
-                    "new ClusterModel()",
-                    "new ProyekModel()"
-                ]
-            },
+            "controller_violations": [],
             "owner_tables": [
                 "mkdt",
                 "konsumen",
                 "mkdt_kavling_history",
-                "promo"
+                "promo",
+                "riwayat_export_poskon",
+                "si",
+                "list_si"
             ],
             "shared_tables": [
                 "kavling",
@@ -1458,66 +1434,32 @@
             ],
             "controllers": [
                 {
-                    "relative_path": "app/Controllers/Mkdt.php",
-                    "filename": "Mkdt.php",
-                    "line_count": 1969,
+                    "relative_path": "app/Controllers/Web/Mkdt/PosisiKonsumenController.php",
+                    "filename": "PosisiKonsumenController.php",
+                    "line_count": 38,
                     "public_methods": [
-                        "get_data_by_id($st = null)",
-                        "simpan_batal()",
-                        "batal_mkdt()",
-                        "save()",
-                        "set_harga()",
-                        "list_stock()",
-                        "getListStock()",
-                        "if_where($var, $column, $condition, $query)",
-                        "format_tgl($tgl)",
-                        "is_active($id, $texts, $textf)",
-                        "getsi()",
-                        "saveSI()",
-                        "export_xlsx()"
+                        "index($status = null)"
                     ],
-                    "violations": [
-                        "db_connect()",
-                        "$this->db->table()",
-                        "new KeuanganModel()",
-                        "new MkdtModel()",
-                        "new KavlingModel()",
-                        "new KonsumenModel()",
-                        "new LogPembayaranModel()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/PosisiKonsumen.php",
-                    "filename": "PosisiKonsumen.php",
-                    "line_count": 304,
+                    "relative_path": "app/Controllers/Api/Mkdt/PosisiKonsumenController.php",
+                    "filename": "PosisiKonsumenController.php",
+                    "line_count": 145,
                     "public_methods": [
-                        "index($status = null)",
+                        "meta()",
                         "getDataTables($status = null)",
                         "getDataTablesAkad()",
                         "getDataTablesBatal()",
-                        "format_tgl($tgl)",
-                        "is_active($id, $texts, $textf)",
-                        "exportPoskon($tipe, $status)",
-                        "exportPoskonPdf($status)",
-                        "exportPoskonXlsx($status)",
-                        "getRiwayatExport($status = \"Aktif\")"
+                        "exportPoskon($tipe = 'xlsx', $status = 'aktif')",
+                        "getRiwayatExport($status = 'Aktif')"
                     ],
-                    "violations": [
-                        "db_connect()",
-                        "$this->db->table()",
-                        "new KeuanganModel()",
-                        "new MkdtModel()",
-                        "new KavlingModel()",
-                        "new KonsumenModel()",
-                        "new LogPembayaranModel()",
-                        "new ProyekModel()",
-                        "new ChecklistSubItemModel()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/NupController.php",
+                    "relative_path": "app/Controllers/Api/Mkdt/NupController.php",
                     "filename": "NupController.php",
-                    "line_count": 194,
+                    "line_count": 195,
                     "public_methods": [
                         "list()",
                         "detail()",
@@ -1529,30 +1471,31 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Promo.php",
-                    "filename": "Promo.php",
-                    "line_count": 351,
+                    "relative_path": "app/Controllers/Web/Mkdt/PromoController.php",
+                    "filename": "PromoController.php",
+                    "line_count": 33,
                     "public_methods": [
-                        "index()",
-                        "getDataTable()",
-                        "getAll()",
-                        "getOne()",
-                        "add()",
-                        "edit()",
-                        "remove()",
-                        "if_where($var, $column, $condition, $query)",
-                        "is_active($id, $texts, $textf)",
-                        "format_tgl($tgl)"
+                        "index()"
                     ],
-                    "violations": [
-                        "db_connect()",
-                        "$this->db->table()",
-                        "new ClusterModel()",
-                        "new ProyekModel()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Web/BookingAkadReportController.php",
+                    "relative_path": "app/Controllers/Api/Mkdt/PromoController.php",
+                    "filename": "PromoController.php",
+                    "line_count": 206,
+                    "public_methods": [
+                        "meta()",
+                        "getDataTable()",
+                        "getAll()",
+                        "getOne($id = null)",
+                        "add()",
+                        "edit($id = null)",
+                        "remove($id = null)"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Web/Mkdt/BookingAkadReportController.php",
                     "filename": "BookingAkadReportController.php",
                     "line_count": 49,
                     "public_methods": [
@@ -1561,21 +1504,44 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/BookingAkadReportController.php",
+                    "relative_path": "app/Controllers/Api/Mkdt/BookingAkadReportController.php",
                     "filename": "BookingAkadReportController.php",
-                    "line_count": 80,
+                    "line_count": 81,
                     "public_methods": [
                         "summary()",
                         "detail()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Web/Mkdt/StockController.php",
+                    "filename": "StockController.php",
+                    "line_count": 27,
+                    "public_methods": [
+                        "index()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Mkdt/MkdtOperationController.php",
+                    "filename": "MkdtOperationController.php",
+                    "line_count": 219,
+                    "public_methods": [
+                        "meta()",
+                        "getListStock()",
+                        "getSi()",
+                        "saveSi()",
+                        "getBatal()",
+                        "simpanBatal()"
                     ],
                     "violations": []
                 }
             ],
             "services": [
                 {
-                    "relative_path": "app/Services/MkdtHistoryService.php",
+                    "relative_path": "app/Services/Mkdt/MkdtHistoryService.php",
                     "filename": "MkdtHistoryService.php",
-                    "line_count": 314,
+                    "line_count": 316,
                     "public_methods": [
                         "actionLabel(string $action)",
                         "log(int $idKavling, ?int $idMkdt, string $action, string $summary, ?array $oldData = null, ?array $newData = null, ?int $actorId = null, array $metadata = [])",
@@ -1591,7 +1557,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/MkdtSettlementService.php",
+                    "relative_path": "app/Services/Mkdt/MkdtSettlementService.php",
                     "filename": "MkdtSettlementService.php",
                     "line_count": 48,
                     "public_methods": [
@@ -1599,7 +1565,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/MkdtFinancialBreakdownService.php",
+                    "relative_path": "app/Services/Mkdt/MkdtFinancialBreakdownService.php",
                     "filename": "MkdtFinancialBreakdownService.php",
                     "line_count": 254,
                     "public_methods": [
@@ -1612,7 +1578,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/MkdtFinancialReconciliationService.php",
+                    "relative_path": "app/Services/Mkdt/MkdtFinancialReconciliationService.php",
                     "filename": "MkdtFinancialReconciliationService.php",
                     "line_count": 275,
                     "public_methods": [
@@ -1621,10 +1587,15 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/PosisiKonsumenService.php",
+                    "relative_path": "app/Services/Mkdt/PosisiKonsumenService.php",
                     "filename": "PosisiKonsumenService.php",
-                    "line_count": 452,
+                    "line_count": 822,
                     "public_methods": [
+                        "getIndexData(?string $status, int $userId, array $userGroups)",
+                        "userHasProjectAccess(?object $proyek, int $userId)",
+                        "getRawDataTables(array $params, ?string $status = null)",
+                        "getRawDataTablesBatal(array $params)",
+                        "exportPoskon(string $tipe, string $status, array $filters, int $userId)",
                         "getDataTable($request, $status = null)",
                         "getDataTablesBatal($request)",
                         "getRiwayatExport($id_proyek, $status)",
@@ -1634,7 +1605,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/KonsumenService.php",
+                    "relative_path": "app/Services/Mkdt/KonsumenService.php",
                     "filename": "KonsumenService.php",
                     "line_count": 49,
                     "public_methods": [
@@ -1644,9 +1615,9 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/NupService.php",
+                    "relative_path": "app/Services/Mkdt/NupService.php",
                     "filename": "NupService.php",
-                    "line_count": 532,
+                    "line_count": 536,
                     "public_methods": [
                         "getListByProyek(int $idProyek, ?string $search = null)",
                         "getDetail(int $idMkdt)",
@@ -1657,7 +1628,24 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/BookingAkadReportService.php",
+                    "relative_path": "app/Services/Mkdt/PromoService.php",
+                    "filename": "PromoService.php",
+                    "line_count": 492,
+                    "public_methods": [
+                        "getIndexData()",
+                        "getDataTables(array $params, bool $raw = false)",
+                        "getAll(?int $idProyek = null, string $search = '', bool $raw = false)",
+                        "getOne(int $id)",
+                        "create(array $input, int $actorId)",
+                        "update(int $id, array $input, int $actorId)",
+                        "deactivate(int $id, int $actorId)",
+                        "formatDate(?string $tgl)",
+                        "statusBadge($id, string $activeText, string $inactiveText)",
+                        "cleanNumeric(mixed $value)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Services/Mkdt/BookingAkadReportService.php",
                     "filename": "BookingAkadReportService.php",
                     "line_count": 755,
                     "public_methods": [
@@ -1671,11 +1659,41 @@
                         "resolveCatatanMkdt(array $row)",
                         "formatDate(?string $date)"
                     ]
+                },
+                {
+                    "relative_path": "app/Services/Mkdt/StockService.php",
+                    "filename": "StockService.php",
+                    "line_count": 174,
+                    "public_methods": [
+                        "getIndexData()",
+                        "getListStock(array $params, bool $raw = false)",
+                        "formatTanggal(?string $tgl)",
+                        "formatDateTime(?string $datetime)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Services/Mkdt/StandingInstructionService.php",
+                    "filename": "StandingInstructionService.php",
+                    "line_count": 190,
+                    "public_methods": [
+                        "getByKavling(int $idKavling)",
+                        "save(int $idKavling, array $items, array $uploadedFiles, int $actorId)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Services/Mkdt/BatalBookingService.php",
+                    "filename": "BatalBookingService.php",
+                    "line_count": 270,
+                    "public_methods": [
+                        "cleanNumeric(mixed $value)",
+                        "getDetail(int $idMkdt)",
+                        "cancelBooking(array $input, ?UploadedFile $suratBatalFile, int $actorId, array $userGroupIds)"
+                    ]
                 }
             ],
             "repositories": [
                 {
-                    "relative_path": "app/Repositories/MkdtHistoryRepository.php",
+                    "relative_path": "app/Repositories/Mkdt/MkdtHistoryRepository.php",
                     "filename": "MkdtHistoryRepository.php",
                     "line_count": 55,
                     "public_methods": [
@@ -1686,18 +1704,27 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/PosisiKonsumenRepository.php",
+                    "relative_path": "app/Repositories/Mkdt/PosisiKonsumenRepository.php",
                     "filename": "PosisiKonsumenRepository.php",
-                    "line_count": 199,
+                    "line_count": 576,
                     "public_methods": [
                         "getBaseQuery($status = \"Booking\")",
                         "getQueryBatal()",
                         "getRiwayatExport($id_proyek, $status)",
-                        "insertRiwayatExport($data)"
+                        "insertRiwayatExport($data)",
+                        "getFirstProyek()",
+                        "getPphList()",
+                        "getPpnList()",
+                        "getLiKeu()",
+                        "getConfigShapeMap()",
+                        "getChecklistSubItemsWithGroup()",
+                        "getHakAksesByUser(int $userId, ?string $namaHak = null)",
+                        "getRawDataTables(array $params, ?string $status = null)",
+                        "getRawDataTablesBatal(array $params)"
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/KonsumenRepository.php",
+                    "relative_path": "app/Repositories/Mkdt/KonsumenRepository.php",
                     "filename": "KonsumenRepository.php",
                     "line_count": 60,
                     "public_methods": [
@@ -1705,7 +1732,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/NupRepository.php",
+                    "relative_path": "app/Repositories/Mkdt/NupRepository.php",
                     "filename": "NupRepository.php",
                     "line_count": 412,
                     "public_methods": [
@@ -1722,7 +1749,21 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/BookingAkadReportRepository.php",
+                    "relative_path": "app/Repositories/Mkdt/PromoRepository.php",
+                    "filename": "PromoRepository.php",
+                    "line_count": 201,
+                    "public_methods": [
+                        "getProyekList()",
+                        "getDataTables(array $params)",
+                        "getAll(?int $idProyek = null, string $search = '')",
+                        "getById(int $id)",
+                        "insert(array $fields)",
+                        "updateById(int $id, array $fields)",
+                        "deactivate(int $id, int $actorId, string $timestamp)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Mkdt/BookingAkadReportRepository.php",
                     "filename": "BookingAkadReportRepository.php",
                     "line_count": 659,
                     "public_methods": [
@@ -1734,6 +1775,39 @@
                         "getMonthlySummaryTotals(int $idProyek, array $years)",
                         "getSummary(int $idProyek, int $year)",
                         "getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable = [])"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Mkdt/StockRepository.php",
+                    "filename": "StockRepository.php",
+                    "line_count": 162,
+                    "public_methods": [
+                        "getStockListDataTables(array $params)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Mkdt/StandingInstructionRepository.php",
+                    "filename": "StandingInstructionRepository.php",
+                    "line_count": 100,
+                    "public_methods": [
+                        "getByKavling(int $idKavling)",
+                        "getSiListIdBySiId(int $idSi)",
+                        "getListSiNameById(int $idListSi)",
+                        "getKavlingMkdtId(int $idKavling)",
+                        "insertSi(array $data)",
+                        "updateSi(int $idSi, array $data)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Mkdt/BatalBookingRepository.php",
+                    "filename": "BatalBookingRepository.php",
+                    "line_count": 88,
+                    "public_methods": [
+                        "getMkdtDetailForBatal(int $idMkdt)",
+                        "getMkdtRawById(int $idMkdt)",
+                        "getPembayaranLogsByMkdt(int $idMkdt)",
+                        "getProyekIdByKavling(int $idKavling)",
+                        "updateMkdtBatal(int $idMkdt, array $data)"
                     ]
                 }
             ],
@@ -1757,7 +1831,27 @@
                     "public_methods": []
                 }
             ],
-            "shims": [],
+            "shims": [
+                "app/Controllers/Mkdt.php",
+                "app/Controllers/PosisiKonsumen.php",
+                "app/Controllers/Promo.php",
+                "app/Controllers/Api/NupController.php",
+                "app/Controllers/Web/BookingAkadReportController.php",
+                "app/Controllers/Api/BookingAkadReportController.php",
+                "app/Services/MkdtHistoryService.php",
+                "app/Services/MkdtSettlementService.php",
+                "app/Services/MkdtFinancialBreakdownService.php",
+                "app/Services/MkdtFinancialReconciliationService.php",
+                "app/Services/PosisiKonsumenService.php",
+                "app/Services/KonsumenService.php",
+                "app/Services/NupService.php",
+                "app/Services/BookingAkadReportService.php",
+                "app/Repositories/MkdtHistoryRepository.php",
+                "app/Repositories/PosisiKonsumenRepository.php",
+                "app/Repositories/KonsumenRepository.php",
+                "app/Repositories/NupRepository.php",
+                "app/Repositories/BookingAkadReportRepository.php"
+            ],
             "views": [
                 {
                     "folder": "app/Views/kavling",
@@ -1801,75 +1895,67 @@
             "routes": [
                 {
                     "http_method": "GET",
-                    "uri": "/list-batal",
-                    "type": "Explicit",
-                    "handler": "Mkdt::list_batal",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/list-stock",
-                    "type": "Explicit",
-                    "handler": "Mkdt::list_stock",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
                     "uri": "/list-kavling",
                     "type": "Explicit",
-                    "handler": "PosisiKonsumen::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/list-kavling/ambil",
-                    "type": "Explicit",
-                    "handler": "PosisiKonsumen::getDataTables",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Web\\Mkdt\\PosisiKonsumenController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
                     "uri": "/list-kavling/(:segment)",
                     "type": "Explicit",
-                    "handler": "PosisiKonsumen::index/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Web\\Mkdt\\PosisiKonsumenController::index/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/list-kavling/ambil",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Mkdt\\PosisiKonsumenController::getDataTables",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/list-kavling/akad/ambil",
                     "type": "Explicit",
-                    "handler": "PosisiKonsumen::getDataTablesAkad",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Mkdt\\PosisiKonsumenController::getDataTablesAkad",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/list-kavling/batal/ambil",
                     "type": "Explicit",
-                    "handler": "PosisiKonsumen::getDataTablesBatal",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Mkdt\\PosisiKonsumenController::getDataTablesBatal",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/export/poskon/(:segment)/(:segment)",
                     "type": "Explicit",
-                    "handler": "PosisiKonsumen::exportPoskon/$1/$2",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Mkdt\\PosisiKonsumenController::exportPoskon/$1/$2",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/riwayat/poskon/(:segment)",
                     "type": "Explicit",
-                    "handler": "PosisiKonsumen::getRiwayatExport/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Mkdt\\PosisiKonsumenController::getRiwayatExport/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/mkdt/posisi-konsumen/export/(:segment)/(:segment)",
+                    "type": "Explicit",
+                    "handler": "PosisiKonsumenController::exportPoskon/$1/$2",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
@@ -1921,9 +2007,57 @@
                 },
                 {
                     "http_method": "GET",
+                    "uri": "/promo",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Mkdt\\PromoController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/mkdt/promo/add",
+                    "type": "Explicit",
+                    "handler": "PromoController::add",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/mkdt/promo/edit",
+                    "type": "Explicit",
+                    "handler": "PromoController::edit",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/mkdt/promo/edit/(:num)",
+                    "type": "Explicit",
+                    "handler": "PromoController::edit/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/mkdt/promo/remove",
+                    "type": "Explicit",
+                    "handler": "PromoController::remove",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/mkdt/promo/remove/(:num)",
+                    "type": "Explicit",
+                    "handler": "PromoController::remove/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
                     "uri": "/laporan/booking-akad",
                     "type": "Explicit",
-                    "handler": "BookingAkadReportController::index",
+                    "handler": "\\App\\Controllers\\Web\\Mkdt\\BookingAkadReportController::index",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -1944,212 +2078,52 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/mkdt/get_data_by_id",
-                    "type": "AutoRoute",
-                    "handler": "Mkdt::get_data_by_id",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "GET",
+                    "uri": "/list-stock",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Mkdt\\StockController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/mkdt/simpan_batal",
-                    "type": "AutoRoute",
-                    "handler": "Mkdt::simpan_batal",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/mkdt/si/save",
+                    "type": "Explicit",
+                    "handler": "MkdtOperationController::saveSi",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/mkdt/batal_mkdt",
-                    "type": "AutoRoute",
-                    "handler": "Mkdt::batal_mkdt",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/mkdt/batal/simpan",
+                    "type": "Explicit",
+                    "handler": "MkdtOperationController::simpanBatal",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/mkdt/save",
-                    "type": "AutoRoute",
-                    "handler": "Mkdt::save",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/mkdt/saveSI",
+                    "type": "Explicit",
+                    "handler": "MkdtOperationController::saveSi",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/mkdt/set_harga",
-                    "type": "AutoRoute",
-                    "handler": "Mkdt::set_harga",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/mkdt/getliststock",
-                    "type": "AutoRoute",
-                    "handler": "Mkdt::getListStock",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/mkdt/if_where",
-                    "type": "AutoRoute",
-                    "handler": "Mkdt::if_where",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/mkdt/format_tgl",
-                    "type": "AutoRoute",
-                    "handler": "Mkdt::format_tgl",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/mkdt/is_active",
-                    "type": "AutoRoute",
-                    "handler": "Mkdt::is_active",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/mkdt/getsi",
-                    "type": "AutoRoute",
-                    "handler": "Mkdt::getsi",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
+                    "http_method": "POST",
                     "uri": "/mkdt/savesi",
-                    "type": "AutoRoute",
-                    "handler": "Mkdt::saveSI",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "MkdtOperationController::saveSi",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/mkdt/export_xlsx",
-                    "type": "AutoRoute",
-                    "handler": "Mkdt::export_xlsx",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/posisi_konsumen/format_tgl",
-                    "type": "AutoRoute",
-                    "handler": "PosisiKonsumen::format_tgl",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/posisi_konsumen/is_active",
-                    "type": "AutoRoute",
-                    "handler": "PosisiKonsumen::is_active",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/posisi_konsumen/exportposkonpdf",
-                    "type": "AutoRoute",
-                    "handler": "PosisiKonsumen::exportPoskonPdf",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/posisi_konsumen/exportposkonxlsx",
-                    "type": "AutoRoute",
-                    "handler": "PosisiKonsumen::exportPoskonXlsx",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/promo/index",
-                    "type": "AutoRoute",
-                    "handler": "Promo::index",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/promo/getdatatable",
-                    "type": "AutoRoute",
-                    "handler": "Promo::getDataTable",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/promo/getall",
-                    "type": "AutoRoute",
-                    "handler": "Promo::getAll",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/promo/getone",
-                    "type": "AutoRoute",
-                    "handler": "Promo::getOne",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/promo/add",
-                    "type": "AutoRoute",
-                    "handler": "Promo::add",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/promo/edit",
-                    "type": "AutoRoute",
-                    "handler": "Promo::edit",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/promo/remove",
-                    "type": "AutoRoute",
-                    "handler": "Promo::remove",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/promo/if_where",
-                    "type": "AutoRoute",
-                    "handler": "Promo::if_where",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/promo/is_active",
-                    "type": "AutoRoute",
-                    "handler": "Promo::is_active",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/promo/format_tgl",
-                    "type": "AutoRoute",
-                    "handler": "Promo::format_tgl",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/mkdt/simpan_batal",
+                    "type": "Explicit",
+                    "handler": "MkdtOperationController::simpanBatal",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 }
             ],
             "service_contracts": {
@@ -2182,6 +2156,11 @@
                     "apply(array $manifest, ?int $actorId = null)"
                 ],
                 "PosisiKonsumenService.php": [
+                    "getIndexData(?string $status, int $userId, array $userGroups)",
+                    "userHasProjectAccess(?object $proyek, int $userId)",
+                    "getRawDataTables(array $params, ?string $status = null)",
+                    "getRawDataTablesBatal(array $params)",
+                    "exportPoskon(string $tipe, string $status, array $filters, int $userId)",
                     "getDataTable($request, $status = null)",
                     "getDataTablesBatal($request)",
                     "getRiwayatExport($id_proyek, $status)",
@@ -2202,6 +2181,18 @@
                     "getKavlingOptions(int $idProyek, ?string $search = null, ?int $currentIdKavling = null, ?int $lastIdKavling = null, ?string $filterHargaJual = null)",
                     "getFormattedKavlingHistory(int $idMkdt = 0, int $idKavling = 0)"
                 ],
+                "PromoService.php": [
+                    "getIndexData()",
+                    "getDataTables(array $params, bool $raw = false)",
+                    "getAll(?int $idProyek = null, string $search = '', bool $raw = false)",
+                    "getOne(int $id)",
+                    "create(array $input, int $actorId)",
+                    "update(int $id, array $input, int $actorId)",
+                    "deactivate(int $id, int $actorId)",
+                    "formatDate(?string $tgl)",
+                    "statusBadge($id, string $activeText, string $inactiveText)",
+                    "cleanNumeric(mixed $value)"
+                ],
                 "BookingAkadReportService.php": [
                     "getAvailableYears(int $idProyek)",
                     "getSummary(int $idProyek, int $yearA, ?int $yearB = null)",
@@ -2212,6 +2203,21 @@
                     "resolveTanggalStatusTerakhir(array $row, string $status)",
                     "resolveCatatanMkdt(array $row)",
                     "formatDate(?string $date)"
+                ],
+                "StockService.php": [
+                    "getIndexData()",
+                    "getListStock(array $params, bool $raw = false)",
+                    "formatTanggal(?string $tgl)",
+                    "formatDateTime(?string $datetime)"
+                ],
+                "StandingInstructionService.php": [
+                    "getByKavling(int $idKavling)",
+                    "save(int $idKavling, array $items, array $uploadedFiles, int $actorId)"
+                ],
+                "BatalBookingService.php": [
+                    "cleanNumeric(mixed $value)",
+                    "getDetail(int $idMkdt)",
+                    "cancelBooking(array $input, ?UploadedFile $suratBatalFile, int $actorId, array $userGroupIds)"
                 ]
             },
             "doc_path": "docs/modules/MKDT/MODULE.md"
@@ -2984,10 +2990,10 @@
             "name": "Keuangan",
             "description": "Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operasional, SPP, bank KPR, pajak, dan ledger kas.",
             "status": "MAPPED",
-            "readiness_score": 60,
+            "readiness_score": 80,
             "readiness_checklist": {
-                "has_service": false,
-                "has_repository": false,
+                "has_service": true,
+                "has_repository": true,
                 "has_web_api_split": false,
                 "has_explicit_routes": false,
                 "zero_controller_violations": false,
@@ -3033,15 +3039,6 @@
                     "$this->db->table()",
                     "new ProyekModel()",
                     "new ChecklistSubItemModel()"
-                ],
-                "app/Controllers/ListBank.php": [
-                    "new ListBankModel()"
-                ],
-                "app/Controllers/Api/BankController.php": [
-                    "new ListBankModel()"
-                ],
-                "app/Controllers/Api/BookingPaymentController.php": [
-                    "Database::connect()"
                 ],
                 "app/Controllers/PrintController.php": [
                     "db_connect()",
@@ -3265,30 +3262,27 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/ListBank.php",
-                    "filename": "ListBank.php",
-                    "line_count": 27,
+                    "relative_path": "app/Controllers/Web/Keuangan/BankController.php",
+                    "filename": "BankController.php",
+                    "line_count": 28,
                     "public_methods": [
                         "index()"
                     ],
-                    "violations": [
-                        "new ListBankModel()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/BankController.php",
+                    "relative_path": "app/Controllers/Api/Keuangan/BankController.php",
                     "filename": "BankController.php",
-                    "line_count": 132,
+                    "line_count": 165,
                     "public_methods": [
+                        "meta()",
                         "list()",
                         "ambil()",
                         "ambilSatu()",
                         "simpan()",
                         "hapus()"
                     ],
-                    "violations": [
-                        "new ListBankModel()"
-                    ]
+                    "violations": []
                 },
                 {
                     "relative_path": "app/Controllers/PencairanAkad.php",
@@ -3321,18 +3315,16 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/BookingPaymentController.php",
+                    "relative_path": "app/Controllers/Api/Keuangan/BookingPaymentController.php",
                     "filename": "BookingPaymentController.php",
-                    "line_count": 54,
+                    "line_count": 67,
                     "public_methods": [
                         "verify()"
                     ],
-                    "violations": [
-                        "Database::connect()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Web/CashInReportController.php",
+                    "relative_path": "app/Controllers/Web/Keuangan/CashInReportController.php",
                     "filename": "CashInReportController.php",
                     "line_count": 51,
                     "public_methods": [
@@ -3341,17 +3333,18 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/CashInReportController.php",
+                    "relative_path": "app/Controllers/Api/Keuangan/CashInReportController.php",
                     "filename": "CashInReportController.php",
-                    "line_count": 85,
+                    "line_count": 131,
                     "public_methods": [
+                        "meta()",
                         "summary()",
                         "detail()"
                     ],
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Web/HasilAkadReportController.php",
+                    "relative_path": "app/Controllers/Web/Keuangan/HasilAkadReportController.php",
                     "filename": "HasilAkadReportController.php",
                     "line_count": 49,
                     "public_methods": [
@@ -3360,10 +3353,11 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/HasilAkadReportController.php",
+                    "relative_path": "app/Controllers/Api/Keuangan/HasilAkadReportController.php",
                     "filename": "HasilAkadReportController.php",
-                    "line_count": 80,
+                    "line_count": 125,
                     "public_methods": [
+                        "meta()",
                         "summary()",
                         "detail()"
                     ],
@@ -3428,9 +3422,9 @@
             ],
             "services": [
                 {
-                    "relative_path": "app/Services/KeuanganService.php",
+                    "relative_path": "app/Services/Keuangan/KeuanganService.php",
                     "filename": "KeuanganService.php",
-                    "line_count": 1851,
+                    "line_count": 1852,
                     "public_methods": [
                         "simpanIsiTagihan($request, int $actorId)",
                         "simpanDanaAkad($request, int $actorId)",
@@ -3469,9 +3463,9 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/PembayaranService.php",
+                    "relative_path": "app/Services/Keuangan/PembayaranService.php",
                     "filename": "PembayaranService.php",
-                    "line_count": 256,
+                    "line_count": 259,
                     "public_methods": [
                         "simpan($data)",
                         "recalculateSummary($id_mkdt)",
@@ -3479,7 +3473,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/PajakService.php",
+                    "relative_path": "app/Services/Keuangan/PajakService.php",
                     "filename": "PajakService.php",
                     "line_count": 45,
                     "public_methods": [
@@ -3488,7 +3482,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/FinanceLedgerService.php",
+                    "relative_path": "app/Services/Keuangan/FinanceLedgerService.php",
                     "filename": "FinanceLedgerService.php",
                     "line_count": 596,
                     "public_methods": [
@@ -3511,9 +3505,9 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/BankKprDisbursementService.php",
+                    "relative_path": "app/Services/Keuangan/BankKprDisbursementService.php",
                     "filename": "BankKprDisbursementService.php",
-                    "line_count": 407,
+                    "line_count": 409,
                     "public_methods": [
                         "getData(int $idMkdt, int $idKavling)",
                         "save($request, int $actorId)",
@@ -3521,19 +3515,23 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/BankService.php",
+                    "relative_path": "app/Services/Keuangan/BankService.php",
                     "filename": "BankService.php",
-                    "line_count": 37,
+                    "line_count": 52,
                     "public_methods": [
-                        "simpan(array $data, int $id = null)",
+                        "getAllActive()",
+                        "getList(?string $search = null)",
+                        "getOne(int $id)",
+                        "simpan(array $data, ?int $id = null)",
                         "hapus(int $id)"
                     ]
                 },
                 {
-                    "relative_path": "app/Services/BookingPaymentService.php",
+                    "relative_path": "app/Services/Keuangan/BookingPaymentService.php",
                     "filename": "BookingPaymentService.php",
-                    "line_count": 326,
+                    "line_count": 332,
                     "public_methods": [
+                        "findProjectIdByMkdt(int $idMkdt)",
                         "assertEditable(int $idMkdt, float $nominal, ?string $tanggal)",
                         "synchronize(int $idMkdt, ?int $actorId = null)",
                         "verify(int $idMkdt, int $actorId, ?float $nominal = null, ?string $tanggal = null)",
@@ -3544,7 +3542,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/BookingFeeMigrationService.php",
+                    "relative_path": "app/Services/Keuangan/BookingFeeMigrationService.php",
                     "filename": "BookingFeeMigrationService.php",
                     "line_count": 234,
                     "public_methods": [
@@ -3553,9 +3551,9 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/PencairanAkadService.php",
+                    "relative_path": "app/Services/Keuangan/PencairanAkadService.php",
                     "filename": "PencairanAkadService.php",
-                    "line_count": 2124,
+                    "line_count": 2127,
                     "public_methods": [
                         "getData(int $idMkdt, int $idKavling)",
                         "saveRetensi(array $post, int $actorId)",
@@ -3584,7 +3582,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/CashOutService.php",
+                    "relative_path": "app/Services/Keuangan/CashOutService.php",
                     "filename": "CashOutService.php",
                     "line_count": 84,
                     "public_methods": [
@@ -3621,7 +3619,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/CashInReportService.php",
+                    "relative_path": "app/Services/Keuangan/CashInReportService.php",
                     "filename": "CashInReportService.php",
                     "line_count": 212,
                     "public_methods": [
@@ -3632,7 +3630,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/HasilAkadReportService.php",
+                    "relative_path": "app/Services/Keuangan/HasilAkadReportService.php",
                     "filename": "HasilAkadReportService.php",
                     "line_count": 199,
                     "public_methods": [
@@ -3642,9 +3640,9 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/PrintService.php",
+                    "relative_path": "app/Services/Keuangan/PrintService.php",
                     "filename": "PrintService.php",
-                    "line_count": 643,
+                    "line_count": 646,
                     "public_methods": [
                         "printSpptb(int $idKavling, int $idMkdt, int $idProyek)",
                         "printKuitansi($var)",
@@ -3655,9 +3653,9 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/DanaJaminanService.php",
+                    "relative_path": "app/Services/Keuangan/DanaJaminanService.php",
                     "filename": "DanaJaminanService.php",
-                    "line_count": 637,
+                    "line_count": 640,
                     "public_methods": [
                         "getData(int $idMkdt, int $idKavling)",
                         "saveDanaAkad($request, int $actorId)",
@@ -3671,7 +3669,7 @@
             ],
             "repositories": [
                 {
-                    "relative_path": "app/Repositories/KeuanganRepository.php",
+                    "relative_path": "app/Repositories/Keuangan/KeuanganRepository.php",
                     "filename": "KeuanganRepository.php",
                     "line_count": 495,
                     "public_methods": [
@@ -3689,7 +3687,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/LogPembayaranRepository.php",
+                    "relative_path": "app/Repositories/Keuangan/LogPembayaranRepository.php",
                     "filename": "LogPembayaranRepository.php",
                     "line_count": 207,
                     "public_methods": [
@@ -3706,7 +3704,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/PaymentSummaryRepository.php",
+                    "relative_path": "app/Repositories/Keuangan/PaymentSummaryRepository.php",
                     "filename": "PaymentSummaryRepository.php",
                     "line_count": 74,
                     "public_methods": [
@@ -3716,7 +3714,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/FinanceLedgerRepository.php",
+                    "relative_path": "app/Repositories/Keuangan/FinanceLedgerRepository.php",
                     "filename": "FinanceLedgerRepository.php",
                     "line_count": 77,
                     "public_methods": [
@@ -3727,7 +3725,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/PajakRepository.php",
+                    "relative_path": "app/Repositories/Keuangan/PajakRepository.php",
                     "filename": "PajakRepository.php",
                     "line_count": 41,
                     "public_methods": [
@@ -3735,10 +3733,11 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/BookingPaymentRepository.php",
+                    "relative_path": "app/Repositories/Keuangan/BookingPaymentRepository.php",
                     "filename": "BookingPaymentRepository.php",
-                    "line_count": 152,
+                    "line_count": 166,
                     "public_methods": [
+                        "findProjectIdByMkdt(int $idMkdt)",
                         "mkdt(int $id, bool $lock = false)",
                         "link(int $id, bool $lock = false)",
                         "owners(int $payment)",
@@ -3755,7 +3754,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/PencairanAkadListRepository.php",
+                    "relative_path": "app/Repositories/Keuangan/PencairanAkadListRepository.php",
                     "filename": "PencairanAkadListRepository.php",
                     "line_count": 157,
                     "public_methods": [
@@ -3764,7 +3763,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/CashOutRepository.php",
+                    "relative_path": "app/Repositories/Keuangan/CashOutRepository.php",
                     "filename": "CashOutRepository.php",
                     "line_count": 61,
                     "public_methods": [
@@ -3811,7 +3810,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/CashInReportRepository.php",
+                    "relative_path": "app/Repositories/Keuangan/CashInReportRepository.php",
                     "filename": "CashInReportRepository.php",
                     "line_count": 233,
                     "public_methods": [
@@ -3822,7 +3821,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/HasilAkadReportRepository.php",
+                    "relative_path": "app/Repositories/Keuangan/HasilAkadReportRepository.php",
                     "filename": "HasilAkadReportRepository.php",
                     "line_count": 363,
                     "public_methods": [
@@ -3834,11 +3833,24 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/SpptbRepository.php",
+                    "relative_path": "app/Repositories/Keuangan/SpptbRepository.php",
                     "filename": "SpptbRepository.php",
                     "line_count": 23,
                     "public_methods": [
                         "getLatestByMkdtId(int $idMkdt, int $limit = 3)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Keuangan/BankRepository.php",
+                    "filename": "BankRepository.php",
+                    "line_count": 47,
+                    "public_methods": [
+                        "getAllBanks(?string $search = null)",
+                        "getActiveBanks()",
+                        "getBankById(int $id)",
+                        "insertBank(array $data)",
+                        "updateBank(int $id, array $data)",
+                        "deleteBank(int $id)"
                     ]
                 }
             ],
@@ -3949,7 +3961,40 @@
                     "public_methods": []
                 }
             ],
-            "shims": [],
+            "shims": [
+                "app/Controllers/ListBank.php",
+                "app/Controllers/Api/BankController.php",
+                "app/Controllers/Api/BookingPaymentController.php",
+                "app/Controllers/Web/CashInReportController.php",
+                "app/Controllers/Api/CashInReportController.php",
+                "app/Controllers/Web/HasilAkadReportController.php",
+                "app/Controllers/Api/HasilAkadReportController.php",
+                "app/Services/KeuanganService.php",
+                "app/Services/PembayaranService.php",
+                "app/Services/PajakService.php",
+                "app/Services/FinanceLedgerService.php",
+                "app/Services/BankKprDisbursementService.php",
+                "app/Services/BankService.php",
+                "app/Services/BookingPaymentService.php",
+                "app/Services/BookingFeeMigrationService.php",
+                "app/Services/PencairanAkadService.php",
+                "app/Services/CashOutService.php",
+                "app/Services/CashInReportService.php",
+                "app/Services/HasilAkadReportService.php",
+                "app/Services/PrintService.php",
+                "app/Services/DanaJaminanService.php",
+                "app/Repositories/KeuanganRepository.php",
+                "app/Repositories/LogPembayaranRepository.php",
+                "app/Repositories/PaymentSummaryRepository.php",
+                "app/Repositories/FinanceLedgerRepository.php",
+                "app/Repositories/PajakRepository.php",
+                "app/Repositories/BookingPaymentRepository.php",
+                "app/Repositories/PencairanAkadListRepository.php",
+                "app/Repositories/CashOutRepository.php",
+                "app/Repositories/CashInReportRepository.php",
+                "app/Repositories/HasilAkadReportRepository.php",
+                "app/Repositories/SpptbRepository.php"
+            ],
             "views": [
                 {
                     "folder": "app/Views/keuangan",
@@ -4402,6 +4447,38 @@
                 },
                 {
                     "http_method": "GET",
+                    "uri": "/list_bank/index",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\BankController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/list_bank",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\BankController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/listbank",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\BankController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/bank/meta",
+                    "type": "Explicit",
+                    "handler": "BankController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
                     "uri": "/api/bank/ambil",
                     "type": "Explicit",
                     "handler": "BankController::ambil",
@@ -4628,7 +4705,15 @@
                     "http_method": "GET",
                     "uri": "/laporan/cash-in",
                     "type": "Explicit",
-                    "handler": "CashInReportController::index",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\CashInReportController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/laporan/cash-in/meta",
+                    "type": "Explicit",
+                    "handler": "CashInReportController::meta",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -4652,7 +4737,15 @@
                     "http_method": "GET",
                     "uri": "/laporan/hasil-akad",
                     "type": "Explicit",
-                    "handler": "HasilAkadReportController::index",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\HasilAkadReportController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/laporan/hasil-akad/meta",
+                    "type": "Explicit",
+                    "handler": "HasilAkadReportController::meta",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -5018,14 +5111,6 @@
                 },
                 {
                     "http_method": "ANY",
-                    "uri": "/list_bank/index",
-                    "type": "AutoRoute",
-                    "handler": "ListBank::index",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
                     "uri": "/print_controller/printkuitansi",
                     "type": "AutoRoute",
                     "handler": "PrintController::printKuitansi",
@@ -5199,10 +5284,14 @@
                     "void(int $id, $request, int $actorId)"
                 ],
                 "BankService.php": [
-                    "simpan(array $data, int $id = null)",
+                    "getAllActive()",
+                    "getList(?string $search = null)",
+                    "getOne(int $id)",
+                    "simpan(array $data, ?int $id = null)",
                     "hapus(int $id)"
                 ],
                 "BookingPaymentService.php": [
+                    "findProjectIdByMkdt(int $idMkdt)",
                     "assertEditable(int $idMkdt, float $nominal, ?string $tanggal)",
                     "synchronize(int $idMkdt, ?int $actorId = null)",
                     "verify(int $idMkdt, int $actorId, ?float $nominal = null, ?string $tanggal = null)",
@@ -9313,8 +9402,9 @@
                 {
                     "relative_path": "app/Controllers/Api/Settings/MenuSettingController.php",
                     "filename": "MenuSettingController.php",
-                    "line_count": 180,
+                    "line_count": 367,
                     "public_methods": [
+                        "meta()",
                         "menuList()",
                         "menuGet()",
                         "menuSave()",
@@ -9342,8 +9432,9 @@
                 {
                     "relative_path": "app/Controllers/Api/Settings/SettingDataController.php",
                     "filename": "SettingDataController.php",
-                    "line_count": 56,
+                    "line_count": 150,
                     "public_methods": [
+                        "meta()",
                         "list(string $key)",
                         "get(string $key)",
                         "save(string $key)",
@@ -9363,8 +9454,9 @@
                 {
                     "relative_path": "app/Controllers/Api/Settings/PengaturanWarnaController.php",
                     "filename": "PengaturanWarnaController.php",
-                    "line_count": 62,
+                    "line_count": 146,
                     "public_methods": [
+                        "meta()",
                         "getAll()",
                         "getOne()",
                         "add()",
@@ -9411,43 +9503,44 @@
                 {
                     "relative_path": "app/Services/Settings/SettingDataService.php",
                     "filename": "SettingDataService.php",
-                    "line_count": 195,
+                    "line_count": 349,
                     "public_methods": [
                         "getAllConfigs()",
+                        "getMetaTables()",
                         "getConfig(string $key)",
-                        "list(string $key)",
-                        "get(string $key, int $id)",
-                        "save(string $key, array $postData, int $userId)",
-                        "delete(string $key, int $id, int $userId)"
+                        "list(string $key, array $params = [])",
+                        "get(string $key, int $id, bool $raw = false)",
+                        "save(string $key, array $postData, int $userId, bool $raw = false)",
+                        "delete(string $key, int $id, int $userId, bool $raw = false)"
                     ]
                 },
                 {
                     "relative_path": "app/Services/Settings/PengaturanWarnaService.php",
                     "filename": "PengaturanWarnaService.php",
-                    "line_count": 205,
+                    "line_count": 374,
                     "public_methods": [
-                        "getAll()",
-                        "getOne(string $configName)",
-                        "add(array $postData, ?string $userName = null)",
-                        "edit(array $postData, ?string $userName = null)",
-                        "remove(string $configName)",
+                        "getAll(array $params = [])",
+                        "getOne(string $configName, bool $raw = false)",
+                        "add(array $postData, ?string $userName = null, bool $raw = false)",
+                        "edit(array $postData, ?string $userName = null, bool $raw = false)",
+                        "remove(string $configName, bool $raw = false)",
                         "normalizeStrokeWidth($value)"
                     ]
                 },
                 {
                     "relative_path": "app/Services/Settings/MenuSettingService.php",
                     "filename": "MenuSettingService.php",
-                    "line_count": 324,
+                    "line_count": 533,
                     "public_methods": [
                         "getIndexData()",
-                        "getMenuList()",
-                        "getMenu(int $id)",
-                        "saveMenu(array $postData)",
-                        "toggleMenu(int $id)",
-                        "getSiteplanMenuList()",
-                        "getSiteplanMenu(int $id)",
-                        "saveSiteplanMenu(array $postData)",
-                        "toggleSiteplanMenu(int $id)",
+                        "getMenuList(array $params = [])",
+                        "getMenu(int $id, bool $raw = false)",
+                        "saveMenu(array $postData, bool $raw = false)",
+                        "toggleMenu(int $id, bool $raw = false)",
+                        "getSiteplanMenuList(array $params = [])",
+                        "getSiteplanMenu(int $id, bool $raw = false)",
+                        "saveSiteplanMenu(array $postData, bool $raw = false)",
+                        "toggleSiteplanMenu(int $id, bool $raw = false)",
                         "makeSlug(string $name)"
                     ]
                 }
@@ -9528,7 +9621,7 @@
                 {
                     "relative_path": "app/Models/PengaturanWarnaModel.php",
                     "filename": "PengaturanWarnaModel.php",
-                    "line_count": 23,
+                    "line_count": 24,
                     "public_methods": []
                 }
             ],
@@ -9591,18 +9684,10 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "POST",
-                    "uri": "/api/menu-setting/menu/list",
+                    "http_method": "GET",
+                    "uri": "/api/menu-setting/meta",
                     "type": "Explicit",
-                    "handler": "MenuSettingController::menuList",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/menu-setting/menu/get",
-                    "type": "Explicit",
-                    "handler": "MenuSettingController::menuGet",
+                    "handler": "MenuSettingController::meta",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -9624,14 +9709,6 @@
                 },
                 {
                     "http_method": "POST",
-                    "uri": "/api/menu-setting/access/group",
-                    "type": "Explicit",
-                    "handler": "MenuSettingController::groupAccess",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
                     "uri": "/api/menu-setting/access/group/save",
                     "type": "Explicit",
                     "handler": "MenuSettingController::groupSave",
@@ -9640,33 +9717,9 @@
                 },
                 {
                     "http_method": "POST",
-                    "uri": "/api/menu-setting/access/user",
-                    "type": "Explicit",
-                    "handler": "MenuSettingController::userAccess",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
                     "uri": "/api/menu-setting/access/user/save",
                     "type": "Explicit",
                     "handler": "MenuSettingController::userSave",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/menu-setting/siteplan-menu/list",
-                    "type": "Explicit",
-                    "handler": "MenuSettingController::siteplanMenuList",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/menu-setting/siteplan-menu/get",
-                    "type": "Explicit",
-                    "handler": "MenuSettingController::siteplanMenuGet",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -9799,18 +9852,10 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "POST",
-                    "uri": "/api/setting-data/list/(:segment)",
+                    "http_method": "GET",
+                    "uri": "/api/setting-data/meta",
                     "type": "Explicit",
-                    "handler": "SettingDataController::list/$1",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/setting-data/get/(:segment)",
-                    "type": "Explicit",
-                    "handler": "SettingDataController::get/$1",
+                    "handler": "SettingDataController::meta",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -9819,14 +9864,6 @@
                     "uri": "/api/setting-data/save/(:segment)",
                     "type": "Explicit",
                     "handler": "SettingDataController::save/$1",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/setting-data/delete/(:segment)",
-                    "type": "Explicit",
-                    "handler": "SettingDataController::delete/$1",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -9871,26 +9908,10 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "POST",
-                    "uri": "/api/pengaturan-warna/all",
+                    "http_method": "GET",
+                    "uri": "/api/pengaturan-warna/meta",
                     "type": "Explicit",
-                    "handler": "PengaturanWarnaController::getAll",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/pengaturan-warna/getall",
-                    "type": "Explicit",
-                    "handler": "PengaturanWarnaController::getAll",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/pengaturan-warna/getone",
-                    "type": "Explicit",
-                    "handler": "PengaturanWarnaController::getOne",
+                    "handler": "PengaturanWarnaController::meta",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -9907,14 +9928,6 @@
                     "uri": "/api/pengaturan-warna/edit",
                     "type": "Explicit",
                     "handler": "PengaturanWarnaController::edit",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/pengaturan-warna/remove",
-                    "type": "Explicit",
-                    "handler": "PengaturanWarnaController::remove",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -10025,30 +10038,31 @@
                 ],
                 "SettingDataService.php": [
                     "getAllConfigs()",
+                    "getMetaTables()",
                     "getConfig(string $key)",
-                    "list(string $key)",
-                    "get(string $key, int $id)",
-                    "save(string $key, array $postData, int $userId)",
-                    "delete(string $key, int $id, int $userId)"
+                    "list(string $key, array $params = [])",
+                    "get(string $key, int $id, bool $raw = false)",
+                    "save(string $key, array $postData, int $userId, bool $raw = false)",
+                    "delete(string $key, int $id, int $userId, bool $raw = false)"
                 ],
                 "PengaturanWarnaService.php": [
-                    "getAll()",
-                    "getOne(string $configName)",
-                    "add(array $postData, ?string $userName = null)",
-                    "edit(array $postData, ?string $userName = null)",
-                    "remove(string $configName)",
+                    "getAll(array $params = [])",
+                    "getOne(string $configName, bool $raw = false)",
+                    "add(array $postData, ?string $userName = null, bool $raw = false)",
+                    "edit(array $postData, ?string $userName = null, bool $raw = false)",
+                    "remove(string $configName, bool $raw = false)",
                     "normalizeStrokeWidth($value)"
                 ],
                 "MenuSettingService.php": [
                     "getIndexData()",
-                    "getMenuList()",
-                    "getMenu(int $id)",
-                    "saveMenu(array $postData)",
-                    "toggleMenu(int $id)",
-                    "getSiteplanMenuList()",
-                    "getSiteplanMenu(int $id)",
-                    "saveSiteplanMenu(array $postData)",
-                    "toggleSiteplanMenu(int $id)",
+                    "getMenuList(array $params = [])",
+                    "getMenu(int $id, bool $raw = false)",
+                    "saveMenu(array $postData, bool $raw = false)",
+                    "toggleMenu(int $id, bool $raw = false)",
+                    "getSiteplanMenuList(array $params = [])",
+                    "getSiteplanMenu(int $id, bool $raw = false)",
+                    "saveSiteplanMenu(array $postData, bool $raw = false)",
+                    "toggleSiteplanMenu(int $id, bool $raw = false)",
                     "makeSlug(string $name)"
                 ]
             },

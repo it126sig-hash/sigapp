@@ -1,0 +1,258 @@
+<?php
+
+namespace App\Services\Keuangan;
+
+use App\Services\Notifikasi\NotifikasiService;
+use App\Services\Mkdt\MkdtSettlementService;
+use App\Services\Mkdt\MkdtFinancialBreakdownService;
+use App\Repositories\Keuangan\KeuanganRepository;
+use App\Repositories\Keuangan\BookingPaymentRepository;
+use App\Repositories\Transaksi\KavlingRepository;
+use App\Repositories\Keuangan\LogPembayaranRepository;
+use App\Repositories\Keuangan\PaymentSummaryRepository;
+use App\Models\MkdtModel;
+use App\Exceptions\DataNotFoundException;
+
+
+class PembayaranService
+{
+    protected $notif;
+    protected $lpModel;
+    protected $db;
+    protected $keuRepo;
+    protected $kavRepo;
+    protected $mkdtModel;
+    protected $summaryRepo;
+    protected $ledgerService;
+    protected BookingPaymentService $bookingService;
+    protected MkdtSettlementService $settlementService;
+    protected MkdtFinancialBreakdownService $financialBreakdownService;
+
+    public function __construct()
+    {
+        $this->notif = new NotifikasiService();
+        $this->keuRepo = new KeuanganRepository();
+        $this->kavRepo = new KavlingRepository();
+        $this->mkdtModel = new MkdtModel();
+        $this->lpModel = new LogPembayaranRepository();
+        $this->summaryRepo = new PaymentSummaryRepository();
+        $this->ledgerService = new FinanceLedgerService();
+        $this->db = \Config\Database::connect();
+        $this->bookingService = new BookingPaymentService($this->db);
+        $this->settlementService = new MkdtSettlementService($this->db);
+        $this->financialBreakdownService = new MkdtFinancialBreakdownService($this->db);
+    }
+
+
+    function simpan($data)
+    {
+        $response['token'] = csrf_hash();
+        $li_keu = $this->keuRepo->getLIKeu();
+
+        $pembayaran = [];
+        foreach ($li_keu as $key => $value) {
+            // $this->request->getPost("nominal-" . $value->id_keuangan_item_list)
+            $nominal = $data->getPost("nominal-" . $value->id_keuangan_item_list);
+            if ($nominal) {
+                $pembayaran[] = [
+                    'id' => $value->id_keuangan_item_list,
+                    'nominal' => $this->num($nominal)
+                ];
+            }
+        }
+        $allKategori = $this->keuRepo->getLIKeu();
+        $kategoriMap = [];
+        foreach ($allKategori as $v) {
+            $kategoriMap[$v->id_keuangan_item_list] = $v->kategori;
+        }
+        // var_dump($kategoriMap[1]);
+        // die();
+        //form untuk table log_pembayaran
+        $id_keus = $data->getVar('bt-for');
+        $id_keu = '';
+        if ($id_keus) {
+            foreach ($id_keus as $id) {
+                $id_keu .= $id . ";";
+            }
+        }
+
+        $form['id_keuangan'] = $id_keu;
+        $form['id_mkdt'] = $data->getVar('id_mkdt');
+        $form['nominal'] = $this->num($data->getPost('bt-bayar_tagihan_um'));
+        $form['payment_type'] = $data->getVar('text_um');
+        $form['keterangan'] = $data->getVar('bt-berita_acara_um');
+        $form['tanggal_bayar'] = $data->getVar('bt-tanggal_bayar_um');
+        $form['created_at'] = date('Y   -m-d H:i:s');
+        $form['updated_at'] = date('Y-m-d H:i:s');
+        $form['add_by'] = user_id();
+        $form['edit_by'] = user_id();
+
+        // $e = $data->getVar('e');
+
+        if ($this->lpModel->hasRecentDuplicate($form['id_mkdt'], $form['id_keuangan'], $form['nominal'], $form['tanggal_bayar'], $form['payment_type'])) {
+            return [
+                'token' => csrf_hash(),
+                'status' => false,
+                'message' => 'Pembayaran dengan nominal dan tanggal yang sama baru saja disimpan. Silakan cek Riwayat Pembayaran sebelum mengulang.'
+            ];
+        }
+
+        #############################
+        $db = $this->db;
+        try {
+            $db->transException(true)->transBegin();
+
+            $this->bookingService->assertManualAllocationAllowed((int) $form['id_mkdt'], $pembayaran);
+            $discrepancies = $this->financialBreakdownService->validatePaymentAllocation(
+                (int) $form['id_mkdt'],
+                $pembayaran,
+                (float) $form['nominal']
+            );
+
+            //insert log pembayaran
+            $id_pembayaran = $this->lpModel->insert($form);
+            if (! $id_pembayaran) {
+                throw new \RuntimeException('Gagal menambahkan pembayaran');
+            }
+
+            foreach ($pembayaran as $k => $v) {
+                $form_pembayaran = [
+                    "id_pembayaran" => $id_pembayaran,
+                    "id_keuangan_item_list" => $v['id'],
+                    "nominal" => $v['nominal'],
+                    "created_at" => date('Y-m-d H:i:s'),
+                    "updated_at" => date('Y-m-d H:i:s'),
+                    "add_by" => user_id(),
+                    "edit_by" => user_id(),
+                    "booking_is_installment" => ($kategoriMap[$v['id']] === 'BO' ? 1 : 0),
+                ];
+                $r = $this->lpModel->insertDetail($form_pembayaran);
+
+
+                // ambil kategori item
+                $kategori = $kategoriMap[$v['id']]; // UM / ADM / BB
+
+                // var_dump($kategori);
+                // die();
+                if (!$r) {
+                    throw new \RuntimeException('Gagal menambahkan detail pembayaran');
+                }
+            }
+
+            $this->ledgerService->recordIncomeFromLogPembayaran((int) $id_pembayaran, user_id());
+            (new BookingPaymentRepository($db))->recalculate((int) $form['id_mkdt']);
+            $this->settlementService->synchronize((int) $form['id_mkdt']);
+
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+            $db->transCommit();
+            
+            if (!empty($discrepancies)) {
+                $kavlingData = $this->kavRepo->getKavlingByIdMkdt((int) $form['id_mkdt']);
+                if ($kavlingData) {
+                    $itemNames = array_map(function($v) use ($allKategori) {
+                        foreach ($allKategori as $kat) {
+                            if ($kat->id_keuangan_item_list == $v['id']) return $kat->item;
+                        }
+                        return 'Item Tidak Diketahui';
+                    }, $pembayaran);
+                    
+                    $pesan = sprintf(
+                        "Pembayaran Kavling %s No. %s (%s): Alokasi %s tidak sesuai list tagihan MKDT. Perlu rekonsiliasi. Detail: %s",
+                        $kavlingData['nama_jalan'] ?? '-',
+                        $kavlingData['no_kavling'] ?? '-',
+                        $kavlingData['nama_konsumen'] ?? '-',
+                        implode(', ', $itemNames),
+                        implode('; ', $discrepancies)
+                    );
+                    
+                    $actionUrl = 'list-kavling?search=' . urlencode($kavlingData['nama_konsumen'] ?? '');
+                    $this->notif->tambah_notif(
+                        '4', 
+                        $pesan, 
+                        user_id(), 
+                        $kavlingData['id_kavling'] ?? null, 
+                        $kavlingData['id_konsumen'] ?? null, 
+                        \App\Enums\NotificationEvent::REKONSILIASI_KEUANGAN, 
+                        $kavlingData['id_proyek'] ?? null, 
+                        $actionUrl
+                    );
+                }
+            }
+            
+            $response = [
+                'status' => true,
+                'message' => 'Pembayaran berhasil',
+                'data' => $pembayaran
+            ];
+            return $response;
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            log_message('error', '[PembayaranService::simpan] {message}', ['message' => $e->getMessage()]);
+            $response = [
+                'token' => csrf_hash(),
+                'status' => false,
+                'message' => $e instanceof \DomainException ? $e->getMessage() : 'Gagal menambahkan pembayaran'
+            ];
+            return $response;
+        }
+    }
+    function recalculateSummary($id_mkdt)
+    {
+        (new BookingPaymentRepository($this->db))->recalculate((int) $id_mkdt);
+    }
+    function removeLP($request)
+    {
+            $response = [
+                'token' => csrf_hash(),
+            'token'   => csrf_hash(),
+            'success' => false,
+            'messages' => 'Gagal menghapus data'
+        ];
+
+        $idPembayaran = $request->getVar('id_pembayaran');
+        if (!$idPembayaran) {
+            $response['messages'] = 'ID pembayaran tidak valid';
+            return $response;
+        }
+
+        $db = $this->db;
+
+        try {
+            $db->transException(true)->transBegin();
+            $this->bookingService->assertMayDelete((int) $idPembayaran);
+            //soft delete log pembayaran
+            $idMkdt = $this->lpModel->softDeleteAndReturnIdMkdt($idPembayaran);
+            $this->ledgerService->voidByLogPembayaran((int) $idPembayaran, user_id());
+            //recalculate summary
+            $this->recalculateSummary($idMkdt);
+            $this->settlementService->synchronize((int) $idMkdt);
+
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            $db->transCommit();
+
+            $response['success']  = true;
+            $response['messages'] = 'Berhasil menghapus data';
+            return $response;
+        } catch (DataNotFoundException $e) {
+            $db->transRollback();
+            $response['messages'] = $e->getMessage();
+            return $response;
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            $response['messages'] = $e->getMessage();
+            log_message('error', $e->getMessage());
+            return $response;
+        }
+    }
+
+    protected function num($d)
+    {
+        $d = str_replace(',', "", $d);
+        return $d;
+    }
+}

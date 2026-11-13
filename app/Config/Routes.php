@@ -223,8 +223,12 @@ $routes->group('api/kalendar', ['namespace' => 'App\Controllers\Api\Siteplan', '
 
 
 // $routes->get("bank", 'ListBank::index');
+$routes->get('list_bank/index', '\App\Controllers\Web\Keuangan\BankController::index', ['filter' => 'login']);
+$routes->get('list_bank', '\App\Controllers\Web\Keuangan\BankController::index', ['filter' => 'login']);
+$routes->get('listbank', '\App\Controllers\Web\Keuangan\BankController::index', ['filter' => 'login']);
 
-$routes->group('api/bank', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function($routes) {
+$routes->group('api/bank', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function($routes) {
+    $routes->get('meta', 'BankController::meta');
     $routes->get('ambil', 'BankController::ambil');
     $routes->get('list', 'BankController::list');
     $routes->post('ambilsatu', 'BankController::ambilSatu');
@@ -597,17 +601,19 @@ $routes->get("/keuangan/hasil-akad/import", 'PencairanAkad::importForm');
 $routes->post("/keuangan/hasil-akad/import", 'PencairanAkad::import');
 
 $routes->group('laporan', ['namespace' => 'App\Controllers\Web', 'filter' => 'login'], function ($routes) {
-    $routes->get('cash-in', 'CashInReportController::index');
-    $routes->get('hasil-akad', 'HasilAkadReportController::index');
+    $routes->get('cash-in', '\App\Controllers\Web\Keuangan\CashInReportController::index');
+    $routes->get('hasil-akad', '\App\Controllers\Web\Keuangan\HasilAkadReportController::index');
     $routes->get('booking-akad', '\App\Controllers\Web\Mkdt\BookingAkadReportController::index');
 });
 
-$routes->group('api/laporan/cash-in', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/laporan/cash-in', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'CashInReportController::meta');
     $routes->post('summary', 'CashInReportController::summary');
     $routes->post('detail', 'CashInReportController::detail');
 });
 
-$routes->group('api/laporan/hasil-akad', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/laporan/hasil-akad', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'HasilAkadReportController::meta');
     $routes->post('summary', 'HasilAkadReportController::summary');
     $routes->post('detail', 'HasilAkadReportController::detail');
 });
@@ -782,7 +788,7 @@ $routes->group('api/nup', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' =
     $routes->post('kavling-history', 'NupController::kavlingHistory');
 });
 
-$routes->group('api/tagihan/booking', ['namespace' => 'App\Controllers\Api', 'filter' => ['login', 'csrf']], function ($routes) {
+$routes->group('api/tagihan/booking', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => ['login', 'csrf']], function ($routes) {
     $routes->post('verifikasi', 'BookingPaymentController::verify');
 });
 
