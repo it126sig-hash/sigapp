@@ -232,7 +232,17 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
   - `App\Controllers\Mkdt`: Controller legacy untuk alur batal, stok kavling, set harga, dan standing instruction (dead commented code L801–1515 telah dibersihkan pada Fase 1):
     - `list_stock()`: Merender halaman `kavling/list-stock` (`GET /list-stock`) dengan mengisi `$data['data']['proyek']` via `(new ActiveProyekService())->resolveAndGet()` (dengan fallback objek aman) agar modal Turun Pembangunan dan Set Harga pada `app/Views/siteplan/mkdt.php` menerima konteks proyek aktif tanpa error.
   - `App\Controllers\PosisiKonsumen`: Controller legacy untuk posisi konsumen aktif, akad, batal, dan ekspor.
-  - `App\Controllers\Promo`: Controller manajemen promo dan diskon kavling.
+  - `App\Controllers\Web\Mkdt\PromoController`:
+    - `index()`: Merender halaman web daftar Promo (`app/Views/promo/index.php`) dengan data proyek dari `PromoService::getIndexData()`.
+  - `App\Controllers\Api\Mkdt\PromoController` (`extends BaseApiController`):
+    - `meta()`: Mengembalikan metadata awal Promo (daftar proyek, `active_proyek_id`, `status_options`) dalam format JSON terstruktur (`GET|POST /api/mkdt/promo/meta`).
+    - `getDataTable()`: Melayani server-side DataTables Promo dalam dual-mode (`?format=raw` -> `RAW_JSON_READY` dengan penanda `// TODO(full-json)`; default -> payload DataTables 13 kolom legacy + CSRF token).
+    - `getAll()`: Mengambil seluruh daftar Promo terfilter proyek/pencarian (dual-mode `?format=raw` vs legacy).
+    - `getOne($id = null)`: Mengambil detail satu Promo berdasarkan ID (mendukung param `id`, `id_promo`, dan legacy `id_cluster`), mengembalikan JSON 422/404 tanpa HTML exception.
+    - `add()`, `edit($id = null)`, `remove($id = null)`: Endpoint mutasi CRUD & soft-deactivate Promo dengan delegasi ke `PromoService` dan respon JSON terstruktur (422/404 saat error di mode raw).
+  - `App\Controllers\Promo`: **Zero-Downtime Legacy Delegator Shim** (`@deprecated`):
+    - `initController()`: Meneruskan `RequestInterface`, `ResponseInterface`, dan `LoggerInterface` ke `Web\Mkdt\PromoController` serta `Api\Mkdt\PromoController` (0 layer violations).
+    - Mendelegasikan `index()`, `getDataTable()`, `getAll()`, `getOne()`, `add()`, `edit()`, `remove()` ke controller kanonik, serta mempertahankan helper `@deprecated` (`if_where()`, `is_active()`, `format_tgl()`).
 - **Services:**
   - `App\Services\Mkdt\BookingAkadReportService`:
     - `CATEGORIES` & `STATUS_BADGE_MAP`: Konstanta 6 status transaksi resmi (`booking`, `wawancara`, `sp3k`, `batal`, `akad_indent`, `akad_ajb`) dan pemetaan badge visual semantik (`secondary`, `warning`, `primary`, `danger`, `info`, `success`).
@@ -253,6 +263,12 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
   - `App\Services\Mkdt\PosisiKonsumenService`: Business logic DataTables posisi konsumen (Booking, Akad, Batal), dukungan filter acuan waktu `bulan_field == 'indent'` (terhadap `mkdt.akad_indent_tgl`), rendering kolom `TGL AKAD` yang eksklusif (jika sudah mencapai tahap Akad AJB hanya menampilkan badge `AJB: <tgl>`, jika baru tahap Akad Indent menampilkan badge `Indent: <tgl>`, atau `-` jika belum keduanya), serta riwayat ekspor.
   - `App\Services\Mkdt\KonsumenService`: Upsert master data konsumen dan query relasi konsumen transaksi.
   - `App\Services\Mkdt\NupService`: Manajemen siklus NUP, transfer kavling, validasi nomor NUP unik per proyek, dan lampiran berkas.
+  - `App\Services\Mkdt\PromoService`:
+    - `getIndexData()`: Menyediakan daftar proyek, `active_proyek_id`, dan opsi status (`Aktif`/`Tidak Aktif`) untuk halaman web Promo maupun endpoint `/api/mkdt/promo/meta`.
+    - `getDataTables(array $params, bool $raw = false)`: Logika bisnis server-side DataTables Promo dalam dual-mode (`$raw = true` -> array asosiatif bersih `items`/`data` tanpa HTML; `$raw = false` -> 13 kolom legacy dengan badge & tombol aksi).
+    - `getAll(?int $idProyek = null, string $search = '', bool $raw = false)`: Mengambil seluruh daftar Promo terfilter proyek & pencarian dalam dual-mode.
+    - `getOne(int $id)`, `create(array $input, int $actorId)`, `update(int $id, array $input, int $actorId)`, `deactivate(int $id, int $actorId)`: Validasi CI4 (`nama_promo` required max 255, `id_proyek`), normalisasi payload & tanggal, serta orkestrasi CRUD + soft-deactivate (`status = 0`).
+    - `formatDate(?string $tgl)` (safe zero-date guard `0000-00-00` -> `-`), `statusBadge($id, string $activeText, string $inactiveText)`, & `cleanNumeric(mixed $value)` (sanitasi format ribuan koma/titik).
 - **Repositories:**
   - `App\Repositories\Mkdt\BookingAkadReportRepository`:
     - `getAvailableYears(int $idProyek)`: Menghitung rentang tahun yang tersedia dari minimum dan maksimum bounds seluruh tanggal aktivitas transaksi, diapit minimal tahun berjalan - 1 hingga tahun berjalan.
@@ -268,6 +284,10 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
   - `App\Repositories\Mkdt\PosisiKonsumenRepository`: Query builder DataTables posisi konsumen aktif, akad, batal (termasuk seleksi kolom `mkdt.akad_indent_tgl`), dan log ekspor.
   - `App\Repositories\Mkdt\KonsumenRepository`: Query master konsumen terkait transaksi MKDT.
   - `App\Repositories\Mkdt\NupRepository`: Query detail NUP, validasi nomor NUP, histori perpindahan kavling, dan opsi kavling transfer.
+  - `App\Repositories\Mkdt\PromoRepository`:
+    - `getProyekList()`: Mengambil daftar proyek (`id_proyek, nama_proyek`) untuk dropdown/filter Promo.
+    - `getDataTables(array $params)` & `getAll(?int $idProyek = null, string $search = '')`: Query builder tabel `promo` join `proyek` + `users` (`add_by`/`edit_by`) dengan filter proyek & pencarian; menghapus anomali legacy `ClusterModel` pada `getAll()`.
+    - `getById(int $id)`, `insert(array $fields)`, `updateById(int $id, array $fields)`, `deactivate(int $id, int $actorId, string $timestamp)`: Query detail dan persistensi tulis eksklusif ke tabel `promo`.
 - **Models:**
   - `App\Models\MkdtModel`: Definisi entitas dan akses data tabel `mkdt`, dengan whitelist `$allowedFields` mencakup `akad_indent_tgl` (DATE, Nullable).
   - `App\Models\KonsumenModel`: Definisi entitas master data konsumen.
@@ -285,6 +305,9 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
       - Jika switch `#akad` dinonaktifkan (`akad == 0`): tanggal `#akad_tgl` di-reset, dan jika `#akad_indent` masih aktif (`akad_indent == 1`) maka `#is_ajb` di-fallback ke `'PPJB'`, jika tidak maka `#is_ajb` di-reset ke `''`.
       - Jika switch `#akad_indent` diaktifkan (`akad_indent == 1`) dan `#akad` belum aktif (`akad == 0`), dropdown `#is_ajb` otomatis diset ke `'PPJB'`.
       - Jika switch `#akad_indent` dinonaktifkan (`akad_indent == 0`): tanggal `#akad_indent_tgl` di-reset, dan jika `#akad` juga nonaktif (`akad == 0`) maka `#is_ajb` di-reset ke `''`.
+  - `app/Views/promo/index.php`:
+    - Penanda `// TODO(follow-up)` di baris 9 untuk migrasi AJAX `/promo/*` ke `/api/mkdt/promo/*?format=raw` dan ekstraksi inline JS/CSS ke aset eksternal per standar `sigapp-ui-acuan`.
+    - Perbaikan bug JS Fase 3B: (1) penghapusan re-deklarasi `const base_url` agar tidak bentrok dengan `template/menu.php`, (2) inisialisasi tunggal `$('#add-form').validate(...)` + helper `resetPromoForm()` agar alur `Add -> Edit` mengirimkan `POST /promo/edit` (bukan duplikat ke `/promo/add`), dan (3) pengisian `$("#idProyek").val(r.id_proyek).trigger('change')` pada `edit()` serta guard null-safe `promoDateFields`.
 - **Interaksi Lintas Modul (Cross-Module Invariants & Key Handlers):**
   - **Modul Legal (`legal` via `kavling.id_legal`):**
     - Sumber kebenaran data yuridis resmi: membaca `legal.ppjb_tanggal` untuk penanggalan Akad Indent/PPJB dan `legal.ajb_tanggal` untuk penanggalan Akad AJB. Digunakan dalam proses migrasi backfill pemisahan status transaksi serta sebagai acuan integritas data transaksi MKDT.
@@ -318,6 +341,12 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
     - `app/Repositories/KonsumenRepository.php` -> **DEPRECATED**, gunakan `App\Repositories\Mkdt\KonsumenRepository`.
     - `app/Repositories/NupRepository.php` -> **DEPRECATED**, gunakan `App\Repositories\Mkdt\NupRepository`.
     - `app/Repositories/BookingAkadReportRepository.php` -> **DEPRECATED**, gunakan `App\Repositories\Mkdt\BookingAkadReportRepository`.
+- **Zero-Downtime Legacy Controller Shim (Fase 2 Migrasi MKDT — Promo):**
+  - `app/Controllers/Promo.php` (`App\Controllers\Promo`) -> **DEPRECATED**, dipertahankan sebagai Zero-Downtime delegator shim ke `App\Controllers\Web\Mkdt\PromoController` dan `App\Controllers\Api\Mkdt\PromoController` (0 layer violations).
+  - Method `@deprecated` pada `App\Controllers\Promo`:
+    - `if_where($var, $column, $condition, $query)` -> **DEPRECATED**, gunakan query builder filtering di `App\Repositories\Mkdt\PromoRepository`.
+    - `is_active($id, $texts, $textf)` -> **DEPRECATED**, gunakan `App\Services\Mkdt\PromoService::statusBadge()`.
+    - `format_tgl($tgl)` -> **DEPRECATED**, gunakan `App\Services\Mkdt\PromoService::formatDate()`.
 - **Legacy Routes / Shims:**
   - Route `GET /list-batal` (`Mkdt::list_batal`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
   - Route `GET /list-stock` (`Mkdt::list_stock`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
@@ -354,6 +383,7 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
   - Route `ANY /promo/if_where` (`Promo::if_where`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
   - Route `ANY /promo/is_active` (`Promo::is_active`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
   - Route `ANY /promo/format_tgl` (`Promo::format_tgl`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+  - Seluruh rute eksplisit legacy Zero-Downtime `/promo/*` pada `app/Config/Routes.php` (`GET /promo/index`, `GET|POST /promo/{getDataTable,getdatatable,getAll,getall,getOne,getone,getOne/(:num),getone/(:num)}`, `POST /promo/{add,edit,edit/(:num),remove}`) -> **DEPRECATED (Zero-Downtime)**: Gunakan `GET /promo` (Web) dan `/api/mkdt/promo/*` (API).
 
 ## Readiness Checklist
 - [x] Has Service Layer
@@ -398,9 +428,34 @@ _Jalankan `php spark module:deadcode MKDT` untuk mengaudit dead code kandidat._
   - Modul Siteplan: visual status marker `Akad Indent` pada peta interaktif via `SiteplanVisualStatusService`, serta integrasi summary card dan status Akad Indent pada modal detail kavling (`siteplan-detail-modal.js`, `app/Views/siteplan/partials/modal_detail.php`).
   - Frontend Laporan: mengonsumsi REST API `/api/laporan/booking-akad/summary` dan `/api/laporan/booking-akad/detail`.
 - **Follow-up Plan (Migrasi Endpoint Frontend `/api/mkdt/*` Full JSON):**
-  - Sesuai keputusan arsitektur yang disetujui pada Fase 0 migrasi MKDT (#3 & #4), seluruh endpoint `/api/mkdt/*` yang akan dibuat pada fase lanjutan akan mendukung dual-mode (`?format=raw`) beserta flag penanda follow-up Full JSON, sementara aset frontend JS/View eksisting (`public/assets/js/siteplan/mkdt.js`, `app/Views/siteplan/mkdt.php`, `app/Views/kavling/*.php`, `app/Views/promo/index.php`) **tidak dialihkan** ke `/api/mkdt/*` selama migrasi ini dan ditandai sebagai pekerjaan follow-up pasca-migrasi MKDT.
+  - Sesuai keputusan arsitektur yang disetujui pada Fase 0 migrasi MKDT (#3 & #4), seluruh endpoint `/api/mkdt/*` mendukung dual-mode (`?format=raw`) beserta flag penanda follow-up Full JSON (`// TODO(full-json)` pada `App\Controllers\Api\Mkdt\PromoController::isRawRequest()`), sementara aset frontend JS/View eksisting (`public/assets/js/siteplan/mkdt.js`, `app/Views/siteplan/mkdt.php`, `app/Views/kavling/*.php`, `app/Views/promo/index.php`) **tidak dialihkan** ke `/api/mkdt/*` selama migrasi ini dan ditandai sebagai pekerjaan follow-up pasca-migrasi MKDT.
+  - Pada `app/Views/promo/index.php:9`, telah ditambahkan penanda `// TODO(follow-up): migrate /promo/* AJAX calls and inline JS/CSS to /api/mkdt/promo/*?format=raw + external assets per sigapp-ui-acuan`.
+  - Kontrak lengkap API Promo dual-mode pada `app/Config/Routes.php` (`api/mkdt/promo`): `GET|POST meta`, `GET|POST {datatable,getdatatable,getDataTable}`, `GET|POST {all,getall,getAll}`, `GET|POST {getone,getOne}` & `/{getone,getOne}/(:num)`, `POST add`, `POST edit` & `/edit/(:num)`, `POST remove` & `/remove/(:num)`.
 
 ## Change Log
+- **`2026-11-13` [`REFACTOR & BUGFIX`] — Fase 2 Migrasi MKDT (Dekomposisi Subdomain Promo: Web & API Controller, Service, Repository, Zero-Downtime Shim, & Bugfix UI Promo):**
+  - **Routes & Public Contracts:**
+    - Web: `GET /promo` -> `\App\Controllers\Web\Mkdt\PromoController::index`.
+    - API Dual-Mode (`?format=raw` = Full JSON `RAW_JSON_READY` dengan penanda `// TODO(full-json)` pada `PromoController::isRawRequest()`):
+      - `GET|POST /api/mkdt/promo/meta`
+      - `GET|POST /api/mkdt/promo/{datatable,getdatatable,getDataTable}`
+      - `GET|POST /api/mkdt/promo/{all,getall,getAll}`
+      - `GET|POST /api/mkdt/promo/{getone,getOne}` & `/{getone,getOne}/(:num)`
+      - `POST /api/mkdt/promo/add`, `POST /api/mkdt/promo/edit` & `/edit/(:num)`, `POST /api/mkdt/promo/remove` & `/remove/(:num)`
+    - Legacy Zero-Downtime Routes: `GET /promo/index`, `GET|POST /promo/{getDataTable,getdatatable,getAll,getall,getOne,getone,getOne/(:num),getone/(:num)}`, `POST /promo/{add,edit,edit/(:num),remove}` -> `App\Controllers\Promo::*`.
+  - **Controller / Service / Repo / Model:**
+    - `app/Repositories/Mkdt/PromoRepository.php`: Query builder tabel `promo` join `proyek` + `users` (`getProyekList`, `getDataTables`, `getAll`, `getById`, `insert`, `updateById`, `deactivate`); menghapus anomali legacy `ClusterModel` pada `getAll()`.
+    - `app/Services/Mkdt/PromoService.php`: Business logic Promo, validasi CI4, `cleanNumeric()`, `formatDate()` safe zero-date, `statusBadge()`, dan dual-mode DataTables/`getAll`.
+    - `app/Controllers/Web/Mkdt/PromoController.php`: Thin Web Controller (`index()`).
+    - `app/Controllers/Api/Mkdt/PromoController.php`: Thin API Controller (`extends BaseApiController`, `meta`, `getDataTable`, `getAll`, `getOne`, `add`, `edit`, `remove`), mengembalikan JSON 404/422 tanpa HTML exception.
+    - `app/Controllers/Promo.php`: Zero-Downtime legacy delegator shim (`initController()` meneruskan request/response/logger, 0 layer violations).
+    - `app/Config/Routes.php` & `app/Libraries/ModuleManager/ModuleCatalog.php`: Registrasi rute Promo Web/API/Legacy dan pembaruan inventori file MKDT (termasuk `App\Controllers\Promo` pada `'shims'`).
+  - **View / CSS / JS:**
+    - `app/Views/promo/index.php`: Penanda `// TODO(follow-up)` di L9 untuk migrasi AJAX `/promo/*` ke `/api/mkdt/promo/*?format=raw` + ekstraksi inline JS/CSS ke aset eksternal, serta perbaikan Fase 3B untuk 3 bug JS eksisting: (1) hapus re-deklarasi `const base_url` (bentrok `template/menu.php`), (2) inisialisasi tunggal `$('#add-form').validate(...)` + `resetPromoForm()` agar `Add -> Edit` mengirim `POST /promo/edit` (bukan duplikat ke `/promo/add`), dan (3) isi `$("#idProyek").val(r.id_proyek).trigger('change')` pada `edit()` + guard null-safe `promoDateFields`.
+  - **Deprecations:**
+    - `App\Controllers\Promo` (dan method `if_where()`, `is_active()`, `format_tgl()`) serta rute `/promo/*` (selain `GET /promo`) berstatus `@deprecated` Zero-Downtime shim.
+  - **Testing & Verification:**
+    - Diverifikasi `PASS` oleh `sigapp-qa` (`2026-11-13 12:01`): `php -l` bersih, `php spark module:status` (`MKDT: MAPPED 80%`, 0 layer violations di `Promo.php`), `php spark module:deadcode MKDT`, PHPUnit (`10/10` pass), dan Playwright E2E ulang pasca-perbaikan 3 bug JS di `/promo` (`PASS`, 0 console error).
 - **`2026-11-13` [`REFACTOR`] — Fase 0 & 1 Migrasi MKDT (Baseline, Pembersihan Dead Code, Pemindahan Modern Layer ke Subfolder `Mkdt/`, & Bugfix `/list-stock`):**
   - **Routes & Public Contracts:**
     - `app/Config/Routes.php`: Memperbarui namespace eksplisit menjadi `\App\Controllers\Web\Mkdt\BookingAkadReportController::index` (`GET /laporan/booking-akad`), grup `api/laporan/booking-akad` ke namespace `App\Controllers\Api\Mkdt`, dan grup `api/nup` ke namespace `App\Controllers\Api\Mkdt`.

@@ -9,8 +9,8 @@ Log bertahap migrasi modular dan debugging untuk modul **MKDT** (Mode `REFACTOR`
 | Fase | Nama Fase | Status | Tanggal | Commit Hash |
 |---|---|---|---|---|
 | **Fase 0** | Baseline & Safety Verification | `COMPLETED` | 2026-11-13 | `c377b23` |
-| **Fase 1** | Cleanup Dead Code + Move Modern Layer + Bugfix `/list-stock` | `PASS` (QA Verified) | 2026-11-13 | `<hash_fase_1>` (pending commit) |
-| **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer (PosisiKonsumen / Promo / MKDT Core) | `PENDING` | - | - |
+| **Fase 1** | Cleanup Dead Code + Move Modern Layer + Bugfix `/list-stock` | `COMPLETED` | 2026-11-13 | `6aebbbb` |
+| **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer — Subdomain Promo (`PromoController`, `PromoService`, `PromoRepository`, Shim, & Bugfix UI) | `COMPLETED` | 2026-11-13 | `8ffb065` |
 | **Fase 3** | API & Web Controller Separation + Explicit Routes | `PENDING` | - | - |
 | **Fase 4** | Cross-Module Alignment & Unit/Integration Tests | `PENDING` | - | - |
 | **Fase 5** | Deprecation Warnings (`Mkdt::save`, `set_harga`, `get_data_by_id`, `export_xlsx`) & Cleanup | `PENDING` | - | - |
@@ -105,9 +105,73 @@ Log bertahap migrasi modular dan debugging untuk modul **MKDT** (Mode `REFACTOR`
 
 ### Commit & Rollback
 
-- **Commit Fase 1:** `<hash_fase_1>` *(diisi setelah Master Orchestrator melakukan commit)*
+- **Commit Fase 1:** `6aebbbb` (`refactor(mkdt): phase 1 - cleanup dead comments, move modern layer, and fix list-stock proyek`)
 - **Prosedur Rollback Aman:**
   ```bash
-  git revert <hash_fase_1>
+  git revert 6aebbbb
   ```
   *(Karena 16 Zero-Downtime Shims menjaga kompatibilitas penuh pemanggil eksternal, rollback cukup dengan `git revert` tanpa migrasi skema database.)*
+
+---
+
+## Fase 2 — Dekomposisi & Ekstraksi Legacy Layer (Subdomain Promo)
+
+- **Tanggal:** `2026-11-13`
+- **Status QA:** `PASS` (Diverifikasi oleh `sigapp-qa` pada `2026-11-13 12:01`)
+- **Scope:**
+  1. Ekstraksi query database tabel `promo` ke `App\Repositories\Mkdt\PromoRepository` (termasuk penghapusan anomali legacy `ClusterModel` pada `getAll()`).
+  2. Ekstraksi business logic, validasi CI4, sanitasi numerik `cleanNumeric()`, format tanggal safe zero-date `formatDate()`, `statusBadge()`, dan dukungan dual-mode (`?format=raw` vs legacy DataTables/array) ke `App\Services\Mkdt\PromoService`.
+  3. Pemisahan controller Promo menjadi Thin Web Controller (`App\Controllers\Web\Mkdt\PromoController`) dan Thin API Controller (`App\Controllers\Api\Mkdt\PromoController extends BaseApiController`) dengan respon JSON 404/422 terstruktur serta penanda `// TODO(full-json)`.
+  4. Konversi `App\Controllers\Promo` menjadi Zero-Downtime legacy delegator shim (`initController()` meneruskan request/response/logger, 0 layer violations, metode helper diberi `@deprecated`).
+  5. Registrasi rute eksplisit Web (`/promo`), API Dual-Mode (`/api/mkdt/promo/*`), dan Legacy Zero-Downtime (`/promo/*`) di `app/Config/Routes.php`, serta pembaruan `app/Libraries/ModuleManager/ModuleCatalog.php`.
+  6. Penandaan `// TODO(follow-up)` pada `app/Views/promo/index.php:9` serta perbaikan Fase 3B untuk 3 bug JS eksisting hasil temuan QA Playwright E2E.
+
+### Daftar File Diubah & Dibuat
+
+- **File Kanonik Baru (4 File):**
+  - `app/Repositories/Mkdt/PromoRepository.php` (200 baris, 7 public methods: `getProyekList()`, `getDataTables()`, `getAll()`, `getById()`, `insert()`, `updateById()`, `deactivate()`)
+  - `app/Services/Mkdt/PromoService.php` (491 baris, 10 public methods: `getIndexData()`, `getDataTables()`, `getAll()`, `getOne()`, `create()`, `update()`, `deactivate()`, `formatDate()`, `statusBadge()`, `cleanNumeric()`)
+  - `app/Controllers/Web/Mkdt/PromoController.php` (32 baris, 1 public method: `index()`)
+  - `app/Controllers/Api/Mkdt/PromoController.php` (205 baris, 7 public methods: `meta()`, `getDataTable()`, `getAll()`, `getOne()`, `add()`, `edit()`, `remove()`)
+- **File Dimodifikasi & Zero-Downtime Shim:**
+  - `app/Controllers/Promo.php` (107 baris) — Diubah menjadi Zero-Downtime legacy delegator shim (`@deprecated`, 0 layer violations; mempertahankan `if_where()`, `is_active()`, `format_tgl()` sebagai `@deprecated`).
+  - `app/Config/Routes.php` — Rute eksplisit Web (`GET /promo`), API Dual-Mode (`GET|POST /api/mkdt/promo/{meta,datatable,getdatatable,getDataTable,all,getall,getAll,getone,getOne,getone/(:num),getOne/(:num)}` & `POST /api/mkdt/promo/{add,edit,edit/(:num),remove,remove/(:num)}`), dan Legacy Zero-Downtime (`/promo/*`).
+  - `app/Libraries/ModuleManager/ModuleCatalog.php` — Registrasi controller/service/repository Promo dan penambahan `app/Controllers/Promo.php` pada `'shims'`.
+  - `app/Views/promo/index.php` — Penambahan penanda `// TODO(follow-up)` pada L9 serta perbaikan 3 bug JS Fase 3B.
+- **Dokumentasi:**
+  - `docs/modules/MKDT/MODULE.md` (disinkronkan via `php spark module:sync MKDT` + kurasi manual).
+  - `docs/modules/MKDT/MIGRATION_LOG.md` (diperbarui pada Fase 4).
+
+### Hasil Verifikasi & Command
+
+- **PHP Syntax Lint (`php -l`):** Seluruh file yang dibuat dan dimodifikasi bersih tanpa syntax error.
+- **`php spark module:status MKDT`:** Skor MKDT `80%` (`MAPPED`, 7 Ctrl, 9 Serv, 6 Repo, 3 Model, 40 Route, 4 Tables); `Layer Violations Detected` untuk `app/Controllers/Promo.php` kini **0** (bersih).
+- **`php spark module:deadcode MKDT`:** Memeriksa 30 metode; ditemukan 2 kandidat:
+  1. `Controller PromoController.php::meta()` (`0 Callers` — endpoint API metadata baru untuk konsumsi frontend *follow-up* setelah migrasi full-JSON).
+  2. `Service MkdtFinancialReconciliationService.php::apply()` (`0 Callers` — kandidat eksisting dari Fase 1).
+- **PHPUnit:** `10/10` pass (verifikasi QA Fase 2).
+
+### Bug Ditemukan, Root Cause Analysis (RCA), & Remediasi (Playwright E2E)
+
+- **Temuan QA Awal (Playwright E2E pada `/promo`):**
+  1. **SyntaxError Re-deklarasi `const base_url`:** Console browser memunculkan error karena `app/Views/promo/index.php` mendeklarasikan ulang `const base_url` yang sudah dideklarasikan di `template/menu.php`.
+  2. **Alur `Add -> Edit` Mengirim Duplikat ke `POST /promo/add`:** Setelah membuka/submit modal Tambah lalu menekan Edit pada baris data, form tetap mengirim ke `/promo/add` (membuat data duplikat) alih-alih `/promo/edit`.
+  3. **Dropdown Proyek (`#idProyek`) Tidak Terisi & Field Tanggal Rentan Null Error saat Edit:** Pada fungsi `edit()`, nilai `r.id_proyek` tidak di-set dengan `.trigger('change')` pada Select2, serta iterasi field tanggal belum memiliki guard null-safe terhadap instance `_flatpickr`.
+- **Root Cause Analysis (RCA):**
+  1. Duplikasi deklarasi variabel global `const base_url` antara `promo/index.php` dan layout `template/menu.php`.
+  2. Inisialisasi `$('#add-form').validate(...)` sebelumnya dipasang ulang dengan URL statis di dalam masing-masing fungsi `add()` dan `edit()`, sehingga handler `submitHandler` pertama yang terikat ke `/promo/add` tetap menang saat user berpindah dari `Add` ke `Edit`.
+  3. Fungsi `edit()` tidak memicu pembaruan Select2 `#idProyek` dan tidak mengecek keberadaan elemen maupun instance `_flatpickr` sebelum memanggil `clear()`/`setDate()`.
+- **Perbaikan (Fase 3B pada `app/Views/promo/index.php`):**
+  1. Menghapus re-deklarasi `const base_url` dan menggunakan `window.base_url` / `base_url()` PHP helper secara konsisten.
+  2. Mengubah `$('#add-form').validate(...)` menjadi inisialisasi tunggal di `$(document).ready(...)` dengan penentuan URL dinamis (`const isEdit = Boolean($('#id').val())` -> `edit` vs `add`), serta menambahkan helper `resetPromoForm()`.
+  3. Mengisi `$("#idProyek").val(r.id_proyek).trigger('change')` di dalam `edit()` dan menambahkan guard null-safe (`if (input && input._flatpickr)`) saat iterasi `promoDateFields`.
+- **Re-Verify QA:** Pengujian ulang Playwright E2E pada `/promo` (daftar DataTables, Add, Edit, dan Soft-Deactivate/Remove) berjalan **PASS** dengan **0 console error** dan **0 network error**.
+
+### Commit & Rollback
+
+- **Commit Implementasi Fase 2:** `8ffb065` (`refactor(mkdt): phase 2 - modularize Promo controller/service/repo and fix promo UI bugs`) *(catatan: commit sinkronisasi dokumen menyusul atau digabung pada commit Fase 2)*.
+- **Prosedur Rollback Aman:**
+  ```bash
+  git revert 8ffb065
+  ```
+  *(Karena `App\Controllers\Promo` bertindak sebagai Zero-Downtime delegator shim dan rute `/promo/*` tetap dipertahankan, rollback dapat dilakukan aman via `git revert` tanpa perubahan skema database.)*
