@@ -580,7 +580,7 @@ $routes->post("/keuangan/hasil-akad/import", 'PencairanAkad::import');
 $routes->group('laporan', ['namespace' => 'App\Controllers\Web', 'filter' => 'login'], function ($routes) {
     $routes->get('cash-in', 'CashInReportController::index');
     $routes->get('hasil-akad', 'HasilAkadReportController::index');
-    $routes->get('booking-akad', 'BookingAkadReportController::index');
+    $routes->get('booking-akad', '\App\Controllers\Web\Mkdt\BookingAkadReportController::index');
 });
 
 $routes->group('api/laporan/cash-in', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
@@ -593,7 +593,7 @@ $routes->group('api/laporan/hasil-akad', ['namespace' => 'App\Controllers\Api', 
     $routes->post('detail', 'HasilAkadReportController::detail');
 });
 
-$routes->group('api/laporan/booking-akad', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/laporan/booking-akad', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {
     $routes->post('summary', 'BookingAkadReportController::summary');
     $routes->post('detail', 'BookingAkadReportController::detail');
 });
@@ -705,7 +705,7 @@ $routes->group('api/mkdt', ['namespace' => 'App\Controllers\Api\Transaksi', 'fil
     $routes->post('consumer-replacement-history', 'MkdtController::consumerReplacementHistory');
 });
 
-$routes->group('api/nup', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/nup', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {
     $routes->post('list', 'NupController::list');
     $routes->post('detail', 'NupController::detail');
     $routes->post('save', 'NupController::save');

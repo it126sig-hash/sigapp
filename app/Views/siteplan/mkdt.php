@@ -1690,7 +1690,7 @@
             <div class="modal-header">
                 <div class="min-w-0">
                     <h5 class="modal-title mb-0">Turun Pembangunan</h5>
-                    <span class="tp-project"><i class="fas fa-home mr-1"></i>Proyek: <?= $data['proyek']->nama_proyek ?></span>
+                    <span class="tp-project"><i class="fas fa-home mr-1"></i>Proyek: <?= esc($data['proyek']->nama_proyek ?? '-') ?></span>
                 </div>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -1706,7 +1706,7 @@
                                 </div>
                                 <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
                                 <input type="hidden" class="form-control" id="tp-nama_proyek" readonly name="nama_proyek"
-                                    value="<?= $data['proyek']->nama_proyek ?>" />
+                                    value="<?= esc($data['proyek']->nama_proyek ?? '') ?>" />
                                 <div class="form-group mb-0">
                                     <label class="form-label" for="tp-kavling">Kavling</label>
                                     <textarea class="form-control" id="tp-kavling" name="tp-kavling" rows="6" readonly
@@ -1775,7 +1775,7 @@
             <div class="modal-header">
                 <div class="min-w-0">
                     <h5 class="modal-title mb-0">Manajemen Kavling &mdash; Set Harga</h5>
-                    <span class="set-harga-project"><i class="fas fa-home mr-1"></i>Proyek: <?= $data['proyek']->nama_proyek ?></span>
+                    <span class="set-harga-project"><i class="fas fa-home mr-1"></i>Proyek: <?= esc($data['proyek']->nama_proyek ?? '-') ?></span>
                 </div>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -1794,7 +1794,7 @@
                                     <label for="sh-kavling">Kavling</label>
                                     <input type="hidden" class="form-control" id="points" readonly name="points" value="" />
                                     <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
-                                    <input type="hidden" class="form-control" id="nama_proyek" readonly name="nama_proyek" value="<?= $data['proyek']->nama_proyek ?>" />
+                                    <input type="hidden" class="form-control" id="nama_proyek" readonly name="nama_proyek" value="<?= esc($data['proyek']->nama_proyek ?? '') ?>" />
                                     <textarea class="form-control" id="sh-kavling" name="sh-kavling" rows="4" readonly placeholder="Kavling"></textarea>
                                     <small class="set-harga-note">Gunakan titik koma ";" untuk pemisah nomor rumah jika input lebih dari 1 kavling sekaligus.</small>
                                 </div>

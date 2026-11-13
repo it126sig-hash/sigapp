@@ -1,8 +1,8 @@
 # Module: MKDT
 
 **Status:** `MAPPED`  
-**Readiness Score:** `60/100`  
-**Last Synced:** `2026-11-05 12:21:26` @ `a684cd1`  
+**Readiness Score:** `80/100`  
+**Last Synced:** `2026-11-13 11:41:06` @ `c377b23`  
 
 ## Purpose
 Manajemen Konsumen dan Transaksi (MKDT): tata kelola siklus transaksi konsumen mulai dari NUP, booking unit, verifikasi data konsumen, posisi kavling, wawancara perbankan, persetujuan SP3K, akad indent (PPJB), akad AJB, mutasi/pergantian konsumen, hingga pembatalan unit (`mkdt`, `konsumen`, `mkdt_kavling_history`).
@@ -68,7 +68,7 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 | `POST` | `/api/nup/pull` | `Explicit` | `NupController::pull` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/nup/kavling-options` | `Explicit` | `NupController::kavlingOptions` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/nup/kavling-history` | `Explicit` | `NupController::kavlingHistory` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `/laporan/booking-akad` | `Explicit` | `BookingAkadReportController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/laporan/booking-akad` | `Explicit` | `\App\Controllers\Web\Mkdt\BookingAkadReportController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/laporan/booking-akad/summary` | `Explicit` | `BookingAkadReportController::summary` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/laporan/booking-akad/detail` | `Explicit` | `BookingAkadReportController::detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `ANY` | `/mkdt/get_data_by_id` | `AutoRoute` | `Mkdt::get_data_by_id` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
@@ -154,29 +154,29 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 
 ## File Inventory
 ### Controllers (6)
-- `app/Controllers/Mkdt.php` (1969 baris, 13 public methods: `get_data_by_id($st = null)`, `simpan_batal()`, `batal_mkdt()`, `save()`, `set_harga()`, `list_stock()`, `getListStock()`, `if_where($var, $column, $condition, $query)`, `format_tgl($tgl)`, `is_active($id, $texts, $textf)`, `getsi()`, `saveSI()`, `export_xlsx()`)
+- `app/Controllers/Mkdt.php` (1257 baris, 13 public methods: `get_data_by_id($st = null)`, `simpan_batal()`, `batal_mkdt()`, `save()`, `set_harga()`, `list_stock()`, `getListStock()`, `if_where($var, $column, $condition, $query)`, `format_tgl($tgl)`, `is_active($id, $texts, $textf)`, `getsi()`, `saveSI()`, `export_xlsx()`)
 - `app/Controllers/PosisiKonsumen.php` (304 baris, 10 public methods: `index($status = null)`, `getDataTables($status = null)`, `getDataTablesAkad()`, `getDataTablesBatal()`, `format_tgl($tgl)`, `is_active($id, $texts, $textf)`, `exportPoskon($tipe, $status)`, `exportPoskonPdf($status)`, `exportPoskonXlsx($status)`, `getRiwayatExport($status = "Aktif")`)
-- `app/Controllers/Api/NupController.php` (194 baris, 6 public methods: `list()`, `detail()`, `save()`, `pull()`, `kavlingOptions()`, `kavlingHistory()`)
+- `app/Controllers/Api/Mkdt/NupController.php` (195 baris, 6 public methods: `list()`, `detail()`, `save()`, `pull()`, `kavlingOptions()`, `kavlingHistory()`)
 - `app/Controllers/Promo.php` (351 baris, 10 public methods: `index()`, `getDataTable()`, `getAll()`, `getOne()`, `add()`, `edit()`, `remove()`, `if_where($var, $column, $condition, $query)`, `is_active($id, $texts, $textf)`, `format_tgl($tgl)`)
-- `app/Controllers/Web/BookingAkadReportController.php` (49 baris, 1 public methods: `index()`)
-- `app/Controllers/Api/BookingAkadReportController.php` (80 baris, 2 public methods: `summary()`, `detail()`)
+- `app/Controllers/Web/Mkdt/BookingAkadReportController.php` (49 baris, 1 public methods: `index()`)
+- `app/Controllers/Api/Mkdt/BookingAkadReportController.php` (81 baris, 2 public methods: `summary()`, `detail()`)
 
 ### Services (8)
-- `app/Services/MkdtHistoryService.php` (314 baris, 11 public methods)
-- `app/Services/MkdtSettlementService.php` (48 baris, 1 public methods)
-- `app/Services/MkdtFinancialBreakdownService.php` (254 baris, 6 public methods)
-- `app/Services/MkdtFinancialReconciliationService.php` (275 baris, 2 public methods)
-- `app/Services/PosisiKonsumenService.php` (452 baris, 6 public methods)
-- `app/Services/KonsumenService.php` (49 baris, 3 public methods)
-- `app/Services/NupService.php` (532 baris, 6 public methods)
-- `app/Services/BookingAkadReportService.php` (755 baris, 9 public methods)
+- `app/Services/Mkdt/MkdtHistoryService.php` (316 baris, 11 public methods)
+- `app/Services/Mkdt/MkdtSettlementService.php` (48 baris, 1 public methods)
+- `app/Services/Mkdt/MkdtFinancialBreakdownService.php` (254 baris, 6 public methods)
+- `app/Services/Mkdt/MkdtFinancialReconciliationService.php` (275 baris, 2 public methods)
+- `app/Services/Mkdt/PosisiKonsumenService.php` (453 baris, 6 public methods)
+- `app/Services/Mkdt/KonsumenService.php` (49 baris, 3 public methods)
+- `app/Services/Mkdt/NupService.php` (536 baris, 6 public methods)
+- `app/Services/Mkdt/BookingAkadReportService.php` (755 baris, 9 public methods)
 
 ### Repositories (5)
-- `app/Repositories/MkdtHistoryRepository.php` (55 baris, 4 public methods: `hasTable()`, `insert(array $fields)`, `countByKavling(int $idKavling)`, `getByKavling(int $idKavling, int $limit, int $offset)`)
-- `app/Repositories/PosisiKonsumenRepository.php` (199 baris, 4 public methods: `getBaseQuery($status = "Booking")`, `getQueryBatal()`, `getRiwayatExport($id_proyek, $status)`, `insertRiwayatExport($data)`)
-- `app/Repositories/KonsumenRepository.php` (60 baris, 1 public methods: `getKonsumenTransaksi(int $idMkdt, $select = [])`)
-- `app/Repositories/NupRepository.php` (412 baris, 10 public methods: `getNupListByProyek(int $idProyek, ?string $search = null)`, `getNupDetail(int $idMkdt, bool $lock = false)`, `getKavlingRow(int $idKavling, bool $lock = false)`, `getKavlingLabel(?int $idKavling)`, `getProyekIdByKavling(?int $idKavling)`, `getKavlingOptionsForTransfer(int $idProyek, ?string $search = null, ?int $currentIdKavling = null, ?int $lastIdKavling = null, ?string $filterHargaJual = null)`, `insertKavlingHistory(array $data)`, `getKavlingHistory(int $idMkdt = 0, int $idKavling = 0)`, `isNoNupExists(string $noNup, int $idProyek, int $excludeIdMkdt = 0)`, `generateNextNupNumber(int $idProyek)`)
-- `app/Repositories/BookingAkadReportRepository.php` (659 baris, 8 public methods: `getAvailableYears(int $idProyek)`, `getAvailableYearBounds(int $idProyek)`, `getMonthlyBookingTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getMonthlyStatusTotals(int $idProyek, array $years)`, `getMonthlySummaryTotals(int $idProyek, array $years)`, `getSummary(int $idProyek, int $year)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable = [])`)
+- `app/Repositories/Mkdt/MkdtHistoryRepository.php` (55 baris, 4 public methods: `hasTable()`, `insert(array $fields)`, `countByKavling(int $idKavling)`, `getByKavling(int $idKavling, int $limit, int $offset)`)
+- `app/Repositories/Mkdt/PosisiKonsumenRepository.php` (199 baris, 4 public methods: `getBaseQuery($status = "Booking")`, `getQueryBatal()`, `getRiwayatExport($id_proyek, $status)`, `insertRiwayatExport($data)`)
+- `app/Repositories/Mkdt/KonsumenRepository.php` (60 baris, 1 public methods: `getKonsumenTransaksi(int $idMkdt, $select = [])`)
+- `app/Repositories/Mkdt/NupRepository.php` (412 baris, 10 public methods: `getNupListByProyek(int $idProyek, ?string $search = null)`, `getNupDetail(int $idMkdt, bool $lock = false)`, `getKavlingRow(int $idKavling, bool $lock = false)`, `getKavlingLabel(?int $idKavling)`, `getProyekIdByKavling(?int $idKavling)`, `getKavlingOptionsForTransfer(int $idProyek, ?string $search = null, ?int $currentIdKavling = null, ?int $lastIdKavling = null, ?string $filterHargaJual = null)`, `insertKavlingHistory(array $data)`, `getKavlingHistory(int $idMkdt = 0, int $idKavling = 0)`, `isNoNupExists(string $noNup, int $idProyek, int $excludeIdMkdt = 0)`, `generateNextNupNumber(int $idProyek)`)
+- `app/Repositories/Mkdt/BookingAkadReportRepository.php` (659 baris, 8 public methods: `getAvailableYears(int $idProyek)`, `getAvailableYearBounds(int $idProyek)`, `getMonthlyBookingTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getMonthlyStatusTotals(int $idProyek, array $years)`, `getMonthlySummaryTotals(int $idProyek, array $years)`, `getSummary(int $idProyek, int $year)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable = [])`)
 
 ### Models (3)
 - `app/Models/MkdtModel.php`
@@ -192,19 +192,38 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 - `public/assets/js/siteplan/mkdt.js` (3299 baris)
 - `public/assets/js/laporan-booking-akad.js` (691 baris)
 
+### Zero-Downtime Shims (16 file)
+- `app/Controllers/Api/NupController.php`
+- `app/Controllers/Web/BookingAkadReportController.php`
+- `app/Controllers/Api/BookingAkadReportController.php`
+- `app/Services/MkdtHistoryService.php`
+- `app/Services/MkdtSettlementService.php`
+- `app/Services/MkdtFinancialBreakdownService.php`
+- `app/Services/MkdtFinancialReconciliationService.php`
+- `app/Services/PosisiKonsumenService.php`
+- `app/Services/KonsumenService.php`
+- `app/Services/NupService.php`
+- `app/Services/BookingAkadReportService.php`
+- `app/Repositories/MkdtHistoryRepository.php`
+- `app/Repositories/PosisiKonsumenRepository.php`
+- `app/Repositories/KonsumenRepository.php`
+- `app/Repositories/NupRepository.php`
+- `app/Repositories/BookingAkadReportRepository.php`
+
 ## Key Functions
 - **Controllers:**
-  - `App\Controllers\Web\BookingAkadReportController`:
+  - `App\Controllers\Web\Mkdt\BookingAkadReportController`:
     - `index()`: Menginisialisasi dan merender tampilan utama laporan Booking & Akad tahunan (`app/Views/laporan/booking-akad.php`) dengan proteksi otorisasi `MenuAccessService::canAccessUrl()` berdasarkan role pengguna, mendeteksi proyek aktif via `ActiveProyekService`, dan menyediakan daftar tahun transaksi yang tersedia.
-  - `App\Controllers\Api\BookingAkadReportController`:
+  - `App\Controllers\Api\Mkdt\BookingAkadReportController`:
     - `summary()`: Endpoint JSON POST `/api/laporan/booking-akad/summary` untuk menyajikan ringkasan matriks agregasi bulanan (12 bulan) untuk single year maupun komparasi 2 tahun, mencakup 6 status transaksi resmi dan konversi cohort riil berbasis `uniq_id`.
     - `detail()`: Endpoint JSON POST `/api/laporan/booking-akad/detail` untuk melayani server-side DataTables rincian transaksi kavling per bulan dan kategori status dengan payload 7 kolom terstruktur dan token CSRF terbaru.
-  - `App\Controllers\Api\NupController`: Endpoint terstruktur untuk listing, detail, simpan, pull transaksi ke NUP, opsi kavling, dan histori pemindahan kavling.
-  - `App\Controllers\Mkdt`: Controller legacy untuk alur batal, stok kavling, set harga, dan standing instruction.
+  - `App\Controllers\Api\Mkdt\NupController`: Endpoint terstruktur untuk listing, detail, simpan, pull transaksi ke NUP, opsi kavling, dan histori pemindahan kavling (`/api/nup/*`).
+  - `App\Controllers\Mkdt`: Controller legacy untuk alur batal, stok kavling, set harga, dan standing instruction (dead commented code L801–1515 telah dibersihkan pada Fase 1):
+    - `list_stock()`: Merender halaman `kavling/list-stock` (`GET /list-stock`) dengan mengisi `$data['data']['proyek']` via `(new ActiveProyekService())->resolveAndGet()` (dengan fallback objek aman) agar modal Turun Pembangunan dan Set Harga pada `app/Views/siteplan/mkdt.php` menerima konteks proyek aktif tanpa error.
   - `App\Controllers\PosisiKonsumen`: Controller legacy untuk posisi konsumen aktif, akad, batal, dan ekspor.
   - `App\Controllers\Promo`: Controller manajemen promo dan diskon kavling.
 - **Services:**
-  - `App\Services\BookingAkadReportService`:
+  - `App\Services\Mkdt\BookingAkadReportService`:
     - `CATEGORIES` & `STATUS_BADGE_MAP`: Konstanta 6 status transaksi resmi (`booking`, `wawancara`, `sp3k`, `batal`, `akad_indent`, `akad_ajb`) dan pemetaan badge visual semantik (`secondary`, `warning`, `primary`, `danger`, `info`, `success`).
     - `getAvailableYears(int $idProyek)`: Mengambil rentang daftar tahun yang tersedia dari batas tahun seluruh tanggal aktivitas transaksi (`booking_tgl`, `wawancara_tgl`, `sp3k_tgl`, `akad_indent_tgl`, `akad_tgl`, dan tanggal batal) pada proyek aktif dengan guard aman `> '1970-01-01'`.
     - `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`: Agregasi matriks bulanan 12 bulan untuk 6 kategori status transaksi, menghitung rasio konversi cohort riil per bulan dan total tahunan berbasis transaksi unik (`mkdt.uniq_id`) dengan pembatasan [0.0%, 100.0%], serta mendukung komparasi 2 tahun side-by-side.
@@ -216,15 +235,15 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
     - `resolveCatatanMkdt(array $row)`: Mengambil keterangan/catatan transaksi bertingkat dari `mkdt` (`keterangan_batal` -> `keterangan` -> `keterangan_status` -> `-`).
     - `formatDate(?string $date)`: Sanitasi dan format tanggal aman (`d-m-Y` atau `-` untuk zero-date/NULL).
     - `monthLabel(int $month)`: Label nama bulan bahasa Indonesia standar (Januari - Desember).
-  - `App\Services\MkdtHistoryService`: Pencatatan log histori kavling, consumer replacement snapshots, dan build summary status/perubahan (termasuk audit trail perubahan `akad_indent_tgl` serta pembedaan label `Akad AJB` vs `Akad Indent`).
-  - `App\Services\MkdtSettlementService`: Sinkronisasi status pelunasan transaksi MKDT.
-  - `App\Services\MkdtFinancialBreakdownService`: Validasi breakdown finansial kavling, target, progress pembayaran, dan jadwal angsuran.
-  - `App\Services\MkdtFinancialReconciliationService`: Audit dan rekonsiliasi data transaksi finansial MKDT.
-  - `App\Services\PosisiKonsumenService`: Business logic DataTables posisi konsumen (Booking, Akad, Batal), dukungan filter acuan waktu `bulan_field == 'indent'` (terhadap `mkdt.akad_indent_tgl`), rendering kolom `TGL AKAD` yang eksklusif (jika sudah mencapai tahap Akad AJB hanya menampilkan badge `AJB: <tgl>`, jika baru tahap Akad Indent menampilkan badge `Indent: <tgl>`, atau `-` jika belum keduanya), serta riwayat ekspor.
-  - `App\Services\KonsumenService`: Upsert master data konsumen dan query relasi konsumen transaksi.
-  - `App\Services\NupService`: Manajemen siklus NUP, transfer kavling, validasi nomor NUP unik per proyek, dan lampiran berkas.
+  - `App\Services\Mkdt\MkdtHistoryService`: Pencatatan log histori kavling, consumer replacement snapshots, dan build summary status/perubahan (termasuk audit trail perubahan `akad_indent_tgl` serta pembedaan label `Akad AJB` vs `Akad Indent`).
+  - `App\Services\Mkdt\MkdtSettlementService`: Sinkronisasi status pelunasan transaksi MKDT.
+  - `App\Services\Mkdt\MkdtFinancialBreakdownService`: Validasi breakdown finansial kavling, target, progress pembayaran, dan jadwal angsuran.
+  - `App\Services\Mkdt\MkdtFinancialReconciliationService`: Audit dan rekonsiliasi data transaksi finansial MKDT.
+  - `App\Services\Mkdt\PosisiKonsumenService`: Business logic DataTables posisi konsumen (Booking, Akad, Batal), dukungan filter acuan waktu `bulan_field == 'indent'` (terhadap `mkdt.akad_indent_tgl`), rendering kolom `TGL AKAD` yang eksklusif (jika sudah mencapai tahap Akad AJB hanya menampilkan badge `AJB: <tgl>`, jika baru tahap Akad Indent menampilkan badge `Indent: <tgl>`, atau `-` jika belum keduanya), serta riwayat ekspor.
+  - `App\Services\Mkdt\KonsumenService`: Upsert master data konsumen dan query relasi konsumen transaksi.
+  - `App\Services\Mkdt\NupService`: Manajemen siklus NUP, transfer kavling, validasi nomor NUP unik per proyek, dan lampiran berkas.
 - **Repositories:**
-  - `App\Repositories\BookingAkadReportRepository`:
+  - `App\Repositories\Mkdt\BookingAkadReportRepository`:
     - `getAvailableYears(int $idProyek)`: Menghitung rentang tahun yang tersedia dari minimum dan maksimum bounds seluruh tanggal aktivitas transaksi, diapit minimal tahun berjalan - 1 hingga tahun berjalan.
     - `getAvailableYearBounds(int $idProyek)`: Query batas tahun minimum dan maksimum dari seluruh tanggal milestone menggunakan kondisi kualifikasi tahap (`wawancaraConditionSql()`, `sp3kConditionSql()`, `akadIndentConditionSql()`, `akadAjbConditionSql()`) dan ekspresi tanggal efektif (`stageDateSql()` serta `batalDateSql()`), dipagari kriteria `> '1970-01-01'`.
     - `getMonthlyStatusTotals(int $idProyek, array $years)`: Multi-metric SQL query untuk menghitung agregasi bulanan berdasarkan kondisi kualifikasi dan tanggal efektif masing-masing status (`booking` via `m.booking_tgl`, `wawancara` via `wawancaraConditionSql()` + `stageDateSql('m.wawancara_tgl')`, `sp3k` via `sp3kConditionSql()` + `stageDateSql('m.sp3k_tgl')`, `batal` via `batalDateSql()`, `akad_indent` via `akadIndentConditionSql()` + `stageDateSql('m.akad_indent_tgl')`, `akad_ajb` via `akadAjbConditionSql()` + `stageDateSql('m.akad_tgl')`), serta konversi kohort transaksi booking (`total_booking_cohort` dan `booking_converted_akad` via `akadAjbConditionSql() OR akadIndentConditionSql()`), dilengkapi safe zero-date filtering `> '1970-01-01'`.
@@ -234,10 +253,10 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
     - `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable = [])`: Query detail transaksi unit kavling dengan JOIN lengkap (`mkdt`, `kavling`, `jalan`, `cluster`, `proyek`, `konsumen`, `hargajual`, `tipe`), penentuan status terakhir & tanggal status terakhir di SQL, filter safe zero-date, pencarian global DataTables, dan pagination.
     - `compileDetailQuery(...)`: Filter kategori modal detail diselaraskan 100% dengan kondisi kualifikasi (`wawancaraConditionSql()`, `sp3kConditionSql()`, `akadIndentConditionSql()`, `akadAjbConditionSql()`) dan rentang bulan tanggal efektif (`stageDateSql()`) kategori terkait, sehingga `recordsTotal` modal detail identik dengan angka pada sel matriks.
     - `wawancaraConditionSql()`, `sp3kConditionSql()`, `akadIndentConditionSql()`, `akadAjbConditionSql()`, & `stageDateSql(string $column)`: Helper ekspresi SQL terpusat untuk kondisi kualifikasi 5 kolom status non-batal dan fallback tanggal efektif tahap (`COALESCE(DATE($column), DATE(m.booking_tgl), DATE(m.updated_at), DATE(m.created_at))` dengan guard `> '1970-01-01'`).
-  - `App\Repositories\MkdtHistoryRepository`: Query dan persistensi tabel histori aktivitas transaksi kavling.
-  - `App\Repositories\PosisiKonsumenRepository`: Query builder DataTables posisi konsumen aktif, akad, batal (termasuk seleksi kolom `mkdt.akad_indent_tgl`), dan log ekspor.
-  - `App\Repositories\KonsumenRepository`: Query master konsumen terkait transaksi MKDT.
-  - `App\Repositories\NupRepository`: Query detail NUP, validasi nomor NUP, histori perpindahan kavling, dan opsi kavling transfer.
+  - `App\Repositories\Mkdt\MkdtHistoryRepository`: Query dan persistensi tabel histori aktivitas transaksi kavling.
+  - `App\Repositories\Mkdt\PosisiKonsumenRepository`: Query builder DataTables posisi konsumen aktif, akad, batal (termasuk seleksi kolom `mkdt.akad_indent_tgl`), dan log ekspor.
+  - `App\Repositories\Mkdt\KonsumenRepository`: Query master konsumen terkait transaksi MKDT.
+  - `App\Repositories\Mkdt\NupRepository`: Query detail NUP, validasi nomor NUP, histori perpindahan kavling, dan opsi kavling transfer.
 - **Models:**
   - `App\Models\MkdtModel`: Definisi entitas dan akses data tabel `mkdt`, dengan whitelist `$allowedFields` mencakup `akad_indent_tgl` (DATE, Nullable).
   - `App\Models\KonsumenModel`: Definisi entitas master data konsumen.
@@ -267,7 +286,27 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
     - Menampilkan data `Tgl Akad Indent` dan `Tgl Akad (AJB)` secara terpisah pada summary card & section status Modal Detail kavling (`siteplan-detail-modal.js`, `modal_detail.php`).
 
 ## Deprecated & Legacy Shims
-- **Fitur Baru (Laporan Booking & Akad):** Tidak ada deprecations; seluruh rute baru menggunakan arsitektur modern Web & Api Controller (`App\Controllers\Web\...` dan `App\Controllers\Api\...`).
+- **Zero-Downtime Namespace Shims (16 File — Fase 1 Migrasi MKDT):**
+  Seluruh class root/non-modular di bawah ini dipertahankan sebagai *inheritance shim* demi kompatibilitas pemanggil eksternal (*Zero-Downtime*) dan dinyatakan **DEPRECATED** untuk pemakaian baru; gunakan namespace kanonik `*\Mkdt\*`:
+  - **Controllers (3 shims):**
+    - `app/Controllers/Api/NupController.php` (`App\Controllers\Api\NupController`) -> **DEPRECATED**, gunakan `App\Controllers\Api\Mkdt\NupController`.
+    - `app/Controllers/Web/BookingAkadReportController.php` (`App\Controllers\Web\BookingAkadReportController`) -> **DEPRECATED**, gunakan `App\Controllers\Web\Mkdt\BookingAkadReportController`.
+    - `app/Controllers/Api/BookingAkadReportController.php` (`App\Controllers\Api\BookingAkadReportController`) -> **DEPRECATED**, gunakan `App\Controllers\Api\Mkdt\BookingAkadReportController`.
+  - **Services (8 shims):**
+    - `app/Services/MkdtHistoryService.php` -> **DEPRECATED**, gunakan `App\Services\Mkdt\MkdtHistoryService`.
+    - `app/Services/MkdtSettlementService.php` -> **DEPRECATED**, gunakan `App\Services\Mkdt\MkdtSettlementService`.
+    - `app/Services/MkdtFinancialBreakdownService.php` -> **DEPRECATED**, gunakan `App\Services\Mkdt\MkdtFinancialBreakdownService`.
+    - `app/Services/MkdtFinancialReconciliationService.php` -> **DEPRECATED**, gunakan `App\Services\Mkdt\MkdtFinancialReconciliationService`.
+    - `app/Services/PosisiKonsumenService.php` -> **DEPRECATED**, gunakan `App\Services\Mkdt\PosisiKonsumenService`.
+    - `app/Services/KonsumenService.php` -> **DEPRECATED**, gunakan `App\Services\Mkdt\KonsumenService`.
+    - `app/Services/NupService.php` -> **DEPRECATED**, gunakan `App\Services\Mkdt\NupService`.
+    - `app/Services/BookingAkadReportService.php` -> **DEPRECATED**, gunakan `App\Services\Mkdt\BookingAkadReportService`.
+  - **Repositories (5 shims):**
+    - `app/Repositories/MkdtHistoryRepository.php` -> **DEPRECATED**, gunakan `App\Repositories\Mkdt\MkdtHistoryRepository`.
+    - `app/Repositories/PosisiKonsumenRepository.php` -> **DEPRECATED**, gunakan `App\Repositories\Mkdt\PosisiKonsumenRepository`.
+    - `app/Repositories/KonsumenRepository.php` -> **DEPRECATED**, gunakan `App\Repositories\Mkdt\KonsumenRepository`.
+    - `app/Repositories/NupRepository.php` -> **DEPRECATED**, gunakan `App\Repositories\Mkdt\NupRepository`.
+    - `app/Repositories/BookingAkadReportRepository.php` -> **DEPRECATED**, gunakan `App\Repositories\Mkdt\BookingAkadReportRepository`.
 - **Legacy Routes / Shims:**
   - Route `GET /list-batal` (`Mkdt::list_batal`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
   - Route `GET /list-stock` (`Mkdt::list_stock`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
@@ -306,8 +345,8 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
   - Route `ANY /promo/format_tgl` (`Promo::format_tgl`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 
 ## Readiness Checklist
-- [ ] Has Service Layer
-- [ ] Has Repository Layer
+- [x] Has Service Layer
+- [x] Has Repository Layer
 - [ ] Web & API Controllers Separated
 - [ ] Explicit Routes Defined
 - [ ] Zero Controller Layer Violations
@@ -348,8 +387,28 @@ _Jalankan `php spark module:deadcode MKDT` untuk mengaudit dead code kandidat._
   - Modul Transaksi: manipulasi status unit kavling, validasi dan persistensi `akad_indent_tgl` & `akad_tgl` via `TransaksiService`, serta log pergantian konsumen via `MkdtHistoryService`.
   - Modul Siteplan: visual status marker `Akad Indent` pada peta interaktif via `SiteplanVisualStatusService`, serta integrasi summary card dan status Akad Indent pada modal detail kavling (`siteplan-detail-modal.js`, `app/Views/siteplan/partials/modal_detail.php`).
   - Frontend Laporan: mengonsumsi REST API `/api/laporan/booking-akad/summary` dan `/api/laporan/booking-akad/detail`.
+- **Follow-up Plan (Migrasi Endpoint Frontend `/api/mkdt/*` Full JSON):**
+  - Sesuai keputusan arsitektur yang disetujui pada Fase 0 migrasi MKDT (#3 & #4), seluruh endpoint `/api/mkdt/*` yang akan dibuat pada fase lanjutan akan mendukung dual-mode (`?format=raw`) beserta flag penanda follow-up Full JSON, sementara aset frontend JS/View eksisting (`public/assets/js/siteplan/mkdt.js`, `app/Views/siteplan/mkdt.php`, `app/Views/kavling/*.php`, `app/Views/promo/index.php`) **tidak dialihkan** ke `/api/mkdt/*` selama migrasi ini dan ditandai sebagai pekerjaan follow-up pasca-migrasi MKDT.
 
 ## Change Log
+- **`2026-11-13` [`REFACTOR`] — Fase 0 & 1 Migrasi MKDT (Baseline, Pembersihan Dead Code, Pemindahan Modern Layer ke Subfolder `Mkdt/`, & Bugfix `/list-stock`):**
+  - **Routes & Public Contracts:**
+    - `app/Config/Routes.php`: Memperbarui namespace eksplisit menjadi `\App\Controllers\Web\Mkdt\BookingAkadReportController::index` (`GET /laporan/booking-akad`), grup `api/laporan/booking-akad` ke namespace `App\Controllers\Api\Mkdt`, dan grup `api/nup` ke namespace `App\Controllers\Api\Mkdt`.
+    - Kontrak JSON dan public PHP service antar-modul tetap identik (Zero-Downtime).
+  - **Controller / Service / Repo / Model:**
+    - `app/Controllers/Mkdt.php`: Menghapus dead commented code pada L801–1515 (file menyusut menjadi 1257 baris) serta bugfix Fase 3B pada `Mkdt::list_stock()` mengisi `$data['data']['proyek']` via `(new \App\Services\Proyek\ActiveProyekService())->resolveAndGet()` dengan fallback objek aman (`id_proyek => null, nama_proyek => ''`).
+    - Memindahkan 3 modern controllers ke subfolder `Mkdt/`: `App\Controllers\Api\Mkdt\NupController`, `App\Controllers\Web\Mkdt\BookingAkadReportController`, dan `App\Controllers\Api\Mkdt\BookingAkadReportController`.
+    - Memindahkan 8 services ke subfolder `Mkdt/`: `App\Services\Mkdt\{MkdtHistoryService, MkdtSettlementService, MkdtFinancialBreakdownService, MkdtFinancialReconciliationService, PosisiKonsumenService, KonsumenService, NupService, BookingAkadReportService}`.
+    - Memindahkan 5 repositories ke subfolder `Mkdt/`: `App\Repositories\Mkdt\{MkdtHistoryRepository, PosisiKonsumenRepository, KonsumenRepository, NupRepository, BookingAkadReportRepository}`.
+    - `app/Libraries/ModuleManager/ModuleCatalog.php`: Memperbarui inventori MKDT termasuk mendaftarkan 16 file Zero-Downtime Shims pada kunci `'shims'`.
+  - **View / CSS / JS:**
+    - `app/Views/siteplan/mkdt.php` (L1693, 1709, 1778, 1797 — Bugfix Fase 3B): Menambahkan guard null-safe + `esc($data['proyek']->nama_proyek ?? ...)` pada modal Turun Pembangunan dan Set Harga.
+    - Belum ada pengalihan frontend JS/View ke `/api/mkdt/*` (ditandai sebagai follow-up pasca-migrasi).
+  - **Deprecations:**
+    - Penambahan 16 Zero-Downtime namespace shims pada `App\Controllers\{Api,Web}\*`, `App\Services\*`, dan `App\Repositories\*` yang mewarisi kelas kanonik `*\Mkdt\*`.
+    - Keputusan Fase 0 (Opsi A): `Mkdt::save`, `Mkdt::set_harga`, `Mkdt::get_data_by_id`, `Mkdt::export_xlsx` akan di-deprecate in place + log warning pada Fase 5.
+  - **Testing & Verification:**
+    - Diverifikasi `PASS` oleh `sigapp-qa` (2026-11-13 11:40): `php spark module:status` (`MKDT: MAPPED 80%`), `php spark module:deadcode MKDT`, `php -l` bersih, `tests/bin/run_booking_akad_suite.php` (39/39 pass), PHPUnit (82 tests / 882 assertions pass), dan Playwright E2E (termasuk verifikasi `/list-stock` pasca-perbaikan HTTP 200 OK tanpa error).
 - **`2026-11-05` [`BUGFIX`] — Penyelarasan Perhitungan 5 Kolom Status (Booking, Wawancara, SP3K, Akad Indent, Akad AJB) pada Laporan Booking & Akad:**
   - **Routes & Public Contracts:**
     - Tidak ada rute baru; kontrak endpoint `/laporan/booking-akad`, `/api/laporan/booking-akad/summary`, dan `/api/laporan/booking-akad/detail` tetap.
