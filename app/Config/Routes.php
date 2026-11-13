@@ -50,7 +50,7 @@ $routes->get('/list-kavling/(:segment)', '\App\Controllers\Web\Mkdt\PosisiKonsum
 
 
 $routes->get('/list-batal', 'Mkdt::list_batal');
-$routes->get('/list-stock', 'Mkdt::list_stock');
+$routes->get('/list-stock', '\App\Controllers\Web\Mkdt\StockController::index', ['filter' => 'login']);
 // $routes->get('/list-tagihan', 'Keuangan::list_tagihan');
 
 // ── Modul Legal (Web Routes) ──
@@ -722,6 +722,26 @@ $routes->group('api/hargajual', ['namespace' => 'App\Controllers\Api\Transaksi',
 $routes->group('api/mkdt', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
     $routes->post('history', 'MkdtController::history');
     $routes->post('consumer-replacement-history', 'MkdtController::consumerReplacementHistory');
+});
+
+$routes->group('api/mkdt', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'operations/meta', 'MkdtOperationController::meta');
+    $routes->match(['get', 'post'], 'stock/list', 'MkdtOperationController::getListStock');
+    $routes->match(['get', 'post'], 'si', 'MkdtOperationController::getSi');
+    $routes->post('si/save', 'MkdtOperationController::saveSi');
+    $routes->match(['get', 'post'], 'batal/detail', 'MkdtOperationController::getBatal');
+    $routes->post('batal/simpan', 'MkdtOperationController::simpanBatal');
+});
+
+// ── Modul MKDT Operasi (Legacy Zero-Downtime Routes) ──
+$routes->group('mkdt', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getListStock', 'MkdtOperationController::getListStock');
+    $routes->match(['get', 'post'], 'getliststock', 'MkdtOperationController::getListStock');
+    $routes->match(['get', 'post'], 'getsi', 'MkdtOperationController::getSi');
+    $routes->post('saveSI', 'MkdtOperationController::saveSi');
+    $routes->post('savesi', 'MkdtOperationController::saveSi');
+    $routes->match(['get', 'post'], 'batal_mkdt', 'MkdtOperationController::getBatal');
+    $routes->post('simpan_batal', 'MkdtOperationController::simpanBatal');
 });
 
 $routes->group('api/mkdt/promo', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {

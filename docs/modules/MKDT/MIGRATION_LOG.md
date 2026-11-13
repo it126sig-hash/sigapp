@@ -11,8 +11,8 @@ Log bertahap migrasi modular dan debugging untuk modul **MKDT** (Mode `REFACTOR`
 | **Fase 0** | Baseline & Safety Verification | `COMPLETED` | 2026-11-13 | `c377b23` |
 | **Fase 1** | Cleanup Dead Code + Move Modern Layer + Bugfix `/list-stock` | `COMPLETED` | 2026-11-13 | `6aebbbb` |
 | **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer — Subdomain Promo (`PromoController`, `PromoService`, `PromoRepository`, Shim, & Bugfix UI) | `COMPLETED` | 2026-11-13 | `8ffb065` |
-| **Fase 3** | API & Web Controller Separation + Explicit Routes (Subdomain Posisi Konsumen) | `COMPLETED` | 2026-11-13 | `<pending_commit>` |
-| **Fase 4** | Cross-Module Alignment & Unit/Integration Tests | `PENDING` | - | - |
+| **Fase 3** | API & Web Controller Separation + Explicit Routes (Subdomain Posisi Konsumen) | `COMPLETED` | 2026-11-13 | `4975daa` |
+| **Fase 4** | Stock, Standing Instruction, & Batal Booking + Unit Tests | `COMPLETED` | 2026-11-13 | `(akan diisi setelah commit Fase 4)` |
 | **Fase 5** | Deprecation Warnings (`Mkdt::save`, `set_harga`, `get_data_by_id`, `export_xlsx`) & Cleanup | `PENDING` | - | - |
 | **Fase 6** | Final QA Audit & Global Migration Ledger Sync (`docs/MIGRATION_PROGRESS.md`) | `PENDING` | - | - |
 
@@ -234,9 +234,87 @@ Log bertahap migrasi modular dan debugging untuk modul **MKDT** (Mode `REFACTOR`
 
 ### Commit & Rollback
 
-- **Commit Implementasi Fase 3:** `<hash_fase_3>` *(belum di-commit pada sesi ini)*
+- **Commit Implementasi Fase 3:** `4975daa` (`refactor(mkdt): phase 3 - modularize PosisiKonsumen and fix list-kavling view variables`)
 - **Prosedur Rollback Aman:**
   ```bash
-  git revert <hash_fase_3>
+  git revert 4975daa
   ```
-  *(Karena `App\Controllers\PosisiKonsumen` tetap dipertahankan sebagai Zero-Downtime delegator shim dan seluruh rute `/list-kavling*`, `/export/poskon/*`, `/riwayat/poskon/*` tetap kompatibel dalam mode default, rollback aman dilakukan via `git revert <hash_fase_3>` tanpa perubahan skema database.)*
+  *(Karena `App\Controllers\PosisiKonsumen` tetap dipertahankan sebagai Zero-Downtime delegator shim dan seluruh rute `/list-kavling*`, `/export/poskon/*`, `/riwayat/poskon/*` tetap kompatibel dalam mode default, rollback aman dilakukan via `git revert 4975daa` tanpa perubahan skema database.)*
+
+---
+
+## Fase 4 — Stock, Standing Instruction, & Batal Booking
+
+- **Tanggal:** `2026-11-13`
+- **Status QA:** `PASS` (Diverifikasi oleh `sigapp-qa`)
+- **Scope:**
+  1. Dekomposisi & ekstraksi query database subdomain Stock (`kavling`, `produksi`, `mkdt`, `konsumen`), Standing Instruction (`list_si`, `si`), dan Batal Booking (`mkdt`, `konsumen`, `log_pembayaran`) ke `App\Repositories\Mkdt\{StockRepository,StandingInstructionRepository,BatalBookingRepository}`.
+  2. Ekstraksi business logic, sanitasi numerik `cleanNumeric()`, kalkulasi ulang biaya/pembayaran dari DB, upload & akses berkas via `FileAccessService`, transaksi database atomic (`transStart`/`transComplete`), audit trail `MkdtHistoryService::log()`, dan notifikasi `NotificationEvent::BATAL_BOOKING` ke `App\Services\Mkdt\{StockService,StandingInstructionService,BatalBookingService}`.
+  3. Pemisahan Web Controller (`App\Controllers\Web\Mkdt\StockController::index`) dan konsolidasi operasi kecil MKDT pada API Controller (`App\Controllers\Api\Mkdt\MkdtOperationController extends BaseApiController`) dengan dukungan dual-mode (`?format=raw` + penanda `// TODO(full-json)`).
+  4. Konversi 6 metode pada `App\Controllers\Mkdt` (`list_stock`, `getListStock`, `getsi`, `saveSI`, `batal_mkdt`, `simpan_batal`) menjadi `@deprecated` Zero-Downtime delegator shims yang meneruskan eksekusi ke `StockController` dan `MkdtOperationController` via `initController()`.
+  5. Registrasi rute eksplisit Web (`/list-stock`), API Dual-Mode (`/api/mkdt/operations/meta`, `/api/mkdt/stock/list`, `/api/mkdt/si`, `/api/mkdt/si/save`, `/api/mkdt/batal/detail`, `/api/mkdt/batal/simpan`), dan Legacy Zero-Downtime (`/mkdt/{getListStock,getliststock,getsi,saveSI,savesi,batal_mkdt,simpan_batal}`) di `app/Config/Routes.php`, serta pembaruan `app/Libraries/ModuleManager/ModuleCatalog.php` (penambahan owner tables `si`, `list_si` dan registrasi file Fase 4).
+  6. Penambahan penanda `<!-- TODO(follow-up): migrate /mkdt/getListStock AJAX call to /api/mkdt/stock/list?format=raw -->` di baris 1 `app/Views/kavling/list-stock.php` serta pembuatan unit test `tests/unit/MkdtOperationServicesTest.php`.
+
+### Daftar File Diubah & Dibuat
+
+- **Repositories Baru (3 File):**
+  - `app/Repositories/Mkdt/StockRepository.php` (161 baris, 1 public method: `getStockListDataTables()`)
+  - `app/Repositories/Mkdt/StandingInstructionRepository.php` (99 baris, 6 public methods: `getByKavling()`, `getSiListIdBySiId()`, `getListSiNameById()`, `getKavlingMkdtId()`, `insertSi()`, `updateSi()`)
+  - `app/Repositories/Mkdt/BatalBookingRepository.php` (87 baris, 5 public methods: `getMkdtDetailForBatal()`, `getMkdtRawById()`, `getPembayaranLogsByMkdt()`, `getProyekIdByKavling()`, `updateMkdtBatal()`)
+- **Services Baru (3 File):**
+  - `app/Services/Mkdt/StockService.php` (173 baris, 4 public methods: `getIndexData()`, `getListStock()`, `formatTanggal()`, `formatDateTime()`)
+  - `app/Services/Mkdt/StandingInstructionService.php` (189 baris, 2 public methods: `getByKavling()`, `save()`)
+  - `app/Services/Mkdt/BatalBookingService.php` (269 baris, 3 public methods: `cleanNumeric()`, `getDetail()`, `cancelBooking()`)
+- **Controllers Baru (2 File):**
+  - `app/Controllers/Web/Mkdt/StockController.php` (26 baris, 1 public method: `index()`)
+  - `app/Controllers/Api/Mkdt/MkdtOperationController.php` (218 baris, 6 public methods: `meta()`, `getListStock()`, `getSi()`, `saveSi()`, `getBatal()`, `simpanBatal()`)
+- **File Dimodifikasi & Shims:**
+  - `app/Controllers/Mkdt.php` (798 baris) — Tambah `initController()` forwarding ke `StockController` & `MkdtOperationController`, serta ubah `list_stock()`, `getListStock()`, `getsi()`, `saveSI()`, `batal_mkdt()`, `simpan_batal()` menjadi `@deprecated` Zero-Downtime shims.
+  - `app/Config/Routes.php` — Rute Web `GET /list-stock` ke `Web\Mkdt\StockController::index`, grup API dual-mode `/api/mkdt/{operations/meta,stock/list,si,si/save,batal/detail,batal/simpan}`, dan rute legacy Zero-Downtime `/mkdt/{getListStock,getliststock,getsi,saveSI,savesi,batal_mkdt,simpan_batal}` langsung ke `Api\Mkdt\MkdtOperationController`.
+  - `app/Libraries/ModuleManager/ModuleCatalog.php` — Daftarkan 2 controller, 3 service, dan 3 repository Fase 4 serta tambahkan `si` dan `list_si` pada `owner_tables` MKDT.
+  - `app/Views/kavling/list-stock.php` — Baris 1 penanda `<!-- TODO(follow-up): migrate /mkdt/getListStock AJAX call to /api/mkdt/stock/list?format=raw -->`.
+- **Tests:**
+  - `tests/unit/MkdtOperationServicesTest.php` (6 test cases: `testBatalBookingCleanNumericSanitizesVariousFormats`, `testBatalBookingGetDetailHandlesInvalidAndMissingId`, `testBatalBookingGetDetailComputesTotalsPaidAndAccessUrl`, `testCancelBookingValidatesIdsAndStoresSuratBatalBeforeUpdate`, `testStockServiceFormatsLegacyAndRawPayloadsWithSafeDates`, `testStandingInstructionServiceSaveValidatesAndCommits`).
+- **Dokumentasi:**
+  - `docs/modules/MKDT/MODULE.md` (disinkronkan via `php spark module:sync MKDT` + kurasi manual).
+  - `docs/modules/MKDT/MIGRATION_LOG.md` (entri Fase 4 & pembaruan commit hash Fase 3 `4975daa`).
+
+### Kontrak Dual-Mode (`/api/mkdt/*?format=raw`)
+
+- Seluruh endpoint operasi di `App\Controllers\Api\Mkdt\MkdtOperationController` (`getListStock()`, `getSi()`, `saveSi()`, `getBatal()`, `simpanBatal()`) menyertakan penanda `// TODO(full-json): switch default to raw JSON once legacy DataTables views migrate`.
+- **Mode Default (Legacy Compatible):** Mengembalikan payload JSON legacy (DataTables `draw`/`recordsTotal`/`recordsFiltered`/`data` + `token`, atau `{token, success, messages}` / `{data, token, sudah_bayar, total_biaya}`) agar view eksisting (`kavling/list-stock.php`, `siteplan/mkdt.php`, `siteplan/mkdt.js`) tetap berjalan tanpa perubahan.
+- **Mode `?format=raw`:** Mengembalikan envelope `BaseApiController` (`success` / `error` HTTP 404/422) dengan payload JSON bersih bebas HTML:
+  - `GET|POST /api/mkdt/operations/meta`
+  - `GET|POST /api/mkdt/stock/list?format=raw`
+  - `GET|POST /api/mkdt/si?format=raw`
+  - `POST /api/mkdt/si/save?format=raw`
+  - `GET|POST /api/mkdt/batal/detail?format=raw`
+  - `POST /api/mkdt/batal/simpan?format=raw`
+
+### Bug Ditemukan, Root Cause Analysis (RCA), & Remediasi (`sigapp-explorer` / `sigapp-engineer`)
+
+1. **Bug Urutan `simpan_batal` (`surat_batal` Gagal Tersimpan di Database):**
+   - **RCA:** Pada implementasi legacy `Mkdt::simpan_batal()`, query update tabel `mkdt` dieksekusi lebih dulu sebelum pemindahan/penyimpanan file `surat_batal`, sehingga path file unggahan `surat_batal` tidak ikut tersimpan pada baris `mkdt` dalam satu alur persistensi.
+   - **Perbaikan (`BatalBookingService::cancelBooking()`):** File `file_surat_batal` kini divalidasi dan disimpan terlebih dahulu ke `uploads/batal/{Ymd}/` melalui `FileAccessService::storeAs()` **sebelum** transaksi database `updateMkdtBatal($idMkdt, $updateData)` dijalankan (`FILE_STORED_BEFORE_UPDATE: YES`).
+2. **Bug `batal_mkdt` Tidak Menyertakan `surat_batal_access_url`:**
+   - **RCA:** Endpoint detail pembatalan `batal_mkdt` sebelumnya tidak menghasilkan URL akses aman untuk file `surat_batal` via `FileAccessService`.
+   - **Perbaikan (`BatalBookingService::getDetail()` & `cancelBooking()`):** Menyisipkan field `surat_batal_access_url` melalui `$this->fileAccessService->accessUrl('mkdt_surat_batal', $idMkdt)` ketika `surat_batal` terisi.
+
+### Hasil Verifikasi & Command (QA `PASS`)
+
+- **Playwright E2E:** Pengujian halaman `/list-stock`, modal Standing Instruction (`#modals-si`), modal Batal Booking (`#modal-batal`), serta endpoint dual-mode `/api/mkdt/*?format=raw` seluruhnya **PASS**.
+- **PHPUnit:**
+  - `tests/unit/MkdtOperationServicesTest.php`: **6 tests / 55 assertions** PASS.
+  - Gabungan unit test modul MKDT: **19 tests / 86 assertions** PASS.
+- **Suite Laporan Booking & Akad (`tests/bin/run_booking_akad_suite.php`):** **39/39 PASS**.
+- **DB Transaction Rollback Check:** Terverifikasi `FILE_STORED_BEFORE_UPDATE: YES` (file tersimpan sebelum pembaruan DB dan rollback aman saat transaksi gagal).
+- **`php spark module:status`:** MKDT berada pada skor **80%** (`MAPPED`: `10 Ctrl`, `12 Serv`, `9 Repo`, `3 Model`, `44 Route`, `7 Tables`).
+
+### Commit & Rollback
+
+- **Commit Implementasi Fase 4:** `(akan diisi setelah commit Fase 4)`
+- **Prosedur Rollback Aman:**
+  ```bash
+  git revert <hash_fase_4>
+  ```
+  *(Karena 6 metode pada `App\Controllers\Mkdt` tetap dipertahankan sebagai `@deprecated` Zero-Downtime shims dan mode default endpoint `/api/mkdt/*` tetap kompatibel dengan frontend legacy, rollback dapat dilakukan aman via `git revert` tanpa perubahan skema database.)*

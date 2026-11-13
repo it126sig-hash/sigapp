@@ -143,6 +143,8 @@ class ModuleCatalog
                     'Api/Mkdt/PromoController.php',
                     'Web/Mkdt/BookingAkadReportController.php',
                     'Api/Mkdt/BookingAkadReportController.php',
+                    'Web/Mkdt/StockController.php',
+                    'Api/Mkdt/MkdtOperationController.php',
                 ],
                 'services' => [
                     'Mkdt/MkdtHistoryService.php',
@@ -154,6 +156,9 @@ class ModuleCatalog
                     'Mkdt/NupService.php',
                     'Mkdt/PromoService.php',
                     'Mkdt/BookingAkadReportService.php',
+                    'Mkdt/StockService.php',
+                    'Mkdt/StandingInstructionService.php',
+                    'Mkdt/BatalBookingService.php',
                 ],
                 'repositories' => [
                     'Mkdt/MkdtHistoryRepository.php',
@@ -162,6 +167,9 @@ class ModuleCatalog
                     'Mkdt/NupRepository.php',
                     'Mkdt/PromoRepository.php',
                     'Mkdt/BookingAkadReportRepository.php',
+                    'Mkdt/StockRepository.php',
+                    'Mkdt/StandingInstructionRepository.php',
+                    'Mkdt/BatalBookingRepository.php',
                 ],
                 'models' => ['MkdtModel.php', 'KonsumenModel.php', 'MkdtKavlingHistoryModel.php'],
                 'shims' => [
@@ -186,7 +194,7 @@ class ModuleCatalog
                 ],
                 'views' => ['kavling', 'promo', 'laporan'],
                 'assets_js' => ['siteplan/mkdt.js', 'laporan-booking-akad.js'],
-                'owner_tables' => ['mkdt', 'konsumen', 'mkdt_kavling_history', 'promo', 'riwayat_export_poskon'],
+                'owner_tables' => ['mkdt', 'konsumen', 'mkdt_kavling_history', 'promo', 'riwayat_export_poskon', 'si', 'list_si'],
                 'shared_tables' => ['kavling', 'keuangan', 'legal'],
             ],
             'Transaksi' => [
