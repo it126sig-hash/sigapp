@@ -97,6 +97,7 @@ $routes->group('api/bpb', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' =>
     $routes->match(['get', 'post'], 'list', 'BpbController::list');
     $routes->get('options', 'BpbController::options');
     $routes->get('detail/(:num)', 'BpbController::detail/$1');
+    $routes->get('shared/(:segment)', 'BpbController::shared/$1');
     $routes->post('draft', 'BpbController::draft');
     $routes->post('submit', 'BpbController::submit', ['filter' => 'throttle:10,60']);
     $routes->post('(:num)/update', 'BpbController::update/$1', ['filter' => 'throttle:10,60']);
@@ -202,11 +203,23 @@ $routes->group('api/aksesproyek', ['namespace' => 'App\Controllers\Api\Proyek', 
 
 // ── Modul Siteplan (API Routes) ──
 $routes->group('api/siteplan', ['namespace' => 'App\Controllers\Api\Siteplan', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'SiteplanController::meta');
     $routes->get('kavling', 'SiteplanController::kavling');
+    $routes->post('kavling', 'SiteplanController::kavling');
     $routes->get('proyek/(:num)', 'SiteplanController::proyek/$1');
     $routes->get('proyek', 'SiteplanController::proyek');
     $routes->get('config', 'SiteplanController::config');
     $routes->get('others', 'SiteplanController::others');
+    $routes->post('others', 'SiteplanController::others');
+    $routes->get('detail/(:num)', 'SiteplanController::detail/$1');
+    $routes->post('detail', 'SiteplanController::detail');
+    $routes->get('kalendar/events', 'KalendarController::getEvents');
+    $routes->get('kalendar/meta', 'KalendarController::meta');
+});
+
+$routes->group('api/kalendar', ['namespace' => 'App\Controllers\Api\Siteplan', 'filter' => 'login'], function ($routes) {
+    $routes->get('events', 'KalendarController::getEvents');
+    $routes->get('meta', 'KalendarController::meta');
 });
 
 
@@ -384,7 +397,14 @@ $routes->group('karyawan', ['filter' => 'login'], function ($routes) {
     $routes->post('remove', '\App\Controllers\Api\UserManagement\KaryawanController::remove');
 });
 
-$routes->get("getmodal", 'Modal::index');
+$routes->get('getmodal', '\App\Controllers\Web\Siteplan\ModalController::index');
+
+$routes->group('kalendar', ['filter' => 'login'], function ($routes) {
+    $routes->get('/', '\App\Controllers\Web\Siteplan\KalendarController::index');
+    $routes->get('index', '\App\Controllers\Web\Siteplan\KalendarController::index');
+    $routes->match(['get', 'post'], 'getEvents', '\App\Controllers\Api\Siteplan\KalendarController::getEvents');
+    $routes->match(['get', 'post'], 'getevents', '\App\Controllers\Api\Siteplan\KalendarController::getEvents');
+});
 
 $routes->group('files', ['filter' => 'login'], function ($routes) {
     $routes->get('(:segment)/path/thumbnail', 'FileController::pathThumbnail/$1');
@@ -402,13 +422,35 @@ $routes->group('print', ['filter' => 'login'], function ($routes) {
 $routes->get("pembayaran/kuitansi/cetak", 'Pembayaran::print');
 $routes->get("pembayaran/kuitansi-um/cetak", 'Pembayaran::printUm');
 
-//siteplan
-$routes->post("siteplan/get/all", 'Siteplan::getAllKavling');
-$routes->post("siteplan/get/detail", 'Siteplan::get_detail');
-$routes->post("siteplan/getKategoriOptions", 'Siteplan::getKategoriOptions');
-$routes->post("siteplan/urgent/summary", 'Siteplan::urgentSummary');
-$routes->get("siteplan/view", 'Siteplan::view_siteplan');
-$routes->get("siteplan/produksi-mobile", 'Siteplan::produksi_mobile');
+// ── Modul Siteplan (Web Routes) ──
+$routes->group('siteplan', ['namespace' => 'App\Controllers\Web\Siteplan', 'filter' => 'login'], function ($routes) {
+    $routes->get('/', 'SiteplanController::index');
+    $routes->get('index', 'SiteplanController::index');
+    $routes->get('view', 'SiteplanController::view_siteplan');
+    $routes->get('view_siteplan', 'SiteplanController::view_siteplan');
+    $routes->get('view_siteplan/(:num)', 'SiteplanController::view_siteplan/$1');
+    $routes->get('produksi-mobile', 'SiteplanController::produksi_mobile');
+    $routes->get('produksi_mobile', 'SiteplanController::produksi_mobile');
+});
+
+// ── Modul Siteplan (Legacy Zero-Downtime AJAX Routes) ──
+$routes->group('siteplan', ['namespace' => 'App\Controllers\Api\Siteplan', 'filter' => 'login'], function ($routes) {
+    $routes->post('get/all', 'SiteplanController::getAllKavling');
+    $routes->post('getAllKavling', 'SiteplanController::getAllKavling');
+    $routes->post('get/detail', 'SiteplanController::get_detail');
+    $routes->post('get_detail', 'SiteplanController::get_detail');
+    $routes->post('getKategoriOptions', 'SiteplanController::getKategoriOptions');
+    $routes->post('urgent/summary', 'SiteplanController::urgentSummary');
+    $routes->post('get_others', 'SiteplanController::get_others');
+    $routes->post('add_kavling', 'SiteplanController::add_kavling');
+    $routes->post('edit_kavling', 'SiteplanController::edit_kavling');
+    $routes->post('edit_others', 'SiteplanController::edit_others');
+    $routes->post('get_kavling_by_multiple_id', 'SiteplanController::get_kavling_by_multiple_id');
+    $routes->post('get_harga_kavling', 'SiteplanController::get_harga_kavling');
+    $routes->post('get_turun_pembangunan', 'SiteplanController::get_turun_pembangunan');
+    $routes->post('set_turun_pembangunan', 'SiteplanController::set_turun_pembangunan');
+    $routes->post('get_kavling_by_id', 'SiteplanController::get_kavling_by_id');
+});
 
 // ── Modul Transaksi (Web Routes) ──
 $routes->group('', ['namespace' => 'App\Controllers\Web\Transaksi', 'filter' => 'login'], function ($routes) {
@@ -783,7 +825,7 @@ $routes->group('api/checklist-sub-item', ['namespace' => 'App\Controllers\Api\Pr
     $routes->post('remove',                   'ChecklistSubItemController::remove');
 });
 
-$routes->group('api/target', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/target', ['namespace' => 'App\Controllers\Api\Siteplan', 'filter' => 'login'], function ($routes) {
     $routes->post('list',    'TargetController::list');
     $routes->post('detail',  'TargetController::detail');
     $routes->post('save',    'TargetController::save');

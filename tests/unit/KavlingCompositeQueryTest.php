@@ -73,7 +73,10 @@ final class KavlingCompositeQueryTest extends CIUnitTestCase
         $this->assertTrue($activeTiketMethod->isPrivate());
 
         // Verify getAll invokes addActiveTiketSelect
-        $repoSource = (string) file_get_contents($reflection->getFileName());
+        $sourceFile = ($reflection->getParentClass() && $reflection->getParentClass()->getFileName())
+            ? $reflection->getParentClass()->getFileName()
+            : $reflection->getFileName();
+        $repoSource = (string) file_get_contents($sourceFile);
         $this->assertStringContainsString('$this->addActiveTiketSelect($builder);', $repoSource);
 
         $db = Database::connect();
@@ -114,7 +117,10 @@ final class KavlingCompositeQueryTest extends CIUnitTestCase
         $repository = new OthersRepository($db);
         $reflection = new ReflectionClass($repository);
 
-        $repoSource = (string) file_get_contents($reflection->getFileName());
+        $sourceFile = ($reflection->getParentClass() && $reflection->getParentClass()->getFileName())
+            ? $reflection->getParentClass()->getFileName()
+            : $reflection->getFileName();
+        $repoSource = (string) file_get_contents($sourceFile);
         $this->assertStringContainsString("orWhere('act_tm.active_tiket_id IS NOT NULL', null, false)", $repoSource);
 
         $builder = $db->table('others')

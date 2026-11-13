@@ -37,6 +37,11 @@ class BpbController extends BaseApiController
         return $this->run(fn() => $this->service->detail($id, (int) user_id()));
     }
 
+    public function shared(string $token)
+    {
+        return $this->run(fn() => $this->service->detailByToken($token, (int) user_id()));
+    }
+
     public function draft()
     {
         return $this->run(fn() => $this->service->saveDraft($this->payload(), $this->uploads('attachments'), (int) user_id()), 'Draft BPB disimpan.');

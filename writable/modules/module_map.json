@@ -1,5 +1,5 @@
 {
-    "scanned_at": "2026-11-13T01:31:52+07:00",
+    "scanned_at": "2026-11-13T02:59:31+07:00",
     "total_modules": 17,
     "modules": {
         "Proyek": {
@@ -570,41 +570,19 @@
         "Siteplan": {
             "name": "Siteplan",
             "description": "Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial visual.",
-            "status": "MAPPED",
-            "readiness_score": 60,
+            "status": "REFACTORED",
+            "readiness_score": 100,
             "readiness_checklist": {
-                "has_service": false,
-                "has_repository": false,
-                "has_web_api_split": false,
-                "has_explicit_routes": false,
-                "zero_controller_violations": false,
+                "has_service": true,
+                "has_repository": true,
+                "has_web_api_split": true,
+                "has_explicit_routes": true,
+                "zero_controller_violations": true,
                 "has_documentation": true
             },
-            "controller_violations": {
-                "app/Controllers/Siteplan.php": [
-                    "Database::connect()",
-                    "$this->db->table()",
-                    "new ProyekModel()",
-                    "new ClusterModel()",
-                    "new JalanModel()",
-                    "new TipeModel()",
-                    "new KavlingModel()",
-                    "new ConfigModel()",
-                    "new ProduksiModel()",
-                    "new LegalModel()",
-                    "new MkdtModel()",
-                    "new KeuanganModel()",
-                    "new LogPembayaranModel()",
-                    "new ChecklistSubItemModel()"
-                ],
-                "app/Controllers/Kalendar.php": [
-                    "new GroupModel()"
-                ],
-                "app/Controllers/Api/Siteplan/SiteplanController.php": [
-                    "Database::connect()"
-                ]
-            },
+            "controller_violations": [],
             "owner_tables": [
+                "others",
                 "siteplan_upload",
                 "target_siteplan",
                 "target_siteplan_kavling",
@@ -620,23 +598,52 @@
             ],
             "controllers": [
                 {
-                    "relative_path": "app/Controllers/Siteplan.php",
-                    "filename": "Siteplan.php",
-                    "line_count": 1861,
+                    "relative_path": "app/Controllers/Web/Siteplan/SiteplanController.php",
+                    "filename": "SiteplanController.php",
+                    "line_count": 96,
                     "public_methods": [
                         "index()",
-                        "view_siteplan()",
-                        "produksi_mobile()",
+                        "view_siteplan(?int $idProyek = null)",
+                        "produksi_mobile()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Web/Siteplan/ModalController.php",
+                    "filename": "ModalController.php",
+                    "line_count": 21,
+                    "public_methods": [
+                        "index()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Web/Siteplan/KalendarController.php",
+                    "filename": "KalendarController.php",
+                    "line_count": 27,
+                    "public_methods": [
+                        "index()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Siteplan/SiteplanController.php",
+                    "filename": "SiteplanController.php",
+                    "line_count": 543,
+                    "public_methods": [
+                        "meta()",
+                        "kavling()",
+                        "proyek($id = null)",
+                        "config()",
+                        "others()",
+                        "detail(?int $idKavling = null)",
                         "urgentSummary()",
-                        "add_kavling()",
-                        "add_kavling2()",
-                        "add_others()",
-                        "edit_kavling()",
-                        "edit_others()",
-                        "get_config($id)",
                         "getAllKavling()",
                         "getKategoriOptions()",
                         "get_others()",
+                        "add_kavling()",
+                        "edit_kavling()",
+                        "edit_others()",
                         "get_kavling_by_multiple_id()",
                         "get_harga_kavling()",
                         "get_turun_pembangunan()",
@@ -644,36 +651,12 @@
                         "get_kavling_by_id()",
                         "get_detail()"
                     ],
-                    "violations": [
-                        "Database::connect()",
-                        "$this->db->table()",
-                        "new ProyekModel()",
-                        "new ClusterModel()",
-                        "new JalanModel()",
-                        "new TipeModel()",
-                        "new KavlingModel()",
-                        "new ConfigModel()",
-                        "new ProduksiModel()",
-                        "new LegalModel()",
-                        "new MkdtModel()",
-                        "new KeuanganModel()",
-                        "new LogPembayaranModel()",
-                        "new ChecklistSubItemModel()"
-                    ]
-                },
-                {
-                    "relative_path": "app/Controllers/Modal.php",
-                    "filename": "Modal.php",
-                    "line_count": 18,
-                    "public_methods": [
-                        "index()"
-                    ],
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Api/TargetController.php",
+                    "relative_path": "app/Controllers/Api/Siteplan/TargetController.php",
                     "filename": "TargetController.php",
-                    "line_count": 81,
+                    "line_count": 114,
                     "public_methods": [
                         "list()",
                         "detail()",
@@ -683,37 +666,52 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Kalendar.php",
-                    "filename": "Kalendar.php",
-                    "line_count": 58,
+                    "relative_path": "app/Controllers/Api/Siteplan/KalendarController.php",
+                    "filename": "KalendarController.php",
+                    "line_count": 124,
                     "public_methods": [
-                        "index()",
+                        "meta()",
                         "getEvents()"
                     ],
-                    "violations": [
-                        "new GroupModel()"
-                    ]
-                },
-                {
-                    "relative_path": "app/Controllers/Api/Siteplan/SiteplanController.php",
-                    "filename": "SiteplanController.php",
-                    "line_count": 115,
-                    "public_methods": [
-                        "kavling()",
-                        "proyek($id = null)",
-                        "config()",
-                        "others()"
-                    ],
-                    "violations": [
-                        "Database::connect()"
-                    ]
+                    "violations": []
                 }
             ],
             "services": [
                 {
-                    "relative_path": "app/Services/SiteplanDataService.php",
+                    "relative_path": "app/Services/Siteplan/SiteplanService.php",
+                    "filename": "SiteplanService.php",
+                    "line_count": 916,
+                    "public_methods": [
+                        "getIndexState(int $userId)",
+                        "getViewSiteplanData(?int $requestedProyekId, int $userId)",
+                        "getProduksiMobileData(?int $requestedProyekId, int $userId, int $initialIdKavling = 0)",
+                        "getMeta(?int $idProyek, int $userId)",
+                        "getConfigShapeList()",
+                        "getConfigShapeMap()",
+                        "getConfigByRole(int $roleId)",
+                        "getKategoriOptions(int $idProyek)",
+                        "addKavlingOrOthers(array $post, int $userId)",
+                        "editKavling(array $post, int $userId)",
+                        "editOthers(array $post, int $userId)",
+                        "getKavlingByMultipleId(array $ids)",
+                        "getHargaKavling(array $ids)",
+                        "getTurunPembangunan(array $ids)",
+                        "setTurunPembangunan(array $post, mixed $file, int $userId)",
+                        "getKavlingById(int $id)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Services/Siteplan/SiteplanDetailService.php",
+                    "filename": "SiteplanDetailService.php",
+                    "line_count": 540,
+                    "public_methods": [
+                        "getDetail(int $idKavling, ?int $idMkdt = null, ?int $idHargaJual = null, ?int $idLegal = null, ?int $userId = null)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Services/Siteplan/SiteplanDataService.php",
                     "filename": "SiteplanDataService.php",
-                    "line_count": 124,
+                    "line_count": 125,
                     "public_methods": [
                         "getKavlings(array $params)",
                         "getOthers(array $params)",
@@ -721,16 +719,11 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/SiteplanMenuService.php",
-                    "filename": "SiteplanMenuService.php",
-                    "line_count": 12,
-                    "public_methods": []
-                },
-                {
-                    "relative_path": "app/Services/SiteplanUrgentService.php",
+                    "relative_path": "app/Services/Siteplan/SiteplanUrgentService.php",
                     "filename": "SiteplanUrgentService.php",
-                    "line_count": 791,
+                    "line_count": 396,
                     "public_methods": [
+                        "resolveGroupId(?int $sessionGroupId, int $userId)",
                         "getSummary(int $idProyek, int $groupId, ?int $userId = null)",
                         "getUrgentSummary(int $idProyek, int $groupId, ?int $userId = null)",
                         "getDashboardAlertCounts(?int $idProyek = null)",
@@ -740,7 +733,7 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/SiteplanVisualStatusService.php",
+                    "relative_path": "app/Services/Siteplan/SiteplanVisualStatusService.php",
                     "filename": "SiteplanVisualStatusService.php",
                     "line_count": 415,
                     "public_methods": [
@@ -750,9 +743,9 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/TargetSiteplanService.php",
+                    "relative_path": "app/Services/Siteplan/TargetSiteplanService.php",
                     "filename": "TargetSiteplanService.php",
-                    "line_count": 202,
+                    "line_count": 205,
                     "public_methods": [
                         "listByProject(int $idProyek)",
                         "get(int $idTarget)",
@@ -762,11 +755,12 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Services/KalendarService.php",
+                    "relative_path": "app/Services/Siteplan/KalendarService.php",
                     "filename": "KalendarService.php",
-                    "line_count": 189,
+                    "line_count": 210,
                     "public_methods": [
                         "divisiKeyFromName(string $name)",
+                        "getCalendarViewData(int $userId = 0)",
                         "getDivisiForView(array $groups)",
                         "getEventKeysForDivisiKeys(array $divisiKeys)",
                         "getEventsForCalendar(int $idProyek, string $start, string $end, array $types = [])"
@@ -775,33 +769,117 @@
             ],
             "repositories": [
                 {
-                    "relative_path": "app/Repositories/TargetSiteplanRepository.php",
+                    "relative_path": "app/Repositories/Siteplan/SiteplanRepository.php",
+                    "filename": "SiteplanRepository.php",
+                    "line_count": 946,
+                    "public_methods": [
+                        "getProfilePerusahaan()",
+                        "getPphList()",
+                        "getPpnList()",
+                        "getConfigShapeList()",
+                        "getConfigShapeMap()",
+                        "getConfigByRole(int $roleId)",
+                        "getClusterOptionsByProyek(int $idProyek)",
+                        "getClustersByProyek(int $idProyek)",
+                        "getJalansByProyek(int $idProyek)",
+                        "getTipesByProyek(int $idProyek)",
+                        "getChecklistSubItemsWithGroup(?int $idProyek = null)",
+                        "getChecklistItemsMap()",
+                        "getHakAksesByUser(int $userId, ?string $namaHak = null)",
+                        "getUserGroupId(int $userId)",
+                        "findProyekById(int $idProyek)",
+                        "getProyekByUserId(int $userId, bool $isAdmin = false)",
+                        "userHasProjectAccess(?object $proyek, int $userId)",
+                        "findDuplicateKavlingByJalan(string $noKavling, int $idJalan, ?int $excludeId = null)",
+                        "isNoKavlingDuplicate(string $noKavling, int $idJalan, ?int $excludeId = null)",
+                        "insertKavling(array $fields)",
+                        "updateKavling(int $id, array $fields)",
+                        "findKavlingsByIdsRaw(array $ids)",
+                        "findKavlingPerintahBangunSnapshot(int $id)",
+                        "findKavlingWithRelationsById(int $id)",
+                        "findKavlingsWithRelationsByIds(array $ids)",
+                        "findHargaKavlingById(int $id)",
+                        "findHargaKavlingsByIds(array $ids)",
+                        "findTurunPembangunanByIds(array $ids)",
+                        "getDetailMkdt(int $idMkdt)",
+                        "getDetailKavling(int $idKavling)",
+                        "getDetailTipe(int $idTipe)",
+                        "getDetailPricelist(int $idHargaJual)",
+                        "getDetailKeuanganByMkdt(int $idMkdt)",
+                        "getLastQueryString()",
+                        "getDetailLogPembayaranByMkdt(int $idMkdt)",
+                        "getDetailLogPembayaranDetailByMkdt(int $idMkdt)",
+                        "getDetailPaymentSummaryByMkdt(int $idMkdt)",
+                        "getDetailLastKeuanganUserByMkdt(int $idMkdt)",
+                        "getDetailLegal(int $idLegal)",
+                        "getDetailProduksi(int $idKavling)",
+                        "getDetailFileProduksi(int $idKavling)",
+                        "getDetailFilePph(int $idKavling)",
+                        "getDetailFilePpn(int $idKavling)",
+                        "getDetailHutangSubkon(int $idKavling)",
+                        "getDetailFinanceLedgerIncome(?int $idMkdt, ?int $idKavling)",
+                        "getDetailBankRetensiPending(int $idKavling)",
+                        "getDetailDanaAkadSummary(int $idKavling)",
+                        "getDetailBayarProduksi(int $idKavling)",
+                        "getDetailSi(int $idKavling)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Siteplan/SiteplanUrgentRepository.php",
+                    "filename": "SiteplanUrgentRepository.php",
+                    "line_count": 453,
+                    "public_methods": [
+                        "getUserGroupId(int $userId)",
+                        "countTagihanOverdue(int $idProyek, string $today)",
+                        "countTagihanDue(int $idProyek, string $today, string $limitDate)",
+                        "countCashoutSubkonUrgent(int $idProyek, string $limitDate)",
+                        "countPembangunanTelat(int $idProyek, string $today)",
+                        "countMkdtDateAlerts(string $field, ?int $idProyek = null, ?string $fromDate = null, ?string $toDate = null)",
+                        "hasSnoozeTable()",
+                        "upsertSnooze(int $userId, int $idProyek, string $itemKey, string $itemType, string $snoozedUntil, string $now)",
+                        "getActiveSnoozeKeys(int $userId, int $idProyek, string $now)",
+                        "getTagihanUrgent(int $idProyek, string $limitDate)",
+                        "getCashoutSubkonUrgent(int $idProyek, string $limitDate, int $groupId)",
+                        "getMkdtDateUrgent(int $idProyek, string $field, string $limitDate)",
+                        "getPembangunanTelat(int $idProyek, string $today)",
+                        "getUnreadNotifications(int $idProyek, int $groupId)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Siteplan/TargetSiteplanRepository.php",
                     "filename": "TargetSiteplanRepository.php",
-                    "line_count": 142,
+                    "line_count": 157,
                     "public_methods": [
                         "getByProject(int $idProyek)",
                         "getById(int $idTarget)",
                         "getKavlings(int $idTarget)",
+                        "countKavlingsInProject(int $idProyek, array $idKavlings)",
                         "getHistory(int $idTarget)",
                         "getKavlingTargetMap(int $idProyek)"
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/OthersRepository.php",
+                    "relative_path": "app/Repositories/Siteplan/OthersRepository.php",
                     "filename": "OthersRepository.php",
-                    "line_count": 145,
+                    "line_count": 187,
                     "public_methods": [
                         "getAll(?int $id, int $idProyek, array $clusterIds, array $filters = [])",
+                        "insertOthers(array $fields)",
+                        "updateOthers(int $id, array $fields)",
+                        "findById(int $id)",
+                        "findProyekIdByJalanId(int $idJalan)",
                         "hasProgressHistory()",
                         "countProgressHistory(int $idOthers)",
                         "getProgressHistory(int $idOthers, int $limit, int $offset)"
                     ]
                 },
                 {
-                    "relative_path": "app/Repositories/KalendarRepository.php",
+                    "relative_path": "app/Repositories/Siteplan/KalendarRepository.php",
                     "filename": "KalendarRepository.php",
-                    "line_count": 87,
+                    "line_count": 108,
                     "public_methods": [
+                        "getGroupsForUser(int $userId)",
+                        "getAllGroups()",
                         "getPembayaranEvents(int $idProyek, string $start, string $end)",
                         "getJatuhTempoEvents(int $idProyek, string $start, string $end)",
                         "getMkdtEvents(int $idProyek, string $start, string $end)"
@@ -834,7 +912,21 @@
                     "public_methods": []
                 }
             ],
-            "shims": [],
+            "shims": [
+                "app/Controllers/Siteplan.php",
+                "app/Controllers/Modal.php",
+                "app/Controllers/Kalendar.php",
+                "app/Controllers/Api/TargetController.php",
+                "app/Services/SiteplanDataService.php",
+                "app/Services/SiteplanMenuService.php",
+                "app/Services/SiteplanUrgentService.php",
+                "app/Services/SiteplanVisualStatusService.php",
+                "app/Services/TargetSiteplanService.php",
+                "app/Services/KalendarService.php",
+                "app/Repositories/TargetSiteplanRepository.php",
+                "app/Repositories/OthersRepository.php",
+                "app/Repositories/KalendarRepository.php"
+            ],
             "views": [
                 {
                     "folder": "app/Views/siteplan",
@@ -910,95 +1002,103 @@
             ],
             "routes": [
                 {
-                    "http_method": "POST",
-                    "uri": "/siteplan/get/all",
+                    "http_method": "GET",
+                    "uri": "/siteplan",
                     "type": "Explicit",
-                    "handler": "Siteplan::getAllKavling",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "SiteplanController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "POST",
-                    "uri": "/siteplan/get/detail",
+                    "http_method": "GET",
+                    "uri": "/siteplan/index",
                     "type": "Explicit",
-                    "handler": "Siteplan::get_detail",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/siteplan/getKategoriOptions",
-                    "type": "Explicit",
-                    "handler": "Siteplan::getKategoriOptions",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/siteplan/urgent/summary",
-                    "type": "Explicit",
-                    "handler": "Siteplan::urgentSummary",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "SiteplanController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
                     "uri": "/siteplan/view",
                     "type": "Explicit",
-                    "handler": "Siteplan::view_siteplan",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "SiteplanController::view_siteplan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/siteplan/view_siteplan",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::view_siteplan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/siteplan/view_siteplan/(:num)",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::view_siteplan/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
                     "uri": "/siteplan/produksi-mobile",
                     "type": "Explicit",
-                    "handler": "Siteplan::produksi_mobile",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "SiteplanController::produksi_mobile",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/siteplan/produksi_mobile",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::produksi_mobile",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
                     "uri": "/getmodal",
                     "type": "Explicit",
-                    "handler": "Modal::index",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/target/list",
-                    "type": "Explicit",
-                    "handler": "TargetController::list",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/target/detail",
-                    "type": "Explicit",
-                    "handler": "TargetController::detail",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/target/save",
-                    "type": "Explicit",
-                    "handler": "TargetController::save",
-                    "status": "\ud83d\udfe2 MIGRATED",
-                    "notes": "Endpoint terstruktur di Api/Web"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/api/target/history",
-                    "type": "Explicit",
-                    "handler": "TargetController::history",
+                    "handler": "\\App\\Controllers\\Web\\Siteplan\\ModalController::index",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
+                    "uri": "/kalendar",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Siteplan\\KalendarController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/kalendar/index",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Siteplan\\KalendarController::index",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/siteplan/meta",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/siteplan/kavling",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::kavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
                     "uri": "/api/siteplan/kavling",
                     "type": "Explicit",
                     "handler": "SiteplanController::kavling",
@@ -1038,134 +1138,243 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/siteplan/index",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::index",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/siteplan/others",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::others",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/siteplan/add_kavling",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::add_kavling",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "GET",
+                    "uri": "/api/siteplan/detail/(:num)",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::detail/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/siteplan/add_kavling2",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::add_kavling2",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/siteplan/detail",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::detail",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/siteplan/add_others",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::add_others",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/siteplan/get/all",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::getAllKavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/siteplan/edit_kavling",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::edit_kavling",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/siteplan/getAllKavling",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::getAllKavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/siteplan/edit_others",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::edit_others",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/siteplan/get/detail",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::get_detail",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/siteplan/get_config",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::get_config",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/siteplan/get_detail",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::get_detail",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
+                    "uri": "/siteplan/getKategoriOptions",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::getKategoriOptions",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/siteplan/urgent/summary",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::urgentSummary",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
                     "uri": "/siteplan/get_others",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::get_others",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SiteplanController::get_others",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
+                    "uri": "/siteplan/add_kavling",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::add_kavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/siteplan/edit_kavling",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::edit_kavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/siteplan/edit_others",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::edit_others",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
                     "uri": "/siteplan/get_kavling_by_multiple_id",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::get_kavling_by_multiple_id",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SiteplanController::get_kavling_by_multiple_id",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
                     "uri": "/siteplan/get_harga_kavling",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::get_harga_kavling",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SiteplanController::get_harga_kavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
                     "uri": "/siteplan/get_turun_pembangunan",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::get_turun_pembangunan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SiteplanController::get_turun_pembangunan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
                     "uri": "/siteplan/set_turun_pembangunan",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::set_turun_pembangunan",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SiteplanController::set_turun_pembangunan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
+                    "http_method": "POST",
                     "uri": "/siteplan/get_kavling_by_id",
-                    "type": "AutoRoute",
-                    "handler": "Siteplan::get_kavling_by_id",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "type": "Explicit",
+                    "handler": "SiteplanController::get_kavling_by_id",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/kalendar/index",
-                    "type": "AutoRoute",
-                    "handler": "Kalendar::index",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/target/list",
+                    "type": "Explicit",
+                    "handler": "TargetController::list",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
-                    "http_method": "ANY",
-                    "uri": "/kalendar/getevents",
-                    "type": "AutoRoute",
-                    "handler": "Kalendar::getEvents",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                    "http_method": "POST",
+                    "uri": "/api/target/detail",
+                    "type": "Explicit",
+                    "handler": "TargetController::detail",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/target/save",
+                    "type": "Explicit",
+                    "handler": "TargetController::save",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/target/history",
+                    "type": "Explicit",
+                    "handler": "TargetController::history",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/siteplan/kalendar/events",
+                    "type": "Explicit",
+                    "handler": "KalendarController::getEvents",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/siteplan/kalendar/meta",
+                    "type": "Explicit",
+                    "handler": "KalendarController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/kalendar/events",
+                    "type": "Explicit",
+                    "handler": "KalendarController::getEvents",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/kalendar/meta",
+                    "type": "Explicit",
+                    "handler": "KalendarController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 }
             ],
             "service_contracts": {
+                "SiteplanService.php": [
+                    "getIndexState(int $userId)",
+                    "getViewSiteplanData(?int $requestedProyekId, int $userId)",
+                    "getProduksiMobileData(?int $requestedProyekId, int $userId, int $initialIdKavling = 0)",
+                    "getMeta(?int $idProyek, int $userId)",
+                    "getConfigShapeList()",
+                    "getConfigShapeMap()",
+                    "getConfigByRole(int $roleId)",
+                    "getKategoriOptions(int $idProyek)",
+                    "addKavlingOrOthers(array $post, int $userId)",
+                    "editKavling(array $post, int $userId)",
+                    "editOthers(array $post, int $userId)",
+                    "getKavlingByMultipleId(array $ids)",
+                    "getHargaKavling(array $ids)",
+                    "getTurunPembangunan(array $ids)",
+                    "setTurunPembangunan(array $post, mixed $file, int $userId)",
+                    "getKavlingById(int $id)"
+                ],
+                "SiteplanDetailService.php": [
+                    "getDetail(int $idKavling, ?int $idMkdt = null, ?int $idHargaJual = null, ?int $idLegal = null, ?int $userId = null)"
+                ],
                 "SiteplanDataService.php": [
                     "getKavlings(array $params)",
                     "getOthers(array $params)",
                     "normalizeIdList($value)"
                 ],
-                "SiteplanMenuService.php": [],
                 "SiteplanUrgentService.php": [
+                    "resolveGroupId(?int $sessionGroupId, int $userId)",
                     "getSummary(int $idProyek, int $groupId, ?int $userId = null)",
                     "getUrgentSummary(int $idProyek, int $groupId, ?int $userId = null)",
                     "getDashboardAlertCounts(?int $idProyek = null)",
@@ -1187,6 +1396,7 @@
                 ],
                 "KalendarService.php": [
                     "divisiKeyFromName(string $name)",
+                    "getCalendarViewData(int $userId = 0)",
                     "getDivisiForView(array $groups)",
                     "getEventKeysForDivisiKeys(array $divisiKeys)",
                     "getEventsForCalendar(int $idProyek, string $start, string $end, array $types = [])"
@@ -6402,11 +6612,12 @@
                 {
                     "relative_path": "app/Controllers/Api/Bpb/BpbController.php",
                     "filename": "BpbController.php",
-                    "line_count": 124,
+                    "line_count": 129,
                     "public_methods": [
                         "list()",
                         "options()",
                         "detail(int $id)",
+                        "shared(string $token)",
                         "draft()",
                         "submit()",
                         "update($id = null)",
@@ -6655,6 +6866,14 @@
                     "uri": "/api/bpb/detail/(:num)",
                     "type": "Explicit",
                     "handler": "BpbController::detail/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/bpb/shared/(:segment)",
+                    "type": "Explicit",
+                    "handler": "BpbController::shared/$1",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },

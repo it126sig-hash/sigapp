@@ -14,7 +14,7 @@
 ## 1. Rangkuman Progres Global
 
 * **Total Modul:** 16
-* **Status:** `13 Selesai` | `0 Sedang Dikerjakan` | `3 Antre (Pending)`
+* **Status:** `14 Selesai` | `0 Sedang Dikerjakan` | `2 Antre (Pending)`
 * **Strategi:** Migrasi modular bertahap (1 modul per sesi *fresh chat*) dengan jaminan **Zero-Downtime**.
 
 ---
@@ -42,7 +42,7 @@ Urutan di bawah ini disusun dari **Modul Daun (Leaf/Paling Terisolasi)** menuju 
 | 10 | **Produksi** | Core Construction | Sedang - Tinggi | `COMPLETED` | Refactor QA-PASS (100% Score) | 2026-11-12 |
 | 11 | **UserManagement** | Core Master Data | Sedang | `COMPLETED` | Session Refactor (100% Score) | 2026-10-23 |
 | 12 | **Settings** | Core System | Sedang | `COMPLETED` | `8442c4e` (100% Score) | 2026-10-23 |
-| 13 | **Siteplan** | Core Spasial UI | Tinggi (Multi-dept JS) | `PENDING` | - | - |
+| 13 | **Siteplan** | Core Spasial UI | Tinggi (Multi-dept JS) | `COMPLETED` | Refactor QA-PASS (100% Score) | 2026-11-13 |
 | 14 | **Transaksi** | Core Domain | Tinggi | `COMPLETED` | Refactor QA-PASS (100% Score) | 2026-11-13 |
 | 15 | **MKDT** | Core Domain | Sangat Tinggi (Fat Controller) | `PENDING` | - | - |
 | 16 | **Keuangan** | Core Financial | Sangat Tinggi (Terbesar + Pencairan Akad/Jaminan) | `PENDING` | - | - |

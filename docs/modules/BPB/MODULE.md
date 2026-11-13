@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-12 20:21:52` @ `490a491`  
+**Last Synced:** `2026-11-13 03:09:22` @ `0fe64c1`  
 
 ## Purpose
 Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, dan tanda tangan digital.
@@ -39,6 +39,7 @@ Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, 
 | `GET` | `/bpb/verify/(:segment)` | `Explicit` | `BpbController::verify/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/bpb/options` | `Explicit` | `BpbController::options` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/bpb/detail/(:num)` | `Explicit` | `BpbController::detail/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/bpb/shared/(:segment)` | `Explicit` | `BpbController::shared/$1` | 🟢 MIGRATED | Detail BPB via share token (JSON) |
 | `POST` | `/api/bpb/draft` | `Explicit` | `BpbController::draft` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/bpb/submit` | `Explicit` | `BpbController::submit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/bpb/(:num)/update` | `Explicit` | `BpbController::update/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -93,7 +94,7 @@ Bon Permintaan Barang: alur pengajuan logistik lapangan, verifikasi bertingkat, 
 ## File Inventory
 ### Controllers (3)
 - `app/Controllers/Web/Bpb/BpbController.php` (90 baris, 5 public methods: `index()`, `shared(string $token)`, `signature(int $id)`, `pdf(int $id)`, `verify(string $token)`)
-- `app/Controllers/Api/Bpb/BpbController.php` (124 baris, 10 public methods: `list()`, `options()`, `detail(int $id)`, `draft()`, `submit()`, `update($id = null)`, `sign(int $id)`, `reject(int $id)`, `cancel(int $id)`, `status(int $id)`)
+- `app/Controllers/Api/Bpb/BpbController.php` (129 baris, 11 public methods: `list()`, `options()`, `detail(int $id)`, `shared(string $token)`, `draft()`, `submit()`, `update($id = null)`, `sign(int $id)`, `reject(int $id)`, `cancel(int $id)`, `status(int $id)`)
 - `app/Controllers/Api/Bpb/ProfileSignatureController.php` (54 baris, 4 public methods: `show($id = null)`, `image()`, `save()`, `delete($id = null)`)
 
 ### Services (7)
@@ -197,6 +198,14 @@ _Jalankan `php spark module:deadcode BPB` untuk mengaudit dead code kandidat._
 - **Cross-Module Callers:** Modul BPB saat ini mengonsumsi data master dari modul `Proyek` (`proyek`), modul `Kavling` (`kavling`), dan data autentikasi `Users` (Myth:Auth). Modul ini mandiri dan belum dikonsumsi langsung melalui PHP Service oleh modul lain.
 
 ## Change Log
+- **2026-11-13 [FEATURE / API_BRIDGE] — Penambahan Endpoint REST JSON Detail BPB via Share Token (`/api/bpb/shared/(:segment)`):**
+  - **Routes & Public Contracts:**
+    - Menambahkan rute API terproteksi `GET /api/bpb/shared/(:segment)` (`Api\Bpb\BpbController::shared/$1`) dengan filter autentikasi `login`.
+    - Mengembalikan payload JSON murni terstruktur `{ success: true, messages: "Detail BPB berhasil dimuat.", data: BpbDetail }` yang siap dikonsumsi oleh `sigapp-vue` (`BpbSharedView.vue`).
+  - **Backend (Controller):**
+    - `Api\Bpb\BpbController`: Menambahkan method `shared(string $token)` yang mengeksekusi `BpbService::detailByToken($token, (int) user_id())`.
+  - **Zero-Downtime:**
+    - Rute web legacy `GET /bpb/shared/(:segment)` (`Web\Bpb\BpbController::shared/$1`) dan response `BpbService::detail` (`share_url` legacy) tetap utuh 100%.
 - **2026-10-29 [UI_REPORT] — Penyempurnaan Form Pengajuan BPB (Sticky Action Bar, Textarea Keterangan, Tombol Kembali Bawah, dan Validasi Wajib Berlapis):**
   - **Routes & Public Contracts:** Tidak ada perubahan rute maupun signature public contract.
   - **Controller / Service / Repo / Model:**
