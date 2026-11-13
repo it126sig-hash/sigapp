@@ -122,7 +122,7 @@ $routes->get('/configcolor', '\App\Controllers\Web\Settings\PengaturanWarnaContr
 $routes->post("/get-dashboard", 'Home::getDashboard');
 $routes->post("/home/getMenuItemsJson", 'Home::getMenuItemsJson');
 
-$routes->post("/keuangan/jatuhtempo/get", 'Keuangan::getJatuhTempo');
+$routes->post("/keuangan/jatuhtempo/get", '\App\Controllers\Api\Keuangan\BankKprDisbursementController::getJatuhTempo', ['filter' => 'login']);
 
 
 $routes->post("/getAkases", 'AksesProyek::getAkses');
@@ -192,6 +192,7 @@ $routes->group('api/jalan', ['namespace' => 'App\Controllers\Api\Proyek', 'filte
 });
 
 $routes->group('api/aksesproyek', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'AksesProyekController::meta');
     $routes->match(['get', 'post'], 'all', 'AksesProyekController::getAll');
     $routes->match(['get', 'post'], 'getone', 'AksesProyekController::getOne');
     $routes->match(['get', 'post'], 'getone/(:num)', 'AksesProyekController::getOne/$1');
@@ -420,12 +421,13 @@ $routes->group('files', ['filter' => 'login'], function ($routes) {
 
 
 
-$routes->group('print', ['filter' => 'login'], function ($routes) {
+$routes->group('print', ['namespace' => 'App\Controllers\Web\Keuangan', 'filter' => 'login'], function ($routes) {
     $routes->get('spptb', 'PrintController::printSpptb');
-    // $routes->get('kuitansi', 'PrintController::printKuitansi');
+    $routes->get('kuitansi', 'PrintController::printKuitansi');
 });
-$routes->get("pembayaran/kuitansi/cetak", 'Pembayaran::print');
-$routes->get("pembayaran/kuitansi-um/cetak", 'Pembayaran::printUm');
+$routes->get("pembayaran/kuitansi/cetak", '\App\Controllers\Web\Keuangan\PrintController::printPembayaran', ['filter' => 'login']);
+$routes->get("pembayaran/kuitansi-um/cetak", '\App\Controllers\Web\Keuangan\PrintController::printPembayaranUm', ['filter' => 'login']);
+$routes->get("keuangan/print_tagihan", '\App\Controllers\Web\Keuangan\PrintController::printTagihan', ['filter' => 'login']);
 
 // ── Modul Siteplan (Web Routes) ──
 $routes->group('siteplan', ['namespace' => 'App\Controllers\Web\Siteplan', 'filter' => 'login'], function ($routes) {
@@ -532,47 +534,52 @@ $routes->post("riwayat/poskon/(:segment)", '\App\Controllers\Api\Mkdt\PosisiKons
 // $routes->post("/transaksi/status/ambilsatu", 'Transaksi::getStatusById');
 // $routes->post("/transaksi/status/simpan", 'Transaksi::saveStatus');
 
-$routes->post("/tagihan/ambilsatu", 'Tagihan::getByID');
-$routes->post("/tagihan/riwayat/ambilsatu", 'Tagihan::getRiwayatByID');
-$routes->post("/tagihan/turunkpr", 'Tagihan::tambahTurunKPR');
-$routes->post("/tagihan/hapusturunkpr", 'Tagihan::hapusTurunKPR');
-$routes->post("/tagihan/hapus", 'Tagihan::hapus');
-$routes->post("/tagihan/void", 'Tagihan::voidTagihan');
-$routes->post("/tagihan/unvoid", 'Tagihan::unvoidTagihan');
-$routes->post("/tagihan/jatuhtempo", 'Tagihan::getAllJatuhTempo');
+$routes->group('tagihan', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function ($routes) {
+    $routes->post('ambilsatu', 'TagihanController::getByID');
+    $routes->post('riwayat/ambilsatu', 'TagihanController::getRiwayatByID');
+    $routes->post('turunkpr', 'TagihanController::tambahTurunKPR');
+    $routes->post('hapusturunkpr', 'TagihanController::hapusTurunKPR');
+    $routes->post('hapus', 'TagihanController::hapus');
+    $routes->post('void', 'TagihanController::voidTagihan');
+    $routes->post('unvoid', 'TagihanController::unvoidTagihan');
+    $routes->post('save', 'TagihanController::save');
+    $routes->post('jatuhtempo', 'TagihanController::getAllJatuhTempo');
+    $routes->post('riwayat-bayar/ambil', 'TagihanController::getRiwayatBayar');
+    $routes->post('list/ambil', 'TagihanController::getListTagihan');
+    $routes->post('list/ambil-grouped', 'TagihanController::getListTagihanGrouped');
+    $routes->post('list/detail', 'TagihanController::getListTagihanDetail');
+    $routes->post('list/export-excel', 'TagihanController::exportExcelTagihan');
+    $routes->post('list/ambil-riwayat-surat', 'TagihanController::getListRiwayatSurat');
+});
 
-$routes->get('/riwayat-bayar', 'Tagihan::riwayatBayarIndex');
-
-// $routes->get('/riwayat-bayar', 'Tagihan::riwayatBayarIndex');
-$routes->post('/tagihan/riwayat-bayar/ambil', 'Tagihan::getRiwayatBayar');
+$routes->get('/riwayat-bayar', '\App\Controllers\Web\Keuangan\TagihanController::riwayatBayarIndex', ['filter' => 'login']);
+$routes->get('/tagihan/list', '\App\Controllers\Web\Keuangan\TagihanController::listTagihan', ['filter' => 'login']);
 
 $routes->group('', ['filter' => 'login'], function ($routes) {
     $routes->get('riwayat-perubahan', '\App\Controllers\Web\AuditTrail\RiwayatPerubahanController::index');
 });
 
-
-$routes->get("/tagihan/list", 'Tagihan::listTagihan');
-$routes->post("/tagihan/list/ambil", 'Tagihan::getListTagihan');
-$routes->post("/tagihan/list/ambil-grouped", 'Tagihan::getListTagihanGrouped');
-$routes->post("/tagihan/list/detail", 'Tagihan::getListTagihanDetail');
-$routes->post("/tagihan/list/export-excel", 'Tagihan::exportExcelTagihan');
-$routes->post("/tagihan/list/ambil-riwayat-surat", 'Tagihan::getListRiwayatSurat');
-
 //dana akad
-$routes->post("/danaakad/list/ambilsatu", 'Tagihan::getListTagihan');
+$routes->post("/danaakad/list/ambilsatu", '\App\Controllers\Api\Keuangan\TagihanController::getListTagihan', ['filter' => 'login']);
 
 //pembayaran
-$routes->post("/pembayaran/simpan", 'Pembayaran::save');
-$routes->post("/pembayaran/hapus", 'Pembayaran::removeLP');
+$routes->post("/pembayaran/simpan", '\App\Controllers\Api\Keuangan\PembayaranController::save', ['filter' => 'login']);
+$routes->post("/pembayaran/hapus", '\App\Controllers\Api\Keuangan\PembayaranController::removeLP', ['filter' => 'login']);
 
 //cashout
 $routes->post("/keuangan/cashout/ambil", 'CashOut::getByIDKavling');
 $routes->post("/keuangan/cashout/listitem/ambil", 'CashOut::getListItem');
 $routes->post("/keuangan/cashout/delete", 'CashOut::delete');
 $routes->post("/keuangan/cashout/save", 'CashOut::insert');
-$routes->post("/keuangan/pencairan-bank/get", 'Keuangan::getBankKprDisbursement');
-$routes->post("/keuangan/pencairan-bank/save", 'Keuangan::saveBankKprDisbursement');
-$routes->post("/keuangan/pencairan-bank/void/(:num)", 'Keuangan::voidBankKprDisbursement/$1');
+$routes->post("/keuangan/pencairan-bank/get", '\App\Controllers\Api\Keuangan\BankKprDisbursementController::getData', ['filter' => 'login']);
+$routes->post("/keuangan/pencairan-bank/save", '\App\Controllers\Api\Keuangan\BankKprDisbursementController::save', ['filter' => 'login']);
+$routes->post("/keuangan/pencairan-bank/void/(:num)", '\App\Controllers\Api\Keuangan\BankKprDisbursementController::void/$1', ['filter' => 'login']);
+
+$routes->group('api/keuangan', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function ($routes) {
+    $routes->get('tagihan/meta', 'TagihanController::meta');
+    $routes->get('pembayaran/meta', 'PembayaranController::meta');
+    $routes->get('pencairan-bank/meta', 'BankKprDisbursementController::meta');
+});
 
 //pencairan akad (gabungan retensi + hasil akad)
 $routes->post("/keuangan/pencairan-akad/get", 'PencairanAkad::get');
@@ -624,7 +631,7 @@ $routes->group('api/laporan/booking-akad', ['namespace' => 'App\Controllers\Api\
 });
 
 
-$routes->get("/pembayaran/hitungulang", 'Pembayaran::recalculateSummary');
+$routes->get("/pembayaran/hitungulang", '\App\Controllers\Api\Keuangan\PembayaranController::recalculateSummary', ['filter' => 'login']);
 
 $routes->group('kavling', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
     $routes->post('list/ambil', 'KavlingController::getList');

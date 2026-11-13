@@ -490,5 +490,81 @@ class KeuanganRepository extends Model
             ->where('berita_acara !=', 'Turun KPR')
             ->findAll();
     }
+
+    public function getJatuhTempoByProyek(?int $idProyek = null): array
+    {
+        $builder = $this->db->table('mkdt m')
+            ->select('
+                c.nama_konsumen,
+                c.hp_konsumen,
+                c.alamat_konsumen,
+                k.no_kavling,
+                t.tipe_rumah,
+                j.nama_jalan,
+                cl.nama_cluster
+            ')
+            ->join('kavling k', 'm.id_mkdt = k.id_mkdt')
+            ->join('jalan j', 'k.id_jalan = j.id_jalan')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+            ->join('proyek p', 'p.id_proyek = cl.id_proyek')
+            ->join('konsumen c', 'c.id_konsumen = m.id_konsumen')
+            ->join('hargajual hj', 'hj.id = k.harga_akhir')
+            ->join('tipe t', 't.id_tipe = hj.id_tipe')
+            ->where('m.is_lunas', 0);
+
+        if ($idProyek !== null && $idProyek > 0) {
+            $builder->where('p.id_proyek', $idProyek);
+        }
+
+        return $builder->get()->getResult();
+    }
+
+    public function getRiwayatSuratQuery(int $idProyek, $idCluster = null, $idJalan = null)
+    {
+        $builder = $this->db->table('invoice_log i')
+            ->select('
+                i.no_inv,
+                i.nomor_surat,
+                i.id_mkdt,
+                i.id_kavling,
+                i.id_konsumen,
+                i.id_kopsurat,
+                i.tanggal_invoice,
+                i.tanggal_jatuh_tempo,
+                i.status_tagihan,
+                i.is_signed_direktur,
+                i.signed_at,
+                i.signed_by,
+                i.date_add,
+                i.date_edit,
+                i.tanggal_ubah_status,
+                i.keterangan_status,
+                i.tagihan,
+                COALESCE(c.nama_konsumen, "") AS nama_konsumen,
+                COALESCE(k.no_kavling, "") AS no_kavling,
+                COALESCE(j.nama_jalan, "") AS nama_jalan,
+                COALESCE(cl.nama_cluster, "") AS nama_cluster,
+                COALESCE(u.nama_karyawan, usr.username, "") AS pembuat
+            ', false)
+            ->join('mkdt m', 'm.id_mkdt = i.id_mkdt', 'left')
+            ->join('konsumen c', 'c.id_konsumen = COALESCE(i.id_konsumen, m.id_konsumen)', 'left')
+            ->join('kavling k', 'k.id_kavling = COALESCE(i.id_kavling, m.id_kavling)', 'left')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster', 'left')
+            ->join('karyawan u', 'u.id_user = i.add_by', 'left')
+            ->join('users usr', 'usr.id = i.add_by', 'left')
+            ->where('cl.id_proyek', $idProyek);
+
+        if (!empty($idCluster)) {
+            $builder->where('cl.id_cluster', $idCluster);
+        }
+        if (!empty($idJalan)) {
+            $builder->where('j.id_jalan', $idJalan);
+        }
+
+        $builder->orderBy('COALESCE(i.tanggal_ubah_status, i.date_edit, i.date_add)', 'DESC', false);
+
+        return $builder;
+    }
 }
 

@@ -234,6 +234,16 @@ class BankKprDisbursementService
         }
     }
 
+    public function getBanksList(): array
+    {
+        return $this->getBanks();
+    }
+
+    public function canUserManage(): bool
+    {
+        return $this->canManage();
+    }
+
     protected function getRows(int $idMkdt, int $idKavling): array
     {
         $rows = $this->db->table('bank_kpr_disbursement bkd')

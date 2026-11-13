@@ -1,5 +1,5 @@
 {
-    "scanned_at": "2026-11-13T19:40:53+07:00",
+    "scanned_at": "2026-11-13T20:13:21+07:00",
     "total_modules": 17,
     "modules": {
         "Proyek": {
@@ -131,8 +131,9 @@
                 {
                     "relative_path": "app/Controllers/Api/Proyek/AksesProyekController.php",
                     "filename": "AksesProyekController.php",
-                    "line_count": 63,
+                    "line_count": 121,
                     "public_methods": [
+                        "meta()",
                         "getAll()",
                         "getOne($id = null)",
                         "getAkses()",
@@ -145,7 +146,7 @@
                 {
                     "relative_path": "app/Services/Proyek/ProyekService.php",
                     "filename": "ProyekService.php",
-                    "line_count": 423,
+                    "line_count": 696,
                     "public_methods": [
                         "getDropdownList()",
                         "getAll(array $params = [])",
@@ -154,9 +155,10 @@
                         "edit(IncomingRequest $request)",
                         "getSiteplanList(int $idProyek)",
                         "remove(int $idProyek)",
+                        "getAksesMeta()",
                         "getAksesList(array $params = [])",
-                        "getAksesOne(int $idProyek)",
-                        "searchAksesUsers(string $keyword)",
+                        "getAksesOne(int $idProyek, bool $raw = false)",
+                        "searchAksesUsers(string $keyword, bool $raw = false)",
                         "updateAkses(array $postData)"
                     ]
                 },
@@ -224,7 +226,7 @@
                 {
                     "relative_path": "app/Repositories/Proyek/ProyekRepository.php",
                     "filename": "ProyekRepository.php",
-                    "line_count": 125,
+                    "line_count": 260,
                     "public_methods": [
                         "getAll(array $params = [])",
                         "getById(int $idProyek)",
@@ -233,7 +235,12 @@
                         "getAksesProyekList()",
                         "getAksesProyekById(int $idProyek)",
                         "searchUsers(string $keyword)",
-                        "updateUserAccess(int $idProyek, string $userIdsCsv)"
+                        "updateUserAccess(int $idProyek, string $userIdsCsv)",
+                        "getAksesProyekPaginated(string $search, int $page, int $perPage)",
+                        "getActiveUsersWithGroups(string $search = '')",
+                        "getAuthGroups()",
+                        "existsProyek(int $idProyek)",
+                        "findActiveUserIds(array $userIds)"
                     ]
                 },
                 {
@@ -503,6 +510,14 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
+                    "http_method": "GET",
+                    "uri": "/api/aksesproyek/meta",
+                    "type": "Explicit",
+                    "handler": "AksesProyekController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
                     "http_method": "POST",
                     "uri": "/api/aksesproyek/edit",
                     "type": "Explicit",
@@ -520,9 +535,10 @@
                     "edit(IncomingRequest $request)",
                     "getSiteplanList(int $idProyek)",
                     "remove(int $idProyek)",
+                    "getAksesMeta()",
                     "getAksesList(array $params = [])",
-                    "getAksesOne(int $idProyek)",
-                    "searchAksesUsers(string $keyword)",
+                    "getAksesOne(int $idProyek, bool $raw = false)",
+                    "searchAksesUsers(string $keyword, bool $raw = false)",
                     "updateAkses(array $postData)"
                 ],
                 "ClusterService.php": [
@@ -3011,14 +3027,6 @@
                     "new ProfilePerusahaanModel()",
                     "new RiwayatPencairanJaminanModel()"
                 ],
-                "app/Controllers/Tagihan.php": [
-                    "db_connect()",
-                    "Database::connect()",
-                    "new ProfilePerusahaanModel()"
-                ],
-                "app/Controllers/Pembayaran.php": [
-                    "Database::connect()"
-                ],
                 "app/Controllers/Pajak.php": [
                     "db_connect()",
                     "$this->db->table()",
@@ -3039,13 +3047,6 @@
                     "$this->db->table()",
                     "new ProyekModel()",
                     "new ChecklistSubItemModel()"
-                ],
-                "app/Controllers/PrintController.php": [
-                    "db_connect()",
-                    "$this->db->table()",
-                    "new ProfilePerusahaanModel()",
-                    "new ProyekModel()",
-                    "new KeuanganModel()"
                 ],
                 "app/Controllers/PencairanJaminan.php": [
                     "new RiwayatPencairanJaminanModel()"
@@ -3138,10 +3139,21 @@
                     ]
                 },
                 {
-                    "relative_path": "app/Controllers/Tagihan.php",
-                    "filename": "Tagihan.php",
-                    "line_count": 521,
+                    "relative_path": "app/Controllers/Web/Keuangan/TagihanController.php",
+                    "filename": "TagihanController.php",
+                    "line_count": 36,
                     "public_methods": [
+                        "listTagihan()",
+                        "riwayatBayarIndex()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Keuangan/TagihanController.php",
+                    "filename": "TagihanController.php",
+                    "line_count": 380,
+                    "public_methods": [
+                        "meta()",
                         "getByID()",
                         "getRiwayatByID()",
                         "hapusTurunKPR()",
@@ -3150,36 +3162,53 @@
                         "voidTagihan()",
                         "unvoidTagihan()",
                         "save()",
-                        "listTagihan()",
                         "getListTagihan($status = null)",
                         "getListTagihanGrouped()",
                         "exportExcelTagihan()",
                         "getListTagihanDetail()",
-                        "riwayatBayarIndex()",
                         "getRiwayatBayar()",
                         "getListRiwayatSurat()",
                         "getAllJatuhTempo()"
                     ],
-                    "violations": [
-                        "db_connect()",
-                        "Database::connect()",
-                        "new ProfilePerusahaanModel()"
-                    ]
+                    "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/Pembayaran.php",
-                    "filename": "Pembayaran.php",
-                    "line_count": 89,
+                    "relative_path": "app/Controllers/Api/Keuangan/PembayaranController.php",
+                    "filename": "PembayaranController.php",
+                    "line_count": 97,
                     "public_methods": [
+                        "meta()",
                         "save()",
-                        "print()",
                         "removeLP()",
-                        "printUm()",
                         "recalculateSummary()"
                     ],
-                    "violations": [
-                        "Database::connect()"
-                    ]
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Web/Keuangan/PrintController.php",
+                    "filename": "PrintController.php",
+                    "line_count": 124,
+                    "public_methods": [
+                        "printSpptb()",
+                        "printKuitansi()",
+                        "printPembayaran()",
+                        "printPembayaranUm()",
+                        "printTagihan()"
+                    ],
+                    "violations": []
+                },
+                {
+                    "relative_path": "app/Controllers/Api/Keuangan/BankKprDisbursementController.php",
+                    "filename": "BankKprDisbursementController.php",
+                    "line_count": 121,
+                    "public_methods": [
+                        "meta()",
+                        "getJatuhTempo()",
+                        "getData()",
+                        "save()",
+                        "void($id = null)"
+                    ],
+                    "violations": []
                 },
                 {
                     "relative_path": "app/Controllers/Pajak.php",
@@ -3364,22 +3393,6 @@
                     "violations": []
                 },
                 {
-                    "relative_path": "app/Controllers/PrintController.php",
-                    "filename": "PrintController.php",
-                    "line_count": 133,
-                    "public_methods": [
-                        "printSpptb()",
-                        "printKuitansi()"
-                    ],
-                    "violations": [
-                        "db_connect()",
-                        "$this->db->table()",
-                        "new ProfilePerusahaanModel()",
-                        "new ProyekModel()",
-                        "new KeuanganModel()"
-                    ]
-                },
-                {
                     "relative_path": "app/Controllers/PencairanJaminan.php",
                     "filename": "PencairanJaminan.php",
                     "line_count": 75,
@@ -3424,7 +3437,7 @@
                 {
                     "relative_path": "app/Services/Keuangan/KeuanganService.php",
                     "filename": "KeuanganService.php",
-                    "line_count": 1852,
+                    "line_count": 2470,
                     "public_methods": [
                         "simpanIsiTagihan($request, int $actorId)",
                         "simpanDanaAkad($request, int $actorId)",
@@ -3459,16 +3472,26 @@
                         "getRiwayatTagihan($request)",
                         "simpanPenagihan($request, int $actorId)",
                         "updateStatusPenagihan($request, int $actorId)",
+                        "getListItemKeuangan()",
+                        "getTagihanBundle(int $idMkdt, bool $includeLog = true)",
+                        "formatBiayaMkdt($mkdt)",
+                        "saveTagihan($request, int $actorId)",
+                        "getJatuhTempoByProyek(?int $idProyek = null)",
+                        "getListTagihanRaw($request, $status = null)",
+                        "getListTagihanGroupedRaw($request)",
+                        "getRiwayatBayarRaw($request)",
+                        "getListRiwayatSuratRaw($request)",
                         "setTanggalKirim($no_inv)"
                     ]
                 },
                 {
                     "relative_path": "app/Services/Keuangan/PembayaranService.php",
                     "filename": "PembayaranService.php",
-                    "line_count": 259,
+                    "line_count": 294,
                     "public_methods": [
                         "simpan($data)",
                         "recalculateSummary($id_mkdt)",
+                        "recalculateAllSummaries()",
                         "removeLP($request)"
                     ]
                 },
@@ -3507,11 +3530,13 @@
                 {
                     "relative_path": "app/Services/Keuangan/BankKprDisbursementService.php",
                     "filename": "BankKprDisbursementService.php",
-                    "line_count": 409,
+                    "line_count": 419,
                     "public_methods": [
                         "getData(int $idMkdt, int $idKavling)",
                         "save($request, int $actorId)",
-                        "void(int $id, $request, int $actorId)"
+                        "void(int $id, $request, int $actorId)",
+                        "getBanksList()",
+                        "canUserManage()"
                     ]
                 },
                 {
@@ -3642,11 +3667,12 @@
                 {
                     "relative_path": "app/Services/Keuangan/PrintService.php",
                     "filename": "PrintService.php",
-                    "line_count": 646,
+                    "line_count": 720,
                     "public_methods": [
                         "printSpptb(int $idKavling, int $idMkdt, int $idProyek)",
                         "printKuitansi($var)",
                         "printKuitansiUm($var)",
+                        "printTagihan(string $noInv, int $actorId)",
                         "exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)",
                         "exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status)",
                         "exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status)"
@@ -3671,7 +3697,7 @@
                 {
                     "relative_path": "app/Repositories/Keuangan/KeuanganRepository.php",
                     "filename": "KeuanganRepository.php",
-                    "line_count": 495,
+                    "line_count": 571,
                     "public_methods": [
                         "getTagihanById(int $idMkdt)",
                         "getTagihanTurunKPRById(int $idMkdt)",
@@ -3683,13 +3709,15 @@
                         "getLunasGroupedQuery()",
                         "getListTagihanJatuhTempoDetailById(int $idMkdt)",
                         "getListTagihanDetailById(int $idMkdt)",
-                        "getTagihanOnlyByID(int $idMkdt)"
+                        "getTagihanOnlyByID(int $idMkdt)",
+                        "getJatuhTempoByProyek(?int $idProyek = null)",
+                        "getRiwayatSuratQuery(int $idProyek, $idCluster = null, $idJalan = null)"
                     ]
                 },
                 {
                     "relative_path": "app/Repositories/Keuangan/LogPembayaranRepository.php",
                     "filename": "LogPembayaranRepository.php",
-                    "line_count": 207,
+                    "line_count": 228,
                     "public_methods": [
                         "getRiwayatBayarById(int $idMkdt)",
                         "getRiwayatBayarQuery($id_proyek, $id_cluster = null, $id_jalan = null)",
@@ -3700,7 +3728,8 @@
                         "getPaidItemSummaryByIdMkdt(int $id_Mkdt)",
                         "getDetailRiwayatBayarByIdMkdt(int $id_Mkdt)",
                         "insertDetail($data)",
-                        "hasRecentDuplicate(int $idMkdt, string $idKeuangan, $nominal, string $tanggalBayar, string $paymentType, int $seconds = 30)"
+                        "hasRecentDuplicate(int $idMkdt, string $idKeuangan, $nominal, string $tanggalBayar, string $paymentType, int $seconds = 30)",
+                        "getDistinctActiveMkdtIds()"
                     ]
                 },
                 {
@@ -3835,9 +3864,10 @@
                 {
                     "relative_path": "app/Repositories/Keuangan/SpptbRepository.php",
                     "filename": "SpptbRepository.php",
-                    "line_count": 23,
+                    "line_count": 35,
                     "public_methods": [
-                        "getLatestByMkdtId(int $idMkdt, int $limit = 3)"
+                        "getLatestByMkdtId(int $idMkdt, int $limit = 3)",
+                        "insertFile(int $idMkdt, string $lokasi, int $actorId)"
                     ]
                 },
                 {
@@ -3962,6 +3992,9 @@
                 }
             ],
             "shims": [
+                "app/Controllers/Tagihan.php",
+                "app/Controllers/Pembayaran.php",
+                "app/Controllers/PrintController.php",
                 "app/Controllers/ListBank.php",
                 "app/Controllers/Api/BankController.php",
                 "app/Controllers/Api/BookingPaymentController.php",
@@ -4102,212 +4135,268 @@
             ],
             "routes": [
                 {
-                    "http_method": "POST",
-                    "uri": "/keuangan/jatuhtempo/get",
-                    "type": "Explicit",
-                    "handler": "Keuangan::getJatuhTempo",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-bank/get",
-                    "type": "Explicit",
-                    "handler": "Keuangan::getBankKprDisbursement",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-bank/save",
-                    "type": "Explicit",
-                    "handler": "Keuangan::saveBankKprDisbursement",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/keuangan/pencairan-bank/void/(:num)",
-                    "type": "Explicit",
-                    "handler": "Keuangan::voidBankKprDisbursement/$1",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/tagihan/ambilsatu",
-                    "type": "Explicit",
-                    "handler": "Tagihan::getByID",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/tagihan/riwayat/ambilsatu",
-                    "type": "Explicit",
-                    "handler": "Tagihan::getRiwayatByID",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/tagihan/turunkpr",
-                    "type": "Explicit",
-                    "handler": "Tagihan::tambahTurunKPR",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/tagihan/hapusturunkpr",
-                    "type": "Explicit",
-                    "handler": "Tagihan::hapusTurunKPR",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/tagihan/hapus",
-                    "type": "Explicit",
-                    "handler": "Tagihan::hapus",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/tagihan/void",
-                    "type": "Explicit",
-                    "handler": "Tagihan::voidTagihan",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/tagihan/unvoid",
-                    "type": "Explicit",
-                    "handler": "Tagihan::unvoidTagihan",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/tagihan/jatuhtempo",
-                    "type": "Explicit",
-                    "handler": "Tagihan::getAllJatuhTempo",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
                     "http_method": "GET",
                     "uri": "/riwayat-bayar",
                     "type": "Explicit",
-                    "handler": "Tagihan::riwayatBayarIndex",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "POST",
-                    "uri": "/tagihan/riwayat-bayar/ambil",
-                    "type": "Explicit",
-                    "handler": "Tagihan::getRiwayatBayar",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\TagihanController::riwayatBayarIndex",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
                     "uri": "/tagihan/list",
                     "type": "Explicit",
-                    "handler": "Tagihan::listTagihan",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\TagihanController::listTagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/tagihan/ambilsatu",
+                    "type": "Explicit",
+                    "handler": "TagihanController::getByID",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/tagihan/riwayat/ambilsatu",
+                    "type": "Explicit",
+                    "handler": "TagihanController::getRiwayatByID",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/tagihan/turunkpr",
+                    "type": "Explicit",
+                    "handler": "TagihanController::tambahTurunKPR",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/tagihan/hapusturunkpr",
+                    "type": "Explicit",
+                    "handler": "TagihanController::hapusTurunKPR",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/tagihan/hapus",
+                    "type": "Explicit",
+                    "handler": "TagihanController::hapus",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/tagihan/void",
+                    "type": "Explicit",
+                    "handler": "TagihanController::voidTagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/tagihan/unvoid",
+                    "type": "Explicit",
+                    "handler": "TagihanController::unvoidTagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/tagihan/save",
+                    "type": "Explicit",
+                    "handler": "TagihanController::save",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/tagihan/jatuhtempo",
+                    "type": "Explicit",
+                    "handler": "TagihanController::getAllJatuhTempo",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/tagihan/riwayat-bayar/ambil",
+                    "type": "Explicit",
+                    "handler": "TagihanController::getRiwayatBayar",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/tagihan/list/ambil",
                     "type": "Explicit",
-                    "handler": "Tagihan::getListTagihan",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "TagihanController::getListTagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/tagihan/list/ambil-grouped",
                     "type": "Explicit",
-                    "handler": "Tagihan::getListTagihanGrouped",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "TagihanController::getListTagihanGrouped",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/tagihan/list/detail",
                     "type": "Explicit",
-                    "handler": "Tagihan::getListTagihanDetail",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "TagihanController::getListTagihanDetail",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/tagihan/list/export-excel",
                     "type": "Explicit",
-                    "handler": "Tagihan::exportExcelTagihan",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "TagihanController::exportExcelTagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/tagihan/list/ambil-riwayat-surat",
                     "type": "Explicit",
-                    "handler": "Tagihan::getListRiwayatSurat",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "TagihanController::getListRiwayatSurat",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/danaakad/list/ambilsatu",
                     "type": "Explicit",
-                    "handler": "Tagihan::getListTagihan",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\TagihanController::getListTagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
-                    "uri": "/pembayaran/kuitansi/cetak",
+                    "uri": "/api/keuangan/tagihan/meta",
                     "type": "Explicit",
-                    "handler": "Pembayaran::print",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
-                    "uri": "/pembayaran/kuitansi-um/cetak",
-                    "type": "Explicit",
-                    "handler": "Pembayaran::printUm",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "TagihanController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/pembayaran/simpan",
                     "type": "Explicit",
-                    "handler": "Pembayaran::save",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PembayaranController::save",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
                     "uri": "/pembayaran/hapus",
                     "type": "Explicit",
-                    "handler": "Pembayaran::removeLP",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PembayaranController::removeLP",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/keuangan/pembayaran/meta",
+                    "type": "Explicit",
+                    "handler": "PembayaranController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "GET",
                     "uri": "/pembayaran/hitungulang",
                     "type": "Explicit",
-                    "handler": "Pembayaran::recalculateSummary",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\PembayaranController::recalculateSummary",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/print/spptb",
+                    "type": "Explicit",
+                    "handler": "PrintController::printSpptb",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/print/kuitansi",
+                    "type": "Explicit",
+                    "handler": "PrintController::printKuitansi",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/pembayaran/kuitansi/cetak",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\PrintController::printPembayaran",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/pembayaran/kuitansi-um/cetak",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\PrintController::printPembayaranUm",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/keuangan/print_tagihan",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Web\\Keuangan\\PrintController::printTagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/jatuhtempo/get",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\BankKprDisbursementController::getJatuhTempo",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-bank/get",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\BankKprDisbursementController::getData",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-bank/save",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\BankKprDisbursementController::save",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/keuangan/pencairan-bank/void/(:num)",
+                    "type": "Explicit",
+                    "handler": "\\App\\Controllers\\Api\\Keuangan\\BankKprDisbursementController::void/$1",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "GET",
+                    "uri": "/api/keuangan/pencairan-bank/meta",
+                    "type": "Explicit",
+                    "handler": "BankKprDisbursementController::meta",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
                     "http_method": "POST",
@@ -4767,14 +4856,6 @@
                 },
                 {
                     "http_method": "GET",
-                    "uri": "/print/spptb",
-                    "type": "Explicit",
-                    "handler": "PrintController::printSpptb",
-                    "status": "\ud83d\udfe1 LEGACY",
-                    "notes": "Rute eksplisit ke flat controller lama"
-                },
-                {
-                    "http_method": "GET",
                     "uri": "/pencairan",
                     "type": "Explicit",
                     "handler": "PencairanJaminan::index",
@@ -4834,6 +4915,38 @@
                     "uri": "/keuangan/getdanaakad",
                     "type": "AutoRoute",
                     "handler": "Keuangan::getDanaAkad",
+                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
+                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                },
+                {
+                    "http_method": "ANY",
+                    "uri": "/keuangan/getbankkprdisbursement",
+                    "type": "AutoRoute",
+                    "handler": "Keuangan::getBankKprDisbursement",
+                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
+                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                },
+                {
+                    "http_method": "ANY",
+                    "uri": "/keuangan/savebankkprdisbursement",
+                    "type": "AutoRoute",
+                    "handler": "Keuangan::saveBankKprDisbursement",
+                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
+                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                },
+                {
+                    "http_method": "ANY",
+                    "uri": "/keuangan/voidbankkprdisbursement",
+                    "type": "AutoRoute",
+                    "handler": "Keuangan::voidBankKprDisbursement",
+                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
+                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
+                },
+                {
+                    "http_method": "ANY",
+                    "uri": "/keuangan/getjatuhtempo",
+                    "type": "AutoRoute",
+                    "handler": "Keuangan::getJatuhTempo",
                     "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
                     "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
                 },
@@ -5055,14 +5168,6 @@
                 },
                 {
                     "http_method": "ANY",
-                    "uri": "/tagihan/save",
-                    "type": "AutoRoute",
-                    "handler": "Tagihan::save",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
                     "uri": "/pajak/getone",
                     "type": "AutoRoute",
                     "handler": "Pajak::getOne",
@@ -5106,14 +5211,6 @@
                     "uri": "/dana_akad/getbyid",
                     "type": "AutoRoute",
                     "handler": "DanaAkad::getByID",
-                    "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
-                    "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
-                },
-                {
-                    "http_method": "ANY",
-                    "uri": "/print_controller/printkuitansi",
-                    "type": "AutoRoute",
-                    "handler": "PrintController::printKuitansi",
                     "status": "\ud83d\udfe1 LEGACY (AutoRoute)",
                     "notes": "Implisit via AutoRoute convention (belum didaftarkan eksplisit)"
                 },
@@ -5249,11 +5346,21 @@
                     "getRiwayatTagihan($request)",
                     "simpanPenagihan($request, int $actorId)",
                     "updateStatusPenagihan($request, int $actorId)",
+                    "getListItemKeuangan()",
+                    "getTagihanBundle(int $idMkdt, bool $includeLog = true)",
+                    "formatBiayaMkdt($mkdt)",
+                    "saveTagihan($request, int $actorId)",
+                    "getJatuhTempoByProyek(?int $idProyek = null)",
+                    "getListTagihanRaw($request, $status = null)",
+                    "getListTagihanGroupedRaw($request)",
+                    "getRiwayatBayarRaw($request)",
+                    "getListRiwayatSuratRaw($request)",
                     "setTanggalKirim($no_inv)"
                 ],
                 "PembayaranService.php": [
                     "simpan($data)",
                     "recalculateSummary($id_mkdt)",
+                    "recalculateAllSummaries()",
                     "removeLP($request)"
                 ],
                 "PajakService.php": [
@@ -5281,7 +5388,9 @@
                 "BankKprDisbursementService.php": [
                     "getData(int $idMkdt, int $idKavling)",
                     "save($request, int $actorId)",
-                    "void(int $id, $request, int $actorId)"
+                    "void(int $id, $request, int $actorId)",
+                    "getBanksList()",
+                    "canUserManage()"
                 ],
                 "BankService.php": [
                     "getAllActive()",
@@ -5367,6 +5476,7 @@
                     "printSpptb(int $idKavling, int $idMkdt, int $idProyek)",
                     "printKuitansi($var)",
                     "printKuitansiUm($var)",
+                    "printTagihan(string $noInv, int $actorId)",
                     "exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)",
                     "exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status)",
                     "exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status)"

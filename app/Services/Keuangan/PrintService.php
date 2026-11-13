@@ -152,7 +152,7 @@ class PrintService
     {
         $id = trim((string) $var->getVar('e'));
         $id_mkdt = trim((string) $var->getVar('e2'));
-        $id_poryek = $this->kavling->getIdProyekByIdMkdt((int) $id_mkdt);
+        $id_poryek = $this->kavling->getIdProyekByIdMkdt((int) $id_mkdt) ?: (int) $var->getVar('e3');
 
         $data['pembayaran'] = $this->lpModel->getRiwayatBayarByIdPembayran($id);
         $this->assertPaymentOwnership((int) $id, (int) $id_mkdt, $data['pembayaran']);
@@ -178,7 +178,7 @@ class PrintService
     {
         $id = trim((string) $var->getVar('e'));
         $id_mkdt = trim((string) $var->getVar('e2'));
-        $id_poryek = $this->kavling->getIdProyekByIdMkdt((int) $id_mkdt);
+        $id_poryek = $this->kavling->getIdProyekByIdMkdt((int) $id_mkdt) ?: (int) $var->getVar('e3');
 
         $data['pembayaran'] = $this->lpModel->getRiwayatBayarByIdPembayran($id);
         $this->assertPaymentOwnership((int) $id, (int) $id_mkdt, $data['pembayaran']);
@@ -219,6 +219,80 @@ class PrintService
         $linked = $this->db->table('mkdt_booking_payment')
             ->where('id_mkdt', $idMkdt)->where('id_pembayaran', $idPembayaran)->countAllResults();
         if ($linked === 0) throw new \DomainException('Pembayaran tidak terkait dengan transaksi MKDT ini.');
+    }
+
+    public function printTagihan(string $noInv, int $actorId): void
+    {
+        $inv = $this->db->table('invoice_log')
+            ->where('no_inv', $noInv)
+            ->get()
+            ->getRow();
+
+        if (! $inv) {
+            throw new \DomainException('Data invoice tidak ditemukan.');
+        }
+
+        $konsumen = $this->db->table('konsumen')
+            ->select('konsumen.nama_konsumen, konsumen.alamat_konsumen, konsumen.hp_konsumen')
+            ->join('mkdt', 'mkdt.id_konsumen = konsumen.id_konsumen')
+            ->where('mkdt.id_mkdt', $inv->id_mkdt)
+            ->get()
+            ->getRow();
+
+        $kop = $this->db->table('kopsurat')
+            ->where('id', $inv->id_kopsurat)
+            ->get()
+            ->getRow();
+
+        if (! $kop) {
+            throw new \DomainException('Data kop surat tidak ditemukan.');
+        }
+
+        $nama = $this->db->table('karyawan b')
+            ->select('nama_karyawan')
+            ->where('b.id_user', $actorId)
+            ->get()
+            ->getRow();
+
+        $kavling = $this->db->table('kavling')
+            ->select('proyek.nama_proyek, jalan.nama_jalan, no_kavling')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->join('proyek', 'cluster.id_proyek = proyek.id_proyek')
+            ->where('id_kavling', $inv->id_kavling)
+            ->get()
+            ->getRow();
+
+        $koplok = $kop->lokasi;
+        $data = [
+            'inv'      => $inv,
+            'konsumen' => $konsumen,
+            'nama'     => $nama,
+            'kavling'  => $kavling,
+            'kop'      => $koplok,
+            'kop2'     => $kop,
+        ];
+
+        $html = view('pdf/invoice', $data);
+        $filename = date('y-m-d-H-i-s') . '- Tagihan';
+
+        $header = '
+        <div style="
+            background-image: url(' . base_url($koplok) . ');
+            background-size: cover;
+            width: ' . $kop->w . ';
+            height: ' . $kop->h . ';
+            position: fixed;
+            top: ' . $kop->mt . ';
+            bottom: ' . $kop->mb . ';
+            left: ' . $kop->ml . ';
+            z-index:0;
+            ">
+        </div>';
+
+        $mg = [$kop->pml, $kop->pmr, $kop->pmt, $kop->pmb];
+
+        $this->mpdf->generate($html, $filename, $header, $mg);
     }
     function exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)
     {

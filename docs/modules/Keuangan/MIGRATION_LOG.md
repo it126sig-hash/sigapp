@@ -9,8 +9,8 @@ Log bertahap migrasi modular dan debugging untuk modul **Keuangan** (Mode `REFAC
 | Fase | Nama Fase | Status | Tanggal | Commit Hash |
 |---|---|---|---|---|
 | **Fase 0** | Baseline & Safety Verification | `COMPLETED` | 2026-11-13 | `8204898` *(baseline)* |
-| **Fase 1** | Migrasi Layer Service & Repository ke `*\Keuangan\*` + Subdomain Laporan, Bank & BookingPayment | `COMPLETED` | 2026-11-13 | *(working tree — pra-commit)* |
-| **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 1 | `PENDING` | — | — |
+| **Fase 1** | Migrasi Layer Service & Repository ke `*\Keuangan\*` + Subdomain Laporan, Bank & BookingPayment | `COMPLETED` | 2026-11-13 | `d5ce0c1` |
+| **Fase 2** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 1 (Subdomain Tagihan, Pembayaran, Print & Bank KPR Disbursement) | `COMPLETED` | 2026-11-13 | *(working tree — pra-commit)* |
 | **Fase 3** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 2 | `PENDING` | — | — |
 | **Fase 4** | Dekomposisi & Ekstraksi Legacy Layer — Gelombang 3 & Konsolidasi API/Web | `PENDING` | — | — |
 | **Fase 5** | Deprecate Legacy Methods (Opsi A) & Shim Migration | `PENDING` | — | — |
@@ -55,7 +55,7 @@ Log bertahap migrasi modular dan debugging untuk modul **Keuangan** (Mode `REFAC
 
 - **Tanggal:** `2026-11-13`
 - **Status QA:** `PASS` *(Diverifikasi independen oleh `sigapp-qa` pada 2026-11-13 19:46 WIB)*
-- **Commit Hash:** *(pra-commit di working tree; akan diisi setelah commit Fase 1)*
+- **Commit Hash:** `d5ce0c1`
 
 ### 1. Scope Fase 1
 1. Memindahkan seluruh **14 Services** dan **11 Repositories** modul Keuangan dari root namespace (`App\Services\*`, `App\Repositories\*`) ke subfolder terstruktur `App\Services\Keuangan\*` dan `App\Repositories\Keuangan\*`.
@@ -118,3 +118,87 @@ Atau sebelum commit (pada working tree):
 1. Kembalikan perubahan pada file tracked: `git checkout -- app/Config/Routes.php app/Libraries/ModuleManager/ModuleCatalog.php app/Controllers/ListBank.php app/Controllers/Api/BankController.php app/Controllers/Api/BookingPaymentController.php app/Controllers/Web/CashInReportController.php app/Controllers/Api/CashInReportController.php app/Controllers/Web/HasilAkadReportController.php app/Controllers/Api/HasilAkadReportController.php app/Services/* app/Repositories/* docs/modules/Keuangan/MODULE.md writable/modules/module_map.json` *(khusus file milik Keuangan)*.
 2. Hapus file baru untracked di `app/Controllers/Web/Keuangan/`, `app/Controllers/Api/Keuangan/`, `app/Services/Keuangan/` *(kecuali `Cashout/` yang sudah ada)*, dan `app/Repositories/Keuangan/` *(kecuali `Cashout/` yang sudah ada)*.
 3. Jalankan `php spark module:sync Keuangan` untuk memulihkan status baseline.
+
+---
+
+## Fase 2 — Subdomain Tagihan, Pembayaran, Print & Bank KPR Disbursement
+
+- **Tanggal:** `2026-11-13`
+- **Status QA:** `PASS` *(QA Awal `FAIL` -> Remediasi Fase 2B -> Re-QA Independen `PASS` oleh `sigapp-qa` pada 2026-11-13 20:19 WIB)*
+- **Commit Hash:** *(working tree — pra-commit)*
+
+### 1. Scope & Daftar File Fase 2
+1. Memisahkan controller legacy **Tagihan**, **Pembayaran**, **Print**, dan **Bank KPR Disbursement** (dari `Tagihan.php`, `Pembayaran.php`, `PrintController.php`, dan sebagian `Keuangan.php`) ke **5 Controller modular baru** di `App\Controllers\Web\Keuangan\*` dan `App\Controllers\Api\Keuangan\*`.
+2. Mempertahankan Zero-Downtime compatibility melalui **3 Controller Shims baru** bertanda `@deprecated` pada `app/Controllers/{Tagihan,Pembayaran,PrintController}.php` (total 35 shims di modul Keuangan).
+3. Memperkuat **7 Service & Repository** (`KeuanganService`, `PembayaranService`, `PrintService`, `BankKprDisbursementService`, `KeuanganRepository`, `LogPembayaranRepository`, `SpptbRepository`) serta memperbaiki kompatibilitas DataTables & CSRF pada view `app/Views/keuangan/riwayat-bayar.php`.
+4. Memperbarui rute eksplisit di `app/Config/Routes.php`, inventori katalog di `app/Libraries/ModuleManager/ModuleCatalog.php`, dan menyinkronkan `docs/modules/Keuangan/MODULE.md` serta `writable/modules/module_map.json`.
+
+#### Daftar File Diubah & Dibuat
+- **Controllers Modular Baru (5 file):**
+  - `app/Controllers/Web/Keuangan/TagihanController.php` (`listTagihan()`, `riwayatBayarIndex()`)
+  - `app/Controllers/Api/Keuangan/TagihanController.php` (`meta()`, `getByID()`, `getRiwayatByID()`, `hapusTurunKPR()`, `tambahTurunKPR()`, `hapus()`, `voidTagihan()`, `unvoidTagihan()`, `save()`, `getListTagihan()`, `getListTagihanGrouped()`, `exportExcelTagihan()`, `getListTagihanDetail()`, `getRiwayatBayar()`, `getListRiwayatSurat()`, `getAllJatuhTempo()`)
+  - `app/Controllers/Api/Keuangan/PembayaranController.php` (`meta()`, `save()`, `removeLP()`, `recalculateSummary()`)
+  - `app/Controllers/Web/Keuangan/PrintController.php` (`printSpptb()`, `printKuitansi()`, `printPembayaran()`, `printPembayaranUm()`, `printTagihan()`, serta `handleKuitansiPrint()`)
+  - `app/Controllers/Api/Keuangan/BankKprDisbursementController.php` (`meta()`, `getJatuhTempo()`, `getData()`, `save()`, `void()`)
+- **Zero-Downtime Controller Shims Baru (3 file):**
+  - `app/Controllers/Tagihan.php` -> delegasi ke `Api\Keuangan\TagihanController` & `Web\Keuangan\TagihanController`
+  - `app/Controllers/Pembayaran.php` -> delegasi ke `Api\Keuangan\PembayaranController` & `Web\Keuangan\PrintController`
+  - `app/Controllers/PrintController.php` -> delegasi ke `Web\Keuangan\PrintController`
+- **Services & Repositories Diperkuat (7 file):**
+  - `app/Services/Keuangan/KeuanganService.php` (`getListItemKeuangan()`, `getTagihanBundle()`, `formatBiayaMkdt()`, `saveTagihan()`, `getJatuhTempoByProyek()`, `getListTagihanRaw()`, `getListTagihanGroupedRaw()`, `getRiwayatBayarRaw()`, `getListRiwayatSuratRaw()`, `ensureDataTableRequestDefaults()`)
+  - `app/Services/Keuangan/PembayaranService.php` (`recalculateAllSummaries()`, penguatan validasi alokasi di `simpan()`)
+  - `app/Services/Keuangan/PrintService.php` (`printTagihan()`, pembersihan trailing whitespace)
+  - `app/Services/Keuangan/BankKprDisbursementService.php` (`getBanksList()`, `canUserManage()`)
+  - `app/Repositories/Keuangan/KeuanganRepository.php` (`getJatuhTempoByProyek()`, `getRiwayatSuratQuery()`)
+  - `app/Repositories/Keuangan/LogPembayaranRepository.php` (`getDistinctActiveMkdtIds()`)
+  - `app/Repositories/Keuangan/SpptbRepository.php` (`insertFile()`)
+- **View, Konfigurasi & Dokumentasi:**
+  - `app/Views/keuangan/riwayat-bayar.php` (perbaikan definisi `columns` DataTables, escaping HTML, dan rotasi `csrfHash`)
+  - `app/Config/Routes.php` (rute eksplisit subdomain Tagihan, Pembayaran, Print, Bank KPR Disbursement + 3 endpoint `/meta`)
+  - `app/Libraries/ModuleManager/ModuleCatalog.php`, `docs/modules/Keuangan/MODULE.md`, `writable/modules/module_map.json`
+
+### 2. Kontrak Public HTTP `/meta` & Dual-Mode `?format=raw`
+- **Endpoint Metadata Baru (`GET`):**
+  - `GET /api/keuangan/tagihan/meta` -> Mengembalikan `active_project`, `list_item_keuangan`, dan `permissions` (`can_view`, `can_create_tagihan`, `can_pay`, `can_void`, `can_delete`).
+  - `GET /api/keuangan/pembayaran/meta` -> Mengembalikan `active_project`, `list_item_keuangan`, dan `permissions` (`can_view`, `can_pay`, `can_delete`, `can_recalculate`).
+  - `GET /api/keuangan/pencairan-bank/meta` -> Mengembalikan `active_project`, `banks`, `statuses` (`draft`, `cair`, `void`), dan `permissions.can_manage`.
+- **Dual-Mode (`?format=raw` vs Legacy/DataTables):**
+  - Seluruh endpoint mutasi & query pada `Api\Keuangan\TagihanController` (`/tagihan/*`, `/danaakad/list/ambilsatu`), `Api\Keuangan\PembayaranController` (`/pembayaran/*`), dan `Api\Keuangan\BankKprDisbursementController` (`/keuangan/jatuhtempo/get`, `/keuangan/pencairan-bank/*`) mengembalikan envelope standar `BaseApiController` (`{ success, message, data }`) ketika dipanggil dengan `?format=raw`, dan tetap mempertahankan payload DataTables/legacy + `token` CSRF ketika dipanggil tanpa `?format=raw`.
+
+### 3. Catatan QA Awal (`FAIL` — Fase 2) & RCA + Remediasi (Fase 2B)
+- **Temuan QA Awal (`FAIL`):**
+  1. **Blocking Bug di `/riwayat-bayar` (DataTables warning + CSRF stale):**
+     - **Gejala:** Halaman `/riwayat-bayar` memunculkan dialog `DataTables warning: table id=data_table - Requested unknown parameter '0' for row 0, column 0` saat pemuatan tabel.
+     - **Root Cause Analysis (RCA):** `KeuanganService::getRiwayatBayar()` menggunakan `DataTable::of($builder)->toJson(true)` yang mengembalikan baris berupa JSON *object* (`{ nominal, tanggal_bayar, keterangan, ... }`), sedangkan `app/Views/keuangan/riwayat-bayar.php` belum mendefinisikan konfigurasi `columns` (sehingga DataTables mencoba membaca indeks array numerik `0..5`). Selain itu, `ajax.dataSrc` dan Select2 `processResults` belum konsisten menyinkronkan `csrfHash = r.token` dari respons server (mencegah token stale pada request berikutnya).
+     - **Remediasi (`sigapp-frontend` pada `app/Views/keuangan/riwayat-bayar.php`):** Menambahkan konfigurasi `columns` eksplisit untuk seluruh 6 kolom (`No`, `nominal`, `tanggal_bayar`, `keterangan`, `username`, `created_at`), sanitasi output via `escapeHtml()`, serta pembaruan `if (r && r.token) csrfHash = r.token;` pada `dataSrc` DataTables dan `processResults` Select2 (`#id_cluster`, `#id_jalan`).
+  2. **Hardening Non-Blocking (`sigapp-engineer`):**
+     - `app/Controllers/Web/Keuangan/PrintController.php`: Menambahkan `handleKuitansiPrint()` serta try/catch `\DomainException` pada `printTagihan()` untuk memetakan error domain menjadi HTTP `403`/`404` JSON yang terstruktur (menggantikan uncaught exception `500`).
+     - `app/Services/Keuangan/PrintService.php`: Pembersihan trailing whitespace pada akhir file class.
+     - `app/Services/Keuangan/KeuanganService.php`: Menambahkan guard `ensureDataTableRequestDefaults($request)` agar key `columns` dan `search` tetap berupa array aman ketika endpoint DataTables dipanggil tanpa payload DataTables standar.
+
+### 4. Hasil Verifikasi Re-QA Independen (`PASS` — Fase 2B)
+Diverifikasi secara independen oleh `sigapp-qa` pada **`2026-11-13 20:19 WIB`**:
+- **Playwright E2E (`/riwayat-bayar` & `/tagihan/list`):** **`0` DataTables warning dialog** dan **`0` console error**; tabel, filter cluster/blok, dan interaksi halaman berjalan normal.
+- **PHPUnit:** **`45 tests / 196 assertions` PASS** + **`39 tests / 732 assertions` kombinasi live DB PASS** *(catatan: `PencairanAkadBatchServiceTest` memiliki 2 pre-existing CLI guard failure di luar cakupan Fase 2)*.
+- **`php spark module:map`:** **`0` unmapped files**.
+- **`php spark module:sync Keuangan --check-only`:** Exit code `0` (`MODULE.md` tersinkronisasi).
+- **Runtime Log (`writable/logs/log-2026-11-13.log`):** **`0` ERROR/CRITICAL baru** selama eksekusi verifikasi.
+
+### 5. Prosedur Rollback Fase 2
+Jika diperlukan rollback terhadap perubahan Fase 2 setelah di-commit:
+```bash
+git revert <commit-hash-fase-2>
+php spark module:sync Keuangan
+```
+Atau sebelum commit (pada working tree):
+1. Kembalikan file tracked milik Fase 2:
+   ```bash
+   git checkout -- app/Config/Routes.php app/Libraries/ModuleManager/ModuleCatalog.php app/Controllers/Tagihan.php app/Controllers/Pembayaran.php app/Controllers/PrintController.php app/Services/Keuangan/KeuanganService.php app/Services/Keuangan/PembayaranService.php app/Services/Keuangan/PrintService.php app/Services/Keuangan/BankKprDisbursementService.php app/Repositories/Keuangan/KeuanganRepository.php app/Repositories/Keuangan/LogPembayaranRepository.php app/Repositories/Keuangan/SpptbRepository.php app/Views/keuangan/riwayat-bayar.php docs/modules/Keuangan/MODULE.md docs/modules/Keuangan/MIGRATION_LOG.md writable/modules/module_map.json
+   ```
+2. Hapus 5 file controller baru di working tree:
+   - `app/Controllers/Web/Keuangan/TagihanController.php`
+   - `app/Controllers/Api/Keuangan/TagihanController.php`
+   - `app/Controllers/Api/Keuangan/PembayaranController.php`
+   - `app/Controllers/Web/Keuangan/PrintController.php`
+   - `app/Controllers/Api/Keuangan/BankKprDisbursementController.php`
+3. Jalankan `php spark module:sync Keuangan` untuk memulihkan status Fase 1.

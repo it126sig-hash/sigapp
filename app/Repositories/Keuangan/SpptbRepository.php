@@ -19,4 +19,16 @@ class SpptbRepository
             ->get()
             ->getResult();
     }
+
+    public function insertFile(int $idMkdt, string $lokasi, int $actorId): int
+    {
+        $this->db->table('file_spptb')->insert([
+            'id_mkdt'    => $idMkdt,
+            'lokasi'     => $lokasi,
+            'created_at' => date('Y-m-d H:i:s'),
+            'add_by'     => $actorId,
+        ]);
+
+        return (int) $this->db->insertID();
+    }
 }

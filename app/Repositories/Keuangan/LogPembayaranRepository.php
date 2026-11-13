@@ -203,4 +203,25 @@ class LogPembayaranRepository extends Model
             ->where('created_at >=', date('Y-m-d H:i:s', time() - $seconds))
             ->first();
     }
+
+    /**
+     * Ambil daftar id_mkdt aktif (belum dihapus) secara unik untuk recalculation summary.
+     *
+     * @return list<int>
+     */
+    public function getDistinctActiveMkdtIds(): array
+    {
+        $rows = $this->db->table('log_pembayaran')
+            ->distinct()
+            ->select('id_mkdt')
+            ->where('is_deleted', 0)
+            ->where('id_mkdt IS NOT NULL', null, false)
+            ->get()
+            ->getResultArray();
+
+        return array_values(array_unique(array_filter(array_map(
+            static fn (array $row): int => (int) ($row['id_mkdt'] ?? 0),
+            $rows
+        ), static fn (int $id): bool => $id > 0)));
+    }
 }

@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `80/100`  
-**Last Synced:** `2026-11-13 19:47:10` @ `8204898`  
+**Last Synced:** `2026-11-13 20:19:59` @ `d5ce0c1`  
 
 ## Purpose
 Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operasional, SPP, bank KPR, pajak, dan ledger kas.
@@ -50,32 +50,39 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `POST` | `/keuangan/jatuhtempo/get` | `Explicit` | `Keuangan::getJatuhTempo` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/keuangan/pencairan-bank/get` | `Explicit` | `Keuangan::getBankKprDisbursement` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/keuangan/pencairan-bank/save` | `Explicit` | `Keuangan::saveBankKprDisbursement` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/keuangan/pencairan-bank/void/(:num)` | `Explicit` | `Keuangan::voidBankKprDisbursement/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/ambilsatu` | `Explicit` | `Tagihan::getByID` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/riwayat/ambilsatu` | `Explicit` | `Tagihan::getRiwayatByID` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/turunkpr` | `Explicit` | `Tagihan::tambahTurunKPR` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/hapusturunkpr` | `Explicit` | `Tagihan::hapusTurunKPR` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/hapus` | `Explicit` | `Tagihan::hapus` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/void` | `Explicit` | `Tagihan::voidTagihan` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/unvoid` | `Explicit` | `Tagihan::unvoidTagihan` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/jatuhtempo` | `Explicit` | `Tagihan::getAllJatuhTempo` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `/riwayat-bayar` | `Explicit` | `Tagihan::riwayatBayarIndex` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/riwayat-bayar/ambil` | `Explicit` | `Tagihan::getRiwayatBayar` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `/tagihan/list` | `Explicit` | `Tagihan::listTagihan` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/list/ambil` | `Explicit` | `Tagihan::getListTagihan` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/list/ambil-grouped` | `Explicit` | `Tagihan::getListTagihanGrouped` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/list/detail` | `Explicit` | `Tagihan::getListTagihanDetail` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/list/export-excel` | `Explicit` | `Tagihan::exportExcelTagihan` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/tagihan/list/ambil-riwayat-surat` | `Explicit` | `Tagihan::getListRiwayatSurat` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/danaakad/list/ambilsatu` | `Explicit` | `Tagihan::getListTagihan` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `/pembayaran/kuitansi/cetak` | `Explicit` | `Pembayaran::print` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `/pembayaran/kuitansi-um/cetak` | `Explicit` | `Pembayaran::printUm` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/pembayaran/simpan` | `Explicit` | `Pembayaran::save` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `POST` | `/pembayaran/hapus` | `Explicit` | `Pembayaran::removeLP` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
-| `GET` | `/pembayaran/hitungulang` | `Explicit` | `Pembayaran::recalculateSummary` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
+| `GET` | `/riwayat-bayar` | `Explicit` | `\App\Controllers\Web\Keuangan\TagihanController::riwayatBayarIndex` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/tagihan/list` | `Explicit` | `\App\Controllers\Web\Keuangan\TagihanController::listTagihan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/ambilsatu` | `Explicit` | `TagihanController::getByID` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/riwayat/ambilsatu` | `Explicit` | `TagihanController::getRiwayatByID` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/turunkpr` | `Explicit` | `TagihanController::tambahTurunKPR` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/hapusturunkpr` | `Explicit` | `TagihanController::hapusTurunKPR` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/hapus` | `Explicit` | `TagihanController::hapus` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/void` | `Explicit` | `TagihanController::voidTagihan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/unvoid` | `Explicit` | `TagihanController::unvoidTagihan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/save` | `Explicit` | `TagihanController::save` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/jatuhtempo` | `Explicit` | `TagihanController::getAllJatuhTempo` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/riwayat-bayar/ambil` | `Explicit` | `TagihanController::getRiwayatBayar` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/list/ambil` | `Explicit` | `TagihanController::getListTagihan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/list/ambil-grouped` | `Explicit` | `TagihanController::getListTagihanGrouped` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/list/detail` | `Explicit` | `TagihanController::getListTagihanDetail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/list/export-excel` | `Explicit` | `TagihanController::exportExcelTagihan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/tagihan/list/ambil-riwayat-surat` | `Explicit` | `TagihanController::getListRiwayatSurat` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/danaakad/list/ambilsatu` | `Explicit` | `\App\Controllers\Api\Keuangan\TagihanController::getListTagihan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/keuangan/tagihan/meta` | `Explicit` | `TagihanController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/pembayaran/simpan` | `Explicit` | `\App\Controllers\Api\Keuangan\PembayaranController::save` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/pembayaran/hapus` | `Explicit` | `\App\Controllers\Api\Keuangan\PembayaranController::removeLP` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/keuangan/pembayaran/meta` | `Explicit` | `PembayaranController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/pembayaran/hitungulang` | `Explicit` | `\App\Controllers\Api\Keuangan\PembayaranController::recalculateSummary` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/print/spptb` | `Explicit` | `PrintController::printSpptb` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/print/kuitansi` | `Explicit` | `PrintController::printKuitansi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/pembayaran/kuitansi/cetak` | `Explicit` | `\App\Controllers\Web\Keuangan\PrintController::printPembayaran` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/pembayaran/kuitansi-um/cetak` | `Explicit` | `\App\Controllers\Web\Keuangan\PrintController::printPembayaranUm` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/keuangan/print_tagihan` | `Explicit` | `\App\Controllers\Web\Keuangan\PrintController::printTagihan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/keuangan/jatuhtempo/get` | `Explicit` | `\App\Controllers\Api\Keuangan\BankKprDisbursementController::getJatuhTempo` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/keuangan/pencairan-bank/get` | `Explicit` | `\App\Controllers\Api\Keuangan\BankKprDisbursementController::getData` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/keuangan/pencairan-bank/save` | `Explicit` | `\App\Controllers\Api\Keuangan\BankKprDisbursementController::save` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/keuangan/pencairan-bank/void/(:num)` | `Explicit` | `\App\Controllers\Api\Keuangan\BankKprDisbursementController::void/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/keuangan/pencairan-bank/meta` | `Explicit` | `BankKprDisbursementController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/keuangan/cashout/ambil` | `Explicit` | `CashOut::getByIDKavling` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `POST` | `/keuangan/cashout/listitem/ambil` | `Explicit` | `CashOut::getListItem` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `POST` | `/keuangan/cashout/delete` | `Explicit` | `CashOut::delete` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
@@ -133,7 +140,6 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 | `GET` | `/api/laporan/hasil-akad/meta` | `Explicit` | `HasilAkadReportController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/laporan/hasil-akad/summary` | `Explicit` | `HasilAkadReportController::summary` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/laporan/hasil-akad/detail` | `Explicit` | `HasilAkadReportController::detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `/print/spptb` | `Explicit` | `PrintController::printSpptb` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `GET` | `/pencairan` | `Explicit` | `PencairanJaminan::index` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `GET` | `/pencairan/list/(:num)` | `Explicit` | `PencairanJaminan::list/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `POST` | `/pencairan/store` | `Explicit` | `PencairanJaminan::store` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
@@ -142,6 +148,10 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 | `POST` | `/pencairan/toggle/(:num)` | `Explicit` | `PencairanJaminan::toggleStatus/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `GET` | `/pencairan/download/(:num)` | `Explicit` | `PencairanJaminan::download/$1` | 🟡 LEGACY | Rute eksplisit ke flat controller lama |
 | `ANY` | `/keuangan/getdanaakad` | `AutoRoute` | `Keuangan::getDanaAkad` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/keuangan/getbankkprdisbursement` | `AutoRoute` | `Keuangan::getBankKprDisbursement` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/keuangan/savebankkprdisbursement` | `AutoRoute` | `Keuangan::saveBankKprDisbursement` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/keuangan/voidbankkprdisbursement` | `AutoRoute` | `Keuangan::voidBankKprDisbursement` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
+| `ANY` | `/keuangan/getjatuhtempo` | `AutoRoute` | `Keuangan::getJatuhTempo` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/keuangan/getcashout` | `AutoRoute` | `Keuangan::getCashOut` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/keuangan/savecashout` | `AutoRoute` | `Keuangan::saveCashOut` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/keuangan/savedanaakad` | `AutoRoute` | `Keuangan::saveDanaAkad` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
@@ -169,14 +179,12 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 | `ANY` | `/keuangan/get_kopsurat_detail` | `AutoRoute` | `Keuangan::get_kopsurat_detail` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/keuangan/simpan_kopsurat` | `AutoRoute` | `Keuangan::simpan_kopsurat` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/keuangan/hapus_kopsurat` | `AutoRoute` | `Keuangan::hapus_kopsurat` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/tagihan/save` | `AutoRoute` | `Tagihan::save` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/pajak/getone` | `AutoRoute` | `Pajak::getOne` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/pajak/save` | `AutoRoute` | `Pajak::save` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/pajak/if_where` | `AutoRoute` | `Pajak::if_where` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/pajak/is_active` | `AutoRoute` | `Pajak::is_active` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/pajak/format_tgl` | `AutoRoute` | `Pajak::format_tgl` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/dana_akad/getbyid` | `AutoRoute` | `DanaAkad::getByID` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
-| `ANY` | `/print_controller/printkuitansi` | `AutoRoute` | `PrintController::printKuitansi` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/direksi/get_data_by_id` | `AutoRoute` | `Direksi::get_data_by_id` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/direksi/save` | `AutoRoute` | `Direksi::save` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
 | `ANY` | `/direksi/if_where` | `AutoRoute` | `Direksi::if_where` | 🟡 LEGACY (AutoRoute) | Implisit via AutoRoute convention (belum didaftarkan eksplisit) |
@@ -225,10 +233,20 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `getRiwayatTagihan($request)`
 - `simpanPenagihan($request, int $actorId)`
 - `updateStatusPenagihan($request, int $actorId)`
+- `getListItemKeuangan()`
+- `getTagihanBundle(int $idMkdt, bool $includeLog = true)`
+- `formatBiayaMkdt($mkdt)`
+- `saveTagihan($request, int $actorId)`
+- `getJatuhTempoByProyek(?int $idProyek = null)`
+- `getListTagihanRaw($request, $status = null)`
+- `getListTagihanGroupedRaw($request)`
+- `getRiwayatBayarRaw($request)`
+- `getListRiwayatSuratRaw($request)`
 - `setTanggalKirim($no_inv)`
 #### `PembayaranService.php`
 - `simpan($data)`
 - `recalculateSummary($id_mkdt)`
+- `recalculateAllSummaries()`
 - `removeLP($request)`
 #### `PajakService.php`
 - `insertPajak(array $fields, int $idKavling, int $actorId)`
@@ -254,6 +272,8 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `getData(int $idMkdt, int $idKavling)`
 - `save($request, int $actorId)`
 - `void(int $id, $request, int $actorId)`
+- `getBanksList()`
+- `canUserManage()`
 #### `BankService.php`
 - `getAllActive()`
 - `getList(?string $search = null)`
@@ -329,6 +349,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `printSpptb(int $idKavling, int $idMkdt, int $idProyek)`
 - `printKuitansi($var)`
 - `printKuitansiUm($var)`
+- `printTagihan(string $noInv, int $actorId)`
 - `exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)`
 - `exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status)`
 - `exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status)`
@@ -342,10 +363,13 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `rejectLegacyToggle()`
 
 ## File Inventory
-### Controllers (19)
+### Controllers (21)
 - `app/Controllers/Keuangan.php` (1923 baris, 32 public methods: `getDanaAkad()`, `getBankKprDisbursement()`, `saveBankKprDisbursement()`, `voidBankKprDisbursement($id = null)`, `getJatuhTempo()`, `getCashOut()`, `saveCashOut()`, `saveDanaAkad()`, `get_riwayat_gantinama()`, `isSudahBayar($id)`, `isi_tagihan()`, `save_sb()`, `save()`, `list_tagihan()`, `getListTagihan()`, `riwayat_bayar()`, `getRiwayatBayar()`, `get_tagihan($id = null)`, `removeLP()`, `doPrint()`, `print_tagihan($id = null)`, `if_where($var, $column, $condition, $query)`, `format_tgl($tgl)`, `is_active($id, $texts, $textf)`, `get_riwayat_tagihan()`, `simpan_penagihan()`, `update_status_penagihan()`, `download_penagihan()`, `get_kopsurat_list()`, `get_kopsurat_detail()`, `simpan_kopsurat()`, `hapus_kopsurat()`)
-- `app/Controllers/Tagihan.php` (521 baris, 17 public methods: `getByID()`, `getRiwayatByID()`, `hapusTurunKPR()`, `tambahTurunKPR()`, `hapus()`, `voidTagihan()`, `unvoidTagihan()`, `save()`, `listTagihan()`, `getListTagihan($status = null)`, `getListTagihanGrouped()`, `exportExcelTagihan()`, `getListTagihanDetail()`, `riwayatBayarIndex()`, `getRiwayatBayar()`, `getListRiwayatSurat()`, `getAllJatuhTempo()`)
-- `app/Controllers/Pembayaran.php` (89 baris, 5 public methods: `save()`, `print()`, `removeLP()`, `printUm()`, `recalculateSummary()`)
+- `app/Controllers/Web/Keuangan/TagihanController.php` (36 baris, 2 public methods: `listTagihan()`, `riwayatBayarIndex()`)
+- `app/Controllers/Api/Keuangan/TagihanController.php` (380 baris, 16 public methods: `meta()`, `getByID()`, `getRiwayatByID()`, `hapusTurunKPR()`, `tambahTurunKPR()`, `hapus()`, `voidTagihan()`, `unvoidTagihan()`, `save()`, `getListTagihan($status = null)`, `getListTagihanGrouped()`, `exportExcelTagihan()`, `getListTagihanDetail()`, `getRiwayatBayar()`, `getListRiwayatSurat()`, `getAllJatuhTempo()`)
+- `app/Controllers/Api/Keuangan/PembayaranController.php` (97 baris, 4 public methods: `meta()`, `save()`, `removeLP()`, `recalculateSummary()`)
+- `app/Controllers/Web/Keuangan/PrintController.php` (124 baris, 5 public methods: `printSpptb()`, `printKuitansi()`, `printPembayaran()`, `printPembayaranUm()`, `printTagihan()`)
+- `app/Controllers/Api/Keuangan/BankKprDisbursementController.php` (121 baris, 5 public methods: `meta()`, `getJatuhTempo()`, `getData()`, `save()`, `void($id = null)`)
 - `app/Controllers/Pajak.php` (589 baris, 5 public methods: `getOne()`, `save()`, `if_where($var, $column, $condition, $query)`, `is_active($id, $texts, $textf)`, `format_tgl($tgl)`)
 - `app/Controllers/DanaAkad.php` (92 baris, 1 public methods: `getByID()`)
 - `app/Controllers/CashOut.php` (242 baris, 4 public methods: `getListItem()`, `getByIDKavling()`, `insert()`, `delete()`)
@@ -359,16 +383,15 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Controllers/Api/Keuangan/CashInReportController.php` (131 baris, 3 public methods: `meta()`, `summary()`, `detail()`)
 - `app/Controllers/Web/Keuangan/HasilAkadReportController.php` (49 baris, 1 public methods: `index()`)
 - `app/Controllers/Api/Keuangan/HasilAkadReportController.php` (125 baris, 3 public methods: `meta()`, `summary()`, `detail()`)
-- `app/Controllers/PrintController.php` (133 baris, 2 public methods: `printSpptb()`, `printKuitansi()`)
 - `app/Controllers/PencairanJaminan.php` (75 baris, 7 public methods: `index()`, `list($id_kavling)`, `store()`, `toggleStatus($id)`, `cairkan($id)`, `history($id_kavling)`, `download($id)`)
 - `app/Controllers/Direksi.php` (416 baris, 12 public methods: `get_data_by_id($st = null)`, `save()`, `if_where($var, $column, $condition, $query)`, `format_tgl($tgl)`, `is_active($id, $texts, $textf)`, `export_xlsx()`, `tagihan()`, `get_pending_tagihan()`, `get_my_signature()`, `sign_tagihan()`, `get_history_tagihan()`, `reject_tagihan()`)
 
 ### Services (16)
-- `app/Services/Keuangan/KeuanganService.php` (1852 baris, 34 public methods)
-- `app/Services/Keuangan/PembayaranService.php` (259 baris, 3 public methods)
+- `app/Services/Keuangan/KeuanganService.php` (2470 baris, 43 public methods)
+- `app/Services/Keuangan/PembayaranService.php` (294 baris, 4 public methods)
 - `app/Services/Keuangan/PajakService.php` (45 baris, 2 public methods)
 - `app/Services/Keuangan/FinanceLedgerService.php` (596 baris, 16 public methods)
-- `app/Services/Keuangan/BankKprDisbursementService.php` (409 baris, 3 public methods)
+- `app/Services/Keuangan/BankKprDisbursementService.php` (419 baris, 5 public methods)
 - `app/Services/Keuangan/BankService.php` (52 baris, 5 public methods)
 - `app/Services/Keuangan/BookingPaymentService.php` (332 baris, 8 public methods)
 - `app/Services/Keuangan/BookingFeeMigrationService.php` (234 baris, 2 public methods)
@@ -378,12 +401,12 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Services/Keuangan/Cashout/CashoutSubkonService.php` (822 baris, 10 public methods)
 - `app/Services/Keuangan/CashInReportService.php` (212 baris, 4 public methods)
 - `app/Services/Keuangan/HasilAkadReportService.php` (199 baris, 3 public methods)
-- `app/Services/Keuangan/PrintService.php` (646 baris, 6 public methods)
+- `app/Services/Keuangan/PrintService.php` (720 baris, 7 public methods)
 - `app/Services/Keuangan/DanaJaminanService.php` (640 baris, 7 public methods)
 
 ### Repositories (14)
-- `app/Repositories/Keuangan/KeuanganRepository.php` (495 baris, 11 public methods: `getTagihanById(int $idMkdt)`, `getTagihanTurunKPRById(int $idMkdt)`, `getAllJatuhTempo($id_proyek)`, `getLIKeu()`, `getBelumLunasQuery()`, `getBelumLunasGroupedQuery()`, `getAllGroupedQuery()`, `getLunasGroupedQuery()`, `getListTagihanJatuhTempoDetailById(int $idMkdt)`, `getListTagihanDetailById(int $idMkdt)`, `getTagihanOnlyByID(int $idMkdt)`)
-- `app/Repositories/Keuangan/LogPembayaranRepository.php` (207 baris, 10 public methods: `getRiwayatBayarById(int $idMkdt)`, `getRiwayatBayarQuery($id_proyek, $id_cluster = null, $id_jalan = null)`, `softDeleteAndReturnIdMkdt($idPembayaran)`, `getRiwayatBayarByIdPembayran($id)`, `getDetailRiwayatBayarById(int $id_Pembayaran)`, `getTotalBayarByIdMkdt(int $id_Mkdt)`, `getPaidItemSummaryByIdMkdt(int $id_Mkdt)`, `getDetailRiwayatBayarByIdMkdt(int $id_Mkdt)`, `insertDetail($data)`, `hasRecentDuplicate(int $idMkdt, string $idKeuangan, $nominal, string $tanggalBayar, string $paymentType, int $seconds = 30)`)
+- `app/Repositories/Keuangan/KeuanganRepository.php` (571 baris, 13 public methods: `getTagihanById(int $idMkdt)`, `getTagihanTurunKPRById(int $idMkdt)`, `getAllJatuhTempo($id_proyek)`, `getLIKeu()`, `getBelumLunasQuery()`, `getBelumLunasGroupedQuery()`, `getAllGroupedQuery()`, `getLunasGroupedQuery()`, `getListTagihanJatuhTempoDetailById(int $idMkdt)`, `getListTagihanDetailById(int $idMkdt)`, `getTagihanOnlyByID(int $idMkdt)`, `getJatuhTempoByProyek(?int $idProyek = null)`, `getRiwayatSuratQuery(int $idProyek, $idCluster = null, $idJalan = null)`)
+- `app/Repositories/Keuangan/LogPembayaranRepository.php` (228 baris, 11 public methods: `getRiwayatBayarById(int $idMkdt)`, `getRiwayatBayarQuery($id_proyek, $id_cluster = null, $id_jalan = null)`, `softDeleteAndReturnIdMkdt($idPembayaran)`, `getRiwayatBayarByIdPembayran($id)`, `getDetailRiwayatBayarById(int $id_Pembayaran)`, `getTotalBayarByIdMkdt(int $id_Mkdt)`, `getPaidItemSummaryByIdMkdt(int $id_Mkdt)`, `getDetailRiwayatBayarByIdMkdt(int $id_Mkdt)`, `insertDetail($data)`, `hasRecentDuplicate(int $idMkdt, string $idKeuangan, $nominal, string $tanggalBayar, string $paymentType, int $seconds = 30)`, `getDistinctActiveMkdtIds()`)
 - `app/Repositories/Keuangan/PaymentSummaryRepository.php` (74 baris, 3 public methods: `updateCategory(int $idMkdt, string $kategori, float $amount)`, `setToZero(int $id_mkdt)`, `setCategory(int $idMkdt, string $kategori, float $value)`)
 - `app/Repositories/Keuangan/FinanceLedgerRepository.php` (77 baris, 4 public methods: `findBySource(string $sourceType, int $sourceId)`, `upsertBySource(array $payload)`, `voidBySource(string $sourceType, int $sourceId, ?int $actorId = null)`, `sumIncome(array $filters = [])`)
 - `app/Repositories/Keuangan/PajakRepository.php` (41 baris, 1 public methods: `linkKavling(int $idKavling, int $idPajak)`)
@@ -394,7 +417,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php` (455 baris, 20 public methods: `getSubkonByID(int $id_subkon)`, `getDataTables(array $var)`, `getDetailsByCashoutSubkonIds(array $ids)`, `getListCashoutKavling(array $id_kavlings)`, `getCashoutSubkonByID(int $id_cashout_subkon)`, `getKavlingSubkonByID(int $id_cashout_subkon)`, `getListItemDetailByIDCashoutsubkon(int $id_cashout_subkon)`, `upsertSubkon($id_subkon, array $data)`, `saveCashoutSubkon(array $data)`, `saveCashoutSubkonDetail(array $data)`, `getKavlingBySubkonId(int $id_cashout_subkon)`, `getDetailByID(int $id_detail)`, `updateDetail(int $id_detail, array $data)`, `saveHistory(int $id_cashout_subkon, string $keterangan, int $status)`, `getDetailByCashoutSubkonID(int $id_cashout_subkon)`, `syncAutomaticDetailAllocations(int $id_cashout_subkon, array $id_kavlings)`, `getAllocationsByDetailID(int $id_cashout_subkon_detail)`, `updateCashoutSubkonStatus(int $id_cashout_subkon, int $status)`, `saveCashoutSubkonKavling(array $data)`, `getHistoryByIDCashoutSubkon($id_cashout_subkon)`)
 - `app/Repositories/Keuangan/CashInReportRepository.php` (233 baris, 4 public methods: `getAvailableYearBounds(int $idProyek)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`)
 - `app/Repositories/Keuangan/HasilAkadReportRepository.php` (363 baris, 5 public methods: `getAvailableYearBounds(int $idProyek)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getMonthlyPengajuanTotals(int $idProyek, array $years)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`)
-- `app/Repositories/Keuangan/SpptbRepository.php` (23 baris, 1 public methods: `getLatestByMkdtId(int $idMkdt, int $limit = 3)`)
+- `app/Repositories/Keuangan/SpptbRepository.php` (35 baris, 2 public methods: `getLatestByMkdtId(int $idMkdt, int $limit = 3)`, `insertFile(int $idMkdt, string $lokasi, int $actorId)`)
 - `app/Repositories/Keuangan/BankRepository.php` (47 baris, 6 public methods: `getAllBanks(?string $search = null)`, `getActiveBanks()`, `getBankById(int $id)`, `insertBank(array $data)`, `updateBank(int $id, array $data)`, `deleteBank(int $id)`)
 
 ### Models (16)
@@ -433,7 +456,10 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `public/assets/js/laporan-cash-in.js` (473 baris)
 - `public/assets/js/laporan-hasil-akad.js` (721 baris)
 
-### Zero-Downtime Shims (32 file)
+### Zero-Downtime Shims (35 file)
+- `app/Controllers/Tagihan.php`
+- `app/Controllers/Pembayaran.php`
+- `app/Controllers/PrintController.php`
 - `app/Controllers/ListBank.php`
 - `app/Controllers/Api/BankController.php`
 - `app/Controllers/Api/BookingPaymentController.php`
@@ -468,6 +494,22 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Repositories/SpptbRepository.php`
 
 ## Key Functions
+- **Controller (`app/Controllers/Web/Keuangan/TagihanController.php`):**
+  - `listTagihan()`: Merender halaman utama daftar tagihan (`keuangan/list-tagihan`) dengan preload daftar item keuangan (`li_keu`) dari `KeuanganService::getListItemKeuangan()`.
+  - `riwayatBayarIndex()`: Merender halaman riwayat pembayaran (`keuangan/riwayat-bayar`).
+- **Controller (`app/Controllers/Api/Keuangan/TagihanController.php`):**
+  - `meta()`: Mengembalikan metadata `active_project`, `list_item_keuangan`, dan `permissions` (`can_view`, `can_create_tagihan`, `can_pay`, `can_void`, `can_delete`).
+  - `getByID()`, `getRiwayatByID()`: Mengambil bundle lengkap tagihan MKDT (`getTagihanBundle()`) dan detail log pembayaran (`getRiwayatBayarWithDetailById()`), mendukung dual-mode `?format=raw`.
+  - `tambahTurunKPR()`, `hapusTurunKPR()`, `hapus()`, `voidTagihan()`, `unvoidTagihan()`, `save()`: Mutasi tagihan MKDT dan item Turun KPR yang didelegasikan ke `KeuanganService` (termasuk `saveTagihan()`), mendukung dual-mode `?format=raw`.
+  - `getListTagihan()`, `getListTagihanGrouped()`, `getListTagihanDetail()`, `getRiwayatBayar()`, `getListRiwayatSurat()`, `exportExcelTagihan()`, `getAllJatuhTempo()`: Query DataTables/daftar tagihan, riwayat bayar, riwayat surat penagihan, export Excel, dan jatuh tempo proyek dengan dukungan dual-mode `?format=raw`.
+- **Controller (`app/Controllers/Api/Keuangan/PembayaranController.php`):**
+  - `meta()`: Mengembalikan metadata `active_project`, `list_item_keuangan`, dan `permissions` (`can_view`, `can_pay`, `can_delete`, `can_recalculate`).
+  - `save()`, `removeLP()`, `recalculateSummary()`: Menyimpan pembayaran (`PembayaranService::simpan()`), menghapus/void pembayaran (`PembayaranService::removeLP()`), dan menghitung ulang seluruh summary pembayaran aktif (`PembayaranService::recalculateAllSummaries()`), dengan dukungan dual-mode `?format=raw`.
+- **Controller (`app/Controllers/Web/Keuangan/PrintController.php`):**
+  - `printSpptb()`, `printKuitansi()`, `printPembayaran()`, `printPembayaranUm()`, `printTagihan()`: Merender PDF SPPTB, kuitansi pembayaran, kuitansi uang muka, dan surat tagihan/invoice via `PrintService`, dengan penanganan `\DomainException` (`403`/`404`) pada `handleKuitansiPrint()` dan `printTagihan()`.
+- **Controller (`app/Controllers/Api/Keuangan/BankKprDisbursementController.php`):**
+  - `meta()`: Mengembalikan metadata `active_project`, daftar `banks`, `statuses` (`draft`, `cair`, `void`), dan `permissions.can_manage`.
+  - `getJatuhTempo()`, `getData()`, `save()`, `void($id = null)`: Mengambil data jatuh tempo per proyek (`KeuanganService::getJatuhTempoByProyek()`) serta orkestrasi CRUD/void pencairan bank KPR via `BankKprDisbursementService` dengan dukungan dual-mode `?format=raw`.
 - **Controller (`app/Controllers/Web/Keuangan/BankController.php`):** `index()` (Merender halaman master List Bank via `BankService::getList()`).
 - **Controller (`app/Controllers/Api/Keuangan/BankController.php`):** `meta()` (Metadata daftar bank, bank aktif, dan izin akses), `list()` (Dual-mode JSON `?format=raw` dan DataTables HTML legacy), `ambil()`, `ambilSatu()` (Dual-mode `?format=raw`), `simpan()`, `hapus()`.
 - **Controller (`app/Controllers/Web/Keuangan/CashInReportController.php`):** `index()` (Merender halaman Laporan Cash In dengan validasi akses menu & proyek aktif).
@@ -475,11 +517,19 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - **Controller (`app/Controllers/Web/Keuangan/HasilAkadReportController.php`):** `index()` (Merender halaman Laporan Hasil Akad dengan validasi akses menu & proyek aktif).
 - **Controller (`app/Controllers/Api/Keuangan/HasilAkadReportController.php`):** `meta()` (Metadata proyek aktif, tahun tersedia, kategori, dan permissions), `summary()`, `detail()` (Dual-mode `?format=raw` dan DataTables payload).
 - **Controller (`app/Controllers/Api/Keuangan/BookingPaymentController.php`):** `verify()` (Validasi role `[1, 3]`, validasi nominal/tanggal, cek kepemilikan proyek via `findProjectIdByMkdt()` + `ActiveProyekService::userCanAccess()`, dan verifikasi booking fee melalui `BookingPaymentService::verify()`).
-- **Service (`app/Services/Keuangan/KeuanganService.php`):** `simpanIsiTagihan($request, int $actorId)`, `simpanDanaAkad($request, int $actorId)`, `simpanInvoice($request, int $actorId)`, `updateSudahDibayar($request)`, `syncTagihan(int $idMkdt, array $um, int $actorId)`, `simpanPenagihan($request, int $actorId)` (Validasi kop surat, item tagihan, nomor surat duplikat, dan persistensi invoice log berstatus draft/publish), `updateStatusPenagihan($request, int $actorId)` (Transisi status tagihan dan pencatatan audit trail status log), `setTanggalKirim($no_inv)`
-- **Service (`app/Services/Keuangan/PembayaranService.php`):** `simpan($data)`, `recalculateSummary($id_mkdt)`, `removeLP($request)`
+- **Service (`app/Services/Keuangan/KeuanganService.php`):**
+  - `saveTagihan($request, int $actorId)`: Orkestrasi transaksional simpan/perbarui data konsumen & MKDT, sinkronisasi rincian tagihan (`syncTagihan()`), unggah berkas SPPTB & surat kuasa via `SpptbRepository::insertFile()`, serta pengiriman notifikasi booking/perubahan data konsumen.
+  - `getTagihanBundle(int $idMkdt, bool $includeLog = true)` & `formatBiayaMkdt($mkdt)`: Menyusun bundel lengkap transaksi MKDT, komponen biaya, daftar tagihan, ringkasan angsuran/booking, serta riwayat pembayaran.
+  - `getListItemKeuangan()` & `getJatuhTempoByProyek(?int $idProyek = null)`: Mengambil daftar item keuangan aktif (`KeuanganRepository::getLIKeu()`) dan daftar jatuh tempo konsumen per proyek (`KeuanganRepository::getJatuhTempoByProyek()`).
+  - `getListTagihanRaw($request, $status = null)`, `getListTagihanGroupedRaw($request)`, `getRiwayatBayarRaw($request)`, `getListRiwayatSuratRaw($request)`: Varian JSON terstruktur (`items` + `meta` paginasi) untuk kontrak Dual-Mode `?format=raw`, dilengkapi guard internal `ensureDataTableRequestDefaults($request)` agar parameter `columns` & `search` DataTables aman ketika endpoint dipanggil tanpa payload DataTables standar.
+  - `simpanIsiTagihan($request, int $actorId)`, `simpanDanaAkad($request, int $actorId)`, `simpanInvoice($request, int $actorId)`, `updateSudahDibayar($request)`, `syncTagihan(int $idMkdt, array $um, int $actorId)`, `simpanPenagihan($request, int $actorId)` (Validasi kop surat, item tagihan, nomor surat duplikat, dan persistensi invoice log berstatus draft/publish), `updateStatusPenagihan($request, int $actorId)` (Transisi status tagihan dan pencatatan audit trail status log), `setTanggalKirim($no_inv)`.
+- **Service (`app/Services/Keuangan/PembayaranService.php`):**
+  - `simpan($data)`: Validasi nominal pembayaran (`> 0`), validasi kecocokan total alokasi per item (`abs($total - $nominalBayar) <= 0.001`), deteksi duplikat terbaru, validasi alokasi booking/breakdown MKDT, persistensi `log_pembayaran` + detail, pencatatan income di `FinanceLedgerService`, hitung ulang summary, sinkronisasi lunas, serta notifikasi rekonsiliasi jika ditemukan selisih.
+  - `recalculateAllSummaries()`: Menghitung ulang ringkasan pembayaran seluruh `id_mkdt` aktif dari `LogPembayaranRepository::getDistinctActiveMkdtIds()`.
+  - `recalculateSummary($id_mkdt)`, `removeLP($request)`.
 - **Service (`app/Services/Keuangan/PajakService.php`):** `insertPajak(array $fields, int $idKavling, int $actorId)`, `updatePajak(int $idPajak, array $fields, int $actorId)`
 - **Service (`app/Services/Keuangan/FinanceLedgerService.php`):** `recordIncomeFromLogPembayaran(int $idPembayaran, ?int $actorId = null)`, `voidByLogPembayaran(int $idPembayaran, ?int $actorId = null)`, `recordIncomeFromDanaJaminan(int $idDanaAkad, int $idMkdt, ?int $actorId = null)`, `voidByDanaJaminan(int $idDanaAkad, ?int $actorId = null)`, `recordIncomeFromBankKprDisbursement(int $idDisbursement, ?int $actorId = null)`
-- **Service (`app/Services/Keuangan/BankKprDisbursementService.php`):** `getData(int $idMkdt, int $idKavling)`, `save($request, int $actorId)`, `void(int $id, $request, int $actorId)`
+- **Service (`app/Services/Keuangan/BankKprDisbursementService.php`):** `getData(int $idMkdt, int $idKavling)`, `save($request, int $actorId)`, `void(int $id, $request, int $actorId)`, `getBanksList()` (ekspos daftar bank untuk endpoint `/meta`), `canUserManage()` (validasi hak akses kelola pencairan bank untuk endpoint `/meta`).
 - **Service (`app/Services/Keuangan/BankService.php`):** `getAllActive()`, `getList(?string $search = null)`, `getOne(int $id)`, `simpan(array $data, ?int $id = null)`, `hapus(int $id)`
 - **Service (`app/Services/Keuangan/BookingPaymentService.php`):** `findProjectIdByMkdt(int $idMkdt)`, `assertEditable(int $idMkdt, float $nominal, ?string $tanggal)`, `synchronize(int $idMkdt, ?int $actorId = null)`, `verify(int $idMkdt, int $actorId, ?float $nominal = null, ?string $tanggal = null)`, `assertMayDelete(int $paymentId)`, `assertManualAllocationAllowed(int $idMkdt, array $allocations)`
 - **Service (`app/Services/Keuangan/BookingFeeMigrationService.php`):** `run()`, `snapshot()`
@@ -489,11 +539,11 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - **Service (`app/Services/Keuangan/Cashout/CashoutSubkonService.php`):** `getDataTables(array $var)`, `getDetailList(int $id_cashout_subkon)`, `getCashoutSubkon(array $id_kavlings, ?int $id_cashout_subkon = null)`, `saveCashoutSubkon($post)`, `turunJatuhTempo($id_detail, $tanggal_jatuh_tempo, $berita_acara)`
 - **Service (`app/Services/Keuangan/CashInReportService.php`):** `getAvailableYears(int $idProyek)`, `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`, `getDetail(int $idProyek, array $request)`, `monthLabel(int $month)`
 - **Service (`app/Services/Keuangan/HasilAkadReportService.php`):** `getAvailableYears(int $idProyek)`, `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`, `getDetail(int $idProyek, array $request)`. Mendukung kategori aktif `'akad'` berdampingan dengan backward-compatibility `'penjualan'`, `'pengajuan'`, dan `'cair'`; kalkulasi key finansial `total_hasil_akad` (akumulasi `m.harga_kpr_acc` dari `mkdt`), `total_akad`, dan `total_penjualan` pada payload summary bulanan & total tahunan via helper `assignAkadRow()` dan `emptyAmounts()`; normalisasi parameter request dan whitelist ordering column DataTables detail (`konsumen`, `kavling`, `tipe_rumah`, `total_hasil_akad`, `nominal`, `booking_tgl`, `akad_tgl`, `harga_jual`, `total_sudah_cair`, `tanggal_pengajuan`, `tanggal_cair`) via `normalizeDataTableRequest()`.
-- **Service (`app/Services/Keuangan/PrintService.php`):** `printSpptb(int $idKavling, int $idMkdt, int $idProyek)`, `printKuitansi($var)`, `printKuitansiUm($var)`, `exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)`, `exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status)`
+- **Service (`app/Services/Keuangan/PrintService.php`):** `printSpptb(int $idKavling, int $idMkdt, int $idProyek)`, `printKuitansi($var)`, `printKuitansiUm($var)`, `printTagihan(string $noInv, int $actorId)` (Render PDF invoice/surat penagihan via mPDF dengan validasi `invoice_log` dan `kopsurat`, melempar `\DomainException` jika data tidak ditemukan), `exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)`, `exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status)`
 - **Service (`app/Services/Keuangan/DanaJaminanService.php`):** `getData(int $idMkdt, int $idKavling)`, `saveDanaAkad($request, int $actorId)`, `listPengajuan(int $idKavling)`, `storePengajuan($request, int $actorId)`, `cairkanPengajuan(int $idPengajuan, $request, int $actorId)`
 - **Repository (`app/Repositories/Keuangan/BankRepository.php`):** `getAllBanks(?string $search = null)`, `getActiveBanks()`, `getBankById(int $id)`, `insertBank(array $data)`, `updateBank(int $id, array $data)`, `deleteBank(int $id)`
-- **Repository (`app/Repositories/Keuangan/KeuanganRepository.php`):** `getTagihanById(int $idMkdt)`, `getTagihanTurunKPRById(int $idMkdt)`, `getAllJatuhTempo($id_proyek)`, `getLIKeu()`, `getBelumLunasQuery()`
-- **Repository (`app/Repositories/Keuangan/LogPembayaranRepository.php`):** `getRiwayatBayarById(int $idMkdt)`, `getRiwayatBayarQuery($id_proyek, $id_cluster = null, $id_jalan = null)`, `softDeleteAndReturnIdMkdt($idPembayaran)`, `getRiwayatBayarByIdPembayran($id)`, `getDetailRiwayatBayarById(int $id_Pembayaran)`
+- **Repository (`app/Repositories/Keuangan/KeuanganRepository.php`):** `getTagihanById(int $idMkdt)`, `getTagihanTurunKPRById(int $idMkdt)`, `getAllJatuhTempo($id_proyek)`, `getLIKeu()`, `getBelumLunasQuery()`, `getJatuhTempoByProyek(?int $idProyek = null)` (query daftar konsumen/kavling belum lunas per proyek untuk jatuh tempo KPR), `getRiwayatSuratQuery(int $idProyek, $idCluster = null, $idJalan = null)` (builder query riwayat surat penagihan `invoice_log` per proyek/cluster/jalan)
+- **Repository (`app/Repositories/Keuangan/LogPembayaranRepository.php`):** `getRiwayatBayarById(int $idMkdt)`, `getRiwayatBayarQuery($id_proyek, $id_cluster = null, $id_jalan = null)`, `softDeleteAndReturnIdMkdt($idPembayaran)`, `getRiwayatBayarByIdPembayran($id)`, `getDetailRiwayatBayarById(int $id_Pembayaran)`, `getDistinctActiveMkdtIds()` (daftar unik `id_mkdt` aktif dari `log_pembayaran` untuk batch recalculation summary)
 - **Repository (`app/Repositories/Keuangan/PaymentSummaryRepository.php`):** `updateCategory(int $idMkdt, string $kategori, float $amount)`, `setToZero(int $id_mkdt)`, `setCategory(int $idMkdt, string $kategori, float $value)`
 - **Repository (`app/Repositories/Keuangan/FinanceLedgerRepository.php`):** `findBySource(string $sourceType, int $sourceId)`, `upsertBySource(array $payload)`, `voidBySource(string $sourceType, int $sourceId, ?int $actorId = null)`, `sumIncome(array $filters = [])`
 - **Repository (`app/Repositories/Keuangan/PajakRepository.php`):** `linkKavling(int $idKavling, int $idPajak)`
@@ -504,7 +554,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - **Repository (`app/Repositories/Keuangan/Cashout/CashoutSubkonRepo.php`):** `getSubkonByID(int $id_subkon)`, `getDataTables(array $var)`, `getDetailsByCashoutSubkonIds(array $ids)`, `getListCashoutKavling(array $id_kavlings)`, `getCashoutSubkonByID(int $id_cashout_subkon)`
 - **Repository (`app/Repositories/Keuangan/CashInReportRepository.php`):** `getAvailableYearBounds(int $idProyek)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`
 - **Repository (`app/Repositories/Keuangan/HasilAkadReportRepository.php`):** `getAvailableYearBounds(int $idProyek)`, `getMonthlyAkadTotals(int $idProyek, array $years)` (mengakumulasikan `m.harga_kpr_acc` sebagai `total_hasil_akad`), `getMonthlyPengajuanTotals(int $idProyek, array $years)`, `getMonthlyPaymentTotals(int $idProyek, array $years)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable)`. Dilengkapi builder kueri detail modular `compileDetailQuery()` dengan helper SQL builder: `tipeRumahSql()`, `isSubsidiSql()`, dan `totalSudahCairSql()` untuk join ke tabel `tipe` dan `hargajual` serta subquery agregasi pencairan; perluasan multi-column search builder untuk DataTables server-side (`tipe_rumah`, `alamat_kavling`, `nama_konsumen`, `jenis_laporan`, `tanggal_transaksi`).
-- **Repository (`app/Repositories/Keuangan/SpptbRepository.php`):** `getLatestByMkdtId(int $idMkdt, int $limit = 3)`
+- **Repository (`app/Repositories/Keuangan/SpptbRepository.php`):** `getLatestByMkdtId(int $idMkdt, int $limit = 3)`, `insertFile(int $idMkdt, string $lokasi, int $actorId)` (Menyimpan metadata unggahan file SPPTB dan surat kuasa ke tabel `file_spptb`)
 - **Frontend Assets (`public/assets/js/laporan-hasil-akad.js`):** Menangani rendering matriks komparasi 3 kolom (`Total Hasil Akad`, `Total Pengajuan`, `Total Cair`), chart bulanan berlabel `Total Hasil Akad <Tahun>`, dan modal detail dinamis server-side DataTables:
   - Detail `Total Hasil Akad` (6 kolom): `Nama Konsumen / Kavling` (gabungan nama konsumen, alamat kavling, tipe rumah + badge Subsidi/Komersil rata kiri), `Tgl Booking`, `Tgl Akad`, `Total Hasil Akad` (nominal `m.harga_kpr_acc` tebal), `Total Sudah Cair` (nominal pencairan hijau tebal + pill badge persentase ketercairan), dan `Aksi` (Detail Kavling Siteplan & Kelola Pencairan Akad).
   - Detail `Total Pengajuan` & `Total Cair` (5 kolom): `Nama Konsumen / Kavling` (gabungan rata kiri), `Tgl Pengajuan`, `Status & Rincian` (teks rincian item termin/retensi di baris 1, horizontal flexbox badge status di kiri dan tanggal pencairan di kanan pada baris 2), `Nominal` (tebal rata kanan), dan `Aksi`.
@@ -513,9 +563,13 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - **Service Dependency (`app/Services/FileAccessService.php`):** Otorisasi whitelist kategori berkas `'gambar_kerja'` dibuka untuk role Keuangan (`3`) bersama seluruh peran operasional (`[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]`), memastikan denah arsitektur kavling dapat diakses dan ditampilkan di modal detail kavling tanpa HTTP 403 Forbidden.
 
 ## Deprecated & Legacy Shims
-### Zero-Downtime Class Shims (32 file — Dibuat pada Fase 1 `2026-11-13`)
+### Zero-Downtime Class Shims (35 file — Fase 1 & Fase 2 `2026-11-13`)
 Seluruh kelas shim di bawah ini dipertahankan sementara di namespace/lokasi asal sebagai *Zero-Downtime Shims* (`extends` kelas modular di `*\Keuangan\*`) dan berstatus `@deprecated`:
-- **Controller Shims (7 file):**
+- **Controller Shims — Fase 2 (3 file):**
+  - `app/Controllers/Tagihan.php` (`App\Controllers\Tagihan`) -> Gunakan `\App\Controllers\Api\Keuangan\TagihanController` (API) atau `\App\Controllers\Web\Keuangan\TagihanController` (Web: `listTagihan()`, `riwayatBayarIndex()`)
+  - `app/Controllers/Pembayaran.php` (`App\Controllers\Pembayaran`) -> Gunakan `\App\Controllers\Api\Keuangan\PembayaranController` (API) atau `\App\Controllers\Web\Keuangan\PrintController` (Web: `printPembayaran()`, `printPembayaranUm()`)
+  - `app/Controllers/PrintController.php` (`App\Controllers\PrintController`) -> Gunakan `\App\Controllers\Web\Keuangan\PrintController`
+- **Controller Shims — Fase 1 (7 file):**
   - `app/Controllers/ListBank.php` (`App\Controllers\ListBank`) -> Gunakan `\App\Controllers\Web\Keuangan\BankController`
   - `app/Controllers/Api/BankController.php` (`App\Controllers\Api\BankController`) -> Gunakan `\App\Controllers\Api\Keuangan\BankController`
   - `app/Controllers/Api/BookingPaymentController.php` (`App\Controllers\Api\BookingPaymentController`) -> Gunakan `\App\Controllers\Api\Keuangan\BookingPaymentController`
@@ -551,33 +605,8 @@ Seluruh kelas shim di bawah ini dipertahankan sementara di namespace/lokasi asal
   - `app/Repositories/HasilAkadReportRepository.php` -> Gunakan `\App\Repositories\Keuangan\HasilAkadReportRepository`
   - `app/Repositories/SpptbRepository.php` -> Gunakan `\App\Repositories\Keuangan\SpptbRepository`
 
-### Legacy Routes (Menunggu Dekomposisi Fase 2–5)
-- Route `POST /keuangan/jatuhtempo/get` (`Keuangan::getJatuhTempo`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /keuangan/pencairan-bank/get` (`Keuangan::getBankKprDisbursement`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /keuangan/pencairan-bank/save` (`Keuangan::saveBankKprDisbursement`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /keuangan/pencairan-bank/void/(:num)` (`Keuangan::voidBankKprDisbursement/$1`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/ambilsatu` (`Tagihan::getByID`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/riwayat/ambilsatu` (`Tagihan::getRiwayatByID`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/turunkpr` (`Tagihan::tambahTurunKPR`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/hapusturunkpr` (`Tagihan::hapusTurunKPR`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/hapus` (`Tagihan::hapus`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/void` (`Tagihan::voidTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/unvoid` (`Tagihan::unvoidTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/jatuhtempo` (`Tagihan::getAllJatuhTempo`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `GET /riwayat-bayar` (`Tagihan::riwayatBayarIndex`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/riwayat-bayar/ambil` (`Tagihan::getRiwayatBayar`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `GET /tagihan/list` (`Tagihan::listTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/list/ambil` (`Tagihan::getListTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/list/ambil-grouped` (`Tagihan::getListTagihanGrouped`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/list/detail` (`Tagihan::getListTagihanDetail`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/list/export-excel` (`Tagihan::exportExcelTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /tagihan/list/ambil-riwayat-surat` (`Tagihan::getListRiwayatSurat`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /danaakad/list/ambilsatu` (`Tagihan::getListTagihan`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `GET /pembayaran/kuitansi/cetak` (`Pembayaran::print`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `GET /pembayaran/kuitansi-um/cetak` (`Pembayaran::printUm`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /pembayaran/simpan` (`Pembayaran::save`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `POST /pembayaran/hapus` (`Pembayaran::removeLP`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `GET /pembayaran/hitungulang` (`Pembayaran::recalculateSummary`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
+### Legacy Methods & Routes (Menunggu Dekomposisi Fase 3–5)
+- **Legacy Methods pada `app/Controllers/Keuangan.php`:** Seluruh method legacy di `Keuangan.php` (sebagian sudah diekstrak ke controller modular pada Fase 2 untuk subdomain Tagihan, Pembayaran, Print, dan BankKprDisbursement) akan diberi anotasi `@deprecated` secara in-place pada **Fase 5** (Opsi A — Deprecation In-Place) agar pemanggil AutoRoute `/keuangan/*` tetap zero-downtime selama masa transisi.
 - Route `POST /keuangan/cashout/ambil` (`CashOut::getByIDKavling`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 - Route `POST /keuangan/cashout/listitem/ambil` (`CashOut::getListItem`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 - Route `POST /keuangan/cashout/delete` (`CashOut::delete`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
@@ -617,7 +646,6 @@ Seluruh kelas shim di bawah ini dipertahankan sementara di namespace/lokasi asal
 - Route `GET /keuangan/hasil-akad/export-template` (`PencairanAkad::exportTemplate`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 - Route `GET /keuangan/hasil-akad/import` (`PencairanAkad::importForm`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 - Route `POST /keuangan/hasil-akad/import` (`PencairanAkad::import`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
-- Route `GET /print/spptb` (`PrintController::printSpptb`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 - Route `GET /pencairan` (`PencairanJaminan::index`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 - Route `GET /pencairan/list/(:num)` (`PencairanJaminan::list/$1`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 - Route `POST /pencairan/store` (`PencairanJaminan::store`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
@@ -661,7 +689,6 @@ Seluruh kelas shim di bawah ini dipertahankan sementara di namespace/lokasi asal
 - Route `ANY /pajak/format_tgl` (`Pajak::format_tgl`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 - Route `ANY /dana_akad/getbyid` (`DanaAkad::getByID`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 - Route `ANY /list_bank/index` (`ListBank::index`) — **LEGACY / DEPRECATED (AutoRoute fallback)**: `GET /list_bank/index` telah dimigrasikan ke `\App\Controllers\Web\Keuangan\BankController::index`; `ListBank` dipertahankan hanya sebagai Zero-Downtime Shim.
-- Route `ANY /print_controller/printkuitansi` (`PrintController::printKuitansi`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 - Route `ANY /direksi/get_data_by_id` (`Direksi::get_data_by_id`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 - Route `ANY /direksi/save` (`Direksi::save`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
 - Route `ANY /direksi/if_where` (`Direksi::if_where`) — **LEGACY / DEPRECATED**: Gunakan endpoint eksplisit di `/api/...` atau controller modular.
@@ -685,13 +712,10 @@ Seluruh kelas shim di bawah ini dipertahankan sementara di namespace/lokasi asal
 
 > **Layer Violations Detected:**
 > - `app/Controllers/Keuangan.php`: db_connect(), $this->db->table(), new KeuanganModel(), new KavlingModel(), new MkdtModel(), new KonsumenModel(), new LogPembayaranModel(), new ProfilePerusahaanModel(), new RiwayatPencairanJaminanModel()
-> - `app/Controllers/Tagihan.php`: db_connect(), Database::connect(), new ProfilePerusahaanModel()
-> - `app/Controllers/Pembayaran.php`: Database::connect()
 > - `app/Controllers/Pajak.php`: db_connect(), $this->db->table(), new ClusterModel(), new ProyekModel()
 > - `app/Controllers/DanaAkad.php`: db_connect(), $this->db->table(), new ProfilePerusahaanModel()
 > - `app/Controllers/CashOut.php`: db_connect(), $this->db->table()
 > - `app/Controllers/Keuangan/Cashout/CashoutKavling.php`: Database::connect(), $this->db->table(), new ProyekModel(), new ChecklistSubItemModel()
-> - `app/Controllers/PrintController.php`: db_connect(), $this->db->table(), new ProfilePerusahaanModel(), new ProyekModel(), new KeuanganModel()
 > - `app/Controllers/PencairanJaminan.php`: new RiwayatPencairanJaminanModel()
 > - `app/Controllers/Direksi.php`: db_connect(), $this->db->table()
 
@@ -708,9 +732,16 @@ _Jalankan `php spark module:deadcode Keuangan` untuk mengaudit dead code kandida
   - `PrintService`: `App\Services\Mkdt\PosisiKonsumenService` (via shim).
   - `BookingFeeMigrationService`: CLI command `App\Commands\MigrateBookingFee`.
   - **Repository Shims Lintas Modul:** `App\Services\Mkdt\MkdtFinancialBreakdownService`, `App\Services\Mkdt\MkdtFinancialReconciliationService`, `App\Services\Mkdt\MkdtSettlementService` (`BookingPaymentRepository`); `App\Services\Siteplan\SiteplanDetailService` (`CashOutRepository`); `App\Services\Siteplan\SiteplanService` (`KeuanganRepository`); `App\Services\Transaksi\TransaksiService` (`KeuanganRepository`, `LogPembayaranRepository`, `SpptbRepository`).
-- **Kontrak Dual-Mode & Metadata API (Fase 1 `2026-11-13`):**
-  - Endpoint `GET /api/bank/list`, `POST /api/bank/ambilsatu`, `POST /api/laporan/cash-in/detail`, dan `POST /api/laporan/hasil-akad/detail` mendukung parameter `?format=raw` untuk mengembalikan payload JSON standar `{ success, message, data: { items, meta } }` tanpa membongkar respons DataTables HTML/legacy bagi klien eksisting.
-  - Ditambahkan endpoint metadata baru: `GET /api/bank/meta`, `GET /api/laporan/cash-in/meta`, dan `GET /api/laporan/hasil-akad/meta`.
+- **Kontrak Dual-Mode & Metadata API (Fase 1 & Fase 2 `2026-11-13`):**
+  - **Fase 1:** Endpoint `GET /api/bank/list`, `POST /api/bank/ambilsatu`, `POST /api/laporan/cash-in/detail`, dan `POST /api/laporan/hasil-akad/detail` mendukung `?format=raw` untuk payload JSON standar `{ success, message, data: { items, meta } }`. Ditambahkan endpoint metadata `GET /api/bank/meta`, `GET /api/laporan/cash-in/meta`, dan `GET /api/laporan/hasil-akad/meta`.
+  - **Fase 2:** Ditambahkan endpoint metadata baru:
+    - `GET /api/keuangan/tagihan/meta` (`Api\Keuangan\TagihanController::meta`) — mengembalikan `active_project`, `list_item_keuangan`, dan `permissions`.
+    - `GET /api/keuangan/pembayaran/meta` (`Api\Keuangan\PembayaranController::meta`) — mengembalikan `active_project`, `list_item_keuangan`, dan `permissions`.
+    - `GET /api/keuangan/pencairan-bank/meta` (`Api\Keuangan\BankKprDisbursementController::meta`) — mengembalikan `active_project`, `banks`, `statuses`, dan `permissions`.
+  - **Kontrak Dual-Mode `?format=raw` (Fase 2):** Seluruh endpoint JSON pada `Api\Keuangan\TagihanController`, `Api\Keuangan\PembayaranController`, dan `Api\Keuangan\BankKprDisbursementController` mendukung parameter `?format=raw` untuk mengembalikan envelope standar `BaseApiController` (`{ success, message, data }`), sementara panggilan tanpa `?format=raw` mempertahankan format DataTables/legacy + `token` CSRF demi kompatibilitas penuh view CI4 eksisting.
+- **Perbaikan CSRF & DataTables pada `app/Views/keuangan/riwayat-bayar.php` (Fase 2B `2026-11-13`):**
+  - Menambahkan definisi eksplisit `columns` DataTables (`No`, `nominal`, `tanggal_bayar`, `keterangan`, `username`, `created_at`) dengan rendering aman (`escapeHtml()`) agar kompatibel dengan format object rows dari `DataTable::of()->toJson(true)` di `KeuanganService::getRiwayatBayar()`.
+  - Menambahkan rotasi token CSRF (`if (r && r.token) csrfHash = r.token;`) pada callback `ajax.dataSrc` DataTables dan `processResults` Select2 (`#id_cluster`, `#id_jalan`) untuk mencegah error `DataTables warning` dan penolakan token CSRF stale saat filter/pagination.
 - **Catatan Skema & Integrasi `invoice_log` (Pembaruan Migrasi 2026-11-04):**
   - Tabel `invoice_log` diperkaya dengan kolom `status_tagihan` (`VARCHAR(50)`, NOT NULL, DEFAULT `'draft'`), `tanggal_ubah_status` (`DATE`, NULL), `keterangan_status` (`TEXT`, NULL), dan `tanggal_kirim` (`DATETIME`, NULL).
   - Index `idx_invoice_log_status_tagihan` (`status_tagihan`) ditambahkan untuk mempercepat kueri filter tagihan aktif dan riwayat status.
@@ -725,6 +756,23 @@ _Jalankan `php spark module:deadcode Keuangan` untuk mengaudit dead code kandida
   - Whitelist otorisasi kategori berkas `'gambar_kerja'` pada `FileAccessService` mencakup role Keuangan (3), memastikan gambar denah arsitektur kavling tampil dengan aman saat dibuka oleh staf Keuangan tanpa HTTP 403 Forbidden.
 
 ## Change Log
+- **2026-11-13 [`REFACTOR` — Fase 2 & 2B] — Dekomposisi Subdomain Tagihan, Pembayaran, Print & Bank KPR Disbursement + Remediasi QA:**
+  - **Routes & Public Contracts:**
+    - `app/Config/Routes.php`: Memigrasikan seluruh rute subdomain **Tagihan** (`/riwayat-bayar`, `/tagihan/list` -> `Web\Keuangan\TagihanController`; `/tagihan/*`, `/danaakad/list/ambilsatu` -> `Api\Keuangan\TagihanController`), **Pembayaran** (`/pembayaran/simpan`, `/pembayaran/hapus`, `/pembayaran/hitungulang` -> `Api\Keuangan\PembayaranController`), **Print** (`/print/spptb`, `/print/kuitansi`, `/pembayaran/kuitansi/cetak`, `/pembayaran/kuitansi-um/cetak`, `/keuangan/print_tagihan` -> `Web\Keuangan\PrintController`), dan **Bank KPR Disbursement** (`/keuangan/jatuhtempo/get`, `/keuangan/pencairan-bank/*` -> `Api\Keuangan\BankKprDisbursementController`).
+    - Menambahkan 3 endpoint metadata baru: `GET /api/keuangan/tagihan/meta`, `GET /api/keuangan/pembayaran/meta`, dan `GET /api/keuangan/pencairan-bank/meta` serta kontrak Dual-Mode `?format=raw` di seluruh endpoint API baru tersebut.
+  - **Controller / Service / Repo / Model:**
+    - **5 Modular Controllers Baru:** `Web\Keuangan\TagihanController` (`listTagihan`, `riwayatBayarIndex`), `Api\Keuangan\TagihanController` (`meta` + 15 endpoint tagihan/surat/jatuh tempo), `Api\Keuangan\PembayaranController` (`meta`, `save`, `removeLP`, `recalculateSummary`), `Web\Keuangan\PrintController` (`printSpptb`, `printKuitansi`, `printPembayaran`, `printPembayaranUm`, `printTagihan` dengan try/catch `\DomainException` `403`/`404` pada `handleKuitansiPrint()` & `printTagihan()`), dan `Api\Keuangan\BankKprDisbursementController` (`meta`, `getJatuhTempo`, `getData`, `save`, `void`).
+    - **Service & Repository Enhancements:**
+      - `KeuanganService`: Menambah `getListItemKeuangan()`, `getTagihanBundle()`, `formatBiayaMkdt()`, `saveTagihan()`, `getJatuhTempoByProyek()`, `getListTagihanRaw()`, `getListTagihanGroupedRaw()`, `getRiwayatBayarRaw()`, `getListRiwayatSuratRaw()`, serta guard `ensureDataTableRequestDefaults()` untuk proteksi array `columns`/`search`.
+      - `PembayaranService`: Menambah `recalculateAllSummaries()` dan memperkuat validasi nominal/alokasi pada `simpan()`.
+      - `PrintService`: Menambah `printTagihan()` serta membersihkan trailing whitespace.
+      - `BankKprDisbursementService`: Menambah `getBanksList()` dan `canUserManage()`.
+      - `SpptbRepository::insertFile()`, `LogPembayaranRepository::getDistinctActiveMkdtIds()`, dan `KeuanganRepository::{getJatuhTempoByProyek, getRiwayatSuratQuery}`.
+    - **3 Zero-Downtime Shims Baru:** `app/Controllers/Tagihan.php`, `app/Controllers/Pembayaran.php`, dan `app/Controllers/PrintController.php`.
+    - `app/Libraries/ModuleManager/ModuleCatalog.php`: Mendaftarkan 5 controller modular baru dan 3 shims baru.
+  - **View / CSS / JS:**
+    - `app/Views/keuangan/riwayat-bayar.php` (Fase 2B): Menambahkan konfigurasi eksplisit `columns` DataTables untuk object rows hasil `DataTable::of()->toJson(true)`, rendering aman dengan `escapeHtml()`, dan sinkronisasi `csrfHash = r.token` pada callback DataTables & Select2.
+  - **Deprecations:** 3 controller lama (`Tagihan`, `Pembayaran`, `PrintController`) diubah menjadi `@deprecated` Zero-Downtime Shims; legacy methods di `Keuangan.php` dijadwalkan untuk diberi `@deprecated` pada Fase 5 (Opsi A).
 - **2026-11-13 [`REFACTOR` — Fase 1] — Migrasi Layer Service & Repository ke Subfolder `Keuangan/` + Subdomain Laporan, Bank & BookingPayment:**
   - **Routes & Public Contracts:**
     - `app/Config/Routes.php`: Mengarahkan rute `/list_bank/index`, `/list_bank`, `/listbank` ke `\App\Controllers\Web\Keuangan\BankController::index`; grup `/api/bank/*` ke `App\Controllers\Api\Keuangan\BankController` (plus endpoint baru `GET /api/bank/meta` dan dukungan dual-mode `?format=raw` pada `list` & `ambilSatu`); `/laporan/cash-in` & `/laporan/hasil-akad` ke `Web\Keuangan\*`; grup `/api/laporan/cash-in/*` & `/api/laporan/hasil-akad/*` ke `Api\Keuangan\*` (plus `GET */meta` dan dual-mode `?format=raw` pada `detail`); serta `/api/tagihan/booking/verifikasi` ke `App\Controllers\Api\Keuangan\BookingPaymentController::verify`.

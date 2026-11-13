@@ -12,6 +12,9 @@ use App\Repositories\Transaksi\KavlingRepository;
 use App\Repositories\Transaksi\HargaJualRepository;
 use App\Repositories\Transaksi\TransaksiRepository;
 use App\Repositories\Keuangan\SpptbRepository;
+use App\Services\Mkdt\KonsumenService;
+use App\Services\StorageService;
+use App\Services\Transaksi\TransaksiService;
 use App\Models\MkdtModel;
 use Hermawan\DataTables\DataTable;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -33,6 +36,11 @@ class KeuanganService
     protected $mkdtModel;
     protected $notif;
     protected MkdtSettlementService $settlementService;
+    protected SpptbRepository $spptbRepo;
+    protected KonsumenService $konsumenService;
+    protected StorageService $storageService;
+    protected BookingPaymentService $bookingService;
+    protected ?TransaksiService $mkdtService = null;
 
     public function __construct()
     {
@@ -43,6 +51,10 @@ class KeuanganService
         $this->mkdtModel = new MkdtModel();
         $this->keuRepo = new KeuanganRepository();
         $this->settlementService = new MkdtSettlementService($this->db);
+        $this->spptbRepo = new SpptbRepository($this->db);
+        $this->konsumenService = new KonsumenService();
+        $this->storageService = new StorageService();
+        $this->bookingService = new BookingPaymentService($this->db);
 
         $this->notif = new NotifikasiService();
     }
@@ -443,6 +455,8 @@ class KeuanganService
         }
 
 
+        $this->ensureDataTableRequestDefaults($request);
+
         return DataTable::of($builder)
             ->addSearchableColumns('nama_konsumen', 'no_kavling')
             ->add('Aksi', function ($value) {
@@ -539,6 +553,8 @@ class KeuanganService
             }
         }
 
+        $this->ensureDataTableRequestDefaults($request);
+
         return DataTable::of($builder)
             ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
             ->add('Aksi', function ($value) {
@@ -631,6 +647,8 @@ class KeuanganService
                 $builder->where('keu_agg.jatuh_tempo_tgl', $dates[0]);
             }
         }
+
+        $this->ensureDataTableRequestDefaults($request);
 
         return DataTable::of($builder)
             ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
@@ -781,6 +799,8 @@ class KeuanganService
             return json_encode(['draw' => intval($request->getVar('draw')), 'recordsTotal' => 0, 'recordsFiltered' => 0, 'data' => []]);
         }
         $builder = $this->pembayaranRepo->getRiwayatBayarQuery($id_proyek, $id_cluster, $id_jalan);
+        $this->ensureDataTableRequestDefaults($request);
+
         return DataTable::of($builder)
             ->setSearchableColumns(['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan', 'lp.payment_type', 'u.username'])
             ->toJson(true);
@@ -837,6 +857,8 @@ class KeuanganService
         }
 
         $builder->orderBy('COALESCE(i.tanggal_ubah_status, i.date_edit, i.date_add)', 'DESC', false);
+
+        $this->ensureDataTableRequestDefaults($request);
 
         return DataTable::of($builder)
             ->setSearchableColumns(['i.no_inv', 'i.nomor_surat', 'c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan'])
@@ -1842,6 +1864,602 @@ class KeuanganService
         ];
     }
     
+    public function getListItemKeuangan(): array
+    {
+        return $this->keuRepo->getLIKeu();
+    }
+
+    public function getTagihanBundle(int $idMkdt, bool $includeLog = true): array
+    {
+        $mkdt = $this->konsumenService->getKonsumenTransaksi($idMkdt);
+        $tagihan = $this->getTagihanById($idMkdt);
+        $logPembayaran = $includeLog ? $this->getRiwayatBayarWithDetailById($idMkdt) : [];
+        $booking = $this->bookingService->getBooking($idMkdt);
+        $angsuran = $this->bookingService->getInstallment($idMkdt);
+
+        return [
+            'mkdt' => $mkdt,
+            'biaya_mkdt' => $this->formatBiayaMkdt($mkdt),
+            'tagihan' => $tagihan,
+            'total_sudah_bayar' => $angsuran['sudah_bayar'],
+            'item_sudah_bayar' => $angsuran['items'],
+            'total_item_sudah_bayar' => $angsuran['sudah_bayar'],
+            'log_pembayaran' => $logPembayaran,
+            'booking' => $booking,
+            'angsuran' => $angsuran,
+        ];
+    }
+
+    public function formatBiayaMkdt($mkdt): array
+    {
+        $num = static fn ($value): float => (float) ($value ?? 0);
+
+        if (! $mkdt) {
+            return [];
+        }
+
+        $hargaUangMuka = $num($mkdt->harga_uang_muka ?? 0);
+        $diskonUangMuka = $num($mkdt->harga_diskon_uang_muka ?? 0);
+        $sbum = $num($mkdt->harga_sbum ?? 0);
+        $administrasi = $num($mkdt->harga_administrasi ?? 0);
+        $bphtb = $num($mkdt->harga_bphtb ?? 0);
+        $biayaProses = $num($mkdt->harga_biaya_proses ?? 0);
+        $ppn = $num($mkdt->harga_ppn ?? 0);
+        $penambahanUm = $num($mkdt->harga_penambahan_um ?? 0);
+        $penambahan = $num($mkdt->harga_penambahan ?? 0);
+        $penambahanTanah = $num($mkdt->harga_penambahan_tanah ?? 0);
+
+        $totalUm = $hargaUangMuka - $diskonUangMuka - $sbum;
+        $totalBiayaLain = $administrasi + $bphtb + $biayaProses + $ppn + $penambahanUm + $penambahan + $penambahanTanah;
+
+        return [
+            'harga_jual' => $num($mkdt->harga_jual ?? 0),
+            'harga_jual_net' => $num($mkdt->harga_jual_net ?? 0),
+            'harga_kpr' => $num($mkdt->harga_kpr ?? 0),
+            'harga_kpr_acc' => $num($mkdt->harga_kpr_acc ?? 0),
+            'harga_uang_muka' => $hargaUangMuka,
+            'harga_diskon_uang_muka' => $diskonUangMuka,
+            'harga_sbum' => $sbum,
+            'harga_administrasi' => $administrasi,
+            'harga_bphtb' => $bphtb,
+            'harga_biaya_proses' => $biayaProses,
+            'harga_ppn' => $ppn,
+            'harga_penambahan_um' => $penambahanUm,
+            'harga_penambahan' => $penambahan,
+            'harga_penambahan_tanah' => $penambahanTanah,
+            'total_um' => $totalUm,
+            'total_biaya_lain' => $totalBiayaLain,
+            'total_tercatat' => $totalUm + $totalBiayaLain,
+        ];
+    }
+
+    public function saveTagihan($request, int $actorId): array
+    {
+        $resp = ['token' => csrf_hash()];
+
+        $idKavling = trim((string) $request->getVar('id_kavling'));
+        $isGantiNama = trim((string) $request->getVar('is_ganti_nama'));
+        $idMkdtOld = $request->getVar('id_mkdt_old');
+        $idKonsumenOld = $request->getVar('id_konsumen_old');
+        $isDataBaru = (int) ($request->getVar('mkdt_data_baru') ?? 0) === 1;
+
+        $kons = [
+            'id_kavling' => $idKavling,
+            'id_mkdt' => $request->getPost('id_mkdt') ?: null,
+            'no_spptb' => trim((string) $request->getPost('no_spptb')),
+            'nama_konsumen' => trim((string) $request->getPost('nama_konsumen')),
+            'nik' => trim((string) $request->getPost('nik_konsumen')),
+            'alamat_konsumen' => trim((string) $request->getPost('alamat_konsumen')),
+            'npwp' => trim((string) $request->getPost('npwp_konsumen')),
+            'hp_konsumen' => trim((string) $request->getPost('hp_konsumen')),
+            'status_konsumen' => trim((string) $request->getPost('status_konsumen')),
+            'email_konsumen' => trim((string) $request->getPost('email_konsumen')),
+            'nama_instansi' => trim((string) $request->getPost('nama_instansi')),
+            'alamat_instansi' => trim((string) $request->getPost('alamat_instansi')),
+            'tel_instansi' => trim((string) $request->getPost('tel_instansi')),
+            'email_instansi' => trim((string) $request->getPost('email_instansi')),
+            'alamat_surat' => trim((string) $request->getPost('alamat_surat')),
+            'jenis_pekerjaan' => trim((string) $request->getPost('jenis_pekerjaan')),
+            'lama_bekerja' => trim((string) $request->getPost('lama_bekerja')),
+            'bidang_pekerjaan' => trim((string) $request->getPost('bidang_pekerjaan')),
+            'status_pernikahan' => trim((string) $request->getPost('status_pernikahan')),
+            'nama_pasangan' => trim((string) $request->getPost('nama_pasangan')),
+            'nik_pasangan' => trim((string) $request->getPost('nik_pasangan')),
+            'hp_pasangan' => trim((string) $request->getPost('hp_pasangan')),
+            'status_pekerjaan_pasangan' => trim((string) $request->getPost('status_pekerjaan_pasangan')),
+            'instansi_pasangan' => trim((string) $request->getPost('instansi_pasangan')),
+            'sales' => trim((string) $request->getPost('sales')),
+            'add_by' => $actorId,
+            'edit_by' => $actorId,
+        ];
+
+        if ($isDataBaru) {
+            $kons['id_mkdt'] = null;
+        }
+
+        $statusMkdt = trim((string) $request->getPost('dt-status_mkdt'));
+        if ($statusMkdt === 'Batal') {
+            $kons['keterangan'] = trim((string) $request->getVar('dt-keterangan_batal'));
+        }
+        $perluRefund = $statusMkdt === 'Batal'
+            ? (int) (($request->getPost('dt-perlu_refund') ?? $request->getPost('dt_perlu_refund') ?? 0) == 1)
+            : 0;
+
+        $idKonsumen = $request->getPost('id_konsumen') ?: null;
+
+        $mk = [
+            'id_mkdt' => $kons['id_mkdt'],
+            'id_konsumen' => null,
+            'status_mkdt' => $statusMkdt,
+            'id_hargajual' => $request->getPost('idk-harga_akhir'),
+            'tgl_harga' => $request->getPost('mk-tgl_harga') ?: null,
+            'harga_uang_muka' => (float) $this->num($request->getPost('mk-uang_muka')),
+            'harga_jual' => (float) $this->num($request->getPost('mk-hargajual')),
+            'harga_jual_net' => (float) $this->num($request->getPost('mk-hargajual_net')),
+            'harga_administrasi' => (float) $this->num($request->getPost('mk-biaya_adm')),
+            'harga_bphtb' => (float) $this->num($request->getPost('mk-bphtb')),
+            'harga_biaya_proses' => (float) $this->num($request->getPost('mk-biaya_proses')),
+            'harga_kpr' => (float) $this->num($request->getPost('mk-kpr')),
+            'harga_ppn' => (float) $this->num($request->getPost('mk-ppn')),
+            'harga_penambahan' => (float) $this->num($request->getPost('mk-harga_penambahan')),
+            'harga_penambahan_tanah' => (float) $this->num($request->getPost('mk-harga_penambahan_tanah')),
+            'harga_sbum' => (float) $this->num($request->getPost('mk-harga_sbum')),
+            'promo' => trim((string) $request->getPost('promo')),
+            'rincian' => $request->getPost('rincian'),
+            'jenis_subsidi' => $request->getPost('jenis_subsidi'),
+            'is_kpr' => $request->getPost('is_kpr'),
+            'is_subsidi' => $request->getPost('is_subsidi'),
+            'booking_fee' => (float) $this->num($request->getPost('dt-booking_fee')),
+            'booking_tgl' => $request->getPost('dt-booking_tgl'),
+            'perlu_refund' => $perluRefund,
+            'keuangan_saved_by' => $actorId,
+            'id_kavling' => $idKavling,
+        ];
+
+        $um = [
+            'id_keuangan' => (array) $request->getVar('id_keuangan'),
+            'berita_acara' => (array) $request->getVar('berita_acara'),
+            'jatuh_tempo_tgl' => (array) $request->getVar('jatuh_tempo_tgl'),
+            'nominal' => (array) $request->getVar('nominal'),
+        ];
+
+        if (! $idKavling) {
+            return [
+                'token' => csrf_hash(),
+                'success' => false,
+                'messages' => 'id_kavling wajib diisi',
+            ];
+        }
+        if (! $kons['nama_konsumen']) {
+            return [
+                'token' => csrf_hash(),
+                'success' => false,
+                'messages' => 'Nama konsumen wajib diisi',
+            ];
+        }
+
+        $db = $this->db;
+        $db->transException(true);
+
+        try {
+            $db->transStart();
+
+            $idKonsumen = $this->konsumenService->upsert($idKonsumen ? (int) $idKonsumen : null, $kons);
+            if (! $idKonsumen) {
+                throw new \RuntimeException('Gagal menyimpan data konsumen.');
+            }
+
+            $mk['id_konsumen'] = $idKonsumen;
+            $mkResult = $this->getTransaksiService()->createOrUpdate(
+                $kons['id_mkdt'] ? (int) $kons['id_mkdt'] : null,
+                $mk,
+                [
+                    'is_ganti_nama' => $isGantiNama === 'Ganti Nama',
+                    'is_ganti_kavling' => $isGantiNama === 'Ganti Kavling',
+                    'id_mkdt_old' => $idMkdtOld,
+                    'id_konsumen_old' => $idKonsumenOld,
+                    'nama_konsumen' => $kons['nama_konsumen'],
+                    'id_kavling' => $idKavling,
+                    'actor_id' => $actorId,
+                ]
+            );
+
+            $idMkdt = (int) $mkResult['id_mkdt'];
+            $uniqId = $mkResult['uniq_id'] ?? null;
+
+            $this->syncTagihan($idMkdt, $um, $actorId);
+
+            $spptbFile = $request->getFile('file_spptb');
+            $suratKuasa = $request->getFile('file_surat_kuasa');
+
+            if ($spptbFile && $spptbFile->isValid() && ! $spptbFile->hasMoved()) {
+                $pathSpptb = $this->storageService->store($spptbFile, 'uploads/spptb/' . date('Ymd'));
+                $this->spptbRepo->insertFile($idMkdt, $pathSpptb, $actorId);
+            }
+
+            if ($suratKuasa && $suratKuasa->isValid() && ! $suratKuasa->hasMoved()) {
+                $pathKuasa = $this->storageService->store($suratKuasa, 'uploads/spptb/lampiran/' . date('Ymd'));
+                $this->spptbRepo->insertFile($idMkdt, $pathKuasa, $actorId);
+            }
+
+            $pesanNotif = $kons['id_mkdt']
+                ? ('Melakukan perubahan data konsumen : ' . $kons['nama_konsumen'])
+                : ('Booking kavling atas nama : ' . $kons['nama_konsumen']);
+
+            $this->notif->tambah_notif(
+                '3;4;9',
+                $pesanNotif,
+                $actorId,
+                $idKavling,
+                $idKonsumen,
+                $kons['id_mkdt'] ? \App\Enums\NotificationEvent::DATA_KONSUMEN_UPDATE : \App\Enums\NotificationEvent::BOOKING_BARU,
+                null,
+                'siteplan/view?id_kavling=' . $idKavling . '&tab=konsumen'
+            );
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                throw new \RuntimeException('Transaksi gagal');
+            }
+
+            $resp['success'] = true;
+            $resp['messages'] = $kons['id_mkdt'] ? 'Data berhasil diperbaharui' : 'Data berhasil ditambah';
+            $resp['id_mkdt'] = $idMkdt;
+            $resp['id_konsumen'] = $idKonsumen;
+            $resp['uniq_id'] = $uniqId;
+            return $resp;
+        } catch (\Throwable $e) {
+            if ($db->transStatus() !== false) {
+                $db->transRollback();
+            }
+            return [
+                'token' => csrf_hash(),
+                'success' => false,
+                'messages' => 'Gagal menyimpan data: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    public function getJatuhTempoByProyek(?int $idProyek = null): array
+    {
+        return $this->keuRepo->getJatuhTempoByProyek($idProyek);
+    }
+
+    public function getListTagihanRaw($request, $status = null): array
+    {
+        $status = $status ?? 'Booking';
+        $builder = $this->keuRepo->getBelumLunasQuery($status);
+        $this->applyTagihanFilters($builder, $request, 'keuangan.jatuh_tempo_tgl');
+
+        $paged = $this->paginateRawBuilder($builder, $request, ['c.nama_konsumen', 'k.no_kavling']);
+        $canManage = function_exists('in_groups') && in_groups(['1', '3']);
+
+        $items = array_map(static function ($row) use ($canManage): array {
+            $tot = (float) ($row->um ?? 0) + (float) ($row->adm ?? 0) + (float) ($row->bb ?? 0);
+            $sb = (float) ($row->total_um ?? 0) + (float) ($row->total_adm ?? 0) + (float) ($row->total_bb ?? 0);
+
+            return [
+                'id_mkdt' => (int) ($row->id_mkdt ?? 0),
+                'id_kavling' => (int) ($row->id_kavling ?? 0),
+                'id_konsumen' => (int) ($row->id_konsumen ?? 0),
+                'nama_proyek' => (string) ($row->nama_proyek ?? ''),
+                'nama_jalan' => (string) ($row->nama_jalan ?? ''),
+                'no_kavling' => (string) ($row->no_kavling ?? ''),
+                'id_tipe' => $row->id_tipe ?? null,
+                'no_tipe_rumah' => (string) ($row->no_tipe_rumah ?? ''),
+                'nama_konsumen' => (string) ($row->nama_konsumen ?? ''),
+                'alamat_konsumen' => (string) ($row->alamat_konsumen ?? ''),
+                'hp_konsumen' => (string) ($row->hp_konsumen ?? ''),
+                'booking_tgl' => $row->booking_tgl ?? null,
+                'jatuh_tempo_tgl' => $row->jatuh_tempo_tgl ?? null,
+                'is_kpr' => (int) ($row->is_kpr ?? 0),
+                'jenis_pembayaran' => ((int) ($row->is_kpr ?? 0)) === 1 ? 'KPR' : 'TUNAI',
+                'berita_acara' => (string) ($row->berita_acara ?? ''),
+                'keterangan' => (string) ($row->keterangan ?? ''),
+                'nominal' => (float) ($row->nominal ?? 0),
+                'total_tagihan' => $tot,
+                'sudah_bayar' => $sb,
+                'sisa_tagihan' => $tot - $sb,
+                'permissions' => ['can_pay' => $canManage],
+            ];
+        }, $paged['rows']);
+
+        return ['items' => $items, 'meta' => $paged['meta']];
+    }
+
+    public function getListTagihanGroupedRaw($request): array
+    {
+        $statusLunas = $request->getVar('status_lunas');
+        if ($statusLunas === 'all') {
+            $builder = $this->keuRepo->getAllGroupedQuery();
+        } elseif ($statusLunas === 'jatuh_tempo') {
+            $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+            $builder->where('keu_agg.jatuh_tempo_tgl <=', date('Y-m-d'));
+        } else {
+            $builder = $this->keuRepo->getBelumLunasGroupedQuery();
+        }
+
+        $this->applyTagihanFilters($builder, $request, 'keu_agg.jatuh_tempo_tgl');
+
+        $paged = $this->paginateRawBuilder($builder, $request, ['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan']);
+        $canManage = function_exists('in_groups') && in_groups(['1', '3']);
+        $today = new \DateTime(date('Y-m-d'));
+
+        $items = array_map(static function ($row) use ($canManage, $today): array {
+            $jtRaw = $row->jatuh_tempo_tgl ?? null;
+            $overdueDays = 0;
+            if (! empty($jtRaw)) {
+                $jtDate = new \DateTime((string) $jtRaw);
+                $diffDays = (int) $today->diff($jtDate)->format('%r%a');
+                if ($diffDays < 0) {
+                    $overdueDays = abs($diffDays);
+                }
+            }
+
+            return [
+                'id_mkdt' => (int) ($row->id_mkdt ?? 0),
+                'id_kavling' => (int) ($row->id_kavling ?? 0),
+                'id_konsumen' => (int) ($row->id_konsumen ?? 0),
+                'nama_proyek' => (string) ($row->nama_proyek ?? ''),
+                'nama_jalan' => (string) ($row->nama_jalan ?? ''),
+                'no_kavling' => (string) ($row->no_kavling ?? ''),
+                'tipe_pricelist' => $row->tipe_pricelist ?? null,
+                'no_tipe_rumah' => (string) ($row->no_tipe_rumah ?? ''),
+                'tipe_rumah' => (string) ($row->tipe_rumah ?? ''),
+                'nama_konsumen' => (string) ($row->nama_konsumen ?? ''),
+                'booking_tgl' => $row->booking_tgl ?? null,
+                'jatuh_tempo_tgl' => $jtRaw,
+                'jumlah_tagihan' => (int) ($row->jumlah_tagihan ?? 0),
+                'is_overdue' => $overdueDays > 0,
+                'overdue_days' => $overdueDays,
+                'is_kpr' => (int) ($row->is_kpr ?? 0),
+                'jenis_pembayaran' => ((int) ($row->is_kpr ?? 0)) === 1 ? 'KPR' : 'TUNAI',
+                'total_tagihan' => (float) ($row->total_tagihan ?? 0),
+                'sudah_bayar' => (float) ($row->sudah_bayar ?? 0),
+                'sisa_tagihan' => (float) ($row->sisa_tagihan ?? 0),
+                'perlu_rekonsiliasi' => (int) ($row->perlu_rekonsiliasi ?? 0) === 1,
+                'permissions' => ['can_pay' => $canManage],
+            ];
+        }, $paged['rows']);
+
+        return ['items' => $items, 'meta' => $paged['meta']];
+    }
+
+    public function getRiwayatBayarRaw($request): array
+    {
+        $idProyek = resolve_active_proyek_id($request->getVar('id_proyek'));
+        if ($idProyek === null) {
+            return [
+                'items' => [],
+                'meta' => ['page' => 1, 'per_page' => 25, 'total' => 0],
+            ];
+        }
+
+        $builder = $this->pembayaranRepo->getRiwayatBayarQuery(
+            $idProyek,
+            $request->getVar('id_cluster'),
+            $request->getVar('id_jalan')
+        );
+
+        $paged = $this->paginateRawBuilder($builder, $request, ['c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan', 'lp.payment_type', 'u.username']);
+        $items = array_map(static function ($row): array {
+            return [
+                'id_pembayaran' => (int) ($row->id_pembayaran ?? 0),
+                'id_mkdt' => (int) ($row->id_mkdt ?? 0),
+                'id_kavling' => (int) ($row->id_kavling ?? 0),
+                'id_proyek' => $row->id_proyek !== null ? (int) $row->id_proyek : null,
+                'nama_konsumen' => (string) ($row->nama_konsumen ?? ''),
+                'nama_jalan' => (string) ($row->nama_jalan ?? ''),
+                'no_kavling' => (string) ($row->no_kavling ?? ''),
+                'nominal' => (float) ($row->nominal ?? 0),
+                'tanggal_bayar' => $row->tanggal_bayar ?? null,
+                'payment_type' => (string) ($row->payment_type ?? ''),
+                'keterangan' => (string) ($row->keterangan ?? ''),
+                'detail_items' => (string) ($row->detail_items ?? ''),
+                'username' => (string) ($row->username ?? ''),
+                'created_at' => $row->created_at ?? null,
+            ];
+        }, $paged['rows']);
+
+        return ['items' => $items, 'meta' => $paged['meta']];
+    }
+
+    public function getListRiwayatSuratRaw($request): array
+    {
+        $idProyek = resolve_active_proyek_id($request->getVar('id_proyek'));
+        if ($idProyek === null) {
+            return [
+                'items' => [],
+                'meta' => ['page' => 1, 'per_page' => 25, 'total' => 0],
+            ];
+        }
+
+        $builder = $this->keuRepo->getRiwayatSuratQuery(
+            (int) $idProyek,
+            $request->getVar('id_cluster'),
+            $request->getVar('id_jalan')
+        );
+
+        $paged = $this->paginateRawBuilder($builder, $request, ['i.no_inv', 'i.nomor_surat', 'c.nama_konsumen', 'k.no_kavling', 'j.nama_jalan']);
+        $items = array_map(static function ($row): array {
+            return [
+                'no_inv' => (string) ($row->no_inv ?? ''),
+                'nomor_surat' => (string) ($row->nomor_surat ?? ''),
+                'id_mkdt' => $row->id_mkdt !== null ? (int) $row->id_mkdt : null,
+                'id_kavling' => $row->id_kavling !== null ? (int) $row->id_kavling : null,
+                'id_konsumen' => $row->id_konsumen !== null ? (int) $row->id_konsumen : null,
+                'id_kopsurat' => $row->id_kopsurat !== null ? (int) $row->id_kopsurat : null,
+                'tanggal_invoice' => $row->tanggal_invoice ?? null,
+                'tanggal_jatuh_tempo' => $row->tanggal_jatuh_tempo ?? null,
+                'status_tagihan' => (string) ($row->status_tagihan ?? ''),
+                'is_signed_direktur' => (int) ($row->is_signed_direktur ?? 0) === 1,
+                'signed_at' => $row->signed_at ?? null,
+                'signed_by' => $row->signed_by !== null ? (int) $row->signed_by : null,
+                'date_add' => $row->date_add ?? null,
+                'date_edit' => $row->date_edit ?? null,
+                'tanggal_ubah_status' => $row->tanggal_ubah_status ?? null,
+                'keterangan_status' => (string) ($row->keterangan_status ?? ''),
+                'tagihan' => $row->tagihan ?? null,
+                'nama_konsumen' => (string) ($row->nama_konsumen ?? ''),
+                'no_kavling' => (string) ($row->no_kavling ?? ''),
+                'nama_jalan' => (string) ($row->nama_jalan ?? ''),
+                'nama_cluster' => (string) ($row->nama_cluster ?? ''),
+                'pembuat' => (string) ($row->pembuat ?? ''),
+            ];
+        }, $paged['rows']);
+
+        return ['items' => $items, 'meta' => $paged['meta']];
+    }
+
+    private function applyTagihanFilters($builder, $request, string $jtColumn): void
+    {
+        $idProyek = resolve_active_proyek_id($request->getVar('id_proyek'));
+        if ($idProyek) {
+            $builder->where('p.id_proyek', $idProyek);
+        }
+        if ($request->getVar('id_cluster')) {
+            $builder->where('cl.id_cluster', $request->getVar('id_cluster'));
+        }
+        if ($request->getVar('id_jalan')) {
+            $builder->where('j.id_jalan', $request->getVar('id_jalan'));
+        }
+
+        $isKpr = $request->getVar('is_kpr');
+        if ($isKpr !== null && $isKpr !== '') {
+            $builder->where('m.is_kpr', $isKpr);
+        }
+
+        $bookingRange = $request->getVar('booking_tgl_range');
+        if (! empty($bookingRange)) {
+            $dates = explode(' to ', (string) $bookingRange);
+            if (count($dates) === 2) {
+                $builder->where('m.booking_tgl >=', $dates[0]);
+                $builder->where('m.booking_tgl <=', $dates[1]);
+            } elseif (count($dates) === 1) {
+                $builder->where('m.booking_tgl', $dates[0]);
+            }
+        }
+
+        $jatuhTempoRange = $request->getVar('jatuh_tempo_tgl_range');
+        if (! empty($jatuhTempoRange)) {
+            $dates = explode(' to ', (string) $jatuhTempoRange);
+            if (count($dates) === 2) {
+                $builder->where($jtColumn . ' >=', $dates[0]);
+                $builder->where($jtColumn . ' <=', $dates[1]);
+            } elseif (count($dates) === 1) {
+                $builder->where($jtColumn, $dates[0]);
+            }
+        }
+    }
+
+    private function paginateRawBuilder($builder, $request, array $searchColumns): array
+    {
+        $searchParam = $request->getVar('search');
+        $searchValue = is_array($searchParam)
+            ? trim((string) ($searchParam['value'] ?? ''))
+            : trim((string) ($searchParam ?? $request->getVar('search_value') ?? ''));
+
+        if ($searchValue !== '' && $searchColumns !== []) {
+            $builder->groupStart();
+            foreach ($searchColumns as $index => $column) {
+                if ($index === 0) {
+                    $builder->like($column, $searchValue);
+                } else {
+                    $builder->orLike($column, $searchValue);
+                }
+            }
+            $builder->groupEnd();
+        }
+
+        $perPage = (int) ($request->getVar('per_page') ?? $request->getVar('length') ?? 25);
+        if ($perPage <= 0) {
+            $perPage = 25;
+        }
+        $perPage = min($perPage, 200);
+
+        $page = (int) ($request->getVar('page') ?? 0);
+        if ($page <= 0) {
+            $start = max(0, (int) ($request->getVar('start') ?? 0));
+            $page = (int) floor($start / $perPage) + 1;
+        } else {
+            $start = ($page - 1) * $perPage;
+        }
+
+        $total = $builder->countAllResults(false);
+        $rows = $builder->limit($perPage, $start)->get()->getResult();
+
+        return [
+            'rows' => $rows,
+            'meta' => [
+                'page' => $page,
+                'per_page' => $perPage,
+                'total' => $total,
+            ],
+        ];
+    }
+
+    /**
+     * Ensure DataTables query keys (columns, search) exist as safe arrays
+     * when endpoints are called without a standard DataTables payload.
+     */
+    private function ensureDataTableRequestDefaults($request): void
+    {
+        $targets = [];
+        if (is_object($request)) {
+            $targets[] = $request;
+        }
+
+        $serviceRequest = \Config\Services::request();
+        if (is_object($serviceRequest) && $serviceRequest !== $request) {
+            $targets[] = $serviceRequest;
+        }
+
+        foreach ($targets as $target) {
+            if (! method_exists($target, 'getGet') || ! method_exists($target, 'setGlobal')) {
+                continue;
+            }
+
+            $get = $target->getGet();
+            $get = is_array($get) ? $get : [];
+            $post = method_exists($target, 'getPost') ? $target->getPost() : [];
+            $post = is_array($post) ? $post : [];
+
+            $varColumns = method_exists($target, 'getVar') ? $target->getVar('columns') : null;
+            $rawColumns = method_exists($target, 'getGetPost')
+                ? $target->getGetPost('columns')
+                : ($get['columns'] ?? $post['columns'] ?? null);
+
+            if (! is_array($rawColumns)) {
+                $fallbackColumns = is_array($varColumns) ? $varColumns : [];
+                $get['columns'] = $fallbackColumns;
+                if (array_key_exists('columns', $post)) {
+                    $post['columns'] = $fallbackColumns;
+                }
+            }
+
+            $varSearch = method_exists($target, 'getVar') ? $target->getVar('search') : null;
+            $rawSearch = method_exists($target, 'getGetPost')
+                ? $target->getGetPost('search')
+                : ($get['search'] ?? $post['search'] ?? null);
+
+            if (! is_array($rawSearch) || ! array_key_exists('value', $rawSearch)) {
+                $safeSearch = (is_array($varSearch) && array_key_exists('value', $varSearch))
+                    ? $varSearch
+                    : ['value' => is_string($varSearch) ? $varSearch : ''];
+                $get['search'] = $safeSearch;
+                if (array_key_exists('search', $post)) {
+                    $post['search'] = $safeSearch;
+                }
+            }
+
+            $target->setGlobal('get', $get);
+            if (method_exists($target, 'getPost')) {
+                $target->setGlobal('post', $post);
+            }
+        }
+    }
+
     public function setTanggalKirim($no_inv): void
     {
         $inv = $this->db->table('invoice_log')->select('tanggal_kirim')->where('no_inv', $no_inv)->get()->getRow();
