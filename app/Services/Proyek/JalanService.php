@@ -233,7 +233,8 @@ class JalanService
     private function requestFields($input): array
     {
         if ($input instanceof IncomingRequest) {
-            $post = $input->getJSON(true) ?: (array) $input->getPost();
+            $isJson = str_contains(strtolower((string) $input->getHeaderLine('Content-Type')), 'application/json');
+            $post = $isJson ? ($input->getJSON(true) ?: []) : (array) $input->getPost();
         } else {
             $post = (array) $input;
         }

@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-13 03:15:52` @ `0fe64c1`  
+**Last Synced:** `2026-11-15 01:36:27` @ `7b1acf6`  
 
 ## Purpose
 Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial visual.
@@ -44,7 +44,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 | `GET` | `/getmodal` | `Explicit` | `\App\Controllers\Web\Siteplan\ModalController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/kalendar` | `Explicit` | `\App\Controllers\Web\Siteplan\KalendarController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/kalendar/index` | `Explicit` | `\App\Controllers\Web\Siteplan\KalendarController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `/api/siteplan/meta` | `Explicit` | `SiteplanController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/siteplan/meta` | `Explicit` | `SiteplanController::meta` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY`; menyertakan `siteplan_menus` & `permissions.{role_id, is_admin, has_project_access}` |
 | `GET` | `/api/siteplan/kavling` | `Explicit` | `SiteplanController::kavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/siteplan/kavling` | `Explicit` | `SiteplanController::kavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/siteplan/proyek/(:num)` | `Explicit` | `SiteplanController::proyek/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -54,6 +54,12 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 | `POST` | `/api/siteplan/others` | `Explicit` | `SiteplanController::others` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/siteplan/detail/(:num)` | `Explicit` | `SiteplanController::detail/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/siteplan/detail` | `Explicit` | `SiteplanController::detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/siteplan/add_kavling` | `Explicit` | `SiteplanController::add_kavling` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY` Planning tambah kavling/others (`201`/`422` envelope via `wantsEnvelope()`) |
+| `POST` | `/api/siteplan/edit_kavling` | `Explicit` | `SiteplanController::edit_kavling` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY` Planning ubah/pindah kavling single & batch (`200`/`422` envelope) |
+| `POST` | `/api/siteplan/edit_others` | `Explicit` | `SiteplanController::edit_others` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY` Planning ubah/pindah item `others` (`200`/`422` envelope) |
+| `POST` | `/api/siteplan/get_kavling_by_id` | `Explicit` | `SiteplanController::get_kavling_by_id` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY` fetch kavling tunggal untuk form Planning (`200`/`404` envelope) |
+| `POST` | `/api/siteplan/get_kavling_by_multiple_id` | `Explicit` | `SiteplanController::get_kavling_by_multiple_id` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY` fetch kavling batch untuk form edit Planning (`200` envelope) |
+| `POST` | `/api/siteplan/get_others` | `Explicit` | `SiteplanController::get_others` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY` fetch item `others` per ID/filter (`200` envelope + fallback header `X-Project-Id`) |
 | `POST` | `/siteplan/get/all` | `Explicit` | `SiteplanController::getAllKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/siteplan/getAllKavling` | `Explicit` | `SiteplanController::getAllKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/siteplan/get/detail` | `Explicit` | `SiteplanController::get_detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -137,7 +143,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - `app/Controllers/Api/Siteplan/KalendarController.php` (132 baris, 2 public methods: `meta()`, `getEvents()`)
 
 ### Services (7)
-- `app/Services/Siteplan/SiteplanService.php` (916 baris, 16 public methods)
+- `app/Services/Siteplan/SiteplanService.php` (953 baris, 16 public methods)
 - `app/Services/Siteplan/SiteplanDetailService.php` (540 baris, 1 public methods)
 - `app/Services/Siteplan/SiteplanDataService.php` (125 baris, 3 public methods)
 - `app/Services/Siteplan/SiteplanUrgentService.php` (396 baris, 7 public methods)
@@ -197,7 +203,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
   - `TargetController`: Endpoint `/api/target/{list,detail,save,history}` untuk validasi dan delegasi target penjualan kavling bulanan ke `TargetSiteplanService`.
   - `KalendarController`: Endpoint `/api/kalendar/{events,meta}`, `/api/siteplan/kalendar/{events,meta}`, dan fallback `/kalendar/getEvents` dengan dukungan `?format=raw` dan filter divisi/event.
 - **Service (`app/Services/Siteplan/SiteplanService.php`):**
-  - `getIndexState(int $userId)`, `getViewSiteplanData(?int $requestedProyekId, int $userId)`, `getProduksiMobileData(...)`, `getMeta(?int $idProyek, int $userId)`: Agregasi state halaman web dan metadata SPA siteplan (daftar proyek berizin, cluster, jalan, tipe, pph, ppn, checklist, `config_shape`, hak akses).
+  - `getIndexState(int $userId)`, `getViewSiteplanData(?int $requestedProyekId, int $userId)`, `getProduksiMobileData(...)`, `getMeta(?int $idProyek, int $userId)`: Agregasi state halaman web dan metadata SPA siteplan (daftar proyek berizin, cluster, jalan, tipe, pph, ppn, checklist, `config_shape`, `permissions.{role_id, is_admin, has_project_access}` via `resolvePrimaryRoleId()`, serta `siteplan_menus` dalam format JSON murni via `SiteplanMenuService::getMenusForSpa()`).
   - `addKavlingOrOthers(array $post, int $userId)`, `editKavling(array $post, int $userId)`, `editOthers(array $post, int $userId)`: Mutasi kavling dan aset penunjang `others` dalam transaksi DB (`transBegin`/`transCommit`/`transRollback`), validasi duplikasi nomor kavling per jalan, serta integrasi pencatatan riwayat (`HistoryService`, `MkdtHistoryService`) dan notifikasi (`NotifikasiService`).
   - `getKavlingByMultipleId(array $ids)`, `getHargaKavling(array $ids)`, `getTurunPembangunan(array $ids)`, `setTurunPembangunan(array $post, mixed $file, int $userId)`: Pengambilan harga/turun bangun dan eksekusi perintah turun pembangunan (upload file perintah bangun via `FileAccessService`, update batch dalam DB transaction, log `MkdtHistoryService`, dan trigger `NotifikasiService` `NotificationEvent::TURUN_PEMBANGUNAN`).
 - **Service (`app/Services/Siteplan/SiteplanDetailService.php`):**
@@ -278,6 +284,7 @@ _Jalankan `php spark module:deadcode Siteplan` untuk mengaudit dead code kandida
 ## Notes
 - Modul telah direfaktor penuh menjadi arsitektur modular (`REFACTORED`, `100/100`) dengan zero-downtime shims dan endpoint REST API Full JSON (`RAW_JSON_READY`).
 - **Cross-Module Callers & Integrations:**
+  - `App\Services\Settings\SiteplanMenuService`: di-inject opsional ke `SiteplanService` untuk menyediakan `siteplan_menus` (`getMenusForSpa($roleId)`) pada payload `GET /api/siteplan/meta`.
   - `App\Controllers\Home`: mengonsumsi `SiteplanUrgentService::getDashboardAlertCounts()` untuk kartu peringatan dashboard utama.
   - `App\Controllers\Api\Notifikasi\NotifikasiController`: mengonsumsi `SiteplanUrgentService::{getUrgentSummary,emptySummary,snoozeUrgentItem}` untuk pusat notifikasi mendesak.
   - Terintegrasi dengan modul `TiketMasalah` dan `Transaksi`:
@@ -287,6 +294,20 @@ _Jalankan `php spark module:deadcode Siteplan` untuk mengaudit dead code kandida
     - `SiteplanTiketOverlay` (`public/assets/js/siteplan/tiket-overlay.js`) dan `master.js` (`syncSiteplanTiketOverlay`): mengagregasikan masalah kavling dan others secara atomik dan merender `tiketOverlayLayer` pada peta KonvaJS.
 
 ## Change Log
+- **`2026-11-15` [`API-BRIDGE`] — Penambahan 6 Endpoint REST Planning `POST /api/siteplan/*` & Pengayaan `KavlingRequest` untuk SPA Siteplan Fase 3.2 (Divisi Planning):**
+  - **Routes & Public Contracts:**
+    - Mendaftarkan 6 rute eksplisit baru pada grup `api/siteplan` (`app/Config/Routes.php` -> `Api\Siteplan\SiteplanController`): `POST /api/siteplan/add_kavling`, `POST /api/siteplan/edit_kavling`, `POST /api/siteplan/edit_others`, `POST /api/siteplan/get_kavling_by_id`, `POST /api/siteplan/get_kavling_by_multiple_id`, dan `POST /api/siteplan/get_others` (`RAW_JSON_READY` JSON envelope via `wantsEnvelope()`, `add_kavling` mengembalikan HTTP `201`/`422`, `edit_kavling`/`edit_others` HTTP `200`/`422`, `get_kavling_by_id` HTTP `200`/`404`, `get_kavling_by_multiple_id`/`get_others` HTTP `200`).
+    - Rute legacy `/siteplan/{add_kavling,edit_kavling,edit_others,get_kavling_by_id,get_kavling_by_multiple_id,get_others}` tetap dipertahankan utuh (*Zero-Downtime*).
+  - **Controller / Service / Repo / Model:**
+    - `app/Controllers/Api/Transaksi/KavlingRequestController.php` & `app/Services/Transaksi/KavlingRequestService.php`: Penguatan `getRequestData()` (query + POST + JSON + fallback `X-Project-Id`) pada `list`, `submit`, `updateStatus`, `kavlingList`, serta penambahan `getStatusCounts()` (`counts.{all, pending, approved, rejected}`) untuk badge & tab filter modal List Request Kavling tanpa merusak `request-kavling.js` legacy.
+  - **View / CSS / JS & Verifikasi:** Tidak ada perubahan view legacy `sigapp.dev`; `php spark module:sync Siteplan` (`REFACTORED 100/100`), `php spark routes`, & `http://localhost/sigapp.dev/public/siteplan/view` (`200 OK`) terverifikasi tanpa regresi.
+- **`2026-11-14` [`API-BRIDGE`] — Pengayaan `GET /api/siteplan/meta` untuk SPA Siteplan Fase 3.1 (`siteplan_menus` & `permissions`):**
+  - **Routes & Public Contracts:** Memperkaya respons JSON `GET /api/siteplan/meta` (`Api\Siteplan\SiteplanController::meta()`) dengan key baru `siteplan_menus` (`role_id`, `default_group_id`, `groups`, `context_items`) serta atribut `permissions.{role_id, is_admin, has_project_access}`.
+  - **Controller / Service / Repo / Model:**
+    - `app/Services/Siteplan/SiteplanService.php`: Inject opsional `App\Services\Settings\SiteplanMenuService` di konstruktor, menambahkan helper privat `resolvePrimaryRoleId(int $userId)`, serta mengembalikan `permissions.{role_id, is_admin, has_project_access}` dan `siteplan_menus` pada `getMeta(?int $idProyek, int $userId)`.
+    - `app/Services/Settings/SiteplanMenuService.php`: Menambahkan `getMenusForSpa(int $roleId)` dan `formatSpaMenuItem()` untuk menyusun menu floating & context actions Siteplan dalam JSON murni bebas HTML.
+  - **View / CSS / JS:** Tidak ada perubahan view legacy `sigapp.dev` (Zero-Downtime terjaga).
+  - **Deprecations:** Tidak ada.
 - **`2026-11-13` [`REFACTOR`] — Refaktor Penuh Arsitektur Modular Siteplan, Pemisahan Web/Api Controller, Service & Repository Layer, serta Full JSON API (`RAW_JSON_READY`):**
   - **Routes & Public Contracts:**
     - Mendaftarkan rute eksplisit Web (`Web\Siteplan\SiteplanController`, `ModalController`, `KalendarController`): `/siteplan`, `/siteplan/index`, `/siteplan/view`, `/siteplan/view_siteplan`, `/siteplan/view_siteplan/(:num)`, `/siteplan/produksi-mobile`, `/siteplan/produksi_mobile`, `/getmodal`, `/kalendar`, `/kalendar/index`.

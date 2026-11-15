@@ -138,7 +138,11 @@ class FileController extends BaseController
             }
         }
 
-        return $this->streamFile($file);
+        $isVersionedSiteplan = !$thumbnail
+            && $source === 'proyek_siteplan'
+            && trim((string) $this->request->getGet('v')) !== '';
+
+        return $this->streamFile($file, $isVersionedSiteplan);
     }
 
     private function streamThumbnail(array $file)
@@ -162,7 +166,7 @@ class FileController extends BaseController
         return $this->streamFile($file);
     }
 
-    private function streamFile(array $file)
+    private function streamFile(array $file, bool $immutableVersioned = false)
     {
         $absolutePath = (string) ($file['absolute_path'] ?? '');
         if ($absolutePath === '' || !is_file($absolutePath) || !is_readable($absolutePath)) {
@@ -178,10 +182,28 @@ class FileController extends BaseController
         $lastModified = gmdate('D, d M Y H:i:s', $lastModifiedTime) . ' GMT';
         $etag = '"' . sha1($absolutePath . '|' . $fileSize . '|' . $lastModifiedTime) . '"';
 
+        // Berkas ber-hash ?v= pada proyek_siteplan bersifat immutable selama 30 hari.
+        $maxAge = $immutableVersioned ? 2592000 : 86400;
+        $cacheControl = $immutableVersioned
+            ? "private, max-age={$maxAge}, immutable"
+            : "private, max-age={$maxAge}, must-revalidate";
+        $expiresHeader = gmdate('D, d M Y H:i:s', time() + $maxAge) . ' GMT';
+
+        if (function_exists('header_remove')) {
+            @header_remove('Cache-Control');
+            @header_remove('Expires');
+            @header_remove('Pragma');
+        }
+
         if ($this->isNotModified($etag, $lastModifiedTime)) {
             return $this->response
                 ->setStatusCode(304)
-                ->setHeader('Cache-Control', 'private, max-age=86400, must-revalidate')
+                ->removeHeader('Cache-Control')
+                ->removeHeader('Expires')
+                ->removeHeader('Pragma')
+                ->setHeader('Cache-Control', $cacheControl)
+                ->setHeader('Expires', $expiresHeader)
+                ->setHeader('Pragma', 'private')
                 ->setHeader('ETag', $etag)
                 ->setHeader('Last-Modified', $lastModified);
         }
@@ -190,7 +212,12 @@ class FileController extends BaseController
             ->setHeader('Content-Type', $mimeType)
             ->setHeader('Content-Disposition', $this->contentDisposition($disposition, $fileName))
             ->setHeader('Content-Length', (string) $fileSize)
-            ->setHeader('Cache-Control', 'private, max-age=86400, must-revalidate')
+            ->removeHeader('Cache-Control')
+            ->removeHeader('Expires')
+            ->removeHeader('Pragma')
+            ->setHeader('Cache-Control', $cacheControl)
+            ->setHeader('Expires', $expiresHeader)
+            ->setHeader('Pragma', 'private')
             ->setHeader('ETag', $etag)
             ->setHeader('Last-Modified', $lastModified)
             ->setHeader('X-Content-Type-Options', 'nosniff');

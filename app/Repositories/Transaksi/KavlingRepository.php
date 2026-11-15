@@ -217,6 +217,7 @@ class KavlingRepository
                    ",
 
             4 => "mkdt.status_mkdt, mkdt.booking_tgl, mkdt.wawancara_tgl, mkdt.sp3k_tgl, mkdt.akad_tgl,
+                  mkdt.akad_indent, mkdt.akad_indent_tgl, mkdt.akad,
                   mkdt.is_subsidi as mkdt_is_subsidi, mkdt.is_kpr, mkdt.is_batal, mkdt.is_sudah_isi_tagihan",
 
             5 => "pbb_pecah_nop, pbb_pecah_luas_bumi, pbb_pecah_njop_bumi, pbb_pecah_luas_bangunan,
@@ -272,7 +273,9 @@ class KavlingRepository
             "(SELECT id_plan,
                      SUM(CASE WHEN status <> 'void' THEN 1 ELSE 0 END) AS pa_pengajuan_count,
                      SUM(CASE WHEN status IN ('active', 'partial') THEN 1 ELSE 0 END) AS pa_pengajuan_outstanding_count,
-                     SUM(CASE WHEN status <> 'void' THEN total_cair ELSE 0 END) AS pa_total_cair_sum
+                     SUM(CASE WHEN status <> 'void' THEN total_cair ELSE 0 END) AS pa_total_cair_sum,
+                     MAX(CASE WHEN status IN ('active', 'partial') THEN tanggal_pengajuan ELSE NULL END) AS pa_tanggal_pengajuan,
+                     MAX(CASE WHEN status <> 'void' THEN tanggal_pengajuan ELSE NULL END) AS pa_tanggal_pengajuan_last
               FROM pencairan_akad_pengajuan
               GROUP BY id_plan) papg",
             'papg.id_plan = pap.id',
@@ -285,7 +288,9 @@ class KavlingRepository
             pap.total_hasil_akad AS pa_total_hasil_akad,
             papg.pa_pengajuan_count,
             papg.pa_pengajuan_outstanding_count,
-            papg.pa_total_cair_sum
+            papg.pa_total_cair_sum,
+            papg.pa_tanggal_pengajuan,
+            papg.pa_tanggal_pengajuan_last
         ', true);
     }
 
@@ -368,6 +373,7 @@ class KavlingRepository
     {
         $builder = $this->baseQuery();
         $clusterIds = $this->normalizeIds($id_cluster);
+        $jalanIds = $this->normalizeIds($id_jalan);
 
         $idDivisi = (int) $id_divisi;
 
@@ -442,8 +448,8 @@ class KavlingRepository
         }
 
         // filter jalan
-        if ($id_jalan) {
-            $builder->where('kavling.id_jalan', $id_jalan);
+        if ($jalanIds !== []) {
+            $builder->whereIn('kavling.id_jalan', $jalanIds);
         }
 
         return $builder->get()->getResult();

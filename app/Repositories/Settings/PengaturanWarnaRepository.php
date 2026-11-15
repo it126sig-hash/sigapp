@@ -27,7 +27,7 @@ class PengaturanWarnaRepository
 
     public function insert(array $fields): bool
     {
-        return (bool) $this->model->insert($fields);
+        return (bool) $this->model->insert($fields, false);
     }
 
     public function update(string $configName, array $fields): bool

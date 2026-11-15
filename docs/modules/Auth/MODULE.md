@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-11-12 01:53:35` @ `d86bec6`  
+**Last Synced:** `2026-11-14 16:14:28` @ `7b1acf6`  
 
 ## Purpose
 Autentikasi sesi multi-device, revocations, proteksi login, dan audit sesi pengguna.
@@ -69,7 +69,7 @@ Autentikasi sesi multi-device, revocations, proteksi login, dan audit sesi pengg
 ## File Inventory
 ### Controllers (5)
 - `app/Controllers/Web/DeviceAuthController.php` (167 baris, 2 public methods: `attemptLogin()`, `logout()`)
-- `app/Controllers/Api/Auth/AuthController.php` (292 baris, 3 public methods: `login()`, `logout()`, `me()`)
+- `app/Controllers/Api/Auth/AuthController.php` (298 baris, 3 public methods: `login()`, `logout()`, `me()`)
 - `app/Controllers/Api/AuthDeviceController.php` (125 baris, 3 public methods: `index()`, `revoke(int $deviceId)`, `revokeOthers()`)
 - `app/Controllers/Api/AdminAuthDeviceController.php` (77 baris, 3 public methods: `index(int $userId)`, `revoke(int $userId, int $deviceId)`, `revokeAll(int $userId)`)
 - `app/Controllers/Web/LandingController.php` (16 baris, 1 public methods: `index()`)
@@ -120,6 +120,7 @@ _Jalankan `php spark module:deadcode Auth` untuk mengaudit dead code kandidat._
 - Modul diinisialisasi melalui tooling otomatis.
 
 ## Change Log
+- `2026-11-14` [`AVATAR-API-BRIDGE`] — Penambahan field `avatar_url` (`/files/profile_photo/{id}/thumbnail` atau `null`) pada response `AuthController::login()` & `AuthController::me()`, didukung oleh `case 'profile_photo':` di `FileAccessService::resolveMetadata()`.
 - `2026-11-12` [`SECURITY-AUTH`] — Penguatan arsitektur autentikasi Hybrid Dual-Mode: Implementasi `HttpOnly` Cookie `sigapp_spa_token` untuk Web SPA (`X-Client-Platform: web-spa`) dengan response `access_token: null`, penambahan validasi Device Binding (`DeviceSessionService::verifyDeviceBinding()`) berdasarkan `User-Agent` (`browser` & `platform`) untuk mitigasi session hijacking, pemeliharaan Bearer token untuk Native Capacitor, dan dukungan cookie fallback di `AuthController`, `DeviceLoginFilter`, serta `AuthDeviceController`.
 - `2026-11-12` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.
 - `2026-11-10` [`WAVE0-AUTH`] — Penambahan endpoint REST API JSON `POST /api/auth/login`, `GET /api/auth/me`, dan `POST /api/auth/logout` untuk autentikasi Bearer Token SPA Vue 3 / Capacitor, integrasi Dual-Mode Bearer Token di `DeviceLoginFilter`, serta rotasi sesi multi-device `DeviceSessionService`.

@@ -252,7 +252,9 @@ class PengaturanWarnaService
             ];
         }
 
-        if ($this->repository->update($configName, $fields)) {
+        $updateFields = array_diff_key($fields, ['config_name' => true]);
+
+        if ($this->repository->update($configName, $updateFields)) {
             if ($raw) {
                 $updated = $this->repository->getByConfigName($configName);
                 return [

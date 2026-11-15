@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-13 11:55:34` @ `6aebbbb`  
+**Last Synced:** `2026-11-14 18:09:48` @ `7b1acf6`  
 
 ## Purpose
 Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaan siteplan.
@@ -93,6 +93,7 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 - `getItemRoleIds(int $itemId)`
 - `groupOptions()`
 - `groupLabel(int $groupId)`
+- `getMenusForSpa(int $roleId)`
 - `getActionItemsForList(int $roleId)`
 #### `SettingDataService.php`
 - `getAllConfigs()`
@@ -132,9 +133,9 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 
 ### Services (5)
 - `app/Services/Settings/MenuAccessService.php` (266 baris, 9 public methods)
-- `app/Services/Settings/SiteplanMenuService.php` (373 baris, 10 public methods)
+- `app/Services/Settings/SiteplanMenuService.php` (453 baris, 11 public methods)
 - `app/Services/Settings/SettingDataService.php` (349 baris, 7 public methods)
-- `app/Services/Settings/PengaturanWarnaService.php` (372 baris, 6 public methods)
+- `app/Services/Settings/PengaturanWarnaService.php` (374 baris, 6 public methods)
 - `app/Services/Settings/MenuSettingService.php` (533 baris, 10 public methods)
 
 ### Repositories (3)
@@ -166,13 +167,15 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 
 ## Key Functions
 - **Service (`app/Services/Settings/MenuAccessService.php`):** `getEffectiveMenuIds(int $userId)`, `getMenuTreeForUser(int $userId)`, `canAccessUrl(int $userId, string $url)`, `syncGroupMenus(int $groupId, array $menuIds)`, `syncUserOverrides(int $userId, array $allowIds, array $denyIds)`
-- **Service (`app/Services/Settings/SiteplanMenuService.php`):** `renderForRole(int $roleId)`, `getFlatItems(bool $activeOnly = false)`, `findItem(int $id)`, `saveItem(array $fields, int $id = 0)`, `toggleItem(int $id)`
-- **Service (`app/Services/Settings/SettingDataService.php`):** `getAllConfigs()`, `getConfig(string $key)`, `list(string $key)`, `get(string $key, int $id)`, `save(string $key, array $postData, int $userId)`
-- **Service (`app/Services/Settings/PengaturanWarnaService.php`):** `getAll()`, `getOne(string $configName)`, `add(array $postData, ?string $userName = null)`, `edit(array $postData, ?string $userName = null)`, `remove(string $configName)`
-- **Service (`app/Services/Settings/MenuSettingService.php`):** `getIndexData()`, `getMenuList()`, `getMenu(int $id)`, `saveMenu(array $postData)`, `toggleMenu(int $id)`
+- **Service (`app/Services/Settings/SiteplanMenuService.php`):** `renderForRole(int $roleId)`, `getFlatItems(bool $activeOnly = false)`, `findItem(int $id)`, `saveItem(array $fields, int $id = 0)`, `toggleItem(int $id)`, `getMenusForSpa(int $roleId)` *(JSON murni untuk SPA via `formatSpaMenuItem()`)*, `getActionItemsForList(int $roleId)`
+- **Service (`app/Services/Settings/SettingDataService.php`):** `getAllConfigs()`, `getMetaTables()`, `getConfig(string $key)`, `list(string $key, array $params = [])`, `get(string $key, int $id, bool $raw = false)`, `save(string $key, array $postData, int $userId, bool $raw = false)`, `delete(string $key, int $id, int $userId, bool $raw = false)`
+- **Service (`app/Services/Settings/PengaturanWarnaService.php`):** `getAll(array $params = [])`, `getOne(string $configName, bool $raw = false)`, `add(array $postData, ?string $userName = null, bool $raw = false)`, `edit(array $postData, ?string $userName = null, bool $raw = false)` *(mengecualikan `config_name` dari `$updateFields` agar PK tidak ikut di-update)*, `remove(string $configName, bool $raw = false)`
+- **Service (`app/Services/Settings/MenuSettingService.php`):** `getIndexData()`, `getMenuList(array $params = [])`, `getMenu(int $id, bool $raw = false)`, `saveMenu(array $postData, bool $raw = false)`, `toggleMenu(int $id, bool $raw = false)`, `getSiteplanMenuList(array $params = [])`, `getSiteplanMenu(int $id, bool $raw = false)`, `saveSiteplanMenu(array $postData, bool $raw = false)`, `toggleSiteplanMenu(int $id, bool $raw = false)`
+- **API Controllers (`app/Controllers/Api/Settings/*` via `BaseApiController`):** `readRequestData()`, `isRawFormat()` (`?format=raw`), `ensureMenuAccess()` (`403` JSON guard per menu URL)
 - **Repository (`app/Repositories/Settings/MenuRepository.php`):** `getGroups()`, `getUsers()`, `getParentOptions()`, `getFlatMenus(bool $activeOnly = false)`, `findMenuById(int $id)`
 - **Repository (`app/Repositories/Settings/SettingDataRepository.php`):** `getAllConfigs()`, `getConfig(string $key)`, `listRows(array $config)`, `findActiveRow(array $config, int $id)`, `nextManualId(array $config)`
-- **Repository (`app/Repositories/Settings/PengaturanWarnaRepository.php`):** `getAll()`, `getByConfigName(string $configName)`, `insert(array $fields)`, `update(string $configName, array $fields)`, `delete(string $configName)`
+- **Repository (`app/Repositories/Settings/PengaturanWarnaRepository.php`):** `getAll()`, `getByConfigName(string $configName)`, `insert(array $fields)` *(memakai `$this->model->insert($fields, false)` untuk PK non-auto-increment)*, `update(string $configName, array $fields)`, `delete(string $configName)`
+- **Model (`app/Models/PengaturanWarnaModel.php`):** `$table = 'config_shape'`, `$primaryKey = 'config_name'`, `$useAutoIncrement = false`, `$allowedFields` menyertakan `'config_name'`
 
 ## Deprecated & Legacy Shims
 - `app/Controllers/MenuSetting.php` — **DEPRECATED (Zero-Downtime Shim)**: Dipertahankan untuk kompatibilitas mundur; gunakan class modular di namespace `Settings`.
@@ -195,7 +198,11 @@ _Jalankan `php spark module:deadcode Settings` untuk mengaudit dead code kandida
 
 ## Notes
 - Modul diinisialisasi melalui tooling otomatis.
+- Seluruh endpoint `/api/menu-setting/*`, `/api/setting-data/*`, dan `/api/pengaturan-warna/*` mendukung mode `?format=raw` untuk mengembalikan envelope JSON SPA murni (`{ success, messages, data }`) beserta pagination (`items` + `meta`), HTTP status REST (`201`/`403`/`404`/`422` dengan map `errors`), dan guard akses `ensureMenuAccess()` tanpa memutus rute `POST` legacy DataTables.
 
 ## Change Log
+- `2026-11-14` [`API-BRIDGE`] — Penambahan `SiteplanMenuService::getMenusForSpa(int $roleId)` dan helper privat `formatSpaMenuItem()` untuk menyusun daftar menu aksi departemen `siteplan_menus` (`role_id`, `default_group_id`, `groups`, `context_items`) dalam format JSON murni yang dikonsumsi oleh `SiteplanService::getMeta()` (`GET /api/siteplan/meta`) tanpa memengaruhi `renderForRole()` pada view legacy.
+- `2026-11-13` [`BUGFIX`] — Perbaikan CRUD primary key non-auto-increment `config_name` pada tabel `config_shape`: `PengaturanWarnaModel` menambahkan `protected $useAutoIncrement = false;` dan `'config_name'` ke `$allowedFields`; `PengaturanWarnaRepository::insert(array $fields)` memakai `$this->model->insert($fields, false)`; `PengaturanWarnaService::edit()` mengecualikan `config_name` dari `$updateFields` agar primary key tidak ikut di-update. Verifikasi SPA & non-regresi web legacy `/configcolor` PASS.
+- `2026-11-13` [`API-BRIDGE`] — Penyesuaian kontrak API SPA `RAW_JSON_READY` Fase 1: Penambahan helper `readRequestData()`, `isRawFormat()`, dan `ensureMenuAccess()` di `BaseApiController`; endpoint baru `GET /api/menu-setting/meta`, `GET /api/setting-data/meta` (7 tabel), dan `GET /api/pengaturan-warna/meta`; dukungan verb `GET`/`DELETE` dan mode `?format=raw` (pagination `items`+`meta`, payload JSON body, `201`/`403`/`404`/`422` errors map, unknown `$key` `404` JSON, serta alias `config_name`/`configName`) dengan mempertahankan 100% rute `POST` legacy.
 - `2026-11-12` [`SECURITY-AUTH`] — Peningkatan keamanan autentikasi SPA: Integrasi arsitektur Hybrid HttpOnly Cookie `sigapp_spa_token` untuk Web SPA (0 token di `localStorage`, `access_token: null`), Device Binding (`DeviceSessionService::verifyDeviceBinding()`) berdasarkan `User-Agent` (`browser` & `platform`), dan verifikasi sesi aman untuk navigasi menu/pengaturan.
 - `2026-11-12` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.

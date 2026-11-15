@@ -52,9 +52,11 @@ class JalanController extends BaseApiController
 
     protected function getRequestData(): array
     {
-        $json = $this->request->getJSON(true);
-        if (is_array($json) && !empty($json)) {
-            return $json;
+        if (str_contains(strtolower((string) $this->request->getHeaderLine('Content-Type')), 'application/json')) {
+            $json = $this->request->getJSON(true);
+            if (is_array($json) && !empty($json)) {
+                return $json;
+            }
         }
 
         return (array) $this->request->getPost();

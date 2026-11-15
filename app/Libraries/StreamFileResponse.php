@@ -18,6 +18,17 @@ class StreamFileResponse extends Response
         $this->chunkSize = $chunkSize;
     }
 
+    public function sendHeaders()
+    {
+        if (! $this->pretend && ! headers_sent() && function_exists('header_remove')) {
+            @header_remove('Cache-Control');
+            @header_remove('Expires');
+            @header_remove('Pragma');
+        }
+
+        return parent::sendHeaders();
+    }
+
     public function sendBody()
     {
         $handle = fopen($this->filePath, 'rb');

@@ -99,13 +99,16 @@ class AuthController extends BaseApiController
         $isWebSpa = ($clientPlatform === 'web-spa');
 
         $userData = $this->db->table('users')
-            ->select('users.id, users.username, users.email, users.name, karyawan.nama_karyawan')
+            ->select('users.id, users.username, users.email, users.name, users.profile_photo, karyawan.nama_karyawan')
             ->join('karyawan', 'karyawan.id_user = users.id', 'left')
             ->where('users.id', $userId)
             ->get()
             ->getRow();
 
         $fullname = $userData?->nama_karyawan ?: ($userData?->name ?: $userData?->username ?? $user->username);
+        $avatarUrl = trim((string) ($userData?->profile_photo ?? '')) !== ''
+            ? $this->fileAccessService->thumbnailUrl('profile_photo', $userId)
+            : null;
 
         return $this->success([
             'access_token' => $isWebSpa ? null : $rawDeviceToken,
@@ -119,10 +122,11 @@ class AuthController extends BaseApiController
                 'last_seen_at' => (string) ($device['last_seen_at'] ?? date('Y-m-d H:i:s')),
             ],
             'user'         => [
-                'id'       => $userId,
-                'username' => (string) $user->username,
-                'fullname' => (string) $fullname,
-                'email'    => (string) $user->email,
+                'id'         => $userId,
+                'username'   => (string) $user->username,
+                'fullname'   => (string) $fullname,
+                'email'      => (string) $user->email,
+                'avatar_url' => $avatarUrl,
             ],
         ], 'Login berhasil.');
     }
@@ -156,7 +160,7 @@ class AuthController extends BaseApiController
         }
 
         $userData = $this->db->table('users')
-            ->select('users.id, users.username, users.email, users.name, karyawan.nama_karyawan')
+            ->select('users.id, users.username, users.email, users.name, users.profile_photo, karyawan.nama_karyawan')
             ->join('karyawan', 'karyawan.id_user = users.id', 'left')
             ->where('users.id', $userId)
             ->get()
@@ -167,7 +171,9 @@ class AuthController extends BaseApiController
         }
 
         $fullname = $userData->nama_karyawan ?: ($userData->name ?: $userData->username);
-        $avatarUrl = $this->fileAccessService->accessUrl('profile_photo', $userId);
+        $avatarUrl = trim((string) ($userData->profile_photo ?? '')) !== ''
+            ? $this->fileAccessService->thumbnailUrl('profile_photo', $userId)
+            : null;
 
         $roleRows = $this->db->table('auth_groups_users')
             ->select('auth_groups.id, auth_groups.name, auth_groups.description')

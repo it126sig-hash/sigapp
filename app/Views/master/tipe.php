@@ -789,7 +789,8 @@
 				}
 			},
 
-			submitHandler: async function(form) {
+			submitHandler: function(form) {
+				(async function() {
 				var formObj = $('#add-form')[0];
 				var fd = new FormData(formObj);
 				fd.append(csrfName, csrfHash);
@@ -879,6 +880,7 @@
 					}
 				});
 
+				})();
 				return false;
 			}
 		});
@@ -990,7 +992,8 @@
 						}
 					},
 
-					submitHandler: async function(form) {
+					submitHandler: function(form) {
+						(async function() {
 						var files = $('#edit_gambar_kerja')[0].files,
 							files_d = $('#edit_gambar_denah')[0].files,
 							files_t = $('#edit_gambar_tipe')[0].files;
@@ -1090,6 +1093,7 @@
 							}
 						});
 
+						})();
 						return false;
 					}
 				});

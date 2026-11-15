@@ -13,6 +13,7 @@ use App\Services\FileAccessService;
 use App\Services\MkdtHistoryService;
 use App\Services\Notifikasi\NotifikasiService;
 use App\Services\Proyek\ActiveProyekService;
+use App\Services\Settings\SiteplanMenuService;
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\HTTP\Files\UploadedFile;
 use CodeIgniter\Validation\ValidationInterface;
@@ -31,6 +32,7 @@ class SiteplanService
     protected MkdtHistoryService $mkdtHistoryService;
     protected HistoryService $historyService;
     protected NotifikasiService $notifikasiService;
+    protected SiteplanMenuService $siteplanMenuService;
     protected BaseConnection $db;
     protected ValidationInterface $validation;
 
@@ -45,7 +47,8 @@ class SiteplanService
         ?HistoryService $historyService = null,
         ?NotifikasiService $notifikasiService = null,
         ?BaseConnection $db = null,
-        ?ValidationInterface $validation = null
+        ?ValidationInterface $validation = null,
+        ?SiteplanMenuService $siteplanMenuService = null
     ) {
         $this->db                  = $db ?? db_connect();
         $this->validation          = $validation ?? \Config\Services::validation();
@@ -58,6 +61,7 @@ class SiteplanService
         $this->mkdtHistoryService  = $mkdtHistoryService ?? new MkdtHistoryService();
         $this->historyService      = $historyService ?? new HistoryService();
         $this->notifikasiService   = $notifikasiService ?? new NotifikasiService();
+        $this->siteplanMenuService = $siteplanMenuService ?? new SiteplanMenuService();
     }
 
     // ─── PAGE STATE & META ───
@@ -207,7 +211,8 @@ class SiteplanService
         );
 
         $hasProjectAccess = $this->siteplanRepository->userHasProjectAccess($proyek, $userId);
-        $isAdmin          = $this->userInGroups(['1']);
+        $roleId           = $this->resolvePrimaryRoleId($userId);
+        $isAdmin          = $this->userInGroups(['1']) || $roleId === 1;
 
         return [
             'proyek'           => $proyek,
@@ -222,6 +227,9 @@ class SiteplanService
             'li_keu'           => $this->keuanganRepository->getLIKeu(),
             'checklist'        => $this->siteplanRepository->getChecklistSubItemsWithGroup($resolvedProyekId),
             'permissions'      => [
+                'role_id'                    => $roleId,
+                'is_admin'                   => $isAdmin,
+                'has_project_access'         => $hasProjectAccess,
                 'proyek'                     => $isAdmin || $hasProjectAccess,
                 'legal'                      => $this->userInGroups(['5']) && $hasProjectAccess,
                 'update_tanggal_pembangunan' => $this->userInGroups(['1', '7', '8'])
@@ -237,6 +245,7 @@ class SiteplanService
                 'can_edit_direksi'           => $this->userInGroups(['1', '9']),
                 'can_manage_target'          => $this->userInGroups(['1', '11']),
             ],
+            'siteplan_menus'   => $this->siteplanMenuService->getMenusForSpa($roleId),
         ];
     }
 
@@ -902,6 +911,34 @@ class SiteplanService
         }
 
         return false;
+    }
+
+    private function resolvePrimaryRoleId(int $userId): int
+    {
+        if (function_exists('user') && user() && method_exists(user(), 'getRoles')) {
+            $roles = user()->getRoles();
+            if (is_array($roles) && $roles !== []) {
+                $firstKey = array_key_first($roles);
+                if ($firstKey !== null) {
+                    return (int) $firstKey;
+                }
+            }
+        }
+
+        if ($userId > 0) {
+            $row = $this->db->table('auth_groups_users')
+                ->select('group_id')
+                ->where('user_id', $userId)
+                ->orderBy('group_id', 'ASC')
+                ->get()
+                ->getRow();
+
+            if ($row && isset($row->group_id)) {
+                return (int) $row->group_id;
+            }
+        }
+
+        return 0;
     }
 
     private function userInGroups(array $groups): bool

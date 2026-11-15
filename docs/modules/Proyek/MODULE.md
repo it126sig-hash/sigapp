@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-11 19:33:10` @ `e658eba`  
+**Last Synced:** `2026-11-14 07:17:24` @ `7b1acf6`  
 
 ## Purpose
 Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akses.
@@ -47,6 +47,7 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 | `POST` | `/api/jalan/remove` | `Explicit` | `JalanController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/aksesproyek` | `Explicit` | `\App\Controllers\Web\Proyek\AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/aksesproyek` | `Explicit` | `AksesProyekController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/aksesproyek/meta` | `Explicit` | `AksesProyekController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/aksesproyek/edit` | `Explicit` | `AksesProyekController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
@@ -58,9 +59,10 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 - `edit(IncomingRequest $request)`
 - `getSiteplanList(int $idProyek)`
 - `remove(int $idProyek)`
+- `getAksesMeta()`
 - `getAksesList(array $params = [])`
-- `getAksesOne(int $idProyek)`
-- `searchAksesUsers(string $keyword)`
+- `getAksesOne(int $idProyek, bool $raw = false)`
+- `searchAksesUsers(string $keyword, bool $raw = false)`
 - `updateAkses(array $postData)`
 #### `ClusterService.php`
 - `getDataTables(array $params)`
@@ -83,8 +85,8 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 - `getAll(array $params)`
 - `getDataTables(array $params)`
 - `getOne(int $idJalan)`
-- `add(IncomingRequest $request)`
-- `edit(IncomingRequest $request)`
+- `add($input)`
+- `edit($input)`
 - `remove(int $idJalan)`
 #### `ActiveProyekService.php`
 - `getActiveId()`
@@ -101,27 +103,27 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 ## File Inventory
 ### Controllers (10)
 - `app/Controllers/Web/Proyek/ProyekController.php` (33 baris, 1 public methods: `index()`)
-- `app/Controllers/Api/Proyek/ProyekController.php` (117 baris, 8 public methods: `getAll()`, `getOne($id = null)`, `add()`, `edit($id = null)`, `getSiteplanList($id = null)`, `remove()`, `getAccessible()`, `setActive()`)
+- `app/Controllers/Api/Proyek/ProyekController.php` (119 baris, 8 public methods: `getAll()`, `getOne($id = null)`, `add()`, `edit($id = null)`, `getSiteplanList($id = null)`, `remove()`, `getAccessible()`, `setActive()`)
 - `app/Controllers/Web/Proyek/ClusterController.php` (42 baris, 1 public methods: `index()`)
-- `app/Controllers/Api/Proyek/ClusterController.php` (93 baris, 6 public methods: `getDataTable()`, `getAll()`, `getOne($id = null)`, `add()`, `edit($id = null)`, `remove()`)
+- `app/Controllers/Api/Proyek/ClusterController.php` (104 baris, 6 public methods: `getDataTable()`, `getAll()`, `getOne($id = null)`, `add()`, `edit($id = null)`, `remove()`)
 - `app/Controllers/Web/Proyek/TipeController.php` (42 baris, 1 public methods: `index()`)
-- `app/Controllers/Api/Proyek/TipeController.php` (103 baris, 7 public methods: `getAll()`, `getDataTables()`, `getOne($id = null)`, `add()`, `edit($id = null)`, `remove()`, `getListKavling($id = null)`)
+- `app/Controllers/Api/Proyek/TipeController.php` (119 baris, 7 public methods: `getAll()`, `getDataTables()`, `getOne($id = null)`, `add()`, `edit($id = null)`, `remove($id = null)`, `getListKavling($id = null)`)
 - `app/Controllers/Web/Proyek/JalanController.php` (41 baris, 1 public methods: `index()`)
-- `app/Controllers/Api/Proyek/JalanController.php` (92 baris, 6 public methods: `getAll()`, `getDatatable()`, `getOne($id = null)`, `add()`, `edit($id = null)`, `remove()`)
+- `app/Controllers/Api/Proyek/JalanController.php` (110 baris, 6 public methods: `getAll()`, `getDatatable()`, `getOne($id = null)`, `add()`, `edit($id = null)`, `remove()`)
 - `app/Controllers/Web/Proyek/AksesProyekController.php` (35 baris, 1 public methods: `index()`)
-- `app/Controllers/Api/Proyek/AksesProyekController.php` (63 baris, 4 public methods: `getAll()`, `getOne($id = null)`, `getAkses()`, `edit($id = null)`)
+- `app/Controllers/Api/Proyek/AksesProyekController.php` (121 baris, 5 public methods: `meta()`, `getAll()`, `getOne($id = null)`, `getAkses()`, `edit($id = null)`)
 
 ### Services (5)
-- `app/Services/Proyek/ProyekService.php` (423 baris, 11 public methods)
-- `app/Services/Proyek/ClusterService.php` (264 baris, 7 public methods)
-- `app/Services/Proyek/TipeService.php` (460 baris, 7 public methods)
-- `app/Services/Proyek/JalanService.php` (234 baris, 7 public methods)
+- `app/Services/Proyek/ProyekService.php` (700 baris, 12 public methods)
+- `app/Services/Proyek/ClusterService.php` (274 baris, 7 public methods)
+- `app/Services/Proyek/TipeService.php` (497 baris, 7 public methods)
+- `app/Services/Proyek/JalanService.php` (289 baris, 7 public methods)
 - `app/Services/Proyek/ActiveProyekService.php` (207 baris, 10 public methods)
 
 ### Repositories (4)
-- `app/Repositories/Proyek/ProyekRepository.php` (125 baris, 8 public methods: `getAll(array $params = [])`, `getById(int $idProyek)`, `getAccessibleForUser(int $userId, bool $isAdmin)`, `getSiteplanUploads(int $idProyek)`, `getAksesProyekList()`, `getAksesProyekById(int $idProyek)`, `searchUsers(string $keyword)`, `updateUserAccess(int $idProyek, string $userIdsCsv)`)
+- `app/Repositories/Proyek/ProyekRepository.php` (261 baris, 13 public methods: `getAll(array $params = [])`, `getById(int $idProyek)`, `getAccessibleForUser(int $userId, bool $isAdmin)`, `getSiteplanUploads(int $idProyek)`, `getAksesProyekList()`, `getAksesProyekById(int $idProyek)`, `searchUsers(string $keyword)`, `updateUserAccess(int $idProyek, string $userIdsCsv)`, `getAksesProyekPaginated(string $search, int $page, int $perPage)`, `getActiveUsersWithGroups(string $search = '')`, `getAuthGroups()`, `existsProyek(int $idProyek)`, `findActiveUserIds(array $userIds)`)
 - `app/Repositories/Proyek/ClusterRepository.php` (137 baris, 5 public methods: `getDataTables(array $params)`, `getAll(array $params)`, `getById(int $idCluster)`, `countJalan(int $idCluster)`, `countKavling(int $idCluster)`)
-- `app/Repositories/Proyek/TipeRepository.php` (117 baris, 5 public methods: `getAll(array $params)`, `getDataTables(array $params)`, `getGambarKerjaHistory(int $idTipe)`, `ensureConfigShape(string $tipeRumah, string $fill)`, `getListKavling(int $idTipe)`)
+- `app/Repositories/Proyek/TipeRepository.php` (123 baris, 5 public methods: `getAll(array $params)`, `getDataTables(array $params)`, `getGambarKerjaHistory(int $idTipe)`, `ensureConfigShape(string $tipeRumah, string $fill)`, `getListKavling(int $idTipe)`)
 - `app/Repositories/Proyek/JalanRepository.php` (132 baris, 3 public methods: `getClusters()`, `getAll(array $params)`, `getDataTables(array $params)`)
 
 ### Models (4)
@@ -155,10 +157,11 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 - `app/Repositories/JalanRepository.php`
 
 ## Key Functions
+- **Controller (`app/Controllers/Api/Proyek/JalanController.php`):** `getRequestData(): array` *(memeriksa header `Content-Type` `application/json` sebelum memanggil `$this->request->getJSON(true)` dan fallback ke `$this->request->getPost()`)*
 - **Service (`app/Services/Proyek/ProyekService.php`):** `getDropdownList()`, `getAll(array $params = [])`, `getOne(int $idProyek)`, `add(IncomingRequest $request)`, `edit(IncomingRequest $request)`
 - **Service (`app/Services/Proyek/ClusterService.php`):** `getDataTables(array $params)`, `getAll(array $params)`, `getOne(int $idCluster)`, `add(array $postData)`, `edit(array $postData)`
 - **Service (`app/Services/Proyek/TipeService.php`):** `getAll(array $params)`, `getDataTables(array $params)`, `getListKavling(int $idTipe)`, `getOne(int $idTipe)`, `add(IncomingRequest $request)`
-- **Service (`app/Services/Proyek/JalanService.php`):** `getIndexData()`, `getAll(array $params)`, `getDataTables(array $params)`, `getOne(int $idJalan)`, `add(IncomingRequest $request)`
+- **Service (`app/Services/Proyek/JalanService.php`):** `getIndexData()`, `getAll(array $params)`, `getDataTables(array $params)`, `getOne(int $idJalan)`, `add($input)`, `edit($input)`, `requestFields($input): array` *(memeriksa header `Content-Type` `application/json` sebelum memanggil `$input->getJSON(true)` agar kompatibel dengan payload JSON maupun `form-urlencoded`)*
 - **Service (`app/Services/Proyek/ActiveProyekService.php`):** `getActiveId()`, `getActive()`, `resolveOnRequest()`, `bootstrapForRequest()`, `needsSelection()`
 - **Repository (`app/Repositories/Proyek/ProyekRepository.php`):** `getAll(array $params = [])`, `getById(int $idProyek)`, `getAccessibleForUser(int $userId, bool $isAdmin)`, `getSiteplanUploads(int $idProyek)`, `getAksesProyekList()`
 - **Repository (`app/Repositories/Proyek/ClusterRepository.php`):** `getDataTables(array $params)`, `getAll(array $params)`, `getById(int $idCluster)`, `countJalan(int $idCluster)`, `countKavling(int $idCluster)`
@@ -195,24 +198,14 @@ _Jalankan `php spark module:deadcode Proyek` untuk mengaudit dead code kandidat.
 ## Notes
 - Modul diinisialisasi melalui tooling otomatis.
 
-## Arsitektur Dual-Mode & Panduan Pembersihan Post-SPA
-Untuk mendukung masa transisi migrasi ke Vue SPA (`docs/VUE_MIGRATION_PROGRESS.md`) tanpa merusak view legacy yang sedang aktif (Zero-Downtime), modul Proyek menerapkan arsitektur **Dual-Mode**:
-1. **Web Controllers (`App\Controllers\Web\Proyek\*`)**:
-   - Mengecek method `$this->wantsJson()`.
-   - Jika request datang dengan header `Accept: application/json` atau `X-Client-Platform: vue-spa`, controller mengembalikan respons JSON murni (`$this->response->setJSON(...)`).
-   - Jika request dibuka langsung oleh browser legacy (`Accept: text/html`), controller merender view legacy `view('template', $data)`.
-2. **Client-side Rendering pada View Legacy (`app/Views/master/*`)**:
-   - Seluruh tag HTML tombol aksi (`<button>`), badge status (`<span>`), dan gambar/thumbnail telah dihapus dari Service backend.
-   - View legacy menggunakan callback client-side DataTables (`columns.render`) untuk merender elemen UI tersebut secara mandiri.
-3. **Panduan Pembersihan Backend Setelah Cutover SPA Selesai**:
-   Ketika Vue SPA sudah 100% dideploy dan legacy web browser routes tidak lagi diakses langsung:
-   - **Hapus Web Controllers**: `app/Controllers/Web/Proyek/{ProyekController,ClusterController,TipeController,JalanController,AksesProyekController}.php`.
-   - **Hapus Legacy Views**: `app/Views/master/{proyek,cluster,tipe,jalan,aksesproyek}.php`.
-   - **Hapus Shims**: `app/Controllers/{Proyek,Cluster,Tipe,Jalan,AksesProyek}.php`.
-   - **Rampingkan Routes**: Hapus rute web browser legacy di `app/Config/Routes.php` (sisakan grup `api/proyek`, `api/cluster`, `api/tipe`, `api/jalan`, `api/aksesproyek`).
-   - **Rampingkan Services**: Hapus fallback parameter indexed array pada method `getDataTables()` di `ClusterService`, `TipeService`, `JalanService`, sehingga murni mengembalikan structured object list.
-
 ## Change Log
+- `2026-11-14` [`BUGFIX`] — **Perbaikan Parsing Payload Form-Urlencoded pada Master Jalan (`/api/jalan/*`)**:
+  - **Routes & Public Contracts:** Tidak ada perubahan rute; kontrak `JalanService::add($input)` & `JalanService::edit($input)` serta `/api/jalan/*` tetap kompatibel untuk payload JSON maupun `application/x-www-form-urlencoded`.
+  - **Controller / Service / Repo / Model:**
+    - `App\Services\Proyek\JalanService::requestFields($input): array` kini memeriksa header `Content-Type` (`application/json`) sebelum memanggil `$input->getJSON(true)` agar request `form-urlencoded` dari `app/Views/master/jalan.php` tidak melempar `HTTPException` (`Failed to parse JSON string`).
+    - `App\Controllers\Api\Proyek\JalanController::getRequestData(): array` kini memeriksa header `Content-Type` (`application/json`) sebelum memanggil `$this->request->getJSON(true)` dan fallback ke `$this->request->getPost()`.
+  - **View / CSS / JS:** Tidak ada perubahan.
+  - **Deprecations:** Tidak ada.
 - `2026-11-11` [`REFACTOR`] — **Migrasi Full JSON (RAW_JSON_READY) & Dual-Mode Modul Proyek**:
   - Menghapus 100% HTML debt (tag `<button>`, `<span class="badge">`, `<img src="...">`) dari `ProyekService`, `ClusterService`, `TipeService`, dan `JalanService`.
   - Menstandarisasi response `Api\Proyek\*Controller` menggunakan envelope `BaseApiController` (`$this->success()`, `$this->error()`, `$this->successCreated()`).

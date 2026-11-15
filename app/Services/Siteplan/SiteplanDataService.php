@@ -33,10 +33,10 @@ class SiteplanDataService
         $idProyek = (int) ($params['id_proyek'] ?? 0);
         $idRole = (int) ($params['id_role'] ?? 0);
         $clusterIds = self::normalizeIdList($params['id_cluster'] ?? null);
-        $idJalan = self::normalizeOptionalId($params['id_jalan'] ?? null);
+        $jalanIds = self::normalizeIdList($params['id_jalan'] ?? null);
         $filters = $this->categoryFilters($params);
 
-        $data = $this->kavlingRepository->getAll($idProyek, $clusterIds ?: null, $idJalan, $idRole, $filters);
+        $data = $this->kavlingRepository->getAll($idProyek, $clusterIds ?: null, $jalanIds ?: null, $idRole, $filters);
         if ($idRole === 0) {
             $data = $this->visualStatusService->appendVisualRows($data);
         }

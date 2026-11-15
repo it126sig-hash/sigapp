@@ -359,11 +359,13 @@ class ReferralRepository extends Model
             ->join('kavling kv', 'kv.id_mkdt = mk.id_mkdt')
             ->join('jalan jl', 'jl.id_jalan = kv.id_jalan')
             ->join('cluster cl', 'cl.id_cluster = jl.id_cluster')
-            ->join('referrals r', 'r.id_konsumen_referrer = k.id_konsumen AND r.id_proyek = cl.id_proyek')
+            ->join(
+                'referrals r',
+                "r.id_konsumen_referrer = k.id_konsumen AND r.id_proyek = cl.id_proyek AND COALESCE(r.status, 'active') = 'active'",
+                'left'
+            )
             ->where('cl.id_proyek', $idProyek)
-            ->where('r.id_proyek', $idProyek)
-            ->where("COALESCE(r.status, 'active') = 'active'", null, false)
-            ->where('mk.status_mkdt !=', 'Batal')
+            ->where("COALESCE(mk.status_mkdt, '') !=", 'Batal')
             ->where('k.kode_referal IS NOT NULL')
             ->where('k.kode_referal !=', '');
 
@@ -377,6 +379,7 @@ class ReferralRepository extends Model
         return $builder
             ->groupBy('k.id_konsumen, k.kode_referal, k.nama_konsumen')
             ->orderBy('jumlah_referal', 'DESC')
+            ->orderBy('k.nama_konsumen', 'ASC')
             ->limit(20)
             ->get()
             ->getResult();

@@ -151,7 +151,7 @@ class KavlingRequestService
     /**
      * Mengambil daftar request kavling berdasarkan proyek aktif dan filter status
      */
-    public function getList(int $idProyek, ?string $status = null): array
+    public function getList(int $idProyek, ?string $status = null, ?int $page = null, ?int $perPage = null): array
     {
         $builder = $this->db->table('kavling_request')
             ->select('
@@ -178,7 +178,49 @@ class KavlingRequestService
         }
 
         $builder->orderBy('kavling_request.created_at', 'DESC');
+
+        if ($perPage !== null && $perPage > 0) {
+            $safePage = max(1, (int) ($page ?? 1));
+            $offset   = ($safePage - 1) * $perPage;
+            $builder->limit($perPage, $offset);
+        }
+
         return $builder->get()->getResult();
+    }
+
+    /**
+     * Menghitung jumlah request kavling per status untuk proyek tertentu.
+     *
+     * @return array{all: int, pending: int, approved: int, rejected: int}
+     */
+    public function getStatusCounts(int $idProyek): array
+    {
+        if ($idProyek <= 0) {
+            return [
+                'all'      => 0,
+                'pending'  => 0,
+                'approved' => 0,
+                'rejected' => 0,
+            ];
+        }
+
+        $row = $this->db->table('kavling_request')
+            ->select("
+                COUNT(*) AS total_count,
+                COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending_count,
+                COUNT(CASE WHEN status = 'approved' THEN 1 END) AS approved_count,
+                COUNT(CASE WHEN status = 'rejected' THEN 1 END) AS rejected_count
+            ", false)
+            ->where('id_proyek', $idProyek)
+            ->get()
+            ->getRow();
+
+        return [
+            'all'      => (int) ($row->total_count ?? 0),
+            'pending'  => (int) ($row->pending_count ?? 0),
+            'approved' => (int) ($row->approved_count ?? 0),
+            'rejected' => (int) ($row->rejected_count ?? 0),
+        ];
     }
 
     /**

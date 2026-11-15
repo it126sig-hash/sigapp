@@ -212,6 +212,12 @@ $routes->group('api/siteplan', ['namespace' => 'App\Controllers\Api\Siteplan', '
     $routes->post('others', 'SiteplanController::others');
     $routes->get('detail/(:num)', 'SiteplanController::detail/$1');
     $routes->post('detail', 'SiteplanController::detail');
+    $routes->post('add_kavling', 'SiteplanController::add_kavling');
+    $routes->post('edit_kavling', 'SiteplanController::edit_kavling');
+    $routes->post('edit_others', 'SiteplanController::edit_others');
+    $routes->post('get_kavling_by_id', 'SiteplanController::get_kavling_by_id');
+    $routes->post('get_kavling_by_multiple_id', 'SiteplanController::get_kavling_by_multiple_id');
+    $routes->post('get_others', 'SiteplanController::get_others');
     $routes->get('kalendar/events', 'KalendarController::getEvents');
     $routes->get('kalendar/meta', 'KalendarController::meta');
 });

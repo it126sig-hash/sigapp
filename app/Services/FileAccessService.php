@@ -572,6 +572,14 @@ class FileAccessService
                 $row = $this->db->table('kopsurat')->where('id', $id)->get()->getRow();
                 $this->assertRow($row);
                 return $this->fileMeta($row->lokasi, basename((string) $row->lokasi), $this->sourceRoles['kop_surat'], $row);
+
+            case 'profile_photo':
+                $row = $this->db->table('users')->select('id, profile_photo')->where('id', $id)->get()->getRow();
+                $this->assertRow($row);
+                if (trim((string) ($row->profile_photo ?? '')) === '') {
+                    throw new RuntimeException('NOT_FOUND');
+                }
+                return $this->fileMeta($row->profile_photo, basename((string) $row->profile_photo), $this->sourceRoles[$source], $row);
         }
 
         throw new RuntimeException('NOT_FOUND');
