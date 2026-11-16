@@ -17,8 +17,10 @@ class KavlingRequestModel extends Model
         'id_cluster',
         'id_jalan',
         'id_tipe',
+        'tipe_manual',
         'keterangan',
         'status',
+        'alasan_tolak',
         'created_by',
     ];
     protected $useTimestamps    = true;

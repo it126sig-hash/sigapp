@@ -192,14 +192,53 @@ class TransaksiService
     public function getStatusById($id_hargajual, $id_kavling, $id_mkdt)
     {
         //ambil status perintah bangun
-        $resp['perintah_bangun'] = $this->kavlingRepo->getPerintahBangun($id_kavling);
+        $resp['perintah_bangun'] = $id_kavling ? $this->kavlingRepo->getPerintahBangun($id_kavling) : null;
+        if ($resp['perintah_bangun'] && !empty($resp['perintah_bangun']->perintah_bangun_file) && !empty($id_kavling)) {
+            $resp['perintah_bangun']->perintah_bangun_access_url = $this->fileAccessService->accessUrl('kavling_perintah_bangun', (int) $id_kavling);
+        }
 
         //ambil data transaksi
-        $resp['data'] = $this->transaksiRepo->getKonsumenTransaksi($id_mkdt);
+        $resp['data'] = $id_mkdt ? $this->transaksiRepo->getKonsumenTransaksi((int) $id_mkdt) : null;
 
         if ($resp['data']) {
+            if (!empty($resp['data']->sp3k_file) && !empty($resp['data']->id_mkdt)) {
+                $resp['data']->sp3k_access_url = $this->fileAccessService->accessUrl('mkdt_sp3k', (int) $resp['data']->id_mkdt);
+            }
+            if (!empty($resp['data']->bast_file) && !empty($resp['data']->id_mkdt)) {
+                $resp['data']->bast_access_url = $this->fileAccessService->accessUrl('mkdt_bast', (int) $resp['data']->id_mkdt);
+            }
             $resp['tagihan'] = $this->keuRepo->getTagihanTurunKPRById($id_mkdt);
         }
+
+        $proyekId = null;
+        if ($resp['data'] && !empty($resp['data']->id_proyek)) {
+            $proyekId = (int) $resp['data']->id_proyek;
+        } elseif (!empty($id_kavling)) {
+            $proyekId = $this->kavlingRepo->getIdProyekByKavling((int) $id_kavling);
+        } elseif (!empty($id_mkdt)) {
+            $proyekId = $this->kavlingRepo->getIdProyekByIdMkdt((int) $id_mkdt);
+        }
+
+        $namaProyek = null;
+        if ($proyekId) {
+            $proyekRow = $this->db->table('proyek')
+                ->select('nama_proyek')
+                ->where('id_proyek', $proyekId)
+                ->get()
+                ->getRow();
+            $namaProyek = $proyekRow ? $proyekRow->nama_proyek : null;
+        }
+
+        if ($resp['data'] && is_object($resp['data'])) {
+            if (!isset($resp['data']->nama_proyek)) {
+                $resp['data']->nama_proyek = $namaProyek;
+            }
+            if (!isset($resp['data']->hp_konsumen)) {
+                $resp['data']->hp_konsumen = null;
+            }
+        }
+        $resp['nama_proyek'] = $namaProyek;
+
         $resp['token'] = csrf_hash();
 
         return $resp;

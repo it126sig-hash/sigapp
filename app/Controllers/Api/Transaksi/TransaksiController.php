@@ -28,24 +28,21 @@ class TransaksiController extends BaseApiController
 
     public function getByID(): ResponseInterface
     {
+        $input = $this->readRequestData();
         $rules = [
             'id_mkdt'      => 'permit_empty|is_natural_no_zero',
             'id_hargajual' => 'permit_empty|is_natural_no_zero',
             'id_kavling'   => 'permit_empty|is_natural_no_zero',
         ];
-        if (!$this->validate($rules)) {
+        if (! $this->validateData($input, $rules)) {
             return $this->error('Parameter tidak valid', 422, $this->validator->getErrors());
         }
 
-        $idMkdt      = $this->request->getVar('id_mkdt') ?: null;
-        $idHargajual = $this->request->getVar('id_hargajual') ?: null;
-        $idKavling   = $this->request->getVar('id_kavling') ?: null;
+        $idMkdt      = !empty($input['id_mkdt']) ? (int) $input['id_mkdt'] : null;
+        $idHargajual = !empty($input['id_hargajual']) ? (int) $input['id_hargajual'] : null;
+        $idKavling   = !empty($input['id_kavling']) ? (int) $input['id_kavling'] : null;
 
-        $resp = $this->mkdtService->getBundle(
-            $idMkdt ? (int) $idMkdt : null,
-            $idHargajual ? (int) $idHargajual : null,
-            $idKavling ? (int) $idKavling : null
-        );
+        $resp = $this->mkdtService->getBundle($idMkdt, $idHargajual, $idKavling);
 
         $resp['success']  = true;
         $resp['messages'] = 'Detail transaksi berhasil diambil';
@@ -56,9 +53,10 @@ class TransaksiController extends BaseApiController
 
     public function getStatusByID(): ResponseInterface
     {
-        $id_hargajual = $this->request->getVar('id_hargajual');
-        $id_kavling   = $this->request->getVar('id_kavling');
-        $id_mkdt      = $this->request->getVar('id_mkdt');
+        $input        = $this->readRequestData();
+        $id_hargajual = $input['id_hargajual'] ?? null;
+        $id_kavling   = $input['id_kavling'] ?? null;
+        $id_mkdt      = $input['id_mkdt'] ?? null;
 
         $resp             = $this->mkdtService->getStatusById($id_hargajual, $id_kavling, $id_mkdt);
         $resp['success']  = true;

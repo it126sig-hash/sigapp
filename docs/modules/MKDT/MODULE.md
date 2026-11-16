@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-13 13:45:24` @ `7f0ed7e`  
+**Last Synced:** `2026-11-15 08:53:22` @ `889516a`  
 
 ## Purpose
 Manajemen Konsumen dan Transaksi (MKDT): tata kelola siklus transaksi konsumen mulai dari NUP, booking unit, verifikasi data konsumen, posisi kavling, wawancara perbankan, persetujuan SP3K, akad indent (PPJB), akad AJB, mutasi/pergantian konsumen, hingga pembatalan unit (`mkdt`, `konsumen`, `mkdt_kavling_history`).
@@ -172,7 +172,7 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 ### Controllers (9)
 - `app/Controllers/Web/Mkdt/PosisiKonsumenController.php` (38 baris, 1 public methods: `index($status = null)`)
 - `app/Controllers/Api/Mkdt/PosisiKonsumenController.php` (145 baris, 6 public methods: `meta()`, `getDataTables($status = null)`, `getDataTablesAkad()`, `getDataTablesBatal()`, `exportPoskon($tipe = 'xlsx', $status = 'aktif')`, `getRiwayatExport($status = 'Aktif')`)
-- `app/Controllers/Api/Mkdt/NupController.php` (195 baris, 6 public methods: `list()`, `detail()`, `save()`, `pull()`, `kavlingOptions()`, `kavlingHistory()`)
+- `app/Controllers/Api/Mkdt/NupController.php` (205 baris, 6 public methods: `list()`, `detail()`, `save()`, `pull()`, `kavlingOptions()`, `kavlingHistory()`)
 - `app/Controllers/Web/Mkdt/PromoController.php` (33 baris, 1 public methods: `index()`)
 - `app/Controllers/Api/Mkdt/PromoController.php` (206 baris, 7 public methods: `meta()`, `getDataTable()`, `getAll()`, `getOne($id = null)`, `add()`, `edit($id = null)`, `remove($id = null)`)
 - `app/Controllers/Web/Mkdt/BookingAkadReportController.php` (49 baris, 1 public methods: `index()`)
@@ -531,6 +531,10 @@ _Jalankan `php spark module:deadcode MKDT` untuk mengaudit dead code kandidat._
   4. Pemutakhiran atau pengarsipan 2 unit/DB test pra-refaktor dari commit `bc174ee` (`tests/unit/BookingAkadReportM2ChallengerTest.php` & `tests/database/BookingAkadReportProyek13MetricsTest.php`).
 
 ## Change Log
+- **`2026-11-15` [`API-BRIDGE`] — Penyesuaian JSON Bridge `Api\Mkdt\NupController` untuk SPA Siteplan Fase 3.3 (Sub-Fase 3.3.1):**
+  - **Controller & Contracts (`app/Controllers/Api/Mkdt/NupController.php`):**
+    - `list()`, `detail()`, `kavlingOptions()`, dan `kavlingHistory()` kini membaca parameter melalui `$this->readRequestData()` (mendukung JSON body, query, POST, & fallback `ActiveProyekService`), menggunakan `$this->validateData($input, ...)` (`errors` map pada HTTP `422`), dan mengembalikan envelope JSON konsisten (`status`, `success`, `messages`, `data`, `token`).
+  - **View / CSS / JS & Verification:** Tidak ada perubahan view legacy `sigapp.dev`; terverifikasi QA `PASS` bersama `php spark module:sync MKDT`.
 - **`2026-11-13` [`REFACTOR COMPLETE`] — Fase 6 Final Cross-Module QA PASS & Penyelesaian Migrasi MKDT:**
   - **Routes & Public Contracts:**
     - Seluruh 29 rute eksplisit Web/API MKDT (`\App\Controllers\Web\Mkdt\*`, `\App\Controllers\Api\Mkdt\*`), kontrak dual-mode `/api/mkdt/*?format=raw`, `/api/nup/*`, `/api/laporan/booking-akad/*`, serta redirect `/list-batal` -> `/list-kavling/batal` terverifikasi aktif dan konsisten.

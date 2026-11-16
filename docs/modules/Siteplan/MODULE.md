@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-15 01:36:27` @ `7b1acf6`  
+**Last Synced:** `2026-11-15 08:53:21` @ `889516a`  
 
 ## Purpose
 Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial visual.
@@ -44,7 +44,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 | `GET` | `/getmodal` | `Explicit` | `\App\Controllers\Web\Siteplan\ModalController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/kalendar` | `Explicit` | `\App\Controllers\Web\Siteplan\KalendarController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/kalendar/index` | `Explicit` | `\App\Controllers\Web\Siteplan\KalendarController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `GET` | `/api/siteplan/meta` | `Explicit` | `SiteplanController::meta` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY`; menyertakan `siteplan_menus` & `permissions.{role_id, is_admin, has_project_access}` |
+| `GET` | `/api/siteplan/meta` | `Explicit` | `SiteplanController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/siteplan/kavling` | `Explicit` | `SiteplanController::kavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/siteplan/kavling` | `Explicit` | `SiteplanController::kavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/siteplan/proyek/(:num)` | `Explicit` | `SiteplanController::proyek/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -54,12 +54,15 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 | `POST` | `/api/siteplan/others` | `Explicit` | `SiteplanController::others` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/siteplan/detail/(:num)` | `Explicit` | `SiteplanController::detail/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/siteplan/detail` | `Explicit` | `SiteplanController::detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
-| `POST` | `/api/siteplan/add_kavling` | `Explicit` | `SiteplanController::add_kavling` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY` Planning tambah kavling/others (`201`/`422` envelope via `wantsEnvelope()`) |
-| `POST` | `/api/siteplan/edit_kavling` | `Explicit` | `SiteplanController::edit_kavling` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY` Planning ubah/pindah kavling single & batch (`200`/`422` envelope) |
-| `POST` | `/api/siteplan/edit_others` | `Explicit` | `SiteplanController::edit_others` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY` Planning ubah/pindah item `others` (`200`/`422` envelope) |
-| `POST` | `/api/siteplan/get_kavling_by_id` | `Explicit` | `SiteplanController::get_kavling_by_id` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY` fetch kavling tunggal untuk form Planning (`200`/`404` envelope) |
-| `POST` | `/api/siteplan/get_kavling_by_multiple_id` | `Explicit` | `SiteplanController::get_kavling_by_multiple_id` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY` fetch kavling batch untuk form edit Planning (`200` envelope) |
-| `POST` | `/api/siteplan/get_others` | `Explicit` | `SiteplanController::get_others` | 🟢 MIGRATED | Endpoint REST JSON `RAW_JSON_READY` fetch item `others` per ID/filter (`200` envelope + fallback header `X-Project-Id`) |
+| `POST` | `/api/siteplan/add_kavling` | `Explicit` | `SiteplanController::add_kavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/siteplan/edit_kavling` | `Explicit` | `SiteplanController::edit_kavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/siteplan/edit_others` | `Explicit` | `SiteplanController::edit_others` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/siteplan/get_kavling_by_id` | `Explicit` | `SiteplanController::get_kavling_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/siteplan/get_kavling_by_multiple_id` | `Explicit` | `SiteplanController::get_kavling_by_multiple_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/siteplan/get_harga_kavling` | `Explicit` | `SiteplanController::get_harga_kavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/siteplan/get_turun_pembangunan` | `Explicit` | `SiteplanController::get_turun_pembangunan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/siteplan/set_turun_pembangunan` | `Explicit` | `SiteplanController::set_turun_pembangunan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/siteplan/get_others` | `Explicit` | `SiteplanController::get_others` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/siteplan/get/all` | `Explicit` | `SiteplanController::getAllKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/siteplan/getAllKavling` | `Explicit` | `SiteplanController::getAllKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/siteplan/get/detail` | `Explicit` | `SiteplanController::get_detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -294,6 +297,11 @@ _Jalankan `php spark module:deadcode Siteplan` untuk mengaudit dead code kandida
     - `SiteplanTiketOverlay` (`public/assets/js/siteplan/tiket-overlay.js`) dan `master.js` (`syncSiteplanTiketOverlay`): mengagregasikan masalah kavling dan others secara atomik dan merender `tiketOverlayLayer` pada peta KonvaJS.
 
 ## Change Log
+- **`2026-11-15` [`API-BRIDGE`] — Penambahan 3 Rute REST MKDT `POST /api/siteplan/{get_harga_kavling,get_turun_pembangunan,set_turun_pembangunan}` untuk SPA Siteplan Fase 3.3 (Sub-Fase 3.3.1):**
+  - **Routes & Public Contracts:**
+    - Mendaftarkan 3 rute eksplisit baru pada grup `api/siteplan` (`app/Config/Routes.php` -> `Api\Siteplan\SiteplanController`): `POST /api/siteplan/get_harga_kavling`, `POST /api/siteplan/get_turun_pembangunan`, dan `POST /api/siteplan/set_turun_pembangunan` (`RAW_JSON_READY` JSON envelope via `getRequestData()` + `wantsEnvelope()`, mendukung upload `perintah_bangun_file`).
+    - Rute legacy `/siteplan/{get_harga_kavling,get_turun_pembangunan,set_turun_pembangunan}` tetap dipertahankan utuh (*Zero-Downtime*).
+  - **Controller / Service / Repo / Model & View:** Tidak ada perubahan logika controller/service/view legacy `sigapp.dev`; diverifikasi QA `PASS` bersama `php spark module:sync Siteplan`.
 - **`2026-11-15` [`API-BRIDGE`] — Penambahan 6 Endpoint REST Planning `POST /api/siteplan/*` & Pengayaan `KavlingRequest` untuk SPA Siteplan Fase 3.2 (Divisi Planning):**
   - **Routes & Public Contracts:**
     - Mendaftarkan 6 rute eksplisit baru pada grup `api/siteplan` (`app/Config/Routes.php` -> `Api\Siteplan\SiteplanController`): `POST /api/siteplan/add_kavling`, `POST /api/siteplan/edit_kavling`, `POST /api/siteplan/edit_others`, `POST /api/siteplan/get_kavling_by_id`, `POST /api/siteplan/get_kavling_by_multiple_id`, dan `POST /api/siteplan/get_others` (`RAW_JSON_READY` JSON envelope via `wantsEnvelope()`, `add_kavling` mengembalikan HTTP `201`/`422`, `edit_kavling`/`edit_others` HTTP `200`/`422`, `get_kavling_by_id` HTTP `200`/`404`, `get_kavling_by_multiple_id`/`get_others` HTTP `200`).

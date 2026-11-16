@@ -197,20 +197,27 @@ class ReferralController extends BaseApiController
 
     public function searchOptions(): ResponseInterface
     {
-        $search = $this->request->getPost('q');
-        $idProyek = $this->request->getPost('id_proyek') ?: active_proyek_id();
+        $input    = $this->readRequestData();
+        $search   = trim((string) ($input['q'] ?? $input['search'] ?? ''));
+        $idProyek = (int) (($input['id_proyek'] ?? 0) ?: active_proyek_id() ?: 0);
 
-        $data = $this->repo->searchReferrerOptions((string)$search, (int)$idProyek);
-        
+        $data = $this->repo->searchReferrerOptions($search, $idProyek);
+
         $results = [];
         foreach ($data as $row) {
             $results[] = [
-                'id' => $row->kode_referal,
-                'text' => $row->kode_referal . ' - ' . $row->nama_konsumen
+                'id'   => $row->kode_referal,
+                'text' => $row->kode_referal . ' - ' . $row->nama_konsumen,
             ];
         }
-        
-        return $this->response->setJSON(['results' => $results]);
+
+        return $this->response->setJSON([
+            'success'  => true,
+            'messages' => 'Daftar referral berhasil diambil',
+            'data'     => $results,
+            'results'  => $results,
+            'token'    => csrf_hash(),
+        ]);
     }
 
     private function canPromosi(): bool

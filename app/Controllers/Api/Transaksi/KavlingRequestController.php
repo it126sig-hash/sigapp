@@ -38,6 +38,7 @@ class KavlingRequestController extends BaseApiController
         $rules = [
             'id_proyek'     => 'required|is_natural_no_zero',
             'jenis_request' => 'required|in_list[tambah_baru,ubah_tipe]',
+            'tipe_manual'   => 'permit_empty|max_length[100]',
         ];
 
         if (! $this->validateData($input, $rules)) {
@@ -95,12 +96,12 @@ class KavlingRequestController extends BaseApiController
     }
 
     /**
-     * Menampilkan daftar request kavling untuk tim Planning / Admin
+     * Menampilkan daftar request kavling untuk tim Planning / Admin / MKDT / Keuangan / Promosi
      */
     public function list(): ResponseInterface
     {
-        if (! in_groups(['1', '6'])) {
-            return $this->error('Akses ditolak. Hanya tim Planning yang dapat mengakses data ini.', 403);
+        if (! in_groups(['1', '3', '4', '6', '8'])) {
+            return $this->error('Akses ditolak. Anda tidak memiliki hak akses untuk melihat daftar request kavling.', 403);
         }
 
         $input    = $this->getRequestData();
@@ -160,9 +161,10 @@ class KavlingRequestController extends BaseApiController
             return $this->error('Akses ditolak. Hanya tim Planning yang dapat mengubah status request.', 403);
         }
 
-        $input     = $this->getRequestData();
-        $idRequest = (int) ($input['id_request'] ?? 0);
-        $status    = trim((string) ($input['status'] ?? ''));
+        $input       = $this->getRequestData();
+        $idRequest   = (int) ($input['id_request'] ?? 0);
+        $status      = trim((string) ($input['status'] ?? ''));
+        $alasanTolak = trim((string) ($input['alasan_tolak'] ?? $input['notes'] ?? ''));
 
         if ($idRequest <= 0 || $status === '') {
             return $this->error('Parameter id_request dan status wajib diisi.', 400);
@@ -174,9 +176,17 @@ class KavlingRequestController extends BaseApiController
             ]);
         }
 
+        $isSpaClient  = $this->request->header('X-Client-Platform') !== null;
+        $hasReasonKey = array_key_exists('alasan_tolak', $input) || array_key_exists('notes', $input);
+        if ($status === 'rejected' && ($isSpaClient || $hasReasonKey) && $alasanTolak === '') {
+            return $this->error('Alasan penolakan wajib diisi saat menolak request.', 422, [
+                'alasan_tolak' => 'Alasan penolakan wajib diisi.',
+            ]);
+        }
+
         try {
             $userId = (int) (function_exists('user_id') ? (user_id() ?? 0) : 0);
-            $result = $this->service->updateStatus($idRequest, $status, $userId);
+            $result = $this->service->updateStatus($idRequest, $status, $userId, $alasanTolak !== '' ? $alasanTolak : null);
 
             return $this->success($result, $result['message']);
         } catch (Throwable $e) {

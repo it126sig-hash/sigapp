@@ -130,8 +130,21 @@ class HargajualController extends BaseApiController
 
     public function set_harga(): ResponseInterface
     {
-        $rawIdKavling = (string) ($this->request->getVar('id_kavling') ?? '');
-        $idHargaAkhir = $this->request->getVar('sh-id') ?? $this->request->getVar('harga_akhir');
+        $input          = $this->readRequestData();
+        $rawIdKavlingIn = $input['id_kavling'] ?? $this->request->getVar('id_kavling') ?? '';
+        if (is_array($rawIdKavlingIn)) {
+            $ids          = array_values(array_filter(array_map('intval', $rawIdKavlingIn), static fn (int $id): bool => $id > 0));
+            $rawIdKavling = implode(',', $ids);
+        } else {
+            $rawIdKavling = trim((string) $rawIdKavlingIn);
+        }
+
+        $idHargaAkhir = $input['id_hargajual']
+            ?? $input['sh-id']
+            ?? $input['harga_akhir']
+            ?? $this->request->getVar('id_hargajual')
+            ?? $this->request->getVar('sh-id')
+            ?? $this->request->getVar('harga_akhir');
 
         $result          = $this->hargaJualService->setHargaKavling($rawIdKavling, $idHargaAkhir, (int) user_id());
         $result['token'] = csrf_hash();

@@ -17,40 +17,45 @@ class NupController extends BaseApiController
 
     public function list(): ResponseInterface
     {
-        $idProyek = (int) ($this->request->getVar('id_proyek') ?: $this->activeProyekService->getActiveId() ?: 0);
-        $search   = trim((string) ($this->request->getVar('search') ?? ''));
+        $input    = $this->readRequestData();
+        $idProyek = (int) (($input['id_proyek'] ?? 0) ?: $this->activeProyekService->getActiveId() ?: 0);
+        $search   = trim((string) ($input['search'] ?? ''));
 
         $rows = $this->nupService->getListByProyek($idProyek, $search);
 
         return $this->response->setJSON([
-            'status'  => true,
-            'success' => true,
-            'data'    => $rows,
-            'count'   => count($rows),
-            'token'   => csrf_hash(),
+            'status'   => true,
+            'success'  => true,
+            'messages' => 'Daftar NUP berhasil diambil.',
+            'data'     => $rows,
+            'count'    => count($rows),
+            'token'    => csrf_hash(),
         ]);
     }
 
     public function detail(): ResponseInterface
     {
-        if (! $this->validate(['id_mkdt' => 'required|is_natural_no_zero'])) {
+        $input = $this->readRequestData();
+        if (! $this->validateData($input, ['id_mkdt' => 'required|is_natural_no_zero'])) {
             return $this->response->setStatusCode(422)->setJSON([
                 'status'   => false,
                 'success'  => false,
                 'messages' => 'ID transaksi NUP tidak valid.',
+                'errors'   => $this->validator->getErrors(),
                 'token'    => csrf_hash(),
             ]);
         }
 
         try {
-            $idMkdt = (int) $this->request->getVar('id_mkdt');
+            $idMkdt = (int) $input['id_mkdt'];
             $detail = $this->nupService->getDetail($idMkdt);
 
             return $this->response->setJSON([
-                'status'  => true,
-                'success' => true,
-                'data'    => $detail,
-                'token'   => csrf_hash(),
+                'status'   => true,
+                'success'  => true,
+                'messages' => 'Detail NUP berhasil diambil.',
+                'data'     => $detail,
+                'token'    => csrf_hash(),
             ]);
         } catch (ServiceException $e) {
             return $this->response->setStatusCode($e->getStatusCode())->setJSON([
@@ -154,11 +159,12 @@ class NupController extends BaseApiController
 
     public function kavlingOptions(): ResponseInterface
     {
-        $idProyek         = (int) ($this->request->getVar('id_proyek') ?: $this->activeProyekService->getActiveId() ?: 0);
-        $search           = trim((string) ($this->request->getVar('search') ?? ''));
-        $currentIdKavling = (int) ($this->request->getVar('current_id_kavling') ?: 0);
-        $lastIdKavling    = (int) ($this->request->getVar('last_id_kavling') ?: 0);
-        $filterHargaJual  = trim((string) ($this->request->getVar('filter_hargajual') ?? ''));
+        $input            = $this->readRequestData();
+        $idProyek         = (int) (($input['id_proyek'] ?? 0) ?: $this->activeProyekService->getActiveId() ?: 0);
+        $search           = trim((string) ($input['search'] ?? ''));
+        $currentIdKavling = (int) ($input['current_id_kavling'] ?? 0);
+        $lastIdKavling    = (int) ($input['last_id_kavling'] ?? 0);
+        $filterHargaJual  = trim((string) ($input['filter_hargajual'] ?? ''));
 
         $options = $this->nupService->getKavlingOptions(
             $idProyek,
@@ -169,23 +175,27 @@ class NupController extends BaseApiController
         );
 
         return $this->response->setJSON([
-            'status'  => true,
-            'success' => true,
-            'data'    => $options,
-            'token'   => csrf_hash(),
+            'status'   => true,
+            'success'  => true,
+            'messages' => 'Daftar pilihan kavling berhasil diambil.',
+            'data'     => $options,
+            'token'    => csrf_hash(),
         ]);
     }
 
     public function kavlingHistory(): ResponseInterface
     {
-        $idMkdt    = (int) ($this->request->getVar('id_mkdt') ?: 0);
-        $idKavling = (int) ($this->request->getVar('id_kavling') ?: 0);
+        $input     = $this->readRequestData();
+        $idMkdt    = (int) ($input['id_mkdt'] ?? 0);
+        $idKavling = (int) ($input['id_kavling'] ?? 0);
 
         $history = $this->nupService->getFormattedKavlingHistory($idMkdt, $idKavling);
 
         return $this->response->setJSON([
             'status'      => true,
             'success'     => true,
+            'messages'    => 'Riwayat kavling berhasil diambil.',
+            'data'        => $history,
             'history'     => $history,
             'has_history' => count($history) > 0,
             'token'       => csrf_hash(),

@@ -217,6 +217,9 @@ $routes->group('api/siteplan', ['namespace' => 'App\Controllers\Api\Siteplan', '
     $routes->post('edit_others', 'SiteplanController::edit_others');
     $routes->post('get_kavling_by_id', 'SiteplanController::get_kavling_by_id');
     $routes->post('get_kavling_by_multiple_id', 'SiteplanController::get_kavling_by_multiple_id');
+    $routes->post('get_harga_kavling', 'SiteplanController::get_harga_kavling');
+    $routes->post('get_turun_pembangunan', 'SiteplanController::get_turun_pembangunan');
+    $routes->post('set_turun_pembangunan', 'SiteplanController::set_turun_pembangunan');
     $routes->post('get_others', 'SiteplanController::get_others');
     $routes->get('kalendar/events', 'KalendarController::getEvents');
     $routes->get('kalendar/meta', 'KalendarController::meta');
@@ -556,6 +559,14 @@ $routes->group('tagihan', ['namespace' => 'App\Controllers\Api\Keuangan', 'filte
     $routes->post('list/detail', 'TagihanController::getListTagihanDetail');
     $routes->post('list/export-excel', 'TagihanController::exportExcelTagihan');
     $routes->post('list/ambil-riwayat-surat', 'TagihanController::getListRiwayatSurat');
+});
+
+// Zero-Downtime API aliases for SPA / Mobile (sigapp-vue)
+$routes->group('api/tagihan', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function ($routes) {
+    $routes->post('turunkpr', 'TagihanController::tambahTurunKPR');
+    $routes->post('hapusturunkpr', 'TagihanController::hapusTurunKPR');
+    $routes->post('void', 'TagihanController::voidTagihan');
+    $routes->post('unvoid', 'TagihanController::unvoidTagihan');
 });
 
 $routes->get('/riwayat-bayar', '\App\Controllers\Web\Keuangan\TagihanController::riwayatBayarIndex', ['filter' => 'login']);

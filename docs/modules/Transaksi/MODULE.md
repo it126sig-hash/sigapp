@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-13 01:34:24` @ `490a491`  
+**Last Synced:** `2026-11-15 08:53:24` @ `889516a`  
 
 ## Purpose
 Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-beli unit kavling, pengelolaan master daftar harga (*pricelist* `hargajual` & lampiran dokumen SK `file_hargajual`), penetapan harga jual akhir unit kavling (`set_harga`), pergantian konsumen (*consumer replacement*), pembaruan status transaksi & perintah bangun, serta alur pengajuan dan persetujuan pembukaan/request unit kavling (`kavling_request`). Dibangun dengan arsitektur modular **Thin Controller → Service → Repository**, pemisahan tegas antara Web Controller dan API Controller, serta dukungan penuh kontrak **`RAW_JSON_READY`** (`?format=raw` dan endpoint `/meta`) untuk kesiapan integrasi SPA/Mobile.
@@ -113,8 +113,9 @@ Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-b
 - `cleanNumeric(mixed $value)`
 #### `KavlingRequestService.php`
 - `submitRequest(array $data, int $userId)`
-- `getList(int $idProyek, ?string $status = null)`
-- `updateStatus(int $idRequest, string $newStatus, int $userId)`
+- `getList(int $idProyek, ?string $status = null, ?int $page = null, ?int $perPage = null)`
+- `getStatusCounts(int $idProyek)`
+- `updateStatus(int $idRequest, string $newStatus, int $userId, ?string $alasanTolak = null)`
 #### `HargaJualService.php`
 - `hasAccess(int $userId)`
 - `getProyekList()`
@@ -131,21 +132,21 @@ Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-b
 ## File Inventory
 ### Controllers (6)
 - `app/Controllers/Web/Transaksi/HargajualController.php` (37 baris, 1 public methods: `index()`)
-- `app/Controllers/Api/Transaksi/HargajualController.php` (142 baris, 8 public methods: `meta()`, `getDataTable()`, `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`, `set_harga()`)
-- `app/Controllers/Api/Transaksi/TransaksiController.php` (346 baris, 6 public methods: `meta()`, `getByID()`, `getStatusByID()`, `saveTransaksi()`, `replaceConsumer()`, `saveStatus()`)
+- `app/Controllers/Api/Transaksi/HargajualController.php` (155 baris, 8 public methods: `meta()`, `getDataTable()`, `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`, `set_harga()`)
+- `app/Controllers/Api/Transaksi/TransaksiController.php` (344 baris, 6 public methods: `meta()`, `getByID()`, `getStatusByID()`, `saveTransaksi()`, `replaceConsumer()`, `saveStatus()`)
 - `app/Controllers/Api/Transaksi/MkdtController.php` (67 baris, 2 public methods: `history()`, `consumerReplacementHistory()`)
-- `app/Controllers/Api/Transaksi/KavlingRequestController.php` (135 baris, 4 public methods: `submit()`, `kavlingList()`, `list()`, `updateStatus()`)
+- `app/Controllers/Api/Transaksi/KavlingRequestController.php` (216 baris, 4 public methods: `submit()`, `kavlingList()`, `list()`, `updateStatus()`)
 - `app/Controllers/Api/Transaksi/KavlingController.php` (45 baris, 1 public methods: `getList()`)
 
 ### Services (3)
-- `app/Services/Transaksi/TransaksiService.php` (988 baris, 9 public methods)
-- `app/Services/Transaksi/KavlingRequestService.php` (222 baris, 3 public methods)
+- `app/Services/Transaksi/TransaksiService.php` (1027 baris, 9 public methods)
+- `app/Services/Transaksi/KavlingRequestService.php` (290 baris, 4 public methods)
 - `app/Services/Transaksi/HargaJualService.php` (576 baris, 11 public methods)
 
 ### Repositories (3)
 - `app/Repositories/Transaksi/TransaksiRepository.php` (230 baris, 6 public methods: `getKonsumenTransaksi(int $idMkdt)`, `findNikUsage(string $nik, ?int $excludeMkdt = null, ?int $excludeKonsumen = null)`, `getKonsumenByIdKavling($idKavling)`, `getSpptbData(int $idKavling, int $idMkdt)`, `lockConsumerReplacementContext(int $idMkdt, int $idKavling)`, `getLegacyReplacementSpptbData(int $idKavling, int $currentIdMkdt)`)
 - `app/Repositories/Transaksi/HargaJualRepository.php` (270 baris, 14 public methods: `getHargaJualById(int $id)`, `hasModuleAccess(int $userId, string $module = 'Hargajual')`, `getProyekList()`, `getDetailById(int $id)`, `getActiveByProyek(?int $idProyek, string $search = '')`, `getDataTableRows(array $var, ?int $idProyek)`, `getDataTableFilteredCount(array $var, ?int $idProyek)`, `getDataTableTotalCount(?int $idProyek)`, `insertFileHargajual(array $data)`, `insertHargaJual(array $data)`, `updateHargaJual(int $id, array $data)`, `findKavlingById(int $idKavling)`, `updateKavlingHarga(int $idKavling, array $data)`, `getPricelistRowById(int $id)`)
-- `app/Repositories/Transaksi/KavlingRepository.php` (720 baris, 12 public methods: `getKavlingByIdMkdt(int $id_mkdt)`, `getIdProyekByIdMkdt(int $id_mkdt)`, `getIdProyekByKavling(int $id_kavling)`, `getKavlingById(int $idKavling)`, `getKavlingByIds(array $idKavlings)`, `getKavlingList($id_proyek = null, $search = "", $limit = null, $is_cashout_subkon = 0, $id_cluster = null, $id_jalan = null, $only_available = 0)`, `getDiskresiByKavlingId(int $idKavling)`, `getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null, $kategoriFilters = [])`, `getPerintahBangun($id_kavling)`, `setPerintahBangun($id, $data)`, `getKategoriOptions(int $idProyek)`, `applyKategoriFilter(BaseBuilder $builder, array $filters)`)
+- `app/Repositories/Transaksi/KavlingRepository.php` (726 baris, 12 public methods: `getKavlingByIdMkdt(int $id_mkdt)`, `getIdProyekByIdMkdt(int $id_mkdt)`, `getIdProyekByKavling(int $id_kavling)`, `getKavlingById(int $idKavling)`, `getKavlingByIds(array $idKavlings)`, `getKavlingList($id_proyek = null, $search = "", $limit = null, $is_cashout_subkon = 0, $id_cluster = null, $id_jalan = null, $only_available = 0)`, `getDiskresiByKavlingId(int $idKavling)`, `getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null, $kategoriFilters = [])`, `getPerintahBangun($id_kavling)`, `setPerintahBangun($id, $data)`, `getKategoriOptions(int $idProyek)`, `applyKategoriFilter(BaseBuilder $builder, array $filters)`)
 
 ### Models (3)
 - `app/Models/KavlingModel.php`
@@ -154,9 +155,6 @@ Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-b
 
 ### Views (1 folder)
 - `app/Views/hargajual` (1 file: `index.php`)
-
-### CSS & Frontend Styling (1 file)
-- `public/assets/css/hargajual.css` (Scoping `.hargajual-page`, `#add-modal`, `#detail-modal`, Primary Blue `#2057a3`, `.pricelist-dropzone.bpb-dropzone`)
 
 ### JavaScript (3 file)
 - `public/assets/js/hargajual.js` (681 baris)
@@ -304,27 +302,20 @@ Berdasarkan audit Codegraph lintas codebase, komponen modul `Transaksi` dikonsum
   11. `app/Repositories/KavlingRepository.php` -> `App\Repositories\Transaksi\KavlingRepository`
 - **Legacy Route Aliases:** Rute flat `/hargajual/*`, `/transaksi/*`, dan `/kavling/*` dipertahankan secara eksplisit di `app/Config/Routes.php` dan diarahkan langsung ke controller modular di `App\Controllers\Api\Transaksi\*`; gunakan rute kanonik `/api/hargajual/*`, `/api/transaksi/*`, dan `/api/kavling/*` untuk pengembangan baru.
 
-### Change Log
+## Change Log
+- **`2026-11-15` [`API-BRIDGE & SCHEMA`] — Penyederhanaan `kavling_request` (`tipe_manual` & `alasan_tolak`), Akses Baca MKDT, & JSON Bridge `Hargajual`/`Transaksi` (Siteplan Fase 3.3 Sub-Fase 3.3.1):**
+  - **Database & Model:**
+    - `app/Database/Migrations/2026-11-15-000001_AddTipeManualAndAlasanTolakToKavlingRequest.php` (`Batch 48`): Menjadikan `kavling_request.id_tipe` nullable serta menambahkan kolom `tipe_manual VARCHAR(100) NULL` dan `alasan_tolak TEXT NULL`.
+    - `app/Models/KavlingRequestModel.php`: Menambahkan `'tipe_manual'` dan `'alasan_tolak'` ke `$allowedFields`.
+  - **Routes & Public Contracts (`RAW_JSON_READY`):**
+    - `KavlingRequestController::submit()` / `KavlingRequestService::submitRequest()`: Mendukung `tipe_manual` (maks 100 char) serta `id_cluster`/`id_jalan`/`id_tipe` opsional (`keterangan` wajib saat `tambah_baru` tanpa cluster/jalan).
+    - `KavlingRequestController::list()` / `KavlingRequestService::getList()`: Membuka akses baca `in_groups(['1', '3', '4', '6', '8'])` untuk MKDT (`4`), dan mengembalikan `tipe_manual`, `tipe_display`, serta `alasan_tolak`.
+    - `KavlingRequestController::updateStatus()` / `KavlingRequestService::updateStatus(int $idRequest, string $newStatus, int $userId, ?string $alasanTolak = null)`: Mewajibkan `alasan_tolak` (HTTP `422`) saat `status === 'rejected'` dari SPA/API serta menyimpan/membersihkan `kavling_request.alasan_tolak`.
+    - `HargajualController::set_harga()`: Membaca input via `readRequestData()` dan mendukung payload `id_kavling` berupa array maupun CSV.
+    - `TransaksiController::{getByID,getStatusByID}` & `TransaksiService::getStatusById()`: Membaca input via `readRequestData()` + `validateData()`, serta memperkaya respons dengan `nama_proyek`, `hp_konsumen`, `sp3k_access_url`, `bast_access_url`, dan `perintah_bangun_access_url`.
+  - **Verification:** Terverifikasi QA `PASS` (`php spark migrate:status`, `php spark module:sync Transaksi`, & Playwright E2E) tanpa merusak endpoint legacy.
 - **`[2026-11-13] [REFACTOR]` — Refactoring Penuh Modul Transaksi (Fase 2A-1, 2A-2, 2B, & 3B — Readiness Score 100/100):**
   - **Fase 2A-1 (Service & Repository Layer Refactoring):** Memindahkan `TransaksiService`, `KavlingRequestService`, `TransaksiRepository`, `HargaJualRepository`, dan `KavlingRepository` ke namespace modular `App\Services\Transaksi\*` dan `App\Repositories\Transaksi\*`; membangun `HargaJualService` baru (`cleanNumeric()`, rekalkulasi server-side `harga_net` & `total_harga`, transaksi DB, integrasi `FileAccessService`, audit log, & notifikasi) serta memperluas `HargaJualRepository` dengan 14 method data-access bebas layer violation.
   - **Fase 2A-2 (Web/API Controller Split, Explicit Routes & Zero-Downtime Shims):** Memisahkan controller menjadi `Web\Transaksi\HargajualController` dan 5 API Controllers (`Api\Transaksi\HargajualController`, `TransaksiController`, `MkdtController`, `KavlingRequestController`, `KavlingController`); mendaftarkan 59 rute eksplisit (0 AutoRoute) di `app/Config/Routes.php` dengan dukungan `RAW_JSON_READY` (`?format=raw` & `/meta`); serta memasang 11 Zero-Downtime Shims (termasuk Dual-Shim Delegator pada `app/Controllers/Hargajual.php`).
   - **Fase 2B (Frontend 3-Tier Asset Extraction & UI Standarisasi):** Mengekstrak seluruh inline CSS dan JS dari `app/Views/hargajual/index.php` ke `public/assets/css/hargajual.css` (scoping `.hargajual-page`, `#add-modal`, `#detail-modal`, tema Primary Blue `#2057a3`, `.pricelist-dropzone.bpb-dropzone`) dan `public/assets/js/hargajual.js` (DataTables, Flatpickr, Select2, Quill, `syncHargaNet()`, `load_total()`, dropzone upload, dan CRUD `window.add`/`edit`/`detail`/`remove`/`save`) dengan cache-busting `filemtime()`.
   - **Fase 3B (Remediasi & Verifikasi QA PASS 100%):** Menyelesaikan validasi E2E Playwright, audit kepatuhan UI `sigapp-ui-acuan`, verifikasi kompatibilitas 48 pemanggil lintas modul via Codegraph (`KavlingRepository` 22 callers, `TransaksiRepository` 13 callers, `TransaksiService` 10 callers, `HargaJualRepository` 3 callers), serta sinkronisasi katalog modul (`ModuleCatalog.php` -> `100/100 REFACTORED`).
-
-## Change Log
-- **`[2026-11-13] [REFACTOR]` — Refactoring Penuh Modul Transaksi (Fase 2A-1, 2A-2, 2B, & 3B — Readiness Score 100/100):**
-  - **Routes & Public Contracts:**
-    - Mendaftarkan 59 rute eksplisit (0 AutoRoute) di `app/Config/Routes.php` yang mencakup rute Web (`GET /hargajual`, `GET /hargajual/index`), rute API kanonik (`/api/hargajual/*`, `/api/transaksi/*`, `/api/mkdt/*`, `/api/kavling-request/*`, `/api/kavling/*`), serta rute alias legacy (`/hargajual/*`, `/transaksi/*`, `/kavling/*`).
-    - Menambahkan kontrak `RAW_JSON_READY` melalui endpoint metadata (`GET|POST /api/hargajual/meta`, `GET|POST /api/transaksi/meta`) dan dukungan parameter `?format=raw` pada `POST /api/hargajual/get/all`, `POST /api/hargajual/datatable`, `GET|POST /api/kavling/list`, dan `POST /api/kavling/list/ambil`.
-  - **Controller / Service / Repo / Model (Fase 2A-1, 2A-2, & 3B):**
-    - **Controllers (6):** `Web\Transaksi\HargajualController`, `Api\Transaksi\HargajualController`, `Api\Transaksi\TransaksiController`, `Api\Transaksi\MkdtController`, `Api\Transaksi\KavlingRequestController`, `Api\Transaksi\KavlingController` (0 Controller Layer Violations).
-    - **Services (3):** `TransaksiService` (ditambah `getMeta()`, `cleanNumeric()`), `KavlingRequestService`, dan `HargaJualService` [NEW] (`hasAccess()`, `getProyekList()`, `getMeta()`, `getDataTable()`, `getAll()`, `getOne()`, `create()`, `update()`, `toggleActive()`, `setHargaKavling()`, `cleanNumeric()`).
-    - **Repositories (3):** `TransaksiRepository`, `HargaJualRepository` (diperluas menjadi 14 public methods), dan `KavlingRepository`.
-    - **Models (3):** `KavlingModel`, `KavlingRequestModel`, `FileHargajualModel`.
-  - **View / CSS / JS (Fase 2B):**
-    - `app/Views/hargajual/index.php` [MODIFIED]: Ekstraksi inline CSS & JS, penambahan `.hargajual-page` dan `window.HARGAJUAL_CONFIG`, pemuatan asset via `filemtime()`.
-    - `public/assets/css/hargajual.css` [NEW]: Scoping `.hargajual-page`, `#add-modal`, `#detail-modal`, Primary Blue `#2057a3`, `.pricelist-dropzone.bpb-dropzone`.
-    - `public/assets/js/hargajual.js` [NEW]: Logika DataTables, Flatpickr, Select2, Quill, kalkulasi `syncHargaNet()` / `load_total()`, dropzone upload, dan CRUD (`window.add`, `window.edit`, `window.detail`, `window.remove`, `window.save`).
-  - **Deprecations:**
-    - Mengubah 11 file controller, service, dan repository di namespace lama menjadi Zero-Downtime Shims (termasuk Dual-Shim Delegator pada `app/Controllers/Hargajual.php`) dan memetakan seluruh rute legacy ke controller modular baru.
-- `2026-11-13` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.

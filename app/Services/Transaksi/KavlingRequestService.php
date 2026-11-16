@@ -37,11 +37,19 @@ class KavlingRequestService
             throw new RuntimeException('Jenis request tidak valid.');
         }
 
-        $idKavling = !empty($data['id_kavling']) ? (int) $data['id_kavling'] : null;
-        $idCluster = !empty($data['id_cluster']) ? (int) $data['id_cluster'] : null;
-        $idJalan   = !empty($data['id_jalan']) ? (int) $data['id_jalan'] : null;
-        $idTipe    = !empty($data['id_tipe']) ? (int) $data['id_tipe'] : null;
+        $idKavling  = !empty($data['id_kavling']) ? (int) $data['id_kavling'] : null;
+        $idCluster  = !empty($data['id_cluster']) ? (int) $data['id_cluster'] : null;
+        $idJalan    = !empty($data['id_jalan']) ? (int) $data['id_jalan'] : null;
+        $idTipe     = !empty($data['id_tipe']) ? (int) $data['id_tipe'] : null;
+        $tipeManual = trim((string) ($data['tipe_manual'] ?? ''));
+        if (mb_strlen($tipeManual) > 100) {
+            throw new RuntimeException('Tipe rumah manual maksimal 100 karakter.');
+        }
         $keterangan = trim($data['keterangan'] ?? '');
+
+        if ($idTipe === null && $tipeManual === '') {
+            throw new RuntimeException('Tipe rumah wajib diisi.');
+        }
 
         if ($jenisRequest === 'ubah_tipe' && empty($idKavling)) {
             throw new RuntimeException('Kavling existing harus dipilih untuk request perubahan tipe.');
@@ -61,6 +69,7 @@ class KavlingRequestService
             'id_cluster'    => $idCluster,
             'id_jalan'      => $idJalan,
             'id_tipe'       => $idTipe,
+            'tipe_manual'   => $tipeManual !== '' ? $tipeManual : null,
             'keterangan'    => $keterangan,
             'status'        => 'pending',
             'created_by'    => $userId,
@@ -94,8 +103,10 @@ class KavlingRequestService
 
             $noKav = $kavlingRow ? ($kavlingRow->nama_jalan . ' No. ' . $kavlingRow->no_kavling) : ('ID #' . $idKavling);
 
-            $tipeRow = $idTipe ? $this->db->table('tipe')->select('no_tipe_rumah, tipe_rumah')->where('id_tipe', $idTipe)->get()->getRow() : null;
-            $namaTipe = $tipeRow ? ($tipeRow->no_tipe_rumah . ' (' . $tipeRow->tipe_rumah . ')') : 'Tipe Baru';
+            $tipeRow  = $idTipe ? $this->db->table('tipe')->select('no_tipe_rumah, tipe_rumah')->where('id_tipe', $idTipe)->get()->getRow() : null;
+            $namaTipe = $tipeManual !== ''
+                ? $tipeManual
+                : ($tipeRow ? ($tipeRow->no_tipe_rumah . ' (' . $tipeRow->tipe_rumah . ')') : 'Tipe Baru');
 
             $pesanNotif = "[Request Siteplan] {$pengaju} mengajukan perubahan tipe kavling {$noKav} menjadi {$namaTipe} di {$namaProyek}." .
                 ($keterangan !== '' ? " Catatan: {$keterangan}" : '');
@@ -115,7 +126,14 @@ class KavlingRequestService
             $lokasiText = !empty($lokasiParts) ? implode(', ', $lokasiParts) : 'Cluster/Jalan Manual';
 
             $tipeRow = $idTipe ? $this->db->table('tipe')->select('no_tipe_rumah, tipe_rumah')->where('id_tipe', $idTipe)->get()->getRow() : null;
-            $tipeText = $tipeRow ? " Tipe: {$tipeRow->no_tipe_rumah} ({$tipeRow->tipe_rumah})." : "";
+            $tipeParts = [];
+            if ($tipeRow) {
+                $tipeParts[] = "{$tipeRow->no_tipe_rumah} ({$tipeRow->tipe_rumah})";
+            }
+            if ($tipeManual !== '') {
+                $tipeParts[] = $tipeManual;
+            }
+            $tipeText = !empty($tipeParts) ? ' Tipe: ' . implode(' / ', $tipeParts) . '.' : '';
 
             $pesanNotif = "[Request Siteplan] {$pengaju} mengajukan penambahan kavling baru ({$lokasiText}).{$tipeText} di {$namaProyek}." .
                 ($keterangan !== '' ? " Catatan: {$keterangan}" : '');
@@ -165,6 +183,7 @@ class KavlingRequestService
                 kavling.no_kavling as existing_no_kavling,
                 kavling_jalan.nama_jalan as existing_nama_jalan
             ')
+            ->select("COALESCE(NULLIF(kavling_request.tipe_manual, ''), NULLIF(CONCAT_WS(' - ', tipe.no_tipe_rumah, tipe.tipe_rumah), '')) AS tipe_display", false)
             ->join('users', 'users.id = kavling_request.created_by', 'left')
             ->join('cluster', 'cluster.id_cluster = kavling_request.id_cluster', 'left')
             ->join('jalan', 'jalan.id_jalan = kavling_request.id_jalan', 'left')
@@ -226,7 +245,7 @@ class KavlingRequestService
     /**
      * Update status request kavling (contoh: approved/selesai atau dikembalikan ke pending/rejected)
      */
-    public function updateStatus(int $idRequest, string $newStatus, int $userId): array
+    public function updateStatus(int $idRequest, string $newStatus, int $userId, ?string $alasanTolak = null): array
     {
         if (!in_array($newStatus, ['pending', 'approved', 'rejected'])) {
             throw new RuntimeException('Status tidak valid.');
@@ -237,10 +256,16 @@ class KavlingRequestService
             throw new RuntimeException('Data request tidak ditemukan.');
         }
 
+        $cleanAlasan  = $alasanTolak !== null ? trim($alasanTolak) : null;
+        $storedAlasan = $newStatus === 'rejected'
+            ? ($cleanAlasan !== '' ? $cleanAlasan : null)
+            : null;
+
         $now = date('Y-m-d H:i:s');
         $updated = $this->requestModel->update($idRequest, [
-            'status'     => $newStatus,
-            'updated_at' => $now,
+            'status'       => $newStatus,
+            'alasan_tolak' => $storedAlasan,
+            'updated_at'   => $now,
         ]);
 
         if (!$updated) {
@@ -254,10 +279,11 @@ class KavlingRequestService
         ];
 
         return [
-            'id_request' => $idRequest,
-            'status'     => $newStatus,
-            'label'      => $statusLabels[$newStatus] ?? $newStatus,
-            'message'    => "Status request berhasil diubah menjadi: " . ($statusLabels[$newStatus] ?? $newStatus),
+            'id_request'   => $idRequest,
+            'status'       => $newStatus,
+            'alasan_tolak' => $storedAlasan,
+            'label'        => $statusLabels[$newStatus] ?? $newStatus,
+            'message'      => "Status request berhasil diubah menjadi: " . ($statusLabels[$newStatus] ?? $newStatus),
         ];
     }
 }

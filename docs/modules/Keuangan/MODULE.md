@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-14 00:58:00` @ `f21fc2b`  
+**Last Synced:** `2026-11-15 20:21:13` @ `889516a`  
 
 ## Purpose
 Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operasional, SPP, bank KPR, pajak, dan ledger kas.
@@ -67,6 +67,10 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 | `POST` | `/tagihan/list/detail` | `Explicit` | `TagihanController::getListTagihanDetail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/tagihan/list/export-excel` | `Explicit` | `TagihanController::exportExcelTagihan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/tagihan/list/ambil-riwayat-surat` | `Explicit` | `TagihanController::getListRiwayatSurat` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tagihan/turunkpr` | `Explicit` | `TagihanController::tambahTurunKPR` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tagihan/hapusturunkpr` | `Explicit` | `TagihanController::hapusTurunKPR` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tagihan/void` | `Explicit` | `TagihanController::voidTagihan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tagihan/unvoid` | `Explicit` | `TagihanController::unvoidTagihan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/danaakad/list/ambilsatu` | `Explicit` | `\App\Controllers\Api\Keuangan\TagihanController::getListTagihan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/keuangan/tagihan/meta` | `Explicit` | `TagihanController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/pembayaran/simpan` | `Explicit` | `\App\Controllers\Api\Keuangan\PembayaranController::save` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
