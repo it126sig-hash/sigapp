@@ -123,6 +123,8 @@ class SiteplanService
         $hasAkses = [
             'proyek' => false,
             'legal'  => false,
+            'target' => $this->userInGroups(['1'])
+                || ($this->userInGroups(['4', '11']) && $this->siteplanRepository->userHasProjectAccess($proyek, $userId)),
         ];
 
         if ($this->userInGroups(['1', '7', '8'])) {
@@ -243,7 +245,8 @@ class SiteplanService
                 'can_edit_pajak'             => $this->userInGroups(['1', '10']),
                 'can_edit_sales'             => $this->userInGroups(['1', '8']),
                 'can_edit_direksi'           => $this->userInGroups(['1', '9']),
-                'can_manage_target'          => $this->userInGroups(['1', '11']),
+                'can_manage_target'          => $this->userInGroups(['1', '4', '11']),
+                'can_request_target_change'  => $this->userInGroups(['1', '6']),
             ],
             'siteplan_menus'   => $this->siteplanMenuService->getMenusForSpa($roleId),
         ];

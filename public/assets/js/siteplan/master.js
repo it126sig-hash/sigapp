@@ -481,9 +481,208 @@ Date.prototype.toDateInputValue = (function() {
         id: "line_sel"
     });
 
+    window.targetInteractiveMode = Boolean(window.targetInteractiveMode);
+
+    window.isTargetSetModeActive = function() {
+        return Boolean(window.targetInteractiveMode);
+    };
+
+    let targetCanvasRefreshTimer = null;
+    window.scheduleTargetCanvasRefresh = function(delayMs) {
+        const wait = typeof delayMs === 'number' && delayMs >= 0 ? delayMs : 450;
+        if (targetCanvasRefreshTimer) {
+            clearTimeout(targetCanvasRefreshTimer);
+        }
+        targetCanvasRefreshTimer = setTimeout(function() {
+            targetCanvasRefreshTimer = null;
+            if (typeof load_kavling === 'function') {
+                load_kavling();
+            }
+        }, wait);
+    };
+
+    function isTargetFilterActive() {
+        return $('#toggle-tampilkan-target').prop('checked') === true;
+    }
+
+    function selectedTargetYear() {
+        return String($('#filter-tahun-target').val() || '').trim();
+    }
+
+    function hasValidTargetDate(val) {
+        if (typeof val !== 'string') return false;
+        const trimmed = val.trim();
+        return /^\d{4}-\d{2}-\d{2}$/.test(trimmed)
+            && trimmed !== '0000-00-00'
+            && !isNaN(new Date(trimmed).getTime());
+    }
+
+    function syncTargetMenuVisibility() {
+        if (typeof roleid === 'undefined' || Number(roleid) !== 1) return;
+        const va = String($('#pilih-divisi option:selected').val() || '0');
+        if (va === '0') {
+            $('#target_menu').toggleClass('hidden', !isTargetFilterActive());
+        }
+    }
+    window.syncTargetMenuVisibility = syncTargetMenuVisibility;
+
+    function syncTargetYearDropdown(targetYears, preferredYear) {
+        const $select = $('#filter-tahun-target');
+        if (!$select.length) return;
+
+        const nowYear = new Date().getFullYear();
+        const minPresetYear = nowYear - 1;
+        const maxPresetYear = nowYear + 3;
+        const previousVal = selectedTargetYear();
+        const prefVal = preferredYear ? String(preferredYear).trim() : '';
+        const barYearVal = String($('#target-bar-year').val() || '').trim();
+        const isTargetInteractive = window.isTargetSetModeActive() || isTargetFilterActive();
+
+        const yearSet = new Set();
+        (Array.isArray(targetYears) ? targetYears : []).forEach(function(y) {
+            const num = parseInt(String(y || '').trim(), 10);
+            if (num >= 2000 && num <= 2100) {
+                yearSet.add(String(num));
+            }
+        });
+
+        [prefVal, barYearVal, previousVal].forEach(function(candidate) {
+            const num = parseInt(candidate || '', 10);
+            if (num >= 2000 && num <= 2100) {
+                const inPresetRange = num >= minPresetYear && num <= maxPresetYear;
+                if (inPresetRange || isTargetInteractive || candidate === prefVal) {
+                    yearSet.add(String(num));
+                }
+            }
+        });
+
+        const years = Array.from(yearSet).sort(function(a, b) {
+            return Number(b) - Number(a);
+        });
+
+        $select.empty();
+
+        if (years.length === 0) {
+            $select.append('<option value="">Belum ada target</option>');
+            $select.prop('disabled', true);
+            return;
+        }
+
+        $select.prop('disabled', false);
+        years.forEach(function(year) {
+            $select.append($('<option>', { value: year, text: year }));
+        });
+
+        const currentYear = String(nowYear);
+        if (prefVal && years.includes(prefVal)) {
+            $select.val(prefVal);
+        } else if (window.isTargetSetModeActive() && barYearVal && years.includes(barYearVal)) {
+            $select.val(barYearVal);
+        } else if (previousVal && years.includes(previousVal)) {
+            $select.val(previousVal);
+        } else if (years.includes(currentYear)) {
+            $select.val(currentYear);
+        } else {
+            $select.val(years[0]);
+        }
+    }
+    window.syncTargetYearDropdown = syncTargetYearDropdown;
+
+    function resolveTargetCanvasHit(row, rawHargaAkhir, targetInfo) {
+        const activeYear = selectedTargetYear();
+        const matchesSelectedYear = targetInfo && (!activeYear || String(targetInfo.tahun_target) === activeYear);
+        const isBatal = (row.is_batal == 1 || row.status_mkdt === 'Batal');
+        const hasSubValue = function(val) {
+            return val !== null && val !== undefined && val !== '';
+        };
+        const rawSub = hasSubValue(row.is_subsidi)
+            ? row.is_subsidi
+            : (hasSubValue(row.mkdt_is_subsidi)
+                ? row.mkdt_is_subsidi
+                : (targetInfo && hasSubValue(targetInfo.target_is_subsidi) ? targetInfo.target_is_subsidi : null));
+        const targetSubsidi = (String(rawSub) === '1') ? 'Subsidi' : 'Komersil';
+
+        // Prioritas 1: Sudah Akad — berlaku untuk semua kavling di kanvas (target maupun non-target)
+        if (!isBatal && (
+            row.akad == 1
+            || hasValidTargetDate(row.akad_tgl)
+        )) {
+            return {
+                fill: set_fill2('Akad ' + targetSubsidi),
+                tipe: 'Target'
+            };
+        }
+
+        // Prioritas 2: Booking / Proses Konsumen Aktif (akad != 1) — berlaku untuk semua kavling (target maupun non-target)
+        if (!isBatal && (
+            row.status_mkdt === 'Booking'
+            || row.status_mkdt === 'Akad'
+            || row.sp3k == 1
+            || hasValidTargetDate(row.sp3k_tgl)
+            || row.wawancara == 1
+            || hasValidTargetDate(row.wawancara_tgl)
+            || hasValidTargetDate(row.booking_tgl)
+            || row.akad_indent == 1
+            || hasValidTargetDate(row.akad_indent_tgl)
+        )) {
+            return {
+                fill: set_fill2('Booking ' + targetSubsidi),
+                tipe: 'Target'
+            };
+        }
+
+        // Prioritas 3: Kavling Selain Target yang belum Akad & belum Booking, atau sudah Batal
+        if (!matchesSelectedYear) {
+            set_fill('#e2e8f0', '#000000', '0', null);
+            return {
+                fill: 'Bukan Target',
+                tipe: 'Target'
+            };
+        }
+
+        // Prioritas 4: Kavling Target yang sudah Set Harga, belum ada konsumen aktif
+        if ((rawHargaAkhir && String(rawHargaAkhir) !== '0') || (parseFloat(row.hargajual || 0) > 0)) {
+            return {
+                fill: set_fill2(row.tipe_rumah),
+                tipe: targetSubsidi
+            };
+        }
+
+        // Prioritas 5: Kavling Target default, belum ada harga jual & belum ada konsumen
+        if (!conf['Def']) {
+            set_fill('#fcffd9', '#000000', '0', null);
+            return {
+                fill: 'Def',
+                tipe: 'Target'
+            };
+        }
+        return {
+            fill: set_fill2('Def'),
+            tipe: 'Target'
+        };
+    }
+
     //refresh kavling setelah ganti divisi
     $("#pilih-divisi").change(function() {
         change_div()
+    });
+
+    $("#toggle-tampilkan-target").on("change", function() {
+        if (this.checked) {
+            $("#filter-target-tahun-container").stop(true, true).slideDown(200);
+        } else {
+            $("#filter-target-tahun-container").stop(true, true).slideUp(200);
+        }
+        syncTargetMenuVisibility();
+        if (typeof window.apply_server_filter === "function") {
+            window.apply_server_filter();
+        }
+    });
+
+    $("#filter-tahun-target").on("change", function() {
+        if (isTargetFilterActive() && typeof window.apply_server_filter === "function") {
+            window.apply_server_filter();
+        }
     });
 
     function isManualSelectionActive() {
@@ -493,6 +692,9 @@ Date.prototype.toDateInputValue = (function() {
     function change_div() {
         $("#tambah_jalan").prop("checked", 0)
         $("#produksi_tambah_jalan").prop("checked", 0)
+        if (typeof window.exitTargetSetMode === 'function') {
+            window.exitTargetSetMode();
+        }
         hapus_seleksi(); //hapus seleksi kavling
 
         //tampilkan menu sesuai divisi jika login sebagai admin
@@ -509,6 +711,8 @@ Date.prototype.toDateInputValue = (function() {
                 }
             }
         }
+
+        syncTargetMenuVisibility();
 
         //load ulang kavling
         load_kavling();
@@ -531,6 +735,7 @@ Date.prototype.toDateInputValue = (function() {
                 $("#loading").addClass("hidden");
                 const menu = r.menu;
                 $("#menu_here").html(menu);
+                syncTargetMenuVisibility();
                 if (roleid == 7 && has_akses.proyek == false) {
                     $(".btn-prod").hide()
                     swal('warning', 'Peringatan!', "Kamu tidak bisa melakukan perubahan untuk proyek ini")
@@ -625,6 +830,8 @@ Date.prototype.toDateInputValue = (function() {
 
     function get_kategori_color(kategori) {
         if (conf[kategori]) return conf[kategori].fill;
+        if (kategori === 'Bukan Target') return '#e2e8f0';
+        if (kategori === 'Def' && !conf['Def']) return '#fcffd9';
         if (kategori == 'Belum Target') return '#f8fafc';
 
         if (String(kategori).indexOf('Target ') === 0) {
@@ -879,6 +1086,13 @@ Date.prototype.toDateInputValue = (function() {
             attrs.data2.tipe_rumah + ' ( ' + attrs.data.luas_tanah + ' / ' + attrs.data.status_tanah + ')',
             'HJ: Rp. ' + attrs.data2.harga_akhir
         ];
+
+        if (isTargetFilterActive()) {
+            const targetInfo = attrs.data2 ? attrs.data2.target : null;
+            const activeYear = selectedTargetYear();
+            const matchesTarget = targetInfo && (!activeYear || String(targetInfo.tahun_target) === activeYear);
+            lines.push(matchesTarget ? ('Target: Tahun ' + targetInfo.tahun_target) : 'Target: Bukan Target');
+        }
 
         (attrs.tooltipRows || attrs.visualRows || []).forEach(function(row) {
             compositeTooltipLines(row).forEach(function(line) {
@@ -1187,15 +1401,22 @@ Date.prototype.toDateInputValue = (function() {
                 stroke = fill = strokeWidth = dashed = "";
 
                 let r = result['data'],
-                    targetKavling = result.target_kavling || {},
+                targetKavling = result.target_kavling || {},
+                targetYears = result.target_years || [],
                     data2,
                     hit,
                     tp_rumah,
                     subsidi;
 
+                syncTargetYearDropdown(targetYears);
+                if (isTargetFilterActive()) {
+                    renderActiveFilterTags();
+                }
+
 
 
                 for (var p = 0; p < r.length; p++) {
+                    const rawHargaAkhir = r[p].harga_akhir;
                     tp_rumah = r[p].tipe_rumah
                     no_tp_rumah = r[p].no_tipe_rumah
 
@@ -1485,8 +1706,8 @@ Date.prototype.toDateInputValue = (function() {
 
                     } else if (va == 9) {
                         if (r[p].harga_akhir) {
-                            tp_rumah = r[p].tipe_rumah
-                            no_tp_rumah = r[p].no_tipe_rumah
+                        tp_rumah = r[p].tipe_rumah
+                        no_tp_rumah = r[p].no_tipe_rumah
                             hit = set_fill2(r[p].tipe_rumah)
 
                             //ubah var hit ke object
@@ -1505,20 +1726,10 @@ Date.prototype.toDateInputValue = (function() {
 
 
 
-                    let targetInfo = null;
-                    if (va == 11) {
-                        targetInfo = targetKavling[r[p].id_kavling] || null;
-                        if (targetInfo) {
-                            hit = {
-                                fill: 'Target ' + targetInfo.tahun_target,
-                                tipe: 'Target'
-                            }
-                        } else {
-                            hit = {
-                                fill: 'Belum Target',
-                                tipe: 'Target'
-                            }
-                        }
+                    const isTargetMode = isTargetFilterActive();
+                    const targetInfo = targetKavling[r[p].id_kavling] || null;
+                    if (isTargetMode) {
+                        hit = resolveTargetCanvasHit(r[p], rawHargaAkhir, targetInfo);
                     }
 
                     const fieldChecks = {
@@ -1547,7 +1758,7 @@ Date.prototype.toDateInputValue = (function() {
 
 
                     //harga jual
-                    let id_hargajual = r[p].harga_akhir;
+                    let id_hargajual = rawHargaAkhir;
                     r[p].harga_akhir = (r[p].hargajual) ? num_format(r[p].hargajual) + " (Per " + format_date(r[p].tgl_harga) + ")" : '-';
 
 
@@ -1561,7 +1772,7 @@ Date.prototype.toDateInputValue = (function() {
 
                     const visualRows = Array.isArray(r[p].visual_rows) ? r[p].visual_rows : [];
                     const visualFill = r[p].visual_fill && r[p].visual_fill.config_name ? r[p].visual_fill : null;
-                    const useUnifiedFill = String(va) === '0' && visualFill !== null;
+                    const useUnifiedFill = !isTargetMode && String(va) === '0' && visualFill !== null;
 
                     if (useUnifiedFill) {
                         hit = {
@@ -1571,13 +1782,13 @@ Date.prototype.toDateInputValue = (function() {
                     }
 
                     // Override warna jika filter kategori aktif
-                    const filterOverride = getFilterColorOverride(r[p], subsidi);
+                    const filterOverride = isTargetMode ? null : getFilterColorOverride(r[p], subsidi);
                     if (filterOverride) {
                         set_fill2(filterOverride.fill); // memastikan config warna diset
                         hit = filterOverride;
                     }
 
-                    const useCompositeShape = String(va) === '0'
+                    const useCompositeShape = !isTargetMode && String(va) === '0'
                         && !filterOverride
                         && visualRows.length > 0
                         && typeof SiteplanCompositeShape !== 'undefined';
@@ -1703,6 +1914,9 @@ Date.prototype.toDateInputValue = (function() {
                 }
                 siteplanProblemItems.kavling = problemKavlings;
                 syncSiteplanTiketOverlay();
+                if (window.isTargetSetModeActive() && typeof window.renderTargetStagedCanvasHighlights === 'function') {
+                    window.renderTargetStagedCanvasHighlights();
+                }
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
                 handlePendingSiteplanUrgentAction()
@@ -1805,6 +2019,9 @@ Date.prototype.toDateInputValue = (function() {
                 }
                 siteplanProblemItems.others = problemOthers;
                 syncSiteplanTiketOverlay();
+                if (window.isTargetSetModeActive() && typeof window.renderTargetStagedCanvasHighlights === 'function') {
+                    window.renderTargetStagedCanvasHighlights();
+                }
                 
                 if (activeKategori.includes('Masalah')) {
                     set_keterangan_warna();
@@ -1995,6 +2212,13 @@ Date.prototype.toDateInputValue = (function() {
 
         if (!sh.id) return false;
         id_kavling = sh.id.substr(3)
+
+        if (typeof window.isTargetSetModeActive === 'function' && window.isTargetSetModeActive()) {
+            if (typeof window.handleTargetCanvasClick === 'function') {
+                window.handleTargetCanvasClick(sh, id_kavling);
+            }
+            return;
+        }
 
         if (!isManualSelectionActive()) {
             addMode = e.evt.ctrlKey;
@@ -2388,6 +2612,9 @@ Date.prototype.toDateInputValue = (function() {
         $('#filter-id_jalan').prop('disabled', preservedClusters.length === 0);
         filter.id_cluster = preservedClusters;
         filter.id_jalan = '';
+        $('#toggle-tampilkan-target').prop('checked', false);
+        $('#filter-target-tahun-container').stop(true, true).slideUp(200);
+        syncTargetMenuVisibility();
         checkMasalahOptions();
         checkPeriodeOptions();
         load_kavling();
@@ -2404,7 +2631,8 @@ Date.prototype.toDateInputValue = (function() {
             periode_mulai: $('#filter-periode-mulai').val() || '',
             periode_selesai: $('#filter-periode-selesai').val() || '',
             status_masalah: $('#filter-status-masalah').val() || '',
-            periode_masalah_jenis: $('#filter-periode-masalah-jenis').val() || ''
+            periode_masalah_jenis: $('#filter-periode-masalah-jenis').val() || '',
+            tahun_target: isTargetFilterActive() ? selectedTargetYear() : ''
         };
         let selectedOption = $('#pilih-divisi option:selected');
         if (selectedOption.data('is-kategori')) {
@@ -2459,6 +2687,12 @@ Date.prototype.toDateInputValue = (function() {
             html += `<span class="badge badge-light-warning mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('periode')">${start} - ${end} &times;</span>`;
         }
 
+        if (isTargetFilterActive()) {
+            const targetYear = selectedTargetYear();
+            const targetLabel = targetYear ? ('Target: ' + escapeSiteplanHtml(targetYear)) : 'Target: Aktif';
+            html += `<span class="badge badge-light-primary siteplan-target-active-badge mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('target')">${targetLabel} &times;</span>`;
+        }
+
         $('#active-filter-tags').html(html);
     }
 
@@ -2488,6 +2722,10 @@ Date.prototype.toDateInputValue = (function() {
         } else if (type === 'periode') {
             $('#filter-periode-mulai').val('');
             $('#filter-periode-selesai').val('');
+        } else if (type === 'target') {
+            $('#toggle-tampilkan-target').prop('checked', false);
+            $('#filter-target-tahun-container').stop(true, true).slideUp(200);
+            syncTargetMenuVisibility();
         }
         checkMasalahOptions();
         checkPeriodeOptions();
@@ -2854,6 +3092,10 @@ Date.prototype.toDateInputValue = (function() {
     stage.on('contextmenu dblclick dbltap', function(e) {
         // prevent default behavior
         e.evt.preventDefault();
+
+        if (typeof window.isTargetSetModeActive === 'function' && window.isTargetSetModeActive()) {
+            return;
+        }
 
         if (e.target === stage) {
             // if we are on empty place of the stage we will do nothing

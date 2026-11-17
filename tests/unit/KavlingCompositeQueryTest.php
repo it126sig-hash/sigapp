@@ -142,4 +142,122 @@ final class KavlingCompositeQueryTest extends CIUnitTestCase
         $this->assertStringContainsString('active_tiket_id', $sql);
         $this->assertStringContainsString('others.scope', $sql);
     }
+
+    /**
+     * @dataProvider divisiModeProvider
+     */
+    public function testAllDivisiModesIncludeMkdtStatusFieldsWithoutDuplicateAliases(int $idDivisi): void
+    {
+        $repository = new KavlingRepository(Database::connect());
+        $reflection = new ReflectionClass($repository);
+
+        $builder = $reflection->getMethod('baseQuery')->invoke($repository);
+        $reflection->getMethod('addDivisiSelect')->invoke($repository, $builder, $idDivisi);
+
+        if ($idDivisi === 0) {
+            foreach (['addCompositeVisualSelect', 'addCompositeFinanceSelect', 'addPencairanAkadSelect'] as $methodName) {
+                $reflection->getMethod($methodName)->invoke($repository, $builder);
+            }
+        } elseif ($idDivisi === 3) {
+            $reflection->getMethod('addPencairanAkadSelect')->invoke($repository, $builder);
+        }
+
+        $reflection->getMethod('addActiveTiketSelect')->invoke($repository, $builder);
+
+        $sql = $builder->getCompiledSelect(false);
+
+        $requiredMkdtSnippets = [
+            'mkdt`.`status_mkdt`',
+            'mkdt`.`is_batal`',
+            'mkdt`.`booking_tgl`',
+            'mkdt`.`wawancara`',
+            'mkdt`.`wawancara_tgl`',
+            'mkdt`.`sp3k`',
+            'mkdt`.`sp3k_tgl`',
+            'mkdt`.`akad_indent`',
+            'mkdt`.`akad_indent_tgl`',
+            'mkdt`.`akad`',
+            'mkdt`.`akad_tgl`',
+            'mkdt`.`is_kpr`',
+            'mkdt`.`is_subsidi` as `mkdt_is_subsidi`',
+            'hargajual`.`is_subsidi`',
+        ];
+
+        foreach ($requiredMkdtSnippets as $snippet) {
+            $this->assertStringContainsString($snippet, $sql, "Divisi {$idDivisi} missing {$snippet}");
+        }
+
+        // Verify top-level SELECT clause has no duplicate column/alias names
+        $fromPos = stripos($sql, "\nFROM ");
+        if ($fromPos === false) {
+            $fromPos = stripos($sql, ' FROM ');
+        }
+        $this->assertNotFalse($fromPos);
+
+        $selectClause = substr($sql, strlen('SELECT '), $fromPos - strlen('SELECT '));
+        $expressions = $this->splitTopLevelSelectExpressions($selectClause);
+        $aliases = [];
+        foreach ($expressions as $expr) {
+            $expr = trim($expr);
+            if ($expr === '' || str_ends_with($expr, '.*')) {
+                continue;
+            }
+            if (preg_match('/\bAS\s+`?([a-zA-Z0-9_]+)`?\s*$/i', $expr, $m)) {
+                $alias = $m[1];
+            } elseif (preg_match('/\.`?([a-zA-Z0-9_]+)`?\s*$/', $expr, $m)) {
+                $alias = $m[1];
+            } else {
+                $alias = trim($expr, "` \t\n\r");
+            }
+            $this->assertArrayNotHasKey($alias, $aliases, "Duplicate column/alias '{$alias}' in divisi {$idDivisi}");
+            $aliases[$alias] = true;
+        }
+    }
+
+    public static function divisiModeProvider(): array
+    {
+        return [
+            'divisi 0 (composite)' => [0],
+            'divisi 3 (keuangan)' => [3],
+            'divisi 4 (mkdt)' => [4],
+            'divisi 5 (legal)' => [5],
+            'divisi 6 (planning)' => [6],
+            'divisi 7 (produksi)' => [7],
+            'divisi 8 (p2k)' => [8],
+            'divisi 10 (pajak)' => [10],
+        ];
+    }
+
+    private function splitTopLevelSelectExpressions(string $selectClause): array
+    {
+        $parts = [];
+        $current = '';
+        $depth = 0;
+        $inSingleQuote = false;
+        $length = strlen($selectClause);
+
+        for ($i = 0; $i < $length; $i++) {
+            $ch = $selectClause[$i];
+            if ($ch === "'" && ($i === 0 || $selectClause[$i - 1] !== '\\')) {
+                $inSingleQuote = !$inSingleQuote;
+            } elseif (!$inSingleQuote) {
+                if ($ch === '(') {
+                    $depth++;
+                } elseif ($ch === ')') {
+                    $depth = max(0, $depth - 1);
+                } elseif ($ch === ',' && $depth === 0) {
+                    $parts[] = $current;
+                    $current = '';
+                    continue;
+                }
+            }
+            $current .= $ch;
+        }
+
+        if (trim($current) !== '') {
+            $parts[] = $current;
+        }
+
+        return $parts;
+    }
 }

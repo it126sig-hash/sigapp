@@ -16,7 +16,7 @@ class TipeController extends BaseApiController
 
     public function getAll()
     {
-        $params              = (array) $this->request->getVar();
+        $params              = $this->readRequestData();
         $params['id_proyek'] = resolve_active_proyek_id($params['id_proyek'] ?? null);
         $params['format']    = $params['format'] ?? 'raw';
 
@@ -25,7 +25,7 @@ class TipeController extends BaseApiController
 
     public function getDataTables()
     {
-        $params              = (array) $this->request->getVar();
+        $params              = $this->readRequestData();
         $params['id_proyek'] = resolve_active_proyek_id($params['id_proyek'] ?? null);
         $params['format']    = $params['format'] ?? 'raw';
 

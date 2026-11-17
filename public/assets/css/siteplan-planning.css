@@ -1,0 +1,488 @@
+/* ==========================================================================
+   MODUL: SITEPLAN PLANNING MODAL & PREVIEW MASTER TIPE
+   Scope: #modals-slide-in, #modal-planning-tipe-image
+   ========================================================================== */
+
+#modals-slide-in [hidden],
+#modal-planning-tipe-image [hidden] {
+    display: none !important;
+}
+
+/* Form Layout & Sticky Actions (#modals-slide-in) */
+#modals-slide-in #fm-add_kavling {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    padding-bottom: 0 !important;
+}
+
+#modals-slide-in #fm-add_kavling .modal-header {
+    flex: 0 0 auto;
+}
+
+#modals-slide-in #fm-add_kavling .modal-body {
+    flex: 1 1 auto !important;
+    min-height: 0;
+    margin: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 1rem;
+}
+
+#modals-slide-in .planning-modal-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex: 0 0 auto;
+    gap: .75rem;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #e5e7eb;
+    background: #ffffff;
+    box-shadow: 0 -4px 12px rgba(17, 24, 39, .06);
+}
+
+#modals-slide-in .planning-modal-actions .btn {
+    flex: 1 1 0;
+    margin: 0 !important;
+}
+
+#modals-slide-in .planning-modal-actions .btn-primary {
+    border-color: #2057a3;
+    background-color: #2057a3;
+}
+
+#modals-slide-in .planning-modal-actions .btn-primary:hover,
+#modals-slide-in .planning-modal-actions .btn-primary:focus {
+    border-color: #163f78;
+    background-color: #163f78;
+}
+
+/* Preview Gambar & Spesifikasi Teknis Tipe (#modals-slide-in .planning-tipe-preview*) */
+#modals-slide-in .planning-tipe-preview {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: .65rem .7rem;
+    margin: .65rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+    box-sizing: border-box;
+}
+
+#modals-slide-in .planning-tipe-preview-loading,
+#modals-slide-in .planning-tipe-preview-alert {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    padding: .65rem .5rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #6b7280;
+    background: #ffffff;
+    border: 1px dashed #d8dde3;
+    border-radius: 6px;
+    text-align: center;
+}
+
+#modals-slide-in .planning-tipe-preview-alert {
+    color: #991b1b;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+#modals-slide-in .planning-tipe-preview-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .4rem;
+}
+
+#modals-slide-in .planning-tipe-preview-title {
+    color: #111827;
+    font-size: .84rem;
+    font-weight: 700;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+#modals-slide-in .planning-tipe-preview-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: .25rem;
+    flex-shrink: 0;
+}
+
+#modals-slide-in .planning-tipe-preview-badge {
+    border-radius: 999px;
+    font-size: .66rem;
+    font-weight: 700;
+    line-height: 1.3;
+    padding: .12rem .48rem;
+    white-space: nowrap;
+}
+
+#modals-slide-in .planning-tipe-preview-badge.is-subsidi {
+    background: #ecfdf3;
+    border: 1px solid #15803d;
+    color: #166534;
+}
+
+#modals-slide-in .planning-tipe-preview-badge.is-komersil {
+    background: #edf4ff;
+    border: 1px solid #2057a3;
+    color: #2057a3;
+}
+
+#modals-slide-in .planning-tipe-preview-badge.is-inactive {
+    background: #fef2f2;
+    border: 1px solid #dc2626;
+    color: #991b1b;
+}
+
+#modals-slide-in .planning-tipe-preview-thumbs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .45rem;
+}
+
+#modals-slide-in .planning-tipe-preview-thumb-card {
+    background: #ffffff;
+    border: 1px solid #d8dde3;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    text-align: left;
+    width: 100%;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+#modals-slide-in button.planning-tipe-preview-thumb-card {
+    cursor: pointer;
+}
+
+#modals-slide-in button.planning-tipe-preview-thumb-card:hover,
+#modals-slide-in button.planning-tipe-preview-thumb-card:focus {
+    border-color: #2057a3;
+    box-shadow: 0 0 0 2px rgba(32, 87, 163, .16);
+    outline: none;
+}
+
+#modals-slide-in .planning-tipe-preview-thumb-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 74px;
+    background: #eef2f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#modals-slide-in .planning-tipe-preview-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+#modals-slide-in .planning-tipe-preview-thumb-zoom {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    background: rgba(17, 24, 39, .72);
+    color: #ffffff;
+    border-radius: 4px;
+    font-size: .64rem;
+    padding: .15rem .32rem;
+    line-height: 1;
+}
+
+#modals-slide-in .planning-tipe-preview-thumb-empty {
+    color: #6b7280;
+    font-size: .68rem;
+    font-weight: 600;
+    text-align: center;
+    padding: .35rem;
+}
+
+#modals-slide-in .planning-tipe-preview-thumb-caption {
+    color: #374151;
+    font-size: .7rem;
+    font-weight: 700;
+    padding: .26rem .42rem;
+    border-top: 1px solid #edf0f2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#modals-slide-in .planning-tipe-preview-section-title {
+    color: #6b7280;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    margin-top: .1rem;
+}
+
+#modals-slide-in .planning-tipe-preview-specs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .32rem .4rem;
+}
+
+#modals-slide-in .planning-tipe-preview-spec-item {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: .28rem .45rem;
+    min-width: 0;
+}
+
+#modals-slide-in .planning-tipe-preview-spec-label {
+    color: #6b7280;
+    display: block;
+    font-size: .65rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+#modals-slide-in .planning-tipe-preview-spec-val {
+    color: #111827;
+    display: block;
+    font-size: .74rem;
+    font-weight: 600;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+#modals-slide-in .planning-tipe-preview-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: .1rem;
+}
+
+#modals-slide-in .planning-tipe-preview-kerja-btn {
+    border-color: #2057a3;
+    color: #2057a3;
+    font-size: .74rem;
+    font-weight: 600;
+}
+
+#modals-slide-in .planning-tipe-preview-kerja-btn:hover,
+#modals-slide-in .planning-tipe-preview-kerja-btn:focus {
+    background-color: #edf4ff;
+    border-color: #163f78;
+    color: #163f78;
+}
+
+/* Lightbox Modal Preview Gambar Tipe (#modal-planning-tipe-image) */
+#modal-planning-tipe-image {
+    z-index: 1060;
+}
+
+#modal-planning-tipe-image .modal-content {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#modal-planning-tipe-image .modal-header {
+    align-items: center;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: .85rem 1.2rem;
+}
+
+#modal-planning-tipe-image .modal-title {
+    align-items: center;
+    color: #111827;
+    display: flex;
+    gap: .5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+#modal-planning-tipe-image .planning-lightbox-icon {
+    align-items: center;
+    background: #edf4ff;
+    border-radius: 7px;
+    color: #2057a3;
+    display: inline-flex;
+    flex-shrink: 0;
+    height: 28px;
+    justify-content: center;
+    width: 28px;
+}
+
+#modal-planning-tipe-image .modal-body {
+    background: #f3f5f7;
+    padding: 1rem;
+}
+
+#modal-planning-tipe-image .planning-lightbox-stage {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    min-height: 240px;
+    padding: .75rem;
+}
+
+#modal-planning-tipe-image .planning-lightbox-img {
+    border-radius: 6px;
+    display: block;
+    max-height: 70vh;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+#modal-planning-tipe-image .modal-footer {
+    align-items: center;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: .5rem;
+    justify-content: space-between;
+    padding: .75rem 1.2rem;
+}
+
+#modal-planning-tipe-image .planning-lightbox-newtab {
+    background-color: #2057a3;
+    border-color: #2057a3;
+}
+
+#modal-planning-tipe-image .planning-lightbox-newtab:hover,
+#modal-planning-tipe-image .planning-lightbox-newtab:focus {
+    background-color: #163f78;
+    border-color: #163f78;
+}
+
+/* Dark Layout Support */
+.dark-layout #modals-slide-in .planning-modal-actions {
+    background: #283046;
+    border-top-color: #3b4253;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, .25);
+}
+
+.dark-layout #modals-slide-in .planning-tipe-preview {
+    background: #161d31;
+    border-color: #3b4253;
+}
+
+.dark-layout #modals-slide-in .planning-tipe-preview-loading {
+    background: #1e2538;
+    border-color: #3b4253;
+    color: #b4b7bd;
+}
+
+.dark-layout #modals-slide-in .planning-tipe-preview-alert {
+    background: rgba(220, 38, 38, .14);
+    border-color: rgba(220, 38, 38, .35);
+    color: #fca5a5;
+}
+
+.dark-layout #modals-slide-in .planning-tipe-preview-title,
+.dark-layout #modals-slide-in .planning-tipe-preview-spec-val {
+    color: #f3f4f6;
+}
+
+.dark-layout #modals-slide-in .planning-tipe-preview-section-title,
+.dark-layout #modals-slide-in .planning-tipe-preview-spec-label,
+.dark-layout #modals-slide-in .planning-tipe-preview-thumb-empty {
+    color: #b4b7bd;
+}
+
+.dark-layout #modals-slide-in .planning-tipe-preview-thumb-card,
+.dark-layout #modals-slide-in .planning-tipe-preview-spec-item {
+    background: #1e2538;
+    border-color: #3b4253;
+}
+
+.dark-layout #modals-slide-in .planning-tipe-preview-thumb-img-wrap {
+    background: #141a2b;
+}
+
+.dark-layout #modals-slide-in .planning-tipe-preview-thumb-caption {
+    border-top-color: #3b4253;
+    color: #d0d2d6;
+}
+
+.dark-layout #modals-slide-in .planning-tipe-preview-kerja-btn {
+    border-color: #4c86d4;
+    color: #93c5fd;
+}
+
+.dark-layout #modals-slide-in .planning-tipe-preview-kerja-btn:hover,
+.dark-layout #modals-slide-in .planning-tipe-preview-kerja-btn:focus {
+    background: rgba(32, 87, 163, .28);
+    border-color: #60a5fa;
+    color: #ffffff;
+}
+
+.dark-layout #modal-planning-tipe-image .modal-content,
+.dark-layout #modal-planning-tipe-image .modal-header,
+.dark-layout #modal-planning-tipe-image .modal-footer,
+.dark-layout #modal-planning-tipe-image .planning-lightbox-stage {
+    background: #283046;
+    border-color: rgba(255, 255, 255, .08);
+}
+
+.dark-layout #modal-planning-tipe-image .modal-body {
+    background: #161d31;
+}
+
+.dark-layout #modal-planning-tipe-image .modal-title {
+    color: #f3f4f6;
+}
+
+.dark-layout #modal-planning-tipe-image .planning-lightbox-icon {
+    background: rgba(32, 87, 163, .28);
+    color: #93c5fd;
+}
+
+/* Responsivitas Mobile & Modal Sidebar-SM */
+@media (max-width: 575.98px) {
+    #modals-slide-in .planning-modal-actions {
+        padding: .75rem 1rem;
+    }
+
+    #modals-slide-in .planning-tipe-preview {
+        padding: .55rem .6rem;
+    }
+
+    #modals-slide-in .planning-tipe-preview-thumb-img-wrap {
+        height: 66px;
+    }
+
+    #modal-planning-tipe-image .modal-dialog {
+        margin: .5rem auto;
+        max-width: calc(100vw - 16px);
+    }
+
+    #modal-planning-tipe-image .modal-body {
+        padding: .75rem;
+    }
+
+    #modal-planning-tipe-image .planning-lightbox-stage {
+        min-height: 180px;
+        padding: .5rem;
+    }
+}
+
+@media (max-width: 340px) {
+    #modals-slide-in .planning-tipe-preview-thumbs,
+    #modals-slide-in .planning-tipe-preview-specs {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

@@ -32,6 +32,9 @@ class SiteplanDataService
     {
         $idProyek = (int) ($params['id_proyek'] ?? 0);
         $idRole = (int) ($params['id_role'] ?? 0);
+        $tahunTarget = !empty($params['tahun_target']) && (int) $params['tahun_target'] > 0
+            ? (int) $params['tahun_target']
+            : null;
         $clusterIds = self::normalizeIdList($params['id_cluster'] ?? null);
         $jalanIds = self::normalizeIdList($params['id_jalan'] ?? null);
         $filters = $this->categoryFilters($params);
@@ -41,12 +44,11 @@ class SiteplanDataService
             $data = $this->visualStatusService->appendVisualRows($data);
         }
 
-        $result = ['data' => $data];
-        if ($idRole === 11) {
-            $result['target_kavling'] = $this->targetSiteplanService->getKavlingTargetMap($idProyek);
-        }
-
-        return $result;
+        return [
+            'data' => $data,
+            'target_kavling' => $this->targetSiteplanService->getKavlingTargetMap($idProyek, $tahunTarget),
+            'target_years' => $this->targetSiteplanService->getAvailableYears($idProyek),
+        ];
     }
 
     public function getOthers(array $params): array

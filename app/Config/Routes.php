@@ -982,10 +982,16 @@ $routes->group('api/checklist-sub-item', ['namespace' => 'App\Controllers\Api\Pr
 });
 
 $routes->group('api/target', ['namespace' => 'App\Controllers\Api\Siteplan', 'filter' => 'login'], function ($routes) {
-    $routes->post('list',    'TargetController::list');
-    $routes->post('detail',  'TargetController::detail');
-    $routes->post('save',    'TargetController::save');
-    $routes->post('history', 'TargetController::history');
+    $routes->post('list',                'TargetController::list');
+    $routes->post('detail',              'TargetController::detail');
+    $routes->post('save',                'TargetController::save');
+    $routes->post('add-kavling',         'TargetController::addKavling');
+    $routes->post('update-kavling-tipe', 'TargetController::updateKavlingTipe');
+    $routes->post('remove-kavling',      'TargetController::removeKavling');
+    $routes->post('history',             'TargetController::history');
+    $routes->post('request-change',      'TargetController::requestChange');
+    $routes->post('requests',            'TargetController::requests');
+    $routes->post('review-request',      'TargetController::reviewRequest');
 });
 
 $routes->group('api/riwayat-perubahan', ['namespace' => 'App\Controllers\Api\AuditTrail', 'filter' => 'login'], function ($routes) {

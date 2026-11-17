@@ -1,3 +1,296 @@
+    var planningTipeMap = {};
+    var planningTipePreviewRequestId = 0;
+
+    function planningApiUrl(path) {
+        const base = typeof base_url !== "undefined" ? String(base_url || "") : "";
+        const cleanBase = base.replace(/\/+$/, "");
+        const cleanPath = String(path || "").replace(/^\/+/, "");
+        return cleanBase + "/" + cleanPath;
+    }
+
+    function planningEscapeHtml(str) {
+        return String(str == null ? "" : str).replace(/[&<>"']/g, function (ch) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#039;",
+            }[ch];
+        });
+    }
+
+    function planningSanitizeAccessUrl(url) {
+        const raw = String(url == null ? "" : url).trim();
+        if (!raw) return "";
+        if (/^(https?:\/\/|\/(?!\/))/i.test(raw)) {
+            return raw;
+        }
+        return "";
+    }
+
+    function planningFormatTipeText(tipe) {
+        if (!tipe) return "";
+        const noTipe = String(tipe.no_tipe_rumah || "").trim();
+        const tipeRumah = String(tipe.tipe_rumah || "").trim();
+        if (noTipe && tipeRumah) {
+            return noTipe + " (" + tipeRumah + ")";
+        }
+        return noTipe || tipeRumah || ("Tipe #" + (tipe.id_tipe || ""));
+    }
+
+    function planningFormatDimension(a, b, unit) {
+        const first = String(a == null ? "" : a).trim();
+        const second = String(b == null ? "" : b).trim();
+        const hasFirst = first !== "" && first !== "0";
+        const hasSecond = second !== "" && second !== "0";
+        if (!hasFirst && !hasSecond) return "-";
+        const firstStr = hasFirst ? first : "-";
+        const secondStr = hasSecond ? second : "-";
+        return firstStr + " / " + secondStr + (unit ? " " + unit : "");
+    }
+
+    function planningFormatSpecValue(val) {
+        const text = String(val == null ? "" : val).trim();
+        return text || "-";
+    }
+
+    function hasCompletePlanningTipeSpec(tipe) {
+        if (!tipe || typeof tipe !== "object") return false;
+        if (tipe._specLoaded === true) return true;
+        return (
+            Object.prototype.hasOwnProperty.call(tipe, "spesifikasi_teknis_atap") &&
+            Object.prototype.hasOwnProperty.call(tipe, "gambar_tipe_access_url")
+        );
+    }
+
+    function buildPlanningTipePreviewHtml(tipe) {
+        const tipeTitle = planningFormatTipeText(tipe);
+        const isSubsidi = Number(tipe.is_subsidi || 0) === 1;
+        const isInactive =
+            tipe.is_active !== undefined &&
+            tipe.is_active !== null &&
+            Number(tipe.is_active) === 0;
+
+        const badgesHtml =
+            '<div class="planning-tipe-preview-badges">' +
+            '<span class="planning-tipe-preview-badge ' +
+            (isSubsidi ? "is-subsidi" : "is-komersil") +
+            '">' +
+            (isSubsidi ? "Subsidi" : "Komersil") +
+            "</span>" +
+            (isInactive
+                ? '<span class="planning-tipe-preview-badge is-inactive">Non-Aktif</span>'
+                : "") +
+            "</div>";
+
+        const url3d = planningSanitizeAccessUrl(tipe.gambar_tipe_access_url);
+        const urlDenah = planningSanitizeAccessUrl(tipe.gambar_denah_access_url);
+        const urlKerja = planningSanitizeAccessUrl(tipe.gambar_kerja_access_url);
+
+        const renderThumb = function (url, caption) {
+            if (url) {
+                const lightboxTitle = caption + " - " + tipeTitle;
+                return (
+                    '<button type="button" class="planning-tipe-preview-thumb-card planning-tipe-thumb-btn"' +
+                    ' data-preview-url="' +
+                    planningEscapeHtml(url) +
+                    '"' +
+                    ' data-preview-title="' +
+                    planningEscapeHtml(lightboxTitle) +
+                    '"' +
+                    ' title="Klik untuk perbesar ' +
+                    planningEscapeHtml(caption) +
+                    '">' +
+                    '<div class="planning-tipe-preview-thumb-img-wrap">' +
+                    '<img class="planning-tipe-preview-thumb-img" src="' +
+                    planningEscapeHtml(url) +
+                    '" alt="' +
+                    planningEscapeHtml(caption) +
+                    '" loading="lazy">' +
+                    '<span class="planning-tipe-preview-thumb-zoom"><i class="fas fa-search-plus"></i></span>' +
+                    "</div>" +
+                    '<span class="planning-tipe-preview-thumb-caption">' +
+                    planningEscapeHtml(caption) +
+                    "</span>" +
+                    "</button>"
+                );
+            }
+            return (
+                '<div class="planning-tipe-preview-thumb-card is-empty">' +
+                '<div class="planning-tipe-preview-thumb-img-wrap">' +
+                '<span class="planning-tipe-preview-thumb-empty">Belum ada gambar</span>' +
+                "</div>" +
+                '<span class="planning-tipe-preview-thumb-caption">' +
+                planningEscapeHtml(caption) +
+                "</span>" +
+                "</div>"
+            );
+        };
+
+        const specs = [
+            { label: "LB / LT", value: planningFormatDimension(tipe.lb, tipe.lt, "m²") },
+            {
+                label: "KT / KM",
+                value: planningFormatDimension(tipe.jumlah_kamar_tidur, tipe.jumlah_kamar_mandi, ""),
+            },
+            { label: "Atap", value: planningFormatSpecValue(tipe.spesifikasi_teknis_atap) },
+            { label: "Dinding", value: planningFormatSpecValue(tipe.spesifikasi_teknis_dinding) },
+            { label: "Lantai", value: planningFormatSpecValue(tipe.spesifikasi_teknis_lantai) },
+            { label: "Pondasi", value: planningFormatSpecValue(tipe.spesifikasi_teknis_pondasi) },
+        ];
+
+        const specsHtml = specs
+            .map(function (sp) {
+                return (
+                    '<div class="planning-tipe-preview-spec-item">' +
+                    '<span class="planning-tipe-preview-spec-label">' +
+                    planningEscapeHtml(sp.label) +
+                    "</span>" +
+                    '<span class="planning-tipe-preview-spec-val">' +
+                    planningEscapeHtml(sp.value) +
+                    "</span>" +
+                    "</div>"
+                );
+            })
+            .join("");
+
+        const kerjaHtml = urlKerja
+            ? '<div class="planning-tipe-preview-actions">' +
+              '<a href="' +
+              planningEscapeHtml(urlKerja) +
+              '" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm planning-tipe-preview-kerja-btn">' +
+              '<i class="fas fa-drafting-compass mr-25"></i>Lihat Gambar Kerja</a>' +
+              "</div>"
+            : "";
+
+        return (
+            '<div class="planning-tipe-preview-head">' +
+            '<span class="planning-tipe-preview-title">' +
+            planningEscapeHtml(tipeTitle) +
+            "</span>" +
+            badgesHtml +
+            "</div>" +
+            '<div class="planning-tipe-preview-thumbs">' +
+            renderThumb(url3d, "Gambar 3D") +
+            renderThumb(urlDenah, "Denah") +
+            "</div>" +
+            '<div class="planning-tipe-preview-section-title">Spesifikasi Teknis</div>' +
+            '<div class="planning-tipe-preview-specs">' +
+            specsHtml +
+            "</div>" +
+            kerjaHtml
+        );
+    }
+
+    function renderPlanningTipePreview(idTipe) {
+        const $preview = $("#planning-tipe-preview");
+        if (!$preview.length) return;
+
+        const tipeId = String(idTipe == null ? "" : idTipe).trim();
+        const jenisVal = String($("#fm-add_kavling #id_jenis").val() || "").trim();
+
+        if (!tipeId || (jenisVal !== "kavling" && jenisVal !== "ruko")) {
+            planningTipePreviewRequestId++;
+            $preview.attr("hidden", true).empty();
+            return;
+        }
+
+        const cached = planningTipeMap[tipeId] || null;
+        if (hasCompletePlanningTipeSpec(cached)) {
+            planningTipePreviewRequestId++;
+            $preview.html(buildPlanningTipePreviewHtml(cached)).removeAttr("hidden");
+            return;
+        }
+
+        const requestId = ++planningTipePreviewRequestId;
+        $preview
+            .html(
+                '<div class="planning-tipe-preview-loading">' +
+                    '<i class="fa fa-spinner fa-spin text-primary"></i>' +
+                    "<span>Memuat gambar &amp; spesifikasi tipe...</span>" +
+                    "</div>"
+            )
+            .removeAttr("hidden");
+
+        $.ajax({
+            url: planningApiUrl("api/tipe/getone"),
+            type: "post",
+            data: {
+                [csrfName]: csrfHash,
+                id_tipe: tipeId,
+            },
+            dataType: "json",
+            success: function (res) {
+                if (res && res.token) {
+                    csrfHash = res.token;
+                }
+
+                const fetched =
+                    res && res.data && typeof res.data === "object"
+                        ? res.data
+                        : res && res.id_tipe
+                          ? res
+                          : null;
+
+                if (
+                    requestId !== planningTipePreviewRequestId ||
+                    String($("#fm-add_kavling #id_tipe").val() || "").trim() !== tipeId
+                ) {
+                    return;
+                }
+
+                const currentJenis = String($("#fm-add_kavling #id_jenis").val() || "").trim();
+                if (currentJenis !== "kavling" && currentJenis !== "ruko") {
+                    $preview.attr("hidden", true).empty();
+                    return;
+                }
+
+                if (!fetched || !fetched.id_tipe) {
+                    $preview
+                        .html(
+                            '<div class="planning-tipe-preview-alert">Detail spesifikasi tipe tidak ditemukan.</div>'
+                        )
+                        .removeAttr("hidden");
+                    return;
+                }
+
+                const normalized = Object.assign({}, fetched, { _specLoaded: true });
+                planningTipeMap[String(fetched.id_tipe)] = normalized;
+                $preview.html(buildPlanningTipePreviewHtml(normalized)).removeAttr("hidden");
+            },
+            error: function () {
+                if (
+                    requestId !== planningTipePreviewRequestId ||
+                    String($("#fm-add_kavling #id_tipe").val() || "").trim() !== tipeId
+                ) {
+                    return;
+                }
+                $preview
+                    .html(
+                        '<div class="planning-tipe-preview-alert">Gagal memuat gambar &amp; spesifikasi tipe.</div>'
+                    )
+                    .removeAttr("hidden");
+            },
+        });
+    }
+
+    function openPlanningTipeLightbox(url, title) {
+        const safeUrl = planningSanitizeAccessUrl(url);
+        if (!safeUrl) return;
+        const $lightbox = $("#modal-planning-tipe-image");
+        if (!$lightbox.length) return;
+
+        const safeTitle = String(title || "Preview Gambar Tipe").trim();
+        $("#planning-tipe-image-title").text(safeTitle);
+        $("#planning-tipe-image-img").attr({
+            src: safeUrl,
+            alt: safeTitle,
+        });
+        $("#planning-tipe-image-newtab").attr("href", safeUrl);
+        $lightbox.modal("show");
+    }
+
     function tambah_kavling(from_pilih_seleksi = false) {
         if (editdtt.length > 0) {
             return swal('error', "Terjadi Kesalahan.", "Lokasi sudah diisi oleh kavling lain")
@@ -31,7 +324,9 @@
         }
         planning_reset_simplify_state();
         $("#fm-add_kavling")[0].reset()
+        $("#fm-add_kavling #id_tipe").empty()
         $("#fm-add_kavling .select2").val(null).trigger('change')
+        renderPlanningTipePreview("")
         $("#rotation").val("");
         $("#ui-rotation").val("");
         $("#rotation-icon").css("transform", "rotate(0deg)");
@@ -248,7 +543,9 @@ function edit_kavling_batch() {
   }
 
   $("#fm-add_kavling")[0].reset();
+  $("#fm-add_kavling #id_tipe").empty();
   $("#fm-add_kavling .select2").val(null).trigger("change");
+  renderPlanningTipePreview("");
   $("#rotation").val("");
   $("#ui-rotation").val("");
   $("#rotation-icon").css("transform", "rotate(0deg)");
@@ -295,13 +592,19 @@ function edit_kavling_batch() {
             .text(r[0].nama_jalan),
         )
         .trigger("change");
-      $("#fm-add_kavling #id_tipe")
-        .append(
-          $("<option selected></option>")
-            .attr("value", r[0].id_tipe)
-            .text(r[0].no_tipe_rumah + " (" + r[0].tipe_rumah + ")"),
-        )
-        .trigger("change");
+      const $tipeSelect = $("#fm-add_kavling #id_tipe");
+      $tipeSelect.empty();
+      if (tipe === "kavling" && r && r[0] && r[0].id_tipe) {
+        $tipeSelect
+          .append(
+            $("<option selected></option>")
+              .attr("value", r[0].id_tipe)
+              .text(planningFormatTipeText(r[0])),
+          )
+          .trigger("change");
+      } else {
+        $tipeSelect.trigger("change");
+      }
 
       if (tipe == "kavling") {
         if (r.length > 0) {
@@ -595,7 +898,7 @@ function add_kavling() {
       return;
     }
   }
-  par += `&nama_jalan=${$("#fm-add_kavling #id_jalan").text()}&nama_tipe=${$("#fm-add_kavling #id_tipe").text()}`;
+  par += `&nama_jalan=${$("#fm-add_kavling #id_jalan").text()}&nama_tipe=${$("#fm-add_kavling #id_tipe option:selected").text()}`;
 
   $.ajax({
     url: base_url + "/siteplan/add_kavling",
@@ -924,26 +1227,37 @@ $(document).on("click", "#modals-slide-in [data-planning-cancel-edit]", function
     dropdownParent: $planningModal,
     placeholder: "Pilih Tipe",
     allowClear: true,
+    minimumInputLength: 0,
+    width: "100%",
     ajax: {
-      url: base_url + "/tipe/getAll",
+      url: planningApiUrl("api/tipe/all?only_active=1&format=raw"),
       dataType: "json",
       delay: 250,
       method: "post",
       data: function (params) {
         return {
           [csrfName]: csrfHash,
-          search: params.term,
+          search: params && params.term ? params.term : "",
           id_proyek: getPlanningProyekId(),
+          only_active: 1,
+          format: "raw",
         };
       },
       processResults: function (r) {
-        csrfHash = r.token;
+        if (r && r.token) {
+          csrfHash = r.token;
+        }
 
-        let results = [];
-        $.each(r.data, function (index, item) {
+        const rows = Array.isArray(r && r.data) ? r.data : [];
+        const results = [];
+        $.each(rows, function (index, item) {
+          if (!item || !item.id_tipe) return;
+          if (Number(item.is_active != null ? item.is_active : 1) !== 1) return;
+          planningTipeMap[String(item.id_tipe)] = item;
           results.push({
-            id: item[0],
-            text: item[2] + "(" + item[3] + ")",
+            id: String(item.id_tipe),
+            text: planningFormatTipeText(item),
+            tipeData: item,
           });
         });
 
@@ -951,9 +1265,21 @@ $(document).on("click", "#modals-slide-in [data-planning-cancel-edit]", function
           results: results,
         };
       },
-      cache: true,
+      cache: false,
     },
   });
+
+  $planningTipe
+    .on("select2:select", function (e) {
+      const data = e && e.params ? e.params.data : null;
+      if (data && data.tipeData && data.tipeData.id_tipe) {
+        planningTipeMap[String(data.tipeData.id_tipe)] = data.tipeData;
+      }
+      renderPlanningTipePreview(String($(this).val() || ""));
+    })
+    .on("select2:clear change", function () {
+      renderPlanningTipePreview(String($(this).val() || ""));
+    });
 
   $planningForm.find("#status_tanah").select2({
     dropdownParent: $planningModal,
@@ -963,20 +1289,39 @@ $(document).on("click", "#modals-slide-in [data-planning-cancel-edit]", function
     dropdownParent: $planningModal,
   });
   $planningJenis.change(function () {
-  if (this.value == "") {
-    $(".h").hide();
-  } else if (this.value == "kavling" || this.value == "ruko") {
-    $(".h").hide();
-    $("#div_kavling").show();
-  } else if (this.value == "jalan") {
-    $(".h").hide();
-    $("#div_jalan, #div_luas").show();
-  } else if (this.value == "fasos" || this.value == "rth") {
-    $(".h").hide();
-    $("#div_jalan, #div_fasos").show();
-  } else {
-    $(".h").hide();
-  }
+    if (this.value == "") {
+      $(".h").hide();
+      renderPlanningTipePreview("");
+    } else if (this.value == "kavling" || this.value == "ruko") {
+      $(".h").hide();
+      $("#div_kavling").show();
+      renderPlanningTipePreview(String($planningTipe.val() || ""));
+    } else if (this.value == "jalan") {
+      $(".h").hide();
+      $("#div_jalan, #div_luas").show();
+      renderPlanningTipePreview("");
+    } else if (this.value == "fasos" || this.value == "rth") {
+      $(".h").hide();
+      $("#div_jalan, #div_fasos").show();
+      renderPlanningTipePreview("");
+    } else {
+      $(".h").hide();
+      renderPlanningTipePreview("");
+    }
+  });
+
+  $(document).on("click", "#planning-tipe-preview .planning-tipe-thumb-btn", function () {
+    const previewUrl = $(this).attr("data-preview-url") || "";
+    const previewTitle = $(this).attr("data-preview-title") || "Preview Gambar Tipe";
+    openPlanningTipeLightbox(previewUrl, previewTitle);
+  });
+
+  $("#modal-planning-tipe-image").on("hidden.bs.modal", function () {
+    $("#planning-tipe-image-img").attr("src", "");
+    $("#planning-tipe-image-newtab").attr("href", "#");
+    if ($("#modals-slide-in").hasClass("show")) {
+      $("body").addClass("modal-open");
+    }
   });
 })();
 
@@ -1000,6 +1345,7 @@ $(document).ready(function() {
     // 4. Klik luar shape otomatis deselect
     if (typeof stage !== 'undefined') {
         stage.on('click.planningDeselect tap.planningDeselect', function(e) {
+            if (typeof window.isTargetSetModeActive === 'function' && window.isTargetSetModeActive()) return;
             if (typeof isFacadeArrowActive !== 'undefined' && isFacadeArrowActive) return;
             if (typeof isManualSelectionActive === 'function' && isManualSelectionActive()) return;
             if ($("#tambah_jalan").prop("checked")) return; 

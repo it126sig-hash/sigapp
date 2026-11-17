@@ -163,6 +163,7 @@ class TransaksiRepository extends Model
             `konsumen`.`pekerjaan`,
             `konsumen`.`bidang_pekerjaan`,
             `konsumen`.`lama_bekerja`,
+            `konsumen`.`status_pernikahan`,
             `konsumen`.`status_pekerjaan_pasangan`,
             `konsumen`.`hp_pasangan`,
             `konsumen`.`nik_pasangan`,

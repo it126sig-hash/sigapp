@@ -1,42 +1,22 @@
 [
     {
-        "layer": "Service",
-        "file": "ProyekService.php",
-        "name": "add"
+        "layer": "Controller",
+        "file": "ProyekController.php",
+        "name": "getAccessible"
+    },
+    {
+        "layer": "Controller",
+        "file": "AksesProyekController.php",
+        "name": "getAkses"
     },
     {
         "layer": "Service",
         "file": "ProyekService.php",
-        "name": "remove"
-    },
-    {
-        "layer": "Service",
-        "file": "ClusterService.php",
         "name": "add"
     },
     {
         "layer": "Service",
-        "file": "ClusterService.php",
+        "file": "ProyekService.php",
         "name": "remove"
-    },
-    {
-        "layer": "Service",
-        "file": "TipeService.php",
-        "name": "getListKavling"
-    },
-    {
-        "layer": "Service",
-        "file": "TipeService.php",
-        "name": "add"
-    },
-    {
-        "layer": "Service",
-        "file": "TipeService.php",
-        "name": "remove"
-    },
-    {
-        "layer": "Service",
-        "file": "JalanService.php",
-        "name": "add"
     }
 ]

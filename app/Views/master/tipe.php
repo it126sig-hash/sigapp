@@ -73,10 +73,17 @@
 		<div class="row">
 			<div class="col-12">
 				<div class="card">
-					<div class="card-header border-bottom">
-						<hr class="col-12" />
-						<button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm">Filter Data</button>
-						<button type="button" class="btn btn-primary data-submit  btn-sm mr-1 col-sm-12 col-md-3 col-lg-3" onclick="add()" title="Add"> <i class="fa fa-plus"></i> Tambah Data</button>
+					<div class="card-header border-bottom d-flex flex-wrap align-items-center justify-content-between" style="gap: .75rem;">
+						<div class="d-flex flex-wrap align-items-center" style="gap: .5rem;">
+							<label for="filter-status-tipe" class="mb-0 font-weight-bold text-muted">Status:</label>
+							<select id="filter-status-tipe" class="custom-select custom-select-sm w-auto">
+								<option value="">Semua Status</option>
+								<option value="1">Aktif</option>
+								<option value="0">Tidak Aktif</option>
+							</select>
+							<button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm">Filter Data</button>
+						</div>
+						<button type="button" class="btn btn-primary data-submit btn-sm" onclick="add()" title="Add"> <i class="fa fa-plus"></i> Tambah Data</button>
 					</div>
 					<div class="card-datatable">
 						<table id="data_table" class="datatables-basic table">
@@ -90,6 +97,7 @@
 									<th>Jumlah Kamar Mandi</th>
 									<th>Total Kavling</th>
 									<th>Keterangan</th>
+									<th>Status</th>
 									<th>Aksi</th>
 								</tr>
 							</thead>
@@ -137,12 +145,21 @@
 										<input type="text" id="tipeRumah" name="tipeRumah" class="form-control" placeholder="Contoh: 36/72" maxlength="255">
 									</div>
 
-									<div class="form-group">
-										<label for="isSubsidi">Subsidi:</label>
-										<select id="isSubsidi" name="isSubsidi" class="custom-select">
-											<option value="1">Subsidi</option>
-											<option value="0">Non-Subsidi</option>
-										</select>
+									<div class="row">
+										<div class="form-group col-sm-6">
+											<label for="isSubsidi">Subsidi:</label>
+											<select id="isSubsidi" name="isSubsidi" class="custom-select">
+												<option value="1">Subsidi</option>
+												<option value="0">Non-Subsidi</option>
+											</select>
+										</div>
+										<div class="form-group col-sm-6">
+											<label for="is_active">Status:</label>
+											<select id="is_active" name="is_active" class="custom-select">
+												<option value="1" selected>Aktif</option>
+												<option value="0">Tidak Aktif</option>
+											</select>
+										</div>
 									</div>
 
 									<div class="row">
@@ -328,12 +345,21 @@
 												<input type="text" id="tipeRumah" name="tipeRumah" class="form-control" placeholder="Contoh: 36/72" maxlength="255">
 											</div>
 
-											<div class="form-group">
-												<label for="isSubsidi">Subsidi:</label>
-												<select id="isSubsidi" name="isSubsidi" class="custom-select">
-													<option value="1">Subsidi</option>
-													<option value="0">Non-Subsidi</option>
-												</select>
+											<div class="row">
+												<div class="form-group col-sm-6">
+													<label for="isSubsidi">Subsidi:</label>
+													<select id="isSubsidi" name="isSubsidi" class="custom-select">
+														<option value="1">Subsidi</option>
+														<option value="0">Non-Subsidi</option>
+													</select>
+												</div>
+												<div class="form-group col-sm-6">
+													<label for="edit_is_active">Status:</label>
+													<select id="edit_is_active" name="is_active" class="custom-select">
+														<option value="1">Aktif</option>
+														<option value="0">Tidak Aktif</option>
+													</select>
+												</div>
 											</div>
 
 											<div class="row">
@@ -700,11 +726,19 @@
 				{
 					targets: [6],
 					render: function(data, type, row) {
-						return '<span class="badge badge-light-info font-weight-bolder" style="cursor: pointer;" onclick="listKavling(' + row[8] + ')" title="Lihat List Kavling">' + (data || 0) + ' Unit</span>';
+						return '<span class="badge badge-light-info font-weight-bolder" style="cursor: pointer;" onclick="listKavling(' + row[9] + ')" title="Lihat List Kavling">' + (data || 0) + ' Unit</span>';
 					}
 				},
 				{
 					targets: [8],
+					render: function(data) {
+						return data == 1
+							? '<span class="badge badge-light-success">Aktif</span>'
+							: '<span class="badge badge-light-secondary">Tidak Aktif</span>';
+					}
+				},
+				{
+					targets: [9],
 					orderable: false,
 					render: function(data) {
 						return '<div class="btn-group">' +
@@ -727,12 +761,10 @@
 				url: '<?php echo base_url($controller . '/getDataTables') ?>',
 				type: "POST",
 				dataType: "json",
-				data: {
-					[csrfName]: csrfHash
-				},
-				data: function(data) {
-					data[csrfName] = csrfHash
-					data.id_proyek = activeProyekId();
+				data: function(d) {
+					d[csrfName] = csrfHash;
+					d.id_proyek = activeProyekId();
+					d.is_active = $('#filter-status-tipe').val();
 				},
 				dataSrc: function(r) {
 					csrfHash = r.token
@@ -746,6 +778,10 @@
 			table.draw();
 		})
 
+		$("#filter-status-tipe").on("change", function() {
+			table.ajax.reload();
+		});
+
 		if (activeProyekId()) {
 			table.draw();
 		}
@@ -756,8 +792,9 @@
 	function add() {
 		// reset the form 
 		$("#add-form")[0].reset();
+		$("#add-form #is_active").val('1');
 		resetUploadPreviews('#add-form');
-		$(".form-control").removeClass('is-invalid').removeClass('is-valid');
+		$(".form-control, .custom-select").removeClass('is-invalid').removeClass('is-valid');
 		initModalListener('#add-modal');
 		$('#add-modal').modal('show');
 
@@ -901,7 +938,7 @@
 				// reset the form 
 				$("#edit-form")[0].reset();
 				resetUploadPreviews('#edit-form');
-				$(".form-control").removeClass('is-invalid').removeClass('is-valid');
+				$(".form-control, .custom-select").removeClass('is-invalid').removeClass('is-valid');
 				initModalListener('#edit-modal');
 				$('#edit-modal').modal('show');
 
@@ -924,6 +961,7 @@
 				$("#edit-form #no_tipe_rumah").val(response.no_tipe_rumah);
 				$("#edit-form #tipeRumah").val(response.tipe_rumah);
 				$("#edit-form #isSubsidi").val(response.is_subsidi);
+				$("#edit-form #edit_is_active").val(String(response.is_active ?? 1));
 				$("#edit-form #lb").val(response.lb);
 				$("#edit-form #lt").val(response.lt);
 				$("#edit-form #jumlah_kamar_tidur").val(response.jumlah_kamar_tidur);

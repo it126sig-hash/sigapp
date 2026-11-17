@@ -95,6 +95,7 @@ class ModuleCatalog
                     'TargetSiteplanModel.php',
                     'TargetSiteplanKavlingModel.php',
                     'TargetSiteplanHistoryModel.php',
+                    'TargetSiteplanRequestModel.php',
                 ],
                 'shims' => [
                     'app/Controllers/Siteplan.php',
@@ -122,12 +123,17 @@ class ModuleCatalog
                     'siteplan/target.js',
                     'siteplan/tiket-overlay.js',
                 ],
+                'assets_css' => [
+                    'siteplan-target.css',
+                    'siteplan-planning.css',
+                ],
                 'owner_tables' => [
                     'others',
                     'siteplan_upload',
                     'target_siteplan',
                     'target_siteplan_kavling',
                     'target_siteplan_history',
+                    'target_siteplan_request',
                 ],
                 'shared_tables' => ['kavling', 'mkdt', 'keuangan', 'produksi', 'legal', 'tiket_masalah'],
             ],

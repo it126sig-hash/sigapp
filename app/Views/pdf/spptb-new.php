@@ -355,14 +355,24 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
 <table border="0" id="tb-identitas" cellspacing="5" cellpadding="0">
     <tbody>
         <?php
-        $isBelumKawin = isset($data->status_pernikahan) && strtolower($data->status_pernikahan) == 'belum kawin';
-        $namaPasanganEmpty = empty(trim((string)$data->nama_pasangan));
+        $statusPernikahan = strtolower(trim((string) ($data->status_pernikahan ?? '')));
+        $isBelumKawin = ($statusPernikahan === 'belum kawin');
+        $namaPasanganEmpty = (trim((string) ($data->nama_pasangan ?? '')) === '');
         $showPasanganData = !$isBelumKawin && !$namaPasanganEmpty;
 
-        $nama_pasangan_display = $isBelumKawin ? '-' : title_case($data->nama_pasangan);
-        $nik_pasangan_display = $isBelumKawin ? '-' : strtoupper($data->nik_pasangan);
-        $hp_pasangan_display = $isBelumKawin ? '-' : strtoupper($data->hp_pasangan);
-        $instansi_pasangan_display = $isBelumKawin ? '-' : $data->instansi_pasangan;
+        $formatPasanganField = static function ($val, ?callable $formatter = null) use ($isBelumKawin): string {
+            $trimmed = trim((string) ($val ?? ''));
+            if ($isBelumKawin || $trimmed === '') {
+                return '-';
+            }
+
+            return $formatter ? (string) $formatter($trimmed) : $trimmed;
+        };
+
+        $nama_pasangan_display = $formatPasanganField($data->nama_pasangan ?? '', 'title_case');
+        $nik_pasangan_display = $formatPasanganField($data->nik_pasangan ?? '', 'strtoupper');
+        $hp_pasangan_display = $formatPasanganField($data->hp_pasangan ?? '', 'strtoupper');
+        $instansi_pasangan_display = $formatPasanganField($data->instansi_pasangan ?? '');
         ?>
         <tr>
             <td class="td-width" valign="top">
@@ -397,12 +407,13 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
                 $bek = "";
                 $tbek = "";
                 $irt = "";
+                $statusPekerjaanPasangan = trim((string) ($data->status_pekerjaan_pasangan ?? ''));
                 if ($showPasanganData) {
-                    if ($data->status_pekerjaan_pasangan == "Bekerja")
+                    if ($statusPekerjaanPasangan === "Bekerja")
                         $bek = "checked='true'";
-                    elseif ($data->status_pekerjaan_pasangan == "Tidak Bekerja")
+                    elseif ($statusPekerjaanPasangan === "Tidak Bekerja")
                         $tbek = "checked='true'";
-                    elseif ($data->status_pekerjaan_pasangan == "Ibu Rumah Tangga")
+                    elseif ($statusPekerjaanPasangan === "Ibu Rumah Tangga")
                         $irt = "checked='true'";
                 }
                 ?>

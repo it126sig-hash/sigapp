@@ -24,7 +24,7 @@ class KavlingRequestController extends BaseApiController
     }
 
     /**
-     * Submit pengajuan request penambahan atau ubah tipe kavling
+     * Submit pengajuan request penambahan atau ubah tipe kavling (single maupun batch ubah_tipe)
      */
     public function submit(): ResponseInterface
     {
@@ -43,6 +43,18 @@ class KavlingRequestController extends BaseApiController
 
         if (! $this->validateData($input, $rules)) {
             return $this->error('Validasi gagal', 422, $this->validator->getErrors());
+        }
+
+        if (array_key_exists('items', $input) && (! is_array($input['items']) || $input['items'] === [])) {
+            return $this->error('Validasi gagal', 422, [
+                'items' => 'Daftar items pengajuan wajib berupa array yang tidak kosong.',
+            ]);
+        }
+
+        if (array_key_exists('id_kavlings', $input) && empty($input['id_kavlings'])) {
+            return $this->error('Validasi gagal', 422, [
+                'id_kavlings' => 'Daftar kavling pengajuan tidak boleh kosong.',
+            ]);
         }
 
         try {

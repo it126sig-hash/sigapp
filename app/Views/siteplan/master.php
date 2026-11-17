@@ -1221,6 +1221,7 @@ foreach (user()->getRoles() as $key => $val) {
         line-height: 1.25;
     }
 </style>
+<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/siteplan-target.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/siteplan-target.css') ?>">
 <!-- END: Vendor CSS-->
 
 <!-- BEGIN: Content-->
@@ -1309,7 +1310,7 @@ foreach (user()->getRoles() as $key => $val) {
                                             <option value="10" class="dropdown-item">Pajak</option>
                                             <option value="3" class="dropdown-item">Keuangan</option>
                                             <option value="6" class="dropdown-item">Planning</option>
-                                            <option value="11" class="dropdown-item">Target</option>
+
                                             <!-- <option value="9" class="dropdown-item">Management</option> -->
                                         </optgroup>
                                     </select>
@@ -1324,6 +1325,19 @@ foreach (user()->getRoles() as $key => $val) {
                                 </div>
                                 <div class="form-group">
                                     <select disabled id="filter-id_jalan" name="id_jalan" class="select-sm form-control-sm select2"></select>
+                                </div>
+
+                                <div class="siteplan-target-filter-box">
+                                    <div class="custom-control custom-switch siteplan-target-switch-wrap">
+                                        <input type="checkbox" class="custom-control-input" id="toggle-tampilkan-target">
+                                        <label class="custom-control-label siteplan-target-switch-label" for="toggle-tampilkan-target">Tampilkan Target</label>
+                                    </div>
+                                    <div id="filter-target-tahun-container" class="siteplan-target-year-box" style="display:none;">
+                                        <label for="filter-tahun-target" class="siteplan-target-year-label">Tahun Target</label>
+                                        <select id="filter-tahun-target" name="tahun_target" class="form-control form-control-sm siteplan-target-year-select">
+                                            <option value="">Belum ada target</option>
+                                        </select>
+                                    </div>
                                 </div>
 
                                 <div id="filter-periode-container" style="display:none;">
@@ -1425,7 +1439,7 @@ foreach (user()->getRoles() as $key => $val) {
     <?php echo view('siteplan/request_kavling_modal', isset($data) ? ['data' => $data] : []); ?>
 <?php endif; ?>
 
-<?php if ($k == 1 || $k == 11): ?>
+<?php if (in_array((int) $k, [1, 4, 6, 11], true)): ?>
     <?php echo view('siteplan/target'); ?>
 <?php endif; ?>
 

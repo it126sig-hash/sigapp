@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-15 08:53:21` @ `889516a`  
+**Last Synced:** `2026-11-17 11:02:22` @ `af95026`  
 
 ## Purpose
 Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial visual.
@@ -21,6 +21,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - `target_siteplan` *(akses tulis eksklusif hanya untuk modul Siteplan)*
 - `target_siteplan_kavling` *(akses tulis eksklusif hanya untuk modul Siteplan)*
 - `target_siteplan_history` *(akses tulis eksklusif hanya untuk modul Siteplan)*
+- `target_siteplan_request` *(akses tulis eksklusif hanya untuk modul Siteplan)*
 
 ### Shared Tables (Dibaca dari modul lain)
 - `kavling`
@@ -81,7 +82,13 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 | `POST` | `/api/target/list` | `Explicit` | `TargetController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/target/detail` | `Explicit` | `TargetController::detail` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/target/save` | `Explicit` | `TargetController::save` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/target/add-kavling` | `Explicit` | `TargetController::addKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/target/update-kavling-tipe` | `Explicit` | `TargetController::updateKavlingTipe` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/target/remove-kavling` | `Explicit` | `TargetController::removeKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/target/history` | `Explicit` | `TargetController::history` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/target/request-change` | `Explicit` | `TargetController::requestChange` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/target/requests` | `Explicit` | `TargetController::requests` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/target/review-request` | `Explicit` | `TargetController::reviewRequest` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/siteplan/kalendar/events` | `Explicit` | `KalendarController::getEvents` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/siteplan/kalendar/meta` | `Explicit` | `KalendarController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/kalendar/events` | `Explicit` | `KalendarController::getEvents` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -126,9 +133,20 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 #### `TargetSiteplanService.php`
 - `listByProject(int $idProyek)`
 - `get(int $idTarget)`
-- `getKavlingTargetMap(int $idProyek)`
+- `getByProjectAndYear(int $idProyek, int $tahunTarget)`
+- `resolveProjectIdForTargetKavling(?int $idTargetKavling, ?int $idTarget)`
+- `resolveProjectIdsForTargetKavlings(array $idTargetKavlings, ?int $idTarget = null)`
+- `resolveProjectIdForTargetRequest(int $idRequest)`
+- `getKavlingTargetMap(int $idProyek, ?int $tahunTarget = null)`
+- `getAvailableYears(int $idProyek)`
+- `addKavlingToYear(array $data, int $actorId)`
+- `updateKavlingTipe(array $data, int $actorId)`
+- `removeKavling(array $data, int $actorId)`
 - `save(array $data)`
 - `history(int $idTarget)`
+- `requestTipeChange(array $data, int $actorId)`
+- `listRequests(int $idProyek, ?int $idTarget = null, ?int $tahunTarget = null, ?string $status = null)`
+- `reviewRequest(int $idRequest, string $decision, ?string $catatanApproval, int $approverId)`
 #### `KalendarService.php`
 - `divisiKeyFromName(string $name)`
 - `getCalendarViewData(int $userId = 0)`
@@ -142,43 +160,44 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - `app/Controllers/Web/Siteplan/ModalController.php` (21 baris, 1 public methods: `index()`)
 - `app/Controllers/Web/Siteplan/KalendarController.php` (27 baris, 1 public methods: `index()`)
 - `app/Controllers/Api/Siteplan/SiteplanController.php` (550 baris, 19 public methods: `meta()`, `kavling()`, `proyek($id = null)`, `config()`, `others()`, `detail(?int $idKavling = null)`, `urgentSummary()`, `getAllKavling()`, `getKategoriOptions()`, `get_others()`, `add_kavling()`, `edit_kavling()`, `edit_others()`, `get_kavling_by_multiple_id()`, `get_harga_kavling()`, `get_turun_pembangunan()`, `set_turun_pembangunan()`, `get_kavling_by_id()`, `get_detail()`)
-- `app/Controllers/Api/Siteplan/TargetController.php` (122 baris, 4 public methods: `list()`, `detail()`, `save()`, `history()`)
+- `app/Controllers/Api/Siteplan/TargetController.php` (628 baris, 10 public methods: `list()`, `detail()`, `save()`, `addKavling()`, `updateKavlingTipe()`, `removeKavling()`, `history()`, `requestChange()`, `requests()`, `reviewRequest()`)
 - `app/Controllers/Api/Siteplan/KalendarController.php` (132 baris, 2 public methods: `meta()`, `getEvents()`)
 
 ### Services (7)
-- `app/Services/Siteplan/SiteplanService.php` (953 baris, 16 public methods)
+- `app/Services/Siteplan/SiteplanService.php` (956 baris, 16 public methods)
 - `app/Services/Siteplan/SiteplanDetailService.php` (540 baris, 1 public methods)
-- `app/Services/Siteplan/SiteplanDataService.php` (125 baris, 3 public methods)
+- `app/Services/Siteplan/SiteplanDataService.php` (127 baris, 3 public methods)
 - `app/Services/Siteplan/SiteplanUrgentService.php` (396 baris, 7 public methods)
 - `app/Services/Siteplan/SiteplanVisualStatusService.php` (415 baris, 3 public methods)
-- `app/Services/Siteplan/TargetSiteplanService.php` (205 baris, 5 public methods)
+- `app/Services/Siteplan/TargetSiteplanService.php` (1260 baris, 16 public methods)
 - `app/Services/Siteplan/KalendarService.php` (210 baris, 5 public methods)
 
 ### Repositories (5)
 - `app/Repositories/Siteplan/SiteplanRepository.php` (946 baris, 49 public methods: `getProfilePerusahaan()`, `getPphList()`, `getPpnList()`, `getConfigShapeList()`, `getConfigShapeMap()`, `getConfigByRole(int $roleId)`, `getClusterOptionsByProyek(int $idProyek)`, `getClustersByProyek(int $idProyek)`, `getJalansByProyek(int $idProyek)`, `getTipesByProyek(int $idProyek)`, `getChecklistSubItemsWithGroup(?int $idProyek = null)`, `getChecklistItemsMap()`, `getHakAksesByUser(int $userId, ?string $namaHak = null)`, `getUserGroupId(int $userId)`, `findProyekById(int $idProyek)`, `getProyekByUserId(int $userId, bool $isAdmin = false)`, `userHasProjectAccess(?object $proyek, int $userId)`, `findDuplicateKavlingByJalan(string $noKavling, int $idJalan, ?int $excludeId = null)`, `isNoKavlingDuplicate(string $noKavling, int $idJalan, ?int $excludeId = null)`, `insertKavling(array $fields)`, `updateKavling(int $id, array $fields)`, `findKavlingsByIdsRaw(array $ids)`, `findKavlingPerintahBangunSnapshot(int $id)`, `findKavlingWithRelationsById(int $id)`, `findKavlingsWithRelationsByIds(array $ids)`, `findHargaKavlingById(int $id)`, `findHargaKavlingsByIds(array $ids)`, `findTurunPembangunanByIds(array $ids)`, `getDetailMkdt(int $idMkdt)`, `getDetailKavling(int $idKavling)`, `getDetailTipe(int $idTipe)`, `getDetailPricelist(int $idHargaJual)`, `getDetailKeuanganByMkdt(int $idMkdt)`, `getLastQueryString()`, `getDetailLogPembayaranByMkdt(int $idMkdt)`, `getDetailLogPembayaranDetailByMkdt(int $idMkdt)`, `getDetailPaymentSummaryByMkdt(int $idMkdt)`, `getDetailLastKeuanganUserByMkdt(int $idMkdt)`, `getDetailLegal(int $idLegal)`, `getDetailProduksi(int $idKavling)`, `getDetailFileProduksi(int $idKavling)`, `getDetailFilePph(int $idKavling)`, `getDetailFilePpn(int $idKavling)`, `getDetailHutangSubkon(int $idKavling)`, `getDetailFinanceLedgerIncome(?int $idMkdt, ?int $idKavling)`, `getDetailBankRetensiPending(int $idKavling)`, `getDetailDanaAkadSummary(int $idKavling)`, `getDetailBayarProduksi(int $idKavling)`, `getDetailSi(int $idKavling)`)
 - `app/Repositories/Siteplan/SiteplanUrgentRepository.php` (453 baris, 14 public methods: `getUserGroupId(int $userId)`, `countTagihanOverdue(int $idProyek, string $today)`, `countTagihanDue(int $idProyek, string $today, string $limitDate)`, `countCashoutSubkonUrgent(int $idProyek, string $limitDate)`, `countPembangunanTelat(int $idProyek, string $today)`, `countMkdtDateAlerts(string $field, ?int $idProyek = null, ?string $fromDate = null, ?string $toDate = null)`, `hasSnoozeTable()`, `upsertSnooze(int $userId, int $idProyek, string $itemKey, string $itemType, string $snoozedUntil, string $now)`, `getActiveSnoozeKeys(int $userId, int $idProyek, string $now)`, `getTagihanUrgent(int $idProyek, string $limitDate)`, `getCashoutSubkonUrgent(int $idProyek, string $limitDate, int $groupId)`, `getMkdtDateUrgent(int $idProyek, string $field, string $limitDate)`, `getPembangunanTelat(int $idProyek, string $today)`, `getUnreadNotifications(int $idProyek, int $groupId)`)
-- `app/Repositories/Siteplan/TargetSiteplanRepository.php` (157 baris, 6 public methods: `getByProject(int $idProyek)`, `getById(int $idTarget)`, `getKavlings(int $idTarget)`, `countKavlingsInProject(int $idProyek, array $idKavlings)`, `getHistory(int $idTarget)`, `getKavlingTargetMap(int $idProyek)`)
+- `app/Repositories/Siteplan/TargetSiteplanRepository.php` (884 baris, 26 public methods: `getByProject(int $idProyek)`, `getById(int $idTarget)`, `findActiveByProjectAndYear(int $idProyek, int $tahunTarget)`, `createTargetHeader(array $fields)`, `updateTargetHeader(int $idTarget, array $fields)`, `getKavlings(int $idTarget)`, `findTargetKavlingRow(int $idTarget, int $idKavling)`, `findTargetKavlingById(int $idTargetKavling)`, `findTargetKavlingsByIds(array $idTargetKavlings)`, `findTargetKavlingsByTargetAndKavlingIds(int $idTarget, array $idKavlings)`, `insertTargetKavling(array $fields)`, `updateTargetKavling(int $idTargetKavling, array $fields)`, `deleteTargetKavling(int $idTargetKavling)`, `findKavlingsWithActiveConsumer(array $idKavlings)`, `findTipeForProject(int $idTipe, int $idProyek)`, `countKavlingsInProject(int $idProyek, array $idKavlings)`, `countTargetHistory(int $idTarget)`, `getHistory(int $idTarget)`, `getAvailableYears(int $idProyek)`, `getKavlingTargetMap(int $idProyek, ?int $tahunTarget = null)`, `findPendingRequest(int $idTarget, int $idKavling)`, `findRequestById(int $idRequest)`, `insertRequest(array $data)`, `updateRequest(int $idRequest, array $data)`, `getRequests(int $idProyek, ?int $idTarget = null, ?int $tahunTarget = null, ?string $status = null)`, `getRequestCounts(int $idProyek, ?int $idTarget = null, ?int $tahunTarget = null)`)
 - `app/Repositories/Siteplan/OthersRepository.php` (187 baris, 8 public methods: `getAll(?int $id, int $idProyek, array $clusterIds, array $filters = [])`, `insertOthers(array $fields)`, `updateOthers(int $id, array $fields)`, `findById(int $id)`, `findProyekIdByJalanId(int $idJalan)`, `hasProgressHistory()`, `countProgressHistory(int $idOthers)`, `getProgressHistory(int $idOthers, int $limit, int $offset)`)
 - `app/Repositories/Siteplan/KalendarRepository.php` (108 baris, 5 public methods: `getGroupsForUser(int $userId)`, `getAllGroups()`, `getPembayaranEvents(int $idProyek, string $start, string $end)`, `getJatuhTempoEvents(int $idProyek, string $start, string $end)`, `getMkdtEvents(int $idProyek, string $start, string $end)`)
 
-### Models (4)
+### Models (5)
 - `app/Models/SiteplanuploadModel.php`
 - `app/Models/TargetSiteplanModel.php`
 - `app/Models/TargetSiteplanKavlingModel.php`
 - `app/Models/TargetSiteplanHistoryModel.php`
+- `app/Models/TargetSiteplanRequestModel.php`
 
 ### Views (2 folder)
 - `app/Views/siteplan` (16 file: `cashout_subkon.php`, `direksi.php`, `keuangan.php`, `legal.php`, `master.php`, `mkdt.php`, `modal_list_request_kavling.php`, `pajak.php`, `pilih_proyek.php`, `planning.php`, `produksi.php`, `produksi_mobile.php`, `request_kavling_modal.php`, `sales.php`, `target.php`, `test.php`)
 - `app/Views/misc` (1 file: `kalender.php`)
 
 ### JavaScript (8 file)
-- `public/assets/js/siteplan/master.js` (3931 baris)
+- `public/assets/js/siteplan/master.js` (4173 baris)
 - `public/assets/js/siteplan/composite-shape.js` (420 baris)
 - `public/assets/js/siteplan/interaction-highlight.js` (143 baris)
 - `public/assets/js/siteplan/shape-filter.js` (65 baris)
 - `public/assets/js/siteplan/polygon-clip.js` (312 baris)
 - `public/assets/js/siteplan-detail-modal.js` (2431 baris)
-- `public/assets/js/siteplan/target.js` (244 baris)
+- `public/assets/js/siteplan/target.js` (3368 baris)
 - `public/assets/js/siteplan/tiket-overlay.js` (462 baris)
 
 ### Zero-Downtime Shims (13 file)
@@ -203,10 +222,10 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
   - `KalendarController::index()`: Render halaman kalender proyek (`/kalendar`, `/kalendar/index`) menggunakan metadata divisi/event dari `KalendarService::getCalendarViewData()`.
 - **API Controllers (`app/Controllers/Api/Siteplan/`):**
   - `SiteplanController`: Menyediakan endpoint REST JSON murni (`/api/siteplan/{meta,kavling,proyek,config,others,detail}`) serta handler Zero-Downtime AJAX (`/siteplan/get/all`, `/siteplan/get/detail`, `/siteplan/add_kavling`, `/siteplan/edit_kavling`, `/siteplan/edit_others`, `/siteplan/get_turun_pembangunan`, `/siteplan/set_turun_pembangunan`, dll.) dengan `getRequestData()` (aman untuk form-urlencoded, multipart, dan JSON) serta `wantsEnvelope()` (memprioritaskan query `?format=raw` / `RAW_JSON_READY`).
-  - `TargetController`: Endpoint `/api/target/{list,detail,save,history}` untuk validasi dan delegasi target penjualan kavling bulanan ke `TargetSiteplanService`.
+  - `TargetController`: Endpoint `/api/target/{list,detail,save,add-kavling,update-kavling-tipe,remove-kavling,history,request-change,requests,review-request}` dengan RBAC mutasi/approval eksklusif group `1` (Admin) dan `4` (MKDT) via `authorizeMutation()`, RBAC pengajuan perubahan tipe eksklusif group `1` dan `6` (Planning) via `authorizePlanningRequest()`, akses daftar request untuk group `1`/`4`/`6`/`11` via `authorizeRequestList()` (`403` untuk role lain), verifikasi akses proyek (`authorizeProjectAccess()`), dukungan lookup `detail()` via `id_target` atau pasangan `id_proyek` + `tahun_target`, dukungan input batch (`id_kavlings`, `id_target_kavlings`) pada `addKavling()` dan `updateKavlingTipe()`, serta delegasi penuh ke `TargetSiteplanService`.
   - `KalendarController`: Endpoint `/api/kalendar/{events,meta}`, `/api/siteplan/kalendar/{events,meta}`, dan fallback `/kalendar/getEvents` dengan dukungan `?format=raw` dan filter divisi/event.
 - **Service (`app/Services/Siteplan/SiteplanService.php`):**
-  - `getIndexState(int $userId)`, `getViewSiteplanData(?int $requestedProyekId, int $userId)`, `getProduksiMobileData(...)`, `getMeta(?int $idProyek, int $userId)`: Agregasi state halaman web dan metadata SPA siteplan (daftar proyek berizin, cluster, jalan, tipe, pph, ppn, checklist, `config_shape`, `permissions.{role_id, is_admin, has_project_access}` via `resolvePrimaryRoleId()`, serta `siteplan_menus` dalam format JSON murni via `SiteplanMenuService::getMenusForSpa()`).
+  - `getIndexState(int $userId)`, `getViewSiteplanData(?int $requestedProyekId, int $userId)`, `getProduksiMobileData(...)`, `getMeta(?int $idProyek, int $userId)`: Agregasi state halaman web dan metadata SPA siteplan (daftar proyek berizin, cluster, jalan, tipe, pph, ppn, checklist, `config_shape`, `permissions.{role_id, is_admin, has_project_access, can_manage_target, can_request_target_change}` via `resolvePrimaryRoleId()`, `has_akses.target` untuk group `1`/`4`/`11`, serta `siteplan_menus` dalam format JSON murni via `SiteplanMenuService::getMenusForSpa()`).
   - `addKavlingOrOthers(array $post, int $userId)`, `editKavling(array $post, int $userId)`, `editOthers(array $post, int $userId)`: Mutasi kavling dan aset penunjang `others` dalam transaksi DB (`transBegin`/`transCommit`/`transRollback`), validasi duplikasi nomor kavling per jalan, serta integrasi pencatatan riwayat (`HistoryService`, `MkdtHistoryService`) dan notifikasi (`NotifikasiService`).
   - `getKavlingByMultipleId(array $ids)`, `getHargaKavling(array $ids)`, `getTurunPembangunan(array $ids)`, `setTurunPembangunan(array $post, mixed $file, int $userId)`: Pengambilan harga/turun bangun dan eksekusi perintah turun pembangunan (upload file perintah bangun via `FileAccessService`, update batch dalam DB transaction, log `MkdtHistoryService`, dan trigger `NotifikasiService` `NotificationEvent::TURUN_PEMBANGUNAN`).
 - **Service (`app/Services/Siteplan/SiteplanDetailService.php`):**
@@ -216,14 +235,20 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
   - `mkdtRow($row)`: Menghitung status dan marker visual segmen MKDT. Mengevaluasi boolean `$hasAkadAjb` (`akad == 1` atau tanggal akad terisi) dan `$hasAkadIndent` (`akad_indent == 1` atau tanggal akad indent terisi). Jika salah satu terpenuhi, status MKDT adalah `'Akad'` (`Akad Subsidi` atau `Akad Komersil`). Jika kavling sudah mencapai `Akad Indent` namun belum `Akad AJB` (`$hasAkadIndent && !$hasAkadAjb`), marker visual `[['config_name' => 'Akad Indent', 'position' => 0.5]]` ditambahkan (garis aksen biru). Saat `Akad AJB` terpenuhi (`$hasAkadAjb`), marker visual dilepas sehingga warna solid Akad tampil penuh.
   - `buildFill($row, ?array $visualRows = null)`: Menentukan warna isian (fill color) poligon berdasarkan konfigurasi status visual kavling.
 - **Service (`app/Services/Siteplan/SiteplanDataService.php`):**
-  - `getKavlings(array $params)` & `getOthers(array $params)`: Pengambilan data kavling dan fasum/others dengan filtering proyek, cluster, dan status visual/overlay.
+  - `getKavlings(array $params)` & `getOthers(array $params)`: Pengambilan data kavling dan fasum/others dengan filtering proyek, cluster, dan status visual/overlay. `getKavlings()` kini selalu menyertakan `target_kavling` (dengan filter opsional `tahun_target`) dan `target_years` di semua `id_role` tanpa pembatasan `id_role === 11`.
 - **Service (`app/Services/Siteplan/SiteplanUrgentService.php`):**
   - `getSummary()` / `getUrgentSummary()`: Menghitung kavling-kavling yang memerlukan perhatian mendesak berdasarkan filter waktu/status per divisi (menggunakan `SiteplanUrgentRepository`).
   - `getDashboardAlertCounts(?int $idProyek)`: Agregasi tanpa batas kuota untuk kartu peringatan dashboard utama (tagihan overdue, tagihan due 7 hari, cashout subkon, bangunan telat, SP3K expire, rencana akad).
   - `countMkdtDateAlerts(string $field, ?int $idProyek, ?string $fromDate, ?string $toDate)`: Menghitung kavling aktif dengan batas tanggal MKDT (`sp3k_tgl_exp`, `rencana_akad_tgl`) pada rentang tertentu, memvalidasi `akad_tgl` belum terlaksana dan unit tidak batal.
   - `snoozeUrgentItem(int $userId, int $idProyek, string $itemKey, int $minutes)`: Menyimpan snooze alert per user.
 - **Service (`app/Services/Siteplan/TargetSiteplanService.php`):**
-  - `save(array $data)`: Logika transaksi penyimpanan target kavling bulanan dan pencatatan riwayat target.
+  - `getByProjectAndYear(int $idProyek, int $tahunTarget)`, `resolveProjectIdForTargetKavling(?int $idTargetKavling, ?int $idTarget)`, `resolveProjectIdsForTargetKavlings(array $idTargetKavlings, ?int $idTarget = null)`, & `resolveProjectIdForTargetRequest(int $idRequest)`: Resolusi detail target aktif per tahun proyek (mengembalikan struktur kosong jika tahun belum dibuat) dan lookup proyek tunggal maupun batch untuk otorisasi endpoint mutasi/approval.
+  - `getAvailableYears(int $idProyek)` & `getKavlingTargetMap(int $idProyek, ?int $tahunTarget = null)`: Mengambil daftar tahun target aktif proyek dan meneruskan filter `$tahunTarget` ke `TargetSiteplanRepository::getKavlingTargetMap()`.
+  - `addKavlingToYear(array $data, int $actorId)`, `updateKavlingTipe(array $data, int $actorId)`, & `removeKavling(array $data, int $actorId)`: Mutasi atomik target tunggal maupun batch (`id_kavlings` / `id_target_kavlings`) dalam satu transaksi DB (`transBegin`/`transCommit`/`transRollback`), auto-create header `target_siteplan` jika tahun baru, validasi kepemilikan kavling pada proyek via `assertKavlingsBelongToProject()`, penolakan kavling berkonsumen aktif kecuali status kosong/`Batal`/`NUP` via `assertNoActiveConsumers()`, validasi tipe master `is_active = 1` vs `tipe_manual` via `resolveAndValidateTipeInput()`, pengembalian `batch_summary`, serta pencatatan **Versioning History** `v1`, `v2`, ... lengkap dengan snapshot `before`/`after` dan `diff_summary` dalam 1 entri riwayat per transaksi via `recordTargetHistory()` & `HistoryService::log('target_siteplan', ...)`.
+  - `requestTipeChange(array $data, int $actorId)`: Pengajuan perubahan tipe target oleh Planning ke tabel `target_siteplan_request` (`status = 'pending'`) dengan validasi target aktif, penolakan kavling berkonsumen aktif, validasi tipe baru (`is_active = 1` vs `tipe_manual`, wajib berbeda dari tipe target saat ini), serta penjagaan duplikat pengajuan `pending` pada kavling/target yang sama.
+  - `listRequests(int $idProyek, ?int $idTarget = null, ?int $tahunTarget = null, ?string $status = null)`: Pengambilan daftar pengajuan perubahan tipe target beserta statistik counter (`all`, `pending`, `approved`, `rejected`).
+  - `reviewRequest(int $idRequest, string $decision, ?string $catatanApproval, int $approverId)`: Pemrosesan ACC/Tolak oleh MKDT dalam transaksi DB. Saat `reject`, memperbarui status menjadi `rejected` beserta catatan approval. Saat `approve`, memvalidasi ulang konsumen & tipe aktif, **hanya** memperbarui `target_siteplan_kavling` (`id_tipe`/`tipe_manual`/`updated_by`/`updated_at`) tanpa menyentuh master `kavling.id_tipe`, memperbarui `target_siteplan_request` (`status = 'approved'`), serta mencatat versi baru pada history dengan aksi `target_approve_tipe` dan metadata `id_request`, `catatan_request`, `catatan_approval`, `requested_by_username`, dan `approved_by_username` (didukung resolusi username dari tabel `users` via `resolveUsername()`).
+  - `save(array $data)`: Logika transaksi penyimpanan/pembaruan catatan target tahunan dengan mempertahankan `id_tipe` & `tipe_manual` eksisting saat sinkronisasi batch dan mencatat versi riwayat target.
 - **Service (`app/Services/Siteplan/KalendarService.php`):**
   - `getCalendarViewData(int $userId = 0)` & `getEventsForCalendar(int $idProyek, string $start, string $end, array $types = [])`: Metadata divisi/filter serta pengambilan event kalender untuk jatuh tempo, pembayaran, dan MKDT.
 - **Repository (`app/Repositories/Siteplan/SiteplanRepository.php`):**
@@ -231,7 +256,12 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - **Repository (`app/Repositories/Siteplan/SiteplanUrgentRepository.php`):**
   - Ekstraksi penuh seluruh query database dari `SiteplanUrgentService` (tagihan overdue/due, cashout subkon, bangunan telat, alert tanggal MKDT, snooze, dan notifikasi belum dibaca).
 - **Repository (`app/Repositories/Siteplan/TargetSiteplanRepository.php`):**
-  - `getByProject(int $idProyek)`, `getKavlingTargetMap(int $idProyek)`, `countKavlingsInProject(...)`: Data access target siteplan dan pemetaan kavling target per proyek.
+  - `getByProject(int $idProyek)`, `getById(int $idTarget)`, `findActiveByProjectAndYear(int $idProyek, int $tahunTarget)`, `createTargetHeader()`, `updateTargetHeader()`, `countKavlingsInProject(...)`: Query header target siteplan per proyek/tahun.
+  - `getKavlings(int $idTarget)`, `findTargetKavlingRow()`, `findTargetKavlingById()`, `findTargetKavlingsByIds()`, `findTargetKavlingsByTargetAndKavlingIds()`, `getLatestPlanningChangeRequests()` (private), `insertTargetKavling()`, `updateTargetKavling()`, `deleteTargetKavling()`, `findKavlingsWithActiveConsumer()`, `findTipeForProject()`: Operasi data `target_siteplan_kavling` tunggal/batch, proyeksi field `pending_planning_request_id`, `planning_request_status`, `planning_request_created_at` dari tabel `kavling_request` (`jenis_request = 'ubah_tipe'`), validasi status konsumen aktif (`id_mkdt > 0`, `is_batal = 0`, `status_mkdt NOT IN ('', 'batal', 'nup')`), serta pengecekan master tipe proyek (`tipe.is_active`).
+  - `countTargetHistory(int $idTarget)` & `getHistory(int $idTarget)`: Pembacaan riwayat versi target melalui `HistoryRepository`/`HistoryService` lengkap dengan ekstraksi `version`, `version_label`, `before_snapshot`, `after_snapshot`, `diff_summary`, `requested_by_username`, `approved_by_username`, `id_request`, `catatan_request`, dan `catatan_approval`.
+  - `findPendingRequest(int $idTarget, int $idKavling)`, `findRequestById(int $idRequest)`, `insertRequest(array $data)`, `updateRequest(int $idRequest, array $data)`, `getRequests(int $idProyek, ?int $idTarget = null, ?int $tahunTarget = null, ?string $status = null)`, & `getRequestCounts(int $idProyek, ?int $idTarget = null, ?int $tahunTarget = null)`: Operasi CRUD dan query join `target_siteplan_request` dengan `target_siteplan`, `kavling`, `jalan`, `cluster`, `tipe` (`old_t`, `new_t`, `master_t`), dan `users` (`req_u`, `app_u`) beserta agregasi counter status.
+  - `getAvailableYears(int $idProyek)`: Mengambil daftar `tahun_target` unik yang aktif (`status = 1`, `deleted_at IS NULL`) untuk proyek terkait.
+  - `getKavlingTargetMap(int $idProyek, ?int $tahunTarget = null)` & `resolveTipeLabel(...)` (private): Pemetaan kavling target dengan filter tahun opsional, `LEFT JOIN tipe target_tipe`, serta atribut `id_tipe`, `tipe_manual`, `tipe_label`, dan `target_is_subsidi`.
 - **Repository (`app/Repositories/Siteplan/OthersRepository.php`):**
   - `getAll(?int $id, int $idProyek, array $clusterIds, array $filters = [])`: Mengelola data aset penunjang non-kavling pada siteplan. Menerapkan pengelompokan filter scope (`siteplan`, `produksi`, serta `masalah` jika kategori 'Masalah' dicentang) dan secara eksplisit menyertakan `orWhere('act_tm.active_tiket_id IS NOT NULL', null, false)` agar entitas others berscope `masalah` dengan tiket aktif otomatis tampil di kanvas default.
   - `insertOthers(array $fields)`, `updateOthers(int $id, array $fields)`, `findById(int $id)`, `findProyekIdByJalanId(int $idJalan)`: Operasi CRUD & lookup relasi proyek untuk tabel pemilik `others`.
@@ -240,12 +270,21 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
   - `getGroupsForUser()`, `getAllGroups()`, `getPembayaranEvents()`, `getJatuhTempoEvents()`, `getMkdtEvents()`: Query grup user, jadwal pembayaran, jatuh tempo, dan agenda MKDT.
 - **Frontend JavaScript (`public/assets/js/siteplan/tiket-overlay.js`):**
   - `SiteplanTiketOverlay`: Modul UMD layer animasi overlay tiket masalah di KonvaJS (`getPriorityColor`, `calculateOpacity`, `calculateCentroid`, `createOverlayShape`, `createBadgeShape`, `createAnimation`, `buildOverlayShapes`, `stopAnimation`, `clearOverlay`). Mendukung entitas `kavling` & `others`, safe centroid calculation, frame rate capping 30 FPS, pulsing high-contrast stroke, dan centroid warning badge `!`.
-- **Frontend JavaScript (`public/assets/js/siteplan/master.js`):**
-  - `siteplanProblemItems` & `syncSiteplanTiketOverlay()`: Menggabungkan item masalah kavling dan others secara atomik sebelum meneruskan data gabungan ke `SiteplanTiketOverlay.buildOverlayShapes()`.
+- **Frontend JavaScript (`public/assets/js/siteplan/master.js`, `public/assets/js/siteplan/target.js`, & `public/assets/js/siteplan/planning.js`):**
+  - `master.js`: `siteplanProblemItems` & `syncSiteplanTiketOverlay()` (overlay tiket masalah kavling/others), `window.isTargetSetModeActive()`, `window.scheduleTargetCanvasRefresh()`, pencegahan seleksi/context menu standar saat mode interaktif Set Target aktif (meneruskan klik ke `window.handleTargetCanvasClick()`), pemanggilan `window.renderTargetStagedCanvasHighlights()` setelah `load_kavling()`, plus kontrol tampilan target (`isTargetFilterActive()`, `selectedTargetYear()`, `hasValidTargetDate(val)`, `syncTargetMenuVisibility()`, `syncTargetYearDropdown(targetYears, preferredYear)` menjaga tahun aktif dalam rentang `-1..+3`), pewarnaan `resolveTargetCanvasHit(row, rawHargaAkhir, targetInfo)` (fallback subsidi `is_subsidi` -> `mkdt_is_subsidi` -> `target_is_subsidi`; evaluasi Prioritas 1 `Akad` khusus `!isBatal && (row.akad == 1 || hasValidTargetDate(row.akad_tgl))` dan Prioritas 2 `Booking` non-akad aktif termasuk `status_mkdt === 'Booking'|'Akad'`, `sp3k == 1`, `wawancara == 1`, `booking_tgl`, `akad_indent == 1` sebelum pengecekan `!matchesSelectedYear`; Prioritas 3 `Bukan Target` `#e2e8f0` hanya bagi kavling non-target yang belum Akad & belum Booking atau Batal; Prioritas 4–5 khusus kavling target memakai warna tipe rumah / `Def` `#fcffd9`) & `get_kategori_color()`, serta sinkronisasi filter (`getServerFilterData()`, `renderActiveFilterTags()`, `removeFilterTag('target')`, `reset_server_filter()`, `setSiteplanTooltip()`).
+  - `target.js`: Pengelola UI Mode Set Target MKDT, Request Perubahan Planning, & Modal Kelola Target: `open_target_siteplan()` (auto-toggle `#toggle-tampilkan-target`), `open_target_history()`, `open_target_request(preferredKavlingId)`, `enterTargetSetMode()`, `exitTargetSetMode()`, `resetTargetInteractiveCardScroll()` (menjaga `scrollTop = 0` pada `#target-interactive-card` saat dibuka atau mode/tipe berubah), dropdown tahun `-1..+3` sinkron ke `#filter-tahun-target`, `initTargetBarTipeSelect2()` & `initTargetEditTipeSelect2()` (Select2 AJAX `<strong>Tipe</strong> (No Tipe)`), `renderTargetBarTipePreview()` & `openTargetTipeSpecModal()` (fetch fallback `api/tipe/getone` untuk 3D/denah/spek), staging kavling kanvas (`handleTargetCanvasClick()`, `renderTargetStagedList()`, `renderTargetStagedCanvasHighlights()`, `submitStagedKavlings()`), `loadActiveTipes()` (`/api/tipe/all?only_active=1&format=raw`), deteksi *mismatch* `isTargetRowTipeMismatch()`, `renderCurrentKavlingTipeCell()`, `renderTipeTargetCell()` (badge `Manual` di ujung kanan tanpa badge `Master`), `renderTargetRowActions()`, modal edit tipe single & batch (`openTargetEditTipeModal()`, `submitEditTipeModal()` via `POST /api/target/update-kavling-tipe`), `submitPlanningKavlingChangeRequest()` ke `POST /api/kavling-request/submit` & badge `Req Planning: Pending`, `confirmRemoveTargetKavling()` (`POST /api/target/remove-kavling`), `save_target_siteplan()` (`POST /api/target/save`), `submitInlineRequestChange()` (`POST /api/target/request-change`), `loadTargetRequests()` (`POST /api/target/requests`), `renderTargetRequests()` & `updateTargetPendingBadge()`, `reviewTargetRequest()` (`POST /api/target/review-request`), serta `render_target_history()` (kartu versi `v1..vN`, pill diff, komparasi Before vs After, dan `.target-history-notes`).
+  - `planning.js`: Pengelola modal Planning `#modals-slide-in` (`app/Views/siteplan/planning.php`): Select2 `#id_tipe` via `POST /api/tipe/all?only_active=1&format=raw` (`is_active = 1`) dengan cache `planningTipeMap`, preview Gambar 3D + Denah + Spesifikasi Teknis (`renderPlanningTipePreview()`, `buildPlanningTipePreviewHtml()`, `hasCompletePlanningTipeSpec()`, fetch fallback `POST /api/tipe/getone` untuk mode edit, `planningApiUrl()`, `planningSanitizeAccessUrl()`), lightbox modal zoom (`openPlanningTipeLightbox()`), reset preview pada `tambah_kavling()` / `edit_kavling_batch()` / `$planningJenis.change`, pembacaan `#id_tipe option:selected` pada `add_kavling()`, serta penjagaan handler `stage.on('click.planningDeselect tap.planningDeselect')` agar mengabaikan klik kanvas saat `window.isTargetSetModeActive()` bernilai `true`.
 - **Frontend JavaScript (`public/assets/js/siteplan-detail-modal.js`):**
   - `resolveMkdtStatusInfo(m)`, `renderKavlingTimeline(mkdt, currentStatus)`, `updateRingkasanHasilAkad(pa)`: Resolusi hierarki status MKDT (Batal -> Akad AJB -> Akad Indent -> SP3K -> Wawancara -> Booking), stepper milestone horizontal Opsi B, dan bar/legend Total Hasil Akad.
-- **Frontend View (`app/Views/misc/kalender.php`):**
-  - Menggunakan `const kalendarBaseUrl` (menggantikan `var base_url`), callback error `failureCallback(new Error(...))`, dan fallback warna event `#2057a3`.
+- **Frontend View & CSS (`app/Views/siteplan/master.php`, `app/Views/siteplan/planning.php`, `app/Views/siteplan/target.php`, `public/assets/css/siteplan-planning.css`, `public/assets/css/siteplan-target.css`, & `app/Views/misc/kalender.php`):**
+  - `app/Views/siteplan/master.php`: Memuat partial `siteplan/target` untuk role `[1, 4, 6, 11]`, menyertakan switch `#toggle-tampilkan-target` dan `#filter-target-tahun-container` (`#filter-tahun-target`), memuat `siteplan-target.css` dengan cache-busting `filemtime`, serta menghapus opsi `Target` (`value="11"`) dari `#pilih-divisi`.
+  - `app/Views/siteplan/planning.php` & `public/assets/css/siteplan-planning.css`: Memuat `siteplan-planning.css?v=filemtime(...)` (ter-scope `#modals-slide-in`, `#modal-planning-tipe-image`, `.planning-modal-actions`, `.planning-tipe-preview*`, `.dark-layout`, dan responsif `< 575.98px` / `< 340px`), menambahkan kontainer `#planning-tipe-preview` di dalam `#div_kavling`, modal lightbox `#modal-planning-tipe-image`, dan cache-busting `filemtime` pada tag script `planning.js`.
+  - `app/Views/siteplan/target.php`: Merender Floating Interactive Card `#target-interactive-card` (layout portrait di dalam `#target-interactive-bar`, `<select id="target-bar-year">`, `#target-bar-tipe-preview`, `#target-bar-staged-list`), Modal `#modal-target-siteplan` dengan 3 tab (**Daftar Kavling Target** dilengkapi `#target-check-all`, kolom `Tipe Rumah Saat Ini`, `#target-batch-action-bar` + `#target-btn-batch-edit-tipe` + `#target-btn-batch-req-planning`; **History Versioning**; dan **Request Perubahan** `#tab-target-requests`), serta 2 modal pendukung: `#modal-target-tipe-spec` (3D, denah, spek compact) dan `#modal-target-edit-tipe` (Select2 AJAX single & batch).
+  - `public/assets/css/siteplan-target.css`: Stylesheet ter-scope `#filter-side`, `#target-interactive-bar` (`max-height` & `is-fixed-fallback` di atas `.float`), `#target-interactive-card` (`flex-shrink: 0; box-sizing: border-box;` pada child sections + preview/staged list padat), `#modal-target-siteplan`, `#modal-target-tipe-spec`, `#modal-target-edit-tipe`, `.target-row-tipe-mismatch`, `.target-mismatch-note`, `.target-batch-action-bar`, `.target-planning-req-badge`, `.target-inline-req-box`, `#target-requests-table`, `.target-history-notes`, dan `.siteplan-target-*` dengan aksen biru `#2057a3`, responsivitas mobile `< 768px`, dan dukungan `.dark-layout`.
+  - `app/Views/misc/kalender.php`: Menggunakan `const kalendarBaseUrl` (menggantikan `var base_url`), callback error `failureCallback(new Error(...))`, dan fallback warna event `#2057a3`.
+- **Models (`app/Models/TargetSiteplanKavlingModel.php` & `app/Models/TargetSiteplanRequestModel.php`):**
+  - `TargetSiteplanKavlingModel`: `$allowedFields` mencakup `id_target`, `id_kavling`, `id_tipe`, `tipe_manual`, `created_at`, `updated_by`, `updated_at` untuk pemetaan tipe target per kavling dan audit perubahan.
+  - `TargetSiteplanRequestModel`: Model baru untuk tabel `target_siteplan_request` (`id_request`, `id_target`, `id_kavling`, `old_id_tipe`, `old_tipe_manual`, `new_id_tipe`, `new_tipe_manual`, `catatan_request`, `status`, `request_by`, `request_at`, `approve_by`, `approve_at`, `catatan_approval`) yang disiapkan untuk alur request ubah tipe target Planning & approval MKDT.
 
 ## Deprecated & Legacy Shims
 - **Deprecated Classes / Zero-Downtime Shims (13 File):**
@@ -272,6 +311,12 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
   - `GET|POST /kalendar/getEvents`, `/kalendar/getevents` -> rute eksplisit legacy AJAX ke `Api\Siteplan\KalendarController::getEvents`; gunakan `GET /api/kalendar/events` atau `/api/siteplan/kalendar/events`.
 - **Legacy Internal Helper Methods yang Dihapus dari Public Controller:**
   - `Siteplan::add_kavling2()`, `Siteplan::add_others()`, `Siteplan::get_config()`, `Siteplan::normalizeIdProyek()` -> **REMOVED / ENCAPSULATED**, logika telah dienkapsulasi ke `App\Services\Siteplan\SiteplanService` dan `App\Repositories\Siteplan\SiteplanRepository`.
+- **Deprecated UI Controls / Legacy Frontend Target Branch:**
+  - `<option value="11">Target</option>` pada `#pilih-divisi` (`app/Views/siteplan/master.php`) dan cabang `if (va == 11)` pada `public/assets/js/siteplan/master.js` -> **DEPRECATED / REMOVED**, digantikan oleh Switch `#toggle-tampilkan-target`, Dropdown `#filter-tahun-target`, serta fungsi `isTargetFilterActive()` dan `resolveTargetCanvasHit()`.
+  - `<input type="number" list="target-bar-year-list">` + `<datalist id="target-bar-year-list">` (`app/Views/siteplan/target.php`) -> **DEPRECATED / REMOVED**, digantikan oleh `<select id="target-bar-year">` dengan rentang tahun `-1..+3`.
+  - `populateActiveTipeSelect()` untuk `#target-bar-tipe-select` (`public/assets/js/siteplan/target.js`) -> **DEPRECATED / REMOVED**, digantikan oleh `initTargetBarTipeSelect2()` (Select2 AJAX via `/api/tipe/all?only_active=1&format=raw`).
+  - Inline MKDT tipe editor (`submitInlineTipeUpdate`) (`public/assets/js/siteplan/target.js`) -> **DEPRECATED / REMOVED**, digantikan oleh modal `#modal-target-edit-tipe` (`openTargetEditTipeModal()` / `submitEditTipeModal()`) yang mendukung ubah tipe tunggal maupun batch via Select2 AJAX.
+  - Pemanggilan legacy `POST /tipe/getAll` pada Select2 `#id_tipe` di `public/assets/js/siteplan/planning.js` -> **DEPRECATED / REPLACED**, digantikan oleh `POST /api/tipe/all?only_active=1&format=raw` (`Api\Proyek\TipeController::getAll`, hanya tipe aktif `is_active = 1`). Rute legacy `/tipe/getAll` tetap dipertahankan untuk pemanggil lain seperti `request-kavling.js`.
 
 ## Readiness Checklist
 - [x] Has Service Layer
@@ -290,13 +335,120 @@ _Jalankan `php spark module:deadcode Siteplan` untuk mengaudit dead code kandida
   - `App\Services\Settings\SiteplanMenuService`: di-inject opsional ke `SiteplanService` untuk menyediakan `siteplan_menus` (`getMenusForSpa($roleId)`) pada payload `GET /api/siteplan/meta`.
   - `App\Controllers\Home`: mengonsumsi `SiteplanUrgentService::getDashboardAlertCounts()` untuk kartu peringatan dashboard utama.
   - `App\Controllers\Api\Notifikasi\NotifikasiController`: mengonsumsi `SiteplanUrgentService::{getUrgentSummary,emptySummary,snoozeUrgentItem}` untuk pusat notifikasi mendesak.
+  - Terintegrasi dengan modul `Proyek` (`TipeService` / `POST /api/tipe/all?only_active=1&format=raw` & `POST /api/tipe/getone`) serta `FileAccessService` (`/files/gambar_kerja/{id}`) untuk Select2 AJAX tipe aktif (`is_active = 1`), preview gambar 3D, denah, gambar kerja, dan 6 spesifikasi teknis pada `#target-interactive-card`, `#modal-target-tipe-spec`, serta modal Planning `#modals-slide-in` (`#planning-tipe-preview` & `#modal-planning-tipe-image` di `app/Views/siteplan/planning.php` / `public/assets/js/siteplan/planning.js`). Catatan katalog aset: `public/assets/css/siteplan-planning.css` & `public/assets/css/siteplan-target.css` terdaftar pada `ModuleCatalog['Siteplan']['assets_css']`, sedangkan `public/assets/js/siteplan/planning.js` tercatat pada `ModuleCatalog['Proyek']['assets_js']`.
   - Terintegrasi dengan modul `TiketMasalah` dan `Transaksi`:
+    - `TargetSiteplanRepository::getLatestPlanningChangeRequests()` membaca tabel `kavling_request` (`jenis_request = 'ubah_tipe'`) untuk menampilkan status `Req Planning: Pending` pada daftar kavling target, sementara `public/assets/js/siteplan/target.js` (`submitPlanningKavlingChangeRequest()`) mengirimkan pengajuan ubah tipe kavling ke `POST /api/kavling-request/submit` (`Transaksi\KavlingRequestController::submit()`).
+    - `KavlingRepository::baseQuery()` (`app/Repositories/Transaksi/KavlingRepository.php`): mengonsolidasikan field MKDT (`status_mkdt`, `is_batal`, `booking_tgl`, `wawancara`, `wawancara_tgl`, `sp3k`, `sp3k_tgl`, `akad_indent`, `akad_indent_tgl`, `akad`, `akad_tgl`, `is_kpr`, `mkdt_is_subsidi`) agar tersedia di semua mode divisi (termasuk saat mode Tampilkan Target aktif) tanpa duplikasi alias SQL.
     - `KavlingRepository::addActiveTiketSelect`: data kavling dari `POST /siteplan/get/all` dan `/api/siteplan/kavling` menyertakan atribut `active_tiket_id`, `active_tiket_prioritas`, dan `active_tiket_status` untuk kavling bermasalah aktif.
     - `OthersRepository::addActiveTiketSelect`: data fasum/others dari `POST /siteplan/get_others` dan `/api/siteplan/others` menyertakan atribut `active_tiket_id`, `active_tiket_prioritas`, dan `active_tiket_status` untuk fasilitas non-kavling bermasalah aktif.
     - `OthersRepository::getAll()`: menyertakan kondisi `orWhere('act_tm.active_tiket_id IS NOT NULL', null, false)` sehingga item others berscope `masalah` otomatis termuat dan teranimasi pulse stroke serta badge peringatan `!` pada default canvas siteplan tanpa mengharuskan pengguna mencentang filter kategori 'Masalah'.
     - `SiteplanTiketOverlay` (`public/assets/js/siteplan/tiket-overlay.js`) dan `master.js` (`syncSiteplanTiketOverlay`): mengagregasikan masalah kavling dan others secara atomik dan merender `tiketOverlayLayer` pada peta KonvaJS.
 
 ## Change Log
+- **`2026-11-17` [`BUGFIX`] — Prioritas Pewarnaan Non-Target Akad & Booking Saat Toggle Filter Target Aktif:**
+  - **Routes & Public Contracts:** Tidak ada perubahan rute maupun kontrak backend.
+  - **Controller / Service / Repo / Model:** Tidak ada perubahan.
+  - **View / CSS / JS:**
+    - `public/assets/js/siteplan/master.js` (`resolveTargetCanvasHit(row, rawHargaAkhir, targetInfo)`): Memindahkan evaluasi Prioritas 1 (`Akad`: `!isBatal && (row.akad == 1 || hasValidTargetDate(row.akad_tgl))` -> `Akad Komersil`/`Akad Subsidi`) dan Prioritas 2 (`Booking`: `!isBatal &&` non-akad aktif seperti `status_mkdt === 'Booking'|'Akad'`, `sp3k == 1`, `wawancara == 1`, `booking_tgl`, `akad_indent == 1` -> `Booking Komersil`/`Booking Subsidi`) sebelum pengecekan `if (!matchesSelectedYear)`. Pengecekan `!matchesSelectedYear` (`Bukan Target` `#e2e8f0`) kini menjadi Prioritas 3 sehingga hanya mewarnai abu-abu kavling non-target yang belum Akad & belum Booking (atau Batal), sedangkan kavling non-target yang sudah Akad/Booking tetap mempertahankan warna statusnya dan Prioritas 4–5 khusus kavling target tetap memakai warna tipe rumah / `Def` (`#fcffd9`).
+  - **Deprecations:** Tidak ada.
+- **`2026-11-17` [`FEATURE`] — Preview Gambar & Spesifikasi Tipe Aktif di Modal Planning Siteplan:**
+  - **Routes & Public Contracts:** Tidak ada perubahan rute backend baru; frontend Planning mengonsumsi kontrak kanonik modul `Proyek` `POST /api/tipe/all?only_active=1&format=raw` (`Api\Proyek\TipeController::getAll`) dan `POST /api/tipe/getone` (`Api\Proyek\TipeController::getOne`), serta URL aman `FileAccessService` (`/files/gambar_kerja/{id}`).
+  - **Controller / Service / Repo / Model:** Tidak ada perubahan file backend; mendaftarkan `siteplan-planning.css` pada `ModuleCatalog['Siteplan']['assets_css']` dan sinkronisasi `php spark module:sync Siteplan`.
+  - **View / CSS / JS:**
+    - `public/assets/css/siteplan-planning.css` [NEW]: Ekstraksi CSS ter-scope `#modals-slide-in` dari `planning.php`, styling panel preview tipe (`.planning-tipe-preview*`), dan modal lightbox (`#modal-planning-tipe-image`) lengkap dengan dukungan `.dark-layout` dan responsivitas mobile.
+    - `app/Views/siteplan/planning.php`: Memuat `siteplan-planning.css?v=<?= filemtime(...) ?>`, menambahkan `#planning-tipe-preview` di dalam `#div_kavling`, menambahkan modal lightbox `#modal-planning-tipe-image`, dan menerapkan cache-busting `filemtime` pada script `planning.js`.
+    - `public/assets/js/siteplan/planning.js`: Migrasi Select2 `#id_tipe` ke `api/tipe/all?only_active=1&format=raw` (`is_active = 1`), cache `planningTipeMap`, rendering preview Gambar 3D + Denah + Spesifikasi Teknis + link Gambar Kerja (`renderPlanningTipePreview`, `buildPlanningTipePreviewHtml`, `hasCompletePlanningTipeSpec`, fetch fallback `api/tipe/getone` saat data belum lengkap di `edit_kavling_batch()`, `planningApiUrl`, `planningSanitizeAccessUrl`), lightbox zoom (`openPlanningTipeLightbox`), reset state di `tambah_kavling()` / `$planningJenis.change`, serta pembacaan `#id_tipe option:selected` pada `add_kavling()`.
+  - **Deprecations:** Pemanggilan legacy `/tipe/getAll` pada Select2 `#id_tipe` di `public/assets/js/siteplan/planning.js` digantikan oleh `/api/tipe/all?only_active=1&format=raw` (`/tipe/getAll` tetap dipertahankan untuk pemanggil lain seperti `request-kavling.js`).
+- **`2026-11-16` [`BUGFIX`] — Perbaikan Pewarnaan Target (`akad = 1` vs Booking) & Layout `#target-interactive-card`:**
+  - **Routes & Public Contracts:** Tidak ada perubahan rute maupun kontrak backend.
+  - **Controller / Service / Repo / Model:** Tidak ada perubahan.
+  - **View / CSS / JS:**
+    - `public/assets/js/siteplan/master.js`: Memperketat Prioritas 1 `resolveTargetCanvasHit()` hanya untuk `!isBatal && (row.akad == 1 || hasValidTargetDate(row.akad_tgl))` (`Akad Komersil` / `Akad Subsidi`), memindahkan `row.status_mkdt === 'Akad'` & `akad_indent == 1` saat `akad != 1` ke Prioritas 2 (`Booking Komersil` / `Booking Subsidi`) bersama `status_mkdt === 'Booking'`, `sp3k == 1`, `wawancara == 1`, dan `booking_tgl`, serta memperluas fallback `targetSubsidi` (`row.is_subsidi` -> `row.mkdt_is_subsidi` -> `targetInfo.target_is_subsidi`).
+    - `public/assets/css/siteplan-target.css`: Menambahkan batas tinggi `#target-interactive-bar` (`max-height: min(calc(100% - 96px), calc(100vh - 216px))`, `is-fixed-fallback` `calc(100vh - 160px)`) agar tidak tertutup `.float` (`bottom: 24px`, `z-index: 1040`), menambahkan `flex-shrink: 0; box-sizing: border-box;` pada child sections `#target-interactive-card`, dan memadatkan preview/staged list pada desktop & mobile (`< 768px`).
+    - `public/assets/js/siteplan/target.js`: Menambahkan `resetTargetInteractiveCardScroll()` dan memanggilnya pada `enterTargetSetMode()` dan `renderTargetBarTipePreview()` untuk menjaga `scrollTop = 0`.
+  - **Deprecations:** Tidak ada.
+- **`2026-11-16` [`FEATURE`] — Enhancement Fitur Target Siteplan (Fase 5–8: Spek Teknis Tipe, Redesign Card Portrait + Staging Kanvas, Mismatch + Batch Edit, & Integrasi Request Planning):**
+  - **Routes & Public Contracts:**
+    - Tidak ada rute baru; memperluas kontrak `POST /api/target/add-kavling` (`TargetController::addKavling` / `TargetSiteplanService::addKavlingToYear`) dan `POST /api/target/update-kavling-tipe` (`TargetController::updateKavlingTipe` / `TargetSiteplanService::updateKavlingTipe`) agar menerima input batch (`id_kavlings`, `id_target_kavlings`) dalam 1 transaksi DB & 1 entri Versioning History beserta `batch_summary`.
+    - Memperluas kontrak `TargetSiteplanService`: menambah `resolveProjectIdsForTargetKavlings(array $idTargetKavlings, ?int $idTarget = null)`.
+    - Memperkaya respons `TargetSiteplanRepository::getKavlings()` dengan proyeksi status pengajuan Planning terbaru (`pending_planning_request_id`, `planning_request_status`, `planning_request_created_at`) dari `kavling_request` (`ubah_tipe`).
+  - **Controller / Service / Repo / Model:**
+    - `app/Repositories/Siteplan/TargetSiteplanRepository.php`: Menambahkan `getLatestPlanningChangeRequests()`, memperbarui `getKavlings()` dengan status `kavling_request` Planning, serta menambah `findTargetKavlingsByIds()` & `findTargetKavlingsByTargetAndKavlingIds()`.
+    - `app/Services/Siteplan/TargetSiteplanService.php` & `app/Controllers/Api/Siteplan/TargetController.php`: Mendukung batch add/update target kavling (`id_kavlings`, `id_target_kavlings`) dan `resolveProjectIdsForTargetKavlings()` dalam 1 transaksi DB & 1 versi history.
+    - `tests/unit/TargetSiteplanServiceTest.php`: Menambahkan 4 unit test baru (batch add/update target, status planning request di `getKavlings()`, batch & deduplikasi `KavlingRequest`); total `19 tests, 234 assertions` `PASS`.
+  - **View / CSS / JS:**
+    - `app/Views/siteplan/target.php`: Redesign `#target-interactive-card` (portrait, `<select id="target-bar-year">`, `#target-bar-tipe-preview`, `#target-bar-staged-list`), pembaruan `#target-kavling-table` (checkbox `#target-check-all`, kolom `Tipe Rumah Saat Ini`, `#target-batch-action-bar` + `#target-btn-batch-edit-tipe` + `#target-btn-batch-req-planning`), modal baru `#modal-target-tipe-spec` (3D, denah, spek compact), dan modal baru `#modal-target-edit-tipe` (Select2 AJAX single & batch).
+    - `public/assets/js/siteplan/target.js`: Auto-toggle `#toggle-tampilkan-target` saat `open_target_siteplan()`, dropdown tahun `-1..+3` sinkron ke `#filter-tahun-target`, Select2 AJAX (`<strong>Tipe</strong> (No Tipe)`), preview spek kompak & modal `#modal-target-tipe-spec` (fetch fallback `api/tipe/getone`), staging kavling kanvas + `renderTargetStagedCanvasHighlights()`, deteksi `isTargetRowTipeMismatch()`, badge `Manual` di ujung kanan tanpa badge `Master`, tombol `Ubah Tipe` & batch modal `#modal-target-edit-tipe`, serta `submitPlanningKavlingChangeRequest()` ke `POST /api/kavling-request/submit` & badge `Req Planning: Pending`.
+    - `public/assets/js/siteplan/master.js`: `syncTargetYearDropdown()` menjaga tahun aktif dalam rentang `-1..+3` dan memanggil `renderTargetStagedCanvasHighlights()` setelah `load_kavling()`.
+    - `public/assets/css/siteplan-target.css`: Penambahan styling portrait `#target-interactive-card`, preview & staging list, `.target-row-tipe-mismatch`, `.target-mismatch-note`, `.target-batch-action-bar`, `.target-planning-req-badge`, `#modal-target-tipe-spec`, `#modal-target-edit-tipe`, responsivitas mobile `< 768px`, dan `.dark-layout`.
+  - **Deprecations:** `<input type="number" list="target-bar-year-list">` + `<datalist id="target-bar-year-list">` digantikan `<select id="target-bar-year">`; `populateActiveTipeSelect()` digantikan `initTargetBarTipeSelect2()`; inline MKDT tipe editor (`submitInlineTipeUpdate`) digantikan modal `#modal-target-edit-tipe`.
+- **`2026-11-16` [`FEATURE`] — Request Ubah Tipe Target (Planning) & Approval (MKDT) (Target Siteplan Fase 4):**
+  - **Routes & Public Contracts:**
+    - Menambahkan 3 rute eksplisit pada grup `api/target` (`app/Config/Routes.php` -> `App\Controllers\Api\Siteplan\TargetController`):
+      - `POST /api/target/request-change` -> `TargetController::requestChange`
+      - `POST /api/target/requests` -> `TargetController::requests`
+      - `POST /api/target/review-request` -> `TargetController::reviewRequest`
+    - Memperkaya respons `GET /api/siteplan/meta` (`SiteplanService::getMeta()`) dengan flag `permissions.can_request_target_change` (`$this->userInGroups(['1', '6'])`).
+    - Memperluas kontrak `TargetSiteplanService`: `resolveProjectIdForTargetRequest(int $idRequest)`, `requestTipeChange(array $data, int $actorId)`, `listRequests(int $idProyek, ?int $idTarget = null, ?int $tahunTarget = null, ?string $status = null)`, dan `reviewRequest(int $idRequest, string $decision, ?string $catatanApproval, int $approverId)`.
+  - **Controller / Service / Repo / Model:**
+    - `app/Database/Migrations/2026-11-16-000003_AddPlanningTargetMenuItem.php` [NEW]: Menambahkan item menu `planning_target_request` ("Target Siteplan", `onclick="open_target_request()"`, `extra_id="planning-target-request-btn"`, `sort_order=85`) untuk group `6` (Planning) & `1` (Admin) di `siteplan_menu_items` dan `siteplan_menu_roles`.
+    - `app/Controllers/Api/Siteplan/TargetController.php`: Menambahkan `requestChange()`, `requests()`, `reviewRequest()`, serta RBAC `authorizePlanningRequest()` (group `1`/`6`) dan `authorizeRequestList()` (group `1`/`4`/`6`/`11`).
+    - `app/Services/Siteplan/SiteplanService.php`: Menambahkan `permissions.can_request_target_change` di `getMeta()`.
+    - `app/Services/Siteplan/TargetSiteplanService.php`: Implementasi pengajuan request ubah tipe target (`requestTipeChange()`), daftar & counter request (`listRequests()`), approval/reject MKDT (`reviewRequest()` — saat ACC hanya memperbarui `target_siteplan_kavling` dan tidak menyentuh `kavling.id_tipe`, mencatat history `target_approve_tipe` beserta `id_request`, `catatan_request`, `catatan_approval`, `requested_by_username`, dan `approved_by_username`), serta perbaikan resolusi username dari tabel `users` pada `resolveUsername()`.
+    - `app/Repositories/Siteplan/TargetSiteplanRepository.php`: Menambahkan `findPendingRequest()`, `findRequestById()`, `insertRequest()`, `updateRequest()`, `getRequests()`, `getRequestCounts()`, serta proyeksi `id_request`, `catatan_request`, dan `catatan_approval` di `getHistory()`.
+    - `app/Services/AuditTrail/HistoryService.php`: Menambahkan label aksi `target_approve_tipe` (`ACC Ubah Tipe Target`) pada `formatActionLabel()`.
+    - `tests/unit/TargetSiteplanServiceTest.php`: Menambahkan unit test alur pengajuan request, penolakan duplikat pending/tipe sama/konsumen aktif, reject, approve (verifikasi invariant `kavling.id_tipe`), serta eksposur `id_request`, `catatan_request`, dan `catatan_approval` pada `getHistory()`.
+  - **View / CSS / JS:**
+    - `app/Views/siteplan/master.php`: Memperluas pemuatan partial `siteplan/target` untuk role `[1, 4, 6, 11]`.
+    - `app/Views/siteplan/target.php`: Menambahkan Tab 3 **Request Perubahan** (`#tab-target-requests`, badge pending `#target-request-pending-badge`, `#panel-target-requests`, filter status/tahun, `#target-requests-table`).
+    - `public/assets/js/siteplan/target.js`: Menambahkan `open_target_request()`, inline request box Planning (`.target-inline-req-box`, `submitInlineRequestChange()`), daftar & filter pengajuan (`loadTargetRequests()`, `renderTargetRequests()`, `updateTargetPendingBadge()`), aksi ACC/Tolak MKDT (`reviewTargetRequest()`), dan rendering `.target-history-notes` pada Tab 2 History Versioning.
+    - `public/assets/css/siteplan-target.css`: Penambahan styling ter-scope Tab Request Perubahan, `#target-request-pending-badge`, `.target-inline-req-box`, `#target-requests-table`, `.target-history-notes`, responsivitas mobile `< 768px`, dan `.dark-layout`.
+  - **Deprecations:** Tidak ada.
+- **`2026-11-16` [`FEATURE`] — Menu MKDT "Set Target" (Mode Interaktif Kanvas, Modal Kelola Target, & History Versioning) (Target Siteplan Fase 3):**
+  - **Routes & Public Contracts:**
+    - Menambahkan 3 rute eksplisit pada grup `api/target` (`app/Config/Routes.php` -> `App\Controllers\Api\Siteplan\TargetController`):
+      - `POST /api/target/add-kavling` -> `TargetController::addKavling`
+      - `POST /api/target/update-kavling-tipe` -> `TargetController::updateKavlingTipe`
+      - `POST /api/target/remove-kavling` -> `TargetController::removeKavling`
+    - Memperluas kontrak `TargetSiteplanService`: `getByProjectAndYear(int $idProyek, int $tahunTarget)`, `resolveProjectIdForTargetKavling(?int $idTargetKavling, ?int $idTarget)`, `addKavlingToYear(array $data, int $actorId)`, `updateKavlingTipe(array $data, int $actorId)`, dan `removeKavling(array $data, int $actorId)`.
+  - **Controller / Service / Repo / Model:**
+    - `app/Database/Migrations/2026-11-16-000002_AddMkdtTargetMenuItem.php` [NEW]: Menambahkan item menu floating `mkdt_set_target` ("Set Target", `onclick="open_target_siteplan()"`, `extra_id="mkdt-set-target-btn"`) untuk group `4` (MKDT) & `1` (Admin) di `siteplan_menu_items` dan `siteplan_menu_roles`.
+    - `app/Controllers/Api/Siteplan/TargetController.php`: Menambahkan `addKavling()`, `updateKavlingTipe()`, `removeKavling()`, dukungan lookup `detail()` via `(id_proyek, tahun_target)`, serta proteksi RBAC mutasi eksklusif group `1` & `4` (`authorizeMutation()` / `403`) dan akses proyek (`authorizeProjectAccess()`).
+    - `app/Services/Siteplan/SiteplanService.php`: Memperbarui `getViewSiteplanData()` (`has_akses['target']`) dan `getMeta()` (`can_manage_target`) agar mengizinkan group `4` (MKDT) selain `1` & `11`.
+    - `app/Services/Siteplan/TargetSiteplanService.php`: Implementasi mutasi target per kavling (auto-create header tahun baru, validasi tipe aktif `is_active = 1` vs `tipe_manual`, tolak konsumen aktif kecuali kosong/`Batal`/`NUP`, preservasi tipe saat `save()`), serta pencatatan **Versioning History** (`v1`, `v2`, ...) beserta `before`/`after` snapshot & `diff_summary` via `HistoryService::log('target_siteplan', ...)`.
+    - `app/Repositories/Siteplan/TargetSiteplanRepository.php`: Menambahkan `findActiveByProjectAndYear()`, `createTargetHeader()`, `updateTargetHeader()`, `findTargetKavlingRow()`, `findTargetKavlingById()`, `insertTargetKavling()`, `updateTargetKavling()`, `deleteTargetKavling()`, `findKavlingsWithActiveConsumer()`, `findTipeForProject()`, `countTargetHistory()`, dan memperkaya `getKavlings()` serta `getHistory()` (`version`, `version_label`, `before_snapshot`, `after_snapshot`, `diff_summary`, `requested_by_username`, `approved_by_username`).
+    - `app/Services/AuditTrail/HistoryService.php`: Menambahkan label aksi `target_add_kavling`, `target_remove_kavling`, dan `target_update_tipe` pada `formatActionLabel()`.
+    - `tests/unit/TargetSiteplanServiceTest.php` [NEW]: Unit test CRUD target, validasi konsumen aktif & tipe nonaktif, preservasi tipe saat `save()`, dan versioning history.
+  - **View / CSS / JS:**
+    - `app/Views/siteplan/master.php`: Memperluas kondisi pemuatan `siteplan/target` untuk role `[1, 4, 11]`.
+    - `app/Views/siteplan/target.php`: Menambahkan Floating Interactive Bar `#target-interactive-bar` dan merombak Modal Kelola Target `#modal-target-siteplan` (tab Daftar Kavling Target + History Versioning).
+    - `public/assets/js/siteplan/target.js`: Implementasi Mode Interaktif Kanvas (`open_target_siteplan`, `handleTargetCanvasClick`, `flashTargetShapeHighlight`), inline edit tipe target, hapus kavling, simpan catatan target, dan timeline History Versioning Before vs After.
+    - `public/assets/js/siteplan/master.js` & `public/assets/js/siteplan/planning.js`: Integrasi `isTargetSetModeActive()` dan `scheduleTargetCanvasRefresh()` pada handler klik/contextmenu/deselect kanvas Konva.
+    - `public/assets/css/siteplan-target.css`: Penambahan styling ter-scope `#target-interactive-bar`, `#modal-target-siteplan`, diff Before vs After, responsivitas mobile `< 768px`, dan `.dark-layout`.
+  - **Deprecations:** Tidak ada.
+- **`2026-11-16` [`FEATURE`] — Toggle "Tampilkan Target", Dropdown Tahun Target, & Pewarnaan Kanvas (Target Siteplan Fase 2):**
+  - **Routes & Public Contracts:**
+    - Payload `SiteplanDataService::getKavlings(array $params)` (konsumsi `POST /siteplan/get/all` & `GET|POST /api/siteplan/kavling`) kini selalu menyertakan `target_kavling` (mendukung filter opsional `tahun_target`) dan `target_years` di semua `id_role`.
+    - `TargetSiteplanService`: Menambahkan `getAvailableYears(int $idProyek): array` dan memperbarui `getKavlingTargetMap(int $idProyek, ?int $tahunTarget = null): array`.
+  - **Controller / Service / Repo / Model:**
+    - `app/Repositories/Siteplan/TargetSiteplanRepository.php`: Menambahkan `getAvailableYears(int $idProyek)` serta memperbarui `getKavlingTargetMap(int $idProyek, ?int $tahunTarget = null)` dengan filter tahun opsional, `LEFT JOIN tipe target_tipe`, dan field `id_tipe`, `tipe_manual`, `tipe_label`, `target_is_subsidi` (didukung helper privat `resolveTipeLabel()`).
+    - `app/Services/Siteplan/TargetSiteplanService.php`: Menambahkan `getAvailableYears(int $idProyek)` dan meneruskan `$tahunTarget` di `getKavlingTargetMap()`.
+    - `app/Services/Siteplan/SiteplanDataService.php`: Menghapus pembatasan `if ($idRole === 11)` pada `getKavlings()` sehingga `target_kavling` dan `target_years` selalu dikembalikan untuk seluruh divisi.
+    - `app/Repositories/Transaksi/KavlingRepository.php`: Konsolidasi field MKDT (`status_mkdt`, `is_batal`, `booking_tgl`, `wawancara`, `wawancara_tgl`, `sp3k`, `sp3k_tgl`, `akad_indent`, `akad_indent_tgl`, `akad`, `akad_tgl`, `is_kpr`, `mkdt_is_subsidi`) ke `baseQuery()`.
+    - Unit test `tests/unit/SiteplanDataServiceTest.php` & `tests/unit/KavlingCompositeQueryTest.php` diperbarui (`90` tests, `765` assertions `PASS`).
+  - **View / CSS / JS:**
+    - `public/assets/css/siteplan-target.css` [NEW]: Stylesheet ter-scope `#filter-side` / `.siteplan-target-*` (`#2057a3`, `.dark-layout`).
+    - `app/Views/siteplan/master.php`: Memuat `siteplan-target.css` dengan `filemtime`, menghapus `<option value="11">Target</option>` dari `#pilih-divisi`, serta menambahkan switch `#toggle-tampilkan-target` dan container `#filter-target-tahun-container` (`#filter-tahun-target`).
+    - `public/assets/js/siteplan/master.js`: Menambahkan `isTargetFilterActive()`, `selectedTargetYear()`, `hasValidTargetDate()`, `syncTargetMenuVisibility()`, `syncTargetYearDropdown()`, `resolveTargetCanvasHit()` (4 prioritas warna target + `#e2e8f0` untuk `Bukan Target`), serta memperbarui `get_kategori_color()`, `getServerFilterData()`, `renderActiveFilterTags()`, `removeFilterTag('target')`, `reset_server_filter()`, dan `setSiteplanTooltip()`.
+  - **Deprecations:** `<option value="11">Target</option>` di `#pilih-divisi` (`master.php`) dan cabang `if (va == 11)` di `master.js` digantikan oleh Switch Tampilkan Target + Dropdown Tahun Target.
+- **`2026-11-16` [`FEATURE`] — Upgrade Skema Database Target Siteplan & Model `target_siteplan_request` (Target Siteplan Fase 1):**
+  - **Routes & Public Contracts:** Tidak ada perubahan rute atau service contract pada Fase 1.
+  - **Controller / Service / Repo / Model:**
+    - Migrasi `app/Database/Migrations/2026-11-16-000001_UpgradeTargetSiteplanAndTipeActive.php`: Menambahkan kolom `id_tipe`, `tipe_manual`, `updated_by`, `updated_at` beserta index `id_tipe` pada tabel `target_siteplan_kavling`, serta membuat tabel baru `target_siteplan_request`.
+    - `app/Models/TargetSiteplanKavlingModel.php`: Menambahkan `'id_tipe'`, `'tipe_manual'`, `'updated_by'`, dan `'updated_at'` ke `$allowedFields`.
+    - `app/Models/TargetSiteplanRequestModel.php`: Model baru untuk tabel pemilik `target_siteplan_request` (didaftarkan pada `ModuleCatalog.php` dan disinkronkan via `php spark module:sync Siteplan`).
+  - **View / CSS / JS:** Tidak ada perubahan pada aset view/JS Siteplan pada Fase 1.
+  - **Deprecations:** Tidak ada.
 - **`2026-11-15` [`API-BRIDGE`] — Penambahan 3 Rute REST MKDT `POST /api/siteplan/{get_harga_kavling,get_turun_pembangunan,set_turun_pembangunan}` untuk SPA Siteplan Fase 3.3 (Sub-Fase 3.3.1):**
   - **Routes & Public Contracts:**
     - Mendaftarkan 3 rute eksplisit baru pada grup `api/siteplan` (`app/Config/Routes.php` -> `Api\Siteplan\SiteplanController`): `POST /api/siteplan/get_harga_kavling`, `POST /api/siteplan/get_turun_pembangunan`, dan `POST /api/siteplan/set_turun_pembangunan` (`RAW_JSON_READY` JSON envelope via `getRequestData()` + `wantsEnvelope()`, mendukung upload `perintah_bangun_file`).

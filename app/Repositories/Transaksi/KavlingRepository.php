@@ -189,6 +189,19 @@ class KavlingRepository
                 produksi.tanggal_rencana_selesai_pembangunan,
                 produksi.tanggal_selesai_pembangunan,
                 produksi.keterangan as keterangan_produksi,
+                mkdt.status_mkdt,
+                mkdt.is_batal,
+                mkdt.booking_tgl,
+                mkdt.wawancara,
+                mkdt.wawancara_tgl,
+                mkdt.sp3k,
+                mkdt.sp3k_tgl,
+                mkdt.akad_indent,
+                mkdt.akad_indent_tgl,
+                mkdt.akad,
+                mkdt.akad_tgl,
+                mkdt.is_kpr,
+                mkdt.is_subsidi as mkdt_is_subsidi,
                 users.username as harga_akhir_oleh_username,
                 u.username as perintah_bangun_username
             ')
@@ -211,14 +224,11 @@ class KavlingRepository
     protected function addDivisiSelect(BaseBuilder $builder, $id_divisi)
     {
         $divisiFields = [
-            3 => "mkdt.status_mkdt, mkdt.is_lunas, mkdt.is_subsidi as mkdt_is_subsidi, mkdt.is_kpr, mkdt.is_batal, mkdt.dajam_selesai,
+            3 => "mkdt.is_lunas, mkdt.dajam_selesai,
                   (SELECT jatuh_tempo_tgl FROM keuangan WHERE keuangan.id_mkdt = mkdt.id_mkdt
-                   and sudah_dibayar = 0 ORDER BY jatuh_tempo_tgl asc LIMIT 1) AS jatuh_tempo_tgl, mkdt.is_sudah_isi_tagihan,
-                   ",
+                   and sudah_dibayar = 0 ORDER BY jatuh_tempo_tgl asc LIMIT 1) AS jatuh_tempo_tgl, mkdt.is_sudah_isi_tagihan",
 
-            4 => "mkdt.status_mkdt, mkdt.booking_tgl, mkdt.wawancara_tgl, mkdt.sp3k_tgl, mkdt.akad_tgl,
-                  mkdt.akad_indent, mkdt.akad_indent_tgl, mkdt.akad,
-                  mkdt.is_subsidi as mkdt_is_subsidi, mkdt.is_kpr, mkdt.is_batal, mkdt.is_sudah_isi_tagihan",
+            4 => "mkdt.is_sudah_isi_tagihan",
 
             5 => "pbb_pecah_nop, pbb_pecah_luas_bumi, pbb_pecah_njop_bumi, pbb_pecah_luas_bangunan,
                   pbb_pecah_njop_bangunan, pbb_pecah_tanggal_bayar, pbb_pecah_jumlah_tagihan,
@@ -241,20 +251,21 @@ class KavlingRepository
 
             7 => "produksi.st_0, produksi.st_25, produksi.st_50, produksi.st_75, produksi.st_100,
                   produksi.slo, produksi.bp, produksi.lpa, produksi.st_jalan, produksi.st_saluran,
-                  produksi.st_air, mkdt.status_mkdt",
+                  produksi.st_air",
 
-            8 => "mkdt.status_mkdt, produksi.progres_bangunan",
+            8 => "",
 
-            10 => "kavling.id_pajak, mkdt.status_mkdt, mkdt.is_batal,
-                   pajak.pph42_nilai, pajak.pph42_tgl_bayar, pajak.pph42_ntpn,
+            10 => "pajak.pph42_nilai, pajak.pph42_tgl_bayar, pajak.pph42_ntpn,
                    pajak.ppn_nilai, pajak.ppn_tgl_bayar, pajak.ppn_ntpn, pajak.ppn_no_faktur"
         ];
 
-        if (isset($divisiFields[$id_divisi])) {
-            $builder->select($divisiFields[$id_divisi], true);
+        if (array_key_exists($id_divisi, $divisiFields)) {
+            if ($divisiFields[$id_divisi] !== '') {
+                $builder->select($divisiFields[$id_divisi], true);
+            }
         } else {
             $builder->select("
-                mkdt.status_mkdt, mkdt.is_batal, mkdt.is_lunas, mkdt.dajam_selesai,
+                mkdt.is_lunas, mkdt.dajam_selesai,
                 sertifikat_split_no_hgb_induk, sertifikat_split_no_hgb, sertifikat_is_balik_nama,
                 pbb_pecah_nop, pbb_is_balik_nama, pbg_no, ajb_no, pph_tgl_bayar,
                 bphtb_tanggal_pembayaran
@@ -300,16 +311,6 @@ class KavlingRepository
     protected function addCompositeVisualSelect(BaseBuilder $builder): void
     {
         $builder->select('
-            mkdt.booking_tgl,
-            mkdt.wawancara,
-            mkdt.wawancara_tgl,
-            mkdt.sp3k,
-            mkdt.sp3k_tgl,
-            mkdt.akad_indent,
-            mkdt.akad_indent_tgl,
-            mkdt.akad,
-            mkdt.akad_tgl,
-            mkdt.is_kpr,
             mkdt.id_konsumen AS visual_id_konsumen,
             kavling.perintah_bangun AS is_turun_pembangunan
         ', true);
