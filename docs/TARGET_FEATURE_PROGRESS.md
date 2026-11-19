@@ -2,7 +2,7 @@
 
 > **Dokumen pelacak khusus untuk pengembangan Fitur Target Siteplan (lintas modul `Proyek` / `Siteplan` / `MKDT`) di `sigapp.dev` (Mode: `FEATURE`).**
 >
-> - **Status Keseluruhan:** `DONE (ALL 8 PHASES QA PASS)`
+> - **Status Keseluruhan:** `DONE (ALL 9 PHASES QA PASS)`
 > - **Tanggal Inisialisasi:** `2026-11-16`
 > - **Dokumen Rujukan Modul:**
 >   - [`docs/modules/Proyek/MODULE.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/modules/Proyek/MODULE.md)
@@ -37,7 +37,7 @@ Fitur **Target Siteplan** menghadirkan pengelolaan target pemasaran kavling per 
 | **Fase 3** | **Menu MKDT "Set Target" (Mode Interaktif Kanvas + Modal Kelola Target + Versioning History)** | `DONE` | `DONE` | `PASS` | **`DONE (QA PASS)`** |
 | **Fase 4** | **Request Ubah Tipe Target (Planning) & Approval (MKDT)** | `DONE` | `DONE` | `PASS` | **`DONE (QA PASS)`** |
 
-### 2.1 Batch Enhancement & UX Refinement (Fase 5 – Fase 8)
+### 2.1 Batch Enhancement & UX Refinement (Fase 5 – Fase 9)
 
 | Fase | Ruang Lingkup & Fokus Kerja | Status Backend | Status Frontend | Status QA | Status Fase |
 |---|---|---|---|---|---|
@@ -45,6 +45,7 @@ Fitur **Target Siteplan** menghadirkan pengelolaan target pemasaran kavling per 
 | **Fase 6** | **Redesign `#target-interactive-card` (Portrait, Select2 AJAX, Preview 3D/Denah/Spek, Tahun -1..+3, Staging Kanvas)** | `N/A` | `DONE` | `PASS` | **`DONE (QA PASS)`** |
 | **Fase 7** | **Enhancement `#modal-target-siteplan` (Tipe Rumah Saat Ini, Modal Spek Teknis, Warning Mismatch, Batch Edit Tipe)** | `N/A` | `DONE` | `PASS` | **`DONE (QA PASS)`** |
 | **Fase 8** | **Integrasi Request Ubah Kavling ke Planning, QA E2E Lintas Akun, & Sinkronisasi Docs** | `DONE` | `DONE` | `PASS` | **`DONE (QA PASS)`** |
+| **Fase 9** | **Filter Visualisasi Target & Selain Target (4 Mode Selain Target x 3 Mode Kavling Target + Border Hitam)** | `DONE` | `DONE` | `PASS` | **`DONE (QA PASS)`** |
 
 ---
 
@@ -174,7 +175,7 @@ Fitur **Target Siteplan** menghadirkan pengelolaan target pemasaran kavling per 
 
 ---
 
-### Batch Enhancement & UX Refinement (Fase 5 – Fase 8)
+### Batch Enhancement & UX Refinement (Fase 5 – Fase 9)
 
 ### 3.5 Fase 5 — Backend API Enhancement: Spek Teknis Tipe, Batch Target CRUD, & Request Planning (`DONE — QA PASS`)
 
@@ -264,6 +265,25 @@ Fitur **Target Siteplan** menghadirkan pengelolaan target pemasaran kavling per 
 | **Docs** | [`docs/modules/Proyek/MODULE.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/modules/Proyek/MODULE.md) | Sinkronisasi kontrak spek teknis `TipeService::getAll()` (`format=raw`) & `Change Log` via `php spark module:sync Proyek`. |
 | **Docs** | [`docs/modules/Transaksi/MODULE.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/modules/Transaksi/MODULE.md) | Sinkronisasi kontrak batch `ubah_tipe` pada `KavlingRequestController` / `KavlingRequestService` & `Change Log` via `php spark module:sync Transaksi`. |
 
+### 3.9 Fase 9 — Filter Visualisasi Selain Target & Kavling Target (`DONE — QA PASS`)
+
+#### Target Checklist Teknis Fase 9
+- [x] Backend (`TargetSiteplanRepository::getKavlingTargetMap()`): menyertakan `target_tipe_rumah` & `target_no_tipe_rumah` pada payload `target_kavling`.
+- [x] View & CSS (`master.php`, `siteplan-target.css`): menambahkan dropdown `#filter-target-other-mode` (4 opsi: Default 3 segmen, Pisah 4 warna Akad/Booking Subsidi/Komersil, Gabung 2 warna Sudah Akad & Booking, Gabung 1 warna Sudah Memiliki Konsumen) dan `#filter-target-kavling-mode` (3 opsi: Default border hitam warna keadaan, Border hitam + 1 warna target kecuali konsumen, Border hitam + kelompok per tipe kecuali konsumen).
+- [x] Canvas & Composite Shape (`composite-shape.js`, `master.js`): rendering border hitam pada kavling target (baik composite 3 segmen maupun solid Konva.Line), sinkronisasi 4x3 mode di `resolveTargetCanvasHit()` / `load_kavling()`, legend swatch border hitam, dan reset filter.
+- [x] Verifikasi QA E2E (`sigapp-qa`) & Sinkronisasi Docs (`sigapp-docs`).
+
+#### Inventori File Fase 9
+| Layer | File | Keterangan Perubahan |
+|---|---|---|
+| **Repository** | [`app/Repositories/Siteplan/TargetSiteplanRepository.php`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/app/Repositories/Siteplan/TargetSiteplanRepository.php) | Menambahkan `'target_tipe_rumah'` dan `'target_no_tipe_rumah'` pada output `getKavlingTargetMap()` per `$idKavling`. |
+| **View** | [`app/Views/siteplan/master.php`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/app/Views/siteplan/master.php) | Menambahkan subfilter `#filter-target-other-mode` (4 opsi) dan `#filter-target-kavling-mode` (3 opsi) di `#filter-target-tahun-container`. |
+| **CSS** | [`public/assets/css/siteplan-target.css`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/public/assets/css/siteplan-target.css) | Styling `.siteplan-target-subfilter`, `.siteplan-target-subfilter-label`, dan `.siteplan-target-subfilter-select` (`#2057a3`, `.dark-layout`). |
+| **JS** | [`public/assets/js/siteplan/composite-shape.js`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/public/assets/js/siteplan/composite-shape.js) | Rendering border poligon di luar `clip()` pada `createKonvaShape` ketika `Number(options.strokeWidth) > 0` agar border hitam utuh pada bentuk 3-segmen. |
+| **JS** | [`public/assets/js/siteplan/master.js`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/public/assets/js/siteplan/master.js) | Implementasi matriks 4 × 3 (`selectedTargetOtherMode()`, `selectedTargetKavlingMode()`, `resolveTargetTipeColor()`, `resolveTargetCanvasHit()`, `get_kategori_color()`, `load_kavling()`, legend `Target`/`Tipe Target`, badge filter aktif, tooltip, & reset filter). |
+| **Docs** | [`docs/modules/Siteplan/MODULE.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/modules/Siteplan/MODULE.md) | Sinkronisasi `php spark module:sync Siteplan`, pembaruan `Key Functions`, & entri `Change Log` Fase 9. |
+| **Docs** | [`docs/TARGET_FEATURE_PROGRESS.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/TARGET_FEATURE_PROGRESS.md) | Penutupan status akhir `DONE (ALL 9 PHASES QA PASS)` & pencatatan Sertifikat QA `PASS` Fase 9. |
+
 ---
 
 ## 4. Log Debugging & QA
@@ -343,3 +363,12 @@ Fitur **Target Siteplan** menghadirkan pengelolaan target pemasaran kavling per 
   - Verifikasi Playwright pada tahun `2026` & `2027` di proyek `SANGGAR INDAH PALASTRI`: `16` `Akad Komersil`, `154` `Akad Subsidi`, `31` `Booking Komersil`, `28` `Booking Subsidi`, serta `61`/`30` `Bukan Target`, dengan **`0` JS errors** dan **`0` HTTP 5xx**.
 - **`[2026-11-17]` Sinkronisasi Dokumentasi (`sigapp-docs`):**
   - Menjalankan `php spark module:sync Siteplan` (`--check-only` OK), memperbarui `Key Functions` (`resolveTargetCanvasHit`) & menambahkan entri teratas `Change Log` di [`docs/modules/Siteplan/MODULE.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/modules/Siteplan/MODULE.md), serta memperbarui Bagian 1.1 poin 2 dan Bagian 4 di [`docs/TARGET_FEATURE_PROGRESS.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/TARGET_FEATURE_PROGRESS.md).
+
+### Fase 9
+- **`[2026-11-17]` Sertifikat Verifikasi QA (`sigapp-qa` — `PASS`):**
+  - **Codegraph:** `0` broken callers lintas modul untuk perubahan `TargetSiteplanRepository::getKavlingTargetMap()`.
+  - **PHPUnit:** `19 tests, 234 assertions` `PASS`.
+  - **Dead Code Audit (`php spark module:deadcode Siteplan`):** `0` kandidat dead code.
+  - **Playwright E2E Desktop & Mobile (`375x812`):** Verifikasi matriks 4 × 3 pada proyek `SANGGAR INDAH PALASTRI` (termasuk target berkonsumen pada tahun uji `2028`), verifikasi border hitam `2.5px` pada kavling target, legend filter (`Target` & `Tipe Target`), reset filter, dengan **`0` JS errors** dan **`0` HTTP 4xx/5xx**; seluruh data uji DB telah dibersihkan.
+- **`[2026-11-17]` Penutupan Dokumentasi (`sigapp-docs`):**
+  - Menjalankan `php spark module:sync Siteplan` (`--check-only` OK), memperbarui `Key Functions` (`TargetSiteplanRepository::getKavlingTargetMap`, `SiteplanCompositeShape.createKonvaShape`, `master.js`, `master.php`, `siteplan-target.css`) dan `Change Log` di [`docs/modules/Siteplan/MODULE.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/modules/Siteplan/MODULE.md), serta menutup [`docs/TARGET_FEATURE_PROGRESS.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/TARGET_FEATURE_PROGRESS.md) dengan status **`DONE (ALL 9 PHASES QA PASS)`**.

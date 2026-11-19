@@ -12,16 +12,156 @@ class BookingPaymentRepository
 
     public function findProjectIdByMkdt(int $idMkdt): ?int
     {
+        if (! $this->db->tableExists('kavling')) {
+            if (! $this->db->fieldExists('id_proyek', 'mkdt')) {
+                return null;
+            }
+
+            $row = $this->db->table('mkdt m')
+                ->select('m.id_proyek')
+                ->where('m.id_mkdt', $idMkdt)
+                ->get()
+                ->getRowArray();
+
+            return ! empty($row['id_proyek']) ? (int) $row['id_proyek'] : null;
+        }
+
+        $select = $this->db->fieldExists('id_proyek', 'mkdt')
+            ? 'COALESCE(c.id_proyek, m.id_proyek) AS id_proyek'
+            : 'c.id_proyek AS id_proyek';
+
         $row = $this->db->table('mkdt m')
-            ->select('c.id_proyek')
-            ->join('kavling k', 'k.id_kavling = m.id_kavling')
-            ->join('jalan j', 'j.id_jalan = k.id_jalan')
-            ->join('cluster c', 'c.id_cluster = j.id_cluster')
+            ->select($select, false)
+            ->join('kavling k', 'k.id_kavling = m.id_kavling', 'left')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
+            ->join('cluster c', 'c.id_cluster = j.id_cluster', 'left')
             ->where('m.id_mkdt', $idMkdt)
             ->get()
             ->getRowArray();
 
-        return isset($row['id_proyek']) ? (int) $row['id_proyek'] : null;
+        return ! empty($row['id_proyek']) ? (int) $row['id_proyek'] : null;
+    }
+
+    public function clearVerification(int $idMkdt): void
+    {
+        $this->write('mkdt_booking_payment', [
+            'verified_by' => null,
+            'verified_at' => null,
+            'updated_at'  => date('Y-m-d H:i:s'),
+        ], ['id_mkdt' => $idMkdt]);
+    }
+
+    public function findUsernameById(?int $userId): ?string
+    {
+        if (! $userId || ! $this->db->tableExists('users')) {
+            return null;
+        }
+
+        $row = $this->db->table('users')
+            ->select('username')
+            ->where('id', $userId)
+            ->get()
+            ->getRowArray();
+
+        return $row['username'] ?? null;
+    }
+
+    public function getVerifiedList(int $idProyek, array $filters = []): array
+    {
+        $length = (int) ($filters['length'] ?? 25);
+        $length = max(1, min(100, $length));
+        $start  = max(0, (int) ($filters['start'] ?? 0));
+
+        $recordsTotal = (int) $this->buildVerifiedQuery($idProyek)->countAllResults();
+
+        $hasOptionalFilters = ((int) ($filters['id_cluster'] ?? 0) > 0)
+            || ((int) ($filters['id_jalan'] ?? 0) > 0)
+            || trim((string) ($filters['search'] ?? '')) !== '';
+
+        $recordsFiltered = $hasOptionalFilters
+            ? (int) $this->buildVerifiedQuery($idProyek, $filters)->countAllResults()
+            : $recordsTotal;
+
+        $rows = $this->buildVerifiedQuery($idProyek, $filters)
+            ->select([
+                'mbp.id_mkdt',
+                'mbp.id_pembayaran',
+                'mbp.verified_by',
+                'mbp.verified_at',
+                'u.username AS verified_by_name',
+                'COALESCE(so.shared_owners_count, 1) AS shared_owners_count',
+                'm.id_kavling',
+                'COALESCE(cl.id_proyek, m.id_proyek) AS id_proyek',
+                'p.nama_proyek',
+                'kns.nama_konsumen',
+                'j.nama_jalan',
+                'k.no_kavling',
+                't.no_tipe_rumah',
+                "COALESCE(NULLIF(hj.id_tipe, ''), t.tipe_rumah) AS tipe_rumah",
+                'CASE WHEN m.id_kavling IS NULL OR m.id_kavling = 0 THEN 1 ELSE 0 END AS is_nup',
+                'm.no_nup',
+                'm.status_mkdt',
+                'm.is_batal',
+                'm.refund_paid',
+                'm.is_lunas',
+                'm.booking_fee',
+                'm.booking_tgl',
+            ], false)
+            ->orderBy('mbp.verified_at', 'DESC')
+            ->orderBy('mbp.id_mkdt', 'DESC')
+            ->limit($length, $start)
+            ->get()
+            ->getResultArray();
+
+        return [
+            'rows'            => $rows,
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+        ];
+    }
+
+    private function buildVerifiedQuery(int $idProyek, array $filters = [])
+    {
+        $mbpTable       = $this->db->prefixTable('mkdt_booking_payment');
+        $sharedSubQuery = "SELECT id_pembayaran, COUNT(*) AS shared_owners_count FROM {$mbpTable} WHERE id_pembayaran IS NOT NULL GROUP BY id_pembayaran";
+
+        $builder = $this->db->table('mkdt_booking_payment mbp')
+            ->join('mkdt m', 'm.id_mkdt = mbp.id_mkdt')
+            ->join('konsumen kns', 'kns.id_konsumen = m.id_konsumen', 'left')
+            ->join('kavling k', 'k.id_kavling = m.id_kavling', 'left')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
+            ->join('cluster cl', 'cl.id_cluster = j.id_cluster', 'left')
+            ->join('proyek p', 'p.id_proyek = COALESCE(cl.id_proyek, m.id_proyek)', 'left')
+            ->join('hargajual hj', 'hj.id = COALESCE(NULLIF(m.id_hargajual, 0), k.harga_akhir)', 'left')
+            ->join('tipe t', 't.id_tipe = k.id_tipe', 'left')
+            ->join('users u', 'u.id = mbp.verified_by', 'left')
+            ->join("({$sharedSubQuery}) so", 'so.id_pembayaran = mbp.id_pembayaran', 'left')
+            ->where('mbp.verified_at IS NOT NULL', null, false)
+            ->where('COALESCE(cl.id_proyek, m.id_proyek) =', $idProyek, false);
+
+        $idCluster = (int) ($filters['id_cluster'] ?? 0);
+        if ($idCluster > 0) {
+            $builder->where('cl.id_cluster', $idCluster);
+        }
+
+        $idJalan = (int) ($filters['id_jalan'] ?? 0);
+        if ($idJalan > 0) {
+            $builder->where('j.id_jalan', $idJalan);
+        }
+
+        $search = trim((string) ($filters['search'] ?? ''));
+        if ($search !== '') {
+            $builder->groupStart()
+                ->like('kns.nama_konsumen', $search)
+                ->orLike('k.no_kavling', $search)
+                ->orLike('j.nama_jalan', $search)
+                ->orLike('m.no_nup', $search)
+                ->orLike('u.username', $search)
+                ->orLike('m.status_mkdt', $search)
+                ->groupEnd();
+        }
+
+        return $builder;
     }
 
     public function mkdt(int $id, bool $lock = false): array

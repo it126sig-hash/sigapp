@@ -31,6 +31,13 @@ final class KavlingCompositeQueryTest extends CIUnitTestCase
         $this->assertStringContainsString('kavling`.`perintah_bangun` AS `is_turun_pembangunan', $sql);
         $this->assertStringNotContainsString('mkdt_perintah_bangun', $sql);
         $this->assertStringContainsString('COUNT(*) AS tagihan_aktif_count', $sql);
+        $this->assertStringContainsString('COALESCE(SUM(nominal), 0) AS tagihan_total_nominal', $sql);
+        $this->assertStringContainsString('AS tagihan_total_nominal', $sql);
+        $this->assertStringContainsString('AS tagihan_sudah_bayar', $sql);
+        $this->assertStringContainsString('paid_detail_agg', $sql);
+        $this->assertStringContainsString('paid_log_agg', $sql);
+        $this->assertStringContainsString("kil.kategori = 'BO' AND COALESCE(lpd.booking_is_installment, 0) = 0", $sql);
+        $this->assertStringContainsString("NOT IN ('booking','refund')", $sql);
         $this->assertStringContainsString('MIN(CASE', $sql);
         $this->assertStringContainsString('WHEN sudah_dibayar = 0 AND jatuh_tempo_tgl IS NOT NULL', $sql);
         $this->assertStringContainsString('WHERE is_void = 0', $sql);
@@ -159,12 +166,19 @@ final class KavlingCompositeQueryTest extends CIUnitTestCase
                 $reflection->getMethod($methodName)->invoke($repository, $builder);
             }
         } elseif ($idDivisi === 3) {
-            $reflection->getMethod('addPencairanAkadSelect')->invoke($repository, $builder);
+            foreach (['addKeuanganFinanceSelect', 'addPencairanAkadSelect'] as $methodName) {
+                $reflection->getMethod($methodName)->invoke($repository, $builder);
+            }
         }
 
         $reflection->getMethod('addActiveTiketSelect')->invoke($repository, $builder);
 
         $sql = $builder->getCompiledSelect(false);
+
+        if (in_array($idDivisi, [0, 3], true)) {
+            $this->assertStringContainsString('AS tagihan_total_nominal', $sql);
+            $this->assertStringContainsString('AS tagihan_sudah_bayar', $sql);
+        }
 
         $requiredMkdtSnippets = [
             'mkdt`.`status_mkdt`',
@@ -212,6 +226,32 @@ final class KavlingCompositeQueryTest extends CIUnitTestCase
             $this->assertArrayNotHasKey($alias, $aliases, "Duplicate column/alias '{$alias}' in divisi {$idDivisi}");
             $aliases[$alias] = true;
         }
+    }
+
+    public function testKeuanganDivisiSelectIncludesTagihanAggregatesWithoutDuplicateJatuhTempo(): void
+    {
+        $repository = new KavlingRepository(Database::connect());
+        $reflection = new ReflectionClass($repository);
+
+        $sourceFile = $reflection->getParentClass()
+            ? $reflection->getParentClass()->getFileName()
+            : $reflection->getFileName();
+        $repoSource = (string) file_get_contents((string) $sourceFile);
+        $this->assertStringContainsString('$this->addKeuanganFinanceSelect($builder);', $repoSource);
+
+        $builder = $reflection->getMethod('baseQuery')->invoke($repository);
+        $reflection->getMethod('addDivisiSelect')->invoke($repository, $builder, 3);
+        $reflection->getMethod('addKeuanganFinanceSelect')->invoke($repository, $builder);
+        $reflection->getMethod('addPencairanAkadSelect')->invoke($repository, $builder);
+
+        $sql = $builder->getCompiledSelect(false);
+
+        $this->assertStringContainsString('COALESCE(SUM(nominal), 0) AS tagihan_total_nominal', $sql);
+        $this->assertStringContainsString('COALESCE(keu_total.tagihan_total_nominal, 0) AS tagihan_total_nominal', $sql);
+        $this->assertStringContainsString('(COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)) AS tagihan_sudah_bayar', $sql);
+        $this->assertStringContainsString('paid_detail_agg', $sql);
+        $this->assertStringContainsString('paid_log_agg', $sql);
+        $this->assertSame(1, substr_count($sql, 'AS `jatuh_tempo_tgl`') + substr_count($sql, 'AS jatuh_tempo_tgl'));
     }
 
     public static function divisiModeProvider(): array

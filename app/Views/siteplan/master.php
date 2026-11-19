@@ -1222,6 +1222,7 @@ foreach (user()->getRoles() as $key => $val) {
     }
 </style>
 <link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/siteplan-target.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/siteplan-target.css') ?>">
+<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/siteplan-export.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/siteplan-export.css') ?>">
 <!-- END: Vendor CSS-->
 
 <!-- BEGIN: Content-->
@@ -1247,6 +1248,23 @@ foreach (user()->getRoles() as $key => $val) {
                             <div id="threshold"></div>
                         </div>
                         <div class="col-md-9 siteplan-canvas-col">
+                            <div id="siteplan-export-crop-bar" hidden>
+                                <div class="export-crop-bar-info">
+                                    <span class="export-crop-bar-badge" id="export-crop-bar-size">0 &times; 0 px</span>
+                                    <span class="export-crop-bar-hint">Geser kotak atau tarik titik tepi untuk menentukan area export</span>
+                                </div>
+                                <div class="export-crop-bar-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-export-crop-reset">
+                                        <i class="fas fa-undo mr-25"></i>Reset
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="btn-export-crop-cancel">
+                                        Batal
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-primary" id="btn-export-crop-apply">
+                                        <i class="fas fa-check mr-25"></i>Gunakan Area Ini
+                                    </button>
+                                </div>
+                            </div>
                             <div id="stage-parent">
                                 <div class="canvas" id="konva-holder"></div>
                             </div>
@@ -1337,6 +1355,23 @@ foreach (user()->getRoles() as $key => $val) {
                                         <select id="filter-tahun-target" name="tahun_target" class="form-control form-control-sm siteplan-target-year-select">
                                             <option value="">Belum ada target</option>
                                         </select>
+                                        <div class="siteplan-target-subfilter">
+                                            <label for="filter-target-other-mode" class="siteplan-target-subfilter-label">Selain Target</label>
+                                            <select id="filter-target-other-mode" name="target_other_mode" class="form-control form-control-sm siteplan-target-subfilter-select">
+                                                <option value="default">Default (3 Segmen Seperti Saat Buka)</option>
+                                                <option value="split_4">Akad &amp; Booking (Subsidi / Komersil)</option>
+                                                <option value="merge_2">Sudah Akad &amp; Booking (Gabung Subsidi &amp; Komersil)</option>
+                                                <option value="single_1">1 Warna Konsumen (Gabung Akad &amp; Booking)</option>
+                                            </select>
+                                        </div>
+                                        <div class="siteplan-target-subfilter">
+                                            <label for="filter-target-kavling-mode" class="siteplan-target-subfilter-label">Kavling Target</label>
+                                            <select id="filter-target-kavling-mode" name="target_kavling_mode" class="form-control form-control-sm siteplan-target-subfilter-select">
+                                                <option value="default">Default (Border Hitam, Warna Keadaan Kavling)</option>
+                                                <option value="single_color">Border Hitam + 1 Warna Target (Kecuali Berkonsumen)</option>
+                                                <option value="by_tipe">Border Hitam + Kelompokkan per Tipe (Kecuali Berkonsumen)</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1424,6 +1459,7 @@ foreach (user()->getRoles() as $key => $val) {
 <script src="<?= base_url() ?>assets/js/siteplan/filter-state.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/filter-state.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/shape-filter.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/shape-filter.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/tiket-overlay.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/tiket-overlay.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/export-helper.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/export-helper.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/master.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/master.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
 
@@ -1954,6 +1990,156 @@ foreach (user()->getRoles() as $key => $val) {
                 <div class="modal-footer"><button class="btn btn-outline-secondary" type="reset"
                         data-dismiss="modal">Tutup</button></div>
             </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade text-left" id="modal-export-siteplan" tabindex="-1" role="dialog"
+    aria-labelledby="modal-export-siteplan-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="export-title-wrap">
+                    <span class="export-title-icon"><i class="fas fa-file-export"></i></span>
+                    <div>
+                        <h5 class="modal-title" id="modal-export-siteplan-title">Export Siteplan</h5>
+                        <p class="export-subtitle">Pilih area, skala resolusi, dan format file sebelum mengunduh</p>
+                    </div>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-7 mb-1 mb-md-0">
+                        <div class="export-panel-card">
+                            <div class="divider divider-left">
+                                <div class="divider-text">Pengaturan Export</div>
+                            </div>
+
+                            <div class="form-group mb-1">
+                                <label class="export-field-label">1. Area Export</label>
+                                <div class="export-option-grid" id="export-area-options">
+                                    <label class="export-option-card is-selected" data-export-area="full">
+                                        <input type="radio" name="export_area" value="full" checked>
+                                        <span class="export-option-title"><i class="fas fa-expand"></i> Seluruh Siteplan</span>
+                                        <span class="export-option-desc">Seluruh peta siteplan dari ujung ke ujung</span>
+                                    </label>
+                                    <label class="export-option-card" data-export-area="viewport">
+                                        <input type="radio" name="export_area" value="viewport">
+                                        <span class="export-option-title"><i class="fas fa-desktop"></i> Tampilan Layar</span>
+                                        <span class="export-option-desc">Area sesuai posisi zoom &amp; geser saat ini</span>
+                                    </label>
+                                    <label class="export-option-card" data-export-area="filtered">
+                                        <input type="radio" name="export_area" value="filtered">
+                                        <span class="export-option-title"><i class="fas fa-filter"></i> Kavling Terfilter</span>
+                                        <span class="export-option-desc">Fokus ke area kavling yang sedang tampil</span>
+                                    </label>
+                                    <label class="export-option-card" data-export-area="custom">
+                                        <input type="radio" name="export_area" value="custom">
+                                        <span class="export-option-title"><i class="fas fa-crop-alt"></i> Pilih Area Manual</span>
+                                        <span class="export-option-desc">Tarik kotak seleksi langsung di kanvas</span>
+                                    </label>
+                                </div>
+
+                                <div class="export-custom-crop-actions" id="export-custom-crop-box" hidden>
+                                    <span class="export-custom-crop-status" id="export-custom-crop-status">Belum ada area manual dipilih</span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-open-export-crop">
+                                        <i class="fas fa-crop-alt mr-25"></i>Pilih / Ubah Area di Kanvas
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-1">
+                                <label class="export-field-label">2. Format File</label>
+                                <div class="export-format-grid" id="export-format-options">
+                                    <label class="export-option-card is-selected" data-export-format="png">
+                                        <input type="radio" name="export_format" value="png" checked>
+                                        <span class="export-option-title"><i class="fas fa-file-image"></i> PNG</span>
+                                        <span class="export-option-desc">Tajam (Lossless)</span>
+                                    </label>
+                                    <label class="export-option-card" data-export-format="jpeg">
+                                        <input type="radio" name="export_format" value="jpeg">
+                                        <span class="export-option-title"><i class="fas fa-image"></i> JPG</span>
+                                        <span class="export-option-desc">Ukuran lebih ringan</span>
+                                    </label>
+                                    <label class="export-option-card" data-export-format="pdf">
+                                        <input type="radio" name="export_format" value="pdf">
+                                        <span class="export-option-title"><i class="fas fa-file-pdf"></i> PDF</span>
+                                        <span class="export-option-desc">Siap cetak / bagikan</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-1">
+                                <label for="export-quality-select" class="export-field-label">3. Ukuran &amp; Ketajaman Resolusi</label>
+                                <select id="export-quality-select" class="form-control form-control-sm">
+                                    <option value="standard">Standar (2x Vektor Shape &amp; Teks)</option>
+                                    <option value="hd" selected>HD — Direkomendasikan (3x Vektor Shape &amp; Teks)</option>
+                                    <option value="ultra">Ultra HD — Cetak Besar (4x Vektor Shape &amp; Teks)</option>
+                                </select>
+                            </div>
+
+                            <div id="export-pdf-options" class="row" hidden>
+                                <div class="col-sm-6">
+                                    <div class="form-group mb-0">
+                                        <label for="export-pdf-paper" class="export-field-label">Ukuran Kertas PDF</label>
+                                        <select id="export-pdf-paper" class="form-control form-control-sm">
+                                            <option value="a3" selected>A3 (297 &times; 420 mm)</option>
+                                            <option value="a4">A4 (210 &times; 297 mm)</option>
+                                            <option value="fit">Sesuai Proporsi Area Gambar</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 mt-1 mt-sm-0">
+                                    <div class="form-group mb-0">
+                                        <label for="export-pdf-orientation" class="export-field-label">Orientasi Kertas</label>
+                                        <select id="export-pdf-orientation" class="form-control form-control-sm">
+                                            <option value="auto" selected>Otomatis (Ikuti Rasio Area)</option>
+                                            <option value="landscape">Landscape (Mendatar)</option>
+                                            <option value="portrait">Portrait (Tegak)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <div class="export-panel-card">
+                            <div class="divider divider-left">
+                                <div class="divider-text">Pratinjau &amp; Info Output</div>
+                            </div>
+                            <div class="export-preview-stage" id="export-preview-stage">
+                                <div class="export-preview-empty" id="export-preview-empty">Memuat pratinjau area...</div>
+                                <img id="export-preview-img" class="export-preview-img" src="" alt="Pratinjau Export Siteplan" hidden>
+                            </div>
+
+                            <div class="export-meta-grid">
+                                <div class="export-meta-box">
+                                    <span class="export-meta-label">Area Sumber</span>
+                                    <span class="export-meta-val" id="export-meta-source">-</span>
+                                </div>
+                                <div class="export-meta-box">
+                                    <span class="export-meta-label">Estimasi Output</span>
+                                    <span class="export-meta-val" id="export-meta-output">-</span>
+                                </div>
+                            </div>
+
+                            <div class="export-hint-note" id="export-meta-note">
+                                Shape kavling &amp; nomor kavling dirender ulang sebagai vektor beresolusi tinggi agar tetap tajam saat diperbesar.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-confirm-export-siteplan">
+                    <i class="fas fa-download mr-25"></i>Export Sekarang
+                </button>
+            </div>
         </div>
     </div>
 </div>

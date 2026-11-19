@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-16 20:23:52` @ `af95026`  
+**Last Synced:** `2026-11-19 11:15:46` @ `8193fa7`  
 
 ## Purpose
 Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operasional, SPP, bank KPR, pajak, dan ledger kas.
@@ -41,6 +41,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `pencairan_akad_payment_detail` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 - `invoice_log` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 - `invoice_status_log` *(akses tulis eksklusif hanya untuk modul Keuangan)*
+- `mkdt_booking_payment` *(akses tulis eksklusif hanya untuk modul Keuangan)*
 
 ### Shared Tables (Dibaca dari modul lain)
 - `mkdt`
@@ -154,6 +155,8 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 | `POST` | `/api/bank/simpan` | `Explicit` | `BankController::simpan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/bank/hapus` | `Explicit` | `BankController::hapus` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/tagihan/booking/verifikasi` | `Explicit` | `BookingPaymentController::verify` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tagihan/booking/batal-verifikasi` | `Explicit` | `BookingPaymentController::unverify` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/tagihan/booking/terverifikasi` | `Explicit` | `BookingPaymentController::verifiedList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/laporan/cash-in` | `Explicit` | `\App\Controllers\Web\Keuangan\CashInReportController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/laporan/cash-in/meta` | `Explicit` | `CashInReportController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/laporan/cash-in/summary` | `Explicit` | `CashInReportController::summary` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -286,6 +289,8 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `assertEditable(int $idMkdt, float $nominal, ?string $tanggal)`
 - `synchronize(int $idMkdt, ?int $actorId = null)`
 - `verify(int $idMkdt, int $actorId, ?float $nominal = null, ?string $tanggal = null)`
+- `unverify(int $idMkdt, int $actorId, string $reason)`
+- `getVerifiedList(int $idProyek, array $filters, bool $canManage)`
 - `assertMayDelete(int $paymentId)`
 - `assertManualAllocationAllowed(int $idMkdt, array $allocations)`
 - `getBooking(int $idMkdt)`
@@ -413,7 +418,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 ## File Inventory
 ### Controllers (25)
 - `app/Controllers/Web/Keuangan/TagihanController.php` (36 baris, 2 public methods: `listTagihan()`, `riwayatBayarIndex()`)
-- `app/Controllers/Api/Keuangan/TagihanController.php` (380 baris, 16 public methods: `meta()`, `getByID()`, `getRiwayatByID()`, `hapusTurunKPR()`, `tambahTurunKPR()`, `hapus()`, `voidTagihan()`, `unvoidTagihan()`, `save()`, `getListTagihan($status = null)`, `getListTagihanGrouped()`, `exportExcelTagihan()`, `getListTagihanDetail()`, `getRiwayatBayar()`, `getListRiwayatSurat()`, `getAllJatuhTempo()`)
+- `app/Controllers/Api/Keuangan/TagihanController.php` (382 baris, 16 public methods: `meta()`, `getByID()`, `getRiwayatByID()`, `hapusTurunKPR()`, `tambahTurunKPR()`, `hapus()`, `voidTagihan()`, `unvoidTagihan()`, `save()`, `getListTagihan($status = null)`, `getListTagihanGrouped()`, `exportExcelTagihan()`, `getListTagihanDetail()`, `getRiwayatBayar()`, `getListRiwayatSurat()`, `getAllJatuhTempo()`)
 - `app/Controllers/Api/Keuangan/PembayaranController.php` (97 baris, 4 public methods: `meta()`, `save()`, `removeLP()`, `recalculateSummary()`)
 - `app/Controllers/Web/Keuangan/PrintController.php` (124 baris, 5 public methods: `printSpptb()`, `printKuitansi()`, `printPembayaran()`, `printPembayaranUm()`, `printTagihan()`)
 - `app/Controllers/Api/Keuangan/BankKprDisbursementController.php` (121 baris, 5 public methods: `meta()`, `getJatuhTempo()`, `getData()`, `save()`, `void($id = null)`)
@@ -428,7 +433,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Controllers/Api/Keuangan/Cashout/CashoutSubkonController.php` (177 baris, 11 public methods: `initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)`, `meta()`, `getDataTables()`, `getDetailList()`, `get()`, `save()`, `turunJatuhTempo()`, `ajukanSPP()`, `ajukanPencairan()`, `pembayaran()`, `getHistory()`)
 - `app/Controllers/Web/Keuangan/BankController.php` (28 baris, 1 public methods: `index()`)
 - `app/Controllers/Api/Keuangan/BankController.php` (165 baris, 6 public methods: `meta()`, `list()`, `ambil()`, `ambilSatu()`, `simpan()`, `hapus()`)
-- `app/Controllers/Api/Keuangan/BookingPaymentController.php` (67 baris, 1 public methods: `verify()`)
+- `app/Controllers/Api/Keuangan/BookingPaymentController.php` (202 baris, 3 public methods: `verify()`, `unverify()`, `verifiedList()`)
 - `app/Controllers/Web/Keuangan/CashInReportController.php` (51 baris, 1 public methods: `index()`)
 - `app/Controllers/Api/Keuangan/CashInReportController.php` (131 baris, 3 public methods: `meta()`, `summary()`, `detail()`)
 - `app/Controllers/Web/Keuangan/HasilAkadReportController.php` (49 baris, 1 public methods: `index()`)
@@ -445,7 +450,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Services/Keuangan/FinanceLedgerService.php` (596 baris, 16 public methods)
 - `app/Services/Keuangan/BankKprDisbursementService.php` (419 baris, 5 public methods)
 - `app/Services/Keuangan/BankService.php` (52 baris, 5 public methods)
-- `app/Services/Keuangan/BookingPaymentService.php` (332 baris, 8 public methods)
+- `app/Services/Keuangan/BookingPaymentService.php` (483 baris, 10 public methods)
 - `app/Services/Keuangan/BookingFeeMigrationService.php` (234 baris, 2 public methods)
 - `app/Services/Keuangan/PencairanAkadService.php` (2315 baris, 28 public methods)
 - `app/Services/Keuangan/CashOutService.php` (274 baris, 12 public methods)
@@ -464,7 +469,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Repositories/Keuangan/PaymentSummaryRepository.php` (74 baris, 3 public methods: `updateCategory(int $idMkdt, string $kategori, float $amount)`, `setToZero(int $id_mkdt)`, `setCategory(int $idMkdt, string $kategori, float $value)`)
 - `app/Repositories/Keuangan/FinanceLedgerRepository.php` (77 baris, 4 public methods: `findBySource(string $sourceType, int $sourceId)`, `upsertBySource(array $payload)`, `voidBySource(string $sourceType, int $sourceId, ?int $actorId = null)`, `sumIncome(array $filters = [])`)
 - `app/Repositories/Keuangan/PajakRepository.php` (154 baris, 6 public methods: `linkKavling(int $idKavling, int $idPajak)`, `getPajakBundleByKavling(int $idKavling)`, `getLatestFilesByCategories(int $idKavling, array $categories, ?int $idGroup = null)`, `insertFileUpload(array $data)`, `getTarifPph()`, `getTarifPpn()`)
-- `app/Repositories/Keuangan/BookingPaymentRepository.php` (166 baris, 14 public methods: `findProjectIdByMkdt(int $idMkdt)`, `mkdt(int $id, bool $lock = false)`, `link(int $id, bool $lock = false)`, `owners(int $payment)`, `payment(int $id)`, `details(int $payment)`, `bookingRows(int $id, bool $deleted = false)`, `item(string $category, ?string $name = null)`, `write(string $table, array $data, array $where = [])`, `saveLink(int $id, ?int $payment, array $extra = [])`, `separateBookingSql(string $detail = 'lpd', string $item = 'kl')`, `effectiveCategorySql(string $detail = 'lpd', string $item = 'kl')`, `installmentSummary(int $id)`, `recalculate(int $id)`)
+- `app/Repositories/Keuangan/BookingPaymentRepository.php` (306 baris, 17 public methods: `findProjectIdByMkdt(int $idMkdt)`, `clearVerification(int $idMkdt)`, `findUsernameById(?int $userId)`, `getVerifiedList(int $idProyek, array $filters = [])`, `mkdt(int $id, bool $lock = false)`, `link(int $id, bool $lock = false)`, `owners(int $payment)`, `payment(int $id)`, `details(int $payment)`, `bookingRows(int $id, bool $deleted = false)`, `item(string $category, ?string $name = null)`, `write(string $table, array $data, array $where = [])`, `saveLink(int $id, ?int $payment, array $extra = [])`, `separateBookingSql(string $detail = 'lpd', string $item = 'kl')`, `effectiveCategorySql(string $detail = 'lpd', string $item = 'kl')`, `installmentSummary(int $id)`, `recalculate(int $id)`)
 - `app/Repositories/Keuangan/PencairanAkadListRepository.php` (157 baris, 2 public methods: `buildListQuery(array $filters)`, `getSummary(array $filters, string $search = '')`)
 - `app/Repositories/Keuangan/CashOutRepository.php` (88 baris, 5 public methods: `getListItem(string $search = '')`, `getListItemSelect2(string $search = '')`, `getKavlingDetail(int $idKavling)`, `getRiwayatBayarCashOutByIDKavling(int $id_kavling)`, `softDelete($id)`)
 - `app/Repositories/Keuangan/Cashout/CashoutKavlingRepo.php` (228 baris, 3 public methods: `getDataTables(array $var)`, `getDetailList(int $idKavling)`, `getCashoutRowsByKavling(int $idKavling)`)
@@ -501,16 +506,20 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Views/laporan` (3 file: `booking-akad.php`, `cash-in.php`, `hasil-akad.php`)
 - `app/Views/pdf` (17 file: `invoice.php`, `kuitansi_pembayaran-uangmuka.php`, `kuitansi_pembayaran.bak.php`, `kuitansi_pembayaran.php`, `penagihan.php`, `poskon-batal.php`, `poskon.php`, `slf.php`, `slf_page3.php`, `spptb-memo.php`, `spptb-new-page2.php`, `spptb-new-page3.php`, `spptb-new.php`, `spptb-page-next.php`, `spptb-page1.php`, `tagihan_keuangan.php`, `testpdf.php`)
 
-### JavaScript (9 file)
+### JavaScript (10 file)
 - `public/assets/js/siteplan/keuangan.js` (2194 baris)
 - `public/assets/js/siteplan/pajak.js` (240 baris)
 - `public/assets/js/siteplan/cashout_subkon.js` (1062 baris)
-- `public/assets/js/tagihan-bayar-modal.js` (1407 baris)
+- `public/assets/js/tagihan-bayar-modal.js` (1596 baris)
 - `public/assets/js/pencairan-akad-modal.js` (1266 baris)
 - `public/assets/js/keuangan/penagihan.js` (1041 baris)
+- `public/assets/js/keuangan/booking-verified.js` (410 baris)
 - `public/assets/js/cashout_kavling/index.js` (128 baris)
 - `public/assets/js/laporan-cash-in.js` (473 baris)
 - `public/assets/js/laporan-hasil-akad.js` (721 baris)
+
+### CSS (1 file)
+- `public/assets/css/booking-fee.css` (249 baris)
 
 ### Zero-Downtime Shims (44 file)
 - `app/Controllers/Keuangan.php`
@@ -563,7 +572,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
   - `listTagihan()`: Merender halaman utama daftar tagihan (`keuangan/list-tagihan`) dengan preload daftar item keuangan (`li_keu`) dari `KeuanganService::getListItemKeuangan()`.
   - `riwayatBayarIndex()`: Merender halaman riwayat pembayaran (`keuangan/riwayat-bayar`).
 - **Controller (`app/Controllers/Api/Keuangan/TagihanController.php`):**
-  - `meta()`: Mengembalikan metadata `active_project`, `list_item_keuangan`, dan `permissions` (`can_view`, `can_create_tagihan`, `can_pay`, `can_void`, `can_delete`).
+  - `meta()`: Mengembalikan metadata `active_project`, `list_item_keuangan`, dan `permissions` (`can_view`, `can_create_tagihan`, `can_pay`, `can_void`, `can_delete`, `can_verify_booking`, `can_unverify_booking`).
   - `getByID()`, `getRiwayatByID()`: Mengambil bundle lengkap tagihan MKDT (`getTagihanBundle()`) dan detail log pembayaran (`getRiwayatBayarWithDetailById()`), mendukung dual-mode `?format=raw`.
   - `tambahTurunKPR()`, `hapusTurunKPR()`, `hapus()`, `voidTagihan()`, `unvoidTagihan()`, `save()`: Mutasi tagihan MKDT dan item Turun KPR yang didelegasikan ke `KeuanganService` (termasuk `saveTagihan()`), mendukung dual-mode `?format=raw`.
   - `getListTagihan()`, `getListTagihanGrouped()`, `getListTagihanDetail()`, `getRiwayatBayar()`, `getListRiwayatSurat()`, `exportExcelTagihan()`, `getAllJatuhTempo()`: Query DataTables/daftar tagihan, riwayat bayar, riwayat surat penagihan, export Excel, dan jatuh tempo proyek dengan dukungan dual-mode `?format=raw`.
@@ -592,7 +601,10 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - **Controller (`app/Controllers/Api/Keuangan/CashInReportController.php`):** `meta()` (Metadata proyek aktif, tahun tersedia, kategori, dan permissions), `summary()`, `detail()` (Dual-mode `?format=raw` dan DataTables payload).
 - **Controller (`app/Controllers/Web/Keuangan/HasilAkadReportController.php`):** `index()` (Merender halaman Laporan Hasil Akad dengan validasi akses menu & proyek aktif).
 - **Controller (`app/Controllers/Api/Keuangan/HasilAkadReportController.php`):** `meta()` (Metadata proyek aktif, tahun tersedia, kategori, dan permissions), `summary()`, `detail()` (Dual-mode `?format=raw` dan DataTables payload).
-- **Controller (`app/Controllers/Api/Keuangan/BookingPaymentController.php`):** `verify()` (Validasi role `[1, 3]`, validasi nominal/tanggal, cek kepemilikan proyek via `findProjectIdByMkdt()` + `ActiveProyekService::userCanAccess()`, dan verifikasi booking fee melalui `BookingPaymentService::verify()`).
+- **Controller (`app/Controllers/Api/Keuangan/BookingPaymentController.php`):**
+  - `verify()`: Validasi role `[1, 3]`, validasi nominal/tanggal, cek kepemilikan proyek via `findProjectIdByMkdt()` + `ActiveProyekService::userCanAccess()`, dan verifikasi booking fee melalui `BookingPaymentService::verify()`.
+  - `unverify()`: Validasi role `[1, 3]`, validasi `id_mkdt` dan alasan `reason` wajib (3–500 karakter), verifikasi akses proyek aktif via `findProjectIdByMkdt()` + `ActiveProyekService::userCanAccess()`, serta pembatalan verifikasi booking fee melalui `BookingPaymentService::unverify()` (mengembalikan `200`/`403`/`409`/`422`/`500` + `token` CSRF).
+  - `verifiedList()`: Mengambil daftar booking fee terverifikasi proyek aktif (`BookingPaymentService::getVerifiedList()`) termasuk status `Lunas`, `Akad`, `Promo Rp 0`, dan `NUP` tanpa kavling; mendukung format DataTables server-side dan `?format=raw` (`items` + `meta`), Pure JSON tanpa HTML.
 - **Controller (`app/Controllers/Api/Keuangan/CashOutController.php`):**
   - `meta()`: Mengembalikan metadata `active_project`, `list_item` & `items` (dari `CashOutService::getMetaPayload()`), dan `permissions` (`can_view`, `can_manage`, `can_create`, `can_delete`).
   - `getListItem()`, `getByIDKavling()`, `insert()`, `delete($id = null)`: Endpoint daftar item cashout, bundel data kavling & riwayat bayar, simpan cashout, dan soft delete cashout via `CashOutService` dengan dukungan dual-mode `?format=raw` (`404`/`422` pada mode raw).
@@ -637,7 +649,11 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - **Service (`app/Services/Keuangan/FinanceLedgerService.php`):** `recordIncomeFromLogPembayaran(int $idPembayaran, ?int $actorId = null)`, `voidByLogPembayaran(int $idPembayaran, ?int $actorId = null)`, `recordIncomeFromDanaJaminan(int $idDanaAkad, int $idMkdt, ?int $actorId = null)`, `voidByDanaJaminan(int $idDanaAkad, ?int $actorId = null)`, `recordIncomeFromBankKprDisbursement(int $idDisbursement, ?int $actorId = null)`
 - **Service (`app/Services/Keuangan/BankKprDisbursementService.php`):** `getData(int $idMkdt, int $idKavling)`, `save($request, int $actorId)`, `void(int $id, $request, int $actorId)`, `getBanksList()` (ekspos daftar bank untuk endpoint `/meta`), `canUserManage()` (validasi hak akses kelola pencairan bank untuk endpoint `/meta`).
 - **Service (`app/Services/Keuangan/BankService.php`):** `getAllActive()`, `getList(?string $search = null)`, `getOne(int $id)`, `simpan(array $data, ?int $id = null)`, `hapus(int $id)`
-- **Service (`app/Services/Keuangan/BookingPaymentService.php`):** `findProjectIdByMkdt(int $idMkdt)`, `assertEditable(int $idMkdt, float $nominal, ?string $tanggal)`, `synchronize(int $idMkdt, ?int $actorId = null)`, `verify(int $idMkdt, int $actorId, ?float $nominal = null, ?string $tanggal = null)`, `assertMayDelete(int $paymentId)`, `assertManualAllocationAllowed(int $idMkdt, array $allocations)`
+- **Service (`app/Services/Keuangan/BookingPaymentService.php`):**
+  - `findProjectIdByMkdt(int $idMkdt)`, `assertEditable(int $idMkdt, float $nominal, ?string $tanggal)`, `synchronize(int $idMkdt, ?int $actorId = null)`, `verify(int $idMkdt, int $actorId, ?float $nominal = null, ?string $tanggal = null)`, `assertMayDelete(int $paymentId)`, `assertManualAllocationAllowed(int $idMkdt, array $allocations)`.
+  - `unverify(int $idMkdt, int $actorId, string $reason)`: Membuka kunci verifikasi (`verified_by = null`, `verified_at = null`) dalam transaksi DB atomik + row lock `FOR UPDATE`, memvalidasi panjang alasan 3–500 karakter (`mb_strlen`), memblokir unit yang sudah `Batal` (`status_mkdt === 'Batal'`, `is_batal === 1`) atau `refund_paid === 1` via `isUnverifyBlocked()`, mengizinkan status aktif lain termasuk `Akad` dan `is_lunas = 1`, serta merekam audit trail ke `history_log` melalui `HistoryService::log('keuangan', ...)` (`action: 'batal_verifikasi_booking'`) tanpa menghapus `log_pembayaran`, `finance_ledger`, maupun `mkdt_payment_summary`.
+  - `getVerifiedList(int $idProyek, array $filters, bool $canManage)`: Mengembalikan daftar booking terverifikasi Pure JSON (`items`, `recordsTotal`, `recordsFiltered`, `meta`) beserta flag `is_promo`, `shared_owners_count`, `can_unverify`, dan `unverify_blocked_reason`.
+  - `getBooking(int $idMkdt)` & `getInstallment(int $idMkdt)`: Ringkasan booking (diperkaya `verified_by_name`, `can_unverify`, `unverify_blocked_reason`) dan summary angsuran terpisah.
 - **Service (`app/Services/Keuangan/BookingFeeMigrationService.php`):** `run()`, `snapshot()`
 - **Service (`app/Services/Keuangan/PencairanAkadService.php`):** `getData(int $idMkdt, int $idKavling)`, `saveRetensi(array $post, int $actorId)`, `saveTenor(array $post, int $actorId)`, `storePengajuan($request, int $actorId)`, `cairkan($request, int $actorId)`, `listPayment(int $idPengajuan)`, `voidPayment(int $idPayment, string $reason, int $actorId)`, `void(int $idPengajuan, string $reason, int $actorId)` (dibungkus DB transaction untuk pembaruan status void dan sinkronisasi status batch), `getListDajam()`, `getMetaPayload()`, `getListGrouped($request)`, `getListGroupedRaw($request)` (payload JSON terstruktur + paginasi untuk `?format=raw`), `buildBatchListQuery($request)`, `getBatchList($request)`, `getBatchListRaw($request)` (payload JSON terstruktur + paginasi batch untuk `?format=raw`), `exportTemplate(array $filter)`, `importTanggalCair(string $csvPath, $lampiranFile, int $actorId)`, `getEligibleBatchKavling(array $idKavlings = [], int $idProyek = 0)`, `storeBatchPengajuan(array $data, $lampiranFile, int $actorId)`, `getBatchDetail(int $idBatch)`, `cairkanBatch(array $post, int $actorId)`, `voidBatch(int $idBatch, string $reason, int $actorId)`, `getBatchHistory(int $idBatch)`.
 - **Service (`app/Services/Keuangan/CashOutService.php`):** `getListItem(string $search = '')`, `getListItemSelect2(string $search = '')` (format item Select2), `getMetaPayload()`, `getByIDKavling(int $idKavling)` (bundel `konsumen`, `biaya_mkdt`, `riwayat_bayar` via `CashOutRepository::getKavlingDetail()` & `KonsumenService`), `konsumenExistsForKavling(int|string $idKavling)`, `formatBiayaMkdt(?object $mkdt)`, `saveCashOut(array $input, ?int $userId = null)` (validasi input, cek konsumen kavling, sanitasi nominal via `cleanNumeric()`), `deleteCashOut(int $id)`, `insert($data)`, `delete($id)`, `format_tgl($tgl)`, `is_active($id, $texts, $textf)`.
@@ -655,7 +671,12 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - **Repository (`app/Repositories/Keuangan/PajakRepository.php`):** `linkKavling(int $idKavling, int $idPajak)`, `getPajakBundleByKavling(int $idKavling)` (join `kavling`, `mkdt`, `konsumen`, `legal`, `pajak`, `users` + `file_ajb`/`file`/`file_ppn`), `getLatestFilesByCategories(int $idKavling, array $categories, ?int $idGroup = null)`, `insertFileUpload(array $data)`, `getTarifPph()`, `getTarifPpn()`.
 - **Repository (`app/Repositories/Keuangan/DireksiRepository.php`):** `getDiskresiByKavling(int $idKavling)`, `updateDiskresiKavling(int $idKavling, array $data)`, `getPendingTagihan()`, `getHistoryTagihan()`, `findUserById(int $userId)`, `findInvoiceByNoInv(string $noInv)`, `updateInvoiceSignature(string $noInv, array $data)`, `insertInvoiceStatusLog(array $data)`.
 - **Repository (`app/Repositories/Keuangan/PenagihanRepository.php`):** `getDb()`, `getKavlingForPayment()`, `getMkdtRow()`, `isMkdtBookingPaid()`, `updateMkdt()`, `insertLogPembayaran()`, `getProfilePerusahaan()`, `getMkdtWithKonsumen()`, `getKeuanganByMkdt()`, `getLogPembayaranWithUserByMkdt()`, `getInvoicesByMkdt()`, `getKodeKeuanganByMkdt()`, `getRiwayatTagihan()`, `findDuplicateNomorSurat()`, `findInvoiceByNoInv()`, `findLastInvoiceByPrefix()`, `insertInvoice()`, `updateInvoice()`, `insertInvoiceStatusLog()`, `getProyekInfoForInvoice()`, `getKonsumenSummary()`, `getKavlingLocationSummary()`, `getKaryawanNameByUserId()`, `getFirstKopsuratLokasi()`, CRUD `kopsurat` (`getKopsuratListObjects()`, `getKopsuratListArrays()`, `findKopsuratObject()`, `findKopsuratArray()`, `insertKopsurat()`, `updateKopsurat()`, `deleteKopsurat()`, `countInvoicesUsingKopsurat()`).
-- **Repository (`app/Repositories/Keuangan/BookingPaymentRepository.php`):** `findProjectIdByMkdt(int $idMkdt)`, `mkdt(int $id, bool $lock = false)`, `link(int $id, bool $lock = false)`, `owners(int $payment)`, `payment(int $id)`, `details(int $payment)`
+- **Repository (`app/Repositories/Keuangan/BookingPaymentRepository.php`):**
+  - `findProjectIdByMkdt(int $idMkdt)`: Resolusi `id_proyek` menggunakan `LEFT JOIN` (`kavling`, `jalan`, `cluster`) + `COALESCE(c.id_proyek, m.id_proyek)` (beserta fallback aman bila tabel `kavling` tidak ada pada skema minimal SQLite) sehingga transaksi NUP tanpa kavling tidak gagal `409`.
+  - `clearVerification(int $idMkdt)`: Mengosongkan `verified_by = null`, `verified_at = null`, dan memperbarui `updated_at` pada `mkdt_booking_payment`.
+  - `findUsernameById(?int $userId)`: Lookup nama pengguna (`users.username`) untuk metadata verifier booking.
+  - `getVerifiedList(int $idProyek, array $filters = [])`: Query paginasi daftar booking fee terverifikasi (`verified_at IS NOT NULL`, `COALESCE(cl.id_proyek, m.id_proyek) = $idProyek`) termasuk NUP tanpa kavling, promo Rp 0, `Lunas`, `Akad`, serta jumlah `shared_owners_count` lewat helper privat `buildVerifiedQuery()`.
+  - Operasi inti booking & rekonsiliasi: `mkdt(int $id, bool $lock = false)`, `link(int $id, bool $lock = false)`, `owners(int $payment)`, `payment(int $id)`, `details(int $payment)`, `bookingRows(int $id, bool $deleted = false)`, `item(string $category, ?string $name = null)`, `write(string $table, array $data, array $where = [])`, `saveLink(int $id, ?int $payment, array $extra = [])`, `separateBookingSql()`, `effectiveCategorySql()`, `installmentSummary(int $id)`, `recalculate(int $id)`.
 - **Repository (`app/Repositories/Keuangan/PencairanAkadListRepository.php`):** `buildListQuery(array $filters)`, `getSummary(array $filters, string $search = '')`
 - **Repository (`app/Repositories/Keuangan/CashOutRepository.php`):** `getListItem(string $search = '')`, `getListItemSelect2(string $search = '')`, `getKavlingDetail(int $idKavling)` (mengambil `id_kavling` dan `id_mkdt` dari tabel `kavling`), `getRiwayatBayarCashOutByIDKavling(int $id_kavling)`, `softDelete($id)`
 - **Repository (`app/Repositories/Keuangan/Cashout/CashoutKavlingRepo.php`):** `getDataTables(array $var)`, `getDetailList(int $idKavling)`, `getCashoutRowsByKavling(int $idKavling)`
@@ -672,6 +693,10 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - **Frontend Assets (`public/assets/js/siteplan/keuangan.js`):** Guard inisialisasi plugin `.richText()` (`if ($.fn && typeof $.fn.richText === "function")`) pada baris 72–116 untuk elemen `#idk-rincian`, `#snk`, dan `#status_keterangan` (remediasi Fase 4B agar tidak melempar `TypeError` di halaman yang tidak memuat library richText seperti `/cashout/kavling`).
 - **View PDF (`app/Views/pdf/tagihan_keuangan.php`):** Helper `format_date($d)` (menggantikan typo lama `foramt_date()` dan mencegah kegagalan render/PCRE Dompdf pada input tanggal kosong/non-ISO).
 - **View PDF (`app/Views/pdf/spptb-new.php`):** Blok data pasangan (baris 357–430) menggunakan closure lokal `$formatPasanganField` untuk menampilkan `"-"` secara null-safe ketika `status_pernikahan` bernilai `'belum kawin'` (case-insensitive & trimmed) atau ketika `nama_pasangan`, `nik_pasangan`, `hp_pasangan`, maupun `instansi_pasangan` bernilai `null` / `""` / spasi kosong, serta melindungi akses `status_pekerjaan_pasangan` dengan `?? ''`.
+- **View (`app/Views/keuangan/list-tagihan.php`):** Menambahkan Tab ke-4 `#tab_booking_terverifikasi-tab` (`BOOKING FEE TERVERIFIKASI`) dan panel `#tab_booking_terverifikasi` (`#table_booking_terverifikasi`, `#btn_refresh_booking_terverifikasi`); memuat `public/assets/css/booking-fee.css` dan `public/assets/js/keuangan/booking-verified.js` dengan cache-busting `filemtime()`; menginisialisasi lazy tab via `shown.bs.tab` (`BookingVerifiedTab.init()` / `adjust()`) dan reload filter; mengisolasi listener search Tab 1 menjadi `#data_table_filter input`; mengangkat `riwayatBayarTable` ke scope bersama `listTagihanTable`; serta mengekspor `window.refreshTagihanList(keepModalOpen = false)` sebagai wrapper aman untuk `isi_data()`.
+- **Frontend Assets (`public/assets/js/keuangan/booking-verified.js`):** Modul IIFE `window.BookingVerifiedTab = { init, reload, adjust }` untuk lazy DataTable server-side ke `POST /api/tagihan/booking/terverifikasi`, rotasi CSRF `csrfHash` pada `dataSrc`/`error`, rendering client-side 5 kolom Pure JSON ter-escape (`renderUnitCell()`, `renderBookingFeeCell()`, `renderVerifikasiCell()`, `renderAksiCell()`, `renderStatusMkdtBadge()`), serta event delegation aksi `.btn-unverify-booking` (ke `window.confirmUnverifyBookingFee`), `.btn-print-booking-verified`, `.btn-open-booking-modal`, `#btn_refresh_booking_terverifikasi`, dan Enter-search `#table_booking_terverifikasi_filter input`.
+- **Frontend Assets (`public/assets/js/tagihan-bayar-modal.js`):** Menambahkan `window.confirmUnverifyBookingFee(options)` (SweetAlert2 konfirmasi alasan wajib 3–500 karakter + `POST /api/tagihan/booking/batal-verifikasi` + rotasi CSRF), `unverifyBookingFee()`, `syncTagihanViewsAfterBookingChange()`, `keuFormatDate()`, dan `keuFormatDateTime()`; memperbarui `renderBookingFee()` (metadata verifier, tombol `Batalkan Verifikasi`, catatan terkunci `.booking-fee-lock-note`), `verifyBookingFee()`, dan `printBookingReceipt()` (fallback `activeProyekId()`); serta mengalihkan seluruh 4 pemanggil sinkronisasi (`confirmUnverifyBookingFee`, `verifyBookingFee`, `removeRiwayatBayar`, `save_keuangan`) dari `isi_data(true)` ke `syncTagihanViewsAfterBookingChange()` agar aman lintas halaman (`/siteplan/view`, `/list-kavling`, `/tagihan/list`).
+- **Frontend Stylesheet (`public/assets/css/booking-fee.css`):** Styling ter-scope `#modal_divisi3` (`.booking-fee-verified-meta`, `.booking-fee-lock-note`, wrap `.booking-fee-history-actions`) dan `.list-tagihan-page` (`.booking-verified-header`, `.booking-verified-subtitle`, `#table_booking_terverifikasi` `#eef5ff`/`#2057a3`, soft tinted badges `.booking-verified-badge-*`, `.booking-verified-actions`, mobile tabs 1 baris horizontal scroll `@media (max-width: 767.98px)`, serta `.swal2-container { z-index: 12000 !important; }`).
 
 ## Deprecated & Legacy Shims
 ### Zero-Downtime Class Shims (44 file — Fase 1 s/d Fase 5 `2026-11-13`)
@@ -804,8 +829,29 @@ _Jalankan `php spark module:deadcode Keuangan` untuk mengaudit dead code kandida
   - Tampilan laporan Hasil Akad (`app/Views/laporan/hasil-akad.php`) mengintegrasikan modal detail kavling lintas modul (`siteplan/partials/modal_detail` & `siteplan-detail-modal.js`).
   - Dependensi visual modal (Flatpickr CSS/JS, Select2 CSS/JS, dan `modal_detail_styles`) diinisialisasi secara eksplisit pada view laporan bersama runtime environment tahan redeklarasi (`window.base_url` dan `window.loaded = window.loaded || []`).
   - Whitelist otorisasi kategori berkas `'gambar_kerja'` pada `FileAccessService` mencakup role Keuangan (3), memastikan gambar denah arsitektur kavling tampil dengan aman saat dibuka oleh staf Keuangan tanpa HTTP 403 Forbidden.
+- **Kontrak Pembatalan Verifikasi & Daftar Booking Fee Terverifikasi (`2026-11-19`):**
+  - `GET /api/keuangan/tagihan/meta` (`Api\Keuangan\TagihanController::meta`) menyertakan permission flags `can_verify_booking` dan `can_unverify_booking` (`in_groups(['1', '3'])`).
+  - `POST /api/tagihan/booking/terverifikasi` (`Api\Keuangan\BookingPaymentController::verifiedList`) mengembalikan Pure JSON tanpa HTML untuk seluruh booking terverifikasi di proyek aktif (termasuk `Lunas`, `Akad`, `Promo Rp 0`, dan `NUP` tanpa kavling), mendukung payload DataTables server-side default maupun `?format=raw` (`{ success, messages, data: { items, meta }, token }`).
+  - `POST /api/tagihan/booking/batal-verifikasi` (`Api\Keuangan\BookingPaymentController::unverify`) mensyaratkan group `['1', '3']`, akses proyek via `ActiveProyekService::userCanAccess()`, dan `reason` 3–500 karakter; memblokir transaksi `Batal` (`status_mkdt === 'Batal'`, `is_batal == 1`, atau `refund_paid == 1`); mengosongkan `verified_by` dan `verified_at` pada `mkdt_booking_payment` tanpa menghapus `log_pembayaran`, `finance_ledger`, maupun `mkdt_payment_summary`; serta mencatat audit trail ke `history_log` melalui `App\Services\AuditTrail\HistoryService::log('keuangan', ...)` (`action: 'batal_verifikasi_booking'`, didukung `HistoryRepository::__construct(?BaseConnection $db = null)`).
+  - Rincian alur bisnis dan debugging terekam pada [docs/modul-booking-fee.md](../../modul-booking-fee.md) dan [docs/debug-batal-verifikasi-booking-fee.md](../../debug-batal-verifikasi-booking-fee.md).
 
 ## Change Log
+- **`2026-11-19` [`FEATURE`] — Tab Booking Fee Terverifikasi & Pembatalan Verifikasi Booking Fee:**
+  - **Routes & Public Contracts:**
+    - Menambahkan rute eksplisit pada grup `api/tagihan/booking` (`filter: login, csrf` di `app/Config/Routes.php`): `POST /api/tagihan/booking/batal-verifikasi` -> `Api\Keuangan\BookingPaymentController::unverify` dan `POST /api/tagihan/booking/terverifikasi` -> `Api\Keuangan\BookingPaymentController::verifiedList` (mendukung DataTables server-side dan `?format=raw`, Pure JSON tanpa HTML).
+    - Memperluas `GET /api/keuangan/tagihan/meta` (`Api\Keuangan\TagihanController::meta()`) dengan `permissions.can_verify_booking` dan `permissions.can_unverify_booking`.
+  - **Controller / Service / Repo / Model:**
+    - `app/Controllers/Api/Keuangan/BookingPaymentController.php`: Menambahkan `unverify()` (RBAC `['1', '3']`, validasi `id_mkdt` & `reason` 3–500 karakter, cek akses proyek aktif) dan `verifiedList()`.
+    - `app/Controllers/Api/Keuangan/TagihanController.php`: Menambahkan `can_verify_booking` & `can_unverify_booking` di `meta()`.
+    - `app/Services/Keuangan/BookingPaymentService.php`: Menambahkan `unverify(int $idMkdt, int $actorId, string $reason)` (transaksi DB + `FOR UPDATE`, `isUnverifyBlocked()` untuk status `Batal`/`is_batal = 1`/`refund_paid = 1`, audit trail `history_log` via `HistoryService::log('keuangan', ...)` dengan action `batal_verifikasi_booking` tanpa menghapus kas/ledger/summary) dan `getVerifiedList(int $idProyek, array $filters, bool $canManage)`; memperluas `getBooking()` dengan `verified_by_name`, `can_unverify`, dan `unverify_blocked_reason`.
+    - `app/Repositories/Keuangan/BookingPaymentRepository.php`: Memperbaiki `findProjectIdByMkdt(int $idMkdt)` memakai `LEFT JOIN` + `COALESCE(c.id_proyek, m.id_proyek)` untuk transaksi NUP tanpa kavling; menambahkan `clearVerification()`, `findUsernameById()`, `getVerifiedList()`, dan `buildVerifiedQuery()`.
+    - Integrasi AuditTrail lintas modul: `app/Repositories/AuditTrail/HistoryRepository.php` (`__construct(?BaseConnection $db = null)`) & `app/Services/AuditTrail/HistoryService.php` (`MODULE_LABELS['keuangan']` & `'batal_verifikasi_booking' => 'Batal Verifikasi Booking Fee'`), plus 5 unit test baru di `tests/database/BookingInstallmentSeparationTest.php` (`15 tests, 86 assertions` PASS).
+  - **View / CSS / JS:**
+    - `app/Views/keuangan/list-tagihan.php`: Menambahkan Tab ke-4 `#tab_booking_terverifikasi-tab` (`BOOKING FEE TERVERIFIKASI`) & `#table_booking_terverifikasi`, load `booking-fee.css` & `keuangan/booking-verified.js` via `filemtime()`, isolasi search input Tab 1 (`#data_table_filter input`), scope bersama `riwayatBayarTable`, dan ekspor `window.refreshTagihanList`.
+    - `public/assets/js/keuangan/booking-verified.js` *(NEW)*: Modul `window.BookingVerifiedTab = { init, reload, adjust }` untuk lazy DataTable server-side Tab 4, rotasi CSRF, rendering 5 kolom Pure JSON ter-escape, dan event delegation aksi.
+    - `public/assets/js/tagihan-bayar-modal.js`: Menambahkan `window.confirmUnverifyBookingFee(options)`, `unverifyBookingFee()`, `syncTagihanViewsAfterBookingChange()`, `keuFormatDate()`, dan `keuFormatDateTime()`; memperbarui `renderBookingFee()`, `verifyBookingFee()`, dan `printBookingReceipt()`; serta mengalihkan 4 pemanggil sinkronisasi (`confirmUnverifyBookingFee`, `verifyBookingFee`, `removeRiwayatBayar`, `save_keuangan`) dari `isi_data(true)` ke `syncTagihanViewsAfterBookingChange()`.
+    - `public/assets/css/booking-fee.css`: Style ter-scope `#modal_divisi3` (`.booking-fee-verified-meta`, `.booking-fee-lock-note`) dan `.list-tagihan-page` (`.booking-verified-*`, `#table_booking_terverifikasi`, mobile tabs 1-baris horizontal scroll, `.swal2-container { z-index: 12000 !important; }`).
+  - **Deprecations:** Tidak ada.
 - **`2026-11-16` [`BUGFIX`] — Perbaikan Null-Safe Data Pasangan pada View Cetak SPPTB (`spptb-new.php`):**
   - **Routes & Public Contracts:** Tidak berubah; `PrintService::printSpptb()` mengonsumsi `TransaksiRepository::getSpptbData(int $idKavling, int $idMkdt): ?object` yang kini menyertakan `konsumen.status_pernikahan`.
   - **Controller / Service / Repo / Model:** Tidak ada perubahan langsung pada file backend modul `Keuangan` (`TransaksiRepository::getSpptbData()` diperbarui pada modul `Transaksi`).

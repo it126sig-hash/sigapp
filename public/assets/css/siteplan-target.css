@@ -82,6 +82,35 @@
     cursor: not-allowed;
 }
 
+#filter-side .siteplan-target-year-box .siteplan-target-subfilter {
+    margin-top: .5rem;
+}
+
+#filter-side .siteplan-target-year-box .siteplan-target-subfilter-label {
+    color: #6b7280;
+    display: block;
+    font-size: .72rem;
+    font-weight: 700;
+    margin-bottom: .25rem;
+}
+
+#filter-side .siteplan-target-year-box .siteplan-target-subfilter-select {
+    background-color: #ffffff;
+    border: 1px solid #d8dde3;
+    border-radius: 6px;
+    color: #111827;
+    font-size: .78rem;
+    font-weight: 600;
+    height: calc(1.7rem + 2px);
+    padding-left: .45rem;
+    padding-right: 1.5rem;
+}
+
+#filter-side .siteplan-target-year-box .siteplan-target-subfilter-select:focus {
+    border-color: #2057a3;
+    box-shadow: 0 0 0 .18rem rgba(32, 87, 163, .16);
+}
+
 #filter-side #active-filter-tags .siteplan-target-active-badge {
     background-color: #edf4ff;
     border: 1px solid #c7daf7;
@@ -121,6 +150,21 @@
 .dark-layout #filter-side .siteplan-target-year-select:disabled {
     background-color: #1e2538;
     color: #82868b;
+}
+
+.dark-layout #filter-side .siteplan-target-year-box .siteplan-target-subfilter-label {
+    color: #b4b7bd;
+}
+
+.dark-layout #filter-side .siteplan-target-year-box .siteplan-target-subfilter-select {
+    background-color: #161d31;
+    border-color: #3b4253;
+    color: #d0d2d6;
+}
+
+.dark-layout #filter-side .siteplan-target-year-box .siteplan-target-subfilter-select:focus {
+    border-color: #4c86d4;
+    box-shadow: 0 0 0 .18rem rgba(76, 134, 212, .22);
 }
 
 .dark-layout #filter-side #active-filter-tags .siteplan-target-active-badge {

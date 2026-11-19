@@ -389,9 +389,13 @@ class ModuleCatalog
                     'tagihan-bayar-modal.js',
                     'pencairan-akad-modal.js',
                     'keuangan/penagihan.js',
+                    'keuangan/booking-verified.js',
                     'cashout_kavling/index.js',
                     'laporan-cash-in.js',
                     'laporan-hasil-akad.js',
+                ],
+                'assets_css' => [
+                    'booking-fee.css',
                 ],
                 'owner_tables' => [
                     'keuangan',
@@ -419,6 +423,7 @@ class ModuleCatalog
                     'pencairan_akad_payment_detail',
                     'invoice_log',
                     'invoice_status_log',
+                    'mkdt_booking_payment',
                 ],
                 'shared_tables' => ['mkdt', 'kavling'],
             ],

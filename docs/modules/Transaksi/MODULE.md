@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-16 20:23:51` @ `af95026`  
+**Last Synced:** `2026-11-18 21:17:03` @ `8193fa7`  
 
 ## Purpose
 Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-beli unit kavling, pengelolaan master daftar harga (*pricelist* `hargajual` & lampiran dokumen SK `file_hargajual`), penetapan harga jual akhir unit kavling (`set_harga`), pergantian konsumen (*consumer replacement*), pembaruan status transaksi & perintah bangun, serta alur pengajuan dan persetujuan pembukaan/request unit kavling (`kavling_request`). Dibangun dengan arsitektur modular **Thin Controller → Service → Repository**, pemisahan tegas antara Web Controller dan API Controller, serta dukungan penuh kontrak **`RAW_JSON_READY`** (`?format=raw` dan endpoint `/meta`) untuk kesiapan integrasi SPA/Mobile.
@@ -146,7 +146,7 @@ Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-b
 ### Repositories (3)
 - `app/Repositories/Transaksi/TransaksiRepository.php` (231 baris, 6 public methods: `getKonsumenTransaksi(int $idMkdt)`, `findNikUsage(string $nik, ?int $excludeMkdt = null, ?int $excludeKonsumen = null)`, `getKonsumenByIdKavling($idKavling)`, `getSpptbData(int $idKavling, int $idMkdt)`, `lockConsumerReplacementContext(int $idMkdt, int $idKavling)`, `getLegacyReplacementSpptbData(int $idKavling, int $currentIdMkdt)`)
 - `app/Repositories/Transaksi/HargaJualRepository.php` (270 baris, 14 public methods: `getHargaJualById(int $id)`, `hasModuleAccess(int $userId, string $module = 'Hargajual')`, `getProyekList()`, `getDetailById(int $id)`, `getActiveByProyek(?int $idProyek, string $search = '')`, `getDataTableRows(array $var, ?int $idProyek)`, `getDataTableFilteredCount(array $var, ?int $idProyek)`, `getDataTableTotalCount(?int $idProyek)`, `insertFileHargajual(array $data)`, `insertHargaJual(array $data)`, `updateHargaJual(int $id, array $data)`, `findKavlingById(int $idKavling)`, `updateKavlingHarga(int $idKavling, array $data)`, `getPricelistRowById(int $id)`)
-- `app/Repositories/Transaksi/KavlingRepository.php` (727 baris, 12 public methods: `getKavlingByIdMkdt(int $id_mkdt)`, `getIdProyekByIdMkdt(int $id_mkdt)`, `getIdProyekByKavling(int $id_kavling)`, `getKavlingById(int $idKavling)`, `getKavlingByIds(array $idKavlings)`, `getKavlingList($id_proyek = null, $search = "", $limit = null, $is_cashout_subkon = 0, $id_cluster = null, $id_jalan = null, $only_available = 0)`, `getDiskresiByKavlingId(int $idKavling)`, `getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null, $kategoriFilters = [])`, `getPerintahBangun($id_kavling)`, `setPerintahBangun($id, $data)`, `getKategoriOptions(int $idProyek)`, `applyKategoriFilter(BaseBuilder $builder, array $filters)`)
+- `app/Repositories/Transaksi/KavlingRepository.php` (791 baris, 12 public methods: `getKavlingByIdMkdt(int $id_mkdt)`, `getIdProyekByIdMkdt(int $id_mkdt)`, `getIdProyekByKavling(int $id_kavling)`, `getKavlingById(int $idKavling)`, `getKavlingByIds(array $idKavlings)`, `getKavlingList($id_proyek = null, $search = "", $limit = null, $is_cashout_subkon = 0, $id_cluster = null, $id_jalan = null, $only_available = 0)`, `getDiskresiByKavlingId(int $idKavling)`, `getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null, $kategoriFilters = [])`, `getPerintahBangun($id_kavling)`, `setPerintahBangun($id, $data)`, `getKategoriOptions(int $idProyek)`, `applyKategoriFilter(BaseBuilder $builder, array $filters)`)
 
 ### Models (3)
 - `app/Models/KavlingModel.php`
@@ -306,6 +306,13 @@ Berdasarkan audit Codegraph lintas codebase, komponen modul `Transaksi` dikonsum
 - **Legacy Route Aliases:** Rute flat `/hargajual/*`, `/transaksi/*`, dan `/kavling/*` dipertahankan secara eksplisit di `app/Config/Routes.php` dan diarahkan langsung ke controller modular di `App\Controllers\Api\Transaksi\*`; gunakan rute kanonik `/api/hargajual/*`, `/api/transaksi/*`, dan `/api/kavling/*` untuk pengembangan baru.
 
 ## Change Log
+- **`2026-11-18` [`API-BRIDGE`] — Penambahan Agregasi `tagihan_total_nominal` & `tagihan_sudah_bayar` pada `KavlingRepository` untuk Inspector Siteplan SPA:**
+  - **Routes & Public Contracts (`RAW_JSON_READY`):** Tidak ada perubahan rute baru; payload item kavling dari `KavlingRepository::getAll()` (dikonsumsi oleh `GET|POST /api/siteplan/kavling` dan `/siteplan/get/all`) kini menyertakan field agregat `tagihan_total_nominal` dan `tagihan_sudah_bayar`.
+  - **Controller / Service / Repo / Model:**
+    - `app/Repositories/Transaksi/KavlingRepository.php` (`791` baris): Memperluas `addCompositeFinanceSelect()`, menambahkan `addKeuanganFinanceSelect()`, `addTagihanPaymentDerivedJoins()`, dan `selectTagihanAggregates()`, serta memanggil `addKeuanganFinanceSelect()` pada cabang `$idDivisi === 3` di `getAll()` untuk mengembalikan agregasi `tagihan_total_nominal` dan `tagihan_sudah_bayar` secara *Zero-Downtime*.
+    - `tests/unit/KavlingCompositeQueryTest.php`: Menambahkan cakupan unit test untuk agregasi `tagihan_total_nominal` & `tagihan_sudah_bayar`.
+  - **View / CSS / JS:** Tidak ada perubahan aset view/JS pada modul `Transaksi` (dikonsumsi oleh `SiteplanInspectorCard.vue` di `sigapp-vue`).
+  - **Deprecations:** Tidak ada.
 - **`2026-11-16` [`BUGFIX`] — Perbaikan Null-Safe Data Pasangan & Kolom `status_pernikahan` pada Cetak SPPTB:**
   - **Routes & Public Contracts:** Tidak berubah; `TransaksiRepository::getSpptbData(int $idKavling, int $idMkdt): ?object` kini menyertakan kolom `` `konsumen`.`status_pernikahan` `` pada objek data SPPTB yang dikembalikan ke `PrintService::printSpptb()` dan caller lainnya.
   - **Controller / Service / Repo / Model:**

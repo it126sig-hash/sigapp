@@ -10,6 +10,7 @@ class HistoryService
     public const MODULE_LABELS = [
         'mkdt'            => 'MKDT / Kavling',
         'produksi'        => 'Produksi',
+        'keuangan'        => 'Keuangan',
         'dana_jaminan'    => 'Dana Jaminan',
         'pencairan_akad'  => 'Pencairan Akad',
         'target_siteplan' => 'Target Siteplan',
@@ -152,6 +153,7 @@ class HistoryService
             'aktifkan_nup'                  => 'Aktivasi NUP',
             'pindah_kavling'                => 'Pindah Kavling',
             'batal_booking'                 => 'Batal Booking',
+            'batal_verifikasi_booking'      => 'Batal Verifikasi Booking Fee',
             'ganti_konsumen'                => 'Pindah Konsumen',
             'reconcile_financial_breakdown' => 'Rekonsiliasi Keuangan MKDT',
             'target_add_kavling'            => 'Tambah Kavling Target',

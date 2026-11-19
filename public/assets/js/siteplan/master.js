@@ -509,6 +509,52 @@ Date.prototype.toDateInputValue = (function() {
         return String($('#filter-tahun-target').val() || '').trim();
     }
 
+    function selectedTargetOtherMode() {
+        return String($('#filter-target-other-mode').val() || 'default').trim() || 'default';
+    }
+
+    function selectedTargetKavlingMode() {
+        return String($('#filter-target-kavling-mode').val() || 'default').trim() || 'default';
+    }
+
+    let targetTipeColorMap = {};
+    const targetTipePalette = [
+        '#2563eb', '#059669', '#d97706', '#9333ea',
+        '#e11d48', '#0891b2', '#65a30d', '#c026d3',
+        '#ea580c', '#4f46e5', '#0d9488', '#db2777'
+    ];
+
+    function resolveTargetTipeColor(tipeName) {
+        const key = String(tipeName || '').trim() || 'Tanpa Tipe';
+        if (conf[key] && conf[key].fill) {
+            return conf[key].fill;
+        }
+        if (key === 'Tanpa Tipe') {
+            return '#64748b';
+        }
+        if (targetTipeColorMap[key]) {
+            return targetTipeColorMap[key];
+        }
+
+        let hash = 0;
+        for (let i = 0; i < key.length; i++) {
+            hash = ((hash << 5) - hash) + key.charCodeAt(i);
+            hash |= 0;
+        }
+        const startIdx = Math.abs(hash) % targetTipePalette.length;
+        const usedColors = new Set(Object.values(targetTipeColorMap));
+        let chosen = targetTipePalette[startIdx];
+        for (let offset = 0; offset < targetTipePalette.length; offset++) {
+            const candidate = targetTipePalette[(startIdx + offset) % targetTipePalette.length];
+            if (!usedColors.has(candidate)) {
+                chosen = candidate;
+                break;
+            }
+        }
+        targetTipeColorMap[key] = chosen;
+        return chosen;
+    }
+
     function hasValidTargetDate(val) {
         if (typeof val !== 'string') return false;
         const trimmed = val.trim();
@@ -588,9 +634,9 @@ Date.prototype.toDateInputValue = (function() {
     }
     window.syncTargetYearDropdown = syncTargetYearDropdown;
 
-    function resolveTargetCanvasHit(row, rawHargaAkhir, targetInfo) {
+    function resolveTargetCanvasHit(row, rawHargaAkhir, targetInfo, defaultHit) {
         const activeYear = selectedTargetYear();
-        const matchesSelectedYear = targetInfo && (!activeYear || String(targetInfo.tahun_target) === activeYear);
+        const isTargetKavling = Boolean(targetInfo && (!activeYear || String(targetInfo.tahun_target) === activeYear));
         const isBatal = (row.is_batal == 1 || row.status_mkdt === 'Batal');
         const hasSubValue = function(val) {
             return val !== null && val !== undefined && val !== '';
@@ -602,19 +648,11 @@ Date.prototype.toDateInputValue = (function() {
                 : (targetInfo && hasSubValue(targetInfo.target_is_subsidi) ? targetInfo.target_is_subsidi : null));
         const targetSubsidi = (String(rawSub) === '1') ? 'Subsidi' : 'Komersil';
 
-        // Prioritas 1: Sudah Akad — berlaku untuk semua kavling di kanvas (target maupun non-target)
-        if (!isBatal && (
+        const isAkad = !isBatal && (
             row.akad == 1
             || hasValidTargetDate(row.akad_tgl)
-        )) {
-            return {
-                fill: set_fill2('Akad ' + targetSubsidi),
-                tipe: 'Target'
-            };
-        }
-
-        // Prioritas 2: Booking / Proses Konsumen Aktif (akad != 1) — berlaku untuk semua kavling (target maupun non-target)
-        if (!isBatal && (
+        );
+        const isBooking = !isBatal && !isAkad && (
             row.status_mkdt === 'Booking'
             || row.status_mkdt === 'Akad'
             || row.sp3k == 1
@@ -624,41 +662,159 @@ Date.prototype.toDateInputValue = (function() {
             || hasValidTargetDate(row.booking_tgl)
             || row.akad_indent == 1
             || hasValidTargetDate(row.akad_indent_tgl)
-        )) {
+        );
+        const hasConsumer = isAkad || isBooking;
+        const otherMode = selectedTargetOtherMode();
+        const targetMode = selectedTargetKavlingMode();
+        const targetStroke = isTargetKavling ? '#000000' : undefined;
+        const targetStrokeWidth = isTargetKavling ? 2.5 : 0;
+
+        // 1. Kavling dengan konsumen aktif (Akad / Booking) — berlaku untuk target maupun selain target
+        if (hasConsumer) {
+            if (otherMode === 'default') {
+                return {
+                    hit: defaultHit,
+                    preserveDefaultVisual: true,
+                    targetStroke: targetStroke,
+                    targetStrokeWidth: targetStrokeWidth
+                };
+            }
+
+            if (otherMode === 'split_4') {
+                const statusLabel = (isAkad ? 'Akad ' : 'Booking ') + targetSubsidi;
+                if (conf[statusLabel]) {
+                    set_fill2(statusLabel);
+                }
+                return {
+                    hit: {
+                        fill: statusLabel,
+                        tipe: 'Target'
+                    },
+                    preserveDefaultVisual: false,
+                    targetStroke: targetStroke,
+                    targetStrokeWidth: targetStrokeWidth
+                };
+            }
+
+            if (otherMode === 'merge_2') {
+                return {
+                    hit: {
+                        fill: isAkad ? 'Sudah Akad' : 'Booking',
+                        tipe: 'Target'
+                    },
+                    preserveDefaultVisual: false,
+                    targetStroke: targetStroke,
+                    targetStrokeWidth: targetStrokeWidth
+                };
+            }
+
             return {
-                fill: set_fill2('Booking ' + targetSubsidi),
-                tipe: 'Target'
+                hit: {
+                    fill: 'Sudah Memiliki Konsumen',
+                    tipe: 'Target'
+                },
+                preserveDefaultVisual: false,
+                targetStroke: targetStroke,
+                targetStrokeWidth: targetStrokeWidth
             };
         }
 
-        // Prioritas 3: Kavling Selain Target yang belum Akad & belum Booking, atau sudah Batal
-        if (!matchesSelectedYear) {
+        // 2. Kavling Selain Target & belum berkonsumen (atau batal)
+        if (!isTargetKavling) {
+            if (otherMode === 'default') {
+                return {
+                    hit: defaultHit,
+                    preserveDefaultVisual: true,
+                    targetStroke: undefined,
+                    targetStrokeWidth: 0
+                };
+            }
+
             set_fill('#e2e8f0', '#000000', '0', null);
             return {
-                fill: 'Bukan Target',
-                tipe: 'Target'
+                hit: {
+                    fill: 'Bukan Target',
+                    tipe: 'Target'
+                },
+                preserveDefaultVisual: false,
+                targetStroke: undefined,
+                targetStrokeWidth: 0
             };
         }
 
-        // Prioritas 4: Kavling Target yang sudah Set Harga, belum ada konsumen aktif
+        // 3. Kavling Target & belum berkonsumen (atau target yang batal)
+        if (targetMode === 'single_color') {
+            return {
+                hit: {
+                    fill: 'Kavling Target',
+                    tipe: 'Target'
+                },
+                preserveDefaultVisual: false,
+                targetStroke: targetStroke,
+                targetStrokeWidth: targetStrokeWidth
+            };
+        }
+
+        if (targetMode === 'by_tipe') {
+            const rawTipe = (targetInfo && (targetInfo.target_tipe_rumah || targetInfo.tipe_manual || targetInfo.tipe_label))
+                || row.tipe_rumah
+                || 'Tanpa Tipe';
+            const tipeName = String(rawTipe).trim() || 'Tanpa Tipe';
+            return {
+                hit: {
+                    fill: tipeName,
+                    color_fill: 'Tipe Target:' + tipeName,
+                    tipe: 'Tipe Target'
+                },
+                preserveDefaultVisual: false,
+                targetStroke: targetStroke,
+                targetStrokeWidth: targetStrokeWidth
+            };
+        }
+
+        // targetMode === 'default'
+        if (otherMode === 'default') {
+            return {
+                hit: defaultHit,
+                preserveDefaultVisual: true,
+                targetStroke: targetStroke,
+                targetStrokeWidth: targetStrokeWidth
+            };
+        }
+
         if ((rawHargaAkhir && String(rawHargaAkhir) !== '0') || (parseFloat(row.hargajual || 0) > 0)) {
             return {
-                fill: set_fill2(row.tipe_rumah),
-                tipe: targetSubsidi
+                hit: {
+                    fill: set_fill2(row.tipe_rumah),
+                    tipe: targetSubsidi
+                },
+                preserveDefaultVisual: false,
+                targetStroke: targetStroke,
+                targetStrokeWidth: targetStrokeWidth
             };
         }
 
-        // Prioritas 5: Kavling Target default, belum ada harga jual & belum ada konsumen
         if (!conf['Def']) {
             set_fill('#fcffd9', '#000000', '0', null);
             return {
-                fill: 'Def',
-                tipe: 'Target'
+                hit: {
+                    fill: 'Def',
+                    tipe: 'Target'
+                },
+                preserveDefaultVisual: false,
+                targetStroke: targetStroke,
+                targetStrokeWidth: targetStrokeWidth
             };
         }
+
         return {
-            fill: set_fill2('Def'),
-            tipe: 'Target'
+            hit: {
+                fill: set_fill2('Def'),
+                tipe: 'Target'
+            },
+            preserveDefaultVisual: false,
+            targetStroke: targetStroke,
+            targetStrokeWidth: targetStrokeWidth
         };
     }
 
@@ -680,6 +836,12 @@ Date.prototype.toDateInputValue = (function() {
     });
 
     $("#filter-tahun-target").on("change", function() {
+        if (isTargetFilterActive() && typeof window.apply_server_filter === "function") {
+            window.apply_server_filter();
+        }
+    });
+
+    $("#filter-target-other-mode, #filter-target-kavling-mode").on("change", function() {
         if (isTargetFilterActive() && typeof window.apply_server_filter === "function") {
             window.apply_server_filter();
         }
@@ -832,6 +994,17 @@ Date.prototype.toDateInputValue = (function() {
         if (conf[kategori]) return conf[kategori].fill;
         if (kategori === 'Bukan Target') return '#e2e8f0';
         if (kategori === 'Def' && !conf['Def']) return '#fcffd9';
+        if (kategori === 'Sudah Akad') return (conf['Akad'] && conf['Akad'].fill) || '#16a34a';
+        if (kategori === 'Booking') return '#ff00b7';
+        if (kategori === 'Sudah Memiliki Konsumen') return '#0ea5e9';
+        if (kategori === 'Kavling Target') return '#f59e0b';
+        if (kategori === 'Akad Subsidi') return '#16a34a';
+        if (kategori === 'Akad Komersil') return '#15803d';
+        if (kategori === 'Booking Subsidi') return '#ec4899';
+        if (kategori === 'Booking Komersil') return '#a855f7';
+        if (String(kategori).indexOf('Tipe Target:') === 0) {
+            return resolveTargetTipeColor(String(kategori).slice('Tipe Target:'.length).trim());
+        }
         if (kategori == 'Belum Target') return '#f8fafc';
 
         if (String(kategori).indexOf('Target ') === 0) {
@@ -1091,7 +1264,14 @@ Date.prototype.toDateInputValue = (function() {
             const targetInfo = attrs.data2 ? attrs.data2.target : null;
             const activeYear = selectedTargetYear();
             const matchesTarget = targetInfo && (!activeYear || String(targetInfo.tahun_target) === activeYear);
-            lines.push(matchesTarget ? ('Target: Tahun ' + targetInfo.tahun_target) : 'Target: Bukan Target');
+            let targetLine = matchesTarget ? ('Target: Tahun ' + targetInfo.tahun_target) : 'Target: Bukan Target';
+            if (matchesTarget && targetInfo) {
+                const targetTipe = String(targetInfo.target_tipe_rumah || targetInfo.tipe_manual || targetInfo.tipe_label || '').trim();
+                if (targetTipe) {
+                    targetLine += ' (' + targetTipe + ')';
+                }
+            }
+            lines.push(targetLine);
         }
 
         (attrs.tooltipRows || attrs.visualRows || []).forEach(function(row) {
@@ -1408,6 +1588,8 @@ Date.prototype.toDateInputValue = (function() {
                     tp_rumah,
                     subsidi;
 
+                targetTipeColorMap = {};
+                filterwarna['Tipe Target'] = null;
                 syncTargetYearDropdown(targetYears);
                 if (isTargetFilterActive()) {
                     renderActiveFilterTags();
@@ -1728,9 +1910,15 @@ Date.prototype.toDateInputValue = (function() {
 
                     const isTargetMode = isTargetFilterActive();
                     const targetInfo = targetKavling[r[p].id_kavling] || null;
-                    if (isTargetMode) {
-                        hit = resolveTargetCanvasHit(r[p], rawHargaAkhir, targetInfo);
+                    const targetPlan = isTargetMode
+                        ? resolveTargetCanvasHit(r[p], rawHargaAkhir, targetInfo, hit)
+                        : null;
+                    if (targetPlan) {
+                        hit = targetPlan.hit;
                     }
+                    const preserveTargetDefault = Boolean(targetPlan && targetPlan.preserveDefaultVisual);
+                    const targetStroke = targetPlan ? targetPlan.targetStroke : undefined;
+                    const targetStrokeWidth = targetPlan ? (Number(targetPlan.targetStrokeWidth) || 0) : 0;
 
                     const fieldChecks = {
                         'sertifikat_is_balik_nama': (val) => val === 'Sudah',
@@ -1772,7 +1960,7 @@ Date.prototype.toDateInputValue = (function() {
 
                     const visualRows = Array.isArray(r[p].visual_rows) ? r[p].visual_rows : [];
                     const visualFill = r[p].visual_fill && r[p].visual_fill.config_name ? r[p].visual_fill : null;
-                    const useUnifiedFill = !isTargetMode && String(va) === '0' && visualFill !== null;
+                    const useUnifiedFill = (!isTargetMode || preserveTargetDefault) && String(va) === '0' && visualFill !== null;
 
                     if (useUnifiedFill) {
                         hit = {
@@ -1788,7 +1976,7 @@ Date.prototype.toDateInputValue = (function() {
                         hit = filterOverride;
                     }
 
-                    const useCompositeShape = !isTargetMode && String(va) === '0'
+                    const useCompositeShape = (!isTargetMode || preserveTargetDefault) && String(va) === '0'
                         && !filterOverride
                         && visualRows.length > 0
                         && typeof SiteplanCompositeShape !== 'undefined';
@@ -1878,8 +2066,8 @@ Date.prototype.toDateInputValue = (function() {
                             tooltipRows: tooltipRows,
                             legendKeys: legendKeys,
                             strokeWidthResolver: get_kategori_stroke_width,
-                            stroke: '#000',
-                            strokeWidth: 0,
+                            stroke: targetStroke || '#000',
+                            strokeWidth: targetStrokeWidth,
                             opacity: 1,
                             globalCompositeOperation: 'source-over'
                         }, get_kategori_color);
@@ -1888,6 +2076,11 @@ Date.prototype.toDateInputValue = (function() {
                         kav = new Konva.Line({
                             points: pointsArr,
                             fill: get_kategori_color(hitColorConfig),
+                            stroke: targetStroke,
+                            strokeWidth: targetStrokeWidth,
+                            lineJoin: 'round',
+                            lineCap: 'round',
+                            strokeScaleEnabled: true,
                             dash: dashed,
                             opacity: 1,
                             closed: true,
@@ -2198,6 +2391,7 @@ Date.prototype.toDateInputValue = (function() {
     })
 
     siteplan.on('click tap', function(e) {
+        if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) return;
         if (typeof isFacadeArrowActive !== 'undefined' && isFacadeArrowActive) return;
 
         var k = e.target; //get shape
@@ -2213,6 +2407,9 @@ Date.prototype.toDateInputValue = (function() {
         if (!sh.id) return false;
         id_kavling = sh.id.substr(3)
 
+        if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) {
+            return;
+        }
         if (typeof window.isTargetSetModeActive === 'function' && window.isTargetSetModeActive()) {
             if (typeof window.handleTargetCanvasClick === 'function') {
                 window.handleTargetCanvasClick(sh, id_kavling);
@@ -2286,6 +2483,7 @@ Date.prototype.toDateInputValue = (function() {
     });
 
     stage.on('click tap', function(e) {
+        if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) return;
         if (typeof isFacadeArrowActive !== 'undefined' && isFacadeArrowActive) return;
         if (isManualSelectionActive()) {
             var pos = this.getRelativePointerPosition();
@@ -2312,6 +2510,10 @@ Date.prototype.toDateInputValue = (function() {
     //even mouse move data kavling
     var data, mousePos, persentase;
     siteplan.on('mousemove', function(e) {
+        if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) {
+            group.hide();
+            return;
+        }
         var k = e.target;
         if (k.hasName('subShape') && k.parent) k = k.parent;
         data = k.attrs;
@@ -2334,7 +2536,7 @@ Date.prototype.toDateInputValue = (function() {
     //highlight kavling tanpa menggambar ulang seluruh layer siteplan
     siteplan.on('mouseover', function(e) {
         var node = getSiteplanKavlingNode(e.target);
-        if (!node || isManualSelectionActive() || isSelectedKavling(node)) {
+        if ((typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) || !node || isManualSelectionActive() || isSelectedKavling(node)) {
             hideKavlingHover();
             return;
         }
@@ -2613,6 +2815,8 @@ Date.prototype.toDateInputValue = (function() {
         filter.id_cluster = preservedClusters;
         filter.id_jalan = '';
         $('#toggle-tampilkan-target').prop('checked', false);
+        $('#filter-target-other-mode').val('default');
+        $('#filter-target-kavling-mode').val('default');
         $('#filter-target-tahun-container').stop(true, true).slideUp(200);
         syncTargetMenuVisibility();
         checkMasalahOptions();
@@ -2689,7 +2893,26 @@ Date.prototype.toDateInputValue = (function() {
 
         if (isTargetFilterActive()) {
             const targetYear = selectedTargetYear();
-            const targetLabel = targetYear ? ('Target: ' + escapeSiteplanHtml(targetYear)) : 'Target: Aktif';
+            const otherMode = selectedTargetOtherMode();
+            const targetMode = selectedTargetKavlingMode();
+            const otherModeLabels = {
+                split_4: 'Selain: Akad/Booking (4)',
+                merge_2: 'Selain: Akad/Booking (2)',
+                single_1: 'Selain: Konsumen (1)'
+            };
+            const targetModeLabels = {
+                single_color: 'Target: 1 Warna',
+                by_tipe: 'Target: Per Tipe'
+            };
+            const modeNotes = [];
+            if (otherModeLabels[otherMode]) {
+                modeNotes.push(otherModeLabels[otherMode]);
+            }
+            if (targetModeLabels[targetMode]) {
+                modeNotes.push(targetModeLabels[targetMode]);
+            }
+            const baseLabel = targetYear ? ('Target: ' + escapeSiteplanHtml(targetYear)) : 'Target: Aktif';
+            const targetLabel = modeNotes.length > 0 ? (baseLabel + ' (' + modeNotes.join(', ') + ')') : baseLabel;
             html += `<span class="badge badge-light-primary siteplan-target-active-badge mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('target')">${targetLabel} &times;</span>`;
         }
 
@@ -2724,6 +2947,8 @@ Date.prototype.toDateInputValue = (function() {
             $('#filter-periode-selesai').val('');
         } else if (type === 'target') {
             $('#toggle-tampilkan-target').prop('checked', false);
+            $('#filter-target-other-mode').val('default');
+            $('#filter-target-kavling-mode').val('default');
             $('#filter-target-tahun-container').stop(true, true).slideUp(200);
             syncTargetMenuVisibility();
         }
@@ -2751,41 +2976,647 @@ Date.prototype.toDateInputValue = (function() {
         callback()
     }
 
-    function export_siteplan() {
-        $('#btn-export-siteplan').prop("disabled", true);
-        $('#btn-export-siteplan').html('Export<i class="fa fa-spinner fa-spin"></i>');
+    const siteplanExportState = {
+        area: 'full',
+        format: 'png',
+        quality: 'hd',
+        paper: 'a3',
+        orientation: 'auto',
+        customCrop: null,
+        draftCrop: null,
+        cropModeActive: false,
+        cropGroup: null,
+        cropSyncScale: null
+    };
 
-        const stageh = stage.height()
-        const stagew = stage.width()
-        const stages = stage.scale()
-        const stagep = stage.position()
+    window.isExportCropModeActive = function() {
+        return Boolean(siteplanExportState.cropModeActive);
+    };
 
-        stage.height(imageObj.height)
-        stage.width(imageObj.width)
+    function getSiteplanImageSize() {
+        const w = (imageObj && imageObj.width) ? Number(imageObj.width) : 0;
+        const h = (imageObj && imageObj.height) ? Number(imageObj.height) : 0;
+        return { width: w, height: h };
+    }
 
-        stage.position({
-            x: 0,
-            y: 0
-        })
+    function computeFilteredKavlingCropRect(imgW, imgH) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        let found = 0;
 
-        var dataURL = stage.scale({
-            x: 1,
-            y: 1
-        }).toDataURL({
-            pixelRatio: 1
+        siteplan.find('.siteplan-kavling').forEach(function(node) {
+            if (typeof node.isVisible === 'function' ? !node.isVisible() : (typeof node.visible === 'function' && !node.visible())) {
+                return;
+            }
+            const rect = node.getClientRect({ relativeTo: siteplan, skipShadow: true });
+            if (!rect || rect.width <= 0 || rect.height <= 0) return;
+            minX = Math.min(minX, rect.x);
+            minY = Math.min(minY, rect.y);
+            maxX = Math.max(maxX, rect.x + rect.width);
+            maxY = Math.max(maxY, rect.y + rect.height);
+            found++;
         });
 
-        const nama_file = "Siteplan " + dt_proyek.nama_proyek + " Per " + format_date(today_date) + ".png";
+        if (!found || !Number.isFinite(minX)) {
+            return { rect: { x: 0, y: 0, width: imgW, height: imgH }, fallbackFull: true };
+        }
 
-        downloadURI(dataURL, nama_file, function() {
-            stage.height(stageh)
-            stage.width(stagew)
-            stage.scale(stages)
-            stage.position(stagep)
-            $('#btn-export-siteplan').prop("disabled", false);
-            $('#btn-export-siteplan').html('Export');
-        })
+        const spanW = maxX - minX;
+        const spanH = maxY - minY;
+        const pad = Math.max(60, Math.round(Math.max(spanW, spanH) * 0.06));
+        return {
+            rect: SiteplanExportHelper.clampCropRect({
+                x: minX - pad,
+                y: minY - pad,
+                width: spanW + pad * 2,
+                height: spanH + pad * 2
+            }, imgW, imgH, 60),
+            fallbackFull: false
+        };
     }
+
+    function computeViewportCropRect(imgW, imgH) {
+        const scale = stage.scaleX() || 1;
+        const viewW = stage.width() || 0;
+        const viewH = stage.height() || 0;
+        if (!viewW || !viewH) {
+            return { x: 0, y: 0, width: imgW, height: imgH };
+        }
+
+        return SiteplanExportHelper.clampCropRect({
+            x: (-stage.x()) / scale,
+            y: (-stage.y()) / scale,
+            width: viewW / scale,
+            height: viewH / scale
+        }, imgW, imgH, 60);
+    }
+
+    function resolveExportCropInfo(areaMode) {
+        const size = getSiteplanImageSize();
+        const imgW = size.width;
+        const imgH = size.height;
+        if (!imgW || !imgH) {
+            return { rect: { x: 0, y: 0, width: 1, height: 1 }, fallbackFull: false };
+        }
+
+        if (areaMode === 'viewport') {
+            return { rect: computeViewportCropRect(imgW, imgH), fallbackFull: false };
+        }
+        if (areaMode === 'filtered') {
+            return computeFilteredKavlingCropRect(imgW, imgH);
+        }
+        if (areaMode === 'custom') {
+            if (siteplanExportState.customCrop) {
+                return {
+                    rect: SiteplanExportHelper.clampCropRect(siteplanExportState.customCrop, imgW, imgH, 60),
+                    fallbackFull: false
+                };
+            }
+            const vp = computeViewportCropRect(imgW, imgH);
+            const insetX = Math.round(vp.width * 0.1);
+            const insetY = Math.round(vp.height * 0.1);
+            return {
+                rect: SiteplanExportHelper.clampCropRect({
+                    x: vp.x + insetX,
+                    y: vp.y + insetY,
+                    width: Math.max(80, vp.width - insetX * 2),
+                    height: Math.max(80, vp.height - insetY * 2)
+                }, imgW, imgH, 60),
+                fallbackFull: false
+            };
+        }
+
+        return { rect: { x: 0, y: 0, width: imgW, height: imgH }, fallbackFull: false };
+    }
+
+    function renderSiteplanExportCanvas(cropRect, pixelRatio) {
+        const savedScale = { x: stage.scaleX(), y: stage.scaleY() };
+        const savedPos = { x: stage.x(), y: stage.y() };
+        const wasGroupVisible = group.visible();
+        const wasHoverVisible = hoverHighlight.visible();
+        const wasMaskedGroupVisible = maskedGroup.visible();
+        const wasManualVisible = manual_selection.visible();
+        const wasLineMsVisible = line_ms.visible();
+        const wasCropVisible = siteplanExportState.cropGroup ? siteplanExportState.cropGroup.visible() : false;
+
+        try {
+            group.hide();
+            hoverHighlight.hide();
+            maskedGroup.hide();
+            manual_selection.hide();
+            line_ms.hide();
+            if (siteplanExportState.cropGroup) {
+                siteplanExportState.cropGroup.hide();
+            }
+
+            stage.scale({ x: 1, y: 1 });
+            stage.position({ x: 0, y: 0 });
+
+            const rawCanvas = stage.toCanvas({
+                x: cropRect.x,
+                y: cropRect.y,
+                width: cropRect.width,
+                height: cropRect.height,
+                pixelRatio: pixelRatio
+            });
+
+            const outCanvas = document.createElement('canvas');
+            outCanvas.width = Math.max(1, rawCanvas.width);
+            outCanvas.height = Math.max(1, rawCanvas.height);
+            const outCtx = outCanvas.getContext('2d');
+            outCtx.fillStyle = '#ffffff';
+            outCtx.fillRect(0, 0, outCanvas.width, outCanvas.height);
+            outCtx.imageSmoothingEnabled = true;
+            outCtx.imageSmoothingQuality = 'high';
+            outCtx.drawImage(rawCanvas, 0, 0);
+            return outCanvas;
+        } finally {
+            stage.scale(savedScale);
+            stage.position(savedPos);
+            if (wasGroupVisible) group.show();
+            if (wasHoverVisible) hoverHighlight.show();
+            if (wasMaskedGroupVisible) maskedGroup.show();
+            if (wasManualVisible) manual_selection.show();
+            if (wasLineMsVisible) line_ms.show();
+            if (siteplanExportState.cropGroup && wasCropVisible) {
+                siteplanExportState.cropGroup.show();
+            }
+            stage.batchDraw();
+        }
+    }
+
+    function syncExportModalUI() {
+        const $modal = $('#modal-export-siteplan');
+        if (!$modal.length) return;
+
+        $('#export-area-options .export-option-card').each(function() {
+            const val = $(this).data('export-area');
+            const active = val === siteplanExportState.area;
+            $(this).toggleClass('is-selected', active);
+            $(this).find('input[type="radio"]').prop('checked', active);
+        });
+
+        $('#export-format-options .export-option-card').each(function() {
+            const val = $(this).data('export-format');
+            const active = val === siteplanExportState.format;
+            $(this).toggleClass('is-selected', active);
+            $(this).find('input[type="radio"]').prop('checked', active);
+        });
+
+        $('#export-quality-select').val(siteplanExportState.quality);
+        $('#export-pdf-paper').val(siteplanExportState.paper);
+        $('#export-pdf-orientation').val(siteplanExportState.orientation);
+
+        const isCustom = siteplanExportState.area === 'custom';
+        $('#export-custom-crop-box').prop('hidden', !isCustom);
+        if (isCustom) {
+            if (siteplanExportState.customCrop) {
+                const c = siteplanExportState.customCrop;
+                $('#export-custom-crop-status').text('Area manual: ' + c.width + ' × ' + c.height + ' px (posisi ' + c.x + ', ' + c.y + ')');
+            } else {
+                $('#export-custom-crop-status').text('Belum memilih area khusus — gunakan tombol di kanan untuk tarik kotak di kanvas');
+            }
+        }
+
+        const isPdf = siteplanExportState.format === 'pdf';
+        $('#export-pdf-options').prop('hidden', !isPdf);
+
+        refreshExportPreview();
+    }
+
+    function refreshExportPreview() {
+        const size = getSiteplanImageSize();
+        if (!size.width || !size.height) return;
+
+        const cropInfo = resolveExportCropInfo(siteplanExportState.area);
+        const cropRect = cropInfo.rect;
+        const metrics = SiteplanExportHelper.computeEffectivePixelRatio(
+            cropRect.width,
+            cropRect.height,
+            siteplanExportState.quality
+        );
+
+        $('#export-meta-source').text(cropRect.width + ' × ' + cropRect.height + ' px');
+        $('#export-meta-output').text(metrics.outputWidth + ' × ' + metrics.outputHeight + ' px (' + metrics.pixelRatio + 'x)');
+
+        if (siteplanExportState.format === 'pdf') {
+            const pdfLayout = SiteplanExportHelper.computePdfPageLayout(
+                metrics.outputWidth,
+                metrics.outputHeight,
+                siteplanExportState.paper,
+                siteplanExportState.orientation
+            );
+            const paperLabel = pdfLayout.paperSize === 'fit' ? 'Sesuai Area' : pdfLayout.paperSize.toUpperCase();
+            const orientLabel = pdfLayout.orientation === 'landscape' ? 'Landscape' : 'Portrait';
+            $('#export-meta-note').text(
+                'Output PDF ' + paperLabel + ' (' + orientLabel + '). ' +
+                (cropInfo.fallbackFull ? 'Tidak ada kavling terfilter aktif, menggunakan seluruh siteplan.' : 'Shape & nomor kavling dirender pada resolusi vektor tinggi.')
+            );
+        } else if (cropInfo.fallbackFull) {
+            $('#export-meta-note').text('Tidak ada kavling terfilter yang tampil di kanvas, area otomatis menggunakan seluruh siteplan.');
+        } else if (metrics.capped) {
+            $('#export-meta-note').text('Skala disesuaikan otomatis ke batas aman memori browser (' + metrics.pixelRatio + 'x) agar hasil tajam dan bebas gagal render.');
+        } else {
+            $('#export-meta-note').text('Shape kavling & nomor kavling dirender ulang sebagai vektor ' + metrics.pixelRatio + 'x agar tetap tajam saat diperbesar.');
+        }
+
+        const previewScale = Math.min(1, 560 / Math.max(cropRect.width, cropRect.height));
+        try {
+            const previewCanvas = renderSiteplanExportCanvas(cropRect, previewScale);
+            const previewUrl = previewCanvas.toDataURL('image/jpeg', 0.85);
+            $('#export-preview-empty').prop('hidden', true);
+            $('#export-preview-img').attr('src', previewUrl).prop('hidden', false);
+        } catch (err) {
+            $('#export-preview-img').prop('hidden', true);
+            $('#export-preview-empty').text('Pratinjau tidak tersedia').prop('hidden', false);
+        }
+    }
+
+    function destroyExportCropOverlay() {
+        stage.off('.exportCrop');
+        stage.draggable(true);
+        stage.container().style.cursor = 'default';
+        if (siteplanExportState.cropGroup) {
+            siteplanExportState.cropGroup.destroy();
+            siteplanExportState.cropGroup = null;
+        }
+        siteplanExportState.cropSyncScale = null;
+        siteplanExportState.cropModeActive = false;
+        $('#siteplan-export-crop-bar').prop('hidden', true);
+        masked.batchDraw();
+    }
+
+    function startExportCropSelection() {
+        const size = getSiteplanImageSize();
+        if (!size.width || !size.height) return;
+
+        destroyExportCropOverlay();
+        hideKavlingHover();
+        group.hide();
+
+        const initialInfo = resolveExportCropInfo('custom');
+        const rect = Object.assign({}, initialInfo.rect);
+        siteplanExportState.draftCrop = rect;
+        siteplanExportState.cropModeActive = true;
+
+        const cropGroup = new Konva.Group({ id: 'siteplan-export-crop-group' });
+        const maskFill = 'rgba(15, 23, 42, 0.45)';
+        const maskTop = new Konva.Rect({ fill: maskFill, listening: false });
+        const maskBottom = new Konva.Rect({ fill: maskFill, listening: false });
+        const maskLeft = new Konva.Rect({ fill: maskFill, listening: false });
+        const maskRight = new Konva.Rect({ fill: maskFill, listening: false });
+
+        const cropBox = new Konva.Rect({
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+            stroke: '#2057a3',
+            strokeWidth: 3,
+            strokeScaleEnabled: false,
+            dash: [10, 5],
+            fill: 'rgba(32, 87, 163, 0.06)',
+            draggable: true
+        });
+
+        cropGroup.add(maskTop, maskBottom, maskLeft, maskRight, cropBox);
+
+        const MIN_CROP_SIZE = 60;
+        const handleDefs = [
+            { id: 'nw', cursor: 'nwse-resize', getPos: (r) => ({ x: r.x, y: r.y }), resize: (r, p) => {
+                const right = r.x + r.width, bottom = r.y + r.height;
+                const nx = Math.max(0, Math.min(p.x, right - MIN_CROP_SIZE));
+                const ny = Math.max(0, Math.min(p.y, bottom - MIN_CROP_SIZE));
+                return { x: nx, y: ny, width: right - nx, height: bottom - ny };
+            }},
+            { id: 'n', cursor: 'ns-resize', getPos: (r) => ({ x: r.x + r.width / 2, y: r.y }), resize: (r, p) => {
+                const bottom = r.y + r.height;
+                const ny = Math.max(0, Math.min(p.y, bottom - MIN_CROP_SIZE));
+                return { x: r.x, y: ny, width: r.width, height: bottom - ny };
+            }},
+            { id: 'ne', cursor: 'nesw-resize', getPos: (r) => ({ x: r.x + r.width, y: r.y }), resize: (r, p) => {
+                const bottom = r.y + r.height;
+                const nw = Math.max(MIN_CROP_SIZE, Math.min(p.x - r.x, size.width - r.x));
+                const ny = Math.max(0, Math.min(p.y, bottom - MIN_CROP_SIZE));
+                return { x: r.x, y: ny, width: nw, height: bottom - ny };
+            }},
+            { id: 'e', cursor: 'ew-resize', getPos: (r) => ({ x: r.x + r.width, y: r.y + r.height / 2 }), resize: (r, p) => {
+                const nw = Math.max(MIN_CROP_SIZE, Math.min(p.x - r.x, size.width - r.x));
+                return { x: r.x, y: r.y, width: nw, height: r.height };
+            }},
+            { id: 'se', cursor: 'nwse-resize', getPos: (r) => ({ x: r.x + r.width, y: r.y + r.height }), resize: (r, p) => {
+                const nw = Math.max(MIN_CROP_SIZE, Math.min(p.x - r.x, size.width - r.x));
+                const nh = Math.max(MIN_CROP_SIZE, Math.min(p.y - r.y, size.height - r.y));
+                return { x: r.x, y: r.y, width: nw, height: nh };
+            }},
+            { id: 's', cursor: 'ns-resize', getPos: (r) => ({ x: r.x + r.width / 2, y: r.y + r.height }), resize: (r, p) => {
+                const nh = Math.max(MIN_CROP_SIZE, Math.min(p.y - r.y, size.height - r.y));
+                return { x: r.x, y: r.y, width: r.width, height: nh };
+            }},
+            { id: 'sw', cursor: 'nesw-resize', getPos: (r) => ({ x: r.x, y: r.y + r.height }), resize: (r, p) => {
+                const right = r.x + r.width;
+                const nx = Math.max(0, Math.min(p.x, right - MIN_CROP_SIZE));
+                const nh = Math.max(MIN_CROP_SIZE, Math.min(p.y - r.y, size.height - r.y));
+                return { x: nx, y: r.y, width: right - nx, height: nh };
+            }},
+            { id: 'w', cursor: 'ew-resize', getPos: (r) => ({ x: r.x, y: r.y + r.height / 2 }), resize: (r, p) => {
+                const right = r.x + r.width;
+                const nx = Math.max(0, Math.min(p.x, right - MIN_CROP_SIZE));
+                return { x: nx, y: r.y, width: right - nx, height: r.height };
+            }}
+        ];
+
+        const handles = [];
+        function syncCropVisuals() {
+            const r = siteplanExportState.draftCrop;
+            cropBox.setAttrs({ x: r.x, y: r.y, width: r.width, height: r.height });
+
+            maskTop.setAttrs({ x: 0, y: 0, width: size.width, height: r.y });
+            maskBottom.setAttrs({ x: 0, y: r.y + r.height, width: size.width, height: Math.max(0, size.height - (r.y + r.height)) });
+            maskLeft.setAttrs({ x: 0, y: r.y, width: r.x, height: r.height });
+            maskRight.setAttrs({ x: r.x + r.width, y: r.y, width: Math.max(0, size.width - (r.x + r.width)), height: r.height });
+
+            const invScale = 1 / (stage.scaleX() || 1);
+            handles.forEach(function(item) {
+                const pt = item.def.getPos(r);
+                item.node.setAttrs({ x: pt.x, y: pt.y, scaleX: invScale, scaleY: invScale });
+            });
+
+            $('#export-crop-bar-size').text(Math.round(r.width) + ' × ' + Math.round(r.height) + ' px');
+            masked.batchDraw();
+        }
+
+        cropBox.on('mouseenter', function() {
+            stage.container().style.cursor = 'move';
+        });
+        cropBox.on('mouseleave', function() {
+            stage.container().style.cursor = 'default';
+        });
+        cropBox.on('mousedown touchstart', function() {
+            stage.draggable(false);
+        });
+        cropBox.on('dragmove', function() {
+            const r = siteplanExportState.draftCrop;
+            const nx = Math.max(0, Math.min(cropBox.x(), size.width - r.width));
+            const ny = Math.max(0, Math.min(cropBox.y(), size.height - r.height));
+            siteplanExportState.draftCrop = {
+                x: Math.round(nx),
+                y: Math.round(ny),
+                width: Math.round(r.width),
+                height: Math.round(r.height)
+            };
+            syncCropVisuals();
+        });
+        cropBox.on('dragend mouseup touchend', function() {
+            stage.draggable(true);
+        });
+
+        handleDefs.forEach(function(def) {
+            const handle = new Konva.Circle({
+                radius: 7,
+                fill: '#ffffff',
+                stroke: '#2057a3',
+                strokeWidth: 2.5,
+                draggable: true
+            });
+            handle.on('mouseenter', function() {
+                stage.container().style.cursor = def.cursor;
+            });
+            handle.on('mouseleave', function() {
+                stage.container().style.cursor = 'default';
+            });
+            handle.on('mousedown touchstart', function(ev) {
+                ev.cancelBubble = true;
+                stage.draggable(false);
+            });
+            handle.on('dragmove', function(ev) {
+                ev.cancelBubble = true;
+                const next = def.resize(siteplanExportState.draftCrop, { x: handle.x(), y: handle.y() });
+                siteplanExportState.draftCrop = SiteplanExportHelper.clampCropRect(next, size.width, size.height, MIN_CROP_SIZE);
+                syncCropVisuals();
+            });
+            handle.on('dragend mouseup touchend', function(ev) {
+                ev.cancelBubble = true;
+                stage.draggable(true);
+            });
+            cropGroup.add(handle);
+            handles.push({ def: def, node: handle });
+        });
+
+        siteplanExportState.cropGroup = cropGroup;
+        siteplanExportState.cropSyncScale = syncCropVisuals;
+        masked.add(cropGroup);
+        cropGroup.moveToTop();
+        syncCropVisuals();
+
+        stage.on('wheel.exportCrop touchmove.exportCrop', function() {
+            if (siteplanExportState.cropSyncScale) {
+                siteplanExportState.cropSyncScale();
+            }
+        });
+
+        $('#modal-export-siteplan').modal('hide');
+        $('#siteplan-export-crop-bar').prop('hidden', false);
+    }
+
+    function applyExportCropSelection() {
+        if (!siteplanExportState.cropModeActive) return;
+        const size = getSiteplanImageSize();
+        siteplanExportState.customCrop = SiteplanExportHelper.clampCropRect(
+            siteplanExportState.draftCrop,
+            size.width,
+            size.height,
+            60
+        );
+        siteplanExportState.area = 'custom';
+        destroyExportCropOverlay();
+        syncExportModalUI();
+        $('#modal-export-siteplan').modal('show');
+    }
+
+    function cancelExportCropSelection() {
+        if (!siteplanExportState.cropModeActive) return;
+        destroyExportCropOverlay();
+        syncExportModalUI();
+        $('#modal-export-siteplan').modal('show');
+    }
+
+    function triggerBlobDownload(blob, filename, done) {
+        const url = URL.createObjectURL(blob);
+        downloadURI(url, filename, function() {
+            setTimeout(function() {
+                URL.revokeObjectURL(url);
+            }, 4000);
+            if (typeof done === 'function') done();
+        });
+    }
+
+    function canvasToBlobPromise(canvas, mimeType, quality) {
+        return new Promise(function(resolve, reject) {
+            if (typeof canvas.toBlob === 'function') {
+                canvas.toBlob(function(blob) {
+                    if (blob) {
+                        resolve(blob);
+                    } else {
+                        reject(new Error('Gagal mengonversi kanvas menjadi file.'));
+                    }
+                }, mimeType, quality);
+                return;
+            }
+            const dataUrl = canvas.toDataURL(mimeType, quality);
+            const bytes = SiteplanExportHelper.dataUrlToUint8Array(dataUrl);
+            resolve(new Blob([bytes], { type: mimeType }));
+        });
+    }
+
+    function export_siteplan() {
+        const size = getSiteplanImageSize();
+        if (!siteplanImageReady || !size.width || !size.height) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Siteplan belum siap',
+                    text: 'Tunggu hingga gambar siteplan selesai dimuat sebelum melakukan export.'
+                });
+            }
+            return;
+        }
+
+        if (siteplanExportState.cropModeActive) {
+            destroyExportCropOverlay();
+        }
+
+        syncExportModalUI();
+        $('#modal-export-siteplan').modal('show');
+    }
+
+    function executeSiteplanExport() {
+        const size = getSiteplanImageSize();
+        if (!siteplanImageReady || !size.width || !size.height) return;
+
+        const $confirmBtn = $('#btn-confirm-export-siteplan');
+        const originalHtml = $confirmBtn.html();
+        $confirmBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-25"></i>Memproses...');
+
+        const cropInfo = resolveExportCropInfo(siteplanExportState.area);
+        const cropRect = cropInfo.rect;
+        const metrics = SiteplanExportHelper.computeEffectivePixelRatio(
+            cropRect.width,
+            cropRect.height,
+            siteplanExportState.quality
+        );
+
+        const areaSuffixMap = {
+            full: '',
+            viewport: ' (Area Layar)',
+            filtered: ' (Area Filter)',
+            custom: ' (Area Pilihan)'
+        };
+        const projectName = SiteplanExportHelper.sanitizeFilenamePart(dt_proyek && dt_proyek.nama_proyek);
+        const datePart = SiteplanExportHelper.sanitizeFilenamePart(format_date(today_date));
+        const areaSuffix = areaSuffixMap[siteplanExportState.area] || '';
+        const ext = siteplanExportState.format === 'jpeg' ? 'jpg' : siteplanExportState.format;
+        const filename = 'Siteplan ' + projectName + areaSuffix + ' Per ' + datePart + '.' + ext;
+
+        setTimeout(function() {
+            Promise.resolve().then(function() {
+                const exportCanvas = renderSiteplanExportCanvas(cropRect, metrics.pixelRatio);
+
+                if (siteplanExportState.format === 'png') {
+                    return canvasToBlobPromise(exportCanvas, 'image/png').then(function(blob) {
+                        return new Promise(function(resolve) {
+                            triggerBlobDownload(blob, filename, resolve);
+                        });
+                    });
+                }
+
+                if (siteplanExportState.format === 'jpeg') {
+                    return canvasToBlobPromise(exportCanvas, 'image/jpeg', metrics.jpegQuality).then(function(blob) {
+                        return new Promise(function(resolve) {
+                            triggerBlobDownload(blob, filename, resolve);
+                        });
+                    });
+                }
+
+                // PDF export via high-res JPEG stream embedded into PDF 1.4
+                const jpegDataUrl = exportCanvas.toDataURL('image/jpeg', metrics.jpegQuality);
+                const jpegBytes = SiteplanExportHelper.dataUrlToUint8Array(jpegDataUrl);
+                const pdfLayout = SiteplanExportHelper.computePdfPageLayout(
+                    exportCanvas.width,
+                    exportCanvas.height,
+                    siteplanExportState.paper,
+                    siteplanExportState.orientation
+                );
+                const pdfBytes = SiteplanExportHelper.buildPdfFromJpegBytes(
+                    jpegBytes,
+                    exportCanvas.width,
+                    exportCanvas.height,
+                    pdfLayout
+                );
+                const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+                return new Promise(function(resolve) {
+                    triggerBlobDownload(pdfBlob, filename, resolve);
+                });
+            }).then(function() {
+                $('#modal-export-siteplan').modal('hide');
+            }).catch(function(err) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Export gagal',
+                        text: (err && err.message) ? err.message : 'Terjadi kesalahan saat merender file export.'
+                    });
+                }
+            }).finally(function() {
+                $confirmBtn.prop('disabled', false).html(originalHtml);
+            });
+        }, 30);
+    }
+
+    $(document).on('change', '#export-area-options input[name="export_area"]', function() {
+        siteplanExportState.area = String($(this).val() || 'full');
+        syncExportModalUI();
+    });
+
+    $(document).on('change', '#export-format-options input[name="export_format"]', function() {
+        siteplanExportState.format = String($(this).val() || 'png');
+        syncExportModalUI();
+    });
+
+    $(document).on('change', '#export-quality-select', function() {
+        siteplanExportState.quality = String($(this).val() || 'hd');
+        syncExportModalUI();
+    });
+
+    $(document).on('change', '#export-pdf-paper', function() {
+        siteplanExportState.paper = String($(this).val() || 'a3');
+        syncExportModalUI();
+    });
+
+    $(document).on('change', '#export-pdf-orientation', function() {
+        siteplanExportState.orientation = String($(this).val() || 'auto');
+        syncExportModalUI();
+    });
+
+    $(document).on('click', '#btn-open-export-crop', function() {
+        startExportCropSelection();
+    });
+
+    $(document).on('click', '#btn-export-crop-apply', function() {
+        applyExportCropSelection();
+    });
+
+    $(document).on('click', '#btn-export-crop-cancel', function() {
+        cancelExportCropSelection();
+    });
+
+    $(document).on('click', '#btn-export-crop-reset', function() {
+        siteplanExportState.customCrop = null;
+        startExportCropSelection();
+    });
+
+    $(document).on('click', '#btn-confirm-export-siteplan', function() {
+        executeSiteplanExport();
+    });
 
     //context menu
 
@@ -3093,6 +3924,9 @@ Date.prototype.toDateInputValue = (function() {
         // prevent default behavior
         e.evt.preventDefault();
 
+        if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) {
+            return;
+        }
         if (typeof window.isTargetSetModeActive === 'function' && window.isTargetSetModeActive()) {
             return;
         }
@@ -4110,6 +4944,10 @@ Date.prototype.toDateInputValue = (function() {
 
     $(document).keydown(function(event) {
         if (event.key === 'Escape') {
+            if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) {
+                cancelExportCropSelection();
+                return;
+            }
             hapus_seleksi()
         }
     });

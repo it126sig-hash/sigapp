@@ -37,6 +37,8 @@ class TagihanController extends BaseApiController
                 'can_pay' => $canManage,
                 'can_void' => $canManage,
                 'can_delete' => $canManage,
+                'can_verify_booking' => $canManage,
+                'can_unverify_booking' => $canManage,
             ],
         ], 'Metadata tagihan berhasil dimuat.');
     }

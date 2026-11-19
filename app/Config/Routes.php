@@ -872,6 +872,8 @@ $routes->group('api/nup', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' =
 
 $routes->group('api/tagihan/booking', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => ['login', 'csrf']], function ($routes) {
     $routes->post('verifikasi', 'BookingPaymentController::verify');
+    $routes->post('batal-verifikasi', 'BookingPaymentController::unverify');
+    $routes->post('terverifikasi', 'BookingPaymentController::verifiedList');
 });
 
 $routes->group('api/referral-qr', ['namespace' => 'App\Controllers\Api\MGM', 'filter' => 'login'], function ($routes) {

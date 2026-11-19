@@ -1,38 +1,8 @@
 [
     {
-        "layer": "Controller",
-        "file": "CashOutController.php",
-        "name": "initController"
-    },
-    {
-        "layer": "Controller",
-        "file": "CashoutKavlingController.php",
-        "name": "initController"
-    },
-    {
-        "layer": "Controller",
-        "file": "CashoutKavlingController.php",
-        "name": "initController"
-    },
-    {
-        "layer": "Controller",
-        "file": "CashoutSubkonController.php",
-        "name": "initController"
-    },
-    {
-        "layer": "Controller",
-        "file": "CashoutSubkonController.php",
-        "name": "initController"
-    },
-    {
-        "layer": "Controller",
-        "file": "PenagihanController.php",
-        "name": "initController"
-    },
-    {
-        "layer": "Controller",
-        "file": "PenagihanController.php",
-        "name": "initController"
+        "layer": "Service",
+        "file": "KeuanganService.php",
+        "name": "simpanIsiTagihan"
     },
     {
         "layer": "Service",
@@ -47,11 +17,31 @@
     {
         "layer": "Service",
         "file": "KeuanganService.php",
+        "name": "updateSudahDibayar"
+    },
+    {
+        "layer": "Service",
+        "file": "KeuanganService.php",
+        "name": "synchronizeLunasStatus"
+    },
+    {
+        "layer": "Service",
+        "file": "KeuanganService.php",
         "name": "getListTagihanJatuhTempoGrouped"
     },
     {
         "layer": "Service",
         "file": "KeuanganService.php",
         "name": "getListTagihanJatuhTempoDetail"
+    },
+    {
+        "layer": "Service",
+        "file": "KeuanganService.php",
+        "name": "getTotalBayarById"
+    },
+    {
+        "layer": "Service",
+        "file": "KeuanganService.php",
+        "name": "getPaidItemSummaryById"
     }
 ]

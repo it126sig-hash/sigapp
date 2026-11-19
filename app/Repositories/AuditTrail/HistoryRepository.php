@@ -2,15 +2,16 @@
 
 namespace App\Repositories\AuditTrail;
 
+use CodeIgniter\Database\BaseConnection;
 use Config\Database;
 
 class HistoryRepository
 {
     protected $db;
 
-    public function __construct()
+    public function __construct(?BaseConnection $db = null)
     {
-        $this->db = Database::connect();
+        $this->db = $db ?? Database::connect();
     }
 
     public function hasTable(): bool

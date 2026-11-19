@@ -317,13 +317,15 @@ class KavlingRepository
     }
 
     /**
-     * Satu join agregat untuk jumlah tagihan aktif dan tanggal jatuh tempo paling awal per transaksi.
+     * Satu join agregat untuk jumlah tagihan aktif, total nominal tagihan,
+     * tanggal jatuh tempo paling awal, dan total pembayaran per transaksi.
      */
     protected function addCompositeFinanceSelect(BaseBuilder $builder): void
     {
         $builder->join(
             "(SELECT id_mkdt,
                      COUNT(*) AS tagihan_aktif_count,
+                     COALESCE(SUM(nominal), 0) AS tagihan_total_nominal,
                      MIN(CASE
                          WHEN sudah_dibayar = 0 AND jatuh_tempo_tgl IS NOT NULL
                          THEN jatuh_tempo_tgl
@@ -337,7 +339,68 @@ class KavlingRepository
             false
         );
 
+        $this->addTagihanPaymentDerivedJoins($builder);
+
         $builder->select('keu_visual.tagihan_aktif_count, keu_visual.jatuh_tempo_tgl', true);
+        $this->selectTagihanAggregates($builder, 'keu_visual');
+    }
+
+    /**
+     * Join agregat total tagihan dan total pembayaran untuk filter divisi Keuangan
+     * tanpa menduplikasi alias jatuh_tempo_tgl dari addDivisiSelect(3).
+     */
+    protected function addKeuanganFinanceSelect(BaseBuilder $builder): void
+    {
+        $builder->join(
+            "(SELECT id_mkdt,
+                     COALESCE(SUM(nominal), 0) AS tagihan_total_nominal
+              FROM keuangan
+              WHERE is_void = 0
+              GROUP BY id_mkdt) keu_total",
+            'keu_total.id_mkdt = mkdt.id_mkdt',
+            'left',
+            false
+        );
+
+        $this->addTagihanPaymentDerivedJoins($builder);
+        $this->selectTagihanAggregates($builder, 'keu_total');
+    }
+
+    /**
+     * LEFT JOIN derived table agregasi pembayaran per transaksi (rumus resmi KeuanganRepository::getBelumLunasGroupedQuery).
+     */
+    protected function addTagihanPaymentDerivedJoins(BaseBuilder $builder): void
+    {
+        $paidDetailSubQuery = $this->db->table('log_pembayaran_detail lpd')
+            ->select('lp.id_mkdt, COALESCE(SUM(lpd.nominal), 0) AS total_sudah_bayar_detail')
+            ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
+            ->join('keuangan_item_list kil', 'kil.id_keuangan_item_list = lpd.id_keuangan_item_list')
+            ->where('lp.is_deleted', 0)
+            ->where("NOT (kil.kategori = 'BO' AND COALESCE(lpd.booking_is_installment, 0) = 0)", null, false)
+            ->where("LOWER(REPLACE(TRIM(COALESCE(lp.payment_type,'')), ';', '')) != 'refund'", null, false)
+            ->groupBy('lp.id_mkdt')
+            ->getCompiledSelect();
+
+        $paidLogSubQuery = $this->db->table('log_pembayaran lp')
+            ->select('lp.id_mkdt, COALESCE(SUM(lp.nominal), 0) AS total_sudah_bayar_log')
+            ->join('log_pembayaran_detail lpd', 'lpd.id_pembayaran = lp.id_pembayaran', 'left')
+            ->where('lp.is_deleted', 0)
+            ->where('lpd.id_pembayaran', null)
+            ->where("LOWER(REPLACE(TRIM(COALESCE(lp.payment_type,'')), ';', '')) NOT IN ('booking','refund')", null, false)
+            ->groupBy('lp.id_mkdt')
+            ->getCompiledSelect();
+
+        $builder->join("({$paidDetailSubQuery}) paid_detail_agg", 'paid_detail_agg.id_mkdt = mkdt.id_mkdt', 'left', false);
+        $builder->join("({$paidLogSubQuery}) paid_log_agg", 'paid_log_agg.id_mkdt = mkdt.id_mkdt', 'left', false);
+    }
+
+    private function selectTagihanAggregates(BaseBuilder $builder, string $keuanganAlias): void
+    {
+        $builder->select(
+            "COALESCE({$keuanganAlias}.tagihan_total_nominal, 0) AS tagihan_total_nominal, " .
+            '(COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)) AS tagihan_sudah_bayar',
+            false
+        );
     }
 
     /**
@@ -385,6 +448,7 @@ class KavlingRepository
             $this->addCompositeFinanceSelect($builder);
             $this->addPencairanAkadSelect($builder);
         } elseif ($idDivisi === 3) {
+            $this->addKeuanganFinanceSelect($builder);
             $this->addPencairanAkadSelect($builder);
         }
 

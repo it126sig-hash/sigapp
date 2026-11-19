@@ -115,21 +115,28 @@
             return null;
         }
 
-        const width = layoutBounds.maxX - layoutBounds.minX;
-        const height = layoutBounds.maxY - layoutBounds.minY;
-        const fontSize = clamp(Math.min(width, height) * 0.32, 8, 32);
+        const labelText = String(text).trim();
+        const width = Math.max(1, layoutBounds.maxX - layoutBounds.minX);
+        const height = Math.max(1, layoutBounds.maxY - layoutBounds.minY);
+        const shortSide = Math.min(width, height);
+        const longSide = Math.max(width, height);
+        const charWidthFactor = Math.max(0.7, labelText.length * 0.62);
+        const maxByShortSide = shortSide * 0.56;
+        const maxByTextWidth = (width * 0.86) / charWidthFactor;
+        const maxByLongSide = longSide * 0.45;
+        const fontSize = clamp(Math.min(maxByShortSide, maxByTextWidth, maxByLongSide), 10, 44);
         const anchor = rotatePoint({
             x: (layoutBounds.minX + layoutBounds.maxX) / 2,
             y: (layoutBounds.minY + layoutBounds.maxY) / 2
         }, layoutFrame.angle, layoutFrame.center);
 
         return {
-            text: String(text),
+            text: labelText,
             x: anchor.x,
             y: anchor.y,
             angle: uprightAngle(layoutFrame.angle),
             fontSize: fontSize,
-            haloWidth: clamp(fontSize * 0.12, 1, 3)
+            haloWidth: clamp(fontSize * 0.16, 1.5, 4.5)
         };
     }
 
@@ -323,7 +330,7 @@
         nativeContext.globalCompositeOperation = 'source-over';
         nativeContext.translate(label.x, label.y);
         nativeContext.rotate(label.angle);
-        nativeContext.font = label.fontSize + 'px Arial, sans-serif';
+        nativeContext.font = 'bold ' + label.fontSize + 'px Arial, sans-serif';
         nativeContext.textAlign = 'center';
         nativeContext.textBaseline = 'middle';
         nativeContext.lineJoin = 'round';
@@ -386,6 +393,19 @@
                 drawLabel(nativeContext, paintPlan.label);
 
                 nativeContext.restore();
+
+                const borderWidth = Number(options.strokeWidth) || 0;
+                if (borderWidth > 0) {
+                    nativeContext.save();
+                    nativeContext.globalCompositeOperation = 'source-over';
+                    path(nativeContext, paintPlan.polygon);
+                    nativeContext.lineJoin = 'round';
+                    nativeContext.lineCap = 'round';
+                    nativeContext.lineWidth = borderWidth;
+                    nativeContext.strokeStyle = options.stroke || '#000000';
+                    nativeContext.stroke();
+                    nativeContext.restore();
+                }
             },
             hitFunc: function(context, node) {
                 context.beginPath();

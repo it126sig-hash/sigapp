@@ -599,13 +599,15 @@ class TargetSiteplanRepository
             $idKavling = (int) $row->id_kavling;
             if (! isset($map[$idKavling])) {
                 $map[$idKavling] = [
-                    'id_target'         => [],
-                    'tahun_target'      => [],
-                    'deskripsi'         => [],
-                    'id_tipe'           => null,
-                    'tipe_manual'       => null,
-                    'tipe_label'        => null,
-                    'target_is_subsidi' => null,
+                    'id_target'            => [],
+                    'tahun_target'         => [],
+                    'deskripsi'            => [],
+                    'id_tipe'              => null,
+                    'tipe_manual'          => null,
+                    'tipe_label'           => null,
+                    'target_tipe_rumah'    => null,
+                    'target_no_tipe_rumah' => null,
+                    'target_is_subsidi'    => null,
                 ];
             }
 
@@ -619,10 +621,16 @@ class TargetSiteplanRepository
             $tipeManual = isset($row->tipe_manual) && trim((string) $row->tipe_manual) !== ''
                 ? trim((string) $row->tipe_manual)
                 : null;
+            $targetTipeRumah = isset($row->target_tipe_rumah) && trim((string) $row->target_tipe_rumah) !== ''
+                ? trim((string) $row->target_tipe_rumah)
+                : null;
+            $targetNoTipeRumah = isset($row->target_no_tipe_rumah) && trim((string) $row->target_no_tipe_rumah) !== ''
+                ? trim((string) $row->target_no_tipe_rumah)
+                : null;
             $tipeLabel = $this->resolveTipeLabel(
                 $tipeManual,
-                $row->target_no_tipe_rumah ?? null,
-                $row->target_tipe_rumah ?? null
+                $targetNoTipeRumah,
+                $targetTipeRumah
             );
             $targetIsSubsidi = isset($row->target_is_subsidi) && $row->target_is_subsidi !== null && $row->target_is_subsidi !== ''
                 ? (int) $row->target_is_subsidi
@@ -632,19 +640,23 @@ class TargetSiteplanRepository
                 $map[$idKavling]['id_tipe'] = $idTipe;
                 $map[$idKavling]['tipe_manual'] = $tipeManual;
                 $map[$idKavling]['tipe_label'] = $tipeLabel;
+                $map[$idKavling]['target_tipe_rumah'] = $targetTipeRumah;
+                $map[$idKavling]['target_no_tipe_rumah'] = $targetNoTipeRumah;
                 $map[$idKavling]['target_is_subsidi'] = $targetIsSubsidi;
             }
         }
 
         foreach ($map as $idKavling => $item) {
             $map[$idKavling] = [
-                'id_target'         => implode(',', array_unique($item['id_target'])),
-                'tahun_target'      => implode(', ', array_unique($item['tahun_target'])),
-                'deskripsi'         => implode(' | ', array_unique($item['deskripsi'])),
-                'id_tipe'           => $item['id_tipe'],
-                'tipe_manual'       => $item['tipe_manual'],
-                'tipe_label'        => $item['tipe_label'],
-                'target_is_subsidi' => $item['target_is_subsidi'],
+                'id_target'            => implode(',', array_unique($item['id_target'])),
+                'tahun_target'         => implode(', ', array_unique($item['tahun_target'])),
+                'deskripsi'            => implode(' | ', array_unique($item['deskripsi'])),
+                'id_tipe'              => $item['id_tipe'],
+                'tipe_manual'          => $item['tipe_manual'],
+                'tipe_label'           => $item['tipe_label'],
+                'target_tipe_rumah'    => $item['target_tipe_rumah'],
+                'target_no_tipe_rumah' => $item['target_no_tipe_rumah'],
+                'target_is_subsidi'    => $item['target_is_subsidi'],
             ];
         }
 

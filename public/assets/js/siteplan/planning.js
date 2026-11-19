@@ -379,6 +379,7 @@ var act;
 //masking kavling on dbl click
 if (typeof siteplan !== "undefined") {
   siteplan.on("dblclick dbltap", function (e) {
+    if (typeof window.isExportCropModeActive === "function" && window.isExportCropModeActive()) return;
     if (typeof isManualSelectionActive === "function" ? isManualSelectionActive() : $("#tambah_jalan").prop("checked")) return;
 
     let va = $("#pilih-divisi option:selected").val();

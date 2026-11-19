@@ -528,6 +528,32 @@ describe('Siteplan composite shape paint plan', () => {
         expect(nativeContext.fill).toHaveBeenCalledTimes(1);
         expect(nativeContext.strokeText).toHaveBeenCalledWith('27', 0, 0);
         expect(nativeContext.fillText).toHaveBeenCalledWith('27', 0, 0);
+        expect(nativeContext.font).toMatch(/^bold\s+\d+(\.\d+)?px\s+Arial/);
         expect(hitContext.fillStrokeShape).toHaveBeenCalledTimes(1);
+    });
+
+    test('label nomor kavling berukuran lebih besar, bold, dan proporsional untuk kavling sempit vs panjang', () => {
+        const narrowKavling = [0, 0, 40, 0, 40, 90, 0, 90];
+        const shortPlan = SiteplanCompositeShape.buildPaintPlan(
+            narrowKavling,
+            [{ key: 'status', segments: [{ config_name: 'Booking', ratio: 1 }] }],
+            270,
+            color,
+            undefined,
+            '12'
+        );
+        const longPlan = SiteplanCompositeShape.buildPaintPlan(
+            narrowKavling,
+            [{ key: 'status', segments: [{ config_name: 'Booking', ratio: 1 }] }],
+            270,
+            color,
+            undefined,
+            '108A'
+        );
+
+        expect(shortPlan.label.fontSize).toBeGreaterThanOrEqual(20);
+        expect(longPlan.label.fontSize).toBeGreaterThanOrEqual(10);
+        expect(longPlan.label.fontSize).toBeLessThanOrEqual(shortPlan.label.fontSize);
+        expect(shortPlan.label.haloWidth).toBeGreaterThanOrEqual(1.5);
     });
 });

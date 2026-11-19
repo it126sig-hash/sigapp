@@ -2,7 +2,9 @@
 
 namespace App\Services\Keuangan;
 
+use App\Repositories\AuditTrail\HistoryRepository;
 use App\Repositories\Keuangan\BookingPaymentRepository;
+use App\Services\AuditTrail\HistoryService;
 use App\Services\Mkdt\MkdtSettlementService;
 use CodeIgniter\Database\BaseConnection;
 
@@ -16,6 +18,7 @@ class BookingPaymentService
     private BookingPaymentRepository $repo;
     private FinanceLedgerService $ledger;
     private MkdtSettlementService $settlement;
+    private HistoryService $history;
 
     public function __construct(private ?BaseConnection $db = null)
     {
@@ -23,6 +26,7 @@ class BookingPaymentService
         $this->repo = new BookingPaymentRepository($this->db);
         $this->ledger = new FinanceLedgerService($this->db);
         $this->settlement = new MkdtSettlementService($this->db);
+        $this->history = new HistoryService(new HistoryRepository($this->db));
     }
 
     public function findProjectIdByMkdt(int $idMkdt): ?int
@@ -211,6 +215,135 @@ class BookingPaymentService
         }
     }
 
+    public function unverify(int $idMkdt, int $actorId, string $reason): array
+    {
+        $reason = trim($reason);
+        $reasonLength = mb_strlen($reason);
+        if ($reasonLength < 3) {
+            throw new \DomainException('Alasan pembatalan verifikasi wajib diisi minimal 3 karakter.');
+        }
+        if ($reasonLength > 500) {
+            throw new \DomainException('Alasan pembatalan verifikasi maksimal 500 karakter.');
+        }
+
+        $this->db->transException(true)->transBegin();
+        try {
+            $mkdt = $this->repo->mkdt($idMkdt, true);
+            $link = $this->repo->link($idMkdt, true);
+
+            if (! $link || empty($link['verified_at'])) {
+                throw new \DomainException('Booking fee belum diverifikasi atau verifikasinya sudah dibatalkan.');
+            }
+            if ($this->isUnverifyBlocked($mkdt)) {
+                throw new \DomainException('Verifikasi booking fee tidak dapat dibatalkan karena transaksi sudah dibatalkan atau refund sudah dibayarkan.');
+            }
+
+            $this->repo->clearVerification($idMkdt);
+
+            if ($this->history->hasTable()) {
+                $idProyek = $this->repo->findProjectIdByMkdt($idMkdt);
+                $idKavling = ! empty($mkdt['id_kavling']) ? (int) $mkdt['id_kavling'] : null;
+
+                $this->history->log('keuangan', [
+                    'id_proyek'      => $idProyek,
+                    'id_kavling'     => $idKavling,
+                    'reference_type' => 'mkdt_booking_payment',
+                    'reference_id'   => $idMkdt,
+                    'action'         => 'batal_verifikasi_booking',
+                    'summary'        => 'Membatalkan verifikasi booking fee Rp ' . number_format($this->money($mkdt['booking_fee'] ?? 0), 0, ',', '.') . ' — Alasan: ' . $reason,
+                    'old_data'       => [
+                        'verified_by'   => isset($link['verified_by']) ? (int) $link['verified_by'] : null,
+                        'verified_at'   => $link['verified_at'],
+                        'booking_fee'   => $this->money($mkdt['booking_fee'] ?? 0),
+                        'booking_tgl'   => $this->date($mkdt['booking_tgl'] ?? null),
+                        'id_pembayaran' => ! empty($link['id_pembayaran']) ? (int) $link['id_pembayaran'] : null,
+                    ],
+                    'new_data'   => ['verified_by' => null, 'verified_at' => null],
+                    'metadata'   => ['id_mkdt' => $idMkdt, 'reason' => $reason],
+                    'add_by'     => $actorId,
+                    'created_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+
+            $this->db->transCommit();
+            return $this->getBooking($idMkdt);
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            throw $e;
+        }
+    }
+
+    public function getVerifiedList(int $idProyek, array $filters, bool $canManage): array
+    {
+        $length = (int) ($filters['length'] ?? $filters['per_page'] ?? 25);
+        $length = max(1, min(100, $length));
+
+        if (isset($filters['start'])) {
+            $start = max(0, (int) $filters['start']);
+        } else {
+            $pageInput = max(1, (int) ($filters['page'] ?? 1));
+            $start = ($pageInput - 1) * $length;
+        }
+
+        $page = (int) floor($start / $length) + 1;
+
+        $repoFilters = $filters;
+        $repoFilters['length'] = $length;
+        $repoFilters['start'] = $start;
+
+        $result = $this->repo->getVerifiedList($idProyek, $repoFilters);
+        $items = [];
+
+        foreach ($result['rows'] as $row) {
+            $bookingFee = $this->money($row['booking_fee'] ?? 0);
+            $isBlocked = $this->isUnverifyBlocked($row);
+
+            $items[] = [
+                'id_mkdt'                 => (int) $row['id_mkdt'],
+                'id_kavling'              => ! empty($row['id_kavling']) ? (int) $row['id_kavling'] : null,
+                'id_proyek'               => ! empty($row['id_proyek']) ? (int) $row['id_proyek'] : null,
+                'nama_proyek'             => (string) ($row['nama_proyek'] ?? ''),
+                'nama_konsumen'           => (string) ($row['nama_konsumen'] ?? ''),
+                'nama_jalan'              => (string) ($row['nama_jalan'] ?? ''),
+                'no_kavling'              => (string) ($row['no_kavling'] ?? ''),
+                'no_tipe_rumah'           => (string) ($row['no_tipe_rumah'] ?? ''),
+                'tipe_rumah'              => (string) ($row['tipe_rumah'] ?? ''),
+                'is_nup'                  => (int) ($row['is_nup'] ?? 0) === 1,
+                'no_nup'                  => ($row['no_nup'] ?? '') !== '' ? (string) $row['no_nup'] : null,
+                'status_mkdt'             => (string) ($row['status_mkdt'] ?? ''),
+                'is_batal'                => (int) ($row['is_batal'] ?? 0) === 1,
+                'refund_paid'             => (int) ($row['refund_paid'] ?? 0) === 1,
+                'is_lunas'                => (int) ($row['is_lunas'] ?? 0) === 1,
+                'booking_fee'             => $bookingFee,
+                'booking_tgl'             => $this->date($row['booking_tgl'] ?? null),
+                'is_promo'                => $bookingFee <= 0,
+                'id_pembayaran'           => ! empty($row['id_pembayaran']) ? (int) $row['id_pembayaran'] : null,
+                'verified_by'             => ! empty($row['verified_by']) ? (int) $row['verified_by'] : null,
+                'verified_by_name'        => ($row['verified_by_name'] ?? null) !== null && $row['verified_by_name'] !== '' ? (string) $row['verified_by_name'] : null,
+                'verified_at'             => $row['verified_at'] ?? null,
+                'shared_owners_count'     => max(1, (int) ($row['shared_owners_count'] ?? 1)),
+                'can_unverify'            => ! $isBlocked && $canManage,
+                'unverify_blocked_reason' => $isBlocked
+                    ? 'Transaksi sudah dibatalkan atau refund sudah dibayarkan.'
+                    : null,
+            ];
+        }
+
+        $recordsTotal = (int) ($result['recordsTotal'] ?? 0);
+        $recordsFiltered = (int) ($result['recordsFiltered'] ?? 0);
+
+        return [
+            'items'           => $items,
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'meta'            => [
+                'page'     => $page,
+                'per_page' => $length,
+                'total'    => $recordsFiltered,
+            ],
+        ];
+    }
+
     public function assertMayDelete(int $paymentId): void
     {
         if ($this->repo->owners($paymentId)) {
@@ -264,6 +397,10 @@ class BookingPaymentService
             if ($payment) $history[] = $this->historyRow($payment, $this->money($payment['nominal']), false);
         }
 
+        $isVerified = ! empty($link['verified_at']);
+        $isBlocked = $this->isUnverifyBlocked($mkdt);
+        $canManage = function_exists('in_groups') && in_groups(['1', '3']);
+
         return [
             'id_mkdt' => $idMkdt,
             'nominal_mkdt' => $declared,
@@ -272,10 +409,17 @@ class BookingPaymentService
             'tanggal' => $tanggal,
             'is_promo' => $declared <= 0,
             'is_paid' => true,
-            'is_verified' => ! empty($link['verified_at']),
+            'is_verified' => $isVerified,
             'verified_by' => $link['verified_by'] ?? null,
+            'verified_by_name' => $isVerified
+                ? $this->repo->findUsernameById(isset($link['verified_by']) ? (int) $link['verified_by'] : null)
+                : null,
             'verified_at' => $link['verified_at'] ?? null,
-            'locked' => ! empty($link['verified_at']),
+            'locked' => $isVerified,
+            'can_unverify' => $isVerified && ! $isBlocked && $canManage,
+            'unverify_blocked_reason' => ($isVerified && $isBlocked)
+                ? 'Transaksi sudah dibatalkan atau refund sudah dibayarkan.'
+                : null,
             'id_pembayaran' => ! empty($link['id_pembayaran']) ? (int) $link['id_pembayaran'] : null,
             'history' => $history,
         ];
@@ -284,6 +428,13 @@ class BookingPaymentService
     public function getInstallment(int $idMkdt): array
     {
         return $this->repo->installmentSummary($idMkdt);
+    }
+
+    private function isUnverifyBlocked(array $mkdt): bool
+    {
+        return strcasecmp(trim((string) ($mkdt['status_mkdt'] ?? '')), 'Batal') === 0
+            || (int) ($mkdt['is_batal'] ?? 0) === 1
+            || (int) ($mkdt['refund_paid'] ?? 0) === 1;
     }
 
     private function assertCanonicalMatches(array $mkdt, array $link): void
