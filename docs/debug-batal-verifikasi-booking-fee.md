@@ -3,7 +3,7 @@
 **Tanggal Mulai:** 2026-11-19  
 **Modul Target:** `Keuangan`  
 **Mode Tugas:** `FEATURE`  
-**Status Saat Ini:** `COMPLETED` *(QA Putaran 2 PASS & Sinkronisasi Dokumentasi Fase 4 Selesai — 2026-11-19)*
+**Status Saat Ini:** `COMPLETED` *(QA Putaran 2 PASS, Sinkronisasi Dokumentasi Fase 4, & Bugfix Pasca-Rilis Overflow `#modal_divisi3` PASS — 2026-11-19)*
 
 ---
 
@@ -172,3 +172,47 @@ Menambahkan menu di `app/Views/keuangan/list-tagihan.php` untuk membatalkan book
     - `M docs/modules/Keuangan/MODULE.md`
     - `?? docs/debug-batal-verifikasi-booking-fee.md`
     - *(Artefak QA workspace terkait: `M writable/modules/deadcode_Keuangan.json`; perubahan tak terkait di workspace tetap dibiarkan utuh: modul `Siteplan`/`Transaksi` & `docs/TARGET_FEATURE_PROGRESS.md`).*
+
+---
+
+## 4. Bugfix Pasca-Rilis: Overflow Tombol di Card Booking Fee (`#modal_divisi3`)
+
+**Status:** `PASS` *(Terverifikasi oleh `sigapp-qa` pada 2026-11-19 11:57)*
+**Mode Tugas:** `BUGFIX` (Hanya 2 file Frontend — Backend & Routes tidak berubah)
+
+### 4.1 Gejala
+- Di dalam Modal Bayar (`#modal_divisi3`, partial `app/Views/keuangan/partials/modal_bayar_tagihan.php`), tombol aksi sisi kanan (`Kuitansi Booking` ketika berdampingan dengan `Batalkan Verifikasi` atau `Verifikasi`) di dalam `.booking-fee-history-actions` melampaui batas kanan `.booking-fee-card` sehingga terpotong/overflow.
+- Pada blok metadata verifikasi (`.booking-fee-verified-meta`), separator `<span>&middot;</span>` menggantung di akhir atau awal baris ketika nama verifier dan timestamp terbungkus menjadi 2 baris.
+
+### 4.2 Root Cause Analysis (RCA)
+1. **Penyempitan kolom `col-md-4` + clipping global `.card`:**
+   - Pada `app/Views/keuangan/partials/modal_bayar_tagihan.php` (baris 609–610), area `#keu-booking-fee-section` berada di dalam kolom `col-md-4 col-sm-12 col-lg-4` -> `.card`, sementara `public/assets/css/style.css` (baris 971–974) menerapkan `.card, .section-card { overflow: hidden !important; }`. Setiap child yang melebar melampaui kontainer langsung terklip di sisi kanan.
+2. **Aturan flex non-wrapping pada baris riwayat booking:**
+   - Di `public/assets/css/booking-fee.css`, `.booking-fee-history-row` sebelumnya memakai `justify-content: space-between` dengan `> span { flex: 1 1 180px }`, dan `.booking-fee-history-actions` memakai `flex: 0 0 auto; margin-left: auto; justify-content: flex-end;` tanpa pengaturan wrap/shrink pada `.btn`. Akibatnya pada lebar `col-md-4` (`1280x720` maupun `1440x900`), kombinasi tombol tidak dapat membungkus penuh dan mendorong tombol kanan melewati tepi `.booking-fee-card`.
+3. **Separator middot & margin ikon inkonsisten di `renderBookingFee(booking)`:**
+   - `public/assets/js/tagihan-bayar-modal.js` merender `<span>&middot;</span>` sebagai item flex terpisah di `.booking-fee-verified-meta` serta memberi class `mr-25` pada ikon di `verifyButton` dan `unverifyButton`.
+
+### 4.3 Rincian Diff Perubahan (2 File Frontend)
+1. `public/assets/css/booking-fee.css` (baris 1–116):
+   - `#modal_divisi3 .booking-fee-card`: Menambah `box-sizing: border-box; max-width: 100%; overflow: hidden;`.
+   - `#modal_divisi3 .booking-fee-history-row`: Menggunakan `gap: 0.5rem 0.65rem; max-width: 100%;` (menghapus `justify-content: space-between`).
+   - `#modal_divisi3 .booking-fee-history-row > span`: Mengubah menjadi `flex: 1 1 100%; min-width: 0; overflow-wrap: anywhere;`.
+   - `#modal_divisi3 .booking-fee-history-actions`: Mengganti `flex: 0 0 auto; margin-left: auto; justify-content: flex-end;` menjadi `flex: 1 1 100%; flex-wrap: wrap; gap: 0.45rem; justify-content: flex-start; max-width: 100%; min-width: 0;`.
+   - Menambahkan `#modal_divisi3 .booking-fee-history-actions .btn`: `align-items: center; display: inline-flex; flex: 1 1 auto; font-size: 0.76rem; gap: 0.3rem; justify-content: center; line-height: 1.25; max-width: 100%; min-width: 0; padding: 0.4rem 0.65rem; text-align: center; white-space: normal;`.
+   - `#modal_divisi3 .booking-fee-verified-meta` & `> span`: Mengubah ke stack vertikal (`flex-direction: column; align-items: flex-start; gap: 0.2rem; max-width: 100%; overflow-wrap: anywhere;`) dengan `> span { max-width: 100%; min-width: 0; }`.
+2. `public/assets/js/tagihan-bayar-modal.js` (`renderBookingFee(booking)`, baris 338–350):
+   - Menghapus class `mr-25` pada ikon di `verifyButton` (`fas fa-check-circle`) dan `unverifyButton` (`fas fa-undo-alt`) agar konsisten dengan CSS `gap: 0.3rem`.
+   - Menghapus `<span>&middot;</span>` pada `verifiedMeta` agar tidak ada middot menggantung saat membungkus 2 baris.
+
+### 4.4 Hasil Bounding-Box QA (`sigapp-qa` — PASS `2026-11-19 11:57`)
+- **Status Kesehatan Runtime:** `0` console error, `0` HTTP `404`/`500`.
+- **Matriks Hasil Pengujian Bounding-Box:**
+
+| Skenario / Halaman | Kasus Uji | Viewport | Hasil Pengukuran Bounding-Box & Layout |
+|---|---|---|---|
+| `/public/tagihan/list` | Terverifikasi (`id_mkdt: 365`) | `1440x900` | `leftOverflowPx=0`, `rightOverflowPx=0`, `scrollWidth <= clientWidth`, `overlap: false`, `hasMiddot: false`, `isTwoRows: true` |
+| `/public/tagihan/list` | Terverifikasi (`id_mkdt: 365`) | `1280x720` | `leftOverflowPx=0`, `rightOverflowPx=0`, `scrollWidth <= clientWidth`, `overlap: false`, `hasMiddot: false`, `isTwoRows: true`; kedua tombol membungkus rapi ke 2 baris penuh di dalam batas `.booking-fee-card` |
+| `/public/tagihan/list` | Terverifikasi (`id_mkdt: 365`) | `375x812` | `leftOverflowPx=0`, `rightOverflowPx=0`, `scrollWidth <= clientWidth`, `overlap: false`, `hasMiddot: false`, `isTwoRows: true` |
+| `/public/tagihan/list` | Belum Diverifikasi (`id_mkdt: 411`) | `1440x900` | `leftOverflowPx=0`, `rightOverflowPx=0`, `scrollWidth <= clientWidth`, `overlap: false` |
+| `/public/tagihan/list` | Belum Diverifikasi (`id_mkdt: 411`) | `1280x720` | `leftOverflowPx=0`, `rightOverflowPx=0`, `scrollWidth <= clientWidth`, `overlap: false` |
+| `/public/siteplan/view` | Regresi Terverifikasi (`id_mkdt: 356`) | `1440x900` | `leftOverflowPx=0`, `rightOverflowPx=0`, `scrollWidth <= clientWidth`, `overlap: false`, `hasMiddot: false`, `isTwoRows: true` |

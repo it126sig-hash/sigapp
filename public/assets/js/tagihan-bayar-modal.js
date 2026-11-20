@@ -337,14 +337,13 @@ function renderBookingFee(booking) {
   const promo = booking.is_promo ? '<span class="badge badge-info ml-25">Promo MKDT Rp0</span>' : '';
   const verifyButton = booking.is_verified
     ? ''
-    : '<button type="button" class="btn btn-primary btn-sm" title="Verifikasi Booking Fee" onclick="verifyBookingFee()"><i class="fas fa-check-circle mr-25"></i> Verifikasi</button>';
+    : '<button type="button" class="btn btn-primary btn-sm" title="Verifikasi Booking Fee" onclick="verifyBookingFee()"><i class="fas fa-check-circle"></i> Verifikasi</button>';
   const unverifyButton = booking.can_unverify === true
-    ? '<button type="button" class="btn btn-outline-danger btn-sm" title="Batalkan Verifikasi Booking Fee" onclick="unverifyBookingFee()"><i class="fas fa-undo-alt mr-25"></i> Batalkan Verifikasi</button>'
+    ? '<button type="button" class="btn btn-outline-danger btn-sm" title="Batalkan Verifikasi Booking Fee" onclick="unverifyBookingFee()"><i class="fas fa-undo-alt"></i> Batalkan Verifikasi</button>'
     : '';
   const verifiedMeta = booking.is_verified
     ? `<div class="booking-fee-verified-meta">
         <span><i class="fas fa-user-check mr-25"></i> Diverifikasi oleh <strong>${keuEscapeHtml(booking.verified_by_name || "-")}</strong></span>
-        <span>&middot;</span>
         <span><i class="far fa-clock mr-25"></i> ${keuEscapeHtml(keuFormatDateTime(booking.verified_at))}</span>
       </div>`
     : '';

@@ -3,7 +3,10 @@
   border: 1px solid #bad1ee;
   border-left: 4px solid #2057a3;
   border-radius: 8px;
+  box-sizing: border-box;
   margin-bottom: 1rem;
+  max-width: 100%;
+  overflow: hidden;
   padding: 1rem;
 }
 
@@ -49,38 +52,62 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 0.75rem;
-  justify-content: space-between;
+  gap: 0.5rem 0.65rem;
+  max-width: 100%;
   padding: 0.5rem 0 0;
 }
 
 #modal_divisi3 .booking-fee-history-row > span {
-  flex: 1 1 180px;
+  flex: 1 1 100%;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 #modal_divisi3 .booking-fee-history-actions {
   display: flex;
-  flex: 0 0 auto;
+  flex: 1 1 100%;
   flex-wrap: wrap;
   gap: 0.45rem;
-  justify-content: flex-end;
-  margin-left: auto;
+  justify-content: flex-start;
+  max-width: 100%;
+  min-width: 0;
+}
+
+#modal_divisi3 .booking-fee-history-actions .btn {
+  align-items: center;
+  display: inline-flex;
+  flex: 1 1 auto;
+  font-size: 0.76rem;
+  gap: 0.3rem;
+  justify-content: center;
+  line-height: 1.25;
+  max-width: 100%;
+  min-width: 0;
+  padding: 0.4rem 0.65rem;
+  text-align: center;
+  white-space: normal;
 }
 
 #modal_divisi3 .booking-fee-verified-meta {
-  align-items: center;
+  align-items: flex-start;
   background: #edf4ff;
   border: 1px solid #d5e4fa;
   border-radius: 6px;
   color: #24466f;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   font-size: 0.78rem;
   font-weight: 600;
-  gap: 0.3rem 0.65rem;
+  gap: 0.2rem;
   margin-top: 0.75rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   padding: 0.45rem 0.65rem;
+}
+
+#modal_divisi3 .booking-fee-verified-meta > span {
+  max-width: 100%;
+  min-width: 0;
 }
 
 #modal_divisi3 .booking-fee-verified-meta i {

@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-19 11:15:46` @ `8193fa7`  
+**Last Synced:** `2026-11-19 11:59:10` @ `3b2ba76`  
 
 ## Purpose
 Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operasional, SPP, bank KPR, pajak, dan ledger kas.
@@ -510,7 +510,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `public/assets/js/siteplan/keuangan.js` (2194 baris)
 - `public/assets/js/siteplan/pajak.js` (240 baris)
 - `public/assets/js/siteplan/cashout_subkon.js` (1062 baris)
-- `public/assets/js/tagihan-bayar-modal.js` (1596 baris)
+- `public/assets/js/tagihan-bayar-modal.js` (1595 baris)
 - `public/assets/js/pencairan-akad-modal.js` (1266 baris)
 - `public/assets/js/keuangan/penagihan.js` (1041 baris)
 - `public/assets/js/keuangan/booking-verified.js` (410 baris)
@@ -519,7 +519,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `public/assets/js/laporan-hasil-akad.js` (721 baris)
 
 ### CSS (1 file)
-- `public/assets/css/booking-fee.css` (249 baris)
+- `public/assets/css/booking-fee.css` (277 baris)
 
 ### Zero-Downtime Shims (44 file)
 - `app/Controllers/Keuangan.php`
@@ -695,8 +695,8 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - **View PDF (`app/Views/pdf/spptb-new.php`):** Blok data pasangan (baris 357–430) menggunakan closure lokal `$formatPasanganField` untuk menampilkan `"-"` secara null-safe ketika `status_pernikahan` bernilai `'belum kawin'` (case-insensitive & trimmed) atau ketika `nama_pasangan`, `nik_pasangan`, `hp_pasangan`, maupun `instansi_pasangan` bernilai `null` / `""` / spasi kosong, serta melindungi akses `status_pekerjaan_pasangan` dengan `?? ''`.
 - **View (`app/Views/keuangan/list-tagihan.php`):** Menambahkan Tab ke-4 `#tab_booking_terverifikasi-tab` (`BOOKING FEE TERVERIFIKASI`) dan panel `#tab_booking_terverifikasi` (`#table_booking_terverifikasi`, `#btn_refresh_booking_terverifikasi`); memuat `public/assets/css/booking-fee.css` dan `public/assets/js/keuangan/booking-verified.js` dengan cache-busting `filemtime()`; menginisialisasi lazy tab via `shown.bs.tab` (`BookingVerifiedTab.init()` / `adjust()`) dan reload filter; mengisolasi listener search Tab 1 menjadi `#data_table_filter input`; mengangkat `riwayatBayarTable` ke scope bersama `listTagihanTable`; serta mengekspor `window.refreshTagihanList(keepModalOpen = false)` sebagai wrapper aman untuk `isi_data()`.
 - **Frontend Assets (`public/assets/js/keuangan/booking-verified.js`):** Modul IIFE `window.BookingVerifiedTab = { init, reload, adjust }` untuk lazy DataTable server-side ke `POST /api/tagihan/booking/terverifikasi`, rotasi CSRF `csrfHash` pada `dataSrc`/`error`, rendering client-side 5 kolom Pure JSON ter-escape (`renderUnitCell()`, `renderBookingFeeCell()`, `renderVerifikasiCell()`, `renderAksiCell()`, `renderStatusMkdtBadge()`), serta event delegation aksi `.btn-unverify-booking` (ke `window.confirmUnverifyBookingFee`), `.btn-print-booking-verified`, `.btn-open-booking-modal`, `#btn_refresh_booking_terverifikasi`, dan Enter-search `#table_booking_terverifikasi_filter input`.
-- **Frontend Assets (`public/assets/js/tagihan-bayar-modal.js`):** Menambahkan `window.confirmUnverifyBookingFee(options)` (SweetAlert2 konfirmasi alasan wajib 3–500 karakter + `POST /api/tagihan/booking/batal-verifikasi` + rotasi CSRF), `unverifyBookingFee()`, `syncTagihanViewsAfterBookingChange()`, `keuFormatDate()`, dan `keuFormatDateTime()`; memperbarui `renderBookingFee()` (metadata verifier, tombol `Batalkan Verifikasi`, catatan terkunci `.booking-fee-lock-note`), `verifyBookingFee()`, dan `printBookingReceipt()` (fallback `activeProyekId()`); serta mengalihkan seluruh 4 pemanggil sinkronisasi (`confirmUnverifyBookingFee`, `verifyBookingFee`, `removeRiwayatBayar`, `save_keuangan`) dari `isi_data(true)` ke `syncTagihanViewsAfterBookingChange()` agar aman lintas halaman (`/siteplan/view`, `/list-kavling`, `/tagihan/list`).
-- **Frontend Stylesheet (`public/assets/css/booking-fee.css`):** Styling ter-scope `#modal_divisi3` (`.booking-fee-verified-meta`, `.booking-fee-lock-note`, wrap `.booking-fee-history-actions`) dan `.list-tagihan-page` (`.booking-verified-header`, `.booking-verified-subtitle`, `#table_booking_terverifikasi` `#eef5ff`/`#2057a3`, soft tinted badges `.booking-verified-badge-*`, `.booking-verified-actions`, mobile tabs 1 baris horizontal scroll `@media (max-width: 767.98px)`, serta `.swal2-container { z-index: 12000 !important; }`).
+- **Frontend Assets (`public/assets/js/tagihan-bayar-modal.js`):** Menambahkan `window.confirmUnverifyBookingFee(options)` (SweetAlert2 konfirmasi alasan wajib 3–500 karakter + `POST /api/tagihan/booking/batal-verifikasi` + rotasi CSRF), `unverifyBookingFee()`, `syncTagihanViewsAfterBookingChange()`, `keuFormatDate()`, dan `keuFormatDateTime()`; memperbarui `renderBookingFee()` (metadata verifier 2 baris tanpa separator middot, ikon tombol tanpa `mr-25`, tombol `Batalkan Verifikasi`, catatan terkunci `.booking-fee-lock-note`), `verifyBookingFee()`, dan `printBookingReceipt()` (fallback `activeProyekId()`); serta mengalihkan seluruh 4 pemanggil sinkronisasi (`confirmUnverifyBookingFee`, `verifyBookingFee`, `removeRiwayatBayar`, `save_keuangan`) dari `isi_data(true)` ke `syncTagihanViewsAfterBookingChange()` agar aman lintas halaman (`/siteplan/view`, `/list-kavling`, `/tagihan/list`).
+- **Frontend Stylesheet (`public/assets/css/booking-fee.css`):** Styling ter-scope `#modal_divisi3` (`box-sizing` & `overflow` containment pada `.booking-fee-card`, wrap penuh `.booking-fee-history-row` & `.booking-fee-history-actions .btn`, stack vertikal `.booking-fee-verified-meta`, `.booking-fee-lock-note`) dan `.list-tagihan-page` (`.booking-verified-header`, `.booking-verified-subtitle`, `#table_booking_terverifikasi` `#eef5ff`/`#2057a3`, soft tinted badges `.booking-verified-badge-*`, `.booking-verified-actions`, mobile tabs 1 baris horizontal scroll `@media (max-width: 767.98px)`, serta `.swal2-container { z-index: 12000 !important; }`).
 
 ## Deprecated & Legacy Shims
 ### Zero-Downtime Class Shims (44 file — Fase 1 s/d Fase 5 `2026-11-13`)
@@ -836,6 +836,13 @@ _Jalankan `php spark module:deadcode Keuangan` untuk mengaudit dead code kandida
   - Rincian alur bisnis dan debugging terekam pada [docs/modul-booking-fee.md](../../modul-booking-fee.md) dan [docs/debug-batal-verifikasi-booking-fee.md](../../debug-batal-verifikasi-booking-fee.md).
 
 ## Change Log
+- **`2026-11-19` [`BUGFIX`] — Perbaikan Overflow Tombol & Metadata Verifier Card Booking Fee (`#modal_divisi3`):**
+  - **Routes & Public Contracts:** Tidak berubah.
+  - **Controller / Service / Repo / Model:** Tidak berubah.
+  - **View / CSS / JS:**
+    - `public/assets/css/booking-fee.css`: Menambah `box-sizing: border-box; max-width: 100%; overflow: hidden;` pada `#modal_divisi3 .booking-fee-card`; menata `#modal_divisi3 .booking-fee-history-row`, `> span`, dan `.booking-fee-history-actions` agar membungkus penuh (`flex: 1 1 100%; flex-wrap: wrap; justify-content: flex-start; min-width: 0;`) serta menambah `#modal_divisi3 .booking-fee-history-actions .btn` (`inline-flex; flex: 1 1 auto; gap: 0.3rem; white-space: normal;`); dan menumpuk `#modal_divisi3 .booking-fee-verified-meta` & `> span` secara vertikal (`flex-direction: column; align-items: flex-start; gap: 0.2rem; overflow-wrap: anywhere;`).
+    - `public/assets/js/tagihan-bayar-modal.js`: Menghapus class `mr-25` pada ikon di `verifyButton` & `unverifyButton` serta menghapus `<span>&middot;</span>` pada `verifiedMeta` di `renderBookingFee(booking)` agar bebas overflow pada viewport `1440x900`, `1280x720`, dan `375x812` (beserta regresi `/public/siteplan/view`).
+  - **Deprecations:** Tidak ada.
 - **`2026-11-19` [`FEATURE`] — Tab Booking Fee Terverifikasi & Pembatalan Verifikasi Booking Fee:**
   - **Routes & Public Contracts:**
     - Menambahkan rute eksplisit pada grup `api/tagihan/booking` (`filter: login, csrf` di `app/Config/Routes.php`): `POST /api/tagihan/booking/batal-verifikasi` -> `Api\Keuangan\BookingPaymentController::unverify` dan `POST /api/tagihan/booking/terverifikasi` -> `Api\Keuangan\BookingPaymentController::verifiedList` (mendukung DataTables server-side dan `?format=raw`, Pure JSON tanpa HTML).
