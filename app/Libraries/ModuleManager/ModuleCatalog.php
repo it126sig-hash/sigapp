@@ -240,6 +240,7 @@ class ModuleCatalog
                 ],
                 'views' => ['hargajual'],
                 'assets_js' => ['hargajual.js', 'siteplan/sales.js', 'siteplan/request-kavling.js'],
+                'assets_css' => ['hargajual.css'],
                 'owner_tables' => ['kavling', 'kavling_request', 'file_hargajual', 'hargajual'],
                 'shared_tables' => ['mkdt', 'konsumen', 'keuangan'],
             ],

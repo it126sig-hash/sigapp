@@ -236,7 +236,7 @@
 												<div class="form-group mb-1">
 													<label class="font-weight-bold font-small-3 mb-50 d-flex align-items-center justify-content-between">
 														<span><i class="fas fa-sticky-note mr-25 text-primary"></i> Keterangan / Catatan Tambahan</span>
-														<small class="text-muted font-small-1 font-weight-normal">Rich Text Editor</small>
+														<small class="text-muted font-small-1 font-weight-normal">Rich Text Editor (mendukung Ctrl + V gambar)</small>
 													</label>
 													<input type="hidden" name="keterangan" id="keterangan">
 													<div id="keterangan-editor"></div>
@@ -276,7 +276,7 @@
 															<i class="fas fa-cloud-upload-alt text-primary fa-lg mb-25"></i>
 															<p class="mb-25 font-weight-bold text-dark font-small-2">Tarik & Lepaskan berkas PDF ke sini, atau <span class="text-primary text-decoration-underline">Pilih Berkas</span></p>
 															<small class="text-muted d-block font-small-1">
-																<i class="fas fa-paste mr-25"></i> Bisa paste clipboard (<strong>Ctrl + V</strong>) &bull; Format <strong>.PDF</strong> (Maks 10MB)
+																<i class="fas fa-file-pdf mr-25"></i> Format <strong>.PDF</strong> (Maks 10MB)
 															</small>
 														</div>
 

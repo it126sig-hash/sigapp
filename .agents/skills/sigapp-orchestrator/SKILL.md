@@ -18,7 +18,7 @@ Playbook ini memandu agen utama bertindak sebagai **Master Orchestrator** yang m
 
 | Agen | Peran & Fase | Tanggung Jawab Utama (KPI) | Larangan Keras (*Guardrails*) |
 |---|---|---|---|
-| **0. Master Orchestrator** *(Agen Utama)* | Manajer Siklus Hidup & Gatekeeper *(Fase 1–4)* | - Mengklasifikasikan mode tugas (`FEATURE`, `BUGFIX`, `REFACTOR`, `UI_REPORT`)<br>- Menyusun & memvalidasi **Plan Artifact**, serta meminta persetujuan User<br>- Mendefinisikan (`define_subagent`) & menugaskan (`invoke_subagent`) ke-5 Sub-Agent<br>- Mengawasi loop remediasi bug dan menerbitkan laporan akhir ke User | **DILARANG** melakukan eksplorasi kasar ribuan baris sendiri, **DILARANG** menulis kode backend/frontend sendiri, **DILARANG** menjalankan tes browser sendiri, **DILARANG** menutup tugas sebelum menerima sertifikat `PASS` dari `sigapp-qa`. |
+| **0. Master Orchestrator** *(Agen Utama)* | Manajer Siklus Hidup & Gatekeeper *(Fase 1–4)* | - Mengklasifikasikan mode tugas (`FEATURE`, `BUGFIX`, `REFACTOR`, `UI_REPORT`)<br>- Menyusun & memvalidasi **Plan dalam bentuk File Artefak Markdown nyata** (`implementation_plan.md` / `bugfix_plan.md` di `<Artifact Directory Path>` via `write_file` dengan `ArtifactMetadata`: `UserFacing: true`, `RequestFeedback: true`), lalu meminta review/komentar & persetujuan User<br>- Mendefinisikan (`define_subagent`) & menugaskan (`invoke_subagent`) ke-5 Sub-Agent<br>- Mengawasi loop remediasi bug dan menerbitkan laporan akhir ke User | **DILARANG** hanya menulis plan panjang sebagai teks chat tanpa membuat file Artefak, **DILARANG** menyalin ulang seluruh isi artefak plan di balasan chat, **DILARANG** melanjut ke Fase 2 sebelum artefak plan disetujui User, **DILARANG** melakukan eksplorasi kasar ribuan baris sendiri, **DILARANG** menulis kode produksi backend/frontend sendiri (pengecualian penulisan bagi Master Orchestrator hanyalah membuat/merevisi file Artefak Plan di `<Artifact Directory Path>`), **DILARANG** menjalankan tes browser sendiri, **DILARANG** menutup tugas sebelum menerima sertifikat `PASS` dari `sigapp-qa`. |
 | **1. `sigapp-explorer`** | Codebase Explorer & Architect *(Fase 1 & RCA)* | - Membaca `docs/modules/<Modul>/MODULE.md` (status modul, kontrak publik, fungsi penting, fungsi deprecated, & riwayat perubahan)<br>- Memetakan *callers*, *callees*, dan *blast radius* via MCP `codegraph_explore` + grep<br>- Memisahkan *File Inventory* Backend vs Frontend<br>- Melakukan Root Cause Analysis (RCA) saat terjadi bug | **100% READ-ONLY** (`EnableWriteTools: false`). Dilarang mengubah file apapun. |
 | **2. `sigapp-engineer`** | Backend CI4 Engineer *(Fase 2 & 3B Backend)* | - Mengeksekusi perubahan kode **Backend** (`app/Controllers/`, `app/Services/`, `app/Repositories/`, `app/Models/`, `app/Config/Routes.php`) sesuai Plan<br>- **WAJIB FULL JSON DI SETIAP API (`/api/*`):** Setiap method di `App\Controllers\Api\<Modul>\*Controller` wajib mewarisi `BaseApiController` dan mengembalikan **Full JSON Murni (`RAW_JSON_READY`)** dengan envelope `{ success, messages, data, errors? }` untuk seluruh skenario (sukses `200/201` maupun gagal `400/401/403/404/422/500`), bebas string HTML `<button>`/`<span class="badge">` DataTables (gunakan `?format=raw` jika menjaga backward-compatibility view CI4 lama), serta menyediakan endpoint `/meta` sesuai [`docs/MODULAR_REFACTOR.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/MODULAR_REFACTOR.md) & [`sigapp-vue/docs/API_SPA_CONTRACT.md`](file:///c:/Users/Salivs/Data/laragon/www/sigapp-vue/docs/API_SPA_CONTRACT.md)<br>- Mematuhi skill `codeigniter4` & `sigapp-notifikasi` (validasi finansial DB `cleanNumeric()`, transaksi DB, Zero-Downtime shims, Signed URL `FileAccessService` di backend)<br>- Menjalankan `php -l` pada file PHP backend yang diubah & melaporkan detail perubahan kontrak/fungsi penting/deprecated ke Orchestrator | **DILARANG** mengembalikan HTML view, HTTP redirect `302` ke halaman HTML, atau string HTML DataTables pada endpoint API baru. **DILARANG** mengubah file View/CSS/JS/Modal frontend (itu tanggung jawab `sigapp-frontend`). **DILARANG** menyentuh file di luar *File Inventory* Backend. **DILARANG** mengklaim tes E2E lulus sendiri. |
 | **3. `sigapp-frontend`** | Frontend, UI & Report Specialist *(Fase 2 & 3B Frontend)* | - Mengeksekusi pembuatan/perubahan **Frontend & UI** (`app/Views/`, `public/assets/css/<modul>.css`, `public/assets/js/<modul>.js`, modal partials, template laporan)<br>- **WAJIB** mematuhi penuh skill `sigapp-ui-acuan` & `references/ui-recipes.md` (3-Tier CSS eksternal, `?v=<?= filemtime(...) ?>`, CSS scoping, `#2057a3`, `#modal_detail` baseline, `divider divider-left`, mobile tab 1 baris, URL `FileAccessService`) serta mengonsumsi response **Full JSON (`{ success, messages, data }`)** dari `/api/*`<br>- Menjalankan `php -l` pada file View PHP dan `git diff --check` & melaporkan perubahan View/CSS/JS ke Orchestrator | **DILARANG** mengubah logika bisnis di `app/Services/`, `app/Repositories/`, `app/Models/`, atau `Routes.php` (itu wewenang `sigapp-engineer`). **DILARANG** menulis inline `<style>`/`<script>` panjang di View atau mengotori `style.css` global. |
@@ -56,9 +56,9 @@ Orkestrator ini dirancang untuk **seluruh aktivitas pengembangan umum sehari-har
   ├─ Orchestrator ──(invoke)──► [Sub-Agent 1: sigapp-explorer] (Read-Only)
   │    └─ Baca MODULE.md + MCP codegraph_explore (Callers & Blast Radius) + RCA (jika bug)
   │    └─ Kembalikan Laporan Eksplorasi & pemisahan File Inventory (Backend vs Frontend)
-  ├─ Orchestrator menyusun Implementation / Bugfix Plan Artifact
-  ├─ Orchestrator memvalidasi Plan dengan checklist sigapp-module-qa/references/plan-validation-checklist.md
-  └─ Orchestrator meminta Persetujuan Plan kepada User ──► (Tunggu Konfirmasi User)
+  ├─ Orchestrator WAJIB membuat file Artefak Plan nyata (`write_file` ke `<Artifact Directory Path>/implementation_plan.md`, atau `bugfix_plan.md` untuk mode `BUGFIX`) dengan `ArtifactMetadata` (`UserFacing: true`, `RequestFeedback: true`)
+  ├─ Orchestrator memvalidasi Plan Artefak dengan checklist sigapp-module-qa/references/plan-validation-checklist.md
+  └─ Orchestrator mengirim ringkasan singkat + tautan artefak (tanpa menyalin ulang isi plan di chat) untuk dikomentari & disetujui User ──► (Revisi file artefak bila ada komentar, tunggu Persetujuan User)
        │
        ▼
 [FASE 2: Implementasi Bedah (Surgical Execution — Sesuai Domain)]
@@ -91,7 +91,7 @@ Orkestrator ini dirancang untuk **seluruh aktivitas pengembangan umum sehari-har
        ├── Jika Sertifikat QA == `FAIL`:
        │     ▼
        │   [FASE 3B: Loop Remediasi Bug Terencana]
-       │     ├─ Orchestrator (bersama `sigapp-explorer` jika perlu RCA tambahan) menyusun Bugfix Plan Artifact
+       │     ├─ Orchestrator (bersama `sigapp-explorer` jika perlu RCA tambahan) WAJIB membuat/memperbarui file Artefak `<Artifact Directory Path>/bugfix_plan.md` (`write_file`/`edit_file` dengan `ArtifactMetadata`: `UserFacing: true`; `RequestFeedback: true` bila perubahan menyentuh scope/kontrak di luar plan awal, atau `RequestFeedback: false` untuk loop remediasi internal dalam scope yang sudah disetujui)
        │     ├─ Orchestrator mendelegasikan Surgical Fix sesuai domain bug:
        │     │   • Bug Backend (PHP/Service/Repo/Route) ──► invoke `sigapp-engineer`
        │     │   • Bug Frontend/UI (View/CSS/JS/Modal)  ──► invoke `sigapp-frontend`
@@ -114,6 +114,40 @@ Orkestrator ini dirancang untuk **seluruh aktivitas pengembangan umum sehari-har
              └─ Master Orchestrator menerbitkan Laporan Akhir Orkestrasi ke User
 ```
 
+### 3.1 Standar Wajib Pembuatan Plan dalam Bentuk Artefak (*Comment-Friendly Plan*)
+
+Agar user dapat meninjau, menandai baris tertentu, dan memberi komentar secara terstruktur sebelum kode dieksekusi, Master Orchestrator **WAJIB** selalu menerbitkan setiap rencana kerja sebagai **File Artefak Markdown nyata** (bukan sekadar teks di chat).
+
+#### A. Aturan Pembuatan File Artefak (Bukan Teks Chat)
+- **Fase 1 (`FEATURE`, `REFACTOR`, `UI_REPORT`):** Wajib membuat `<Artifact Directory Path>/implementation_plan.md`.
+- **Fase 1 (Mode `BUGFIX`) & Fase 3B (Remediasi QA `FAIL`):** Wajib membuat atau memperbarui `<Artifact Directory Path>/bugfix_plan.md`.
+- **Metadata Artefak Wajib:** Gunakan `write_file` (atau `edit_file` saat merevisi) dengan `ArtifactMetadata`:
+  ```json
+  {
+    "UserFacing": true,
+    "RequestFeedback": true,
+    "Summary": "Ringkasan singkat tujuan plan, modul target, dan keputusan utama yang perlu direview user."
+  }
+  ```
+  > *Catatan Fase 3B:* Untuk loop remediasi bug internal yang sepenuhnya masih berada di dalam scope plan yang telah disetujui user, gunakan `UserFacing: true` dan `RequestFeedback: false`. Setel `RequestFeedback: true` bila perbaikan mengubah kontrak publik, menambah file/scope baru di luar plan awal, atau membutuhkan keputusan user.
+
+#### B. Struktur Artefak Plan yang Mudah Dikomentari (*Comment-Friendly*)
+Susun isi `implementation_plan.md` / `bugfix_plan.md` dengan bagian bernomor, sub-poin yang jelas, dan alert GitHub agar user mudah mengomentari bagian spesifik:
+1. **Header Metadata:** Nama Modul, Mode Tugas (`FEATURE` / `BUGFIX` / `REFACTOR` / `UI_REPORT`), Status Validasi Checklist (`APPROVED` / `NEEDS_REVISION`), serta Departemen Pengujian.
+2. **Tujuan & Ringkasan Permasalahan:** Latar belakang tugas (atau **Gejala, Langkah Reproduksi, & Root Cause** dengan nomor baris untuk `BUGFIX`).
+3. **Asumsi & Keputusan yang Perlu Review User:** Gunakan blok `> [!IMPORTANT]` dan daftar bernomor per item keputusan/tradeoff agar user dapat memberi komentar langsung pada poin tersebut.
+4. **Hasil Eksplorasi & *Blast Radius*:** Ringkasan temuan `sigapp-explorer` (`codegraph_explore` callers/callees, *Owner Tables*, dan *Shared Tables*).
+5. **File Inventory Terpisah (Backend vs Frontend):** Daftar eksplisit file yang akan dibuat/diubah untuk `sigapp-engineer` dan `sigapp-frontend` dengan tautan clickable `file:///...`.
+6. **Rencana Perubahan Detail & Kontrak Publik:** Rincian perubahan per layer (Routes, kontrak Full JSON `/api/*`, validasi finansial `cleanNumeric()` & transaksi DB, serta kepatuhan UI `sigapp-ui-acuan`).
+7. **Langkah Eksekusi & Kriteria Verifikasi:** Urutan kerja bernomor berformat `[Step] → verify: [check]`.
+8. **Strategi Verifikasi QA (`sigapp-qa`) & Sinkronisasi Docs (`sigapp-docs`):** Skenario Playwright E2E, akun departemen login, perintah CLI `php spark` (`routes`, `module:deadcode`, `module:status`), serta rencana pembaruan `MODULE.md`.
+9. **Ringkasan Checklist Validasi Plan:** Status poin dari `.agents/skills/sigapp-module-qa/references/plan-validation-checklist.md`.
+
+#### C. Presentasi ke User & Siklus Revisi dari Komentar
+- Setelah artefak dibuat atau diperbarui, **DILARANG** menyalin ulang seluruh isi artefak plan ke dalam balasan chat.
+- Arahkan user ke file artefak plan lewat tautan clickable, sorot **2–4 poin keputusan atau pertanyaan kunci** yang butuh masukan, lalu persilakan user memberi komentar langsung pada artefak atau menyetujuinya untuk masuk ke Fase 2.
+- Jika user memberikan komentar atau revisi, perbarui **file artefak yang sama** (`edit_file` atau `write_file` dengan `Overwrite: true` + perbarui `ArtifactMetadata`), lalu minta konfirmasi ulang sebelum menugaskan `sigapp-engineer` / `sigapp-frontend`.
+
 ---
 
 ## 4. Matriks Eksekusi Adaptif per Mode Tugas & Agen Penanggung Jawab
@@ -121,7 +155,7 @@ Orkestrator ini dirancang untuk **seluruh aktivitas pengembangan umum sehari-har
 | Tahap / Pemeriksaan | Agen Penanggung Jawab | `FEATURE` | `BUGFIX` | `REFACTOR` | `UI_REPORT` |
 |---|---|:---:|:---:|:---:|:---:|
 | **Fase 1: RCA / Blast Radius (`codegraph`)** | `sigapp-explorer` | ✅ Wajib | ✅ Wajib (RCA) | ✅ Wajib | ✅ Wajib (Callers/View) |
-| **Fase 1: Penyusunan & Validasi Plan** | `Master Orchestrator` | ✅ Wajib | ✅ Wajib (Bugfix Plan) | ✅ Wajib | ✅ Wajib |
+| **Fase 1: Penyusunan Plan Artefak (`.md` via `write_file`) & Validasi** | `Master Orchestrator` | ✅ Wajib (`implementation_plan.md`) | ✅ Wajib (`bugfix_plan.md`) | ✅ Wajib (`implementation_plan.md`) | ✅ Wajib (`implementation_plan.md`) |
 | **Fase 2: Backend (`codeigniter4`, Shims, DB Trans)** | `sigapp-engineer` | ✅ Wajib | ⚙️ Jika bug Backend | ✅ Wajib + Shims | ⚙️ Jika butuh data baru |
 | **Fase 2: Frontend & UI (`sigapp-ui-acuan`, CSS/JS)** | `sigapp-frontend` | ⚙️ Jika ada UI/View | ⚙️ Jika bug UI/View/JS | ⚙️ Jika sentuh View/JS | ✅ Wajib Mutlak |
 | **Fase 3: Audit Callers via `codegraph`** | `sigapp-qa` | ✅ Wajib | ✅ Wajib | ✅ Wajib | ✅ Wajib |

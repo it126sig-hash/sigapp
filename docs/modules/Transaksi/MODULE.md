@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-18 21:17:03` @ `8193fa7`  
+**Last Synced:** `2026-11-20 11:48:23` @ `3482084`  
 
 ## Purpose
 Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-beli unit kavling, pengelolaan master daftar harga (*pricelist* `hargajual` & lampiran dokumen SK `file_hargajual`), penetapan harga jual akhir unit kavling (`set_harga`), pergantian konsumen (*consumer replacement*), pembaruan status transaksi & perintah bangun, serta alur pengajuan dan persetujuan pembukaan/request unit kavling (`kavling_request`). Dibangun dengan arsitektur modular **Thin Controller → Service → Repository**, pemisahan tegas antara Web Controller dan API Controller, serta dukungan penuh kontrak **`RAW_JSON_READY`** (`?format=raw` dan endpoint `/meta`) untuk kesiapan integrasi SPA/Mobile.
@@ -157,9 +157,12 @@ Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-b
 - `app/Views/hargajual` (1 file: `index.php`)
 
 ### JavaScript (3 file)
-- `public/assets/js/hargajual.js` (681 baris)
+- `public/assets/js/hargajual.js` (843 baris)
 - `public/assets/js/siteplan/sales.js` (525 baris)
 - `public/assets/js/siteplan/request-kavling.js` (571 baris)
+
+### CSS (1 file)
+- `public/assets/css/hargajual.css` (423 baris)
 
 ### Zero-Downtime Shims (11 file)
 - `app/Controllers/Transaksi.php`
@@ -211,10 +214,12 @@ Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-b
   - `HargaJualRepository`: Enkapsulasi penuh query tabel `hargajual`, `file_hargajual`, `kavling`, dan `proyek` (14 public methods untuk DataTables, detail, CRUD, dan akses modul).
   - `TransaksiRepository`: Query relasi transaksi konsumen, pengecekan duplikasi NIK (`findNikUsage`), data SPPTB (`getSpptbData(int $idKavling, int $idMkdt): ?object` — termasuk kolom `konsumen.status_pernikahan` dan data pasangan untuk `PrintService::printSpptb()`), dan row lock pergantian konsumen (`lockConsumerReplacementContext`).
   - `KavlingRepository`: Query master & status unit kavling lintas modul (`getKavlingList`, `getAll`, `getPerintahBangun`, `setPerintahBangun`, `getKategoriOptions`, `applyKategoriFilter`).
-- **Frontend Assets (`public/assets/js/*` & `public/assets/css/*`):**
-  - `public/assets/js/hargajual.js`: Logika antarmuka Master Harga Jual (server-side DataTables, Flatpickr tanggal berlaku, Select2 proyek/cluster/tipe, Quill editor keterangan, kalkulasi otomatis `syncHargaNet()` & `load_total()`, dropzone upload file SK, serta aksi CRUD `window.add`, `window.edit`, `window.detail`, `window.remove`, `window.save`).
-  - `public/assets/css/hargajual.css`: Stylesheet terisolasi dengan scoping `.hargajual-page`, `#add-modal`, `#detail-modal`, tema Primary Blue `#2057a3`, dan komponen `.pricelist-dropzone.bpb-dropzone`.
+- **Frontend Assets (`app/Views/hargajual/*`, `public/assets/js/*` & `public/assets/css/*`):**
+  - `app/Views/hargajual/index.php`: Template view Master Harga Jual (3-tier separation) dengan hint editor `Rich Text Editor (mendukung Ctrl + V gambar)` dan prompt dropzone `.pricelist-dropzone` `#dropzone-prompt` (`Format .PDF (Maks 10MB)`).
+  - `public/assets/js/hargajual.js`: Logika antarmuka Master Harga Jual (server-side DataTables dengan `drawCallback` yang memanggil `api.columns.adjust()` setelah `<img>` di `#data_table tbody img` selesai dimuat, Flatpickr tanggal berlaku, Select2 proyek/cluster/tipe, Quill editor keterangan dengan dukungan clipboard image paste melalui `setupQuillImagePaste(quillInstance)` [capture-phase listener dengan anti-regression guard salinan teks+HTML Excel/Word], `preparePastedImageDataUrl()`, `renderCompressedImageCandidate()` [kompresi canvas WebP/JPEG bertahap terhadap batas `MAX_RAW_IMAGE_DATA_URL_CHARS = 38000`], `getUtf8ByteLength()`, serta guard kapasitas kolom `TEXT` `MAX_KETERANGAN_BYTES = 62000` dan `HARD_KETERANGAN_BYTES = 64000` pada `initFormValidation()` `submitHandler` dengan pengecualian selector Quill `ignore: ':hidden, #keterangan-editor [contenteditable], .ql-editor, .ql-clipboard'`, kalkulasi otomatis `syncHargaNet()` & `load_total()`, dropzone upload file SK `setupDropzone()` [pengganti `setupDropzoneAndPaste()`, hanya drag-and-drop dan pemilihan berkas PDF tanpa listener paste modal], serta aksi CRUD `window.add`, `window.edit`, `window.detail`, `window.remove`, `window.save`).
+  - `public/assets/css/hargajual.css`: Stylesheet terisolasi dengan scoping `.hargajual-page`, `#add-modal`, `#detail-modal`, tema Primary Blue `#2057a3`, komponen `.pricelist-dropzone.bpb-dropzone`, serta styling gambar responsif pada `#add-modal .ql-editor img` (`max-width: 100%`, `height: auto`) dan `.hargajual-page #data_table td img` (`max-width: 100%`, `max-height: 120px`, `object-fit: contain`).
   - `public/assets/js/siteplan/sales.js` & `public/assets/js/siteplan/request-kavling.js`: Interaksi modal transaksi penjualan, ganti konsumen, ubah status kavling, dan request kavling pada peta Siteplan.
+  - *Cross-Module Frontend Caller (`public/assets/js/siteplan/mkdt.js` — aset modul `MKDT`)*: Mengonsumsi `POST /hargajual/getAll` untuk dropdown Select2 `#sh-id` (Modal Set Harga Siteplan) melalui `formatKeteranganSummary(rawHtml)` dan `formatDesign(item)` yang meringkas tag `<img>` menjadi `[Gambar]` serta aman dari `split(';')` dan injeksi HTML/XSS.
 
 ## Deprecated & Legacy Shims
 - **Deprecated Classes / Shims (11 Zero-Downtime Shims):**
@@ -268,6 +273,7 @@ Berdasarkan audit Codegraph lintas codebase, komponen modul `Transaksi` dikonsum
 - **`TransaksiService` (10 callers lintas modul):** Dipanggil oleh modul `MKDT` (`Mkdt.php`), `Siteplan` (`Siteplan.php`, `Modal.php`), `Keuangan` (`Pembayaran.php`, `BookingPaymentService`), serta controller `Api\Transaksi\TransaksiController`.
 - **`HargaJualRepository` (3 callers lintas modul):** Dipanggil oleh `HargaJualService`, `TransaksiService`, dan modul `MKDT` / `Siteplan` untuk pembacaan detail pricelist kavling.
 - **`KavlingRequestController::submit` / `KavlingRequestService::submitRequest` (Integrasi Target Siteplan):** Dikonsumsi oleh modul `Siteplan` (`public/assets/js/siteplan/target.js` -> `submitPlanningKavlingChangeRequest()`) untuk pengajuan tunggal maupun batch `ubah_tipe` dari modal Target Siteplan ke grup Planning (`[6]`), serta dipantau oleh `TargetSiteplanRepository::getLatestPlanningChangeRequests()` melalui status `kavling_request`.
+- **Select2 Pricelist `#sh-id` pada Modal Set Harga Siteplan (`public/assets/js/siteplan/mkdt.js` — Modul `MKDT`):** Mengonsumsi endpoint `POST /hargajual/getAll` untuk pilihan pricelist kavling; menggunakan `formatKeteranganSummary(rawHtml)` dan `formatDesign(item)` yang telah diperkuat agar tag `<img src="data:image/...;base64,...">` pada kolom `hargajual.keterangan` diringkas menjadi `[Gambar]`, aman dari pemecahan `split(';')`, dan terproteksi dari XSS.
 
 ### Key Functions & Core Business Logic
 - **Controllers (`app/Controllers/Web/Transaksi/` & `app/Controllers/Api/Transaksi/`):**
@@ -286,7 +292,8 @@ Berdasarkan audit Codegraph lintas codebase, komponen modul `Transaksi` dikonsum
   - `TransaksiRepository`: `getKonsumenTransaksi()`, `findNikUsage()`, `getKonsumenByIdKavling()`, `getSpptbData()`, `lockConsumerReplacementContext()`, `getLegacyReplacementSpptbData()`.
   - `KavlingRepository`: `getKavlingByIdMkdt()`, `getIdProyekByIdMkdt()`, `getIdProyekByKavling()`, `getKavlingById()`, `getKavlingByIds()`, `getKavlingList()`, `getDiskresiByKavlingId()`, `getAll()`, `getPerintahBangun()`, `setPerintahBangun()`, `getKategoriOptions()`, `applyKategoriFilter()`.
 - **Frontend JS & CSS (`public/assets/js/` & `public/assets/css/`):**
-  - `hargajual.js`: Inisialisasi DataTables pricelist, filter proyek, modal tambah/edit/detail pricelist, kalkulasi live `syncHargaNet()` & `load_total()`, integrasi Quill & Flatpickr, dropzone upload `.pricelist-dropzone.bpb-dropzone`, serta fungsi global `window.add`, `window.edit`, `window.detail`, `window.remove`, `window.save`.
+  - `hargajual.js`: Inisialisasi DataTables pricelist (dengan `drawCallback` `api.columns.adjust()` untuk gambar keterangan), filter proyek, modal tambah/edit/detail pricelist, kalkulasi live `syncHargaNet()` & `load_total()`, integrasi Quill & Flatpickr, dukungan paste gambar di editor keterangan (`setupQuillImagePaste()`, `preparePastedImageDataUrl()`, `renderCompressedImageCandidate()`, `getUtf8ByteLength()`, serta validasi batas 64 KB di `initFormValidation()`), dropzone upload `.pricelist-dropzone.bpb-dropzone` (`setupDropzone()`), serta fungsi global `window.add`, `window.edit`, `window.detail`, `window.remove`, `window.save`.
+  - `hargajual.css`: Styling scoped `.hargajual-page`, `#add-modal`, `#detail-modal`, tema `#2057a3`, `.pricelist-dropzone.bpb-dropzone`, serta aturan gambar responsif `#add-modal .ql-editor img` dan `.hargajual-page #data_table td img`.
   - `siteplan/sales.js`: Handler modal transaksi penjualan kavling, form konsumen & jadwal uang muka, pergantian konsumen, serta perubahan status kavling di halaman Siteplan.
   - `siteplan/request-kavling.js`: Handler pengajuan, daftar, dan approval request kavling di halaman Siteplan.
 
@@ -306,6 +313,15 @@ Berdasarkan audit Codegraph lintas codebase, komponen modul `Transaksi` dikonsum
 - **Legacy Route Aliases:** Rute flat `/hargajual/*`, `/transaksi/*`, dan `/kavling/*` dipertahankan secara eksplisit di `app/Config/Routes.php` dan diarahkan langsung ke controller modular di `App\Controllers\Api\Transaksi\*`; gunakan rute kanonik `/api/hargajual/*`, `/api/transaksi/*`, dan `/api/kavling/*` untuk pengembangan baru.
 
 ## Change Log
+- **`2026-11-20` [`UI_REPORT`] — Dukungan Clipboard Paste Gambar pada Editor Keterangan Harga Jual & Proteksi Cross-Module Select2 `#sh-id`:**
+  - **Routes & Public Contracts:** Tidak berubah (Opsi 1 *Frontend-Only*; tetap menggunakan kontrak endpoint existing `POST /hargajual/add`, `POST /hargajual/edit`, `POST /hargajual/get/all`, dan `POST /hargajual/getAll`).
+  - **Controller / Service / Repo / Model:** Tidak ada perubahan.
+  - **View / CSS / JS:**
+    - `app/Views/hargajual/index.php`: Memperbarui hint label editor keterangan menjadi `Rich Text Editor (mendukung Ctrl + V gambar)` dan menghapus teks petunjuk `Ctrl + V` pada `#dropzone-prompt` form upload PDF agar sinkron dengan penghapusan tangkapan clipboard paste upload.
+    - `public/assets/js/hargajual.js` (`843` baris): Mengganti `setupDropzoneAndPaste()` menjadi `setupDropzone()` (menghapus handler `$modal.off('paste').on('paste', ...)` dan variabel `$modal`); menambahkan konstanta batas kolom `TEXT` (`MAX_RAW_IMAGE_DATA_URL_CHARS = 38000`, `MAX_KETERANGAN_BYTES = 62000`, `HARD_KETERANGAN_BYTES = 64000`), helper `getUtf8ByteLength()`, `renderCompressedImageCandidate()`, `preparePastedImageDataUrl()`, serta `setupQuillImagePaste(quillInstance)` (capture-phase paste listener pada `quill.root` dengan anti-regression guard salinan teks+HTML Excel/Word, kompresi canvas WebP/JPEG bertahap, dan guard kapasitas ~62 KB); menambahkan guard batas `64000` byte pada `submitHandler` di `initFormValidation()` dan mengecualikan elemen `contenteditable` Quill (`ignore: ':hidden, #keterangan-editor [contenteditable], .ql-editor, .ql-clipboard'`) pada `$('#add-form').validate()`; serta menambahkan `drawCallback` pada DataTables `#data_table` untuk memanggil `api.columns.adjust()` setelah `<img>` selesai dimuat.
+    - `public/assets/css/hargajual.css` (`423` baris): Menambahkan CSS scoped `#add-modal .ql-editor img` (`max-width: 100%`, `height: auto`) dan `.hargajual-page #data_table td img` (`max-width: 100%`, `max-height: 120px`, `object-fit: contain`).
+    - `public/assets/js/siteplan/mkdt.js` *(Cross-Module Caller Protection — aset modul `MKDT`)*: Menambahkan `formatKeteranganSummary(rawHtml)` dan memperkuat `formatDesign(item)` pada Select2 `#sh-id` (Modal Set Harga di Siteplan) agar tag `<img src="data:image/...;base64,...">` diringkas menjadi `[Gambar]` serta aman dari pemecahan `split(';')` dan XSS.
+  - **Deprecations:** Tidak ada.
 - **`2026-11-18` [`API-BRIDGE`] — Penambahan Agregasi `tagihan_total_nominal` & `tagihan_sudah_bayar` pada `KavlingRepository` untuk Inspector Siteplan SPA:**
   - **Routes & Public Contracts (`RAW_JSON_READY`):** Tidak ada perubahan rute baru; payload item kavling dari `KavlingRepository::getAll()` (dikonsumsi oleh `GET|POST /api/siteplan/kavling` dan `/siteplan/get/all`) kini menyertakan field agregat `tagihan_total_nominal` dan `tagihan_sudah_bayar`.
   - **Controller / Service / Repo / Model:**

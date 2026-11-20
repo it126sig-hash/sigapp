@@ -9,6 +9,10 @@
 	const baseUrl = (config.baseUrl || (typeof window.base_url !== 'undefined' ? window.base_url : '')).replace(/\/+$/, '');
 	const controller = config.controller || 'hargajual';
 
+	const MAX_RAW_IMAGE_DATA_URL_CHARS = 38000;
+	const MAX_KETERANGAN_BYTES = 62000;
+	const HARD_KETERANGAN_BYTES = 64000;
+
 	let url = '';
 	let quill;
 
@@ -52,15 +56,201 @@
 		return h > 280 ? h + 'px' : '280px';
 	}
 
-	// Helper untuk Drag & Drop dan Clipboard Paste pada Berkas Lampiran PDF
-	function setupDropzoneAndPaste() {
+	function getUtf8ByteLength(str) {
+		return new Blob([str || '']).size;
+	}
+
+	function renderCompressedImageCandidate(img, maxWidth, qualities) {
+		const sourceWidth = img.naturalWidth || img.width || 1;
+		const sourceHeight = img.naturalHeight || img.height || 1;
+		const scale = sourceWidth > maxWidth ? (maxWidth / sourceWidth) : 1;
+		const targetWidth = Math.max(1, Math.round(sourceWidth * scale));
+		const targetHeight = Math.max(1, Math.round(sourceHeight * scale));
+
+		const canvas = document.createElement('canvas');
+		canvas.width = targetWidth;
+		canvas.height = targetHeight;
+
+		const ctx = canvas.getContext('2d');
+		if (!ctx) {
+			throw new Error('Canvas 2D context unavailable');
+		}
+
+		ctx.fillStyle = '#ffffff';
+		ctx.fillRect(0, 0, targetWidth, targetHeight);
+		ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+		const webpProbe = canvas.toDataURL('image/webp', 0.82);
+		const mimeType = webpProbe.indexOf('data:image/webp') === 0 ? 'image/webp' : 'image/jpeg';
+
+		let smallest = null;
+		for (let i = 0; i < qualities.length; i++) {
+			const q = qualities[i];
+			const candidate = (mimeType === 'image/webp' && q === 0.82)
+				? webpProbe
+				: canvas.toDataURL(mimeType, q);
+			if (!smallest || candidate.length < smallest.length) {
+				smallest = candidate;
+			}
+			if (candidate.length <= MAX_RAW_IMAGE_DATA_URL_CHARS) {
+				return { matched: candidate, smallest: smallest };
+			}
+		}
+
+		return { matched: null, smallest: smallest };
+	}
+
+	function preparePastedImageDataUrl(file) {
+		return new Promise(function (resolve, reject) {
+			if (!file) {
+				reject(new Error('Berkas gambar tidak ditemukan'));
+				return;
+			}
+
+			const reader = new FileReader();
+			reader.onerror = function () {
+				reject(new Error('Gagal membaca berkas gambar dari clipboard'));
+			};
+			reader.onload = function (loadEvent) {
+				const rawDataUrl = loadEvent && loadEvent.target ? loadEvent.target.result : '';
+				if (!rawDataUrl || typeof rawDataUrl !== 'string') {
+					reject(new Error('Data gambar clipboard kosong'));
+					return;
+				}
+
+				if (rawDataUrl.length <= MAX_RAW_IMAGE_DATA_URL_CHARS) {
+					resolve(rawDataUrl);
+					return;
+				}
+
+				const img = new Image();
+				img.onerror = function () {
+					reject(new Error('Gambar clipboard tidak dapat diproses'));
+				};
+				img.onload = function () {
+					try {
+						const pass800 = renderCompressedImageCandidate(img, 800, [0.82, 0.70, 0.55, 0.42]);
+						if (pass800.matched) {
+							resolve(pass800.matched);
+							return;
+						}
+
+						const pass600 = renderCompressedImageCandidate(img, 600, [0.65, 0.50]);
+						if (pass600.matched) {
+							resolve(pass600.matched);
+							return;
+						}
+
+						let smallest = rawDataUrl;
+						if (pass800.smallest && pass800.smallest.length < smallest.length) {
+							smallest = pass800.smallest;
+						}
+						if (pass600.smallest && pass600.smallest.length < smallest.length) {
+							smallest = pass600.smallest;
+						}
+						resolve(smallest);
+					} catch (err) {
+						reject(err);
+					}
+				};
+				img.src = rawDataUrl;
+			};
+
+			reader.readAsDataURL(file);
+		});
+	}
+
+	function setupQuillImagePaste(quillInstance) {
+		if (!quillInstance || !quillInstance.root || quillInstance.root.dataset.imagePasteBound === '1') {
+			return;
+		}
+		quillInstance.root.dataset.imagePasteBound = '1';
+
+		quillInstance.root.addEventListener('paste', function (e) {
+			const clipboard = e.clipboardData;
+			if (!clipboard || !clipboard.items) return;
+
+			const imageFiles = [];
+			for (let i = 0; i < clipboard.items.length; i++) {
+				const item = clipboard.items[i];
+				if (item.kind === 'file' && item.type && item.type.indexOf('image/') === 0) {
+					const file = item.getAsFile();
+					if (file) {
+						imageFiles.push(file);
+					}
+				}
+			}
+
+			if (imageFiles.length === 0) {
+				return;
+			}
+
+			// Anti-regression guard: salinan teks Excel/Word sering ikut membawa bitmap pratinjau
+			const plainText = (clipboard.getData('text/plain') || '').trim();
+			const htmlText = clipboard.getData('text/html') || '';
+			if (plainText.length > 0 && htmlText.length > 0 && !/<img\b/i.test(htmlText)) {
+				return;
+			}
+
+			e.preventDefault();
+			e.stopImmediatePropagation();
+
+			const savedRange = quillInstance.getSelection(true);
+			let insertIndex = savedRange ? savedRange.index : quillInstance.getLength();
+			if (savedRange && savedRange.length > 0) {
+				quillInstance.deleteText(savedRange.index, savedRange.length, 'user');
+			}
+
+			let chain = Promise.resolve();
+			let limitExceeded = false;
+
+			imageFiles.forEach(function (file) {
+				chain = chain.then(function () {
+					if (limitExceeded) {
+						return;
+					}
+					return preparePastedImageDataUrl(file).then(function (dataUrl) {
+						const projectedBytes = getUtf8ByteLength(quillInstance.root.innerHTML) +
+							getUtf8ByteLength('<p><img src="' + dataUrl + '"></p>');
+						if (projectedBytes > MAX_KETERANGAN_BYTES) {
+							limitExceeded = true;
+							Swal.fire({
+								icon: 'warning',
+								title: 'Keterangan Terlalu Besar',
+								text: 'Ukuran gambar dan teks pada Keterangan melebihi kapasitas maksimal (~60 KB). Perkecil area tangkapan layar atau hapus gambar sebelumnya.',
+								confirmButtonColor: '#2057a3'
+							});
+							return;
+						}
+
+						const safeIndex = Math.min(insertIndex, quillInstance.getLength());
+						quillInstance.insertEmbed(safeIndex, 'image', dataUrl, 'user');
+						insertIndex = safeIndex + 1;
+						quillInstance.setSelection(insertIndex, 0, 'silent');
+						$('#keterangan').val(quillInstance.root.innerHTML);
+					});
+				});
+			});
+
+			chain.catch(function () {
+				Swal.fire({
+					icon: 'warning',
+					title: 'Gagal Memproses Gambar',
+					text: 'Gambar dari clipboard tidak dapat dibaca atau dikonversi. Coba salin ulang gambar.',
+					confirmButtonColor: '#2057a3'
+				});
+			});
+		}, true);
+	}
+
+	// Helper untuk Drag & Drop dan Pilih Berkas pada Berkas Lampiran PDF
+	function setupDropzone() {
 		const $zone = $('#dropzone-filehj');
 		const $input = $('#id_filehj');
 		const $prompt = $('#dropzone-prompt');
 		const $preview = $('#dropzone-preview');
 		const $previewName = $('#preview-filename');
 		const $previewSize = $('#preview-filesize');
-		const $modal = $('#add-modal');
 
 		function formatSize(bytes) {
 			if (!bytes || bytes <= 0) return '0 B';
@@ -153,57 +343,6 @@
 			}
 		});
 
-		// Tangkap clipboard paste pada modal (Ctrl + V)
-		$modal.off('paste').on('paste', function (e) {
-			const clipboard = (e.originalEvent && e.originalEvent.clipboardData) || e.clipboardData;
-			if (!clipboard || !clipboard.items) return;
-
-			let foundPdf = false;
-			let foundOtherFile = false;
-
-			for (let i = 0; i < clipboard.items.length; i++) {
-				const item = clipboard.items[i];
-				if (item.kind === 'file') {
-					const blob = item.getAsFile();
-					if (blob) {
-						const isPdf = (blob.type && blob.type === 'application/pdf') || (blob.name && blob.name.toLowerCase().endsWith('.pdf'));
-						if (isPdf) {
-							foundPdf = true;
-							const filename = (blob.name && blob.name !== 'blob') ? blob.name : ('pricelist_pasted_' + Date.now() + '.pdf');
-							const pdfFile = new File([blob], filename, { type: 'application/pdf' });
-							const dataTransfer = new DataTransfer();
-							dataTransfer.items.add(pdfFile);
-							$input[0].files = dataTransfer.files;
-							setStagedFile(pdfFile);
-
-							Swal.fire({
-								toast: true,
-								position: 'top-end',
-								icon: 'success',
-								title: 'Berkas PDF dari clipboard berhasil dilampirkan',
-								showConfirmButton: false,
-								timer: 2000
-							});
-							e.preventDefault();
-							break;
-						} else {
-							foundOtherFile = true;
-						}
-					}
-				}
-			}
-
-			if (!foundPdf && foundOtherFile) {
-				Swal.fire({
-					icon: 'warning',
-					title: 'Format Tidak Sesuai',
-					text: 'Hanya berkas berformat PDF yang dapat dilampirkan.',
-					confirmButtonColor: '#2057a3'
-				});
-				e.preventDefault();
-			}
-		});
-
 		// Hapus berkas lama
 		$('#btn-remove-existing-file').off('click').on('click', function (e) {
 			e.preventDefault();
@@ -271,6 +410,16 @@
 				// Pastikan keterangan tersinkron dari quill
 				if (typeof quill !== 'undefined' && quill) {
 					$('#keterangan').val(quill.root.innerHTML);
+				}
+
+				if (getUtf8ByteLength($('#keterangan').val()) > HARD_KETERANGAN_BYTES) {
+					Swal.fire({
+						icon: 'warning',
+						title: 'Keterangan Terlalu Besar',
+						text: 'Total ukuran teks dan gambar pada Keterangan melebihi batas penyimpanan (64 KB). Kurangi ukuran atau jumlah gambar sebelum menyimpan.',
+						confirmButtonColor: '#2057a3'
+					});
+					return false;
 				}
 
 				var formEl = $('#add-form')[0];
@@ -342,7 +491,9 @@
 			}
 		});
 
-		$('#add-form').validate();
+		$('#add-form').validate({
+			ignore: ':hidden, #keterangan-editor [contenteditable], .ql-editor, .ql-clipboard'
+		});
 	}
 
 	function add() {
@@ -556,6 +707,16 @@
 			responsive: false,
 			processing: true,
 			serverSide: true,
+			drawCallback: function () {
+				var api = this.api();
+				$('#data_table tbody img').each(function () {
+					if (!this.complete) {
+						$(this).one('load error', function () {
+							api.columns.adjust();
+						});
+					}
+				});
+			},
 			ajax: {
 				url: baseUrl + '/' + controller + '/get/all',
 				type: 'POST',
@@ -620,6 +781,7 @@
 				]
 			}
 		});
+		setupQuillImagePaste(quill);
 
 		// Update hidden input before submit
 		quill.on('text-change', function () {
@@ -654,7 +816,7 @@
 			load_total();
 		});
 
-		setupDropzoneAndPaste();
+		setupDropzone();
 		initFormValidation();
 
 		$('.hargajual-page #data_table thead > tr > th:nth-child(1)').css({ 'min-width': '30px', 'max-width': '30px' });

@@ -2519,15 +2519,49 @@ function set_harga() {
   });
 }
 
+function formatKeteranganSummary(rawHtml) {
+  if (!rawHtml) {
+    return "-";
+  }
+  var withPlaceholder = String(rawHtml).replace(/<img\b[^>]*>/gi, " [Gambar] ");
+  var parsedDoc =
+    typeof DOMParser !== "undefined"
+      ? new DOMParser().parseFromString(withPlaceholder, "text/html")
+      : null;
+  var rawText =
+    parsedDoc && parsedDoc.body
+      ? parsedDoc.body.textContent || ""
+      : $("<div>").html(withPlaceholder).text();
+  var plain = rawText.replace(/\s+/g, " ").trim();
+  plain = plain
+    .replace(/;/g, ",")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  if (!plain) {
+    return "-";
+  }
+  return plain.length > 120 ? plain.substring(0, 117) + "..." : plain;
+}
+
 function formatDesign(item) {
+  if (!item || !item.text) {
+    return "";
+  }
   var selectionText = item.text.split(";");
+  if (selectionText.length < 3) {
+    return item.text;
+  }
+  var keteranganPart = (
+    item.text.endsWith(";") ? selectionText.slice(2, -1) : selectionText.slice(2)
+  ).join(";");
   var $returnString = $(
     "<span> <b>" +
       selectionText[0] +
       "</b></br >" +
       selectionText[1] +
       "</br>" +
-      selectionText[2] +
+      keteranganPart +
       "</span>",
   );
   return $returnString;
@@ -2557,9 +2591,9 @@ $("#sh-id").select2({
           id: v.id,
           text: `Rp. ${num_format(v.hargajual)} Per ${format_date(
             v.tgl_harga,
-          )} (ROW ${v.row}); <b>Tipe:</b> ${v.id_tipe}; <b>Ket:</b> ${
-            v.keterangan
-          };`,
+          )} (ROW ${v.row}); <b>Tipe:</b> ${v.id_tipe}; <b>Ket:</b> ${formatKeteranganSummary(
+            v.keterangan,
+          )};`,
           row: v.row,
           tipe: v.id_tipe,
           lb: v.lb,

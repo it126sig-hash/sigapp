@@ -11,10 +11,11 @@ Agen utama **DILARANG** mengerjakan seluruh fase sendirian atau berhenti setelah
 
 1. **Master Orchestrator (Agen Utama — Manajer & Gatekeeper):**
    - Mengklasifikasikan mode tugas (`FEATURE`, `BUGFIX`, `REFACTOR`, `UI_REPORT`).
-   - Menyusun & memvalidasi **Implementation / Bugfix Plan Artifact** (Gerbang 1), lalu meminta persetujuan User.
+   - **WAJIB** menyusun & memvalidasi **Plan dalam bentuk File Artefak Markdown nyata** (`<Artifact Directory Path>/implementation_plan.md` di Fase 1 atau `bugfix_plan.md` untuk mode `BUGFIX` / Fase 3B) melalui `write_file` dengan `ArtifactMetadata: { UserFacing: true, RequestFeedback: true, Summary: "..." }` (untuk Fase 3B internal yang sepenuhnya dalam scope yang sudah disetujui boleh `RequestFeedback: false`, namun tetap `UserFacing: true`).
+   - Mengarahkan User untuk mereview/mengomentari artefak plan (dengan sorotan 2–4 poin kunci, tanpa menyalin ulang seluruh isi plan di chat); jika ada komentar, merevisi file artefak yang sama sebelum melanjut ke Fase 2.
    - Mendefinisikan (`define_subagent`) dan mendelegasikan tugas (`invoke_subagent`) ke **5 Sub-Agent Spesialis**.
    - Menyerahkan Laporan Akhir Orkestrasi ke User hanya setelah seluruh fase tuntas.
-   - *Larangan:* Dilarang melakukan eksplorasi ribuan baris sendiri, menulis kode produksi (backend/frontend) sendiri, atau menjalankan tes browser sendiri.
+   - *Larangan:* Dilarang mempresentasikan plan hanya sebagai teks chat biasa tanpa membuat file Artefak, dilarang menduplikasi seluruh isi artefak plan di chat, dilarang melakukan eksplorasi ribuan baris sendiri, dilarang menulis kode produksi (backend/frontend) sendiri (pengecualian penulisan file oleh Master Orchestrator hanyalah membuat/merevisi file Artefak Plan di `<Artifact Directory Path>`), atau menjalankan tes browser sendiri.
 
 2. **`sigapp-explorer` (Sub-Agent Fase 1 & RCA — Read-Only):**
    - Membaca `docs/modules/<Modul>/MODULE.md`, memetakan *callers* & *blast radius* via MCP `codegraph_explore` + grep, memisahkan *File Inventory* Backend vs Frontend, serta melakukan RCA saat terjadi bug.
@@ -48,13 +49,13 @@ Agen utama **DILARANG** mengerjakan seluruh fase sendirian atau berhenti setelah
 ## 2. Siklus Wajib 4 Fase
 
 ```
-[FASE 1: Eksplorasi (`sigapp-explorer`) & Validasi Plan (`Master Orchestrator`)] ──► (Approval User)
+[FASE 1: Eksplorasi (`sigapp-explorer`) & Plan Artefak (`implementation_plan.md` / `bugfix_plan.md`) oleh `Master Orchestrator`] ──► (Review/Komen & Approval User)
                                       ↓
 [FASE 2: Implementasi Bedah ──► Backend (`sigapp-engineer`) & Frontend/UI (`sigapp-frontend` + `sigapp-ui-acuan`)]
                                       ↓
 [FASE 3: Inspeksi QA Independen (`sigapp-qa` — Dilarang Edit Kode)]
                                       ↓
                      (Status Sertifikat Verifikasi QA?)
-                     ├── FAIL ──► [FASE 3B: Bugfix Plan (`Orchestrator`) + Fix (`sigapp-engineer` / `sigapp-frontend`)] ──► (Ulangi FASE 3)
+                     ├── FAIL ──► [FASE 3B: Bugfix Plan Artefak (`bugfix_plan.md` oleh `Orchestrator`) + Fix (`sigapp-engineer` / `sigapp-frontend`)] ──► (Ulangi FASE 3)
                      └── PASS ──► [FASE 4: Perekaman Perubahan & Status Modul di `MODULE.md` (`sigapp-docs` — Wajib Semua Mode)] ──► [Laporan Akhir ke User]
 ```
