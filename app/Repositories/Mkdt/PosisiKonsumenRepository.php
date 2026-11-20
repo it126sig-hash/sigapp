@@ -17,7 +17,7 @@ class PosisiKonsumenRepository
         //pembagian um, adm, bb itu masih per field table, seharusnya di ubah ke dinamis agar sesuai dengan summary table
         //per tnalggal 29 des 2025, untuk sementara sbum di jadikan diskon uang muka(perlu konfirmasi ke mkdt/keuangan)
         //st jalan adalah status listrik
-        return $this->db->table('mkdt')
+        $builder = $this->db->table('mkdt')
             ->select('
             "" as action,
             kavling.id_kavling,
@@ -94,10 +94,16 @@ class PosisiKonsumenRepository
             ->join('proyek', "proyek.id_proyek = cluster.id_proyek", 'left')
             ->join('users a', "a.id = mkdt.add_by", 'left')
             ->join('users b', "b.id = mkdt.edit_by", 'left')
-            ->join('mkdt_payment_summary mps', "mps.id_mkdt = mkdt.id_mkdt", 'left')
-            ->where('mkdt.status_mkdt', $status)
-            ->orderBy('jalan.nama_jalan', 'ASC')
+            ->join('mkdt_payment_summary mps', "mps.id_mkdt = mkdt.id_mkdt", 'left');
+
+        if ($status !== null && $status !== '') {
+            $builder->where('mkdt.status_mkdt', $status);
+        }
+
+        $builder->orderBy('jalan.nama_jalan', 'ASC')
             ->orderBy('ABS(kavling.no_kavling)', 'ASC');
+
+        return $builder;
     }
     public function getQueryBatal()
     {
@@ -310,6 +316,47 @@ class PosisiKonsumenRepository
         return $builder->get()->getResult();
     }
 
+    public function normalizeStatusKavling(?string $statusKavling): ?string
+    {
+        $value = strtolower(trim((string) $statusKavling));
+        return in_array($value, ['semua', 'aktif', 'booking', 'indent', 'akad'], true) ? $value : null;
+    }
+
+    public function applyStatusKavlingFilter(BaseBuilder $builder, string $statusKavling): void
+    {
+        switch ($statusKavling) {
+            case 'semua':
+                $builder->whereIn('mkdt.status_mkdt', ['Booking', 'Akad']);
+                break;
+
+            case 'aktif':
+                $builder->whereIn('mkdt.status_mkdt', ['Booking', 'Akad'])
+                    ->where('COALESCE(mkdt.akad, 0) =', 0, false)
+                    ->groupStart()
+                        ->where('mkdt.status_mkdt', 'Booking')
+                        ->orWhere('COALESCE(mkdt.akad_indent, 0) =', 1, false)
+                    ->groupEnd();
+                break;
+
+            case 'booking':
+                $builder->where('mkdt.status_mkdt', 'Booking')
+                    ->where('COALESCE(mkdt.akad, 0) =', 0, false)
+                    ->where('COALESCE(mkdt.akad_indent, 0) =', 0, false);
+                break;
+
+            case 'indent':
+                $builder->whereIn('mkdt.status_mkdt', ['Booking', 'Akad'])
+                    ->where('COALESCE(mkdt.akad, 0) =', 0, false)
+                    ->where('COALESCE(mkdt.akad_indent, 0) =', 1, false);
+                break;
+
+            case 'akad':
+                $builder->whereIn('mkdt.status_mkdt', ['Booking', 'Akad'])
+                    ->where('COALESCE(mkdt.akad, 0) =', 1, false);
+                break;
+        }
+    }
+
     /**
      * Raw DataTables query untuk posisi konsumen aktif/akad (?format=raw).
      *
@@ -318,21 +365,26 @@ class PosisiKonsumenRepository
      */
     public function getRawDataTables(array $params, ?string $status = null): array
     {
-        $resolvedStatus = $this->resolveBaseStatus($status);
-        $search         = $this->extractSearchValue($params);
-        $start          = max(0, (int) ($params['start'] ?? 0));
-        $length         = isset($params['length']) ? (int) $params['length'] : 10;
+        $statusKavling = $this->normalizeStatusKavling(
+            (isset($params['status_kavling']) && is_scalar($params['status_kavling']))
+                ? (string) $params['status_kavling']
+                : null
+        );
+        $baseStatus = $statusKavling !== null ? null : $this->resolveBaseStatus($status);
+        $search     = $this->extractSearchValue($params);
+        $start      = max(0, (int) ($params['start'] ?? 0));
+        $length     = isset($params['length']) ? (int) $params['length'] : 10;
 
-        $totalBuilder = $this->getBaseQuery($resolvedStatus);
+        $totalBuilder = $this->getBaseQuery($baseStatus);
         $this->applyBaseFilters($totalBuilder, $params);
         $recordsTotal = (int) $totalBuilder->countAllResults();
 
-        $filteredBuilder = $this->getBaseQuery($resolvedStatus);
+        $filteredBuilder = $this->getBaseQuery($baseStatus);
         $this->applyBaseFilters($filteredBuilder, $params);
         $this->applyBaseSearch($filteredBuilder, $search);
         $recordsFiltered = (int) $filteredBuilder->countAllResults();
 
-        $dataBuilder = $this->getBaseQuery($resolvedStatus);
+        $dataBuilder = $this->getBaseQuery($baseStatus);
         $this->applyBaseFilters($dataBuilder, $params);
         $this->applyBaseSearch($dataBuilder, $search);
 
@@ -435,13 +487,24 @@ class PosisiKonsumenRepository
         if (isset($params['wawancara']) && $params['wawancara'] !== '' && $params['wawancara'] !== null) {
             $builder->where('mkdt.wawancara', $params['wawancara']);
         }
-        if (isset($params['akad']) && $params['akad'] !== '' && $params['akad'] !== null) {
-            $builder->where('mkdt.akad', $params['akad']);
-        }
-        if (isset($params['akad_indent']) && $params['akad_indent'] !== '' && $params['akad_indent'] !== null) {
-            $builder->where('mkdt.akad_indent', $params['akad_indent']);
-            if ((int) $params['akad_indent'] === 1 && (!isset($params['akad']) || $params['akad'] === '' || $params['akad'] === null)) {
-                $builder->where('mkdt.akad', 0);
+
+        $statusKavling = $this->normalizeStatusKavling(
+            (isset($params['status_kavling']) && is_scalar($params['status_kavling']))
+                ? (string) $params['status_kavling']
+                : null
+        );
+
+        if ($statusKavling !== null) {
+            $this->applyStatusKavlingFilter($builder, $statusKavling);
+        } else {
+            if (isset($params['akad']) && $params['akad'] !== '' && $params['akad'] !== null) {
+                $builder->where('mkdt.akad', $params['akad']);
+            }
+            if (isset($params['akad_indent']) && $params['akad_indent'] !== '' && $params['akad_indent'] !== null) {
+                $builder->where('mkdt.akad_indent', $params['akad_indent']);
+                if ((int) $params['akad_indent'] === 1 && (!isset($params['akad']) || $params['akad'] === '' || $params['akad'] === null)) {
+                    $builder->where('mkdt.akad', 0);
+                }
             }
         }
 

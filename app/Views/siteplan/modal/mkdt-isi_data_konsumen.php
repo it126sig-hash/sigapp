@@ -107,6 +107,19 @@
         cursor: not-allowed !important;
         pointer-events: none !important;
     }
+
+    #modal-isi_data_konsumen .idk-pasangan-field:disabled,
+    #modal-isi_data_konsumen .idk-pasangan-field[readonly] {
+        background-color: #eef2f6;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+
+    .dark-layout #modal-isi_data_konsumen .idk-pasangan-field:disabled,
+    .dark-layout #modal-isi_data_konsumen .idk-pasangan-field[readonly] {
+        background-color: #232a3d;
+        color: #82868b;
+    }
 </style>
 <section class="isi_konsumen">
     <div class="modal fade" id="modal-isi_data_konsumen">
@@ -557,19 +570,19 @@
                                                                     Pernikahan</label>
                                                             </div>
                                                             <div class="form-group floating-label">
-                                                                <input type="text" class="form-control gn tab1"
+                                                                <input type="text" class="form-control gn tab1 idk-pasangan-field"
                                                                     id="idk-nama_pasangan" name="nama_pasangan"
                                                                     placeholder=" ">
                                                                 <label for="idk-nama_pasangan">Nama</label>
                                                             </div>
                                                             <div class="form-group floating-label">
-                                                                <input type="text" class="form-control gn tab1"
+                                                                <input type="text" class="form-control gn tab1 idk-pasangan-field"
                                                                     id="idk-nik_pasangan" name="nik_pasangan"
                                                                     placeholder=" ">
                                                                 <label for="idk-nik_pasangan">No. KTP</label>
                                                             </div>
                                                             <div class="form-group floating-label">
-                                                                <input type="text" class="form-control gn tab1"
+                                                                <input type="text" class="form-control gn tab1 idk-pasangan-field"
                                                                     id="idk-hp_pasangan" name="hp_pasangan"
                                                                     placeholder=" ">
                                                                 <label for="idk-hp_pasangan">No. HP/Telp</label>
@@ -578,7 +591,7 @@
                                                                 class="form-group floating-label floating-label-select">
                                                                 <label for="idk-status_pekerjaan_pasangan">Status
                                                                     Pekerjaan</label>
-                                                                <select required class="form-control"
+                                                                <select required class="form-control idk-pasangan-field"
                                                                     id="idk-status_pekerjaan_pasangan"
                                                                     name="status_pekerjaan_pasangan">
                                                                     <option value="">Pilih Status</option>
@@ -589,7 +602,7 @@
                                                                 </select>
                                                             </div>
                                                             <div class="form-group floating-label">
-                                                                <input type="text" class="form-control gn tab1"
+                                                                <input type="text" class="form-control gn tab1 idk-pasangan-field"
                                                                     id="idk-instansi_pasangan" name="instansi_pasangan"
                                                                     placeholder=" ">
                                                                 <label for="idk-instansi_pasangan">Instansi</label>

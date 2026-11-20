@@ -294,6 +294,57 @@
     overflow-wrap: anywhere;
     vertical-align: top;
   }
+
+  #poskon-tabs-bar .poskon-status-filter-desktop-slot {
+    width: 205px;
+    flex: 0 0 auto;
+  }
+
+  #poskon-tabs-bar .poskon-status-filter-desktop-slot .poskon-status-filter-wrap {
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  #poskon-tabs-bar .poskon-status-filter-desktop-slot .poskon-status-filter-wrap label {
+    display: none;
+  }
+
+  #poskon-tabs-bar .select2-container {
+    width: 100% !important;
+  }
+
+  #poskon-tabs-bar .select2-container--default .select2-selection--single {
+    min-height: 30px !important;
+    height: 30px !important;
+    border-color: #d8dee8;
+    border-radius: 6px !important;
+  }
+
+  #poskon-tabs-bar .select2-container--default.select2-container--open .select2-selection--single,
+  #poskon-tabs-bar .select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #2057a3;
+  }
+
+  #poskon-tabs-bar .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 28px !important;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #111827;
+    padding-right: 24px !important;
+  }
+
+  #poskon-tabs-bar .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 28px !important;
+    pointer-events: none;
+  }
+
+  #modal-filter-lanjutan .poskon-status-filter-mobile-slot:empty {
+    display: none;
+  }
+
+  #modal-filter-lanjutan .select2-selection__arrow {
+    pointer-events: none;
+  }
 </style>
 <style>
   <?= view('siteplan/partials/modal_detail_styles') ?>
@@ -392,7 +443,7 @@
         </div>
         <div class="card poskon-table-card">
           <div class="card-body pb-0 pt-0">
-            <div class="poskon-tabs-bar">
+            <div class="poskon-tabs-bar" id="poskon-tabs-bar">
               <ul class="nav nav-tabs poskon-tabs mb-1 mt-1" role="tablist">
                 <li class="nav-item">
                   <a class="nav-link active" id="list_poskon-tab"
@@ -411,6 +462,7 @@
                 </li>
               </ul>
               <div class="poskon-filter-actions">
+                <div id="poskon-status-filter-desktop-slot" class="poskon-status-filter-desktop-slot"></div>
                 <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm" title="Filter Data"><i class="fa fa-filter"></i> Filter</button>
                 <button type="button" id="btn_open_add_modal" class="btn btn-primary waves-effect btn-sm" title="Tambah Data"><i class="fa fa-plus"></i> Tambah</button>
                 <button type="button" id="btn_open_input_nup" class="btn btn-success waves-effect btn-sm" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.openFormModal(0)" title="Input Konsumen NUP Baru"><i class="fa fa-user-plus"></i> Input NUP</button>
@@ -598,13 +650,17 @@
             </select>
           </div>
 
-          <div class="poskon-filter-field">
-            <label>Status</label>
-            <select id="filter_status_kavling" class="select2 self form-control">
-              <option value="booking" selected>Belum Akad (Booking)</option>
-              <option value="akad">Sudah Akad</option>
-              <option value="indent">Akad Indent</option>
-            </select>
+          <div id="poskon-status-filter-mobile-slot" class="poskon-status-filter-mobile-slot">
+            <div class="poskon-filter-field poskon-status-filter-wrap" id="poskon-status-filter-wrap">
+              <label for="filter_status_kavling">Status Konsumen</label>
+              <select id="filter_status_kavling" class="form-control">
+                <option value="semua">Semua Status</option>
+                <option value="aktif" selected>Konsumen Aktif</option>
+                <option value="booking">Konsumen Booking</option>
+                <option value="indent">Konsumen Akad Indent</option>
+                <option value="akad">Konsumen Akad</option>
+              </select>
+            </div>
           </div>
 
           <div class="poskon-filter-field">
@@ -989,8 +1045,54 @@ if (!empty($roles)) {
       $.fn.modal.Constructor.prototype._enforceFocus = function() {};
     }
 
-    var isMobileTable = window.matchMedia("(max-width: 767.98px)").matches;
+    var poskonMobileMedia = window.matchMedia("(max-width: 767.98px)");
+    var isMobileTable = poskonMobileMedia.matches;
+    var isProgrammaticStatusChange = false;
     var table = null;
+
+    function mountStatusKavlingFilter(isMobile) {
+      var $wrap = $("#poskon-status-filter-wrap");
+      var $select = $("#filter_status_kavling");
+      var $targetSlot = isMobile
+        ? $("#poskon-status-filter-mobile-slot")
+        : $("#poskon-status-filter-desktop-slot");
+
+      if (!$wrap.length || !$select.length || !$targetSlot.length) return;
+
+      isProgrammaticStatusChange = true;
+      try {
+        var currentVal = $select.val() || 'aktif';
+        if ($select.hasClass('select2-hidden-accessible')) {
+          $select.select2('destroy');
+        }
+        $targetSlot.append($wrap);
+        $select.select2({
+          minimumResultsForSearch: Infinity,
+          width: '100%',
+          dropdownParent: isMobile ? $("#modal-filter-lanjutan") : $(document.body)
+        });
+        $select.val(currentVal).trigger('change');
+      } finally {
+        isProgrammaticStatusChange = false;
+      }
+    }
+
+    mountStatusKavlingFilter(poskonMobileMedia.matches);
+    if (typeof poskonMobileMedia.addEventListener === "function") {
+      poskonMobileMedia.addEventListener("change", function(e) {
+        mountStatusKavlingFilter(e.matches);
+      });
+    } else if (typeof poskonMobileMedia.addListener === "function") {
+      poskonMobileMedia.addListener(function(e) {
+        mountStatusKavlingFilter(e.matches);
+      });
+    }
+
+    $("#filter_status_kavling").on("change", function() {
+      if (!isProgrammaticStatusChange && !poskonMobileMedia.matches) {
+        applyPoskonFilters();
+      }
+    });
 
     initPoskonTable(isMobileTable);
 
@@ -1064,7 +1166,7 @@ if (!empty($roles)) {
             orderable: true
           },
           {
-            targets: [9, 15],
+            targets: [15],
             visible: false
           },
           {
@@ -1078,9 +1180,6 @@ if (!empty($roles)) {
           url: base_url + 'list-kavling/ambil',
           type: "POST",
           dataType: "json",
-          data: {
-            [csrfName]: csrfHash
-          },
           data: function(data) {
             data[csrfName] = csrfHash
             data.id_proyek = activeProyekId()
@@ -1088,8 +1187,7 @@ if (!empty($roles)) {
             data.id_jalan = $("#id_jalan").val()
             data.sp3k = $("#poskon_filter_sp3k").val()
             data.wawancara = $("#poskon_filter_wawancara").val()
-            data.akad_indent = ($("#filter_status_kavling").val() === 'indent') ? 1 : ''
-            data.akad = ($("#filter_status_kavling").val() === 'indent') ? 0 : ''
+            data.status_kavling = $("#filter_status_kavling").val() || 'aktif'
             data.bulan_field = $("#filter_bulan_field").val()
             data.bulan = $("#filter_bulan").val()
             data.tahun = $("#filter_tahun").val()
@@ -1319,12 +1417,13 @@ if (!empty($roles)) {
 
     function applyPoskonFilters() {
       if (table) {
-        var filterVal = $("#filter_status_kavling").val();
-        table.columns([9, 15]).visible(filterVal !== 'booking');
-        var url = (filterVal === 'akad' || filterVal === 'indent') ?
-          base_url + 'list-kavling/akad/ambil' :
-          base_url + 'list-kavling/ambil';
-        table.ajax.url(url).load();
+        var filterVal = $("#filter_status_kavling").val() || 'aktif';
+        table.column(9).visible(filterVal !== 'booking');
+        table.ajax.url(base_url + 'list-kavling/ambil').load(function() {
+          table.columns.adjust();
+          if (table.fixedColumns) table.fixedColumns().relayout();
+          applyPoskonTableHeight();
+        });
       }
       load_riwayat();
       renderActiveFilterChips();
@@ -1332,7 +1431,12 @@ if (!empty($roles)) {
 
     function resetPoskonFilterFields() {
       $("#id_cluster").val(null).trigger('change');
-      $("#filter_status_kavling").val('booking').trigger('change');
+      isProgrammaticStatusChange = true;
+      try {
+        $("#filter_status_kavling").val('aktif').trigger('change');
+      } finally {
+        isProgrammaticStatusChange = false;
+      }
       $("#filter_bulan_field").val('booking').trigger('change');
       $("#filter_bulan").val('').trigger('change');
       $("#filter_tahun").val('').trigger('change');
@@ -1344,7 +1448,12 @@ if (!empty($roles)) {
       } else if (key === 'id_jalan') {
         $("#id_jalan").val(null).trigger('change');
       } else if (key === 'filter_status_kavling') {
-        $("#filter_status_kavling").val('booking').trigger('change');
+        isProgrammaticStatusChange = true;
+        try {
+          $("#filter_status_kavling").val('aktif').trigger('change');
+        } finally {
+          isProgrammaticStatusChange = false;
+        }
       } else if (key === 'bulan_tahun') {
         $("#filter_bulan").val('').trigger('change');
         $("#filter_tahun").val('').trigger('change');
@@ -1367,7 +1476,7 @@ if (!empty($roles)) {
       if (jalanData && jalanData.id) addChip('id_jalan', 'Blok: ' + $('<div>').text(jalanData.text).html());
 
       var status = $("#filter_status_kavling").val();
-      if (status !== 'booking') addChip('filter_status_kavling', 'Status: ' + $("#filter_status_kavling option:selected").text());
+      if (status && status !== 'aktif') addChip('filter_status_kavling', 'Status: ' + $("#filter_status_kavling option:selected").text());
 
       var bulan = $("#filter_bulan").val();
       var tahun = $("#filter_tahun").val();

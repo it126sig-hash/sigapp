@@ -301,6 +301,7 @@ function prepareConsumerReplacementForm() {
   $("#idk_data_baru").val(1);
 
   $(consumerIdentityFields.join(",")).val("").trigger("change");
+  $("#idk-status_pernikahan").val("Belum Kawin");
   $("#idk-kode_referal").val(null).trigger("change");
   $("#idk-sales_select").val(null).trigger("change");
   $("#file_ktp, #file_npwp, #file_data_diri, #file_spptb, #file_surat_kuasa").val("");
@@ -319,6 +320,7 @@ function prepareConsumerReplacementForm() {
   $("#st-mkdt-no_spptb").prop("readonly", true).addClass("replacement-locked bg-light");
   $("#btn-print_spptb").attr("href", "#").removeAttr("target");
   $("#idk_data_konsumen-tab").tab("show");
+  syncIdkMaritalStatusFields({ clearWhenUnmarried: true });
 }
 
 $(document).off("click.mkdtPindahKonsumen", "#btn-pindah-konsumen")
@@ -471,6 +473,48 @@ function disableForm(disabled) {
   ui.form.kons.find("input:text, select, textarea").prop("disabled", disabled);
 }
 
+function normalizeIdkMaritalStatus(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw || raw.toLowerCase() === "belum menikah") return "Belum Kawin";
+  if (raw.toLowerCase() === "menikah") return "Kawin";
+  return raw;
+}
+
+function syncIdkMaritalStatusFields(options = {}) {
+  const { clearWhenUnmarried = false } = options;
+  const $status = $("#idk-status_pernikahan");
+  if (!$status.length) return;
+
+  // Jangan membuka kunci bila seluruh form sedang dikunci (mis. status_mkdt === "Batal")
+  if ($status.prop("disabled")) return;
+
+  const isBelumKawin = $status.val() === "Belum Kawin";
+  const $textFields = $(
+    "#idk-nama_pasangan, #idk-nik_pasangan, #idk-hp_pasangan, #idk-instansi_pasangan"
+  );
+  const $jobField = $("#idk-status_pekerjaan_pasangan");
+
+  $textFields.prop("disabled", isBelumKawin).prop("readonly", isBelumKawin);
+  $jobField.prop("disabled", isBelumKawin).prop("required", !isBelumKawin);
+
+  if (isBelumKawin && clearWhenUnmarried) {
+    $textFields.val("").triggerHandler("input");
+    $jobField.val("");
+  }
+}
+
+$(document)
+  .off("change.idkMarital", "#idk-status_pernikahan")
+  .on("change.idkMarital", "#idk-status_pernikahan", function () {
+    syncIdkMaritalStatusFields({ clearWhenUnmarried: true });
+  });
+
+$(document)
+  .off("shown.bs.modal.idkMarital", "#modal-isi_data_konsumen")
+  .on("shown.bs.modal.idkMarital", "#modal-isi_data_konsumen", function () {
+    syncIdkMaritalStatusFields({ clearWhenUnmarried: false });
+  });
+
 function setVal(sel, val) {
   $(sel)
     .val(val ?? "")
@@ -548,6 +592,8 @@ function bindKavlingContext(sh) {
       )
       .attr("target", "_blank");
   }
+
+  syncIdkMaritalStatusFields({ clearWhenUnmarried: false });
 }
 
 function fillPriceSection(h, dk) {
@@ -1028,12 +1074,13 @@ function fillMkdt(v) {
   setVal("#idk-lama_bekerja", v.lama_bekerja);
   setVal("#idk-bidang_pekerjaan", v.bidang_pekerjaan);
 
-  setVal("#idk-status_pernikahan", v.status_pernikahan);
+  setVal("#idk-status_pernikahan", normalizeIdkMaritalStatus(v.status_pernikahan));
   setVal("#idk-nama_pasangan", v.nama_pasangan);
   setVal("#idk-nik_pasangan", v.nik_pasangan);
   setVal("#idk-hp_pasangan", v.hp_pasangan);
   setVal("#idk-status_pekerjaan_pasangan", v.status_pekerjaan_pasangan);
   setVal("#idk-instansi_pasangan", v.instansi_pasangan);
+  syncIdkMaritalStatusFields({ clearWhenUnmarried: false });
 
   setVal("#idk-sales", v.sales);
   setVal("#idk-id_sales", v.id_sales);
@@ -3149,6 +3196,7 @@ $("#refresh-btn-idk_keu").click(function () {
   state.data_um = {};
   tambah_ketagihan();
   sum_mktotal();
+  syncIdkMaritalStatusFields({ clearWhenUnmarried: true });
 });
 
 function mkdtUpload() {

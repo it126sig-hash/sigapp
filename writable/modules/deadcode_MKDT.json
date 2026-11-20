@@ -15,16 +15,6 @@
         "name": "meta"
     },
     {
-        "layer": "Controller",
-        "file": "MkdtOperationController.php",
-        "name": "getListStock"
-    },
-    {
-        "layer": "Controller",
-        "file": "MkdtOperationController.php",
-        "name": "getSi"
-    },
-    {
         "layer": "Service",
         "file": "MkdtFinancialReconciliationService.php",
         "name": "apply"

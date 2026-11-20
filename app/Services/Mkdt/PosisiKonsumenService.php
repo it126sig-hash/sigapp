@@ -132,6 +132,13 @@ class PosisiKonsumenService
                     ['value' => 'akad', 'label' => 'Akad'],
                     ['value' => 'batal', 'label' => 'Batal'],
                 ],
+                'status_kavling_options' => [
+                    ['value' => 'semua', 'label' => 'Semua Status'],
+                    ['value' => 'aktif', 'label' => 'Konsumen Aktif'],
+                    ['value' => 'booking', 'label' => 'Konsumen Booking'],
+                    ['value' => 'indent', 'label' => 'Konsumen Akad Indent'],
+                    ['value' => 'akad', 'label' => 'Konsumen Akad'],
+                ],
                 'bulan_field_options' => [
                     ['value' => 'booking', 'label' => 'Tanggal Booking'],
                     ['value' => 'indent', 'label' => 'Tanggal Akad Indent'],
@@ -522,14 +529,25 @@ class PosisiKonsumenService
 
     public function getDataTable($request, $status = null)
     {
-        $status = $status ?? "Booking";
-        if (strtolower((string) $status) === 'aktif' || $status === '') {
-            $status = 'Booking';
-        } elseif (strtolower((string) $status) === 'akad') {
-            $status = 'Akad';
+        $rawStatusKavling = $request->getVar('status_kavling');
+        $statusKavling    = $this->posisiKonsumenRepo->normalizeStatusKavling(
+            ($rawStatusKavling !== null && is_scalar($rawStatusKavling)) ? (string) $rawStatusKavling : null
+        );
+
+        if ($statusKavling !== null) {
+            $builder = $this->posisiKonsumenRepo->getBaseQuery(null);
+            $this->posisiKonsumenRepo->applyStatusKavlingFilter($builder, $statusKavling);
+        } else {
+            $status = $status ?? "Booking";
+            if (strtolower((string) $status) === 'aktif' || $status === '') {
+                $status = 'Booking';
+            } elseif (strtolower((string) $status) === 'akad') {
+                $status = 'Akad';
+            }
+
+            $builder = $this->posisiKonsumenRepo->getBaseQuery($status);
         }
 
-        $builder = $this->posisiKonsumenRepo->getBaseQuery($status);
         $rowNumber = (int) $request->getVar('start');
         if ($request->getVar('id_proyek'))
             $builder->where('proyek.id_proyek', $request->getVar('id_proyek'));
@@ -542,12 +560,15 @@ class PosisiKonsumenService
             $builder->where('mkdt.sp3k', $request->getVar('sp3k'));
         if ($request->getVar('wawancara') != "")
             $builder->where('mkdt.wawancara', $request->getVar('wawancara'));
-        if ($request->getVar('akad') !== null && $request->getVar('akad') !== '')
-            $builder->where('mkdt.akad', $request->getVar('akad'));
-        if ($request->getVar('akad_indent') !== null && $request->getVar('akad_indent') !== '') {
-            $builder->where('mkdt.akad_indent', $request->getVar('akad_indent'));
-            if ((int) $request->getVar('akad_indent') === 1 && ($request->getVar('akad') === null || $request->getVar('akad') === '')) {
-                $builder->where('mkdt.akad', 0);
+
+        if ($statusKavling === null) {
+            if ($request->getVar('akad') !== null && $request->getVar('akad') !== '')
+                $builder->where('mkdt.akad', $request->getVar('akad'));
+            if ($request->getVar('akad_indent') !== null && $request->getVar('akad_indent') !== '') {
+                $builder->where('mkdt.akad_indent', $request->getVar('akad_indent'));
+                if ((int) $request->getVar('akad_indent') === 1 && ($request->getVar('akad') === null || $request->getVar('akad') === '')) {
+                    $builder->where('mkdt.akad', 0);
+                }
             }
         }
 
