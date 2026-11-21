@@ -22,6 +22,7 @@
         editModalTargetKavlingIds: [],
         isSubmittingEditTipe: false,
         isSubmittingPlanningRequest: false,
+        isSubmittingBatchRemove: false,
         specLoadingId: null,
         requests: [],
         requestCounts: { all: 0, pending: 0, approved: 0, rejected: 0 },
@@ -57,6 +58,7 @@
         $('#target-notes-divider, #target-notes-card').prop('hidden', !manageAllowed);
         $('#target-btn-batch-edit-tipe').prop('hidden', !manageAllowed);
         $('#target-btn-batch-req-planning').prop('hidden', !manageAllowed);
+        $('#target-btn-batch-remove').prop('hidden', !manageAllowed);
     }
 
     function makePendingRequestKey(idTarget, idKavling) {
@@ -1143,6 +1145,7 @@
                 $('#target-batch-selected-count').text(totalSelected + ' kavling dipilih');
                 $('#target-btn-batch-edit-tipe').prop('hidden', !manageAllowed);
                 $('#target-btn-batch-req-planning').prop('hidden', !manageAllowed);
+                $('#target-btn-batch-remove').prop('hidden', !manageAllowed);
             } else {
                 $bar.attr('hidden', true);
                 $('#target-batch-selected-count').text('0 kavling dipilih');
@@ -2457,6 +2460,117 @@
         });
     }
 
+    function confirmBatchRemoveTargetKavlings(rows) {
+        if (!canManageTarget() || targetState.isSubmittingBatchRemove) {
+            return;
+        }
+
+        const inputRows = Array.isArray(rows) ? rows : (rows ? [rows] : []);
+        const seenIds = new Set();
+        const validRows = [];
+        const ids = [];
+
+        inputRows.forEach(function(row) {
+            if (!canEditTargetRow(row)) return;
+            const idTargetKavling = Number(row.id_target_kavling || 0);
+            if (idTargetKavling <= 0 || seenIds.has(idTargetKavling)) return;
+            seenIds.add(idTargetKavling);
+            validRows.push(row);
+            ids.push(idTargetKavling);
+        });
+
+        if (ids.length === 0) {
+            showTargetToast('warning', 'Belum ada kavling dipilih', 'Centang minimal 1 kavling tanpa konsumen aktif terlebih dahulu.');
+            return;
+        }
+
+        const executeBatchDelete = function() {
+            if (!canManageTarget() || targetState.isSubmittingBatchRemove) {
+                return;
+            }
+            const $batchRemoveBtn = $('#target-btn-batch-remove');
+            targetState.isSubmittingBatchRemove = true;
+            $batchRemoveBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-25"></i>Menghapus...');
+
+            $.ajax({
+                url: base_url + 'api/target/remove-kavling',
+                type: 'post',
+                data: {
+                    [csrfName]: csrfHash,
+                    id_target_kavlings: ids
+                },
+                dataType: 'json',
+                success: function(res) {
+                    updateTargetCsrf(res && res.token);
+                    if (!res || !res.success) {
+                        showTargetToast('error', 'Gagal menghapus kavling', (res && res.messages) || '');
+                        return;
+                    }
+                    targetState.selectedTargetKavlingIds = [];
+                    applyTargetDetailData(res.data, targetState.activeYear);
+                    if (typeof window.scheduleTargetCanvasRefresh === 'function') {
+                        window.scheduleTargetCanvasRefresh(250);
+                    }
+                    showTargetToast('success', res.messages || (ids.length + ' kavling berhasil dihapus dari target'));
+                },
+                error: function(xhr) {
+                    const msg = extractTargetErrorMessage(xhr, 'Gagal menghapus kavling dari target.');
+                    showTargetToast('error', 'Gagal menghapus kavling', msg);
+                },
+                complete: function() {
+                    targetState.isSubmittingBatchRemove = false;
+                    $batchRemoveBtn.prop('disabled', false).html('<i class="fas fa-trash-alt mr-25"></i>Hapus dari Target');
+                }
+            });
+        };
+
+        if (typeof Swal === 'undefined') {
+            const previewText = validRows.slice(0, 10).map(function(row) {
+                return '- ' + formatKavlingLocation(row) + ' (' + formatTargetRowTargetTipeLabel(row) + ')';
+            }).join('\n')
+                + (validRows.length > 10 ? ('\n+' + (validRows.length - 10) + ' kavling lainnya') : '');
+
+            if (window.confirm('Hapus ' + validRows.length + ' kavling dari target tahun ' + targetState.activeYear + '?\n\n' + previewText)) {
+                executeBatchDelete();
+            }
+            return;
+        }
+
+        const previewLimit = 10;
+        const previewRows = validRows.slice(0, previewLimit);
+        const remainingCount = validRows.length - previewRows.length;
+        const listHtml = previewRows.map(function(row) {
+            const locLabel = formatKavlingLocation(row);
+            const tipeLabel = formatTargetRowTargetTipeLabel(row);
+            return '<div class="target-remove-swal-item">'
+                + '<span class="target-remove-swal-kav">' + target_escape_html(locLabel) + '</span>'
+                + '<span class="target-remove-swal-tipe">' + target_escape_html(tipeLabel) + '</span>'
+                + '</div>';
+        }).join('')
+            + (remainingCount > 0
+                ? '<div class="target-remove-swal-more">+' + remainingCount + ' kavling lainnya</div>'
+                : '');
+
+        Swal.fire({
+            icon: 'warning',
+            title: 'Hapus ' + validRows.length + ' kavling dari target?',
+            html: '<div class="text-left">'
+                + '<p class="small text-muted mb-75">'
+                + target_escape_html(validRows.length + ' kavling berikut akan dihapus dari target tahun ' + targetState.activeYear + ':')
+                + '</p>'
+                + '<div class="target-remove-swal-list">' + listHtml + '</div>'
+                + '</div>',
+            showCancelButton: true,
+            confirmButtonText: '<i class="fas fa-trash-alt mr-25"></i>Ya, Hapus Batch',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#dc2626'
+        }).then(function(result) {
+            if (result && result.isConfirmed) {
+                executeBatchDelete();
+            }
+        });
+    }
+
     function submitPlanningKavlingChangeRequest(rows, options) {
         if (!canManageTarget()) {
             showTargetToast('warning', 'Akses terbatas', 'Hanya MKDT atau Admin yang dapat mengajukan ubah kavling ke Tim Planning.');
@@ -2500,6 +2614,29 @@
             return;
         }
 
+        const groupedTargets = [];
+        const groupIndexMap = {};
+        validRows.forEach(function(row) {
+            const targetIdTipe = Number(row.id_tipe || 0);
+            const groupKey = targetIdTipe > 0
+                ? ('master:' + targetIdTipe)
+                : ('manual:' + String(row.tipe_manual || '').trim().toLowerCase());
+            let group = Object.prototype.hasOwnProperty.call(groupIndexMap, groupKey)
+                ? groupedTargets[groupIndexMap[groupKey]]
+                : null;
+            if (!group) {
+                group = {
+                    key: groupKey,
+                    tipeLabel: formatTargetRowTargetTipeLabel(row),
+                    isMaster: targetIdTipe > 0,
+                    rows: []
+                };
+                groupIndexMap[groupKey] = groupedTargets.length;
+                groupedTargets.push(group);
+            }
+            group.rows.push(row);
+        });
+
         const executeSubmit = function(keterangan) {
             const items = validRows.map(function(row) {
                 const targetIdTipe = Number(row.id_tipe || 0);
@@ -2539,15 +2676,19 @@
                     }
 
                     const resData = res.data || {};
-                    const submittedCount = Number(resData.submitted_count || items.length);
+                    const requestCount = Number(resData.request_count || resData.submitted_count || groupedTargets.length);
+                    const kavlingCount = Number(resData.kavling_count || items.length);
                     const skippedCount = Number(resData.skipped_count || 0);
-                    let toastMsg = res.messages || (submittedCount + ' pengajuan ubah kavling berhasil dikirim ke Tim Planning.');
+                    let toastMsg = res.messages || (requestCount + ' request ubah tipe untuk ' + kavlingCount + ' kavling berhasil dikirim ke Tim Planning.');
                     if (skippedCount > 0 && toastMsg.toLowerCase().indexOf('dilewati') === -1) {
                         toastMsg += ' (' + skippedCount + ' kavling dilewati karena sudah pending.)';
                     }
 
                     targetState.selectedTargetKavlingIds = [];
                     loadTargetDetailByYear(targetState.activeYear);
+                    if (typeof window.refreshRequestKavlingCounts === 'function') {
+                        window.refreshRequestKavlingCounts();
+                    }
                     showTargetToast('success', 'Request dikirim ke Planning', toastMsg);
                 },
                 error: function(xhr) {
@@ -2563,11 +2704,14 @@
         };
 
         if (typeof Swal === 'undefined') {
-            const plainSummary = validRows.map(function(row) {
-                return formatKavlingLocation(row) + ': ' + formatKavlingMasterTipe(row) + ' -> ' + formatTargetRowTargetTipeLabel(row);
-            }).join('\n');
+            const plainSummary = groupedTargets.map(function(group) {
+                const itemsText = group.rows.map(function(row) {
+                    return '  - ' + formatKavlingLocation(row) + ': ' + formatKavlingMasterTipe(row) + ' -> ' + formatTargetRowTargetTipeLabel(row);
+                }).join('\n');
+                return '[' + group.tipeLabel + ' - ' + group.rows.length + ' kavling]\n' + itemsText;
+            }).join('\n\n');
             const note = window.prompt(
-                'Ajukan perubahan tipe ' + validRows.length + ' kavling ke Tim Planning?\n\n'
+                'Akan dibuat ' + groupedTargets.length + ' request ke Tim Planning untuk ' + validRows.length + ' kavling:\n\n'
                 + plainSummary
                 + '\n\nCatatan untuk Tim Planning (opsional):',
                 ''
@@ -2593,17 +2737,35 @@
                 + '</div>'
             : '';
 
-        const listItemsHtml = validRows.map(function(row) {
-            const locLabel = formatKavlingLocation(row);
-            const currentTipe = formatKavlingMasterTipe(row);
-            const targetTipe = formatTargetRowTargetTipeLabel(row);
-            return '<div class="target-planning-swal-item">'
-                + '<span class="target-planning-swal-kav">' + target_escape_html(locLabel) + '</span>'
-                + '<span class="target-planning-swal-diff">'
-                + '<span class="target-planning-swal-old">' + target_escape_html(currentTipe) + '</span>'
-                + '<i class="fas fa-long-arrow-alt-right mx-25"></i>'
-                + '<span class="target-planning-swal-new">' + target_escape_html(targetTipe) + '</span>'
+        const summaryHtml = '<div class="target-planning-swal-summary">'
+            + 'Akan dibuat <strong>' + groupedTargets.length + ' request</strong> ke Tim Planning untuk '
+            + '<strong>' + validRows.length + ' kavling</strong> (dikelompokkan berdasarkan tipe tujuan):'
+            + '</div>';
+
+        const groupedHtml = groupedTargets.map(function(group) {
+            const groupIcon = group.isMaster ? 'fa-home' : 'fa-tag';
+            const itemsHtml = group.rows.map(function(row) {
+                const locLabel = formatKavlingLocation(row);
+                const currentTipe = formatKavlingMasterTipe(row);
+                const targetTipe = formatTargetRowTargetTipeLabel(row);
+                return '<div class="target-planning-swal-item">'
+                    + '<span class="target-planning-swal-kav">' + target_escape_html(locLabel) + '</span>'
+                    + '<span class="target-planning-swal-diff">'
+                    + '<span class="target-planning-swal-old">' + target_escape_html(currentTipe) + '</span>'
+                    + '<i class="fas fa-long-arrow-alt-right mx-25"></i>'
+                    + '<span class="target-planning-swal-new">' + target_escape_html(targetTipe) + '</span>'
+                    + '</span>'
+                    + '</div>';
+            }).join('');
+
+            return '<div class="target-planning-swal-group">'
+                + '<div class="target-planning-swal-group-head">'
+                + '<span class="target-planning-swal-group-title">'
+                + '<i class="fas ' + groupIcon + ' mr-25"></i>' + target_escape_html(group.tipeLabel)
                 + '</span>'
+                + '<span class="target-planning-swal-group-count">' + group.rows.length + ' kavling</span>'
+                + '</div>'
+                + '<div class="target-planning-swal-group-items">' + itemsHtml + '</div>'
                 + '</div>';
         }).join('');
 
@@ -2615,9 +2777,9 @@
             icon: 'question',
             title: titleText,
             html: '<div class="text-left">'
-                + '<p class="small text-muted mb-75">Tim Planning akan menerima pengajuan perubahan master tipe kavling sesuai Target Siteplan berikut:</p>'
+                + summaryHtml
                 + skippedNoticeHtml
-                + '<div class="target-planning-swal-list">' + listItemsHtml + '</div>'
+                + '<div class="target-planning-swal-list">' + groupedHtml + '</div>'
                 + '</div>',
             input: 'textarea',
             inputLabel: 'Catatan untuk Tim Planning (opsional)',
@@ -3206,6 +3368,21 @@
                 skippedPending: skippedPending,
                 skippedMatched: skippedMatched
             });
+        });
+
+        $(document).on('click', '#target-btn-batch-remove', function() {
+            if ($(this).prop('disabled') || targetState.isSubmittingBatchRemove) return;
+            const selectedSet = new Set((targetState.selectedTargetKavlingIds || []).map(Number));
+            const selectedRows = (targetState.kavlings || []).filter(function(row) {
+                return canEditTargetRow(row) && selectedSet.has(Number(row.id_target_kavling));
+            });
+
+            if (selectedRows.length === 0) {
+                showTargetToast('warning', 'Belum ada kavling dipilih', 'Centang minimal 1 kavling tanpa konsumen aktif terlebih dahulu.');
+                return;
+            }
+
+            confirmBatchRemoveTargetKavlings(selectedRows);
         });
 
         $(document).on('click', '.target-btn-req-planning', function() {

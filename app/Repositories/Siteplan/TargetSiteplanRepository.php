@@ -405,6 +405,22 @@ class TargetSiteplanRepository
             ->delete();
     }
 
+    public function deleteTargetKavlings(array $idTargetKavlings): bool
+    {
+        $ids = array_values(array_unique(array_filter(
+            array_map('intval', $idTargetKavlings),
+            static fn (int $id): bool => $id > 0
+        )));
+
+        if ($ids === []) {
+            return true;
+        }
+
+        return (bool) $this->db->table('target_siteplan_kavling')
+            ->whereIn('id_target_kavling', $ids)
+            ->delete();
+    }
+
     public function findKavlingsWithActiveConsumer(array $idKavlings): array
     {
         $ids = array_values(array_unique(array_filter(

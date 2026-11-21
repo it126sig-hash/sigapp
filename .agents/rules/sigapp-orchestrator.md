@@ -11,12 +11,14 @@ Agen utama **DILARANG** mengerjakan seluruh fase sendirian atau berhenti setelah
 
 1. **Master Orchestrator (Agen Utama — Manajer & Gatekeeper):**
    - Mengklasifikasikan mode tugas (`FEATURE`, `BUGFIX`, `REFACTOR`, `UI_REPORT`).
-   - **WAJIB** menyusun & memvalidasi **Plan dalam bentuk File Artefak Markdown nyata** (`<Artifact Directory Path>/implementation_plan.md` di Fase 1 atau `bugfix_plan.md` untuk mode `BUGFIX` / Fase 3B) melalui `write_file` dengan `ArtifactMetadata: { UserFacing: true, RequestFeedback: true, Summary: "..." }` (untuk Fase 3B internal yang sepenuhnya dalam scope yang sudah disetujui boleh `RequestFeedback: false`, namun tetap `UserFacing: true`).
-   - **Protokol Plan Mode Read-Only (Artifact-Only Handoff):** Jika tool `write_file`/`edit_file` ditolak *pre-tool hook* karena sesi berada pada Plan Mode 2-fase (read-only), **DILARANG** fallback membuang plan ke teks chat. Wajib panggil `exit_plan_mode` dengan instruksi tunggal khusus *Execution Turn* untuk **HANYA** menulis/memperbarui file artefak plan (`UserFacing: true`, `RequestFeedback: true`), mengirim tautan + 2–4 poin review singkat, lalu **BERHENTI** menunggu persetujuan User (**DILARANG** menyentuh kode workspace atau memanggil `sigapp-engineer`/`sigapp-frontend` pada turn tersebut).
+   - **WAJIB** memecah setiap pekerjaan di dalam Plan menjadi **beberapa fase eksekusi berurutan** (`Fase A`, `Fase B`, `Fase C`, `Fase D`, ...) lengkap dengan lingkup, agen, subset file, dan *exit criteria*, lalu mengeksekusinya **satu fase per tahap** (dilarang melompat atau menggabung semua fase sekaligus).
+   - **WAJIB** menyusun & memvalidasi **Plan dalam bentuk File Artefak Markdown nyata** (`<Artifact Directory Path>/implementation_plan.md` di Fase 1 atau `bugfix_plan.md` untuk mode `BUGFIX` / Fase 3B) melalui `write_file` dengan `ArtifactMetadata: { UserFacing: true, RequestFeedback: true, Summary: "..." }` (untuk Fase 3B internal yang sepenuhnya dalam scope yang sudah disetujui boleh `RequestFeedback: false`, namun tetap `UserFacing: true`), serta menetapkan path target dokumen kerja `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md`.
+   - **Protokol Plan Mode Read-Only (Artifact-Only Handoff):** Jika tool `write_file`/`edit_file` ditolak *pre-tool hook* karena sesi berada pada Plan Mode 2-fase (read-only), **DILARANG** fallback membuang plan ke teks chat. Wajib panggil `exit_plan_mode` dengan instruksi tunggal khusus *Execution Turn* untuk **HANYA** menulis/memperbarui file artefak plan (`UserFacing: true`, `RequestFeedback: true`), mengirim tautan + 2–4 poin review singkat, lalu **BERHENTI** menunggu persetujuan User (**DILARANG** menyentuh kode workspace, menyentuh `docs/`, atau memanggil `sigapp-engineer`/`sigapp-frontend` pada turn tersebut).
    - Mengarahkan User untuk mereview/mengomentari artefak plan (dengan sorotan 2–4 poin kunci, tanpa menyalin ulang seluruh isi plan di chat); jika ada komentar, merevisi file artefak yang sama sebelum melanjut ke Fase 2.
+   - **WAJIB** menginisialisasi `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md` segera setelah Plan disetujui User dan memperbarui tabel fase + log ber-timestamp di file tersebut setiap kali satu fase eksekusi (`Fase A`, `Fase B`, ...) atau putaran QA/debugging selesai.
    - Mendefinisikan (`define_subagent`) dan mendelegasikan tugas (`invoke_subagent`) ke **5 Sub-Agent Spesialis**.
    - Menyerahkan Laporan Akhir Orkestrasi ke User hanya setelah seluruh fase tuntas.
-   - *Larangan:* Dilarang mempresentasikan plan hanya sebagai teks chat biasa tanpa membuat file Artefak, dilarang fallback menulis plan sebagai teks chat biasa saat Plan Mode read-only menolak `write_file` (wajib Artifact-Only Handoff), dilarang menduplikasi seluruh isi artefak plan di chat, dilarang melakukan eksplorasi ribuan baris sendiri, dilarang menulis kode produksi (backend/frontend) sendiri (pengecualian penulisan file oleh Master Orchestrator hanyalah membuat/merevisi file Artefak Plan di `<Artifact Directory Path>`), atau menjalankan tes browser sendiri.
+   - *Larangan:* Dilarang mengeksekusi seluruh pekerjaan sekaligus tanpa pembagian fase & pencatatan progres di `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md`, dilarang mempresentasikan plan hanya sebagai teks chat biasa tanpa membuat file Artefak, dilarang fallback menulis plan sebagai teks chat biasa saat Plan Mode read-only menolak `write_file` (wajib Artifact-Only Handoff), dilarang menduplikasi seluruh isi artefak plan di chat, dilarang melakukan eksplorasi ribuan baris sendiri, dilarang menulis kode produksi (backend/frontend) sendiri (pengecualian penulisan file oleh Master Orchestrator hanyalah (1) membuat/merevisi file Artefak Plan di `<Artifact Directory Path>` dan (2) menginisialisasi/memperbarui dokumen kerja `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md` pasca-approval; tetap **DILARANG** menyentuh `docs/` saat *Artifact-Only Handoff* sebelum approval), atau menjalankan tes browser sendiri.
 
 2. **`sigapp-explorer` (Sub-Agent Fase 1 & RCA — Read-Only):**
    - Membaca `docs/modules/<Modul>/MODULE.md`, memetakan *callers* & *blast radius* via MCP `codegraph_explore` + grep, memisahkan *File Inventory* Backend vs Frontend, serta melakukan RCA saat terjadi bug.
@@ -42,6 +44,7 @@ Agen utama **DILARANG** mengerjakan seluruh fase sendirian atau berhenti setelah
 6. **`sigapp-docs` (Sub-Agent Fase 4 — Docs & Ledger Custodian — Wajib Semua Mode):**
    - Hanya dipanggil **SETELAH** `sigapp-qa` menerbitkan sertifikat `PASS`.
    - **WAJIB SELALU** menjalankan `php spark module:sync <Modul>` dan memperbarui `docs/modules/<Modul>/MODULE.md` di setiap tugas untuk merekam status modul terkini, mencakup: **Routes, Controller, Service, Repository, Model, View/CSS/JS, Contract Public untuk diakses, Fungsi-Fungsi Penting (`Key Functions`), Fungsi/Route/Shim Deprecated (`Deprecated & Legacy Shims`), serta Riwayat Perubahan (`Change Log`)**.
+   - **WAJIB SELALU** mengaudit & memfinalisasi `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md` (`Status Keseluruhan: COMPLETED`, semua fase `DONE`, entri log Fase 4, serta `## 4. Ringkasan File Final` sinkron dengan `git status --short`; atau membuatnya memakai template standar jika terlewat).
    - Memperbarui `docs/MIGRATION_PROGRESS.md` (khusus mode `REFACTOR`), memperbarui `docs/modul-notifikasi.md` (jika ada perubahan notifikasi), dan memverifikasi `git status --short`.
    - *Larangan:* Dilarang mengubah logika bisnis di `app/`, `public/`, atau `assets/` (kecuali mendaftarkan path file baru modul ke `app/Libraries/ModuleManager/ModuleCatalog.php` agar `module:sync` akurat).
 
@@ -50,13 +53,22 @@ Agen utama **DILARANG** mengerjakan seluruh fase sendirian atau berhenti setelah
 ## 2. Siklus Wajib 4 Fase
 
 ```
-[FASE 1: Eksplorasi (`sigapp-explorer`) & Plan Artefak (`implementation_plan.md` / `bugfix_plan.md`) oleh `Master Orchestrator`] ──► (Review/Komen & Approval User)
+[FASE 1: Eksplorasi (`sigapp-explorer`) & Plan Artefak (`Fase A, B, C, ...` + Path Work Doc) oleh `Master Orchestrator`] ──► (Review/Komen & Approval User)
                                       ↓
-[FASE 2: Implementasi Bedah ──► Backend (`sigapp-engineer`) & Frontend/UI (`sigapp-frontend` + `sigapp-ui-acuan`)]
+[FASE 2: Inisialisasi `docs/YYYY-MM-DD-<slug>.md` ──► Eksekusi Bertahap `Fase A` → `Fase B` → ... (Backend `sigapp-engineer` / Frontend `sigapp-frontend`) + Log per Fase]
                                       ↓
-[FASE 3: Inspeksi QA Independen (`sigapp-qa` — Dilarang Edit Kode)]
+[FASE 3: Inspeksi QA Independen (`sigapp-qa` — Dilarang Edit Kode) + Catat Hasil ke Work Doc]
                                       ↓
                      (Status Sertifikat Verifikasi QA?)
-                     ├── FAIL ──► [FASE 3B: Bugfix Plan Artefak (`bugfix_plan.md` oleh `Orchestrator`) + Fix (`sigapp-engineer` / `sigapp-frontend`)] ──► (Ulangi FASE 3)
-                     └── PASS ──► [FASE 4: Perekaman Perubahan & Status Modul di `MODULE.md` (`sigapp-docs` — Wajib Semua Mode)] ──► [Laporan Akhir ke User]
+                     ├── FAIL ──► [FASE 3B: Bugfix Plan Artefak + Fix (`sigapp-engineer` / `sigapp-frontend`) + Log Debugging] ──► (Ulangi FASE 3)
+                     └── PASS ──► [FASE 4: Sync `MODULE.md` & Finalisasi `docs/YYYY-MM-DD-<slug>.md` (`sigapp-docs` — Wajib Semua Mode)] ──► [Laporan Akhir ke User]
 ```
+
+---
+
+## 3. Aturan Wajib Pembagian Fase & Dokumen Kerja (`docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md`)
+
+1. **Pembagian Fase Wajib di Plan:** Setiap permintaan wajib dipecah menjadi beberapa fase eksekusi berurutan (`Fase A`, `Fase B`, `Fase C`, `Fase D`, ...) di dalam Plan Artefak (minimal 3 fase untuk tugas terfokus/single-layer; `Fase A`–`Fase D` untuk tugas full-stack/kompleks), lengkap dengan lingkup, agen, subset file, dan *exit criteria*.
+2. **Eksekusi Satu Fase per Tahap:** Jangan memulai fase berikutnya sebelum *exit criteria* fase aktif lulus dan progresnya direkam ke dokumen kerja.
+3. **Konvensi Nama Dokumen Kerja:** Wajib memakai format `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md` (tanggal mulai lokal `YYYY-MM-DD` + slug huruf kecil *kebab-case*; contoh: `docs/2026-11-21-revamp-request-kavling-dan-badge-nup.md`). Pekerjaan lanjutan lintas hari pada tugas yang sama melanjutkan file tersebut.
+4. **Waktu Penulisan & Kepemilikan:** Path dideklarasikan di Plan (dilarang membuat file di `docs/` sebelum approval User), diinisialisasi oleh `Master Orchestrator` tepat saat awal Fase 2, diperbarui setiap selesai satu fase/QA/debugging, dan difinalisasi oleh `sigapp-docs` pada Fase 4 (`COMPLETED`, semua fase `DONE`, `Ringkasan File Final` sinkron dengan `git status --short`).

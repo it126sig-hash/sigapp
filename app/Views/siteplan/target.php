@@ -191,6 +191,9 @@
                                     <button type="button" id="target-btn-batch-req-planning" class="btn btn-outline-warning btn-sm" hidden>
                                         <i class="fas fa-paper-plane mr-25"></i>Request Ubah ke Planning
                                     </button>
+                                    <button type="button" id="target-btn-batch-remove" class="btn btn-outline-danger btn-sm" hidden>
+                                        <i class="fas fa-trash-alt mr-25"></i>Hapus dari Target
+                                    </button>
                                     <button type="button" id="target-btn-batch-clear" class="btn btn-outline-secondary btn-sm">
                                         <i class="fas fa-times mr-25"></i>Batal Pilih
                                     </button>

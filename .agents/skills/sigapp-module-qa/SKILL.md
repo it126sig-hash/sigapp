@@ -35,9 +35,9 @@ Skill ini mendefinisikan standar penjaminan mutu (*Quality Gates*) dalam arsitek
          ▼                                                     ▼
 [GERBANG 3: Remediasi Bug Terencana (Fase 3B)]      [GERBANG 4: Sinkronisasi Docs Adaptif (Fase 4)]
   1. RCA dari laporan `sigapp-qa` / `sigapp-explorer`   Dikerjakan oleh `sigapp-docs`:
-  2. Orchestrator susun Bugfix Plan Artifact            - `php spark module:sync <Modul>`
-  3. Fix oleh `sigapp-engineer` / `sigapp-frontend`     - Update `MIGRATION_PROGRESS.md` (khusus REFACTOR)
-  4. Loop kembali ke GERBANG 2 (`sigapp-qa`)            - Update `modul-notifikasi.md` (jika relevan)
+  2. Orchestrator susun Bugfix Plan Artifact            - `php spark module:sync <Modul>` + update `MODULE.md`
+  3. Fix oleh `sigapp-engineer` / `sigapp-frontend`     - Finalisasi `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md`
+  4. Loop kembali ke GERBANG 2 (`sigapp-qa`)            - Update `MIGRATION_PROGRESS.md` (khusus REFACTOR) & `modul-notifikasi.md`
 ```
 
 ---
@@ -54,6 +54,7 @@ Skill ini mendefinisikan standar penjaminan mutu (*Quality Gates*) dalam arsitek
    - **Standar UI (Wajib Jika Sentuh View/Modal)**: Patuhi `sigapp-ui-acuan` (`#2057a3`, `#modal_detail` baseline, `divider divider-left`, `FileAccessService`).
    - **Keamanan Finansial & Transaksi DB**: Backend selalu menghitung ulang angka dari DB via `cleanNumeric()`; mutasi multi-tabel wajib dibungkus `$db->transStart()` & `$db->transComplete()`.
    - **Zero-Downtime Shims (Wajib Refaktor/Ubah Route)**: Route/service lama tetap aktif sebagai delegator/shim.
+   - **Pembagian Fase & Dokumen Kerja (Wajib Semua Mode)**: Rencana memecah pekerjaan ke dalam fase eksekusi berurutan (`Fase A`, `Fase B`, `Fase C`, `Fase D`, ...) lengkap dengan *exit criteria* per fase serta menetapkan path `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md`.
    - **Strategi Pengujian (`sigapp-qa`)**: Mencantumkan skenario Playwright E2E, departemen login, dan aktivasi `.agents/skills/sigapp-local-testing/SKILL.md`.
 
 ---
@@ -110,9 +111,10 @@ Ikuti [references/docs-sync-guide.md](references/docs-sync-guide.md):
      - **Key Functions (Fungsi-Fungsi Penting):** Penjelasan method/fungsi inti per layer (validasi finansial `cleanNumeric()`, alur status, transaksi DB).
      - **Deprecated & Legacy Shims:** Daftar fungsi/endpoint/shim yang sudah deprecated (jika ada) beserta acuan fungsi/endpoint baru penggantinya.
      - **Change Log:** Catatan riwayat perubahan terbaru atas tugas yang baru diselesaikan.
-2. **Update Global Ledger (`docs/MIGRATION_PROGRESS.md`) [Khusus Mode `REFACTOR`]:** Ubah status modul menjadi `COMPLETED` beserta commit/sesi dan tanggal verifikasi. *(Dilarang diubah untuk mode `FEATURE`, `BUGFIX`, atau `UI_REPORT`).*
-3. **Update `docs/modul-notifikasi.md` [Kondisional]:** Wajib diperbarui jika ada perubahan notifikasi.
-4. **Cek Isolasi Git:** Jalankan `git status --short` untuk memastikan hanya file target tugas dan dokumen relevan yang berubah.
+2. **Audit & Finalisasi Work Doc (`docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md`) [WAJIB SEMUA MODE]:** Pastikan status akhir `COMPLETED`, seluruh baris tabel fase berstatus `DONE`, entri log Fase 4 ber-timestamp tercatat, dan `## 4. Ringkasan File Final` sinkron dengan `git status --short` (buat dari template standar jika belum ada).
+3. **Update Global Ledger (`docs/MIGRATION_PROGRESS.md`) [Khusus Mode `REFACTOR`]:** Ubah status modul menjadi `COMPLETED` beserta commit/sesi dan tanggal verifikasi. *(Dilarang diubah untuk mode `FEATURE`, `BUGFIX`, atau `UI_REPORT`).*
+4. **Update `docs/modul-notifikasi.md` [Kondisional]:** Wajib diperbarui jika ada perubahan notifikasi.
+5. **Cek Isolasi Git:** Jalankan `git status --short` untuk memastikan hanya file target tugas dan dokumen relevan yang berubah.
 
 ---
 

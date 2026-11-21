@@ -660,6 +660,7 @@ final class TargetSiteplanServiceTest extends CIUnitTestCase
             'name'     => 'MKDT User',
         ]);
 
+        $this->conn->query('DROP TABLE IF EXISTS db_kavling_request_kavling');
         $this->conn->query('DROP TABLE IF EXISTS db_kavling_request');
         $this->conn->query('CREATE TABLE db_kavling_request (
             id_request INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -677,6 +678,14 @@ final class TargetSiteplanServiceTest extends CIUnitTestCase
             created_at TEXT NULL,
             updated_at TEXT NULL
         )');
+        $this->conn->query('CREATE TABLE db_kavling_request_kavling (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_request INTEGER,
+            id_kavling INTEGER,
+            old_id_tipe INTEGER NULL,
+            created_at TEXT NULL
+        )');
+        $this->conn->resetDataCache();
 
         $capturedNotifications = [];
         $notifStub = new class ($capturedNotifications) extends \App\Services\NotifikasiService {
@@ -737,9 +746,30 @@ final class TargetSiteplanServiceTest extends CIUnitTestCase
         ], 7);
 
         $this->assertSame(2, $batch['submitted_count']);
+        $this->assertSame(2, $batch['request_count']);
+        $this->assertSame(2, $batch['kavling_count']);
+        $this->assertCount(2, $batch['groups']);
+        $this->assertSame(12, $batch['groups'][0]['id_tipe']);
+        $this->assertSame([102], $batch['groups'][0]['id_kavlings']);
+        $this->assertNull($batch['groups'][1]['id_tipe']);
+        $this->assertSame('Custom 72/120', $batch['groups'][1]['tipe_manual']);
+        $this->assertSame([104], $batch['groups'][1]['id_kavlings']);
         $this->assertSame(1, $batch['skipped_count']);
         $this->assertCount(1, $batch['skipped_pending']);
         $this->assertSame(101, $batch['skipped_pending'][0]['id_kavling']);
+
+        $childRows = $this->conn->table('kavling_request_kavling')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->getResult();
+        $this->assertCount(3, $childRows);
+        $this->assertSame(101, (int) $childRows[0]->id_kavling);
+        $this->assertSame(10, (int) $childRows[0]->old_id_tipe);
+        $this->assertSame(102, (int) $childRows[1]->id_kavling);
+        $this->assertSame((int) $batch['created_ids'][0], (int) $childRows[1]->id_request);
+        $this->assertSame(104, (int) $childRows[2]->id_kavling);
+        $this->assertSame((int) $batch['created_ids'][1], (int) $childRows[2]->id_request);
+
         $this->assertCount(2, $capturedNotifications);
         $this->assertSame(\App\Enums\NotificationEvent::REQUEST_KAVLING, $capturedNotifications[1]['data']->eventType);
         $this->assertSame('6', $capturedNotifications[1]['audience']->legacyGroupTarget());
@@ -757,10 +787,251 @@ final class TargetSiteplanServiceTest extends CIUnitTestCase
         ], 7);
     }
 
+    public function testKavlingRequestBatchGroupedByTargetTipe(): void
+    {
+        $this->conn->query('DROP TABLE IF EXISTS db_proyek');
+        $this->conn->query('CREATE TABLE db_proyek (
+            id_proyek INTEGER PRIMARY KEY,
+            nama_proyek TEXT
+        )');
+        $this->conn->table('proyek')->insert([
+            'id_proyek'   => 1,
+            'nama_proyek' => 'Proyek Uji',
+        ]);
+
+        $this->conn->query('DROP TABLE IF EXISTS db_users');
+        $this->conn->query('CREATE TABLE db_users (
+            id INTEGER PRIMARY KEY,
+            username TEXT,
+            name TEXT NULL
+        )');
+        $this->conn->table('users')->insert([
+            'id'       => 7,
+            'username' => 'mkdt_user',
+            'name'     => 'MKDT User',
+        ]);
+
+        $this->conn->query('DROP TABLE IF EXISTS db_kavling_request_kavling');
+        $this->conn->query('DROP TABLE IF EXISTS db_kavling_request');
+        $this->conn->query('CREATE TABLE db_kavling_request (
+            id_request INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_proyek INTEGER,
+            jenis_request TEXT,
+            id_kavling INTEGER NULL,
+            id_cluster INTEGER NULL,
+            id_jalan INTEGER NULL,
+            id_tipe INTEGER NULL,
+            tipe_manual TEXT NULL,
+            keterangan TEXT NULL,
+            status TEXT DEFAULT "pending",
+            alasan_tolak TEXT NULL,
+            created_by INTEGER NULL,
+            created_at TEXT NULL,
+            updated_at TEXT NULL
+        )');
+        $this->conn->query('CREATE TABLE db_kavling_request_kavling (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_request INTEGER,
+            id_kavling INTEGER,
+            old_id_tipe INTEGER NULL,
+            created_at TEXT NULL
+        )');
+        $this->conn->resetDataCache();
+
+        $this->conn->table('kavling')->insertBatch([
+            [
+                'id_kavling' => 105,
+                'id_jalan'   => 1,
+                'id_tipe'    => 12,
+                'id_mkdt'    => null,
+                'no_kavling' => 'A5',
+            ],
+            [
+                'id_kavling' => 106,
+                'id_jalan'   => 1,
+                'id_tipe'    => 12,
+                'id_mkdt'    => null,
+                'no_kavling' => 'A6',
+            ],
+            [
+                'id_kavling' => 107,
+                'id_jalan'   => 1,
+                'id_tipe'    => 10,
+                'id_mkdt'    => null,
+                'no_kavling' => 'A7',
+            ],
+            [
+                'id_kavling' => 108,
+                'id_jalan'   => 1,
+                'id_tipe'    => null,
+                'id_mkdt'    => null,
+                'no_kavling' => 'A8',
+            ],
+        ]);
+
+        $capturedNotifications = [];
+        $notifStub = new class ($capturedNotifications) extends \App\Services\NotifikasiService {
+            private array $captured;
+
+            public function __construct(array &$captured)
+            {
+                $this->captured = &$captured;
+            }
+
+            public function create(\App\Data\NotificationData $data, \App\Data\NotificationAudience $audience): int
+            {
+                $this->captured[] = [
+                    'data'     => $data,
+                    'audience' => $audience,
+                ];
+
+                return count($this->captured);
+            }
+        };
+
+        $reqModel = new \App\Models\KavlingRequestModel($this->conn);
+        $reqService = new \App\Services\Transaksi\KavlingRequestService($this->conn, $reqModel, $notifStub);
+
+        $result = $reqService->submitRequest([
+            'id_proyek'     => 1,
+            'jenis_request' => 'ubah_tipe',
+            'items'         => [
+                ['id_kavling' => 105, 'id_tipe' => 10, 'keterangan' => 'Penyesuaian blok belakang'],
+                ['id_kavling' => 106, 'id_tipe' => 10, 'keterangan' => 'Penyesuaian blok belakang'],
+                ['id_kavling' => 101, 'id_tipe' => 12, 'keterangan' => 'Upgrade hook'],
+                ['id_kavling' => 102, 'id_tipe' => 12, 'keterangan' => ''],
+                ['id_kavling' => 108, 'id_tipe' => 12, 'keterangan' => 'Kavling tanpa tipe awal'],
+                ['id_kavling' => 104, 'tipe_manual' => 'Custom 31/72', 'keterangan' => 'Tipe khusus A'],
+                ['id_kavling' => 107, 'tipe_manual' => ' custom 31/72 ', 'keterangan' => 'Tipe khusus B'],
+            ],
+        ], 7);
+
+        $this->assertSame(3, $result['submitted_count']);
+        $this->assertSame(3, $result['request_count']);
+        $this->assertSame(7, $result['kavling_count']);
+        $this->assertSame(0, $result['skipped_count']);
+        $this->assertCount(3, $result['created_ids']);
+        $this->assertCount(3, $result['groups']);
+
+        $this->assertSame(10, $result['groups'][0]['id_tipe']);
+        $this->assertSame(2, $result['groups'][0]['kavling_count']);
+        $this->assertSame([105, 106], $result['groups'][0]['id_kavlings']);
+
+        $this->assertSame(12, $result['groups'][1]['id_tipe']);
+        $this->assertSame(3, $result['groups'][1]['kavling_count']);
+        $this->assertSame([101, 102, 108], $result['groups'][1]['id_kavlings']);
+
+        $this->assertNull($result['groups'][2]['id_tipe']);
+        $this->assertSame('Custom 31/72', $result['groups'][2]['tipe_manual']);
+        $this->assertSame(2, $result['groups'][2]['kavling_count']);
+        $this->assertSame([104, 107], $result['groups'][2]['id_kavlings']);
+
+        // Pastikan tepat 3 baris header di db_kavling_request (bukan 7) dan id_kavling = null pada grup > 1 kavling
+        $requestRows = $this->conn->table('kavling_request')
+            ->orderBy('id_request', 'asc')
+            ->get()
+            ->getResult();
+        $this->assertCount(3, $requestRows);
+
+        $this->assertNull($requestRows[0]->id_kavling);
+        $this->assertSame(10, (int) $requestRows[0]->id_tipe);
+        $this->assertNull($requestRows[0]->tipe_manual);
+        $this->assertSame('Penyesuaian blok belakang', $requestRows[0]->keterangan);
+
+        $this->assertNull($requestRows[1]->id_kavling);
+        $this->assertSame(12, (int) $requestRows[1]->id_tipe);
+        $this->assertNull($requestRows[1]->tipe_manual);
+        $this->assertSame('Upgrade hook; Kavling tanpa tipe awal', $requestRows[1]->keterangan);
+
+        $this->assertNull($requestRows[2]->id_kavling);
+        $this->assertNull($requestRows[2]->id_tipe);
+        $this->assertSame('Custom 31/72', $requestRows[2]->tipe_manual);
+        $this->assertSame('Tipe khusus A; Tipe khusus B', $requestRows[2]->keterangan);
+
+        // Pastikan seluruh 7 anak tersimpan di db_kavling_request_kavling beserta old_id_tipe
+        $childRows = $this->conn->table('kavling_request_kavling')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->getResult();
+        $this->assertCount(7, $childRows);
+
+        $childByKavling = [];
+        foreach ($childRows as $child) {
+            $childByKavling[(int) $child->id_kavling] = $child;
+        }
+        $this->assertSame((int) $requestRows[0]->id_request, (int) $childByKavling[105]->id_request);
+        $this->assertSame(12, (int) $childByKavling[105]->old_id_tipe);
+        $this->assertSame((int) $requestRows[0]->id_request, (int) $childByKavling[106]->id_request);
+        $this->assertSame(12, (int) $childByKavling[106]->old_id_tipe);
+        $this->assertSame((int) $requestRows[1]->id_request, (int) $childByKavling[101]->id_request);
+        $this->assertSame(10, (int) $childByKavling[101]->old_id_tipe);
+        $this->assertSame((int) $requestRows[1]->id_request, (int) $childByKavling[102]->id_request);
+        $this->assertSame(10, (int) $childByKavling[102]->old_id_tipe);
+        $this->assertSame((int) $requestRows[1]->id_request, (int) $childByKavling[108]->id_request);
+        $this->assertNull($childByKavling[108]->old_id_tipe);
+        $this->assertSame((int) $requestRows[2]->id_request, (int) $childByKavling[104]->id_request);
+        $this->assertSame(10, (int) $childByKavling[104]->old_id_tipe);
+        $this->assertSame((int) $requestRows[2]->id_request, (int) $childByKavling[107]->id_request);
+        $this->assertSame(10, (int) $childByKavling[107]->old_id_tipe);
+
+        // Pastikan tepat 1 notifikasi ringkasan dikirim ke grup 6
+        $this->assertCount(1, $capturedNotifications);
+        $notif = $capturedNotifications[0];
+        $this->assertSame(\App\Enums\NotificationEvent::REQUEST_KAVLING, $notif['data']->eventType);
+        $this->assertSame('6', $notif['audience']->legacyGroupTarget());
+        $this->assertNull($notif['data']->idKavling);
+        $this->assertSame('siteplan/view', $notif['data']->actionUrl);
+        $this->assertStringContainsString('3 request perubahan tipe untuk 7 kavling', $notif['data']->message);
+        $this->assertStringContainsString('T36 (36/72): 2 kavling', $notif['data']->message);
+        $this->assertStringContainsString('T54 (54/108): 3 kavling', $notif['data']->message);
+        $this->assertStringContainsString('Custom 31/72: 2 kavling', $notif['data']->message);
+    }
+
+    public function testRemoveKavlingBatchRecordsSingleHistoryAndBatchSummary(): void
+    {
+        $created = $this->service->addKavlingToYear([
+            'id_proyek'    => 1,
+            'tahun_target' => 2026,
+            'id_kavlings'  => [101, 102, 104],
+            'id_tipe'      => 10,
+        ], 7);
+
+        $byKavling = [];
+        foreach ($created['kavlings'] as $row) {
+            $byKavling[(int) $row->id_kavling] = (int) $row->id_target_kavling;
+        }
+
+        $id1 = $byKavling[101];
+        $id2 = $byKavling[102];
+
+        $removed = $this->service->removeKavling([
+            'id_target_kavlings' => [$id1, $id2],
+        ], 7);
+
+        $this->assertCount(1, $removed['kavlings']);
+        $this->assertSame(104, (int) $removed['kavlings'][0]->id_kavling);
+
+        $this->assertSame(2, $removed['batch_summary']['removed_count']);
+        $this->assertSame([$id1, $id2], $removed['batch_summary']['id_target_kavlings']);
+        $this->assertSame([101, 102], $removed['batch_summary']['removed_kavling_ids']);
+
+        // Hanya ada 2 versi history (v1 add batch, v2 remove batch -> tepat 1 entri history baru)
+        $this->assertCount(2, $removed['history']);
+        $latest = $removed['history'][0];
+        $this->assertSame(2, $latest->version);
+        $this->assertSame('v2', $latest->version_label);
+        $this->assertSame('target_remove_kavling', $latest->aksi);
+        $this->assertSame(2, $latest->diff_summary['removed_count']);
+        $this->assertSame(3, $latest->diff_summary['total_before']);
+        $this->assertSame(1, $latest->diff_summary['total_after']);
+        $this->assertCount(2, $latest->diff_summary['removed']);
+    }
+
     private function resetSchema(): void
     {
         foreach ([
             'db_history_log',
+            'db_kavling_request_kavling',
             'db_kavling_request',
             'db_target_siteplan_request',
             'db_target_siteplan_kavling',
@@ -855,6 +1126,14 @@ final class TargetSiteplanServiceTest extends CIUnitTestCase
             approve_by INTEGER NULL,
             approve_at TEXT NULL,
             catatan_approval TEXT NULL
+        )');
+
+        $this->conn->query('CREATE TABLE db_kavling_request_kavling (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_request INTEGER,
+            id_kavling INTEGER,
+            old_id_tipe INTEGER NULL,
+            created_at TEXT NULL
         )');
 
         $this->conn->query('CREATE TABLE db_history_log (

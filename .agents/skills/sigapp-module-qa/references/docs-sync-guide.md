@@ -120,7 +120,20 @@ Sesuai aturan `sigapp-general-rules.md` dan skill `sigapp-notifikasi`:
 
 ---
 
-## 4. Pemeriksaan Git & Komitmen Terisolasi
+## 4. Finalisasi Dokumen & Log Pekerjaan (`docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md`) [WAJIB SEMUA MODE]
+
+Setiap tugas (`FEATURE`, `BUGFIX`, `REFACTOR`, maupun `UI_REPORT`) wajib terekam dalam file log pekerjaan di `docs/` dengan konvensi nama `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md` (tanggal mulai lokal + slug *kebab-case* huruf kecil; contoh aktual: `docs/2026-11-21-revamp-request-kavling-dan-badge-nup.md`).
+
+### Checklist Audit & Finalisasi oleh `sigapp-docs`:
+1. Buka file `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md` yang diinisialisasi oleh Master Orchestrator di awal Fase 2 (jika belum ada, buat baru memakai template standar di `.agents/skills/sigapp-orchestrator/SKILL.md` bagian 3.3).
+2. Pastikan **`Status Keseluruhan`** diubah menjadi `COMPLETED` (`DONE — Lulus QA Independen & Sinkronisasi Docs`).
+3. Pastikan seluruh baris pada **`## 2. Pelacak Progres per Fase`** berstatus `DONE` (termasuk fase QA `sigapp-qa` dan Docs `sigapp-docs`).
+4. Tambahkan entri log Fase 4 ber-timestamp di **`## 3. Log Progres & Debugging`** (`### [YYYY-MM-DD HH:mm] Fase 4 / ... — Sinkronisasi Dokumentasi & Katalog Modul (sigapp-docs) — DONE`) yang merangkum hasil `module:sync`, pembaruan `MODULE.md`, `MIGRATION_PROGRESS.md` (jika `REFACTOR`), dan `modul-notifikasi.md` (jika relevan).
+5. Periksa & sinkronkan **`## 4. Ringkasan File Final`** agar cocok 100% dengan output `git status --short` (atau daftar file final aktual pekerjaan).
+
+---
+
+## 5. Pemeriksaan Git & Komitmen Terisolasi
 
 1. Periksa file yang termodifikasi:
    ```bash

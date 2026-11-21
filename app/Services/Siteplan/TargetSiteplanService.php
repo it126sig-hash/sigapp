@@ -450,47 +450,95 @@ class TargetSiteplanService
 
     public function removeKavling(array $data, int $actorId): array
     {
-        $row = $this->locateTargetKavlingRow($data);
-        $idTarget = (int) $row->id_target;
-        $idKavling = (int) $row->id_kavling;
+        $rows = $this->locateTargetKavlingRows($data);
+        $projectIds = [];
+        $groupedByTarget = [];
+        $targetsById = [];
 
-        $target = $this->repository->getById($idTarget);
-        if (! $target) {
-            throw new RuntimeException('Target tidak ditemukan');
+        foreach ($rows as $row) {
+            $rowTargetId = (int) ($row->id_target ?? 0);
+            if (! isset($targetsById[$rowTargetId])) {
+                $target = $this->repository->getById($rowTargetId);
+                if (! $target) {
+                    throw new RuntimeException('Target tidak ditemukan');
+                }
+                $targetsById[$rowTargetId] = $target;
+            }
+
+            $rowProyekId = (int) ($targetsById[$rowTargetId]->id_proyek ?? 0);
+            if ($rowProyekId <= 0) {
+                throw new RuntimeException('Target tidak ditemukan');
+            }
+
+            $projectIds[$rowProyekId] = $rowProyekId;
+            $groupedByTarget[$rowTargetId][] = $row;
         }
 
-        $idProyek = (int) $target->id_proyek;
+        if (count($projectIds) !== 1) {
+            throw new RuntimeException('Semua kavling harus berasal dari proyek yang sama');
+        }
+
+        $idProyek = (int) reset($projectIds);
         if (! empty($data['id_proyek']) && (int) $data['id_proyek'] !== $idProyek) {
             throw new RuntimeException('Target tidak sesuai proyek');
         }
 
         $now = date('Y-m-d H:i:s');
         $effectiveActorId = $actorId > 0 ? $actorId : ($this->currentUserId() ?? 0);
+        $allRemovedTargetKavlingIds = [];
+        $allRemovedKavlingIds = [];
 
         $this->db->transBegin();
 
         try {
-            $before = $this->makeSnapshot($idTarget);
+            foreach ($groupedByTarget as $idTarget => $targetRows) {
+                $idTarget = (int) $idTarget;
+                $before = $this->makeSnapshot($idTarget);
+                $targetKavlingIds = [];
+                $removedKavlingIds = [];
 
-            $this->repository->deleteTargetKavling((int) $row->id_target_kavling);
+                foreach ($targetRows as $targetRow) {
+                    $idTargetKavling = (int) $targetRow->id_target_kavling;
+                    $idKavling = (int) $targetRow->id_kavling;
+                    $targetKavlingIds[] = $idTargetKavling;
+                    $removedKavlingIds[] = $idKavling;
+                    $allRemovedTargetKavlingIds[] = $idTargetKavling;
+                    $allRemovedKavlingIds[] = $idKavling;
+                }
 
-            $this->repository->updateTargetHeader($idTarget, [
-                'edit_by'    => $effectiveActorId > 0 ? $effectiveActorId : null,
-                'updated_at' => $now,
-            ]);
+                $this->repository->deleteTargetKavlings($targetKavlingIds);
 
-            $after = $this->makeSnapshot($idTarget);
-            $this->recordTargetHistory(
-                $idTarget,
-                $idProyek,
-                'target_remove_kavling',
-                'Kavling dihapus dari target tahun ' . (int) $target->tahun_target,
-                $before,
-                $after,
-                $effectiveActorId,
-                $now,
-                $idKavling
-            );
+                $this->repository->updateTargetHeader($idTarget, [
+                    'edit_by'    => $effectiveActorId > 0 ? $effectiveActorId : null,
+                    'updated_at' => $now,
+                ]);
+
+                $after = $this->makeSnapshot($idTarget);
+                $removedCount = count($targetRows);
+                $tahun = (int) $targetsById[$idTarget]->tahun_target;
+                $summary = $removedCount === 1
+                    ? ('Kavling dihapus dari target tahun ' . $tahun)
+                    : ($removedCount . ' kavling dihapus dari target tahun ' . $tahun);
+
+                $this->recordTargetHistory(
+                    $idTarget,
+                    $idProyek,
+                    'target_remove_kavling',
+                    $summary,
+                    $before,
+                    $after,
+                    $effectiveActorId,
+                    $now,
+                    $removedCount === 1 ? $removedKavlingIds[0] : null,
+                    null,
+                    null,
+                    [
+                        'removed_count'       => $removedCount,
+                        'id_target_kavlings'  => $targetKavlingIds,
+                        'removed_kavling_ids' => $removedKavlingIds,
+                    ]
+                );
+            }
 
             $this->db->transCommit();
         } catch (\Throwable $e) {
@@ -498,7 +546,15 @@ class TargetSiteplanService
             throw $e;
         }
 
-        return $this->get($idTarget);
+        $primaryIdTarget = (int) array_key_first($groupedByTarget);
+
+        return array_merge($this->get($primaryIdTarget), [
+            'batch_summary' => [
+                'removed_count'       => count($allRemovedTargetKavlingIds),
+                'id_target_kavlings'  => $allRemovedTargetKavlingIds,
+                'removed_kavling_ids' => $allRemovedKavlingIds,
+            ],
+        ]);
     }
 
     public function save(array $data): array

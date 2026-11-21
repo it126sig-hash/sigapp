@@ -296,26 +296,39 @@ class TargetController extends BaseApiController
 
         $input = $this->getRequestData();
 
-        $idTargetKavling = (int) ($input['id_target_kavling'] ?? 0);
+        $rawTargetKavlings = ! empty($input['id_target_kavlings'])
+            ? $input['id_target_kavlings']
+            : ($input['id_target_kavling'] ?? null);
+        $targetKavlingIds = $this->normalizeIdList($rawTargetKavlings);
         $idTarget = (int) ($input['id_target'] ?? 0);
-        $idKavling = (int) ($input['id_kavling'] ?? 0);
+        $kavlingIds = $this->normalizeIdList(
+            ! empty($input['id_kavlings'])
+                ? $input['id_kavlings']
+                : ($input['id_kavling'] ?? null)
+        );
 
-        if ($idTargetKavling <= 0 && ($idTarget <= 0 || $idKavling <= 0)) {
+        if ($targetKavlingIds === [] && ($idTarget <= 0 || $kavlingIds === [])) {
             return $this->error(
-                'Parameter id_target_kavling atau pasangan id_target dan id_kavling wajib diisi',
+                'Parameter id_target_kavling(s) atau pasangan id_target dan id_kavling(s) wajib diisi',
                 422,
                 ['id_target_kavling' => 'Identitas target kavling wajib diisi']
             );
         }
 
-        $resolvedProyekId = $this->targetService->resolveProjectIdForTargetKavling(
-            $idTargetKavling > 0 ? $idTargetKavling : null,
+        $resolvedProjectIds = $this->targetService->resolveProjectIdsForTargetKavlings(
+            $targetKavlingIds,
             $idTarget > 0 ? $idTarget : null
         );
 
-        if ($resolvedProyekId === null) {
+        if ($resolvedProjectIds === []) {
             return $this->error('Kavling pada target tidak ditemukan', 404);
         }
+
+        if (count($resolvedProjectIds) > 1) {
+            return $this->error('Semua kavling harus berasal dari proyek yang sama', 422);
+        }
+
+        $resolvedProyekId = (int) $resolvedProjectIds[0];
 
         if ($denied = $this->authorizeProjectAccess($resolvedProyekId)) {
             return $denied;
@@ -323,8 +336,12 @@ class TargetController extends BaseApiController
 
         try {
             $result = $this->targetService->removeKavling($input, $this->currentUserId());
+            $removedCount = (int) ($result['batch_summary']['removed_count'] ?? 1);
+            $message = $removedCount > 1
+                ? ($removedCount . ' kavling berhasil dihapus dari target siteplan')
+                : 'Kavling berhasil dihapus dari target siteplan';
 
-            return $this->success($result, 'Kavling berhasil dihapus dari target siteplan');
+            return $this->success($result, $message);
         } catch (\Throwable $e) {
             $statusCode = str_contains(strtolower($e->getMessage()), 'tidak ditemukan') ? 404 : 422;
 

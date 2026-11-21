@@ -622,6 +622,33 @@
     display: flex;
     flex-direction: column;
     gap: .3rem;
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+#modal-apply-ubah-kavling .rk-chip-stack {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+#modal-request-kavling .rk-kavling-count-badge,
+#modal-apply-ubah-kavling .rk-kavling-count-badge {
+    align-items: center;
+    background: #edf4ff;
+    border: 1px solid #c7daf7;
+    border-radius: 999px;
+    color: #2057a3;
+    display: inline-flex;
+    font-size: .71rem;
+    font-weight: 700;
+    margin-bottom: .35rem;
+    padding: .14rem .52rem;
+    white-space: nowrap;
 }
 
 #modal-request-kavling .rk-item-chip,
@@ -1165,6 +1192,13 @@
 .dark-layout #modal-request-kavling .rk-item-chip-title,
 .dark-layout #modal-apply-ubah-kavling .rk-item-chip-title {
     color: #f3f4f6;
+}
+
+.dark-layout #modal-request-kavling .rk-kavling-count-badge,
+.dark-layout #modal-apply-ubah-kavling .rk-kavling-count-badge {
+    background: rgba(32, 87, 163, .28);
+    border-color: rgba(96, 165, 250, .38);
+    color: #bfdbfe;
 }
 
 .dark-layout #modal-request-kavling .rk-modal-tabs .nav-link,

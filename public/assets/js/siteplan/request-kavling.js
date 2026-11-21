@@ -918,7 +918,11 @@
             return '<span class="text-muted small">-</span>';
         }
 
-        return '<div class="rk-chip-stack">' + kavlings.map(function (k) {
+        const countBadgeHtml = kavlings.length > 1
+            ? '<div class="rk-kavling-count-badge">' + kavlings.length + ' kavling</div>'
+            : '';
+
+        return countBadgeHtml + '<div class="rk-chip-stack">' + kavlings.map(function (k) {
             const kavTitle = (k.nama_jalan ? (k.nama_jalan + ' ') : '') + 'No. ' + (k.no_kavling || k.id_kavling);
             const tipeAwal = k.old_tipe_label || k.current_tipe_label || '-';
             const currentBerbeda = k.current_tipe_label && k.old_tipe_label && k.current_tipe_label !== k.old_tipe_label;
@@ -1409,7 +1413,14 @@
                 + konTag
                 + '</div>';
         }).join('');
-        $('#rk-apply-kavling-list').html(kavHtml || '<div class="text-muted small">Tidak ada data kavling.</div>');
+        const $kavList = $('#rk-apply-kavling-list');
+        $kavList.prev('.rk-kavling-count-badge').remove();
+        if (kavlings.length > 1) {
+            $('<div class="rk-kavling-count-badge"></div>')
+                .text(kavlings.length + ' kavling')
+                .insertBefore($kavList);
+        }
+        $kavList.html(kavHtml || '<div class="text-muted small">Tidak ada data kavling.</div>');
 
         const $warn = $('#rk-apply-konsumen-warning');
         if (activeKonsumens.length > 0) {
@@ -1978,6 +1989,8 @@
     window.openModalListRequestKavling = function () {
         window.openModalRequestKavling({ tab: 'tambah' });
     };
+
+    window.refreshRequestKavlingCounts = loadCountsSummary;
 
     if (canCreate) {
         window.handleContextRequestKavling = function () {

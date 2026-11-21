@@ -14,6 +14,8 @@ Setiap rencana harus memenuhi kriteria yang relevan dengan mode tugasnya (`FEATU
 | **Minimum Necessary Diff** | [ ] | Apakah perbaikan hanya menyentuh file yang dibutuhkan? Dilarang merefaktor file yang tidak rusak kecuali tugasnya memang refaktor. |
 | **Clear Success Criteria** | [ ] | Apakah setiap langkah memiliki kriteria verifikasi eksplisit (`[Step] → verify: [check]`)? |
 | **No Orphaned Variables/Imports** | [ ] | Apakah rencana memastikan pembersihan variabel/import yang menjadi usang akibat perubahan? |
+| **Phased Execution Breakdown** | [ ] | Apakah rencana membagi pekerjaan menjadi beberapa fase eksekusi berurutan (`Fase A`, `Fase B`, `Fase C`, `Fase D`, ...) lengkap dengan lingkup, agen, subset file, dan *exit criteria* per fase? |
+| **Work Doc Path Declared** | [ ] | Apakah rencana menetapkan path dokumen kerja `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md` untuk diinisialisasi pasca-approval, diperbarui di setiap akhir fase/QA, dan difinalisasi oleh `sigapp-docs`? |
 
 ---
 

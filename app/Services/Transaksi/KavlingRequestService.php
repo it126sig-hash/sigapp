@@ -482,19 +482,77 @@ class KavlingRequestService
             throw new RuntimeException('Semua kavling yang dipilih sudah memiliki pengajuan ubah tipe yang berstatus pending.');
         }
 
+        $tipeCache = [];
+        $groups    = [];
+
+        foreach ($toInsert as $item) {
+            if ($item['id_tipe'] !== null) {
+                $idTipe = (int) $item['id_tipe'];
+                if (! array_key_exists($idTipe, $tipeCache)) {
+                    $tipeRow = $this->requestRepo->findTipeByIdAndProyek($idTipe, $idProyek);
+                    if (! $tipeRow) {
+                        throw new RuntimeException('Tipe rumah tidak ditemukan pada proyek ini.');
+                    }
+                    $tipeCache[$idTipe] = $tipeRow;
+                }
+                $tipeRow   = $tipeCache[$idTipe];
+                $groupKey  = 'master:' . $idTipe;
+                $groupTipe = $idTipe;
+                $manualVal = null;
+                $tipeLabel = $this->formatTipeLabel($tipeRow->no_tipe_rumah ?? null, $tipeRow->tipe_rumah ?? null)
+                    ?? ('Tipe #' . $idTipe);
+            } else {
+                $manualText = trim((string) $item['tipe_manual']);
+                $lowerKey   = function_exists('mb_strtolower') ? mb_strtolower($manualText) : strtolower($manualText);
+                $groupKey   = 'manual:' . $lowerKey;
+                $groupTipe  = null;
+                $manualVal  = $manualText;
+                $tipeLabel  = $manualText;
+            }
+
+            if (! isset($groups[$groupKey])) {
+                $groups[$groupKey] = [
+                    'id_tipe'     => $groupTipe,
+                    'tipe_manual' => $manualVal,
+                    'tipe_label'  => $tipeLabel,
+                    'items'       => [],
+                ];
+            }
+
+            $groups[$groupKey]['items'][] = $item;
+        }
+
         $this->db->transStart();
 
-        $createdIds = [];
-        foreach ($toInsert as $item) {
+        $createdIds     = [];
+        $groupSummaries = [];
+
+        foreach ($groups as $group) {
+            $groupKavlingIds = array_map(
+                static fn (array $item): int => $item['id_kavling'],
+                $group['items']
+            );
+
+            $keterangans = [];
+            $seenKet     = [];
+            foreach ($group['items'] as $gItem) {
+                $ket = trim((string) ($gItem['keterangan'] ?? ''));
+                if ($ket !== '' && ! isset($seenKet[$ket])) {
+                    $seenKet[$ket] = true;
+                    $keterangans[] = $ket;
+                }
+            }
+            $groupKeterangan = $keterangans !== [] ? implode('; ', $keterangans) : '';
+
             $inserted = $this->requestModel->insert([
                 'id_proyek'     => $idProyek,
                 'jenis_request' => 'ubah_tipe',
-                'id_kavling'    => $item['id_kavling'],
+                'id_kavling'    => count($groupKavlingIds) === 1 ? $groupKavlingIds[0] : null,
                 'id_cluster'    => null,
                 'id_jalan'      => null,
-                'id_tipe'       => $item['id_tipe'],
-                'tipe_manual'   => $item['tipe_manual'] !== '' ? $item['tipe_manual'] : null,
-                'keterangan'    => $item['keterangan'],
+                'id_tipe'       => $group['id_tipe'],
+                'tipe_manual'   => $group['tipe_manual'],
+                'keterangan'    => $groupKeterangan,
                 'status'        => 'pending',
                 'created_by'    => $userId,
             ]);
@@ -505,22 +563,37 @@ class KavlingRequestService
                 throw new RuntimeException('Gagal menyimpan pengajuan request kavling.');
             }
 
-            $oldIdTipe = isset($eligibilityMap[$item['id_kavling']]) && ! empty($eligibilityMap[$item['id_kavling']]->id_tipe)
-                ? (int) $eligibilityMap[$item['id_kavling']]->id_tipe
-                : null;
-            $this->requestRepo->insertKavlings($requestId, [[
-                'id_kavling'  => $item['id_kavling'],
-                'old_id_tipe' => $oldIdTipe,
-            ]]);
+            $childRows = [];
+            foreach ($groupKavlingIds as $kId) {
+                $oldIdTipe = isset($eligibilityMap[$kId]) && ! empty($eligibilityMap[$kId]->id_tipe)
+                    ? (int) $eligibilityMap[$kId]->id_tipe
+                    : null;
+                $childRows[] = [
+                    'id_kavling'  => $kId,
+                    'old_id_tipe' => $oldIdTipe,
+                ];
+            }
 
-            $createdIds[] = $requestId;
+            $this->requestRepo->insertKavlings($requestId, $childRows);
+
+            $createdIds[]     = $requestId;
+            $groupSummaries[] = [
+                'id_request'    => $requestId,
+                'id_tipe'       => $group['id_tipe'],
+                'tipe_manual'   => $group['tipe_manual'],
+                'tipe_label'    => $group['tipe_label'],
+                'kavling_count' => count($groupKavlingIds),
+                'id_kavlings'   => $groupKavlingIds,
+            ];
         }
 
         [$namaProyek, $pengaju] = $this->resolveProyekAndUserLabels($idProyek, $userId);
+        $requestCount = count($createdIds);
+        $kavlingCount = count($toInsert);
 
-        if (count($toInsert) === 1) {
-            $single         = $toInsert[0];
-            $pesanNotif     = $this->buildSingleUbahTipeNotifMessage(
+        if ($kavlingCount === 1) {
+            $single     = $toInsert[0];
+            $pesanNotif = $this->buildSingleUbahTipeNotifMessage(
                 $idProyek,
                 $single['id_kavling'],
                 $single['id_tipe'],
@@ -532,19 +605,15 @@ class KavlingRequestService
             $notifKavlingId = $single['id_kavling'];
             $actionUrl      = 'siteplan/view?id_kavling=' . $single['id_kavling'];
         } else {
-            $insertedKavlingIds = array_map(static fn (array $item): int => $item['id_kavling'], $toInsert);
-            $labels             = array_values($this->requestRepo->getKavlingLabels($insertedKavlingIds));
-
-            $previewLabels = array_slice($labels, 0, 5);
-            $previewText   = implode(', ', $previewLabels);
-            if (count($labels) > 5) {
-                $previewText .= ', +' . (count($labels) - 5) . ' lainnya';
+            $breakdownParts = [];
+            foreach (array_slice($groupSummaries, 0, 5) as $summaryItem) {
+                $breakdownParts[] = $summaryItem['tipe_label'] . ': ' . $summaryItem['kavling_count'] . ' kavling';
             }
-
-            $count          = count($toInsert);
-            $pesanNotif     = "[Request Siteplan] {$pengaju} mengajukan perubahan tipe untuk {$count} kavling" .
-                ($previewText !== '' ? " ({$previewText})" : '') .
-                " di {$namaProyek}.";
+            if (count($groupSummaries) > 5) {
+                $breakdownParts[] = '+' . (count($groupSummaries) - 5) . ' tipe lainnya';
+            }
+            $tipeBreakdown  = implode(', ', $breakdownParts);
+            $pesanNotif     = "[Request Siteplan] {$pengaju} mengajukan {$requestCount} request perubahan tipe untuk {$kavlingCount} kavling ({$tipeBreakdown}) di {$namaProyek}.";
             $notifKavlingId = null;
             $actionUrl      = 'siteplan/view';
         }
@@ -568,11 +637,15 @@ class KavlingRequestService
             throw new RuntimeException('Gagal memproses transaksi batch request kavling.');
         }
 
-        $submittedCount = count($createdIds);
-        $skippedCount   = count($skippedPending);
-        $message        = $submittedCount === 1
-            ? 'Pengajuan request berhasil dikirim ke tim Planning.'
-            : ($submittedCount . ' pengajuan ubah tipe berhasil dikirim ke tim Planning.');
+        $skippedCount = count($skippedPending);
+        if ($requestCount === 1 && $kavlingCount === 1) {
+            $message = 'Pengajuan request berhasil dikirim ke tim Planning.';
+        } elseif ($requestCount === 1 && $kavlingCount > 1) {
+            $message = "1 request ubah tipe untuk {$kavlingCount} kavling berhasil dikirim ke tim Planning.";
+        } else {
+            $message = "{$requestCount} request ubah tipe untuk {$kavlingCount} kavling berhasil dikirim ke tim Planning.";
+        }
+
         if ($skippedCount > 0) {
             $message .= ' (' . $skippedCount . ' kavling dilewati karena masih berstatus pending.)';
         }
@@ -580,7 +653,10 @@ class KavlingRequestService
         return [
             'id_request'      => $createdIds[0],
             'created_ids'     => $createdIds,
-            'submitted_count' => $submittedCount,
+            'submitted_count' => $requestCount,
+            'request_count'   => $requestCount,
+            'kavling_count'   => $kavlingCount,
+            'groups'          => $groupSummaries,
             'skipped_count'   => $skippedCount,
             'skipped_pending' => $skippedPending,
             'message'         => $message,
