@@ -1,0 +1,181 @@
+<link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css') ?>">
+<link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css') ?>">
+<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/laporan-booking-akad.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/laporan-booking-akad.css') ?>">
+<style><?= view('siteplan/partials/modal_detail_styles') ?></style>
+
+<div class="app-content content booking-akad-report-page">
+    <div class="content-overlay"></div>
+    <div class="header-navbar-shadow"></div>
+
+    <section>
+        <div class="row">
+            <div class="col-12">
+                <div class="card booking-akad-filter-card">
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start booking-akad-heading-row">
+                            <div>
+                                <div class="divider divider-left mb-50">
+                                    <div class="divider-text px-0"><?= esc($title) ?></div>
+                                </div>
+                                <p class="text-muted mb-0">
+                                    Ringkasan laporan Booking & Akad bulanan proyek <strong><?= esc($activeProyek->nama_proyek ?? 'belum dipilih') ?></strong>.
+                                </p>
+                            </div>
+                            <div class="booking-akad-filter-controls">
+                                <div class="form-group mb-0">
+                                    <label for="booking_akad_year_a">Tahun</label>
+                                    <select id="booking_akad_year_a" class="form-control">
+                                        <?php foreach ($availableYears as $year): ?>
+                                            <option value="<?= (int) $year ?>" <?= (int) $year === (int) $defaultYearA ? 'selected' : '' ?>><?= (int) $year ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <button type="button" id="booking_akad_add_comparison" class="btn btn-outline-primary">
+                                    <i class="fas fa-plus mr-25"></i>Tahun Pembanding
+                                </button>
+                                <div id="booking_akad_comparison_controls" class="booking-akad-comparison-controls" hidden>
+                                    <div class="booking-akad-versus" aria-hidden="true">vs</div>
+                                    <div class="form-group mb-0">
+                                        <label for="booking_akad_year_b">Tahun Pembanding</label>
+                                        <select id="booking_akad_year_b" class="form-control">
+                                            <?php foreach ($availableYears as $year): ?>
+                                                <option value="<?= (int) $year ?>" <?= (int) $year === (int) $defaultYearB ? 'selected' : '' ?>><?= (int) $year ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <button type="button" id="booking_akad_remove_comparison" class="btn btn-outline-danger booking-akad-remove-comparison" title="Hapus tahun pembanding" aria-label="Hapus tahun pembanding">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <button type="button" id="booking_akad_apply" class="btn btn-primary">
+                                    <i class="fas fa-filter mr-25"></i>Tampilkan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="booking_akad_no_project" class="alert alert-warning" role="alert" <?= $activeProyek ? 'hidden' : '' ?>>
+        <i class="fas fa-exclamation-triangle mr-50"></i>Pilih proyek aktif terlebih dahulu untuk menampilkan laporan Booking & Akad.
+    </div>
+    <div id="booking_akad_error" class="alert alert-danger" role="alert" hidden></div>
+
+    <section id="booking_akad_report_section" <?= $activeProyek ? '' : 'hidden' ?>>
+        <div class="card booking-akad-matrix-card">
+            <div class="card-header">
+                <div>
+                    <h5 class="mb-25">Laporan Booking & Akad Bulanan</h5>
+                    <small class="text-muted">Klik angka metrik untuk melihat rincian transaksi kavling penyusunnya.</small>
+                </div>
+                <div class="d-flex align-items-center booking-akad-report-actions">
+                    <span id="booking_akad_loading" class="booking-akad-loading" hidden>
+                        <span class="spinner-border spinner-border-sm mr-50" role="status" aria-hidden="true"></span>Memuat...
+                    </span>
+                    <button type="button" id="booking_akad_toggle_chart" class="btn btn-outline-primary btn-sm" disabled>
+                        <i class="fas fa-chart-bar mr-25"></i><span>Tampilkan Chart</span>
+                    </button>
+                </div>
+            </div>
+            <div class="card-datatable booking-akad-table-wrap">
+                <table id="booking_akad_matrix" class="table table-bordered table-hover mb-0">
+                    <thead id="booking_akad_matrix_head"></thead>
+                    <tbody id="booking_akad_matrix_body"></tbody>
+                    <tfoot id="booking_akad_matrix_foot"></tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div id="booking_akad_chart_card" class="card booking-akad-chart-card" hidden>
+            <div class="card-header">
+                <div>
+                    <h5 class="mb-25">Chart Tren Booking & Akad Bulanan</h5>
+                    <small class="text-muted">Perbandingan volume transaksi per kategori per bulan.</small>
+                </div>
+            </div>
+            <div class="card-body booking-akad-chart-body">
+                <canvas id="booking_akad_chart"></canvas>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="modal fade" id="booking_akad_detail_modal" tabindex="-1" role="dialog" aria-labelledby="booking_akad_detail_title" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title" id="booking_akad_detail_title">Detail Transaksi</h5>
+                    <small id="booking_akad_detail_subtitle" class="text-muted"></small>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="booking_akad_detail_error" class="alert alert-danger" role="alert" hidden></div>
+                <div class="card mb-0">
+                    <div class="card-datatable booking-akad-detail-table-wrap">
+                        <table id="booking_akad_detail_table" class="table table-bordered table-striped mb-0 w-100">
+                            <thead id="booking_akad_detail_table_head">
+                                <tr>
+                                    <th class="text-center" style="width: 40px;">No</th>
+                                    <th class="text-left">Kavling</th>
+                                    <th class="text-left">Konsumen</th>
+                                    <th class="text-center">Tanggal Booking</th>
+                                    <th class="text-left">Status Terakhir</th>
+                                    <th class="text-left">Catatan / Keterangan</th>
+                                    <th class="text-center" style="width: 70px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/extensions/sweetalert2.min.css') ?>">
+<script>
+if (typeof window.jQuery === 'undefined') {
+    document.write('<script src="<?= base_url('app-assets/vendors/js/vendors.min.js') ?>"><\/script>');
+}
+</script>
+<script src="<?= base_url('app-assets/vendors/js/extensions/sweetalert2.all.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/tables/datatable/datatables.bootstrap4.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/tables/datatable/responsive.bootstrap4.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/charts/chart.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js') ?>"></script>
+
+<?= view('siteplan/partials/modal_detail', ['data' => []]) ?>
+<script>
+window.base_url = '<?= base_url() ?>/';
+window.loaded = window.loaded || [];
+
+window.BOOKING_AKAD_REPORT = <?= json_encode([
+    'summaryUrl' => base_url('api/laporan/booking-akad/summary'),
+    'detailUrl' => base_url('api/laporan/booking-akad/detail'),
+    'hasProject' => (bool) $activeProyek,
+    'projectName' => (string) ($activeProyek->nama_proyek ?? ''),
+    'csrfName' => csrf_token(),
+    'csrfHash' => csrf_hash(),
+], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
+
+if (typeof dt_proyek === 'undefined') var dt_proyek = <?= json_encode($activeProyek ?? new \stdClass()) ?>;
+if (dt_proyek) {
+    dt_proyek.id_perumahan_sikumbang = dt_proyek.id_perumahan_sikumbang || '';
+}
+if (typeof csrfName === 'undefined') var csrfName = '<?= csrf_token() ?>';
+if (typeof csrfHash === 'undefined') var csrfHash = '<?= csrf_hash() ?>';
+if (typeof not_found === 'undefined') var not_found = '<?= base_url('assets/images/not-found.png') ?>';
+if (typeof editdtt === 'undefined') var editdtt = [];
+if (typeof roleid === 'undefined') var roleid = '<?= user_id() ? (session()->get('role_id') ?? 0) : 0 ?>';
+</script>
+<script src="<?= base_url('assets/js/siteplan-detail-modal.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
+<script src="<?= base_url('assets/js/laporan-booking-akad.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/laporan-booking-akad.js') ?>"></script>

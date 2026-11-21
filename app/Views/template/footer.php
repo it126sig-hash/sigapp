@@ -56,6 +56,11 @@
    <!-- END: Footer-->
 
    <!-- BEGIN: Page Vendor JS-->
+   <script>
+       if (typeof jQuery === 'undefined') {
+           document.write('<script src="<?= base_url('app-assets/vendors/js/vendors.min.js') ?>"><\/script>');
+       }
+   </script>
    <!-- END: Page Vendor JS-->
 
    <!-- BEGIN: Theme JS-->

@@ -208,6 +208,52 @@ $("#idk-kode_referal").select2({
 });
 
 
+let activeSalesData = [];
+function loadActiveSalesSelect(selectedId, selectedText) {
+  $.get(base_url + "api/sales-external/list-active", function(r) {
+    if (r && r.data) {
+      activeSalesData = r.data;
+      let $sel = $("#idk-sales_select");
+      $sel.empty().append('<option value="">-- Pilih Sales External --</option>');
+      r.data.forEach(function(s) {
+        let opt = new Option(s.nama, s.id, false, false);
+        $(opt).data('sales', s);
+        $sel.append(opt);
+      });
+      if (selectedId) {
+        $sel.val(selectedId).trigger('change');
+      } else if (selectedText) {
+        let found = r.data.find(function(item) {
+          return item.nama.toLowerCase() === selectedText.toLowerCase();
+        });
+        if (found) {
+          $sel.val(found.id).trigger('change');
+        } else {
+          let customOpt = new Option(selectedText, selectedText, true, true);
+          $sel.append(customOpt).trigger('change');
+          $("#idk-sales").val(selectedText);
+        }
+      }
+    }
+  });
+}
+
+$("#idk-sales_select").select2({
+  placeholder: "Pilih Sales External",
+  allowClear: true,
+  dropdownParent: $('#modal-isi_data_konsumen')
+}).on('change', function() {
+  let val = $(this).val();
+  let selText = $(this).find('option:selected').text();
+  if (val && !isNaN(val)) {
+    $("#idk-id_sales").val(val);
+    $("#idk-sales").val(selText);
+  } else {
+    $("#idk-id_sales").val('');
+    $("#idk-sales").val(val || '');
+  }
+});
+
 const containerIsiKonsumen = $("#tab-isi-konsumen");
 let latestIsiDataKonsumenRequestId = 0;
 const consumerReplacementState = {
@@ -226,7 +272,7 @@ const consumerIdentityFields = [
   "#idk-pekerjaan", "#idk-lama_bekerja", "#idk-bidang_pekerjaan",
   "#idk-status_pernikahan", "#idk-nama_pasangan", "#idk-nik_pasangan",
   "#idk-hp_pasangan", "#idk-status_pekerjaan_pasangan", "#idk-instansi_pasangan",
-  "#idk-sales",
+  "#idk-sales", "#idk-keterangan_sales", "#idk-sales_select", "#idk-id_sales",
 ];
 
 function resetConsumerReplacementMode() {
@@ -255,7 +301,9 @@ function prepareConsumerReplacementForm() {
   $("#idk_data_baru").val(1);
 
   $(consumerIdentityFields.join(",")).val("").trigger("change");
+  $("#idk-status_pernikahan").val("Belum Kawin");
   $("#idk-kode_referal").val(null).trigger("change");
+  $("#idk-sales_select").val(null).trigger("change");
   $("#file_ktp, #file_npwp, #file_data_diri, #file_spptb, #file_surat_kuasa").val("");
   $("#idk-file_ktp-here, #idk-file_npwp-here, #idk-file_data_diri-here")
     .html("Tidak ada data")
@@ -272,6 +320,7 @@ function prepareConsumerReplacementForm() {
   $("#st-mkdt-no_spptb").prop("readonly", true).addClass("replacement-locked bg-light");
   $("#btn-print_spptb").attr("href", "#").removeAttr("target");
   $("#idk_data_konsumen-tab").tab("show");
+  syncIdkMaritalStatusFields({ clearWhenUnmarried: true });
 }
 
 $(document).off("click.mkdtPindahKonsumen", "#btn-pindah-konsumen")
@@ -424,6 +473,48 @@ function disableForm(disabled) {
   ui.form.kons.find("input:text, select, textarea").prop("disabled", disabled);
 }
 
+function normalizeIdkMaritalStatus(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw || raw.toLowerCase() === "belum menikah") return "Belum Kawin";
+  if (raw.toLowerCase() === "menikah") return "Kawin";
+  return raw;
+}
+
+function syncIdkMaritalStatusFields(options = {}) {
+  const { clearWhenUnmarried = false } = options;
+  const $status = $("#idk-status_pernikahan");
+  if (!$status.length) return;
+
+  // Jangan membuka kunci bila seluruh form sedang dikunci (mis. status_mkdt === "Batal")
+  if ($status.prop("disabled")) return;
+
+  const isBelumKawin = $status.val() === "Belum Kawin";
+  const $textFields = $(
+    "#idk-nama_pasangan, #idk-nik_pasangan, #idk-hp_pasangan, #idk-instansi_pasangan"
+  );
+  const $jobField = $("#idk-status_pekerjaan_pasangan");
+
+  $textFields.prop("disabled", isBelumKawin).prop("readonly", isBelumKawin);
+  $jobField.prop("disabled", isBelumKawin).prop("required", !isBelumKawin);
+
+  if (isBelumKawin && clearWhenUnmarried) {
+    $textFields.val("").triggerHandler("input");
+    $jobField.val("");
+  }
+}
+
+$(document)
+  .off("change.idkMarital", "#idk-status_pernikahan")
+  .on("change.idkMarital", "#idk-status_pernikahan", function () {
+    syncIdkMaritalStatusFields({ clearWhenUnmarried: true });
+  });
+
+$(document)
+  .off("shown.bs.modal.idkMarital", "#modal-isi_data_konsumen")
+  .on("shown.bs.modal.idkMarital", "#modal-isi_data_konsumen", function () {
+    syncIdkMaritalStatusFields({ clearWhenUnmarried: false });
+  });
+
 function setVal(sel, val) {
   $(sel)
     .val(val ?? "")
@@ -501,6 +592,8 @@ function bindKavlingContext(sh) {
       )
       .attr("target", "_blank");
   }
+
+  syncIdkMaritalStatusFields({ clearWhenUnmarried: false });
 }
 
 function fillPriceSection(h, dk) {
@@ -955,7 +1048,7 @@ function fillMkdt(v) {
 
   setVal("#mk-harga_allin", v.harga_allin);
 
-  setVal("#idk-status_mkdt", v.status_mkdt);
+  setVal("#idk-status_mkdt", v.status_mkdt === "NUP" ? "Booking" : v.status_mkdt);
   setVal("#idk-keterangan_batal", v.keterangan_batal);
   setIdkPerluRefund(v.perlu_refund);
   setDate(v.booking_tgl, "#idk-booking_tgl");
@@ -970,7 +1063,7 @@ function fillMkdt(v) {
   setVal("#idk-npwp_konsumen", v.npwp_konsumen);
   setVal("#idk-hp_konsumen", v.hp_konsumen);
   setVal("#idk-email_konsumen", v.email_konsumen);
-  setVal("#idk-status_konsumen", v.status_konsumen);
+  setVal("#idk-status_konsumen", v.status_konsumen === "NUP" ? "Normal" : v.status_konsumen);
 
   setVal("#idk-nama_instansi", v.nama_instansi);
   setVal("#idk-alamat_instansi", v.alamat_instansi);
@@ -981,14 +1074,18 @@ function fillMkdt(v) {
   setVal("#idk-lama_bekerja", v.lama_bekerja);
   setVal("#idk-bidang_pekerjaan", v.bidang_pekerjaan);
 
-  setVal("#idk-status_pernikahan", v.status_pernikahan);
+  setVal("#idk-status_pernikahan", normalizeIdkMaritalStatus(v.status_pernikahan));
   setVal("#idk-nama_pasangan", v.nama_pasangan);
   setVal("#idk-nik_pasangan", v.nik_pasangan);
   setVal("#idk-hp_pasangan", v.hp_pasangan);
   setVal("#idk-status_pekerjaan_pasangan", v.status_pekerjaan_pasangan);
   setVal("#idk-instansi_pasangan", v.instansi_pasangan);
+  syncIdkMaritalStatusFields({ clearWhenUnmarried: false });
 
   setVal("#idk-sales", v.sales);
+  setVal("#idk-id_sales", v.id_sales);
+  setVal("#idk-keterangan_sales", v.keterangan_sales);
+  loadActiveSalesSelect(v.id_sales, v.sales);
 
   if (v.referred_by_kode) {
     let option = new Option(v.referred_by_kode + ' - ' + v.referred_by_nama, v.referred_by_kode, true, true);
@@ -1003,9 +1100,10 @@ function fillMkdt(v) {
 
   setRichText(v.rincian);
 
-  // if (v.keuangan_saved_by) {
+  if (Number(v.harga_jual || 0) > 0 || Number(v.harga_allin || 0) > 0) {
   setVal("#mk-hargajual", v.harga_jual);
   setVal("#mk-hargajual_net", v.harga_jual_net);
+  setVal("#mk-harga_net_ajb", (v.harga_net_ajb && Number(v.harga_net_ajb) > 0) ? v.harga_net_ajb : v.harga_jual_net);
   setVal("#mk-kpr", v.harga_kpr);
   setVal("#mk-uang_muka", v.harga_uang_muka);
   setVal("#mk-biaya_adm", v.harga_administrasi);
@@ -1016,7 +1114,7 @@ function fillMkdt(v) {
   setVal("#mk-harga_penambahan", v.harga_penambahan);
   setVal("#mk-harga_penambahan_tanah", v.harga_penambahan_tanah);
   setVal("#mk-diskon_uang_muka", v.harga_diskon_uang_muka);
-  // }
+  }
 
   setVal("#idk-promo", v.promo);
 
@@ -1702,6 +1800,9 @@ async function isi_data_konsumen() {
       initModalListener("#modal-isi_data_konsumen");
       state.status.tab.isClosed = false;
       getRiwayatGantinama(false);
+      if (window.SIGAPP_NUP && typeof window.SIGAPP_NUP.renderKavlingHistoryTable === "function") {
+        window.SIGAPP_NUP.renderKavlingHistoryTable(res.kavling_history || []);
+      }
     });
   } catch (e) {
     console.log(e);
@@ -1801,6 +1902,9 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
 
   if (!consumerReplacementState.active) {
     appendCollectionToFormData(fd, state.data_um);
+    if (window.SIGAPP_NUP && typeof window.SIGAPP_NUP.appendPendingTransferToFormData === "function") {
+      window.SIGAPP_NUP.appendPendingTransferToFormData(fd);
+    }
   }
 
   const fileInfo = typeof getIdkFilesInfo === "function" ? getIdkFilesInfo() : { hasFiles: false, text: "" };
@@ -1846,6 +1950,17 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
       }
 
       if (r.success === true) {
+        resetConsumerReplacementMode();
+        removeModalListener("#modal-isi_data_konsumen");
+        removeModalListener("#modal_divisi4");
+        $(".modal").modal("hide");
+        if (window.SIGAPP_NUP) {
+          window.SIGAPP_NUP.pendingTransferContext = null;
+          window.SIGAPP_NUP.clearPendingTransferBanner();
+          window.SIGAPP_NUP.reloadAll();
+        }
+        load_kavling();
+        hapus_seleksi();
         Swal.fire({
           //position: 'bottom-end',
           icon: "success",
@@ -1853,7 +1968,6 @@ function simpan_dt_konsumen_keuangan(allowDuplicateNik = false) {
           showConfirmButton: false,
           timer: 1500,
         }).then(function () {
-          resetConsumerReplacementMode();
           removeModalListener("#modal-isi_data_konsumen");
           $(".modal").modal("hide");
 
@@ -2014,6 +2128,31 @@ $("#wawancara").change(function () {
     setDatePicker(null, "#wawancara_tgl");
   }
 });
+$("#akad_indent").change(function () {
+  if (!$("#akad_indent").prop("checked")) {
+    setDatePicker(null, "#fm-mkdt #akad_indent_tgl");
+    if (!$("#akad").prop("checked")) {
+      $("#is_ajb").val("").trigger("change");
+    }
+  } else {
+    if (!$("#akad").prop("checked")) {
+      $("#is_ajb").val("PPJB").trigger("change");
+    }
+  }
+});
+
+$("#akad").change(function () {
+  if ($("#akad").prop("checked")) {
+    $("#is_ajb").val("AJB").trigger("change");
+  } else {
+    setDatePicker(null, "#fm-mkdt #akad_tgl");
+    if ($("#akad_indent").prop("checked")) {
+      $("#is_ajb").val("PPJB").trigger("change");
+    } else {
+      $("#is_ajb").val("").trigger("change");
+    }
+  }
+});
 
 $("#refresh_fmmkdt_btn").click(function () {
   refresh_fmmkdt(false);
@@ -2172,6 +2311,7 @@ function open_mkdt(sh, role, id_kavling) {
         setDatePicker(r.sp3k_tgl, "#fm-mkdt #sp3k_tgl");
         setDatePicker(r.sp3k_tgl_exp, "#fm-mkdt #sp3k_tgl_exp");
         setDatePicker(r.rencana_akad_tgl, "#fm-mkdt #rencana_akad_tgl");
+        setDatePicker(r.akad_indent_tgl, "#fm-mkdt #akad_indent_tgl");
         setDatePicker(r.akad_tgl, "#fm-mkdt #akad_tgl");
 
         // if (r.refund_tgl != "0000-00-00")
@@ -2220,7 +2360,7 @@ function open_mkdt(sh, role, id_kavling) {
         backdrop: "static",
         keyboard: false,
       });
-      initModalListener("#modal_divisi" + role);
+      removeModalListener("#modal_divisi" + role);
     },
     error: function (xhr, st, err) {
       $("#loading").addClass("hidden");
@@ -2324,6 +2464,12 @@ function save_mkdt(e) {
   if (!palid("fm-mkdt #status_mkdt", "", "Status harus diisi")) return;
   if (!palid("fm-mkdt #id_bank", "", "Bank harus diisi")) return;
 
+  if ($("#akad_indent").prop("checked") && !$("#akad_indent_tgl").val().trim()) {
+    swal("error", "Tanggal Akad Indent wajib diisi jika status Akad Indent diaktifkan");
+    $("#akad_indent_tgl").focus();
+    return;
+  }
+
   if (
     removeComma($("#harga_turun_kpr").val()) > 0 &&
     $("#mkdt-tagihan_kpr").html() == ""
@@ -2420,15 +2566,49 @@ function set_harga() {
   });
 }
 
+function formatKeteranganSummary(rawHtml) {
+  if (!rawHtml) {
+    return "-";
+  }
+  var withPlaceholder = String(rawHtml).replace(/<img\b[^>]*>/gi, " [Gambar] ");
+  var parsedDoc =
+    typeof DOMParser !== "undefined"
+      ? new DOMParser().parseFromString(withPlaceholder, "text/html")
+      : null;
+  var rawText =
+    parsedDoc && parsedDoc.body
+      ? parsedDoc.body.textContent || ""
+      : $("<div>").html(withPlaceholder).text();
+  var plain = rawText.replace(/\s+/g, " ").trim();
+  plain = plain
+    .replace(/;/g, ",")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  if (!plain) {
+    return "-";
+  }
+  return plain.length > 120 ? plain.substring(0, 117) + "..." : plain;
+}
+
 function formatDesign(item) {
+  if (!item || !item.text) {
+    return "";
+  }
   var selectionText = item.text.split(";");
+  if (selectionText.length < 3) {
+    return item.text;
+  }
+  var keteranganPart = (
+    item.text.endsWith(";") ? selectionText.slice(2, -1) : selectionText.slice(2)
+  ).join(";");
   var $returnString = $(
     "<span> <b>" +
       selectionText[0] +
       "</b></br >" +
       selectionText[1] +
       "</br>" +
-      selectionText[2] +
+      keteranganPart +
       "</span>",
   );
   return $returnString;
@@ -2458,9 +2638,9 @@ $("#sh-id").select2({
           id: v.id,
           text: `Rp. ${num_format(v.hargajual)} Per ${format_date(
             v.tgl_harga,
-          )} (ROW ${v.row}); <b>Tipe:</b> ${v.id_tipe}; <b>Ket:</b> ${
-            v.keterangan
-          };`,
+          )} (ROW ${v.row}); <b>Tipe:</b> ${v.id_tipe}; <b>Ket:</b> ${formatKeteranganSummary(
+            v.keterangan,
+          )};`,
           row: v.row,
           tipe: v.id_tipe,
           lb: v.lb,
@@ -3016,6 +3196,7 @@ $("#refresh-btn-idk_keu").click(function () {
   state.data_um = {};
   tambah_ketagihan();
   sum_mktotal();
+  syncIdkMaritalStatusFields({ clearWhenUnmarried: true });
 });
 
 function mkdtUpload() {

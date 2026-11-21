@@ -126,11 +126,10 @@ class ProfilService
             ];
         }
 
+        $this->validation->reset();
         $this->validation->setRules($rules);
         $dataToValidate = $postData;
-        if ($photo) {
-            $dataToValidate['profile_photo'] = $photo;
-        }
+        unset($dataToValidate['profile_photo']);
 
         if (!$this->validation->run($dataToValidate)) {
             return [

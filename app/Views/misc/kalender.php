@@ -9,7 +9,7 @@
 <script>
   var csrfName = '<?= csrf_token() ?>';
   var csrfHash = '<?= csrf_hash() ?>';
-  var base_url = '<?= base_url() ?>';
+  const kalendarBaseUrl = typeof base_url !== 'undefined' ? base_url : '<?= base_url() ?>';
 </script>
 
 <div class="app-content content ">
@@ -283,7 +283,7 @@
 
         var meta = eventMeta[eventKey] || {};
 
-        var color = meta.color || '#7367f0';
+        var color = meta.color || '#2057a3';
 
         var dateLabel = moment(event.start).format('DD MMM YYYY');
 
@@ -343,7 +343,7 @@
 
       $.ajax({
 
-        url: base_url + '/kalendar/getEvents',
+        url: kalendarBaseUrl + '/kalendar/getEvents',
 
         method: 'POST',
 
@@ -381,7 +381,7 @@
 
           if (typeof failureCallback === 'function') {
 
-            failureCallback();
+            failureCallback(new Error('Gagal memuat event kalender.'));
 
           } else {
 

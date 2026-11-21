@@ -1690,7 +1690,7 @@
             <div class="modal-header">
                 <div class="min-w-0">
                     <h5 class="modal-title mb-0">Turun Pembangunan</h5>
-                    <span class="tp-project"><i class="fas fa-home mr-1"></i>Proyek: <?= $data['proyek']->nama_proyek ?></span>
+                    <span class="tp-project"><i class="fas fa-home mr-1"></i>Proyek: <?= esc($data['proyek']->nama_proyek ?? '-') ?></span>
                 </div>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -1706,7 +1706,7 @@
                                 </div>
                                 <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
                                 <input type="hidden" class="form-control" id="tp-nama_proyek" readonly name="nama_proyek"
-                                    value="<?= $data['proyek']->nama_proyek ?>" />
+                                    value="<?= esc($data['proyek']->nama_proyek ?? '') ?>" />
                                 <div class="form-group mb-0">
                                     <label class="form-label" for="tp-kavling">Kavling</label>
                                     <textarea class="form-control" id="tp-kavling" name="tp-kavling" rows="6" readonly
@@ -1775,7 +1775,7 @@
             <div class="modal-header">
                 <div class="min-w-0">
                     <h5 class="modal-title mb-0">Manajemen Kavling &mdash; Set Harga</h5>
-                    <span class="set-harga-project"><i class="fas fa-home mr-1"></i>Proyek: <?= $data['proyek']->nama_proyek ?></span>
+                    <span class="set-harga-project"><i class="fas fa-home mr-1"></i>Proyek: <?= esc($data['proyek']->nama_proyek ?? '-') ?></span>
                 </div>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -1794,7 +1794,7 @@
                                     <label for="sh-kavling">Kavling</label>
                                     <input type="hidden" class="form-control" id="points" readonly name="points" value="" />
                                     <input type="hidden" class="form-control id_kavling" readonly name="id_kavling" value="" />
-                                    <input type="hidden" class="form-control" id="nama_proyek" readonly name="nama_proyek" value="<?= $data['proyek']->nama_proyek ?>" />
+                                    <input type="hidden" class="form-control" id="nama_proyek" readonly name="nama_proyek" value="<?= esc($data['proyek']->nama_proyek ?? '') ?>" />
                                     <textarea class="form-control" id="sh-kavling" name="sh-kavling" rows="4" readonly placeholder="Kavling"></textarea>
                                     <small class="set-harga-note">Gunakan titik koma ";" untuk pemisah nomor rumah jika input lebih dari 1 kavling sekaligus.</small>
                                 </div>
@@ -2205,18 +2205,22 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="custom-control custom-switch custom-control-inline">
-                                        <input type="checkbox" class="custom-control-input" id="akad" name="akad" value="1" />
-                                        <label class="custom-control-label" for="akad">Status Akad Rampung</label>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <div class="custom-control custom-switch custom-control-inline">
                                         <input type="checkbox" class="custom-control-input" id="akad_indent" name="akad_indent" value="1" />
                                         <label class="custom-control-label" for="akad_indent">Akad Indent</label>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="akad_tgl">Tanggal Akad</label>
+                                    <label for="akad_indent_tgl">Tanggal Akad Indent</label>
+                                    <input type="text" id="akad_indent_tgl" name="akad_indent_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
+                                </div>
+                                <div class="form-group">
+                                    <div class="custom-control custom-switch custom-control-inline">
+                                        <input type="checkbox" class="custom-control-input" id="akad" name="akad" value="1" />
+                                        <label class="custom-control-label" for="akad">Status Akad AJB</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="akad_tgl">Tanggal Akad (AJB)</label>
                                     <input type="text" id="akad_tgl" name="akad_tgl" class="form-control flatpickr-human-friendly" placeholder="-" />
                                 </div>
                                 <div class="form-group">
@@ -2249,6 +2253,8 @@
                     <div class="sticky-button-wrapper">
                         <div class="d-flex flex-wrap justify-content-end" style="gap: .5rem;">
                             <button type="button" class="btn btn-outline-secondary" data-dismiss="modal"><i class="fas fa-times mr-1"></i> Cancel</button>
+                            <button type="button" id="btn-tarik-nup-status" class="btn btn-outline-danger" onclick="openTarikKeNupModal()"><i class="fas fa-undo-alt mr-1"></i> Tarik ke NUP</button>
+                            <button type="button" id="btn-pindah-kavling-status" class="btn btn-outline-info" onclick="openPindahKavlingModal()"><i class="fas fa-exchange-alt mr-1"></i> Pindah Kavling</button>
                             <button type="button" id="btn-pindah-konsumen" class="btn btn-outline-warning"><i class="fas fa-user-edit mr-1"></i> Pindah Konsumen</button>
                             <button type="button" id="add-form-btn-mkdt" class="btn btn-primary" onclick="save_mkdt(this)"><i class="fas fa-save mr-1"></i> Simpan Data</button>
                         </div>

@@ -1,0 +1,22 @@
+[
+    {
+        "layer": "Service",
+        "file": "ReferralService.php",
+        "name": "getSubRowsByReferrer"
+    },
+    {
+        "layer": "Service",
+        "file": "ReferralService.php",
+        "name": "updateKeterangan"
+    },
+    {
+        "layer": "Service",
+        "file": "ReferralService.php",
+        "name": "getCashoutBonusesByKavling"
+    },
+    {
+        "layer": "Service",
+        "file": "ReferralService.php",
+        "name": "getMgmNotificationContext"
+    }
+]

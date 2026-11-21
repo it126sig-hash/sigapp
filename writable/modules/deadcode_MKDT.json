@@ -1,0 +1,22 @@
+[
+    {
+        "layer": "Controller",
+        "file": "PosisiKonsumenController.php",
+        "name": "meta"
+    },
+    {
+        "layer": "Controller",
+        "file": "PromoController.php",
+        "name": "meta"
+    },
+    {
+        "layer": "Controller",
+        "file": "MkdtOperationController.php",
+        "name": "meta"
+    },
+    {
+        "layer": "Service",
+        "file": "MkdtFinancialReconciliationService.php",
+        "name": "apply"
+    }
+]

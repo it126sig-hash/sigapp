@@ -66,6 +66,13 @@ class NotificationEventTypeSeeder extends Seeder
             ['bpb_rejected', 'bpb', 'BPB Ditolak', 'Saat BPB ditolak oleh pemberi paraf atau Mengetahui', 1, 1, 1, 0, null, 92],
             ['bpb_approved', 'bpb', 'BPB Disetujui', 'Saat seluruh approval BPB selesai', 1, 1, 1, 0, null, 93],
             ['bpb_status_changed', 'bpb', 'Perubahan Status BPB', 'Saat status operasional BPB berubah', 1, 0, 0, 0, null, 94],
+
+            // Kategori: Fee Sales
+            [\App\Enums\NotificationEvent::FEE_SALES_PENGAJUAN_CREATED, 'Fee Sales', 'Pengajuan Fee Sales Baru', 'Notifikasi saat ada pengajuan pencairan fee sales baru.', 1, 1, 1, 0, '3;4', 100],
+            [\App\Enums\NotificationEvent::FEE_SALES_TERMIN_GENERATED, 'Fee Sales', 'Generate Termin Fee Sales', 'Notifikasi saat termin pembayaran fee sales di-generate pada kavling.', 1, 1, 1, 0, '3;4', 101],
+            [\App\Enums\NotificationEvent::FEE_SALES_HARGA_NET_UPDATED, 'Fee Sales', 'Perubahan Harga Jual Net / AJB (Fee Sales)', 'Notifikasi saat nominal Harga Jual Net atau Harga Net Sesuai AJB mengalami perubahan.', 1, 1, 1, 0, '3;4', 102],
+            [\App\Enums\NotificationEvent::FEE_SALES_TTD_SIGNED, 'Fee Sales', 'Tanda Tangan Pengajuan Fee Sales (MKDT / Keuangan)', 'Notifikasi saat pengajuan fee sales ditandatangani oleh pihak MKDT atau Keuangan.', 1, 1, 1, 0, '3;4', 103],
+            [\App\Enums\NotificationEvent::FEE_SALES_PENCAIRAN, 'Fee Sales', 'Pencairan Pengajuan Fee Sales', 'Notifikasi saat pengajuan fee sales telah dikonfirmasi cair.', 1, 1, 1, 0, '3;4', 104],
         ];
 
         $data = [];

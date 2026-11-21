@@ -8,9 +8,10 @@ class PengaturanWarnaModel extends Model {
     
 	protected $table = 'config_shape';
 	protected $primaryKey = 'config_name';
+	protected $useAutoIncrement = false;
 	protected $returnType = 'object';
 	protected $useSoftDeletes = false;
-	protected $allowedFields = ['fill', 'stroke', 'strokeWidth', 'dashed', 'keterangan', 'add_by', 'date_add', 'edit_by', 'date_edit'];
+	protected $allowedFields = ['config_name', 'fill', 'stroke', 'strokeWidth', 'dashed', 'keterangan', 'add_by', 'date_add', 'edit_by', 'date_edit'];
 	protected $useTimestamps = false;
 	protected $createdField  = 'created_at';
 	protected $updatedField  = 'updated_at';

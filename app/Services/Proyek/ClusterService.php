@@ -2,17 +2,17 @@
 
 namespace App\Services\Proyek;
 
-use App\Controllers\Notif;
 use App\Models\ClusterModel;
 use App\Repositories\Proyek\ClusterRepository;
 use App\Services\HistoryService;
+use App\Services\NotifikasiService;
 
 class ClusterService
 {
     protected ClusterModel $clusterModel;
     protected ClusterRepository $clusterRepository;
     protected HistoryService $historyService;
-    protected Notif $notif;
+    protected NotifikasiService $notif;
     protected $validation;
 
     public function __construct()
@@ -20,7 +20,7 @@ class ClusterService
         $this->clusterModel      = new ClusterModel();
         $this->clusterRepository = new ClusterRepository();
         $this->historyService    = new HistoryService();
-        $this->notif             = new Notif();
+        $this->notif             = new NotifikasiService();
         $this->validation        = \Config\Services::validation();
     }
 
@@ -30,25 +30,35 @@ class ClusterService
 
         $result = $this->clusterRepository->getDataTables($params);
         $data   = [];
+        $isRaw  = ($params['format'] ?? '') === 'raw';
 
         foreach ($result['rows'] as $key => $value) {
-            $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_cluster . ')"><i class="fa fa-edit"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="remove(' . $value->id_cluster . ')"><i class="fa fa-trash"></i></button>';
-            $ops .= '</div>';
-
-            $data[$key] = [
-                $value->id_cluster,
-                $value->id_proyek,
-                $value->nama_proyek,
-                $value->nama_cluster,
-                $value->jumlah_bangun,
-                '<span class="badge badge-light-success badge-pill">' . $value->total_akad . '</span>',
-                '<span class="badge badge-light-warning badge-pill">' . $value->total_booking . '</span>',
-                '<span class="badge badge-light-secondary badge-pill">' . $value->total_belum_terjual . '</span>',
-                $this->isActiveBadge($value->is_active, "Aktif", "Tidak"),
-                $ops,
-            ];
+            if ($isRaw) {
+                $data[$key] = [
+                    'id_cluster'          => (int) $value->id_cluster,
+                    'id_proyek'           => (int) $value->id_proyek,
+                    'nama_proyek'         => $value->nama_proyek,
+                    'nama_cluster'        => $value->nama_cluster,
+                    'jumlah_bangun'       => (int) $value->jumlah_bangun,
+                    'total_akad'          => (int) $value->total_akad,
+                    'total_booking'       => (int) $value->total_booking,
+                    'total_belum_terjual' => (int) $value->total_belum_terjual,
+                    'is_active'           => (int) $value->is_active,
+                ];
+            } else {
+                $data[$key] = [
+                    (int) $value->id_cluster,
+                    (int) $value->id_proyek,
+                    $value->nama_proyek,
+                    $value->nama_cluster,
+                    (int) $value->jumlah_bangun,
+                    (int) $value->total_akad,
+                    (int) $value->total_booking,
+                    (int) $value->total_belum_terjual,
+                    (int) $value->is_active,
+                    (int) $value->id_cluster,
+                ];
+            }
         }
 
         return [
@@ -64,21 +74,27 @@ class ClusterService
         $params['id_proyek'] = resolve_active_proyek_id($params['id_proyek'] ?? null);
         $clusters            = $this->clusterRepository->getAll($params);
         $data                = [];
+        $isRaw               = ($params['format'] ?? '') === 'raw';
 
         foreach ($clusters as $key => $value) {
-            $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_cluster . ')"><i class="fa fa-edit"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="remove(' . $value->id_cluster . ')"><i class="fa fa-trash"></i></button>';
-            $ops .= '</div>';
-
-            $data[$key] = [
-                $value->id_cluster,
-                $value->id_proyek,
-                $value->nama_proyek,
-                $value->nama_cluster,
-                $value->is_active,
-                $ops,
-            ];
+            if ($isRaw) {
+                $data[$key] = [
+                    'id_cluster'   => (int) $value->id_cluster,
+                    'id_proyek'    => (int) $value->id_proyek,
+                    'nama_proyek'  => $value->nama_proyek,
+                    'nama_cluster' => $value->nama_cluster,
+                    'is_active'    => (int) $value->is_active,
+                ];
+            } else {
+                $data[$key] = [
+                    $value->id_cluster,
+                    $value->id_proyek,
+                    $value->nama_proyek,
+                    $value->nama_cluster,
+                    $value->is_active,
+                    $value->id_cluster,
+                ];
+            }
         }
 
         return $data;
@@ -95,17 +111,20 @@ class ClusterService
 
     public function add(array $postData): array
     {
+        $idProyek = !empty($postData['idProyek']) ? (int) $postData['idProyek'] : (!empty($postData['id_proyek']) ? (int) $postData['id_proyek'] : resolve_active_proyek_id(null));
+        $namaCluster = trim((string) ($postData['namaCluster'] ?? $postData['nama_cluster'] ?? ''));
+        $isActive = isset($postData['isActive']) ? (int) $postData['isActive'] : (isset($postData['is_active']) ? (int) $postData['is_active'] : 1);
+
         $fields = [
-            'id_cluster'   => $postData['idCluster'] ?? null,
-            'id_proyek'    => $postData['idProyek'] ?? null,
-            'nama_cluster' => $postData['namaCluster'] ?? null,
-            'is_active'    => $postData['isActive'] ?? null,
+            'id_proyek'    => $idProyek ?: null,
+            'nama_cluster' => $namaCluster !== '' ? $namaCluster : null,
+            'is_active'    => $isActive,
         ];
 
         $this->validation->setRules([
-            'id_proyek'    => ['label' => 'Id proyek', 'rules' => 'permit_empty|max_length[255]'],
-            'nama_cluster' => ['label' => 'Nama cluster', 'rules' => 'permit_empty|max_length[255]'],
-            'is_active'    => ['label' => 'Is active', 'rules' => 'permit_empty|max_length[1]'],
+            'id_proyek'    => ['label' => 'Id proyek', 'rules' => 'required|numeric'],
+            'nama_cluster' => ['label' => 'Nama cluster', 'rules' => 'required|min_length[2]|max_length[255]'],
+            'is_active'    => ['label' => 'Is active', 'rules' => 'permit_empty|in_list[0,1]'],
         ]);
 
         if (! $this->validation->run($fields)) {
@@ -138,6 +157,7 @@ class ClusterService
             return [
                 'success'  => true,
                 'messages' => 'Data has been inserted successfully',
+                'data'     => array_merge(['id_cluster' => $insertId], $fields),
             ];
         }
 
@@ -149,17 +169,23 @@ class ClusterService
 
     public function edit(array $postData): array
     {
+        $idCluster = (int) ($postData['idCluster'] ?? $postData['id_cluster'] ?? 0);
+        $idProyek = !empty($postData['idProyek']) ? (int) $postData['idProyek'] : (!empty($postData['id_proyek']) ? (int) $postData['id_proyek'] : resolve_active_proyek_id(null));
+        $namaCluster = trim((string) ($postData['namaCluster'] ?? $postData['nama_cluster'] ?? ''));
+        $isActive = isset($postData['isActive']) ? (int) $postData['isActive'] : (isset($postData['is_active']) ? (int) $postData['is_active'] : 1);
+
         $fields = [
-            'id_cluster'   => $postData['idCluster'] ?? null,
-            'id_proyek'    => $postData['idProyek'] ?? null,
-            'nama_cluster' => $postData['namaCluster'] ?? null,
-            'is_active'    => $postData['isActive'] ?? null,
+            'id_cluster'   => $idCluster ?: null,
+            'id_proyek'    => $idProyek ?: null,
+            'nama_cluster' => $namaCluster !== '' ? $namaCluster : null,
+            'is_active'    => $isActive,
         ];
 
         $this->validation->setRules([
-            'id_proyek'    => ['label' => 'Id proyek', 'rules' => 'permit_empty|max_length[255]'],
-            'nama_cluster' => ['label' => 'Nama cluster', 'rules' => 'permit_empty|max_length[255]'],
-            'is_active'    => ['label' => 'Is active', 'rules' => 'permit_empty|max_length[1]'],
+            'id_cluster'   => ['label' => 'Id cluster', 'rules' => 'required|numeric'],
+            'id_proyek'    => ['label' => 'Id proyek', 'rules' => 'required|numeric'],
+            'nama_cluster' => ['label' => 'Nama cluster', 'rules' => 'required|min_length[2]|max_length[255]'],
+            'is_active'    => ['label' => 'Is active', 'rules' => 'permit_empty|in_list[0,1]'],
         ]);
 
         if (! $this->validation->run($fields)) {
@@ -169,8 +195,7 @@ class ClusterService
             ];
         }
 
-        $idCluster = (int) $fields['id_cluster'];
-        $oldData   = $this->clusterModel->find($idCluster);
+        $oldData = $this->clusterModel->find($idCluster);
 
         if ($this->clusterModel->update($idCluster, $fields)) {
             $this->historyService->log('master_cluster', [
@@ -194,6 +219,7 @@ class ClusterService
             return [
                 'success'  => true,
                 'messages' => 'Successfully updated',
+                'data'     => $fields,
             ];
         }
 

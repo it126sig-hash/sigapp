@@ -1,3 +1,4 @@
+<!-- TODO(follow-up): migrate /list-kavling*, /export/poskon*, /riwayat/poskon* AJAX calls to /api/mkdt/posisi-konsumen/*?format=raw -->
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/buttons.bootstrap4.min.css">
@@ -293,6 +294,57 @@
     overflow-wrap: anywhere;
     vertical-align: top;
   }
+
+  #poskon-tabs-bar .poskon-status-filter-desktop-slot {
+    width: 205px;
+    flex: 0 0 auto;
+  }
+
+  #poskon-tabs-bar .poskon-status-filter-desktop-slot .poskon-status-filter-wrap {
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  #poskon-tabs-bar .poskon-status-filter-desktop-slot .poskon-status-filter-wrap label {
+    display: none;
+  }
+
+  #poskon-tabs-bar .select2-container {
+    width: 100% !important;
+  }
+
+  #poskon-tabs-bar .select2-container--default .select2-selection--single {
+    min-height: 30px !important;
+    height: 30px !important;
+    border-color: #d8dee8;
+    border-radius: 6px !important;
+  }
+
+  #poskon-tabs-bar .select2-container--default.select2-container--open .select2-selection--single,
+  #poskon-tabs-bar .select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #2057a3;
+  }
+
+  #poskon-tabs-bar .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 28px !important;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #111827;
+    padding-right: 24px !important;
+  }
+
+  #poskon-tabs-bar .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 28px !important;
+    pointer-events: none;
+  }
+
+  #modal-filter-lanjutan .poskon-status-filter-mobile-slot:empty {
+    display: none;
+  }
+
+  #modal-filter-lanjutan .select2-selection__arrow {
+    pointer-events: none;
+  }
 </style>
 <style>
   <?= view('siteplan/partials/modal_detail_styles') ?>
@@ -391,12 +443,17 @@
         </div>
         <div class="card poskon-table-card">
           <div class="card-body pb-0 pt-0">
-            <div class="poskon-tabs-bar">
+            <div class="poskon-tabs-bar" id="poskon-tabs-bar">
               <ul class="nav nav-tabs poskon-tabs mb-1 mt-1" role="tablist">
                 <li class="nav-item">
                   <a class="nav-link active" id="list_poskon-tab"
                     data-toggle="tab" href="#list_poskon"
                     aria-controls="list_poskon" role="tab" aria-selected="true">List Posisi Konsumen Aktif</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="list_nup-tab" data-toggle="tab"
+                    href="#list_nup" aria-controls="list_nup" role="tab"
+                    aria-selected="false"><i class="fa fa-ticket-alt mr-25"></i> Daftar NUP <span id="badge-nup-count" class="badge badge-pill badge-primary ml-50">0</span></a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" id="riwayat_eksport-tab" data-toggle="tab"
@@ -405,8 +462,10 @@
                 </li>
               </ul>
               <div class="poskon-filter-actions">
+                <div id="poskon-status-filter-desktop-slot" class="poskon-status-filter-desktop-slot"></div>
                 <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm" title="Filter Data"><i class="fa fa-filter"></i> Filter</button>
                 <button type="button" id="btn_open_add_modal" class="btn btn-primary waves-effect btn-sm" title="Tambah Data"><i class="fa fa-plus"></i> Tambah</button>
+                <button type="button" id="btn_open_input_nup" class="btn btn-success waves-effect btn-sm" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.openFormModal(0)" title="Input Konsumen NUP Baru"><i class="fa fa-user-plus"></i> Input NUP</button>
                 <div class="btn-group">
                   <button type="button" id="btn_export_toggle" class="btn btn-outline-primary waves-effect btn-sm dropdown-toggle" data-toggle="dropdown" title="Export Data"><i class="fa fa-file-export"></i> Export</button>
                   <div class="dropdown-menu dropdown-menu-right">
@@ -486,6 +545,51 @@
                   </thead>
                 </table>
               </div>
+              <div class="tab-pane fade" id="list_nup"
+                aria-labelledby="list_nup-tab" role="tabpanel">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-1" style="gap:.75rem;">
+                  <div class="d-flex align-items-center flex-grow-1" style="max-width:440px;gap:.5rem;">
+                    <div class="input-group input-group-sm">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fa fa-search"></i></span>
+                      </div>
+                      <input type="text" id="tab-nup-search" class="form-control" placeholder="Cari nama konsumen, NIK, HP, sales, atau catatan NUP...">
+                      <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-primary" id="btn-refresh-tab-nup" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.reloadAll()" title="Refresh Data NUP">
+                          <i class="fa fa-sync-alt"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <button type="button" class="btn btn-success btn-sm" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.openFormModal(0)">
+                      <i class="fa fa-user-plus mr-25"></i> Input Konsumen NUP Baru
+                    </button>
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-bordered table-hover compact" id="table-tab-daftar-nup">
+                    <thead>
+                      <tr>
+                        <th style="width:45px;">No</th>
+                        <th style="width:110px;">No NUP</th>
+                        <th style="width:150px;">Aksi</th>
+                        <th>Tgl Booking</th>
+                        <th>Nama Konsumen &amp; NIK/NPWP</th>
+                        <th>Kontak &amp; Sales</th>
+                        <th>Total Sudah Bayar</th>
+                        <th>Catatan NUP</th>
+                        <th>Berkas</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbody-tab-daftar-nup">
+                      <tr>
+                        <td colspan="9" class="text-center text-muted">Memuat data NUP...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
               <div class="tab-pane show" id="riwayat_eksport"
                 aria-labelledby="riwayat_eksport-tab" role="tabpanel">
                 <table id="riwayat_export" class=" table compact table-hover table-bordered">
@@ -546,20 +650,25 @@
             </select>
           </div>
 
-          <div class="poskon-filter-field">
-            <label>Status</label>
-            <select id="filter_status_kavling" class="select2 self form-control">
-              <option value="booking" selected>Belum Akad (Booking)</option>
-              <option value="akad">Sudah Akad</option>
-              <option value="indent">Akad Indent</option>
-            </select>
+          <div id="poskon-status-filter-mobile-slot" class="poskon-status-filter-mobile-slot">
+            <div class="poskon-filter-field poskon-status-filter-wrap" id="poskon-status-filter-wrap">
+              <label for="filter_status_kavling">Status Konsumen</label>
+              <select id="filter_status_kavling" class="form-control">
+                <option value="semua">Semua Status</option>
+                <option value="aktif" selected>Konsumen Aktif</option>
+                <option value="booking">Konsumen Booking</option>
+                <option value="indent">Konsumen Akad Indent</option>
+                <option value="akad">Konsumen Akad</option>
+              </select>
+            </div>
           </div>
 
           <div class="poskon-filter-field">
             <label>Tanggal Acuan Bulan/Tahun</label>
             <select id="filter_bulan_field" class="select2 self form-control">
               <option value="booking" selected>Tgl. Booking</option>
-              <option value="akad">Tgl. Akad</option>
+              <option value="akad">Tgl. Akad (AJB)</option>
+              <option value="indent">Tgl. Akad Indent</option>
             </select>
           </div>
           <div class="poskon-filter-field">
@@ -660,12 +769,12 @@ if (!empty($roles)) {
 <script>
   var roleid = "<?= $k; ?>";
   var rolename = "<?= $v; ?>";
-  const has_akses = JSON.parse('<?= json_encode($data['data']['has_akses'] ?? ['proyek' => false, 'legal' => false]) ?>');
-  const pph = JSON.parse('<?= json_encode($data['data']['pph'] ?? []) ?>');
-  const ppn = JSON.parse('<?= json_encode($data['data']['ppn'] ?? []) ?>');
-  const li_keu = JSON.parse('<?= $data['data']['li_keu'] ?? '[]' ?>');
-  var conf = JSON.parse('<?= $data['data']['conf'] ?? '{}' ?>');
-  const proyekContext = <?= json_encode($data['data']['proyek'] ?? null) ?>;
+  const has_akses = JSON.parse('<?= json_encode($has_akses ?? $data['data']['has_akses'] ?? ['proyek' => false, 'legal' => false]) ?>');
+  const pph = JSON.parse('<?= json_encode($pph ?? $data['data']['pph'] ?? []) ?>');
+  const ppn = JSON.parse('<?= json_encode($ppn ?? $data['data']['ppn'] ?? []) ?>');
+  const li_keu = JSON.parse('<?= $li_keu ?? $data['data']['li_keu'] ?? '[]' ?>');
+  var conf = JSON.parse('<?= $conf ?? $data['data']['conf'] ?? '{}' ?>');
+  const proyekContext = <?= json_encode($proyek ?? $data['data']['proyek'] ?? null) ?>;
   window.siteplanMenuItems = [];
 
   window.editdtt = [];
@@ -759,6 +868,14 @@ if (!empty($roles)) {
         encodeURIComponent(item.onclick || '') + '" data-row="' + rowEncoded + '" data-group="' + (item.id_group || '') + '">' +
         icon + $('<div>').text(item.label || '').html() + '</button>';
     });
+
+    if (row && row.id_mkdt && [1, 4].includes(parseInt(roleid, 10))) {
+      menuHtml += '<div class="dropdown-divider"></div>';
+      menuHtml += '<button type="button" class="' + itemClass + ' poskon-menu-action" data-onclick="' +
+        encodeURIComponent('openPindahKavlingModal()') + '" data-row="' + rowEncoded + '"><i class="fa fa-exchange-alt text-info mr-50"></i> Pindah Kavling</button>';
+      menuHtml += '<button type="button" class="' + itemClass + ' poskon-menu-action" data-onclick="' +
+        encodeURIComponent('openTarikKeNupModal()') + '" data-row="' + rowEncoded + '"><i class="fa fa-undo text-warning mr-50"></i> Tarik ke NUP</button>';
+    }
 
     return menuHtml;
   }
@@ -888,7 +1005,7 @@ if (!empty($roles)) {
 
   window.load_kavling = function() {
     if ($.fn.DataTable.isDataTable('#data_tables')) {
-      $('#data_tables').DataTable().draw(false);
+      $('#data_tables').DataTable().ajax.reload(null, false);
     }
   };
 
@@ -928,8 +1045,54 @@ if (!empty($roles)) {
       $.fn.modal.Constructor.prototype._enforceFocus = function() {};
     }
 
-    var isMobileTable = window.matchMedia("(max-width: 767.98px)").matches;
+    var poskonMobileMedia = window.matchMedia("(max-width: 767.98px)");
+    var isMobileTable = poskonMobileMedia.matches;
+    var isProgrammaticStatusChange = false;
     var table = null;
+
+    function mountStatusKavlingFilter(isMobile) {
+      var $wrap = $("#poskon-status-filter-wrap");
+      var $select = $("#filter_status_kavling");
+      var $targetSlot = isMobile
+        ? $("#poskon-status-filter-mobile-slot")
+        : $("#poskon-status-filter-desktop-slot");
+
+      if (!$wrap.length || !$select.length || !$targetSlot.length) return;
+
+      isProgrammaticStatusChange = true;
+      try {
+        var currentVal = $select.val() || 'aktif';
+        if ($select.hasClass('select2-hidden-accessible')) {
+          $select.select2('destroy');
+        }
+        $targetSlot.append($wrap);
+        $select.select2({
+          minimumResultsForSearch: Infinity,
+          width: '100%',
+          dropdownParent: isMobile ? $("#modal-filter-lanjutan") : $(document.body)
+        });
+        $select.val(currentVal).trigger('change');
+      } finally {
+        isProgrammaticStatusChange = false;
+      }
+    }
+
+    mountStatusKavlingFilter(poskonMobileMedia.matches);
+    if (typeof poskonMobileMedia.addEventListener === "function") {
+      poskonMobileMedia.addEventListener("change", function(e) {
+        mountStatusKavlingFilter(e.matches);
+      });
+    } else if (typeof poskonMobileMedia.addListener === "function") {
+      poskonMobileMedia.addListener(function(e) {
+        mountStatusKavlingFilter(e.matches);
+      });
+    }
+
+    $("#filter_status_kavling").on("change", function() {
+      if (!isProgrammaticStatusChange && !poskonMobileMedia.matches) {
+        applyPoskonFilters();
+      }
+    });
 
     initPoskonTable(isMobileTable);
 
@@ -1003,7 +1166,7 @@ if (!empty($roles)) {
             orderable: true
           },
           {
-            targets: [9, 15],
+            targets: [15],
             visible: false
           },
           {
@@ -1017,9 +1180,6 @@ if (!empty($roles)) {
           url: base_url + 'list-kavling/ambil',
           type: "POST",
           dataType: "json",
-          data: {
-            [csrfName]: csrfHash
-          },
           data: function(data) {
             data[csrfName] = csrfHash
             data.id_proyek = activeProyekId()
@@ -1027,7 +1187,7 @@ if (!empty($roles)) {
             data.id_jalan = $("#id_jalan").val()
             data.sp3k = $("#poskon_filter_sp3k").val()
             data.wawancara = $("#poskon_filter_wawancara").val()
-            data.akad_indent = ($("#filter_status_kavling").val() === 'indent') ? 1 : ''
+            data.status_kavling = $("#filter_status_kavling").val() || 'aktif'
             data.bulan_field = $("#filter_bulan_field").val()
             data.bulan = $("#filter_bulan").val()
             data.tahun = $("#filter_tahun").val()
@@ -1257,12 +1417,13 @@ if (!empty($roles)) {
 
     function applyPoskonFilters() {
       if (table) {
-        var filterVal = $("#filter_status_kavling").val();
-        table.columns([9, 15]).visible(filterVal !== 'booking');
-        var url = (filterVal === 'akad' || filterVal === 'indent') ?
-          base_url + 'list-kavling/akad/ambil' :
-          base_url + 'list-kavling/ambil';
-        table.ajax.url(url).load();
+        var filterVal = $("#filter_status_kavling").val() || 'aktif';
+        table.column(9).visible(filterVal !== 'booking');
+        table.ajax.url(base_url + 'list-kavling/ambil').load(function() {
+          table.columns.adjust();
+          if (table.fixedColumns) table.fixedColumns().relayout();
+          applyPoskonTableHeight();
+        });
       }
       load_riwayat();
       renderActiveFilterChips();
@@ -1270,7 +1431,12 @@ if (!empty($roles)) {
 
     function resetPoskonFilterFields() {
       $("#id_cluster").val(null).trigger('change');
-      $("#filter_status_kavling").val('booking').trigger('change');
+      isProgrammaticStatusChange = true;
+      try {
+        $("#filter_status_kavling").val('aktif').trigger('change');
+      } finally {
+        isProgrammaticStatusChange = false;
+      }
       $("#filter_bulan_field").val('booking').trigger('change');
       $("#filter_bulan").val('').trigger('change');
       $("#filter_tahun").val('').trigger('change');
@@ -1282,7 +1448,12 @@ if (!empty($roles)) {
       } else if (key === 'id_jalan') {
         $("#id_jalan").val(null).trigger('change');
       } else if (key === 'filter_status_kavling') {
-        $("#filter_status_kavling").val('booking').trigger('change');
+        isProgrammaticStatusChange = true;
+        try {
+          $("#filter_status_kavling").val('aktif').trigger('change');
+        } finally {
+          isProgrammaticStatusChange = false;
+        }
       } else if (key === 'bulan_tahun') {
         $("#filter_bulan").val('').trigger('change');
         $("#filter_tahun").val('').trigger('change');
@@ -1305,7 +1476,7 @@ if (!empty($roles)) {
       if (jalanData && jalanData.id) addChip('id_jalan', 'Blok: ' + $('<div>').text(jalanData.text).html());
 
       var status = $("#filter_status_kavling").val();
-      if (status !== 'booking') addChip('filter_status_kavling', 'Status: ' + $("#filter_status_kavling option:selected").text());
+      if (status && status !== 'aktif') addChip('filter_status_kavling', 'Status: ' + $("#filter_status_kavling option:selected").text());
 
       var bulan = $("#filter_bulan").val();
       var tahun = $("#filter_tahun").val();
@@ -1490,12 +1661,30 @@ if (!empty($roles)) {
         }
       });
     }
+    $('#list_poskon-tab').on('click', function() {
+      if ($.fn.DataTable && $.fn.DataTable.isDataTable('#data_tables')) {
+        var dtApi = $('#data_tables').DataTable();
+        dtApi.ajax.reload(function() {
+          dtApi.columns.adjust();
+          if (dtApi.fixedColumns) dtApi.fixedColumns().relayout();
+          applyPoskonTableHeight();
+        }, false);
+      }
+    });
+
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
       // e.target adalah tab yang baru saja aktif
       var target = $(e.target).attr("href");
 
       if (target === '#riwayat_eksport') {
         load_riwayat();
+      } else if ((target === '#list_poskon' || target === '#list_kavling') && $.fn.DataTable.isDataTable('#data_tables')) {
+        var dtApi = $('#data_tables').DataTable();
+        dtApi.ajax.reload(function() {
+          dtApi.columns.adjust();
+          if (dtApi.fixedColumns) dtApi.fixedColumns().relayout();
+          applyPoskonTableHeight();
+        }, false);
       }
     });
     // Hindari arrow select2 menutupi area klik (regresi dari style.css global)
@@ -1551,5 +1740,7 @@ if (in_array($role_id, [1, 7, 3])) {
   echo view('siteplan/cashout_subkon');
 }
 ?>
-<?= view('siteplan/partials/modal_detail', ['data' => $data['data'] ?? []]) ?>
+<?= view('siteplan/partials/modal_detail', isset($data['data']) ? ['data' => $data['data']] : (isset($data) ? $data : [])) ?>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
+<?= view('siteplan/modal/nup-modals') ?>
+<script src="<?= base_url() ?>assets/js/siteplan/nup.js?<?= filemtime(FCPATH . 'assets/js/siteplan/nup.js') ?>"></script>

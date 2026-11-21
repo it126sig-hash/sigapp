@@ -6,18 +6,18 @@ Ikuti aturan: **"Think Before Coding"** dan **"Surgical Changes"** (Karpathy Gui
 
 ---
 
-## Alur Penanganan Bug (5 Langkah)
+## Alur Penanganan Bug & Pembagian Tugas Agen (5 Langkah)
 
 ```
-[1. Tangkap Error & Reproduksi]
+[1. Tangkap Error & Reproduksi]        ──► Dilaporkan oleh `sigapp-qa` (Sertifikat QA: FAIL)
               ↓
-[2. Root Cause Analysis via Codegraph + Grep]
+[2. Root Cause Analysis (Codegraph)]   ──► Dianalisis oleh `sigapp-qa` / `sigapp-explorer` (Read-Only)
               ↓
-[3. Susun Bugfix Plan Artifact]
+[3. Susun Bugfix Plan Artifact]        ──► Disusun & Divalidasi oleh `Master Orchestrator`
               ↓
-[4. Eksekusi Perbaikan Bedah (Surgical Fix)]
+[4. Eksekusi Perbaikan Bedah]          ──► Dikerjakan oleh `sigapp-engineer` (Backend) atau `sigapp-frontend` (Frontend/UI)
               ↓
-[5. Loop Verifikasi Hingga Hijau]
+[5. Loop Verifikasi Independen]        ──► Diuji ulang oleh `sigapp-qa` hingga Sertifikat QA: PASS
 ```
 
 ---

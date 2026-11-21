@@ -725,9 +725,6 @@
 				"url": base_url + '/proyek/getall',
 				"type": "POST",
 				"dataType": "json",
-				data: {
-					[csrfName]: csrfHash
-				},
 				data: function(data) {
 					data[csrfName] = csrfHash
 				},
@@ -736,7 +733,29 @@
 					return r.data;
 				},
 				async: "true"
-			}
+			},
+			"columns": [
+				{ "data": "no", "defaultContent": "" },
+				{ "data": "nama_proyek", "defaultContent": "" },
+				{ "data": "alamat_proyek", "defaultContent": "" },
+				{
+					"data": "logo_thumbnail_url",
+					"orderable": false,
+					"render": function(data) {
+						return data ? '<img width="50px" src="' + data + '">' : '';
+					}
+				},
+				{
+					"data": "id_proyek",
+					"orderable": false,
+					"render": function(data) {
+						return '<div class="btn-group">' +
+							'<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' + data + ')"><i class="fas fa-edit"></i></button>' +
+							'<button type="button" class="btn btn-outline-info waves-effect btn-sm" onclick="viewProyek(' + data + ')"><i class="fas fa-eye"></i></button>' +
+						'</div>';
+					}
+				}
+			]
 		});
 
 		initProyekUploadInputs();

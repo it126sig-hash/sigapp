@@ -1,0 +1,740 @@
+<?php
+
+namespace App\Services\TiketMasalah;
+
+use App\Models\TiketMasalahModel;
+use App\Models\TiketMasalahUserModel;
+use App\Models\TiketMasalahFotoModel;
+use App\Models\TiketMasalahProgressModel;
+use App\Repositories\TiketMasalah\TiketMasalahRepository;
+use App\Services\FileAccessService;
+use App\Services\NotifikasiService;
+
+class TiketMasalahService
+{
+    protected $tiketModel;
+    protected $tiketUserModel;
+    protected $tiketFotoModel;
+    protected $tiketProgressModel;
+    protected $repository;
+    protected $db;
+    protected $fileAccessService;
+    protected $notifikasiService;
+
+    public function __construct()
+    {
+        $this->tiketModel = new TiketMasalahModel();
+        $this->tiketUserModel = new TiketMasalahUserModel();
+        $this->tiketFotoModel = new TiketMasalahFotoModel();
+        $this->tiketProgressModel = new TiketMasalahProgressModel();
+        $this->repository = new TiketMasalahRepository();
+        $this->db = \Config\Database::connect();
+        $this->fileAccessService = new FileAccessService();
+        $this->notifikasiService = new NotifikasiService();
+    }
+
+    public function getListByRef(string $refType, int $refId): array
+    {
+        $list = $this->repository->getListWithSummary($refType, $refId);
+        foreach ($list as $item) {
+            $item->foto_url_1 = !empty($item->foto_path_1) ? $this->fileAccessService->pathUrl('tiket_masalah', $item->foto_path_1) : null;
+        }
+        return $list;
+    }
+
+    public function getDetail(int $idTiket): ?object
+    {
+        $tiket = $this->repository->getDetailFull($idTiket);
+        if ($tiket) {
+            foreach ($tiket->foto as $f) {
+                $f->url = $this->fileAccessService->pathUrl('tiket_masalah', $f->file_path);
+            }
+        }
+        return $tiket;
+    }
+
+    public function getProgress(int $idTiket, int $limit, int $offset): array
+    {
+        $progress = $this->repository->getProgressPaginated($idTiket, $limit, $offset);
+        foreach ($progress as $p) {
+            $p->foto_urls = [];
+            if (!empty($p->foto_paths)) {
+                $paths = array_filter(explode(';', $p->foto_paths));
+                foreach ($paths as $path) {
+                    $p->foto_urls[] = $this->fileAccessService->pathUrl('tiket_masalah', $path);
+                }
+            }
+        }
+        return $progress;
+    }
+
+    public function getDatatableData(array $params): array
+    {
+        $limit = $params['length'] ?? 10;
+        $offset = $params['start'] ?? 0;
+        $search = $params['search']['value'] ?? '';
+
+        $orderColIdx = $params['order'][0]['column'] ?? null;
+        $orderDir = $params['order'][0]['dir'] ?? 'desc';
+        
+        $orderColName = 'tm.created_at';
+        $columns = [
+            0 => null, // action
+            1 => null, // no
+            2 => 'lokasi',
+            3 => 'tm.keterangan',
+            4 => 'tm.tanggal_masalah',
+            5 => 'u.username',
+            6 => null, // assigned users
+            7 => 'tm.status',
+            8 => 'tm.prioritas'
+        ];
+
+        if ($orderColIdx !== null && isset($columns[$orderColIdx])) {
+            $orderColName = $columns[$orderColIdx];
+        }
+
+        $queryParams = [
+            'limit' => (int)$limit,
+            'offset' => (int)$offset,
+            'search' => $search,
+            'order_by' => $orderColName,
+            'order_dir' => $orderDir,
+            'filter_status' => $params['filter_status'] ?? null,
+            'filter_prioritas' => $params['filter_prioritas'] ?? null,
+            'filter_proyek' => $params['filter_proyek'] ?? null,
+            'filter_periode' => $params['filter_periode'] ?? null,
+            'filter_pembuat' => $params['filter_pembuat'] ?? null,
+            'filter_divisi' => $params['filter_divisi'] ?? null
+        ];
+
+        $data = $this->repository->getDatatables($queryParams);
+
+        // Format foto paths ke public URL
+        foreach ($data as $row) {
+            $row->foto_urls = [];
+            if (!empty($row->foto_paths)) {
+                $paths = explode('||', $row->foto_paths);
+                foreach ($paths as $path) {
+                    $row->foto_urls[] = $this->fileAccessService->pathUrl('tiket_masalah', $path);
+                }
+            }
+        }
+
+        $recordsFiltered = $this->repository->countDatatables($queryParams);
+        $recordsTotal = $this->repository->countAll();
+
+        return [
+            'draw' => (int)($params['draw'] ?? 1),
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $data
+        ];
+    }
+
+    public function createTiket(array $data, array $files): array
+    {
+        $this->db->transStart();
+
+        $userId = user_id();
+        $data['pic_user_id'] = $userId;
+        $data['status'] = !empty($data['is_draft']) ? 'draft' : 'dibuat';
+        unset($data['is_draft']);
+
+        // Fallback safeguard jika id_proyek kosong/0
+        if (empty($data['id_proyek']) || $data['id_proyek'] == 0) {
+            $activeProyekService = new \App\Services\ActiveProyekService();
+            $activeProyekService->bootstrapForRequest();
+            $active = $activeProyekService->getActive();
+            if ($active) {
+                $data['id_proyek'] = $active->id_proyek;
+            }
+        }
+
+        // Handle MySQL strict mode untuk tanggal_kunjungan (opsional)
+        if (isset($data['tanggal_kunjungan']) && trim($data['tanggal_kunjungan']) === '') {
+            $data['tanggal_kunjungan'] = null;
+        }
+
+        $idTiket = $this->tiketModel->insert($data);
+
+        // Upload photos
+        $lok = 'uploads/tiket_masalah/' . date('Ymd') . '/';
+        foreach ($files as $img) {
+            if ($img->isValid() && !$img->hasMoved()) {
+                $name = $img->getRandomName();
+                $path = $this->fileAccessService->storeAs($img, $lok, $name);
+
+                // compress image (server-side safety net)
+                $absPath = $this->fileAccessService->privatePath($path);
+                $this->compressImageIfPossible($absPath);
+
+                $this->tiketFotoModel->insert([
+                    'id_tiket_masalah' => $idTiket,
+                    'file_path' => $path,
+                    'file_name' => $img->getClientName(),
+                    'uploaded_by' => $userId
+                ]);
+            }
+        }
+
+        // Assign users
+        $assignedUsers = $data['assigned_users'] ?? [];
+        if (!is_array($assignedUsers)) {
+            $assignedUsers = explode(',', $assignedUsers);
+        }
+
+        // Notifikasi ke departemen user pembuat (hanya jika bukan draft)
+        $actionUrl = ($data['ref_type'] == 'kavling') ? 'siteplan/view?id_kavling=' . $data['ref_id'] . '&filter=Masalah&tiket_ref_type=kavling' : null;
+
+        $userGroupId = session()->get('group_id');
+        if ($userGroupId && $data['status'] !== 'draft') {
+            $this->notifikasiService->tambah_notif(
+                $userGroupId,                   // group_target = departemen user
+                "Tiket masalah baru: " . substr($data['keterangan'], 0, 80),
+                $userId,                        // add_by
+                $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
+                null,                           // id_konsumen
+                $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket, \App\Enums\NotificationEvent::TIKET_MASALAH_BARU), // type
+                $data['id_proyek'] ?? null,     // id_proyek
+                $actionUrl,
+                \App\Enums\NotificationEvent::TIKET_MASALAH_BARU
+            );
+        }
+
+        foreach ($assignedUsers as $uid) {
+            $uid = (int) $uid;
+            if ($uid > 0 && $uid != $userId) {
+                $this->tiketUserModel->insert([
+                    'id_tiket_masalah' => $idTiket,
+                    'user_id' => $uid
+                ]);
+
+                // Cek departemen user yang di-assign
+                $assigneeGroupRow = $this->db->table('auth_groups_users')
+                    ->select('group_id')
+                    ->where('user_id', $uid)
+                    ->get()->getRow();
+                $assigneeGroupId = $assigneeGroupRow ? $assigneeGroupRow->group_id : null;
+
+                // Deduplikasi: jika dia ada di departemen pembuat yang sudah dinotif, skip individual notif
+                if ($userGroupId && $assigneeGroupId == $userGroupId) {
+                    continue;
+                }
+
+                // Notify user
+                $this->notifikasiService->tambah_notif_user(
+                    $uid,
+                    "Tiket masalah baru ditugaskan ke Anda: " . substr($data['keterangan'], 0, 50),
+                    $userId,
+                    $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
+                    null,
+                    $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket, \App\Enums\NotificationEvent::TIKET_MASALAH_ASSIGN),
+                    $data['id_proyek'] ?? null,
+                    $actionUrl,
+                    \App\Enums\NotificationEvent::TIKET_MASALAH_ASSIGN
+                );
+            }
+        }
+
+        $this->db->transComplete();
+        $isSuccess = $this->db->transStatus();
+        
+        $response = [
+            'success' => $isSuccess,
+            'id' => $idTiket
+        ];
+
+        if (!$isSuccess) {
+            $dbError = $this->db->error();
+            $response['message'] = 'Database Error: ' . ($dbError['message'] ?? 'Unknown error during transaction');
+            log_message('error', 'DB Error (TiketMasalahService::createTiket): ' . print_r($dbError, true));
+        }
+
+        return $response;
+    }
+
+    public function updateTiket(int $idTiket, array $data, array $files): array
+    {
+        $tiket = $this->tiketModel->find($idTiket);
+        if (!$tiket) {
+            return ['success' => false, 'message' => 'Tiket tidak ditemukan'];
+        }
+
+        if (in_array($tiket->status, ['selesai', 'batal'])) {
+            return ['success' => false, 'message' => 'Tiket sudah selesai atau dibatalkan, tidak dapat diedit'];
+        }
+
+        $userId = user_id();
+        $isCreator = ($tiket->pic_user_id == $userId);
+        $isSupervisor = (function_exists('in_groups') && in_groups(['Admin', 'Direksi', 'Manager', 'Supervisor']));
+        
+        if (!$isCreator && !$isSupervisor) {
+            return ['success' => false, 'message' => 'Anda tidak memiliki hak akses untuk mengedit tiket ini'];
+        }
+
+        $this->db->transStart();
+
+        $isDraftSebelum = ($tiket->status === 'draft');
+        
+        if ($isDraftSebelum) {
+            $data['status'] = !empty($data['is_draft']) ? 'draft' : 'dibuat';
+        } else {
+            $data['status'] = $tiket->status; // pertahankan status tiket
+        }
+        unset($data['is_draft']);
+        
+        // Update user PIC to the one who takes over (or keeps it if creator)
+        $data['pic_user_id'] = $userId;
+
+        // Fallback safeguard
+        if (empty($data['id_proyek']) || $data['id_proyek'] == 0) {
+            $data['id_proyek'] = $tiket->id_proyek;
+        }
+
+        // Handle MySQL strict mode untuk tanggal_kunjungan (opsional)
+        if (isset($data['tanggal_kunjungan']) && trim($data['tanggal_kunjungan']) === '') {
+            $data['tanggal_kunjungan'] = null;
+        }
+        
+        // Hapus foto jika ada
+        $deletedIds = [];
+        if (!empty($data['deleted_foto_ids'])) {
+            $deletedIds = $data['deleted_foto_ids'];
+            if (!is_array($deletedIds)) {
+                $deletedIds = explode(',', $deletedIds);
+            }
+            
+            foreach ($deletedIds as $fid) {
+                $foto = $this->tiketFotoModel->find($fid);
+                if ($foto && $foto->id_tiket_masalah == $idTiket) {
+                    $this->tiketFotoModel->delete($fid);
+                }
+            }
+            unset($data['deleted_foto_ids']);
+        }
+
+        // Remove 'id_tiket_masalah' and 'ref_type' / 'ref_id' from update data if not changing
+        unset($data['id_tiket_masalah']);
+
+        $this->tiketModel->update($idTiket, $data);
+
+        // Upload photos (tambahan ke yang sudah ada)
+        $lok = 'uploads/tiket_masalah/' . date('Ymd') . '/';
+        foreach ($files as $img) {
+            if ($img->isValid() && !$img->hasMoved()) {
+                $name = $img->getRandomName();
+                $path = $this->fileAccessService->storeAs($img, $lok, $name);
+
+                $absPath = $this->fileAccessService->privatePath($path);
+                $this->compressImageIfPossible($absPath);
+
+                $this->tiketFotoModel->insert([
+                    'id_tiket_masalah' => $idTiket,
+                    'file_path' => $path,
+                    'file_name' => $img->getClientName(),
+                    'uploaded_by' => $userId
+                ]);
+            }
+        }
+
+        // Log history (progress) if it was NOT a draft
+        if (!$isDraftSebelum) {
+            $changes = [];
+            if (isset($data['keterangan']) && $data['keterangan'] != $tiket->keterangan) {
+                $changes[] = 'keterangan masalah';
+            }
+            if (isset($data['prioritas']) && $data['prioritas'] != $tiket->prioritas) {
+                $prioSebelum = strtoupper($tiket->prioritas);
+                $prioSesudah = strtoupper($data['prioritas']);
+                $changes[] = "prioritas ($prioSebelum &rarr; $prioSesudah)";
+            }
+            if (!empty($files) || !empty($deletedIds)) {
+                $changes[] = 'lampiran foto';
+            }
+            
+            if (!empty($changes)) {
+                $ketProgress = "Tiket diperbarui (perubahan pada: " . implode(', ', $changes) . ").";
+                $this->tiketProgressModel->insert([
+                    'id_tiket_masalah' => $idTiket,
+                    'user_id' => $userId,
+                    'keterangan' => $ketProgress,
+                    'status_sebelum' => $tiket->status,
+                    'status_sesudah' => $tiket->status,
+                    'is_pin_requested' => 0,
+                    'foto_paths' => null
+                ]);
+            }
+        }
+
+        // Assigned users di update
+        $assignedUsers = $data['assigned_users'] ?? [];
+        if (!is_array($assignedUsers)) {
+            $assignedUsers = array_filter(explode(',', $assignedUsers));
+        }
+
+        if (!empty($assignedUsers)) {
+            // Delete old assigns and insert new ones
+            $this->tiketUserModel->where('id_tiket_masalah', $idTiket)->delete();
+            
+            foreach ($assignedUsers as $uid) {
+                $uid = (int) $uid;
+                if ($uid > 0 && $uid != $userId) {
+                    $this->tiketUserModel->insert([
+                        'id_tiket_masalah' => $idTiket,
+                        'user_id' => $uid
+                    ]);
+                }
+            }
+        }
+
+        // Notifikasi jika tiket aktif (bukan draft)
+        if ($data['status'] !== 'draft') {
+            $actionUrl = ($data['ref_type'] == 'kavling') ? 'siteplan/view?id_kavling=' . $data['ref_id'] . '&filter=Masalah&tiket_ref_type=kavling' : null;
+            $msgNotif = $isDraftSebelum ? "Tiket masalah baru (dari draft): " : "Pembaruan tiket masalah: ";
+
+            $userGroupId = session()->get('group_id');
+            if ($userGroupId) {
+                $this->notifikasiService->tambah_notif(
+                    $userGroupId,
+                    $msgNotif . substr($data['keterangan'] ?? $tiket->keterangan, 0, 80),
+                    $userId,
+                    $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
+                    null,
+                    $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket, \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE),
+                    $data['id_proyek'] ?? null,
+                    $actionUrl,
+                    \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE
+                );
+            }
+            
+            $assignedRows = $this->tiketUserModel->where('id_tiket_masalah', $idTiket)->findAll();
+            foreach ($assignedRows as $row) {
+                $uid = $row->user_id;
+                if ($uid != $userId) {
+                    $assigneeGroupRow = $this->db->table('auth_groups_users')->select('group_id')->where('user_id', $uid)->get()->getRow();
+                    $assigneeGroupId = $assigneeGroupRow ? $assigneeGroupRow->group_id : null;
+                    if ($userGroupId && $assigneeGroupId == $userGroupId) {
+                        continue;
+                    }
+                    $this->notifikasiService->tambah_notif_user(
+                        $uid,
+                        "Tiket masalah ditugaskan ke Anda: " . substr($data['keterangan'] ?? $tiket->keterangan, 0, 50),
+                        $userId,
+                        $data['ref_type'] == 'kavling' ? $data['ref_id'] : null,
+                        null,
+                        $this->notificationType($data['ref_type'], (int) $data['ref_id'], (int) $idTiket, \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE),
+                        $data['id_proyek'] ?? null,
+                        $actionUrl,
+                        \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE
+                    );
+                }
+            }
+        }
+
+        $this->db->transComplete();
+
+        return [
+            'success' => $this->db->transStatus()
+        ];
+    }
+
+    public function addProgress(int $idTiket, array $data, array $files): array
+    {
+        $tiket = $this->tiketModel->find($idTiket);
+        if (!$tiket) {
+            return ['success' => false, 'message' => 'Tiket tidak ditemukan'];
+        }
+
+        if (in_array($tiket->status, ['selesai', 'batal'])) {
+            return ['success' => false, 'message' => 'Tiket sudah selesai atau dibatalkan, tidak dapat diubah'];
+        }
+
+        $userId = user_id();
+        $groupId = session()->get('group_id');
+        $isPic = ($tiket->pic_user_id == $userId) || ($groupId == 1);
+
+        if (!$isPic) {
+            // Cek apakah user assigned
+            $isAssigned = $this->tiketUserModel->where('id_tiket_masalah', $idTiket)
+                ->where('user_id', $userId)->countAllResults() > 0;
+
+            if (!$isAssigned) {
+                return ['success' => false, 'message' => 'Anda tidak memiliki akses ke tiket ini'];
+            }
+        }
+
+        $this->db->transStart();
+
+        $statusSebelum = $tiket->status;
+        $statusSesudah = $data['status'] ?? null;
+
+        if (empty($statusSesudah) && $statusSebelum === 'dibuat') {
+            $statusSesudah = 'dalam_proses';
+            $this->tiketModel->update($idTiket, ['status' => $statusSesudah]);
+        } else if ($statusSesudah && $statusSesudah != $statusSebelum) {
+            if (!$isPic) {
+                return ['success' => false, 'message' => 'Hanya PIC yang dapat mengubah status tiket'];
+            }
+            $this->tiketModel->update($idTiket, ['status' => $statusSesudah]);
+        } else {
+            $statusSesudah = null;
+            $statusSebelum = null;
+        }
+
+        // Upload photos
+        $lok = 'uploads/tiket_masalah/' . date('Ymd') . '/';
+        $fotoPaths = [];
+        foreach ($files as $img) {
+            if ($img->isValid() && !$img->hasMoved()) {
+                $name = $img->getRandomName();
+                $path = $this->fileAccessService->storeAs($img, $lok, $name);
+
+                // compress image
+                $absPath = $this->fileAccessService->privatePath($path);
+                $this->compressImageIfPossible($absPath);
+
+                $fotoPaths[] = $path;
+            }
+        }
+
+        $this->tiketProgressModel->insert([
+            'id_tiket_masalah' => $idTiket,
+            'user_id' => $userId,
+            'keterangan' => $data['keterangan'] ?? '',
+            'status_sebelum' => $statusSebelum,
+            'status_sesudah' => $statusSesudah,
+            'is_pin_requested' => !empty($data['is_pin_requested']) ? 1 : 0,
+            'foto_paths' => !empty($fotoPaths) ? implode(';', $fotoPaths) : null
+        ]);
+
+        // Notifications
+        $assignedUsers = $this->tiketUserModel->where('id_tiket_masalah', $idTiket)->findAll();
+        $notifyUids = array_map(function($u) { return $u->user_id; }, $assignedUsers);
+        if (!in_array($tiket->pic_user_id, $notifyUids)) {
+            $notifyUids[] = $tiket->pic_user_id;
+        }
+
+        $actionUrl = ($tiket->ref_type == 'kavling') ? 'siteplan/view?id_kavling=' . $tiket->ref_id . '&filter=Masalah&tiket_ref_type=kavling' : null;
+
+        foreach ($notifyUids as $uid) {
+            if ($uid != $userId) {
+                $this->notifikasiService->tambah_notif_user(
+                    $uid,
+                    "Update progress pada tiket masalah: " . substr($data['keterangan'] ?? '', 0, 50),
+                    $userId,
+                    $tiket->ref_type == 'kavling' ? $tiket->ref_id : null,
+                    null,
+                    $this->notificationType($tiket->ref_type, (int) $tiket->ref_id, (int) $idTiket, \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE),
+                    $tiket->id_proyek ?? null,
+                    $actionUrl,
+                    \App\Enums\NotificationEvent::TIKET_MASALAH_UPDATE
+                );
+            }
+        }
+
+        $this->db->transComplete();
+
+        return [
+            'success' => $this->db->transStatus()
+        ];
+    }
+
+    public function togglePinProgress(int $idProgress): array
+    {
+        $progress = $this->tiketProgressModel->find($idProgress);
+        if (!$progress) {
+            return ['success' => false, 'message' => 'Progress tidak ditemukan'];
+        }
+
+        $idTiket = $progress->id_tiket_masalah;
+        $tiket = $this->tiketModel->find($idTiket);
+        if (!$tiket) {
+            return ['success' => false, 'message' => 'Tiket tidak ditemukan'];
+        }
+
+        $userId = user_id();
+        $groupId = session()->get('group_id');
+        $isPic = ($tiket->pic_user_id == $userId) || ($groupId == 1);
+
+        if (!$isPic) {
+            return ['success' => false, 'message' => 'Hanya PIC yang dapat pin atau unpin progress'];
+        }
+
+        // Jika saat ini belum dipin, kita akan pin. Cek kuota.
+        if ($progress->is_pinned == 0) {
+            $pinnedCount = $this->tiketProgressModel
+                ->where('id_tiket_masalah', $idTiket)
+                ->where('is_pinned', 1)
+                ->countAllResults();
+            
+            if ($pinnedCount >= 3) {
+                return ['success' => false, 'message' => 'Maksimal 3 progress yang dapat di-pin'];
+            }
+            $newStatus = 1;
+        } else {
+            // Jika saat ini sudah dipin, kita akan unpin.
+            $newStatus = 0;
+        }
+
+        $this->tiketProgressModel->update($idProgress, ['is_pinned' => $newStatus]);
+
+        return ['success' => true, 'is_pinned' => $newStatus];
+    }
+
+    private function notificationType(string $refType, int $refId, int $idTiket, ?string $eventType = null): string
+    {
+        $base = 'tiket_masalah|' . $refType . '|' . $refId . '|' . $idTiket;
+        return $eventType ? $base . '|' . $eventType : $base;
+    }
+
+    public function getRefInfo(string $refType, int $refId): ?object
+    {
+        if ($refType === 'kavling') {
+            return $this->db->table('kavling k')
+                ->select("
+                    k.id_kavling as id,
+                    k.no_kavling,
+                    'kavling' as tipe,
+                    j.nama_jalan,
+                    cl.nama_cluster,
+                    p.nama_proyek,
+                    p.id_proyek,
+                    COALESCE(pr.progres_bangunan, 0) as progres_bangunan,
+                    t.tipe_rumah,
+                    t.lb,
+                    t.lt,
+                    t.keterangan as tipe_keterangan
+                ")
+                ->join('jalan j', 'j.id_jalan = k.id_jalan')
+                ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
+                ->join('proyek p', 'p.id_proyek = cl.id_proyek')
+                ->join('produksi pr', 'pr.id_produksi = k.id_produksi', 'left')
+                ->join('tipe t', 't.id_tipe = k.id_tipe', 'left')
+                ->where('k.id_kavling', $refId)
+                ->get()
+                ->getRow();
+        } else {
+            return $this->db->table('others o')
+                ->select("
+                    o.id,
+                    o.nama as no_kavling,
+                    o.tipe,
+                    j.nama_jalan,
+                    cl.nama_cluster,
+                    p.nama_proyek,
+                    p.id_proyek,
+                    COALESCE(o.progres, 0) as progres_bangunan
+                ")
+                ->join('jalan j', 'j.id_jalan = o.id_jalan', 'left')
+                ->join('cluster cl', 'cl.id_cluster = j.id_cluster', 'left')
+                ->join('proyek p', 'p.id_proyek = cl.id_proyek', 'left')
+                ->where('o.id', $refId)
+                ->get()
+                ->getRow();
+        }
+    }
+
+    public function getUserList(): array
+    {
+        return $this->db->table('users')
+            ->select('id, username, name')
+            ->where('active', 1)
+            ->where('deleted_at IS NULL', null, false)
+            ->orderBy('username', 'ASC')
+            ->get()
+            ->getResult();
+    }
+
+    public function getCreatorList(): array
+    {
+        return $this->db->table('users u')
+            ->select('u.id, u.username, u.name')
+            ->join('tiket_masalah tm', 'tm.pic_user_id = u.id')
+            ->where('u.active', 1)
+            ->where('u.deleted_at IS NULL', null, false)
+            ->groupBy('u.id')
+            ->orderBy('u.username', 'ASC')
+            ->get()
+            ->getResult();
+    }
+
+    public function getDivisionList(): array
+    {
+        return $this->db->table('auth_groups')
+            ->select('id, name')
+            ->orderBy('name', 'ASC')
+            ->get()
+            ->getResult();
+    }
+
+    public function createOthersArea(array $params, int $userId): array
+    {
+        $idJalan = (int) ($params['id_jalan'] ?? 0);
+        $points  = trim((string) ($params['points'] ?? ''));
+        $tipe    = trim((string) ($params['tipe'] ?? ''));
+        $nama    = trim((string) ($params['nama'] ?? ''));
+
+        $pointList = array_filter(array_map('trim', explode(',', $points)), static function ($point) {
+            return $point !== '';
+        });
+
+        if (count($pointList) < 6 || count($pointList) % 2 !== 0) {
+            return ['success' => false, 'message' => 'Seleksi manual minimal 3 titik', 'code' => 400];
+        }
+
+        if (!in_array($tipe, ['jalan', 'fasos', 'rth', 'fasum', 'ruko'], true)) {
+            return ['success' => false, 'message' => 'Tipe tidak valid', 'code' => 400];
+        }
+
+        $now = date('Y-m-d H:i:s');
+        $fields = [
+            'id_jalan'             => $idJalan > 0 ? $idJalan : null,
+            'tipe'                 => $tipe,
+            'nama'                 => $nama !== '' ? $nama : null,
+            'scope'                => 'masalah',
+            'points'               => implode(',', $pointList),
+            'planning_add_by'      => $userId,
+            'planning_created_at'  => $now,
+            'planning_edit_by'     => $userId,
+            'planning_updated_at'  => $now,
+            'produksi_add_by'      => $userId,
+            'produksi_created_at'  => $now,
+            'produksi_edit_by'     => $userId,
+            'produksi_updated_at'  => $now,
+            'legal_add_by'         => $userId,
+            'legal_created_at'     => $now,
+            'legal_edit_by'        => $userId,
+            'legal_updated_at'     => $now,
+        ];
+
+        $insertId = $this->repository->insertOthersArea($fields);
+
+        return ['success' => true, 'id' => $insertId];
+    }
+
+    private function compressImageIfPossible(string $absolutePath): void
+    {
+        if (!is_file($absolutePath)) {
+            return;
+        }
+
+        $size = @getimagesize($absolutePath);
+        if (!$size) {
+            return;
+        }
+
+        [$width, $height] = $size;
+        $maxDimension = 1920;
+
+        try {
+            $image = \Config\Services::image()->withFile($absolutePath);
+            if ($width > $maxDimension || $height > $maxDimension) {
+                $image->resize($maxDimension, $maxDimension, true, 'auto');
+            }
+            $image->save($absolutePath, 78);
+        } catch (\Throwable $e) {
+            log_message('warning', 'Gagal kompres foto tiket masalah: ' . $e->getMessage());
+        }
+    }
+}

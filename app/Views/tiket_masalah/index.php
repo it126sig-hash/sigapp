@@ -46,15 +46,15 @@
                                         <table class="table table-striped table-bordered dt-responsive nowrap" id="table-tiket-masalah-global" style="width:100%">
                                             <thead>
                                                 <tr>
-                                                    <th width="50">Aksi</th>
-                                                    <th width="20">No</th>
-                                                    <th>Lokasi &amp; Foto</th>
-                                                    <th>Keterangan</th>
-                                                    <th>Tanggal Laporan</th>
-                                                    <th>Pembuat Laporan</th>
-                                                    <th>PIC Penanganan</th>
-                                                    <th>Status</th>
-                                                    <th>Prioritas</th>
+                                                    <th width="45" class="text-center">Aksi</th>
+                                                    <th width="25" class="text-center">No</th>
+                                                    <th width="130">Lokasi &amp; Foto</th>
+                                                    <th class="text-left th-keterangan">Keterangan</th>
+                                                    <th width="95" class="text-center">Tgl Laporan</th>
+                                                    <th width="110">Pembuat</th>
+                                                    <th width="110">PIC Penanganan</th>
+                                                    <th width="90" class="text-center">Status</th>
+                                                    <th width="85" class="text-center">Prioritas</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -155,9 +155,20 @@
 
 <!-- Custom CSS if needed -->
 <style>
-    /* Styling jika diperlukan */
-    .table td {
-        vertical-align: top;
+    /* Styling table compact & konsisten */
+    #table-tiket-masalah-global th,
+    #table-tiket-masalah-global td {
+        padding: 8px 10px !important;
+        font-size: 0.85rem;
+        vertical-align: middle;
+    }
+
+    #table-tiket-masalah-global td.td-keterangan,
+    #table-tiket-masalah-global th.th-keterangan,
+    #table-tiket-masalah-global .m-ket,
+    #table-tiket-masalah-global .m-ket-text {
+        text-align: left !important;
+        white-space: normal !important;
     }
 
     .badge-prioritas {
@@ -178,7 +189,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.5);
+        background: rgba(0, 0, 0, 0.5);
         color: white;
         display: flex;
         align-items: center;
@@ -195,12 +206,15 @@
             width: 100% !important;
             white-space: normal !important;
         }
+
         #table-tiket-masalah-global thead {
             display: none;
         }
+
         #table-tiket-masalah-global tbody {
             display: block;
         }
+
         #table-tiket-masalah-global tr {
             display: flex;
             flex-wrap: wrap;
@@ -208,28 +222,31 @@
             background: #fff;
             border-radius: 12px;
             margin-bottom: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             border: 1px solid #f0f0f0;
             position: relative;
             align-items: flex-start;
             white-space: normal !important;
         }
+
         #table-tiket-masalah-global td {
             display: contents;
             white-space: normal !important;
         }
-        
+
         .m-aksi {
             position: absolute;
             top: 15px;
             right: 15px;
             z-index: 2;
         }
+
         .m-no {
             order: 1;
             margin-right: 8px;
             margin-bottom: 10px;
         }
+
         .m-no .badge {
             background: #f1f3f5;
             color: #888;
@@ -237,16 +254,19 @@
             padding: 6px 10px;
             border-radius: 6px;
         }
+
         .m-status {
             order: 2;
             margin-right: 8px;
             margin-bottom: 10px;
         }
+
         .m-prio {
             order: 3;
             margin-right: 8px;
             margin-bottom: 10px;
         }
+
         .m-lokasi {
             order: 4;
             width: 100%;
@@ -255,6 +275,7 @@
             margin-bottom: 12px;
             text-transform: uppercase;
         }
+
         .m-foto {
             order: 5;
             width: 80px;
@@ -262,18 +283,21 @@
             margin-bottom: 15px;
             position: relative;
         }
+
         .m-foto img {
             width: 80px;
             height: 80px;
             border-radius: 8px;
             object-fit: cover;
         }
+
         .m-ket {
             order: 6;
             flex: 1;
             min-width: 0;
             margin-bottom: 15px;
         }
+
         .m-ket-label {
             font-size: 0.7rem;
             color: #888;
@@ -282,35 +306,40 @@
             margin-bottom: 4px;
             display: block;
         }
+
         .m-ket-text {
             font-size: 0.95rem;
             margin-bottom: 8px;
             color: #333;
             display: -webkit-box;
             -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;  
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
         .m-ket-update {
             background: #f4f8fd;
             border-radius: 6px;
             padding: 8px 10px;
             border: 1px solid #e1ebf6;
         }
+
         .m-ket-update-title {
             color: #2b5cbe;
             font-size: 0.8rem;
             font-weight: 600;
             margin-bottom: 2px;
         }
+
         .m-ket-update-text {
             color: #444;
             font-size: 0.85rem;
             display: -webkit-box;
             -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;  
+            -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
         .m-ket-update-date {
             color: #2b5cbe;
             font-size: 0.75rem;
@@ -319,7 +348,7 @@
             align-items: center;
             gap: 4px;
         }
-        
+
         .m-divider {
             order: 7;
             width: 100%;
@@ -327,17 +356,19 @@
             background: #f0f0f0;
             margin: 0 0 12px 0;
         }
-        
+
         .m-tgl {
             order: 8;
             width: 50%;
             margin-bottom: 12px;
         }
+
         .m-pic {
             order: 9;
             width: 50%;
             margin-bottom: 12px;
         }
+
         .m-pembuat {
             order: 10;
             width: 100%;
@@ -345,46 +376,57 @@
             justify-content: space-between;
             align-items: flex-end;
         }
+
         .m-lbl {
             font-size: 0.75rem;
             color: #888;
             margin-bottom: 2px;
             display: block;
         }
+
         .m-val {
             font-size: 0.95rem;
             color: #222;
             font-weight: 500;
         }
     }
-    
+
     @media (min-width: 768px) {
-        .m-ket-label, .m-lbl {
+
+        .m-ket-label,
+        .m-lbl {
             display: none;
         }
+
         .m-ket-update {
             margin-top: 5px;
         }
+
         .m-no .badge {
             background: none;
             color: inherit;
             font-weight: normal;
             padding: 0;
         }
+
         .m-pembuat {
             display: block;
         }
+
         .m-pembuat .m-val-right {
             display: block;
             font-size: 0.8em;
             color: #888;
         }
+
         .m-divider {
             display: none;
         }
+
         .m-aksi {
             display: block;
         }
+
         .m-foto img {
             width: 60px;
             height: 60px;
@@ -392,6 +434,7 @@
             object-fit: cover;
             border: 1px solid #ddd;
         }
+
         .m-foto {
             position: relative;
             display: inline-block;

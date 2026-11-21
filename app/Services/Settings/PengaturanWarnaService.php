@@ -15,9 +15,48 @@ class PengaturanWarnaService
         $this->validation = \Config\Services::validation();
     }
 
-    public function getAll(): array
+    public function getAll(array $params = []): array
     {
         $result = $this->repository->getAll();
+
+        if (($params['format'] ?? '') === 'raw') {
+            $search = trim((string) ($params['search'] ?? ''));
+            if ($search !== '') {
+                $result = array_values(array_filter($result, static function (object $row) use ($search): bool {
+                    $candidates = [
+                        (string) ($row->config_name ?? ''),
+                        (string) ($row->fill ?? ''),
+                        (string) ($row->dashed ?? ''),
+                        (string) ($row->keterangan ?? ''),
+                        (string) ($row->add_by ?? ''),
+                        (string) ($row->edit_by ?? ''),
+                    ];
+                    foreach ($candidates as $candidate) {
+                        if ($candidate !== '' && mb_stripos($candidate, $search) !== false) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }));
+            }
+
+            $page = max(1, (int) ($params['page'] ?? 1));
+            $perPage = max(1, min(100, (int) ($params['per_page'] ?? 25)));
+            $total = count($result);
+            $sliced = array_slice($result, ($page - 1) * $perPage, $perPage);
+            $items = array_map(fn (object $row): array => $this->formatRawItem($row), $sliced);
+
+            return [
+                'items' => $items,
+                'meta'  => [
+                    'page'     => $page,
+                    'per_page' => $perPage,
+                    'total'    => $total,
+                ],
+            ];
+        }
+
         $data = [];
 
         foreach ($result as $key => $value) {
@@ -46,7 +85,7 @@ class PengaturanWarnaService
         ];
     }
 
-    public function getOne(string $configName): ?object
+    public function getOne(string $configName, bool $raw = false): ?object
     {
         if (trim($configName) === '') {
             return null;
@@ -57,14 +96,18 @@ class PengaturanWarnaService
             return null;
         }
 
+        if ($raw) {
+            return (object) $this->formatRawItem($data);
+        }
+
         $data->token = csrf_hash();
         return $data;
     }
 
-    public function add(array $postData, ?string $userName = null): array
+    public function add(array $postData, ?string $userName = null, bool $raw = false): array
     {
         $fields = [
-            'config_name' => trim((string) ($postData['configName'] ?? '')),
+            'config_name' => trim((string) ($postData['configName'] ?? $postData['config_name'] ?? '')),
             'fill'        => trim((string) ($postData['fill'] ?? '')),
             'strokeWidth' => $postData['strokeWidth'] ?? null,
             'dashed'      => trim((string) ($postData['dashed'] ?? '')),
@@ -73,6 +116,7 @@ class PengaturanWarnaService
             'date_add'    => date('Y-m-d H:i:s'),
         ];
 
+        $this->validation->reset();
         $this->validation->setRules([
             'config_name' => ['label' => 'Item', 'rules' => 'required|max_length[255]'],
             'fill'        => ['label' => 'Fill', 'rules' => 'required|max_length[20]'],
@@ -82,6 +126,15 @@ class PengaturanWarnaService
         ]);
 
         if (!$this->validation->run($fields)) {
+            if ($raw) {
+                return [
+                    'success'  => false,
+                    'status'   => 422,
+                    'messages' => 'Validasi gagal.',
+                    'errors'   => $this->validation->getErrors(),
+                ];
+            }
+
             return [
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -92,6 +145,15 @@ class PengaturanWarnaService
         $fields['strokeWidth'] = $this->normalizeStrokeWidth($fields['strokeWidth']);
 
         if ($this->repository->getByConfigName($fields['config_name'])) {
+            if ($raw) {
+                return [
+                    'success'  => false,
+                    'status'   => 422,
+                    'messages' => 'Config name sudah digunakan',
+                    'errors'   => ['config_name' => 'Config name sudah digunakan'],
+                ];
+            }
+
             return [
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -100,10 +162,29 @@ class PengaturanWarnaService
         }
 
         if ($this->repository->insert($fields)) {
+            if ($raw) {
+                $created = $this->repository->getByConfigName($fields['config_name']);
+                return [
+                    'success'  => true,
+                    'created'  => true,
+                    'status'   => 201,
+                    'messages' => 'Data has been inserted successfully',
+                    'data'     => $this->formatRawItem($created ?? (object) $fields),
+                ];
+            }
+
             return [
                 'success'  => true,
                 'token'    => csrf_hash(),
                 'messages' => 'Data has been inserted successfully',
+            ];
+        }
+
+        if ($raw) {
+            return [
+                'success'  => false,
+                'status'   => 500,
+                'messages' => 'Insertion error!',
             ];
         }
 
@@ -114,9 +195,9 @@ class PengaturanWarnaService
         ];
     }
 
-    public function edit(array $postData, ?string $userName = null): array
+    public function edit(array $postData, ?string $userName = null, bool $raw = false): array
     {
-        $configName = trim((string) ($postData['configName'] ?? ''));
+        $configName = trim((string) ($postData['configName'] ?? $postData['config_name'] ?? ''));
         $fields = [
             'config_name' => $configName,
             'fill'        => trim((string) ($postData['fill'] ?? '')),
@@ -127,6 +208,7 @@ class PengaturanWarnaService
             'date_edit'   => date('Y-m-d H:i:s'),
         ];
 
+        $this->validation->reset();
         $this->validation->setRules([
             'config_name' => ['label' => 'Item', 'rules' => 'required|max_length[255]'],
             'fill'        => ['label' => 'Fill', 'rules' => 'required|max_length[20]'],
@@ -136,6 +218,15 @@ class PengaturanWarnaService
         ]);
 
         if (!$this->validation->run($fields)) {
+            if ($raw) {
+                return [
+                    'success'  => false,
+                    'status'   => 422,
+                    'messages' => 'Validasi gagal.',
+                    'errors'   => $this->validation->getErrors(),
+                ];
+            }
+
             return [
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -146,6 +237,14 @@ class PengaturanWarnaService
         $fields['strokeWidth'] = $this->normalizeStrokeWidth($fields['strokeWidth']);
 
         if (!$this->repository->getByConfigName($configName)) {
+            if ($raw) {
+                return [
+                    'success'  => false,
+                    'status'   => 404,
+                    'messages' => 'Data tidak ditemukan',
+                ];
+            }
+
             return [
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -153,11 +252,31 @@ class PengaturanWarnaService
             ];
         }
 
-        if ($this->repository->update($configName, $fields)) {
+        $updateFields = array_diff_key($fields, ['config_name' => true]);
+
+        if ($this->repository->update($configName, $updateFields)) {
+            if ($raw) {
+                $updated = $this->repository->getByConfigName($configName);
+                return [
+                    'success'  => true,
+                    'status'   => 200,
+                    'messages' => 'Successfully updated',
+                    'data'     => $this->formatRawItem($updated ?? (object) $fields),
+                ];
+            }
+
             return [
                 'success'  => true,
                 'token'    => csrf_hash(),
                 'messages' => 'Successfully updated',
+            ];
+        }
+
+        if ($raw) {
+            return [
+                'success'  => false,
+                'status'   => 500,
+                'messages' => 'Update error!',
             ];
         }
 
@@ -168,9 +287,19 @@ class PengaturanWarnaService
         ];
     }
 
-    public function remove(string $configName): array
+    public function remove(string $configName, bool $raw = false): array
     {
-        if (trim($configName) === '') {
+        $configName = trim($configName);
+        if ($configName === '') {
+            if ($raw) {
+                return [
+                    'success'  => false,
+                    'status'   => 422,
+                    'messages' => 'Parameter tidak valid',
+                    'errors'   => ['config_name' => 'Parameter tidak valid'],
+                ];
+            }
+
             return [
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -178,7 +307,24 @@ class PengaturanWarnaService
             ];
         }
 
+        if ($raw && !$this->repository->getByConfigName($configName)) {
+            return [
+                'success'  => false,
+                'status'   => 404,
+                'messages' => 'Data tidak ditemukan',
+            ];
+        }
+
         if ($this->repository->delete($configName)) {
+            if ($raw) {
+                return [
+                    'success'  => true,
+                    'status'   => 200,
+                    'messages' => 'Deletion succeeded',
+                    'data'     => ['config_name' => $configName],
+                ];
+            }
+
             return [
                 'success'  => true,
                 'token'    => csrf_hash(),
@@ -186,10 +332,33 @@ class PengaturanWarnaService
             ];
         }
 
+        if ($raw) {
+            return [
+                'success'  => false,
+                'status'   => 500,
+                'messages' => 'Deletion error!',
+            ];
+        }
+
         return [
             'success'  => false,
             'token'    => csrf_hash(),
             'messages' => 'Deletion error!',
+        ];
+    }
+
+    private function formatRawItem(object $row): array
+    {
+        return [
+            'config_name' => (string) ($row->config_name ?? ''),
+            'fill'        => (string) ($row->fill ?? ''),
+            'strokeWidth' => (int) ($row->strokeWidth ?? 0),
+            'dashed'      => (string) ($row->dashed ?? ''),
+            'keterangan'  => (string) ($row->keterangan ?? ''),
+            'add_by'      => $row->add_by ?? null,
+            'date_add'    => $row->date_add ?? null,
+            'edit_by'     => $row->edit_by ?? null,
+            'date_edit'   => $row->date_edit ?? null,
         ];
     }
 

@@ -12,7 +12,7 @@ class ModuleStatus extends BaseCommand
 
     protected $name = 'module:status';
 
-    protected $description = 'Menampilkan tabel dashboard status dan skor kesiapan 15 Modul Bisnis SIGAPP.';
+    protected $description = 'Menampilkan tabel dashboard status dan skor kesiapan 16 Modul Bisnis SIGAPP.';
 
     protected $usage = 'module:status';
 
@@ -24,16 +24,19 @@ class ModuleStatus extends BaseCommand
         $scanner  = new ModuleScanner();
         $scanData = $scanner->scan();
 
-        $rows = [];
-        $totalScore = 0;
-        $readyCount = 0;
+        $rows            = [];
+        $totalScore      = 0;
+        $refactoredCount = 0;
+        $mappedCount     = 0;
 
         foreach ($scanData['modules'] as $key => $m) {
             $score = $m['readiness_score'];
             $totalScore += $score;
 
-            if ($score >= 80) {
-                $readyCount++;
+            if ($m['status'] === 'REFACTORED') {
+                $refactoredCount++;
+            } elseif ($m['status'] === 'MAPPED') {
+                $mappedCount++;
             }
 
             $scoreDisplay = $score . '%';
@@ -87,7 +90,8 @@ class ModuleStatus extends BaseCommand
         CLI::write("Statistik Keseluruhan:", 'yellow');
         CLI::write("  - Total Modul: " . count($scanData['modules']));
         CLI::write("  - Rata-rata Skor Kesiapan: {$avgScore}%");
-        CLI::write("  - Modul Siap / Refactored (Score >= 80%): {$readyCount} dari " . count($scanData['modules']));
+        CLI::write("  - Modul Refactored (REFACTORED, Score >= 80%): {$refactoredCount} dari " . count($scanData['modules']));
+        CLI::write("  - Modul Terpetakan (MAPPED, Score < 80%): {$mappedCount} dari " . count($scanData['modules']));
         CLI::newLine();
         CLI::write("Tips: Jalankan 'php spark module:sync <Modul>' untuk update dokumen MODULE.md setelah refaktor.", 'cyan');
     }

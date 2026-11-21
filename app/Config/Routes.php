@@ -13,6 +13,12 @@ $routes->get('login', '\\App\\Controllers\\Web\\DeviceAuthController::login', ['
 $routes->post('login', '\\App\\Controllers\\Web\\DeviceAuthController::attemptLogin');
 $routes->get('logout', '\\App\\Controllers\\Web\\DeviceAuthController::logout', ['filter' => []]);
 
+$routes->post('api/auth/login', 'Api\Auth\AuthController::login');
+$routes->group('api/auth', ['namespace' => 'App\Controllers\Api\Auth', 'filter' => 'login'], static function ($routes) {
+    $routes->get('me', 'AuthController::me');
+    $routes->post('logout', 'AuthController::logout');
+});
+
 $routes->group('api/auth/devices', ['namespace' => 'App\\Controllers\\Api', 'filter' => 'login'], static function ($routes): void {
     $routes->get('', 'AuthDeviceController::index');
     $routes->post('(:num)/revoke', 'AuthDeviceController::revoke/$1', ['filter' => 'csrf']);
@@ -25,38 +31,51 @@ $routes->group('api/admin/users/(:num)/devices', ['namespace' => 'App\\Controlle
     $routes->post('revoke-all', 'AdminAuthDeviceController::revokeAll/$1', ['filter' => 'csrf']);
 });
 
-$routes->get('privacy-policy', '\App\Controllers\Web\LegalPageController::privacyPolicy');
-$routes->get('toc', '\App\Controllers\Web\LegalPageController::termsOfService');
+// ── Modul Legal (Public Web Routes) ──
+$routes->group('', ['namespace' => 'App\Controllers\Web\Legal'], function ($routes) {
+    $routes->get('privacy-policy', 'LegalPageController::privacyPolicy');
+    $routes->get('toc', 'LegalPageController::termsOfService');
+});
 
 $routes->get('dashboard', 'Home::dashboard');
 $routes->get('/', 'Home::dashboard');
 $routes->get('landing', '\App\Controllers\Web\LandingController::index');
 
 //poskon
-$routes->get('/list-kavling', 'PosisiKonsumen::index');
-$routes->post('/list-kavling/ambil', 'PosisiKonsumen::getDataTables');
+$routes->get('/list-kavling', '\App\Controllers\Web\Mkdt\PosisiKonsumenController::index');
+$routes->post('/list-kavling/ambil', '\App\Controllers\Api\Mkdt\PosisiKonsumenController::getDataTables');
+$routes->post('/list-kavling/akad/ambil', '\App\Controllers\Api\Mkdt\PosisiKonsumenController::getDataTablesAkad');
+$routes->post('/list-kavling/batal/ambil', '\App\Controllers\Api\Mkdt\PosisiKonsumenController::getDataTablesBatal');
+$routes->get('/list-kavling/(:segment)', '\App\Controllers\Web\Mkdt\PosisiKonsumenController::index/$1');
 
 
-$routes->get('/list-kavling/(:segment)', 'PosisiKonsumen::index/$1');
-$routes->post('/list-kavling/akad/ambil', 'PosisiKonsumen::getDataTablesAkad');
-$routes->post('/list-kavling/batal/ambil', 'PosisiKonsumen::getDataTablesBatal');
-
-
-$routes->get('/list-batal', 'Mkdt::list_batal');
-$routes->get('/list-stock', 'Mkdt::list_stock');
+$routes->addRedirect('/list-batal', '/list-kavling/batal');
+$routes->get('/list-stock', '\App\Controllers\Web\Mkdt\StockController::index', ['filter' => 'login']);
 // $routes->get('/list-tagihan', 'Keuangan::list_tagihan');
 
-$routes->get('/legalitas', 'Legal::list_legalitas');
+// ── Modul Legal (Web Routes) ──
+$routes->group('', ['namespace' => 'App\Controllers\Web\Legal', 'filter' => 'login'], function ($routes) {
+    $routes->get('legalitas', 'LegalController::list_legalitas');
+});
 
-$routes->get('/getnotif', 'Notif::getNotif');
-$routes->get('/loadnotif', 'Notif::loadNotif');
-$routes->get('/notif/summary', 'Notif::getSummary');
-$routes->get('/notif/center', 'Notif::getCenter');
-$routes->post('/notif/snooze', 'Notif::snooze');
-$routes->post('/notif/mark-as-read/(:num)', 'Notif::markAsRead/$1');
-$routes->post('/notif/mark-all-as-read', 'Notif::markAllAsRead');
-$routes->get('/notif/icon/(:num)', 'Notif::icon/$1');
-$routes->get('/notif/open/(:num)', 'Notif::open/$1', ['filter' => 'login']);
+// ── Modul Notifikasi (Web Routes) ──
+$routes->group('notif', ['namespace' => 'App\Controllers\Web\Notifikasi'], function ($routes) {
+    $routes->get('open/(:num)', 'NotifikasiController::open/$1', ['filter' => 'login']);
+    $routes->get('icon/(:num)', 'NotifikasiController::icon/$1');
+});
+
+// ── Modul Notifikasi: Legacy & AutoRoute Shims (Zero-Downtime) ──
+$routes->group('', ['filter' => 'login'], function ($routes) {
+    $routes->get('/getnotif', '\App\Controllers\Api\Notifikasi\NotifikasiController::getNotif');
+    $routes->get('/loadnotif', '\App\Controllers\Api\Notifikasi\NotifikasiController::loadNotif');
+    $routes->get('/notif/summary', '\App\Controllers\Api\Notifikasi\NotifikasiController::getSummary');
+    $routes->get('/notif/center', '\App\Controllers\Api\Notifikasi\NotifikasiController::getCenter');
+    $routes->post('/notif/snooze', '\App\Controllers\Api\Notifikasi\NotifikasiController::snooze');
+    $routes->post('/notif/mark-as-read/(:num)', '\App\Controllers\Api\Notifikasi\NotifikasiController::markAsRead/$1');
+    $routes->post('/notif/mark-all-as-read', '\App\Controllers\Api\Notifikasi\NotifikasiController::markAllAsRead');
+    $routes->match(['get', 'post'], '/notif/tambah_notif', '\App\Controllers\Api\Notifikasi\NotifikasiController::tambah_notif');
+    $routes->match(['get', 'post'], '/notif/getactivity', '\App\Controllers\Api\Notifikasi\NotifikasiController::getActivityRoute');
+});
 $routes->get('/loadaktivitas', 'Home::loadAktivitas');
 
 $routes->get('/profil', '\App\Controllers\Web\UserManagement\ProfilController::index');
@@ -65,16 +84,18 @@ $routes->post('/profil/update', '\App\Controllers\Web\UserManagement\ProfilContr
 // ── Modul BPB (Web Routes) ──
 $routes->group('bpb', ['namespace' => 'App\Controllers\Web\Bpb'], function ($routes) {
     $routes->get('', 'BpbController::index', ['filter' => 'login']);
+    $routes->get('shared/(:segment)', 'BpbController::shared/$1', ['filter' => 'login']);
     $routes->get('(:num)/pdf', 'BpbController::pdf/$1', ['filter' => 'login']);
     $routes->get('signature/(:num)', 'BpbController::signature/$1', ['filter' => 'login']);
     $routes->get('verify/(:segment)', 'BpbController::verify/$1', ['filter' => 'throttle:20,60']);
 });
 
 // ── Modul BPB (API Routes) ──
-$routes->group('api/bpb', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' => 'csrf'], function ($routes) {
-    $routes->post('list', 'BpbController::list');
+$routes->group('api/bpb', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'list', 'BpbController::list');
     $routes->get('options', 'BpbController::options');
     $routes->get('detail/(:num)', 'BpbController::detail/$1');
+    $routes->get('shared/(:segment)', 'BpbController::shared/$1');
     $routes->post('draft', 'BpbController::draft');
     $routes->post('submit', 'BpbController::submit', ['filter' => 'throttle:10,60']);
     $routes->post('(:num)/update', 'BpbController::update/$1', ['filter' => 'throttle:10,60']);
@@ -84,16 +105,16 @@ $routes->group('api/bpb', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' =>
     $routes->post('(:num)/status', 'BpbController::status/$1', ['filter' => 'throttle:10,60']);
 });
 
-$routes->group('api/profile/signature', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' => 'csrf'], function ($routes) {
+$routes->group('api/profile/signature', ['namespace' => 'App\Controllers\Api\Bpb', 'filter' => 'login'], function ($routes) {
     $routes->get('', 'ProfileSignatureController::show');
     $routes->get('image', 'ProfileSignatureController::image');
     $routes->put('', 'ProfileSignatureController::save', ['filter' => 'throttle:5,60']);
     $routes->delete('', 'ProfileSignatureController::delete', ['filter' => 'throttle:5,60']);
 });
-$routes->group('google-calendar', ['filter' => 'login'], function ($routes) {
-    $routes->get('connect', 'GoogleCalendar::connect');
-    $routes->get('callback', 'GoogleCalendar::callback');
-    $routes->post('disconnect', 'GoogleCalendar::disconnect');
+$routes->group('google-calendar', ['namespace' => 'App\Controllers\Web\Notifikasi', 'filter' => 'login'], function ($routes) {
+    $routes->get('connect', 'GoogleCalendarController::connect');
+    $routes->get('callback', 'GoogleCalendarController::callback');
+    $routes->post('disconnect', 'GoogleCalendarController::disconnect');
 });
 
 $routes->get('/configcolor', '\App\Controllers\Web\Settings\PengaturanWarnaController::index');
@@ -101,7 +122,7 @@ $routes->get('/configcolor', '\App\Controllers\Web\Settings\PengaturanWarnaContr
 $routes->post("/get-dashboard", 'Home::getDashboard');
 $routes->post("/home/getMenuItemsJson", 'Home::getMenuItemsJson');
 
-$routes->post("/keuangan/jatuhtempo/get", 'Keuangan::getJatuhTempo');
+$routes->post("/keuangan/jatuhtempo/get", '\App\Controllers\Api\Keuangan\BankKprDisbursementController::getJatuhTempo', ['filter' => 'login']);
 
 
 $routes->post("/getAkases", 'AksesProyek::getAkses');
@@ -118,66 +139,106 @@ $routes->group('', ['namespace' => 'App\Controllers\Web\Proyek', 'filter' => 'lo
 
 // ── Modul Proyek (API Routes) ──
 $routes->group('api/proyek', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
-    $routes->post('all', 'ProyekController::getAll');
-    $routes->post('getall', 'ProyekController::getAll');
-    $routes->post('getone', 'ProyekController::getOne');
+    $routes->match(['get', 'post'], 'all', 'ProyekController::getAll');
+    $routes->match(['get', 'post'], 'getall', 'ProyekController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'ProyekController::getOne');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'ProyekController::getOne/$1');
     $routes->post('add', 'ProyekController::add');
     $routes->post('edit', 'ProyekController::edit');
     $routes->post('remove', 'ProyekController::remove');
-    $routes->get('siteplan-list', 'ProyekController::getSiteplanList');
-    $routes->post('siteplan-list', 'ProyekController::getSiteplanList');
-    $routes->get('accessible', 'ProyekController::getAccessible');
-    $routes->post('accessible', 'ProyekController::getAccessible');
+    $routes->match(['get', 'post'], 'siteplan-list', 'ProyekController::getSiteplanList');
+    $routes->match(['get', 'post'], 'siteplan-list/(:num)', 'ProyekController::getSiteplanList/$1');
+    $routes->match(['get', 'post'], 'accessible', 'ProyekController::getAccessible');
     $routes->post('set-active', 'ProyekController::setActive');
 });
 
 $routes->group('api/cluster', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
-    $routes->post('datatable', 'ClusterController::getDataTable');
-    $routes->post('getdatatable', 'ClusterController::getDataTable');
-    $routes->post('all', 'ClusterController::getAll');
-    $routes->post('getall', 'ClusterController::getAll');
-    $routes->post('getone', 'ClusterController::getOne');
+    $routes->match(['get', 'post'], 'datatable', 'ClusterController::getDataTable');
+    $routes->match(['get', 'post'], 'getdatatable', 'ClusterController::getDataTable');
+    $routes->match(['get', 'post'], 'all', 'ClusterController::getAll');
+    $routes->match(['get', 'post'], 'getall', 'ClusterController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'ClusterController::getOne');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'ClusterController::getOne/$1');
     $routes->post('add', 'ClusterController::add');
     $routes->post('edit', 'ClusterController::edit');
     $routes->post('remove', 'ClusterController::remove');
 });
 
 $routes->group('api/tipe', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
-    $routes->post('datatables', 'TipeController::getDataTables');
-    $routes->post('getdatatables', 'TipeController::getDataTables');
-    $routes->post('all', 'TipeController::getAll');
-    $routes->post('getall', 'TipeController::getAll');
-    $routes->post('getone', 'TipeController::getOne');
+    $routes->match(['get', 'post'], 'datatables', 'TipeController::getDataTables');
+    $routes->match(['get', 'post'], 'getdatatables', 'TipeController::getDataTables');
+    $routes->match(['get', 'post'], 'all', 'TipeController::getAll');
+    $routes->match(['get', 'post'], 'getall', 'TipeController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'TipeController::getOne');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'TipeController::getOne/$1');
     $routes->post('add', 'TipeController::add');
     $routes->post('edit', 'TipeController::edit');
     $routes->post('remove', 'TipeController::remove');
-    $routes->post('list-kavling', 'TipeController::getListKavling');
-    $routes->post('getlistkavling', 'TipeController::getListKavling');
+    $routes->match(['get', 'post'], 'list-kavling', 'TipeController::getListKavling');
+    $routes->match(['get', 'post'], 'list-kavling/(:num)', 'TipeController::getListKavling/$1');
+    $routes->match(['get', 'post'], 'getlistkavling', 'TipeController::getListKavling');
 });
 
 $routes->group('api/jalan', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
-    $routes->post('datatable', 'JalanController::getDatatable');
-    $routes->post('getdatatable', 'JalanController::getDatatable');
-    $routes->post('all', 'JalanController::getAll');
-    $routes->post('getall', 'JalanController::getAll');
-    $routes->post('getone', 'JalanController::getOne');
+    $routes->match(['get', 'post'], 'datatable', 'JalanController::getDatatable');
+    $routes->match(['get', 'post'], 'getdatatable', 'JalanController::getDatatable');
+    $routes->match(['get', 'post'], 'all', 'JalanController::getAll');
+    $routes->match(['get', 'post'], 'getall', 'JalanController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'JalanController::getOne');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'JalanController::getOne/$1');
     $routes->post('add', 'JalanController::add');
     $routes->post('edit', 'JalanController::edit');
     $routes->post('remove', 'JalanController::remove');
 });
 
 $routes->group('api/aksesproyek', ['namespace' => 'App\Controllers\Api\Proyek', 'filter' => 'login'], function ($routes) {
-    $routes->post('all', 'AksesProyekController::getAll');
-    $routes->post('getone', 'AksesProyekController::getOne');
-    $routes->post('search-users', 'AksesProyekController::getAkses');
+    $routes->get('meta', 'AksesProyekController::meta');
+    $routes->match(['get', 'post'], 'all', 'AksesProyekController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'AksesProyekController::getOne');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'AksesProyekController::getOne/$1');
+    $routes->match(['get', 'post'], 'search-users', 'AksesProyekController::getAkses');
     $routes->post('edit', 'AksesProyekController::edit');
+});
+
+// ── Modul Siteplan (API Routes) ──
+$routes->group('api/siteplan', ['namespace' => 'App\Controllers\Api\Siteplan', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'SiteplanController::meta');
+    $routes->get('kavling', 'SiteplanController::kavling');
+    $routes->post('kavling', 'SiteplanController::kavling');
+    $routes->get('proyek/(:num)', 'SiteplanController::proyek/$1');
+    $routes->get('proyek', 'SiteplanController::proyek');
+    $routes->get('config', 'SiteplanController::config');
+    $routes->get('others', 'SiteplanController::others');
+    $routes->post('others', 'SiteplanController::others');
+    $routes->get('detail/(:num)', 'SiteplanController::detail/$1');
+    $routes->post('detail', 'SiteplanController::detail');
+    $routes->post('add_kavling', 'SiteplanController::add_kavling');
+    $routes->post('edit_kavling', 'SiteplanController::edit_kavling');
+    $routes->post('edit_others', 'SiteplanController::edit_others');
+    $routes->post('get_kavling_by_id', 'SiteplanController::get_kavling_by_id');
+    $routes->post('get_kavling_by_multiple_id', 'SiteplanController::get_kavling_by_multiple_id');
+    $routes->post('get_harga_kavling', 'SiteplanController::get_harga_kavling');
+    $routes->post('get_turun_pembangunan', 'SiteplanController::get_turun_pembangunan');
+    $routes->post('set_turun_pembangunan', 'SiteplanController::set_turun_pembangunan');
+    $routes->post('get_others', 'SiteplanController::get_others');
+    $routes->get('kalendar/events', 'KalendarController::getEvents');
+    $routes->get('kalendar/meta', 'KalendarController::meta');
+});
+
+$routes->group('api/kalendar', ['namespace' => 'App\Controllers\Api\Siteplan', 'filter' => 'login'], function ($routes) {
+    $routes->get('events', 'KalendarController::getEvents');
+    $routes->get('meta', 'KalendarController::meta');
 });
 
 
 
 // $routes->get("bank", 'ListBank::index');
+$routes->get('list_bank/index', '\App\Controllers\Web\Keuangan\BankController::index', ['filter' => 'login']);
+$routes->get('list_bank', '\App\Controllers\Web\Keuangan\BankController::index', ['filter' => 'login']);
+$routes->get('listbank', '\App\Controllers\Web\Keuangan\BankController::index', ['filter' => 'login']);
 
-$routes->group('api/bank', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function($routes) {
+$routes->group('api/bank', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function($routes) {
+    $routes->get('meta', 'BankController::meta');
     $routes->get('ambil', 'BankController::ambil');
     $routes->get('list', 'BankController::list');
     $routes->post('ambilsatu', 'BankController::ambilSatu');
@@ -185,14 +246,21 @@ $routes->group('api/bank', ['namespace' => 'App\Controllers\Api', 'filter' => 'l
     $routes->post('hapus', 'BankController::hapus');
 });
 
-// Notifikasi push. Foreground tetap memakai polling /notif/summary.
-$routes->group('api/notif', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function($routes) {
+// ── Modul Notifikasi (API Routes Modern Full JSON) ──
+$routes->group('api/notif', ['namespace' => 'App\Controllers\Api\Notifikasi', 'filter' => 'login'], function ($routes) {
+    $routes->get('summary', 'NotifikasiController::summary');
+    $routes->get('center', 'NotifikasiController::center');
+    $routes->post('snooze', 'NotifikasiController::snooze');
+    $routes->get('load', 'NotifikasiController::load');
+    $routes->post('mark-as-read/(:num)', 'NotifikasiController::markAsRead/$1');
+    $routes->post('mark-all-as-read', 'NotifikasiController::markAllAsRead');
+    $routes->get('list', 'NotifikasiController::list');
+
     $routes->get('push/status', 'NotifPushController::status');
     $routes->post('push/subscribe', 'NotifPushController::subscribe');
     $routes->post('push/unsubscribe', 'NotifPushController::unsubscribe');
     $routes->post('push/test', 'NotifPushController::test', ['filter' => 'throttle:5,60']);
 
-    // Preferensi Notifikasi
     $routes->get('preferences', 'NotificationPreferenceController::index');
     $routes->post('preferences', 'NotificationPreferenceController::save');
     $routes->post('preferences/reset', 'NotificationPreferenceController::reset');
@@ -203,38 +271,48 @@ $routes->group('api/notif', ['namespace' => 'App\Controllers\Api', 'filter' => '
 $routes->group('', ['namespace' => 'App\Controllers\Web\Settings', 'filter' => 'login'], function ($routes) {
     $routes->get('menu-setting', 'MenuSettingController::index');
     $routes->get('setting-data', 'SettingDataController::index');
+    $routes->get('setting-fee-sales', '\App\Controllers\Web\SalesExternal\FeeSalesSettingController::index');
+});
+
+// Setting Akses Fee Sales API
+$routes->group('api/setting-fee-sales', ['namespace' => 'App\Controllers\Api\SalesExternal', 'filter' => 'login'], function ($routes) {
+    $routes->post('list', 'FeeSalesSettingController::listPermissions');
+    $routes->post('save', 'FeeSalesSettingController::savePermissions');
 });
 
 // ── Modul Settings (API Routes Modern) ──
 $routes->group('api/menu-setting', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
-    $routes->post('menu/list', 'MenuSettingController::menuList');
-    $routes->post('menu/get', 'MenuSettingController::menuGet');
+    $routes->get('meta', 'MenuSettingController::meta');
+    $routes->match(['get', 'post'], 'menu/list', 'MenuSettingController::menuList');
+    $routes->match(['get', 'post'], 'menu/get', 'MenuSettingController::menuGet');
     $routes->post('menu/save', 'MenuSettingController::menuSave');
     $routes->post('menu/toggle', 'MenuSettingController::menuToggle');
-    $routes->post('access/group', 'MenuSettingController::groupAccess');
+    $routes->match(['get', 'post'], 'access/group', 'MenuSettingController::groupAccess');
     $routes->post('access/group/save', 'MenuSettingController::groupSave');
-    $routes->post('access/user', 'MenuSettingController::userAccess');
+    $routes->match(['get', 'post'], 'access/user', 'MenuSettingController::userAccess');
     $routes->post('access/user/save', 'MenuSettingController::userSave');
-    $routes->post('siteplan-menu/list', 'MenuSettingController::siteplanMenuList');
-    $routes->post('siteplan-menu/get', 'MenuSettingController::siteplanMenuGet');
+    $routes->match(['get', 'post'], 'siteplan-menu/list', 'MenuSettingController::siteplanMenuList');
+    $routes->match(['get', 'post'], 'siteplan-menu/get', 'MenuSettingController::siteplanMenuGet');
     $routes->post('siteplan-menu/save', 'MenuSettingController::siteplanMenuSave');
     $routes->post('siteplan-menu/toggle', 'MenuSettingController::siteplanMenuToggle');
 });
 
 $routes->group('api/setting-data', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
-    $routes->post('list/(:segment)', 'SettingDataController::list/$1');
-    $routes->post('get/(:segment)', 'SettingDataController::get/$1');
+    $routes->get('meta', 'SettingDataController::meta');
+    $routes->match(['get', 'post'], 'list/(:segment)', 'SettingDataController::list/$1');
+    $routes->match(['get', 'post'], 'get/(:segment)', 'SettingDataController::get/$1');
     $routes->post('save/(:segment)', 'SettingDataController::save/$1');
-    $routes->post('delete/(:segment)', 'SettingDataController::delete/$1');
+    $routes->match(['delete', 'post'], 'delete/(:segment)', 'SettingDataController::delete/$1');
 });
 
 $routes->group('api/pengaturan-warna', ['namespace' => 'App\Controllers\Api\Settings', 'filter' => 'login'], function ($routes) {
-    $routes->post('all', 'PengaturanWarnaController::getAll');
-    $routes->post('getall', 'PengaturanWarnaController::getAll');
-    $routes->post('getone', 'PengaturanWarnaController::getOne');
+    $routes->get('meta', 'PengaturanWarnaController::meta');
+    $routes->match(['get', 'post'], 'all', 'PengaturanWarnaController::getAll');
+    $routes->match(['get', 'post'], 'getall', 'PengaturanWarnaController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'PengaturanWarnaController::getOne');
     $routes->post('add', 'PengaturanWarnaController::add');
     $routes->post('edit', 'PengaturanWarnaController::edit');
-    $routes->post('remove', 'PengaturanWarnaController::remove');
+    $routes->match(['delete', 'post'], 'remove', 'PengaturanWarnaController::remove');
 });
 
 // ── Modul Settings (Legacy Routes Zero-Downtime Aliases) ──
@@ -334,7 +412,14 @@ $routes->group('karyawan', ['filter' => 'login'], function ($routes) {
     $routes->post('remove', '\App\Controllers\Api\UserManagement\KaryawanController::remove');
 });
 
-$routes->get("getmodal", 'Modal::index');
+$routes->get('getmodal', '\App\Controllers\Web\Siteplan\ModalController::index');
+
+$routes->group('kalendar', ['filter' => 'login'], function ($routes) {
+    $routes->get('/', '\App\Controllers\Web\Siteplan\KalendarController::index');
+    $routes->get('index', '\App\Controllers\Web\Siteplan\KalendarController::index');
+    $routes->match(['get', 'post'], 'getEvents', '\App\Controllers\Api\Siteplan\KalendarController::getEvents');
+    $routes->match(['get', 'post'], 'getevents', '\App\Controllers\Api\Siteplan\KalendarController::getEvents');
+});
 
 $routes->group('files', ['filter' => 'login'], function ($routes) {
     $routes->get('(:segment)/path/thumbnail', 'FileController::pathThumbnail/$1');
@@ -345,24 +430,98 @@ $routes->group('files', ['filter' => 'login'], function ($routes) {
 
 
 
-$routes->group('print', ['filter' => 'login'], function ($routes) {
+$routes->group('print', ['namespace' => 'App\Controllers\Web\Keuangan', 'filter' => 'login'], function ($routes) {
     $routes->get('spptb', 'PrintController::printSpptb');
-    // $routes->get('kuitansi', 'PrintController::printKuitansi');
+    $routes->get('kuitansi', 'PrintController::printKuitansi');
 });
-$routes->get("pembayaran/kuitansi/cetak", 'Pembayaran::print');
-$routes->get("pembayaran/kuitansi-um/cetak", 'Pembayaran::printUm');
+$routes->get("pembayaran/kuitansi/cetak", '\App\Controllers\Web\Keuangan\PrintController::printPembayaran', ['filter' => 'login']);
+$routes->get("pembayaran/kuitansi-um/cetak", '\App\Controllers\Web\Keuangan\PrintController::printPembayaranUm', ['filter' => 'login']);
+$routes->get("keuangan/print_tagihan", '\App\Controllers\Web\Keuangan\PrintController::printTagihan', ['filter' => 'login']);
 
-//siteplan
-$routes->post("siteplan/get/all", 'Siteplan::getAllKavling');
-$routes->post("siteplan/get/detail", 'Siteplan::get_detail');
-$routes->post("siteplan/getKategoriOptions", 'Siteplan::getKategoriOptions');
-$routes->post("siteplan/urgent/summary", 'Siteplan::urgentSummary');
-$routes->get("siteplan/view", 'Siteplan::view_siteplan');
-$routes->get("siteplan/produksi-mobile", 'Siteplan::produksi_mobile');
+// ── Modul Siteplan (Web Routes) ──
+$routes->group('siteplan', ['namespace' => 'App\Controllers\Web\Siteplan', 'filter' => 'login'], function ($routes) {
+    $routes->get('/', 'SiteplanController::index');
+    $routes->get('index', 'SiteplanController::index');
+    $routes->get('view', 'SiteplanController::view_siteplan');
+    $routes->get('view_siteplan', 'SiteplanController::view_siteplan');
+    $routes->get('view_siteplan/(:num)', 'SiteplanController::view_siteplan/$1');
+    $routes->get('produksi-mobile', 'SiteplanController::produksi_mobile');
+    $routes->get('produksi_mobile', 'SiteplanController::produksi_mobile');
+});
 
-//hargajual
-$routes->post("hargajual/get/all", 'Hargajual::getDataTable');
-$routes->post("hargajual/get", 'Hargajual::getAll');
+// ── Modul Siteplan (Legacy Zero-Downtime AJAX Routes) ──
+$routes->group('siteplan', ['namespace' => 'App\Controllers\Api\Siteplan', 'filter' => 'login'], function ($routes) {
+    $routes->post('get/all', 'SiteplanController::getAllKavling');
+    $routes->post('getAllKavling', 'SiteplanController::getAllKavling');
+    $routes->post('get/detail', 'SiteplanController::get_detail');
+    $routes->post('get_detail', 'SiteplanController::get_detail');
+    $routes->post('getKategoriOptions', 'SiteplanController::getKategoriOptions');
+    $routes->post('urgent/summary', 'SiteplanController::urgentSummary');
+    $routes->post('get_others', 'SiteplanController::get_others');
+    $routes->post('add_kavling', 'SiteplanController::add_kavling');
+    $routes->post('edit_kavling', 'SiteplanController::edit_kavling');
+    $routes->post('edit_others', 'SiteplanController::edit_others');
+    $routes->post('get_kavling_by_multiple_id', 'SiteplanController::get_kavling_by_multiple_id');
+    $routes->post('get_harga_kavling', 'SiteplanController::get_harga_kavling');
+    $routes->post('get_turun_pembangunan', 'SiteplanController::get_turun_pembangunan');
+    $routes->post('set_turun_pembangunan', 'SiteplanController::set_turun_pembangunan');
+    $routes->post('get_kavling_by_id', 'SiteplanController::get_kavling_by_id');
+});
+
+// ── Modul Transaksi (Web Routes) ──
+$routes->group('', ['namespace' => 'App\Controllers\Web\Transaksi', 'filter' => 'login'], function ($routes) {
+    $routes->get('hargajual', 'HargajualController::index');
+    $routes->get('hargajual/index', 'HargajualController::index');
+});
+
+// ── Modul MKDT Promo (Web & Legacy Zero-Downtime Routes) ──
+$routes->get('promo', '\App\Controllers\Web\Mkdt\PromoController::index', ['filter' => 'login']);
+$routes->group('promo', ['filter' => 'login'], function ($routes) {
+    $routes->get('index', 'Promo::index');
+    $routes->match(['get', 'post'], 'getDataTable', 'Promo::getDataTable');
+    $routes->match(['get', 'post'], 'getdatatable', 'Promo::getDataTable');
+    $routes->match(['get', 'post'], 'getAll', 'Promo::getAll');
+    $routes->match(['get', 'post'], 'getall', 'Promo::getAll');
+    $routes->match(['get', 'post'], 'getOne', 'Promo::getOne');
+    $routes->match(['get', 'post'], 'getone', 'Promo::getOne');
+    $routes->match(['get', 'post'], 'getOne/(:num)', 'Promo::getOne/$1');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'Promo::getOne/$1');
+    $routes->post('add', 'Promo::add');
+    $routes->post('edit', 'Promo::edit');
+    $routes->post('edit/(:num)', 'Promo::edit/$1');
+    $routes->post('remove', 'Promo::remove');
+});
+
+// ── Modul Transaksi (Legacy Zero-Downtime Aliases) ──
+$routes->group('hargajual', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
+    $routes->post('get/all', 'HargajualController::getDataTable');
+    $routes->post('getDataTable', 'HargajualController::getDataTable');
+    $routes->post('getdatatable', 'HargajualController::getDataTable');
+    $routes->post('get', 'HargajualController::getAll');
+    $routes->post('getAll', 'HargajualController::getAll');
+    $routes->post('getall', 'HargajualController::getAll');
+    $routes->post('getOne', 'HargajualController::getOne');
+    $routes->post('getone', 'HargajualController::getOne');
+    $routes->post('add', 'HargajualController::add');
+    $routes->post('edit', 'HargajualController::edit');
+    $routes->post('remove', 'HargajualController::remove');
+    $routes->post('set_harga', 'HargajualController::set_harga');
+});
+
+$routes->group('transaksi', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
+    $routes->post('simpan', 'TransaksiController::saveTransaksi');
+    $routes->post('saveTransaksi', 'TransaksiController::saveTransaksi');
+    $routes->post('savetransaksi', 'TransaksiController::saveTransaksi');
+    $routes->post('ambilsatu', 'TransaksiController::getByID');
+    $routes->post('getByID', 'TransaksiController::getByID');
+    $routes->post('getbyid', 'TransaksiController::getByID');
+    $routes->post('status/ambilsatu', 'TransaksiController::getStatusByID');
+    $routes->post('getStatusByID', 'TransaksiController::getStatusByID');
+    $routes->post('getstatusbyid', 'TransaksiController::getStatusByID');
+    $routes->post('status/simpan', 'TransaksiController::saveStatus');
+    $routes->post('saveStatus', 'TransaksiController::saveStatus');
+    $routes->post('savestatus', 'TransaksiController::saveStatus');
+});
 
 
 //tipe
@@ -372,10 +531,10 @@ $routes->post("tipe/get/all", 'Tipe::getAll');
 $routes->post("proyek/get/all", 'Proyek::getAll');
 
 //export
-$routes->post("export/poskon/(:segment)/(:segment)", 'PosisiKonsumen::exportPoskon/$1/$2');
+$routes->post("export/poskon/(:segment)/(:segment)", '\App\Controllers\Api\Mkdt\PosisiKonsumenController::exportPoskon/$1/$2');
 
 //log export
-$routes->post("riwayat/poskon/(:segment)", 'PosisiKonsumen::getRiwayatExport/$1');
+$routes->post("riwayat/poskon/(:segment)", '\App\Controllers\Api\Mkdt\PosisiKonsumenController::getRiwayatExport/$1');
 
 
 // routes awal
@@ -384,107 +543,206 @@ $routes->post("riwayat/poskon/(:segment)", 'PosisiKonsumen::getRiwayatExport/$1'
 // $routes->post("/transaksi/status/ambilsatu", 'Transaksi::getStatusById');
 // $routes->post("/transaksi/status/simpan", 'Transaksi::saveStatus');
 
-$routes->post("/tagihan/ambilsatu", 'Tagihan::getByID');
-$routes->post("/tagihan/riwayat/ambilsatu", 'Tagihan::getRiwayatByID');
-$routes->post("/tagihan/turunkpr", 'Tagihan::tambahTurunKPR');
-$routes->post("/tagihan/hapusturunkpr", 'Tagihan::hapusTurunKPR');
-$routes->post("/tagihan/hapus", 'Tagihan::hapus');
-$routes->post("/tagihan/void", 'Tagihan::voidTagihan');
-$routes->post("/tagihan/unvoid", 'Tagihan::unvoidTagihan');
-$routes->post("/tagihan/jatuhtempo", 'Tagihan::getAllJatuhTempo');
+$routes->group('tagihan', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function ($routes) {
+    $routes->post('ambilsatu', 'TagihanController::getByID');
+    $routes->post('riwayat/ambilsatu', 'TagihanController::getRiwayatByID');
+    $routes->post('turunkpr', 'TagihanController::tambahTurunKPR');
+    $routes->post('hapusturunkpr', 'TagihanController::hapusTurunKPR');
+    $routes->post('hapus', 'TagihanController::hapus');
+    $routes->post('void', 'TagihanController::voidTagihan');
+    $routes->post('unvoid', 'TagihanController::unvoidTagihan');
+    $routes->post('save', 'TagihanController::save');
+    $routes->post('jatuhtempo', 'TagihanController::getAllJatuhTempo');
+    $routes->post('riwayat-bayar/ambil', 'TagihanController::getRiwayatBayar');
+    $routes->post('list/ambil', 'TagihanController::getListTagihan');
+    $routes->post('list/ambil-grouped', 'TagihanController::getListTagihanGrouped');
+    $routes->post('list/detail', 'TagihanController::getListTagihanDetail');
+    $routes->post('list/export-excel', 'TagihanController::exportExcelTagihan');
+    $routes->post('list/ambil-riwayat-surat', 'TagihanController::getListRiwayatSurat');
+});
 
-$routes->get('/riwayat-bayar', 'Tagihan::riwayatBayarIndex');
+// Zero-Downtime API aliases for SPA / Mobile (sigapp-vue)
+$routes->group('api/tagihan', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function ($routes) {
+    $routes->post('turunkpr', 'TagihanController::tambahTurunKPR');
+    $routes->post('hapusturunkpr', 'TagihanController::hapusTurunKPR');
+    $routes->post('void', 'TagihanController::voidTagihan');
+    $routes->post('unvoid', 'TagihanController::unvoidTagihan');
+});
 
-// $routes->get('/riwayat-bayar', 'Tagihan::riwayatBayarIndex');
-$routes->post('/tagihan/riwayat-bayar/ambil', 'Tagihan::getRiwayatBayar');
+$routes->get('/riwayat-bayar', '\App\Controllers\Web\Keuangan\TagihanController::riwayatBayarIndex', ['filter' => 'login']);
+$routes->get('/tagihan/list', '\App\Controllers\Web\Keuangan\TagihanController::listTagihan', ['filter' => 'login']);
 
 $routes->group('', ['filter' => 'login'], function ($routes) {
-    $routes->get('riwayat-perubahan', 'RiwayatPerubahan::index');
+    $routes->get('riwayat-perubahan', '\App\Controllers\Web\AuditTrail\RiwayatPerubahanController::index');
 });
-
-
-$routes->get("/tagihan/list", 'Tagihan::listTagihan');
-$routes->post("/tagihan/list/ambil", 'Tagihan::getListTagihan');
-$routes->post("/tagihan/list/ambil-grouped", 'Tagihan::getListTagihanGrouped');
-$routes->post("/tagihan/list/detail", 'Tagihan::getListTagihanDetail');
-$routes->post("/tagihan/list/export-excel", 'Tagihan::exportExcelTagihan');
-$routes->post("/tagihan/list/ambil-riwayat-surat", 'Tagihan::getListRiwayatSurat');
 
 //dana akad
-$routes->post("/danaakad/list/ambilsatu", 'Tagihan::getListTagihan');
+$routes->post("/danaakad/list/ambilsatu", '\App\Controllers\Api\Keuangan\TagihanController::getListTagihan', ['filter' => 'login']);
+$routes->post("/danaakad/getbyid", '\App\Controllers\Api\Keuangan\DanaJaminanController::getByID', ['filter' => 'login']);
+$routes->post("/keuangan/getDanaAkad", '\App\Controllers\Api\Keuangan\DanaJaminanController::getDanaAkad', ['filter' => 'login']);
+$routes->post("/keuangan/saveDanaAkad", '\App\Controllers\Api\Keuangan\DanaJaminanController::saveDanaAkad', ['filter' => 'login']);
 
 //pembayaran
-$routes->post("/pembayaran/simpan", 'Pembayaran::save');
-$routes->post("/pembayaran/hapus", 'Pembayaran::removeLP');
+$routes->post("/pembayaran/simpan", '\App\Controllers\Api\Keuangan\PembayaranController::save', ['filter' => 'login']);
+$routes->post("/pembayaran/hapus", '\App\Controllers\Api\Keuangan\PembayaranController::removeLP', ['filter' => 'login']);
 
 //cashout
-$routes->post("/keuangan/cashout/ambil", 'CashOut::getByIDKavling');
-$routes->post("/keuangan/cashout/listitem/ambil", 'CashOut::getListItem');
-$routes->post("/keuangan/cashout/delete", 'CashOut::delete');
-$routes->post("/keuangan/cashout/save", 'CashOut::insert');
-$routes->post("/keuangan/pencairan-bank/get", 'Keuangan::getBankKprDisbursement');
-$routes->post("/keuangan/pencairan-bank/save", 'Keuangan::saveBankKprDisbursement');
-$routes->post("/keuangan/pencairan-bank/void/(:num)", 'Keuangan::voidBankKprDisbursement/$1');
+$routes->post("/keuangan/cashout/ambil", '\App\Controllers\Api\Keuangan\CashOutController::getByIDKavling', ['filter' => 'login']);
+$routes->post("/keuangan/cashout/listitem/ambil", '\App\Controllers\Api\Keuangan\CashOutController::getListItem', ['filter' => 'login']);
+$routes->post("/keuangan/cashout/delete", '\App\Controllers\Api\Keuangan\CashOutController::delete', ['filter' => 'login']);
+$routes->post("/keuangan/cashout/save", '\App\Controllers\Api\Keuangan\CashOutController::insert', ['filter' => 'login']);
+$routes->post("/keuangan/pencairan-bank/get", '\App\Controllers\Api\Keuangan\BankKprDisbursementController::getData', ['filter' => 'login']);
+$routes->post("/keuangan/pencairan-bank/save", '\App\Controllers\Api\Keuangan\BankKprDisbursementController::save', ['filter' => 'login']);
+$routes->post("/keuangan/pencairan-bank/void/(:num)", '\App\Controllers\Api\Keuangan\BankKprDisbursementController::void/$1', ['filter' => 'login']);
 
-//pencairan akad (gabungan retensi + hasil akad)
-$routes->post("/keuangan/pencairan-akad/get", 'PencairanAkad::get');
-$routes->post("/keuangan/pencairan-akad/plan/save-retensi", 'PencairanAkad::saveRetensi');
-$routes->post("/keuangan/pencairan-akad/plan/save-tenor", 'PencairanAkad::saveTenor');
-$routes->post("/keuangan/pencairan-akad/pengajuan/store", 'PencairanAkad::storePengajuan');
-$routes->post("/keuangan/pencairan-akad/pencairan/store", 'PencairanAkad::cairkan');
-$routes->post("/keuangan/pencairan-akad/payment/list", 'PencairanAkad::listPayment');
-$routes->post("/keuangan/pencairan-akad/payment/void", 'PencairanAkad::voidPayment');
-$routes->post("/keuangan/pencairan-akad/void", 'PencairanAkad::void');
-$routes->get("/keuangan/pencairan-akad/history/(:num)", 'PencairanAkad::history/$1');
-
-$routes->get("/keuangan/hasil-akad/list", 'PencairanAkad::listHasilAkad');
-$routes->post("/keuangan/hasil-akad/list/ambil-grouped", 'PencairanAkad::getListGrouped');
-$routes->post("/keuangan/hasil-akad/list/detail", 'PencairanAkad::getListDetail');
-$routes->get("/keuangan/hasil-akad/export-template", 'PencairanAkad::exportTemplate');
-$routes->get("/keuangan/hasil-akad/import", 'PencairanAkad::importForm');
-$routes->post("/keuangan/hasil-akad/import", 'PencairanAkad::import');
-
-$routes->group('laporan', ['namespace' => 'App\Controllers\Web', 'filter' => 'login'], function ($routes) {
-    $routes->get('cash-in', 'CashInReportController::index');
-    $routes->get('hasil-akad', 'HasilAkadReportController::index');
+$routes->group('api/keuangan', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function ($routes) {
+    $routes->get('tagihan/meta', 'TagihanController::meta');
+    $routes->get('pembayaran/meta', 'PembayaranController::meta');
+    $routes->get('pencairan-bank/meta', 'BankKprDisbursementController::meta');
+    $routes->get('pencairan-akad/meta', 'PencairanAkadController::meta');
+    $routes->get('dana-jaminan/meta', 'DanaJaminanController::meta');
+    $routes->get('cashout/meta', 'CashOutController::meta');
+    $routes->get('cashout-kavling/meta', 'Cashout\CashoutKavlingController::meta');
+    $routes->get('cashout-subkon/meta', 'Cashout\CashoutSubkonController::meta');
+    $routes->get('pajak/meta', 'PajakController::meta');
+    $routes->get('direksi/meta', 'DireksiController::meta');
+    $routes->get('penagihan/meta', 'PenagihanController::meta');
 });
 
-$routes->group('api/laporan/cash-in', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+// Pajak modular explicit routes
+$routes->group('pajak', ['filter' => 'login'], function ($routes) {
+    $routes->post('getOne', '\App\Controllers\Api\Keuangan\PajakController::getOne');
+    $routes->post('save', '\App\Controllers\Api\Keuangan\PajakController::save');
+});
+
+// Direksi modular explicit routes
+$routes->group('direksi', ['filter' => 'login'], function ($routes) {
+    $routes->get('tagihan', '\App\Controllers\Web\Keuangan\DireksiController::tagihan');
+    $routes->get('export_xlsx', '\App\Controllers\Web\Keuangan\DireksiController::export_xlsx');
+    $routes->post('export_xlsx', '\App\Controllers\Web\Keuangan\DireksiController::export_xlsx');
+    $routes->post('get_data_by_id', '\App\Controllers\Api\Keuangan\DireksiController::get_data_by_id');
+    $routes->post('save', '\App\Controllers\Api\Keuangan\DireksiController::save');
+    $routes->get('get_pending_tagihan', '\App\Controllers\Api\Keuangan\DireksiController::get_pending_tagihan');
+    $routes->post('get_pending_tagihan', '\App\Controllers\Api\Keuangan\DireksiController::get_pending_tagihan');
+    $routes->get('get_my_signature', '\App\Controllers\Api\Keuangan\DireksiController::get_my_signature');
+    $routes->post('get_my_signature', '\App\Controllers\Api\Keuangan\DireksiController::get_my_signature');
+    $routes->post('sign_tagihan', '\App\Controllers\Api\Keuangan\DireksiController::sign_tagihan');
+    $routes->get('get_history_tagihan', '\App\Controllers\Api\Keuangan\DireksiController::get_history_tagihan');
+    $routes->post('get_history_tagihan', '\App\Controllers\Api\Keuangan\DireksiController::get_history_tagihan');
+    $routes->post('reject_tagihan', '\App\Controllers\Api\Keuangan\DireksiController::reject_tagihan');
+});
+
+// Penagihan, KopSurat & DoPrint modular explicit routes
+$routes->group('keuangan', ['filter' => 'login'], function ($routes) {
+    $routes->get('download_penagihan', '\App\Controllers\Web\Keuangan\PenagihanController::download_penagihan');
+    $routes->get('doPrint', '\App\Controllers\Web\Keuangan\PenagihanController::doPrint');
+    $routes->post('doPrint', '\App\Controllers\Web\Keuangan\PenagihanController::doPrint');
+    $routes->post('isi_tagihan', '\App\Controllers\Api\Keuangan\PenagihanController::isi_tagihan');
+    $routes->post('save_sb', '\App\Controllers\Api\Keuangan\PenagihanController::save_sb');
+    $routes->post('save', '\App\Controllers\Api\Keuangan\PenagihanController::save');
+    $routes->post('get_tagihan', '\App\Controllers\Api\Keuangan\PenagihanController::get_tagihan');
+    $routes->post('get_tagihan/(:segment)', '\App\Controllers\Api\Keuangan\PenagihanController::get_tagihan/$1');
+    $routes->get('get_riwayat_tagihan', '\App\Controllers\Api\Keuangan\PenagihanController::get_riwayat_tagihan');
+    $routes->post('get_riwayat_tagihan', '\App\Controllers\Api\Keuangan\PenagihanController::get_riwayat_tagihan');
+    $routes->post('simpan_penagihan', '\App\Controllers\Api\Keuangan\PenagihanController::simpan_penagihan');
+    $routes->post('update_status_penagihan', '\App\Controllers\Api\Keuangan\PenagihanController::update_status_penagihan');
+    $routes->get('get_kopsurat_list', '\App\Controllers\Api\Keuangan\PenagihanController::get_kopsurat_list');
+    $routes->post('get_kopsurat_list', '\App\Controllers\Api\Keuangan\PenagihanController::get_kopsurat_list');
+    $routes->get('get_kopsurat_detail', '\App\Controllers\Api\Keuangan\PenagihanController::get_kopsurat_detail');
+    $routes->post('get_kopsurat_detail', '\App\Controllers\Api\Keuangan\PenagihanController::get_kopsurat_detail');
+    $routes->post('simpan_kopsurat', '\App\Controllers\Api\Keuangan\PenagihanController::simpan_kopsurat');
+    $routes->post('hapus_kopsurat', '\App\Controllers\Api\Keuangan\PenagihanController::hapus_kopsurat');
+});
+
+//pencairan akad (gabungan retensi + hasil akad)
+$routes->group('keuangan', ['filter' => 'login'], function ($routes) {
+    $routes->post('pencairan-akad/get', '\App\Controllers\Api\Keuangan\PencairanAkadController::get');
+    $routes->post('pencairan-akad/plan/save-retensi', '\App\Controllers\Api\Keuangan\PencairanAkadController::saveRetensi');
+    $routes->post('pencairan-akad/plan/save-tenor', '\App\Controllers\Api\Keuangan\PencairanAkadController::saveTenor');
+    $routes->post('pencairan-akad/pengajuan/store', '\App\Controllers\Api\Keuangan\PencairanAkadController::storePengajuan');
+    $routes->post('pencairan-akad/pencairan/store', '\App\Controllers\Api\Keuangan\PencairanAkadController::cairkan');
+    $routes->post('pencairan-akad/payment/list', '\App\Controllers\Api\Keuangan\PencairanAkadController::listPayment');
+    $routes->post('pencairan-akad/payment/void', '\App\Controllers\Api\Keuangan\PencairanAkadController::voidPayment');
+    $routes->post('pencairan-akad/void', '\App\Controllers\Api\Keuangan\PencairanAkadController::void');
+    $routes->get('pencairan-akad/history/(:num)', '\App\Controllers\Api\Keuangan\PencairanAkadController::history/$1');
+
+    $routes->post('pencairan-akad/batch/list', '\App\Controllers\Api\Keuangan\PencairanAkadController::postBatchList');
+    $routes->post('pencairan-akad/batch/eligible-kavling', '\App\Controllers\Api\Keuangan\PencairanAkadController::postEligibleKavling');
+    $routes->post('pencairan-akad/batch/pengajuan/store', '\App\Controllers\Api\Keuangan\PencairanAkadController::postStoreBatchPengajuan');
+    $routes->post('pencairan-akad/batch/detail', '\App\Controllers\Api\Keuangan\PencairanAkadController::postBatchDetail');
+    $routes->post('pencairan-akad/batch/pencairan/store', '\App\Controllers\Api\Keuangan\PencairanAkadController::postCairkanBatch');
+    $routes->post('pencairan-akad/batch/void', '\App\Controllers\Api\Keuangan\PencairanAkadController::postVoidBatch');
+    $routes->get('pencairan-akad/batch/history/(:num)', '\App\Controllers\Api\Keuangan\PencairanAkadController::getBatchHistory/$1');
+
+    $routes->get('hasil-akad/list', '\App\Controllers\Web\Keuangan\PencairanAkadController::listHasilAkad');
+    $routes->post('hasil-akad/list/ambil-grouped', '\App\Controllers\Api\Keuangan\PencairanAkadController::getListGrouped');
+    $routes->post('hasil-akad/list/detail', '\App\Controllers\Api\Keuangan\PencairanAkadController::getListDetail');
+    $routes->get('hasil-akad/export-template', '\App\Controllers\Web\Keuangan\PencairanAkadController::exportTemplate');
+    $routes->get('hasil-akad/import', '\App\Controllers\Web\Keuangan\PencairanAkadController::importForm');
+    $routes->post('hasil-akad/import', '\App\Controllers\Api\Keuangan\PencairanAkadController::import');
+});
+
+$routes->group('laporan', ['namespace' => 'App\Controllers\Web', 'filter' => 'login'], function ($routes) {
+    $routes->get('cash-in', '\App\Controllers\Web\Keuangan\CashInReportController::index');
+    $routes->get('hasil-akad', '\App\Controllers\Web\Keuangan\HasilAkadReportController::index');
+    $routes->get('booking-akad', '\App\Controllers\Web\Mkdt\BookingAkadReportController::index');
+});
+
+$routes->group('api/laporan/cash-in', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'CashInReportController::meta');
     $routes->post('summary', 'CashInReportController::summary');
     $routes->post('detail', 'CashInReportController::detail');
 });
 
-$routes->group('api/laporan/hasil-akad', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/laporan/hasil-akad', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'HasilAkadReportController::meta');
     $routes->post('summary', 'HasilAkadReportController::summary');
     $routes->post('detail', 'HasilAkadReportController::detail');
 });
 
-
-$routes->get("/pembayaran/hitungulang", 'Pembayaran::recalculateSummary');
-
-$routes->group('kavling', ['filter' => 'login'], function ($routes) {
-    $routes->post('list/ambil', 'Kavling::getList');
+$routes->group('api/laporan/booking-akad', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {
+    $routes->post('summary', 'BookingAkadReportController::summary');
+    $routes->post('detail', 'BookingAkadReportController::detail');
 });
 
-$routes->group('subkon', ['filter' => 'login'], function ($routes) {
-    $routes->post('list/ambil', 'Subkon::getList');
+
+$routes->get("/pembayaran/hitungulang", '\App\Controllers\Api\Keuangan\PembayaranController::recalculateSummary', ['filter' => 'login']);
+
+$routes->group('kavling', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
+    $routes->post('list/ambil', 'KavlingController::getList');
+    $routes->post('getList', 'KavlingController::getList');
 });
 
-//subkon
-$routes->group('cashout', ['filter' => 'login', 'namespace' => 'App\Controllers\Keuangan\Cashout'], function ($routes) {
-    $routes->get('kavling', 'CashoutKavling::index');
-    $routes->post('kavling/list', 'CashoutKavling::getDataTables');
-    $routes->post('kavling/detail-list', 'CashoutKavling::getDetailList');
-    $routes->get('subkon', 'CashoutSubkon::index');
-    $routes->post('subkon/list', 'CashoutSubkon::getDataTables');
-    $routes->post('subkon/detail-list', 'CashoutSubkon::getDetailList');
-    $routes->post('subkon/ambil', 'CashoutSubkon::get');
-    $routes->post('subkon/save', 'CashoutSubkon::save');
-    $routes->post('subkon/turun-jatuh-tempo', 'CashoutSubkon::turunJatuhTempo');
-    $routes->post('subkon/ajukan-spp', 'CashoutSubkon::ajukanSPP');
-    $routes->post('subkon/history', 'CashoutSubkon::getHistory');
-    $routes->post('subkon/ajukan-pencairan', 'CashoutSubkon::ajukanPencairan');
-    $routes->post('subkon/pembayaran', 'CashoutSubkon::pembayaran');
+$routes->group('api/kavling', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
+    $routes->get('list', 'KavlingController::getList');
+    $routes->post('list', 'KavlingController::getList');
+    $routes->post('list/ambil', 'KavlingController::getList');
+});
+
+$routes->group('subkon', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'list/ambil', 'SubkonController::getList');
+    $routes->match(['get', 'post'], 'list',       'SubkonController::getList');
+});
+
+$routes->group('api/subkon', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'list', 'SubkonController::getList');
+});
+
+//subkon & cashout kavling
+$routes->group('cashout', ['filter' => 'login'], function ($routes) {
+    $routes->get('kavling', '\App\Controllers\Web\Keuangan\Cashout\CashoutKavlingController::index');
+    $routes->post('kavling/list', '\App\Controllers\Api\Keuangan\Cashout\CashoutKavlingController::getDataTables');
+    $routes->post('kavling/detail-list', '\App\Controllers\Api\Keuangan\Cashout\CashoutKavlingController::getDetailList');
+    $routes->get('subkon', '\App\Controllers\Web\Keuangan\Cashout\CashoutSubkonController::index');
+    $routes->post('subkon/list', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::getDataTables');
+    $routes->post('subkon/detail-list', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::getDetailList');
+    $routes->post('subkon/ambil', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::get');
+    $routes->post('subkon/save', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::save');
+    $routes->post('subkon/turun-jatuh-tempo', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::turunJatuhTempo');
+    $routes->post('subkon/ajukan-spp', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::ajukanSPP');
+    $routes->post('subkon/history', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::getHistory');
+    $routes->post('subkon/ajukan-pencairan', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::ajukanPencairan');
+    $routes->post('subkon/pembayaran', '\App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController::pembayaran');
     // $routes->post('toggle/(:num)', 'CashoutSubkon::toggleStatus/$1');
     // $routes->get('download/(:num)', 'CashoutSubkon::download/$1');
 });
@@ -493,51 +751,138 @@ $routes->group('cashout', ['filter' => 'login', 'namespace' => 'App\Controllers\
 
 // DEPRECATED: Rute legacy untuk PencairanJaminan, dijadwalkan untuk dihapus saat refaktor Keuangan.
 // Seluruh fitur pencairan telah dialihkan ke rute /keuangan/pencairan-akad/*
-$routes->group('pencairan', ['filter' => 'login'], function ($routes) {
-    $routes->get('/', 'PencairanJaminan::index');
-    $routes->get('list/(:num)', 'PencairanJaminan::list/$1');
-    $routes->post('store', 'PencairanJaminan::store');
-    $routes->post('cairkan/(:num)', 'PencairanJaminan::cairkan/$1');
-    $routes->get('history/(:num)', 'PencairanJaminan::history/$1');
-    $routes->post('toggle/(:num)', 'PencairanJaminan::toggleStatus/$1');
-    $routes->get('download/(:num)', 'PencairanJaminan::download/$1');
+$routes->group('pencairan', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => 'login'], function ($routes) {
+    $routes->get('/', 'DanaJaminanController::index');
+    $routes->get('list/(:num)', 'DanaJaminanController::list/$1');
+    $routes->post('store', 'DanaJaminanController::store');
+    $routes->post('cairkan/(:num)', 'DanaJaminanController::cairkan/$1');
+    $routes->get('history/(:num)', 'DanaJaminanController::history/$1');
+    $routes->post('toggle/(:num)', 'DanaJaminanController::toggleStatus/$1');
+    $routes->get('download/(:num)', 'DanaJaminanController::download/$1');
 });
 
 
 
-$routes->group('api/legal', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function($routes) {
+$routes->group('api/legal', ['namespace' => 'App\Controllers\Api\Legal', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'LegalController::meta');
+    $routes->post('meta', 'LegalController::meta');
     $routes->post('save', 'LegalController::save');
+    $routes->get('get', 'LegalController::getDataByID');
     $routes->post('get', 'LegalController::getDataByID');
     $routes->post('remove', 'LegalController::removeDoc');
+    $routes->post('removeDoc', 'LegalController::removeDoc');
+    $routes->get('getDoc', 'LegalController::getDoc');
     $routes->post('getDoc', 'LegalController::getDoc');
     $routes->post('upload', 'LegalController::upload');
+    $routes->get('getListLegalitas', 'LegalController::getListLegalitas');
     $routes->post('getListLegalitas', 'LegalController::getListLegalitas');
     $routes->post('edit_others', 'LegalController::edit_others');
 });
 
-$routes->group('api/transaksi', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function($routes) {
+$routes->group('api/transaksi', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function($routes) {
+    $routes->get('meta', 'TransaksiController::meta');
+    $routes->post('meta', 'TransaksiController::meta');
     $routes->post('simpan', 'TransaksiController::saveTransaksi');
     $routes->post('ambilsatu', 'TransaksiController::getByID');
-    $routes->post('status/ambilsatu', 'TransaksiController::getStatusById');
+    $routes->post('status/ambilsatu', 'TransaksiController::getStatusByID');
     $routes->post('status/simpan', 'TransaksiController::saveStatus');
     $routes->post('konsumen/ganti', 'TransaksiController::replaceConsumer');
 });
 
-$routes->group('api/mkdt', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/hargajual', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'HargajualController::meta');
+    $routes->post('meta', 'HargajualController::meta');
+    $routes->post('get/all', 'HargajualController::getDataTable');
+    $routes->post('datatable', 'HargajualController::getDataTable');
+    $routes->post('getDataTable', 'HargajualController::getDataTable');
+    $routes->post('get', 'HargajualController::getAll');
+    $routes->post('all', 'HargajualController::getAll');
+    $routes->post('getAll', 'HargajualController::getAll');
+    $routes->post('getOne', 'HargajualController::getOne');
+    $routes->post('getone', 'HargajualController::getOne');
+    $routes->post('add', 'HargajualController::add');
+    $routes->post('edit', 'HargajualController::edit');
+    $routes->post('remove', 'HargajualController::remove');
+    $routes->post('set_harga', 'HargajualController::set_harga');
+    $routes->post('set-harga', 'HargajualController::set_harga');
+});
+
+$routes->group('api/mkdt', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
     $routes->post('history', 'MkdtController::history');
     $routes->post('consumer-replacement-history', 'MkdtController::consumerReplacementHistory');
 });
 
-$routes->group('api/tagihan/booking', ['namespace' => 'App\Controllers\Api', 'filter' => ['login', 'csrf']], function ($routes) {
-    $routes->post('verifikasi', 'BookingPaymentController::verify');
+$routes->group('api/mkdt', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'operations/meta', 'MkdtOperationController::meta');
+    $routes->match(['get', 'post'], 'stock/list', 'MkdtOperationController::getListStock');
+    $routes->match(['get', 'post'], 'si', 'MkdtOperationController::getSi');
+    $routes->post('si/save', 'MkdtOperationController::saveSi');
+    $routes->match(['get', 'post'], 'batal/detail', 'MkdtOperationController::getBatal');
+    $routes->post('batal/simpan', 'MkdtOperationController::simpanBatal');
 });
 
-$routes->group('api/referral-qr', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+// ── Modul MKDT Operasi (Legacy Zero-Downtime Routes) ──
+$routes->group('mkdt', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getListStock', 'MkdtOperationController::getListStock');
+    $routes->match(['get', 'post'], 'getliststock', 'MkdtOperationController::getListStock');
+    $routes->match(['get', 'post'], 'getsi', 'MkdtOperationController::getSi');
+    $routes->post('saveSI', 'MkdtOperationController::saveSi');
+    $routes->post('savesi', 'MkdtOperationController::saveSi');
+    $routes->match(['get', 'post'], 'batal_mkdt', 'MkdtOperationController::getBatal');
+    $routes->post('simpan_batal', 'MkdtOperationController::simpanBatal');
+});
+
+$routes->group('api/mkdt/promo', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'meta', 'PromoController::meta');
+    $routes->match(['get', 'post'], 'datatable', 'PromoController::getDataTable');
+    $routes->match(['get', 'post'], 'getdatatable', 'PromoController::getDataTable');
+    $routes->match(['get', 'post'], 'getDataTable', 'PromoController::getDataTable');
+    $routes->match(['get', 'post'], 'all', 'PromoController::getAll');
+    $routes->match(['get', 'post'], 'getall', 'PromoController::getAll');
+    $routes->match(['get', 'post'], 'getAll', 'PromoController::getAll');
+    $routes->match(['get', 'post'], 'getone', 'PromoController::getOne');
+    $routes->match(['get', 'post'], 'getOne', 'PromoController::getOne');
+    $routes->match(['get', 'post'], 'getone/(:num)', 'PromoController::getOne/$1');
+    $routes->match(['get', 'post'], 'getOne/(:num)', 'PromoController::getOne/$1');
+    $routes->post('add', 'PromoController::add');
+    $routes->post('edit', 'PromoController::edit');
+    $routes->post('edit/(:num)', 'PromoController::edit/$1');
+    $routes->post('remove', 'PromoController::remove');
+    $routes->post('remove/(:num)', 'PromoController::remove/$1');
+});
+
+$routes->group('api/mkdt/posisi-konsumen', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'meta', 'PosisiKonsumenController::meta');
+    $routes->match(['get', 'post'], 'datatable', 'PosisiKonsumenController::getDataTables');
+    $routes->match(['get', 'post'], 'datatable-akad', 'PosisiKonsumenController::getDataTablesAkad');
+    $routes->match(['get', 'post'], 'datatable-batal', 'PosisiKonsumenController::getDataTablesBatal');
+    $routes->match(['get', 'post'], 'datatable/(:segment)', 'PosisiKonsumenController::getDataTables/$1');
+    $routes->post('export/(:segment)/(:segment)', 'PosisiKonsumenController::exportPoskon/$1/$2');
+    $routes->match(['get', 'post'], 'riwayat/(:segment)', 'PosisiKonsumenController::getRiwayatExport/$1');
+});
+
+$routes->group('api/nup', ['namespace' => 'App\Controllers\Api\Mkdt', 'filter' => 'login'], function ($routes) {
+    $routes->post('list', 'NupController::list');
+    $routes->post('detail', 'NupController::detail');
+    $routes->post('save', 'NupController::save');
+    $routes->post('pull', 'NupController::pull');
+    $routes->post('kavling-options', 'NupController::kavlingOptions');
+    $routes->post('kavling-history', 'NupController::kavlingHistory');
+});
+
+$routes->group('api/tagihan/booking', ['namespace' => 'App\Controllers\Api\Keuangan', 'filter' => ['login', 'csrf']], function ($routes) {
+    $routes->post('verifikasi', 'BookingPaymentController::verify');
+    $routes->post('batal-verifikasi', 'BookingPaymentController::unverify');
+    $routes->post('terverifikasi', 'BookingPaymentController::verifiedList');
+});
+
+$routes->group('api/referral-qr', ['namespace' => 'App\Controllers\Api\MGM', 'filter' => 'login'], function ($routes) {
     $routes->post('preview', 'ReferralQrController::preview');
     $routes->get('download', 'ReferralQrController::download');
 });
 
-$routes->group('api/produksi', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/produksi', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'meta',   'ProduksiController::meta');
     $routes->post('get_data_by_id',          'ProduksiController::get_data_by_id');
     $routes->post('getBayarProduksi',         'ProduksiController::getBayarProduksi');
     $routes->post('getBayarProduksiListItem', 'ProduksiController::getBayarProduksiListItem');
@@ -557,20 +902,107 @@ $routes->group('api/produksi', ['namespace' => 'App\Controllers\Api', 'filter' =
     $routes->post('get_gambarkerja',          'ProduksiController::get_gambarkerja');
     $routes->post('add_jalan',                'ProduksiController::add_jalan');
     $routes->post('edit_others',              'ProduksiController::edit_others');
+
+    // Sales API sub-group
+    $routes->group('sales', function ($routes) {
+        $routes->post('get_data_by_id',              'SalesController::get_data_by_id');
+        $routes->post('save_checklist',              'SalesController::save_checklist');
+        $routes->post('get_data_komplain_by_id',    'SalesController::get_data_komplain_by_id');
+        $routes->post('batalkan_komplain',           'SalesController::batalkan_komplain');
+        $routes->post('save_komplain_sales',         'SalesController::save_komplain_sales');
+        $routes->post('get_data_serah_terima_by_id', 'SalesController::get_data_serah_terima_by_id');
+        $routes->post('save_serah_terima',           'SalesController::save_serah_terima');
+    });
 });
 
-$routes->group('api/target', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
-    $routes->post('list',    'TargetController::list');
-    $routes->post('detail',  'TargetController::detail');
-    $routes->post('save',    'TargetController::save');
-    $routes->post('history', 'TargetController::history');
+$routes->group('sales', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->post('get_data_by_id',              'SalesController::get_data_by_id');
+    $routes->post('save_checklist',              'SalesController::save_checklist');
+    $routes->post('get_data_komplain_by_id',    'SalesController::get_data_komplain_by_id');
+    $routes->post('batalkan_komplain',           'SalesController::batalkan_komplain');
+    $routes->post('save_komplain_sales',         'SalesController::save_komplain_sales');
+    $routes->post('get_data_serah_terima_by_id', 'SalesController::get_data_serah_terima_by_id');
+    $routes->post('save_serah_terima',           'SalesController::save_serah_terima');
 });
 
-$routes->group('api/riwayat-perubahan', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('', ['namespace' => 'App\Controllers\Web\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->get('checklist-group',    'ChecklistGroupController::index');
+    $routes->get('checklistGroup',      'ChecklistGroupController::index');
+    $routes->get('checklist-item',     'ChecklistItemController::index');
+    $routes->get('checklistItem',       'ChecklistItemController::index');
+    $routes->get('checklist-sub-item', 'ChecklistSubItemController::index');
+    $routes->get('checklistSubItem',    'ChecklistSubItemController::index');
+    $routes->get('produksi/mobile',     'ProduksiController::produksiMobile');
+});
+
+$routes->group('checklistGroup', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getAll', 'ChecklistGroupController::getAll');
+    $routes->post('getOne',                   'ChecklistGroupController::getOne');
+    $routes->post('add',                      'ChecklistGroupController::add');
+    $routes->post('edit',                     'ChecklistGroupController::edit');
+    $routes->post('remove',                   'ChecklistGroupController::remove');
+});
+
+$routes->group('checklistItem', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getAll', 'ChecklistItemController::getAll');
+    $routes->post('getOne',                   'ChecklistItemController::getOne');
+    $routes->post('add',                      'ChecklistItemController::add');
+    $routes->post('edit',                     'ChecklistItemController::edit');
+    $routes->post('remove',                   'ChecklistItemController::remove');
+});
+
+$routes->group('checklistSubItem', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getAll', 'ChecklistSubItemController::getAll');
+    $routes->post('getOne',                   'ChecklistSubItemController::getOne');
+    $routes->post('add',                      'ChecklistSubItemController::add');
+    $routes->post('edit',                     'ChecklistSubItemController::edit');
+    $routes->post('remove',                   'ChecklistSubItemController::remove');
+});
+
+$routes->group('api/checklist-group', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getAll', 'ChecklistGroupController::getAll');
+    $routes->post('getOne',                   'ChecklistGroupController::getOne');
+    $routes->post('add',                      'ChecklistGroupController::add');
+    $routes->post('edit',                     'ChecklistGroupController::edit');
+    $routes->post('remove',                   'ChecklistGroupController::remove');
+});
+
+$routes->group('api/checklist-item', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getAll', 'ChecklistItemController::getAll');
+    $routes->post('getOne',                   'ChecklistItemController::getOne');
+    $routes->post('add',                      'ChecklistItemController::add');
+    $routes->post('edit',                     'ChecklistItemController::edit');
+    $routes->post('remove',                   'ChecklistItemController::remove');
+});
+
+$routes->group('api/checklist-sub-item', ['namespace' => 'App\Controllers\Api\Produksi', 'filter' => 'login'], function ($routes) {
+    $routes->match(['get', 'post'], 'getAll', 'ChecklistSubItemController::getAll');
+    $routes->post('getOne',                   'ChecklistSubItemController::getOne');
+    $routes->post('add',                      'ChecklistSubItemController::add');
+    $routes->post('edit',                     'ChecklistSubItemController::edit');
+    $routes->post('remove',                   'ChecklistSubItemController::remove');
+});
+
+$routes->group('api/target', ['namespace' => 'App\Controllers\Api\Siteplan', 'filter' => 'login'], function ($routes) {
+    $routes->post('list',                'TargetController::list');
+    $routes->post('detail',              'TargetController::detail');
+    $routes->post('save',                'TargetController::save');
+    $routes->post('add-kavling',         'TargetController::addKavling');
+    $routes->post('update-kavling-tipe', 'TargetController::updateKavlingTipe');
+    $routes->post('remove-kavling',      'TargetController::removeKavling');
+    $routes->post('history',             'TargetController::history');
+    $routes->post('request-change',      'TargetController::requestChange');
+    $routes->post('requests',            'TargetController::requests');
+    $routes->post('review-request',      'TargetController::reviewRequest');
+});
+
+$routes->group('api/riwayat-perubahan', ['namespace' => 'App\Controllers\Api\AuditTrail', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'HistoryController::meta');
     $routes->post('list', 'HistoryController::list');
+    $routes->post('kavling', 'HistoryController::kavling');
 });
 
-$routes->group('api/tiket-masalah', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/tiket-masalah', ['namespace' => 'App\Controllers\Api\TiketMasalah', 'filter' => 'login'], function ($routes) {
     $routes->post('list',               'TiketMasalahController::list');
     $routes->post('detail',             'TiketMasalahController::detail');
     $routes->post('progress',           'TiketMasalahController::progress');
@@ -587,11 +1019,11 @@ $routes->group('api/tiket-masalah', ['namespace' => 'App\Controllers\Api', 'filt
 });
 
 $routes->group('', ['filter' => 'login'], function ($routes) {
-    $routes->get('tiket-masalah', '\App\Controllers\Web\TiketMasalahController::index');
-    $routes->get('member-get-member', '\App\Controllers\Web\MemberGetMemberController::index');
+    $routes->get('tiket-masalah', '\App\Controllers\Web\TiketMasalah\TiketMasalahController::index');
+    $routes->get('member-get-member', '\App\Controllers\Web\MGM\MemberGetMemberController::index');
 });
 
-$routes->group('api/mgm', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/mgm', ['namespace' => 'App\Controllers\Api\MGM', 'filter' => 'login'], function ($routes) {
     $routes->post('list', 'ReferralController::list');
     $routes->post('subrows', 'ReferralController::subRows');
     $routes->post('confirm-bonus', 'ReferralController::confirmBonus');
@@ -608,19 +1040,20 @@ $routes->group('api/mgm', ['namespace' => 'App\Controllers\Api', 'filter' => 'lo
     $routes->post('stages/delete', 'ReferralSettingController::deleteStage');
 });
 
-$routes->group('api/kavling-request', ['namespace' => 'App\Controllers\Api', 'filter' => 'login'], function ($routes) {
+$routes->group('api/kavling-request', ['namespace' => 'App\Controllers\Api\Transaksi', 'filter' => 'login'], function ($routes) {
     $routes->post('submit', 'KavlingRequestController::submit');
     $routes->post('kavling-list', 'KavlingRequestController::kavlingList');
     $routes->post('list', 'KavlingRequestController::list');
     $routes->post('update-status', 'KavlingRequestController::updateStatus');
+    $routes->post('apply-ubah-kavling', 'KavlingRequestController::applyUbahKavling');
 });
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Public API â€” No authentication required
+// ─────────────────────────────────────────────────────────────────────────────
+// Public API — No authentication required
 // Throttle: 20 requests / 60 seconds per IP
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 $routes->group('api/public', [
-    'namespace' => 'App\Controllers\Api',
+    'namespace' => 'App\Controllers\Api\MGM',
     'filter'    => ['throttle:20,60', 'cors'],
 ], function ($routes) {
     // Handle OPTIONS request untuk CORS preflight
@@ -628,13 +1061,50 @@ $routes->group('api/public', [
         return response()->setStatusCode(204);
     });
 
-    // Validasi kode referral â€” POST only
-    $routes->post('check-referral', 'PublicController::checkReferral');
+    // Validasi kode referral — POST only
+    $routes->post('check-referral', 'PublicReferralController::checkReferral');
 
     // Blok akses GET agar tidak bisa dibuka langsung di browser
     $routes->get('check-referral', function () {
         throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     });
+});
+
+// ── Master Sales External & Fee Sales ──────────────────────────────
+$routes->get('master-sales', '\App\Controllers\Web\SalesExternal\SalesExternalController::index', ['filter' => ['login', 'role:Admin,MKDT']]);
+$routes->get('fee-sales', '\App\Controllers\Web\SalesExternal\SalesExternalController::feeSales', ['filter' => 'login']);
+$routes->get('fee-sales/pengajuan-pdf/(:num)', '\App\Controllers\Web\SalesExternal\SalesExternalController::pengajuanPdf/$1', ['filter' => 'login']);
+$routes->get('fee-sales/export-pdf-pengajuan/(:num)', '\App\Controllers\Web\SalesExternal\SalesExternalController::pengajuanPdf/$1', ['filter' => 'login']);
+$routes->get('fee-sales/pengajuan-signature/(:num)/(:segment)', '\App\Controllers\Web\SalesExternal\SalesExternalController::pengajuanSignature/$1/$2', ['filter' => 'login']);
+$routes->get('fee-sales/pengajuan/(:segment)', '\App\Controllers\Web\SalesExternal\SalesExternalController::pengajuanShared/$1', ['filter' => 'login']);
+
+$routes->group('api/sales-external', ['namespace' => 'App\Controllers\Api\SalesExternal', 'filter' => 'login'], function ($routes) {
+    $routes->post('list-master', 'SalesExternalController::listMasterSales');
+    $routes->get('get/(:num)', 'SalesExternalController::getSales/$1');
+    $routes->post('save', 'SalesExternalController::saveMasterSales');
+    $routes->get('history/(:num)', 'SalesExternalController::getSalesHistory/$1');
+    $routes->get('list-active', 'SalesExternalController::getActiveSalesList');
+
+    $routes->post('list-fee', 'SalesExternalController::listFeeSales');
+    $routes->get('fee-detail/(:num)', 'SalesExternalController::getFeeDetail/$1');
+    $routes->post('save-fee-header', 'SalesExternalController::saveFeeHeader');
+    $routes->post('submit-spp', 'SalesExternalController::submitPengajuanSpp');
+    $routes->post('konfirmasi-cair', 'SalesExternalController::konfirmasiCair');
+    $routes->post('edit-pengajuan', 'SalesExternalController::editPengajuan');
+    $routes->post('edit-cair', 'SalesExternalController::editCair');
+    $routes->delete('fee-entry/(:num)', 'SalesExternalController::deleteFeeEntry/$1');
+    $routes->post('delete-fee-entry/(:num)', 'SalesExternalController::deleteFeeEntry/$1');
+
+    // Batch Pengajuan Pencairan
+    $routes->post('prepare-group', 'SalesExternalController::preparePengajuanGroup');
+    $routes->post('create-group', 'SalesExternalController::createPengajuanGroup');
+    $routes->post('list-group', 'SalesExternalController::listPengajuanGroup');
+    $routes->get('group-detail/(:num)', 'SalesExternalController::getPengajuanGroupDetail/$1');
+    $routes->post('konfirmasi-cair-group', 'SalesExternalController::konfirmasiCairGroup');
+    $routes->post('void-group', 'SalesExternalController::voidPengajuanGroup');
+    $routes->post('sign-group', 'SalesExternalController::signPengajuanGroup');
+    $routes->post('reject-group', 'SalesExternalController::rejectPengajuanGroup');
+    $routes->post('recalculate-termin', 'SalesExternalController::recalculateTermin');
 });
 
 

@@ -2,14 +2,12 @@
 
 namespace App\Controllers;
 
-class Legal extends BaseController
-{
-    public function list_legalitas()
-    {
-        $data['content'] = 'legal/list-legalitas';
-        $data['data']['controller'] = 'Legal';
-        $data['data']['title'] = 'List Legalitas';
+use App\Controllers\Web\Legal\LegalController as ModularLegalController;
 
-        return view('template', $data);
-    }
+/**
+ * @deprecated Use App\Controllers\Web\Legal\LegalController instead.
+ * Zero-downtime shim for legacy references and auto-routes.
+ */
+class Legal extends ModularLegalController
+{
 }

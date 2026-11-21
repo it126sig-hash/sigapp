@@ -328,6 +328,9 @@ function initModalListener(id) {
     });
   });
 }
+window.initModalListener = initModalListener;
+window.modalInitListener = initModalListener;
+
 function removeModalListener(id) {
   $(id).off("hide.bs.modal");
   $(id).removeData("isConfirmedClose");
@@ -1265,6 +1268,8 @@ function handleNotificationClick(id_notif, id_kavling, type, el) {
         } else if (id_kavling && id_kavling !== 'null' && typeof window.openTiketMasalah === 'function') {
             window.openTiketMasalah('kavling', id_kavling);
         }
+      } else if (type && type.startsWith("fee_sales")) {
+        window.location.href = base_url + "/notif/open/" + id_notif;
       } else if (type === "progress" && typeof openSiteplanKavlingFromNotification === "function") {
         openSiteplanKavlingFromNotification(id_kavling);
       } else {

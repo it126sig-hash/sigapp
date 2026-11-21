@@ -26,6 +26,7 @@ class TipeModel extends Model {
 		'harga',
 		'keterangan',
 		'is_subsidi',
+		'is_active',
 		'id_gambar_denah',
 		'id_gambar_tipe',
 	];

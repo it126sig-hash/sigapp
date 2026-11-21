@@ -2,63 +2,7 @@
     const pl_id_proyek = "<?= isset($data['proyek']->id_proyek) ? $data['proyek']->id_proyek : '' ?>";
     const pl_nama_proyek = "<?= isset($data['proyek']->nama_proyek) ? $data['proyek']->nama_proyek : '' ?>";
 </script>
-<style>
-    #modals-slide-in #fm-add_kavling {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
-        padding-bottom: 0 !important;
-    }
-
-    #modals-slide-in #fm-add_kavling .modal-header {
-        flex: 0 0 auto;
-    }
-
-    #modals-slide-in #fm-add_kavling .modal-body {
-        flex: 1 1 auto !important;
-        min-height: 0;
-        margin: 0;
-        overflow-y: auto;
-        overscroll-behavior: contain;
-        padding-bottom: 1rem;
-    }
-
-    #modals-slide-in .planning-modal-actions {
-        position: sticky;
-        bottom: 0;
-        z-index: 2;
-        display: flex;
-        flex: 0 0 auto;
-        gap: .75rem;
-        padding: 1rem 1.25rem;
-        border-top: 1px solid #e5e7eb;
-        background: #fff;
-        box-shadow: 0 -4px 12px rgba(17, 24, 39, .06);
-    }
-
-    #modals-slide-in .planning-modal-actions .btn {
-        flex: 1 1 0;
-        margin: 0 !important;
-    }
-
-    #modals-slide-in .planning-modal-actions .btn-primary {
-        border-color: #2057a3;
-        background-color: #2057a3;
-    }
-
-    #modals-slide-in .planning-modal-actions .btn-primary:hover,
-    #modals-slide-in .planning-modal-actions .btn-primary:focus {
-        border-color: #18457f;
-        background-color: #18457f;
-    }
-
-    @media (max-width: 575.98px) {
-        #modals-slide-in .planning-modal-actions {
-            padding: .75rem 1rem;
-        }
-    }
-</style>
+<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/siteplan-planning.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/siteplan-planning.css') ?>">
 <div class="modal modal-slide-in fade" id="modals-slide-in">
     <div class="modal-dialog sidebar-sm">
         <form id="fm-add_kavling" class="add-new-record modal-content pt-0">
@@ -137,6 +81,7 @@
                     <div class="form-group">
                         <label class="form-label" for="basic-icon-default-post">Tipe</label>
                         <select id="id_tipe" name="id_tipe" class="select2 id_tipe custom-select"></select>
+                        <div id="planning-tipe-preview" class="planning-tipe-preview" hidden aria-live="polite"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="basic-icon-default-post">Kategori Kavling</label>
@@ -189,4 +134,34 @@
     </div>
 </div>
 
-<script src="<?= base_url() ?>assets/js/siteplan/planning.js?v=999<?= time() ?>"></script>
+<!-- Modal Lightbox Preview Gambar Master Tipe -->
+<div class="modal fade" id="modal-planning-tipe-image" tabindex="-1" role="dialog"
+    aria-labelledby="modal-planning-tipe-image-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-planning-tipe-image-title">
+                    <span class="planning-lightbox-icon"><i class="fas fa-image"></i></span>
+                    <span id="planning-tipe-image-title">Preview Gambar Tipe</span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="planning-lightbox-stage">
+                    <img id="planning-tipe-image-img" class="planning-lightbox-img" src="" alt="Preview Gambar Tipe">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="planning-tipe-image-newtab" href="#" target="_blank" rel="noopener noreferrer"
+                    class="btn btn-primary btn-sm planning-lightbox-newtab">
+                    <i class="fas fa-external-link-alt mr-25"></i>Buka Tab Baru
+                </a>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="<?= base_url('assets/js/siteplan/planning.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/siteplan/planning.js') ?>"></script>

@@ -6,6 +6,7 @@ use App\Models\ProyekModel;
 use App\Services\FileAccessService;
 use App\Services\SiteplanUrgentService;
 use App\Services\SiteplanMenuService;
+use App\Services\DashboardService;
 
 
 class Home extends BaseController
@@ -16,6 +17,7 @@ class Home extends BaseController
     protected $fileAccessService;
     protected $siteplanUrgentService;
     protected $siteplanMenuService;
+    protected $dashboardService;
     public function __construct()
     {
         $this->proyekModel = new ProyekModel();
@@ -24,6 +26,7 @@ class Home extends BaseController
         $this->fileAccessService = new FileAccessService();
         $this->siteplanUrgentService = new SiteplanUrgentService();
         $this->siteplanMenuService = new SiteplanMenuService();
+        $this->dashboardService = new DashboardService();
     }
     public function index()
     {
@@ -32,6 +35,7 @@ class Home extends BaseController
     public function dashboard()
     {
         $data['content'] = 'home/dashboard';
+        $data['roleContext'] = $this->dashboardService->getRoleContext();
 
         return view('template', $data);
     }
@@ -47,6 +51,9 @@ class Home extends BaseController
             COUNT(CASE WHEN mkdt.akad_tgl BETWEEN $sdate AND $edate THEN 1 END) AS jumlah_akad,
             COUNT(CASE WHEN mkdt.sp3k_tgl BETWEEN $sdate AND $edate THEN 1 END) AS jumlah_sp3k,
             COUNT(CASE WHEN mkdt.mkdt_batal_tgl BETWEEN $sdate AND $edate THEN 1 END) AS jumlah_batal,
+            COUNT(CASE WHEN mkdt.wawancara_tgl BETWEEN $sdate AND $edate THEN 1 END) AS jumlah_wawancara,
+            COUNT(CASE WHEN (COALESCE(mkdt.akad_indent, 0) = 1 OR COALESCE(mkdt.is_ajb, '') = 'PPJB' OR (mkdt.akad_indent_tgl IS NOT NULL AND mkdt.akad_indent_tgl > '1970-01-01')) AND mkdt.akad_indent_tgl BETWEEN $sdate AND $edate THEN 1 END) AS jumlah_akad_indent,
+            COUNT(CASE WHEN COALESCE(mkdt.akad, 0) = 1 AND mkdt.akad_tgl BETWEEN $sdate AND $edate THEN 1 END) AS jumlah_akad_ajb,
             COUNT(CASE WHEN produksi.tanggal_pembangunan BETWEEN $sdate AND $edate THEN 1 END) AS jumlah_pembangunan,
             COUNT(CASE WHEN produksi.tanggal_selesai_pembangunan BETWEEN $sdate AND $edate AND produksi.progres_bangunan = 100 THEN 1 END) AS jumlah_bangunan_selesai,
             COUNT(CASE WHEN produksi.tanggal_rencana_selesai_pembangunan < CURDATE() AND produksi.tanggal_selesai_pembangunan IS NULL AND COALESCE(produksi.progres_bangunan, 0) < 100 THEN 1 END) AS jumlah_bangunan_telat,
@@ -83,6 +90,9 @@ class Home extends BaseController
             'akad' => 0,
             'batal' => 0,
             'sp3k' => 0,
+            'wawancara' => 0,
+            'akad_indent' => 0,
+            'akad_ajb' => 0,
             'pembangunan' => 0,
             'pembangunan_selesai' => 0,
             'pembangunan_telat' => 0,
@@ -97,6 +107,9 @@ class Home extends BaseController
             'aktivitas' => [],
             'cbooking' => [],
             'cakad' => [],
+            'role_context' => [],
+            'departments' => [],
+            'action_queue' => [],
         ];
 
         //get statistik dashboard
@@ -128,6 +141,9 @@ class Home extends BaseController
             $r['akad'] = (int) ($q->jumlah_akad ?? 0);
             $r['batal'] = (int) ($q->jumlah_batal ?? 0);
             $r['sp3k'] = (int) ($q->jumlah_sp3k ?? 0);
+            $r['wawancara'] = (int) ($q->jumlah_wawancara ?? 0);
+            $r['akad_indent'] = (int) ($q->jumlah_akad_indent ?? 0);
+            $r['akad_ajb'] = (int) ($q->jumlah_akad_ajb ?? 0);
             $r['pembangunan'] = (int) ($q->jumlah_pembangunan ?? 0);
             $r['pembangunan_selesai'] = (int) ($q->jumlah_bangunan_selesai ?? 0);
             $r['pembangunan_telat'] = (int) ($q->jumlah_bangunan_telat ?? 0);
@@ -136,14 +152,27 @@ class Home extends BaseController
             $r['booking_aktif'] = (int) ($q->jumlah_booking_aktif ?? 0);
             $r['summary'] = $this->getDashboardProjectSummary($id_proyek, $sdate, $edate);
             $r['summary']['booking_to_akad_rate'] = $r['booking'] > 0 ? round(($r['akad'] / $r['booking']) * 100, 1) : 0;
-            $r['finance'] = $this->getDashboardFinanceSummary($id_proyek, $sdate, $edate);
+            $roleContext = $this->dashboardService->getRoleContext();
+            $deptMetrics = $this->dashboardService->getDepartmentMetrics((int) $id_proyek, $sdate, $edate);
+            $actionQueue = $this->dashboardService->getActionQueue((int) $id_proyek, $roleContext);
+
+            if ($roleContext['can_view_finance']) {
+                $r['finance'] = $this->getDashboardFinanceSummary($id_proyek, $sdate, $edate);
+                $r['hasil_akad'] = $this->getDashboardHasilAkadSummary($id_proyek, $sdate, $edate);
+            } else {
+                $r['finance'] = null;
+                $r['hasil_akad'] = null;
+            }
+
             $r['production'] = $this->getDashboardProductionSummary($id_proyek, $sdate, $edate);
             $r['target'] = $this->getDashboardTargetSummary($id_proyek, (int) $tahun);
             $alertCounts = $this->siteplanUrgentService->getDashboardAlertCounts($id_proyek);
-            $r['alerts'] = $this->buildDashboardAlerts($alertCounts, $r['production']);
+            $r['alerts'] = $this->dashboardService->buildRoleAwareAlerts($alertCounts, $r['production'], $deptMetrics, $r['finance'] ?? [], $roleContext);
             
-            $r['hasil_akad'] = $this->getDashboardHasilAkadSummary($id_proyek, $sdate, $edate);
             $r['tiket_masalah'] = $this->getDashboardTiketMasalahSummary($id_proyek);
+            $r['role_context'] = $roleContext;
+            $r['departments'] = $deptMetrics;
+            $r['action_queue'] = $actionQueue;
         }
 
         // get aktivitas dashboard
@@ -462,6 +491,7 @@ class Home extends BaseController
         $rows = $this->db->table('tiket_masalah tm')
             ->select('
                 tm.id, tm.keterangan, tm.status, tm.prioritas, tm.created_at, tm.updated_at,
+                tm.ref_type, tm.ref_id, tm.id_proyek, COALESCE(jk.id_cluster, jo.id_cluster) as target_cluster_id,
                 IF(tm.ref_type = "kavling", CONCAT(jk.nama_jalan, " - ", k.no_kavling), CONCAT(jo.nama_jalan, " - ", o.nama)) as lokasi
             ')
             ->join('kavling k', 'k.id_kavling = tm.ref_id AND tm.ref_type = "kavling"', 'left')

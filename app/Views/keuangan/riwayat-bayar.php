@@ -10,7 +10,7 @@
   var csrfHash = '<?= csrf_hash() ?>'
 </script>
 <!-- /.card-header -->
-<div class="app-content content ">
+<div class="app-content content riwayat-bayar-page">
   <div class="content-overlay"></div>
   <div class="header-navbar-shadow"></div>
   <section id="basic-datatable">
@@ -24,7 +24,7 @@
 
             <div class="col-md-4 mb-1">
               <label>Cluster</label>
-              <select disabled id="id_cluster" name="id_cluster" class="select2  form-control"></select>
+              <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
             </div>
             <div class="col-md-4 mb-1">
               <label>Blok</label>
@@ -36,7 +36,7 @@
           </div>
         </div>
         <div class="card">
-          <div class="card-datatable">
+          <div class="card-datatable table-responsive">
             <table id="data_table" class="datatables-basic table compact">
               <thead>
                 <tr>
@@ -121,41 +121,120 @@
 <!-- <script type="text/javascript" src="https://cdn.datatables.net/fixedcolumns/3.2.1/js/dataTables.fixedColumns.min.js"></script> -->
 <!-- <script src="https://adminlte.io/themes/v3/plugins/jquery-validation/additional-methods.min.js"></script> -->
 <script>
+  function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   $(function() {
     var table = $('#data_table').DataTable({
       scrollY: "50vh",
       scrollX: true,
       scrollCollapse: true,
-      fixedColumns: true,
+      autoWidth: false,
       processing: true,
       serverSide: true,
       lengthChange: true,
       searching: true,
       ordering: false,
       paging: true,
-      // "info": true,
-      // "autoWidth": false,
-      // "responsive": true,
       ajax: {
         url: base_url + '/tagihan/riwayat-bayar/ambil',
         type: "POST",
         dataType: "json",
-        data: {
-          [csrfName]: csrfHash
-        },
         data: function(data) {
-          data[csrfName] = csrfHash
-          data.id_proyek = activeProyekId()
-          data.id_cluster = $("#id_cluster").val()
-          data.id_jalan = $("#id_jalan").val()
-
+          data[csrfName] = csrfHash;
+          data.id_proyek = activeProyekId();
+          data.id_cluster = $("#id_cluster").val();
+          data.id_jalan = $("#id_jalan").val();
         },
         dataSrc: function(r) {
-          csrfHash = r.token
-          return r.data;
+          if (r && r.token) {
+            csrfHash = r.token;
+          }
+          return (r && Array.isArray(r.data)) ? r.data : [];
+        }
+      },
+      columns: [
+        {
+          data: null,
+          className: "text-center",
+          width: "50px",
+          orderable: false,
+          searchable: false,
+          render: function(data, type, row, meta) {
+            return meta.row + meta.settings._iDisplayStart + 1;
+          }
         },
-        async: "true"
-      }
+        {
+          data: "nominal",
+          className: "text-right",
+          width: "140px",
+          render: function(data) {
+            var val = (data !== null && data !== undefined && data !== '') ? Number(data) : 0;
+            var formatted = !isNaN(val) ? num_format(val) : escapeHtml(data);
+            return '<span class="font-weight-bolder text-primary text-nowrap">Rp ' + escapeHtml(formatted) + '</span>';
+          }
+        },
+        {
+          data: "tanggal_bayar",
+          className: "text-center",
+          width: "130px",
+          render: function(data) {
+            if (!data) return '-';
+            var datePart = String(data).split(' ')[0];
+            return '<span class="font-weight-bold text-nowrap">' + escapeHtml(format_date(datePart) || datePart) + '</span>';
+          }
+        },
+        {
+          data: "keterangan",
+          className: "text-left",
+          width: "280px",
+          render: function(data, type, row) {
+            var parts = [];
+            if (row.nama_konsumen && row.nama_konsumen !== '-') {
+              parts.push('<div class="font-weight-bold text-dark">' + escapeHtml(row.nama_konsumen) + '</div>');
+            }
+            if ((row.nama_jalan && row.nama_jalan !== '-') || (row.no_kavling && row.no_kavling !== '-')) {
+              parts.push('<div class="small text-muted">' + escapeHtml(row.nama_jalan || '-') + ' &bull; No. ' + escapeHtml(row.no_kavling || '-') + '</div>');
+            }
+            if (row.payment_type) {
+              parts.push('<span class="badge badge-light-secondary font-weight-bold mt-25 mr-25">' + escapeHtml(row.payment_type) + '</span>');
+            }
+            if (row.detail_items) {
+              parts.push('<div class="small text-muted mt-25">' + escapeHtml(row.detail_items) + '</div>');
+            }
+            if (data && data !== row.payment_type) {
+              parts.push('<div class="small text-muted font-italic mt-25">' + escapeHtml(data) + '</div>');
+            }
+            return parts.length ? parts.join('') : '-';
+          }
+        },
+        {
+          data: "username",
+          className: "text-left",
+          width: "130px",
+          render: function(data) {
+            return data ? '<span class="font-weight-bold text-uppercase">' + escapeHtml(data) + '</span>' : '-';
+          }
+        },
+        {
+          data: "created_at",
+          className: "text-center",
+          width: "150px",
+          render: function(data) {
+            if (!data) return '-';
+            var str = String(data);
+            var formatted = str.indexOf(' ') !== -1 ? format_datetime(str) : format_date(str);
+            return '<span class="text-nowrap">' + escapeHtml(formatted || str) + '</span>';
+          }
+        }
+      ]
     });
 
     //on chnage search
@@ -167,7 +246,6 @@
 
     if (activeProyekId()) {
       $("#id_cluster").prop("disabled", false);
-      table.draw();
     }
 
     //select2 cluster
@@ -187,10 +265,12 @@
           };
         },
         processResults: function(r) {
-          csrfHash = r.token
+          if (r && r.token) {
+            csrfHash = r.token;
+          }
 
           let results = [];
-          $.each(r.data, function(index, item) {
+          $.each((r && r.data) || [], function(index, item) {
             results.push({
               id: item[0],
               text: item[3]
@@ -203,14 +283,14 @@
         },
         cache: true
       },
-    })
+    });
     // on select cluster
     $("#id_cluster").on("change", function(e) {
       $('#id_jalan').val(null).trigger('change');
       if (this.value)
-        $("#id_jalan").prop("disabled", false)
+        $("#id_jalan").prop("disabled", false);
       else
-        $("#id_jalan").prop("disabled", true)
+        $("#id_jalan").prop("disabled", true);
     });
 
     //select jalan
@@ -231,10 +311,12 @@
           };
         },
         processResults: function(r) {
-          csrfHash = r.token
+          if (r && r.token) {
+            csrfHash = r.token;
+          }
 
           let results = [];
-          $.each(r.data, function(index, item) {
+          $.each((r && r.data) || [], function(index, item) {
             results.push({
               id: item[0],
               text: item[3]
@@ -247,40 +329,14 @@
         },
         cache: true
       },
-    })
+    });
 
     //on click btn filter
     $("#btn_draw").on("click", function(e) {
       table.draw();
-    })
+    });
 
     //remove bug arrow select2
-    $(".select2-selection__arrow").css("pointer-events", "none")
-
-  });
-
-  $('thead > tr> th:nth-child(1)').css({
-    'min-width': '50px',
-    'max-width': '50px'
-  });
-  $('thead > tr> th:nth-child(2)').css({
-    'min-width': '100px',
-    'max-width': '100px'
-  });
-  $('thead > tr> th:nth-child(3)').css({
-    'min-width': '125px',
-    'max-width': '125px'
-  });
-  $('thead > tr> th:nth-child(4)').css({
-    'min-width': '250px',
-    'max-width': '250px'
-  });
-  $('thead > tr> th:nth-child(5)').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('thead > tr> th:nth-child(6)').css({
-    'min-width': '125px',
-    'max-width': '125px'
+    $(".select2-selection__arrow").css("pointer-events", "none");
   });
 </script>

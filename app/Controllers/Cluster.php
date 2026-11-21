@@ -50,12 +50,20 @@ class Cluster extends BaseController
 		$id = (int) $this->request->getPost('id_cluster');
 
 		if ($id <= 0) {
-			throw new PageNotFoundException();
+			return $this->response->setStatusCode(400)->setJSON([
+				'success'  => false,
+				'messages' => 'ID cluster tidak valid',
+				'token'    => csrf_hash(),
+			]);
 		}
 
 		$data = $this->clusterService->getOne($id);
 		if (!$data) {
-			throw new PageNotFoundException();
+			return $this->response->setStatusCode(404)->setJSON([
+				'success'  => false,
+				'messages' => 'Cluster tidak ditemukan',
+				'token'    => csrf_hash(),
+			]);
 		}
 
 		$data->token = csrf_hash();
@@ -83,7 +91,11 @@ class Cluster extends BaseController
 	{
 		$id = (int) $this->request->getPost('id_cluster');
 		if ($id <= 0) {
-			throw new PageNotFoundException();
+			return $this->response->setStatusCode(400)->setJSON([
+				'success'  => false,
+				'messages' => 'ID cluster tidak valid',
+				'token'    => csrf_hash(),
+			]);
 		}
 
 		$result = $this->clusterService->remove($id);

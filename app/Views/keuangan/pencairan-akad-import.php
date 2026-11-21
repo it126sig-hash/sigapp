@@ -48,7 +48,7 @@
       <div class="col-12">
         <div class="card">
           <div class="card-header">
-            <h5 class="mb-0"><?= $data['title'] ?></h5>
+            <h5 class="mb-0"><?= esc($data['title'] ?? ($title ?? 'Import Hasil Pencairan Akad')) ?></h5>
           </div>
           <div class="card-body">
             <ol class="pa-import-steps">
@@ -84,7 +84,8 @@
   </section>
 </div>
 
-<script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
+<script src="<?= base_url('app-assets/vendors/js/vendors.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/extensions/sweetalert2.all.min.js') ?>"></script>
 <script>
   $(function() {
     $("#pa_download_template").on("click", function(e) {

@@ -169,6 +169,9 @@ if ($displayName === '') {
                                         <i class="fa fa-cloud-upload mr-50"></i> Unggah Foto Baru
                                     </label>
                                     <small class="text-muted mt-50 d-block mb-2">Maksimal ukuran 2MB (JPG, PNG, atau WebP)</small>
+                                    <?php if (isset($errors['profile_photo'])) : ?>
+                                        <div class="text-danger small mt-n1 mb-2 font-weight-bold"><?= esc($errors['profile_photo']) ?></div>
+                                    <?php endif; ?>
                                     
                                     <!-- Google Calendar Section inside the same card -->
                                     <div class="divider divider-left mt-2">

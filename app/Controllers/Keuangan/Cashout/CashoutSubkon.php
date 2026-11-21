@@ -1,110 +1,81 @@
 <?php
-// ADEL CODEIGNITER 4 CRUD GENERATOR
 
 namespace App\Controllers\Keuangan\Cashout;
 
+use App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController as ApiCashoutSubkonController;
 use App\Controllers\BaseController;
-use App\Services\Keuangan\Cashout\CashoutSubkonService;
+use App\Controllers\Web\Keuangan\Cashout\CashoutSubkonController as WebCashoutSubkonController;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
+/** @deprecated Zero-Downtime Shim — gunakan \App\Controllers\Web\Keuangan\Cashout\CashoutSubkonController atau \App\Controllers\Api\Keuangan\Cashout\CashoutSubkonController */
 class CashoutSubkon extends BaseController
 {
-    protected $cashoutSubkonService;
-
-    public function __construct()
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        $this->cashoutSubkonService = new CashoutSubkonService();
+        parent::initController($request, $response, $logger);
+        log_message('warning', 'DEPRECATED_KEUANGAN_HIT: ' . static::class . ' via ' . $request->getUri()->getPath());
     }
 
     public function index()
     {
-        $data['content'] = 'cashout_subkon/index';
-        $data['data']['title'] = 'Cashout Subkon';
+        $web = new WebCashoutSubkonController();
+        $web->initController($this->request, $this->response, $this->logger);
 
-        return view('template', $data);
+        return $web->index();
     }
 
     public function getDataTables()
     {
-        return $this->json($this->cashoutSubkonService->getDataTables($this->request->getVar()));
+        return $this->apiController()->getDataTables();
     }
 
     public function getDetailList()
     {
-        return $this->json(
-            $this->cashoutSubkonService->getDetailList(
-                (int) $this->request->getPost('id_cashout_subkon')
-            )
-        );
+        return $this->apiController()->getDetailList();
     }
 
     public function get()
     {
-        return $this->json(
-            $this->cashoutSubkonService->getCashoutSubkon(
-                (array) $this->request->getVar('id_kavlings'),
-                (int) $this->request->getVar('id_cashout_subkon') ?: null
-            )
-        );
+        return $this->apiController()->get();
     }
 
     public function save()
     {
-        return $this->json($this->cashoutSubkonService->saveCashoutSubkon($this->request));
+        return $this->apiController()->save();
     }
 
     public function turunJatuhTempo()
     {
-        return $this->json(
-            $this->cashoutSubkonService->turunJatuhTempo(
-                $this->request->getPost('id_cashout_subkon_detail'),
-                $this->request->getPost('tanggal_jatuh_tempo'),
-                $this->request->getPost('berita_acara')
-            )
-        );
+        return $this->apiController()->turunJatuhTempo();
     }
 
     public function ajukanSPP()
     {
-        return $this->json(
-            $this->cashoutSubkonService->ajukanSPP(
-                $this->request->getPost('id_cashout_subkon_detail'),
-                $this->request->getPost('spp_no'),
-                $this->request->getPost('spp_tgl')
-            )
-        );
+        return $this->apiController()->ajukanSPP();
     }
 
     public function ajukanPencairan()
     {
-        return $this->json(
-            $this->cashoutSubkonService->ajukanPencairan(
-                $this->request->getPost('id_cashout_subkon_detail'),
-                $this->request->getPost('spp_no'),
-                $this->request->getPost('spp_tgl'),
-                $this->request->getPost('pencairan_tgl')
-            )
-        );
+        return $this->apiController()->ajukanPencairan();
     }
 
     public function pembayaran()
     {
-        return $this->json(
-            $this->cashoutSubkonService->pembayaran(
-                $this->request->getPost('id_cashout_subkon_detail'),
-                $this->request->getPost('cek_no'),
-                $this->request->getPost('cek_tgl')
-            )
-        );
+        return $this->apiController()->pembayaran();
     }
 
     public function getHistory()
     {
-        return $this->json($this->cashoutSubkonService->getHistory($this->request->getPost('id_cashout_subkon')));
+        return $this->apiController()->getHistory();
     }
 
-    private function json(array $payload)
+    private function apiController(): ApiCashoutSubkonController
     {
-        $payload['token'] = $payload['token'] ?? csrf_hash();
-        return $this->response->setJSON($payload);
+        $api = new ApiCashoutSubkonController();
+        $api->initController($this->request, $this->response, $this->logger);
+
+        return $api;
     }
 }

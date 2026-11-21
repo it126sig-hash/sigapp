@@ -128,7 +128,7 @@ self.addEventListener('push', function(event) {
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  let url = event.notification.data.url || '/';
+  let url = (event.notification && event.notification.data && event.notification.data.url) ? event.notification.data.url : '/';
 
   // Pastikan URL absolute
   if (!url.startsWith('http')) {

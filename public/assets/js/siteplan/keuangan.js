@@ -69,49 +69,51 @@
   id_konsumen_old = null,
   is_ganti_nama = false;
 
-$("#idk-rincian").richText({
-  fonts: false,
-  // uploads
-  imageUpload: false,
-  fileUpload: false,
+if ($.fn && typeof $.fn.richText === "function") {
+  $("#idk-rincian").richText({
+    fonts: false,
+    // uploads
+    imageUpload: false,
+    fileUpload: false,
 
-  // media
-  videoEmbed: false,
+    // media
+    videoEmbed: false,
 
-  // link
-  urls: false,
-});
-$("#snk").richText({
-  // text formatting
-  bold: true,
-  italic: true,
-  underline: true,
+    // link
+    urls: false,
+  });
+  $("#snk").richText({
+    // text formatting
+    bold: true,
+    italic: true,
+    underline: true,
 
-  // text alignment
-  leftAlign: true,
-  centerAlign: true,
-  rightAlign: true,
-  justify: true,
+    // text alignment
+    leftAlign: true,
+    centerAlign: true,
+    rightAlign: true,
+    justify: true,
 
-  // lists
-  ol: true,
-  ul: true,
+    // lists
+    ol: true,
+    ul: true,
 
-  // title
-  heading: true,
-});
-$("#status_keterangan").richText({
-  fonts: false,
-  // uploads
-  imageUpload: false,
-  fileUpload: false,
+    // title
+    heading: true,
+  });
+  $("#status_keterangan").richText({
+    fonts: false,
+    // uploads
+    imageUpload: false,
+    fileUpload: false,
 
-  // media
-  videoEmbed: false,
+    // media
+    videoEmbed: false,
 
-  // link
-  urls: false,
-});
+    // link
+    urls: false,
+  });
+}
 $("#kopsurat").select2({
   placeholder: "Pilih Kop Surat",
   allowClear: true,

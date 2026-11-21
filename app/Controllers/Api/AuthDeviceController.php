@@ -27,7 +27,7 @@ class AuthDeviceController extends BaseController
 
         return $this->run(fn () => $this->devices->listOwn(
             (int) ($this->authSession->get('logged_in') ?? 0),
-            trim((string) $this->request->getCookie('sigapp_device')),
+            $this->resolveCurrentToken(),
         ));
     }
 
@@ -36,15 +36,15 @@ class AuthDeviceController extends BaseController
         $result = $this->run(fn () => $this->devices->revokeOwn(
             (int) ($this->authSession->get('logged_in') ?? 0),
             $deviceId,
-            (string) $this->request->getPost('password'),
-            trim((string) $this->request->getCookie('sigapp_device')),
+            $this->resolvePassword(),
+            $this->resolveCurrentToken(),
         ));
 
         if ($result->getStatusCode() < 400) {
             $body = json_decode((string) $result->getBody(), true);
             if (! empty($body['data']['current_device_revoked'])) {
                 $this->authSession->remove(['logged_in', 'sigapp_device_id']);
-                $result->deleteCookie('remember')->deleteCookie('sigapp_device');
+                $result->deleteCookie('remember')->deleteCookie('sigapp_device')->deleteCookie('sigapp_spa_token');
                 $body['data']['reauthenticate'] = true;
                 $result->setJSON($body);
             }
@@ -58,10 +58,46 @@ class AuthDeviceController extends BaseController
         return $this->run(fn () => [
             'revoked_count' => $this->devices->revokeOthers(
                 (int) ($this->authSession->get('logged_in') ?? 0),
-                trim((string) $this->request->getCookie('sigapp_device')),
-                (string) $this->request->getPost('password'),
+                $this->resolveCurrentToken(),
+                $this->resolvePassword(),
             ),
         ]);
+    }
+
+    private function resolveCurrentToken(): string
+    {
+        $authHeader = $this->request->header('Authorization')?->getValue()
+            ?? $this->request->getServer('HTTP_AUTHORIZATION')
+            ?? $this->request->getServer('REDIRECT_HTTP_AUTHORIZATION')
+            ?? '';
+
+        if (preg_match('/^Bearer\s+(\S+)/i', trim((string) $authHeader), $matches)) {
+            return $matches[1];
+        }
+
+        $spaToken = trim((string) $this->request->getCookie('sigapp_spa_token'));
+        if ($spaToken !== '') {
+            return $spaToken;
+        }
+
+        return trim((string) $this->request->getCookie('sigapp_device'));
+    }
+
+    private function resolvePassword(): string
+    {
+        $postPassword = $this->request->getPost('password');
+        if ($postPassword !== null) {
+            return (string) $postPassword;
+        }
+
+        $contentType = (string) ($this->request->header('Content-Type')?->getValue() ?? '');
+        if (stripos($contentType, 'application/json') !== false) {
+            $json = $this->request->getJSON(true);
+
+            return (string) ($json['password'] ?? '');
+        }
+
+        return '';
     }
 
     private function run(callable $callback): ResponseInterface

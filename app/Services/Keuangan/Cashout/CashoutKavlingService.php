@@ -2,20 +2,71 @@
 
 namespace App\Services\Keuangan\Cashout;
 
+use App\Models\ChecklistSubItemModel;
+use App\Models\ProyekModel;
 use App\Repositories\Keuangan\Cashout\CashoutKavlingRepo;
+use CodeIgniter\Database\BaseConnection;
 
 class CashoutKavlingService
 {
     protected CashoutKavlingRepo $repo;
+    protected ?BaseConnection $db = null;
+    protected ?ProyekModel $proyekModel = null;
+    protected ?ChecklistSubItemModel $siModel = null;
 
-    public function __construct()
+    public function __construct(
+        ?CashoutKavlingRepo $repo = null,
+        ?BaseConnection $db = null,
+        ?ProyekModel $proyekModel = null,
+        ?ChecklistSubItemModel $siModel = null
+    ) {
+        $this->repo = $repo ?? new CashoutKavlingRepo();
+        $this->db = $db;
+        $this->proyekModel = $proyekModel;
+        $this->siModel = $siModel;
+    }
+
+    public function getIndexData(?int $idProyek): array
     {
-        $this->repo = new CashoutKavlingRepo();
+        return [
+            'title' => 'Rekap Cashout per Kavling',
+            'proyek' => $idProyek ? $this->getProyekModel()->find($idProyek) : null,
+            'pph' => $this->getDb()->table('pph')->where('deleted_at', null)->get()->getResult(),
+            'ppn' => $this->getDb()->table('ppn')->where('deleted_at', null)->get()->getResult(),
+            'list' => $this->getChecklistSubitemsForCurrentUser(),
+        ];
+    }
+
+    public function getMetaPayload(?int $idProyek): array
+    {
+        helper('auth');
+        $canKeuangan = function_exists('in_groups') && in_groups(['1', '3']);
+        $canProduksi = function_exists('in_groups') && in_groups(['1', '7']);
+        $canPajak = function_exists('in_groups') && in_groups(['1', '10']);
+
+        $proyek = $idProyek ? $this->getProyekModel()->find($idProyek) : null;
+
+        return [
+            'active_project' => $proyek ? [
+                'id' => (int) $proyek->id_proyek,
+                'name' => (string) ($proyek->nama_proyek ?? ''),
+            ] : null,
+            'pph' => $this->getDb()->table('pph')->where('deleted_at', null)->get()->getResult(),
+            'ppn' => $this->getDb()->table('ppn')->where('deleted_at', null)->get()->getResult(),
+            'checklist_subitems' => $this->getChecklistSubitemsForCurrentUser(),
+            'permissions' => [
+                'can_view' => true,
+                'can_keuangan' => $canKeuangan,
+                'can_produksi' => $canProduksi,
+                'can_pajak' => $canPajak,
+            ],
+        ];
     }
 
     public function getDataTables(array $var): array
     {
         helper('auth');
+        $var = $this->normalizeDataTablesParams($var);
         $canKeuangan = in_groups(['1', '3']);
         $canProduksi = in_groups(['1', '7']);
         $canPajak = in_groups(['1', '10']);
@@ -78,6 +129,59 @@ class CashoutKavlingService
         ];
     }
 
+    public function getDataTablesRaw(array $var): array
+    {
+        helper('auth');
+        $var = $this->normalizeDataTablesParams($var);
+        $canKeuangan = function_exists('in_groups') && in_groups(['1', '3']);
+        $canProduksi = function_exists('in_groups') && in_groups(['1', '7']);
+        $canPajak = function_exists('in_groups') && in_groups(['1', '10']);
+
+        $result = $this->repo->getDataTables($var);
+        $items = [];
+
+        foreach ($result['rows'] as $row) {
+            $totalCashout = (float) $row->total_cashout_keu;
+            $totalProduksi = (float) $row->total_produksi;
+            $totalSubkon = (float) $row->total_subkon;
+            $totalMgm = (float) $row->total_mgm;
+            $totalPajak = (float) $row->total_pajak;
+            $grandTotal = $totalCashout + $totalProduksi + $totalSubkon + $totalMgm;
+
+            $items[] = [
+                'id_kavling' => (int) $row->id_kavling,
+                'id_mkdt' => $row->id_mkdt ? (int) $row->id_mkdt : null,
+                'nama_jalan' => (string) ($row->nama_jalan ?? ''),
+                'no_kavling' => (string) ($row->no_kavling ?? ''),
+                'no_tipe_rumah' => (string) ($row->no_tipe_rumah ?? ''),
+                'tipe_rumah' => (string) ($row->tipe_rumah ?? ''),
+                'status_mkdt' => (string) ($row->status_mkdt ?? ''),
+                'nama_konsumen' => (string) ($row->nama_konsumen ?? ''),
+                'total_cashout_keu' => $totalCashout,
+                'total_produksi' => $totalProduksi,
+                'total_subkon' => $totalSubkon,
+                'total_mgm' => $totalMgm,
+                'total_pajak' => $totalPajak,
+                'grand_total' => $grandTotal,
+                'permissions' => [
+                    'can_keuangan' => $canKeuangan,
+                    'can_produksi' => $canProduksi && !empty($row->id_mkdt),
+                    'can_pajak' => $canPajak && !empty($row->id_mkdt),
+                ],
+            ];
+        }
+
+        return [
+            'items' => $items,
+            'meta' => [
+                'draw' => (int) ($var['draw'] ?? 1),
+                'recordsTotal' => $result['recordsTotal'],
+                'recordsFiltered' => $result['recordsFiltered'],
+                'total' => $result['recordsFiltered'],
+            ],
+        ];
+    }
+
     public function getDetailList(int $idKavling): array
     {
         if ($idKavling <= 0) {
@@ -101,6 +205,64 @@ class CashoutKavlingService
                 ];
             }, $rows),
         ];
+    }
+
+    private function normalizeDataTablesParams(array $var): array
+    {
+        $search = $var['search'] ?? '';
+        if (! is_array($search)) {
+            $search = ['value' => (string) $search];
+        } elseif (! array_key_exists('value', $search)) {
+            $search['value'] = '';
+        }
+
+        return array_merge($var, [
+            'draw' => (int) ($var['draw'] ?? 1),
+            'start' => max(0, (int) ($var['start'] ?? 0)),
+            'length' => isset($var['length']) ? (int) $var['length'] : 25,
+            'search' => $search,
+            'order' => is_array($var['order'] ?? null) ? $var['order'] : [],
+            'columns' => is_array($var['columns'] ?? null) ? $var['columns'] : [],
+        ]);
+    }
+
+    private function getChecklistSubitemsForCurrentUser(): array
+    {
+        helper('auth');
+        if (! function_exists('in_groups') || ! in_groups(['1', '7', '8'])) {
+            return [];
+        }
+
+        return $this->getSiModel()
+            ->select('
+                checklist_group.nama_group,
+                checklist_item.nama_item,
+                checklist_subitem.id_subitem,
+                checklist_subitem.nama_subitem,
+            ')
+            ->join('checklist_item', 'checklist_item.id_item = checklist_subitem.id_item')
+            ->join('checklist_group', 'checklist_item.id_group = checklist_group.id_group')
+            ->where('checklist_item.is_active = 1')
+            ->where('checklist_group.is_active = 1')
+            ->where('checklist_subitem.is_active = 1')
+            ->orderBy('checklist_item.id_group', 'asc')
+            ->orderBy('checklist_item.id_item', 'asc')
+            ->findAll();
+    }
+
+    private function getDb(): BaseConnection
+    {
+        return $this->db ??= \Config\Database::connect();
+    }
+
+    private function getProyekModel(): ProyekModel
+    {
+        return $this->proyekModel ??= new ProyekModel();
+    }
+
+    private function getSiModel(): ChecklistSubItemModel
+    {
+        return $this->siModel ??= new ChecklistSubItemModel();
     }
 
     private function nominalButton(float $value, string $class, string $payload, bool $disabled = false): string

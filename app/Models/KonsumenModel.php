@@ -39,6 +39,8 @@ class KonsumenModel extends Model {
 		'status_pekerjaan_pasangan',
 		'instansi_pasangan',
 		'sales',
+		'keterangan_sales',
+		'id_sales',
 		'id_kavling',
 		'status_konsumen',
 		'is_akad',

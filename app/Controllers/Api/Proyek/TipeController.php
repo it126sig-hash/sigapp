@@ -3,9 +3,7 @@
 namespace App\Controllers\Api\Proyek;
 
 use App\Controllers\Api\BaseApiController;
-use App\Models\KavlingModel;
 use App\Services\Proyek\TipeService;
-use CodeIgniter\Exceptions\PageNotFoundException;
 
 class TipeController extends BaseApiController
 {
@@ -18,82 +16,103 @@ class TipeController extends BaseApiController
 
     public function getAll()
     {
-        $params              = (array) $this->request->getVar();
+        $params              = $this->readRequestData();
         $params['id_proyek'] = resolve_active_proyek_id($params['id_proyek'] ?? null);
+        $params['format']    = $params['format'] ?? 'raw';
 
-        return $this->respond([
-            'data'  => $this->tipeService->getAll($params),
-            'token' => csrf_hash(),
-        ]);
+        return $this->success($this->tipeService->getAll($params), 'Data tipe berhasil dimuat');
     }
 
     public function getDataTables()
     {
-        $params              = (array) $this->request->getVar();
+        $params              = $this->readRequestData();
         $params['id_proyek'] = resolve_active_proyek_id($params['id_proyek'] ?? null);
+        $params['format']    = $params['format'] ?? 'raw';
 
         $result = $this->tipeService->getDataTables($params);
-        $result['token'] = csrf_hash();
 
-        return $this->respond($result);
+        return $this->success($result, 'Data tipe datatables berhasil dimuat');
     }
 
-    public function getOne()
+    public function getOne($id = null)
     {
-        $id = (int) $this->request->getPost('id_tipe');
+        $id = (int) ($id ?: ($this->request->getVar('id_tipe') ?: $this->request->getVar('id')));
 
         if ($id <= 0) {
-            throw new PageNotFoundException();
+            return $this->error('ID tipe tidak valid', 400);
         }
 
         $data = $this->tipeService->getOne($id);
         if (!$data) {
-            throw new PageNotFoundException();
+            return $this->error('Tipe tidak ditemukan', 404);
         }
 
-        $data->token = csrf_hash();
+        return $this->success($data);
+    }
 
-        return $this->respond($data);
+    protected function getRequestData(): array
+    {
+        $json = $this->request->getJSON(true);
+        if (is_array($json) && !empty($json)) {
+            return $json;
+        }
+
+        return (array) $this->request->getPost();
     }
 
     public function add()
     {
         $result = $this->tipeService->add($this->request);
-        $result['token'] = csrf_hash();
 
-        return $this->respond($result);
+        if (!($result['success'] ?? false)) {
+            return $this->error($result['messages'] ?? 'Gagal menambahkan tipe', 400);
+        }
+
+        return $this->successCreated($result, $result['messages'] ?? 'Tipe berhasil ditambahkan');
     }
 
     public function edit($id = null)
     {
+        if ($id !== null && !$this->request->getPost('idTipe') && !$this->request->getPost('id_tipe')) {
+            $_POST['id_tipe'] = (int) $id;
+            $_POST['idTipe'] = (int) $id;
+        }
+
         $result = $this->tipeService->edit($this->request);
-        $result['token'] = csrf_hash();
 
-        return $this->respond($result);
+        if (!($result['success'] ?? false)) {
+            return $this->error($result['messages'] ?? 'Gagal memperbarui tipe', 400);
+        }
+
+        return $this->success($result, $result['messages'] ?? 'Tipe berhasil diperbarui');
     }
 
-    public function remove()
+    public function remove($id = null)
     {
-        $id = (int) $this->request->getPost('id_tipe');
+        $payload = $this->getRequestData();
+        $id = (int) ($id ?: ($payload['id_tipe'] ?? ($payload['id'] ?? ($this->request->getPost('id_tipe') ?: $this->request->getVar('id_tipe')))));
+        if ($id <= 0) {
+            return $this->error('ID tipe tidak valid', 400);
+        }
+
         $result = $this->tipeService->remove($id);
-        $result['token'] = csrf_hash();
 
-        return $this->respond($result);
+        if (!($result['success'] ?? false)) {
+            return $this->error($result['messages'] ?? 'Gagal menghapus tipe', 400);
+        }
+
+        return $this->success($result, $result['messages'] ?? 'Tipe berhasil dihapus');
     }
 
-    public function getListKavling()
+    public function getListKavling($id = null)
     {
-        $id           = (int) $this->request->getPost('id_tipe');
-        $kavlingModel = new KavlingModel();
-        $list         = $kavlingModel->select('kavling.id_kavling, kavling.no_kavling, kavling.status_kavling, jalan.nama_jalan')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
-            ->where('kavling.id_tipe', $id)
-            ->findAll();
+        $id = (int) ($id ?: ($this->request->getVar('id_tipe') ?: $this->request->getVar('id')));
+        if ($id <= 0) {
+            return $this->error('ID tipe tidak valid', 400);
+        }
 
-        return $this->respond([
-            'success' => true,
-            'data'    => $list,
-            'token'   => csrf_hash(),
-        ]);
+        $list = $this->tipeService->getListKavling($id);
+
+        return $this->success($list, 'Daftar kavling berhasil dimuat');
     }
 }

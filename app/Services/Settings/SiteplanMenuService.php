@@ -217,6 +217,86 @@ class SiteplanMenuService
         return self::GROUP_LABELS[$groupId] ?? 'Departemen ' . $groupId;
     }
 
+    /**
+     * Struktur menu floating & context actions Siteplan dalam format JSON murni untuk SPA.
+     */
+    public function getMenusForSpa(int $roleId): array
+    {
+        if (!$this->tablesReady()) {
+            return [
+                'role_id'          => $roleId,
+                'default_group_id' => 0,
+                'groups'           => [],
+                'context_items'    => [],
+            ];
+        }
+
+        $groups = [];
+
+        if ($roleId === 1) {
+            $items = $this->getFlatItems(true);
+            $byGroup = [];
+            foreach ($items as $item) {
+                $byGroup[(int) ($item->id_group ?? 0)][] = $this->formatSpaMenuItem($item);
+            }
+
+            foreach (array_keys(self::GROUP_CONTAINER_IDS) as $groupId) {
+                $groups[] = [
+                    'group_id'    => $groupId,
+                    'group_label' => $this->groupLabel($groupId),
+                    'items'       => $byGroup[$groupId] ?? [],
+                ];
+            }
+
+            $defaultGroupId = 0;
+        } else {
+            $targetGroup = array_key_exists($roleId, self::GROUP_CONTAINER_IDS) ? $roleId : 0;
+            $items = $this->getItemsForAccessGroup($roleId);
+            if (!$items && $roleId !== 0) {
+                $items = $this->getItemsForAccessGroup(0);
+                $targetGroup = 0;
+            }
+
+            $groups[] = [
+                'group_id'    => $targetGroup,
+                'group_label' => $this->groupLabel($targetGroup),
+                'items'       => array_map(fn ($item) => $this->formatSpaMenuItem($item), $items),
+            ];
+
+            $defaultGroupId = $targetGroup;
+        }
+
+        return [
+            'role_id'          => $roleId,
+            'default_group_id' => $defaultGroupId,
+            'groups'           => $groups,
+            'context_items'    => $this->getActionItemsForList($roleId),
+        ];
+    }
+
+    private function formatSpaMenuItem($item): array
+    {
+        $itemKey = (string) ($item->item_key ?? '');
+        $idGroup = (int) ($item->id_group ?? 0);
+        $rawGroupLabel = trim((string) ($item->group_label ?? ''));
+        $rawBtnClass = trim((string) ($item->btn_class ?? ''));
+
+        return [
+            'id'                => (int) $item->id,
+            'id_group'          => $idGroup,
+            'group_label'       => $rawGroupLabel !== '' ? $rawGroupLabel : $this->groupLabel($idGroup),
+            'item_key'          => $itemKey,
+            'label'             => (string) ($item->label ?? ''),
+            'icon'              => (string) ($item->icon ?? ''),
+            'btn_class'         => $rawBtnClass !== '' ? $rawBtnClass : 'btn-primary',
+            'extra_id'          => (string) ($item->extra_id ?? ''),
+            'extra_class'       => (string) ($item->extra_class ?? ''),
+            'onclick'           => (string) ($item->onclick ?? ''),
+            'sort_order'        => (int) ($item->sort_order ?? 0),
+            'is_context_action' => !in_array($itemKey, self::LIST_EXCLUDED_ITEM_KEYS, true),
+        ];
+    }
+
     public function getActionItemsForList(int $roleId): array
     {
         if (!$this->tablesReady()) {

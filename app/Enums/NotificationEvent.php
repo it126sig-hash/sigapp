@@ -59,4 +59,49 @@ final class NotificationEvent
     const BPB_REJECTED            = 'bpb_rejected';
     const BPB_APPROVED            = 'bpb_approved';
     const BPB_STATUS_CHANGED      = 'bpb_status_changed';
+
+    // ── Fee Sales ──
+    public const FEE_SALES_PENGAJUAN_CREATED  = 'fee_sales_pengajuan_created';
+    public const FEE_SALES_PENGAJUAN_REJECTED = 'fee_sales_pengajuan_rejected';
+    public const FEE_SALES_TERMIN_GENERATED   = 'fee_sales_termin_generated';
+    public const FEE_SALES_HARGA_NET_UPDATED  = 'fee_sales_harga_net_updated';
+    public const FEE_SALES_TTD_SIGNED         = 'fee_sales_ttd_signed';
+    public const FEE_SALES_PENCAIRAN          = 'fee_sales_pencairan';
+
+    public static function all(): array
+    {
+        return array_values((new \ReflectionClass(self::class))->getConstants());
+    }
+
+    public static function legacyTypeMap(): array
+    {
+        return [
+            'fee_sales_pengajuan'          => self::FEE_SALES_PENGAJUAN_CREATED,
+            'fee_sales_pengajuan_rejected' => self::FEE_SALES_PENGAJUAN_REJECTED,
+            'fee_sales_reject'             => self::FEE_SALES_PENGAJUAN_REJECTED,
+            'fee_sales_rejection'          => self::FEE_SALES_PENGAJUAN_REJECTED,
+            'fee_sales_termin'             => self::FEE_SALES_TERMIN_GENERATED,
+            'fee_sales_harga_net'          => self::FEE_SALES_HARGA_NET_UPDATED,
+            'fee_sales_ttd'                => self::FEE_SALES_TTD_SIGNED,
+            'fee_sales_pencairan'          => self::FEE_SALES_PENCAIRAN,
+            'fee_sales_cair'               => self::FEE_SALES_PENCAIRAN,
+        ];
+    }
+
+    public static function fromLegacyType(?string $type): ?string
+    {
+        if ($type === null) {
+            return null;
+        }
+
+        $type = strtolower(trim($type));
+        if ($type === '') {
+            return null;
+        }
+
+        $map = self::legacyTypeMap();
+
+        return $map[$type] ?? $type;
+    }
 }
+

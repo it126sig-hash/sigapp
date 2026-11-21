@@ -101,6 +101,7 @@ Date.prototype.toDateInputValue = (function() {
     //declare layer
     var siteplan = new Konva.Layer(), //siteplan layer
         masked = new Konva.Layer(), //selection layer
+        tiketOverlayLayer = new Konva.Layer({ listening: false }), // overlay tiket masalah layer
         // datal = new Konva.Layer(), //kavling shape layer
         group = new Konva.Group({ //group for tooltip
             visible: false,
@@ -154,6 +155,18 @@ Date.prototype.toDateInputValue = (function() {
     var siteplanKavlingRequest = null,
         siteplanOthersRequest = null,
         siteplanLoadSequence = 0;
+    let siteplanProblemItems = { kavling: [], others: [] };
+
+    function syncSiteplanTiketOverlay() {
+        if (typeof SiteplanTiketOverlay === 'undefined' || !tiketOverlayLayer) return;
+        const allProblemItems = [].concat(siteplanProblemItems.kavling || [], siteplanProblemItems.others || []);
+        const isBaseVisible = function(targetId) {
+            const baseNode = siteplan.findOne('#' + targetId);
+            if (!baseNode) return false;
+            return typeof baseNode.visible === 'function' ? baseNode.visible() : true;
+        };
+        SiteplanTiketOverlay.buildOverlayShapes(Konva, tiketOverlayLayer, allProblemItems, conf, isBaseVisible);
+    }
 
     function updateSiteplanRenderStats() {
         const kavlingNodes = Array.from(siteplan.find('.siteplan-kavling'));
@@ -235,12 +248,24 @@ Date.prototype.toDateInputValue = (function() {
         initSiteplanCanvas();
     }
 
+    function allAvailableClusterIds() {
+        return (siteplanClusterOptions || []).map(function(item) {
+            return String(item.id_cluster);
+        });
+    }
+
     function selectedClusterIds() {
+        const rawVal = $('#filter-id_cluster').val();
+        const rawArray = Array.isArray(rawVal) ? rawVal : (rawVal == null || rawVal === '' ? [] : [rawVal]);
+        if (rawArray.includes('all')) {
+            return allAvailableClusterIds();
+        }
+
         if (typeof SiteplanFilterState === 'undefined') {
             return Array.isArray(filter.id_cluster) ? filter.id_cluster : [];
         }
 
-        return SiteplanFilterState.normalizeIds($('#filter-id_cluster').val());
+        return SiteplanFilterState.normalizeIds(rawVal);
     }
 
     function setSiteplanClusterHint(show, message) {
@@ -300,6 +325,17 @@ Date.prototype.toDateInputValue = (function() {
     function clearSiteplanDataShapes() {
         clearShapeFilterSelection();
         siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
+        siteplanProblemItems = { kavling: [], others: [] };
+        if (typeof SiteplanTiketOverlay !== 'undefined' && typeof SiteplanTiketOverlay.clearOverlay === 'function') {
+            SiteplanTiketOverlay.clearOverlay(tiketOverlayLayer);
+        } else if (typeof tiketOverlayLayer !== 'undefined' && tiketOverlayLayer) {
+            tiketOverlayLayer.destroyChildren();
+            if (tiketOverlayLayer._tiketAnimation && typeof tiketOverlayLayer._tiketAnimation.stop === 'function') {
+                tiketOverlayLayer._tiketAnimation.stop();
+                tiketOverlayLayer._tiketAnimation = null;
+            }
+            tiketOverlayLayer.batchDraw();
+        }
         if (typeof hoverHighlight !== 'undefined' && hoverHighlight) {
             hoverHighlight.hide();
         }
@@ -445,9 +481,370 @@ Date.prototype.toDateInputValue = (function() {
         id: "line_sel"
     });
 
+    window.targetInteractiveMode = Boolean(window.targetInteractiveMode);
+
+    window.isTargetSetModeActive = function() {
+        return Boolean(window.targetInteractiveMode);
+    };
+
+    let targetCanvasRefreshTimer = null;
+    window.scheduleTargetCanvasRefresh = function(delayMs) {
+        const wait = typeof delayMs === 'number' && delayMs >= 0 ? delayMs : 450;
+        if (targetCanvasRefreshTimer) {
+            clearTimeout(targetCanvasRefreshTimer);
+        }
+        targetCanvasRefreshTimer = setTimeout(function() {
+            targetCanvasRefreshTimer = null;
+            if (typeof load_kavling === 'function') {
+                load_kavling();
+            }
+        }, wait);
+    };
+
+    function isTargetFilterActive() {
+        return $('#toggle-tampilkan-target').prop('checked') === true;
+    }
+
+    function selectedTargetYear() {
+        return String($('#filter-tahun-target').val() || '').trim();
+    }
+
+    function selectedTargetOtherMode() {
+        return String($('#filter-target-other-mode').val() || 'default').trim() || 'default';
+    }
+
+    function selectedTargetKavlingMode() {
+        return String($('#filter-target-kavling-mode').val() || 'default').trim() || 'default';
+    }
+
+    let targetTipeColorMap = {};
+    const targetTipePalette = [
+        '#2563eb', '#059669', '#d97706', '#9333ea',
+        '#e11d48', '#0891b2', '#65a30d', '#c026d3',
+        '#ea580c', '#4f46e5', '#0d9488', '#db2777'
+    ];
+
+    function resolveTargetTipeColor(tipeName) {
+        const key = String(tipeName || '').trim() || 'Tanpa Tipe';
+        if (conf[key] && conf[key].fill) {
+            return conf[key].fill;
+        }
+        if (key === 'Tanpa Tipe') {
+            return '#64748b';
+        }
+        if (targetTipeColorMap[key]) {
+            return targetTipeColorMap[key];
+        }
+
+        let hash = 0;
+        for (let i = 0; i < key.length; i++) {
+            hash = ((hash << 5) - hash) + key.charCodeAt(i);
+            hash |= 0;
+        }
+        const startIdx = Math.abs(hash) % targetTipePalette.length;
+        const usedColors = new Set(Object.values(targetTipeColorMap));
+        let chosen = targetTipePalette[startIdx];
+        for (let offset = 0; offset < targetTipePalette.length; offset++) {
+            const candidate = targetTipePalette[(startIdx + offset) % targetTipePalette.length];
+            if (!usedColors.has(candidate)) {
+                chosen = candidate;
+                break;
+            }
+        }
+        targetTipeColorMap[key] = chosen;
+        return chosen;
+    }
+
+    function hasValidTargetDate(val) {
+        if (typeof val !== 'string') return false;
+        const trimmed = val.trim();
+        return /^\d{4}-\d{2}-\d{2}$/.test(trimmed)
+            && trimmed !== '0000-00-00'
+            && !isNaN(new Date(trimmed).getTime());
+    }
+
+    function syncTargetMenuVisibility() {
+        if (typeof roleid === 'undefined' || Number(roleid) !== 1) return;
+        const va = String($('#pilih-divisi option:selected').val() || '0');
+        if (va === '0') {
+            $('#target_menu').toggleClass('hidden', !isTargetFilterActive());
+        }
+    }
+    window.syncTargetMenuVisibility = syncTargetMenuVisibility;
+
+    function syncTargetYearDropdown(targetYears, preferredYear) {
+        const $select = $('#filter-tahun-target');
+        if (!$select.length) return;
+
+        const nowYear = new Date().getFullYear();
+        const minPresetYear = nowYear - 1;
+        const maxPresetYear = nowYear + 3;
+        const previousVal = selectedTargetYear();
+        const prefVal = preferredYear ? String(preferredYear).trim() : '';
+        const barYearVal = String($('#target-bar-year').val() || '').trim();
+        const isTargetInteractive = window.isTargetSetModeActive() || isTargetFilterActive();
+
+        const yearSet = new Set();
+        (Array.isArray(targetYears) ? targetYears : []).forEach(function(y) {
+            const num = parseInt(String(y || '').trim(), 10);
+            if (num >= 2000 && num <= 2100) {
+                yearSet.add(String(num));
+            }
+        });
+
+        [prefVal, barYearVal, previousVal].forEach(function(candidate) {
+            const num = parseInt(candidate || '', 10);
+            if (num >= 2000 && num <= 2100) {
+                const inPresetRange = num >= minPresetYear && num <= maxPresetYear;
+                if (inPresetRange || isTargetInteractive || candidate === prefVal) {
+                    yearSet.add(String(num));
+                }
+            }
+        });
+
+        const years = Array.from(yearSet).sort(function(a, b) {
+            return Number(b) - Number(a);
+        });
+
+        $select.empty();
+
+        if (years.length === 0) {
+            $select.append('<option value="">Belum ada target</option>');
+            $select.prop('disabled', true);
+            return;
+        }
+
+        $select.prop('disabled', false);
+        years.forEach(function(year) {
+            $select.append($('<option>', { value: year, text: year }));
+        });
+
+        const currentYear = String(nowYear);
+        if (prefVal && years.includes(prefVal)) {
+            $select.val(prefVal);
+        } else if (window.isTargetSetModeActive() && barYearVal && years.includes(barYearVal)) {
+            $select.val(barYearVal);
+        } else if (previousVal && years.includes(previousVal)) {
+            $select.val(previousVal);
+        } else if (years.includes(currentYear)) {
+            $select.val(currentYear);
+        } else {
+            $select.val(years[0]);
+        }
+    }
+    window.syncTargetYearDropdown = syncTargetYearDropdown;
+
+    function resolveTargetCanvasHit(row, rawHargaAkhir, targetInfo, defaultHit) {
+        const activeYear = selectedTargetYear();
+        const isTargetKavling = Boolean(targetInfo && (!activeYear || String(targetInfo.tahun_target) === activeYear));
+        const isBatal = (row.is_batal == 1 || row.status_mkdt === 'Batal');
+        const hasSubValue = function(val) {
+            return val !== null && val !== undefined && val !== '';
+        };
+        const rawSub = hasSubValue(row.is_subsidi)
+            ? row.is_subsidi
+            : (hasSubValue(row.mkdt_is_subsidi)
+                ? row.mkdt_is_subsidi
+                : (targetInfo && hasSubValue(targetInfo.target_is_subsidi) ? targetInfo.target_is_subsidi : null));
+        const targetSubsidi = (String(rawSub) === '1') ? 'Subsidi' : 'Komersil';
+
+        const isAkad = !isBatal && (
+            row.akad == 1
+            || hasValidTargetDate(row.akad_tgl)
+        );
+        const isBooking = !isBatal && !isAkad && (
+            row.status_mkdt === 'Booking'
+            || row.status_mkdt === 'Akad'
+            || row.sp3k == 1
+            || hasValidTargetDate(row.sp3k_tgl)
+            || row.wawancara == 1
+            || hasValidTargetDate(row.wawancara_tgl)
+            || hasValidTargetDate(row.booking_tgl)
+            || row.akad_indent == 1
+            || hasValidTargetDate(row.akad_indent_tgl)
+        );
+        const hasConsumer = isAkad || isBooking;
+        const otherMode = selectedTargetOtherMode();
+        const targetMode = selectedTargetKavlingMode();
+        const targetStroke = isTargetKavling ? '#000000' : undefined;
+        const targetStrokeWidth = isTargetKavling ? 2.5 : 0;
+
+        // 1. Kavling dengan konsumen aktif (Akad / Booking) — berlaku untuk target maupun selain target
+        if (hasConsumer) {
+            if (otherMode === 'default') {
+                return {
+                    hit: defaultHit,
+                    preserveDefaultVisual: true,
+                    targetStroke: targetStroke,
+                    targetStrokeWidth: targetStrokeWidth
+                };
+            }
+
+            if (otherMode === 'split_4') {
+                const statusLabel = (isAkad ? 'Akad ' : 'Booking ') + targetSubsidi;
+                if (conf[statusLabel]) {
+                    set_fill2(statusLabel);
+                }
+                return {
+                    hit: {
+                        fill: statusLabel,
+                        tipe: 'Target'
+                    },
+                    preserveDefaultVisual: false,
+                    targetStroke: targetStroke,
+                    targetStrokeWidth: targetStrokeWidth
+                };
+            }
+
+            if (otherMode === 'merge_2') {
+                return {
+                    hit: {
+                        fill: isAkad ? 'Sudah Akad' : 'Booking',
+                        tipe: 'Target'
+                    },
+                    preserveDefaultVisual: false,
+                    targetStroke: targetStroke,
+                    targetStrokeWidth: targetStrokeWidth
+                };
+            }
+
+            return {
+                hit: {
+                    fill: 'Sudah Memiliki Konsumen',
+                    tipe: 'Target'
+                },
+                preserveDefaultVisual: false,
+                targetStroke: targetStroke,
+                targetStrokeWidth: targetStrokeWidth
+            };
+        }
+
+        // 2. Kavling Selain Target & belum berkonsumen (atau batal)
+        if (!isTargetKavling) {
+            if (otherMode === 'default') {
+                return {
+                    hit: defaultHit,
+                    preserveDefaultVisual: true,
+                    targetStroke: undefined,
+                    targetStrokeWidth: 0
+                };
+            }
+
+            set_fill('#e2e8f0', '#000000', '0', null);
+            return {
+                hit: {
+                    fill: 'Bukan Target',
+                    tipe: 'Target'
+                },
+                preserveDefaultVisual: false,
+                targetStroke: undefined,
+                targetStrokeWidth: 0
+            };
+        }
+
+        // 3. Kavling Target & belum berkonsumen (atau target yang batal)
+        if (targetMode === 'single_color') {
+            return {
+                hit: {
+                    fill: 'Kavling Target',
+                    tipe: 'Target'
+                },
+                preserveDefaultVisual: false,
+                targetStroke: targetStroke,
+                targetStrokeWidth: targetStrokeWidth
+            };
+        }
+
+        if (targetMode === 'by_tipe') {
+            const rawTipe = (targetInfo && (targetInfo.target_tipe_rumah || targetInfo.tipe_manual || targetInfo.tipe_label))
+                || row.tipe_rumah
+                || 'Tanpa Tipe';
+            const tipeName = String(rawTipe).trim() || 'Tanpa Tipe';
+            return {
+                hit: {
+                    fill: tipeName,
+                    color_fill: 'Tipe Target:' + tipeName,
+                    tipe: 'Tipe Target'
+                },
+                preserveDefaultVisual: false,
+                targetStroke: targetStroke,
+                targetStrokeWidth: targetStrokeWidth
+            };
+        }
+
+        // targetMode === 'default'
+        if (otherMode === 'default') {
+            return {
+                hit: defaultHit,
+                preserveDefaultVisual: true,
+                targetStroke: targetStroke,
+                targetStrokeWidth: targetStrokeWidth
+            };
+        }
+
+        if ((rawHargaAkhir && String(rawHargaAkhir) !== '0') || (parseFloat(row.hargajual || 0) > 0)) {
+            return {
+                hit: {
+                    fill: set_fill2(row.tipe_rumah),
+                    tipe: targetSubsidi
+                },
+                preserveDefaultVisual: false,
+                targetStroke: targetStroke,
+                targetStrokeWidth: targetStrokeWidth
+            };
+        }
+
+        if (!conf['Def']) {
+            set_fill('#fcffd9', '#000000', '0', null);
+            return {
+                hit: {
+                    fill: 'Def',
+                    tipe: 'Target'
+                },
+                preserveDefaultVisual: false,
+                targetStroke: targetStroke,
+                targetStrokeWidth: targetStrokeWidth
+            };
+        }
+
+        return {
+            hit: {
+                fill: set_fill2('Def'),
+                tipe: 'Target'
+            },
+            preserveDefaultVisual: false,
+            targetStroke: targetStroke,
+            targetStrokeWidth: targetStrokeWidth
+        };
+    }
+
     //refresh kavling setelah ganti divisi
     $("#pilih-divisi").change(function() {
         change_div()
+    });
+
+    $("#toggle-tampilkan-target").on("change", function() {
+        if (this.checked) {
+            $("#filter-target-tahun-container").stop(true, true).slideDown(200);
+        } else {
+            $("#filter-target-tahun-container").stop(true, true).slideUp(200);
+        }
+        syncTargetMenuVisibility();
+        if (typeof window.apply_server_filter === "function") {
+            window.apply_server_filter();
+        }
+    });
+
+    $("#filter-tahun-target").on("change", function() {
+        if (isTargetFilterActive() && typeof window.apply_server_filter === "function") {
+            window.apply_server_filter();
+        }
+    });
+
+    $("#filter-target-other-mode, #filter-target-kavling-mode").on("change", function() {
+        if (isTargetFilterActive() && typeof window.apply_server_filter === "function") {
+            window.apply_server_filter();
+        }
     });
 
     function isManualSelectionActive() {
@@ -457,6 +854,9 @@ Date.prototype.toDateInputValue = (function() {
     function change_div() {
         $("#tambah_jalan").prop("checked", 0)
         $("#produksi_tambah_jalan").prop("checked", 0)
+        if (typeof window.exitTargetSetMode === 'function') {
+            window.exitTargetSetMode();
+        }
         hapus_seleksi(); //hapus seleksi kavling
 
         //tampilkan menu sesuai divisi jika login sebagai admin
@@ -473,6 +873,8 @@ Date.prototype.toDateInputValue = (function() {
                 }
             }
         }
+
+        syncTargetMenuVisibility();
 
         //load ulang kavling
         load_kavling();
@@ -495,6 +897,7 @@ Date.prototype.toDateInputValue = (function() {
                 $("#loading").addClass("hidden");
                 const menu = r.menu;
                 $("#menu_here").html(menu);
+                syncTargetMenuVisibility();
                 if (roleid == 7 && has_akses.proyek == false) {
                     $(".btn-prod").hide()
                     swal('warning', 'Peringatan!', "Kamu tidak bisa melakukan perubahan untuk proyek ini")
@@ -589,6 +992,19 @@ Date.prototype.toDateInputValue = (function() {
 
     function get_kategori_color(kategori) {
         if (conf[kategori]) return conf[kategori].fill;
+        if (kategori === 'Bukan Target') return '#e2e8f0';
+        if (kategori === 'Def' && !conf['Def']) return '#fcffd9';
+        if (kategori === 'Sudah Akad') return (conf['Akad'] && conf['Akad'].fill) || '#16a34a';
+        if (kategori === 'Booking') return '#ff00b7';
+        if (kategori === 'Sudah Memiliki Konsumen') return '#0ea5e9';
+        if (kategori === 'Kavling Target') return '#f59e0b';
+        if (kategori === 'Akad Subsidi') return '#16a34a';
+        if (kategori === 'Akad Komersil') return '#15803d';
+        if (kategori === 'Booking Subsidi') return '#ec4899';
+        if (kategori === 'Booking Komersil') return '#a855f7';
+        if (String(kategori).indexOf('Tipe Target:') === 0) {
+            return resolveTargetTipeColor(String(kategori).slice('Tipe Target:'.length).trim());
+        }
         if (kategori == 'Belum Target') return '#f8fafc';
 
         if (String(kategori).indexOf('Target ') === 0) {
@@ -843,6 +1259,20 @@ Date.prototype.toDateInputValue = (function() {
             attrs.data2.tipe_rumah + ' ( ' + attrs.data.luas_tanah + ' / ' + attrs.data.status_tanah + ')',
             'HJ: Rp. ' + attrs.data2.harga_akhir
         ];
+
+        if (isTargetFilterActive()) {
+            const targetInfo = attrs.data2 ? attrs.data2.target : null;
+            const activeYear = selectedTargetYear();
+            const matchesTarget = targetInfo && (!activeYear || String(targetInfo.tahun_target) === activeYear);
+            let targetLine = matchesTarget ? ('Target: Tahun ' + targetInfo.tahun_target) : 'Target: Bukan Target';
+            if (matchesTarget && targetInfo) {
+                const targetTipe = String(targetInfo.target_tipe_rumah || targetInfo.tipe_manual || targetInfo.tipe_label || '').trim();
+                if (targetTipe) {
+                    targetLine += ' (' + targetTipe + ')';
+                }
+            }
+            lines.push(targetLine);
+        }
 
         (attrs.tooltipRows || attrs.visualRows || []).forEach(function(row) {
             compositeTooltipLines(row).forEach(function(line) {
@@ -1114,6 +1544,17 @@ Date.prototype.toDateInputValue = (function() {
         };
 
         siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
+        siteplanProblemItems = { kavling: [], others: [] };
+        if (typeof SiteplanTiketOverlay !== 'undefined' && typeof SiteplanTiketOverlay.clearOverlay === 'function') {
+            SiteplanTiketOverlay.clearOverlay(tiketOverlayLayer);
+        } else if (typeof tiketOverlayLayer !== 'undefined' && tiketOverlayLayer) {
+            tiketOverlayLayer.destroyChildren();
+            if (tiketOverlayLayer._tiketAnimation && typeof tiketOverlayLayer._tiketAnimation.stop === 'function') {
+                tiketOverlayLayer._tiketAnimation.stop();
+                tiketOverlayLayer._tiketAnimation = null;
+            }
+            tiketOverlayLayer.batchDraw();
+        }
 
         let va = $("#pilih-divisi option:selected").val();
         wr_pembangunan = [];
@@ -1140,15 +1581,24 @@ Date.prototype.toDateInputValue = (function() {
                 stroke = fill = strokeWidth = dashed = "";
 
                 let r = result['data'],
-                    targetKavling = result.target_kavling || {},
+                targetKavling = result.target_kavling || {},
+                targetYears = result.target_years || [],
                     data2,
                     hit,
                     tp_rumah,
                     subsidi;
 
+                targetTipeColorMap = {};
+                filterwarna['Tipe Target'] = null;
+                syncTargetYearDropdown(targetYears);
+                if (isTargetFilterActive()) {
+                    renderActiveFilterTags();
+                }
+
 
 
                 for (var p = 0; p < r.length; p++) {
+                    const rawHargaAkhir = r[p].harga_akhir;
                     tp_rumah = r[p].tipe_rumah
                     no_tp_rumah = r[p].no_tipe_rumah
 
@@ -1438,8 +1888,8 @@ Date.prototype.toDateInputValue = (function() {
 
                     } else if (va == 9) {
                         if (r[p].harga_akhir) {
-                            tp_rumah = r[p].tipe_rumah
-                            no_tp_rumah = r[p].no_tipe_rumah
+                        tp_rumah = r[p].tipe_rumah
+                        no_tp_rumah = r[p].no_tipe_rumah
                             hit = set_fill2(r[p].tipe_rumah)
 
                             //ubah var hit ke object
@@ -1458,21 +1908,17 @@ Date.prototype.toDateInputValue = (function() {
 
 
 
-                    let targetInfo = null;
-                    if (va == 11) {
-                        targetInfo = targetKavling[r[p].id_kavling] || null;
-                        if (targetInfo) {
-                            hit = {
-                                fill: 'Target ' + targetInfo.tahun_target,
-                                tipe: 'Target'
-                            }
-                        } else {
-                            hit = {
-                                fill: 'Belum Target',
-                                tipe: 'Target'
-                            }
-                        }
+                    const isTargetMode = isTargetFilterActive();
+                    const targetInfo = targetKavling[r[p].id_kavling] || null;
+                    const targetPlan = isTargetMode
+                        ? resolveTargetCanvasHit(r[p], rawHargaAkhir, targetInfo, hit)
+                        : null;
+                    if (targetPlan) {
+                        hit = targetPlan.hit;
                     }
+                    const preserveTargetDefault = Boolean(targetPlan && targetPlan.preserveDefaultVisual);
+                    const targetStroke = targetPlan ? targetPlan.targetStroke : undefined;
+                    const targetStrokeWidth = targetPlan ? (Number(targetPlan.targetStrokeWidth) || 0) : 0;
 
                     const fieldChecks = {
                         'sertifikat_is_balik_nama': (val) => val === 'Sudah',
@@ -1500,7 +1946,7 @@ Date.prototype.toDateInputValue = (function() {
 
 
                     //harga jual
-                    let id_hargajual = r[p].harga_akhir;
+                    let id_hargajual = rawHargaAkhir;
                     r[p].harga_akhir = (r[p].hargajual) ? num_format(r[p].hargajual) + " (Per " + format_date(r[p].tgl_harga) + ")" : '-';
 
 
@@ -1514,7 +1960,7 @@ Date.prototype.toDateInputValue = (function() {
 
                     const visualRows = Array.isArray(r[p].visual_rows) ? r[p].visual_rows : [];
                     const visualFill = r[p].visual_fill && r[p].visual_fill.config_name ? r[p].visual_fill : null;
-                    const useUnifiedFill = String(va) === '0' && visualFill !== null;
+                    const useUnifiedFill = (!isTargetMode || preserveTargetDefault) && String(va) === '0' && visualFill !== null;
 
                     if (useUnifiedFill) {
                         hit = {
@@ -1524,20 +1970,42 @@ Date.prototype.toDateInputValue = (function() {
                     }
 
                     // Override warna jika filter kategori aktif
-                    const filterOverride = getFilterColorOverride(r[p], subsidi);
+                    const filterOverride = isTargetMode ? null : getFilterColorOverride(r[p], subsidi);
                     if (filterOverride) {
                         set_fill2(filterOverride.fill); // memastikan config warna diset
                         hit = filterOverride;
                     }
 
-                    const useCompositeShape = String(va) === '0'
+                    const useCompositeShape = (!isTargetMode || preserveTargetDefault) && String(va) === '0'
                         && !filterOverride
                         && visualRows.length > 0
                         && typeof SiteplanCompositeShape !== 'undefined';
                     const hitColorConfig = hit.color_fill || hit.fill;
 
+                    const paintRows = useUnifiedFill ? [{
+                        key: hit.tipe ? hit.tipe.toLowerCase() : 'status',
+                        label: hit.tipe || 'Status',
+                        segments: [{
+                            config_name: hit.fill,
+                            color_config_name: hitColorConfig,
+                            ratio: 1
+                        }],
+                        markers: []
+                    }] : visualRows;
+
+                    const legendRows = (useUnifiedFill && hit.tipe === 'Tipe') ? paintRows : visualRows;
+                    const legendKeys = useCompositeShape
+                        ? (useUnifiedFill
+                            ? (hit.tipe === 'Tipe'
+                                ? SiteplanShapeFilter.keysFromRows(paintRows)
+                                : SiteplanShapeFilter.keysFromRows(visualRows).concat(SiteplanShapeFilter.keysFromRows(paintRows)))
+                            : SiteplanShapeFilter.keysFromRows(visualRows))
+                        : [SiteplanShapeFilter.key(hit.tipe, hit.fill)];
+
+                    const tooltipRows = (useUnifiedFill && hit.tipe === 'Tipe') ? paintRows : visualRows;
+
                     if (useCompositeShape) {
-                        registerCompositeLegend(visualRows);
+                        registerCompositeLegend(legendRows);
                     } else {
                         //set untuk filter warna
                         filterwarna[hit.tipe] = {
@@ -1552,6 +2020,7 @@ Date.prototype.toDateInputValue = (function() {
                     }
                     
                     const dataObj = {
+                        id_kavling: r[p].id_kavling,
                         nama_jalan: r[p].nama_jalan,
                         no_kavling: r[p].no_kavling,
                         id_produksi: r[p].id_produksi,
@@ -1567,6 +2036,11 @@ Date.prototype.toDateInputValue = (function() {
                         rotation: r[p].rotation,
                         luas_tanah: r[p].luas_tanah,
                         is_batal: r[p].is_batal,
+                        akad: r[p].akad,
+                        akad_tgl: r[p].akad_tgl,
+                        akad_indent: r[p].akad_indent,
+                        akad_indent_tgl: r[p].akad_indent_tgl,
+                        nama_konsumen: r[p].nama_konsumen || null,
                     };
                     const data2Obj = {
                         id_hargajual: id_hargajual,
@@ -1584,18 +2058,8 @@ Date.prototype.toDateInputValue = (function() {
                     };
 
                     const pointsArr = JSON.parse("[" + r[p].points + "]");
-                    const legendKeys = useCompositeShape
-                        ? SiteplanShapeFilter.keysFromRows(visualRows)
-                        : [SiteplanShapeFilter.key(hit.tipe, hit.fill)];
 
                     if (useCompositeShape) {
-                        const paintRows = useUnifiedFill ? [{
-                            key: 'status',
-                            label: 'Status',
-                            segments: [{ config_name: hit.fill, ratio: 1 }],
-                            markers: []
-                        }] : visualRows;
-
                         kav = SiteplanCompositeShape.createKonvaShape(Konva, {
                             id: 'kav' + r[p].id_kavling,
                             kategori: hit.fill,
@@ -1604,11 +2068,11 @@ Date.prototype.toDateInputValue = (function() {
                             points: pointsArr,
                             facadeRotation: r[p].rotation,
                             visualRows: paintRows,
-                            tooltipRows: visualRows,
+                            tooltipRows: tooltipRows,
                             legendKeys: legendKeys,
                             strokeWidthResolver: get_kategori_stroke_width,
-                            stroke: '#000',
-                            strokeWidth: 0,
+                            stroke: targetStroke || '#000',
+                            strokeWidth: targetStrokeWidth,
                             opacity: 1,
                             globalCompositeOperation: 'source-over'
                         }, get_kategori_color);
@@ -1617,6 +2081,11 @@ Date.prototype.toDateInputValue = (function() {
                         kav = new Konva.Line({
                             points: pointsArr,
                             fill: get_kategori_color(hitColorConfig),
+                            stroke: targetStroke,
+                            strokeWidth: targetStrokeWidth,
+                            lineJoin: 'round',
+                            lineCap: 'round',
+                            strokeScaleEnabled: true,
                             dash: dashed,
                             opacity: 1,
                             closed: true,
@@ -1634,6 +2103,22 @@ Date.prototype.toDateInputValue = (function() {
                     siteplan.add(kav);
                 }
                 updateSiteplanRenderStats();
+                const problemKavlings = [];
+                for (let p = 0; p < r.length; p++) {
+                    if (r[p] && r[p].active_tiket_id) {
+                        r[p].refType = 'kavling';
+                        problemKavlings.push(r[p]);
+                    }
+                }
+                siteplanProblemItems.kavling = problemKavlings;
+                syncSiteplanTiketOverlay();
+                if (window.isTargetSetModeActive() && typeof window.renderTargetStagedCanvasHighlights === 'function') {
+                    window.renderTargetStagedCanvasHighlights();
+                }
+                if (typeof window.isRequestKavlingCanvasPickActive === 'function' && window.isRequestKavlingCanvasPickActive()
+                    && typeof window.renderRequestKavlingCanvasHighlights === 'function') {
+                    window.renderRequestKavlingCanvasHighlights();
+                }
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
                 handlePendingSiteplanUrgentAction()
@@ -1726,6 +2211,23 @@ Date.prototype.toDateInputValue = (function() {
                 }
 
                 updateSiteplanRenderStats();
+
+                const problemOthers = [];
+                for (let p = 0; p < r.length; p++) {
+                    if (r[p] && r[p].active_tiket_id) {
+                        r[p].refType = 'others';
+                        problemOthers.push(r[p]);
+                    }
+                }
+                siteplanProblemItems.others = problemOthers;
+                syncSiteplanTiketOverlay();
+                if (window.isTargetSetModeActive() && typeof window.renderTargetStagedCanvasHighlights === 'function') {
+                    window.renderTargetStagedCanvasHighlights();
+                }
+                if (typeof window.isRequestKavlingCanvasPickActive === 'function' && window.isRequestKavlingCanvasPickActive()
+                    && typeof window.renderRequestKavlingCanvasHighlights === 'function') {
+                    window.renderRequestKavlingCanvasHighlights();
+                }
                 
                 if (activeKategori.includes('Masalah')) {
                     set_keterangan_warna();
@@ -1764,22 +2266,16 @@ Date.prototype.toDateInputValue = (function() {
 
         var oldScale = stage.scaleX();
         var pointer = stage.getPointerPosition();
+        if (!pointer) return;
 
         var mousePointTo = {
             x: (pointer.x - stage.x()) / oldScale,
             y: (pointer.y - stage.y()) / oldScale,
         };
 
-        // how to scale? Zoom in? Or zoom out?
-        let direction = e.evt.deltaY > 0 ? -1 : 1;
-
-        // when we zoom on trackpad, e.evt.ctrlKey is true
-        // in that case lets revert direction
-        if (e.evt.ctrlKey) {
-            direction = -direction;
-        }
-
-        var newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+        var newScale = e.evt.ctrlKey
+            ? oldScale * Math.pow(0.99, e.evt.deltaY)
+            : (e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy);
 
         stage.scale({
             x: newScale,
@@ -1789,12 +2285,11 @@ Date.prototype.toDateInputValue = (function() {
         group.scale({
             x: 1 / newScale,
             y: 1 / newScale
-        })
-        var newPos = {
+        });
+        stage.position({
             x: pointer.x - mousePointTo.x * newScale,
             y: pointer.y - mousePointTo.y * newScale,
-        };
-        stage.position(newPos);
+        });
     });
 
     //clear selction
@@ -1909,6 +2404,7 @@ Date.prototype.toDateInputValue = (function() {
     })
 
     siteplan.on('click tap', function(e) {
+        if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) return;
         if (typeof isFacadeArrowActive !== 'undefined' && isFacadeArrowActive) return;
 
         var k = e.target; //get shape
@@ -1923,6 +2419,22 @@ Date.prototype.toDateInputValue = (function() {
 
         if (!sh.id) return false;
         id_kavling = sh.id.substr(3)
+
+        if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) {
+            return;
+        }
+        if (typeof window.isTargetSetModeActive === 'function' && window.isTargetSetModeActive()) {
+            if (typeof window.handleTargetCanvasClick === 'function') {
+                window.handleTargetCanvasClick(sh, id_kavling);
+            }
+            return;
+        }
+        if (typeof window.isRequestKavlingCanvasPickActive === 'function' && window.isRequestKavlingCanvasPickActive()) {
+            if (typeof window.handleRequestKavlingCanvasClick === 'function') {
+                window.handleRequestKavlingCanvasClick(sh, id_kavling);
+            }
+            return;
+        }
 
         if (!isManualSelectionActive()) {
             addMode = e.evt.ctrlKey;
@@ -1990,6 +2502,7 @@ Date.prototype.toDateInputValue = (function() {
     });
 
     stage.on('click tap', function(e) {
+        if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) return;
         if (typeof isFacadeArrowActive !== 'undefined' && isFacadeArrowActive) return;
         if (isManualSelectionActive()) {
             var pos = this.getRelativePointerPosition();
@@ -2016,6 +2529,10 @@ Date.prototype.toDateInputValue = (function() {
     //even mouse move data kavling
     var data, mousePos, persentase;
     siteplan.on('mousemove', function(e) {
+        if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) {
+            group.hide();
+            return;
+        }
         var k = e.target;
         if (k.hasName('subShape') && k.parent) k = k.parent;
         data = k.attrs;
@@ -2038,7 +2555,7 @@ Date.prototype.toDateInputValue = (function() {
     //highlight kavling tanpa menggambar ulang seluruh layer siteplan
     siteplan.on('mouseover', function(e) {
         var node = getSiteplanKavlingNode(e.target);
-        if (!node || isManualSelectionActive() || isSelectedKavling(node)) {
+        if ((typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) || !node || isManualSelectionActive() || isSelectedKavling(node)) {
             hideKavlingHover();
             return;
         }
@@ -2072,67 +2589,64 @@ Date.prototype.toDateInputValue = (function() {
 
     var lastCenter = null;
     var lastDist = 0;
+    var dragStopped = false;
     stage.on('touchmove', function(e) {
         e.evt.preventDefault();
-        stage.setPointersPositions(e.evt);
-        var pointers = stage.getPointersPositions();
-        var p1 = pointers[0];
-        var p2 = pointers[1];
+        var touch1 = e.evt.touches[0];
+        var touch2 = e.evt.touches[1];
 
-        if (p1 && p2) {
-            // if the stage was under Konva's drag&drop
-            // we need to stop it, and implement our own pan logic with two pointers
-            if (stage.isDragging()) {
-                stage.stopDrag();
-            }
+        // restore single-finger drag when second finger is lifted
+        if (touch1 && !touch2 && !stage.isDragging() && dragStopped) {
+            stage.startDrag();
+            dragStopped = false;
+        }
 
-            if (!lastCenter) {
-                lastCenter = getCenter(p1, p2);
-                return;
-            }
+        if (touch1 && touch2) {
+            // Konva registers a "ready" drag on touchstart before dragDistance (3px) is crossed;
+            // stage.isDragging() is still false then, so always stopDrag() to clear _dragElements
+            stage.stopDrag();
+            dragStopped = true;
+
+            var rect = stage.container().getBoundingClientRect();
+            var p1 = { x: touch1.clientX - rect.left, y: touch1.clientY - rect.top };
+            var p2 = { x: touch2.clientX - rect.left, y: touch2.clientY - rect.top };
+
             var newCenter = getCenter(p1, p2);
-
             var dist = getDistance(p1, p2);
 
-            if (!lastDist) {
+            if (!lastCenter || !lastDist) {
+                lastCenter = newCenter;
                 lastDist = dist;
+                return;
             }
 
-            // local coordinates of center point
+            // local coordinates of previous pinch center point
             var pointTo = {
-                x: (newCenter.x - stage.x()) / stage.scaleX(),
-                y: (newCenter.y - stage.y()) / stage.scaleX(),
+                x: (lastCenter.x - stage.x()) / stage.scaleX(),
+                y: (lastCenter.y - stage.y()) / stage.scaleX(),
             };
 
             var scale = stage.scaleX() * (dist / lastDist);
 
-            stage.scaleX(scale);
-            stage.scaleY(scale);
+            stage.scale({ x: scale, y: scale });
+            group.scale({ x: 1 / scale, y: 1 / scale });
 
-            // calculate new position of the stage
-            var dx = newCenter.x - lastCenter.x;
-            var dy = newCenter.y - lastCenter.y;
-
-            var newPos = {
-                x: newCenter.x - pointTo.x * scale + dx,
-                y: newCenter.y - pointTo.y * scale + dy,
-            };
-
-            group.scale({
-                x: 1 / scale,
-                y: 1 / scale
-            })
-
-            stage.position(newPos);
+            stage.position({
+                x: newCenter.x - pointTo.x * scale,
+                y: newCenter.y - pointTo.y * scale,
+            });
 
             lastDist = dist;
             lastCenter = newCenter;
         }
     });
 
-    stage.on('touchend touchcancel', function() {
+    stage.on('touchend touchcancel', function(e) {
         lastDist = 0;
         lastCenter = null;
+        if (!e.evt.touches || e.evt.touches.length === 0) {
+            dragStopped = false;
+        }
     });
 
     function isi_data() {
@@ -2299,22 +2813,31 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     window.apply_server_filter = function() {
+        const rawClusterVal = $('#filter-id_cluster').val();
+        const rawClusterArray = Array.isArray(rawClusterVal) ? rawClusterVal : (rawClusterVal == null || rawClusterVal === '' ? [] : [rawClusterVal]);
         filter.id_cluster = selectedClusterIds();
         filter.id_jalan = $("#filter-id_jalan").val();
-        SiteplanFilterState.save(getSiteplanStorage(), siteplanCurrentUserId, dt_proyek.id_proyek, filter.id_cluster);
+        const saveSelection = rawClusterArray.includes('all') ? ['all'] : filter.id_cluster;
+        SiteplanFilterState.save(getSiteplanStorage(), siteplanCurrentUserId, dt_proyek.id_proyek, saveSelection);
         load_kavling();
         renderActiveFilterTags();
     }
 
     window.reset_server_filter = function() {
+        const rawClusterVal = $('#filter-id_cluster').val();
         const preservedClusters = selectedClusterIds();
         $('#form-filter-kategori')[0].reset();
-        $('#filter-id_cluster').val(preservedClusters).trigger('change.select2');
+        $('#filter-id_cluster').val(rawClusterVal).trigger('change.select2');
         $('#filter-id_jalan').val(null).trigger('change.select2');
         $('#pilih-divisi').val('0').trigger('change.select2');
         $('#filter-id_jalan').prop('disabled', preservedClusters.length === 0);
         filter.id_cluster = preservedClusters;
         filter.id_jalan = '';
+        $('#toggle-tampilkan-target').prop('checked', false);
+        $('#filter-target-other-mode').val('default');
+        $('#filter-target-kavling-mode').val('default');
+        $('#filter-target-tahun-container').stop(true, true).slideUp(200);
+        syncTargetMenuVisibility();
         checkMasalahOptions();
         checkPeriodeOptions();
         load_kavling();
@@ -2331,7 +2854,8 @@ Date.prototype.toDateInputValue = (function() {
             periode_mulai: $('#filter-periode-mulai').val() || '',
             periode_selesai: $('#filter-periode-selesai').val() || '',
             status_masalah: $('#filter-status-masalah').val() || '',
-            periode_masalah_jenis: $('#filter-periode-masalah-jenis').val() || ''
+            periode_masalah_jenis: $('#filter-periode-masalah-jenis').val() || '',
+            tahun_target: isTargetFilterActive() ? selectedTargetYear() : ''
         };
         let selectedOption = $('#pilih-divisi option:selected');
         if (selectedOption.data('is-kategori')) {
@@ -2354,14 +2878,20 @@ Date.prototype.toDateInputValue = (function() {
 
     function renderActiveFilterTags() {
         let html = '';
-        const selectedClusters = new Set(selectedClusterIds());
-        $('#filter-id_cluster option:selected').each(function() {
-            const clusterId = String($(this).val());
-            if (!selectedClusters.has(clusterId)) return;
+        const rawClusterVal = $('#filter-id_cluster').val();
+        const rawClusterArray = Array.isArray(rawClusterVal) ? rawClusterVal : (rawClusterVal == null || rawClusterVal === '' ? [] : [rawClusterVal]);
+        if (rawClusterArray.includes('all')) {
+            html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('cluster', 'all')">Cluster: Semua Cluster &times;</span>`;
+        } else {
+            const selectedClusters = new Set(selectedClusterIds());
+            $('#filter-id_cluster option:selected').each(function() {
+                const clusterId = String($(this).val());
+                if (!selectedClusters.has(clusterId)) return;
 
-            const clusterText = escapeSiteplanHtml($(this).text());
-            html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('cluster', '${clusterId}')">Cluster: ${clusterText} &times;</span>`;
-        });
+                const clusterText = escapeSiteplanHtml($(this).text());
+                html += `<span class="badge badge-light-primary mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('cluster', '${clusterId}')">Cluster: ${clusterText} &times;</span>`;
+            });
+        }
         
         if (filter.id_jalan) {
             const jalanText = escapeSiteplanHtml($("#filter-id_jalan option:selected").text());
@@ -2380,19 +2910,52 @@ Date.prototype.toDateInputValue = (function() {
             html += `<span class="badge badge-light-warning mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('periode')">${start} - ${end} &times;</span>`;
         }
 
+        if (isTargetFilterActive()) {
+            const targetYear = selectedTargetYear();
+            const otherMode = selectedTargetOtherMode();
+            const targetMode = selectedTargetKavlingMode();
+            const otherModeLabels = {
+                split_4: 'Selain: Akad/Booking (4)',
+                merge_2: 'Selain: Akad/Booking (2)',
+                single_1: 'Selain: Konsumen (1)'
+            };
+            const targetModeLabels = {
+                single_color: 'Target: 1 Warna',
+                by_tipe: 'Target: Per Tipe'
+            };
+            const modeNotes = [];
+            if (otherModeLabels[otherMode]) {
+                modeNotes.push(otherModeLabels[otherMode]);
+            }
+            if (targetModeLabels[targetMode]) {
+                modeNotes.push(targetModeLabels[targetMode]);
+            }
+            const baseLabel = targetYear ? ('Target: ' + escapeSiteplanHtml(targetYear)) : 'Target: Aktif';
+            const targetLabel = modeNotes.length > 0 ? (baseLabel + ' (' + modeNotes.join(', ') + ')') : baseLabel;
+            html += `<span class="badge badge-light-primary siteplan-target-active-badge mr-50 mb-50" style="cursor:pointer;" onclick="removeFilterTag('target')">${targetLabel} &times;</span>`;
+        }
+
         $('#active-filter-tags').html(html);
     }
 
     window.removeFilterTag = function(type, val = null) {
         if (type === 'cluster') {
-            const remaining = selectedClusterIds().filter(function(id) {
-                return id !== String(val);
-            });
-            $('#filter-id_cluster').val(remaining).trigger('change.select2');
-            filter.id_cluster = remaining;
-            $('#filter-id_jalan').val(null).trigger('change.select2');
-            filter.id_jalan = '';
-            $('#filter-id_jalan').prop('disabled', remaining.length === 0);
+            if (val === 'all') {
+                $('#filter-id_cluster').val([]).trigger('change.select2');
+                filter.id_cluster = [];
+                $('#filter-id_jalan').val(null).trigger('change.select2');
+                filter.id_jalan = '';
+                $('#filter-id_jalan').prop('disabled', true);
+            } else {
+                const remaining = selectedClusterIds().filter(function(id) {
+                    return id !== String(val);
+                });
+                $('#filter-id_cluster').val(remaining).trigger('change.select2');
+                filter.id_cluster = remaining;
+                $('#filter-id_jalan').val(null).trigger('change.select2');
+                filter.id_jalan = '';
+                $('#filter-id_jalan').prop('disabled', remaining.length === 0);
+            }
         } else if (type === 'jalan') {
             $('#filter-id_jalan').val(null).trigger('change');
             filter.id_jalan = '';
@@ -2401,6 +2964,12 @@ Date.prototype.toDateInputValue = (function() {
         } else if (type === 'periode') {
             $('#filter-periode-mulai').val('');
             $('#filter-periode-selesai').val('');
+        } else if (type === 'target') {
+            $('#toggle-tampilkan-target').prop('checked', false);
+            $('#filter-target-other-mode').val('default');
+            $('#filter-target-kavling-mode').val('default');
+            $('#filter-target-tahun-container').stop(true, true).slideUp(200);
+            syncTargetMenuVisibility();
         }
         checkMasalahOptions();
         checkPeriodeOptions();
@@ -2409,7 +2978,7 @@ Date.prototype.toDateInputValue = (function() {
         window.apply_server_filter();
     }
     // stage.add(siteplan, masked, datal);
-    stage.add(siteplan, masked);
+    stage.add(siteplan, tiketOverlayLayer, masked);
     stage.draw();
     siteplanStageReady = true;
     tryInitSiteplanCanvas();
@@ -2426,41 +2995,647 @@ Date.prototype.toDateInputValue = (function() {
         callback()
     }
 
-    function export_siteplan() {
-        $('#btn-export-siteplan').prop("disabled", true);
-        $('#btn-export-siteplan').html('Export<i class="fa fa-spinner fa-spin"></i>');
+    const siteplanExportState = {
+        area: 'full',
+        format: 'png',
+        quality: 'hd',
+        paper: 'a3',
+        orientation: 'auto',
+        customCrop: null,
+        draftCrop: null,
+        cropModeActive: false,
+        cropGroup: null,
+        cropSyncScale: null
+    };
 
-        const stageh = stage.height()
-        const stagew = stage.width()
-        const stages = stage.scale()
-        const stagep = stage.position()
+    window.isExportCropModeActive = function() {
+        return Boolean(siteplanExportState.cropModeActive);
+    };
 
-        stage.height(imageObj.height)
-        stage.width(imageObj.width)
+    function getSiteplanImageSize() {
+        const w = (imageObj && imageObj.width) ? Number(imageObj.width) : 0;
+        const h = (imageObj && imageObj.height) ? Number(imageObj.height) : 0;
+        return { width: w, height: h };
+    }
 
-        stage.position({
-            x: 0,
-            y: 0
-        })
+    function computeFilteredKavlingCropRect(imgW, imgH) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        let found = 0;
 
-        var dataURL = stage.scale({
-            x: 1,
-            y: 1
-        }).toDataURL({
-            pixelRatio: 1
+        siteplan.find('.siteplan-kavling').forEach(function(node) {
+            if (typeof node.isVisible === 'function' ? !node.isVisible() : (typeof node.visible === 'function' && !node.visible())) {
+                return;
+            }
+            const rect = node.getClientRect({ relativeTo: siteplan, skipShadow: true });
+            if (!rect || rect.width <= 0 || rect.height <= 0) return;
+            minX = Math.min(minX, rect.x);
+            minY = Math.min(minY, rect.y);
+            maxX = Math.max(maxX, rect.x + rect.width);
+            maxY = Math.max(maxY, rect.y + rect.height);
+            found++;
         });
 
-        const nama_file = "Siteplan " + dt_proyek.nama_proyek + " Per " + format_date(today_date) + ".png";
+        if (!found || !Number.isFinite(minX)) {
+            return { rect: { x: 0, y: 0, width: imgW, height: imgH }, fallbackFull: true };
+        }
 
-        downloadURI(dataURL, nama_file, function() {
-            stage.height(stageh)
-            stage.width(stagew)
-            stage.scale(stages)
-            stage.position(stagep)
-            $('#btn-export-siteplan').prop("disabled", false);
-            $('#btn-export-siteplan').html('Export');
-        })
+        const spanW = maxX - minX;
+        const spanH = maxY - minY;
+        const pad = Math.max(60, Math.round(Math.max(spanW, spanH) * 0.06));
+        return {
+            rect: SiteplanExportHelper.clampCropRect({
+                x: minX - pad,
+                y: minY - pad,
+                width: spanW + pad * 2,
+                height: spanH + pad * 2
+            }, imgW, imgH, 60),
+            fallbackFull: false
+        };
     }
+
+    function computeViewportCropRect(imgW, imgH) {
+        const scale = stage.scaleX() || 1;
+        const viewW = stage.width() || 0;
+        const viewH = stage.height() || 0;
+        if (!viewW || !viewH) {
+            return { x: 0, y: 0, width: imgW, height: imgH };
+        }
+
+        return SiteplanExportHelper.clampCropRect({
+            x: (-stage.x()) / scale,
+            y: (-stage.y()) / scale,
+            width: viewW / scale,
+            height: viewH / scale
+        }, imgW, imgH, 60);
+    }
+
+    function resolveExportCropInfo(areaMode) {
+        const size = getSiteplanImageSize();
+        const imgW = size.width;
+        const imgH = size.height;
+        if (!imgW || !imgH) {
+            return { rect: { x: 0, y: 0, width: 1, height: 1 }, fallbackFull: false };
+        }
+
+        if (areaMode === 'viewport') {
+            return { rect: computeViewportCropRect(imgW, imgH), fallbackFull: false };
+        }
+        if (areaMode === 'filtered') {
+            return computeFilteredKavlingCropRect(imgW, imgH);
+        }
+        if (areaMode === 'custom') {
+            if (siteplanExportState.customCrop) {
+                return {
+                    rect: SiteplanExportHelper.clampCropRect(siteplanExportState.customCrop, imgW, imgH, 60),
+                    fallbackFull: false
+                };
+            }
+            const vp = computeViewportCropRect(imgW, imgH);
+            const insetX = Math.round(vp.width * 0.1);
+            const insetY = Math.round(vp.height * 0.1);
+            return {
+                rect: SiteplanExportHelper.clampCropRect({
+                    x: vp.x + insetX,
+                    y: vp.y + insetY,
+                    width: Math.max(80, vp.width - insetX * 2),
+                    height: Math.max(80, vp.height - insetY * 2)
+                }, imgW, imgH, 60),
+                fallbackFull: false
+            };
+        }
+
+        return { rect: { x: 0, y: 0, width: imgW, height: imgH }, fallbackFull: false };
+    }
+
+    function renderSiteplanExportCanvas(cropRect, pixelRatio) {
+        const savedScale = { x: stage.scaleX(), y: stage.scaleY() };
+        const savedPos = { x: stage.x(), y: stage.y() };
+        const wasGroupVisible = group.visible();
+        const wasHoverVisible = hoverHighlight.visible();
+        const wasMaskedGroupVisible = maskedGroup.visible();
+        const wasManualVisible = manual_selection.visible();
+        const wasLineMsVisible = line_ms.visible();
+        const wasCropVisible = siteplanExportState.cropGroup ? siteplanExportState.cropGroup.visible() : false;
+
+        try {
+            group.hide();
+            hoverHighlight.hide();
+            maskedGroup.hide();
+            manual_selection.hide();
+            line_ms.hide();
+            if (siteplanExportState.cropGroup) {
+                siteplanExportState.cropGroup.hide();
+            }
+
+            stage.scale({ x: 1, y: 1 });
+            stage.position({ x: 0, y: 0 });
+
+            const rawCanvas = stage.toCanvas({
+                x: cropRect.x,
+                y: cropRect.y,
+                width: cropRect.width,
+                height: cropRect.height,
+                pixelRatio: pixelRatio
+            });
+
+            const outCanvas = document.createElement('canvas');
+            outCanvas.width = Math.max(1, rawCanvas.width);
+            outCanvas.height = Math.max(1, rawCanvas.height);
+            const outCtx = outCanvas.getContext('2d');
+            outCtx.fillStyle = '#ffffff';
+            outCtx.fillRect(0, 0, outCanvas.width, outCanvas.height);
+            outCtx.imageSmoothingEnabled = true;
+            outCtx.imageSmoothingQuality = 'high';
+            outCtx.drawImage(rawCanvas, 0, 0);
+            return outCanvas;
+        } finally {
+            stage.scale(savedScale);
+            stage.position(savedPos);
+            if (wasGroupVisible) group.show();
+            if (wasHoverVisible) hoverHighlight.show();
+            if (wasMaskedGroupVisible) maskedGroup.show();
+            if (wasManualVisible) manual_selection.show();
+            if (wasLineMsVisible) line_ms.show();
+            if (siteplanExportState.cropGroup && wasCropVisible) {
+                siteplanExportState.cropGroup.show();
+            }
+            stage.batchDraw();
+        }
+    }
+
+    function syncExportModalUI() {
+        const $modal = $('#modal-export-siteplan');
+        if (!$modal.length) return;
+
+        $('#export-area-options .export-option-card').each(function() {
+            const val = $(this).data('export-area');
+            const active = val === siteplanExportState.area;
+            $(this).toggleClass('is-selected', active);
+            $(this).find('input[type="radio"]').prop('checked', active);
+        });
+
+        $('#export-format-options .export-option-card').each(function() {
+            const val = $(this).data('export-format');
+            const active = val === siteplanExportState.format;
+            $(this).toggleClass('is-selected', active);
+            $(this).find('input[type="radio"]').prop('checked', active);
+        });
+
+        $('#export-quality-select').val(siteplanExportState.quality);
+        $('#export-pdf-paper').val(siteplanExportState.paper);
+        $('#export-pdf-orientation').val(siteplanExportState.orientation);
+
+        const isCustom = siteplanExportState.area === 'custom';
+        $('#export-custom-crop-box').prop('hidden', !isCustom);
+        if (isCustom) {
+            if (siteplanExportState.customCrop) {
+                const c = siteplanExportState.customCrop;
+                $('#export-custom-crop-status').text('Area manual: ' + c.width + ' × ' + c.height + ' px (posisi ' + c.x + ', ' + c.y + ')');
+            } else {
+                $('#export-custom-crop-status').text('Belum memilih area khusus — gunakan tombol di kanan untuk tarik kotak di kanvas');
+            }
+        }
+
+        const isPdf = siteplanExportState.format === 'pdf';
+        $('#export-pdf-options').prop('hidden', !isPdf);
+
+        refreshExportPreview();
+    }
+
+    function refreshExportPreview() {
+        const size = getSiteplanImageSize();
+        if (!size.width || !size.height) return;
+
+        const cropInfo = resolveExportCropInfo(siteplanExportState.area);
+        const cropRect = cropInfo.rect;
+        const metrics = SiteplanExportHelper.computeEffectivePixelRatio(
+            cropRect.width,
+            cropRect.height,
+            siteplanExportState.quality
+        );
+
+        $('#export-meta-source').text(cropRect.width + ' × ' + cropRect.height + ' px');
+        $('#export-meta-output').text(metrics.outputWidth + ' × ' + metrics.outputHeight + ' px (' + metrics.pixelRatio + 'x)');
+
+        if (siteplanExportState.format === 'pdf') {
+            const pdfLayout = SiteplanExportHelper.computePdfPageLayout(
+                metrics.outputWidth,
+                metrics.outputHeight,
+                siteplanExportState.paper,
+                siteplanExportState.orientation
+            );
+            const paperLabel = pdfLayout.paperSize === 'fit' ? 'Sesuai Area' : pdfLayout.paperSize.toUpperCase();
+            const orientLabel = pdfLayout.orientation === 'landscape' ? 'Landscape' : 'Portrait';
+            $('#export-meta-note').text(
+                'Output PDF ' + paperLabel + ' (' + orientLabel + '). ' +
+                (cropInfo.fallbackFull ? 'Tidak ada kavling terfilter aktif, menggunakan seluruh siteplan.' : 'Shape & nomor kavling dirender pada resolusi vektor tinggi.')
+            );
+        } else if (cropInfo.fallbackFull) {
+            $('#export-meta-note').text('Tidak ada kavling terfilter yang tampil di kanvas, area otomatis menggunakan seluruh siteplan.');
+        } else if (metrics.capped) {
+            $('#export-meta-note').text('Skala disesuaikan otomatis ke batas aman memori browser (' + metrics.pixelRatio + 'x) agar hasil tajam dan bebas gagal render.');
+        } else {
+            $('#export-meta-note').text('Shape kavling & nomor kavling dirender ulang sebagai vektor ' + metrics.pixelRatio + 'x agar tetap tajam saat diperbesar.');
+        }
+
+        const previewScale = Math.min(1, 560 / Math.max(cropRect.width, cropRect.height));
+        try {
+            const previewCanvas = renderSiteplanExportCanvas(cropRect, previewScale);
+            const previewUrl = previewCanvas.toDataURL('image/jpeg', 0.85);
+            $('#export-preview-empty').prop('hidden', true);
+            $('#export-preview-img').attr('src', previewUrl).prop('hidden', false);
+        } catch (err) {
+            $('#export-preview-img').prop('hidden', true);
+            $('#export-preview-empty').text('Pratinjau tidak tersedia').prop('hidden', false);
+        }
+    }
+
+    function destroyExportCropOverlay() {
+        stage.off('.exportCrop');
+        stage.draggable(true);
+        stage.container().style.cursor = 'default';
+        if (siteplanExportState.cropGroup) {
+            siteplanExportState.cropGroup.destroy();
+            siteplanExportState.cropGroup = null;
+        }
+        siteplanExportState.cropSyncScale = null;
+        siteplanExportState.cropModeActive = false;
+        $('#siteplan-export-crop-bar').prop('hidden', true);
+        masked.batchDraw();
+    }
+
+    function startExportCropSelection() {
+        const size = getSiteplanImageSize();
+        if (!size.width || !size.height) return;
+
+        destroyExportCropOverlay();
+        hideKavlingHover();
+        group.hide();
+
+        const initialInfo = resolveExportCropInfo('custom');
+        const rect = Object.assign({}, initialInfo.rect);
+        siteplanExportState.draftCrop = rect;
+        siteplanExportState.cropModeActive = true;
+
+        const cropGroup = new Konva.Group({ id: 'siteplan-export-crop-group' });
+        const maskFill = 'rgba(15, 23, 42, 0.45)';
+        const maskTop = new Konva.Rect({ fill: maskFill, listening: false });
+        const maskBottom = new Konva.Rect({ fill: maskFill, listening: false });
+        const maskLeft = new Konva.Rect({ fill: maskFill, listening: false });
+        const maskRight = new Konva.Rect({ fill: maskFill, listening: false });
+
+        const cropBox = new Konva.Rect({
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+            stroke: '#2057a3',
+            strokeWidth: 3,
+            strokeScaleEnabled: false,
+            dash: [10, 5],
+            fill: 'rgba(32, 87, 163, 0.06)',
+            draggable: true
+        });
+
+        cropGroup.add(maskTop, maskBottom, maskLeft, maskRight, cropBox);
+
+        const MIN_CROP_SIZE = 60;
+        const handleDefs = [
+            { id: 'nw', cursor: 'nwse-resize', getPos: (r) => ({ x: r.x, y: r.y }), resize: (r, p) => {
+                const right = r.x + r.width, bottom = r.y + r.height;
+                const nx = Math.max(0, Math.min(p.x, right - MIN_CROP_SIZE));
+                const ny = Math.max(0, Math.min(p.y, bottom - MIN_CROP_SIZE));
+                return { x: nx, y: ny, width: right - nx, height: bottom - ny };
+            }},
+            { id: 'n', cursor: 'ns-resize', getPos: (r) => ({ x: r.x + r.width / 2, y: r.y }), resize: (r, p) => {
+                const bottom = r.y + r.height;
+                const ny = Math.max(0, Math.min(p.y, bottom - MIN_CROP_SIZE));
+                return { x: r.x, y: ny, width: r.width, height: bottom - ny };
+            }},
+            { id: 'ne', cursor: 'nesw-resize', getPos: (r) => ({ x: r.x + r.width, y: r.y }), resize: (r, p) => {
+                const bottom = r.y + r.height;
+                const nw = Math.max(MIN_CROP_SIZE, Math.min(p.x - r.x, size.width - r.x));
+                const ny = Math.max(0, Math.min(p.y, bottom - MIN_CROP_SIZE));
+                return { x: r.x, y: ny, width: nw, height: bottom - ny };
+            }},
+            { id: 'e', cursor: 'ew-resize', getPos: (r) => ({ x: r.x + r.width, y: r.y + r.height / 2 }), resize: (r, p) => {
+                const nw = Math.max(MIN_CROP_SIZE, Math.min(p.x - r.x, size.width - r.x));
+                return { x: r.x, y: r.y, width: nw, height: r.height };
+            }},
+            { id: 'se', cursor: 'nwse-resize', getPos: (r) => ({ x: r.x + r.width, y: r.y + r.height }), resize: (r, p) => {
+                const nw = Math.max(MIN_CROP_SIZE, Math.min(p.x - r.x, size.width - r.x));
+                const nh = Math.max(MIN_CROP_SIZE, Math.min(p.y - r.y, size.height - r.y));
+                return { x: r.x, y: r.y, width: nw, height: nh };
+            }},
+            { id: 's', cursor: 'ns-resize', getPos: (r) => ({ x: r.x + r.width / 2, y: r.y + r.height }), resize: (r, p) => {
+                const nh = Math.max(MIN_CROP_SIZE, Math.min(p.y - r.y, size.height - r.y));
+                return { x: r.x, y: r.y, width: r.width, height: nh };
+            }},
+            { id: 'sw', cursor: 'nesw-resize', getPos: (r) => ({ x: r.x, y: r.y + r.height }), resize: (r, p) => {
+                const right = r.x + r.width;
+                const nx = Math.max(0, Math.min(p.x, right - MIN_CROP_SIZE));
+                const nh = Math.max(MIN_CROP_SIZE, Math.min(p.y - r.y, size.height - r.y));
+                return { x: nx, y: r.y, width: right - nx, height: nh };
+            }},
+            { id: 'w', cursor: 'ew-resize', getPos: (r) => ({ x: r.x, y: r.y + r.height / 2 }), resize: (r, p) => {
+                const right = r.x + r.width;
+                const nx = Math.max(0, Math.min(p.x, right - MIN_CROP_SIZE));
+                return { x: nx, y: r.y, width: right - nx, height: r.height };
+            }}
+        ];
+
+        const handles = [];
+        function syncCropVisuals() {
+            const r = siteplanExportState.draftCrop;
+            cropBox.setAttrs({ x: r.x, y: r.y, width: r.width, height: r.height });
+
+            maskTop.setAttrs({ x: 0, y: 0, width: size.width, height: r.y });
+            maskBottom.setAttrs({ x: 0, y: r.y + r.height, width: size.width, height: Math.max(0, size.height - (r.y + r.height)) });
+            maskLeft.setAttrs({ x: 0, y: r.y, width: r.x, height: r.height });
+            maskRight.setAttrs({ x: r.x + r.width, y: r.y, width: Math.max(0, size.width - (r.x + r.width)), height: r.height });
+
+            const invScale = 1 / (stage.scaleX() || 1);
+            handles.forEach(function(item) {
+                const pt = item.def.getPos(r);
+                item.node.setAttrs({ x: pt.x, y: pt.y, scaleX: invScale, scaleY: invScale });
+            });
+
+            $('#export-crop-bar-size').text(Math.round(r.width) + ' × ' + Math.round(r.height) + ' px');
+            masked.batchDraw();
+        }
+
+        cropBox.on('mouseenter', function() {
+            stage.container().style.cursor = 'move';
+        });
+        cropBox.on('mouseleave', function() {
+            stage.container().style.cursor = 'default';
+        });
+        cropBox.on('mousedown touchstart', function() {
+            stage.draggable(false);
+        });
+        cropBox.on('dragmove', function() {
+            const r = siteplanExportState.draftCrop;
+            const nx = Math.max(0, Math.min(cropBox.x(), size.width - r.width));
+            const ny = Math.max(0, Math.min(cropBox.y(), size.height - r.height));
+            siteplanExportState.draftCrop = {
+                x: Math.round(nx),
+                y: Math.round(ny),
+                width: Math.round(r.width),
+                height: Math.round(r.height)
+            };
+            syncCropVisuals();
+        });
+        cropBox.on('dragend mouseup touchend', function() {
+            stage.draggable(true);
+        });
+
+        handleDefs.forEach(function(def) {
+            const handle = new Konva.Circle({
+                radius: 7,
+                fill: '#ffffff',
+                stroke: '#2057a3',
+                strokeWidth: 2.5,
+                draggable: true
+            });
+            handle.on('mouseenter', function() {
+                stage.container().style.cursor = def.cursor;
+            });
+            handle.on('mouseleave', function() {
+                stage.container().style.cursor = 'default';
+            });
+            handle.on('mousedown touchstart', function(ev) {
+                ev.cancelBubble = true;
+                stage.draggable(false);
+            });
+            handle.on('dragmove', function(ev) {
+                ev.cancelBubble = true;
+                const next = def.resize(siteplanExportState.draftCrop, { x: handle.x(), y: handle.y() });
+                siteplanExportState.draftCrop = SiteplanExportHelper.clampCropRect(next, size.width, size.height, MIN_CROP_SIZE);
+                syncCropVisuals();
+            });
+            handle.on('dragend mouseup touchend', function(ev) {
+                ev.cancelBubble = true;
+                stage.draggable(true);
+            });
+            cropGroup.add(handle);
+            handles.push({ def: def, node: handle });
+        });
+
+        siteplanExportState.cropGroup = cropGroup;
+        siteplanExportState.cropSyncScale = syncCropVisuals;
+        masked.add(cropGroup);
+        cropGroup.moveToTop();
+        syncCropVisuals();
+
+        stage.on('wheel.exportCrop touchmove.exportCrop', function() {
+            if (siteplanExportState.cropSyncScale) {
+                siteplanExportState.cropSyncScale();
+            }
+        });
+
+        $('#modal-export-siteplan').modal('hide');
+        $('#siteplan-export-crop-bar').prop('hidden', false);
+    }
+
+    function applyExportCropSelection() {
+        if (!siteplanExportState.cropModeActive) return;
+        const size = getSiteplanImageSize();
+        siteplanExportState.customCrop = SiteplanExportHelper.clampCropRect(
+            siteplanExportState.draftCrop,
+            size.width,
+            size.height,
+            60
+        );
+        siteplanExportState.area = 'custom';
+        destroyExportCropOverlay();
+        syncExportModalUI();
+        $('#modal-export-siteplan').modal('show');
+    }
+
+    function cancelExportCropSelection() {
+        if (!siteplanExportState.cropModeActive) return;
+        destroyExportCropOverlay();
+        syncExportModalUI();
+        $('#modal-export-siteplan').modal('show');
+    }
+
+    function triggerBlobDownload(blob, filename, done) {
+        const url = URL.createObjectURL(blob);
+        downloadURI(url, filename, function() {
+            setTimeout(function() {
+                URL.revokeObjectURL(url);
+            }, 4000);
+            if (typeof done === 'function') done();
+        });
+    }
+
+    function canvasToBlobPromise(canvas, mimeType, quality) {
+        return new Promise(function(resolve, reject) {
+            if (typeof canvas.toBlob === 'function') {
+                canvas.toBlob(function(blob) {
+                    if (blob) {
+                        resolve(blob);
+                    } else {
+                        reject(new Error('Gagal mengonversi kanvas menjadi file.'));
+                    }
+                }, mimeType, quality);
+                return;
+            }
+            const dataUrl = canvas.toDataURL(mimeType, quality);
+            const bytes = SiteplanExportHelper.dataUrlToUint8Array(dataUrl);
+            resolve(new Blob([bytes], { type: mimeType }));
+        });
+    }
+
+    function export_siteplan() {
+        const size = getSiteplanImageSize();
+        if (!siteplanImageReady || !size.width || !size.height) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Siteplan belum siap',
+                    text: 'Tunggu hingga gambar siteplan selesai dimuat sebelum melakukan export.'
+                });
+            }
+            return;
+        }
+
+        if (siteplanExportState.cropModeActive) {
+            destroyExportCropOverlay();
+        }
+
+        syncExportModalUI();
+        $('#modal-export-siteplan').modal('show');
+    }
+
+    function executeSiteplanExport() {
+        const size = getSiteplanImageSize();
+        if (!siteplanImageReady || !size.width || !size.height) return;
+
+        const $confirmBtn = $('#btn-confirm-export-siteplan');
+        const originalHtml = $confirmBtn.html();
+        $confirmBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-25"></i>Memproses...');
+
+        const cropInfo = resolveExportCropInfo(siteplanExportState.area);
+        const cropRect = cropInfo.rect;
+        const metrics = SiteplanExportHelper.computeEffectivePixelRatio(
+            cropRect.width,
+            cropRect.height,
+            siteplanExportState.quality
+        );
+
+        const areaSuffixMap = {
+            full: '',
+            viewport: ' (Area Layar)',
+            filtered: ' (Area Filter)',
+            custom: ' (Area Pilihan)'
+        };
+        const projectName = SiteplanExportHelper.sanitizeFilenamePart(dt_proyek && dt_proyek.nama_proyek);
+        const datePart = SiteplanExportHelper.sanitizeFilenamePart(format_date(today_date));
+        const areaSuffix = areaSuffixMap[siteplanExportState.area] || '';
+        const ext = siteplanExportState.format === 'jpeg' ? 'jpg' : siteplanExportState.format;
+        const filename = 'Siteplan ' + projectName + areaSuffix + ' Per ' + datePart + '.' + ext;
+
+        setTimeout(function() {
+            Promise.resolve().then(function() {
+                const exportCanvas = renderSiteplanExportCanvas(cropRect, metrics.pixelRatio);
+
+                if (siteplanExportState.format === 'png') {
+                    return canvasToBlobPromise(exportCanvas, 'image/png').then(function(blob) {
+                        return new Promise(function(resolve) {
+                            triggerBlobDownload(blob, filename, resolve);
+                        });
+                    });
+                }
+
+                if (siteplanExportState.format === 'jpeg') {
+                    return canvasToBlobPromise(exportCanvas, 'image/jpeg', metrics.jpegQuality).then(function(blob) {
+                        return new Promise(function(resolve) {
+                            triggerBlobDownload(blob, filename, resolve);
+                        });
+                    });
+                }
+
+                // PDF export via high-res JPEG stream embedded into PDF 1.4
+                const jpegDataUrl = exportCanvas.toDataURL('image/jpeg', metrics.jpegQuality);
+                const jpegBytes = SiteplanExportHelper.dataUrlToUint8Array(jpegDataUrl);
+                const pdfLayout = SiteplanExportHelper.computePdfPageLayout(
+                    exportCanvas.width,
+                    exportCanvas.height,
+                    siteplanExportState.paper,
+                    siteplanExportState.orientation
+                );
+                const pdfBytes = SiteplanExportHelper.buildPdfFromJpegBytes(
+                    jpegBytes,
+                    exportCanvas.width,
+                    exportCanvas.height,
+                    pdfLayout
+                );
+                const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+                return new Promise(function(resolve) {
+                    triggerBlobDownload(pdfBlob, filename, resolve);
+                });
+            }).then(function() {
+                $('#modal-export-siteplan').modal('hide');
+            }).catch(function(err) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Export gagal',
+                        text: (err && err.message) ? err.message : 'Terjadi kesalahan saat merender file export.'
+                    });
+                }
+            }).finally(function() {
+                $confirmBtn.prop('disabled', false).html(originalHtml);
+            });
+        }, 30);
+    }
+
+    $(document).on('change', '#export-area-options input[name="export_area"]', function() {
+        siteplanExportState.area = String($(this).val() || 'full');
+        syncExportModalUI();
+    });
+
+    $(document).on('change', '#export-format-options input[name="export_format"]', function() {
+        siteplanExportState.format = String($(this).val() || 'png');
+        syncExportModalUI();
+    });
+
+    $(document).on('change', '#export-quality-select', function() {
+        siteplanExportState.quality = String($(this).val() || 'hd');
+        syncExportModalUI();
+    });
+
+    $(document).on('change', '#export-pdf-paper', function() {
+        siteplanExportState.paper = String($(this).val() || 'a3');
+        syncExportModalUI();
+    });
+
+    $(document).on('change', '#export-pdf-orientation', function() {
+        siteplanExportState.orientation = String($(this).val() || 'auto');
+        syncExportModalUI();
+    });
+
+    $(document).on('click', '#btn-open-export-crop', function() {
+        startExportCropSelection();
+    });
+
+    $(document).on('click', '#btn-export-crop-apply', function() {
+        applyExportCropSelection();
+    });
+
+    $(document).on('click', '#btn-export-crop-cancel', function() {
+        cancelExportCropSelection();
+    });
+
+    $(document).on('click', '#btn-export-crop-reset', function() {
+        siteplanExportState.customCrop = null;
+        startExportCropSelection();
+    });
+
+    $(document).on('click', '#btn-confirm-export-siteplan', function() {
+        executeSiteplanExport();
+    });
 
     //context menu
 
@@ -2544,8 +3719,30 @@ Date.prototype.toDateInputValue = (function() {
         data: siteplanClusterSelectData,
         width: '100%'
     })
+    let previousClusterValues = [];
     // on select cluster
     $("#filter-id_cluster").on("change", function(e) {
+        const rawVal = $(this).val();
+        let currentVal = Array.isArray(rawVal) ? rawVal : (rawVal == null || rawVal === '' ? [] : [rawVal]);
+
+        const hadAll = previousClusterValues.includes('all');
+        const hasAll = currentVal.includes('all');
+
+        if (!hadAll && hasAll) {
+            // User baru saja klik "Semua Cluster" -> deselect cluster individual
+            currentVal = ['all'];
+            previousClusterValues = currentVal.slice();
+            $(this).val(currentVal).trigger('change');
+            return;
+        } else if (hadAll && hasAll && currentVal.length > 1) {
+            // User sebelumnya memilih "Semua Cluster" lalu memilih cluster tertentu -> lepas "Semua Cluster"
+            currentVal = currentVal.filter(function(v) { return v !== 'all'; });
+            previousClusterValues = currentVal.slice();
+            $(this).val(currentVal).trigger('change');
+            return;
+        }
+
+        previousClusterValues = currentVal.slice();
         const clusterIds = selectedClusterIds();
         $('#filter-id_jalan').val(null).trigger('change.select2');
         filter.id_jalan = '';
@@ -2569,7 +3766,7 @@ Date.prototype.toDateInputValue = (function() {
                 return {
                     [csrfName]: csrfHash,
                     search: params.term,
-                    id_cluster: $("#filter-id_cluster").val(),
+                    id_cluster: selectedClusterIds(),
                     id_proyek: dt_proyek.id_proyek
                 };
             },
@@ -2592,21 +3789,32 @@ Date.prototype.toDateInputValue = (function() {
         },
     })
 
+    const availableClusterIds = siteplanClusterSelectData.map(function(item) { return item.id; });
     const restoredClusterIds = SiteplanFilterState.restore(
         getSiteplanStorage(),
         siteplanCurrentUserId,
         dt_proyek.id_proyek,
-        siteplanClusterSelectData.map(function(item) { return item.id; })
+        availableClusterIds
     );
-    const availableClusterIds = siteplanClusterSelectData.map(function(item) { return item.id; });
     const pendingTiketAction = getPendingSiteplanTiketAction();
     const targetClusterIds = SiteplanFilterState.normalizeIds(
         pendingTiketAction ? pendingTiketAction.targetClusterId : null
     ).filter(function(id) {
         return availableClusterIds.includes(id);
     });
-    const initialClusterIds = SiteplanFilterState.normalizeIds(restoredClusterIds.concat(targetClusterIds));
-    $('#filter-id_cluster').val(initialClusterIds).trigger('change.select2');
+
+    let initialClusterSelection = [];
+    if (targetClusterIds.length > 0) {
+        initialClusterSelection = targetClusterIds;
+    } else if (restoredClusterIds.includes('all')) {
+        initialClusterSelection = ['all'];
+    } else {
+        initialClusterSelection = SiteplanFilterState.normalizeIds(restoredClusterIds);
+    }
+
+    previousClusterValues = initialClusterSelection.slice();
+    $('#filter-id_cluster').val(initialClusterSelection).trigger('change.select2');
+    const initialClusterIds = selectedClusterIds();
     $('#filter-id_jalan').prop('disabled', initialClusterIds.length === 0);
     filter.id_cluster = initialClusterIds;
     filter.id_jalan = '';
@@ -2734,6 +3942,16 @@ Date.prototype.toDateInputValue = (function() {
     stage.on('contextmenu dblclick dbltap', function(e) {
         // prevent default behavior
         e.evt.preventDefault();
+
+        if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) {
+            return;
+        }
+        if (typeof window.isTargetSetModeActive === 'function' && window.isTargetSetModeActive()) {
+            return;
+        }
+        if (typeof window.isRequestKavlingCanvasPickActive === 'function' && window.isRequestKavlingCanvasPickActive()) {
+            return;
+        }
 
         if (e.target === stage) {
             // if we are on empty place of the stage we will do nothing
@@ -3748,6 +4966,15 @@ Date.prototype.toDateInputValue = (function() {
 
     $(document).keydown(function(event) {
         if (event.key === 'Escape') {
+            if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) {
+                cancelExportCropSelection();
+                return;
+            }
+            if (typeof window.isRequestKavlingCanvasPickActive === 'function' && window.isRequestKavlingCanvasPickActive()
+                && typeof window.cancelRequestKavlingCanvasPick === 'function') {
+                window.cancelRequestKavlingCanvasPick();
+                return;
+            }
             hapus_seleksi()
         }
     });

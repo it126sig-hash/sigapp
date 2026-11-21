@@ -12,7 +12,7 @@ class ModuleMap extends BaseCommand
 
     protected $name = 'module:map';
 
-    protected $description = 'Memetakan seluruh file dan rute aplikasi ke dalam 15 Modul Bisnis SIGAPP.';
+    protected $description = 'Memetakan seluruh file dan rute aplikasi ke dalam 16 Modul Bisnis SIGAPP.';
 
     protected $usage = 'module:map [--output=<path>]';
 
@@ -40,9 +40,19 @@ class ModuleMap extends BaseCommand
 
         file_put_contents($outputPath, json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
+        $refactoredCount = 0;
+        $mappedCount     = 0;
+        foreach ($result['modules'] as $m) {
+            if ($m['status'] === 'REFACTORED') {
+                $refactoredCount++;
+            } elseif ($m['status'] === 'MAPPED') {
+                $mappedCount++;
+            }
+        }
+
         CLI::newLine();
         CLI::write("Pemetaan selesai! Rangkuman:", 'green');
-        CLI::write("  - Total Modul Bisnis: " . $result['total_modules']);
+        CLI::write("  - Total Modul Bisnis: " . $result['total_modules'] . " ({$refactoredCount} REFACTORED, {$mappedCount} MAPPED)");
         CLI::write("  - Output tersimpan di: " . $outputPath);
 
         $unmappedCount = count($result['unmapped_files']['controllers'])

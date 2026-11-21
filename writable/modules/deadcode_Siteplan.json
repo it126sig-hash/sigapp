@@ -1,0 +1,27 @@
+[
+    {
+        "layer": "Service",
+        "file": "SiteplanService.php",
+        "name": "getMeta"
+    },
+    {
+        "layer": "Service",
+        "file": "SiteplanService.php",
+        "name": "editKavling"
+    },
+    {
+        "layer": "Service",
+        "file": "SiteplanService.php",
+        "name": "getHargaKavling"
+    },
+    {
+        "layer": "Service",
+        "file": "SiteplanService.php",
+        "name": "getTurunPembangunan"
+    },
+    {
+        "layer": "Service",
+        "file": "SiteplanService.php",
+        "name": "setTurunPembangunan"
+    }
+]

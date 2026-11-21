@@ -202,6 +202,9 @@ a:focus {
 .bg-danger,
 .badge-danger { background-color: var(--sigapp-danger) !important; color: #fff !important; }
 .bg-light { background-color: var(--sigapp-light) !important; color: var(--sigapp-gray-700) !important; }
+.badge.badge-light { background-color: #ffffff !important; color: var(--sigapp-dark, #1e293b) !important; font-weight: 700; }
+.btn-primary .badge.badge-light,
+.btn-primary .badge.badge-light.badge-nup-count { background-color: #ffffff !important; color: var(--sigapp-primary-solid, #2057a3) !important; font-weight: 700; }
 .bg-dark { background-color: var(--sigapp-dark) !important; color: #fff !important; }
 .bg-white { background-color: var(--sigapp-white) !important; }
 
@@ -313,6 +316,28 @@ a:focus {
 .nav-pills .nav-link.active,
 .nav-pills .show > .nav-link {
   color: #fff !important;
+}
+
+/* Global Bootstrap Tab Transition Animation */
+@keyframes sigappTabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-content > .tab-pane.active {
+  animation: sigappTabFadeIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-content > .tab-pane.active {
+    animation: none !important;
+  }
 }
 
 .richText .richText-toolbar a,
@@ -1934,4 +1959,15 @@ select,
 
 .dark-layout .activity-text strong {
     color: #f8fafc;
+}
+
+.dark-layout .badge.badge-light {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+.dark-layout .btn-primary .badge.badge-light,
+.dark-layout .btn-primary .badge.badge-light.badge-nup-count {
+    background-color: #ffffff !important;
+    color: var(--sigapp-primary-solid, #2057a3) !important;
 }

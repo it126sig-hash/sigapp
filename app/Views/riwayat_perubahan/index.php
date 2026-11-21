@@ -1,43 +1,4 @@
-<style>
-    .riwayat-perubahan-page .page-toolbar {
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        background: #fff;
-        padding: 1rem;
-    }
-
-    .riwayat-perubahan-page .table th {
-        white-space: nowrap;
-    }
-
-    .riwayat-perubahan-page .history-summary {
-        max-width: 520px;
-        white-space: normal;
-    }
-
-    .riwayat-perubahan-page .btn-primary,
-    .riwayat-perubahan-page .badge-light-primary {
-        border-color: #2057a3;
-    }
-
-    .riwayat-json-view {
-        min-height: 180px;
-        max-height: 58vh;
-        overflow: auto;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        background: #f8fafc;
-        color: #111827;
-        padding: .875rem;
-        font-size: .8125rem;
-    }
-
-    @media (max-width: 767.98px) {
-        .riwayat-perubahan-page .page-toolbar .form-group {
-            margin-bottom: .75rem;
-        }
-    }
-</style>
+<link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/riwayat_perubahan.css?v=<?= filemtime(FCPATH . 'assets/css/riwayat_perubahan.css') ?>">
 
 <div class="app-content content riwayat-perubahan-page">
     <div class="content-overlay"></div>
@@ -45,7 +6,7 @@
     <div class="content-wrapper">
         <div class="content-body">
             <div class="divider divider-left">
-                <div class="divider-text">Riwayat Perubahan</div>
+                <div class="divider-text"><?= esc($title ?? 'Riwayat Perubahan') ?></div>
             </div>
 
             <div class="page-toolbar mb-1">
@@ -55,7 +16,7 @@
                             <label for="history-module">Modul</label>
                             <select id="history-module" class="form-control">
                                 <option value="">Semua Modul</option>
-                                <?php foreach ($modules as $key => $label) : ?>
+                                <?php foreach (($modules ?? []) as $key => $label) : ?>
                                     <option value="<?= esc($key) ?>"><?= esc($label) ?></option>
                                 <?php endforeach; ?>
                             </select>
@@ -96,7 +57,7 @@
                         </thead>
                         <tbody id="history-log-body">
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-2">Memuat data...</td>
+                                <td colspan="6" class="text-center text-muted py-3">Memuat data...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -104,8 +65,8 @@
                 <div class="card-footer d-flex align-items-center justify-content-between">
                     <small id="history-log-info" class="text-muted">-</small>
                     <div>
-                        <button type="button" id="history-prev" class="btn btn-outline-secondary btn-sm">Sebelumnya</button>
-                        <button type="button" id="history-next" class="btn btn-outline-primary btn-sm">Berikutnya</button>
+                        <button type="button" id="history-prev" class="btn btn-outline-secondary btn-sm" disabled>Sebelumnya</button>
+                        <button type="button" id="history-next" class="btn btn-outline-primary btn-sm" disabled>Berikutnya</button>
                     </div>
                 </div>
             </div>
@@ -123,139 +84,55 @@
                 </button>
             </div>
             <div class="modal-body">
+                <div id="history-debug-box" class="debug-meta-box d-none" aria-live="polite">
+                    <div class="debug-meta-title">
+                        <i data-feather="terminal" class="mr-50"></i> Debug Metadata Context
+                    </div>
+                    <div class="debug-meta-grid">
+                        <div class="debug-meta-item">
+                            <span class="debug-meta-label">IP Address</span>
+                            <span class="debug-meta-value" id="history-debug-ip">-</span>
+                        </div>
+                        <div class="debug-meta-item">
+                            <span class="debug-meta-label">URI / Endpoint</span>
+                            <span class="debug-meta-value" id="history-debug-uri">-</span>
+                        </div>
+                        <div class="debug-meta-item debug-meta-item-full">
+                            <span class="debug-meta-label">User Agent</span>
+                            <span class="debug-meta-value" id="history-debug-ua">-</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="divider divider-left">
                     <div class="divider-text">Data Lama</div>
                 </div>
                 <pre id="history-old-data" class="riwayat-json-view"></pre>
+
                 <div class="divider divider-left">
                     <div class="divider-text">Data Baru</div>
                 </div>
                 <pre id="history-new-data" class="riwayat-json-view"></pre>
+
                 <div class="divider divider-left">
                     <div class="divider-text">Metadata</div>
                 </div>
                 <pre id="history-metadata" class="riwayat-json-view"></pre>
             </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-dismiss="modal">Tutup</button>
+            </div>
         </div>
     </div>
 </div>
 
-<script src="<?= base_url() ?>/app-assets/vendors/js/vendors.min.js"></script>
+<script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
 <script>
-    (function() {
-        let historyRows = [];
-        let historyOffset = 0;
-        const historyLimit = 20;
-
-        function escapeHtml(value) {
-            return $("<div>").text(value === null || value === undefined || value === "" ? "-" : value).html();
-        }
-
-        function prettyJson(value) {
-            if (!value || (typeof value === "object" && Object.keys(value).length === 0)) {
-                return "{}";
-            }
-            return JSON.stringify(value, null, 2);
-        }
-
-        function loadHistory(offset) {
-            historyOffset = Math.max(0, offset || 0);
-            $("#history-log-body").html('<tr><td colspan="6" class="text-center text-muted py-2">Memuat data...</td></tr>');
-            $("#history-prev, #history-next, #history-filter").prop("disabled", true);
-
-            $.ajax({
-                url: base_url + "api/riwayat-perubahan/list",
-                method: "POST",
-                dataType: "json",
-                data: {
-                    [csrfName]: csrfHash,
-                    module: $("#history-module").val(),
-                    date_from: $("#history-date-from").val(),
-                    date_to: $("#history-date-to").val(),
-                    limit: historyLimit,
-                    offset: historyOffset,
-                },
-                success: function(response) {
-                    if (response.token) {
-                        csrfHash = response.token;
-                        $('input[name="' + csrfName + '"]').val(csrfHash);
-                    }
-
-                    historyRows = response.data || [];
-                    renderRows(response);
-                },
-                error: function(xhr) {
-                    const response = xhr.responseJSON || {};
-                    $("#history-log-body").html('<tr><td colspan="6" class="text-center text-danger py-2">' + escapeHtml(response.messages || "Gagal memuat data") + '</td></tr>');
-                    $("#history-log-info").text("-");
-                },
-                complete: function() {
-                    $("#history-prev, #history-next, #history-filter").prop("disabled", false);
-                }
-            });
-        }
-
-        function renderRows(response) {
-            const rows = response.data || [];
-            const total = parseInt(response.total || 0, 10);
-            const offset = parseInt(response.offset || 0, 10);
-            const limit = parseInt(response.limit || historyLimit, 10);
-
-            if (!rows.length) {
-                $("#history-log-body").html('<tr><td colspan="6" class="text-center text-muted py-2">Belum ada data.</td></tr>');
-            } else {
-                let html = "";
-                rows.forEach(function(row, index) {
-                    html += `
-                        <tr>
-                            <td>${escapeHtml(format_datetime(row.created_at))}</td>
-                            <td><span class="badge badge-light-primary">${escapeHtml(row.module_label)}</span></td>
-                            <td>${escapeHtml(row.action)}</td>
-                            <td class="history-summary">${escapeHtml(row.summary)}</td>
-                            <td>${escapeHtml(row.username)}</td>
-                            <td class="text-right">
-                                <button type="button" class="btn btn-outline-primary btn-sm history-detail-btn" data-index="${index}">
-                                    <i data-feather="eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                $("#history-log-body").html(html);
-            }
-
-            const start = total === 0 ? 0 : offset + 1;
-            const end = Math.min(offset + rows.length, total);
-            $("#history-log-info").text(start + "-" + end + " dari " + total);
-            $("#history-prev").prop("disabled", offset <= 0);
-            $("#history-next").prop("disabled", offset + limit >= total);
-
-            if (window.feather) {
-                feather.replace();
-            }
-        }
-
-        $(document).on("click", ".history-detail-btn", function() {
-            const row = historyRows[parseInt($(this).data("index"), 10)] || {};
-            $("#history-detail-title").text((row.module_label || "Riwayat") + " - " + (row.action || "-"));
-            $("#history-old-data").text(prettyJson(row.old_data));
-            $("#history-new-data").text(prettyJson(row.new_data));
-            $("#history-metadata").text(prettyJson(row.metadata));
-            $("#history-detail-modal").modal("show");
-        });
-
-        $("#history-filter").on("click", function() {
-            loadHistory(0);
-        });
-
-        $("#history-prev").on("click", function() {
-            loadHistory(historyOffset - historyLimit);
-        });
-
-        $("#history-next").on("click", function() {
-            loadHistory(historyOffset + historyLimit);
-        });
-
-        loadHistory(0);
-    })();
+    window.RIWAYAT_PERUBAHAN_CONFIG = <?= json_encode([
+        'listUrl'  => base_url('api/riwayat-perubahan/list'),
+        'csrfName' => csrf_token(),
+        'csrfHash' => csrf_hash(),
+        'limit'    => 20,
+    ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>
+<script src="<?= base_url() ?>assets/js/riwayat_perubahan.js?v=<?= filemtime(FCPATH . 'assets/js/riwayat_perubahan.js') ?>"></script>
