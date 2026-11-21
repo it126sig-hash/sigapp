@@ -126,6 +126,7 @@ class ModuleCatalog
                 'assets_css' => [
                     'siteplan-target.css',
                     'siteplan-planning.css',
+                    'siteplan-request-kavling.css',
                 ],
                 'owner_tables' => [
                     'others',
@@ -135,7 +136,7 @@ class ModuleCatalog
                     'target_siteplan_history',
                     'target_siteplan_request',
                 ],
-                'shared_tables' => ['kavling', 'mkdt', 'keuangan', 'produksi', 'legal', 'tiket_masalah'],
+                'shared_tables' => ['kavling', 'mkdt', 'keuangan', 'produksi', 'legal', 'tiket_masalah', 'kavling_request', 'kavling_request_kavling'],
             ],
             'MKDT' => [
                 'name' => 'MKDT',
@@ -223,6 +224,7 @@ class ModuleCatalog
                     'Transaksi/TransaksiRepository.php',
                     'Transaksi/HargaJualRepository.php',
                     'Transaksi/KavlingRepository.php',
+                    'Transaksi/KavlingRequestRepository.php',
                 ],
                 'models' => ['KavlingModel.php', 'KavlingRequestModel.php', 'FileHargajualModel.php'],
                 'shims' => [
@@ -241,7 +243,7 @@ class ModuleCatalog
                 'views' => ['hargajual'],
                 'assets_js' => ['hargajual.js', 'siteplan/sales.js', 'siteplan/request-kavling.js'],
                 'assets_css' => ['hargajual.css'],
-                'owner_tables' => ['kavling', 'kavling_request', 'file_hargajual', 'hargajual'],
+                'owner_tables' => ['kavling', 'kavling_request', 'kavling_request_jalan', 'kavling_request_kavling', 'file_hargajual', 'hargajual'],
                 'shared_tables' => ['mkdt', 'konsumen', 'keuangan'],
             ],
             'Keuangan' => [

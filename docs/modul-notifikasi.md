@@ -2,7 +2,7 @@
 
 Dokumen ini adalah acuan teknis modul notifikasi SIGAPP. Update file ini setiap ada perubahan alur notifikasi, endpoint, tabel, service, command, konfigurasi delivery, atau side effect.
 
-Terakhir dicek: 2026-11-12 (Pasca-Refactor Arsitektur Modular CI4 Web/Api & Services — Score 100/100, PASS QA)
+Terakhir dicek: 2026-11-21 (Penambahan alur notifikasi balik Request Kavling `NotificationEvent::REQUEST_KAVLING` dari Planning ke pengaju / MKDT)
 
 ## Ringkasan
 
@@ -175,6 +175,21 @@ Catatan implementasi:
 - `NotificationPreferenceService::getUserPreferences()` dan `syncInAppVisibility()` mengevaluasi `relevant_groups` (`3;4`) terhadap seluruh grup user (`resolveUserGroups()` menggabungkan `$userGroupId` dan seluruh baris `auth_groups_users`) sehingga user di luar Keuangan/MKDT secara default mendapatkan `in_app = false`, `email = false`, `web_push = false` kecuali di-override secara eksplisit di `user_notification_preferences`.
 - Klik notifikasi di dropdown navbar (`public/assets/js/scripts.js`) untuk `type && type.startsWith("fee_sales")` mengarahkan ke `/notif/open/{id_notif}` yang me-redirect ke `action_url` (`fee-sales?open_mkdt={id_mkdt}` atau `fee-sales/pengajuan/{share_token}`), dan `public/assets/js/sales/fee_sales.js` membaca query string `?open_mkdt=` saat halaman dimuat untuk otomatis membuka `openDetailModal(openMkdt)`.
 
+## Event Request Kavling (`NotificationEvent::REQUEST_KAVLING`)
+
+Modul `Transaksi` (`App\Services\Transaksi\KavlingRequestService`) mengirim event `request_kavling` (`NotificationEvent::REQUEST_KAVLING`) melalui `NotifikasiService::create()` dengan dua arah komunikasi: pengajuan dari MKDT/Admin ke Planning dan **notifikasi balik** dari Planning ke pengaju / MKDT. Event ini terdaftar di `NotificationEventTypeSeeder` dengan default `default_in_app = 1`, `default_email = 1`, `default_web_push = 1`, `is_mandatory = 0`, `relevant_groups = '6'`.
+
+| Arah / Pemicu | Method Pemicu | Target Audience | Action URL | Template Pesan & Prioritas |
+|---|---|---|---|---|
+| **Pengajuan Tambah Kavling Baru (Multi-Jalan)** | `KavlingRequestService::submitTambahBaru()` | `NotificationAudience::forGroups([6])` (Planning + opt-in preferensi) | `siteplan/view` | `"[Request Siteplan] {pengaju} mengajukan penambahan kavling baru ({lokasiText}). Tipe: {tipeText} di {namaProyek}. Catatan: {keterangan}"` (normal; `default_in_app=1, default_email=1, default_web_push=1`) |
+| **Pengajuan Ubah Tipe (Multi-Kavling / Single / Batch Target)** | `submitMultiUbahTipe()`, `submitLegacySingleUbahTipe()`, `submitBatchItemsUbahTipe()` | `NotificationAudience::forGroups([6])` (Planning + opt-in preferensi) | `siteplan/view?id_kavling={id}` (1 kavling) atau `siteplan/view` (multi/batch) | `"[Request Siteplan] {pengaju} mengajukan perubahan tipe {countKav} kavling ({previewText}) menjadi {tipeText} di {namaProyek}. Catatan: {keterangan}"` (atau format tunggal/batch) |
+| **Notifikasi Balik Selesai / Ditolak oleh Planning** | `KavlingRequestService::updateStatus()` saat `status` = `'approved'` / `'rejected'` (memanggil `sendStatusFeedbackNotification()`) | `NotificationAudience::forUsers([$createdBy])` jika `created_by > 0`; fallback `NotificationAudience::forGroups([4])` (MKDT) | `siteplan/view?id_kavling={id}` atau `siteplan/view` | `"[Request Siteplan] Pengajuan {jenisLabel} (#{idRequest}) di {namaProyek} telah {statusText} oleh {pemroses}."` (`statusText`: `'disetujui / selesai dikerjakan'` \| `'ditolak'`) + `" Catatan Planning: {catatanPlanning}"` (bila diisi) |
+| **Notifikasi Balik Terapkan Ubah Tipe Kavling** | `KavlingRequestService::applyUbahTipeKavling()` (memanggil `sendStatusFeedbackNotification()`) | `NotificationAudience::forUsers([$createdBy])` jika `created_by > 0`; fallback `NotificationAudience::forGroups([4])` (MKDT) | `siteplan/view?id_kavling={id}` (1 kavling terpengaruh) atau `siteplan/view` | `"[Request Siteplan] Pengajuan ubah tipe kavling (#{idRequest}) di {namaProyek} telah disetujui / selesai dikerjakan oleh {pemroses}. Tipe diterapkan menjadi {appliedTipeLabel} untuk {N} kavling."` + `" Catatan Planning: {catatanPlanning}"` (bila diisi) |
+
+Catatan implementasi:
+- Pemanggilan notifikasi balik pada `sendStatusFeedbackNotification()` menggunakan `NotificationAudience::forUsers([$createdBy])` bila `kavling_request.created_by > 0` agar notifikasi bersifat personal ke pengaju awal tanpa membocorkan ke seluruh user atau otomatis menambahkan admin/actor lain; bila `created_by` tidak tersedia, audiens dialihkan ke Group `4` (`NotificationAudience::forGroups([4])` — MKDT).
+- Seluruh pemanggilan `NotifikasiService::create()` pada `KavlingRequestService` dibungkus di dalam transaksi DB (`transStart`/`transComplete`), dan `action_url` mendukung pembukaan proyek terkait melalui endpoint `/notif/open/{id}`.
+
 ## Read Path
 
 `Notif.php` memakai `NotificationRepository`:

@@ -149,6 +149,66 @@ class KavlingRepository
         return $builder->get($limit)->getResult();
     }
 
+    /**
+     * Daftar kavling untuk dropdown/autocomplete pengajuan ubah tipe (memblokir status Akad & Akad Indent).
+     */
+    public function getKavlingListForRequest(int $idProyek, string $search = '', int $limit = 50): array
+    {
+        if ($idProyek <= 0) {
+            return [];
+        }
+
+        $builder = $this->db->table('kavling')
+            ->select('
+                kavling.id_kavling,
+                jalan.nama_jalan,
+                kavling.no_kavling,
+                kavling.id_tipe,
+                tipe.no_tipe_rumah,
+                tipe.tipe_rumah,
+                kavling.id_mkdt,
+                mkdt.status_mkdt,
+                mkdt.is_batal,
+                mkdt.akad,
+                mkdt.akad_indent,
+                konsumen.nama_konsumen
+            ')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+            ->join('tipe', 'tipe.id_tipe = kavling.id_tipe', 'left')
+            ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left')
+            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
+            ->where('proyek.id_proyek', $idProyek)
+            ->where(
+                "NOT (mkdt.id_mkdt IS NOT NULL AND COALESCE(mkdt.is_batal, 0) = 0 AND LOWER(COALESCE(mkdt.status_mkdt, '')) != 'batal' AND (LOWER(COALESCE(mkdt.status_mkdt, '')) = 'akad' OR COALESCE(mkdt.akad, 0) = 1 OR COALESCE(mkdt.akad_indent, 0) = 1))",
+                null,
+                false
+            );
+
+        $search = trim($search);
+        if ($search !== '') {
+            $builder->groupStart()
+                ->like("CONCAT(jalan.nama_jalan, ' ', kavling.no_kavling)", $search)
+                ->orLike("CONCAT(jalan.nama_jalan, ' No. ', kavling.no_kavling)", $search)
+                ->orLike("CONCAT(jalan.nama_jalan, ' no ', kavling.no_kavling)", $search)
+                ->orLike('jalan.nama_jalan', $search)
+                ->orLike('kavling.no_kavling', $search)
+                ->orLike('konsumen.nama_konsumen', $search)
+                ->orLike('tipe.no_tipe_rumah', $search)
+                ->orLike('tipe.tipe_rumah', $search)
+                ->groupEnd();
+        }
+
+        $builder->orderBy('jalan.nama_jalan', 'ASC')
+            ->orderBy('ABS(kavling.no_kavling)', 'ASC')
+            ->orderBy('kavling.no_kavling', 'ASC');
+
+        $safeLimit = $limit > 0 ? $limit : 50;
+
+        return $builder->get($safeLimit)->getResult();
+    }
+
     public function getDiskresiByKavlingId(int $idKavling): ?object
     {
         return $this->db->table('kavling k')

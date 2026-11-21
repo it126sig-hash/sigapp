@@ -2036,6 +2036,11 @@ Date.prototype.toDateInputValue = (function() {
                         rotation: r[p].rotation,
                         luas_tanah: r[p].luas_tanah,
                         is_batal: r[p].is_batal,
+                        akad: r[p].akad,
+                        akad_tgl: r[p].akad_tgl,
+                        akad_indent: r[p].akad_indent,
+                        akad_indent_tgl: r[p].akad_indent_tgl,
+                        nama_konsumen: r[p].nama_konsumen || null,
                     };
                     const data2Obj = {
                         id_hargajual: id_hargajual,
@@ -2109,6 +2114,10 @@ Date.prototype.toDateInputValue = (function() {
                 syncSiteplanTiketOverlay();
                 if (window.isTargetSetModeActive() && typeof window.renderTargetStagedCanvasHighlights === 'function') {
                     window.renderTargetStagedCanvasHighlights();
+                }
+                if (typeof window.isRequestKavlingCanvasPickActive === 'function' && window.isRequestKavlingCanvasPickActive()
+                    && typeof window.renderRequestKavlingCanvasHighlights === 'function') {
+                    window.renderRequestKavlingCanvasHighlights();
                 }
                 set_keterangan_warna()
                 cek_tanggal_pembangunan(refresh)
@@ -2214,6 +2223,10 @@ Date.prototype.toDateInputValue = (function() {
                 syncSiteplanTiketOverlay();
                 if (window.isTargetSetModeActive() && typeof window.renderTargetStagedCanvasHighlights === 'function') {
                     window.renderTargetStagedCanvasHighlights();
+                }
+                if (typeof window.isRequestKavlingCanvasPickActive === 'function' && window.isRequestKavlingCanvasPickActive()
+                    && typeof window.renderRequestKavlingCanvasHighlights === 'function') {
+                    window.renderRequestKavlingCanvasHighlights();
                 }
                 
                 if (activeKategori.includes('Masalah')) {
@@ -2413,6 +2426,12 @@ Date.prototype.toDateInputValue = (function() {
         if (typeof window.isTargetSetModeActive === 'function' && window.isTargetSetModeActive()) {
             if (typeof window.handleTargetCanvasClick === 'function') {
                 window.handleTargetCanvasClick(sh, id_kavling);
+            }
+            return;
+        }
+        if (typeof window.isRequestKavlingCanvasPickActive === 'function' && window.isRequestKavlingCanvasPickActive()) {
+            if (typeof window.handleRequestKavlingCanvasClick === 'function') {
+                window.handleRequestKavlingCanvasClick(sh, id_kavling);
             }
             return;
         }
@@ -3930,6 +3949,9 @@ Date.prototype.toDateInputValue = (function() {
         if (typeof window.isTargetSetModeActive === 'function' && window.isTargetSetModeActive()) {
             return;
         }
+        if (typeof window.isRequestKavlingCanvasPickActive === 'function' && window.isRequestKavlingCanvasPickActive()) {
+            return;
+        }
 
         if (e.target === stage) {
             // if we are on empty place of the stage we will do nothing
@@ -4946,6 +4968,11 @@ Date.prototype.toDateInputValue = (function() {
         if (event.key === 'Escape') {
             if (typeof window.isExportCropModeActive === 'function' && window.isExportCropModeActive()) {
                 cancelExportCropSelection();
+                return;
+            }
+            if (typeof window.isRequestKavlingCanvasPickActive === 'function' && window.isRequestKavlingCanvasPickActive()
+                && typeof window.cancelRequestKavlingCanvasPick === 'function') {
+                window.cancelRequestKavlingCanvasPick();
                 return;
             }
             hapus_seleksi()

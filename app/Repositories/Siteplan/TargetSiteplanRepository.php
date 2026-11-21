@@ -316,6 +316,29 @@ class TargetSiteplanRepository
             ->get()
             ->getResult();
 
+        if ($this->db->tableExists('kavling_request_kavling')) {
+            $childRows = $this->db->table('kavling_request_kavling krk')
+                ->select('kr.id_request, krk.id_kavling, kr.status, kr.created_at')
+                ->join('kavling_request kr', 'kr.id_request = krk.id_request')
+                ->whereIn('krk.id_kavling', $ids)
+                ->where('kr.jenis_request', 'ubah_tipe')
+                ->orderBy('kr.id_request', 'desc')
+                ->get()
+                ->getResult();
+
+            if ($childRows !== []) {
+                $merged = [];
+                foreach (array_merge($childRows, $reqRows) as $row) {
+                    $key = ((int) ($row->id_request ?? 0)) . ':' . ((int) ($row->id_kavling ?? 0));
+                    if (! isset($merged[$key])) {
+                        $merged[$key] = $row;
+                    }
+                }
+                $reqRows = array_values($merged);
+                usort($reqRows, static fn (object $a, object $b): int => (int) ($b->id_request ?? 0) <=> (int) ($a->id_request ?? 0));
+            }
+        }
+
         $latestByKavling = [];
         $pendingByKavling = [];
 

@@ -24,7 +24,7 @@ class KavlingRequestController extends BaseApiController
     }
 
     /**
-     * Submit pengajuan request penambahan atau ubah tipe kavling (single maupun batch ubah_tipe)
+     * Submit pengajuan request penambahan atau ubah tipe kavling
      */
     public function submit(): ResponseInterface
     {
@@ -33,13 +33,25 @@ class KavlingRequestController extends BaseApiController
             return $this->error('Sesi telah berakhir, silakan login kembali.', 401);
         }
 
-        $input = $this->getRequestData();
+        $input         = $this->getRequestData();
+        $allowedGroups = array_key_exists('items', $input) ? ['1', '4', '6'] : ['1', '4'];
+        if (! in_groups($allowedGroups)) {
+            return $this->error('Akses ditolak. Anda tidak memiliki hak akses untuk mengajukan request kavling.', 403);
+        }
 
         $rules = [
             'id_proyek'     => 'required|is_natural_no_zero',
             'jenis_request' => 'required|in_list[tambah_baru,ubah_tipe]',
+            'id_tipe'       => 'permit_empty|is_natural_no_zero',
             'tipe_manual'   => 'permit_empty|max_length[100]',
         ];
+
+        if (! array_key_exists('items', $input)) {
+            if (array_key_exists('keterangan', $input)) {
+                $input['keterangan'] = trim((string) $input['keterangan']);
+            }
+            $rules['keterangan'] = 'required|min_length[1]';
+        }
 
         if (! $this->validateData($input, $rules)) {
             return $this->error('Validasi gagal', 422, $this->validator->getErrors());
@@ -51,10 +63,25 @@ class KavlingRequestController extends BaseApiController
             ]);
         }
 
-        if (array_key_exists('id_kavlings', $input) && empty($input['id_kavlings'])) {
-            return $this->error('Validasi gagal', 422, [
-                'id_kavlings' => 'Daftar kavling pengajuan tidak boleh kosong.',
-            ]);
+        if ($input['jenis_request'] === 'tambah_baru' && array_key_exists('id_jalans', $input)) {
+            if ($input['id_jalans'] !== null && $input['id_jalans'] !== '' && ! is_array($input['id_jalans'])) {
+                return $this->error('Validasi gagal', 422, [
+                    'id_jalans' => 'Daftar jalan pengajuan wajib berupa array.',
+                ]);
+            }
+        }
+
+        if ($input['jenis_request'] === 'ubah_tipe' && ! array_key_exists('items', $input)) {
+            $rawKavlings   = $input['id_kavlings'] ?? null;
+            $validKavlings = is_array($rawKavlings)
+                ? array_values(array_filter(array_map('intval', $rawKavlings), static fn (int $id): bool => $id > 0))
+                : [];
+
+            if ($validKavlings === []) {
+                return $this->error('Validasi gagal', 422, [
+                    'id_kavlings' => 'Minimal 1 kavling harus dipilih untuk pengajuan ubah tipe.',
+                ]);
+            }
         }
 
         try {
@@ -67,16 +94,20 @@ class KavlingRequestController extends BaseApiController
     }
 
     /**
-     * List kavling untuk select2 dropdown pada proyek tertentu
+     * List kavling untuk select2 dropdown pada proyek tertentu (memblokir Akad & Akad Indent)
      */
     public function kavlingList(): ResponseInterface
     {
+        if (! in_groups(['1', '4', '6'])) {
+            return $this->error('Akses ditolak. Anda tidak memiliki hak akses untuk melihat daftar kavling.', 403);
+        }
+
         $input    = $this->getRequestData();
         $idProyek = (int) ($input['id_proyek'] ?? 0);
         $search   = (string) ($input['search'] ?? '');
         $limit    = isset($input['limit']) && (int) $input['limit'] > 0
             ? min(100, (int) $input['limit'])
-            : 30;
+            : 50;
 
         if ($idProyek <= 0) {
             return $this->respond([
@@ -88,13 +119,44 @@ class KavlingRequestController extends BaseApiController
             ]);
         }
 
-        $list = $this->kavlingRepo->getKavlingList($idProyek, $search, $limit);
-
+        $list    = $this->kavlingRepo->getKavlingListForRequest($idProyek, $search, $limit);
         $results = [];
+
         foreach ($list as $item) {
+            $hasActive = ! empty($item->id_mkdt)
+                && (int) ($item->is_batal ?? 0) === 0
+                && strcasecmp(trim((string) ($item->status_mkdt ?? '')), 'Batal') !== 0;
+
+            $noTipe           = trim((string) ($item->no_tipe_rumah ?? ''));
+            $namaTipe         = trim((string) ($item->tipe_rumah ?? ''));
+            $currentTipeLabel = null;
+            if ($noTipe !== '' && $namaTipe !== '') {
+                $currentTipeLabel = "{$noTipe} ({$namaTipe})";
+            } elseif ($noTipe !== '' || $namaTipe !== '') {
+                $currentTipeLabel = $noTipe !== '' ? $noTipe : $namaTipe;
+            }
+
+            $namaKonsumen = $hasActive ? ($item->nama_konsumen ?: null) : null;
+            $statusMkdt   = $hasActive ? ($item->status_mkdt ?: null) : null;
+
+            $text = trim((string) $item->nama_jalan) . ' No. ' . trim((string) $item->no_kavling);
+            if ($currentTipeLabel !== null) {
+                $text .= ' - ' . $currentTipeLabel;
+            }
+            if ($hasActive && $namaKonsumen !== null) {
+                $text .= ' [Konsumen: ' . $namaKonsumen . ($statusMkdt !== null ? ' - ' . $statusMkdt : '') . ']';
+            }
+
             $results[] = [
-                'id'   => (int) $item->id_kavling,
-                'text' => $item->nama_jalan . ' No. ' . $item->no_kavling,
+                'id'                  => (int) $item->id_kavling,
+                'no_kavling'          => (string) $item->no_kavling,
+                'nama_jalan'          => (string) $item->nama_jalan,
+                'current_id_tipe'     => ! empty($item->id_tipe) ? (int) $item->id_tipe : null,
+                'current_tipe_label'  => $currentTipeLabel,
+                'has_active_konsumen' => $hasActive,
+                'nama_konsumen'       => $namaKonsumen,
+                'status_mkdt'         => $statusMkdt,
+                'text'                => $text,
             ];
         }
 
@@ -108,11 +170,11 @@ class KavlingRequestController extends BaseApiController
     }
 
     /**
-     * Menampilkan daftar request kavling untuk tim Planning / Admin / MKDT / Keuangan / Promosi
+     * Menampilkan daftar request kavling untuk Admin / MKDT / Planning
      */
     public function list(): ResponseInterface
     {
-        if (! in_groups(['1', '3', '4', '6', '8'])) {
+        if (! in_groups(['1', '4', '6'])) {
             return $this->error('Akses ditolak. Anda tidak memiliki hak akses untuk melihat daftar request kavling.', 403);
         }
 
@@ -122,12 +184,19 @@ class KavlingRequestController extends BaseApiController
             return $this->error('ID Proyek diperlukan', 400);
         }
 
-        $rawStatus    = isset($input['status']) ? trim((string) $input['status']) : '';
-        $statusFilter = in_array($rawStatus, ['pending', 'approved', 'rejected'], true) ? $rawStatus : null;
+        $rawJenis    = isset($input['jenis_request']) ? trim((string) $input['jenis_request']) : '';
+        $jenisFilter = in_array($rawJenis, ['tambah_baru', 'ubah_tipe'], true) ? $rawJenis : null;
+        if ($rawJenis !== '' && $rawJenis !== 'all' && $jenisFilter === null) {
+            return $this->error('Filter jenis request tidak valid.', 422, [
+                'jenis_request' => 'Jenis request harus bernilai tambah_baru, ubah_tipe, atau all.',
+            ]);
+        }
 
+        $rawStatus    = isset($input['status']) ? trim((string) $input['status']) : '';
+        $statusFilter = in_array($rawStatus, ['pending', 'approved', 'rejected', 'history'], true) ? $rawStatus : null;
         if ($rawStatus !== '' && $rawStatus !== 'all' && $statusFilter === null) {
             return $this->error('Filter status tidak valid.', 422, [
-                'status' => 'Status harus bernilai pending, approved, atau rejected.',
+                'status' => 'Status harus bernilai pending, approved, rejected, history, atau all.',
             ]);
         }
 
@@ -138,14 +207,9 @@ class KavlingRequestController extends BaseApiController
             : 500;
 
         try {
-            $data   = $this->service->getList($idProyek, $statusFilter, $page, $perPage);
+            $data   = $this->service->getList($idProyek, $statusFilter, $page, $perPage, $jenisFilter);
             $counts = $this->service->getStatusCounts($idProyek);
-            $total  = match ($statusFilter) {
-                'pending'  => $counts['pending'],
-                'approved' => $counts['approved'],
-                'rejected' => $counts['rejected'],
-                default    => $counts['all'],
-            };
+            $total  = $this->service->countFiltered($idProyek, $jenisFilter, $statusFilter);
 
             return $this->respond([
                 'success'  => true,
@@ -153,9 +217,14 @@ class KavlingRequestController extends BaseApiController
                 'data'     => $data,
                 'counts'   => $counts,
                 'meta'     => [
-                    'page'     => $page,
-                    'per_page' => $perPage,
-                    'total'    => $total,
+                    'page'        => $page,
+                    'per_page'    => $perPage,
+                    'total'       => $total,
+                    'permissions' => [
+                        'can_submit'             => in_groups(['1', '4']),
+                        'can_process'            => in_groups(['1', '6']),
+                        'can_apply_ubah_kavling' => in_groups(['1', '6']),
+                    ],
                 ],
                 'token'    => csrf_hash(),
             ]);
@@ -165,7 +234,7 @@ class KavlingRequestController extends BaseApiController
     }
 
     /**
-     * Mengubah status request kavling (contoh: approved/selesai, pending, atau rejected)
+     * Mengubah status request kavling (pending, approved, atau rejected)
      */
     public function updateStatus(): ResponseInterface
     {
@@ -173,10 +242,10 @@ class KavlingRequestController extends BaseApiController
             return $this->error('Akses ditolak. Hanya tim Planning yang dapat mengubah status request.', 403);
         }
 
-        $input       = $this->getRequestData();
-        $idRequest   = (int) ($input['id_request'] ?? 0);
-        $status      = trim((string) ($input['status'] ?? ''));
-        $alasanTolak = trim((string) ($input['alasan_tolak'] ?? $input['notes'] ?? ''));
+        $input           = $this->getRequestData();
+        $idRequest       = (int) ($input['id_request'] ?? 0);
+        $status          = trim((string) ($input['status'] ?? ''));
+        $catatanPlanning = trim((string) ($input['catatan_planning'] ?? $input['alasan_tolak'] ?? $input['notes'] ?? ''));
 
         if ($idRequest <= 0 || $status === '') {
             return $this->error('Parameter id_request dan status wajib diisi.', 400);
@@ -188,17 +257,58 @@ class KavlingRequestController extends BaseApiController
             ]);
         }
 
-        $isSpaClient  = $this->request->header('X-Client-Platform') !== null;
-        $hasReasonKey = array_key_exists('alasan_tolak', $input) || array_key_exists('notes', $input);
-        if ($status === 'rejected' && ($isSpaClient || $hasReasonKey) && $alasanTolak === '') {
-            return $this->error('Alasan penolakan wajib diisi saat menolak request.', 422, [
-                'alasan_tolak' => 'Alasan penolakan wajib diisi.',
+        if ($status === 'rejected' && $catatanPlanning === '') {
+            return $this->error('Catatan/alasan penolakan wajib diisi saat menolak request.', 422, [
+                'catatan_planning' => 'Catatan/alasan penolakan wajib diisi.',
             ]);
         }
 
         try {
             $userId = (int) (function_exists('user_id') ? (user_id() ?? 0) : 0);
-            $result = $this->service->updateStatus($idRequest, $status, $userId, $alasanTolak !== '' ? $alasanTolak : null);
+            $result = $this->service->updateStatus($idRequest, $status, $userId, $catatanPlanning !== '' ? $catatanPlanning : null);
+
+            return $this->success($result, $result['message']);
+        } catch (Throwable $e) {
+            $code = str_contains(strtolower($e->getMessage()), 'tidak ditemukan') ? 404 : 400;
+
+            return $this->error($e->getMessage(), $code);
+        }
+    }
+
+    /**
+     * Terapkan perubahan tipe kavling secara langsung dari request ubah_tipe
+     */
+    public function applyUbahKavling(): ResponseInterface
+    {
+        $userId = (int) (function_exists('user_id') ? (user_id() ?? 0) : 0);
+        if ($userId <= 0) {
+            return $this->error('Sesi telah berakhir, silakan login kembali.', 401);
+        }
+
+        if (! in_groups(['1', '6'])) {
+            return $this->error('Akses ditolak. Hanya tim Planning yang dapat menerapkan perubahan tipe kavling.', 403);
+        }
+
+        $input = $this->getRequestData();
+        $rules = [
+            'id_request'       => 'required|is_natural_no_zero',
+            'id_tipe'          => 'required|is_natural_no_zero',
+            'catatan_planning' => 'permit_empty|string',
+        ];
+
+        if (! $this->validateData($input, $rules)) {
+            return $this->error('Validasi gagal', 422, $this->validator->getErrors());
+        }
+
+        $catatan = isset($input['catatan_planning']) ? trim((string) $input['catatan_planning']) : null;
+
+        try {
+            $result = $this->service->applyUbahTipeKavling(
+                (int) $input['id_request'],
+                (int) $input['id_tipe'],
+                $userId,
+                ($catatan !== null && $catatan !== '') ? $catatan : null
+            );
 
             return $this->success($result, $result['message']);
         } catch (Throwable $e) {

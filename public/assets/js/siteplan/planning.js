@@ -1347,6 +1347,7 @@ $(document).ready(function() {
     if (typeof stage !== 'undefined') {
         stage.on('click.planningDeselect tap.planningDeselect', function(e) {
             if (typeof window.isTargetSetModeActive === 'function' && window.isTargetSetModeActive()) return;
+            if (typeof window.isRequestKavlingCanvasPickActive === 'function' && window.isRequestKavlingCanvasPickActive()) return;
             if (typeof isFacadeArrowActive !== 'undefined' && isFacadeArrowActive) return;
             if (typeof isManualSelectionActive === 'function' && isManualSelectionActive()) return;
             if ($("#tambah_jalan").prop("checked")) return; 

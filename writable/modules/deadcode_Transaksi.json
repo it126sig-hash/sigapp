@@ -2,17 +2,7 @@
     {
         "layer": "Service",
         "file": "TransaksiService.php",
-        "name": "getMeta"
-    },
-    {
-        "layer": "Service",
-        "file": "TransaksiService.php",
         "name": "update"
-    },
-    {
-        "layer": "Service",
-        "file": "HargaJualService.php",
-        "name": "getMeta"
     },
     {
         "layer": "Service",
